@@ -138,6 +138,7 @@ public:
     bool is_string() const { return m_type == Type::String; }
     bool is_thread() const { return m_type == Type::Thread; }
     bool is_thread_backtrace_location() const { return m_type == Type::ThreadBacktraceLocation; }
+    bool is_thread_group() const { return m_type == Type::ThreadGroup; }
     bool is_thread_mutex() const { return m_type == Type::ThreadMutex; }
     bool is_time() const { return m_type == Type::Time; }
     bool is_unbound_method() const { return m_type == Type::UnboundMethod; }
@@ -205,6 +206,8 @@ public:
     const ThreadObject *as_thread() const;
     Thread::Backtrace::LocationObject *as_thread_backtrace_location();
     const Thread::Backtrace::LocationObject *as_thread_backtrace_location() const;
+    ThreadGroupObject *as_thread_group();
+    const ThreadGroupObject *as_thread_group() const;
     Thread::MutexObject *as_thread_mutex();
     const Thread::MutexObject *as_thread_mutex() const;
     TimeObject *as_time();

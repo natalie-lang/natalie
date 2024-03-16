@@ -192,6 +192,9 @@ public:
     SuspendStatus suspend_status() const { return m_suspend_status; }
     void set_suspend_status(SuspendStatus status) { m_suspend_status = status; }
 
+    ThreadGroupObject *group() { return m_group; }
+    void set_group(ThreadGroupObject *group) { m_group = group; }
+
     virtual void visit_children(Visitor &) override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -288,6 +291,7 @@ private:
     TM::Optional<TM::String> m_name {};
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
+    ThreadGroupObject *m_group { nullptr };
 
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
