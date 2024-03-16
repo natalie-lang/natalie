@@ -33,6 +33,18 @@ module Natalie
         hash = Hash[items.each_slice(2).to_a]
         vm.push(hash)
       end
+
+      def serialize
+        [
+          instruction_number,
+          @count,
+        ].pack('Cw')
+      end
+
+      def self.deserialize(io)
+        count = io.read_ber_integer
+        new(count:)
+      end
     end
   end
 end
