@@ -48,29 +48,25 @@ describe "IO#wait" do
     end
 
     it "waits for the READABLE event to be ready" do
-      NATFIXME 'Implement Queue', exception: NameError, message: 'uninitialized constant Queue' do
-        queue = Queue.new
-        thread = Thread.new { queue.pop; sleep 1; @w.write('data to read') };
+      queue = Queue.new
+      thread = Thread.new { queue.pop; sleep 1; @w.write('data to read') };
 
-        queue.push('signal');
-        @r.wait(IO::READABLE, 2).should_not == nil
+      queue.push('signal');
+      @r.wait(IO::READABLE, 2).should_not == nil
 
-        thread.join
-      end
+      thread.join
     end
 
     it "waits for the WRITABLE event to be ready" do
       written_bytes = IOWaitSpec.exhaust_write_buffer(@w)
 
-      NATFIXME 'Implement Queue', exception: NameError, message: 'uninitialized constant Queue' do
-        queue = Queue.new
-        thread = Thread.new { queue.pop; sleep 1; @r.read(written_bytes) };
+      queue = Queue.new
+      thread = Thread.new { queue.pop; sleep 1; @r.read(written_bytes) };
 
-        queue.push('signal');
-        @w.wait(IO::WRITABLE, 2).should_not == nil
+      queue.push('signal');
+      @w.wait(IO::WRITABLE, 2).should_not == nil
 
-        thread.join
-      end
+      thread.join
     end
 
     it "returns nil when the READABLE event is not ready during the timeout" do

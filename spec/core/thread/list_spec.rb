@@ -27,16 +27,14 @@ describe "Thread.list" do
   end
 
   it "includes waiting threads" do
-    NATFIXME 'Add Queue', exception: NameError, message: 'uninitialized constant Queue' do
-      q = Queue.new
-      t = Thread.new { q.pop }
-      begin
-        Thread.pass while t.status and t.status != 'sleep'
-        Thread.list.should include(t)
-      ensure
-        q << nil
-        t.join
-      end
+    q = Queue.new
+    t = Thread.new { q.pop }
+    begin
+      Thread.pass while t.status and t.status != 'sleep'
+      Thread.list.should include(t)
+    ensure
+      q << nil
+      t.join
     end
   end
 
