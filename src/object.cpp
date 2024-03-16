@@ -463,6 +463,16 @@ const Thread::Backtrace::LocationObject *Object::as_thread_backtrace_location() 
     return static_cast<const Thread::Backtrace::LocationObject *>(this);
 }
 
+ThreadGroupObject *Object::as_thread_group() {
+    assert(is_thread_group());
+    return static_cast<ThreadGroupObject *>(this);
+}
+
+const ThreadGroupObject *Object::as_thread_group() const {
+    assert(is_thread_group());
+    return static_cast<const ThreadGroupObject *>(this);
+}
+
 Thread::MutexObject *Object::as_thread_mutex() {
     assert(is_thread_mutex());
     return static_cast<Thread::MutexObject *>(this);

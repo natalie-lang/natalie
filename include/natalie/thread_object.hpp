@@ -193,6 +193,7 @@ public:
     void set_suspend_status(SuspendStatus status) { m_suspend_status = status; }
 
     ThreadGroupObject *group() { return m_group; }
+    void set_group(ThreadGroupObject *group) { m_group = group; }
 
     virtual void visit_children(Visitor &) override final;
 

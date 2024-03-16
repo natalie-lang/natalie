@@ -1,5 +1,8 @@
 #pragma once
 
+#include <mutex>
+
+#include "natalie/array_object.hpp"
 #include "natalie/class_object.hpp"
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
@@ -18,13 +21,19 @@ public:
     ThreadGroupObject(ClassObject *klass, Block *block)
         : Object { Object::Type::ThreadGroup, klass } { }
 
+    Value add(Env *, Value);
+    ArrayObject *list();
+
     static void initialize_default();
     static ThreadGroupObject *get_default() { return m_default; }
 
     virtual void visit_children(Visitor &) override final;
 
 private:
+    std::mutex m_mutex;
+
     static inline ThreadGroupObject *m_default { nullptr };
+    Vector<ThreadObject *> m_threads;
 };
 
 }

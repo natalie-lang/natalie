@@ -1385,6 +1385,9 @@ gen.binding('Thread', 'to_s', 'ThreadObject', 'to_s', argc: 0, pass_env: true, p
 gen.binding('Thread', 'value', 'ThreadObject', 'value', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'wakeup', 'ThreadObject', 'wakeup', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
+gen.binding('ThreadGroup', 'add', 'ThreadGroupObject', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('ThreadGroup', 'list', 'ThreadGroupObject', 'list', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+
 gen.undefine_singleton_method('ThreadBacktraceLocation', 'new')
 gen.binding('Thread::Backtrace::Location', 'absolute_path', 'Thread::Backtrace::LocationObject', 'absolute_path', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread::Backtrace::Location', 'inspect', 'Thread::Backtrace::LocationObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
