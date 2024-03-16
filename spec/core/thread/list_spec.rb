@@ -10,10 +10,8 @@ describe "Thread.list" do
   it "includes threads of non-default thread groups" do
     t = Thread.new { sleep }
     begin
-      NATFIXME 'Add ThreadGroup', exception: NameError, message: 'uninitialized constant ThreadGroup' do
-        ThreadGroup.new.add(t)
-        Thread.list.should include(t)
-      end
+      ThreadGroup.new.add(t)
+      Thread.list.should include(t)
     ensure
       t.kill
       t.join
