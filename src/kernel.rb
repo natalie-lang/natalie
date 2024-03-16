@@ -81,6 +81,7 @@ module Kernel
     end
     nil
   end
+  module_function :warn
 
   class SprintfFormatter
     def initialize(format_string, arguments)
@@ -845,11 +846,12 @@ module Kernel
     end
     File.open(filename, *a, **kw, &blk)
   end
-  private :open
+  module_function :open
 
   def putc(char)
     $stdout.putc(char)
   end
+  module_function :putc
 
   alias format sprintf
 
@@ -860,6 +862,7 @@ module Kernel
       args[0].write(sprintf(*args[1..]))
     end
   end
+  module_function :printf
 
   def system(...)
     Process.wait(spawn(...))

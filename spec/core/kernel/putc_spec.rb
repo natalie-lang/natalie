@@ -4,9 +4,7 @@ require_relative '../../shared/io/putc'
 
 describe "Kernel#putc" do
   it "is a private instance method" do
-    NATFIXME 'is a private instance method', exception: SpecFailedException do
-      Kernel.should have_private_instance_method(:putc)
-    end
+    Kernel.should have_private_instance_method(:putc)
   end
 end
 
