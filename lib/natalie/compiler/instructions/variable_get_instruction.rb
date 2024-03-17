@@ -72,7 +72,7 @@ module Natalie
       def self.deserialize(io)
         size = io.read_ber_integer
         name = io.read(size)
-        default_to_nil = io.getbyte == 1
+        default_to_nil = io.getbool
         new(name, default_to_nil: default_to_nil)
       end
     end
