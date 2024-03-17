@@ -172,7 +172,7 @@ class Runner
     elsif options[:debug] == 'edit'
       edit_compile_run_loop
     elsif options[:bytecode]
-      compile_and_run_bytecode(@source_path)
+      compile_and_run_bytecode(@source_path, options)
     else
       compile_and_run
     end
@@ -254,8 +254,12 @@ class Runner
     end
   end
 
-  def compile_and_run_bytecode(path)
+  def compile_and_run_bytecode(path, options)
     loader = Natalie::Compiler::BytecodeLoader.new(File.open(path, 'rb'))
+    if /\Ap\d\z/.match?(options[:debug])
+      puts loader.instructions
+      exit 0
+    end
     im = Natalie::Compiler::InstructionManager.new(loader.instructions)
     Natalie::VM.new(im, path: path).run
   end
