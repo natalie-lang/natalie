@@ -19,6 +19,10 @@ module Natalie
           @io = io
         end
 
+        def getbool
+          getbyte == 1
+        end
+
         def getbyte
           @io.getbyte
         end

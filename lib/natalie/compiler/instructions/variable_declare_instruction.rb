@@ -53,7 +53,7 @@ module Natalie
       def self.deserialize(io)
         size = io.read_ber_integer
         name = io.read(size)
-        local_only = io.getbyte == 1
+        local_only = io.getbool
         new(name, local_only:)
       end
     end
