@@ -144,21 +144,22 @@ module Natalie
 
       def serialize
         message_string = @message.to_s
+        flags = 0
+        [receiver_is_self, with_block, args_array_on_stack, has_keyword_hash].each_with_index do |flag, index|
+          flags |= (1 << index) if flag
+        end
         [
           instruction_number,
           message_string.bytesize,
           message_string,
-          receiver_is_self ? 1 : 0,
-          with_block ? 1 : 0,
-          args_array_on_stack ? 1 : 0,
-          has_keyword_hash ? 1 : 0,
-        ].pack("Cwa#{message_string.bytesize}CCCC")
+          flags,
+        ].pack("Cwa#{message_string.bytesize}C")
       end
 
       def self.deserialize(io)
         message_length = io.read_ber_integer
         message = io.read(message_length).to_sym
-        flags = io.read(4).unpack('CCCC')
+        flags = io.getbyte
         receiver_is_self = flags[0] == 1
         with_block = flags[1] == 1
         args_array_on_stack = flags[2] == 1
