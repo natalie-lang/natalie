@@ -478,6 +478,8 @@ Value ThreadObject::set_priority(Env *env, Value priority) {
         env->raise("RangeError", "bignum too big to convert into `long'");
 
     m_priority = priority_int->to_nat_int_t();
+    if (m_priority > 3) m_priority = 3;
+    if (m_priority < -3) m_priority = -3;
 
     sched_param sch;
     int policy;
