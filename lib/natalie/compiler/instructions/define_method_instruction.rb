@@ -65,6 +65,30 @@ module Natalie
           klass.send(:protected, @name)
         end
       end
+
+      def serialize
+        raise NotImplementedError, 'Support optional arguments' if @arity.negative?
+
+        name_string = @name.to_s
+        [
+          instruction_number,
+          name_string.bytesize,
+          name_string,
+          @arity
+        ].pack("Cwa#{name_string.bytesize}w")
+      end
+
+      def self.deserialize(io)
+        size = io.read_ber_integer
+        name = io.read(size)
+        arity = io.read_ber_integer
+        new(
+          name:,
+          arity:,
+          file: '', # FIXME
+          line: 0 # FIXME
+        )
+      end
     end
   end
 end
