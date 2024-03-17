@@ -46,6 +46,23 @@ module Natalie
         end
       end
 
+      def serialize
+        raise NotImplementedError, 'Support keyword arguments' if @keywords.any?
+
+        [
+          instruction_number,
+          @positional,
+          @args_array_on_stack ? 1 : 0,
+        ].pack('CwC')
+      end
+
+      def self.deserialize(io)
+        positional = io.read_ber_integer
+        keywords = [] # NATFIXME: Support keyword arguments
+        args_array_on_stack = io.getbool
+        new(positional:, keywords:, args_array_on_stack:)
+      end
+
       private
 
       def cpp_keywords
