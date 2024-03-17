@@ -467,25 +467,24 @@ Value ThreadObject::set_name(Env *env, Value name) {
     return name;
 }
 
-// Example code: https://en.cppreference.com/w/cpp/thread/thread/native_handle
 Value ThreadObject::priority(Env *env) const {
-    sched_param sch;
-    int policy;
-    pthread_getschedparam(pthread_self(), &policy, &sch);
-    return Value::integer(sch.sched_priority);
+    return Value::integer(m_priority);
 }
 
+// Example code: https://en.cppreference.com/w/cpp/thread/thread/native_handle
 Value ThreadObject::set_priority(Env *env, Value priority) {
     auto priority_int = priority->to_int(env);
     if (priority_int->is_bignum())
         env->raise("RangeError", "bignum too big to convert into `long'");
 
+    m_priority = priority_int->to_nat_int_t();
+
     sched_param sch;
     int policy;
     pthread_getschedparam(pthread_self(), &policy, &sch);
-    sch.sched_priority = priority_int->to_nat_int_t();
-    if (pthread_setschedparam(pthread_self(), SCHED_RR, &sch))
-        env->raise("RuntimeError", "Unable to set Thread priority");
+    sch.sched_priority = m_priority;
+    // Ignore errors
+    pthread_setschedparam(pthread_self(), SCHED_RR, &sch);
 
     return priority;
 }

@@ -295,6 +295,7 @@ private:
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
     ThreadGroupObject *m_group { nullptr };
+    nat_int_t m_priority { 0 };
 
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
