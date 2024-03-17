@@ -20,6 +20,21 @@ module Natalie
       def execute(_)
         :halt
       end
+
+      def serialize
+        matching_label_string = @matching_label.to_s
+        [
+          instruction_number,
+          matching_label_string.bytesize,
+          matching_label_string,
+        ].pack("Cwa#{matching_label_string.bytesize}")
+      end
+
+      def self.deserialize(io)
+        size = io.read_ber_integer
+        matching_label = io.read(size)
+        new(matching_label)
+      end
     end
   end
 end
