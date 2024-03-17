@@ -39,6 +39,23 @@ module Natalie
       def execute(vm)
         :noop
       end
+
+      def serialize
+        name_string = @name.to_s
+        [
+          instruction_number,
+          name_string.bytesize,
+          name_string,
+          @local_only ? 1 : 0,
+        ].pack("Cwa#{name_string.bytesize}C")
+      end
+
+      def self.deserialize(io)
+        size = io.read_ber_integer
+        name = io.read(size)
+        local_only = io.getbyte == 1
+        new(name, local_only:)
+      end
     end
   end
 end
