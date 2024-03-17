@@ -38,7 +38,7 @@ module Natalie
 
       def self.deserialize(io)
         index = io.read_ber_integer
-        nil_default = io.read(1) == 1
+        nil_default = io.getbyte == 1
         new(index, nil_default: nil_default)
       end
     end

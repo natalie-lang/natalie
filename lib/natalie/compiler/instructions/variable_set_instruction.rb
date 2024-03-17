@@ -59,7 +59,7 @@ module Natalie
       def self.deserialize(io)
         size = io.read_ber_integer
         name = io.read(size).to_sym
-        local_only = io.read(1) == 1
+        local_only = io.getbyte == 1
         new(name, local_only: local_only)
       end
     end
