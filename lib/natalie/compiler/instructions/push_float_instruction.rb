@@ -28,6 +28,18 @@ module Natalie
       def execute(vm)
         vm.push(@float)
       end
+
+      def serialize
+        [
+          instruction_number,
+          @float,
+        ].pack('CG')
+      end
+
+      def self.deserialize(io)
+        float = io.read(8).unpack1('G')
+        new(float)
+      end
     end
   end
 end
