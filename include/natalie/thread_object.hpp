@@ -131,6 +131,9 @@ public:
     Value name(Env *);
     Value set_name(Env *, Value);
 
+    Value priority(Env *) const;
+    Value set_priority(Env *, Value);
+
     Value fetch(Env *, Value, Value = nullptr, Block * = nullptr);
     bool has_key(Env *, Value);
     Value keys(Env *);
@@ -292,6 +295,7 @@ private:
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
     ThreadGroupObject *m_group { nullptr };
+    nat_int_t m_priority { 0 };
 
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
