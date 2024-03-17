@@ -51,6 +51,28 @@ module Natalie
           return obj if obj.constants.include?(@name)
         end while (obj = parent(obj))
       end
+
+      def serialize
+        name_string = @name.to_s
+        [
+          instruction_number,
+          name_string.bytesize,
+          name_string,
+          @strict ? 1 : 0,
+        ].pack("Cwa#{name_string.bytesize}C")
+      end
+
+      def self.deserialize(io)
+        size = io.read_ber_integer
+        name = io.read(size)
+        strict = io.getbool
+        new(
+          name,
+          strict:,
+          file: '', # FIXME
+          line: 0 # FIXME
+        )
+      end
     end
   end
 end
