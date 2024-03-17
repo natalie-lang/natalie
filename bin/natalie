@@ -145,6 +145,7 @@ class Runner
   def run
     load_code
     if options[:ast]
+      raise 'No AST output for bytecode' if options[:bytecode]
       require 'pp'
       pp parser.ast
     elsif options[:compile] && options[:bytecode]
