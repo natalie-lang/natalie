@@ -276,6 +276,10 @@ class Addrinfo
     @ip_port
   end
 
+  def ip_unpack
+    [ip_address, ip_port]
+  end
+
   def ipv4?
     afamily == Socket::AF_INET
   end
