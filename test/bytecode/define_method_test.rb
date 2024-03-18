@@ -108,4 +108,16 @@ describe 'define a method' do
 
     ruby_exe(@bytecode_file, options: "--bytecode").should == "false\ntrue\n"
   end
+
+  it 'can define a method with forwarding for everything (...)' do
+    code = <<~RUBY
+      def foo(*args, **kwargs) = (args + kwargs.keys).join
+      def bar(...) = foo(...)
+      puts bar('bar', baz: 'quux')
+    RUBY
+
+    ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
+
+    ruby_exe(@bytecode_file, options: "--bytecode").should == "barbaz\n"
+  end
 end
