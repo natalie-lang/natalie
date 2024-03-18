@@ -47,22 +47,39 @@ module Natalie
       end
 
       def serialize
-        raise NotImplementedError, 'Support keyword arguments' if @keywords.any?
-
         positional = @positional.is_a?(Range) ? [@positional.first, @positional.last] : [@positional, @positional]
-        [
-          instruction_number,
-          *positional,
-          @args_array_on_stack ? 1 : 0,
-        ].pack('CwwC')
+        flags = 0
+        [@args_array_on_stack, @keywords.any?].each_with_index do |flag, index|
+          flags |= (1 << index) if flag
+        end
+        bytecode = [
+                     instruction_number,
+                     *positional,
+                     flags,
+                   ].pack('CwwC')
+        if @keywords.any?
+          bytecode << [@keywords.size].pack('w')
+          @keywords.each do |keyword|
+            keyword_string = keyword.to_s
+            bytecode << [keyword_string.bytesize, keyword_string].pack("wa#{keyword_string.bytesize}")
+          end
+        end
+        bytecode
       end
 
       def self.deserialize(io)
         positional = io.read_ber_integer
         positional2 = io.read_ber_integer
         positional = Range.new(positional, positional2) if positional != positional2
-        keywords = [] # NATFIXME: Support keyword arguments
-        args_array_on_stack = io.getbool
+        flags = io.getbyte
+        args_array_on_stack = flags[0] == 1
+        keywords = []
+        if flags[1] == 1
+          io.read_ber_integer.times do
+            size = io.read_ber_integer
+            keywords << io.read(size).to_sym
+          end
+        end
         new(positional:, keywords:, args_array_on_stack:)
       end
 

@@ -25,6 +25,24 @@ module Natalie
           raise ArgumentError, "missing keywords: #{missing.map(&:inspect).join ', '}"
         end
       end
+
+      def serialize
+        bytecode = [instruction_number, @keywords.size].pack('Cw')
+        @keywords.each do |keyword|
+          keyword_string = keyword.to_s
+          bytecode << [keyword_string.bytesize, keyword_string].pack("wa#{keyword_string.bytesize}")
+        end
+        bytecode
+      end
+
+      def self.deserialize(io)
+        keywords = []
+        io.read_ber_integer.times do
+          size = io.read_ber_integer
+          keywords << io.read(size).to_sym
+        end
+        new(keywords)
+      end
     end
   end
 end
