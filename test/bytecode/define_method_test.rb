@@ -63,4 +63,15 @@ describe 'define a method' do
 
     ruby_exe(@bytecode_file, options: "--bytecode").should == "barbaz\n"
   end
+
+  it 'can define a method with splat positional arguments' do
+    code = <<~RUBY
+      def foo(*args) = args.join
+      puts foo('bar', 'baz')
+    RUBY
+
+    ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
+
+    ruby_exe(@bytecode_file, options: "--bytecode").should == "barbaz\n"
+  end
 end
