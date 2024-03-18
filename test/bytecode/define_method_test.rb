@@ -74,4 +74,26 @@ describe 'define a method' do
 
     ruby_exe(@bytecode_file, options: "--bytecode").should == "barbaz\n"
   end
+
+  it 'can define a method with splat keyword arguments' do
+    code = <<~RUBY
+      def foo(**kwargs) = kwargs.keys.join
+      puts foo(bar: 'bar', baz: 'quux')
+    RUBY
+
+    ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
+
+    ruby_exe(@bytecode_file, options: "--bytecode").should == "barbaz\n"
+  end
+
+  it 'can define a method with splat positional and keyword arguments' do
+    code = <<~RUBY
+      def foo(*args, **kwargs) = (args + kwargs.keys).join
+      puts foo('bar', baz: 'quux')
+    RUBY
+
+    ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
+
+    ruby_exe(@bytecode_file, options: "--bytecode").should == "barbaz\n"
+  end
 end
