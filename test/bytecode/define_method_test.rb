@@ -96,4 +96,16 @@ describe 'define a method' do
 
     ruby_exe(@bytecode_file, options: "--bytecode").should == "barbaz\n"
   end
+
+  it 'can handle a block argument' do
+    code = <<~RUBY
+      def foo(&block) = block.nil?
+      puts foo { 1 }
+      puts foo
+    RUBY
+
+    ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
+
+    ruby_exe(@bytecode_file, options: "--bytecode").should == "false\ntrue\n"
+  end
 end
