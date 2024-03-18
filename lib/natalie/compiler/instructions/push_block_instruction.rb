@@ -24,6 +24,18 @@ module Natalie
       def execute(vm)
         vm.push(vm.block)
       end
+
+      def serialize
+        [
+          instruction_number,
+          @from_nearest_env ? 1 : 0,
+        ].pack('CC')
+      end
+
+      def self.deserialize(io)
+        from_nearest_env = io.getbool
+        new(from_nearest_env:)
+      end
     end
   end
 end

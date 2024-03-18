@@ -65,6 +65,30 @@ module Natalie
           klass.send(:protected, @name)
         end
       end
+
+      def serialize
+        raise NotImplementedError, 'Methods with more than 127 arguments are not supported' if @arity > 127
+
+        name_string = @name.to_s
+        [
+          instruction_number,
+          name_string.bytesize,
+          name_string,
+          @arity
+        ].pack("Cwa#{name_string.bytesize}c")
+      end
+
+      def self.deserialize(io)
+        size = io.read_ber_integer
+        name = io.read(size)
+        arity = io.read(1).unpack1('c')
+        new(
+          name:,
+          arity:,
+          file: '', # FIXME
+          line: 0 # FIXME
+        )
+      end
     end
   end
 end

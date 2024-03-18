@@ -24,6 +24,21 @@ module Natalie
         hash = vm.peek
         vm.push(hash.key?(@name) ? hash.delete(@name) : default)
       end
+
+      def serialize
+        name_string = @name.to_s
+        [
+          instruction_number,
+          name_string.bytesize,
+          name_string,
+        ].pack("Cwa#{name_string.bytesize}")
+      end
+
+      def self.deserialize(io)
+        size = io.read_ber_integer
+        name = io.read(size).to_sym
+        new(name)
+      end
     end
   end
 end

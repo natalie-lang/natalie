@@ -42,6 +42,32 @@ module Natalie
           vm.push(vm.args)
         end
       end
+
+      def serialize
+        flags = 0
+        [@for_block, @spread, @to_array, !@min_count.nil?, !@max_count.nil?].each_with_index do |flag, index|
+          flags |= (1 << index) if flag
+        end
+        bytecode = [
+                     instruction_number,
+                     flags,
+                   ].pack('CC')
+        bytecode << [@min_count].pack('w') unless @min_count.nil?
+        bytecode << [@max_count].pack('w') unless @max_count.nil?
+        bytecode
+      end
+
+      def self.deserialize(io)
+        flags = io.getbyte
+        for_block = flags[0] == 1
+        spread = flags[1] == 1
+        to_array = flags[2] == 1
+        has_min_count = flags[3] == 1
+        has_max_count = flags[4] == 1
+        min_count = io.read_ber_integer if has_min_count
+        max_count = io.read_ber_integer if has_max_count
+        new(for_block:, min_count:, max_count:, spread:, to_array:)
+      end
     end
   end
 end
