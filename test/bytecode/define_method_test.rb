@@ -30,4 +30,15 @@ describe 'define a method' do
 
     ruby_exe(@bytecode_file, options: "--bytecode").should == "barbaz\n"
   end
+
+  it 'can define a method with optional arguments' do
+    code = <<~RUBY
+      def foo(a, b = 'baz') = a + b
+      puts foo('bar')
+    RUBY
+
+    ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
+
+    ruby_exe(@bytecode_file, options: "--bytecode").should == "barbaz\n"
+  end
 end
