@@ -47,16 +47,21 @@ module Natalie
       end
 
       def serialize
-        positional = @positional.is_a?(Range) ? [@positional.first, @positional.last] : [@positional, @positional]
+        needs_positional_range = @positional.is_a?(Range) && !@positional.end.nil?
+        has_positional_splat = @positional.is_a?(Range) && @positional.end.nil?
         flags = 0
-        [@args_array_on_stack, @keywords.any?].each_with_index do |flag, index|
+        [@args_array_on_stack, needs_positional_range, has_positional_splat, @keywords.any?].each_with_index do |flag, index|
           flags |= (1 << index) if flag
         end
+        positional = @positional.is_a?(Range) ? @positional.first : @positional
         bytecode = [
                      instruction_number,
-                     *positional,
                      flags,
-                   ].pack('CwwC')
+                     positional,
+                   ].pack('CCw')
+        if needs_positional_range
+          bytecode << [@positional.last].pack('w')
+        end
         if @keywords.any?
           bytecode << [@keywords.size].pack('w')
           @keywords.each do |keyword|
@@ -68,13 +73,20 @@ module Natalie
       end
 
       def self.deserialize(io)
-        positional = io.read_ber_integer
-        positional2 = io.read_ber_integer
-        positional = Range.new(positional, positional2) if positional != positional2
         flags = io.getbyte
         args_array_on_stack = flags[0] == 1
+        needs_positional_range = flags[1] == 1
+        has_positional_splat = flags[2] == 1
+        has_keywords = flags[3] == 1
+        positional = io.read_ber_integer
+        if needs_positional_range
+          positional2 = io.read_ber_integer
+          positional = Range.new(positional, positional2)
+        elsif has_positional_splat
+          positional = Range.new(positional, nil)
+        end
         keywords = []
-        if flags[1] == 1
+        if has_keywords
           io.read_ber_integer.times do
             size = io.read_ber_integer
             keywords << io.read(size).to_sym

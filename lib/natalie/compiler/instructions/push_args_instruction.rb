@@ -44,27 +44,29 @@ module Natalie
       end
 
       def serialize
-        raise NotImplementedError, 'Support special ... syntax' if @min_count.nil? || @max_count.nil?
+        raise NotImplementedError, 'Support special ... syntax' if @min_count.nil?
 
         flags = 0
-        [@for_block, @spread, @to_array].each_with_index do |flag, index|
+        [@for_block, @spread, @to_array, !@max_count.nil?].each_with_index do |flag, index|
           flags |= (1 << index) if flag
         end
-        [
-          instruction_number,
-          flags,
-          @min_count,
-          @max_count,
-        ].pack('CCww')
+        bytecode = [
+                     instruction_number,
+                     flags,
+                     @min_count,
+                   ].pack('CCw')
+        bytecode << [@max_count].pack('w') unless @max_count.nil?
+        bytecode
       end
 
       def self.deserialize(io)
         flags = io.getbyte
-        min_count = io.read_ber_integer
-        max_count = io.read_ber_integer
         for_block = flags[0] == 1
         spread = flags[1] == 1
         to_array = flags[2] == 1
+        has_max_count = flags[3] == 1
+        min_count = io.read_ber_integer
+        max_count = io.read_ber_integer if has_max_count
         new(for_block:, min_count:, max_count:, spread:, to_array:)
       end
     end
