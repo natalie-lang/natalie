@@ -19,6 +19,14 @@ module Natalie
         ary = vm.peek
         vm.push(ary.empty? ? default : ary.shift)
       end
+
+      def serialize
+        [instruction_number].pack('C')
+      end
+
+      def self.deserialize(_)
+        new
+      end
     end
   end
 end

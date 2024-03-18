@@ -67,7 +67,7 @@ module Natalie
       end
 
       def serialize
-        raise NotImplementedError, 'Support optional arguments' if @arity.negative?
+        raise NotImplementedError, 'Methods with more than 127 arguments are not supported' if @arity > 127
 
         name_string = @name.to_s
         [
@@ -75,13 +75,13 @@ module Natalie
           name_string.bytesize,
           name_string,
           @arity
-        ].pack("Cwa#{name_string.bytesize}w")
+        ].pack("Cwa#{name_string.bytesize}c")
       end
 
       def self.deserialize(io)
         size = io.read_ber_integer
         name = io.read(size)
-        arity = io.read_ber_integer
+        arity = io.read(1).unpack1('c')
         new(
           name:,
           arity:,

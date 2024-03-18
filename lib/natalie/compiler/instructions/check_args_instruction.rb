@@ -49,15 +49,18 @@ module Natalie
       def serialize
         raise NotImplementedError, 'Support keyword arguments' if @keywords.any?
 
+        positional = @positional.is_a?(Range) ? [@positional.first, @positional.last] : [@positional, @positional]
         [
           instruction_number,
-          @positional,
+          *positional,
           @args_array_on_stack ? 1 : 0,
-        ].pack('CwC')
+        ].pack('CwwC')
       end
 
       def self.deserialize(io)
         positional = io.read_ber_integer
+        positional2 = io.read_ber_integer
+        positional = Range.new(positional, positional2) if positional != positional2
         keywords = [] # NATFIXME: Support keyword arguments
         args_array_on_stack = io.getbool
         new(positional:, keywords:, args_array_on_stack:)
