@@ -31,7 +31,7 @@ module Natalie
       end
 
       def execute(vm)
-        vm.push(@string.dup)
+        vm.push(@string.dup.force_encoding(@encoding))
       end
 
       def serialize
@@ -39,13 +39,15 @@ module Natalie
           instruction_number,
           @bytesize,
           @string,
-        ].pack("Cwa#{@bytesize}")
+          Encoding.list.index(@encoding),
+        ].pack("Cwa#{@bytesize}C")
       end
 
       def self.deserialize(io)
         size = io.read_ber_integer
         string = io.read(size)
-        new(string, bytesize: size)
+        encoding = Encoding.list.at(io.getbyte)
+        new(string, bytesize: size, encoding: encoding)
       end
     end
   end
