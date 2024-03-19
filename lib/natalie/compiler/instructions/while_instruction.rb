@@ -105,6 +105,18 @@ module Natalie
           result
         end
       end
+
+      def serialize
+        [
+          instruction_number,
+          pre ? 1 : 0,
+        ].pack('CC')
+      end
+
+      def self.deserialize(io)
+        pre = io.getbool
+        new(pre:)
+      end
     end
   end
 end
