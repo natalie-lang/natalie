@@ -53,7 +53,7 @@ module Natalie
           num = @io.getbyte
           break if num.nil?
 
-          instruction_class = INSTRUCTIONS[num]
+          instruction_class = INSTRUCTIONS.fetch(num)
           instructions << instruction_class.deserialize(@io)
         end
         instructions
