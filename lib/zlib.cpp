@@ -60,6 +60,7 @@ Value Zlib_deflate_initialize(Env *env, Value self, Args args, Block *) {
     self->ivar_set(env, "@in"_s, new VoidPObject(in, Zlib_buffer_cleanup));
     auto out = new unsigned char[ZLIB_BUF_SIZE];
     self->ivar_set(env, "@out"_s, new VoidPObject(out, Zlib_buffer_cleanup));
+    self->ivar_set(env, "@closed"_s, FalseObject::the());
 
     int ret = deflateInit2(stream,
         (int)level->to_nat_int_t(),
@@ -135,6 +136,7 @@ Value Zlib_deflate_set_dictionary(Env *env, Value self, Args args, Block *) {
 Value Zlib_deflate_close(Env *env, Value self, Args args, Block *) {
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     deflateEnd(strm);
+    self->ivar_set(env, "@closed"_s, TrueObject::the());
     return self;
 }
 
@@ -154,6 +156,7 @@ Value Zlib_inflate_initialize(Env *env, Value self, Args args, Block *) {
     self->ivar_set(env, "@in"_s, new VoidPObject(in, Zlib_buffer_cleanup));
     auto out = new unsigned char[ZLIB_BUF_SIZE];
     self->ivar_set(env, "@out"_s, new VoidPObject(out, Zlib_buffer_cleanup));
+    self->ivar_set(env, "@closed"_s, FalseObject::the());
 
     int ret = inflateInit2(stream, (int)window_bits->to_nat_int_t());
     if (ret != Z_OK)
@@ -223,6 +226,7 @@ Value Zlib_inflate_finish(Env *env, Value self, Args args, Block *) {
 Value Zlib_inflate_close(Env *env, Value self, Args args, Block *) {
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     inflateEnd(strm);
+    self->ivar_set(env, "@closed"_s, TrueObject::the());
     return self;
 }
 

@@ -73,6 +73,8 @@ module Zlib
     __bind_method__ :avail_in, :Zlib_ZStream_avail_in, 0
     __bind_method__ :avail_out, :Zlib_ZStream_avail_out, 0
     __bind_method__ :data_type, :Zlib_ZStream_data_type, 0
+
+    def closed? = @closed
   end
   
   class Deflate < ZStream
