@@ -45,11 +45,15 @@ module Natalie
       backend.compile_to_binary
     end
 
-    def compile_to_bytecode
+    def write_bytecode_to_file
       File.open(@out_path, 'wb') do |file|
-        instructions.each do |instruction|
-          file.write(instruction.serialize)
-        end
+        compile_to_bytecode(file)
+      end
+    end
+
+    def compile_to_bytecode(io)
+      instructions.each do |instruction|
+        io.write(instruction.serialize)
       end
     end
 

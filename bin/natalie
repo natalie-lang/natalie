@@ -86,6 +86,12 @@ OptionParser.new do |opts|
     options[:bytecode] = path
   end
 
+  opts.on('--run-bytecode', 'Compile and run bytecode without an intermediate file') do |path|
+    options[:run] = path
+    options[:bytecode] = true
+    options[:expecting_script] = true
+  end
+
   opts.on('-c path', '--compile path', 'Compile to binary but do not execute') do |path|
     options[:compile] = path
     options[:expecting_script] = true
@@ -148,9 +154,16 @@ class Runner
       raise 'No AST output for bytecode' if options[:bytecode]
       require 'pp'
       pp parser.ast
+    elsif options[:bytecode] && options[:run]
+      require 'stringio'
+      io = StringIO.new(binary: true)
+      compiler.compile_to_bytecode(io)
+      io.rewind
+      compile_and_run_bytecode(io, options)
     elsif options[:compile] && options[:bytecode]
+      raise options.inspect
       compiler.out_path = options[:compile]
-      compiler.compile_to_bytecode
+      compiler.write_bytecode_to_file
     elsif options[:compile]
       compiler.out_path = options[:compile]
       compiler.compile
@@ -172,7 +185,8 @@ class Runner
     elsif options[:debug] == 'edit'
       edit_compile_run_loop
     elsif options[:bytecode]
-      compile_and_run_bytecode(@source_path, options)
+      io = File.open(@source_path, 'rb')
+      compile_and_run_bytecode(io, options)
     else
       compile_and_run
     end
@@ -254,14 +268,14 @@ class Runner
     end
   end
 
-  def compile_and_run_bytecode(path, options)
-    loader = Natalie::Compiler::BytecodeLoader.new(File.open(path, 'rb'))
+  def compile_and_run_bytecode(io, options)
+    loader = Natalie::Compiler::BytecodeLoader.new(io)
     if /\Ap\d\z/.match?(options[:debug])
       puts loader.instructions
       exit 0
     end
     im = Natalie::Compiler::InstructionManager.new(loader.instructions)
-    Natalie::VM.new(im, path: path).run
+    Natalie::VM.new(im, path: io.respond_to?(:path) ? io.path : options[:path]).run
   end
 
   def run_temp_and_wait(path)
