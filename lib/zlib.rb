@@ -104,6 +104,7 @@ module Zlib
   class Inflate < ZStream
     __bind_method__ :initialize, :Zlib_inflate_initialize
     __bind_method__ :<<, :Zlib_inflate_append, 1
+    __bind_method__ :inflate, :Zlib_inflate_inflate
     __bind_method__ :finish, :Zlib_inflate_finish, 0
     __bind_method__ :close, :Zlib_inflate_close, 0
 

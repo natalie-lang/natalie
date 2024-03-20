@@ -8,12 +8,10 @@ describe "Zlib::Inflate#inflate" do
   end
   it "inflates some data" do
     data = [120, 156, 99, 96, 128, 1, 0, 0, 10, 0, 1].pack('C*')
-    NATFIXME 'Implement Zlib::Inflate#inflate', exception: NoMethodError, message: "undefined method `inflate'" do
-      unzipped = @inflator.inflate data
-      @inflator.finish
+    unzipped = @inflator.inflate data
+    @inflator.finish
 
-      unzipped.should == "\000" * 10
-    end
+    unzipped.should == "\000" * 10
   end
 
   it "inflates lots of data" do
@@ -22,20 +20,18 @@ describe "Zlib::Inflate#inflate" do
            Array.new(31, 0) +
            [24, 128, 0, 0, 1]
 
-    NATFIXME 'Implement Zlib::Inflate#inflate', exception: NoMethodError, message: "undefined method `inflate'" do
-      unzipped = @inflator.inflate data.pack('C*')
-      @inflator.finish
+    unzipped = @inflator.inflate data.pack('C*')
+    @inflator.finish
 
-      unzipped.should == "\000" * 32 * 1024
-    end
+    unzipped.should == "\000" * 32 * 1024
   end
 
   it "works in pass-through mode, once finished" do
     data = [120, 156, 99, 96, 128, 1, 0, 0, 10, 0, 1]
-    NATFIXME 'Implement Zlib::Inflate#inflate', exception: NoMethodError, message: "undefined method `inflate'" do
-      @inflator.inflate data.pack('C*')
-      @inflator.finish  # this is a precondition
+    @inflator.inflate data.pack('C*')
+    @inflator.finish  # this is a precondition
 
+    NATFIXME 'it works in pass-through mode, once finished', exception: SpecFailedException do
       out = @inflator.inflate('uncompressed_data')
       out << @inflator.finish
       out.should == 'uncompressed_data'
@@ -47,11 +43,9 @@ describe "Zlib::Inflate#inflate" do
 
   it "has a binary encoding" do
     data = [120, 156, 99, 96, 128, 1, 0, 0, 10, 0, 1].pack('C*')
-    NATFIXME 'Implement Zlib::Inflate#inflate', exception: NoMethodError, message: "undefined method `inflate'" do
-      unzipped = @inflator.inflate data
-      @inflator.finish.encoding.should == Encoding::BINARY
-      unzipped.encoding.should == Encoding::BINARY
-    end
+    unzipped = @inflator.inflate data
+    @inflator.finish.encoding.should == Encoding::BINARY
+    unzipped.encoding.should == Encoding::BINARY
   end
 
 end
@@ -81,9 +75,9 @@ describe "Zlib::Inflate.inflate" do
     z = Zlib::Inflate.new
     # add bytes, one by one
     result = ""
-    NATFIXME 'Implement Zlib::Inflate#inflate', exception: NoMethodError, message: "undefined method `inflate'" do
-      data.each_byte { |d| result << z.inflate(d.chr)}
-      result << z.finish
+    data.each_byte { |d| result << z.inflate(d.chr)}
+    result << z.finish
+    NATFIXME 'it properly handles data in chunks', exception: SpecFailedException do
       result.should == "foo"
     end
   end
@@ -93,8 +87,7 @@ describe "Zlib::Inflate.inflate" do
     z = Zlib::Inflate.new
     # add bytes, one by one, but not all
     result = ""
-    NATFIXME 'Implement Zlib::Inflate#inflate', exception: NoMethodError, message: "undefined method `inflate'" do
-      data.each_byte { |d| result << z.inflate(d.chr)}
+    NATFIXME 'it properly handles incomplete data', exception: SpecFailedException do
       -> { result << z.finish }.should raise_error(Zlib::BufError)
     end
   end
@@ -106,12 +99,12 @@ describe "Zlib::Inflate.inflate" do
 
     z = Zlib::Inflate.new
     # add bytes, one by one
-    NATFIXME 'Implement Zlib::Inflate#inflate', exception: NoMethodError, message: "undefined method `inflate'" do
-      data.each_byte { |d| result << z.inflate(d.chr)}
-      result << z.finish
+    data.each_byte { |d| result << z.inflate(d.chr)}
+    result << z.finish
 
-      # the first chunk is inflated to its completion,
-      # the second chunk is just passed through.
+    # the first chunk is inflated to its completion,
+    # the second chunk is just passed through.
+    NATFIXME 'it properly handles excessive data, byte-by-byte', exception: SpecFailedException do
       result.should == "foo" + main_data
     end
   end
@@ -122,12 +115,12 @@ describe "Zlib::Inflate.inflate" do
     result = ""
 
     z = Zlib::Inflate.new
-    NATFIXME 'Implement Zlib::Inflate#inflate', exception: NoMethodError, message: "undefined method `inflate'" do
-      result << z.inflate(data)
-      result << z.finish
+    result << z.inflate(data)
+    result << z.finish
 
-      # the first chunk is inflated to its completion,
-      # the second chunk is just passed through.
+    # the first chunk is inflated to its completion,
+    # the second chunk is just passed through.
+    NATFIXME 'it properly handles excessive data, in one go', exception: SpecFailedException do
       result.should == "foo" + main_data
     end
   end
@@ -144,10 +137,8 @@ describe "Zlib::Inflate#inflate" do
   describe "without break" do
 
     before do
-      NATFIXME 'Implement Zlib::Inflate#inflate', exception: NoMethodError, message: "undefined method `inflate'" do
-        @inflator.inflate(@zeros) do |chunk|
-          @chunks << chunk
-        end
+      @inflator.inflate(@zeros) do |chunk|
+        @chunks << chunk
       end
     end
 
@@ -165,16 +156,14 @@ describe "Zlib::Inflate#inflate" do
   describe "with break" do
 
     before do
-      NATFIXME 'Implement Zlib::Inflate#inflate', exception: NoMethodError, message: "undefined method `inflate'" do
-        @inflator.inflate(@zeros) do |chunk|
-          @chunks << chunk
-          break
-        end
+      @inflator.inflate(@zeros) do |chunk|
+        @chunks << chunk
+        break
       end
     end
 
     it "inflates chunked break" do
-      NATFIXME 'Implement Zlib::Inflate#inflate', exception: NoMethodError, message: "undefined method `inflate'" do
+      NATFIXME 'support nil argumen', exception: TypeError do
         output = @inflator.inflate nil
         (100_000 - @chunks.first.length).should == output.length
       end
