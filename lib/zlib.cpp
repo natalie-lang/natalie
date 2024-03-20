@@ -188,7 +188,7 @@ Value Zlib_inflate_initialize(Env *env, Value self, Args args, Block *) {
 
     auto stream = new z_stream {};
     self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_stream_cleanup));
-    self->ivar_set(env, "@result"_s, new StringObject);
+    self->ivar_set(env, "@result"_s, new StringObject("", Encoding::ASCII_8BIT));
     auto in = new unsigned char[ZLIB_BUF_SIZE];
     self->ivar_set(env, "@in"_s, new VoidPObject(in, Zlib_buffer_cleanup));
     auto out = new unsigned char[ZLIB_BUF_SIZE];

@@ -44,10 +44,8 @@ describe "Zlib::Inflate#inflate" do
   it "has a binary encoding" do
     data = [120, 156, 99, 96, 128, 1, 0, 0, 10, 0, 1].pack('C*')
     unzipped = @inflator.inflate data
-    NATFIXME 'has a binary encoding', exception: SpecFailedException do
-      @inflator.finish.encoding.should == Encoding::BINARY
-      unzipped.encoding.should == Encoding::BINARY
-    end
+    @inflator.finish.encoding.should == Encoding::BINARY
+    unzipped.encoding.should == Encoding::BINARY
   end
 
 end
