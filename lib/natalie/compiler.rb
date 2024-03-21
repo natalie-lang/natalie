@@ -52,6 +52,8 @@ module Natalie
     end
 
     def compile_to_bytecode(io)
+      header = ['NatX', 0, 0].pack('a4C2')
+      io.write(header)
       instructions.each do |instruction|
         io.write(instruction.serialize)
       end
