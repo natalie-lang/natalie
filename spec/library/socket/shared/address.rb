@@ -61,7 +61,8 @@ describe :socket_local_remote_address, shared: true do
 
     it 'can be used to connect to the server' do
       skip if @method == :local_address
-      NATFIXME 'Implement Addrinfo#connect', exception: NoMethodError, message: "undefined method `connect' for an instance of Addrinfo" do
+      # Linux throws Errno::ESOCKTNOSUPPORT, MacOS throws Errno::EPROTONOSUPPORT
+      NATFIXME 'Support this socket type in Addrinfo#connect', exception: SystemCallError, message: /(Socket type|Protocol) not supported/ do
         b = @addr.connect
         begin
           b.remote_address.to_s.should == @addr.to_s
@@ -197,7 +198,8 @@ describe :socket_local_remote_address, shared: true do
 
       it 'can be used to connect to the server' do
         skip if @method == :local_address
-        NATFIXME 'Implement Addrinfo#connect', exception: NoMethodError, message: "undefined method `connect' for an instance of Addrinfo" do
+        # Linux throws Errno::ESOCKTNOSUPPORT, MacOS throws Errno::EPROTONOSUPPORT
+        NATFIXME 'Support this socket type in Addrinfo#connect', exception: SystemCallError, message: /(Socket type|Protocol) not supported/ do
           b = @addr.connect
           begin
             b.remote_address.to_s.should == @addr.to_s
@@ -259,7 +261,8 @@ describe :socket_local_remote_address, shared: true do
     end
 
     it 'can be used to connect to the peer' do
-      NATFIXME 'Implement Addrinfo#connect', exception: NoMethodError, message: "undefined method `connect' for an instance of Addrinfo" do
+      # Linux throws Errno::ESOCKTNOSUPPORT, MacOS throws Errno::EPROTONOSUPPORT
+      NATFIXME 'Support this socket type in Addrinfo#connect', exception: SystemCallError, message: /(Socket type|Protocol) not supported/ do
         b = @addr.connect
         begin
           b.remote_address.to_s.should == @addr.to_s

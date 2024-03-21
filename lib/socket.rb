@@ -262,6 +262,20 @@ class Addrinfo
     socket
   end
 
+  def connect
+    socket = Socket.new(afamily, socktype, protocol)
+    socket.connect(to_sockaddr)
+    if block_given?
+      begin
+        yield socket
+      ensure
+        socket.close
+      end
+    else
+      socket
+    end
+  end
+
   def ip_address
     unless @ip_address
       raise SocketError, 'need IPv4 or IPv6 address'
