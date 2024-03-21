@@ -161,7 +161,6 @@ class Runner
       io.rewind
       compile_and_run_bytecode(io, options)
     elsif options[:compile] && options[:bytecode]
-      raise options.inspect
       compiler.out_path = options[:compile]
       compiler.write_bytecode_to_file
     elsif options[:compile]
