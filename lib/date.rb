@@ -326,7 +326,7 @@ class Date
     end
   end
 
-  def strftime(format = '%F') # rubocop:disable Line/UnusedMethodArgument
+  def strftime(format = '%F') # rubocop:disable Lint/UnusedMethodArgument
     __inline__ <<-END
       format_var->assert_type(env, Object::Type::String, "String");
       struct tm time = { 0 };
