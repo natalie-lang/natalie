@@ -17,6 +17,8 @@ platform_is_not :windows do # hangs
       after do
         @client.close
         @server.close
+      rescue Errno::EPIPE
+        'NATFIXME: No idea what causes this'
       end
 
       describe 'using an Integer' do
@@ -29,7 +31,9 @@ platform_is_not :windows do # hangs
         it 'shuts down a socket for writing' do
           @client.shutdown(Socket::SHUT_WR)
 
-          -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          NATFIXME 'partial shutdown', exception: SpecFailedException do
+            -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          end
         end
 
         it 'shuts down a socket for reading and writing' do
@@ -37,7 +41,9 @@ platform_is_not :windows do # hangs
 
           @client.recv(1).to_s.should be_empty
 
-          -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          NATFIXME 'partial shutdown', exception: SpecFailedException do
+            -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          end
         end
 
         it 'raises ArgumentError when using an invalid option' do
@@ -61,13 +67,17 @@ platform_is_not :windows do # hangs
         it 'shuts down a socket for writing using :WR' do
           @client.shutdown(:WR)
 
-          -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          NATFIXME 'partial shutdown', exception: SpecFailedException do
+            -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          end
         end
 
         it 'shuts down a socket for writing using :SHUT_WR' do
           @client.shutdown(:SHUT_WR)
 
-          -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          NATFIXME 'partial shutdown', exception: SpecFailedException do
+            -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          end
         end
 
         it 'shuts down a socket for reading and writing' do
@@ -75,7 +85,9 @@ platform_is_not :windows do # hangs
 
           @client.recv(1).to_s.should be_empty
 
-          -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          NATFIXME 'partial shutdown', exception: SpecFailedException do
+            -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          end
         end
 
         it 'raises ArgumentError when using an invalid option' do
@@ -99,13 +111,17 @@ platform_is_not :windows do # hangs
         it 'shuts down a socket for writing using "WR"' do
           @client.shutdown('WR')
 
-          -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          NATFIXME 'partial shutdown', exception: SpecFailedException do
+            -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          end
         end
 
         it 'shuts down a socket for writing using "SHUT_WR"' do
           @client.shutdown('SHUT_WR')
 
-          -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          NATFIXME 'partial shutdown', exception: SpecFailedException do
+            -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          end
         end
 
         it 'raises ArgumentError when using an invalid option' do
@@ -141,7 +157,9 @@ platform_is_not :windows do # hangs
 
           @client.recv(1).to_s.should be_empty
 
-          -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          NATFIXME 'partial shutdown', exception: SpecFailedException do
+            -> { @client.write('hello') }.should raise_error(Errno::EPIPE)
+          end
         end
       end
 

@@ -697,10 +697,7 @@ describe "File.open when passed a file descriptor" do
     @file.should be_an_instance_of(File)
     @file.fileno.should equal(@fd)
     @file.write @content
-    NATFIXME 'Implement File#flush', exception: NoMethodError, message: "undefined method `flush'" do
-      @file.flush
-    end
-    @file.close # NATFIXME: This should flush the file as well
+    @file.flush
     File.read(@name).should == @content
   end
 

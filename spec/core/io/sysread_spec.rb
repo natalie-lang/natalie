@@ -73,13 +73,11 @@ describe "IO#sysread on a file" do
   end
 
   it "reads updated content after the flushed buffered IO#write" do
-    NATFIXME 'Implement IO#flush', exception: NoMethodError, message: "undefined method `flush'" do
-      @file.write("abcde")
-      @file.flush
-      @file.sysread(5).should == "56789"
-      File.open(@file_name) do |f|
-        f.sysread(10).should == "abcde56789"
-      end
+    @file.write("abcde")
+    @file.flush
+    @file.sysread(5).should == "56789"
+    File.open(@file_name) do |f|
+      f.sysread(10).should == "abcde56789"
     end
   end
 

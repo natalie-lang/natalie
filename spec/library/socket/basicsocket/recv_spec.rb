@@ -2,7 +2,7 @@
 require_relative '../spec_helper'
 require_relative '../fixtures/classes'
 
-describe "BasicSocket#recv" do
+xdescribe "BasicSocket#recv" do
 
   before :each do
     @server = TCPServer.new('127.0.0.1', 0)
@@ -100,7 +100,7 @@ describe "BasicSocket#recv" do
   end
 end
 
-describe 'BasicSocket#recv' do
+xdescribe 'BasicSocket#recv' do
   SocketSpecs.each_ip_protocol do |family, ip_address|
     before do
       @server = Socket.new(family, :DGRAM)

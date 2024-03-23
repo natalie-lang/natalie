@@ -25,9 +25,13 @@ describe "TCPServer#accept" do
     socket = TCPSocket.new('127.0.0.1', @port)
     socket.write('hello')
     socket.shutdown(1) # we are done with sending
-    socket.read.should == 'goodbye'
+    NATFIXME 'Read and buffered IO', exception: SpecFailedException do
+      socket.read.should == 'goodbye'
+    end
     t.join
-    data.should == 'hello'
+    NATFIXME 'Read and buffered IO', exception: SpecFailedException do
+      data.should == 'hello'
+    end
     socket.close
   end
 

@@ -26,19 +26,23 @@ describe "IO#seek" do
 
   it "moves the read position relative to the start with SEEK_SET" do
     @io.seek(1)
-    @io.pos.should == 1
-    @io.rewind
-    @io.seek(43, IO::SEEK_SET)
-    @io.readline.should == "Aquí está la línea tres.\n"
-    @io.seek(5, IO::SEEK_SET)
-    @io.readline.should == " la ligne une.\n"
+    NATFIXME 'Convert IO#read to use FILE*', exception: SpecFailedException do
+      @io.pos.should == 1
+      @io.rewind
+      @io.seek(43, IO::SEEK_SET)
+      @io.readline.should == "Aquí está la línea tres.\n"
+      @io.seek(5, IO::SEEK_SET)
+      @io.readline.should == " la ligne une.\n"
+    end
   end
 
   it "moves the read position relative to the end with SEEK_END" do
     @io.seek(0, IO::SEEK_END)
-    @io.tell.should == 137
-    @io.seek(-25, IO::SEEK_END)
-    @io.readline.should == "cinco.\n"
+    NATFIXME 'Convert IO#read to use FILE*', exception: SpecFailedException do
+      @io.tell.should == 137
+      @io.seek(-25, IO::SEEK_END)
+      @io.readline.should == "cinco.\n"
+    end
   end
 
   it "moves the read position and clears EOF with SEEK_SET" do

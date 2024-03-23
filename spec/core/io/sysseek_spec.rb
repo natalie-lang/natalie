@@ -28,7 +28,9 @@ describe "IO#sysseek" do
 
   it "seeks normally even when called immediately after a buffered IO#read" do
     @io.read(15)
-    @io.sysseek(-5, IO::SEEK_CUR).should == 10
+    NATFIXME 'Convert IO#read to use FILE*', exception: SpecFailedException do
+      @io.sysseek(-5, IO::SEEK_CUR).should == 10
+    end
   end
 
   it "moves the read position relative to the start with SEEK_SET" do

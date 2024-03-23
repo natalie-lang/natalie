@@ -62,7 +62,7 @@ Value IoObject::initialize(Env *env, Args args, Block *block) {
             env->raise_errno();
         }
     }
-    set_fileno(fileno);
+    set_fileno(fileno, env);
     set_encoding(env, wanted_flags.external_encoding(), wanted_flags.internal_encoding());
     m_autoclose = wanted_flags.autoclose();
     m_path = wanted_flags.path();
@@ -185,6 +185,12 @@ int IoObject::fdatasync(Env *env) {
     return 0;
 }
 
+Value IoObject::flush(Env *env) {
+    raise_if_closed(env);
+    fflush(m_file);
+    return this;
+}
+
 int IoObject::fsync(Env *env) {
     raise_if_closed(env);
     if (::fsync(m_fileno) < 0) env->raise_errno();
@@ -193,6 +199,8 @@ int IoObject::fsync(Env *env) {
 
 Value IoObject::getbyte(Env *env) {
     raise_if_closed(env);
+    if (!is_readable(fileno(env)))
+        env->raise("IOError", "not opened for reading");
     auto result = read(env, Value::integer(1), nullptr);
     if (result->is_string())
         result = result->as_string()->ord(env);
@@ -249,10 +257,14 @@ bool IoObject::is_eof(Env *env) {
         env->raise("IOError", "not opened for reading");
     if (!m_read_buffer.is_empty())
         return false;
-    size_t buffer = 0;
-    if (::ioctl(m_fileno, FIONREAD, &buffer) < 0)
-        env->raise_errno();
-    return buffer == 0;
+    // feof(3) is based on the error status in *FILE, which means we might have to try to read before we can determe the status.
+    if (ferror(m_file))
+        return feof(m_file) != 0;
+    char c;
+    if (const auto res = fread(&c, 1, 1, m_file); res <= 0)
+        return feof(m_file) != 0;
+    ::ungetc(c, m_file);
+    return false;
 }
 
 bool IoObject::is_nonblock(Env *env) const {
@@ -334,7 +346,7 @@ ssize_t IoObject::blocking_read(Env *env, void *buf, int count) const {
     ThreadObject::set_current_sleeping(true);
 
     select_read(env);
-    return ::read(m_fileno, buf, count);
+    return ::fread(buf, sizeof(char), count, m_file);
 }
 
 Value IoObject::read(Env *env, Value count_value, Value buffer) {
@@ -419,9 +431,9 @@ Value IoObject::append(Env *env, Value obj) {
     raise_if_closed(env);
     obj = obj->to_s(env);
     obj->assert_type(env, Object::Type::String, "String");
-    auto result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->bytesize());
-    if (result == -1) env->raise_errno();
-    if (m_sync) ::fsync(m_fileno);
+    const auto result = ::fwrite(obj->as_string()->c_str(), sizeof(char), obj->as_string()->bytesize(), m_file);
+    if (result != obj->as_string()->bytesize()) env->raise_errno();
+    if (m_sync) fflush(m_file);
     return this;
 }
 
@@ -471,9 +483,12 @@ int IoObject::write(Env *env, Value obj) {
     raise_if_closed(env);
     obj = obj->to_s(env);
     obj->assert_type(env, Object::Type::String, "String");
-    int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->bytesize());
-    if (result == -1) throw_unless_writable(env, this);
-    if (m_sync) ::fsync(m_fileno);
+    const auto result = ::fwrite(obj->as_string()->c_str(), sizeof(char), obj->as_string()->bytesize(), m_file);
+    if (result != obj->as_string()->bytesize()) throw_unless_writable(env, this);
+    if (m_sync) {
+        if (const auto res = ::fflush(m_file); res)
+            env->raise_errno();
+    }
     return result;
 }
 
@@ -509,6 +524,8 @@ Value IoObject::write_nonblock(Env *env, Value obj, Value exception) {
 
 Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     raise_if_closed(env);
+    if (!is_readable(fileno(env)))
+        env->raise("IOError", "not opened for reading");
     auto line = new StringObject {};
     bool has_limit = false;
     if (sep && !sep->is_nil()) {
@@ -697,10 +714,16 @@ Value IoObject::close(Env *env) {
     // on a closed file descriptor.
     ThreadObject::interrupt();
 
-    int result = ::close(m_fileno);
+    int result;
+    if (m_file) {
+        result = ::fclose(m_file);
+    } else {
+        result = ::close(m_fileno);
+    }
     if (result == -1)
         env->raise_errno();
 
+    m_file = nullptr;
     m_fileno = -1;
 
     return NilObject::the();
@@ -734,7 +757,7 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
     }
     if (whence == SEEK_CUR && !m_read_buffer.is_empty())
         amount -= m_read_buffer.size();
-    int result = lseek(m_fileno, amount, whence);
+    int result = fseek(m_file, amount, whence);
     if (result == -1)
         env->raise_errno();
     m_read_buffer.clear();
@@ -956,7 +979,7 @@ Value IoObject::wait_writable(Env *env, Value timeout) {
 int IoObject::rewind(Env *env) {
     raise_if_closed(env);
     errno = 0;
-    auto result = ::lseek(m_fileno, 0, SEEK_SET);
+    auto result = fseek(m_file, 0, SEEK_SET);
     if (result < 0 && errno) env->raise_errno();
     m_lineno = 0;
     m_read_buffer.clear();
@@ -967,7 +990,7 @@ int IoObject::set_pos(Env *env, Value position) {
     raise_if_closed(env);
     nat_int_t offset = IntegerObject::convert_to_nat_int_t(env, position);
     errno = 0;
-    auto result = ::lseek(m_fileno, offset, SEEK_SET);
+    auto result = fseek(m_file, offset, SEEK_SET);
     if (result < 0 && errno) env->raise_errno();
     m_read_buffer.clear();
     return result;
@@ -1000,7 +1023,17 @@ Value IoObject::sysseek(Env *env, Value amount, Value whence) {
 }
 
 Value IoObject::syswrite(Env *env, Value obj) {
-    return write(env, Args { obj });
+    raise_if_closed(env);
+    obj = obj->to_s(env);
+    obj->assert_type(env, Object::Type::String, "String");
+    if (obj->as_string()->bytesize() == 0)
+        return Value::integer(0);
+    if (!is_writable(fileno(env)))
+        env->raise("IOError", "not opened for writing");
+    const auto result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->bytesize());
+    if (result == -1) env->raise_errno();
+    if (m_sync) ::fsync(m_fileno);
+    return Value::integer(result);
 }
 
 static bool any_closed(ArrayObject *ios) {
@@ -1186,7 +1219,7 @@ Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding,
 int IoObject::pos(Env *env) {
     raise_if_closed(env);
     errno = 0;
-    auto result = ::lseek(m_fileno, 0, SEEK_CUR);
+    auto result = fseek(m_file, 0, SEEK_CUR);
     if (result < 0 && errno) env->raise_errno();
     return result - m_read_buffer.size();
 }
@@ -1219,6 +1252,48 @@ void IoObject::build_constants(Env *, ClassObject *klass) {
     klass->const_set("READABLE"_s, Value::integer(WAIT_READABLE));
     klass->const_set("PRIORITY"_s, Value::integer(WAIT_PRIORITY));
     klass->const_set("WRITABLE"_s, Value::integer(WAIT_WRITABLE));
+}
+
+void IoObject::set_fd_to_fileno(Env *env) {
+    // NATFIXME: We're effectively reversing the loging from ioutil.cpp, this should be rewritten
+    const auto actual_flags = ::fcntl(m_fileno, F_GETFL);
+    if (actual_flags < 0)
+        env->raise_errno();
+    const auto flags = actual_flags & (O_RDONLY | O_WRONLY | O_RDWR | O_CREAT | O_TRUNC | O_APPEND);
+    String mode;
+    if (flags == O_RDONLY || flags == (O_RDONLY | O_APPEND)) {
+        mode = "r";
+    } else if (flags == O_RDWR) {
+        mode = "r+";
+    } else if (flags == O_WRONLY || flags == (O_WRONLY | O_CREAT | O_TRUNC)) {
+        mode = "w";
+    } else if (flags == (O_RDWR | O_CREAT | O_TRUNC)) {
+        mode = "w+";
+    } else if (flags == (O_WRONLY | O_CREAT | O_APPEND) || flags == (O_WRONLY | O_APPEND)) {
+        mode = "a";
+    } else if (flags == (O_RDWR | O_CREAT | O_APPEND) || flags == (O_RDWR | O_APPEND)) {
+        mode = "a+";
+    } else {
+        env->raise("ArgumentError", "Unknown flags: {}", flags);
+    }
+    m_file = fdopen(m_fileno, mode.c_str());
+    if (!m_file)
+        env->raise_errno();
+}
+
+void IoObject::set_fileno_to_fd(Env *env) {
+    if (m_file == stdin) {
+        m_fileno = STDIN_FILENO;
+    } else if (m_file == stdout) {
+        m_fileno = STDOUT_FILENO;
+    } else if (m_file == stderr) {
+        m_fileno = STDERR_FILENO;
+    } else {
+        const auto fileno = ::fileno(m_file);
+        if (fileno < 1)
+            env->raise_errno();
+        m_fileno = fileno;
+    }
 }
 
 }

@@ -25,7 +25,7 @@ crashed_count = 0
 timed_out_count = 0
 details = {}
 
-specs = 'spec/**/*_spec.rb'
+specs = ['spec/**/*_spec.rb', 'test/natalie/*_test.rb', 'test/bytecode/**_test.rb']
 
 def recursive_sort(hash)
   hash.keys.sort.reduce({}) do |seed, key|
@@ -37,9 +37,9 @@ def recursive_sort(hash)
   end
 end
 
-puts "Start running specs #{specs}"
+puts "Start running specs #{specs.join(', ')}"
 
-Dir[specs].each do |path|
+Dir[*specs].each do |path|
   pool.post {
     binary_name = path[..-4]
 
@@ -132,6 +132,9 @@ p stats.reject { |k, _| k == "Details" }
 
 unless ENV['STATS_API_SECRET'].to_s.size > 0
   puts "No STATS_API_SECRET set, not sending stats to server"
+  File.open('all-stats.json', 'w') do |file|
+    file.write(JSON.pretty_generate(stats))
+  end
   exit
 end
 

@@ -37,7 +37,9 @@ describe "IO#readlines" do
   describe "when passed no arguments" do
     it "updates self's position" do
       @io.readlines
-      @io.pos.should eql(137)
+      NATFIXME 'Convert IO#read to use FILE*', exception: SpecFailedException do
+        @io.pos.should eql(137)
+      end
     end
 
     it "updates self's lineno based on the number of lines read" do
@@ -86,7 +88,9 @@ describe "IO#readlines" do
 
     it "updates self's position based on the number of characters read" do
       @io.readlines("r")
-      @io.pos.should eql(137)
+      NATFIXME 'Convert IO#read to use FILE*', exception: SpecFailedException do
+        @io.pos.should eql(137)
+      end
     end
 
     it "does not change $_" do

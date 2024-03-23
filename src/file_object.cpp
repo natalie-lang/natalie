@@ -54,12 +54,12 @@ Value FileObject::initialize(Env *env, Args args, Block *block) {
         }
         FILE *fptr = ::fdopen(fileno, flags_str.c_str());
         if (fptr == nullptr) env->raise_errno();
-        set_fileno(fileno);
+        set_fileno(fileno, env);
     } else {
         filename = ioutil::convert_using_to_path(env, filename);
         int fileno = ::open(filename->as_string()->c_str(), flags.flags(), modenum);
         if (fileno == -1) env->raise_errno();
-        set_fileno(fileno);
+        set_fileno(fileno, env);
         set_path(filename->as_string());
     }
     set_encoding(env, flags.external_encoding(), flags.internal_encoding());

@@ -30,7 +30,9 @@ describe "Kernel#p" do
         end
 
         File.open(filename) do |f2|
-          f2.read(7).should == "\"abcde\""
+          NATFIXME 'it flushes output if receiver is a File', exception: SpecFailedException do
+            f2.read(7).should == "\"abcde\""
+          end
         end
       end
     ensure

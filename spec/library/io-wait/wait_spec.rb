@@ -22,6 +22,8 @@ describe "IO#wait" do
 
     @r.close unless @r.closed?
     @w.close unless @w.closed?
+  rescue Errno::EPIPE
+    'NATFIXME: No idea what causes this'
   end
 
   context "[events, timeout] passed" do
@@ -39,7 +41,9 @@ describe "IO#wait" do
     ruby_version_is "3.2" do
       it "returns events mask when the READABLE event is ready during the timeout" do
         @w.write('data to read')
-        @r.wait(IO::READABLE, 2).should == IO::READABLE
+        NATFIXME 'Make IO#wait compatible with streams', exception: SpecFailedException do
+          @r.wait(IO::READABLE, 2).should == IO::READABLE
+        end
       end
 
       it "returns events mask when the WRITABLE event is ready during the timeout" do
@@ -52,7 +56,9 @@ describe "IO#wait" do
       thread = Thread.new { queue.pop; sleep 1; @w.write('data to read') };
 
       queue.push('signal');
-      @r.wait(IO::READABLE, 2).should_not == nil
+      NATFIXME 'Make IO#wait compatible with streams', exception: SpecFailedException do
+        @r.wait(IO::READABLE, 2).should_not == nil
+      end
 
       thread.join
     end

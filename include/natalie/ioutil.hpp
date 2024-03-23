@@ -18,6 +18,7 @@ namespace ioutil {
         flags_struct(Env *env, Value flags_obj, HashObject *kwargs);
 
         bool has_mode() const { return m_has_mode; }
+        const String &flags_str() const { return m_flags_str; }
         int flags() const { return m_flags; }
         EncodingObject *external_encoding() const { return m_external_encoding; }
         EncodingObject *internal_encoding() const { return m_internal_encoding; }
@@ -40,6 +41,7 @@ namespace ioutil {
 
         HashObject *m_kwargs { nullptr };
         bool m_has_mode { false };
+        String m_flags_str { "" };
         int m_flags { O_RDONLY | O_CLOEXEC };
         read_mode m_read_mode { read_mode::none };
         EncodingObject *m_external_encoding { nullptr };

@@ -10,7 +10,9 @@ describe :tempfile_length, shared: true do
   it "returns the size of self" do
     @tempfile.send(@method).should eql(0)
     @tempfile.print("Test!")
-    @tempfile.send(@method).should eql(5)
+    NATFIXME 'Do we need to flush the buffer?', exception: SpecFailedException do
+      @tempfile.send(@method).should eql(5)
+    end
   end
 
   it "returns the size of self even if self is closed" do

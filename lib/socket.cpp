@@ -748,7 +748,7 @@ Value Socket_accept(Env *env, Value self, Args args, Block *block) {
 
     auto Socket = find_top_level_const(env, "Socket"_s)->as_class_or_raise(env);
     auto socket = new IoObject { Socket };
-    socket->as_io()->set_fileno(fd);
+    socket->as_io()->set_fileno(fd, env);
 
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
     auto sockaddr_string = new StringObject { buf, len };
@@ -1290,7 +1290,7 @@ Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
 
     auto TCPSocket = find_top_level_const(env, "TCPSocket"_s)->as_class_or_raise(env);
     auto tcpsocket = new IoObject { TCPSocket };
-    tcpsocket->as_io()->set_fileno(fd);
+    tcpsocket->as_io()->set_fileno(fd, env);
     tcpsocket->as_io()->set_close_on_exec(env, TrueObject::the());
     tcpsocket->as_io()->set_nonblock(env, true);
 
@@ -1401,7 +1401,7 @@ Value UNIXServer_accept(Env *env, Value self, Args args, Block *) {
 
     auto Socket = find_top_level_const(env, "UNIXSocket"_s)->as_class_or_raise(env);
     auto socket = new IoObject { Socket };
-    socket->as_io()->set_fileno(fd);
+    socket->as_io()->set_fileno(fd, env);
     socket->as_io()->set_close_on_exec(env, TrueObject::the());
     socket->as_io()->set_nonblock(env, true);
     return socket;
