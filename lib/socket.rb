@@ -78,9 +78,9 @@ class UDPSocket < IPSocket
 end
 
 class UNIXSocket < BasicSocket
-  __bind_method__ :initialize, :UNIXSocket_initialize
-  __bind_method__ :addr, :UNIXSocket_addr
-  __bind_method__ :peeraddr, :UNIXSocket_peeraddr
+  __bind_method__ :initialize, :UNIXSocket_initialize, 1
+  __bind_method__ :addr, :UNIXSocket_addr, 0
+  __bind_method__ :peeraddr, :UNIXSocket_peeraddr, 0
 
   def path
     addr[1]
