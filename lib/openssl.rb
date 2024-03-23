@@ -301,8 +301,12 @@ module OpenSSL
     end
 
     class Store
-      __bind_method__ :initialize, :OpenSSL_X509_Store_initialize
-      __bind_method__ :set_default_paths, :OpenSSL_X509_Store_set_default_paths
+      __bind_method__ :initialize, :OpenSSL_X509_Store_initialize, 0
+      __bind_method__ :add_cert, :OpenSSL_X509_Store_add_cert, 1
+      __bind_method__ :set_default_paths, :OpenSSL_X509_Store_set_default_paths, 0
+      __bind_method__ :verify, :OpenSSL_X509_Store_verify
+
+      attr_reader :error, :error_string
     end
   end
 end

@@ -1230,10 +1230,50 @@ Value OpenSSL_X509_Store_initialize(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
+Value OpenSSL_X509_Store_add_cert(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto cert = args[0];
+
+    auto Certificate = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Certificate"_s })->as_class();
+    if (!cert->is_a(env, Certificate))
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509)", cert->klass()->inspect_str());
+
+    auto store = static_cast<X509_STORE *>(self->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());
+    auto x509 = static_cast<X509 *>(cert->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    if (!X509_STORE_add_cert(store, x509))
+        OpenSSL_X509_Store_raise_error(env, "X509_STORE_add_cert");
+
+    return self;
+}
+
 Value OpenSSL_X509_Store_set_default_paths(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
     auto store = static_cast<X509_STORE *>(self->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());
     if (!X509_STORE_set_default_paths(store))
         OpenSSL_X509_Store_raise_error(env, "X509_STORE_set_default_paths");
     return NilObject::the();
+}
+
+Value OpenSSL_X509_Store_verify(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
+    auto cert = args[0];
+    if (args.size() > 1)
+        env->raise("NotImplementedError", "NATFIXME: Add support for certifcate chain argument");
+
+    auto Certificate = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Certificate"_s })->as_class();
+    if (!cert->is_a(env, Certificate))
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509)", cert->klass()->inspect_str());
+
+    auto store = static_cast<X509_STORE *>(self->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());
+    X509_STORE_CTX *ctx = X509_STORE_CTX_new();
+    if (!ctx)
+        OpenSSL_X509_Store_raise_error(env, "X509_STORE_CTX_new");
+    Defer ctx_free { [&ctx]() { X509_STORE_CTX_free(ctx); } };
+    auto x509 = static_cast<X509 *>(cert->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    X509_STORE_CTX_init(ctx, store, x509, nullptr);
+    const auto verify = X509_verify_cert(ctx) != 0;
+    const auto error = X509_STORE_CTX_get_error(ctx);
+    self->ivar_set(env, "@error"_s, Value::integer(error));
+    self->ivar_set(env, "@error_string"_s, new StringObject { X509_verify_cert_error_string(error), Encoding::ASCII_8BIT });
+    return bool_object(verify);
 }
