@@ -1269,7 +1269,9 @@ Value OpenSSL_X509_Store_verify(Env *env, Value self, Args args, Block *) {
     Defer ctx_free { [&ctx]() { X509_STORE_CTX_free(ctx); } };
     auto x509 = static_cast<X509 *>(cert->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
     X509_STORE_CTX_init(ctx, store, x509, nullptr);
-    if (X509_verify_cert(ctx))
-        return TrueObject::the();
-    return FalseObject::the();
+    const auto verify = X509_verify_cert(ctx) != 0;
+    const auto error = X509_STORE_CTX_get_error(ctx);
+    self->ivar_set(env, "@error"_s, Value::integer(error));
+    self->ivar_set(env, "@error_string"_s, new StringObject { X509_verify_cert_error_string(error), Encoding::ASCII_8BIT });
+    return bool_object(verify);
 }
