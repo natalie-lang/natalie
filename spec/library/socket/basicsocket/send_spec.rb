@@ -101,7 +101,7 @@ describe 'BasicSocket#send' do
 
       describe 'with an object implementing #to_str' do
         it 'returns the amount of sent bytes' do
-          NATFIXME 'Implement dest_sockaddr argument', exception: SpecFailedException do
+          NATFIXME 'disconnected socket', exception: SocketSpecs.dest_addr_req_error do
             data = mock('message')
             data.should_receive(:to_str).and_return('hello')
             @client.send(data, 0, @server.getsockname).should == 5
@@ -111,23 +111,21 @@ describe 'BasicSocket#send' do
 
       describe 'without a destination address' do
         it "raises #{SocketSpecs.dest_addr_req_error}" do
-          NATFIXME 'raises without a destination address', exception: SpecFailedException do
-            -> { @client.send('hello', 0) }.should raise_error(SocketSpecs.dest_addr_req_error)
-          end
+          -> { @client.send('hello', 0) }.should raise_error(SocketSpecs.dest_addr_req_error)
         end
       end
 
       describe 'with a destination address as a String' do
         it 'returns the amount of sent bytes' do
-          NATFIXME 'Implement dest_sockaddr argument', exception: SpecFailedException do
+          NATFIXME 'disconnected socket', exception: SocketSpecs.dest_addr_req_error do
             @client.send('hello', 0, @server.getsockname).should == 5
           end
         end
 
         it 'does not persist the connection after writing to the socket' do
-          @client.send('hello', 0, @server.getsockname)
+          NATFIXME 'disconnected socket', exception: SocketSpecs.dest_addr_req_error do
+            @client.send('hello', 0, @server.getsockname)
 
-          NATFIXME 'does not persist the connection after writing to the socket', exception: SpecFailedException do
             -> { @client.send('hello', 0) }.should raise_error(SocketSpecs.dest_addr_req_error)
           end
         end
@@ -135,7 +133,7 @@ describe 'BasicSocket#send' do
 
       describe 'with a destination address as an Addrinfo' do
         it 'returns the amount of sent bytes' do
-          NATFIXME 'Implement dest_sockaddr argument', exception: SpecFailedException do
+          NATFIXME 'disconnected socket', exception: SocketSpecs.dest_addr_req_error do
             @client.send('hello', 0, @server.connect_address).should == 5
           end
         end
@@ -177,7 +175,7 @@ describe 'BasicSocket#send' do
         end
 
         it 'sends the message to the given address instead' do
-          NATFIXME 'Implement dest_sockaddr argument', exception: SpecFailedException do
+          NATFIXME 'it sends the message to the given address instead', exception: SocketSpecs.dest_addr_req_error do
             @client.send('hello', 0, @alt_server.getsockname).should == 5
 
             -> { @server.recv(5) }.should block_caller
@@ -187,12 +185,14 @@ describe 'BasicSocket#send' do
         end
 
         it 'does not persist the alternative connection after writing to the socket' do
-          @client.send('hello', 0, @alt_server.getsockname)
+          NATFIXME 'it does not persist the alternative connection after writing to the socket', exception: SocketSpecs.dest_addr_req_error do
+            @client.send('hello', 0, @alt_server.getsockname)
 
-          @client.connect(@server.getsockname)
-          @client.send('world', 0)
+            @client.connect(@server.getsockname)
+            @client.send('world', 0)
 
-          @server.recv(5).should == 'world'
+            @server.recv(5).should == 'world'
+          end
         end
       end
     end

@@ -86,9 +86,12 @@ with_feature :unix_socket do
       end
 
       it 'returns an Array containing the data and address information' do
-        @client_raw.send('hello', 0, Socket.sockaddr_un(@path2))
+        # Linux: Errno::ENOTCONN, MacOS: Errno::EDESTADDRREQ
+        NATFIXME 'This is somehow not connected', exception: SystemCallError do
+          @client_raw.send('hello', 0, Socket.sockaddr_un(@path2))
 
-        @socket.recvfrom(5).should == ['hello', ['AF_UNIX', @path1]]
+          @socket.recvfrom(5).should == ['hello', ['AF_UNIX', @path1]]
+        end
       end
     end
   end

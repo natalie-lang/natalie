@@ -477,6 +477,8 @@ Value BasicSocket_send(Env *env, Value self, Args args, Block *) {
     auto dest_sockaddr = args.at(2, NilObject::the());
 
     const auto bytes = send(self->as_io()->fileno(), mesg->as_string()->c_str(), mesg->as_string()->bytesize(), flags);
+    if (bytes < 0)
+        env->raise_errno();
 
     return Value::integer(bytes);
 }
