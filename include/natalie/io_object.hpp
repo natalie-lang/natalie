@@ -68,6 +68,7 @@ public:
     int fdatasync(Env *);
     int fileno() const;
     int fileno(Env *) const;
+    Value flush(Env *);
     int fsync(Env *);
     Value getbyte(Env *);
     Value getc(Env *);

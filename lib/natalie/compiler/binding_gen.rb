@@ -891,6 +891,7 @@ gen.binding('IO', 'external_encoding', 'IoObject', 'external_encoding', argc: 0,
 gen.binding('IO', 'fcntl', 'IoObject', 'fcntl', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'fdatasync', 'IoObject', 'fdatasync', argc: 0, pass_env: true, pass_block: false, return_type: :int)
 gen.binding('IO', 'fileno', 'IoObject', 'fileno', argc: 0, pass_env: true, pass_block: false, aliases: ['to_i'], return_type: :int)
+gen.binding('IO', 'flush', 'IoObject', 'flush', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'fsync', 'IoObject', 'fsync', argc: 0, pass_env: true, pass_block: false, return_type: :int)
 gen.binding('IO', 'getbyte', 'IoObject', 'getbyte', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'getc', 'IoObject', 'getc', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

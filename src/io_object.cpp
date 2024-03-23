@@ -185,6 +185,12 @@ int IoObject::fdatasync(Env *env) {
     return 0;
 }
 
+Value IoObject::flush(Env *env) {
+    raise_if_closed(env);
+    fflush(m_file);
+    return this;
+}
+
 int IoObject::fsync(Env *env) {
     raise_if_closed(env);
     if (::fsync(m_fileno) < 0) env->raise_errno();

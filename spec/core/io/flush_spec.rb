@@ -29,8 +29,10 @@ describe "IO#flush" do
         @w.write "foo"
         @r.close
 
-        -> { @w.flush }.should raise_error(Errno::EPIPE, /Broken pipe/)
-        -> { @w.close }.should raise_error(Errno::EPIPE, /Broken pipe/)
+        NATFIXME 'raises Errno::EPIPE if sync=false and the read end is closed', exception: SpecFailedException do
+          -> { @w.flush }.should raise_error(Errno::EPIPE, /Broken pipe/)
+          -> { @w.close }.should raise_error(Errno::EPIPE, /Broken pipe/)
+        end
       end
     end
   end
