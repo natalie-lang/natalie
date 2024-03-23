@@ -160,10 +160,13 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 | `find.rb`        | Kazuki Tsujimoto                  | BSD               |
 | `linenoise`      | S. Sanfilippo and P. Noordhuis    | BSD               |
 | `minicoro.h`     | Eduardo Bart                      | MIT               |
+| `net/*`          | Yukihiro Matsumoto, Minero Aoki   | BSD               |
 | `pp.rb`          | Yukihiro Matsumoto                | BSD               |
 | `prettyprint.rb` | Yukihiro Matsumoto                | BSD               |
+| `resolv.rb`      | Yukihiro Matsumoto                | BSD               |
 | `shellwords.rb`  | Akinori MUSHA                     | BSD               |
 | `spec/*`         | Engine Yard, Inc.                 | MIT               |
+| `timeout.rb`     | Network Applied Communication Laboratory, Inc. and Information-technology Promotion Agency, Japan | BSD |
 | `uri.rb`         | Akira Yamada                      | BSD               |
 | `uri/*`          | Akira Yamada                      | BSD               |
 | `version.rb`     | Engine Yard, Inc.                 | MIT               |

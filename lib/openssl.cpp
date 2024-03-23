@@ -370,8 +370,10 @@ Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args args, Block *
     args.ensure_argc_is(env, 0); // NATFIXME: Add deprecated version argument
     SSL_CTX *ctx = SSL_CTX_new(TLS_method());
     if (!ctx)
-        OpenSSL_raise_error(env, "SSL_CTX_new");
+        OpenSSL_SSL_raise_error(env, "SSL_CTX_new");
     self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_SSL_CTX_cleanup });
+    auto params = new HashObject { env, { "min_version"_s, Value::integer(TLS1_VERSION), "verify_mode"_s, Value::integer(SSL_VERIFY_PEER), "verify_hostname"_s, TrueObject::the() } };
+    self->ivar_set(env, "@params"_s, params);
     return self;
 }
 
@@ -457,6 +459,14 @@ Value OpenSSL_SSL_SSLContext_set_verify_mode(Env *env, Value self, Args args, Bl
     return args[0];
 }
 
+Value OpenSSL_SSL_SSLContext_set_params(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 1);
+    if (args.size() == 0)
+        return self->ivar_get(env, "@params"_s);
+
+    NAT_NOT_YET_IMPLEMENTED("Unable to set params");
+}
+
 Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 
@@ -495,7 +505,7 @@ Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args args, Block *)
     auto *ctx = static_cast<SSL_CTX *>(context->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     SSL *ssl = SSL_new(ctx);
     if (!ssl)
-        OpenSSL_raise_error(env, "SSL_new");
+        OpenSSL_SSL_raise_error(env, "SSL_new");
     self->ivar_set(env, "@context"_s, context);
     self->ivar_set(env, "@io"_s, io);
     self->ivar_set(env, "@ssl"_s, new VoidPObject { ssl, OpenSSL_SSL_cleanup });
@@ -522,9 +532,9 @@ Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args args, Block *) {
             env->raise_errno();
     }
     if (!SSL_set_fd(ssl, fd))
-        OpenSSL_raise_error(env, "SSL_set_fd");
+        OpenSSL_SSL_raise_error(env, "SSL_set_fd");
     if (!SSL_connect(ssl))
-        OpenSSL_raise_error(env, "SSL_connect");
+        OpenSSL_SSL_raise_error(env, "SSL_connect");
     return self;
 }
 
@@ -547,7 +557,7 @@ Value OpenSSL_SSL_SSLSocket_write(Env *env, Value self, Args args, Block *) {
     auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
     const auto size = SSL_write(ssl, str->c_str(), str->bytesize());
     if (size < 0)
-        OpenSSL_raise_error(env, "SSL_write");
+        OpenSSL_SSL_raise_error(env, "SSL_write");
     return Value::integer(size);
 }
 
