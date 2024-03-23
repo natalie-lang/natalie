@@ -14,6 +14,10 @@ class Thread
       end
     end
 
+    def marshal_dump
+      raise TypeError, "can't dump #{self.class}"
+    end
+
     def signal
       @mutex.synchronize do
         thread = nil
