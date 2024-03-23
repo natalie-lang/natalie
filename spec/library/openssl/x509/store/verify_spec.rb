@@ -15,9 +15,10 @@ describe "OpenSSL::X509::Store#verify" do
     cert.sign key, OpenSSL::Digest.new('SHA256')
     store = OpenSSL::X509::Store.new
     store.add_cert(cert)
-    NATFIXME 'Implement OpenSSL::X509::Store#verify', exception: NoMethodError, message: "undefined method `verify' for an instance of OpenSSL::X509::Store" do
+    NATFIXME 'Implement OpenSSL::X509::Store#error', exception: NoMethodError, message: "undefined method `error' for an instance of OpenSSL::X509::Store" do
       [store.verify(cert), store.error, store.error_string].should == [true, 0, "ok"]
     end
+    store.verify(cert).should == true
   end
 
   it "returns false for an expired certificate" do
@@ -33,9 +34,7 @@ describe "OpenSSL::X509::Store#verify" do
     cert.sign key, OpenSSL::Digest.new('SHA256')
     store = OpenSSL::X509::Store.new
     store.add_cert(cert)
-    NATFIXME 'Implement OpenSSL::X509::Store#verify', exception: NoMethodError, message: "undefined method `verify' for an instance of OpenSSL::X509::Store" do
-      store.verify(cert).should == false
-    end
+    store.verify(cert).should == false
   end
 
   it "returns false for an expired root certificate" do
