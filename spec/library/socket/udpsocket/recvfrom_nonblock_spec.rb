@@ -52,10 +52,12 @@ describe 'UDPSocket#recvfrom_nonblock' do
           end
 
           it 'writes the data to the buffer when one is present' do
-            buffer = "".b
-            IO.select([@server])
-            @server.recvfrom_nonblock(1, 0, buffer)
-            buffer.should == 'h'
+            NATFIXME 'Support output buffer', exception: NotImplementedError, message: 'NATFIXME: Support output buffer argument' do
+              buffer = "".b
+              IO.select([@server])
+              @server.recvfrom_nonblock(1, 0, buffer)
+              buffer.should == 'h'
+            end
           end
 
           describe 'the returned Array' do
