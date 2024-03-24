@@ -1334,6 +1334,86 @@ Value UDPSocket_connect(Env *env, Value self, Args args, Block *block) {
     return Socket_connect(env, self, { sockaddr }, nullptr);
 }
 
+Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args args, Block *) {
+    auto kwargs = args.pop_keyword_hash();
+    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
+    args.ensure_argc_between(env, 1, 3);
+    env->ensure_no_extra_keywords(kwargs);
+
+    const auto maxlen = IntegerObject::convert_to_nat_int_t(env, args[0]);
+    auto flags = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
+    if (args.size() > 2)
+        env->raise("NotImplementedError", "NATFIXME: Support output buffer argument");
+    TM::String buf { static_cast<size_t>(maxlen), '\0' };
+    union {
+        sockaddr_in in;
+        sockaddr_in6 in6;
+    } addr {};
+    socklen_t addr_len = sizeof(addr);
+
+    const auto recvfrom_result = recvfrom(
+        self->as_io()->fileno(),
+        &buf[0], buf.size(),
+        flags | MSG_DONTWAIT,
+        reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
+    if (recvfrom_result < 0) {
+        if (exception->is_falsey())
+            return "wait_readable"_s;
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
+            ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
+            auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s });
+            error->extend(env, { WaitReadable });
+            env->raise_exception(error);
+        } else {
+            env->raise_errno();
+        }
+    } else if (recvfrom_result == 0) {
+        return NilObject::the();
+    }
+
+    if (static_cast<size_t>(recvfrom_result) < buf.size())
+        buf.truncate(recvfrom_result);
+
+    Value sender_inet_addr = nullptr;
+    switch (addr.in.sin_family) {
+    case AF_INET: {
+        char host_buf[INET_ADDRSTRLEN];
+        auto ntop_result = inet_ntop(AF_INET, &addr.in.sin_addr, host_buf, INET_ADDRSTRLEN);
+        if (!ntop_result)
+            env->raise_errno();
+        auto ip = new StringObject { host_buf };
+        sender_inet_addr = new ArrayObject {
+            new StringObject { "AF_INET" },
+            Value::integer(ntohs(addr.in.sin_port)),
+            ip,
+            ip
+        };
+        break;
+    }
+    case AF_INET6: {
+        char host_buf[INET6_ADDRSTRLEN];
+        auto ntop_result = inet_ntop(AF_INET, &addr.in6.sin6_addr, host_buf, INET6_ADDRSTRLEN);
+        if (!ntop_result)
+            env->raise_errno();
+        auto ip = new StringObject { host_buf };
+        sender_inet_addr = new ArrayObject {
+            new StringObject { "AF_INET6" },
+            Value::integer(ntohs(addr.in6.sin6_port)),
+            ip,
+            ip
+        };
+        break;
+    }
+    default:
+        NAT_NOT_YET_IMPLEMENTED("UDPSocket#recvfrom_nonblock for family %d", addr.in.sin_family);
+    }
+    return new ArrayObject {
+        new StringObject { std::move(buf), Encoding::ASCII_8BIT },
+        sender_inet_addr
+    };
+}
+
 Value UNIXSocket_initialize(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 1);
 

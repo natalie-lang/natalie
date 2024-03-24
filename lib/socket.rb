@@ -72,9 +72,10 @@ class TCPServer < TCPSocket
 end
 
 class UDPSocket < IPSocket
-  __bind_method__ :initialize, :UDPSocket_initialize
-  __bind_method__ :bind, :UDPSocket_bind
-  __bind_method__ :connect, :UDPSocket_connect
+  __bind_method__ :initialize, :UDPSocket_initialize, 1
+  __bind_method__ :bind, :UDPSocket_bind, 2
+  __bind_method__ :connect, :UDPSocket_connect, 2
+  __bind_method__ :recvfrom_nonblock, :UDPSocket_recvfrom_nonblock
 end
 
 class UNIXSocket < BasicSocket
