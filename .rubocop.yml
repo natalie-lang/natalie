@@ -5,7 +5,7 @@ AllCops:
     - spec/**/*.rb
     - vendor/**/*
 
-FrozenStringLiteralComment:
+Style/FrozenStringLiteralComment:
   Enabled: false
 
 Layout/LeadingCommentSpace:
@@ -102,3 +102,7 @@ Style/WhileUntilModifier:
 Lint/Void:
   Exclude:
     - test/**/*.rb
+
+# No autoload in Natalie, so we do need to require pp/set
+Lint/RedundantRequireStatement:
+  Enabled: false
