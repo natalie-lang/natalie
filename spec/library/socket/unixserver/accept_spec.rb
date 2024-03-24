@@ -20,12 +20,10 @@ with_feature :unix_socket do
 
       sock = @server.accept
       begin
-        NATFIXME 'Implement UNIXSocket#recvfrom', exception: NoMethodError, message: "undefined method `recvfrom' for an instance of UNIXSocket" do
-          data, info = sock.recvfrom(5)
+        data, info = sock.recvfrom(5)
 
-          data.should == 'hello'
-          info.should_not be_empty
-        end
+        data.should == 'hello'
+        info.should_not be_empty
       ensure
         sock.close
         client.close

@@ -477,6 +477,8 @@ Value BasicSocket_send(Env *env, Value self, Args args, Block *) {
     auto dest_sockaddr = args.at(2, NilObject::the());
 
     const auto bytes = send(self->as_io()->fileno(), mesg->as_string()->c_str(), mesg->as_string()->bytesize(), flags);
+    if (bytes < 0)
+        env->raise_errno();
 
     return Value::integer(bytes);
 }
@@ -689,6 +691,38 @@ Value UNIXSocket_peeraddr(Env *env, Value self, Args args, Block *block) {
     return new ArrayObject {
         new StringObject { "AF_UNIX" },
         new StringObject { addr.sun_path }
+    };
+}
+
+Value UNIXSocket_recvfrom(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 3);
+    const auto size = IntegerObject::convert_to_nat_int_t(env, args[0]);
+    const auto flags = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
+    if (args.size() > 2)
+        env->raise("NotImplementedError", "NATFIXME: Support output buffer argument");
+
+    TM::String buf { static_cast<size_t>(size), '\0' };
+    struct sockaddr_un addr { };
+    socklen_t addr_len = sizeof(addr);
+
+    const auto recvfrom_result = recvfrom(
+        self->as_io()->fileno(),
+        &buf[0], buf.size(),
+        flags,
+        reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
+    if (recvfrom_result < 0)
+        env->raise_errno();
+
+    if (static_cast<size_t>(recvfrom_result) < buf.size())
+        buf.truncate(recvfrom_result);
+
+    auto unixaddress = new ArrayObject {
+        new StringObject { "AF_UNIX" },
+        new StringObject { addr.sun_path }
+    };
+    return new ArrayObject {
+        new StringObject { std::move(buf), Encoding::ASCII_8BIT },
+        unixaddress
     };
 }
 
