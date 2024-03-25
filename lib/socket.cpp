@@ -1521,6 +1521,48 @@ Value UNIXServer_accept(Env *env, Value self, Args args, Block *) {
     return socket;
 }
 
+Value UNIXServer_accept_nonblock(Env *env, Value self, Args args, Block *) {
+    auto kwargs = args.pop_keyword_hash();
+    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
+    args.ensure_argc_is(env, 0);
+    env->ensure_no_extra_keywords(kwargs);
+
+    if (self->as_io()->is_closed())
+        env->raise("IOError", "closed stream");
+
+    sockaddr_un addr;
+    socklen_t len = sizeof(addr);
+
+    const auto fileno = self->as_io()->fileno();
+    const auto flags = fcntl(fileno, F_GETFL);
+    if (flags < 0)
+        env->raise_errno();
+    if (!(flags & O_NONBLOCK))
+        if (fcntl(fileno, F_SETFL, flags | O_NONBLOCK) < 0)
+            env->raise_errno();
+    const auto fd = accept4(fileno, reinterpret_cast<sockaddr *>(&addr), &len, SOCK_CLOEXEC | SOCK_NONBLOCK);
+    if (fd == -1) {
+        if (exception->is_falsey())
+            return "wait_readable"_s;
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
+            ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
+            auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s });
+            error->extend(env, { WaitReadable });
+            env->raise_exception(error);
+        } else {
+            env->raise_errno();
+        }
+    }
+
+    auto Socket = find_top_level_const(env, "UNIXSocket"_s)->as_class_or_raise(env);
+    auto socket = new IoObject { Socket };
+    socket->as_io()->set_fileno(fd);
+    socket->as_io()->set_close_on_exec(env, TrueObject::the());
+    socket->as_io()->set_nonblock(env, true);
+    return socket;
+}
+
 Value UNIXServer_listen(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     return Socket_listen(env, self, args, nullptr);
