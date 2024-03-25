@@ -258,6 +258,8 @@ class Addrinfo
   __bind_method__ :initialize, :Addrinfo_initialize
   __bind_method__ :to_sockaddr, :Addrinfo_to_sockaddr
 
+  alias to_s to_sockaddr
+
   def bind
     socket = Socket.new(afamily, socktype, protocol)
     socket.bind(to_sockaddr)

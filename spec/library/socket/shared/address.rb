@@ -42,12 +42,10 @@ describe :socket_local_remote_address, shared: true do
     end
 
     it 'equals address of peer socket' do
-      NATFIXME 'Implement Addrinfo#to_s', exception: SpecFailedException do
-        if @method == :local_address
-          @addr.to_s.should == @b.remote_address.to_s
-        else
-          @addr.to_s.should == @b.local_address.to_s
-        end
+      if @method == :local_address
+        @addr.to_s.should == @b.remote_address.to_s
+      else
+        @addr.to_s.should == @b.local_address.to_s
       end
     end
 
@@ -179,12 +177,10 @@ describe :socket_local_remote_address, shared: true do
       end
 
       it 'equals address of peer socket' do
-        NATFIXME 'Implement Addrinfo#to_s', exception: SpecFailedException do
-          if @method == :local_address
-            @addr.to_s.should == @b.remote_address.to_s
-          else
-            @addr.to_s.should == @b.local_address.to_s
-          end
+        if @method == :local_address
+          @addr.to_s.should == @b.remote_address.to_s
+        else
+          @addr.to_s.should == @b.local_address.to_s
         end
       end
 
