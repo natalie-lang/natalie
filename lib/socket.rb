@@ -95,9 +95,10 @@ class UNIXSocket < BasicSocket
 end
 
 class UNIXServer < UNIXSocket
-  __bind_method__ :initialize, :UNIXServer_initialize
-  __bind_method__ :accept, :UNIXServer_accept
-  __bind_method__ :listen, :UNIXServer_listen
+  __bind_method__ :initialize, :UNIXServer_initialize, 1
+  __bind_method__ :accept, :UNIXServer_accept, 0
+  __bind_method__ :accept_nonblock, :UNIXServer_accept_nonblock
+  __bind_method__ :listen, :UNIXServer_listen, 1
 end
 
 require_relative './socket/constants'
