@@ -858,22 +858,7 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
     if (result != 0)
         env->raise("SocketError", "getaddrinfo: {}", gai_strerror(result));
 
-    StringObject *packed = nullptr;
-
-    switch (addr->ai_family) {
-    case AF_INET: {
-        auto in = (struct sockaddr_in *)addr->ai_addr;
-        packed = new StringObject { (const char *)in, sizeof(struct sockaddr_in), Encoding::ASCII_8BIT };
-        break;
-    }
-    case AF_INET6: {
-        auto in = (struct sockaddr_in6 *)addr->ai_addr;
-        packed = new StringObject { (const char *)in, sizeof(struct sockaddr_in6), Encoding::ASCII_8BIT };
-        break;
-    }
-    default:
-        NAT_NOT_YET_IMPLEMENTED("unknown getaddrinfo family");
-    }
+    auto packed = new StringObject { reinterpret_cast<const char *>(addr->ai_addr), addr->ai_addrlen, Encoding::ASCII_8BIT };
 
     freeaddrinfo(addr);
 
