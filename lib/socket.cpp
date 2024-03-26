@@ -91,7 +91,7 @@ static String Socket_reverse_lookup_address(Env *env, struct sockaddr *addr) {
 static int Addrinfo_sockaddr_family(Env *env, StringObject *sockaddr) {
     if (sockaddr->bytesize() < offsetof(struct sockaddr, sa_family) + sizeof(sa_family_t))
         env->raise("ArgumentError", "bad sockaddr");
-    return ((struct sockaddr *)(sockaddr->c_str()))->sa_family;
+    return (reinterpret_cast<const struct sockaddr *>(sockaddr->c_str()))->sa_family;
 }
 
 Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
@@ -236,7 +236,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
         case AF_INET: {
             self->ivar_set(env, "@afamily"_s, Value::integer(AF_INET));
             char address[INET_ADDRSTRLEN];
-            auto *sockaddr = (struct sockaddr_in *)getaddrinfo_result->ai_addr;
+            auto *sockaddr = reinterpret_cast<sockaddr_in *>(getaddrinfo_result->ai_addr);
             inet_ntop(AF_INET, &(sockaddr->sin_addr), address, INET_ADDRSTRLEN);
             self->ivar_set(env, "@ip_address"_s, new StringObject { address });
             auto port_in_network_byte_order = sockaddr->sin_port;
@@ -246,7 +246,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
         case AF_INET6: {
             self->ivar_set(env, "@afamily"_s, Value::integer(AF_INET6));
             char address[INET6_ADDRSTRLEN];
-            auto *sockaddr = (struct sockaddr_in6 *)getaddrinfo_result->ai_addr;
+            auto *sockaddr = reinterpret_cast<sockaddr_in6 *>(getaddrinfo_result->ai_addr);
             inet_ntop(AF_INET6, &(sockaddr->sin6_addr), address, INET6_ADDRSTRLEN);
             self->ivar_set(env, "@ip_address"_s, new StringObject { address });
             auto port_in_network_byte_order = sockaddr->sin6_port;
@@ -734,7 +734,7 @@ Value Socket_bind(Env *env, Value self, Args args, Block *block) {
         auto packed = sockaddr.send(env, "to_sockaddr"_s)->as_string_or_raise(env);
         memcpy(&addr, packed->c_str(), std::min(sizeof(addr), packed->length()));
 
-        auto result = bind(self->as_io()->fileno(), (const struct sockaddr *)&addr, sizeof(addr));
+        auto result = bind(self->as_io()->fileno(), reinterpret_cast<const struct sockaddr *>(&addr), sizeof(addr));
         if (result == -1)
             env->raise_errno();
 
@@ -749,7 +749,7 @@ Value Socket_bind(Env *env, Value self, Args args, Block *block) {
         auto packed = sockaddr.send(env, "to_sockaddr"_s)->as_string_or_raise(env);
         memcpy(&addr, packed->c_str(), std::min(sizeof(addr), packed->length()));
 
-        auto result = bind(self->as_io()->fileno(), (const struct sockaddr *)&addr, sizeof(addr));
+        auto result = bind(self->as_io()->fileno(), reinterpret_cast<const struct sockaddr *>(&addr), sizeof(addr));
         if (result == -1)
             env->raise_errno();
 
@@ -764,7 +764,7 @@ Value Socket_bind(Env *env, Value self, Args args, Block *block) {
         auto packed = sockaddr.send(env, "to_sockaddr"_s)->as_string_or_raise(env);
         memcpy(&addr, packed->c_str(), std::min(sizeof(addr), packed->length()));
 
-        auto result = bind(self->as_io()->fileno(), (const struct sockaddr *)&addr, sizeof(addr));
+        auto result = bind(self->as_io()->fileno(), reinterpret_cast<const struct sockaddr *>(&addr), sizeof(addr));
         if (result == -1)
             env->raise_errno();
 
@@ -792,8 +792,8 @@ Value Socket_connect(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto remote_sockaddr = args.at(0)->as_string_or_raise(env);
 
-    auto addr = (struct sockaddr *)remote_sockaddr->c_str();
-    socklen_t len = remote_sockaddr->length();
+    auto addr = reinterpret_cast<const sockaddr *>(remote_sockaddr->c_str());
+    socklen_t len = remote_sockaddr->bytesize();
 
     auto result = connect(self->as_io()->fileno(), addr, len);
     if (result == -1)
@@ -897,7 +897,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
 
     sockaddr->assert_type(env, Object::Type::String, "String");
 
-    auto family = ((struct sockaddr *)(sockaddr->as_string()->c_str()))->sa_family;
+    auto family = reinterpret_cast<const struct sockaddr *>(sockaddr->as_string()->c_str())->sa_family;
 
     String sockaddr_string = sockaddr->as_string()->string();
     Value port;
@@ -905,7 +905,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
 
     switch (family) {
     case AF_INET: {
-        auto in = (struct sockaddr_in *)sockaddr_string.c_str();
+        auto in = reinterpret_cast<const sockaddr_in *>(sockaddr_string.c_str());
         char host_buf[INET_ADDRSTRLEN];
         auto result = inet_ntop(AF_INET, &in->sin_addr, host_buf, INET_ADDRSTRLEN);
         if (!result)
@@ -915,7 +915,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
         break;
     }
     case AF_INET6: {
-        auto in = (struct sockaddr_in6 *)sockaddr_string.c_str();
+        auto in = reinterpret_cast<const sockaddr_in6 *>(sockaddr_string.c_str());
         char host_buf[INET6_ADDRSTRLEN];
         auto result = inet_ntop(AF_INET6, &in->sin6_addr, host_buf, INET6_ADDRSTRLEN);
         if (!result)
@@ -970,14 +970,14 @@ static String Socket_family_to_string(int family) {
     }
 }
 
-static int Socket_getaddrinfo_result_port(struct addrinfo *result) {
+static int Socket_getaddrinfo_result_port(addrinfo *result) {
     switch (result->ai_family) {
     case AF_INET: {
-        auto *sockaddr = (struct sockaddr_in *)result->ai_addr;
+        auto sockaddr = reinterpret_cast<sockaddr_in *>(result->ai_addr);
         return ntohs(sockaddr->sin_port);
     }
     case AF_INET6: {
-        auto *sockaddr = (struct sockaddr_in6 *)result->ai_addr;
+        auto sockaddr = reinterpret_cast<sockaddr_in6 *>(result->ai_addr);
         return ntohs(sockaddr->sin6_port);
     }
     default:
@@ -988,13 +988,13 @@ static int Socket_getaddrinfo_result_port(struct addrinfo *result) {
 static String Socket_getaddrinfo_result_host(struct addrinfo *result) {
     switch (result->ai_family) {
     case AF_INET: {
-        auto *sockaddr = (struct sockaddr_in *)result->ai_addr;
+        auto sockaddr = reinterpret_cast<sockaddr_in *>(result->ai_addr);
         char address[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(sockaddr->sin_addr), address, INET_ADDRSTRLEN);
         return address;
     }
     case AF_INET6: {
-        auto *sockaddr = (struct sockaddr_in6 *)result->ai_addr;
+        auto sockaddr = reinterpret_cast<sockaddr_in6 *>(result->ai_addr);
         char address[INET6_ADDRSTRLEN];
         inet_ntop(AF_INET6, &(sockaddr->sin6_addr), address, INET6_ADDRSTRLEN);
         return address;
