@@ -514,12 +514,12 @@ Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 0, 1);
     auto reverse_lookup = args.at(0, NilObject::the());
 
-    struct sockaddr addr { };
+    sockaddr_storage addr {};
     socklen_t addr_len = sizeof(addr);
 
     auto getsockname_result = getsockname(
         self->as_io()->fileno(),
-        &addr,
+        reinterpret_cast<sockaddr *>(&addr),
         &addr_len);
     if (getsockname_result == -1)
         env->raise_errno();
@@ -536,49 +536,35 @@ Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
     else if (!reverse_lookup->is_true() && !reverse_lookup->is_false() && reverse_lookup != "hostname"_s)
         env->raise("ArgumentError", "invalid reverse_lookup flag: {}", reverse_lookup->inspect_str(env));
 
-    switch (addr.sa_family) {
+    switch (addr.ss_family) {
     case AF_INET: {
         family = new StringObject("AF_INET");
-        struct sockaddr_in in { };
-        socklen_t len = sizeof(in);
-        auto getsockname_result = getsockname(
-            self->as_io()->fileno(),
-            (struct sockaddr *)&in,
-            &len);
-        if (getsockname_result == -1)
-            env->raise_errno();
+        const auto *in = reinterpret_cast<sockaddr_in *>(&addr);
         char host_buf[INET_ADDRSTRLEN];
-        auto ntop_result = inet_ntop(AF_INET, &in.sin_addr, host_buf, INET_ADDRSTRLEN);
+        auto ntop_result = inet_ntop(AF_INET, &in->sin_addr, host_buf, INET_ADDRSTRLEN);
         if (!ntop_result)
             env->raise_errno();
         host = ip = new StringObject { host_buf };
-        port = Value::integer(ntohs(in.sin_port));
+        port = Value::integer(ntohs(in->sin_port));
         if (reverse_lookup->is_truthy())
-            host = new StringObject(Socket_reverse_lookup_address(env, (struct sockaddr *)&in));
+            host = new StringObject(Socket_reverse_lookup_address(env, reinterpret_cast<sockaddr *>(&addr)));
         break;
     }
     case AF_INET6: {
         family = new StringObject("AF_INET6");
-        struct sockaddr_in in6 { };
-        socklen_t len = sizeof(in6);
-        auto getsockname_result = getsockname(
-            self->as_io()->fileno(),
-            (struct sockaddr *)&in6,
-            &len);
-        if (getsockname_result == -1)
-            env->raise_errno();
+        const auto *in6 = reinterpret_cast<sockaddr_in6 *>(&addr);
         char host_buf[INET6_ADDRSTRLEN];
-        auto ntop_result = inet_ntop(AF_INET, &in6.sin_addr, host_buf, INET6_ADDRSTRLEN);
+        auto ntop_result = inet_ntop(AF_INET, &in6->sin6_addr, host_buf, INET6_ADDRSTRLEN);
         if (!ntop_result)
             env->raise_errno();
         host = ip = new StringObject { host_buf };
-        port = Value::integer(ntohs(in6.sin_port));
+        port = Value::integer(ntohs(in6->sin6_port));
         if (reverse_lookup->is_truthy())
-            host = new StringObject(Socket_reverse_lookup_address(env, (struct sockaddr *)&in6));
+            host = new StringObject(Socket_reverse_lookup_address(env, reinterpret_cast<sockaddr *>(&addr)));
         break;
     }
     default:
-        NAT_NOT_YET_IMPLEMENTED("IPSocket#addr for family %d", addr.sa_family);
+        NAT_NOT_YET_IMPLEMENTED("IPSocket#addr for family %d", addr.ss_family);
     }
 
     return new ArrayObject({ family, port, host, ip });
