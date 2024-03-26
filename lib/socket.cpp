@@ -1213,10 +1213,10 @@ Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
     if (self->as_io()->is_closed())
         env->raise("IOError", "closed stream");
 
-    socklen_t len = std::max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
-    char buf[len];
+    sockaddr_storage addr {};
+    socklen_t len = sizeof(addr);
 
-    auto fd = blocking_accept(env, self->as_io(), (struct sockaddr *)&buf, &len);
+    auto fd = blocking_accept(env, self->as_io(), reinterpret_cast<sockaddr *>(&addr), &len);
 
     if (fd == -1)
         env->raise_errno();
