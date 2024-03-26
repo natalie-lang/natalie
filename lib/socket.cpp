@@ -1379,10 +1379,7 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args args, Block *) {
     if (args.size() > 2)
         env->raise("NotImplementedError", "NATFIXME: Support output buffer argument");
     TM::String buf { static_cast<size_t>(maxlen), '\0' };
-    union {
-        sockaddr_in in;
-        sockaddr_in6 in6;
-    } addr {};
+    sockaddr_storage addr {};
     socklen_t addr_len = sizeof(addr);
 
     const auto recvfrom_result = recvfrom(
@@ -1410,37 +1407,39 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args args, Block *) {
         buf.truncate(recvfrom_result);
 
     Value sender_inet_addr = nullptr;
-    switch (addr.in.sin_family) {
+    switch (addr.ss_family) {
     case AF_INET: {
+        sockaddr_in *addr_in = reinterpret_cast<sockaddr_in *>(&addr);
         char host_buf[INET_ADDRSTRLEN];
-        auto ntop_result = inet_ntop(AF_INET, &addr.in.sin_addr, host_buf, INET_ADDRSTRLEN);
+        auto ntop_result = inet_ntop(AF_INET, &addr_in->sin_addr, host_buf, INET_ADDRSTRLEN);
         if (!ntop_result)
             env->raise_errno();
         auto ip = new StringObject { host_buf };
         sender_inet_addr = new ArrayObject {
             new StringObject { "AF_INET" },
-            Value::integer(ntohs(addr.in.sin_port)),
+            Value::integer(ntohs(addr_in->sin_port)),
             ip,
             ip
         };
         break;
     }
     case AF_INET6: {
+        sockaddr_in6 *addr_in6 = reinterpret_cast<sockaddr_in6 *>(&addr);
         char host_buf[INET6_ADDRSTRLEN];
-        auto ntop_result = inet_ntop(AF_INET, &addr.in6.sin6_addr, host_buf, INET6_ADDRSTRLEN);
+        auto ntop_result = inet_ntop(AF_INET, &addr_in6->sin6_addr, host_buf, INET6_ADDRSTRLEN);
         if (!ntop_result)
             env->raise_errno();
         auto ip = new StringObject { host_buf };
         sender_inet_addr = new ArrayObject {
             new StringObject { "AF_INET6" },
-            Value::integer(ntohs(addr.in6.sin6_port)),
+            Value::integer(ntohs(addr_in6->sin6_port)),
             ip,
             ip
         };
         break;
     }
     default:
-        NAT_NOT_YET_IMPLEMENTED("UDPSocket#recvfrom_nonblock for family %d", addr.in.sin_family);
+        NAT_NOT_YET_IMPLEMENTED("UDPSocket#recvfrom_nonblock for family %d", addr.ss_family);
     }
     return new ArrayObject {
         new StringObject { std::move(buf), Encoding::ASCII_8BIT },
