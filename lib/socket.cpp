@@ -297,53 +297,17 @@ Value BasicSocket_s_for_fd(Env *env, Value self, Args args, Block *block) {
 Value BasicSocket_getpeername(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 
-    struct sockaddr addr { };
+    sockaddr_storage addr {};
     socklen_t addr_len = sizeof(addr);
 
     auto getpeername_result = getpeername(
         self->as_io()->fileno(),
-        &addr,
+        reinterpret_cast<sockaddr *>(&addr),
         &addr_len);
     if (getpeername_result == -1)
         env->raise_errno();
 
-    switch (addr.sa_family) {
-    case AF_INET: {
-        struct sockaddr_in in { };
-        socklen_t len = sizeof(in);
-        auto getpeername_result = getpeername(
-            self->as_io()->fileno(),
-            (struct sockaddr *)&in,
-            &len);
-        if (getpeername_result == -1)
-            env->raise_errno();
-        return new StringObject { (const char *)&in, len, Encoding::ASCII_8BIT };
-    }
-    case AF_INET6: {
-        struct sockaddr_in6 in6 { };
-        socklen_t len = sizeof(in6);
-        auto getpeername_result = getpeername(
-            self->as_io()->fileno(),
-            (struct sockaddr *)&in6,
-            &len);
-        if (getpeername_result == -1)
-            env->raise_errno();
-        return new StringObject { (const char *)&in6, len, Encoding::ASCII_8BIT };
-    }
-    case AF_UNIX: {
-        struct sockaddr_un un { };
-        socklen_t len = sizeof(un);
-        auto getpeername_result = getpeername(
-            self->as_io()->fileno(),
-            (struct sockaddr *)&un,
-            &len);
-        if (getpeername_result == -1)
-            env->raise_errno();
-        return new StringObject { (const char *)&un, len, Encoding::ASCII_8BIT };
-    }
-    default:
-        NAT_NOT_YET_IMPLEMENTED("BasicSocket#getpeername for family %d", addr.sa_family);
-    }
+    return new StringObject { reinterpret_cast<const char *>(&addr), addr_len, Encoding::ASCII_8BIT };
 }
 
 Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {
