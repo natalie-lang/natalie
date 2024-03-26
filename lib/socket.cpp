@@ -686,10 +686,10 @@ Value Socket_accept(Env *env, Value self, Args args, Block *block) {
     if (self->as_io()->is_closed())
         env->raise("IOError", "closed stream");
 
-    socklen_t len = std::max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
-    char buf[len];
+    sockaddr_storage addr {};
+    socklen_t len = sizeof(addr);
 
-    auto fd = blocking_accept(env, self->as_io(), (struct sockaddr *)&buf, &len);
+    auto fd = blocking_accept(env, self->as_io(), reinterpret_cast<sockaddr *>(&addr), &len);
 
     if (fd == -1)
         env->raise_errno();
@@ -699,7 +699,7 @@ Value Socket_accept(Env *env, Value self, Args args, Block *block) {
     socket->as_io()->set_fileno(fd);
 
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
-    auto sockaddr_string = new StringObject { buf, len };
+    auto sockaddr_string = new StringObject { reinterpret_cast<char *>(&addr), len, Encoding::ASCII_8BIT };
     auto addrinfo = Addrinfo.send(
         env,
         "new"_s,
@@ -710,7 +710,7 @@ Value Socket_accept(Env *env, Value self, Args args, Block *block) {
             Value::integer(0),
         });
 
-    return new ArrayObject({ socket, addrinfo });
+    return new ArrayObject { socket, addrinfo };
 }
 
 Value Socket_bind(Env *env, Value self, Args args, Block *block) {
