@@ -1518,7 +1518,11 @@ Value UNIXServer_accept(Env *env, Value self, bool is_blocking = true, bool exce
         if (!(flags & O_NONBLOCK))
             if (fcntl(fileno, F_SETFL, flags | O_NONBLOCK) < 0)
                 env->raise_errno();
+#ifdef __APPLE__
+        fd = accept(fileno, reinterpret_cast<sockaddr *>(&addr), &len);
+#else
         fd = accept4(fileno, reinterpret_cast<sockaddr *>(&addr), &len, SOCK_CLOEXEC | SOCK_NONBLOCK);
+#endif
         if (fd == -1) {
             if (!exception)
                 return "wait_readable"_s;
