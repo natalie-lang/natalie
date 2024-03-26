@@ -348,7 +348,7 @@ Value BasicSocket_getsockopt(Env *env, Value self, Args args, Block *block) {
     auto result = getsockopt(self->as_io()->fileno(), level, optname, &buf, &len);
     if (result == -1)
         env->raise_errno();
-    auto data = new StringObject { buf, len };
+    auto data = new StringObject { buf, len, Encoding::ASCII_8BIT };
     auto Option = fetch_nested_const({ "Socket"_s, "Option"_s });
     return Option.send(env, "new"_s, { Value::integer(family), Value::integer(level), Value::integer(optname), data });
 }
