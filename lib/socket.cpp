@@ -1397,7 +1397,7 @@ Value UNIXServer_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
-Value UNIXServer_accept(Env *env, Value self, bool is_blocking = true, bool exception = true) {
+Value UNIXServer_sysaccept(Env *env, Value self, bool is_blocking = true, bool exception = true) {
     if (self->as_io()->is_closed())
         env->raise("IOError", "closed stream");
 
@@ -1436,9 +1436,17 @@ Value UNIXServer_accept(Env *env, Value self, bool is_blocking = true, bool exce
         }
     }
 
+    return Value::integer(fd);
+}
+
+Value UNIXServer_accept(Env *env, Value self, bool is_blocking = true, bool exception = true) {
+    auto fd = UNIXServer_sysaccept(env, self, is_blocking, exception);
+    if (!fd->is_integer())
+        return fd;
+
     auto Socket = find_top_level_const(env, "UNIXSocket"_s)->as_class_or_raise(env);
     auto socket = new IoObject { Socket };
-    socket->as_io()->set_fileno(fd);
+    socket->as_io()->set_fileno(IntegerObject::convert_to_nat_int_t(env, fd));
     socket->as_io()->set_close_on_exec(env, TrueObject::the());
     socket->as_io()->set_nonblock(env, true);
     return socket;
