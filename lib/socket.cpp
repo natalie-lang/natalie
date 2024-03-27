@@ -1469,3 +1469,8 @@ Value UNIXServer_listen(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     return Socket_listen(env, self, args, nullptr);
 }
+
+Value UNIXServer_sysaccept(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    return UNIXServer_sysaccept(env, self, true);
+}
