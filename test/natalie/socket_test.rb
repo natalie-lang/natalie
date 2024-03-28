@@ -26,6 +26,44 @@ describe 'Addrinfo' do
   end
 end
 
+describe 'BasicSocket' do
+  describe 'BasicSocket#send' do
+    before :each do
+      @client = Socket.new(:INET, :DGRAM)
+      @server = Socket.new(:INET, :DGRAM)
+
+      @server.bind(Socket.sockaddr_in(0, '127.0.0.1'))
+    end
+
+    after :each do
+      @client.close
+      @server.close
+    end
+
+    it 'Using explicit nil argument as dest_sockaddr' do
+      -> {
+        @client.send('hello', 0, nil)
+      }.should raise_error(SystemCallError, /Destination address required/)
+    end
+
+    it 'tries to dest_sockaddr into String using #to_str' do
+      -> {
+        @client.send('hello', 0, Object.new)
+      }.should raise_error(TypeError, 'no implicit conversion of Object into String')
+
+      dest_sockaddr = mock('dest_sockaddr')
+      dest_sockaddr.should_receive(:to_str).and_return(@server.getsockname.to_s)
+      @client.send('hello', 0, dest_sockaddr).should == 5
+    end
+
+    it 'does not support an empty string as dest_sockaddr' do
+      -> {
+        @client.send('hello', 0, '')
+      }.should raise_error(Errno::EINVAL)
+    end
+  end
+end
+
 describe 'Socket' do
   before do
     @socket = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM)

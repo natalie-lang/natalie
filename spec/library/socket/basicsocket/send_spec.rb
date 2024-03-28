@@ -16,27 +16,27 @@ describe "BasicSocket#send" do
     @socket.close
   end
 
-  it "sends a message to another socket and returns the number of bytes sent" do
-    data = ""
-    t = Thread.new do
-      client = @server.accept
-      loop do
-        got = client.recv(5)
-        break if got.nil? || got.empty?
-        data << got
-      end
-      client.close
-    end
-    Thread.pass while t.status and t.status != "sleep"
-    t.status.should_not be_nil
+   it "sends a message to another socket and returns the number of bytes sent" do
+     data = +""
+     t = Thread.new do
+       client = @server.accept
+       loop do
+         got = client.recv(5)
+         break if got.nil? || got.empty?
+         data << got
+       end
+       client.close
+     end
+     Thread.pass while t.status and t.status != "sleep"
+     t.status.should_not be_nil
 
-    @socket.send('hello', 0).should == 5
-    @socket.shutdown(1) # indicate, that we are done sending
-    @socket.recv(10)
+     @socket.send('hello', 0).should == 5
+     @socket.shutdown(1) # indicate, that we are done sending
+     @socket.recv(10)
 
-    t.join
-    data.should == 'hello'
-  end
+     t.join
+     data.should == 'hello'
+   end
 
   platform_is_not :solaris, :windows do
     it "accepts flags to specify unusual sending behaviour" do
@@ -62,25 +62,25 @@ describe "BasicSocket#send" do
   end
 
   it "accepts a sockaddr as recipient address" do
-    data = ""
-    t = Thread.new do
-      client = @server.accept
-      loop do
-        got = client.recv(5)
-        break if got.nil? || got.empty?
-        data << got
-      end
-      client.close
-    end
-    Thread.pass while t.status and t.status != "sleep"
-    t.status.should_not be_nil
+     data = +""
+     t = Thread.new do
+       client = @server.accept
+       loop do
+         got = client.recv(5)
+         break if got.nil? || got.empty?
+         data << got
+       end
+       client.close
+     end
+     Thread.pass while t.status and t.status != "sleep"
+     t.status.should_not be_nil
 
-    sockaddr = Socket.pack_sockaddr_in(@port, "127.0.0.1")
-    @socket.send('hello', 0, sockaddr).should == 5
-    @socket.shutdown # indicate, that we are done sending
+     sockaddr = Socket.pack_sockaddr_in(@port, "127.0.0.1")
+     @socket.send('hello', 0, sockaddr).should == 5
+     @socket.shutdown # indicate, that we are done sending
 
-    t.join
-    data.should == 'hello'
+     t.join
+     data.should == 'hello'
   end
 end
 
@@ -101,11 +101,9 @@ describe 'BasicSocket#send' do
 
       describe 'with an object implementing #to_str' do
         it 'returns the amount of sent bytes' do
-          NATFIXME 'disconnected socket', exception: SocketSpecs.dest_addr_req_error do
-            data = mock('message')
-            data.should_receive(:to_str).and_return('hello')
-            @client.send(data, 0, @server.getsockname).should == 5
-          end
+          data = mock('message')
+          data.should_receive(:to_str).and_return('hello')
+          @client.send(data, 0, @server.getsockname).should == 5
         end
       end
 
@@ -117,25 +115,19 @@ describe 'BasicSocket#send' do
 
       describe 'with a destination address as a String' do
         it 'returns the amount of sent bytes' do
-          NATFIXME 'disconnected socket', exception: SocketSpecs.dest_addr_req_error do
-            @client.send('hello', 0, @server.getsockname).should == 5
-          end
+          @client.send('hello', 0, @server.getsockname).should == 5
         end
 
         it 'does not persist the connection after writing to the socket' do
-          NATFIXME 'disconnected socket', exception: SocketSpecs.dest_addr_req_error do
-            @client.send('hello', 0, @server.getsockname)
+          @client.send('hello', 0, @server.getsockname)
 
-            -> { @client.send('hello', 0) }.should raise_error(SocketSpecs.dest_addr_req_error)
-          end
+          -> { @client.send('hello', 0) }.should raise_error(SocketSpecs.dest_addr_req_error)
         end
       end
 
       describe 'with a destination address as an Addrinfo' do
         it 'returns the amount of sent bytes' do
-          NATFIXME 'disconnected socket', exception: SocketSpecs.dest_addr_req_error do
-            @client.send('hello', 0, @server.connect_address).should == 5
-          end
+          @client.send('hello', 0, @server.connect_address).should == 5
         end
       end
     end
@@ -175,24 +167,20 @@ describe 'BasicSocket#send' do
         end
 
         it 'sends the message to the given address instead' do
-          NATFIXME 'it sends the message to the given address instead', exception: SocketSpecs.dest_addr_req_error do
-            @client.send('hello', 0, @alt_server.getsockname).should == 5
+          @client.send('hello', 0, @alt_server.getsockname).should == 5
 
-            -> { @server.recv(5) }.should block_caller
+          -> { @server.recv(5) }.should block_caller
 
-            @alt_server.recv(5).should == 'hello'
-          end
+          @alt_server.recv(5).should == 'hello'
         end
 
         it 'does not persist the alternative connection after writing to the socket' do
-          NATFIXME 'it does not persist the alternative connection after writing to the socket', exception: SocketSpecs.dest_addr_req_error do
-            @client.send('hello', 0, @alt_server.getsockname)
+          @client.send('hello', 0, @alt_server.getsockname)
 
-            @client.connect(@server.getsockname)
-            @client.send('world', 0)
+          @client.connect(@server.getsockname)
+          @client.send('world', 0)
 
-            @server.recv(5).should == 'world'
-          end
+          @server.recv(5).should == 'world'
         end
       end
     end
