@@ -408,8 +408,11 @@ Value BasicSocket_send(Env *env, Value self, Args args, Block *) {
     if (dest_sockaddr->is_nil()) {
         bytes = send(self->as_io()->fileno(), mesg->as_string()->c_str(), mesg->as_string()->bytesize(), flags);
     } else {
-        auto sockaddr = dest_sockaddr->send(env, "to_s"_s);
-        bytes = sendto(self->as_io()->fileno(), mesg->as_string()->c_str(), mesg->as_string()->bytesize(), flags, reinterpret_cast<const struct sockaddr *>(sockaddr->as_string()->c_str()), sockaddr->as_string()->bytesize());
+        auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
+        if (dest_sockaddr->is_a(env, Addrinfo))
+            dest_sockaddr = dest_sockaddr->to_s(env);
+        dest_sockaddr = dest_sockaddr->to_str(env);
+        bytes = sendto(self->as_io()->fileno(), mesg->as_string()->c_str(), mesg->as_string()->bytesize(), flags, reinterpret_cast<const sockaddr *>(dest_sockaddr->as_string()->c_str()), dest_sockaddr->as_string()->bytesize());
     }
     if (bytes < 0)
         env->raise_errno();
