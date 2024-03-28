@@ -287,16 +287,6 @@ task :docker_build_clang do
      '.'
 end
 
-task :docker_build_clang_bullseye do
-  sh "docker build -t natalie_clang_#{ruby_version_string}_bullseye " \
-     "--build-arg IMAGE='ruby:#{ruby_version_number}-bullseye' " \
-     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
-     '--build-arg CC=clang ' \
-     '--build-arg CXX=clang++ ' \
-     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
-     '.'
-end
-
 task docker_bash: :docker_build_clang do
   sh "docker run -it --rm --entrypoint bash natalie_clang_#{ruby_version_string}"
 end
@@ -341,8 +331,8 @@ task docker_test_self_hosted_full: :docker_build_clang do
   sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_self_hosted_full"
 end
 
-task docker_test_asan: :docker_build_clang_bullseye do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string}_bullseye test_asan"
+task docker_test_asan: :docker_build_clang do
+  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_asan"
 end
 
 task docker_test_all_ruby_spec_nightly: :docker_build_clang do
