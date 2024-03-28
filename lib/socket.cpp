@@ -403,8 +403,14 @@ Value BasicSocket_send(Env *env, Value self, Args args, Block *) {
     auto mesg = args.at(0)->to_str(env);
     auto flags = args.at(1, Value::integer(0))->as_integer_or_raise(env)->to_nat_int_t();
     auto dest_sockaddr = args.at(2, NilObject::the());
+    ssize_t bytes;
 
-    const auto bytes = send(self->as_io()->fileno(), mesg->as_string()->c_str(), mesg->as_string()->bytesize(), flags);
+    if (dest_sockaddr->is_nil()) {
+        bytes = send(self->as_io()->fileno(), mesg->as_string()->c_str(), mesg->as_string()->bytesize(), flags);
+    } else {
+        auto sockaddr = dest_sockaddr->send(env, "to_s"_s);
+        bytes = sendto(self->as_io()->fileno(), mesg->as_string()->c_str(), mesg->as_string()->bytesize(), flags, reinterpret_cast<const struct sockaddr *>(sockaddr->as_string()->c_str()), sockaddr->as_string()->bytesize());
+    }
     if (bytes < 0)
         env->raise_errno();
 
