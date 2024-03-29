@@ -346,16 +346,8 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
     }
     ssize_t bytes_read;
     if (count_value && !count_value->is_nil()) {
-        count_value->assert_type(env, Object::Type::Integer, "Integer");
-        auto count_value_integer = count_value->as_integer();
-        if (!count_value_integer->is_fixnum())
-            env->raise("RangeError", "bignum too big to convert into `long'");
-        long count = count_value->as_integer()->to_nat_int_t();
-        if (count < 0)
-            env->raise("ArgumentError", "negative length {} given", (long long)count);
-        if (count > std::numeric_limits<off_t>::max())
-            env->raise("RangeError", "bignum too big to convert into `long'");
-        if (m_read_buffer.size() >= static_cast<size_t>(count)) {
+        const auto count = IntegerObject::convert_to_native_type<size_t>(env, count_value);
+        if (m_read_buffer.size() >= count) {
             auto result = new StringObject { m_read_buffer.c_str(), static_cast<size_t>(count), Encoding::ASCII_8BIT };
             m_read_buffer = String { m_read_buffer.c_str() + count, m_read_buffer.size() - count };
             return result;
