@@ -360,6 +360,48 @@ Value BasicSocket_local_address(Env *env, Value self, Args args, Block *) {
     return Addrinfo.send(env, "new"_s, { packed });
 }
 
+Value BasicSocket_read_nonblock(Env *env, Value self, Args args, Block *) {
+    auto kwargs = args.pop_keyword_hash();
+    args.ensure_argc_between(env, 1, 2);
+
+    const auto maxlen = IntegerObject::convert_to_nat_int_t(env, args[0]);
+    auto buffer = args.at(1, new StringObject { "", Encoding::ASCII_8BIT })->to_str(env);
+    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
+    env->ensure_no_extra_keywords(kwargs);
+
+    const auto fileno = self->as_io()->fileno();
+#ifdef __APPLE__
+    const auto flags = fcntl(fileno, F_GETFL);
+    if (flags < 0)
+        env->raise_errno();
+    if (!(flags & O_NONBLOCK))
+        if (fcntl(fileno, F_SETFL, flags | O_NONBLOCK) < 0)
+            env->raise_errno();
+#endif
+    char charbuf[maxlen];
+    const auto recvfrom_result = recvfrom(
+        fileno,
+        charbuf, maxlen,
+        MSG_DONTWAIT,
+        nullptr, nullptr);
+    if (recvfrom_result < 0) {
+        if (exception->is_falsey())
+            return "wait_readable"_s;
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
+            ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
+            auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s });
+            error->extend(env, { WaitReadable });
+            env->raise_exception(error);
+        } else {
+            env->raise_errno();
+        }
+    }
+
+    buffer->set_str(charbuf, recvfrom_result);
+    return buffer;
+}
+
 static ssize_t blocking_recv(Env *env, IoObject *io, char *buf, size_t len, int flags) {
     Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
