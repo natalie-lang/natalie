@@ -439,6 +439,49 @@ Value BasicSocket_recv(Env *env, Value self, Args args, Block *) {
     return new StringObject { buf, static_cast<size_t>(bytes) };
 }
 
+Value BasicSocket_recv_nonblock(Env *env, Value self, Args args, Block *) {
+    auto kwargs = args.pop_keyword_hash();
+    args.ensure_argc_between(env, 1, 3);
+
+    const auto maxlen = IntegerObject::convert_to_nat_int_t(env, args[0]);
+    const auto flags = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
+    auto buffer = args.at(2, new StringObject { "", Encoding::ASCII_8BIT })->to_str(env);
+    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
+    env->ensure_no_extra_keywords(kwargs);
+
+    const auto fileno = self->as_io()->fileno();
+#ifdef __APPLE__
+    const auto fcntlflags = fcntl(fileno, F_GETFL);
+    if (fcntlflags < 0)
+        env->raise_errno();
+    if (!(fcntlflags & O_NONBLOCK))
+        if (fcntl(fileno, F_SETFL, fcntlflags | O_NONBLOCK) < 0)
+            env->raise_errno();
+#endif
+    char charbuf[maxlen];
+    const auto recvfrom_result = recvfrom(
+        fileno,
+        charbuf, maxlen,
+        flags | MSG_DONTWAIT,
+        nullptr, nullptr);
+    if (recvfrom_result < 0) {
+        if (exception->is_falsey())
+            return "wait_readable"_s;
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
+            ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
+            auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s });
+            error->extend(env, { WaitReadable });
+            env->raise_exception(error);
+        } else {
+            env->raise_errno();
+        }
+    }
+
+    buffer->set_str(charbuf, recvfrom_result);
+    return buffer;
+}
+
 Value BasicSocket_send(Env *env, Value self, Args args, Block *) {
     // send(mesg, flags [, dest_sockaddr]) => numbytes_sent
     args.ensure_argc_between(env, 2, 3);

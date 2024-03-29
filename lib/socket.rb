@@ -11,6 +11,7 @@ class BasicSocket < IO
   __bind_method__ :local_address, :BasicSocket_local_address
   __bind_method__ :read_nonblock, :BasicSocket_read_nonblock
   __bind_method__ :recv, :BasicSocket_recv
+  __bind_method__ :recv_nonblock, :BasicSocket_recv_nonblock
   __bind_method__ :send, :BasicSocket_send
   __bind_method__ :setsockopt, :BasicSocket_setsockopt
   __bind_method__ :shutdown, :BasicSocket_shutdown
