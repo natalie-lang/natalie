@@ -400,11 +400,20 @@ Value BasicSocket_recv(Env *env, Value self, Args args, Block *) {
 Value BasicSocket_send(Env *env, Value self, Args args, Block *) {
     // send(mesg, flags [, dest_sockaddr]) => numbytes_sent
     args.ensure_argc_between(env, 2, 3);
-    auto mesg = args.at(0)->to_str(env);
+    auto mesg = args.at(0)->to_str(env)->as_string();
     auto flags = args.at(1, Value::integer(0))->as_integer_or_raise(env)->to_nat_int_t();
     auto dest_sockaddr = args.at(2, NilObject::the());
+    ssize_t bytes;
 
-    const auto bytes = send(self->as_io()->fileno(), mesg->as_string()->c_str(), mesg->as_string()->bytesize(), flags);
+    if (dest_sockaddr->is_nil()) {
+        bytes = send(self->as_io()->fileno(), mesg->c_str(), mesg->bytesize(), flags);
+    } else {
+        auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
+        if (dest_sockaddr->is_a(env, Addrinfo))
+            dest_sockaddr = dest_sockaddr->to_s(env);
+        dest_sockaddr = dest_sockaddr->to_str(env);
+        bytes = sendto(self->as_io()->fileno(), mesg->c_str(), mesg->bytesize(), flags, reinterpret_cast<const sockaddr *>(dest_sockaddr->as_string()->c_str()), dest_sockaddr->as_string()->bytesize());
+    }
     if (bytes < 0)
         env->raise_errno();
 
