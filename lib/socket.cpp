@@ -1,5 +1,4 @@
 #include <arpa/inet.h>
-#include <fcntl.h>
 #include <net/if.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -407,18 +406,12 @@ Value BasicSocket_recv_nonblock(Env *env, Value self, Args args, Block *) {
     auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
     env->ensure_no_extra_keywords(kwargs);
 
-    const auto fileno = self->as_io()->fileno();
 #ifdef __APPLE__
-    const auto fcntlflags = fcntl(fileno, F_GETFL);
-    if (fcntlflags < 0)
-        env->raise_errno();
-    if (!(fcntlflags & O_NONBLOCK))
-        if (fcntl(fileno, F_SETFL, fcntlflags | O_NONBLOCK) < 0)
-            env->raise_errno();
+    self->as_io()->set_nonblock(env, true);
 #endif
     char charbuf[maxlen];
     const auto recvfrom_result = recvfrom(
-        fileno,
+        self->as_io()->fileno(),
         charbuf, maxlen,
         flags | MSG_DONTWAIT,
         nullptr, nullptr);
@@ -1462,12 +1455,7 @@ Value UNIXServer_sysaccept(Env *env, Value self, bool is_blocking = true, bool e
             env->raise_errno();
     } else {
         const auto fileno = self->as_io()->fileno();
-        const auto flags = fcntl(fileno, F_GETFL);
-        if (flags < 0)
-            env->raise_errno();
-        if (!(flags & O_NONBLOCK))
-            if (fcntl(fileno, F_SETFL, flags | O_NONBLOCK) < 0)
-                env->raise_errno();
+        self->as_io()->set_nonblock(env, true);
 #ifdef __APPLE__
         fd = accept(fileno, reinterpret_cast<sockaddr *>(&addr), &len);
 #else
