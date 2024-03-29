@@ -9,6 +9,7 @@ class BasicSocket < IO
   __bind_method__ :getsockname, :BasicSocket_getsockname
   __bind_method__ :getsockopt, :BasicSocket_getsockopt
   __bind_method__ :local_address, :BasicSocket_local_address
+  __bind_method__ :read_nonblock, :BasicSocket_read_nonblock
   __bind_method__ :recv, :BasicSocket_recv
   __bind_method__ :send, :BasicSocket_send
   __bind_method__ :setsockopt, :BasicSocket_setsockopt
