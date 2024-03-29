@@ -9,7 +9,6 @@ class BasicSocket < IO
   __bind_method__ :getsockname, :BasicSocket_getsockname
   __bind_method__ :getsockopt, :BasicSocket_getsockopt
   __bind_method__ :local_address, :BasicSocket_local_address
-  __bind_method__ :read_nonblock, :BasicSocket_read_nonblock
   __bind_method__ :recv, :BasicSocket_recv
   __bind_method__ :recv_nonblock, :BasicSocket_recv_nonblock
   __bind_method__ :send, :BasicSocket_send
@@ -24,6 +23,10 @@ class BasicSocket < IO
     else
       @do_not_reverse_lookup
     end
+  end
+
+  def read_nonblock(maxlen, *args, **kwargs)
+    recv_nonblock(maxlen, 0, *args, **kwargs)
   end
 
   class << self
