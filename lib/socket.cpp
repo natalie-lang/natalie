@@ -423,9 +423,9 @@ Value BasicSocket_recv_nonblock(Env *env, Value self, Args args, Block *) {
         flags | MSG_DONTWAIT,
         nullptr, nullptr);
     if (recvfrom_result < 0) {
-        if (exception->is_falsey())
-            return "wait_readable"_s;
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            if (exception->is_falsey())
+                return "wait_readable"_s;
             auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
             ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
             auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s });
@@ -1339,9 +1339,9 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args args, Block *) {
         flags | MSG_DONTWAIT,
         reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
     if (recvfrom_result < 0) {
-        if (exception->is_falsey())
-            return "wait_readable"_s;
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            if (exception->is_falsey())
+                return "wait_readable"_s;
             auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
             ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
             auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s });
@@ -1474,9 +1474,9 @@ Value UNIXServer_sysaccept(Env *env, Value self, bool is_blocking = true, bool e
         fd = accept4(fileno, reinterpret_cast<sockaddr *>(&addr), &len, SOCK_CLOEXEC | SOCK_NONBLOCK);
 #endif
         if (fd == -1) {
-            if (!exception)
-                return "wait_readable"_s;
             if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                if (!exception)
+                    return "wait_readable"_s;
                 auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
                 ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
                 auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s });
