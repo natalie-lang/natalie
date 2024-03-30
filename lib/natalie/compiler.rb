@@ -63,9 +63,8 @@ module Natalie
 
       # Format: number of sections (8 bits)
       #         for every section: section id (8 bits), section offset (32 bits)
-      #         Currently the only section id is 1: code
       # Don't use variable width size here: we need to be predictable on where to put the sections
-      sections = [1, 1, header.bytesize + 6].pack('CCN')
+      sections = [1, Bytecode::SECTIONS.key(:CODE), header.bytesize + 6].pack('CCN')
       io.write(sections)
 
       # Format of every section: size (32 bits), content

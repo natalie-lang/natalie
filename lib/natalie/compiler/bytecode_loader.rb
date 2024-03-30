@@ -64,7 +64,11 @@ module Natalie
         num_sections = @io.getbyte
         num_sections.times.each_with_object({}) do |_, sections|
           id = @io.getbyte
-          raise "Invalid section identifier, expected 1 (code), got #{id}" if id != 1
+          type = Bytecode::SECTIONS[id]
+          if type.nil?
+            allowed = Bytecode::SECTIONS.map { |k, v| "#{k} (#{v})" }.join(', ')
+            raise "Invalid section identifier, expected any of #{allowed}, got #{id}"
+          end
           offset = @io.read(4).unpack1('N')
           sections[id] = offset
         end
