@@ -1231,8 +1231,17 @@ Value TCPServer_initialize(Env *env, Value self, Args args, Block *block) {
     }
 
     auto domain = AF_INET;
-    if (hostname->is_string() && hostname->as_string()->string().find(':') >= 0)
-        domain = AF_INET6;
+    if (hostname->is_string() && !hostname->as_string()->is_empty()) {
+        addrinfo *info;
+        const auto result = getaddrinfo(hostname->as_string()->c_str(), nullptr, nullptr, &info);
+        if (result != 0) {
+            if (result == EAI_SYSTEM)
+                env->raise_errno();
+            env->raise("SocketError", "getaddrinfo: {}", gai_strerror(result));
+        }
+        Defer freeinfo { [&info] { freeaddrinfo(info); } };
+        domain = info->ai_family;
+    }
 
     auto fd = socket(domain, SOCK_STREAM, IPPROTO_TCP);
     if (fd == -1)
