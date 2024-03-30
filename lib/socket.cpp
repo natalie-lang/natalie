@@ -586,7 +586,7 @@ Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
         family = new StringObject("AF_INET");
         const auto *in = reinterpret_cast<sockaddr_in *>(&addr);
         char host_buf[INET_ADDRSTRLEN];
-        auto ntop_result = inet_ntop(AF_INET, &in->sin_addr, host_buf, INET_ADDRSTRLEN);
+        auto ntop_result = inet_ntop(addr.ss_family, &in->sin_addr, host_buf, INET_ADDRSTRLEN);
         if (!ntop_result)
             env->raise_errno();
         host = ip = new StringObject { host_buf };
@@ -599,7 +599,7 @@ Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
         family = new StringObject("AF_INET6");
         const auto *in6 = reinterpret_cast<sockaddr_in6 *>(&addr);
         char host_buf[INET6_ADDRSTRLEN];
-        auto ntop_result = inet_ntop(AF_INET, &in6->sin6_addr, host_buf, INET6_ADDRSTRLEN);
+        auto ntop_result = inet_ntop(addr.ss_family, &in6->sin6_addr, host_buf, INET6_ADDRSTRLEN);
         if (!ntop_result)
             env->raise_errno();
         host = ip = new StringObject { host_buf };
