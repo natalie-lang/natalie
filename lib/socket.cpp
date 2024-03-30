@@ -1320,15 +1320,14 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args args, Block *) {
 
     const auto maxlen = IntegerObject::convert_to_nat_int_t(env, args[0]);
     auto flags = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
-    if (args.size() > 2)
-        env->raise("NotImplementedError", "NATFIXME: Support output buffer argument");
-    TM::String buf { static_cast<size_t>(maxlen), '\0' };
+    auto buffer = args.at(2, new StringObject { "", Encoding::ASCII_8BIT })->to_str(env);
+    char buf[maxlen];
     sockaddr_storage addr {};
     socklen_t addr_len = sizeof(addr);
 
     const auto recvfrom_result = recvfrom(
         self->as_io()->fileno(),
-        &buf[0], buf.size(),
+        buf, maxlen,
         flags | MSG_DONTWAIT,
         reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
     if (recvfrom_result < 0) {
@@ -1346,9 +1345,6 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args args, Block *) {
     } else if (recvfrom_result == 0) {
         return NilObject::the();
     }
-
-    if (static_cast<size_t>(recvfrom_result) < buf.size())
-        buf.truncate(recvfrom_result);
 
     Value sender_inet_addr = nullptr;
     switch (addr.ss_family) {
@@ -1385,8 +1381,9 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args args, Block *) {
     default:
         NAT_NOT_YET_IMPLEMENTED("UDPSocket#recvfrom_nonblock for family %d", addr.ss_family);
     }
+    buffer->set_str(buf, recvfrom_result);
     return new ArrayObject {
-        new StringObject { std::move(buf), Encoding::ASCII_8BIT },
+        buffer,
         sender_inet_addr
     };
 }
