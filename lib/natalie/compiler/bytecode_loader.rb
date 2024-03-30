@@ -1,3 +1,4 @@
+require_relative './bytecode'
 require_relative './instruction_manager'
 require_relative './instructions'
 require_relative '../vm'
@@ -54,9 +55,9 @@ module Natalie
       def validate_signature
         header, major_version, minor_version = @io.read(6).unpack('a4C2')
         raise 'Invalid header, this is probably not a Natalie bytecode file' if header != 'NatX'
-        # For now, mark the version as 0.0. The bytecode format is unfinished and there is no backwards compatiblity
-        # guarantee.
-        raise "Invalid version, expected 0.0, got #{major_version}.#{minor_version}" if major_version != 0 || minor_version != 0
+        if major_version != Bytecode::MAJOR_VERSION || minor_version != Bytecode::MINOR_VERSION
+          raise "Invalid version, expected #{Bytecode::MAJOR_VERSION}.#{Bytecode::MINOR_VERSION}, got #{major_version}.#{minor_version}"
+        end
       end
 
       def load_sections

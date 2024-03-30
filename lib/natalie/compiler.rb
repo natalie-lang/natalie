@@ -1,6 +1,7 @@
 require 'tempfile'
 require_relative '../../build/generated/numbers'
 require_relative './compiler/backends/cpp_backend'
+require_relative './compiler/bytecode'
 require_relative './compiler/bytecode_loader'
 require_relative './compiler/comptime_values'
 require_relative './compiler/instruction_manager'
@@ -57,8 +58,7 @@ module Natalie
       end
 
       # Format: Magic header (32 bits), major version (8 bits), minor version (8 bits)
-      # Current version is 0.0, which means we do not guarantee any backwards compatibility
-      header = ['NatX', 0, 0].pack('a4C2')
+      header = ['NatX', Bytecode::MAJOR_VERSION, Bytecode::MINOR_VERSION].pack('a4C2')
       io.write(header)
 
       # Format: number of sections (8 bits)
