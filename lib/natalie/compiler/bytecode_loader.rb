@@ -10,6 +10,9 @@ module Natalie
       def initialize(io)
         @io = IO.new(io)
         validate_signature
+        sections = load_sections
+        # sections[1] is the offset for code
+        @io.read(4) # Ignore section size for now
         @instructions = load_instructions
       end
 
@@ -54,6 +57,16 @@ module Natalie
         # For now, mark the version as 0.0. The bytecode format is unfinished and there is no backwards compatiblity
         # guarantee.
         raise "Invalid version, expected 0.0, got #{major_version}.#{minor_version}" if major_version != 0 || minor_version != 0
+      end
+
+      def load_sections
+        num_sections = @io.getbyte
+        num_sections.times.each_with_object({}) do |_, sections|
+          id = @io.getbyte
+          raise "Invalid section identifier, expected 1 (code), got #{id}" if id != 1
+          offset = @io.read(4).unpack1('N')
+          sections[id] = offset
+        end
       end
 
       def load_instructions

@@ -52,11 +52,25 @@ module Natalie
     end
 
     def compile_to_bytecode(io)
+      bytecode = instructions.each.with_object(''.b) do |instruction, output|
+        output << instruction.serialize
+      end
+
+      # Format: Magic header (32 bits), major version (8 bits), minor version (8 bits)
+      # Current version is 0.0, which means we do not guarantee any backwards compatibility
       header = ['NatX', 0, 0].pack('a4C2')
       io.write(header)
-      instructions.each do |instruction|
-        io.write(instruction.serialize)
-      end
+
+      # Format: number of sections (8 bits)
+      #         for every section: section id (8 bits), section offset (32 bits)
+      #         Currently the only section id is 1: code
+      # Don't use variable width size here: we need to be predictable on where to put the sections
+      sections = [1, 1, header.bytesize + 6].pack('CCN')
+      io.write(sections)
+
+      # Format of every section: size (32 bits), content
+      io.write([bytecode.bytesize].pack('N'))
+      io.write(bytecode)
     end
 
     def write_file_for_debugging
