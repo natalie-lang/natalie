@@ -130,6 +130,7 @@ class Socket < BasicSocket
     TCP: IPPROTO_TCP,
     TTL: IP_TTL,
     TYPE: SO_TYPE,
+    UDP: IPPROTO_UDP,
     UNIX: AF_UNIX,
     V6ONLY: IPV6_V6ONLY,
   }.freeze
