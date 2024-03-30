@@ -53,8 +53,10 @@ module Natalie
     end
 
     def compile_to_bytecode(io)
+      rodata = Object.new # First version: pass it along to fix the serialize method
+
       bytecode = instructions.each.with_object(''.b) do |instruction, output|
-        output << instruction.serialize
+        output << instruction.serialize(rodata)
       end
 
       # Format: Magic header (32 bits), major version (8 bits), minor version (8 bits)

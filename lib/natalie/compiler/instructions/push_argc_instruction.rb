@@ -21,7 +21,7 @@ module Natalie
         vm.push(@count)
       end
 
-      def serialize
+      def serialize(_)
         [
           instruction_number,
           @count

@@ -28,7 +28,7 @@ module Natalie
         vm.push(vm.args[@index])
       end
 
-      def serialize
+      def serialize(_)
         [
           instruction_number,
           index,

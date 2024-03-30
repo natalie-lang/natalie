@@ -21,7 +21,7 @@ module Natalie
         :halt
       end
 
-      def serialize
+      def serialize(_)
         matching_label_string = @matching_label.to_s
         [
           instruction_number,

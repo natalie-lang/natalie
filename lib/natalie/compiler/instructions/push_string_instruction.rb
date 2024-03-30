@@ -34,7 +34,7 @@ module Natalie
         vm.push(@string.dup.force_encoding(@encoding))
       end
 
-      def serialize
+      def serialize(_)
         [
           instruction_number,
           @bytesize,

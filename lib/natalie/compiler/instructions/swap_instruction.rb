@@ -21,7 +21,7 @@ module Natalie
         vm.push(one)
       end
 
-      def serialize
+      def serialize(_)
         [instruction_number].pack('C')
       end
 

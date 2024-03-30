@@ -26,7 +26,7 @@ module Natalie
         end
       end
 
-      def serialize
+      def serialize(_)
         bytecode = [instruction_number, @keywords.size].pack('Cw')
         @keywords.each do |keyword|
           keyword_string = keyword.to_s

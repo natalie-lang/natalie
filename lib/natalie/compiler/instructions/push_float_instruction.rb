@@ -29,7 +29,7 @@ module Natalie
         vm.push(@float)
       end
 
-      def serialize
+      def serialize(_)
         [
           instruction_number,
           @float,

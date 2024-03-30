@@ -36,7 +36,7 @@ module Natalie
         nil
       end
 
-      def serialize
+      def serialize(_)
         [
           instruction_number,
           arity,

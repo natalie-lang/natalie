@@ -25,7 +25,7 @@ module Natalie
         vm.push(vm.block)
       end
 
-      def serialize
+      def serialize(_)
         [
           instruction_number,
           @from_nearest_env ? 1 : 0,

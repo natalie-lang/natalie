@@ -66,7 +66,7 @@ module Natalie
         end
       end
 
-      def serialize
+      def serialize(_)
         raise NotImplementedError, 'Methods with more than 127 arguments are not supported' if @arity > 127
 
         name_string = @name.to_s

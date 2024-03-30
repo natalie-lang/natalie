@@ -106,7 +106,7 @@ module Natalie
         end
       end
 
-      def serialize
+      def serialize(_)
         [
           instruction_number,
           pre ? 1 : 0,

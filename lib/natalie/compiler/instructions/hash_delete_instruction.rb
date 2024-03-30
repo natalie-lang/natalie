@@ -21,7 +21,7 @@ module Natalie
         vm.push(hash.delete(@name))
       end
 
-      def serialize
+      def serialize(_)
         name_string = @name.to_s
         [
           instruction_number,

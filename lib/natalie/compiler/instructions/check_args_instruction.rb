@@ -46,7 +46,7 @@ module Natalie
         end
       end
 
-      def serialize
+      def serialize(_)
         needs_positional_range = @positional.is_a?(Range) && !@positional.end.nil?
         has_positional_splat = @positional.is_a?(Range) && @positional.end.nil?
         flags = 0

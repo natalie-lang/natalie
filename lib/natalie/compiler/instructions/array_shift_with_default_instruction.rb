@@ -20,7 +20,7 @@ module Natalie
         vm.push(ary.empty? ? default : ary.shift)
       end
 
-      def serialize
+      def serialize(_)
         [instruction_number].pack('C')
       end
 

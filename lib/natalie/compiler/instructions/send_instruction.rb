@@ -142,7 +142,7 @@ module Natalie
         )
       end
 
-      def serialize
+      def serialize(_)
         message_string = @message.to_s
         flags = 0
         [receiver_is_self, with_block, args_array_on_stack, has_keyword_hash].each_with_index do |flag, index|
