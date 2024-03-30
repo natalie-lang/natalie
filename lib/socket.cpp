@@ -1188,7 +1188,20 @@ Value TCPSocket_initialize(Env *env, Value self, Args args, Block *block) {
     auto connect_timeout = kwargs ? kwargs->remove(env, "connect_timeout"_s) : NilObject::the();
     env->ensure_no_extra_keywords(kwargs);
 
-    auto fd = socket(AF_INET, SOCK_STREAM, 0);
+    auto domain = AF_INET;
+    if (host->is_string() && !host->as_string()->is_empty()) {
+        addrinfo *info;
+        const auto result = getaddrinfo(host->as_string()->c_str(), nullptr, nullptr, &info);
+        if (result != 0) {
+            if (result == EAI_SYSTEM)
+                env->raise_errno();
+            env->raise("SocketError", "getaddrinfo: {}", gai_strerror(result));
+        }
+        Defer freeinfo { [&info] { freeaddrinfo(info); } };
+        domain = info->ai_family;
+    }
+
+    auto fd = socket(domain, SOCK_STREAM, 0);
     if (fd == -1)
         env->raise_errno();
 
