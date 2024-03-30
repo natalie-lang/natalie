@@ -1486,7 +1486,7 @@ Value UNIXServer_accept(Env *env, Value self, bool is_blocking = true, bool exce
 
     auto Socket = find_top_level_const(env, "UNIXSocket"_s)->as_class_or_raise(env);
     auto socket = new IoObject { Socket };
-    socket->as_io()->set_fileno(IntegerObject::convert_to_nat_int_t(env, fd));
+    socket->as_io()->set_fileno(IntegerObject::convert_to_native_type<int>(env, fd));
     socket->as_io()->set_close_on_exec(env, TrueObject::the());
     socket->as_io()->set_nonblock(env, true);
     return socket;

@@ -13,6 +13,7 @@
 #include "natalie/object.hpp"
 #include "natalie/rounding_mode.hpp"
 #include "natalie/types.hpp"
+#include "nathelpers/typeinfo.hpp"
 
 namespace Natalie {
 
@@ -71,6 +72,21 @@ public:
     static int convert_to_int(Env *, Value);
     static uid_t convert_to_uid(Env *, Value);
     static gid_t convert_to_gid(Env *, Value);
+
+    template <class T>
+    static T convert_to_native_type(Env *env, Value arg) {
+        auto integer = arg->to_int(env);
+        if (integer->is_bignum())
+            env->raise("RangeError", "bignum too big to convert into `{}'", typeinfo<T>().name());
+        const auto result = integer->to_nat_int_t();
+        if (!std::numeric_limits<T>::is_signed && result < 0)
+            env->raise("ArgumentError", "negative length {} given", result);
+        if (result < static_cast<nat_int_t>(std::numeric_limits<T>::min()))
+            env->raise("RangeError", "integer {} too small to convert to `{}'", result, typeinfo<T>().name());
+        if (static_cast<unsigned long long>(result) > std::numeric_limits<T>::max())
+            env->raise("RangeError", "integer {} too big to convert to `{}' (max = {})", result, typeinfo<T>().name());
+        return static_cast<T>(result);
+    }
 
     static Value sqrt(Env *, Value);
 
