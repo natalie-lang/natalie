@@ -586,7 +586,7 @@ Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
         family = new StringObject("AF_INET");
         const auto *in = reinterpret_cast<sockaddr_in *>(&addr);
         char host_buf[INET_ADDRSTRLEN];
-        auto ntop_result = inet_ntop(AF_INET, &in->sin_addr, host_buf, INET_ADDRSTRLEN);
+        auto ntop_result = inet_ntop(addr.ss_family, &in->sin_addr, host_buf, INET_ADDRSTRLEN);
         if (!ntop_result)
             env->raise_errno();
         host = ip = new StringObject { host_buf };
@@ -599,7 +599,7 @@ Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
         family = new StringObject("AF_INET6");
         const auto *in6 = reinterpret_cast<sockaddr_in6 *>(&addr);
         char host_buf[INET6_ADDRSTRLEN];
-        auto ntop_result = inet_ntop(AF_INET, &in6->sin6_addr, host_buf, INET6_ADDRSTRLEN);
+        auto ntop_result = inet_ntop(addr.ss_family, &in6->sin6_addr, host_buf, INET6_ADDRSTRLEN);
         if (!ntop_result)
             env->raise_errno();
         host = ip = new StringObject { host_buf };
@@ -1188,7 +1188,20 @@ Value TCPSocket_initialize(Env *env, Value self, Args args, Block *block) {
     auto connect_timeout = kwargs ? kwargs->remove(env, "connect_timeout"_s) : NilObject::the();
     env->ensure_no_extra_keywords(kwargs);
 
-    auto fd = socket(AF_INET, SOCK_STREAM, 0);
+    auto domain = AF_INET;
+    if (host->is_string() && !host->as_string()->is_empty()) {
+        addrinfo *info;
+        const auto result = getaddrinfo(host->as_string()->c_str(), nullptr, nullptr, &info);
+        if (result != 0) {
+            if (result == EAI_SYSTEM)
+                env->raise_errno();
+            env->raise("SocketError", "getaddrinfo: {}", gai_strerror(result));
+        }
+        Defer freeinfo { [&info] { freeaddrinfo(info); } };
+        domain = info->ai_family;
+    }
+
+    auto fd = socket(domain, SOCK_STREAM, 0);
     if (fd == -1)
         env->raise_errno();
 
@@ -1231,8 +1244,17 @@ Value TCPServer_initialize(Env *env, Value self, Args args, Block *block) {
     }
 
     auto domain = AF_INET;
-    if (hostname->is_string() && hostname->as_string()->string().find(':') >= 0)
-        domain = AF_INET6;
+    if (hostname->is_string() && !hostname->as_string()->is_empty()) {
+        addrinfo *info;
+        const auto result = getaddrinfo(hostname->as_string()->c_str(), nullptr, nullptr, &info);
+        if (result != 0) {
+            if (result == EAI_SYSTEM)
+                env->raise_errno();
+            env->raise("SocketError", "getaddrinfo: {}", gai_strerror(result));
+        }
+        Defer freeinfo { [&info] { freeaddrinfo(info); } };
+        domain = info->ai_family;
+    }
 
     auto fd = socket(domain, SOCK_STREAM, IPPROTO_TCP);
     if (fd == -1)
