@@ -3,13 +3,17 @@ module Natalie
     class BytecodeRoData
       def initialize
         @buffer = ''.b
+        @add_lookup = {}
       end
 
       def add(value)
+        return @add_lookup[value] if @add_lookup.key?(value)
+
         size = value.bytesize
         position = @buffer.size
         @buffer << [value.bytesize].pack('w')
         @buffer << value.b
+        @add_lookup[value.b] = position
         position
       end
 

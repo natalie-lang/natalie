@@ -20,4 +20,12 @@ describe 'BytecodeRoData' do
     @rodata.add('foo').should == 0
     @rodata.add('quux').should == 4
   end
+
+  it 'returns the index of an existing item on duplicates' do
+    @rodata.add('foo')
+    @rodata.add('quux')
+
+    @rodata.add('foo').should == 0
+    @rodata.add('quux').should == 4
+  end
 end
