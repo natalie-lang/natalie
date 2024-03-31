@@ -80,6 +80,27 @@ module Natalie
         vm.with_self(klass) { vm.run }
         :no_halt
       end
+
+      def serialize(rodata)
+        position = rodata.add(@name.to_s)
+        [
+          instruction_number,
+          position,
+          @is_private ? 1 : 0,
+        ].pack('CwC')
+      end
+
+      def self.deserialize(io, rodata)
+        position = io.read_ber_integer
+        name = rodata.get(position, convert: :to_sym)
+        is_private = io.getbool
+        new(
+          name:,
+          is_private:,
+          file: '', # FIXME
+          line: 0 # FIXME
+        )
+      end
     end
   end
 end

@@ -21,6 +21,20 @@ module Natalie
       def execute(vm)
         vm.self.instance_variable_set(@name, vm.pop)
       end
+
+      def serialize(rodata)
+        position = rodata.add(@name.to_s)
+        [
+          instruction_number,
+          position,
+        ].pack('Cw')
+      end
+
+      def self.deserialize(io, rodata)
+        position = io.read_ber_integer
+        name = rodata.get(position, convert: :to_sym)
+        new(name)
+      end
     end
   end
 end
