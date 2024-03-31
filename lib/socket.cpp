@@ -1330,21 +1330,7 @@ Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
     if (self->as_io()->is_closed())
         env->raise("IOError", "closed stream");
 
-    sockaddr_storage addr {};
-    socklen_t len = sizeof(addr);
-
-    auto fd = blocking_accept(env, self->as_io(), reinterpret_cast<sockaddr *>(&addr), &len);
-
-    if (fd == -1)
-        env->raise_errno();
-
-    auto TCPSocket = find_top_level_const(env, "TCPSocket"_s)->as_class_or_raise(env);
-    auto tcpsocket = new IoObject { TCPSocket };
-    tcpsocket->as_io()->set_fileno(fd);
-    tcpsocket->as_io()->set_close_on_exec(env, TrueObject::the());
-    tcpsocket->as_io()->set_nonblock(env, true);
-
-    return tcpsocket;
+    return Server_accept(env, self, "TCPSocket"_s, true);
 }
 
 Value TCPServer_listen(Env *env, Value self, Args args, Block *) {
