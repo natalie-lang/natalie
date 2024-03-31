@@ -157,7 +157,7 @@ module Natalie
 
       def self.deserialize(io, rodata)
         position = io.read_ber_integer
-        message = rodata.get(position)
+        message = rodata.get(position, convert: :to_sym)
         flags = io.getbyte
         receiver_is_self = flags[0] == 1
         with_block = flags[1] == 1

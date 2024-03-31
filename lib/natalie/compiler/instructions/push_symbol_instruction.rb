@@ -30,7 +30,7 @@ module Natalie
 
       def self.deserialize(io, rodata)
         position = io.read_ber_integer
-        name = rodata.get(position)
+        name = rodata.get(position, convert: :to_sym)
         new(name)
       end
     end

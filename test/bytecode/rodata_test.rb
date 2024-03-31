@@ -45,5 +45,20 @@ describe 'Bytecode::RoData' do
       @rodata.get(0).should == 'foo'
       @rodata.get(4).should == 'quux'
     end
+
+    it 'can convert and cache the results' do
+      @rodata.get(0, convert: :to_sym).should == :foo
+      @rodata.get(4, convert: :to_sym).should == :quux
+
+      # Remove the internal buffer to validate the cache
+      @rodata.instance_variable_set(:@buffer, ''.b)
+      @rodata.get(0, convert: :to_sym).should == :foo
+      @rodata.get(4, convert: :to_sym).should == :quux
+
+      # Reading a string will fail
+      -> {
+        @rodata.get(4)
+      }.should raise_error(NoMethodError, "undefined method `unpack1' for nil")
+    end
   end
 end

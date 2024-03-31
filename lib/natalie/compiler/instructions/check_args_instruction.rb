@@ -89,7 +89,7 @@ module Natalie
         if has_keywords
           io.read_ber_integer.times do
             position = io.read_ber_integer
-            keywords << rodata.get(position).to_sym
+            keywords << rodata.get(position, convert: :to_sym)
           end
         end
         new(positional:, keywords:, args_array_on_stack:)

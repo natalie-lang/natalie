@@ -5,6 +5,7 @@ module Natalie
         def initialize
           @buffer = ''.b
           @add_lookup = {}
+          @get_lookup = {}
         end
 
         def self.load(str)
@@ -24,9 +25,15 @@ module Natalie
           position
         end
 
-        def get(position)
+        def get(position, convert: nil)
+          return @get_lookup[[convert, position]] if convert && @get_lookup.key?([convert, position])
           size = @buffer[position..].unpack1('w')
-          @buffer[position + 1, size]
+          result = @buffer[position + 1, size]
+          if convert
+            result = result.send(convert)
+            @get_lookup[[convert, position]] = result
+          end
+          result
         end
 
         def bytesize = @buffer.bytesize
