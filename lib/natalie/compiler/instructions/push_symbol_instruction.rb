@@ -23,19 +23,14 @@ module Natalie
       end
 
       def serialize(rodata)
-        rodata.add(name.to_s)
+        position = rodata.add(name.to_s)
 
-        bytesize = name.to_s.bytesize
-        [
-          instruction_number,
-          bytesize,
-          name.to_s,
-        ].pack("Cwa#{bytesize}")
+        [instruction_number, position].pack('Cw')
       end
 
-      def self.deserialize(io, _)
-        size = io.read_ber_integer
-        name = io.read(size)
+      def self.deserialize(io, rodata)
+        position = io.read_ber_integer
+        name = rodata.get(position)
         new(name)
       end
     end
