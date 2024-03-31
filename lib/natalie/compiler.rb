@@ -64,11 +64,26 @@ module Natalie
       header = ['NatX', Bytecode::MAJOR_VERSION, Bytecode::MINOR_VERSION].pack('a4C2')
       io.write(header)
 
+      code_offset = header.bytesize + 6
+      number_of_sections = 1
+      unless rodata.empty?
+        code_offset += 4 + rodata.bytesize
+        number_of_sections += 1
+      end
+
       # Format: number of sections (8 bits)
       #         for every section: section id (8 bits), section offset (32 bits)
       # Don't use variable width size here: we need to be predictable on where to put the sections
-      sections = [1, Bytecode::SECTIONS.key(:CODE), header.bytesize + 6].pack('CCN')
-      io.write(sections)
+      io.write([number_of_sections].pack('C'))
+      unless rodata.empty?
+        io.write([Bytecode::SECTIONS.key(:RODATA), header.bytesize + 6].pack('CN'))
+      end
+      io.write([Bytecode::SECTIONS.key(:CODE), code_offset].pack('CN'))
+
+      unless rodata.empty?
+        io.write([rodata.bytesize].pack('N'))
+        io.write(rodata)
+      end
 
       # Format of every section: size (32 bits), content
       io.write([bytecode.bytesize].pack('N'))

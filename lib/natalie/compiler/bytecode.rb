@@ -7,6 +7,7 @@ module Natalie
 
       SECTIONS = {
         1 => :CODE,
+        2 => :RODATA,
       }.freeze
     end
   end

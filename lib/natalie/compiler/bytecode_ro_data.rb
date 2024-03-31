@@ -12,6 +12,10 @@ module Natalie
         @buffer << value.b
         position
       end
+
+      def bytesize = @buffer.bytesize
+      def empty? = @buffer.empty?
+      def to_s = @buffer
     end
   end
 end

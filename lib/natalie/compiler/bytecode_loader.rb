@@ -12,7 +12,11 @@ module Natalie
         @io = IO.new(io)
         validate_signature
         sections = load_sections
-        # sections[1] is the offset for code
+        # For now: skip over the rodata section
+        if sections.key?(Bytecode::SECTIONS.key(:RODATA))
+          size = @io.read(4).unpack1('N')
+          @io.read(size)
+        end
         @io.read(4) # Ignore section size for now
         @instructions = load_instructions
       end
