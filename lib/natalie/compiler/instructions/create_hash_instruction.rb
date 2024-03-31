@@ -34,14 +34,14 @@ module Natalie
         vm.push(hash)
       end
 
-      def serialize
+      def serialize(_)
         [
           instruction_number,
           @count,
         ].pack('Cw')
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         count = io.read_ber_integer
         new(count:)
       end

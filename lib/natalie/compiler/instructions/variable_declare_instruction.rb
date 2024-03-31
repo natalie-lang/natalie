@@ -40,19 +40,18 @@ module Natalie
         :noop
       end
 
-      def serialize
-        name_string = @name.to_s
+      def serialize(rodata)
+        position = rodata.add(@name.to_s)
         [
           instruction_number,
-          name_string.bytesize,
-          name_string,
+          position,
           @local_only ? 1 : 0,
-        ].pack("Cwa#{name_string.bytesize}C")
+        ].pack('CwC')
       end
 
-      def self.deserialize(io)
-        size = io.read_ber_integer
-        name = io.read(size)
+      def self.deserialize(io, rodata)
+        position = io.read_ber_integer
+        name = rodata.get(position, convert: :to_sym)
         local_only = io.getbool
         new(name, local_only:)
       end

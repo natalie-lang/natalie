@@ -66,21 +66,20 @@ module Natalie
         end
       end
 
-      def serialize
+      def serialize(rodata)
         raise NotImplementedError, 'Methods with more than 127 arguments are not supported' if @arity > 127
 
-        name_string = @name.to_s
+        position = rodata.add(@name.to_s)
         [
           instruction_number,
-          name_string.bytesize,
-          name_string,
+          position,
           @arity
-        ].pack("Cwa#{name_string.bytesize}c")
+        ].pack("Cwc")
       end
 
-      def self.deserialize(io)
-        size = io.read_ber_integer
-        name = io.read(size)
+      def self.deserialize(io, rodata)
+        position = io.read_ber_integer
+        name = rodata.get(position, convert: :to_sym)
         arity = io.read(1).unpack1('c')
         new(
           name:,

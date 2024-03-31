@@ -1,7 +1,10 @@
 require 'tempfile'
 require_relative '../../build/generated/numbers'
 require_relative './compiler/backends/cpp_backend'
-require_relative './compiler/bytecode_loader'
+require_relative './compiler/bytecode/header'
+require_relative './compiler/bytecode/loader'
+require_relative './compiler/bytecode/ro_data'
+require_relative './compiler/bytecode/sections'
 require_relative './compiler/comptime_values'
 require_relative './compiler/instruction_manager'
 require_relative './compiler/loaded_file'
@@ -52,11 +55,25 @@ module Natalie
     end
 
     def compile_to_bytecode(io)
-      header = ['NatX', 0, 0].pack('a4C2')
-      io.write(header)
-      instructions.each do |instruction|
-        io.write(instruction.serialize)
+      rodata = Bytecode::RoData.new
+      bytecode = instructions.each.with_object(''.b) do |instruction, output|
+        output << instruction.serialize(rodata)
       end
+
+      header = Bytecode::Header.new
+      io.write(header)
+
+      sections = Bytecode::Sections.new(header:, rodata:, bytecode:)
+      io.write(sections)
+
+      unless rodata.empty?
+        io.write([rodata.bytesize].pack('N'))
+        io.write(rodata)
+      end
+
+      # Format of every section: size (32 bits), content
+      io.write([bytecode.bytesize].pack('N'))
+      io.write(bytecode)
     end
 
     def write_file_for_debugging

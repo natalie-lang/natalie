@@ -25,7 +25,7 @@ module Natalie
         vm.push(@int)
       end
 
-      def serialize
+      def serialize(_)
         # Use the algorithm of Marshal.dump with a twist: Marshal switches from type `i` to `l` for values >= (1 <<30)
         # or < -(1 << 30). If this is the case, add a first byte `5` for positive or `-5` for negative numbers, and
         # encode the absolute value using BER encoding. The bytes `5` and `-5` are impossible in regular Marshal
@@ -61,7 +61,7 @@ module Natalie
         ].pack('C*')
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         # See {serialize} for an explanation of the algorithm.
         byte = io.read(1).unpack1('c')
         if byte.zero?

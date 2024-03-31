@@ -26,20 +26,20 @@ module Natalie
         end
       end
 
-      def serialize
+      def serialize(rodata)
         bytecode = [instruction_number, @keywords.size].pack('Cw')
         @keywords.each do |keyword|
-          keyword_string = keyword.to_s
-          bytecode << [keyword_string.bytesize, keyword_string].pack("wa#{keyword_string.bytesize}")
+          position = rodata.add(keyword.to_s)
+          bytecode << [position].pack('w')
         end
         bytecode
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, rodata)
         keywords = []
         io.read_ber_integer.times do
-          size = io.read_ber_integer
-          keywords << io.read(size).to_sym
+          position = io.read_ber_integer
+          keywords << rodata.get(position, convert: :to_sym)
         end
         new(keywords)
       end

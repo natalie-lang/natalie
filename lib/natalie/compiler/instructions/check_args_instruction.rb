@@ -46,7 +46,7 @@ module Natalie
         end
       end
 
-      def serialize
+      def serialize(rodata)
         needs_positional_range = @positional.is_a?(Range) && !@positional.end.nil?
         has_positional_splat = @positional.is_a?(Range) && @positional.end.nil?
         flags = 0
@@ -65,14 +65,14 @@ module Natalie
         if @keywords.any?
           bytecode << [@keywords.size].pack('w')
           @keywords.each do |keyword|
-            keyword_string = keyword.to_s
-            bytecode << [keyword_string.bytesize, keyword_string].pack("wa#{keyword_string.bytesize}")
+            position = rodata.add(keyword.to_s)
+            bytecode << [position].pack('w')
           end
         end
         bytecode
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, rodata)
         flags = io.getbyte
         args_array_on_stack = flags[0] == 1
         needs_positional_range = flags[1] == 1
@@ -88,8 +88,8 @@ module Natalie
         keywords = []
         if has_keywords
           io.read_ber_integer.times do
-            size = io.read_ber_integer
-            keywords << io.read(size).to_sym
+            position = io.read_ber_integer
+            keywords << rodata.get(position, convert: :to_sym)
           end
         end
         new(positional:, keywords:, args_array_on_stack:)

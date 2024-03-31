@@ -22,18 +22,15 @@ module Natalie
         vm.push(@name)
       end
 
-      def serialize
-        bytesize = name.to_s.bytesize
-        [
-          instruction_number,
-          bytesize,
-          name.to_s,
-        ].pack("Cwa#{bytesize}")
+      def serialize(rodata)
+        position = rodata.add(name.to_s)
+
+        [instruction_number, position].pack('Cw')
       end
 
-      def self.deserialize(io)
-        size = io.read_ber_integer
-        name = io.read(size)
+      def self.deserialize(io, rodata)
+        position = io.read_ber_integer
+        name = rodata.get(position, convert: :to_sym)
         new(name)
       end
     end

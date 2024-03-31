@@ -21,18 +21,17 @@ module Natalie
         :halt
       end
 
-      def serialize
-        matching_label_string = @matching_label.to_s
+      def serialize(rodata)
+        position = rodata.add(@matching_label.to_s)
         [
           instruction_number,
-          matching_label_string.bytesize,
-          matching_label_string,
-        ].pack("Cwa#{matching_label_string.bytesize}")
+          position,
+        ].pack('Cw')
       end
 
-      def self.deserialize(io)
-        size = io.read_ber_integer
-        matching_label = io.read(size)
+      def self.deserialize(io, rodata)
+        position = io.read_ber_integer
+        matching_label = rodata.get(position, convert: :to_sym)
         new(matching_label)
       end
     end

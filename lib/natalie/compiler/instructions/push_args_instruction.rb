@@ -43,7 +43,7 @@ module Natalie
         end
       end
 
-      def serialize
+      def serialize(_)
         flags = 0
         [@for_block, @spread, @to_array, !@min_count.nil?, !@max_count.nil?].each_with_index do |flag, index|
           flags |= (1 << index) if flag
@@ -57,7 +57,7 @@ module Natalie
         bytecode
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         flags = io.getbyte
         for_block = flags[0] == 1
         spread = flags[1] == 1

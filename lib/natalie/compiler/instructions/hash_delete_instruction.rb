@@ -21,18 +21,17 @@ module Natalie
         vm.push(hash.delete(@name))
       end
 
-      def serialize
-        name_string = @name.to_s
+      def serialize(rodata)
+        position = rodata.add(@name.to_s)
         [
           instruction_number,
-          name_string.bytesize,
-          name_string,
-        ].pack("Cwa#{name_string.bytesize}")
+          position,
+        ].pack('Cw')
       end
 
-      def self.deserialize(io)
-        size = io.read_ber_integer
-        name = io.read(size).to_sym
+      def self.deserialize(io, rodata)
+        position = io.read_ber_integer
+        name = rodata.get(position, convert: :to_sym)
         new(name)
       end
     end

@@ -268,7 +268,7 @@ class Runner
   end
 
   def compile_and_run_bytecode(io, options)
-    loader = Natalie::Compiler::BytecodeLoader.new(io)
+    loader = Natalie::Compiler::Bytecode::Loader.new(io)
     if /\Ap\d\z/.match?(options[:debug])
       puts loader.instructions
       exit 0

@@ -25,14 +25,14 @@ module Natalie
         vm.push(vm.block)
       end
 
-      def serialize
+      def serialize(_)
         [
           instruction_number,
           @from_nearest_env ? 1 : 0,
         ].pack('CC')
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         from_nearest_env = io.getbool
         new(from_nearest_env:)
       end

@@ -142,23 +142,22 @@ module Natalie
         )
       end
 
-      def serialize
-        message_string = @message.to_s
+      def serialize(rodata)
+        position = rodata.add(@message.to_s)
         flags = 0
         [receiver_is_self, with_block, args_array_on_stack, has_keyword_hash].each_with_index do |flag, index|
           flags |= (1 << index) if flag
         end
         [
           instruction_number,
-          message_string.bytesize,
-          message_string,
+          position,
           flags,
-        ].pack("Cwa#{message_string.bytesize}C")
+        ].pack("CwC")
       end
 
-      def self.deserialize(io)
-        message_length = io.read_ber_integer
-        message = io.read(message_length).to_sym
+      def self.deserialize(io, rodata)
+        position = io.read_ber_integer
+        message = rodata.get(position, convert: :to_sym)
         flags = io.getbyte
         receiver_is_self = flags[0] == 1
         with_block = flags[1] == 1
