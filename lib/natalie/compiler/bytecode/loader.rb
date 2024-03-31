@@ -1,4 +1,5 @@
 require_relative '../bytecode'
+require_relative 'header'
 require_relative 'ro_data'
 require_relative '../instruction_manager'
 require_relative '../instructions'
@@ -12,7 +13,7 @@ module Natalie
 
         def initialize(io)
           @io = IO.new(io)
-          validate_signature
+          header = Bytecode::Header.load(@io)
           sections = load_sections
           if sections.key?(Bytecode::SECTIONS.key(:RODATA))
             size = @io.read(4).unpack1('N')
@@ -56,14 +57,6 @@ module Natalie
         end
 
         private
-
-        def validate_signature
-          header, major_version, minor_version = @io.read(6).unpack('a4C2')
-          raise 'Invalid header, this is probably not a Natalie bytecode file' if header != 'NatX'
-          if major_version != Bytecode::MAJOR_VERSION || minor_version != Bytecode::MINOR_VERSION
-            raise "Invalid version, expected #{Bytecode::MAJOR_VERSION}.#{Bytecode::MINOR_VERSION}, got #{major_version}.#{minor_version}"
-          end
-        end
 
         def load_sections
           num_sections = @io.getbyte

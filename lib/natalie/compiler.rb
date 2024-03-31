@@ -2,6 +2,7 @@ require 'tempfile'
 require_relative '../../build/generated/numbers'
 require_relative './compiler/backends/cpp_backend'
 require_relative './compiler/bytecode'
+require_relative './compiler/bytecode/header'
 require_relative './compiler/bytecode/loader'
 require_relative './compiler/bytecode/ro_data'
 require_relative './compiler/comptime_values'
@@ -55,13 +56,11 @@ module Natalie
 
     def compile_to_bytecode(io)
       rodata = Bytecode::RoData.new
-
       bytecode = instructions.each.with_object(''.b) do |instruction, output|
         output << instruction.serialize(rodata)
       end
 
-      # Format: Magic header (32 bits), major version (8 bits), minor version (8 bits)
-      header = ['NatX', Bytecode::MAJOR_VERSION, Bytecode::MINOR_VERSION].pack('a4C2')
+      header = Bytecode::Header.new
       io.write(header)
 
       code_offset = header.bytesize + 6
