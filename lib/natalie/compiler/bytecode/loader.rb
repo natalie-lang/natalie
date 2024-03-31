@@ -1,6 +1,7 @@
 require_relative '../bytecode'
 require_relative 'header'
 require_relative 'ro_data'
+require_relative 'sections'
 require_relative '../instruction_manager'
 require_relative '../instructions'
 require_relative '../../vm'
@@ -14,8 +15,8 @@ module Natalie
         def initialize(io)
           @io = IO.new(io)
           header = Bytecode::Header.load(@io)
-          sections = load_sections
-          if sections.key?(Bytecode::SECTIONS.key(:RODATA))
+          sections = Bytecode::Sections.load(@io)
+          if sections.rodata?
             size = @io.read(4).unpack1('N')
             @rodata = RoData.load(@io.read(size))
           end
@@ -57,20 +58,6 @@ module Natalie
         end
 
         private
-
-        def load_sections
-          num_sections = @io.getbyte
-          num_sections.times.each_with_object({}) do |_, sections|
-            id = @io.getbyte
-            type = Bytecode::SECTIONS[id]
-            if type.nil?
-              allowed = Bytecode::SECTIONS.map { |k, v| "#{k} (#{v})" }.join(', ')
-              raise "Invalid section identifier, expected any of #{allowed}, got #{id}"
-            end
-            offset = @io.read(4).unpack1('N')
-            sections[id] = offset
-          end
-        end
 
         def load_instructions
           instructions = []

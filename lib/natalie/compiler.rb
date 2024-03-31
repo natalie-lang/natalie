@@ -5,6 +5,7 @@ require_relative './compiler/bytecode'
 require_relative './compiler/bytecode/header'
 require_relative './compiler/bytecode/loader'
 require_relative './compiler/bytecode/ro_data'
+require_relative './compiler/bytecode/sections'
 require_relative './compiler/comptime_values'
 require_relative './compiler/instruction_manager'
 require_relative './compiler/loaded_file'
@@ -63,21 +64,8 @@ module Natalie
       header = Bytecode::Header.new
       io.write(header)
 
-      code_offset = header.bytesize + 6
-      number_of_sections = 1
-      unless rodata.empty?
-        code_offset += 4 + rodata.bytesize
-        number_of_sections += 1
-      end
-
-      # Format: number of sections (8 bits)
-      #         for every section: section id (8 bits), section offset (32 bits)
-      # Don't use variable width size here: we need to be predictable on where to put the sections
-      io.write([number_of_sections].pack('C'))
-      unless rodata.empty?
-        io.write([Bytecode::SECTIONS.key(:RODATA), header.bytesize + 6].pack('CN'))
-      end
-      io.write([Bytecode::SECTIONS.key(:CODE), code_offset].pack('CN'))
+      sections = Bytecode::Sections.new(header:, rodata:, bytecode:)
+      io.write(sections)
 
       unless rodata.empty?
         io.write([rodata.bytesize].pack('N'))
