@@ -1,4 +1,3 @@
-require_relative '../bytecode'
 require_relative 'header'
 require_relative 'ro_data'
 require_relative 'sections'

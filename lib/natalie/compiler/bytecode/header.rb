@@ -1,9 +1,11 @@
-require_relative '../bytecode'
-
 module Natalie
   class Compiler
     module Bytecode
       class Header
+        # Current version is 0.0, which means we do not guarantee any backwards compatibility
+        MAJOR_VERSION = 0
+        MINOR_VERSION = 0
+
         MAGIC_HEADER = 'NatX'
 
         attr_reader :magic_header, :major_version, :minor_version

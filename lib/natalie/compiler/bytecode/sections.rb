@@ -1,9 +1,12 @@
-require_relative '../bytecode'
-
 module Natalie
   class Compiler
     module Bytecode
       class Sections
+        SECTIONS = {
+          1 => :CODE,
+          2 => :RODATA,
+        }.freeze
+
         attr_reader :bytecode_offset
 
         def initialize(header:, rodata:, bytecode:)

@@ -1,7 +1,6 @@
 require 'tempfile'
 require_relative '../../build/generated/numbers'
 require_relative './compiler/backends/cpp_backend'
-require_relative './compiler/bytecode'
 require_relative './compiler/bytecode/header'
 require_relative './compiler/bytecode/loader'
 require_relative './compiler/bytecode/ro_data'
