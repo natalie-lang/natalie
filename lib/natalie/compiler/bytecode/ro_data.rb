@@ -9,7 +9,7 @@ module Natalie
 
         def self.load(str)
           rodata = new
-          rodata.instance_variable_set(:@buffer, str)
+          rodata.send(:buffer=, str)
           rodata
         end
 
@@ -32,6 +32,10 @@ module Natalie
         def bytesize = @buffer.bytesize
         def empty? = @buffer.empty?
         def to_s = @buffer
+
+        private
+
+        attr_writer :buffer
       end
     end
   end

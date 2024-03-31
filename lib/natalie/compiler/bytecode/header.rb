@@ -24,9 +24,9 @@ module Natalie
           end
 
           result = new
-          result.instance_variable_set(:@magic_header, magic_header)
-          result.instance_variable_set(:@major_version, major_version)
-          result.instance_variable_set(:@minor_version, minor_version)
+          result.send(:magic_header=, magic_header)
+          result.send(:major_version=, major_version)
+          result.send(:minor_version=, minor_version)
           result
         end
 
@@ -36,6 +36,10 @@ module Natalie
         end
 
         def bytesize = 6
+
+        private
+
+        attr_writer :magic_header, :major_version, :minor_version
       end
     end
   end

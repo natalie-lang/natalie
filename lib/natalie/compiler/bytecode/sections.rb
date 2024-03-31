@@ -25,9 +25,9 @@ module Natalie
             type, offset = io.read(5).unpack('CN')
             case SECTIONS[type]
             when :CODE
-              result.instance_variable_set(:@bytecode_offset, offset)
+              result.send(:bytecode_offset=, offset)
             when :RODATA
-              result.instance_variable_set(:@rodata_offset, offset)
+              result.send(:rodata_offset=, offset)
             else
               allowed = SECTIONS.map { |k, v| "#{k} (#{v})" }.join(', ')
               raise "Invalid section identifier, expected any of #{allowed}, got #{id}"
@@ -67,6 +67,10 @@ module Natalie
           result << [SECTIONS.key(:CODE), @bytecode_offset].pack('CN')
           result
         end
+
+        private
+
+        attr_writer :bytecode_offset, :rodata_offset
       end
     end
   end
