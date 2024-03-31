@@ -1333,6 +1333,18 @@ Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
     return Server_accept(env, self, "TCPSocket"_s, true);
 }
 
+Value TCPServer_accept_nonblock(Env *env, Value self, Args args, Block *) {
+    auto kwargs = args.pop_keyword_hash();
+    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
+    args.ensure_argc_is(env, 0);
+    env->ensure_no_extra_keywords(kwargs);
+
+    if (self->as_io()->is_closed())
+        env->raise("IOError", "closed stream");
+
+    return Server_accept(env, self, "TCPSocket"_s, false, exception->is_truthy());
+}
+
 Value TCPServer_listen(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     return Socket_listen(env, self, args, nullptr);
