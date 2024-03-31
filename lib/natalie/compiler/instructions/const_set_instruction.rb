@@ -25,6 +25,20 @@ module Natalie
         value = vm.pop
         namespace.const_set(@name, value)
       end
+
+      def serialize(rodata)
+        position = rodata.add(@name)
+        [
+          instruction_number,
+          position,
+        ].pack('Cw')
+      end
+
+      def self.deserialize(io, rodata)
+        position = io.read_ber_integer
+        name = rodata.get(position)
+        new(name)
+      end
     end
   end
 end

@@ -28,6 +28,19 @@ module Natalie
           vm.push(beginning..ending)
         end
       end
+
+      def serialize(_)
+        name_string = @name.to_s
+        [
+          instruction_number,
+          @exclude_end ? 1 : 0,
+        ].pack('CC')
+      end
+
+      def self.deserialize(io, _)
+        exclude_end = io.getbool
+        new(exclude_end)
+      end
     end
   end
 end
