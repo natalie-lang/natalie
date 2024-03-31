@@ -3,6 +3,7 @@ require_relative '../../build/generated/numbers'
 require_relative './compiler/backends/cpp_backend'
 require_relative './compiler/bytecode'
 require_relative './compiler/bytecode_loader'
+require_relative './compiler/bytecode_ro_data'
 require_relative './compiler/comptime_values'
 require_relative './compiler/instruction_manager'
 require_relative './compiler/loaded_file'
@@ -53,7 +54,7 @@ module Natalie
     end
 
     def compile_to_bytecode(io)
-      rodata = Object.new # First version: pass it along to fix the serialize method
+      rodata = BytecodeRoData.new
 
       bytecode = instructions.each.with_object(''.b) do |instruction, output|
         output << instruction.serialize(rodata)

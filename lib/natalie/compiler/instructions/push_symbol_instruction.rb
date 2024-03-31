@@ -22,7 +22,9 @@ module Natalie
         vm.push(@name)
       end
 
-      def serialize(_)
+      def serialize(rodata)
+        rodata.add(name.to_s)
+
         bytesize = name.to_s.bytesize
         [
           instruction_number,

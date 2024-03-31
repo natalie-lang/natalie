@@ -34,7 +34,9 @@ module Natalie
         vm.push(@string.dup.force_encoding(@encoding))
       end
 
-      def serialize(_)
+      def serialize(rodata)
+        rodata.add(@string)
+
         [
           instruction_number,
           @bytesize,
