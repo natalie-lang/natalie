@@ -13,10 +13,10 @@ require 'natalie/parser'
 def evaluate(code)
   parser = Natalie::Parser.new(code, __FILE__)
   compiler = Natalie::Compiler.new(ast: parser.ast, encoding: parser.encoding, path: __FILE__)
-  bytecode = compiler.instructions.each.with_object(''.b) do |instruction, stream|
-    stream << instruction.serialize
-  end
-  loader = Natalie::Compiler::BytecodeLoader.new(StringIO.new(bytecode, binmode: true))
+  bytecode = StringIO.new(binmode: true)
+  compiler.compile_to_bytecode(bytecode)
+  bytecode.rewind
+  loader = Natalie::Compiler::BytecodeLoader.new(bytecode)
   im = Natalie::Compiler::InstructionManager.new(loader.instructions)
   Natalie::VM.new(im, path: __FILE__).run
 end
