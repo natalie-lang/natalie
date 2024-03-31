@@ -1,5 +1,5 @@
 require_relative '../bytecode'
-require_relative '../bytecode_ro_data'
+require_relative 'ro_data'
 require_relative '../instruction_manager'
 require_relative '../instructions'
 require_relative '../../vm'
@@ -16,7 +16,7 @@ module Natalie
           sections = load_sections
           if sections.key?(Bytecode::SECTIONS.key(:RODATA))
             size = @io.read(4).unpack1('N')
-            @rodata = BytecodeRoData.load(@io.read(size))
+            @rodata = RoData.load(@io.read(size))
           end
           @io.read(4) # Ignore section size for now
           @instructions = load_instructions

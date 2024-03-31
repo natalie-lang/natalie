@@ -1,12 +1,12 @@
 # -*- encoding: binary -*-
 
 require_relative '../spec_helper'
-require 'natalie/compiler/bytecode_ro_data'
+require 'natalie/compiler/bytecode/ro_data'
 
-describe 'BytecodeRoData' do
+describe 'Bytecode::RoData' do
   describe 'write access' do
     before :each do
-      @rodata = Natalie::Compiler::BytecodeRoData.new
+      @rodata = Natalie::Compiler::Bytecode::RoData.new
     end
 
     it 'can store multiple strings' do
@@ -33,7 +33,7 @@ describe 'BytecodeRoData' do
 
   describe 'read access' do
     before :each do
-      @rodata = Natalie::Compiler::BytecodeRoData.load("\x03foo\x04quux")
+      @rodata = Natalie::Compiler::Bytecode::RoData.load("\x03foo\x04quux")
     end
 
     it 'has loaded the given data' do
