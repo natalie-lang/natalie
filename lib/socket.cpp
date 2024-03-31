@@ -328,7 +328,10 @@ Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {
 Value BasicSocket_getsockopt(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 2);
     auto level = Socket_const_get(env, args.at(0));
-    auto optname = Socket_const_get(env, args.at(1));
+    auto optname_val = args.at(1);
+    if (optname_val == "CORK"_s || (optname_val->is_string() && *optname_val->as_string() == "CORK"))
+        optname_val = level == IPPROTO_UDP ? "UDP_CORK"_s : "TCP_CORK"_s;
+    auto optname = Socket_const_get(env, optname_val);
 
     struct sockaddr addr { };
     socklen_t addr_len = sizeof(addr);
