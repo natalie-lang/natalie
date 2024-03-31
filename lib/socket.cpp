@@ -87,6 +87,64 @@ static String Socket_reverse_lookup_address(Env *env, struct sockaddr *addr) {
     return hbuf;
 }
 
+static int blocking_accept(Env *env, IoObject *io, struct sockaddr *addr, socklen_t *len) {
+    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+    ThreadObject::set_current_sleeping(true);
+
+    io->select_read(env);
+    return ::accept(io->fileno(), addr, len);
+}
+
+static Value Server_sysaccept(Env *env, Value self, bool is_blocking = true, bool exception = true) {
+    if (self->as_io()->is_closed())
+        env->raise("IOError", "closed stream");
+
+    sockaddr_un addr;
+    socklen_t len = sizeof(addr);
+    int fd;
+    if (is_blocking) {
+        fd = blocking_accept(env, self->as_io(), reinterpret_cast<sockaddr *>(&addr), &len);
+        if (fd == -1)
+            env->raise_errno();
+    } else {
+        const auto fileno = self->as_io()->fileno();
+        self->as_io()->set_nonblock(env, true);
+#ifdef __APPLE__
+        fd = accept(fileno, reinterpret_cast<sockaddr *>(&addr), &len);
+#else
+        fd = accept4(fileno, reinterpret_cast<sockaddr *>(&addr), &len, SOCK_CLOEXEC | SOCK_NONBLOCK);
+#endif
+        if (fd == -1) {
+            if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                if (!exception)
+                    return "wait_readable"_s;
+                auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
+                ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
+                auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s });
+                error->extend(env, { WaitReadable });
+                env->raise_exception(error);
+            } else {
+                env->raise_errno();
+            }
+        }
+    }
+
+    return Value::integer(fd);
+}
+
+static Value Server_accept(Env *env, Value self, SymbolObject *klass, bool is_blocking = true, bool exception = true) {
+    auto fd = Server_sysaccept(env, self, is_blocking, exception);
+    if (!fd->is_integer())
+        return fd;
+
+    auto Socket = find_top_level_const(env, klass)->as_class_or_raise(env);
+    auto socket = new IoObject { Socket };
+    socket->as_io()->set_fileno(IntegerObject::convert_to_native_type<int>(env, fd));
+    socket->as_io()->set_close_on_exec(env, TrueObject::the());
+    socket->as_io()->set_nonblock(env, true);
+    return socket;
+}
+
 static int Addrinfo_sockaddr_family(Env *env, StringObject *sockaddr) {
     if (sockaddr->bytesize() < offsetof(struct sockaddr, sa_family) + sizeof(sa_family_t))
         env->raise("ArgumentError", "bad sockaddr");
@@ -715,14 +773,6 @@ Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
     self->as_io()->binmode(env);
 
     return self;
-}
-
-static int blocking_accept(Env *env, IoObject *io, struct sockaddr *addr, socklen_t *len) {
-    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
-    ThreadObject::set_current_sleeping(true);
-
-    io->select_read(env);
-    return ::accept(io->fileno(), addr, len);
 }
 
 Value Socket_accept(Env *env, Value self, Args args, Block *block) {
@@ -1461,59 +1511,9 @@ Value UNIXServer_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
-Value UNIXServer_sysaccept(Env *env, Value self, bool is_blocking = true, bool exception = true) {
-    if (self->as_io()->is_closed())
-        env->raise("IOError", "closed stream");
-
-    sockaddr_un addr;
-    socklen_t len = sizeof(addr);
-    int fd;
-    if (is_blocking) {
-        fd = blocking_accept(env, self->as_io(), reinterpret_cast<sockaddr *>(&addr), &len);
-        if (fd == -1)
-            env->raise_errno();
-    } else {
-        const auto fileno = self->as_io()->fileno();
-        self->as_io()->set_nonblock(env, true);
-#ifdef __APPLE__
-        fd = accept(fileno, reinterpret_cast<sockaddr *>(&addr), &len);
-#else
-        fd = accept4(fileno, reinterpret_cast<sockaddr *>(&addr), &len, SOCK_CLOEXEC | SOCK_NONBLOCK);
-#endif
-        if (fd == -1) {
-            if (errno == EWOULDBLOCK || errno == EAGAIN) {
-                if (!exception)
-                    return "wait_readable"_s;
-                auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
-                ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
-                auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s });
-                error->extend(env, { WaitReadable });
-                env->raise_exception(error);
-            } else {
-                env->raise_errno();
-            }
-        }
-    }
-
-    return Value::integer(fd);
-}
-
-Value UNIXServer_accept(Env *env, Value self, bool is_blocking = true, bool exception = true) {
-    auto fd = UNIXServer_sysaccept(env, self, is_blocking, exception);
-    if (!fd->is_integer())
-        return fd;
-
-    auto Socket = find_top_level_const(env, "UNIXSocket"_s)->as_class_or_raise(env);
-    auto socket = new IoObject { Socket };
-    socket->as_io()->set_fileno(IntegerObject::convert_to_native_type<int>(env, fd));
-    socket->as_io()->set_close_on_exec(env, TrueObject::the());
-    socket->as_io()->set_nonblock(env, true);
-    return socket;
-}
-
 Value UNIXServer_accept(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
-    return UNIXServer_accept(env, self, true);
+    return Server_accept(env, self, "UNIXSocket"_s, true);
 }
 
 Value UNIXServer_accept_nonblock(Env *env, Value self, Args args, Block *) {
@@ -1521,7 +1521,7 @@ Value UNIXServer_accept_nonblock(Env *env, Value self, Args args, Block *) {
     auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
     args.ensure_argc_is(env, 0);
     env->ensure_no_extra_keywords(kwargs);
-    return UNIXServer_accept(env, self, false, exception->is_truthy());
+    return Server_accept(env, self, "UNIXSocket"_s, false, exception->is_truthy());
 }
 
 Value UNIXServer_listen(Env *env, Value self, Args args, Block *) {
@@ -1531,5 +1531,5 @@ Value UNIXServer_listen(Env *env, Value self, Args args, Block *) {
 
 Value UNIXServer_sysaccept(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
-    return UNIXServer_sysaccept(env, self, true);
+    return Server_sysaccept(env, self, true);
 }
