@@ -73,7 +73,9 @@ end
 class TCPServer < TCPSocket
   __bind_method__ :initialize, :TCPServer_initialize
   __bind_method__ :accept, :TCPServer_accept
+  __bind_method__ :accept_nonblock, :TCPServer_accept_nonblock
   __bind_method__ :listen, :TCPServer_listen
+  __bind_method__ :sysaccept, :TCPServer_sysaccept, 0
 end
 
 class UDPSocket < IPSocket
