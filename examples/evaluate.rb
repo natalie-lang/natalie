@@ -16,7 +16,7 @@ def evaluate(code)
   bytecode = StringIO.new(binmode: true)
   compiler.compile_to_bytecode(bytecode)
   bytecode.rewind
-  loader = Natalie::Compiler::BytecodeLoader.new(bytecode)
+  loader = Natalie::Compiler::Bytecode::Loader.new(bytecode)
   im = Natalie::Compiler::InstructionManager.new(loader.instructions)
   Natalie::VM.new(im, path: __FILE__).run
 end
