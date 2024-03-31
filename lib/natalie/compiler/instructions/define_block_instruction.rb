@@ -43,7 +43,7 @@ module Natalie
         ].pack('Cw')
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         arity = io.read_ber_integer
         new(arity: arity)
       end

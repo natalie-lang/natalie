@@ -156,7 +156,7 @@ module Natalie
         ].pack("Cwa#{message_string.bytesize}C")
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         message_length = io.read_ber_integer
         message = io.read(message_length).to_sym
         flags = io.getbyte

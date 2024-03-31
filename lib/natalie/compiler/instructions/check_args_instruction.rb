@@ -72,7 +72,7 @@ module Natalie
         bytecode
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         flags = io.getbyte
         args_array_on_stack = flags[0] == 1
         needs_positional_range = flags[1] == 1

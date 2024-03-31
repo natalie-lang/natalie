@@ -113,7 +113,7 @@ module Natalie
         ].pack('CC')
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         pre = io.getbool
         new(pre:)
       end

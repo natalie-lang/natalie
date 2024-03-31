@@ -1,4 +1,5 @@
 require_relative './bytecode'
+require_relative './bytecode_ro_data'
 require_relative './instruction_manager'
 require_relative './instructions'
 require_relative '../vm'
@@ -12,10 +13,9 @@ module Natalie
         @io = IO.new(io)
         validate_signature
         sections = load_sections
-        # For now: skip over the rodata section
         if sections.key?(Bytecode::SECTIONS.key(:RODATA))
           size = @io.read(4).unpack1('N')
-          @io.read(size)
+          @rodata = BytecodeRoData.load(@io.read(size))
         end
         @io.read(4) # Ignore section size for now
         @instructions = load_instructions
@@ -85,7 +85,7 @@ module Natalie
           break if num.nil?
 
           instruction_class = INSTRUCTIONS.fetch(num)
-          instructions << instruction_class.deserialize(@io)
+          instructions << instruction_class.deserialize(@io, @rodata)
         end
         instructions
       end

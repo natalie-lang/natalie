@@ -33,7 +33,7 @@ module Natalie
         ].pack("Cwa#{bytesize}")
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         size = io.read_ber_integer
         name = io.read(size)
         new(name)

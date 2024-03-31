@@ -50,7 +50,7 @@ module Natalie
         ].pack("Cwa#{name_string.bytesize}C")
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         size = io.read_ber_integer
         name = io.read(size)
         local_only = io.getbool

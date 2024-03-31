@@ -28,7 +28,7 @@ module Natalie
         ].pack("Cw")
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         count = io.read_ber_integer
         new(count)
       end

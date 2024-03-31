@@ -45,7 +45,7 @@ module Natalie
         ].pack("Cwa#{@bytesize}C")
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         size = io.read_ber_integer
         string = io.read(size)
         encoding = Encoding.list.at(io.getbyte)

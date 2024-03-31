@@ -32,7 +32,7 @@ module Natalie
         ].pack('CC')
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         from_nearest_env = io.getbool
         new(from_nearest_env:)
       end

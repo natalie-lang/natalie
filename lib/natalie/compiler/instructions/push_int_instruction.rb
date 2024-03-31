@@ -61,7 +61,7 @@ module Natalie
         ].pack('C*')
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         # See {serialize} for an explanation of the algorithm.
         byte = io.read(1).unpack1('c')
         if byte.zero?

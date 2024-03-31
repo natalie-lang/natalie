@@ -57,7 +57,7 @@ module Natalie
         bytecode
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         flags = io.getbyte
         for_block = flags[0] == 1
         spread = flags[1] == 1

@@ -36,7 +36,7 @@ module Natalie
         ].pack('CG')
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         float = io.read(8).unpack1('G')
         new(float)
       end

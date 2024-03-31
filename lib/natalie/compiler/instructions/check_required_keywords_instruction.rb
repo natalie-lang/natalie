@@ -35,7 +35,7 @@ module Natalie
         bytecode
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         keywords = []
         io.read_ber_integer.times do
           size = io.read_ber_integer

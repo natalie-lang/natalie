@@ -30,7 +30,7 @@ module Natalie
         ].pack("Cwa#{matching_label_string.bytesize}")
       end
 
-      def self.deserialize(io)
+      def self.deserialize(io, _)
         size = io.read_ber_integer
         matching_label = io.read(size)
         new(matching_label)
