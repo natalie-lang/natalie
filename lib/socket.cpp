@@ -1350,6 +1350,11 @@ Value TCPServer_listen(Env *env, Value self, Args args, Block *) {
     return Socket_listen(env, self, args, nullptr);
 }
 
+Value TCPServer_sysaccept(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_is(env, 0);
+    return Server_sysaccept(env, self, true);
+}
+
 Value UDPSocket_initialize(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 0, 1);
     auto family = Socket_const_name_to_i(env, self, { args.at(0, Value::integer(AF_INET)) }, nullptr);
