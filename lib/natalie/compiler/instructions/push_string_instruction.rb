@@ -35,21 +35,20 @@ module Natalie
       end
 
       def serialize(rodata)
-        rodata.add(@string)
+        position = rodata.add(@string)
 
         [
           instruction_number,
-          @bytesize,
-          @string,
+          position,
           Encoding.list.index(@encoding),
-        ].pack("Cwa#{@bytesize}C")
+        ].pack("CwC")
       end
 
-      def self.deserialize(io, _)
-        size = io.read_ber_integer
-        string = io.read(size)
+      def self.deserialize(io, rodata)
+        position = io.read_ber_integer
+        string = rodata.get(position)
         encoding = Encoding.list.at(io.getbyte)
-        new(string, bytesize: size, encoding: encoding)
+        new(string, bytesize: string.bytesize, encoding: encoding)
       end
     end
   end
