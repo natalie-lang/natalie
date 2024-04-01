@@ -117,6 +117,7 @@ public:
     Value public_instance_methods(Env *, Value);
 
     ArrayObject *ancestors(Env *);
+    bool ancestors_includes(Env *, ModuleObject *);
     bool is_subclass_of(ModuleObject *);
 
     bool is_method_defined(Env *, Value) const;

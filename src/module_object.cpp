@@ -662,6 +662,27 @@ ArrayObject *ModuleObject::ancestors(Env *env) {
     return ancestors;
 }
 
+bool ModuleObject::ancestors_includes(Env *env, ModuleObject *module) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    ModuleObject *klass = this;
+    do {
+        if (klass->included_modules().is_empty()) {
+            // note: if there are included modules, then they will include this klass
+            if (klass == module) {
+                return true;
+            }
+        }
+        for (ModuleObject *m : klass->included_modules()) {
+            if (m == module) {
+                return true;
+            }
+        }
+        klass = klass->m_superclass;
+    } while (klass);
+    return false;
+}
+
 bool ModuleObject::is_subclass_of(ModuleObject *other) {
     if (other == this) {
         return false;
