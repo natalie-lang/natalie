@@ -663,8 +663,6 @@ ArrayObject *ModuleObject::ancestors(Env *env) {
 }
 
 bool ModuleObject::ancestors_includes(Env *env, ModuleObject *module) {
-    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-
     ModuleObject *klass = this;
     do {
         if (klass->included_modules().is_empty()) {
