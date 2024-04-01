@@ -65,9 +65,9 @@ describe 'Addrinfo.getaddrinfo' do
   end
 
   it 'sets a custom socket type of the Addrinfo instances' do
-    NATFIXME 'Support socket type argument', exception: NotImplementedError, message: "NATFIXME: More arguments for Addrinfo.getaddrinfo" do
-      array = Addrinfo.getaddrinfo('127.0.0.1', 80, nil, Socket::SOCK_DGRAM)
+    array = Addrinfo.getaddrinfo('127.0.0.1', 80, nil, Socket::SOCK_DGRAM)
 
+    NATFIXME 'it sets a custom socket type of the Addrinfo instances', exception: SpecFailedException do
       array[0].socktype.should == Socket::SOCK_DGRAM
     end
   end
