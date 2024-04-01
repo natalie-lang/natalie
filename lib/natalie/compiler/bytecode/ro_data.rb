@@ -3,6 +3,7 @@ module Natalie
     module Bytecode
       class RoData
         CONVERSIONS = {
+          to_encoding: ->(str) { Encoding.find(str) },
           to_sym: ->(str) { str.to_sym },
         }.freeze
 

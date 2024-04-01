@@ -60,5 +60,13 @@ describe 'Bytecode::RoData' do
         @rodata.get(4)
       }.should raise_error(NoMethodError, "undefined method `unpack1' for nil")
     end
+
+    it 'can convert results to Encoding objects' do
+      utf8_index = @rodata.add(Encoding::UTF_8.to_s)
+      binary_index = @rodata.add(Encoding::BINARY.to_s)
+
+      @rodata.get(utf8_index, convert: :to_encoding).should == Encoding::UTF_8
+      @rodata.get(binary_index, convert: :to_encoding).should == Encoding::BINARY
+    end
   end
 end
