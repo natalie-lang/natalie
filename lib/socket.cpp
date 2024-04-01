@@ -153,12 +153,13 @@ static int Addrinfo_sockaddr_family(Env *env, StringObject *sockaddr) {
 
 Value Addrinfo_getaddrinfo(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 2, 6);
-    if (args.size() > 4)
+    if (args.size() > 5)
         env->raise("NotImplementedError", "NATFIXME: More arguments for Addrinfo.getaddrinfo");
     auto nodename = args[0];
     auto servicename = args[1];
     auto family = args.at(2, nullptr);
     auto socktype = args.at(3, nullptr);
+    auto protocol = args.at(4, nullptr);
 
     const char *node = nullptr;
     const char *service = nullptr;
@@ -178,6 +179,8 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args args, Block *block) {
         hints.ai_family = IntegerObject::convert_to_native_type<int>(env, family);
     if (socktype && !socktype->is_nil())
         hints.ai_socktype = IntegerObject::convert_to_native_type<int>(env, socktype);
+    if (protocol && !protocol->is_nil())
+        hints.ai_protocol = IntegerObject::convert_to_native_type<int>(env, protocol);
 
     const auto s = getaddrinfo(node, service, &hints, &res);
     if (s != 0) {

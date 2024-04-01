@@ -85,7 +85,7 @@ describe 'Addrinfo.getaddrinfo' do
 
   platform_is_not :'solaris2.10' do # i386-solaris
     it 'sets a custom socket protocol of the Addrinfo instances' do
-      NATFIXME 'Support protocol argument', exception: NotImplementedError, message: "NATFIXME: More arguments for Addrinfo.getaddrinfo" do
+      NATFIXME 'it sets a custom socket protocol of the Addrinfo instances', exception: SpecFailedException do
         array = Addrinfo.getaddrinfo('127.0.0.1', 80, nil, nil, Socket::IPPROTO_UDP)
 
         array[0].protocol.should == Socket::IPPROTO_UDP
