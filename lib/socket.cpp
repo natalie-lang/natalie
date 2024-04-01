@@ -174,14 +174,22 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args args, Block *block) {
     } else if (!servicename->is_nil()) {
         service = servicename->to_str(env)->c_str();
     }
-    if (family && !family->is_nil())
+    if (family && !family->is_nil()) {
+        family = Socket_const_name_to_i(env, self, { family }, nullptr);
         hints.ai_family = IntegerObject::convert_to_native_type<decltype(hints.ai_family)>(env, family);
-    if (socktype && !socktype->is_nil())
+    }
+    if (socktype && !socktype->is_nil()) {
+        socktype = Socket_const_name_to_i(env, self, { socktype }, nullptr);
         hints.ai_socktype = IntegerObject::convert_to_native_type<decltype(hints.ai_socktype)>(env, socktype);
-    if (protocol && !protocol->is_nil())
+    }
+    if (protocol && !protocol->is_nil()) {
+        protocol = Socket_const_name_to_i(env, self, { protocol }, nullptr);
         hints.ai_protocol = IntegerObject::convert_to_native_type<decltype(hints.ai_protocol)>(env, protocol);
-    if (flags && !flags->is_nil())
+    }
+    if (flags && !flags->is_nil()) {
+        flags = Socket_const_name_to_i(env, self, { flags }, nullptr);
         hints.ai_flags = IntegerObject::convert_to_native_type<decltype(hints.ai_flags)>(env, flags);
+    }
 
     const auto s = getaddrinfo(node, service, &hints, &res);
     if (s != 0) {
