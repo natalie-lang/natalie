@@ -1107,13 +1107,7 @@ bool Object::is_a(Env *env, Value val) const {
         ClassObject *klass = singleton_class();
         if (!klass)
             klass = m_klass;
-        ArrayObject *ancestors = klass->ancestors(env);
-        for (Value m : *ancestors) {
-            if (module == m->as_module()) {
-                return true;
-            }
-        }
-        return false;
+        return klass->ancestors_includes(env, module);
     }
 }
 
