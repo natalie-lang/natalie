@@ -151,6 +151,42 @@ static int Addrinfo_sockaddr_family(Env *env, StringObject *sockaddr) {
     return (reinterpret_cast<const struct sockaddr *>(sockaddr->c_str()))->sa_family;
 }
 
+Value Addrinfo_getaddrinfo(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_between(env, 2, 6);
+    if (args.size() > 2)
+        env->raise("NotImplementedError", "NATFIXME: More arguments for Addrinfo.getaddrinfo");
+    auto nodename = args[0];
+    auto servicename = args[1];
+
+    const char *node = nullptr;
+    const char *service = nullptr;
+    addrinfo hints, *res = nullptr;
+    memset(&hints, 0, sizeof(hints));
+
+    if (!nodename->is_nil())
+        node = nodename->to_str(env)->c_str();
+    StringObject *service_as_string = nullptr;
+    if (servicename->is_integer()) {
+        service_as_string = servicename->to_s(env);
+        service = service_as_string->c_str();
+    } else if (!servicename->is_nil()) {
+        service = servicename->to_str(env)->c_str();
+    }
+
+    const auto s = getaddrinfo(node, service, &hints, &res);
+    if (s != 0) {
+        if (s == EAI_SYSTEM)
+            env->raise_errno();
+        env->raise("SocketError", "getaddrinfo: {}", gai_strerror(s));
+    }
+    Defer freeinfo { [&res] { freeaddrinfo(res); } };
+
+    auto output = new ArrayObject {};
+    for (addrinfo *rp = res; rp != nullptr; rp = rp->ai_next)
+        output->push(self->send(env, "new"_s, { new StringObject { reinterpret_cast<const char *>(rp->ai_addr), rp->ai_addrlen } }));
+    return output;
+}
+
 Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 1, 4);
     auto sockaddr = args.at(0);

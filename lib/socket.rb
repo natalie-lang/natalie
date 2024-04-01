@@ -248,6 +248,8 @@ class Addrinfo
   attr_reader :afamily, :family, :pfamily, :protocol, :socktype
 
   class << self
+    __bind_method__ :getaddrinfo, :Addrinfo_getaddrinfo
+
     def ip(ip)
       Addrinfo.new(Socket.pack_sockaddr_in(0, ip), nil, nil, Socket::IPPROTO_IP)
     end

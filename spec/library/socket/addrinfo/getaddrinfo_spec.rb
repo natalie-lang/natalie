@@ -31,21 +31,27 @@ describe 'Addrinfo.getaddrinfo' do
     it 'sets the protocol family of the Addrinfo instances' do
       array = Addrinfo.getaddrinfo(ip_address, 80)
 
-      array[0].pfamily.should == family
+      NATFIXME 'it sets the protocol family of the Addrinfo instances', exception: SpecFailedException do
+        array[0].pfamily.should == family
+      end
     end
   end
 
   guard -> { SocketSpecs.ipv6_available? } do
     it 'sets a custom protocol family of the Addrinfo instances' do
-      array = Addrinfo.getaddrinfo('::1', 80, Socket::PF_INET6)
+      NATFIXME 'Support protocol family argument', exception: NotImplementedError, message: "NATFIXME: More arguments for Addrinfo.getaddrinfo" do
+        array = Addrinfo.getaddrinfo('::1', 80, Socket::PF_INET6)
 
-      array[0].pfamily.should == Socket::PF_INET6
+        array[0].pfamily.should == Socket::PF_INET6
+      end
     end
 
     it 'sets a corresponding address family based on a custom protocol family' do
-      array = Addrinfo.getaddrinfo('::1', 80, Socket::PF_INET6)
+      NATFIXME 'Support address family argument', exception: NotImplementedError, message: "NATFIXME: More arguments for Addrinfo.getaddrinfo" do
+        array = Addrinfo.getaddrinfo('::1', 80, Socket::PF_INET6)
 
-      array[0].afamily.should == Socket::AF_INET6
+        array[0].afamily.should == Socket::AF_INET6
+      end
     end
   end
 
@@ -54,14 +60,18 @@ describe 'Addrinfo.getaddrinfo' do
       array    = Addrinfo.getaddrinfo('127.0.0.1', 80)
       possible = [Socket::SOCK_STREAM, Socket::SOCK_DGRAM]
 
-      possible.should include(array[0].socktype)
+      NATFIXME 'it sets the default socket type of the Addrinfo instances', exception: SpecFailedException do
+        possible.should include(array[0].socktype)
+      end
     end
   end
 
   it 'sets a custom socket type of the Addrinfo instances' do
-    array = Addrinfo.getaddrinfo('127.0.0.1', 80, nil, Socket::SOCK_DGRAM)
+    NATFIXME 'Support socket type argument', exception: NotImplementedError, message: "NATFIXME: More arguments for Addrinfo.getaddrinfo" do
+      array = Addrinfo.getaddrinfo('127.0.0.1', 80, nil, Socket::SOCK_DGRAM)
 
-    array[0].socktype.should == Socket::SOCK_DGRAM
+      array[0].socktype.should == Socket::SOCK_DGRAM
+    end
   end
 
   platform_is_not :windows do
@@ -69,23 +79,29 @@ describe 'Addrinfo.getaddrinfo' do
       array    = Addrinfo.getaddrinfo('127.0.0.1', 80)
       possible = [Socket::IPPROTO_TCP, Socket::IPPROTO_UDP]
 
-      possible.should include(array[0].protocol)
+      NATFIXME 'it sets the default socket protocol of the Addrinfo instances', exception: SpecFailedException do
+        possible.should include(array[0].protocol)
+      end
     end
   end
 
   platform_is_not :'solaris2.10' do # i386-solaris
     it 'sets a custom socket protocol of the Addrinfo instances' do
-      array = Addrinfo.getaddrinfo('127.0.0.1', 80, nil, nil, Socket::IPPROTO_UDP)
+      NATFIXME 'Support protocol argument', exception: NotImplementedError, message: "NATFIXME: More arguments for Addrinfo.getaddrinfo" do
+        array = Addrinfo.getaddrinfo('127.0.0.1', 80, nil, nil, Socket::IPPROTO_UDP)
 
-      array[0].protocol.should == Socket::IPPROTO_UDP
+        array[0].protocol.should == Socket::IPPROTO_UDP
+      end
     end
   end
 
   platform_is_not :solaris do
     it 'sets the canonical name when AI_CANONNAME is given as a flag' do
-      array = Addrinfo.getaddrinfo('localhost', 80, nil, nil, nil, Socket::AI_CANONNAME)
+      NATFIXME 'Support flags argument', exception: NotImplementedError, message: "NATFIXME: More arguments for Addrinfo.getaddrinfo" do
+        array = Addrinfo.getaddrinfo('localhost', 80, nil, nil, nil, Socket::AI_CANONNAME)
 
-      array[0].canonname.should be_an_instance_of(String)
+        array[0].canonname.should be_an_instance_of(String)
+      end
     end
   end
 end
