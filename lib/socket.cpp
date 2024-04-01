@@ -192,8 +192,12 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args args, Block *block) {
     Defer freeinfo { [&res] { freeaddrinfo(res); } };
 
     auto output = new ArrayObject {};
-    for (addrinfo *rp = res; rp != nullptr; rp = rp->ai_next)
-        output->push(self->send(env, "new"_s, { new StringObject { reinterpret_cast<const char *>(rp->ai_addr), rp->ai_addrlen } }));
+    for (addrinfo *rp = res; rp != nullptr; rp = rp->ai_next) {
+        auto entry = self->send(env, "new"_s, { new StringObject { reinterpret_cast<const char *>(rp->ai_addr), rp->ai_addrlen } });
+        if (rp->ai_canonname)
+            entry->ivar_set(env, "@canonname"_s, new StringObject { rp->ai_canonname });
+        output->push(entry);
+    }
     return output;
 }
 
