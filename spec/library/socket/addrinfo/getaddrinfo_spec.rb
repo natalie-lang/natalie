@@ -39,19 +39,17 @@ describe 'Addrinfo.getaddrinfo' do
 
   guard -> { SocketSpecs.ipv6_available? } do
     it 'sets a custom protocol family of the Addrinfo instances' do
-      NATFIXME 'Support protocol family argument', exception: NotImplementedError, message: "NATFIXME: More arguments for Addrinfo.getaddrinfo" do
-        array = Addrinfo.getaddrinfo('::1', 80, Socket::PF_INET6)
+      array = Addrinfo.getaddrinfo('::1', 80, Socket::PF_INET6)
 
+      NATFIXME 'it sets a custom protocol family of the Addrinfo instances', exception: SpecFailedException do
         array[0].pfamily.should == Socket::PF_INET6
       end
     end
 
     it 'sets a corresponding address family based on a custom protocol family' do
-      NATFIXME 'Support address family argument', exception: NotImplementedError, message: "NATFIXME: More arguments for Addrinfo.getaddrinfo" do
-        array = Addrinfo.getaddrinfo('::1', 80, Socket::PF_INET6)
+      array = Addrinfo.getaddrinfo('::1', 80, Socket::PF_INET6)
 
-        array[0].afamily.should == Socket::AF_INET6
-      end
+      array[0].afamily.should == Socket::AF_INET6
     end
   end
 
