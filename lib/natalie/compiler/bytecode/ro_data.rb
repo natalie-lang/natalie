@@ -2,6 +2,10 @@ module Natalie
   class Compiler
     module Bytecode
       class RoData
+        CONVERSIONS = {
+          to_sym: ->(str) { str.to_sym },
+        }.freeze
+
         def initialize
           @buffer = ''.b
           @add_lookup = {}
@@ -30,7 +34,7 @@ module Natalie
           size = @buffer[position..].unpack1('w')
           result = @buffer[position + 1, size]
           if convert
-            result = result.send(convert)
+            result = CONVERSIONS.fetch(convert).call(result)
             @get_lookup[[convert, position]] = result
           end
           result
