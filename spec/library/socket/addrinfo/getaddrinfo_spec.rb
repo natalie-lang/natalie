@@ -95,9 +95,9 @@ describe 'Addrinfo.getaddrinfo' do
 
   platform_is_not :solaris do
     it 'sets the canonical name when AI_CANONNAME is given as a flag' do
-      NATFIXME 'Support flags argument', exception: NotImplementedError, message: "NATFIXME: More arguments for Addrinfo.getaddrinfo" do
-        array = Addrinfo.getaddrinfo('localhost', 80, nil, nil, nil, Socket::AI_CANONNAME)
+      array = Addrinfo.getaddrinfo('localhost', 80, nil, nil, nil, Socket::AI_CANONNAME)
 
+      NATFIXME 'Implement Addrinfo#canonname', exception: NoMethodError, message: "undefined method `canonname' for an instance of Addrinfo" do
         array[0].canonname.should be_an_instance_of(String)
       end
     end
