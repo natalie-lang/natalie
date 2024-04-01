@@ -20,6 +20,14 @@ module Natalie
         ary = vm.peek
         ary.concat(Array(ary2))
       end
+
+      def serialize(_)
+        [instruction_number].pack('C')
+      end
+
+      def self.deserialize(_, _)
+        new
+      end
     end
   end
 end
