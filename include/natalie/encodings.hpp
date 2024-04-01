@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-const int EncodingCount = 44;
+const size_t EncodingCount = 44;
 
 enum class Encoding {
     ASCII_8BIT = 1,
