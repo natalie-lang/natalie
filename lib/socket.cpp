@@ -175,13 +175,13 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args args, Block *block) {
         service = servicename->to_str(env)->c_str();
     }
     if (family && !family->is_nil())
-        hints.ai_family = IntegerObject::convert_to_native_type<int>(env, family);
+        hints.ai_family = IntegerObject::convert_to_native_type<decltype(hints.ai_family)>(env, family);
     if (socktype && !socktype->is_nil())
-        hints.ai_socktype = IntegerObject::convert_to_native_type<int>(env, socktype);
+        hints.ai_socktype = IntegerObject::convert_to_native_type<decltype(hints.ai_socktype)>(env, socktype);
     if (protocol && !protocol->is_nil())
-        hints.ai_protocol = IntegerObject::convert_to_native_type<int>(env, protocol);
+        hints.ai_protocol = IntegerObject::convert_to_native_type<decltype(hints.ai_protocol)>(env, protocol);
     if (flags && !flags->is_nil())
-        hints.ai_flags = IntegerObject::convert_to_native_type<int>(env, flags);
+        hints.ai_flags = IntegerObject::convert_to_native_type<decltype(hints.ai_flags)>(env, flags);
 
     const auto s = getaddrinfo(node, service, &hints, &res);
     if (s != 0) {
