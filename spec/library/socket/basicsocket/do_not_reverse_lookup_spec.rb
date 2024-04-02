@@ -63,9 +63,7 @@ describe :socket_do_not_reverse_lookup, shared: true do
   it "is false when BasicSocket.do_not_reverse_lookup is false" do
     BasicSocket.do_not_reverse_lookup = false
     @socket = @method.call
-    NATFIXME 'it is false when BasicSocket.do_not_reverse_lookup is false', exception: SpecFailedException do
-      @socket.do_not_reverse_lookup.should == false
-    end
+    @socket.do_not_reverse_lookup.should == false
   end
 
   it "can be changed with #do_not_reverse_lookup=" do
