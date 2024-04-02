@@ -836,12 +836,10 @@ Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
-Value Socket_accept(Env *env, Value self, Args args, Block *block) {
-    args.ensure_argc_is(env, 0);
-
+Value Socket_accept(Env *env, Value self, bool blocking = true) {
     sockaddr_storage addr {};
     socklen_t len = sizeof(addr);
-    auto socket = Server_accept(env, self, "Socket"_s, addr, len, true);
+    auto socket = Server_accept(env, self, "Socket"_s, addr, len, blocking);
 
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
     auto sockaddr_string = new StringObject { reinterpret_cast<char *>(&addr), len, Encoding::ASCII_8BIT };
@@ -856,6 +854,11 @@ Value Socket_accept(Env *env, Value self, Args args, Block *block) {
         });
 
     return new ArrayObject { socket, addrinfo };
+}
+
+Value Socket_accept(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_is(env, 0);
+    return Socket_accept(env, self, true);
 }
 
 Value Socket_accept_nonblock(Env *env, Value self, Args args, Block *block) {
