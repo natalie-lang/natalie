@@ -99,7 +99,7 @@ static Value Server_sysaccept(Env *env, Value self, bool is_blocking = true, boo
     if (self->as_io()->is_closed())
         env->raise("IOError", "closed stream");
 
-    sockaddr_un addr;
+    sockaddr_storage addr;
     socklen_t len = sizeof(addr);
     int fd;
     if (is_blocking) {
