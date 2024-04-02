@@ -185,8 +185,8 @@ def with_block_device
   nil
 end
 
-def with_feature(name)
-  yield if MSpec.features[name]
+def with_feature(*names)
+  yield if names.all? { |name| MSpec.features[name] }
 end
 
 def with_timezone(zone, offset = nil)
