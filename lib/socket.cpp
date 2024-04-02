@@ -839,21 +839,9 @@ Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
 Value Socket_accept(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 0);
 
-    if (self->as_io()->is_closed())
-        env->raise("IOError", "closed stream");
-
     sockaddr_storage addr {};
     socklen_t len = sizeof(addr);
-
-    auto fd = blocking_accept(env, self->as_io(), reinterpret_cast<sockaddr *>(&addr), &len);
-
-    if (fd == -1)
-        env->raise_errno();
-
-    auto Socket = find_top_level_const(env, "Socket"_s)->as_class_or_raise(env);
-    auto socket = new IoObject { Socket };
-    socket->as_io()->set_fileno(fd);
-    socket->ivar_set(env, "@do_not_reverse_lookup"_s, find_top_level_const(env, "BasicSocket"_s)->send(env, "do_not_reverse_lookup"_s));
+    auto socket = Server_accept(env, self, "Socket"_s, addr, len, true);
 
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
     auto sockaddr_string = new StringObject { reinterpret_cast<char *>(&addr), len, Encoding::ASCII_8BIT };
