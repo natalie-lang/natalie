@@ -663,6 +663,8 @@ ArrayObject *ModuleObject::ancestors(Env *env) {
 }
 
 bool ModuleObject::ancestors_includes(Env *env, ModuleObject *module) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
     ModuleObject *klass = this;
     do {
         if (klass->included_modules().is_empty()) {
@@ -682,6 +684,8 @@ bool ModuleObject::ancestors_includes(Env *env, ModuleObject *module) {
 }
 
 bool ModuleObject::is_subclass_of(ModuleObject *other) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
     if (other == this) {
         return false;
     }
@@ -835,6 +839,8 @@ ArrayObject *ModuleObject::attr_accessor(Env *env, Args args) {
 }
 
 void ModuleObject::included_modules(Env *env, ArrayObject *modules) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
     for (ModuleObject *m : included_modules()) {
         if (m == this || modules->include(env, m))
             continue;
@@ -853,6 +859,8 @@ Value ModuleObject::included_modules(Env *env) {
 }
 
 bool ModuleObject::does_include_module(Env *env, Value module) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
     module->assert_type(env, Object::Type::Module, "Module");
     for (ModuleObject *m : included_modules()) {
         if (this == m)

@@ -85,7 +85,7 @@ public:
 
     void included_modules(Env *, ArrayObject *);
     Value included_modules(Env *);
-    Vector<ModuleObject *> included_modules() { return m_included_modules; }
+    const Vector<ModuleObject *> &included_modules() { return m_included_modules; }
     bool does_include_module(Env *, Value);
 
     virtual Value cvar_get_or_null(Env *, SymbolObject *) override;
