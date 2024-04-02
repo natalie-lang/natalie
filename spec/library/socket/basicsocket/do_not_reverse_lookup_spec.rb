@@ -22,19 +22,25 @@ describe "BasicSocket.do_not_reverse_lookup" do
   it "causes 'peeraddr' to avoid name lookups" do
     @socket.do_not_reverse_lookup = true
     BasicSocket.do_not_reverse_lookup = true
-    @socket.peeraddr.should == ["AF_INET", @port, "127.0.0.1", "127.0.0.1"]
+    NATFIXME 'Implement IPSocket#peeraddr', exception: NoMethodError, message: "undefined method `peeraddr' for an instance of TCPSocket" do
+      @socket.peeraddr.should == ["AF_INET", @port, "127.0.0.1", "127.0.0.1"]
+    end
   end
 
   it "looks for hostnames when set to false" do
     @socket.do_not_reverse_lookup = false
     BasicSocket.do_not_reverse_lookup = false
-    @socket.peeraddr[2].should == SocketSpecs.hostname
+    NATFIXME 'Implement IPSocket#peeraddr', exception: NoMethodError, message: "undefined method `peeraddr' for an instance of TCPSocket" do
+      @socket.peeraddr[2].should == SocketSpecs.hostname
+    end
   end
 
   it "looks for numeric addresses when set to true" do
     @socket.do_not_reverse_lookup = true
     BasicSocket.do_not_reverse_lookup = true
-    @socket.peeraddr[2].should == "127.0.0.1"
+    NATFIXME 'Implement IPSocket#peeraddr', exception: NoMethodError, message: "undefined method `peeraddr' for an instance of TCPSocket" do
+      @socket.peeraddr[2].should == "127.0.0.1"
+    end
   end
 end
 
@@ -57,7 +63,9 @@ describe :socket_do_not_reverse_lookup, shared: true do
   it "is false when BasicSocket.do_not_reverse_lookup is false" do
     BasicSocket.do_not_reverse_lookup = false
     @socket = @method.call
-    @socket.do_not_reverse_lookup.should == false
+    NATFIXME 'it is false when BasicSocket.do_not_reverse_lookup is false', exception: SpecFailedException do
+      @socket.do_not_reverse_lookup.should == false
+    end
   end
 
   it "can be changed with #do_not_reverse_lookup=" do
