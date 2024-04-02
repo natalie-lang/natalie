@@ -95,12 +95,10 @@ static int blocking_accept(Env *env, IoObject *io, struct sockaddr *addr, sockle
     return ::accept(io->fileno(), addr, len);
 }
 
-static Value Server_sysaccept(Env *env, Value self, bool is_blocking = true, bool exception = true) {
+static Value Server_sysaccept(Env *env, Value self, sockaddr_storage &addr, socklen_t &len, bool is_blocking = true, bool exception = true) {
     if (self->as_io()->is_closed())
         env->raise("IOError", "closed stream");
 
-    sockaddr_storage addr;
-    socklen_t len = sizeof(addr);
     int fd;
     if (is_blocking) {
         fd = blocking_accept(env, self->as_io(), reinterpret_cast<sockaddr *>(&addr), &len);
@@ -133,7 +131,9 @@ static Value Server_sysaccept(Env *env, Value self, bool is_blocking = true, boo
 }
 
 static Value Server_accept(Env *env, Value self, SymbolObject *klass, bool is_blocking = true, bool exception = true) {
-    auto fd = Server_sysaccept(env, self, is_blocking, exception);
+    sockaddr_storage addr;
+    socklen_t len = sizeof(addr);
+    auto fd = Server_sysaccept(env, self, addr, len, is_blocking, exception);
     if (!fd->is_integer())
         return fd;
 
@@ -1474,7 +1474,9 @@ Value TCPServer_listen(Env *env, Value self, Args args, Block *) {
 
 Value TCPServer_sysaccept(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 0);
-    return Server_sysaccept(env, self, true);
+    sockaddr_storage addr;
+    socklen_t len = sizeof(addr);
+    return Server_sysaccept(env, self, addr, len, true);
 }
 
 Value UDPSocket_initialize(Env *env, Value self, Args args, Block *block) {
@@ -1659,5 +1661,7 @@ Value UNIXServer_listen(Env *env, Value self, Args args, Block *) {
 
 Value UNIXServer_sysaccept(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
-    return Server_sysaccept(env, self, true);
+    sockaddr_storage addr;
+    socklen_t len = sizeof(addr);
+    return Server_sysaccept(env, self, addr, len, true);
 }
