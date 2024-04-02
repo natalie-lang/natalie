@@ -836,10 +836,12 @@ Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
-Value Socket_accept(Env *env, Value self, bool blocking = true) {
+Value Socket_accept(Env *env, Value self, bool blocking = true, bool exception = false) {
     sockaddr_storage addr {};
     socklen_t len = sizeof(addr);
-    auto socket = Server_accept(env, self, "Socket"_s, addr, len, blocking);
+    auto socket = Server_accept(env, self, "Socket"_s, addr, len, blocking, exception);
+    if (socket->is_symbol())
+        return socket;
 
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
     auto sockaddr_string = new StringObject { reinterpret_cast<char *>(&addr), len, Encoding::ASCII_8BIT };
@@ -866,55 +868,7 @@ Value Socket_accept_nonblock(Env *env, Value self, Args args, Block *block) {
     auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
     env->ensure_no_extra_keywords(kwargs);
     args.ensure_argc_is(env, 0);
-
-    if (self->as_io()->is_closed())
-        env->raise("IOError", "closed stream");
-
-    sockaddr_storage addr {};
-    socklen_t len = sizeof(addr);
-
-    const auto fileno = self->as_io()->fileno();
-    self->as_io()->set_nonblock(env, true);
-#ifdef __APPLE__
-    auto fd = accept(fileno, reinterpret_cast<sockaddr *>(&addr), &len);
-#else
-    auto fd = accept4(fileno, reinterpret_cast<sockaddr *>(&addr), &len, SOCK_CLOEXEC | SOCK_NONBLOCK);
-#endif
-    if (fd == -1) {
-        if (errno == EWOULDBLOCK || errno == EAGAIN) {
-            if (exception->is_falsey())
-                return "wait_readable"_s;
-            auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
-            ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
-            auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s });
-            error->extend(env, { WaitReadable });
-            env->raise_exception(error);
-        } else {
-            env->raise_errno();
-        }
-    }
-
-    if (fd == -1)
-        env->raise_errno();
-
-    auto Socket = find_top_level_const(env, "Socket"_s)->as_class_or_raise(env);
-    auto socket = new IoObject { Socket };
-    socket->as_io()->set_fileno(fd);
-    socket->ivar_set(env, "@do_not_reverse_lookup"_s, find_top_level_const(env, "BasicSocket"_s)->send(env, "do_not_reverse_lookup"_s));
-
-    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
-    auto sockaddr_string = new StringObject { reinterpret_cast<char *>(&addr), len, Encoding::ASCII_8BIT };
-    auto addrinfo = Addrinfo.send(
-        env,
-        "new"_s,
-        {
-            sockaddr_string,
-            Value::integer(AF_INET),
-            Value::integer(SOCK_STREAM),
-            Value::integer(0),
-        });
-
-    return new ArrayObject { socket, addrinfo };
+    return Socket_accept(env, self, false, exception->is_truthy());
 }
 
 Value Socket_bind(Env *env, Value self, Args args, Block *block) {
