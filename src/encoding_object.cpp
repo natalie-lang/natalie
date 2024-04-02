@@ -172,7 +172,7 @@ EncodingObject *EncodingObject::find_encoding(Env *env, Value encoding) {
 }
 
 ArrayObject *EncodingObject::list(Env *) {
-    auto ary = new ArrayObject {};
+    auto ary = new ArrayObject { EncodingCount };
     for (auto pair : s_encoding_list)
         ary->push(pair.second);
     // dbg("size {} enccnt {}", ary->size(), EncodingCount);
