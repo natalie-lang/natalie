@@ -850,7 +850,7 @@ Value Socket_accept(Env *env, Value self, bool blocking = true, bool exception =
         "new"_s,
         {
             sockaddr_string,
-            Value::integer(AF_INET),
+            Value::integer(addr.ss_family),
             Value::integer(SOCK_STREAM),
             Value::integer(0),
         });
