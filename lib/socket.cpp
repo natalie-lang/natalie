@@ -130,9 +130,7 @@ static Value Server_sysaccept(Env *env, Value self, sockaddr_storage &addr, sock
     return Value::integer(fd);
 }
 
-static Value Server_accept(Env *env, Value self, SymbolObject *klass, bool is_blocking = true, bool exception = true) {
-    sockaddr_storage addr;
-    socklen_t len = sizeof(addr);
+static Value Server_accept(Env *env, Value self, SymbolObject *klass, sockaddr_storage &addr, socklen_t &len, bool is_blocking = true, bool exception = true) {
     auto fd = Server_sysaccept(env, self, addr, len, is_blocking, exception);
     if (!fd->is_integer())
         return fd;
@@ -1452,7 +1450,9 @@ Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
     if (self->as_io()->is_closed())
         env->raise("IOError", "closed stream");
 
-    return Server_accept(env, self, "TCPSocket"_s, true);
+    sockaddr_storage addr;
+    socklen_t len = sizeof(addr);
+    return Server_accept(env, self, "TCPSocket"_s, addr, len, true);
 }
 
 Value TCPServer_accept_nonblock(Env *env, Value self, Args args, Block *) {
@@ -1464,7 +1464,9 @@ Value TCPServer_accept_nonblock(Env *env, Value self, Args args, Block *) {
     if (self->as_io()->is_closed())
         env->raise("IOError", "closed stream");
 
-    return Server_accept(env, self, "TCPSocket"_s, false, exception->is_truthy());
+    sockaddr_storage addr;
+    socklen_t len = sizeof(addr);
+    return Server_accept(env, self, "TCPSocket"_s, addr, len, false, exception->is_truthy());
 }
 
 Value TCPServer_listen(Env *env, Value self, Args args, Block *) {
@@ -1643,7 +1645,9 @@ Value UNIXServer_initialize(Env *env, Value self, Args args, Block *block) {
 
 Value UNIXServer_accept(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
-    return Server_accept(env, self, "UNIXSocket"_s, true);
+    sockaddr_storage addr;
+    socklen_t len = sizeof(addr);
+    return Server_accept(env, self, "UNIXSocket"_s, addr, len, true);
 }
 
 Value UNIXServer_accept_nonblock(Env *env, Value self, Args args, Block *) {
@@ -1651,7 +1655,9 @@ Value UNIXServer_accept_nonblock(Env *env, Value self, Args args, Block *) {
     auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
     args.ensure_argc_is(env, 0);
     env->ensure_no_extra_keywords(kwargs);
-    return Server_accept(env, self, "UNIXSocket"_s, false, exception->is_truthy());
+    sockaddr_storage addr;
+    socklen_t len = sizeof(addr);
+    return Server_accept(env, self, "UNIXSocket"_s, addr, len, false, exception->is_truthy());
 }
 
 Value UNIXServer_listen(Env *env, Value self, Args args, Block *) {
