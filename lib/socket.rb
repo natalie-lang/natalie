@@ -161,6 +161,7 @@ class Socket < BasicSocket
   __bind_method__ :initialize, :Socket_initialize
 
   __bind_method__ :accept, :Socket_accept
+  __bind_method__ :accept_nonblock, :Socket_accept_nonblock
   __bind_method__ :bind, :Socket_bind
   __bind_method__ :close, :Socket_close
   __bind_method__ :closed?, :Socket_is_closed
