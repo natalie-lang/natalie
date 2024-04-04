@@ -836,13 +836,7 @@ Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
-Value Socket_accept(Env *env, Value self, bool blocking = true, bool exception = false) {
-    sockaddr_storage addr {};
-    socklen_t len = sizeof(addr);
-    auto socket = Server_accept(env, self, "Socket"_s, addr, len, blocking, exception);
-    if (socket->is_symbol())
-        return socket;
-
+static Value Socket_accept(Env *env, Value socket, sockaddr_storage &addr, socklen_t &len) {
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
     auto sockaddr_string = new StringObject { reinterpret_cast<char *>(&addr), len, Encoding::ASCII_8BIT };
     auto addrinfo = Addrinfo.send(
@@ -856,6 +850,15 @@ Value Socket_accept(Env *env, Value self, bool blocking = true, bool exception =
         });
 
     return new ArrayObject { socket, addrinfo };
+}
+
+Value Socket_accept(Env *env, Value self, bool blocking = true, bool exception = false) {
+    sockaddr_storage addr {};
+    socklen_t len = sizeof(addr);
+    auto socket = Server_accept(env, self, "Socket"_s, addr, len, blocking, exception);
+    if (socket->is_symbol())
+        return socket;
+    return Socket_accept(env, socket, addr, len);
 }
 
 Value Socket_accept(Env *env, Value self, Args args, Block *block) {
@@ -969,6 +972,14 @@ Value Socket_listen(Env *env, Value self, Args args, Block *block) {
         env->raise_errno();
 
     return Value::integer(result);
+}
+
+Value Socket_sysaccept(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_is(env, 0);
+    sockaddr_storage addr;
+    socklen_t len = sizeof(addr);
+    auto socket = Server_sysaccept(env, self, addr, len, true);
+    return Socket_accept(env, socket, addr, len);
 }
 
 Value Socket_pair(Env *env, Value self, Args args, Block *block) {

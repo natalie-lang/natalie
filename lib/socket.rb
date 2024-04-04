@@ -167,6 +167,7 @@ class Socket < BasicSocket
   __bind_method__ :closed?, :Socket_is_closed
   __bind_method__ :connect, :Socket_connect
   __bind_method__ :listen, :Socket_listen
+  __bind_method__ :sysaccept, :Socket_sysaccept, 0
 
   class << self
     __bind_method__ :pair, :Socket_pair
