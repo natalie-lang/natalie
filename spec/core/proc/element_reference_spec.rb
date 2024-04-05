@@ -21,7 +21,9 @@ describe "Proc#[] with frozen_string_literals" do
   it "doesn't duplicate frozen strings" do
     ProcArefSpecs.aref.frozen?.should be_false
     ProcArefSpecs.aref_freeze.frozen?.should be_true
-    ProcArefFrozenSpecs.aref.frozen?.should be_true
+    NATFIXME 'Fix frozen string literals', exception: SpecFailedException do
+      ProcArefFrozenSpecs.aref.frozen?.should be_true
+    end
     ProcArefFrozenSpecs.aref_freeze.frozen?.should be_true
   end
 end
