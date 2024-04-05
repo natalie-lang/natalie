@@ -1246,6 +1246,19 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
     return ary;
 }
 
+Value Socket_s_getservbyname(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
+    auto name = args[0]->to_str(env);
+    const char *proto = "tcp";
+    if (auto proto_val = args.at(1, NilObject::the()); !proto_val->is_nil())
+        proto = proto_val->to_str(env)->c_str();
+
+    auto result = getservbyname(name->c_str(), proto);
+    if (!result)
+        env->raise("SocketError", "no such service {}/{}", name->string(), proto);
+    return Value::integer(ntohs(result->s_port));
+}
+
 Value Socket_s_getservbyport(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto port = IntegerObject::convert_to_native_type<int>(env, args[0]);
