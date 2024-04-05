@@ -177,6 +177,8 @@ class Socket < BasicSocket
     __bind_method__ :unpack_sockaddr_un, :Socket_unpack_sockaddr_un
 
     __bind_method__ :getaddrinfo, :Socket_s_getaddrinfo
+    __bind_method__ :getservbyname, :Socket_s_getservbyname
+    __bind_method__ :getservbyport, :Socket_s_getservbyport
 
     __bind_method__ :const_name_to_i, :Socket_const_name_to_i
 
