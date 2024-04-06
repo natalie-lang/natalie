@@ -158,6 +158,14 @@ class Socket < BasicSocket
     __bind_method__ :linger, :Socket_Option_linger
   end
 
+  class Ifaddr
+    class << self
+      undef_method :new
+    end
+
+    attr_reader :name, :ifindex, :flags, :addr, :netmask, :broadaddr, :dstaddr
+  end
+
   __bind_method__ :initialize, :Socket_initialize
 
   __bind_method__ :accept, :Socket_accept
@@ -178,6 +186,7 @@ class Socket < BasicSocket
 
     __bind_method__ :getaddrinfo, :Socket_s_getaddrinfo
     __bind_method__ :gethostname, :Socket_s_gethostname, 0
+    __bind_method__ :getifaddrs, :Socket_s_getifaddrs, 0
     __bind_method__ :getservbyname, :Socket_s_getservbyname
     __bind_method__ :getservbyport, :Socket_s_getservbyport
 
