@@ -951,10 +951,16 @@ Value Socket_is_closed(Env *env, Value self, Args args, Block *block) {
 
 Value Socket_connect(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 1);
-    auto remote_sockaddr = args.at(0)->as_string_or_raise(env);
+    auto remote_sockaddr = args.at(0);
+    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
+    if (remote_sockaddr->is_a(env, Addrinfo)) {
+        remote_sockaddr = remote_sockaddr->to_s(env);
+    } else {
+        remote_sockaddr = remote_sockaddr->to_str(env);
+    }
 
-    auto addr = reinterpret_cast<const sockaddr *>(remote_sockaddr->c_str());
-    socklen_t len = remote_sockaddr->bytesize();
+    auto addr = reinterpret_cast<const sockaddr *>(remote_sockaddr->as_string()->c_str());
+    socklen_t len = remote_sockaddr->as_string()->bytesize();
 
     auto result = connect(self->as_io()->fileno(), addr, len);
     if (result == -1)
