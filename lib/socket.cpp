@@ -1246,6 +1246,14 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
     return ary;
 }
 
+Value Socket_s_gethostname(Env *env, Value, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    char hostname[256];
+    if (gethostname(hostname, sizeof(hostname)) < 0)
+        env->raise_errno();
+    return new StringObject { hostname, Encoding::ASCII_8BIT };
+}
+
 Value Socket_s_getservbyname(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto name = args[0]->to_str(env);
