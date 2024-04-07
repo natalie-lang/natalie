@@ -1284,7 +1284,7 @@ module Natalie
         [
           PushIntInstruction.new(0),
           instruction,
-          PushComplexInstruction.new,
+          CreateComplexInstruction.new,
         ]
       end
 

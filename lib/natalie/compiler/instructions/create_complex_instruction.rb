@@ -2,9 +2,9 @@ require_relative './base_instruction'
 
 module Natalie
   class Compiler
-    class PushComplexInstruction < BaseInstruction
+    class CreateComplexInstruction < BaseInstruction
       def to_s
-        'push_complex'
+        'create_complex'
       end
 
       def generate(transform)
