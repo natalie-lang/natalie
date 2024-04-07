@@ -1024,6 +1024,8 @@ gen.binding('MatchData', '[]', 'MatchDataObject', 'ref', argc: 1..2, pass_env: t
 
 gen.undefine_singleton_method('Method', 'new')
 gen.binding('Method', '==', 'MethodObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Method', '<<', 'MethodObject', 'ltlt', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Method', '>>', 'MethodObject', 'gtgt', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Method', 'inspect', 'MethodObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Method', 'owner', 'MethodObject', 'owner', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Method', 'arity', 'MethodObject', 'arity', argc: 0, pass_env: false, pass_block: false, return_type: :int)
@@ -1101,6 +1103,8 @@ gen.binding('Object', 'nil?', 'Object', 'is_nil', argc: 0, pass_env: false, pass
 gen.binding('Object', 'itself', 'Object', 'itself', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
 gen.binding('Proc', '==', 'ProcObject', 'equal_value', argc: 1, pass_env: false, pass_block: false, aliases: ['eql?'], return_type: :bool)
+gen.binding('Proc', '<<', 'ProcObject', 'ltlt', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Proc', '>>', 'ProcObject', 'gtgt', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Proc', 'initialize', 'ProcObject', 'initialize', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Proc', 'arity', 'ProcObject', 'arity', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.binding('Proc', 'call', 'ProcObject', 'call', argc: :any, pass_env: true, pass_block: true, aliases: ['[]', '===', 'yield'], return_type: :Object)

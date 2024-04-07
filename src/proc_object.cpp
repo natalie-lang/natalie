@@ -25,6 +25,42 @@ bool ProcObject::equal_value(Value other) const {
     return other->is_proc() && other->as_proc()->m_block == m_block;
 }
 
+static Value compose_ltlt(Env *env, Value self, Args args, Block *block) {
+    auto block_var = ProcObject::from_block_maybe(block);
+    auto call = "call"_s;
+    auto other_call_result = env->outer()->var_get("other", 0)->send(env, call, std::move(args), to_block(env, block_var), self);
+    return self->send(env, call, { other_call_result }, nullptr, self);
+}
+
+static Value compose_gtgt(Env *env, Value self, Args args, Block *block) {
+    auto block_var = ProcObject::from_block_maybe(block);
+    auto call = "call"_s;
+    auto self_call_result = self->send(env, call, std::move(args), to_block(env, block_var), self);
+    return env->outer()->var_get("other", 0)->send(env, call, { self_call_result }, nullptr, self);
+}
+
+Value ProcObject::ltlt(Env *env, Value other) {
+    if (!other->respond_to(env, "call"_s))
+        env->raise("TypeError", "callable object is expected");
+
+    env->var_set("other", 0, true, other);
+    auto block = new Block { env, this, compose_ltlt, -1 };
+    if (other->is_proc() && other->as_proc()->is_lambda())
+        block->set_type(Block::BlockType::Lambda);
+    return new ProcObject { block };
+}
+
+Value ProcObject::gtgt(Env *env, Value other) {
+    if (!other->respond_to(env, "call"_s))
+        env->raise("TypeError", "callable object is expected");
+
+    env->var_set("other", 0, true, other);
+    auto block = new Block { env, this, compose_gtgt, -1 };
+    if (is_lambda())
+        block->set_type(Block::BlockType::Lambda);
+    return new ProcObject { block };
+}
+
 Value ProcObject::ruby2_keywords(Env *env) {
     auto block_wrapper = [](Env *env, Value self, Args args, Block *block) -> Value {
         auto kwargs = args.has_keyword_hash() ? args.pop_keyword_hash() : new HashObject;
