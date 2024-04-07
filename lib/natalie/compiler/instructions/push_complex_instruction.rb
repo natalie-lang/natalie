@@ -19,6 +19,14 @@ module Natalie
         
         vm.push(Complex(real, imaginary))
       end
+
+      def serialize(_)
+        [instruction_number].pack('C')
+      end
+
+      def self.deserialize(_, _)
+        new
+      end
     end
   end
 end
