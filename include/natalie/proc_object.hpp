@@ -51,6 +51,7 @@ public:
     Value call(Env *, Args = {}, Block * = nullptr);
     bool equal_value(Value) const;
     Value ltlt(Env *, Value);
+    Value gtgt(Env *, Value);
     Value ruby2_keywords(Env *);
     Value source_location();
     StringObject *to_s(Env *);
