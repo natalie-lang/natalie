@@ -1024,6 +1024,8 @@ gen.binding('MatchData', '[]', 'MatchDataObject', 'ref', argc: 1..2, pass_env: t
 
 gen.undefine_singleton_method('Method', 'new')
 gen.binding('Method', '==', 'MethodObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Method', '<<', 'MethodObject', 'ltlt', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Method', '>>', 'MethodObject', 'gtgt', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Method', 'inspect', 'MethodObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Method', 'owner', 'MethodObject', 'owner', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Method', 'arity', 'MethodObject', 'arity', argc: 0, pass_env: false, pass_block: false, return_type: :int)

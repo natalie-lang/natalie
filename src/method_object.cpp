@@ -11,6 +11,14 @@ bool MethodObject::eq(Env *env, Value other_value) {
     }
 }
 
+Value MethodObject::ltlt(Env *env, Value other) {
+    return to_proc(env)->ltlt(env, other);
+}
+
+Value MethodObject::gtgt(Env *env, Value other) {
+    return to_proc(env)->gtgt(env, other);
+}
+
 Value MethodObject::source_location() {
     if (!m_method->get_file())
         return NilObject::the();
