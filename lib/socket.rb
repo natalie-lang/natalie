@@ -298,6 +298,16 @@ class Addrinfo
     end
   end
 
+  def inspect_sockaddr
+    if ipv4?
+      @ip_port.nil? || @ip_port.zero? ? ip_address : "#{ip_address}:#{ip_port}"
+    elsif ipv6?
+      @ip_port.nil? || @ip_port.zero? ? ip_address : "[#{ip_address}]:#{ip_port}"
+    elsif unix?
+      unix_path.start_with?('/') ? unix_path : "UNIX #{unix_path}"
+    end
+  end
+
   def ip_address
     unless @ip_address
       raise SocketError, 'need IPv4 or IPv6 address'
