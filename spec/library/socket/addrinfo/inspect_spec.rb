@@ -46,25 +46,19 @@ describe 'Addrinfo#inspect' do
       it 'returns a String' do
         addr = Addrinfo.unix('/foo')
 
-        NATFIXME 'No socktype data in UNIX Addrinfo', exception: SpecFailedException do
-          addr.inspect.should == '#<Addrinfo: /foo SOCK_STREAM>'
-        end
+        addr.inspect.should == '#<Addrinfo: /foo SOCK_STREAM>'
       end
 
       it 'returns a String when using a relative UNIX path' do
         addr = Addrinfo.unix('foo')
 
-        NATFIXME 'No socktype data in UNIX Addrinfo', exception: SpecFailedException do
-          addr.inspect.should == '#<Addrinfo: UNIX foo SOCK_STREAM>'
-        end
+        addr.inspect.should == '#<Addrinfo: UNIX foo SOCK_STREAM>'
       end
 
       it 'returns a String when using a DGRAM socket' do
         addr = Addrinfo.unix('/foo', Socket::SOCK_DGRAM)
 
-        NATFIXME 'No socktype data in UNIX Addrinfo', exception: SpecFailedException do
-          addr.inspect.should == '#<Addrinfo: /foo SOCK_DGRAM>'
-        end
+        addr.inspect.should == '#<Addrinfo: /foo SOCK_DGRAM>'
       end
     end
   end

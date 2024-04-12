@@ -310,6 +310,12 @@ class Addrinfo
       elsif protocol == Socket::IPPROTO_UDP
         parts << 'UDP'
       end
+    elsif unix?
+      if socktype == Socket::SOCK_STREAM
+        parts << 'SOCK_STREAM'
+      elsif socktype == Socket::SOCK_DGRAM
+        parts << 'SOCK_DGRAM'
+      end
     end
     "#<Addrinfo: #{parts.join(' ')}>"
   end
