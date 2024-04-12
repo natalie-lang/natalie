@@ -272,8 +272,8 @@ class Addrinfo
       Addrinfo.new(Socket.pack_sockaddr_in(port, ip), nil, Socket::SOCK_DGRAM, Socket::IPPROTO_UDP)
     end
 
-    def unix(path)
-      Addrinfo.new([:UNIX, path])
+    def unix(path, socktype = Socket::SOCK_STREAM)
+      Addrinfo.new(Socket.pack_sockaddr_un(path), nil, socktype)
     end
   end
 
@@ -300,6 +300,24 @@ class Addrinfo
     else
       socket
     end
+  end
+
+  def inspect
+    parts = [inspect_sockaddr]
+    if ip?
+      if protocol == Socket::IPPROTO_TCP
+        parts << 'TCP'
+      elsif protocol == Socket::IPPROTO_UDP
+        parts << 'UDP'
+      end
+    elsif unix?
+      if socktype == Socket::SOCK_STREAM
+        parts << 'SOCK_STREAM'
+      elsif socktype == Socket::SOCK_DGRAM
+        parts << 'SOCK_DGRAM'
+      end
+    end
+    "#<Addrinfo: #{parts.join(' ')}>"
   end
 
   def inspect_sockaddr
