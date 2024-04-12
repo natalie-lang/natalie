@@ -196,6 +196,10 @@ class Socket < BasicSocket
     alias sockaddr_in pack_sockaddr_in
     alias sockaddr_un pack_sockaddr_un
 
+    def ip_address_list
+      getifaddrs.map(&:addr).compact.select(&:ip?)
+    end
+
     def tcp(host, port, local_host = nil, local_port = nil)
       block_given = block_given?
       Socket.new(:INET, :STREAM).tap do |socket|
