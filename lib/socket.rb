@@ -302,6 +302,18 @@ class Addrinfo
     end
   end
 
+  def inspect
+    parts = [inspect_sockaddr]
+    if ip?
+      if protocol == Socket::IPPROTO_TCP
+        parts << 'TCP'
+      elsif protocol == Socket::IPPROTO_UDP
+        parts << 'UDP'
+      end
+    end
+    "#<Addrinfo: #{parts.join(' ')}>"
+  end
+
   def inspect_sockaddr
     if ipv4?
       @ip_port.nil? || @ip_port.zero? ? ip_address : "#{ip_address}:#{ip_port}"
