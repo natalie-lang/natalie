@@ -60,9 +60,9 @@ describe 'Addrinfo#inspect' do
       end
 
       it 'returns a String when using a DGRAM socket' do
-        NATFIXME 'No socktype data in UNIX Addrinfo', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-          addr = Addrinfo.unix('/foo', Socket::SOCK_DGRAM)
+        addr = Addrinfo.unix('/foo', Socket::SOCK_DGRAM)
 
+        NATFIXME 'No socktype data in UNIX Addrinfo', exception: SpecFailedException do
           addr.inspect.should == '#<Addrinfo: /foo SOCK_DGRAM>'
         end
       end
