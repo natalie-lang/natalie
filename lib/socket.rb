@@ -353,6 +353,10 @@ class Addrinfo
     ipv4? && ip_address.split('.')[0] == '127'
   end
 
+  def ipv4_multicast?
+    ipv4? && (224..239).cover?(ip_address.split('.')[0].to_i)
+  end
+
   def ipv4?
     afamily == Socket::AF_INET
   end
