@@ -385,6 +385,23 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
+Value Addrinfo_getnameinfo(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 1);
+    const auto flags = IntegerObject::convert_to_native_type<int>(env, args.at(0, Value::integer(0)));
+    auto sockaddr = self->send(env, "to_sockaddr"_s)->as_string();
+    char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+    const auto res = getnameinfo(reinterpret_cast<const struct sockaddr *>(sockaddr->c_str()), sockaddr->bytesize(), hbuf, sizeof(hbuf), sbuf, sizeof(sbuf), flags);
+    if (res < 0) {
+        if (res == EAI_SYSTEM)
+            env->raise_errno();
+        env->raise("SocketError", "getnameinfo: {}", gai_strerror(res));
+    }
+    return new ArrayObject {
+        new StringObject { hbuf, Encoding::ASCII_8BIT },
+        new StringObject { sbuf, Encoding::ASCII_8BIT },
+    };
+}
+
 Value Addrinfo_to_sockaddr(Env *env, Value self, Args args, Block *block) {
     auto Socket = self->const_find(env, "Socket"_s, Object::ConstLookupSearchMode::NotStrict);
 
