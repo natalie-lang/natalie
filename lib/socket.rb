@@ -357,6 +357,12 @@ class Addrinfo
     ipv4? && (224..239).cover?(ip_address.split('.')[0].to_i)
   end
 
+  def ipv4_private?
+    return false unless ipv4?
+    parts = ip_address.split('.').map(&:to_i)
+    parts[0] == 10 || (parts[0] == 172 && (16..31).cover?(parts[1])) || (parts[0] == 192 && parts[1] == 168)
+  end
+
   def ipv4?
     afamily == Socket::AF_INET
   end
