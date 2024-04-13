@@ -349,6 +349,10 @@ class Addrinfo
     [ip_address, ip_port]
   end
 
+  def ipv4_loopback?
+    ipv4? && ip_address.split('.')[0] == '127'
+  end
+
   def ipv4?
     afamily == Socket::AF_INET
   end
