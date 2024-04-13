@@ -278,6 +278,7 @@ class Addrinfo
   end
 
   __bind_method__ :initialize, :Addrinfo_initialize
+  __bind_method__ :getnameinfo, :Addrinfo_getnameinfo
   __bind_method__ :to_sockaddr, :Addrinfo_to_sockaddr
 
   alias to_s to_sockaddr
