@@ -14,7 +14,8 @@ describe 'Socket#recvfrom' do
     end
 
     describe 'using an unbound socket' do
-      it 'blocks the caller' do
+      # NATFIXME: Block the caller
+      xit 'blocks the caller' do
         -> { @server.recvfrom(1) }.should block_caller
       end
     end
@@ -26,7 +27,8 @@ describe 'Socket#recvfrom' do
       end
 
       describe 'without any data available' do
-        it 'blocks the caller' do
+        # NATFIXME: Block the caller
+        xit 'blocks the caller' do
           -> { @server.recvfrom(1) }.should block_caller
         end
       end
@@ -67,11 +69,15 @@ describe 'Socket#recvfrom' do
           end
 
           it 'uses SOCK_DGRAM as the socket type' do
-            @addr.socktype.should == Socket::SOCK_DGRAM
+            NATFIXME 'it uses SOCK_DGRAM as the socket type', exception: SpecFailedException do
+              @addr.socktype.should == Socket::SOCK_DGRAM
+            end
           end
 
           it 'uses PF_INET as the protocol family' do
-            @addr.pfamily.should == family
+            NATFIXME 'it uses PF_INET as the protocol family', exception: SpecFailedException do
+              @addr.pfamily.should == family
+            end
           end
 
           it 'uses 0 as the protocol' do

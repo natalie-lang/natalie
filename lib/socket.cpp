@@ -1005,6 +1005,41 @@ Value Socket_listen(Env *env, Value self, Args args, Block *block) {
     return Value::integer(result);
 }
 
+Value Socket_recvfrom(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
+    const auto maxlen = IntegerObject::convert_to_native_type<size_t>(env, args.at(0));
+    auto flags = 0;
+    if (!args.at(1, NilObject::the())->is_nil())
+        flags = IntegerObject::convert_to_native_type<int>(env, args.at(1));
+
+    char buf[maxlen];
+    sockaddr_storage src_addr;
+    memset(&src_addr, 0, sizeof(src_addr));
+    socklen_t addrlen = sizeof(src_addr);
+
+    // Set src_addr.ss_family value
+    if (getsockname(self->as_io()->fileno(), reinterpret_cast<sockaddr *>(&src_addr), &addrlen) < 0)
+        env->raise_errno();
+    const auto family = src_addr.ss_family;
+    memset(&src_addr, 0, sizeof(src_addr));
+    src_addr.ss_family = family;
+    addrlen = sizeof(src_addr);
+
+    const auto res = recvfrom(
+        self->as_io()->fileno(),
+        buf, maxlen,
+        flags,
+        reinterpret_cast<sockaddr *>(&src_addr), &addrlen);
+    if (res < 0)
+        env->raise_errno();
+    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
+    auto addrinfo = new StringObject { reinterpret_cast<const char *>(&src_addr), addrlen, Encoding::ASCII_8BIT };
+    return new ArrayObject {
+        new StringObject { buf, static_cast<size_t>(res), Encoding::ASCII_8BIT },
+        Addrinfo->send(env, "new"_s, { addrinfo }),
+    };
+}
+
 Value Socket_sysaccept(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 0);
     sockaddr_storage addr;
