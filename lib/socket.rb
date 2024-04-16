@@ -376,6 +376,18 @@ class Addrinfo
     ipv4? || ipv6?
   end
 
+  def listen
+    socket = Socket.new(afamily, socktype, protocol)
+    client = Socket.for_fd(socket.listen(0))
+    return client unless block_given?
+
+    begin
+      yield(client)
+    ensure
+      client.close
+    end
+  end
+
   def unix?
     afamily == Socket::AF_UNIX
   end
