@@ -19,7 +19,7 @@ module Natalie
       end
 
       def generate(transform)
-        (depth, var) = transform.find_var(@name)
+        depth, var = transform.find_var(@name)
 
         raise "unknown variable #{@name}" if var.nil?
 

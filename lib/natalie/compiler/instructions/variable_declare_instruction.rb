@@ -19,7 +19,7 @@ module Natalie
       end
 
       def generate(transform)
-        ((depth, var) = transform.find_var(name, local_only: @local_only))
+        depth, var = transform.find_var(name, local_only: @local_only)
         index = var.fetch(:index)
 
         return if @meta.fetch(:declared)
