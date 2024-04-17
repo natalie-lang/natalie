@@ -56,6 +56,12 @@ end
 
 class IPSocket < BasicSocket
   __bind_method__ :addr, :IPSocket_addr
+
+  class << self
+    def getaddress(host)
+      Socket.getaddrinfo(host, nil).dig(0, 2)
+    end
+  end
 end
 
 class TCPSocket < IPSocket
