@@ -20,6 +20,23 @@ module Natalie
       def execute(vm)
         vm.push(@regexp.dup)
       end
+
+      def serialize(rodata)
+        position = rodata.add(@regexp.source)
+
+        [
+          instruction_number,
+          position,
+          @regexp.options,
+        ].pack('Cww')
+      end
+
+      def self.deserialize(io, rodata)
+        position = io.read_ber_integer
+        regexp = rodata.get(position)
+        options = io.read_ber_integer
+        new(Regexp.new(regexp, options))
+      end
     end
   end
 end

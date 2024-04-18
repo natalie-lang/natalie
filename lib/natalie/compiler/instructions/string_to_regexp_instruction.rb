@@ -20,6 +20,18 @@ module Natalie
         string = vm.pop
         vm.push(Regexp.new(string, @options))
       end
+
+      def serialize(_)
+        [
+          instruction_number,
+          @options,
+        ].pack('Cw')
+      end
+
+      def self.deserialize(io, _)
+        options = io.read_ber_integer
+        new(options:)
+      end
     end
   end
 end
