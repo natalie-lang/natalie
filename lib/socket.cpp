@@ -758,6 +758,66 @@ Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
     return new ArrayObject({ family, port, host, ip });
 }
 
+Value IPSocket_peeraddr(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 1);
+    auto reverse_lookup = args.at(0, NilObject::the());
+
+    sockaddr_storage addr;
+    socklen_t addr_len = sizeof(addr);
+
+    if (reverse_lookup->is_nil()) {
+        reverse_lookup = self.send(env, "do_not_reverse_lookup"_s).send(env, "!"_s);
+    } else if (reverse_lookup == "numeric"_s) {
+        reverse_lookup = FalseObject::the();
+    } else if (!reverse_lookup->is_true() && !reverse_lookup->is_false() && reverse_lookup != "hostname"_s) {
+        env->raise("ArgumentError", "invalid reverse_lookup flag: {}", reverse_lookup->inspect_str(env));
+    }
+
+    auto getsockname_result = getpeername(
+        self->as_io()->fileno(),
+        reinterpret_cast<struct sockaddr *>(&addr),
+        &addr_len);
+    if (getsockname_result == -1)
+        env->raise_errno();
+
+    StringObject *family;
+    StringObject *ip;
+    StringObject *host;
+    Value port;
+    switch (addr.ss_family) {
+    case AF_INET: {
+        family = new StringObject("AF_INET");
+        const auto *in = reinterpret_cast<sockaddr_in *>(&addr);
+        char host_buf[INET_ADDRSTRLEN];
+        auto ntop_result = inet_ntop(addr.ss_family, &in->sin_addr, host_buf, INET_ADDRSTRLEN);
+        if (!ntop_result)
+            env->raise_errno();
+        host = ip = new StringObject { host_buf };
+        port = Value::integer(ntohs(in->sin_port));
+        if (reverse_lookup->is_truthy())
+            host = new StringObject(Socket_reverse_lookup_address(env, reinterpret_cast<sockaddr *>(&addr)));
+        break;
+    }
+    case AF_INET6: {
+        family = new StringObject("AF_INET6");
+        const auto *in6 = reinterpret_cast<sockaddr_in6 *>(&addr);
+        char host_buf[INET6_ADDRSTRLEN];
+        auto ntop_result = inet_ntop(addr.ss_family, &in6->sin6_addr, host_buf, INET6_ADDRSTRLEN);
+        if (!ntop_result)
+            env->raise_errno();
+        host = ip = new StringObject { host_buf };
+        port = Value::integer(ntohs(in6->sin6_port));
+        if (reverse_lookup->is_truthy())
+            host = new StringObject(Socket_reverse_lookup_address(env, reinterpret_cast<sockaddr *>(&addr)));
+        break;
+    }
+    default:
+        NAT_NOT_YET_IMPLEMENTED("IPSocket#addr for family %d", addr.ss_family);
+    }
+
+    return new ArrayObject({ family, port, host, ip });
+}
+
 Value UNIXSocket_addr(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 0);
 
