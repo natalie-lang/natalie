@@ -27,4 +27,23 @@ describe 'puts a regexp match result' do
 
     ruby_exe(@bytecode_file, options: "--bytecode").should == "#{Regexp::IGNORECASE}\n"
   end
+
+  it 'can use an interpolated regexp' do
+    code = <<~'RUBY'
+      puts /(fo#{:o})/.match("foobar")
+    RUBY
+    ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
+
+    ruby_exe(@bytecode_file, options: "--bytecode").should == "foo\n"
+  end
+
+  it 'preserves the regexp options of an interpolated regexp' do
+    code = <<~'RUBY'
+      r = /fo#{:o}/i
+      puts r.options
+    RUBY
+    ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
+
+    ruby_exe(@bytecode_file, options: "--bytecode").should == "#{Regexp::IGNORECASE}\n"
+  end
 end
