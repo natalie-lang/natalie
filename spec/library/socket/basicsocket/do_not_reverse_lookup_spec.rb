@@ -22,25 +22,19 @@ describe "BasicSocket.do_not_reverse_lookup" do
   it "causes 'peeraddr' to avoid name lookups" do
     @socket.do_not_reverse_lookup = true
     BasicSocket.do_not_reverse_lookup = true
-    NATFIXME 'Implement IPSocket#peeraddr', exception: NoMethodError, message: "undefined method `peeraddr' for an instance of TCPSocket" do
-      @socket.peeraddr.should == ["AF_INET", @port, "127.0.0.1", "127.0.0.1"]
-    end
+    @socket.peeraddr.should == ["AF_INET", @port, "127.0.0.1", "127.0.0.1"]
   end
 
   it "looks for hostnames when set to false" do
     @socket.do_not_reverse_lookup = false
     BasicSocket.do_not_reverse_lookup = false
-    NATFIXME 'Implement IPSocket#peeraddr', exception: NoMethodError, message: "undefined method `peeraddr' for an instance of TCPSocket" do
-      @socket.peeraddr[2].should == SocketSpecs.hostname
-    end
+    @socket.peeraddr[2].should == SocketSpecs.hostname
   end
 
   it "looks for numeric addresses when set to true" do
     @socket.do_not_reverse_lookup = true
     BasicSocket.do_not_reverse_lookup = true
-    NATFIXME 'Implement IPSocket#peeraddr', exception: NoMethodError, message: "undefined method `peeraddr' for an instance of TCPSocket" do
-      @socket.peeraddr[2].should == "127.0.0.1"
-    end
+    @socket.peeraddr[2].should == "127.0.0.1"
   end
 end
 

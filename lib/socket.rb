@@ -56,6 +56,7 @@ end
 
 class IPSocket < BasicSocket
   __bind_method__ :addr, :IPSocket_addr
+  __bind_method__ :peeraddr, :IPSocket_peeraddr
 
   class << self
     def getaddress(host)
