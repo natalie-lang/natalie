@@ -9,15 +9,13 @@ module Natalie
 
       def generate(transform)
         imaginary = transform.pop
-        real = transform.pop
-        transform.exec_and_push(:range, "Value(new ComplexObject(#{real}, #{imaginary}))")
+        transform.exec_and_push(:complex, "Value(new ComplexObject(Value::integer(0), #{imaginary}))")
       end
 
       def execute(vm)
         imaginary = vm.pop
-        real = vm.pop
         
-        vm.push(Complex(real, imaginary))
+        vm.push(Complex(0, imaginary))
       end
 
       def serialize(_)
