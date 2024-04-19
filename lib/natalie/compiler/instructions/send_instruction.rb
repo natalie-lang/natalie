@@ -125,11 +125,13 @@ module Natalie
           return
         end
 
+        old_last_match = vm.global_variables[:$~]
         vm.with_self(receiver) do
           block = vm.pop if @with_block
           result = receiver.send(method, @message, *args, &block)
           vm.push result
         end
+        vm.global_variables[:$~] = $~ if $~ != old_last_match
       end
 
       def to_method_defined_instruction
