@@ -9,7 +9,7 @@ module Natalie
 
       def generate(transform)
         imaginary = transform.pop
-        transform.exec_and_push(:range, "Value(new ComplexObject(Value::integer(0), #{imaginary}))")
+        transform.exec_and_push(:complex, "Value(new ComplexObject(Value::integer(0), #{imaginary}))")
       end
 
       def execute(vm)
