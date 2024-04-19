@@ -2,13 +2,13 @@ require_relative './base_instruction'
 
 module Natalie
   class Compiler
-    class PushRangeInstruction < BaseInstruction
+    class CreateRangeInstruction < BaseInstruction
       def initialize(exclude_end)
         @exclude_end = exclude_end
       end
 
       def to_s
-        s = 'push_range'
+        s = 'create_range'
         s << ' (exclude end)' if @exclude_end
         s
       end
