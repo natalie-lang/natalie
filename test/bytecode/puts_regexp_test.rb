@@ -56,4 +56,24 @@ describe 'puts a regexp match result' do
 
     ruby_exe(@bytecode_file, options: "--bytecode").should == "foo\n"
   end
+
+  it 'can use $1 to access the first match' do
+    code = <<~RUBY
+      /(foo)/ =~ 'foobar'
+      puts $1
+    RUBY
+    ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
+
+    ruby_exe(@bytecode_file, options: "--bytecode").should == "foo\n"
+  end
+
+  it 'can store matches in local variables' do
+    code = <<~RUBY
+      /(?<foo>bar)/ =~ 'foobar'
+      puts foo
+    RUBY
+    ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
+
+    ruby_exe(@bytecode_file, options: "--bytecode").should == "bar\n"
+  end
 end
