@@ -12,7 +12,15 @@ module Natalie
       end
 
       def execute(vm)
-        vm.push($~)
+        vm.push(vm.global_variables[:$~])
+      end
+
+      def serialize(_)
+        [instruction_number].pack('C')
+      end
+
+      def self.deserialize(_, _)
+        new
       end
     end
   end
