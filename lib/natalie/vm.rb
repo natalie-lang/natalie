@@ -13,6 +13,7 @@ module Natalie
         "$0": @path,
         "$stderr": $stderr,
         "$stdout": $stdout,
+        "$~": $~,
       }
     end
 

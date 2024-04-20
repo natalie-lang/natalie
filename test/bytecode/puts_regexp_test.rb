@@ -46,4 +46,14 @@ describe 'puts a regexp match result' do
 
     ruby_exe(@bytecode_file, options: "--bytecode").should == "#{Regexp::IGNORECASE}\n"
   end
+
+  it 'updates the $~ variable' do
+    code = <<~RUBY
+      /(foo)/ =~ 'foobar'
+      puts $~
+    RUBY
+    ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
+
+    ruby_exe(@bytecode_file, options: "--bytecode").should == "foo\n"
+  end
 end
