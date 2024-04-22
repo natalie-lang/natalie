@@ -267,16 +267,17 @@ module MarshalSpec
     end
   end
 
-  module_eval(<<~ruby.dup.force_encoding(Encoding::UTF_8))
-    class MultibyteぁあぃいClass
-    end
+  # NATFIXME: Support module_eval
+  #module_eval(<<~ruby.dup.force_encoding(Encoding::UTF_8))
+    #class MultibyteぁあぃいClass
+    #end
 
-    module MultibyteけげこごModule
-    end
+    #module MultibyteけげこごModule
+    #end
 
-    class MultibyteぁあぃいTime < Time
-    end
-  ruby
+    #class MultibyteぁあぃいTime < Time
+    #end
+  #ruby
 
   class ObjectWithFreezeRaisingException < Object
     def freeze
