@@ -74,6 +74,25 @@ module Marshal
       end
     end
 
+    def write_bigint_bytes(value)
+      if value.positive?
+        write_byte('+')
+      else
+        write_byte('-')
+        value = value.abs
+      end
+      buffer = []
+      until value.zero?
+        buffer << (value & 0xff)
+        value >>= 8
+      end
+      buffer << 0 if buffer.size.odd?
+      write_integer_bytes(buffer.size / 2)
+      buffer.each do |integer|
+        write_byte(integer)
+      end
+    end
+
     def write_string_bytes(value)
       string = value.to_s
       write_integer_bytes(string.length)
@@ -110,8 +129,13 @@ module Marshal
     end
 
     def write_integer(value)
-      write_char('i')
-      write_integer_bytes(value)
+      if value >= -2 ** 30 && value < 2 ** 30
+        write_char('i')
+        write_integer_bytes(value)
+      else
+        write_char('l')
+        write_bigint_bytes(value)
+      end
     end
 
     def write_string(value)

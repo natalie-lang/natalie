@@ -40,15 +40,11 @@ describe "Marshal.dump" do
 
     platform_is wordsize: 64 do
       it "dumps a positive Fixnum > 31 bits as a Bignum" do
-        NATFIXME 'dumps a positive Fixnum > 31 bits as a Bignum', exception: SpecFailedException do
-          Marshal.dump(2**31 + 1).should == "\x04\bl+\a\x01\x00\x00\x80"
-        end
+        Marshal.dump(2**31 + 1).should == "\x04\bl+\a\x01\x00\x00\x80"
       end
 
       it "dumps a negative Fixnum > 31 bits as a Bignum" do
-        NATFIXME 'dumps a negative Fixnum > 31 bits as a Bignum', exception: SpecFailedException do
-          Marshal.dump(-2**31 - 1).should == "\x04\bl-\a\x01\x00\x00\x80"
-        end
+        Marshal.dump(-2**31 - 1).should == "\x04\bl-\a\x01\x00\x00\x80"
       end
     end
   end
@@ -287,21 +283,17 @@ describe "Marshal.dump" do
 
   describe "with a Bignum" do
     it "dumps a Bignum" do
-      NATFIXME 'dumps a Bignum', exception: SpecFailedException do
-        [ [Marshal, -4611686018427387903,    "\004\bl-\t\377\377\377\377\377\377\377?"],
-          [Marshal, -2361183241434822606847, "\004\bl-\n\377\377\377\377\377\377\377\377\177\000"],
-        ].should be_computed_by(:dump)
-      end
+      [ [Marshal, -4611686018427387903,    "\004\bl-\t\377\377\377\377\377\377\377?"],
+        [Marshal, -2361183241434822606847, "\004\bl-\n\377\377\377\377\377\377\377\377\177\000"],
+      ].should be_computed_by(:dump)
     end
 
     it "dumps a Bignum" do
-      NATFIXME 'dumps a Bignum', exception: SpecFailedException do
-        [ [Marshal,  2**64, "\004\bl+\n\000\000\000\000\000\000\000\000\001\000"],
-          [Marshal,  2**90, "\004\bl+\v#{"\000" * 11}\004"],
-          [Marshal, -2**63, "\004\bl-\t\000\000\000\000\000\000\000\200"],
-          [Marshal, -2**64, "\004\bl-\n\000\000\000\000\000\000\000\000\001\000"],
-        ].should be_computed_by(:dump)
-      end
+      [ [Marshal,  2**64, "\004\bl+\n\000\000\000\000\000\000\000\000\001\000"],
+        [Marshal,  2**90, "\004\bl+\v#{"\000" * 11}\004"],
+        [Marshal, -2**63, "\004\bl-\t\000\000\000\000\000\000\000\200"],
+        [Marshal, -2**64, "\004\bl-\n\000\000\000\000\000\000\000\000\001\000"],
+      ].should be_computed_by(:dump)
     end
 
     it "increases the object links counter" do
