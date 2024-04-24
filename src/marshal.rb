@@ -228,6 +228,7 @@ module Marshal
     end
 
     def write_object(value)
+      raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
       write_char('o')
       write(value.class.name.to_sym)
       ivar_names = value.instance_variables

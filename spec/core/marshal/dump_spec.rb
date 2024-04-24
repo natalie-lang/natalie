@@ -157,9 +157,7 @@ describe "Marshal.dump" do
     end
 
     it "raises TypeError if an Object is an instance of an anonymous class" do
-      NATFIXME 'raises TypeError if an Object is an instance of an anonymous class', exception: SpecFailedException do
-        -> { Marshal.dump(Class.new(UserDefined).new) }.should raise_error(TypeError, /can't dump anonymous class/)
-      end
+      -> { Marshal.dump(Class.new(UserDefined).new) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
 
     it "favors marshal_dump over _dump" do
@@ -653,9 +651,7 @@ describe "Marshal.dump" do
     end
 
     it "raises TypeError with an anonymous Struct" do
-      NATFIXME 'raises TypeError with an anonymous Struct', exception: SpecFailedException do
-        -> { Marshal.dump(Struct.new(:a).new(1)) }.should raise_error(TypeError, /can't dump anonymous class/)
-      end
+      -> { Marshal.dump(Struct.new(:a).new(1)) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
   end
 
@@ -732,9 +728,7 @@ describe "Marshal.dump" do
       anonymous_class = Class.new
       obj = anonymous_class.new
 
-      NATFIXME 'raises TypeError if an Object is an instance of an anonymous class', exception: SpecFailedException, message: "undefined method `to_sym' for nil" do
-        -> { Marshal.dump(obj) }.should raise_error(TypeError, /can't dump anonymous class/)
-      end
+      -> { Marshal.dump(obj) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
 
     it "raises TypeError if an Object extends an anonymous module" do
@@ -782,9 +776,7 @@ describe "Marshal.dump" do
     end
 
     it "raises TypeError with an anonymous Range subclass" do
-      NATFIXME 'raises TypeError with an anonymous Range subclass', exception: SpecFailedException, message: "undefined method `to_sym' for nil" do
-        -> { Marshal.dump(Class.new(Range).new(1, 2)) }.should raise_error(TypeError, /can't dump anonymous class/)
-      end
+      -> { Marshal.dump(Class.new(Range).new(1, 2)) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
   end
 
@@ -916,9 +908,7 @@ describe "Marshal.dump" do
       anonymous_class = Class.new(Exception)
       obj = anonymous_class.new
 
-      NATFIXME 'raises TypeError if an Object is an instance of an anonymous class', exception: SpecFailedException do
-        -> { Marshal.dump(obj) }.should raise_error(TypeError, /can't dump anonymous class/)
-      end
+      -> { Marshal.dump(obj) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
   end
 
