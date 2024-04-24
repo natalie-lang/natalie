@@ -344,6 +344,18 @@ module Marshal
       end
     end
 
+    def read_big_integer
+      sign = read_byte.chr
+      raise TypeError, 'incompatible marshal file format' unless ['+', '-'].include?(sign)
+      size = read_integer
+      integer = 0
+      (2 * size).times do |i|
+        integer |= read_byte << (8 * i)
+      end
+      integer = -integer if sign == '-'
+      integer
+    end
+
     def read_string
       integer = read_integer
       return '' if integer.zero?
@@ -457,6 +469,8 @@ module Marshal
         false
       when 'i'
         read_integer
+      when 'l'
+        read_big_integer
       when '"'
         read_string
       when ':'

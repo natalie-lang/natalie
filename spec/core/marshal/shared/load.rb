@@ -1129,27 +1129,19 @@ describe :marshal_load, shared: true do
     end
 
     it "loads an Integer 4611686018427387903" do
-      NATFIXME 'Support bignum load', exception: ArgumentError, message: 'dump format error' do
-        Marshal.send(@method, "\004\bl+\t\377\377\377\377\377\377\377?").should == 4611686018427387903
-      end
+      Marshal.send(@method, "\004\bl+\t\377\377\377\377\377\377\377?").should == 4611686018427387903
     end
 
     it "loads an Integer -4611686018427387903" do
-      NATFIXME 'Support bignum load', exception: ArgumentError, message: 'dump format error' do
-        Marshal.send(@method, "\004\bl-\t\377\377\377\377\377\377\377?").should == -4611686018427387903
-      end
+      Marshal.send(@method, "\004\bl-\t\377\377\377\377\377\377\377?").should == -4611686018427387903
     end
 
     it "loads an Integer 2361183241434822606847" do
-      NATFIXME 'Support bignum load', exception: ArgumentError, message: 'dump format error' do
-        Marshal.send(@method, "\004\bl+\n\377\377\377\377\377\377\377\377\177\000").should == 2361183241434822606847
-      end
+      Marshal.send(@method, "\004\bl+\n\377\377\377\377\377\377\377\377\177\000").should == 2361183241434822606847
     end
 
     it "loads an Integer -2361183241434822606847" do
-      NATFIXME 'Support bignum load', exception: ArgumentError, message: 'dump format error' do
-        Marshal.send(@method, "\004\bl-\n\377\377\377\377\377\377\377\377\177\000").should == -2361183241434822606847
-      end
+      Marshal.send(@method, "\004\bl-\n\377\377\377\377\377\377\377\377\177\000").should == -2361183241434822606847
     end
 
     it "raises ArgumentError if the input is too short" do
@@ -1172,9 +1164,7 @@ describe :marshal_load, shared: true do
 
     if 0.size == 8 # for platforms like x86_64
       it "roundtrips 4611686018427387903 from dump/load correctly" do
-        NATFIXME 'Support bignum load ', exception: ArgumentError, message: 'dump format error' do
-          Marshal.send(@method, Marshal.dump(4611686018427387903)).should == 4611686018427387903
-        end
+        Marshal.send(@method, Marshal.dump(4611686018427387903)).should == 4611686018427387903
       end
     end
   end
@@ -1199,15 +1189,13 @@ describe :marshal_load, shared: true do
     platform_is wordsize: 64 do
       context "that is Bignum on 32-bit platforms but Fixnum on 64-bit" do
         it "dumps a Fixnum" do
-          NATFIXME 'Support bignum load', exception: ArgumentError, message: 'dump format error' do
-            val = Marshal.send(@method, "\004\bl+\ab:wU")
-            val.should == 1433877090
-            val.class.should == Integer
-          end
+          val = Marshal.send(@method, "\004\bl+\ab:wU")
+          val.should == 1433877090
+          val.class.should == Integer
         end
 
         it "dumps an array containing multiple references to the Bignum as an array of Fixnum" do
-          NATFIXME 'Support bignum load', exception: ArgumentError, message: 'dump format error' do
+          NATFIXME 'Support references', exception: ArgumentError, message: 'dump format error' do
             arr = Marshal.send(@method, "\004\b[\al+\a\223BwU@\006")
             arr.should == [1433879187, 1433879187]
             arr.each { |v| v.class.should == Integer }
