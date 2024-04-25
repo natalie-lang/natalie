@@ -56,9 +56,7 @@ describe :regexp_new_string, shared: true do
   end
 
   it "raises a RegexpError when passed an incorrect regexp" do
-    NATFIXME "raises a RegexpError when passed an incorrect regexp", exception: SyntaxError, message: 'premature end of char-class' do
-      -> { Regexp.send(@method, "^[$", 0) }.should raise_error(RegexpError)
-    end
+    -> { Regexp.send(@method, "^[$", 0) }.should raise_error(RegexpError)
   end
 
   it "does not set Regexp options if only given one argument" do
@@ -469,9 +467,7 @@ describe :regexp_new_string, shared: true do
     end
 
     it "raises a RegexpError if less than four digits are given for \\uHHHH" do
-      NATFIXME "raises a RegexpError if less than four digits are given for \\uHHHH", exception: SyntaxError, message: 'too short digits' do
-        -> { Regexp.send(@method, "\\" + "u304") }.should raise_error(RegexpError)
-      end
+      -> { Regexp.send(@method, "\\" + "u304") }.should raise_error(RegexpError)
     end
 
     it "raises a RegexpError if the \\u{} escape is empty" do

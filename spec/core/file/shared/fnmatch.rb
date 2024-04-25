@@ -32,7 +32,7 @@ describe :file_fnmatch, shared: true do
       File.send(@method, "{1,5{a,b{c,d}}}", "5bc", File::FNM_EXTGLOB).should == true
       File.send(@method, "{1,5{a,b{c,d}}}", "5bd", File::FNM_EXTGLOB).should == true
     end
-    NATFIXME 'escaped {}', exception: SyntaxError do
+    NATFIXME 'escaped {}', exception: RegexpError do
       File.send(@method, "\\\\{a\\,b,b\\}c}", "\\a,b", File::FNM_EXTGLOB).should == true
       File.send(@method, "\\\\{a\\,b,b\\}c}", "\\b}c", File::FNM_EXTGLOB).should == true
     end
@@ -82,13 +82,13 @@ describe :file_fnmatch, shared: true do
   end
 
   it "does not match unterminated range of characters" do
-    NATFIXME 'unterminated range', exception: SyntaxError do
+    NATFIXME 'unterminated range', exception: RegexpError do
       File.send(@method, 'abc[de', 'abcd').should == false
     end
   end
 
   it "does not match unterminated range of characters as a literal" do
-    NATFIXME '[] expansion', exception: SyntaxError do
+    NATFIXME '[] expansion', exception: RegexpError do
       File.send(@method, 'abc[de', 'abc[de').should == false
     end
   end
@@ -107,7 +107,7 @@ describe :file_fnmatch, shared: true do
 
   it "does not match characters outside of the range of the bracket expression" do
     File.send(@method, 'ca[x-z]', 'cat').should == false
-    NATFIXME 'single character range?', exception: SyntaxError do
+    NATFIXME 'single character range?', exception: RegexpError do
       File.send(@method, '/ca[s][s-t]/rul[a-b]/[z]he/[x-Z]orld', '/cats/rule/the/World').should == false
     end
   end
