@@ -21,9 +21,7 @@ describe "IO#write on a file" do
   end
 
   it "does not check if the file is writable if writing zero bytes" do
-    NATFIXME 'does not check if the file is writable if writing zero bytes', exception: SpecFailedException do
-      -> { @readonly_file.write("") }.should_not raise_error
-    end
+    -> { @readonly_file.write("") }.should_not raise_error
   end
 
   before :each do
