@@ -143,7 +143,7 @@ describe :regexp_new_string, shared: true do
       obj = Object.new
       def obj.to_int() ScratchPad.record(:called) end
 
-      NATFIXME 'Support second argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
+      NATFIXME 'does not try to convert the second argument to Integer with #to_int method call', exception: SpecFailedException do
         -> {
           Regexp.send(@method, "Hi", obj)
         }.should complain(/expected true or false as ignorecase/, {verbose: true})
@@ -167,15 +167,15 @@ describe :regexp_new_string, shared: true do
   ruby_version_is "3.2" do
     it "warns any non-Integer, non-nil, non-false second argument" do
       r = nil
-      NATFIXME 'Support second argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
+      NATFIXME 'warns any non-Integer, non-nil, non-false second argument', exception: SpecFailedException do
         -> {
           r = Regexp.send(@method, 'Hi', Object.new)
         }.should complain(/expected true or false as ignorecase/, {verbose: true})
-        (r.options & Regexp::IGNORECASE).should_not == 0
-        (r.options & Regexp::MULTILINE).should == 0
-        not_supported_on :opal do
-          (r.options & Regexp::EXTENDED).should == 0
-        end
+      end
+      (r.options & Regexp::IGNORECASE).should_not == 0
+      (r.options & Regexp::MULTILINE).should == 0
+      not_supported_on :opal do
+        (r.options & Regexp::EXTENDED).should == 0
       end
     end
 
