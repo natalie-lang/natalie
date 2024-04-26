@@ -90,7 +90,7 @@ describe :dir_glob, shared: true do
   end
 
   it "matches directories with special characters when escaped" do
-    NATFIXME 'escaped characters', exception: SyntaxError do
+    NATFIXME 'escaped characters', exception: RegexpError do
       Dir.send(@method, 'special/\{}/special').should == ["special/{}/special"]
     end
   end

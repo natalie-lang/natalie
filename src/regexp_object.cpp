@@ -335,7 +335,7 @@ void RegexpObject::initialize(Env *env, const String &pattern, int options) {
     if (result != ONIG_NORMAL) {
         OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
         onig_error_code_to_str(s, result, &einfo);
-        env->raise("SyntaxError", (char *)s);
+        env->raise("RegexpError", "{}: /{}/", reinterpret_cast<const char *>(s), pattern);
     }
     m_regex = regex;
     m_options = options;
