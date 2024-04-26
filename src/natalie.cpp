@@ -424,7 +424,7 @@ Env *build_top_env() {
     env->global_alias("$-d"_s, "$DEBUG"_s);
 
     env->global_set("$VERBOSE"_s, FalseObject::the());
-    GlobalEnv::the()->global_set_write_hook(env, "$VERBOSE"_s, GlobalVariableAccessHooks::WriteHooks::to_bool);
+    GlobalEnv::the()->global_set_write_hook(env, "$VERBOSE"_s, GlobalVariableAccessHooks::WriteHooks::set_verbose);
     env->global_alias("$-v"_s, "$VERBOSE"_s);
     env->global_alias("$-w"_s, "$VERBOSE"_s);
 
