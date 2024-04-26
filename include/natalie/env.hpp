@@ -99,7 +99,7 @@ public:
 
     template <typename... Args>
     void verbose_warn(const char *format, Args... args) {
-        if (GlobalEnv::the()->is_verbose(this))
+        if (GlobalEnv::the()->is_verbose())
             warn(String::format(format, args...));
     }
 

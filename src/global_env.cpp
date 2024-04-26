@@ -111,10 +111,6 @@ void GlobalEnv::global_set_write_hook(Env *env, SymbolObject *name, GlobalVariab
     info->set_write_hook(write_hook);
 }
 
-bool GlobalEnv::is_verbose(Env *env) {
-    return global_get(env, "$VERBOSE"_s)->is_truthy();
-}
-
 void GlobalEnv::visit_children(Visitor &visitor) {
     for (auto pair : m_global_variables) {
         visitor.visit(pair.first);

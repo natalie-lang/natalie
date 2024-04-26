@@ -83,6 +83,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
     }
 
     Object *set_verbose(Env *env, Value v, GlobalVariableInfo &) {
+        GlobalEnv::the()->set_verbose(v->is_truthy());
         if (v->is_nil())
             return NilObject::the();
         return bool_object(v->is_truthy()).object();
