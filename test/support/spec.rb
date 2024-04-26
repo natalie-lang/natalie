@@ -876,9 +876,13 @@ class RaiseErrorExpectation
 end
 
 class ComplainExpectation
-  def initialize(message = nil, verbose: false)
+  def initialize(message = nil, kwargs = {}, verbose: false)
     @message = message
-    @verbose = verbose
+    if kwargs.key?(:verbose)
+      @verbose = kwargs[:verbose]
+    else
+      @verbose = verbose
+    end
   end
 
   def match(subject)
@@ -1425,8 +1429,8 @@ class Object
     RaiseErrorExpectation.new(klass, message, &block)
   end
 
-  def complain(message = nil, verbose: false)
-    ComplainExpectation.new(message, verbose: verbose)
+  def complain(message = nil, kwargs = {}, verbose: false)
+    ComplainExpectation.new(message, kwargs, verbose: verbose)
   end
 
   def match_yaml(expected)
