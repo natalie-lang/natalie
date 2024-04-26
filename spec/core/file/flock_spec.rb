@@ -37,7 +37,8 @@ describe "File#flock" do
     END_OF_CODE
   end
 
-  # NATFIXME: Threads
+  # NATFIXME: Thread gets killed by Errno::EINTR, wrapping in a block works
+  #           in single test mode, but fails when running all tests.
   xit "blocks if trying to lock an exclusively locked file" do
     @file.flock File::LOCK_EX
 
