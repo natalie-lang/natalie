@@ -45,9 +45,7 @@ describe "IO#write on a file" do
   end
 
   it "returns a length of 0 when passed no arguments" do
-    NATFIXME 'Support zero arguments', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1+)' do
-      @file.write().should == 0
-    end
+    @file.write().should == 0
   end
 
   it "returns the number of bytes written" do
