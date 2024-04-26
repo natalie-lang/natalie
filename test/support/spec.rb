@@ -903,6 +903,11 @@ class ComplainExpectation
     else
       puts "Expected a Regexp to complain but got #{@message.inspect}"
     end
+
+    # If the verbose argument is given, the code should *not* complain with verbose disabled
+    if @verbose
+      ComplainExpectation.new(@message, verbose: false).inverted_match(subject)
+    end
   end
 
   def inverted_match(subject)
