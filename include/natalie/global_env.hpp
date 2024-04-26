@@ -86,6 +86,8 @@ public:
     void global_set_read_hook(Env *, SymbolObject *, bool, GlobalVariableInfo::read_hook_t read_hook);
     void global_set_write_hook(Env *, SymbolObject *, GlobalVariableInfo::write_hook_t);
 
+    bool is_verbose(Env *);
+
     void set_main_env(Env *main_env) { m_main_env = main_env; }
     Env *main_env() { return m_main_env; }
 

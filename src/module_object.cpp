@@ -762,8 +762,7 @@ ArrayObject *ModuleObject::attr(Env *env, Args args) {
     bool accessor = false;
     auto size = args.size();
     if (args.size() > 1 && args[size - 1]->is_boolean()) {
-        if (env->global_get("$VERBOSE"_s)->is_truthy())
-            env->warn("optional boolean argument is obsoleted");
+        env->verbose_warn("optional boolean argument is obsoleted");
         accessor = args[size - 1]->is_truthy();
         size--;
     }
