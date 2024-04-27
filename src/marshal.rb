@@ -35,6 +35,7 @@ module Marshal
   class Writer
     def initialize(output)
       @output = output
+      @symbol_lookup = {}
     end
 
     def write_byte(value)
@@ -146,8 +147,14 @@ module Marshal
     end
 
     def write_symbol(value)
-      write_char(':')
-      write_string_bytes(value)
+      if @symbol_lookup.key?(value)
+        write_char(';')
+        write_integer_bytes(@symbol_lookup[value])
+      else
+        write_char(':')
+        write_string_bytes(value)
+        @symbol_lookup[value] = @symbol_lookup.size
+      end
     end
 
     def write_float(value)
@@ -278,7 +285,7 @@ module Marshal
 
   class StringWriter < Writer
     def initialize
-      @output = String.new.force_encoding(Encoding::ASCII_8BIT)
+      super(String.new.force_encoding(Encoding::ASCII_8BIT))
     end
 
     def write_byte(value)
@@ -293,6 +300,7 @@ module Marshal
   class Reader
     def initialize(source)
       @source = source
+      @symbol_lookup = []
     end
 
     def read_byte
@@ -364,7 +372,14 @@ module Marshal
     end
 
     def read_symbol
-      read_string.to_sym
+      symbol = read_string.to_sym
+      @symbol_lookup << symbol
+      symbol
+    end
+
+    def read_symbol_link
+      link = read_integer
+      @symbol_lookup.fetch(link)
     end
 
     def read_float
@@ -476,6 +491,8 @@ module Marshal
         read_string
       when ':'
         read_symbol
+      when ';'
+        read_symbol_link
       when 'f'
         read_float
       when '['
@@ -512,7 +529,8 @@ module Marshal
 
   class StringReader < Reader
     def initialize(source)
-      @source, @offset = source, 0
+      super(source)
+      @offset = 0
     end
 
     def read_byte

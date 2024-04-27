@@ -396,9 +396,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps multiple strings using symlinks for the :E (encoding) symbol" do
-      NATFIXME 'dumps multiple strings using symlinks for the :E (encoding) symbol', exception: SpecFailedException do
-        Marshal.dump(["".encode("us-ascii"), "".encode("utf-8")]).should == "\x04\b[\aI\"\x00\x06:\x06EFI\"\x00\x06;\x00T"
-      end
+      Marshal.dump(["".encode("us-ascii"), "".encode("utf-8")]).should == "\x04\b[\aI\"\x00\x06:\x06EFI\"\x00\x06;\x00T"
     end
   end
 
@@ -913,9 +911,7 @@ describe "Marshal.dump" do
   end
 
   it "dumps subsequent appearances of a symbol as a link" do
-    NATFIXME 'dumps subsequent appearances of a symbol as a link', exception: SpecFailedException do
-      Marshal.dump([:a, :a]).should == "\004\b[\a:\006a;\000"
-    end
+    Marshal.dump([:a, :a]).should == "\004\b[\a:\006a;\000"
   end
 
   it "dumps subsequent appearances of an object as a link" do
