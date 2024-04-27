@@ -86,6 +86,9 @@ public:
     void global_set_read_hook(Env *, SymbolObject *, bool, GlobalVariableInfo::read_hook_t read_hook);
     void global_set_write_hook(Env *, SymbolObject *, GlobalVariableInfo::write_hook_t);
 
+    bool is_verbose() const { return m_verbose; }
+    void set_verbose(const bool verbose) { m_verbose = verbose; }
+
     void set_main_env(Env *main_env) { m_main_env = main_env; }
     Env *main_env() { return m_main_env; }
 
@@ -140,6 +143,7 @@ private:
     MethodMissingReason m_method_missing_reason { MethodMissingReason::Undefined };
     bool m_instance_evaling { false };
     bool m_rescued { false };
+    bool m_verbose { false };
 
     TM::Hashmap<SymbolObject *> m_files {};
 };

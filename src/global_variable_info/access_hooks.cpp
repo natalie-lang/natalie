@@ -64,12 +64,6 @@ namespace GlobalVariableAccessHooks::WriteHooks {
         return v->as_string_or_raise(env);
     }
 
-    Object *to_bool(Env *env, Value v, GlobalVariableInfo &) {
-        if (v->is_nil())
-            return NilObject::the();
-        return bool_object(v->is_truthy()).object();
-    }
-
     Object *to_int(Env *env, Value v, GlobalVariableInfo &) {
         return v->to_int(env);
     }
@@ -86,6 +80,13 @@ namespace GlobalVariableAccessHooks::WriteHooks {
         if (!v->respond_to(env, "write"_s))
             env->raise("TypeError", "$stdout must have write method, {} given", v->klass()->inspect_str());
         return v.object();
+    }
+
+    Object *set_verbose(Env *env, Value v, GlobalVariableInfo &) {
+        GlobalEnv::the()->set_verbose(v->is_truthy());
+        if (v->is_nil())
+            return NilObject::the();
+        return bool_object(v->is_truthy()).object();
     }
 }
 

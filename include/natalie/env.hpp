@@ -97,6 +97,12 @@ public:
         warn(message);
     }
 
+    template <typename... Args>
+    void verbose_warn(const char *format, Args... args) {
+        if (GlobalEnv::the()->is_verbose())
+            warn(String::format(format, args...));
+    }
+
     void ensure_block_given(Block *);
     void ensure_no_missing_keywords(HashObject *, std::initializer_list<const String>);
     void ensure_no_extra_keywords(HashObject *);
