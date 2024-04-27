@@ -379,6 +379,10 @@ module Enumerable
         raise "don't know how to handle arg: #{args.first.inspect}"
       end
     else
+      if block_given? && $VERBOSE
+        c = caller_locations(1).first
+        warn("#{c.path}:#{c.lineno}: warning: given block not used")
+      end
       memo, sym = args
       each { |obj| memo = memo.send(sym, obj) }
       memo

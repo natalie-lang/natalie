@@ -19,15 +19,13 @@ describe :enumerable_inject, shared: true do
   end
 
   it "ignores the block if two arguments" do
-    NATFIXME 'Warn for unused blocks', exception: SpecFailedException do
-      -> {
-        EnumerableSpecs::Numerous.new(1, 2, 3).send(@method, 10, :-) { raise "we never get here"}.should == 4
-      }.should complain(/#{__FILE__}:#{__LINE__-1}: warning: given block not used/, verbose: true)
+    -> {
+      EnumerableSpecs::Numerous.new(1, 2, 3).send(@method, 10, :-) { raise "we never get here"}.should == 4
+    }.should complain(/#{__FILE__}:#{__LINE__-1}: warning: given block not used/, verbose: true)
 
-      -> {
-        [1, 2, 3].send(@method, 10, :-) { raise "we never get here"}.should == 4
-      }.should complain(/#{__FILE__}:#{__LINE__-1}: warning: given block not used/, verbose: true)
-    end
+    -> {
+      [1, 2, 3].send(@method, 10, :-) { raise "we never get here"}.should == 4
+    }.should complain(/#{__FILE__}:#{__LINE__-1}: warning: given block not used/, verbose: true)
   end
 
   it "does not warn when given a Symbol with $VERBOSE true" do
