@@ -549,9 +549,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps a Hash with a default value" do
-      NATFIXME 'dumps a Hash with a default value', exception: SpecFailedException do
-        Marshal.dump(Hash.new(1)).should == "\004\b}\000i\006"
-      end
+      Marshal.dump(Hash.new(1)).should == "\004\b}\000i\006"
     end
 
     ruby_version_is "3.1" do

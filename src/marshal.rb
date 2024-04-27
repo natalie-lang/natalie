@@ -196,11 +196,18 @@ module Marshal
     end
 
     def write_hash(values)
-      write_char('{')
+      if values.default.nil?
+        write_char('{')
+      else
+        write_char('}')
+      end
       write_integer_bytes(values.size)
       values.each do |key, value|
         write(key)
         write(value)
+      end
+      unless values.default.nil?
+        write(values.default)
       end
     end
 
