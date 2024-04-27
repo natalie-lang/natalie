@@ -300,6 +300,7 @@ module Marshal
   class Reader
     def initialize(source)
       @source = source
+      @symbol_lookup = []
     end
 
     def read_byte
@@ -371,7 +372,14 @@ module Marshal
     end
 
     def read_symbol
-      read_string.to_sym
+      symbol = read_string.to_sym
+      @symbol_lookup << symbol
+      symbol
+    end
+
+    def read_symbol_link
+      link = read_integer
+      @symbol_lookup.fetch(link)
     end
 
     def read_float
@@ -483,6 +491,8 @@ module Marshal
         read_string
       when ':'
         read_symbol
+      when ';'
+        read_symbol_link
       when 'f'
         read_float
       when '['
@@ -519,7 +529,8 @@ module Marshal
 
   class StringReader < Reader
     def initialize(source)
-      @source, @offset = source, 0
+      super(source)
+      @offset = 0
     end
 
     def read_byte

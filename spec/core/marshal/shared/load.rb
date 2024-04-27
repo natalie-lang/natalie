@@ -974,11 +974,9 @@ describe :marshal_load, shared: true do
       obj.data = :data
       value = [obj, :data]
       dump = Marshal.dump(value)
-      NATFIXME 'loads a user-marshaled object', exception: SpecFailedException do
-        dump.should == "\x04\b[\aU:\x10UserMarshal:\tdata;\x06"
-        reloaded = Marshal.load(dump)
-        reloaded.should == value
-      end
+      dump.should == "\x04\b[\aU:\x10UserMarshal:\tdata;\x06"
+      reloaded = Marshal.load(dump)
+      reloaded.should == value
     end
   end
 
