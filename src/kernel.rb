@@ -854,6 +854,7 @@ module Kernel
   module_function :putc
 
   alias format sprintf
+  module_function :format
 
   def printf(*args)
     if args[0].is_a?(String)
