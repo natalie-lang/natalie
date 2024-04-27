@@ -401,6 +401,12 @@ module Marshal
       result
     end
 
+    def read_hash_with_default
+      hash = read_hash
+      hash.default = read_value
+      hash
+    end
+
     def read_class
       name = read_string
       result = find_constant(name)
@@ -489,6 +495,8 @@ module Marshal
         read_array
       when '{'
         read_hash
+      when '}'
+        read_hash_with_default
       when 'c'
         read_class
       when 'm'
