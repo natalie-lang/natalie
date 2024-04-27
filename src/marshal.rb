@@ -203,11 +203,18 @@ module Marshal
     end
 
     def write_hash(values)
-      write_char('{')
+      if values.default.nil?
+        write_char('{')
+      else
+        write_char('}')
+      end
       write_integer_bytes(values.size)
       values.each do |key, value|
         write(key)
         write(value)
+      end
+      unless values.default.nil?
+        write(values.default)
       end
     end
 
@@ -409,6 +416,12 @@ module Marshal
       result
     end
 
+    def read_hash_with_default
+      hash = read_hash
+      hash.default = read_value
+      hash
+    end
+
     def read_class
       name = read_string
       result = find_constant(name)
@@ -499,6 +512,8 @@ module Marshal
         read_array
       when '{'
         read_hash
+      when '}'
+        read_hash_with_default
       when 'c'
         read_class
       when 'm'

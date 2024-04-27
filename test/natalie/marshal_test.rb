@@ -124,6 +124,12 @@ describe 'Marshal' do
       Marshal.load("\x04\b{\x06:\x06ET".force_encoding(Encoding::BINARY)).should == {E: true}
     end
 
+    it 'reads hashes with default values' do
+      Marshal.load("\x04\b}\x00i\x06".force_encoding(Encoding::BINARY)).default.should == 1
+      Marshal.load("\x04\b}\x06:\x06ai\x06i\x06".force_encoding(Encoding::BINARY)).default.should == 1
+      Marshal.load("\x04\b}\x06:\x06ETi\x06".force_encoding(Encoding::BINARY)).default.should == 1
+    end
+
     it 'reads classes' do
       Marshal.load("\x04\bc\nArray".force_encoding(Encoding::BINARY)).should == Array
       ->{ Marshal.load("\x04\bc\nArraz") }.should raise_error(ArgumentError)
