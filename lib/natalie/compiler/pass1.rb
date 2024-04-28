@@ -1006,6 +1006,10 @@ module Natalie
                    [node.keyword_rest] +
                    [node.block]
                  ).compact
+               when Prism::NumberedParametersNode
+                 node.maximum.times.map do |i|
+                   Prism::RequiredParameterNode.new(:"_#{i + 1}", node.location)
+                 end
                else
                  [node]
                end

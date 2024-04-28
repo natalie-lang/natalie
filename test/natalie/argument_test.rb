@@ -99,3 +99,25 @@ end
 describe 'implicit rest arg' do
   [[1, 2, 3]].map { |x,| x }.should == [1]
 end
+
+describe 'numbered arguments' do
+  it 'can be used in lambdas' do
+    sum = -> { _1 + _2 }
+    sum.call(1, 2).should == 3
+  end
+
+  it 'can be used in procs' do
+    sum = proc { _1 + _2 }
+    sum.call(1, 2).should == 3
+  end
+
+  it 'preserves the arity' do
+    sum = -> { _1 + _2 }
+    sum.arity.should == 2
+  end
+
+  it 'preserves the arity even if arguments are skipped' do
+    sum = -> { _1 + _3 }
+    sum.arity.should == 3
+  end
+end
