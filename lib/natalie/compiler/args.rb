@@ -48,6 +48,8 @@ module Natalie
         when ::Prism::RequiredParameterNode
           clean_up_keyword_args
           transform_required_arg(arg)
+        when ::Prism::NumberedParametersNode
+          transform_numbered_arg(arg)
         when ::Prism::RestParameterNode
           clean_up_keyword_args
           transform_rest_arg(arg)
@@ -87,6 +89,13 @@ module Natalie
       def transform_required_arg(arg)
         shift_or_pop_next_arg
         @instructions << variable_set(arg.name)
+      end
+
+      def transform_numbered_arg(arg)
+        arg.maximum.times do |i|
+          shift_or_pop_next_arg
+          @instructions << variable_set(:"_#{i + 1}")
+        end
       end
 
       def transform_optional_arg(arg)
