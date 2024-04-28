@@ -621,11 +621,9 @@ describe :regexp_new_regexp, shared: true do
 
   it "does not honour options given as additional arguments" do
     r = nil
-    NATFIXME 'warn about ignored flags', exception: SpecFailedException do
-      -> {
-        r = Regexp.send @method, /hi/, Regexp::IGNORECASE
-      }.should complain(/flags ignored/)
-    end
+    -> {
+      r = Regexp.send @method, /hi/, Regexp::IGNORECASE
+    }.should complain(/flags ignored/)
     (r.options & Regexp::IGNORECASE).should == 0
   end
 

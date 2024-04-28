@@ -206,6 +206,8 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
         env->raise("TypeError", "already initialized regexp");
     if (pattern->is_regexp()) {
         auto other = pattern->as_regexp();
+        if (opts && !opts->is_nil())
+            env->warn("flags ignored");
         initialize(env, other->pattern(), other->options());
     } else {
         nat_int_t options = 0;
