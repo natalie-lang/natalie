@@ -33,6 +33,14 @@ module Natalie
         vm.with_self(singleton) { vm.run }
         :no_halt
       end
+
+      def serialize(_)
+        [instruction_number].pack('C')
+      end
+
+      def self.deserialize(_, _)
+        new
+      end
     end
   end
 end
