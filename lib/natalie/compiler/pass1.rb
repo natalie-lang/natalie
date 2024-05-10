@@ -112,9 +112,9 @@ module Natalie
         return transform_begin_node(body, used:) if body.is_a?(Prism::BeginNode)
         body = body.body if body.is_a?(Prism::StatementsNode)
         *body, last = body
-        nil_node = Prism.nil_node(location: location)
+        last ||= Prism.nil_node(location: location)
         instructions = body.map { |exp| transform_expression(exp, used: false) }
-        instructions << transform_expression(last || nil_node, used: used)
+        instructions << transform_expression(last, used: used)
         instructions
       end
 
@@ -290,8 +290,8 @@ module Natalie
         try_instruction = TryInstruction.new
         retry_id = try_instruction.object_id
 
-        nil_node = Prism.nil_node(location: node.location)
-        instructions = transform_expression(node.statements || nil_node, used: true)
+        statements = node.statements || Prism.nil_node(location: node.location)
+        instructions = transform_expression(statements, used: true)
 
         if node.rescue_clause
           instructions.unshift(try_instruction)
@@ -1009,7 +1009,7 @@ module Natalie
                  ).compact
                when Prism::NumberedParametersNode
                  node.maximum.times.map do |i|
-                   Prism::RequiredParameterNode.new(:"_#{i + 1}", node.location)
+                   Prism::RequiredParameterNode.new(nil, nil, :"_#{i + 1}", node.location)
                  end
                else
                  [node]

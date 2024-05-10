@@ -205,7 +205,7 @@ module Natalie
         end
 
         path_to_add = VM.compile_and_run(
-          ::Prism::StatementsNode.new(expr.arguments&.arguments, location(expr)),
+          ::Prism::StatementsNode.new(nil, expr.arguments&.arguments, location(expr)),
           path: current_path
         )
 
@@ -262,6 +262,7 @@ module Natalie
           raise CompileError, "could not load #{name}"
         end
         ::Prism::StatementsNode.new(
+          nil,
           [
             Prism.call_node(
               receiver: nil,
@@ -295,11 +296,11 @@ module Natalie
       end
 
       def false_node
-        ::Prism::FalseNode.new(nil)
+        ::Prism::FalseNode.new(nil, nil)
       end
 
       def nothing(expr)
-        ::Prism::StatementsNode.new([], location(expr))
+        ::Prism::StatementsNode.new(nil, [], location(expr))
       end
 
       def location(expr)
