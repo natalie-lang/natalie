@@ -2,6 +2,7 @@
 #include <ffi.h>
 
 #include "natalie.hpp"
+#include "natalie/object_type.hpp"
 
 using namespace Natalie;
 
@@ -29,7 +30,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args args, Block *) {
     return NilObject::the();
 }
 
-static ffi_type *get_ffi_type(Env *env, Value type) {
+static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
     type->assert_type(env, Object::Type::Symbol, "Symbol");
     auto type_sym = type->as_symbol();
     if (type_sym == "bool"_s) {
@@ -43,6 +44,13 @@ static ffi_type *get_ffi_type(Env *env, Value type) {
     } else if (type_sym == "void"_s) {
         return &ffi_type_void;
     } else {
+        auto typedefs = self->ivar_get(env, "@ffi_typedefs"_s);
+        if (!typedefs->is_nil()) {
+            if (typedefs->as_hash_or_raise(env)->has_key(env, type_sym)) {
+                // FIXME: I'm pretty sure this is wrong, but I don't yet know what to return here.
+                return &ffi_type_pointer;
+            }
+        }
         env->raise("TypeError", "unable to resolve type '{}'", type_sym->string());
     }
 }
@@ -153,7 +161,7 @@ Value FFI_Library_attach_function(Env *env, Value self, Args args, Block *) {
 
     auto ffi_args = new ffi_type *[arg_count];
     for (size_t i = 0; i < arg_count; ++i) {
-        ffi_args[i] = get_ffi_type(env, arg_types_array->at(i));
+        ffi_args[i] = get_ffi_type(env, self, arg_types_array->at(i));
     }
     auto ffi_args_obj = new VoidPObject {
         ffi_args,
@@ -186,7 +194,7 @@ Value FFI_Library_attach_function(Env *env, Value self, Args args, Block *) {
         cif,
         FFI_DEFAULT_ABI,
         arg_count,
-        get_ffi_type(env, return_type),
+        get_ffi_type(env, self, return_type),
         ffi_args);
 
     if (status != FFI_OK)
@@ -202,6 +210,18 @@ Value FFI_Library_attach_function(Env *env, Value self, Args args, Block *) {
     self->define_singleton_method(env, name, block);
 
     return NilObject::the();
+}
+
+Value FFI_AbstractMemory_put_int8(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 2);
+
+    auto offset = IntegerObject::convert_to_native_type<size_t>(env, args.at(0));
+    auto value = IntegerObject::convert_to_native_type<int8_t>(env, args.at(1));
+
+    auto address = (int8_t *)self->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
+    address[offset] = value;
+
+    return self;
 }
 
 Value FFI_Pointer_address(Env *env, Value self, Args args, Block *) {
@@ -220,10 +240,10 @@ Value FFI_Pointer_read_string(Env *env, Value self, Args args, Block *) {
         auto length = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
         if (length < 0 || (size_t)length > std::numeric_limits<size_t>::max())
             env->raise("ArgumentError", "length out of range");
-        return new StringObject { (char *)address, (size_t)length };
+        return new StringObject { (char *)address, (size_t)length, Encoding::ASCII_8BIT };
     }
 
-    return new StringObject { (char *)address };
+    return new StringObject { (char *)address, Encoding::ASCII_8BIT };
 }
 
 Value FFI_Pointer_to_obj(Env *env, Value self, Args args, Block *) {
@@ -231,22 +251,77 @@ Value FFI_Pointer_to_obj(Env *env, Value self, Args args, Block *) {
     return (Object *)self.send(env, "address"_s)->as_integer_or_raise(env)->to_nat_int_t();
 }
 
-Value FFI_MemoryPointer_initialize(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_is(env, 1);
+Value FFI_Pointer_write_string(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
 
-    auto size = args.at(0);
-    size->assert_type(env, Object::Type::Integer, "Integer");
-    self->ivar_set(env, "@size"_s, size);
+    auto str = args.at(0)->as_string_or_raise(env);
+    auto length = args.size() > 1 ? IntegerObject::convert_to_native_type<size_t>(env, args.at(0)) : str->bytesize();
 
-    auto address = malloc(size->as_integer()->to_nat_int_t());
+    auto address = (void *)self.send(env, "address"_s)->as_integer_or_raise(env)->to_nat_int_t();
+    memcpy(address, str->c_str(), length);
+
+    return self;
+}
+
+Value FFI_MemoryPointer_initialize(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_between(env, 1, 3);
+
+    size_t size = 0;
+    switch (args.at(0)->type()) {
+    case Object::Type::Symbol: {
+        auto sym = args.at(0)->as_symbol();
+        if (sym == "char"_s || sym == "uchar"_s || sym == "int8"_s || sym == "uint8"_s) {
+            size = 1;
+        } else if (sym == "short"_s || sym == "ushort"_s || sym == "int16"_s || sym == "uint16"_s) {
+            size = 2;
+        } else if (sym == "int32"_s || sym == "uint32"_s || sym == "float"_s) {
+            size = 4;
+        } else if (sym == "int64"_s || sym == "uint64"_s || sym == "long_long"_s || sym == "ulong_long"_s || sym == "double"_s) {
+            size = 8;
+        } else if (sym == "int"_s) {
+            size = sizeof(signed int);
+        } else if (sym == "uint"_s) {
+            size = sizeof(unsigned int);
+        } else if (sym == "long"_s) {
+            size = sizeof(long int);
+        } else if (sym == "ulong"_s) {
+            size = sizeof(unsigned long int);
+        } else if (sym == "pointer"_s) {
+            size = sizeof(void *);
+        } else {
+            env->raise("TypeError", "unknown size argument for FFI#initialize: {}", args.at(0)->inspect_str(env));
+        }
+        break;
+    }
+    default:
+        size = IntegerObject::convert_to_native_type<size_t>(env, args.at(0));
+        break;
+    }
+
+    size_t count = 1;
+    if (args.size() > 1)
+        count = IntegerObject::convert_to_native_type<size_t>(env, args.at(1));
+
+    self->ivar_set(env, "@size"_s, Value::integer(size * count));
+
+    bool clear = args.size() > 2 && args.at(2)->is_truthy();
+
+    void *address = nullptr;
+    if (clear)
+        address = calloc(count, size);
+    else
+        address = malloc(count * size);
     auto address_obj = Value::integer((nat_int_t)address);
 
     super(env, self, { "pointer"_s, address_obj }, nullptr);
 
-    self->ivar_set(env, "@type_size"_s, size);
+    self->ivar_set(env, "@type_size"_s, Value::integer(size));
 
     auto ptr_obj = self->ivar_get(env, "@ptr"_s);
     ptr_obj->ivar_set(env, "@autorelease"_s, TrueObject::the());
+
+    if (block)
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ self }), nullptr);
 
     return NilObject::the();
 }

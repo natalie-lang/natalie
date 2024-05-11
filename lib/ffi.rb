@@ -9,6 +9,20 @@ module FFI
   module Library
     __bind_method__ :ffi_lib, :FFI_Library_ffi_lib
     __bind_method__ :attach_function, :FFI_Library_attach_function
+
+    def callback(name, param_types, return_type)
+      @ffi_typedefs ||= {}
+      @ffi_typedefs[name] = FFI::FunctionType.new(param_types, return_type)
+    end
+  end
+
+  class FunctionType
+    def initialize(param_types, return_type)
+      @param_types = param_types
+      @return_type = return_type
+    end
+
+    attr_reader :param_types, :return_type
   end
 
   class DynamicLibrary
@@ -20,7 +34,12 @@ module FFI
     attr_reader :name
   end
 
-  class Pointer
+  class AbstractMemory
+    __bind_method__ :put_int8, :FFI_AbstractMemory_put_int8
+    alias put_char put_int8
+  end
+
+  class Pointer < AbstractMemory
     __bind_method__ :address, :FFI_Pointer_address
     __bind_method__ :autorelease?, :FFI_Pointer_is_autorelease
     __bind_method__ :autorelease=, :FFI_Pointer_set_autorelease
@@ -28,6 +47,7 @@ module FFI
     __bind_method__ :initialize, :FFI_Pointer_initialize
     __bind_method__ :read_string, :FFI_Pointer_read_string
     __bind_method__ :to_obj, :FFI_Pointer_to_obj
+    __bind_method__ :write_string, :FFI_Pointer_write_string
 
     def self.from_env
       __inline__ <<~END
