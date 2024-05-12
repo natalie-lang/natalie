@@ -629,6 +629,13 @@ describe "OpenSSL::SSL::SSLContext" do
     end
   end
 
+  describe "#verify_mode=" do
+    it "can be called with any value without verification" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.verify_mode = :foobar
+    end
+  end
+
   describe "#setup" do
     it "freezes the context" do
       context = OpenSSL::SSL::SSLContext.new
@@ -647,6 +654,18 @@ describe "OpenSSL::SSL::SSLContext" do
       context = OpenSSL::SSL::SSLContext.new
       context.setup
       context.setup.should be_nil
+    end
+
+    it "validates the verify mode" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.verify_mode = :foobar
+      -> { context.setup }.should raise_error(TypeError, "no implicit conversion of Symbol into Integer")
+    end
+
+    it "supports a nil value as verify mode to disable it" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.verify_mode = nil
+      -> { context.setup }.should_not raise_error
     end
 
     it "validates the cert_store object" do
