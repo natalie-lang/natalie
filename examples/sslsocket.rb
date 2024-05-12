@@ -17,6 +17,7 @@ TCPSocket.open('natalie-lang.org', 443) do |sock|
   ssl_context.cert_store = cert_store
 
   ssl_sock = OpenSSL::SSL::SSLSocket.new(sock, ssl_context)
+  ssl_sock.hostname = 'natalie-lang.org'
   ssl_sock.connect
 
   ssl_sock.write("GET / HTTP/1.1\r\nHost: natalie-lang.org\r\nConnection: close\r\n\r\n")

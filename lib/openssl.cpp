@@ -518,6 +518,24 @@ Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
+Value OpenSSL_SSL_SSLSocket_set_hostname(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    Value hostname = NilObject::the();
+    const char *hostname_cstr = nullptr;
+
+    if (!args[0]->is_nil()) {
+        hostname = args[0]->to_str(env);
+        hostname_cstr = hostname->as_string()->c_str();
+    }
+
+    self->ivar_set(env, "@hostname"_s, hostname);
+    auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
+    if (!SSL_set_tlsext_host_name(ssl, hostname_cstr))
+        OpenSSL_SSL_raise_error(env, "SSL_set_tlsext_host_name");
+
+    return hostname;
+}
+
 Value OpenSSL_SSL_SSLSocket_read(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0); // NATFIXME: This probably supports a buffer
     auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
