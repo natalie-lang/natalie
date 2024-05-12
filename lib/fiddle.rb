@@ -11,22 +11,22 @@ class Fiddle
   TYPE_VOIDP = :voidp
 
   class << self
-    __define_method__ :dlopen, [:path], <<-END
+    def dlopen(path) = Handle.new(path)
+  end
+
+  class Handle
+    __define_method__ :initialize, [:path], <<-END
       path->assert_type(env, Object::Type::String, "String");
       auto handle = dlopen(path->as_string()->c_str(), RTLD_LAZY);
       if (!handle) {
           auto dl_error = self->const_find(env, "DLError"_s, Object::ConstLookupSearchMode::NotStrict)->as_class();
           env->raise(dl_error, "{}", dlerror());
       }
-      auto handle_class = self->const_find(env, "Handle"_s, Object::ConstLookupSearchMode::NotStrict)->as_class();
-      auto handle_obj = new Object { Object::Type::Object, handle_class };
       auto handle_ptr = new VoidPObject { handle };
-      handle_obj->ivar_set(env, "@ptr"_s, handle_ptr);
-      return handle_obj;
+      self->ivar_set(env, "@ptr"_s, handle_ptr);
+      return self;
     END
-  end
 
-  class Handle
     __define_method__ :[], [:name], <<-END
       auto handle = self->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
       name->assert_type(env, Object::Type::String, "String");
