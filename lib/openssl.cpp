@@ -440,23 +440,6 @@ Value OpenSSL_SSL_SSLContext_set_security_level(Env *env, Value self, Args args,
     return args[0];
 }
 
-Value OpenSSL_SSL_SSLContext_verify_mode(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_is(env, 0);
-    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
-    auto verify_mode = SSL_CTX_get_verify_mode(ctx);
-    return Value::integer(verify_mode);
-}
-
-Value OpenSSL_SSL_SSLContext_set_verify_mode(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_is(env, 1);
-    auto verify_mode = args[0]->to_int(env)->to_nat_int_t();
-
-    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
-    SSL_CTX_set_verify(ctx, verify_mode, nullptr);
-
-    return args[0];
-}
-
 Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 
@@ -464,13 +447,20 @@ Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args args, Block *) {
         return NilObject::the();
 
     self->freeze();
+    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+
+    auto verify_mode = self->ivar_get(env, "@verify_mode"_s);
+    if (verify_mode->is_nil()) {
+        SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, nullptr);
+    } else {
+        SSL_CTX_set_verify(ctx, IntegerObject::convert_to_native_type<int>(env, verify_mode), nullptr);
+    }
 
     auto cert_store = self->ivar_get(env, "@cert_store"_s);
     if (!cert_store->is_nil()) {
         auto Store = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Store"_s })->as_class();
         if (!cert_store->is_a(env, Store))
             env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/STORE)", cert_store->klass()->inspect_str());
-        auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
         auto store = static_cast<X509_STORE *>(cert_store->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());
         SSL_CTX_set1_cert_store(ctx, store);
     }
