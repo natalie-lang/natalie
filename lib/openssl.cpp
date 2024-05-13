@@ -372,6 +372,7 @@ Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args args, Block *
     if (!ctx)
         OpenSSL_SSL_raise_error(env, "SSL_CTX_new");
     self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_SSL_CTX_cleanup });
+    self->ivar_set(env, "@verify_hostname"_s, FalseObject::the());
     return self;
 }
 
@@ -502,6 +503,14 @@ Value OpenSSL_SSL_SSLSocket_close(Env *env, Value self, Args args, Block *) {
 Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
     auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
+    auto context = self->ivar_get(env, "@context"_s);
+    auto hostname = self->ivar_get(env, "@hostname"_s);
+
+    if (context && context->ivar_get(env, "@verify_hostname"_s)->is_truthy() && !hostname->is_nil()) {
+        if (!SSL_set1_host(ssl, hostname->to_str(env)->c_str()))
+            OpenSSL_SSL_raise_error(env, "SSL_set1_host");
+    }
+
     auto fd = self->ivar_get(env, "@io"_s)->as_io()->fileno();
     auto flags = fcntl(fd, F_GETFL);
     if (flags < 0)
