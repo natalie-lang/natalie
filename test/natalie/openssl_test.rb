@@ -677,38 +677,70 @@ describe "OpenSSL::SSL::SSLContext" do
   end
 end
 
-describe "OpenSSL::SSL::SSLSocket#initialize" do
-  it "can be constructed with a single IO object" do
-    ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr)
-    ssl_socket.should be_kind_of(OpenSSL::SSL::SSLSocket)
-    ssl_socket.io.should == $stderr
-    ssl_socket.context.should be_kind_of(OpenSSL::SSL::SSLContext)
+describe "OpenSSL::SSL::SSLSocket" do
+  describe "#initialize" do
+    it "can be constructed with a single IO object" do
+      ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr)
+      ssl_socket.should be_kind_of(OpenSSL::SSL::SSLSocket)
+      ssl_socket.io.should == $stderr
+      ssl_socket.context.should be_kind_of(OpenSSL::SSL::SSLContext)
+    end
+
+    it "can be constructed with an IO object and an SSL context" do
+      context = OpenSSL::SSL::SSLContext.new
+      ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr, context)
+      ssl_socket.should be_kind_of(OpenSSL::SSL::SSLSocket)
+      ssl_socket.io.should == $stderr
+      ssl_socket.context.should == context
+    end
+
+    it "calls SSLContext#setup" do
+      context = OpenSSL::SSL::SSLContext.new
+      ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr, context)
+      context.setup.should be_nil
+    end
+
+    it "raises a TypeError if the first argument is not an IO object" do
+      -> {
+        OpenSSL::SSL::SSLSocket.new(42)
+      }.should raise_error(TypeError, 'wrong argument type Integer (expected File)')
+    end
+
+    it "raises a TypeError if the second argument is not an SSLContext object" do
+      -> {
+        OpenSSL::SSL::SSLSocket.new($stderr, 42)
+      }.should raise_error(TypeError, 'wrong argument type Integer (expected OpenSSL/SSL/CTX)')
+    end
   end
 
-  it "can be constructed with an IO object and an SSL context" do
-    context = OpenSSL::SSL::SSLContext.new
-    ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr, context)
-    ssl_socket.should be_kind_of(OpenSSL::SSL::SSLSocket)
-    ssl_socket.io.should == $stderr
-    ssl_socket.context.should == context
-  end
+  describe "#hostname=" do
+    it "can be called with a String" do
+      ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr)
+      ssl_socket.hostname = 'natalie-lang.org'
+      ssl_socket.hostname.should == 'natalie-lang.org'
+    end
 
-  it "calls SSLContext#setup" do
-    context = OpenSSL::SSL::SSLContext.new
-    ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr, context)
-    context.setup.should be_nil
-  end
+    it "calls #to_str on input other than String" do
+      mock = mock("to_str")
+      mock.should_receive(:to_str).and_return('natalie-lang.org')
+      ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr)
+      ssl_socket.hostname = mock
+      ssl_socket.hostname.should == 'natalie-lang.org'
+    end
 
-  it "raises a TypeError if the first argument is not an IO object" do
-    -> {
-      OpenSSL::SSL::SSLSocket.new(42)
-    }.should raise_error(TypeError, 'wrong argument type Integer (expected File)')
-  end
+    it "can clear a value with nil input" do
+      ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr)
+      ssl_socket.hostname = 'natalie-lang.org'
+      ssl_socket.hostname = nil
+      ssl_socket.hostname.should be_nil
+    end
 
-  it "raises a TypeError if the second argument is not an SSLContext object" do
-    -> {
-      OpenSSL::SSL::SSLSocket.new($stderr, 42)
-    }.should raise_error(TypeError, 'wrong argument type Integer (expected OpenSSL/SSL/CTX)')
+    it "raises a TypeError for other input" do
+      ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr)
+      -> {
+        ssl_socket.hostname = 42
+      }.should raise_error(TypeError, "no implicit conversion of Integer into String")
+    end
   end
 end
 
