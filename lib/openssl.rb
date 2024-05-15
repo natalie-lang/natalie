@@ -260,6 +260,9 @@ module OpenSSL
     class SSLError < OpenSSLError; end
 
     class SSLContext
+      DEFAULT_CERT_STORE = OpenSSL::X509::Store.new
+      DEFAULT_CERT_STORE.set_default_paths
+
       __bind_method__ :initialize, :OpenSSL_SSL_SSLContext_initialize
       __bind_method__ :max_version=, :OpenSSL_SSL_SSLContext_set_max_version
       __bind_method__ :min_version=, :OpenSSL_SSL_SSLContext_set_min_version
