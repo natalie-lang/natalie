@@ -169,72 +169,6 @@ module OpenSSL
     end
   end
 
-  module SSL
-    __constant__ 'SSL2_VERSION', 'int'
-    __constant__ 'SSL3_VERSION', 'int'
-    __constant__ 'TLS1_VERSION', 'int'
-    __constant__ 'TLS1_1_VERSION', 'int'
-    __constant__ 'TLS1_2_VERSION', 'int'
-    __constant__ 'TLS1_3_VERSION', 'int'
-
-    __constant__ 'VERIFY_NONE', 'int', 'SSL_VERIFY_NONE'
-    __constant__ 'VERIFY_PEER', 'int', 'SSL_VERIFY_PEER'
-    __constant__ 'VERIFY_FAIL_IF_NO_PEER_CERT', 'int', 'SSL_VERIFY_FAIL_IF_NO_PEER_CERT'
-    __constant__ 'VERIFY_CLIENT_ONCE', 'int', 'SSL_VERIFY_CLIENT_ONCE'
-    __constant__ 'VERIFY_POST_HANDSHAKE', 'int', 'SSL_VERIFY_POST_HANDSHAKE'
-
-    class SSLError < OpenSSLError; end
-
-    class SSLContext
-      __bind_method__ :initialize, :OpenSSL_SSL_SSLContext_initialize
-      __bind_method__ :max_version=, :OpenSSL_SSL_SSLContext_set_max_version
-      __bind_method__ :min_version=, :OpenSSL_SSL_SSLContext_set_min_version
-      __bind_method__ :security_level, :OpenSSL_SSL_SSLContext_security_level
-      __bind_method__ :security_level=, :OpenSSL_SSL_SSLContext_set_security_level
-      __bind_method__ :setup, :OpenSSL_SSL_SSLContext_setup
-
-      attr_accessor :cert_store, :verify_hostname, :verify_mode
-
-      alias freeze setup
-    end
-
-    class SSLSocket
-      attr_reader :context, :hostname, :io
-
-      __bind_method__ :initialize, :OpenSSL_SSL_SSLSocket_initialize
-      __bind_method__ :close, :OpenSSL_SSL_SSLSocket_close
-      __bind_method__ :connect, :OpenSSL_SSL_SSLSocket_connect
-      __bind_method__ :hostname=, :OpenSSL_SSL_SSLSocket_set_hostname
-      __bind_method__ :read, :OpenSSL_SSL_SSLSocket_read
-      __bind_method__ :write, :OpenSSL_SSL_SSLSocket_write
-    end
-  end
-
-  module KDF
-    class KDFError < OpenSSLError; end
-  end
-
-  module PKey
-    class PKeyError < OpenSSLError; end
-    class RSAError < PKeyError; end
-
-    class PKey; end
-
-    class RSA < PKey
-      __bind_method__ :initialize, :OpenSSL_PKey_RSA_initialize
-      __bind_method__ :export, :OpenSSL_PKey_RSA_export
-      __bind_method__ :private?, :OpenSSL_PKey_RSA_is_private
-      __bind_method__ :public_key, :OpenSSL_PKey_RSA_public_key
-
-      alias to_pem export
-      alias to_s export
-
-      def public?
-        true
-      end
-    end
-  end
-
   module X509
     class CertificateError < OpenSSLError; end
     class NameError < OpenSSLError; end
@@ -306,6 +240,72 @@ module OpenSSL
       __bind_method__ :verify, :OpenSSL_X509_Store_verify
 
       attr_reader :error, :error_string
+    end
+  end
+
+  module SSL
+    __constant__ 'SSL2_VERSION', 'int'
+    __constant__ 'SSL3_VERSION', 'int'
+    __constant__ 'TLS1_VERSION', 'int'
+    __constant__ 'TLS1_1_VERSION', 'int'
+    __constant__ 'TLS1_2_VERSION', 'int'
+    __constant__ 'TLS1_3_VERSION', 'int'
+
+    __constant__ 'VERIFY_NONE', 'int', 'SSL_VERIFY_NONE'
+    __constant__ 'VERIFY_PEER', 'int', 'SSL_VERIFY_PEER'
+    __constant__ 'VERIFY_FAIL_IF_NO_PEER_CERT', 'int', 'SSL_VERIFY_FAIL_IF_NO_PEER_CERT'
+    __constant__ 'VERIFY_CLIENT_ONCE', 'int', 'SSL_VERIFY_CLIENT_ONCE'
+    __constant__ 'VERIFY_POST_HANDSHAKE', 'int', 'SSL_VERIFY_POST_HANDSHAKE'
+
+    class SSLError < OpenSSLError; end
+
+    class SSLContext
+      __bind_method__ :initialize, :OpenSSL_SSL_SSLContext_initialize
+      __bind_method__ :max_version=, :OpenSSL_SSL_SSLContext_set_max_version
+      __bind_method__ :min_version=, :OpenSSL_SSL_SSLContext_set_min_version
+      __bind_method__ :security_level, :OpenSSL_SSL_SSLContext_security_level
+      __bind_method__ :security_level=, :OpenSSL_SSL_SSLContext_set_security_level
+      __bind_method__ :setup, :OpenSSL_SSL_SSLContext_setup
+
+      attr_accessor :cert_store, :verify_hostname, :verify_mode
+
+      alias freeze setup
+    end
+
+    class SSLSocket
+      attr_reader :context, :hostname, :io
+
+      __bind_method__ :initialize, :OpenSSL_SSL_SSLSocket_initialize
+      __bind_method__ :close, :OpenSSL_SSL_SSLSocket_close
+      __bind_method__ :connect, :OpenSSL_SSL_SSLSocket_connect
+      __bind_method__ :hostname=, :OpenSSL_SSL_SSLSocket_set_hostname
+      __bind_method__ :read, :OpenSSL_SSL_SSLSocket_read
+      __bind_method__ :write, :OpenSSL_SSL_SSLSocket_write
+    end
+  end
+
+  module KDF
+    class KDFError < OpenSSLError; end
+  end
+
+  module PKey
+    class PKeyError < OpenSSLError; end
+    class RSAError < PKeyError; end
+
+    class PKey; end
+
+    class RSA < PKey
+      __bind_method__ :initialize, :OpenSSL_PKey_RSA_initialize
+      __bind_method__ :export, :OpenSSL_PKey_RSA_export
+      __bind_method__ :private?, :OpenSSL_PKey_RSA_is_private
+      __bind_method__ :public_key, :OpenSSL_PKey_RSA_public_key
+
+      alias to_pem export
+      alias to_s export
+
+      def public?
+        true
+      end
     end
   end
 end
