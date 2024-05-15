@@ -311,6 +311,15 @@ module OpenSSL
       attr_accessor :cert_store, :verify_hostname, :verify_mode
 
       alias freeze setup
+
+      def set_params(params = {})
+        params = DEFAULT_PARAMS.merge(params)
+        self.cert_store ||= DEFAULT_CERT_STORE
+        self.options = params.delete(:options)
+        params.each do |key, value|
+          send("#{key}=", value)
+        end
+      end
     end
 
     class SSLSocket
