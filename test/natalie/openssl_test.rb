@@ -629,6 +629,13 @@ describe "OpenSSL::SSL::SSLContext" do
     end
   end
 
+  describe "#verify_mode" do
+    it "defaults to 0" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.verify_mode.should == 0
+    end
+  end
+
   describe "#verify_mode=" do
     it "can be called with any value without verification" do
       context = OpenSSL::SSL::SSLContext.new

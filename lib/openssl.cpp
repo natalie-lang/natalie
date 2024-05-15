@@ -373,6 +373,7 @@ Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args args, Block *
         OpenSSL_SSL_raise_error(env, "SSL_CTX_new");
     self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_SSL_CTX_cleanup });
     self->ivar_set(env, "@verify_hostname"_s, FalseObject::the());
+    self->ivar_set(env, "@verify_mode"_s, Value::integer(0));
     return self;
 }
 
