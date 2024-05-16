@@ -669,6 +669,45 @@ describe "OpenSSL::SSL::SSLContext" do
     end
   end
 
+  describe "#set_params" do
+    it "sets the values of DEFAULT_PARAMS" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.set_params
+      # SSLContext#min_version does not exist
+      context.verify_mode.should == OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_mode]
+      context.verify_hostname.should be_true
+      context.options.should == OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:options]
+    end
+
+    it "merges the argument" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.set_params({ verify_hostname: false })
+      context.verify_mode.should == OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_mode]
+      context.verify_hostname.should be_false
+    end
+
+    it "returns the resulting hash with the options key removed" do
+      params = { verify_hostname: false }
+      context = OpenSSL::SSL::SSLContext.new
+      result = context.set_params(params)
+      result.should == OpenSSL::SSL::SSLContext::DEFAULT_PARAMS.merge(params).except(:options)
+    end
+
+    it "sets the cert_store to the default cert store" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.set_params
+      context.cert_store.should equal(OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE)
+    end
+
+    it "does not overwrite any previously set cert store" do
+      cert_store = OpenSSL::X509::Store.new
+      context = OpenSSL::SSL::SSLContext.new
+      context.cert_store = cert_store
+      context.set_params
+      context.cert_store.should equal(cert_store)
+    end
+  end
+
   describe "#verify_mode" do
     it "defaults to 0" do
       context = OpenSSL::SSL::SSLContext.new

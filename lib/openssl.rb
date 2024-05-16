@@ -292,6 +292,13 @@ module OpenSSL
       DEFAULT_CERT_STORE = OpenSSL::X509::Store.new
       DEFAULT_CERT_STORE.set_default_paths
 
+      DEFAULT_PARAMS = {
+        min_version: OpenSSL::SSL::TLS1_VERSION,
+        verify_mode: OpenSSL::SSL::VERIFY_PEER,
+        verify_hostname: true,
+        options: (OpenSSL::SSL::OP_ALL & ~OpenSSL::SSL::OP_DONT_INSERT_EMPTY_FRAGMENTS) | OpenSSL::SSL::OP_NO_COMPRESSION,
+      }.freeze
+
       __bind_method__ :initialize, :OpenSSL_SSL_SSLContext_initialize
       __bind_method__ :max_version=, :OpenSSL_SSL_SSLContext_set_max_version
       __bind_method__ :min_version=, :OpenSSL_SSL_SSLContext_set_min_version
@@ -304,6 +311,15 @@ module OpenSSL
       attr_accessor :cert_store, :verify_hostname, :verify_mode
 
       alias freeze setup
+
+      def set_params(params = {})
+        params = DEFAULT_PARAMS.merge(params)
+        self.cert_store ||= DEFAULT_CERT_STORE
+        self.options = params.delete(:options)
+        params.each do |key, value|
+          send("#{key}=", value)
+        end
+      end
     end
 
     class SSLSocket
