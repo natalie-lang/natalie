@@ -251,6 +251,35 @@ module OpenSSL
     __constant__ 'TLS1_2_VERSION', 'int'
     __constant__ 'TLS1_3_VERSION', 'int'
 
+    __constant__ 'OP_ALL', 'int', 'SSL_OP_ALL'
+    __constant__ 'OP_ALLOW_CLIENT_RENEGOTIATION', 'int', 'SSL_OP_ALLOW_CLIENT_RENEGOTIATION'
+    __constant__ 'OP_ALLOW_NO_DHE_KEX', 'int', 'SSL_OP_ALLOW_NO_DHE_KEX'
+    __constant__ 'OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION', 'int', 'SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION'
+    __constant__ 'OP_CIPHER_SERVER_PREFERENCE', 'int', 'SSL_OP_CIPHER_SERVER_PREFERENCE'
+    __constant__ 'OP_CLEANSE_PLAINTEXT', 'int', 'SSL_OP_CLEANSE_PLAINTEXT'
+    __constant__ 'OP_CRYPTOPRO_TLSEXT_BUG', 'int', 'SSL_OP_CRYPTOPRO_TLSEXT_BUG'
+    __constant__ 'OP_DISABLE_TLSEXT_CA_NAMES', 'int', 'SSL_OP_DISABLE_TLSEXT_CA_NAMES'
+    __constant__ 'OP_DONT_INSERT_EMPTY_FRAGMENTS', 'int', 'SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS'
+    __constant__ 'OP_ENABLE_KTLS', 'int', 'SSL_OP_ENABLE_KTLS'
+    __constant__ 'OP_ENABLE_MIDDLEBOX_COMPAT', 'int', 'SSL_OP_ENABLE_MIDDLEBOX_COMPAT'
+    __constant__ 'OP_IGNORE_UNEXPECTED_EOF', 'int', 'SSL_OP_IGNORE_UNEXPECTED_EOF'
+    __constant__ 'OP_LEGACY_SERVER_CONNECT', 'int', 'SSL_OP_LEGACY_SERVER_CONNECT'
+    __constant__ 'OP_NO_ANTI_REPLAY', 'int', 'SSL_OP_NO_ANTI_REPLAY'
+    __constant__ 'OP_NO_COMPRESSION', 'int', 'SSL_OP_NO_COMPRESSION'
+    __constant__ 'OP_NO_ENCRYPT_THEN_MAC', 'int', 'SSL_OP_NO_ENCRYPT_THEN_MAC'
+    __constant__ 'OP_NO_RENEGOTIATION', 'int', 'SSL_OP_NO_RENEGOTIATION'
+    __constant__ 'OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION', 'int', 'SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION'
+    __constant__ 'OP_NO_SSLv3', 'int', 'SSL_OP_NO_SSLv3'
+    __constant__ 'OP_NO_TICKET', 'int', 'SSL_OP_NO_TICKET'
+    __constant__ 'OP_NO_TLSv1', 'int', 'SSL_OP_NO_TLSv1'
+    __constant__ 'OP_NO_TLSv1_1', 'int', 'SSL_OP_NO_TLSv1_1'
+    __constant__ 'OP_NO_TLSv1_2', 'int', 'SSL_OP_NO_TLSv1_2'
+    __constant__ 'OP_NO_TLSv1_3', 'int', 'SSL_OP_NO_TLSv1_3'
+    __constant__ 'OP_PRIORITIZE_CHACHA', 'int', 'SSL_OP_PRIORITIZE_CHACHA'
+    __constant__ 'OP_SAFARI_ECDHE_ECDSA_BUG', 'int', 'SSL_OP_SAFARI_ECDHE_ECDSA_BUG'
+    __constant__ 'OP_TLSEXT_PADDING', 'int', 'SSL_OP_TLSEXT_PADDING'
+    __constant__ 'OP_TLS_ROLLBACK_BUG', 'int', 'SSL_OP_TLS_ROLLBACK_BUG'
+
     __constant__ 'VERIFY_NONE', 'int', 'SSL_VERIFY_NONE'
     __constant__ 'VERIFY_PEER', 'int', 'SSL_VERIFY_PEER'
     __constant__ 'VERIFY_FAIL_IF_NO_PEER_CERT', 'int', 'SSL_VERIFY_FAIL_IF_NO_PEER_CERT'
@@ -266,6 +295,8 @@ module OpenSSL
       __bind_method__ :initialize, :OpenSSL_SSL_SSLContext_initialize
       __bind_method__ :max_version=, :OpenSSL_SSL_SSLContext_set_max_version
       __bind_method__ :min_version=, :OpenSSL_SSL_SSLContext_set_min_version
+      __bind_method__ :options, :OpenSSL_SSL_SSLContext_options, 0
+      __bind_method__ :options=, :OpenSSL_SSL_SSLContext_set_options, 1
       __bind_method__ :security_level, :OpenSSL_SSL_SSLContext_security_level
       __bind_method__ :security_level=, :OpenSSL_SSL_SSLContext_set_security_level
       __bind_method__ :setup, :OpenSSL_SSL_SSLContext_setup

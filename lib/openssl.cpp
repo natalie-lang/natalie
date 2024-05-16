@@ -369,6 +369,7 @@ Value OpenSSL_HMAC_digest(Env *env, Value self, Args args, Block *) {
 Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0); // NATFIXME: Add deprecated version argument
     SSL_CTX *ctx = SSL_CTX_new(TLS_method());
+    SSL_CTX_set_options(ctx, SSL_OP_ALL | SSL_OP_NO_COMPRESSION | SSL_OP_ENABLE_MIDDLEBOX_COMPAT);
     if (!ctx)
         OpenSSL_SSL_raise_error(env, "SSL_CTX_new");
     self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_SSL_CTX_cleanup });
@@ -418,6 +419,25 @@ Value OpenSSL_SSL_SSLContext_set_min_version(Env *env, Value self, Args args, Bl
     if (!SSL_CTX_set_min_proto_version(ctx, IntegerObject::convert_to_int(env, version)))
         OpenSSL_SSL_raise_error(env, "SSL_CTX_set_min_proto_version");
 
+    return args[0];
+}
+
+Value OpenSSL_SSL_SSLContext_options(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const auto options = SSL_CTX_get_options(ctx);
+    return Value::integer(options);
+}
+
+Value OpenSSL_SSL_SSLContext_set_options(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+
+    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const uint64_t options = args[0]->is_nil() ? SSL_OP_ALL : IntegerObject::convert_to_native_type<uint64_t>(env, args[0]);
+    const auto result = SSL_CTX_set_options(ctx, options);
+    if (result != options)
+        SSL_CTX_clear_options(ctx, result & ~options);
     return args[0];
 }
 

@@ -602,6 +602,46 @@ describe "OpenSSL::SSL::SSLContext" do
     end
   end
 
+  describe "#options" do
+    it "has a default value" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.options.should == OpenSSL::SSL::OP_ALL | OpenSSL::SSL::OP_NO_COMPRESSION | OpenSSL::SSL::OP_ENABLE_MIDDLEBOX_COMPAT
+    end
+
+    it "can be set with an integer" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.options = 1
+      context.options.should == 1
+    end
+
+    it "converts the input with #to_int" do
+      options = mock("options")
+      options.should_receive(:to_int).and_return(2)
+      context = OpenSSL::SSL::SSLContext.new
+      context.options = options
+      context.options.should == 2
+    end
+
+    it "overwrites the old options" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.options = OpenSSL::SSL::OP_NO_SSLv3
+      context.options.should == OpenSSL::SSL::OP_NO_SSLv3
+    end
+
+    it "can be reset with nil" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.options = nil
+      context.options.should == OpenSSL::SSL::OP_ALL
+    end
+
+    it "raises a TypeError on invalid input type" do
+      context = OpenSSL::SSL::SSLContext.new
+      -> {
+        context.options = Object.new
+      }.should raise_error(TypeError, "no implicit conversion of Object into Integer")
+    end
+  end
+
   describe "#security_level" do
     it "has a default value" do
       context = OpenSSL::SSL::SSLContext.new

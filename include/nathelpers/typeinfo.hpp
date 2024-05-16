@@ -19,4 +19,11 @@ struct typeinfo<std::size_t> {
     constexpr const char *name() { return "size_t"; }
 };
 
+#ifdef __APPLE__
+template <>
+struct typeinfo<uint64_t> {
+    constexpr const char *name() { return "uint64_t"; }
+};
+#endif
+
 }
