@@ -669,6 +669,47 @@ describe "OpenSSL::SSL::SSLContext" do
     end
   end
 
+  describe "#session_cache_mode" do
+    it "has a default numeric value (the exact value may depend on OpenSSL" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.session_cache_mode.should be_kind_of(Integer)
+    end
+
+    it "can be set to an integer" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.session_cache_mode = 1
+      context.session_cache_mode.should == 1
+    end
+
+    it "can be set to 0" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.session_cache_mode = 0
+      context.session_cache_mode.should == 0
+    end
+
+    it "converts the input with #to_int" do
+      session_cache_mode = mock("security level")
+      session_cache_mode.should_receive(:to_int).and_return(2)
+      context = OpenSSL::SSL::SSLContext.new
+      context.session_cache_mode = session_cache_mode
+      context.session_cache_mode.should == 2
+    end
+
+    it "cannot be set to nil" do
+      context = OpenSSL::SSL::SSLContext.new
+      -> {
+        context.session_cache_mode = nil
+      }.should raise_error(TypeError, "no implicit conversion from nil to integer")
+    end
+
+    it "raises a TypeError on invalid input type" do
+      context = OpenSSL::SSL::SSLContext.new
+      -> {
+        context.session_cache_mode = Object.new
+      }.should raise_error(TypeError, "no implicit conversion of Object into Integer")
+    end
+  end
+
   describe "#set_params" do
     it "sets the values of DEFAULT_PARAMS" do
       context = OpenSSL::SSL::SSLContext.new

@@ -462,6 +462,27 @@ Value OpenSSL_SSL_SSLContext_set_security_level(Env *env, Value self, Args args,
     return args[0];
 }
 
+Value OpenSSL_SSL_SSLContext_session_cache_mode(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const auto session_cache_mode = SSL_CTX_get_session_cache_mode(ctx);
+    return Value::integer(session_cache_mode);
+}
+
+Value OpenSSL_SSL_SSLContext_set_session_cache_mode(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    const auto session_cache_mode = IntegerObject::convert_to_native_type<uint64_t>(env, args[0]);
+
+    if (self->is_frozen())
+        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
+
+    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    SSL_CTX_set_session_cache_mode(ctx, session_cache_mode);
+
+    return args[0];
+}
+
 Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 

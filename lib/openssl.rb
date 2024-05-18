@@ -289,6 +289,15 @@ module OpenSSL
     class SSLError < OpenSSLError; end
 
     class SSLContext
+      __constant__ 'SESSION_CACHE_OFF', 'int', 'SSL_SESS_CACHE_OFF'
+      __constant__ 'SESSION_CACHE_CLIENT', 'int', 'SSL_SESS_CACHE_CLIENT'
+      __constant__ 'SESSION_CACHE_SERVER', 'int', 'SSL_SESS_CACHE_SERVER'
+      __constant__ 'SESSION_CACHE_BOTH', 'int', 'SSL_SESS_CACHE_BOTH'
+      __constant__ 'SESSION_CACHE_NO_AUTO_CLEAR', 'int', 'SSL_SESS_CACHE_NO_AUTO_CLEAR'
+      __constant__ 'SESSION_CACHE_NO_INTERNAL_LOOKUP', 'int', 'SSL_SESS_CACHE_NO_INTERNAL_LOOKUP'
+      __constant__ 'SESSION_CACHE_NO_INTERNAL_STORE', 'int', 'SSL_SESS_CACHE_NO_INTERNAL_STORE'
+      __constant__ 'SESSION_CACHE_NO_INTERNAL', 'int', 'SSL_SESS_CACHE_NO_INTERNAL'
+
       DEFAULT_CERT_STORE = OpenSSL::X509::Store.new
       DEFAULT_CERT_STORE.set_default_paths
 
@@ -306,6 +315,8 @@ module OpenSSL
       __bind_method__ :options=, :OpenSSL_SSL_SSLContext_set_options, 1
       __bind_method__ :security_level, :OpenSSL_SSL_SSLContext_security_level
       __bind_method__ :security_level=, :OpenSSL_SSL_SSLContext_set_security_level
+      __bind_method__ :session_cache_mode, :OpenSSL_SSL_SSLContext_session_cache_mode, 0
+      __bind_method__ :session_cache_mode=, :OpenSSL_SSL_SSLContext_set_session_cache_mode, 1
       __bind_method__ :setup, :OpenSSL_SSL_SSLContext_setup
 
       attr_accessor :cert_store, :verify_hostname, :verify_mode
