@@ -11,7 +11,7 @@ describe 'backtrace' do
         end
       end
     }.should raise_error(NameError) { |e| bt = e.backtrace }
-    bt.filter_map { |l| l.match(/<[^>]+>/)&.to_s }.grep_v(/<top \(required\)>/).uniq.should == %w[
+    bt.filter_map { |l| l.match(/<[^>]+>/)&.to_s }.grep_v(/<top \(required\)>/).grep_v(/<internal:.*>/).uniq.should == %w[
       <class:Bar>
       <module:Foo>
       <main>
