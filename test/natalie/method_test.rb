@@ -623,7 +623,7 @@ describe 'method with keyword args' do
     end
   end
 
-  ruby_version_is '3.3' do
+  ruby_version_is '3.3'...'3.4' do
     it 'raises an error when the method is not defined' do
       class Foo
       end
@@ -654,6 +654,40 @@ describe 'method with keyword args' do
       -> { false.not_a_method }.should raise_error(NoMethodError, "undefined method `not_a_method' for false")
       -> { nil.not_a_method }.should raise_error(NoMethodError, "undefined method `not_a_method' for nil")
       -> { not_a_method() }.should raise_error(NoMethodError, "undefined method `not_a_method' for main")
+    end
+  end
+
+  ruby_version_is '3.4' do
+    it 'raises an error when the method is not defined' do
+      class Foo
+      end
+      -> { Foo.new.not_a_method }.should raise_error(NoMethodError, "undefined method 'not_a_method' for an instance of Foo")
+    end
+
+    it 'does not loop infinitely when trying to call inspect on BasicObject' do
+      -> { BasicObject.new.inspect }.should raise_error(
+                                              NoMethodError,
+                                              "undefined method 'inspect' for an instance of BasicObject",
+                                            )
+    end
+
+    it 'raises an error when the class method is not defined' do
+      class Foo
+      end
+      -> { Foo.not_a_method }.should raise_error(NoMethodError, "undefined method 'not_a_method' for class Foo")
+    end
+
+    it 'raises an error when the module method is not defined' do
+      module Baz
+      end
+      -> { Baz.not_a_method }.should raise_error(NoMethodError, "undefined method 'not_a_method' for module Baz")
+    end
+
+    it 'raises an error when the method of a singleton object is not defined' do
+      -> { true.not_a_method }.should raise_error(NoMethodError, "undefined method 'not_a_method' for true")
+      -> { false.not_a_method }.should raise_error(NoMethodError, "undefined method 'not_a_method' for false")
+      -> { nil.not_a_method }.should raise_error(NoMethodError, "undefined method 'not_a_method' for nil")
+      -> { not_a_method() }.should raise_error(NoMethodError, "undefined method 'not_a_method' for main")
     end
   end
 end
