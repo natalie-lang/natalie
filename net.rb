@@ -23,6 +23,14 @@ TCPSocket.open('natalie-lang.org', 443) do |sock|
   puts ssl_sock.read
 end
 
+# net/http with debugging
+http = Net::HTTP.new('natalie-lang.org', 443)
+http.set_debug_output($stderr)
+http.use_ssl = true
+http.start do |h|
+  puts h.request_get(URI('https://natalie-lang.org/specs')).body
+end
+
 # Examples with net/http
 puts Net::HTTP.get(URI('http://natalie-lang.org/'))
 puts Net::HTTP.get(URI('https://natalie-lang.org/specs'))
