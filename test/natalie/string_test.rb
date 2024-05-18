@@ -1,3 +1,4 @@
+# frozen_string_literal: false
 # encoding: utf-8
 
 require_relative '../spec_helper'

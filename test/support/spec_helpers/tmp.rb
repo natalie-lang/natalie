@@ -1,3 +1,5 @@
+#frozen_string_literal: false
+
 =begin
 Copyright (c) 2008 Engine Yard, Inc. All rights reserved.
 
