@@ -96,7 +96,7 @@ describe 'method visibility' do
       end
     end
 
-    ruby_version_is '3.3' do
+    ruby_version_is '3.3'...'3.4' do
       it 'is not visible outside the class' do
         -> { Foo.new.private_foo }.should raise_error(
                                             NoMethodError,
@@ -105,6 +105,19 @@ describe 'method visibility' do
         -> { Foo.new.private_foo2 }.should raise_error(
                                              NoMethodError,
                                              "private method `private_foo2' called for an instance of Foo",
+                                           )
+      end
+    end
+
+    ruby_version_is '3.4' do
+      it 'is not visible outside the class' do
+        -> { Foo.new.private_foo }.should raise_error(
+                                            NoMethodError,
+                                            "private method 'private_foo' called for an instance of Foo",
+                                          )
+        -> { Foo.new.private_foo2 }.should raise_error(
+                                             NoMethodError,
+                                             "private method 'private_foo2' called for an instance of Foo",
                                            )
       end
     end
@@ -136,11 +149,20 @@ describe 'method visibility' do
       end
     end
 
-    ruby_version_is '3.3' do
+    ruby_version_is '3.3'...'3.4' do
       it 'is not visible outside the class' do
         -> { Foo.new.protected_foo }.should raise_error(
                                               NoMethodError,
                                               "protected method `protected_foo' called for an instance of Foo",
+                                            )
+      end
+    end
+
+    ruby_version_is '3.4' do
+      it 'is not visible outside the class' do
+        -> { Foo.new.protected_foo }.should raise_error(
+                                              NoMethodError,
+                                              "protected method 'protected_foo' called for an instance of Foo",
                                             )
       end
     end
