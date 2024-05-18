@@ -306,6 +306,8 @@ module OpenSSL
       __bind_method__ :options=, :OpenSSL_SSL_SSLContext_set_options, 1
       __bind_method__ :security_level, :OpenSSL_SSL_SSLContext_security_level
       __bind_method__ :security_level=, :OpenSSL_SSL_SSLContext_set_security_level
+      __bind_method__ :session_cache_mode, :OpenSSL_SSL_SSLContext_session_cache_mode, 0
+      __bind_method__ :session_cache_mode=, :OpenSSL_SSL_SSLContext_set_session_cache_mode, 1
       __bind_method__ :setup, :OpenSSL_SSL_SSLContext_setup
 
       attr_accessor :cert_store, :verify_hostname, :verify_mode
