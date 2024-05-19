@@ -588,7 +588,7 @@ Value OpenSSL_SSL_SSLSocket_set_hostname(Env *env, Value self, Args args, Block 
 }
 
 Value OpenSSL_SSL_SSLSocket_read(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_between(env, 0, 1); // NATFIXME: This probably supports a buffer
+    args.ensure_argc_between(env, 0, 2);
     auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
     size_t buf_size = 1024;
     bool has_size_arg = false;
@@ -597,7 +597,13 @@ Value OpenSSL_SSL_SSLSocket_read(Env *env, Value self, Args args, Block *) {
         buf_size = IntegerObject::convert_to_native_type<size_t>(env, args[0]);
     }
     TM::String buf(buf_size, '\0');
-    auto result = new StringObject {};
+    StringObject *result;
+    if (args.at(1, NilObject::the())->is_nil()) {
+        result = new StringObject {};
+    } else {
+        result = args[1]->to_str(env);
+        result->clear(env);
+    }
     int bytes_read;
     while ((bytes_read = SSL_read(ssl, &buf[0], buf_size)) > 0) {
         result->append(buf.c_str(), bytes_read);
