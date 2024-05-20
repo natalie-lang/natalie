@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../spec_helper'
 require 'zlib'
 
@@ -8,7 +10,7 @@ describe 'Zlib' do
   describe 'Deflate' do
     it 'deflates' do
       deflated = Zlib::Deflate.deflate('hello world')
-      deflated.should == "x\x9C\xCBH\xCD\xC9\xC9W(\xCF/\xCAI\x01\x00\x1A\v\x04]".force_encoding('ASCII-8BIT')
+      deflated.should == "x\x9C\xCBH\xCD\xC9\xC9W(\xCF/\xCAI\x01\x00\x1A\v\x04]".b
     end
 
     it 'deflates large inputs' do
@@ -29,7 +31,7 @@ describe 'Zlib' do
       end
       deflated = zstream.finish
       zstream.close
-      deflated.bytes.should == "x\x9C\xAB\xA8\xAC\xAA\x18E\xC4!\x00a\xAF\x8D\xCD".force_encoding('ASCII-8BIT').bytes
+      deflated.bytes.should == "x\x9C\xAB\xA8\xAC\xAA\x18E\xC4!\x00a\xAF\x8D\xCD".b.bytes
     end
 
     it 'returns itself in the streaming interface' do
@@ -47,22 +49,22 @@ describe 'Zlib' do
 
   describe 'Inflate' do
     it 'inflates' do
-      deflated = "x\x9C\xCBH\xCD\xC9\xC9W(\xCF/\xCAI\x01\x00\x1A\v\x04]".force_encoding('ASCII-8BIT')
+      deflated = "x\x9C\xCBH\xCD\xC9\xC9W(\xCF/\xCAI\x01\x00\x1A\v\x04]".b
       Zlib::Inflate.inflate(deflated).should == 'hello world'
     end
 
     it 'inflates large inputs' do
-      deflated = [120, 156, 237, 193, 49, 1, 0, 0, 0, 194, 160, 218, 139, 111, 13, 15, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 87, 3, 126, 42, 37, 186].map(&:chr).join.force_encoding('ASCII-8BIT')
+      deflated = [120, 156, 237, 193, 49, 1, 0, 0, 0, 194, 160, 218, 139, 111, 13, 15, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 87, 3, 126, 42, 37, 186].map(&:chr).join.b
       inflated = Zlib::Inflate.inflate(deflated)
       inflated.should == 'x' * 100_000
 
-      deflated = File.read(LARGE_ZLIB_INPUT_PATH).force_encoding('ASCII-8BIT')
+      deflated = File.read(LARGE_ZLIB_INPUT_PATH).b
       inflated = Zlib::Inflate.inflate(deflated)
       inflated.should == File.read(LARGE_TEXT_PATH)
     end
 
     it 'inflates in chunks' do
-      deflated = "x\x9C\xCBH\xCD\xC9\xC9W(\xCF/\xCAI\x01\x00\x1A\v\x04]".force_encoding('ASCII-8BIT')
+      deflated = "x\x9C\xCBH\xCD\xC9\xC9W(\xCF/\xCAI\x01\x00\x1A\v\x04]".b
       zstream = Zlib::Inflate.new                                                                                                                                                             
       deflated.chars.each_slice(5) do |chunk|
         zstream << chunk.join
@@ -73,7 +75,7 @@ describe 'Zlib' do
     end
 
     it 'returns itself in the streaming interface' do
-      deflated = "x\x9C\xCBH\xCD\xC9\xC9W(\xCF/\xCAI\x01\x00\x1A\v\x04]".force_encoding('ASCII-8BIT')
+      deflated = "x\x9C\xCBH\xCD\xC9\xC9W(\xCF/\xCAI\x01\x00\x1A\v\x04]".b
       zstream = Zlib::Inflate.new
       deflated.chars.each_slice(5) do |chunk|
         (zstream << chunk.join).should == zstream
