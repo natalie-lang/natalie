@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../spec_helper'
 
 describe 'Object#dup' do
@@ -24,13 +26,13 @@ describe 'Object#dup' do
     h = {}
     h.instance_variable_set(:@foo, 'foo')
     h.dup.instance_variable_get(:@foo).should == 'foo'
-    s = ''
+    s = +''
     s.instance_variable_set(:@foo, 'foo')
     s.dup.instance_variable_get(:@foo).should == 'foo'
   end
 
   it 'does not copy the singleton class' do
-    a = 'foo'
+    a = +'foo'
     a.define_singleton_method :bar do
       'bar'
     end
