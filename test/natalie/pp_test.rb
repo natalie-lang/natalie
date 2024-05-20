@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../spec_helper'
 require 'stringio'
 require 'pp'
@@ -10,7 +12,7 @@ end
 
 describe 'PP' do
   it 'it handles generic objects' do
-    out = ''
+    out = +''
     io = StringIO.new(out)
     obj = Foo.new
     PP.pp obj, io
