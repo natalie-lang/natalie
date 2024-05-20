@@ -33,7 +33,9 @@ module Natalie
       end
 
       def execute(vm)
-        vm.push(@string.dup.force_encoding(@encoding))
+        string = @string.dup.force_encoding(@encoding)
+        string.freeze if @frozen
+        vm.push(string)
       end
 
       def serialize(rodata)
