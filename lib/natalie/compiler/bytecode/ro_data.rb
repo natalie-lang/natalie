@@ -4,6 +4,7 @@ module Natalie
       class RoData
         CONVERSIONS = {
           to_encoding: ->(str) { Encoding.find(str) },
+          to_s: ->(str) { str },
           to_sym: ->(str) { str.to_sym },
         }.freeze
 
@@ -36,7 +37,7 @@ module Natalie
           result = @buffer[position + 1, size]
           if convert
             result = CONVERSIONS.fetch(convert).call(result)
-            @get_lookup[[convert, position]] = result
+            @get_lookup[[convert, position]] = result.freeze
           end
           result
         end
