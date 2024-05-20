@@ -22,12 +22,13 @@ module Natalie
     class CompileError < StandardError
     end
 
-    def initialize(ast:, path:, encoding: Encoding::UTF_8, warnings: [], options: {})
+    def initialize(ast:, path:, encoding: Encoding::UTF_8, warnings: [], data_loc: nil, options: {})
       @ast = ast
       @var_num = 0
       @path = path
       @encoding = encoding
       @warnings = warnings
+      @data_loc = data_loc
       @options = options
       @inline_cpp_enabled = {}
     end
@@ -153,6 +154,12 @@ module Natalie
 
     private
 
+    def data_loc
+      return nil if @data_loc.nil?
+
+      { path: @path, data_loc: @data_loc }
+    end
+
     def transform
       @context = build_context
 
@@ -161,6 +168,7 @@ module Natalie
       instructions = Pass1.new(
         ast,
         compiler_context:      @context,
+        data_loc:              data_loc,
         macro_expander:        macro_expander,
         loaded_file:           main_file,
         warnings:              warnings,

@@ -24,11 +24,15 @@ describe "The DATA constant" do
   end
 
   it "returns a File object with the right offset" do
-    ruby_exe(fixture(__FILE__, "data_offset.rb")).should == "File\n121\n"
+    NATFIXME 'We use a StringIO object, not a File, since the original source is not accessible in the compiled binary', exception: SpecFailedException do
+      ruby_exe(fixture(__FILE__, "data_offset.rb")).should == "File\n121\n"
+    end
   end
 
   it "is set even if there is no data after __END__" do
-    ruby_exe(fixture(__FILE__, "empty_data.rb")).should == "31\n\"\"\n"
+    NATFIXME 'We only save the data after __END__, not the rest of the file', exception: SpecFailedException do
+      ruby_exe(fixture(__FILE__, "empty_data.rb")).should == "31\n\"\"\n"
+    end
   end
 
   it "is set even if there is no newline after __END__" do
@@ -36,13 +40,17 @@ describe "The DATA constant" do
     code = File.binread(fixture(__FILE__, "empty_data.rb"))
     touch(path, "wb") { |f| f.write code.chomp }
     begin
-      ruby_exe(path).should == "30\n\"\"\n"
+      NATFIXME 'We only save the data after __END__, not the rest of the file', exception: SpecFailedException do
+        ruby_exe(path).should == "30\n\"\"\n"
+      end
     ensure
       rm_r path
     end
   end
 
   it "rewinds to the head of the main script" do
-    ruby_exe(fixture(__FILE__, "data5.rb")).chomp.should == "DATA.rewind"
+    NATFIXME 'We only save the data after __END__, not the rest of the file', exception: SpecFailedException do
+      ruby_exe(fixture(__FILE__, "data5.rb")).chomp.should == "DATA.rewind"
+    end
   end
 end

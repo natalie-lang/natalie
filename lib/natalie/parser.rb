@@ -70,6 +70,7 @@ module Natalie
     def source = result.source
     def errors = result.errors
     def warnings = result.warnings
+    def data_loc = result.data_loc
 
     def ast
       raise ParseError, "syntax error: #{result.errors.map(&:message).join("\n")}" if result.errors.any?
