@@ -2133,7 +2133,7 @@ module Natalie
         return [] unless used
 
         encoding = encoding_for_string_node(node)
-        PushStringInstruction.new(node.unescaped, encoding: encoding)
+        PushStringInstruction.new(node.unescaped, encoding: encoding, frozen: node.frozen?)
       end
 
       def transform_super_node(node, used:)
