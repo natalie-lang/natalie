@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../spec_helper'
 
 describe 'array' do
@@ -1176,11 +1178,11 @@ describe 'array' do
     describe 'c' do
       it 'handles bignums' do
         %w[c C].each do |directive|
-          [0xdef0_abcd_3412_7856].pack(directive).should == "V".force_encoding(Encoding::BINARY)
-          [fixnum_max + 1].pack(directive).should == "\x00".force_encoding(Encoding::BINARY)
-          [fixnum_max + 2].pack(directive).should == "\x01".force_encoding(Encoding::BINARY)
-          [-fixnum_max - 1].pack(directive).should == "\x00".force_encoding(Encoding::BINARY)
-          [-fixnum_max - 2].pack(directive).should == "\xFF".force_encoding(Encoding::BINARY)
+          [0xdef0_abcd_3412_7856].pack(directive).should == "V".b
+          [fixnum_max + 1].pack(directive).should == "\x00".b
+          [fixnum_max + 2].pack(directive).should == "\x01".b
+          [-fixnum_max - 1].pack(directive).should == "\x00".b
+          [-fixnum_max - 2].pack(directive).should == "\xFF".b
 
           -> { [0xdef0_abcd_3412_7856].pack(directive + '>') }.should raise_error(ArgumentError, "'>' allowed only after types sSiIlLqQjJ")
           -> { [0xdef0_abcd_3412_7856].pack(directive + '<') }.should raise_error(ArgumentError, "'<' allowed only after types sSiIlLqQjJ")
@@ -1191,15 +1193,15 @@ describe 'array' do
     describe 'i' do
       it 'handles bignums' do
         %w[i I].each do |directive|
-          [0xdef0_abcd_3412_7856].pack(directive).should == "Vx\x124".force_encoding(Encoding::BINARY)
-          [fixnum_max + 1].pack(directive).should == "\x00\x00\x00\x00".force_encoding(Encoding::BINARY)
-          [fixnum_max + 2].pack(directive).should == "\x01\x00\x00\x00".force_encoding(Encoding::BINARY)
-          [-fixnum_max - 1].pack(directive).should == "\x00\x00\x00\x00".force_encoding(Encoding::BINARY)
-          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF\xFF\xFF".force_encoding(Encoding::BINARY)
+          [0xdef0_abcd_3412_7856].pack(directive).should == "Vx\x124".b
+          [fixnum_max + 1].pack(directive).should == "\x00\x00\x00\x00".b
+          [fixnum_max + 2].pack(directive).should == "\x01\x00\x00\x00".b
+          [-fixnum_max - 1].pack(directive).should == "\x00\x00\x00\x00".b
+          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF\xFF\xFF".b
 
           little_endian do
-            [0xdef0_abcd_3412_7856].pack(directive + '>').should == "4\x12xV".force_encoding(Encoding::BINARY)
-            [0xdef0_abcd_3412_7856].pack(directive + '<').should == "Vx\x124".force_encoding(Encoding::BINARY)
+            [0xdef0_abcd_3412_7856].pack(directive + '>').should == "4\x12xV".b
+            [0xdef0_abcd_3412_7856].pack(directive + '<').should == "Vx\x124".b
           end
         end
       end
@@ -1208,15 +1210,15 @@ describe 'array' do
     describe 'j' do
       it 'handles bignums' do
         %w[j J].each do |directive|
-          [0xdef0_abcd_3412_7856].pack(directive).should == "Vx\x124\xCD\xAB\xF0\xDE".force_encoding(Encoding::BINARY)
-          [fixnum_max + 1].pack(directive).should == "\x00\x00\x00\x00\x00\x00\x00\x80".force_encoding(Encoding::BINARY)
-          [fixnum_max + 2].pack(directive).should == "\x01\x00\x00\x00\x00\x00\x00\x80".force_encoding(Encoding::BINARY)
-          [-fixnum_max - 1].pack(directive).should == "\x00\x00\x00\x00\x00\x00\x00\x80".force_encoding(Encoding::BINARY)
-          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x7F".force_encoding(Encoding::BINARY)
+          [0xdef0_abcd_3412_7856].pack(directive).should == "Vx\x124\xCD\xAB\xF0\xDE".b
+          [fixnum_max + 1].pack(directive).should == "\x00\x00\x00\x00\x00\x00\x00\x80".b
+          [fixnum_max + 2].pack(directive).should == "\x01\x00\x00\x00\x00\x00\x00\x80".b
+          [-fixnum_max - 1].pack(directive).should == "\x00\x00\x00\x00\x00\x00\x00\x80".b
+          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x7F".b
 
           little_endian do
-            [0xdef0_abcd_3412_7856].pack(directive + '>').should == "\xDE\xF0\xAB\xCD4\x12xV".force_encoding(Encoding::BINARY)
-            [0xdef0_abcd_3412_7856].pack(directive + '<').should == "Vx\x124\xCD\xAB\xF0\xDE".force_encoding(Encoding::BINARY)
+            [0xdef0_abcd_3412_7856].pack(directive + '>').should == "\xDE\xF0\xAB\xCD4\x12xV".b
+            [0xdef0_abcd_3412_7856].pack(directive + '<').should == "Vx\x124\xCD\xAB\xF0\xDE".b
           end
         end
       end
@@ -1225,15 +1227,15 @@ describe 'array' do
     describe 'l' do
       it 'handles bignums' do
         %w[l L].each do |directive|
-          [0xdef0_abcd_3412_7856].pack(directive).should == "Vx\x124".force_encoding(Encoding::BINARY)
-          [fixnum_max + 1].pack(directive).should == "\x00\x00\x00\x00".force_encoding(Encoding::BINARY)
-          [fixnum_max + 2].pack(directive).should == "\x01\x00\x00\x00".force_encoding(Encoding::BINARY)
-          [-fixnum_max - 1].pack(directive).should == "\x00\x00\x00\x00".force_encoding(Encoding::BINARY)
-          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF\xFF\xFF".force_encoding(Encoding::BINARY)
+          [0xdef0_abcd_3412_7856].pack(directive).should == "Vx\x124".b
+          [fixnum_max + 1].pack(directive).should == "\x00\x00\x00\x00".b
+          [fixnum_max + 2].pack(directive).should == "\x01\x00\x00\x00".b
+          [-fixnum_max - 1].pack(directive).should == "\x00\x00\x00\x00".b
+          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF\xFF\xFF".b
 
           little_endian do
-            [0xdef0_abcd_3412_7856].pack(directive + '>').should == "4\x12xV".force_encoding(Encoding::BINARY)
-            [0xdef0_abcd_3412_7856].pack(directive + '<').should == "Vx\x124".force_encoding(Encoding::BINARY)
+            [0xdef0_abcd_3412_7856].pack(directive + '>').should == "4\x12xV".b
+            [0xdef0_abcd_3412_7856].pack(directive + '<').should == "Vx\x124".b
           end
         end
       end
@@ -1242,15 +1244,15 @@ describe 'array' do
     describe 's' do
       it 'handles bignums' do
         %w[s S].each do |directive|
-          [0xdef0_abcd_3412_7856].pack(directive).should == "Vx".force_encoding(Encoding::BINARY)
-          [fixnum_max + 1].pack(directive).should == "\x00\x00".force_encoding(Encoding::BINARY)
-          [fixnum_max + 2].pack(directive).should == "\x01\x00".force_encoding(Encoding::BINARY)
-          [-fixnum_max - 1].pack(directive).should == "\x00\x00".force_encoding(Encoding::BINARY)
-          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF".force_encoding(Encoding::BINARY)
+          [0xdef0_abcd_3412_7856].pack(directive).should == "Vx".b
+          [fixnum_max + 1].pack(directive).should == "\x00\x00".b
+          [fixnum_max + 2].pack(directive).should == "\x01\x00".b
+          [-fixnum_max - 1].pack(directive).should == "\x00\x00".b
+          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF".b
 
           little_endian do
-            [0xdef0_abcd_3412_7856].pack(directive + '>').should == "xV".force_encoding(Encoding::BINARY)
-            [0xdef0_abcd_3412_7856].pack(directive + '<').should == "Vx".force_encoding(Encoding::BINARY)
+            [0xdef0_abcd_3412_7856].pack(directive + '>').should == "xV".b
+            [0xdef0_abcd_3412_7856].pack(directive + '<').should == "Vx".b
           end
         end
       end
