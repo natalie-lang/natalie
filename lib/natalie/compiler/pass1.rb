@@ -109,6 +109,7 @@ module Natalie
       end
 
       def transform_body(body, location:, used:)
+        return transform_begin_node(body, used:) if body.is_a?(Prism::BeginNode)
         body = body.body if body.is_a?(Prism::StatementsNode)
         *body, last = body
         nil_node = Prism.nil_node(location: location)
