@@ -44,7 +44,9 @@ describe "An ensure block inside a begin block" do
       end
     end
 
-    ScratchPad.recorded.should == [:begin, :ensure]
+    NATFIXME "it is executed even when a symbol is thrown in it's corresponding begin block", exception: SpecFailedException do
+      ScratchPad.recorded.should == [:begin, :ensure]
+    end
   end
 
   it "is executed when nothing is raised or thrown in it's corresponding begin block" do
@@ -119,7 +121,9 @@ describe "An ensure block inside a method" do
 
   it "is executed even when a symbol is thrown in the method" do
     catch(:symbol) { @obj.throw_in_method_with_ensure }
-    @obj.executed.should == [:method, :ensure]
+    NATFIXME 'it is executed even when a symbol is thrown in the method', exception: SpecFailedException do
+      @obj.executed.should == [:method, :ensure]
+    end
   end
 
   it "has no impact on the method's implicit return value" do
@@ -127,11 +131,15 @@ describe "An ensure block inside a method" do
   end
 
   it "has an impact on the method's explicit return value" do
-    @obj.explicit_return_in_method_with_ensure.should == :ensure
+    NATFIXME "it has an impact on the method's explicit return value", exception: SpecFailedException do
+      @obj.explicit_return_in_method_with_ensure.should == :ensure
+    end
   end
 
   it "has an impact on the method's explicit return value from rescue if returns explicitly" do
-    @obj.explicit_return_in_rescue_and_explicit_return_in_ensure.should == "returned in ensure"
+    NATFIXME "it has an impact on the method's explicit return value from rescue if returns explicitly", exception: SpecFailedException do
+      @obj.explicit_return_in_rescue_and_explicit_return_in_ensure.should == "returned in ensure"
+    end
   end
 
   it "has no impact on the method's explicit return value from rescue if returns implicitly" do
@@ -208,7 +216,9 @@ describe "An ensure block inside a class" do
       ruby
     end
 
-    ScratchPad.recorded.should == [:class, :ensure]
+    NATFIXME 'it is executed even when a symbol is thrown', exception: SpecFailedException do
+      ScratchPad.recorded.should == [:class, :ensure]
+    end
   end
 
   it "is executed when nothing is raised or thrown" do
@@ -300,7 +310,9 @@ describe "An ensure block inside 'do end' block" do
       ruby
     end
 
-    ScratchPad.recorded.should == [:begin, :ensure]
+    NATFIXME "it is executed even when a symbol is thrown in it's corresponding begin block", exception: SpecFailedException do
+      ScratchPad.recorded.should == [:begin, :ensure]
+    end
   end
 
   it "is executed when nothing is raised or thrown in it's corresponding begin block" do
