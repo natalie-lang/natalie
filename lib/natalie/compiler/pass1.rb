@@ -850,6 +850,27 @@ module Natalie
         instructions
       end
 
+      def transform_constant_operator_write_node(node, used:)
+        instructions = [
+          PushSelfInstruction.new,
+          ConstFindInstruction.new(node.name, strict: false),
+          transform_expression(node.value, used: true),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            node.operator,
+            args_array_on_stack: false,
+            receiver_is_self: false,
+            with_block: false,
+            has_keyword_hash: false,
+            file: @file.path,
+            line: node.location.start_line,
+          ),
+          PushSelfInstruction.new,
+          ConstSetInstruction.new(node.name),
+        ]
+        instructions
+      end
+
       def transform_constant_or_write_node(node, used:)
         instructions = [
           IsDefinedInstruction.new(type: 'constant'),
