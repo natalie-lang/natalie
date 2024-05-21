@@ -110,11 +110,12 @@ describe 'constants' do
         QUUX = nil
         QUUX &&= 1
         QUUX.should be_nil
-
         remove_const(:QUUX)
+
         QUUX = 1
         suppress_warning { QUUX &&= 2 }
         QUUX.should == 2
+        remove_const(:QUUX)
       end
     end
   end
