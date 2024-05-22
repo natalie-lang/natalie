@@ -20,7 +20,7 @@ module Natalie
           ).compact
         when ::Prism::NumberedParametersNode
           @args = args.maximum.times.map do |i|
-            Prism::RequiredParameterNode.new(:"_#{i + 1}", args.location)
+            Prism::RequiredParameterNode.new(nil, nil, :"_#{i + 1}", args.location)
           end
         else
           raise "expected args node, but got: #{args.inspect}"

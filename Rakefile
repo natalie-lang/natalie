@@ -572,24 +572,13 @@ end
 
 file "build/prism/ext/prism/prism.#{DL_EXT}" => Rake::FileList['ext/prism/**/*.{h,c,rb}'] do
   build_dir = File.expand_path('build/prism', __dir__)
-  patch_dir = File.expand_path('ext/prism-patches', __dir__)
 
   rm_rf build_dir
   cp_r 'ext/prism', build_dir
 
   sh <<-SH
     cd #{build_dir} && \
-    git apply #{File.join(patch_dir, 'Rakefile.patch')} && \
     PRISM_FFI_BACKEND=true rake templates
-  SH
-
-  # patch some files in Prism
-  Dir.glob(File.expand_path('ext/prism-patches/*.patch', __dir__)).each do |patch|
-    next if patch.end_with?('Rakefile.patch') # already applied
-    sh "cd #{build_dir} && git apply #{patch}"
-  end
-
-  sh <<-SH
     cd #{build_dir} && \
     make && \
     cd ext/prism && \
