@@ -439,6 +439,14 @@ def method_with_kwargs14(a = '', **kwargs)
   [a, kwargs]
 end
 
+def method_implicit_kwargs(*args)
+  args
+end
+
+def method_no_kwargs(*args, **nil)
+  args
+end
+
 describe 'method with keyword args' do
   it 'accepts keyword args' do
     method_with_kwargs1(1, b: 2).should == [1, 2]
@@ -535,6 +543,15 @@ describe 'method with keyword args' do
     -> { method_with_kwargs12(1, b: 2, c: 3) }.should raise_error(ArgumentError, 'unknown keyword: :c')
     -> { method_with_kwargs13(1, 2, c: 3) }.should_not raise_error
     -> { method_with_kwargs14(1, b: 2, c: 3) }.should_not raise_error
+  end
+
+  it 'adds keyword arguments to args splat if no keywords are mentioned in the method signature' do
+    method_implicit_kwargs(1, 2, a: 3).should == [1, 2, { a: 3 }]
+  end
+
+  it 'raises an error when keyword arguments are provided, but not allowed' do
+    -> { method_no_kwargs(1, 2, a: 3) }.should raise_error(ArgumentError)
+    -> { method_no_kwargs(1, 2, **{}) }.should_not raise_error
   end
 
   ruby_version_is ''...'3.3' do
@@ -644,6 +661,8 @@ describe 'Method' do
       method(:method_with_kwargs7).arity.should == 1
       method(:method_with_kwargs8).arity.should == 1
       method(:method_with_kwargs9).arity.should == -1
+      method(:method_implicit_kwargs).arity.should == -1
+      method(:method_no_kwargs).arity.should == -1
     end
   end
 end
