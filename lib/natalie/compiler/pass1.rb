@@ -2402,7 +2402,8 @@ module Natalie
         args.any? do |arg|
           arg.is_a?(::Prism::RequiredKeywordParameterNode) ||
             arg.is_a?(::Prism::OptionalKeywordParameterNode) ||
-            arg.is_a?(::Prism::KeywordRestParameterNode)
+            arg.is_a?(::Prism::KeywordRestParameterNode) ||
+            arg.is_a?(::Prism::NoKeywordsParameterNode)
         end
       end
 
