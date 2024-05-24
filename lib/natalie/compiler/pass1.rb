@@ -629,13 +629,16 @@ module Natalie
       end
 
       def transform_call_or_write_node(node, used:)
-        obj = node.receiver
-
         # a.foo ||= 'bar'
         instructions = [
 
-          # a.foo
+          # a
           transform_expression(node.receiver, used: true),
+
+          # duplicate for use in the falsey case, so we only evaluate `a` once
+          DupInstruction.new,
+
+          # .foo
           PushArgcInstruction.new(0),
           SendInstruction.new(
             node.read_name,
@@ -650,15 +653,17 @@ module Natalie
 
           # if a.foo
           IfInstruction.new,
-          # if a.foo, return duplicated value
+
+          # if a.foo, return duplicated value of a.foo, but get rid of the duplicated value of `a`
+          SwapInstruction.new,
+          PopInstruction.new,
 
           ElseInstruction.new(:if),
 
           # remove duplicated value that was falsey
           PopInstruction.new,
 
-          # a.foo=('bar')
-          transform_expression(node.receiver, used: true),
+          # .foo=('bar')
           transform_expression(node.value, used: true),
           PushArgcInstruction.new(1),
           SendInstruction.new(
