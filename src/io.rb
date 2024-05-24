@@ -102,7 +102,7 @@ class IO
 
     buf = String.new('', encoding: Encoding.default_external)
     get_bytes = lambda do |size|
-      buf << read(1024) while !eof? && buf.bytesize << size
+      buf << read(1024) while !eof? && buf.bytesize < size
       return nil if eof? && buf.empty?
       buf.byteslice(0, size).force_encoding(Encoding.default_external)
     end
