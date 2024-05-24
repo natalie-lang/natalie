@@ -606,7 +606,7 @@ module Natalie
           # stack: [obj, new_value]
           PushArgcInstruction.new(1),
           SendInstruction.new(
-            node.operator,
+            node.binary_operator,
             receiver_is_self: false,
             with_block: false,
             file: @file.path,
@@ -798,7 +798,7 @@ module Natalie
           transform_expression(node.value, used: true),
           PushArgcInstruction.new(1),
           SendInstruction.new(
-            node.operator,
+            node.binary_operator,
             receiver_is_self: false,
             with_block: false,
             file: @file.path,
@@ -862,7 +862,7 @@ module Natalie
           transform_expression(node.value, used: true),
           PushArgcInstruction.new(1),
           SendInstruction.new(
-            node.operator,
+            node.binary_operator,
             args_array_on_stack: false,
             receiver_is_self: false,
             with_block: false,
@@ -1210,7 +1210,7 @@ module Natalie
           transform_expression(node.value, used: true),
           PushArgcInstruction.new(1),
           SendInstruction.new(
-            node.operator,
+            node.binary_operator,
             receiver_is_self: false,
             with_block: false,
             file: @file.path,
@@ -1445,7 +1445,7 @@ module Natalie
           # stack: [obj, *keys, new_value]
           PushArgcInstruction.new(1),
           SendInstruction.new(
-            node.operator,
+            node.binary_operator,
             receiver_is_self: false,
             with_block: false,
             file: @file.path,
@@ -1576,7 +1576,7 @@ module Natalie
           transform_expression(node.value, used: true),
           PushArgcInstruction.new(1),
           SendInstruction.new(
-            node.operator,
+            node.binary_operator,
             receiver_is_self: false,
             with_block: false,
             file: @file.path,
@@ -1761,7 +1761,7 @@ module Natalie
           transform_expression(node.value, used: true),
           PushArgcInstruction.new(1),
           SendInstruction.new(
-            node.operator,
+            node.binary_operator,
             receiver_is_self: false,
             with_block: false,
             file: @current_path,
