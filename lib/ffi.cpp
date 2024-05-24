@@ -15,11 +15,8 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args args, Block *) {
     auto name = args.at(0);
     name->assert_type(env, Object::Type::String, "String");
     auto handle = dlopen(name->as_string()->c_str(), RTLD_LAZY);
-    if (!handle) {
-        char buf[1000];
-        snprintf(buf, 1000, "Could not open library '%s': %s.", name->as_string()->c_str(), dlerror());
-        env->raise("LoadError", buf);
-    }
+    if (!handle)
+        env->raise("LoadError", "Could not open library '{}': {}.", name->as_string()->c_str(), dlerror());
     auto handle_ptr = new VoidPObject { handle, [](auto p) { dlclose(p->void_ptr()); } };
     auto libs = self->ivar_get(env, "@ffi_libs"_s);
     if (libs->is_nil())
