@@ -1,6 +1,6 @@
 #pragma once
 
-#include "natalie/big_int.hpp"
+#include "natalie/bigint.hpp"
 #include <assert.h>
 #include <inttypes.h>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "natalie/big_int.hpp"
+#include "natalie/bigint.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/types.hpp"
 #include "tm/string.hpp"

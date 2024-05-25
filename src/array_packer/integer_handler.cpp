@@ -121,7 +121,7 @@ namespace ArrayPacker {
     void IntegerHandler::pack_I() {
         unsigned int source;
         if (m_source->is_bignum())
-            source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(unsigned int))).to_long_long();
+            source = (m_source->integer().to_bigint() % BigInt(::pow(2, 8 * sizeof(unsigned int)))).to_long_long();
         else
             source = (unsigned int)m_source->to_nat_int_t();
 
@@ -131,7 +131,7 @@ namespace ArrayPacker {
     void IntegerHandler::pack_i() {
         signed int source;
         if (m_source->is_bignum())
-            source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_long_long();
+            source = (m_source->integer().to_bigint() % BigInt(::pow(2, 8 * sizeof(signed int)))).to_long_long();
         else
             source = (signed int)m_source->to_nat_int_t();
 
@@ -221,7 +221,7 @@ namespace ArrayPacker {
     void IntegerHandler::pack_S() {
         unsigned short source;
         if (m_source->is_bignum())
-            source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_long_long();
+            source = (m_source->integer().to_bigint() % BigInt(::pow(2, 8 * sizeof(signed int)))).to_long_long();
         else
             source = (unsigned short)m_source->to_nat_int_t();
 
@@ -232,7 +232,7 @@ namespace ArrayPacker {
     void IntegerHandler::pack_s() {
         signed short source;
         if (m_source->is_bignum())
-            source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_long_long();
+            source = (m_source->integer().to_bigint() % BigInt(::pow(2, 8 * sizeof(signed int)))).to_long_long();
         else
             source = (signed short)m_source->to_nat_int_t();
 
@@ -276,7 +276,7 @@ namespace ArrayPacker {
                 num = num >> 7;
                 if (size > 0) bytes[size] |= 0x80;
                 size++;
-            } while (num > 0);
+            } while (num > 0ll);
         } else {
             auto num = m_source->to_nat_int_t();
             do {

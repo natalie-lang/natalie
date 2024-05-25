@@ -479,7 +479,7 @@ Integer abs(const Integer &other) {
 
 Integer gcd(const Integer &dividend, const Integer &divisor) {
     if (dividend.is_bignum() || divisor.is_bignum())
-        return ::gcd(dividend.to_bigint(), divisor.to_bigint());
+        return BigInt::gcd(dividend.to_bigint(), divisor.to_bigint());
 
     auto result = abs(dividend);
     auto divisor_abs = abs(divisor);
@@ -496,7 +496,7 @@ Integer gcd(const Integer &dividend, const Integer &divisor) {
 
 Integer sqrt(const Integer &other) {
     if (other.is_bignum())
-        return ::sqrt(other.to_bigint());
+        return other.to_bigint().sqrt();
     return static_cast<nat_int_t>(::sqrt(other.to_nat_int_t()));
 }
 
