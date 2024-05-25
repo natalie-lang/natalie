@@ -213,9 +213,7 @@ describe 'Assignments' do
         suppress_warning do # already initialized constant
           x = 0
           (x += 1; ConstantSpecs)::OpAssignTrue += 2
-          NATFIXME 'it causes side-effects of the module part to be applied only once (when assigns)', exception: SpecFailedException do
-            x.should == 1
-          end
+          x.should == 1
           ConstantSpecs::OpAssignTrue.should == 3
         end
 
