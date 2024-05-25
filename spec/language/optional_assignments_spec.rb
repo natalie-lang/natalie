@@ -636,18 +636,19 @@ describe 'Optional variable assignments' do
 #      -> { Object::A &&= 10 }.should raise_error(NameError)
 #    end
 
-#    NATFIXME: Implement transform_constant_path_operator_write_node
-#    it 'with operator assignments' do
-#      Object::A = 20
-#      -> {
-#        Object::A += 10
-#      }.should complain(/already initialized constant/)
-#      Object::A.should == 30
-#    end
-#
-#    it 'with operator assignments will fail with non-existent constants' do
-#      -> { Object::A += 10 }.should raise_error(NameError)
-#    end
+    it 'with operator assignments' do
+      NATFIXME 'it should print a warning when reassigning a const', exception: SpecFailedException, message: /should have printed a warning/ do
+        Object::A = 20
+        -> {
+          Object::A += 10
+        }.should complain(/already initialized constant/)
+      end
+      Object::A.should == 30
+    end
+
+    it 'with operator assignments will fail with non-existent constants' do
+      -> { Object::A += 10 }.should raise_error(NameError)
+    end
   end
 end
 

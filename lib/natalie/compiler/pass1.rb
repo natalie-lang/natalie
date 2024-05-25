@@ -906,6 +906,34 @@ module Natalie
         ]
       end
 
+      def transform_constant_path_operator_write_node(node, used:)
+        name, _is_private, prep_instruction = constant_name(node.target)
+        # FIXME: is_private shouldn't be ignored I think
+        instructions = [
+          prep_instruction,
+          DupInstruction.new, # For the const_set
+        ]
+        instructions << DupInstruction.new if used # For the return value
+        instructions.append(
+          ConstFindInstruction.new(name, strict: true),
+          transform_expression(node.value, used: true),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            node.binary_operator,
+            args_array_on_stack: false,
+            receiver_is_self: false,
+            with_block: false,
+            has_keyword_hash: false,
+            file: @file.path,
+            line: node.location.start_line,
+          ),
+          SwapInstruction.new,
+          ConstSetInstruction.new(name),
+        )
+        instructions << ConstFindInstruction.new(name, strict: true) if used
+        instructions
+      end
+
       def transform_constant_path_write_node(node, used:)
         instructions = [transform_expression(node.value, used: true)]
         instructions << DupInstruction.new if used

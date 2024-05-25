@@ -130,4 +130,20 @@ describe 'constants' do
       end
     end
   end
+
+  describe 'using += write (Prism::ConstantPathOperatorWriteNode)' do
+    it 'can change a value' do
+      module ModuleA
+        QUUX = 1
+      end
+      suppress_warning { ModuleA::QUUX += 1 }
+      ModuleA::QUUX.should == 2
+
+      suppress_warning do
+        (ModuleA::QUUX += 1).should == 3
+      end
+
+      ModuleA.send(:remove_const, :QUUX)
+    end
+  end
 end
