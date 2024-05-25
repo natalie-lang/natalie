@@ -904,17 +904,22 @@ module Natalie
 
           # CONST = value
           transform_expression(node.value, used: true),
-          DupInstruction.new,
+        ]
+        instructions << DupInstruction.new if used
+        instructions.push(
           PushSelfInstruction.new,
           ConstSetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+        )
 
           # else; CONST; end
-          ElseInstruction.new(:if),
-          PushSelfInstruction.new,
-          ConstFindInstruction.new(node.name, strict: false),
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
+        if used
+          instructions.push(
+            PushSelfInstruction.new,
+            ConstFindInstruction.new(node.name, strict: false),
+          )
+        end
+        instructions << EndInstruction.new(:if)
         instructions
       end
 
