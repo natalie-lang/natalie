@@ -877,19 +877,41 @@ module Natalie
       end
 
       def transform_constant_or_write_node(node, used:)
+        # Translates to
+        #    if !defined?(CONST) || !CONST
+        #        CONST = value
+        #    end
         instructions = [
+          # !defined?(CONST)
           IsDefinedInstruction.new(type: 'constant'),
           PushSelfInstruction.new,
           ConstFindInstruction.new(node.name, strict: false),
           EndInstruction.new(:is_defined),
+          NotInstruction.new,
+          DupInstruction.new,
+
+          # || !CONST
           IfInstruction.new,
+          ElseInstruction.new(:if),
+          PopInstruction.new,
           PushSelfInstruction.new,
           ConstFindInstruction.new(node.name, strict: false),
-          ElseInstruction.new(:if),
+          NotInstruction.new,
+          EndInstruction.new(:if),
+
+          # if !defined?(CONST) || !CONST
+          IfInstruction.new,
+
+          # CONST = value
           transform_expression(node.value, used: true),
           DupInstruction.new,
           PushSelfInstruction.new,
           ConstSetInstruction.new(node.name),
+
+          # else; CONST; end
+          ElseInstruction.new(:if),
+          PushSelfInstruction.new,
+          ConstFindInstruction.new(node.name, strict: false),
           EndInstruction.new(:if),
         ]
         instructions << PopInstruction.new unless used
