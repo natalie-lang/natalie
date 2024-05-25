@@ -102,7 +102,7 @@ describe 'constants' do
     -> { UnknownConst; nil }.should raise_error(NameError, /uninitialized constant UnknownConst/)
   end
 
-  describe 'using &&= assignment' do
+  describe 'using &&= assignment (Prism::ConstantAndWriteNode)' do
     it 'can assign a value' do
       module ModuleA
         -> { QUUX &&= nil }.should raise_error(NameError, /uninitialized constant ModuleA::QUUX/)
