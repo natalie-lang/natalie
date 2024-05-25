@@ -911,8 +911,10 @@ module Natalie
         # FIXME: is_private shouldn't be ignored I think
         instructions = [
           prep_instruction,
-          DupInstruction.new, # For the return value (in case of used)
           DupInstruction.new, # For the const_set
+        ]
+        instructions << DupInstruction.new if used # For the return value
+        instructions.append(
           ConstFindInstruction.new(name, strict: true),
           transform_expression(node.value, used: true),
           PushArgcInstruction.new(1),
@@ -927,12 +929,8 @@ module Natalie
           ),
           SwapInstruction.new,
           ConstSetInstruction.new(name),
-        ]
-        if used
-          instructions << ConstFindInstruction.new(name, strict: true)
-        else
-          instructions << PopInstruction.new
-        end
+        )
+        instructions << ConstFindInstruction.new(name, strict: true) if used
         instructions
       end
 
