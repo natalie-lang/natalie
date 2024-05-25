@@ -8,8 +8,8 @@ module Natalie
           @name = node.name
           @namespace = PushSelfInstruction.new
         when :constant_path_node, :constant_path_target_node
-          raise 'unexpected child here' if node.child.type != :constant_read_node
-          @name = node.child.name
+          raise 'unexpected child here' if node.name.nil?
+          @name = node.name
           if node.parent
             @namespace = pass.transform_expression(node.parent, used: true)
             @private = false
