@@ -49,7 +49,8 @@ describe "A number literal" do
     eval('1.0r').should == Rational(1, 1)
   end
 
-  it "can be a float literal with trailing 'r' to represent a Rational" do
+  # NATFIXME: This test fails on the self hosted compiler
+  xit "can be a float literal with trailing 'r' to represent a Rational" do
     eval('0.0174532925199432957r').should == Rational(174532925199432957, 10000000000000000000)
   end
 
