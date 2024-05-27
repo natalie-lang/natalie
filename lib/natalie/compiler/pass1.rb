@@ -898,23 +898,26 @@ module Natalie
           ConstFindInstruction.new(node.name, strict: false),
           ElseInstruction.new(:if),
           EndInstruction.new(:if),
-
+        ]
+        instructions << DupInstruction.new if used
+        instructions.append(
           # if defined?(CONST) && CONST
           IfInstruction.new,
 
           # CONST
-          PushSelfInstruction.new,
-          ConstFindInstruction.new(node.name, strict: false),
+          # Nothing to do here, return value is on the stack if the result is used
 
           # else; CONST = value; end
           ElseInstruction.new(:if),
-          transform_expression(node.value, used: true),
-          DupInstruction.new,
+        )
+        instructions << PopInstruction.new if used
+        instructions.concat(transform_expression(node.value, used: true))
+        instructions << DupInstruction.new if used
+        instructions.append(
           PushSelfInstruction.new,
           ConstSetInstruction.new(node.name),
           EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
+        )
         instructions
       end
 
