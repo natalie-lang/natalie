@@ -878,48 +878,46 @@ module Natalie
 
       def transform_constant_or_write_node(node, used:)
         # Translates to
-        #    if !defined?(CONST) || !CONST
+        #    if defined?(CONST) && CONST
+        #        CONST
+        #    else
         #        CONST = value
         #    end
         instructions = [
-          # !defined?(CONST)
+          # defined?(CONST)
           IsDefinedInstruction.new(type: 'constant'),
           PushSelfInstruction.new,
           ConstFindInstruction.new(node.name, strict: false),
           EndInstruction.new(:is_defined),
-          NotInstruction.new,
           DupInstruction.new,
 
-          # || !CONST
+          # && CONST
           IfInstruction.new,
-          ElseInstruction.new(:if),
           PopInstruction.new,
           PushSelfInstruction.new,
           ConstFindInstruction.new(node.name, strict: false),
-          NotInstruction.new,
+          ElseInstruction.new(:if),
           EndInstruction.new(:if),
-
-          # if !defined?(CONST) || !CONST
-          IfInstruction.new,
-
-          # CONST = value
-          transform_expression(node.value, used: true),
         ]
         instructions << DupInstruction.new if used
-        instructions.push(
-          PushSelfInstruction.new,
-          ConstSetInstruction.new(node.name),
+        instructions.append(
+          # if defined?(CONST) && CONST
+          IfInstruction.new,
+
+          # CONST
+          # Nothing to do here, return value is on the stack if the result is used
+
+          # else; CONST = value; end
           ElseInstruction.new(:if),
         )
-
-          # else; CONST; end
-        if used
-          instructions.push(
-            PushSelfInstruction.new,
-            ConstFindInstruction.new(node.name, strict: false),
-          )
-        end
-        instructions << EndInstruction.new(:if)
+        instructions << PopInstruction.new if used
+        instructions.concat(transform_expression(node.value, used: true))
+        instructions << DupInstruction.new if used
+        instructions.append(
+          PushSelfInstruction.new,
+          ConstSetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        )
         instructions
       end
 
