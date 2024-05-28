@@ -4,7 +4,7 @@ module Natalie
   class Compiler
     class ConstSetInstruction < BaseInstruction
       def initialize(name)
-        @name = name.to_s
+        @name = name.to_sym
       end
 
       attr_reader :name
@@ -27,7 +27,7 @@ module Natalie
       end
 
       def serialize(rodata)
-        position = rodata.add(@name)
+        position = rodata.add(@name.to_s)
         [
           instruction_number,
           position,
@@ -36,7 +36,7 @@ module Natalie
 
       def self.deserialize(io, rodata)
         position = io.read_ber_integer
-        name = rodata.get(position)
+        name = rodata.get(position, convert: :to_sym)
         new(name)
       end
     end
