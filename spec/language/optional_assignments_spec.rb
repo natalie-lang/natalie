@@ -768,9 +768,7 @@ describe 'Optional constant assignment' do
       suppress_warning do # already initialized constant
         x = 0
         (x += 1; ConstantSpecs)::OpAssignTrue &&= :assigned
-        NATFIXME 'No side effect for evaluation of path', exception: SpecFailedException do
-          x.should == 1
-        end
+        x.should == 1
         ConstantSpecs::OpAssignTrue.should == :assigned
       end
 
