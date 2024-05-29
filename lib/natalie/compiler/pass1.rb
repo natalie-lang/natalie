@@ -986,16 +986,21 @@ module Natalie
           PushFalseInstruction.new,                             # [tmp, false]
           EndInstruction.new(:if),
           IfInstruction.new,                                    # [tmp]                              [tmp]                                           [tmp]
-          ConstFindInstruction.new(name, strict: true),         #                                                                                    [tmp::Const]
-          ElseInstruction.new(:if),
-          DupInstruction.new,                                   # [tmp, tmp]                         [tmp, tmp]
+        ]
+        if used
+          instructions << ConstFindInstruction.new(name, strict: true) #                                                                             [tmp::Const]
+        else
+          instructions << PopInstruction.new                    #                                                                                    []
+        end
+        instructions << ElseInstruction.new(:if)
+        instructions << DupInstruction.new if used              # [tmp, tmp]                         [tmp, tmp]
+        instructions.append(
           transform_expression(node.value, used: true),         # [tmp, tmp, value]                  [tmp, tmp, value]
           SwapInstruction.new,                                  # [tmp, value, tmp]                  [tmp, value, tmp]
           ConstSetInstruction.new(name),                        # [tmp]                              [tmp]
-          ConstFindInstruction.new(name, strict: true),         # [value]                            [value]
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
+        )
+        instructions << ConstFindInstruction.new(name, strict: true) if used # [value]               [value]
+        instructions << EndInstruction.new(:if)
         instructions
       end
 
