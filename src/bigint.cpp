@@ -27,6 +27,12 @@ double BigInt::to_double() const {
 }
 
 TM::String BigInt::to_string(int base) const {
+    if (data->neg) {
+        BigInt temp;
+        bigint_twos_complement(temp.data, data, data->size + 1);
+        return temp.to_string(base);
+    }
+
     const auto size = bigint_write_size(data, base);
     // includes a space for possible `-` and one for the null terminator `\0`
     char buf[size];

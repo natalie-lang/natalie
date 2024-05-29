@@ -10,6 +10,14 @@
 
 #define BIGINT_ASSERT(a, op, b) assert((a)op(b));
 
+// temporary
+void print_bigint(bigint *n) {
+    printf("size = %d\n", n->size);
+    for (int i = 0; i < n->size; i++) {
+        printf("words[%d] = %u\n", i, n->words[i]);
+    }
+}
+
 /* low bits of a * b */
 bigint_word bigint_word_mul_lo(bigint_word a, bigint_word b) {
     return a * b;
@@ -1329,11 +1337,16 @@ void bigint_extend(bigint *dst, int n) {
     dst->size = n;
 }
 
-bigint *bigint_twos_complement(bigint *dst, const bigint *src, int n) {
+int bigint_twos_complement(bigint *dst, const bigint *src, int n) {
+    bigint_reserve(dst, n);
+    bigint_raw_zero(dst->words, dst->size, n);
+    if (src != dst) bigint_cpy(dst, src);
     dst->neg = 0;
-    bigint_raw_bitwise_not(dst->words, dst->words, dst->size);
+    dst->size = n;
+    bigint_raw_bitwise_not(dst->words, dst->words, n);
     bigint_add_word(dst, dst, 1);
-    return dst;
+    dst->size = bigint_raw_truncate(dst->words, dst->size);
+    return dst->size;
 }
 
 void bigint_convert_negative_twos_complement(bigint *dst) {
@@ -1341,16 +1354,18 @@ void bigint_convert_negative_twos_complement(bigint *dst) {
     if (dst->words[dst->size - 1] & (1u << (BIGINT_WORD_BITS - 1))) {
         bigint_raw_bitwise_not(dst->words, dst->words, dst->size);
         bigint_add_word(dst, dst, 1);
+        dst->size = bigint_raw_truncate(dst->words, dst->size);
         dst->neg = 1;
     }
 }
 
-bigint *prepare_bitwise_operand(bigint *dst, const bigint *src, int n) {
+int prepare_bitwise_operand(bigint *dst, const bigint *src, int n) {
     bigint_init(dst);
     bigint_cpy(dst, src);
     bigint_extend(dst, n);
-    if (src->neg) bigint_twos_complement(dst, src, n);
-    return dst;
+    if (src->neg)
+        return bigint_twos_complement(dst, dst, n);
+    return dst->size;
 }
 
 #define BIGINT_DEFINE_BITWISE_OP_FUNCTION(name, op)                        \
@@ -1362,9 +1377,13 @@ bigint *prepare_bitwise_operand(bigint *dst, const bigint *src, int n) {
             dst->neg = 0;                                                  \
         } else {                                                           \
             bigint tmp_a[1], tmp_b[1];                                     \
-            prepare_bitwise_operand(tmp_a, a, max);                        \
-            prepare_bitwise_operand(tmp_b, b, max);                        \
+            int na = prepare_bitwise_operand(tmp_a, a, max + 1);           \
+            int nb = prepare_bitwise_operand(tmp_b, b, max + 1);           \
+            int new_max = BIGINT_MAX(na, nb);                              \
+            bigint_extend(tmp_a, new_max);                                 \
+            bigint_extend(tmp_b, new_max);                                 \
             op(dst, tmp_a->words, tmp_a->size, tmp_b->words, tmp_b->size); \
+            dst->size = bigint_raw_truncate(dst->words, dst->size);        \
             bigint_convert_negative_twos_complement(dst);                  \
             bigint_free(tmp_a);                                            \
             bigint_free(tmp_b);                                            \
