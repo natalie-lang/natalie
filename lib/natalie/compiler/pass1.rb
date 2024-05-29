@@ -937,17 +937,20 @@ module Natalie
           DupInstruction.new,
           ConstFindInstruction.new(name, strict: true),
           IfInstruction.new,
-          DupInstruction.new,
+        ]
+        instructions << DupInstruction.new if used
+        instructions.append(
           transform_expression(node.value, used: true),
           SwapInstruction.new,
           ConstSetInstruction.new(name),
-          ConstFindInstruction.new(name, strict: true),
+        )
+        instructions << ConstFindInstruction.new(name, strict: true) if used
+        instructions.append(
           ElseInstruction.new(:if),
           PopInstruction.new,
-          PushNilInstruction.new,
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
+        )
+        instructions << PushNilInstruction.new if used
+        instructions << EndInstruction.new(:if)
         instructions
       end
 
