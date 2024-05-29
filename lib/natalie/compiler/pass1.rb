@@ -961,34 +961,38 @@ module Natalie
 
       # Foo::Bar ||= 1
       def transform_constant_path_or_write_node(node, used:)
-        # Translates to
-        #    if defined?(PATH::CONST) && PATH::CONST
-        #        PATH::CONST
+        # Translates roughly to
+        #    tmp = PATH # Execute this only once
+        #    if defined?(tmp::CONST) && tmp::CONST
+        #        tmp::CONST
         #    else
-        #        PATH::CONST = value
+        #        tmp::CONST = value
         #    end
         name, _is_private, prep_instruction = constant_name(node.target)
         # FIXME: is_private shouldn't be ignored I think
-        instructions = [
-          IsDefinedInstruction.new(type: 'constant'),
-          prep_instruction,
-          ConstFindInstruction.new(name, strict: true),
-          EndInstruction.new(:is_defined),
-          DupInstruction.new,
-          IfInstruction.new,
-          PopInstruction.new,
-          prep_instruction,
-          ConstFindInstruction.new(name, strict: true),
+        #
+        #                                                       This describes the stack for the three distinct paths
+        instructions = [                                        # if !defined?(tmp::CONST)           if defined?(tmp::CONST) && !tmp::CONST          if defined(tmp::CONST) && tmp::CONST
+          prep_instruction,                                     # [tmp]                              [tmp]                                           [tmp]
+          DupInstruction.new,                                   # [tmp, tmp]                         [tmp, tmp]                                      [tmp, tmp]
+          IsDefinedInstruction.new(type: 'constant'),           # [tmp, tmp, is_defined]             [tmp, tmp, is_defined]                          [tmp, tmp, is_defined]
+          SwapInstruction.new,                                  # [tmp, is_defined, tmp]             [tmp, is_defined, tmp]                          [tmp, is_defined, tmp]
+          ConstFindInstruction.new(name, strict: true),         # [tmp, is_defined, tmp, CONST]      [tmp, is_defined, tmp, CONST]                   [tmp, is_defined, tmp, CONST]
+          EndInstruction.new(:is_defined),                      # [tmp, false]                       [tmp, true]                                     [tmp, true]
+          IfInstruction.new,                                    # [tmp]                              [tmp]                                           [tmp]
+          DupInstruction.new,                                   #                                    [tmp, tmp]                                      [tmp, tmp]
+          ConstFindInstruction.new(name, strict: true),         #                                    [tmp, false]                                    [tmp, tmp::CONST]
           ElseInstruction.new(:if),
+          PushFalseInstruction.new,                             # [tmp, false]
           EndInstruction.new(:if),
-          IfInstruction.new,
-          prep_instruction,
-          ConstFindInstruction.new(name, strict: true),
+          IfInstruction.new,                                    # [tmp]                              [tmp]                                           [tmp]
+          ConstFindInstruction.new(name, strict: true),         #                                                                                    [tmp::Const]
           ElseInstruction.new(:if),
-          transform_expression(node.value, used: true),
-          DupInstruction.new,
-          prep_instruction,
-          ConstSetInstruction.new(name),
+          DupInstruction.new,                                   # [tmp, tmp]                         [tmp, tmp]
+          transform_expression(node.value, used: true),         # [tmp, tmp, value]                  [tmp, tmp, value]
+          SwapInstruction.new,                                  # [tmp, value, tmp]                  [tmp, value, tmp]
+          ConstSetInstruction.new(name),                        # [tmp]                              [tmp]
+          ConstFindInstruction.new(name, strict: true),         # [value]                            [value]
           EndInstruction.new(:if),
         ]
         instructions << PopInstruction.new unless used

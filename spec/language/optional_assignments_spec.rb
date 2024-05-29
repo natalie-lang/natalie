@@ -692,9 +692,7 @@ describe 'Optional constant assignment' do
     it 'causes side-effects of the module part to be applied only once (for undefined constant)' do
       x = 0
       (x += 1; ConstantSpecs::ClassA)::OR_ASSIGNED_CONSTANT2 ||= :assigned
-      NATFIXME 'Evaluate LHS only once', exception: SpecFailedException do
-        x.should == 1
-      end
+      x.should == 1
       NATFIXME "Don't use const_missing in defined?(const)", exception: SpecFailedException do
         ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT2.should == :assigned
       end
@@ -705,9 +703,7 @@ describe 'Optional constant assignment' do
         ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT2 = nil
         x = 0
         (x += 1; ConstantSpecs::ClassA)::NIL_OR_ASSIGNED_CONSTANT2 ||= :assigned
-        NATFIXME 'Evaluate LHS only once', exception: SpecFailedException do
-          x.should == 1
-        end
+        x.should == 1
         ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT2.should == :assigned
       end
     end
@@ -720,9 +716,7 @@ describe 'Optional constant assignment' do
         (x += 1; raise Exception; ConstantSpecs::ClassA)::OR_ASSIGNED_CONSTANT3 ||= (y += 1; :assigned)
       }.should raise_error(Exception)
 
-      NATFIXME 'Evaluate LHS only once', exception: SpecFailedException do
-        x.should == 1
-      end
+      x.should == 1
       NATFIXME 'it does not evaluate the right-hand side if the module part raises an exception (for undefined constant)', exception: SpecFailedException do
         y.should == 0
         defined?(ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT3).should == nil
@@ -738,13 +732,9 @@ describe 'Optional constant assignment' do
         (x += 1; raise Exception; ConstantSpecs::ClassA)::NIL_OR_ASSIGNED_CONSTANT3 ||= (y += 1; :assigned)
       }.should raise_error(Exception)
 
-      NATFIXME 'Evaluate LHS only once', exception: SpecFailedException do
-        x.should == 1
-      end
-      NATFIXME 'it does not evaluate the right-hand side if the module part raises an exception (for nil constant)', exception: SpecFailedException do
-        y.should == 0
-        ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT3.should == nil
-      end
+      x.should == 1
+      y.should == 0
+      ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT3.should == nil
     end
   end
 
