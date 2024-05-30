@@ -622,18 +622,19 @@ describe 'Optional variable assignments' do
       Object::A.should == 20
     end
 
-#    NATFIXME: Implement transform_constant_path_and_write_node
-#    it 'with &&= assignments' do
-#      Object::A = 20
-#      -> {
-#        Object::A &&= 10
-#      }.should complain(/already initialized constant/)
-#      Object::A.should == 10
-#    end
-#
-#    it 'with &&= assignments will fail with non-existent constants' do
-#      -> { Object::A &&= 10 }.should raise_error(NameError)
-#    end
+    it 'with &&= assignments' do
+      Object::A = 20
+      NATFIXME 'it should print a warning when reassigning a const', exception: SpecFailedException, message: /should have printed a warning/ do
+        -> {
+          Object::A &&= 10
+        }.should complain(/already initialized constant/)
+      end
+      Object::A.should == 10
+    end
+
+    it 'with &&= assignments will fail with non-existent constants' do
+      -> { Object::A &&= 10 }.should raise_error(NameError)
+    end
 
     it 'with operator assignments' do
       NATFIXME 'it should print a warning when reassigning a const', exception: SpecFailedException, message: /should have printed a warning/ do
@@ -739,40 +740,39 @@ describe 'Optional constant assignment' do
   end
 
   describe "with &&=" do
-#    NATFIXME: Implement transform_constant_path_and_write_node
-#    it "re-assigns a scoped constant if already true" do
-#      module ConstantSpecs
-#        OpAssignTrue = true
-#      end
-#      suppress_warning do
-#        ConstantSpecs::OpAssignTrue &&= 1
-#      end
-#      ConstantSpecs::OpAssignTrue.should == 1
-#      ConstantSpecs.send :remove_const, :OpAssignTrue
-#    end
-#
-#    it "leaves scoped constant if not true" do
-#      module ConstantSpecs
-#        OpAssignFalse = false
-#      end
-#      ConstantSpecs::OpAssignFalse &&= 1
-#      ConstantSpecs::OpAssignFalse.should == false
-#      ConstantSpecs.send :remove_const, :OpAssignFalse
-#    end
-#
-#    it 'causes side-effects of the module part to be applied only once (when assigns)' do
-#      module ConstantSpecs
-#        OpAssignTrue = true
-#      end
-#
-#      suppress_warning do # already initialized constant
-#        x = 0
-#        (x += 1; ConstantSpecs)::OpAssignTrue &&= :assigned
-#        x.should == 1
-#        ConstantSpecs::OpAssignTrue.should == :assigned
-#      end
-#
-#      ConstantSpecs.send :remove_const, :OpAssignTrue
-#    end
+    it "re-assigns a scoped constant if already true" do
+      module ConstantSpecs
+        OpAssignTrue = true
+      end
+      suppress_warning do
+        ConstantSpecs::OpAssignTrue &&= 1
+      end
+      ConstantSpecs::OpAssignTrue.should == 1
+      ConstantSpecs.send :remove_const, :OpAssignTrue
+    end
+
+    it "leaves scoped constant if not true" do
+      module ConstantSpecs
+        OpAssignFalse = false
+      end
+      ConstantSpecs::OpAssignFalse &&= 1
+      ConstantSpecs::OpAssignFalse.should == false
+      ConstantSpecs.send :remove_const, :OpAssignFalse
+    end
+
+    it 'causes side-effects of the module part to be applied only once (when assigns)' do
+      module ConstantSpecs
+        OpAssignTrue = true
+      end
+
+      suppress_warning do # already initialized constant
+        x = 0
+        (x += 1; ConstantSpecs)::OpAssignTrue &&= :assigned
+        x.should == 1
+        ConstantSpecs::OpAssignTrue.should == :assigned
+      end
+
+      ConstantSpecs.send :remove_const, :OpAssignTrue
+    end
   end
 end
