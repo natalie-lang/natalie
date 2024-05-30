@@ -611,17 +611,16 @@ describe 'Optional variable assignments' do
       Object.send(:remove_const, :A) if defined? Object::A
     end
 
-#    NATFIXME: Implement transform_constant_path_or_write_node
-#    it 'with ||= assignments' do
-#      Object::A ||= 10
-#      Object::A.should == 10
-#    end
-#
-#    it 'with ||= do not reassign' do
-#      Object::A = 20
-#      Object::A ||= 10
-#      Object::A.should == 20
-#    end
+    it 'with ||= assignments' do
+      Object::A ||= 10
+      Object::A.should == 10
+    end
+
+    it 'with ||= do not reassign' do
+      Object::A = 20
+      Object::A ||= 10
+      Object::A.should == 20
+    end
 
 #    NATFIXME: Implement transform_constant_path_and_write_node
 #    it 'with &&= assignments' do
@@ -660,83 +659,83 @@ describe 'Optional constant assignment' do
         OpAssignUndefined ||= 42
       end
       ConstantSpecs::OpAssignUndefined.should == 42
-#     NATFIXME: Implement transform_constant_path_or_write_node
-#     ConstantSpecs::OpAssignUndefinedOutside ||= 42
-#     ConstantSpecs::OpAssignUndefinedOutside.should == 42
+      ConstantSpecs::OpAssignUndefinedOutside ||= 42
+      ConstantSpecs::OpAssignUndefinedOutside.should == 42
       ConstantSpecs.send(:remove_const, :OpAssignUndefined)
-#     NATFIXME: Implement transform_constant_path_or_write_node
-#     ConstantSpecs.send(:remove_const, :OpAssignUndefinedOutside)
+      ConstantSpecs.send(:remove_const, :OpAssignUndefinedOutside)
     end
 
     it "assigns a global constant if previously undefined" do
       OpAssignGlobalUndefined ||= 42
-#     NATFIXME: Implement transform_constant_path_or_write_node
-#     ::OpAssignGlobalUndefinedExplicitScope ||= 42
+      ::OpAssignGlobalUndefinedExplicitScope ||= 42
       OpAssignGlobalUndefined.should == 42
-#     NATFIXME: Implement transform_constant_path_or_write_node
-#     ::OpAssignGlobalUndefinedExplicitScope.should == 42
+      ::OpAssignGlobalUndefinedExplicitScope.should == 42
       Object.send :remove_const, :OpAssignGlobalUndefined
-#     NATFIXME: Implement transform_constant_path_or_write_node
-#     Object.send :remove_const, :OpAssignGlobalUndefinedExplicitScope
+      Object.send :remove_const, :OpAssignGlobalUndefinedExplicitScope
     end
 
-#    NATFIXME: Implement transform_constant_path_or_write_node
-#    it 'correctly defines non-existing constants' do
-#      ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT1 ||= :assigned
-#      ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT1.should == :assigned
-#    end
-#
-#    it 'correctly overwrites nil constants' do
-#      suppress_warning do # already initialized constant
-#      ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT1 = nil
-#      ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT1 ||= :assigned
-#      ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT1.should == :assigned
-#      end
-#    end
-#
-#    it 'causes side-effects of the module part to be applied only once (for undefined constant)' do
-#      x = 0
-#      (x += 1; ConstantSpecs::ClassA)::OR_ASSIGNED_CONSTANT2 ||= :assigned
-#      x.should == 1
-#      ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT2.should == :assigned
-#    end
-#
-#    it 'causes side-effects of the module part to be applied only once (for nil constant)' do
-#      suppress_warning do # already initialized constant
-#      ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT2 = nil
-#      x = 0
-#      (x += 1; ConstantSpecs::ClassA)::NIL_OR_ASSIGNED_CONSTANT2 ||= :assigned
-#      x.should == 1
-#      ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT2.should == :assigned
-#      end
-#    end
-#
-#    it 'does not evaluate the right-hand side if the module part raises an exception (for undefined constant)' do
-#      x = 0
-#      y = 0
-#
-#      -> {
-#        (x += 1; raise Exception; ConstantSpecs::ClassA)::OR_ASSIGNED_CONSTANT3 ||= (y += 1; :assigned)
-#      }.should raise_error(Exception)
-#
-#      x.should == 1
-#      y.should == 0
-#      defined?(ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT3).should == nil
-#    end
-#
-#    it 'does not evaluate the right-hand side if the module part raises an exception (for nil constant)' do
-#      ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT3 = nil
-#      x = 0
-#      y = 0
-#
-#      -> {
-#        (x += 1; raise Exception; ConstantSpecs::ClassA)::NIL_OR_ASSIGNED_CONSTANT3 ||= (y += 1; :assigned)
-#      }.should raise_error(Exception)
-#
-#      x.should == 1
-#      y.should == 0
-#      ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT3.should == nil
-#    end
+    it 'correctly defines non-existing constants' do
+      ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT1 ||= :assigned
+      NATFIXME "Don't use const_missing in defined?(const)", exception: SpecFailedException do
+        ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT1.should == :assigned
+      end
+    end
+
+    it 'correctly overwrites nil constants' do
+      suppress_warning do # already initialized constant
+      ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT1 = nil
+      ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT1 ||= :assigned
+      ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT1.should == :assigned
+      end
+    end
+
+    it 'causes side-effects of the module part to be applied only once (for undefined constant)' do
+      x = 0
+      (x += 1; ConstantSpecs::ClassA)::OR_ASSIGNED_CONSTANT2 ||= :assigned
+      x.should == 1
+      NATFIXME "Don't use const_missing in defined?(const)", exception: SpecFailedException do
+        ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT2.should == :assigned
+      end
+    end
+
+    it 'causes side-effects of the module part to be applied only once (for nil constant)' do
+      suppress_warning do # already initialized constant
+        ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT2 = nil
+        x = 0
+        (x += 1; ConstantSpecs::ClassA)::NIL_OR_ASSIGNED_CONSTANT2 ||= :assigned
+        x.should == 1
+        ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT2.should == :assigned
+      end
+    end
+
+    it 'does not evaluate the right-hand side if the module part raises an exception (for undefined constant)' do
+      x = 0
+      y = 0
+
+      -> {
+        (x += 1; raise Exception; ConstantSpecs::ClassA)::OR_ASSIGNED_CONSTANT3 ||= (y += 1; :assigned)
+      }.should raise_error(Exception)
+
+      x.should == 1
+      NATFIXME 'it does not evaluate the right-hand side if the module part raises an exception (for undefined constant)', exception: SpecFailedException do
+        y.should == 0
+        defined?(ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT3).should == nil
+      end
+    end
+
+    it 'does not evaluate the right-hand side if the module part raises an exception (for nil constant)' do
+      ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT3 = nil
+      x = 0
+      y = 0
+
+      -> {
+        (x += 1; raise Exception; ConstantSpecs::ClassA)::NIL_OR_ASSIGNED_CONSTANT3 ||= (y += 1; :assigned)
+      }.should raise_error(Exception)
+
+      x.should == 1
+      y.should == 0
+      ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT3.should == nil
+    end
   end
 
   describe "with &&=" do
