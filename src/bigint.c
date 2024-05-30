@@ -1349,9 +1349,18 @@ int bigint_twos_complement(bigint *dst, const bigint *src, int n) {
     return dst->size;
 }
 
+void bigint_twos_complement_sign_extend(bigint *dst) {
+    bigint_word highest_word = dst->words[dst->size - 1];
+    int bits = bigint_word_bitlength(highest_word);
+    bigint_word pad = ((1ULL << (BIGINT_WORD_BITS - bits)) - 1) << bits;
+    dst->words[dst->size - 1] = highest_word | pad;
+}
+
 void bigint_convert_negative_twos_complement(bigint *dst) {
     dst->neg = 0;
-    if (dst->words[dst->size - 1] & (1u << (BIGINT_WORD_BITS - 1))) {
+    bigint_word highest_word = dst->words[dst->size - 1];
+    bigint_word sign_bit = 1u << (BIGINT_WORD_BITS - 1);
+    if (highest_word & sign_bit) {
         bigint_raw_bitwise_not(dst->words, dst->words, dst->size);
         bigint_add_word(dst, dst, 1);
         dst->size = bigint_raw_truncate(dst->words, dst->size);
@@ -1384,6 +1393,7 @@ int prepare_bitwise_operand(bigint *dst, const bigint *src, int n) {
             bigint_extend(tmp_b, new_max);                                 \
             op(dst, tmp_a->words, tmp_a->size, tmp_b->words, tmp_b->size); \
             dst->size = bigint_raw_truncate(dst->words, dst->size);        \
+            /* probably bigint_twos_complement_sign_extend(dst);  */       \
             bigint_convert_negative_twos_complement(dst);                  \
             bigint_free(tmp_a);                                            \
             bigint_free(tmp_b);                                            \

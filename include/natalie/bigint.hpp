@@ -220,7 +220,7 @@ struct BigInt {
 
     double to_double() const;
     TM::String to_string(int base = 10) const;
-    inline TM::String to_binary() const { return to_string(2); }
+    TM::String to_binary() const;
 
     static BigInt gcd(const BigInt &a, const BigInt &b) {
         BigInt c;

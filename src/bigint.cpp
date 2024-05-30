@@ -5,10 +5,18 @@ namespace Natalie {
 BigInt &BigInt::operator>>=(unsigned long long shift) {
     unsigned long long bits = bigint_bitlength(data);
     if (shift > bits) {
-        if (*this < 0ll)
+        if (data->neg)
             *this = -1;
         else
             *this = 0;
+        return *this;
+    }
+
+    if (data->neg) {
+        bigint_twos_complement(data, data, data->size + 1);
+        bigint_shift_right(data, data, shift);
+        bigint_twos_complement_sign_extend(data);
+        bigint_convert_negative_twos_complement(data);
         return *this;
     }
 
@@ -27,18 +35,22 @@ double BigInt::to_double() const {
 }
 
 TM::String BigInt::to_string(int base) const {
-    if (data->neg) {
-        BigInt temp;
-        bigint_twos_complement(temp.data, data, data->size + 1);
-        return temp.to_string(base);
-    }
-
     const auto size = bigint_write_size(data, base);
     // includes a space for possible `-` and one for the null terminator `\0`
     char buf[size];
     int _size = size;
     bigint_write_base(buf, &_size, data, base, 1);
     return TM::String(buf);
+}
+
+TM::String BigInt::to_binary() const {
+    if (data->neg) {
+        BigInt temp;
+        bigint_twos_complement(temp.data, data, data->size + 1);
+        return temp.to_binary();
+    }
+
+    return to_string(2);
 }
 
 BigInt &BigInt::operator/=(const BigInt &b) {

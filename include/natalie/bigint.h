@@ -112,6 +112,8 @@ bigint *bigint_shift_left(bigint *dst, const bigint *src, unsigned long long shi
 bigint *bigint_shift_right(bigint *dst, const bigint *src, unsigned long long shift);
 
 int bigint_twos_complement(bigint *dst, const bigint *src, int n);
+void bigint_twos_complement_sign_extend(bigint *dst);
+void bigint_convert_negative_twos_complement(bigint *dst);
 
 int bigint_bitlength(const bigint *a);
 int bigint_count_trailing_zeros(const bigint *a);
