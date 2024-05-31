@@ -1153,60 +1153,6 @@ bigint *bigint_pow_mod(
     return dst;
 }
 
-int bigint_is_probable_prime(
-    const bigint *n,
-    int n_tests,
-    bigint_rand_func rand_func) {
-    bigint a[1], d[1], x[1], two[1], n_minus_one[1], n_minus_three[1];
-    int i, shift;
-
-    /* divisible by 2, not prime */
-    if (bigint_get_bit(n, 0) == 0) return 0;
-
-    /* 1, 3 are prime */
-    if (bigint_cmp_abs_word(n, 3) <= 0) return 1;
-
-    bigint_init(a);
-    bigint_init(d);
-    bigint_init(x);
-    bigint_init(two);
-    bigint_init(n_minus_one);
-    bigint_init(n_minus_three);
-
-    bigint_from_word(two, 2);
-
-    bigint_sub_word(n_minus_one, n, 1);
-    bigint_sub_word(n_minus_three, n, 3);
-
-    shift = bigint_count_trailing_zeros(n_minus_one);
-    bigint_shift_right(d, n_minus_one, shift);
-
-    do {
-        bigint_rand_inclusive(a, n_minus_three, rand_func);
-        bigint_add_word(a, a, 2);
-        bigint_pow_mod(x, a, d, n);
-
-        if (bigint_cmp_abs_word(x, 1) == 0) continue;
-        if (bigint_cmp(x, n_minus_one) == 0) continue;
-
-        for (i = 1; i < shift; i++) {
-            bigint_pow_mod(x, x, two, n);
-            if (bigint_cmp_abs_word(x, 1) == 0) return 0;
-            if (bigint_cmp(x, n_minus_one) == 0) break;
-        }
-
-        if (i == shift) return 0;
-    } while (--n_tests);
-
-    bigint_free(a);
-    bigint_free(d);
-    bigint_free(x);
-    bigint_free(two);
-    bigint_free(n_minus_one);
-    bigint_free(n_minus_three);
-    return 1;
-}
-
 bigint *bigint_pow_word(bigint *dst, const bigint *base, bigint_word exponent) {
     bigint result[1], p[1];
 

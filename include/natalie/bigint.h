@@ -152,9 +152,6 @@ bigint *bigint_pow_mod(
     const bigint *src_exponent,
     const bigint *src_modulus);
 
-/* probability for wrong positives is approximately 1/4^n_tests */
-int bigint_is_probable_prime(const bigint *n, int n_tests, bigint_rand_func rand_func);
-
 bigint *bigint_pow_word(bigint *dst, const bigint *src, bigint_word exponent);
 
 double bigint_double(const bigint *src);

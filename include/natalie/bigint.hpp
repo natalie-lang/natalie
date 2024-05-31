@@ -188,10 +188,6 @@ struct BigInt {
         return bigint_count_trailing_zeros(data);
     }
 
-    bool is_probable_prime(int n_tests, bigint_rand_func rand_func) const {
-        return bigint_is_probable_prime(data, n_tests, rand_func);
-    }
-
     BigInt sqrt() const {
         BigInt b;
         bigint_sqrt(b.data, data);
