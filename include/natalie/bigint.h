@@ -111,9 +111,9 @@ char *bigint_write(char *dst, int n_dst, const bigint *a);
 bigint *bigint_shift_left(bigint *dst, const bigint *src, unsigned long long shift);
 bigint *bigint_shift_right(bigint *dst, const bigint *src, unsigned long long shift);
 
-int bigint_twos_complement(bigint *dst, const bigint *src, int n);
 void bigint_twos_complement_sign_extend(bigint *dst);
-void bigint_convert_negative_twos_complement(bigint *dst);
+int bigint_convert_to_twos_complement(bigint *dst, int n);
+void bigint_convert_from_twos_complement(bigint *dst);
 
 int bigint_bitlength(const bigint *a);
 int bigint_count_trailing_zeros(const bigint *a);

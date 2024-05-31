@@ -13,10 +13,10 @@ BigInt &BigInt::operator>>=(unsigned long long shift) {
     }
 
     if (data->neg) {
-        bigint_twos_complement(data, data, data->size + 1);
+        bigint_convert_to_twos_complement(data, data->size + 1);
         bigint_shift_right(data, data, shift);
         bigint_twos_complement_sign_extend(data);
-        bigint_convert_negative_twos_complement(data);
+        bigint_convert_from_twos_complement(data);
         return *this;
     }
 
@@ -46,7 +46,8 @@ TM::String BigInt::to_string(int base) const {
 TM::String BigInt::to_binary() const {
     if (data->neg) {
         BigInt temp;
-        bigint_twos_complement(temp.data, data, data->size + 1);
+        bigint_cpy(temp.data, data);
+        bigint_convert_to_twos_complement(temp.data, data->size + 1);
         return temp.to_binary();
     }
 
