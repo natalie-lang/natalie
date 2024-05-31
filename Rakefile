@@ -77,7 +77,7 @@ end
 
 desc 'Run the most-recently-modified test when any source files change (requires entr binary)'
 task :watch do
-  files = Rake::FileList['**/*.cpp', '**/*.hpp', '**/*.rb']
+  files = Rake::FileList['**/*.cpp', '**/*.c', '**/*.hpp', '**/*.rb'].exclude('{build,ext}/**/*')
   sh "ls #{files} | entr -c -s 'rake test_last_modified'"
 end
 
@@ -543,7 +543,7 @@ file "build/libnat.#{SO_EXT}" => SOURCES + ['lib/natalie/api.cpp', 'build/libnat
 end
 
 rule '.c.o' => 'src/%n' do |t|
-  sh "#{cc} -g -fPIC -c -o #{t.name} #{t.source}"
+  sh "#{cc} -I include -g -fPIC -c -o #{t.name} #{t.source}"
 end
 
 rule '.cpp.o' => ['src/%{build/,}X'] + HEADERS do |t|
