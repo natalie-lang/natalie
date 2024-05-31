@@ -202,6 +202,7 @@ bigint *bigint_init(bigint *dst) {
 }
 
 bigint *bigint_reserve(bigint *dst, int capacity) {
+    BIGINT_ASSERT(capacity, >, 0);
     if (dst->capacity >= capacity) return dst;
     dst->capacity = capacity;
     dst->words = (bigint_word *)realloc(dst->words, capacity * sizeof(*dst->words));
