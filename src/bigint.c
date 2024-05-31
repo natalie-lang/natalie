@@ -1360,12 +1360,3 @@ int prepare_bitwise_operand(bigint *dst, const bigint *src, int n) {
 BIGINT_DEFINE_BITWISE_OP_FUNCTION(bigint_bitwise_and, bigint_raw_bitwise_and);
 BIGINT_DEFINE_BITWISE_OP_FUNCTION(bigint_bitwise_or, bigint_raw_bitwise_or);
 BIGINT_DEFINE_BITWISE_OP_FUNCTION(bigint_bitwise_xor, bigint_raw_bitwise_xor);
-
-bigint *bigint_bitwise_not(bigint *dst, const bigint *src) {
-    bigint neg_one;
-    bigint_init(&neg_one);
-    bigint_from_int(&neg_one, -1);
-    bigint_sub(dst, &neg_one, src);
-    bigint_free(&neg_one);
-    return dst;
-}

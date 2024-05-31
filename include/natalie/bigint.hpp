@@ -249,12 +249,6 @@ inline BigInt operator-(const BigInt &a) {
     return b;
 }
 
-inline BigInt operator~(const BigInt &a) {
-    BigInt b;
-    bigint_bitwise_not(b.data, a.data);
-    return b;
-}
-
 inline BigInt operator+(const BigInt &a, const BigInt &b) {
     return BigInt(a) += b;
 }
@@ -273,6 +267,10 @@ inline BigInt operator/(const BigInt &a, const BigInt &b) {
 
 inline BigInt operator%(const BigInt &a, const BigInt &b) {
     return BigInt(a) %= b;
+}
+
+inline BigInt operator~(const BigInt &a) {
+    return BigInt(-1) - a;
 }
 
 inline BigInt operator<<(const BigInt &a, long long shift) {
