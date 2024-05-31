@@ -1197,7 +1197,7 @@ double bigint_double(const bigint *src) {
     int n, n_mant_bits = 52;
     uint64_t x = 0, exponent = 1023;
     double d;
-    bigint_word tmp[20];
+    bigint_word tmp[20] = { 0 };
 
     if (src->size == 0) return 0.0;
 
