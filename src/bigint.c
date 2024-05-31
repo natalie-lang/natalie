@@ -263,7 +263,7 @@ int bigint_cmp_abs_word(const bigint *a, bigint_word b) {
 
 void bigint_raw_zero(bigint_word *dst, int from, int to) {
     if (from >= to) return;
-    memset(dst + from, 0, (to - from) * sizeof(*dst));
+    memset(dst + from, 0, (to - from) * sizeof(*dst)); // NOLINT
 }
 
 bigint *bigint_set_neg(bigint *dst, int neg) {
@@ -276,7 +276,7 @@ bigint *bigint_negate(bigint *dst) {
 }
 
 int bigint_raw_cpy(bigint_word *dst, const bigint_word *src, int n) {
-    memcpy(dst, src, n * sizeof(*src));
+    memcpy(dst, src, n * sizeof(*src)); // NOLINT
     return n;
 }
 
@@ -602,7 +602,7 @@ bigint *bigint_from_int(bigint *dst, int src) {
     int n = BIGINT_MAX(1, sizeof(x) / sizeof(bigint_word));
     bigint_reserve(dst, n);
     bigint_raw_zero(dst->words, 0, n);
-    memcpy(dst->words, &x, sizeof(x));
+    memcpy(dst->words, &x, sizeof(x)); // NOLINT
     dst->size = bigint_raw_truncate(dst->words, n);
     return bigint_set_neg(dst, src < 0);
 }
@@ -1206,10 +1206,10 @@ double bigint_double(const bigint *src) {
     bigint_raw_clr_bit(tmp, n_mant_bits);
     exponent--;
     exponent += n;
-    memcpy(&x, tmp, sizeof(x));
+    memcpy(&x, tmp, sizeof(x)); // NOLINT
     x |= exponent << n_mant_bits;
 
-    memcpy(&d, &x, sizeof(d));
+    memcpy(&d, &x, sizeof(d)); // NOLINT
     return src->neg ? -d : d;
 }
 
