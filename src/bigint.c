@@ -282,6 +282,11 @@ int bigint_raw_cpy(bigint_word *dst, const bigint_word *src, int n) {
 
 bigint *bigint_cpy(bigint *dst, const bigint *src) {
     if (src == dst) return dst;
+    if (src->size == 0) {
+        dst->size = 0;
+        return bigint_set_neg(dst, src->neg);
+    }
+
     bigint_reserve(dst, src->size);
     dst->size = bigint_raw_cpy(dst->words, src->words, src->size);
     BIGINT_ASSERT(bigint_cmp_abs(src, dst), ==, 0);
