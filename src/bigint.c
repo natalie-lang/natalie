@@ -1391,6 +1391,7 @@ int prepare_bitwise_operand(bigint *dst, const bigint *src, int n) {
             int new_max = BIGINT_MAX(na, nb);                              \
             bigint_extend(tmp_a, new_max);                                 \
             bigint_extend(tmp_b, new_max);                                 \
+            bigint_extend(dst, new_max);                                   \
             op(dst, tmp_a->words, tmp_a->size, tmp_b->words, tmp_b->size); \
             dst->size = bigint_raw_truncate(dst->words, dst->size);        \
             /* probably bigint_twos_complement_sign_extend(dst);  */       \
