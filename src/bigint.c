@@ -11,8 +11,8 @@
 #define BIGINT_ASSERT(a, op, b) assert((a)op(b));
 
 // temporary
-void print_bigint(bigint *n) {
-    printf("size = %d\n", n->size);
+void print_bigint(const bigint *n) {
+    printf("size = %d, cap = %d, neg = %d\n", n->size, n->capacity, n->neg);
     for (int i = 0; i < n->size; i++) {
         printf("words[%d] = %u\n", i, n->words[i]);
     }
@@ -1268,6 +1268,8 @@ double bigint_double(const bigint *src) {
 
 void bigint_raw_bitwise_and(bigint *dst, const bigint_word *src_a, int na, const bigint_word *src_b, int nb) {
     int i, n = BIGINT_MIN(na, nb);
+    int max = BIGINT_MAX(na, nb);
+    bigint_reserve(dst, max);
 
     for (i = 0; i < n; i++) {
         dst->words[i] = src_a[i] & src_b[i];
@@ -1281,12 +1283,13 @@ void bigint_raw_bitwise_and(bigint *dst, const bigint_word *src_a, int na, const
         dst->words[i] = 0;
     }
 
-    dst->size = BIGINT_MAX(na, nb);
-    dst->size = bigint_raw_truncate(dst->words, dst->size);
+    dst->size = max;
 }
 
 void bigint_raw_bitwise_or(bigint *dst, const bigint_word *src_a, int na, const bigint_word *src_b, int nb) {
     int i, n = BIGINT_MIN(na, nb);
+    int max = BIGINT_MAX(na, nb);
+    bigint_reserve(dst, max);
 
     for (i = 0; i < n; i++) {
         dst->words[i] = src_a[i] | src_b[i];
@@ -1300,12 +1303,14 @@ void bigint_raw_bitwise_or(bigint *dst, const bigint_word *src_a, int na, const 
         dst->words[i] = src_b[i];
     }
 
-    dst->size = BIGINT_MAX(na, nb);
+    dst->size = max;
     dst->size = bigint_raw_truncate(dst->words, dst->size);
 }
 
 void bigint_raw_bitwise_xor(bigint *dst, const bigint_word *src_a, int na, const bigint_word *src_b, int nb) {
     int i, n = BIGINT_MIN(na, nb);
+    int max = BIGINT_MAX(na, nb);
+    bigint_reserve(dst, max);
 
     for (i = 0; i < n; i++) {
         dst->words[i] = src_a[i] ^ src_b[i];
@@ -1321,7 +1326,7 @@ void bigint_raw_bitwise_xor(bigint *dst, const bigint_word *src_a, int na, const
         dst->words[i] = (1ULL << bits) - 1;
     }
 
-    dst->size = BIGINT_MAX(na, nb);
+    dst->size = max;
     dst->size = bigint_raw_truncate(dst->words, dst->size);
 }
 
@@ -1363,9 +1368,9 @@ void bigint_convert_negative_twos_complement(bigint *dst) {
     if (highest_word & sign_bit) {
         bigint_raw_bitwise_not(dst->words, dst->words, dst->size);
         bigint_add_word(dst, dst, 1);
-        dst->size = bigint_raw_truncate(dst->words, dst->size);
         dst->neg = 1;
     }
+    dst->size = bigint_raw_truncate(dst->words, dst->size);
 }
 
 int prepare_bitwise_operand(bigint *dst, const bigint *src, int n) {
@@ -1383,6 +1388,7 @@ int prepare_bitwise_operand(bigint *dst, const bigint *src, int n) {
         bigint_reserve(dst, max);                                          \
         if (!a->neg && !b->neg) {                                          \
             op(dst, a->words, a->size, b->words, b->size);                 \
+            dst->size = bigint_raw_truncate(dst->words, dst->size);        \
             dst->neg = 0;                                                  \
         } else {                                                           \
             bigint tmp_a[1], tmp_b[1];                                     \
@@ -1391,10 +1397,7 @@ int prepare_bitwise_operand(bigint *dst, const bigint *src, int n) {
             int new_max = BIGINT_MAX(na, nb);                              \
             bigint_extend(tmp_a, new_max);                                 \
             bigint_extend(tmp_b, new_max);                                 \
-            bigint_extend(dst, new_max);                                   \
             op(dst, tmp_a->words, tmp_a->size, tmp_b->words, tmp_b->size); \
-            dst->size = bigint_raw_truncate(dst->words, dst->size);        \
-            /* probably bigint_twos_complement_sign_extend(dst);  */       \
             bigint_convert_negative_twos_complement(dst);                  \
             bigint_free(tmp_a);                                            \
             bigint_free(tmp_b);                                            \
