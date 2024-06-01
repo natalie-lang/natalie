@@ -79,6 +79,8 @@ Value ArrayObject::initialize_copy(Env *env, Value other) {
     assert_not_frozen(env);
 
     ArrayObject *other_array = other->to_ary(env);
+    if (this == other_array)
+        return this;
 
     clear(env);
     for (auto &item : *other_array) {
