@@ -53,8 +53,6 @@ describe "Regexps with interpolation" do
 
   it "allows escape sequences in interpolated regexps" do
     escape_seq = %r{"\x80"}n
-    NATFIXME 'it allows escape sequences in interpolated regexps', exception: SpecFailedException do
-      %r{#{escape_seq}}n.should == /(?-mix:"\x80")/n
-    end
+    %r{#{escape_seq}}n.should == /(?-mix:"\x80")/n
   end
 end
