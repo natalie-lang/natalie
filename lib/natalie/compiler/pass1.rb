@@ -2117,9 +2117,24 @@ module Natalie
       end
 
       def transform_regular_expression_node(node, used:)
-        return [] unless used
         regexp = Regexp.new(node.unescaped, node.options)
+        return [] unless used
         PushRegexpInstruction.new(regexp)
+      rescue RegexpError => e
+        [
+          PushSelfInstruction.new,
+          PushSelfInstruction.new,
+          ConstFindInstruction.new(:SyntaxError, strict: false),
+          PushStringInstruction.new(e.message),
+          PushArgcInstruction.new(2),
+          SendInstruction.new(
+            :raise,
+            receiver_is_self: true,
+            with_block: false,
+            file: @file.path,
+            line: node.location.start_line,
+          )
+        ]
       end
 
       def transform_rescue_modifier_node(node, used:)
