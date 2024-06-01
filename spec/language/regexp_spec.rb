@@ -34,10 +34,9 @@ describe "Literal Regexps" do
     end
   end
 
-  # NATFIXME: Compile error for invalid Regexp syntax
-  #it "throws SyntaxError for malformed literals" do
-    #-> { eval('/(/') }.should raise_error(SyntaxError)
-  #end
+  it "throws SyntaxError for malformed literals" do
+    -> { eval('/(/') }.should raise_error(SyntaxError)
+  end
 
   #############################################################################
   # %r
