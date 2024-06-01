@@ -2000,4 +2000,13 @@ describe 'array' do
       ([1, 2, 3] * 100).should == expected
     end
   end
+
+  describe '#replace' do
+    it 'does nothing if called with self' do
+      a = [:foo, :bar]
+      id_was = a.object_id
+      a.replace(a).should == [:foo, :bar]
+      a.object_id.should == id_was
+    end
+  end
 end
