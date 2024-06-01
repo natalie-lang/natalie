@@ -39,4 +39,11 @@ describe 'puts a string' do
 
     ruby_exe(@bytecode_file, options: "--bytecode").should == "ASCII-8BIT\n"
   end
+
+  it 'supports string interpolation' do
+    code = 'puts "foo #{120 + 3}"'
+    ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
+
+    ruby_exe(@bytecode_file, options: "--bytecode").should == "foo 123\n"
+  end
 end
