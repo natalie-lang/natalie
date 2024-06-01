@@ -9,7 +9,7 @@ describe 'it can run some code with a variable_declare instruction' do
     rm_r @bytecode_file
   end
 
-  it 'can run some code with a variable_declar instruction' do
+  it 'can run some code with a variable_declare instruction' do
     code = 'a = 1; puts a'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
