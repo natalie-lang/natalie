@@ -120,10 +120,7 @@ public:
         }
     }
 
-    bool operator==(const RegexpObject &other) const {
-        return m_pattern == other.m_pattern && (m_options | RegexOpts::NoEncoding) == (other.m_options | RegexOpts::NoEncoding);
-        // /n encoding option is ignored when doing == in ruby MRI
-    }
+    bool operator==(const RegexpObject &other) const;
 
     bool casefold(Env *env) const {
         assert_initialized(env);

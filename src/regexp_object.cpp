@@ -528,6 +528,14 @@ Value RegexpObject::names() const {
     return names;
 }
 
+bool RegexpObject::operator==(const RegexpObject &other) const {
+    // /n encoding option is ignored when doing == in ruby MRI
+    int our_options = m_options | RegexOpts::NoEncoding;
+    int their_options = other.m_options | RegexOpts::NoEncoding;
+
+    return m_pattern == other.m_pattern && our_options == their_options;
+}
+
 Value RegexpObject::source(Env *env) const {
     assert_initialized(env);
     return new StringObject { pattern() };
