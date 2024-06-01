@@ -154,7 +154,7 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 
 | file(s)          | copyright                         | license           |
 | ---------------- | --------------------------------- | ----------------- |
-| `big_int.*`      | Syed Faheel Ahmad                 | MIT               |
+| `bigint.*`       | 983                               | Unlicense         |
 | `dtoa.c`         | David M. Gay, Lucent Technologies | custom permissive |
 | `ipaddr.rb`      | Hajimu Umemoto and Akinori Musha  | BSD               |
 | `find.rb`        | Kazuki Tsujimoto                  | BSD               |
