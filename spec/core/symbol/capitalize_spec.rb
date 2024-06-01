@@ -15,10 +15,8 @@ describe "Symbol#capitalize" do
   end
 
   it "capitalizes the first character if it is Unicode" do
-    NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
     :"äöü".capitalize.should == :"Äöü"
     :"aou".capitalize.should == :"Aou"
-    end
   end
 
   it "converts subsequent uppercase ASCII characters to their lowercase equivalents" do

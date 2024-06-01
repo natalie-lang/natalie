@@ -15,9 +15,7 @@ describe "String#capitalize" do
 
   describe "full Unicode case mapping" do
     it "works for all of Unicode with no option" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "äöÜ".capitalize.should == "Äöü"
-      end
+      "äöÜ".capitalize.should == "Äöü"
     end
 
     it "only capitalizes the first resulting character when upcasing a character produces a multi-character sequence" do
@@ -115,11 +113,9 @@ describe "String#capitalize!" do
 
   describe "full Unicode case mapping" do
     it "modifies self in place for all of Unicode with no option" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a = "äöÜ"
-        a.capitalize!
-        a.should == "Äöü"
-      end
+      a = "äöÜ"
+      a.capitalize!
+      a.should == "Äöü"
     end
 
     it "only capitalizes the first resulting character when upcasing a character produces a multi-character sequence" do
@@ -131,11 +127,9 @@ describe "String#capitalize!" do
     end
 
     it "works for non-ascii-compatible encodings" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a = "äöü".encode("utf-16le")
-        a.capitalize!
-        a.should == "Äöü".encode("utf-16le")
-      end
+      a = "äöü".encode("utf-16le")
+      a.capitalize!
+      a.should == "Äöü".encode("utf-16le")
     end
 
     it "updates string metadata" do
