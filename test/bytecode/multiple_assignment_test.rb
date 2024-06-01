@@ -2,8 +2,7 @@
 
 require_relative '../spec_helper'
 
-# `monkey.rb` from https://ruby-compilers.com/examples/
-describe 'support monkey patching' do
+describe 'support multiple assignment' do
   before :each do
     @bytecode_file = tmp('bytecode')
   end
@@ -12,7 +11,7 @@ describe 'support monkey patching' do
     rm_r @bytecode_file
   end
 
-  it 'supports monkey patching' do
+  it 'supports multiple assignment' do
     code = <<~RUBY
       a, *b, c = [1, 2, 3, 4]
       p [a, b, c]
