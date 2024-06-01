@@ -351,7 +351,11 @@ Value HashObject::rehash(Env *env) {
 }
 
 Value HashObject::replace(Env *env, Value other) {
+    assert_not_frozen(env);
+
     auto other_hash = other->to_hash(env);
+    if (this == other_hash)
+        return this;
 
     clear(env);
     for (auto node : *other_hash) {

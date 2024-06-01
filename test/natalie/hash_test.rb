@@ -360,4 +360,13 @@ describe 'hash' do
       -> { hash[:b] = 2 }.should_not raise_error
     end
   end
+
+  describe '#replace' do
+    it 'does nothing if called with self' do
+      h = { foo: 'bar' }
+      id_was = h.object_id
+      h.replace(h).should == { foo: 'bar' }
+      h.object_id.should == id_was
+    end
+  end
 end
