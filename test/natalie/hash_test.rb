@@ -190,7 +190,7 @@ describe 'hash' do
                                                             )
   end
 
-  it 'an entry can be modified during iteration' do
+  it 'can modify an entry during iteration' do
     hash = { 1 => 'one' }
     vals = []
     hash.each do |key, val|
@@ -202,7 +202,7 @@ describe 'hash' do
     hash.size.should == 1
   end
 
-  it 'the only key can be deleted during iteration' do
+  it 'can delete the only key during iteration' do
     hash = { 1 => 'one' }
     vals = []
     hash.each do |key, val|
@@ -214,7 +214,7 @@ describe 'hash' do
     hash.size.should == 0
   end
 
-  it 'the current key can be deleted during iteration' do
+  it 'can delete the current key during iteration' do
     hash = { 1 => 'one', 2 => 'two', 3 => 'three' }
     vals = []
     hash.each do |key, val|
@@ -226,7 +226,7 @@ describe 'hash' do
     hash.size.should == 2
   end
 
-  it 'a future key can be deleted during iteration' do
+  it 'can delete a future key during iteration' do
     hash = { 1 => 'one', 2 => 'two', 3 => 'three' }
     vals = []
     hash.each do |key, val|
@@ -238,7 +238,7 @@ describe 'hash' do
     hash.size.should == 2
   end
 
-  it 'all keys can be deleted during iteration' do
+  it 'can delete all keys during iteration' do
     hash = { 1 => 'one', 2 => 'two', 3 => 'three' }
     vals = []
     hash.each do |key, val|
