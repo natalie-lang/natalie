@@ -240,7 +240,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
     return this;
 }
 
-static String prepare_pattern_for_onigmo(const String &pattern) {
+static String prepare_pattern_for_onigmo(const String &pattern, bool *fixed_encoding) {
     String new_pattern;
     auto length = pattern.length();
     size_t index = 0;
@@ -306,6 +306,13 @@ static String prepare_pattern_for_onigmo(const String &pattern) {
                 break;
             }
 
+            case 'x': {
+                *fixed_encoding = true;
+                new_pattern.append_char('\\');
+                new_pattern.append_char('x');
+                break;
+            }
+
             default:
                 new_pattern.append_char('\\');
                 new_pattern.append_char(c);
@@ -327,7 +334,10 @@ void RegexpObject::initialize(Env *env, const String &pattern, int options) {
     OnigErrorInfo einfo;
     m_pattern = pattern;
 
-    auto tweaked_pattern = prepare_pattern_for_onigmo(pattern);
+    bool fixed_encoding = false;
+    auto tweaked_pattern = prepare_pattern_for_onigmo(pattern, &fixed_encoding);
+    if (fixed_encoding)
+        options |= RegexOpts::FixedEncoding;
 
     UChar *pat = (UChar *)tweaked_pattern.c_str();
     // NATFIXME: Fully support character encodings in capture groups
@@ -526,6 +536,14 @@ Value RegexpObject::names() const {
         },
         names);
     return names;
+}
+
+bool RegexpObject::operator==(const RegexpObject &other) const {
+    // /n encoding option is ignored when doing == in ruby MRI
+    int our_options = m_options | RegexOpts::NoEncoding;
+    int their_options = other.m_options | RegexOpts::NoEncoding;
+
+    return m_pattern == other.m_pattern && our_options == their_options;
 }
 
 Value RegexpObject::source(Env *env) const {

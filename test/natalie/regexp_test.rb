@@ -67,6 +67,12 @@ describe 'regexp' do
       r2.should be_kind_of(Regexp)
       r1.should == r2
     end
+
+    it 'automatically applies FIXEDENCODING flag' do
+      c = Regexp.new('\x80', Regexp::NOENCODING)
+      c.options.should == Regexp::FIXEDENCODING | Regexp::NOENCODING
+      c.to_s.should == '(?-mix:\x80)'
+    end
   end
 
   describe '#==' do
