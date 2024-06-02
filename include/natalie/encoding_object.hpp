@@ -82,9 +82,9 @@ public:
     static EncodingObject *find_encoding_by_name(Env *env, String name);
     static EncodingObject *find_encoding(Env *env, Value encoding);
 
-    static nat_int_t codepoint_to_lowercase(nat_int_t codepoint);
-    static nat_int_t codepoint_to_uppercase(nat_int_t codepoint);
-    static nat_int_t codepoint_to_titlecase(nat_int_t codepoint);
+    static nat_int_t codepoint_to_lowercase(nat_int_t codepoint, bool ascii_only = false);
+    static nat_int_t codepoint_to_uppercase(nat_int_t codepoint, bool ascii_only = false);
+    static nat_int_t codepoint_to_titlecase(nat_int_t codepoint, bool ascii_only = false);
 
     static Value casefold_common(nat_int_t codepoint);
     static Value casefold_full(nat_int_t codepoint);

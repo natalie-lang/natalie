@@ -2816,25 +2816,17 @@ Value StringObject::is_casecmp(Env *env, Value other) {
 }
 
 StringObject *StringObject::capitalize(Env *env, Value arg1, Value arg2) {
-    // currently not doing anything with the returned flags
-    check_case_options(env, arg1, arg2, Fold);
+    auto flags = check_case_options(env, arg1, arg2, Fold);
     auto str = new StringObject { "", m_encoding };
     bool first_char = true;
+    auto ascii_only = flags & Ascii;
     for (StringView c : *this) {
-        nat_int_t codept = m_encoding->decode_codepoint(c);
-        if (first_char && codept >= 'a' && codept <= 'z') {
-            // upcase first-char
-            codept -= 32;
-            String s = m_encoding->encode_codepoint(codept);
-            str->append(s);
-        } else if (!first_char && codept >= 'A' && codept <= 'Z') {
-            // downcase remaining
-            codept += 32;
-            String s = m_encoding->encode_codepoint(codept);
-            str->append(s);
-        } else {
-            str->append(c);
-        }
+        nat_int_t codepoint = m_encoding->decode_codepoint(c);
+        if (first_char)
+            codepoint = EncodingObject::codepoint_to_titlecase(codepoint, ascii_only);
+        else
+            codepoint = EncodingObject::codepoint_to_lowercase(codepoint, ascii_only);
+        str->append(m_encoding->encode_codepoint(codepoint));
         first_char = false;
     }
     return str;
@@ -2856,8 +2848,7 @@ StringObject *StringObject::downcase(Env *env, Value arg1, Value arg2) {
     for (StringView c : *this) {
         auto codepoint = m_encoding->decode_codepoint(c);
         if (flags & Ascii) {
-            if (codepoint >= 'A' && codepoint <= 'Z')
-                codepoint += 32;
+            codepoint = EncodingObject::codepoint_to_lowercase(codepoint, true);
             str->append(m_encoding->encode_codepoint(codepoint));
         } else if ((flags & Fold || flags & FoldLithuanian) && !(flags & FoldTurkicAzeri)) {
             auto result = EncodingObject::casefold_full(codepoint);
@@ -2871,11 +2862,8 @@ StringObject *StringObject::downcase(Env *env, Value arg1, Value arg2) {
                 str->append(m_encoding->encode_codepoint(codepoint));
             }
         } else {
-            auto new_codepoint = EncodingObject::codepoint_to_lowercase(codepoint);
-            if (new_codepoint == 0)
-                str->append(m_encoding->encode_codepoint(codepoint));
-            else
-                str->append(m_encoding->encode_codepoint(new_codepoint));
+            codepoint = EncodingObject::codepoint_to_lowercase(codepoint);
+            str->append(m_encoding->encode_codepoint(codepoint));
         }
     }
     return str;
@@ -2904,16 +2892,10 @@ Value StringObject::dump(Env *env) {
 StringObject *StringObject::upcase(Env *env, Value arg1, Value arg2) {
     auto flags = check_case_options(env, arg1, arg2, Upcase);
     auto str = new StringObject { "", m_encoding };
+    auto ascii_only = flags & Ascii;
     for (StringView c : *this) {
         auto codepoint = m_encoding->decode_codepoint(c);
-        if (flags & Ascii) {
-            if (codepoint >= 'a' && codepoint <= 'z')
-                codepoint -= 32;
-        } else {
-            auto new_codepoint = EncodingObject::codepoint_to_uppercase(codepoint);
-            if (new_codepoint != 0)
-                codepoint = new_codepoint;
-        }
+        codepoint = EncodingObject::codepoint_to_uppercase(codepoint, ascii_only);
         str->append(m_encoding->encode_codepoint(codepoint));
     }
     return str;

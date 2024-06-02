@@ -243,30 +243,44 @@ void EncodingObject::initialize_defaults(Env *env) {
     s_filesystem = s_default_external;
 }
 
-nat_int_t EncodingObject::codepoint_to_lowercase(nat_int_t codepoint) {
+nat_int_t EncodingObject::codepoint_to_lowercase(nat_int_t codepoint, bool ascii_only) {
+    if (ascii_only) {
+        if (codepoint >= 'A' && codepoint <= 'Z')
+            return codepoint + 32;
+        return codepoint;
+    }
+
     auto block = codepoint >> 8;
     auto index = lcase_index[block] + (codepoint & 0xff);
     auto delta = lcase_map[index];
     if (delta == 0)
-        return 0;
+        return codepoint;
     return codepoint + delta;
 }
 
-nat_int_t EncodingObject::codepoint_to_uppercase(nat_int_t codepoint) {
+nat_int_t EncodingObject::codepoint_to_uppercase(nat_int_t codepoint, bool ascii_only) {
+    if (ascii_only) {
+        if (codepoint >= 'a' && codepoint <= 'z')
+            return codepoint - 32;
+        return codepoint;
+    }
+
     auto block = codepoint >> 8;
     auto index = ucase_index[block] + (codepoint & 0xff);
     auto delta = ucase_map[index];
     if (delta == 0)
-        return 0;
+        return codepoint;
     return codepoint + delta;
 }
 
-nat_int_t EncodingObject::codepoint_to_titlecase(nat_int_t codepoint) {
+nat_int_t EncodingObject::codepoint_to_titlecase(nat_int_t codepoint, bool ascii_only) {
+    if (ascii_only) return codepoint_to_uppercase(codepoint, true);
+
     auto block = codepoint >> 8;
     auto index = tcase_index[block] + (codepoint & 0xff);
     auto delta = tcase_map[index];
     if (delta == 0)
-        return 0;
+        return codepoint;
     return codepoint + delta;
 }
 
