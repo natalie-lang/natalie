@@ -2,9 +2,9 @@ require_relative './base_instruction'
 
 module Natalie
   class Compiler
-    class PushRationalInstruction < BaseInstruction
+    class CreateRationalInstruction < BaseInstruction
       def to_s
-        'push_rational'
+        'create_rational'
       end
 
       def generate(transform)
