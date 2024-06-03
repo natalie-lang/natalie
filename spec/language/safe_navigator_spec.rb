@@ -127,9 +127,7 @@ describe "Safe navigator" do
     obj.m.should == false
 
     obj = nil
-    NATFIXME 'nil allows &&= operator', exception: NoMethodError, message: "undefined method `m' for nil" do
-      (obj&.m &&= false).should == nil
-    end
+    (obj&.m &&= false).should == nil
     obj.should == nil
   end
 

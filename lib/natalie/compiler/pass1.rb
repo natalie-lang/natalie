@@ -527,10 +527,23 @@ module Natalie
         obj = node.receiver
 
         # a.foo &&= 'bar'
-        instructions = [
 
-          # a.foo
+        # a
+        instructions = [
           transform_expression(node.receiver, used: true),
+        ]
+
+        if node.safe_navigation?
+          instructions.append(
+            DupInstruction.new,
+            IsNilInstruction.new,
+            IfInstruction.new,
+            ElseInstruction.new(:if),
+          )
+        end
+
+        # .foo
+        instructions.append(
           PushArgcInstruction.new(0),
           SendInstruction.new(
             node.read_name,
@@ -565,7 +578,9 @@ module Natalie
           # if !a.foo, return duplicated value
 
           EndInstruction.new(:if),
-        ]
+        )
+
+        instructions << EndInstruction.new(:if) if node.safe_navigation?
 
         instructions << PopInstruction.new unless used
         instructions
