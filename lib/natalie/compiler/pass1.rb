@@ -596,7 +596,18 @@ module Natalie
         instructions = [
           # stack: [obj]
           transform_expression(obj, used: true),
+        ]
 
+        if node.safe_navigation?
+          instructions.append(
+            DupInstruction.new,
+            IsNilInstruction.new,
+            IfInstruction.new,
+            ElseInstruction.new(:if),
+          )
+        end
+
+        instructions.append(
           # stack: [obj, value]
           transform_expression(node.value, used: true),
 
@@ -637,7 +648,9 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-        ]
+        )
+
+        instructions << EndInstruction.new(:if) if node.safe_navigation?
 
         instructions << PopInstruction.new unless used
         instructions
