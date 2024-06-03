@@ -108,9 +108,7 @@ describe "Safe navigator" do
     obj.m.should == true
 
     obj = nil
-    NATFIXME 'nil allows ||= operator', exception: NoMethodError, message: "undefined method `m' for nil" do
-      (obj&.m ||= true).should == nil
-    end
+    (obj&.m ||= true).should == nil
     obj.should == nil
   end
 

@@ -637,7 +637,18 @@ module Natalie
 
           # duplicate for use in the falsey case, so we only evaluate `a` once
           DupInstruction.new,
+        ]
+        if node.safe_navigation?
+          instructions.append(
+            DupInstruction.new,
+            IsNilInstruction.new,
+            IfInstruction.new,
+            PopInstruction.new,
+            ElseInstruction.new(:if),
+          )
+        end
 
+        instructions.append(
           # .foo
           PushArgcInstruction.new(0),
           SendInstruction.new(
@@ -675,7 +686,9 @@ module Natalie
           ),
 
           EndInstruction.new(:if),
-        ]
+        )
+
+        instructions << EndInstruction.new(:if) if node.safe_navigation?
 
         instructions << PopInstruction.new unless used
         instructions
