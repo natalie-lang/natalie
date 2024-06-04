@@ -83,9 +83,7 @@ describe "Safe navigator" do
     obj.m.should == 3
 
     obj = nil
-    NATFIXME 'nil allows assignment operators', exception: NoMethodError, message: "undefined method `m' for nil" do
-      (obj&.m += 3).should == nil
-    end
+    (obj&.m += 3).should == nil
   end
 
   it "allows ||= operator" do
@@ -108,9 +106,7 @@ describe "Safe navigator" do
     obj.m.should == true
 
     obj = nil
-    NATFIXME 'nil allows ||= operator', exception: NoMethodError, message: "undefined method `m' for nil" do
-      (obj&.m ||= true).should == nil
-    end
+    (obj&.m ||= true).should == nil
     obj.should == nil
   end
 
@@ -129,9 +125,7 @@ describe "Safe navigator" do
     obj.m.should == false
 
     obj = nil
-    NATFIXME 'nil allows &&= operator', exception: NoMethodError, message: "undefined method `m' for nil" do
-      (obj&.m &&= false).should == nil
-    end
+    (obj&.m &&= false).should == nil
     obj.should == nil
   end
 

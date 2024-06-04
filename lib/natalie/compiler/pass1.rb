@@ -527,10 +527,23 @@ module Natalie
         obj = node.receiver
 
         # a.foo &&= 'bar'
-        instructions = [
 
-          # a.foo
+        # a
+        instructions = [
           transform_expression(node.receiver, used: true),
+        ]
+
+        if node.safe_navigation?
+          instructions.append(
+            DupInstruction.new,
+            IsNilInstruction.new,
+            IfInstruction.new,
+            ElseInstruction.new(:if),
+          )
+        end
+
+        # .foo
+        instructions.append(
           PushArgcInstruction.new(0),
           SendInstruction.new(
             node.read_name,
@@ -565,7 +578,9 @@ module Natalie
           # if !a.foo, return duplicated value
 
           EndInstruction.new(:if),
-        ]
+        )
+
+        instructions << EndInstruction.new(:if) if node.safe_navigation?
 
         instructions << PopInstruction.new unless used
         instructions
@@ -581,7 +596,18 @@ module Natalie
         instructions = [
           # stack: [obj]
           transform_expression(obj, used: true),
+        ]
 
+        if node.safe_navigation?
+          instructions.append(
+            DupInstruction.new,
+            IsNilInstruction.new,
+            IfInstruction.new,
+            ElseInstruction.new(:if),
+          )
+        end
+
+        instructions.append(
           # stack: [obj, value]
           transform_expression(node.value, used: true),
 
@@ -622,7 +648,9 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-        ]
+        )
+
+        instructions << EndInstruction.new(:if) if node.safe_navigation?
 
         instructions << PopInstruction.new unless used
         instructions
@@ -637,7 +665,18 @@ module Natalie
 
           # duplicate for use in the falsey case, so we only evaluate `a` once
           DupInstruction.new,
+        ]
+        if node.safe_navigation?
+          instructions.append(
+            DupInstruction.new,
+            IsNilInstruction.new,
+            IfInstruction.new,
+            PopInstruction.new,
+            ElseInstruction.new(:if),
+          )
+        end
 
+        instructions.append(
           # .foo
           PushArgcInstruction.new(0),
           SendInstruction.new(
@@ -675,7 +714,9 @@ module Natalie
           ),
 
           EndInstruction.new(:if),
-        ]
+        )
+
+        instructions << EndInstruction.new(:if) if node.safe_navigation?
 
         instructions << PopInstruction.new unless used
         instructions
