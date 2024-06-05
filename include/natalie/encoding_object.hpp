@@ -14,12 +14,25 @@
 
 namespace Natalie {
 
+const int SPECIAL_CASE_LOWER_MAX_SIZE = 2;
+const int SPECIAL_CASE_TITLE_MAX_SIZE = 3;
+const int SPECIAL_CASE_UPPER_MAX_SIZE = 3;
+
+struct SpecialCasingEntry {
+    uint32_t code;
+    uint32_t lower[SPECIAL_CASE_LOWER_MAX_SIZE];
+    uint32_t title[SPECIAL_CASE_TITLE_MAX_SIZE];
+    uint32_t upper[SPECIAL_CASE_UPPER_MAX_SIZE];
+};
+
 extern nat_int_t lcase_map[];
 extern nat_int_t ucase_map[];
 extern nat_int_t tcase_map[];
 extern nat_int_t lcase_index[];
 extern nat_int_t ucase_index[];
 extern nat_int_t tcase_index[];
+extern const int special_casing_map_size;
+extern SpecialCasingEntry special_casing_map[];
 
 using namespace TM;
 
@@ -85,6 +98,9 @@ public:
     static nat_int_t codepoint_to_lowercase(nat_int_t codepoint, bool ascii_only = false);
     static nat_int_t codepoint_to_uppercase(nat_int_t codepoint, bool ascii_only = false);
     static nat_int_t codepoint_to_titlecase(nat_int_t codepoint, bool ascii_only = false);
+
+    static void init_special_casing_map();
+    static SpecialCasingEntry find_special_casing_map_entry(nat_int_t codepoint);
 
     static Value casefold_common(nat_int_t codepoint);
     static Value casefold_full(nat_int_t codepoint);

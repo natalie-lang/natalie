@@ -284,6 +284,15 @@ nat_int_t EncodingObject::codepoint_to_titlecase(nat_int_t codepoint, bool ascii
     return codepoint + delta;
 }
 
+SpecialCasingEntry EncodingObject::find_special_casing_map_entry(nat_int_t codepoint) {
+    // FIXME: do a binary search
+    for (int i = 0; i < special_casing_map_size; i++) {
+        if (special_casing_map[i].code == codepoint)
+            return special_casing_map[i];
+    }
+    return {};
+}
+
 bool EncodingObject::is_printable_char(const nat_int_t c) const {
     return (c >= 32 && c < 127) || c >= 256;
 }
