@@ -2289,6 +2289,20 @@ module Natalie
           ]
         when ::Prism::GlobalVariableTargetNode
           instructions << GlobalVariableSetInstruction.new(node.name)
+        when ::Prism::IndexTargetNode
+          instructions = [transform_expression(node.receiver, used: true)]
+          # Get rid of the PushArgcInstruction from transform_arguments_node_for_callish
+          instructions.append(transform_arguments_node_for_callish(node.arguments)[:instructions][...-1])
+          instructions << GlobalVariableGetInstruction.new(:$!)
+          instructions << PushArgcInstruction.new(node.arguments.arguments.size + 1)
+          instructions << SendInstruction.new(
+            :[]=,
+            receiver_is_self: node.receiver.nil? || node.receiver.is_a?(Prism::SelfNode),
+            with_block: false,
+            file: @file.path,
+            line: node.location.start_line,
+          )
+          instructions << PopInstruction.new
         when ::Prism::InstanceVariableTargetNode
           instructions << InstanceVariableSetInstruction.new(node.name)
         when ::Prism::LocalVariableTargetNode

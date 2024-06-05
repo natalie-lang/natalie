@@ -88,14 +88,13 @@ module RescueSpecs
   end
 
   class SquareBracketsCaptor < Captor
-    # NATFIXME: Compile error
-    #def capture(msg)
-      #@hash = {}
+    def capture(msg)
+      @hash = {}
 
-      #raise msg
-    #rescue => self[:error]
-      #:caught
-    #end
+      raise msg
+    rescue => self[:error]
+      :caught
+    end
 
     def []=(key, value)
       @hash[key] = value

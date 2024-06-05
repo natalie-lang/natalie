@@ -57,9 +57,7 @@ describe "The rescue keyword" do
     end
 
     it 'using a square brackets setter' do
-      NATFIXME 'Compile errors', exception: NoMethodError, message: "undefined method `capture' for an instance of RescueSpecs::SquareBracketsCaptor" do
-        RescueSpecs::SquareBracketsCaptor.should_capture_exception
-      end
+      RescueSpecs::SquareBracketsCaptor.should_capture_exception
     end
   end
 
