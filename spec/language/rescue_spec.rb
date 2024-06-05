@@ -49,15 +49,11 @@ describe "The rescue keyword" do
     end
 
     it 'using a safely navigated setter method' do
-      NATFIXME 'Compile errors', exception: NoMethodError, message: "undefined method `capture' for an instance of RescueSpecs::SafeNavigationSetterCaptor" do
-        RescueSpecs::SafeNavigationSetterCaptor.should_capture_exception
-      end
+      RescueSpecs::SafeNavigationSetterCaptor.should_capture_exception
     end
 
     it 'using a setter method' do
-      NATFIXME 'Compile errors', exception: NoMethodError, message: "undefined method `capture' for an instance of RescueSpecs::SetterCaptor" do
-        RescueSpecs::SetterCaptor.should_capture_exception
-      end
+      RescueSpecs::SetterCaptor.should_capture_exception
     end
 
     it 'using a square brackets setter' do

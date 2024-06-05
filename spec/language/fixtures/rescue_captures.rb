@@ -72,21 +72,19 @@ module RescueSpecs
   end
 
   class SafeNavigationSetterCaptor < Captor
-    # NATFIXME: Compile error
-    #def capture(msg)
-      #raise msg
-    #rescue => self&.captured_error
-      #:caught
-    #end
+    def capture(msg)
+      raise msg
+    rescue => self&.captured_error
+      :caught
+    end
   end
 
   class SetterCaptor < Captor
-    # NATFIXME: Compile error
-    #def capture(msg)
-      #raise msg
-    #rescue => self.captured_error
-      #:caught
-    #end
+    def capture(msg)
+      raise msg
+    rescue => self.captured_error
+      :caught
+    end
   end
 
   class SquareBracketsCaptor < Captor
