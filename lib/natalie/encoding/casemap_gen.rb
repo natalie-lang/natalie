@@ -112,7 +112,7 @@ puts
 puts "nat_int_t tcase_index[] = {\n#{format_array(tcase_index, count_per_line: 10, num_width: 4)}\n};"
 puts
 puts "const int special_casing_map_size = #{special_casing_map.size};"
-puts "SpecialCasingEntry special_casing_map[#{special_casing_map.size}] = { 0 };"
+puts "SpecialCasingEntry special_casing_map[#{special_casing_map.size}] = { { 0 } };"
 puts
 puts 'void EncodingObject::init_special_casing_map() {'
 special_casing_map.each_with_index do |mapping, index|

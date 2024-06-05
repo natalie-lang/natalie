@@ -2062,7 +2062,7 @@ nat_int_t tcase_index[] = {
 };
 
 const int special_casing_map_size = 103;
-SpecialCasingEntry special_casing_map[103] = { 0 };
+SpecialCasingEntry special_casing_map[103] = { { 0 } };
 
 void EncodingObject::init_special_casing_map() {
     special_casing_map[0] = { 0xdf, { 0xdf, 0x0 }, { 0x53, 0x73, 0x0 }, { 0x53, 0x53, 0x0 } };
