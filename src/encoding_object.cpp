@@ -338,11 +338,19 @@ uint8_t EncodingObject::codepoint_to_titlecase(nat_int_t codepoint, nat_int_t re
 }
 
 SpecialCasingEntry EncodingObject::find_special_casing_map_entry(nat_int_t codepoint) {
-    // FIXME: do a binary search
-    for (int i = 0; i < special_casing_map_size; i++) {
-        if (special_casing_map[i].code == codepoint)
-            return special_casing_map[i];
+    int low = 0;
+    int high = special_casing_map_size - 1;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (special_casing_map[mid].code == codepoint)
+            return special_casing_map[mid];
+        if (special_casing_map[mid].code < codepoint)
+            low = mid + 1;
+        else
+            high = mid - 1;
     }
+
     return {};
 }
 
