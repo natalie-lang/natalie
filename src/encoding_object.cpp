@@ -256,12 +256,24 @@ uint8_t EncodingObject::codepoint_to_lowercase(nat_int_t codepoint, nat_int_t re
     auto block = codepoint >> 8;
     auto index = lcase_index[block] + (codepoint & 0xff);
     auto delta = lcase_map[index];
-    if (delta == 0) {
-        result[0] = codepoint;
+    if (delta != 0) {
+        result[0] = codepoint + delta;
         return 1;
     }
 
-    result[0] = codepoint + delta;
+    if (special_casing_map[0].code == 0)
+        init_special_casing_map();
+    auto entry = find_special_casing_map_entry(codepoint);
+    if (entry.code != 0) {
+        int i = 0;
+        for (i = 0; i < SPECIAL_CASE_LOWER_MAX_SIZE; i++) {
+            if (entry.lower[i] == 0) break;
+            result[i] = entry.lower[i];
+        }
+        return i;
+    }
+
+    result[0] = codepoint;
     return 1;
 }
 
