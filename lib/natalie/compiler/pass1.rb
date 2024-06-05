@@ -2132,6 +2132,25 @@ module Natalie
         end
       end
 
+      def transform_post_execution_node(node, used:)
+        instructions = [
+          DefineBlockInstruction.new(arity: 0),
+          transform_expression(node.statements, used: true),
+          EndInstruction.new(:define_block),
+          PushSelfInstruction.new,
+          PushArgcInstruction.new(0),
+          SendInstruction.new(
+            :at_exit,
+            receiver_is_self: true,
+            with_block: true,
+            file: @file.path,
+            line: node.location.start_line,
+          ),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_range_node(node, used:)
         instructions = [
           transform_expression(node.right || Prism.nil_node(location: node.location), used: true),
