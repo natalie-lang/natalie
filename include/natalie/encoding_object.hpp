@@ -95,9 +95,10 @@ public:
     static EncodingObject *find_encoding_by_name(Env *env, String name);
     static EncodingObject *find_encoding(Env *env, Value encoding);
 
-    static nat_int_t codepoint_to_lowercase(nat_int_t codepoint, bool ascii_only = false);
-    static nat_int_t codepoint_to_uppercase(nat_int_t codepoint, bool ascii_only = false);
-    static nat_int_t codepoint_to_titlecase(nat_int_t codepoint, bool ascii_only = false);
+    // must pass a buffer of nat_int_t to this function; uint8_t return is number of codepoints written
+    static uint8_t codepoint_to_lowercase(nat_int_t codepoint, nat_int_t result[], bool ascii_only = false);
+    static uint8_t codepoint_to_uppercase(nat_int_t codepoint, nat_int_t result[], bool ascii_only = false);
+    static uint8_t codepoint_to_titlecase(nat_int_t codepoint, nat_int_t result[], bool ascii_only = false);
 
     static void init_special_casing_map();
     static SpecialCasingEntry find_special_casing_map_entry(nat_int_t codepoint);
