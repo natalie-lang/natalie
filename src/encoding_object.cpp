@@ -1,3 +1,4 @@
+#include "natalie/encoding_object.hpp"
 #include "natalie.hpp"
 #include <langinfo.h>
 #include <locale.h>
@@ -291,12 +292,24 @@ uint8_t EncodingObject::codepoint_to_titlecase(nat_int_t codepoint, nat_int_t re
     auto block = codepoint >> 8;
     auto index = tcase_index[block] + (codepoint & 0xff);
     auto delta = tcase_map[index];
-    if (delta == 0) {
-        result[0] = codepoint;
+    if (delta != 0) {
+        result[0] = codepoint + delta;
         return 1;
     }
 
-    result[0] = codepoint + delta;
+    if (special_casing_map[0].code == 0)
+        init_special_casing_map();
+    auto entry = find_special_casing_map_entry(codepoint);
+    if (entry.code != 0) {
+        int i = 0;
+        for (i = 0; i < SPECIAL_CASE_TITLE_MAX_SIZE; i++) {
+            if (entry.title[i] == 0) break;
+            result[i] = entry.title[i];
+        }
+        return i;
+    }
+
+    result[0] = codepoint;
     return 1;
 }
 
