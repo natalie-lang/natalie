@@ -2864,7 +2864,7 @@ StringObject *StringObject::downcase(Env *env, Value arg1, Value arg2) {
                 str->append(m_encoding->encode_codepoint(codepoint));
             }
         } else {
-            auto length = EncodingObject::codepoint_to_lowercase(codepoint, result);
+            auto length = EncodingObject::codepoint_to_lowercase(codepoint, result, flags);
             for (uint8_t i = 0; i < length; i++)
                 str->append(m_encoding->encode_codepoint(result[i]));
         }
