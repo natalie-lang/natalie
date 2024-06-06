@@ -1,3 +1,4 @@
+#include "natalie/encoding_object.hpp"
 #include "natalie.hpp"
 #include <langinfo.h>
 #include <locale.h>
@@ -243,45 +244,114 @@ void EncodingObject::initialize_defaults(Env *env) {
     s_filesystem = s_default_external;
 }
 
-nat_int_t EncodingObject::codepoint_to_lowercase(nat_int_t codepoint, bool ascii_only) {
+uint8_t EncodingObject::codepoint_to_lowercase(nat_int_t codepoint, nat_int_t result[], bool ascii_only) {
     if (ascii_only) {
         if (codepoint >= 'A' && codepoint <= 'Z')
-            return codepoint + 32;
-        return codepoint;
+            result[0] = codepoint + 32;
+        else
+            result[0] = codepoint;
+        return 1;
     }
 
     auto block = codepoint >> 8;
     auto index = lcase_index[block] + (codepoint & 0xff);
     auto delta = lcase_map[index];
-    if (delta == 0)
-        return codepoint;
-    return codepoint + delta;
+    if (delta != 0) {
+        result[0] = codepoint + delta;
+        return 1;
+    }
+
+    if (special_casing_map[0].code == 0)
+        init_special_casing_map();
+    auto entry = find_special_casing_map_entry(codepoint);
+    if (entry.code != 0) {
+        int i = 0;
+        for (i = 0; i < SPECIAL_CASE_LOWER_MAX_SIZE; i++) {
+            if (entry.lower[i] == 0) break;
+            result[i] = entry.lower[i];
+        }
+        return i;
+    }
+
+    result[0] = codepoint;
+    return 1;
 }
 
-nat_int_t EncodingObject::codepoint_to_uppercase(nat_int_t codepoint, bool ascii_only) {
+uint8_t EncodingObject::codepoint_to_uppercase(nat_int_t codepoint, nat_int_t result[], bool ascii_only) {
     if (ascii_only) {
         if (codepoint >= 'a' && codepoint <= 'z')
-            return codepoint - 32;
-        return codepoint;
+            result[0] = codepoint - 32;
+        else
+            result[0] = codepoint;
+        return 1;
     }
 
     auto block = codepoint >> 8;
     auto index = ucase_index[block] + (codepoint & 0xff);
     auto delta = ucase_map[index];
-    if (delta == 0)
-        return codepoint;
-    return codepoint + delta;
+    if (delta != 0) {
+        result[0] = codepoint + delta;
+        return 1;
+    }
+
+    if (special_casing_map[0].code == 0)
+        init_special_casing_map();
+    auto entry = find_special_casing_map_entry(codepoint);
+    if (entry.code != 0) {
+        int i = 0;
+        for (i = 0; i < SPECIAL_CASE_UPPER_MAX_SIZE; i++) {
+            if (entry.upper[i] == 0) break;
+            result[i] = entry.upper[i];
+        }
+        return i;
+    }
+
+    result[0] = codepoint;
+    return 1;
 }
 
-nat_int_t EncodingObject::codepoint_to_titlecase(nat_int_t codepoint, bool ascii_only) {
-    if (ascii_only) return codepoint_to_uppercase(codepoint, true);
+uint8_t EncodingObject::codepoint_to_titlecase(nat_int_t codepoint, nat_int_t result[], bool ascii_only) {
+    if (ascii_only) return codepoint_to_uppercase(codepoint, result, true);
 
     auto block = codepoint >> 8;
     auto index = tcase_index[block] + (codepoint & 0xff);
     auto delta = tcase_map[index];
-    if (delta == 0)
-        return codepoint;
-    return codepoint + delta;
+    if (delta != 0) {
+        result[0] = codepoint + delta;
+        return 1;
+    }
+
+    if (special_casing_map[0].code == 0)
+        init_special_casing_map();
+    auto entry = find_special_casing_map_entry(codepoint);
+    if (entry.code != 0) {
+        int i = 0;
+        for (i = 0; i < SPECIAL_CASE_TITLE_MAX_SIZE; i++) {
+            if (entry.title[i] == 0) break;
+            result[i] = entry.title[i];
+        }
+        return i;
+    }
+
+    result[0] = codepoint;
+    return 1;
+}
+
+SpecialCasingEntry EncodingObject::find_special_casing_map_entry(nat_int_t codepoint) {
+    int low = 0;
+    int high = special_casing_map_size - 1;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (special_casing_map[mid].code == codepoint)
+            return special_casing_map[mid];
+        if (special_casing_map[mid].code < codepoint)
+            low = mid + 1;
+        else
+            high = mid - 1;
+    }
+
+    return {};
 }
 
 bool EncodingObject::is_printable_char(const nat_int_t c) const {

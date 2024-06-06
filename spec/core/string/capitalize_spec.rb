@@ -19,20 +19,16 @@ describe "String#capitalize" do
     end
 
     it "only capitalizes the first resulting character when upcasing a character produces a multi-character sequence" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "ß".capitalize.should == "Ss"
-      end
+      "ß".capitalize.should == "Ss"
     end
 
     it "updates string metadata" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        capitalized = "ßeT".capitalize
+      capitalized = "ßeT".capitalize
 
-        capitalized.should == "Sset"
-        capitalized.size.should == 4
-        capitalized.bytesize.should == 4
-        capitalized.ascii_only?.should be_true
-      end
+      capitalized.should == "Sset"
+      capitalized.size.should == 4
+      capitalized.bytesize.should == 4
+      capitalized.ascii_only?.should be_true
     end
   end
 
@@ -119,11 +115,9 @@ describe "String#capitalize!" do
     end
 
     it "only capitalizes the first resulting character when upcasing a character produces a multi-character sequence" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a = "ß"
-        a.capitalize!
-        a.should == "Ss"
-      end
+      a = "ß"
+      a.capitalize!
+      a.should == "Ss"
     end
 
     it "works for non-ascii-compatible encodings" do
@@ -133,15 +127,13 @@ describe "String#capitalize!" do
     end
 
     it "updates string metadata" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        capitalized = "ßeT"
-        capitalized.capitalize!
+      capitalized = "ßeT"
+      capitalized.capitalize!
 
-        capitalized.should == "Sset"
-        capitalized.size.should == 4
-        capitalized.bytesize.should == 4
-        capitalized.ascii_only?.should be_true
-      end
+      capitalized.should == "Sset"
+      capitalized.size.should == 4
+      capitalized.bytesize.should == 4
+      capitalized.ascii_only?.should be_true
     end
   end
 
