@@ -286,6 +286,11 @@ uint8_t EncodingObject::codepoint_to_uppercase(nat_int_t codepoint, nat_int_t re
         return 1;
     }
 
+    if (flags & CaseMapTurkicAzeri && codepoint == 0x69) {
+        result[0] = 0x130;
+        return 1;
+    }
+
     auto block = codepoint >> 8;
     auto index = ucase_index[block] + (codepoint & 0xff);
     auto delta = ucase_map[index];
