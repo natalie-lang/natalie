@@ -39,15 +39,11 @@ describe "String#upcase" do
 
   describe "full Unicode case mapping adapted for Turkic languages" do
     it "upcases ASCII characters according to Turkic semantics" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "i".upcase(:turkic).should == "İ"
-      end
+      "i".upcase(:turkic).should == "İ"
     end
 
     it "allows Lithuanian as an extra option" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "i".upcase(:turkic, :lithuanian).should == "İ"
-      end
+      "i".upcase(:turkic, :lithuanian).should == "İ"
     end
 
     it "does not allow any other additional option" do
@@ -61,9 +57,7 @@ describe "String#upcase" do
     end
 
     it "allows Turkic as an extra option (and applies Turkic semantics)" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "iß".upcase(:lithuanian, :turkic).should == "İSS"
-      end
+      "iß".upcase(:lithuanian, :turkic).should == "İSS"
     end
 
     it "does not allow any other additional option" do
@@ -139,17 +133,13 @@ describe "String#upcase!" do
     it "upcases ASCII characters according to Turkic semantics" do
       a = "i"
       a.upcase!(:turkic)
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a.should == "İ"
-      end
+      a.should == "İ"
     end
 
     it "allows Lithuanian as an extra option" do
       a = "i"
       a.upcase!(:turkic, :lithuanian)
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a.should == "İ"
-      end
+      a.should == "İ"
     end
 
     it "does not allow any other additional option" do
@@ -167,9 +157,7 @@ describe "String#upcase!" do
     it "allows Turkic as an extra option (and applies Turkic semantics)" do
       a = "iß"
       a.upcase!(:lithuanian, :turkic)
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a.should == "İSS"
-      end
+      a.should == "İSS"
     end
 
     it "does not allow any other additional option" do

@@ -44,15 +44,11 @@ describe "String#capitalize" do
 
   describe "full Unicode case mapping adapted for Turkic languages" do
     it "capitalizes ASCII characters according to Turkic semantics" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "iSa".capitalize(:turkic).should == "İsa"
-      end
+      "iSa".capitalize(:turkic).should == "İsa"
     end
 
     it "allows Lithuanian as an extra option" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "iSa".capitalize(:turkic, :lithuanian).should == "İsa"
-      end
+      "iSa".capitalize(:turkic, :lithuanian).should == "İsa"
     end
 
     it "does not allow any other additional option" do
@@ -66,9 +62,7 @@ describe "String#capitalize" do
     end
 
     it "allows Turkic as an extra option (and applies Turkic semantics)" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "iß".capitalize(:lithuanian, :turkic).should == "İß"
-      end
+      "iß".capitalize(:lithuanian, :turkic).should == "İß"
     end
 
     it "does not allow any other additional option" do
@@ -153,19 +147,15 @@ describe "String#capitalize!" do
 
   describe "modifies self in place for full Unicode case mapping adapted for Turkic languages" do
     it "capitalizes ASCII characters according to Turkic semantics" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a = "iSa"
-        a.capitalize!(:turkic)
-        a.should == "İsa"
-      end
+      a = "iSa"
+      a.capitalize!(:turkic)
+      a.should == "İsa"
     end
 
     it "allows Lithuanian as an extra option" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a = "iSa"
-        a.capitalize!(:turkic, :lithuanian)
-        a.should == "İsa"
-      end
+      a = "iSa"
+      a.capitalize!(:turkic, :lithuanian)
+      a.should == "İsa"
     end
 
     it "does not allow any other additional option" do
@@ -181,11 +171,9 @@ describe "String#capitalize!" do
     end
 
     it "allows Turkic as an extra option (and applies Turkic semantics)" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a = "iß"
-        a.capitalize!(:lithuanian, :turkic)
-        a.should == "İß"
-      end
+      a = "iß"
+      a.capitalize!(:lithuanian, :turkic)
+      a.should == "İß"
     end
 
     it "does not allow any other additional option" do
