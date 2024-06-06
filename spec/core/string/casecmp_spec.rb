@@ -189,9 +189,7 @@ describe 'String#casecmp? independent of case' do
   end
 
   it "case folds" do
-    NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-      "ß".casecmp?("ss").should be_true
-    end
+    "ß".casecmp?("ss").should be_true
   end
 
   it "returns nil if other can't be converted to a string" do

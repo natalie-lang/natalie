@@ -2807,8 +2807,8 @@ Value StringObject::is_casecmp(Env *env, Value other) {
     other = StringObject::try_convert(env, other);
     if (other->is_nil())
         return NilObject::the();
-    auto str1 = this->downcase(env, nullptr, nullptr);
-    auto str2 = other->as_string()->downcase(env, nullptr, nullptr);
+    auto str1 = this->downcase(env, "fold"_s, nullptr);
+    auto str2 = other->as_string()->downcase(env, "fold"_s, nullptr);
     if (str1->string() == str2->string())
         return TrueObject::the();
     return FalseObject::the();
