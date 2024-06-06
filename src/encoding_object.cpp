@@ -244,8 +244,8 @@ void EncodingObject::initialize_defaults(Env *env) {
     s_filesystem = s_default_external;
 }
 
-uint8_t EncodingObject::codepoint_to_lowercase(nat_int_t codepoint, nat_int_t result[], bool ascii_only) {
-    if (ascii_only) {
+uint8_t EncodingObject::codepoint_to_lowercase(nat_int_t codepoint, nat_int_t result[], CaseMapType flags) {
+    if (flags & CaseMapAscii) {
         if (codepoint >= 'A' && codepoint <= 'Z')
             result[0] = codepoint + 32;
         else
@@ -277,8 +277,8 @@ uint8_t EncodingObject::codepoint_to_lowercase(nat_int_t codepoint, nat_int_t re
     return 1;
 }
 
-uint8_t EncodingObject::codepoint_to_uppercase(nat_int_t codepoint, nat_int_t result[], bool ascii_only) {
-    if (ascii_only) {
+uint8_t EncodingObject::codepoint_to_uppercase(nat_int_t codepoint, nat_int_t result[], CaseMapType flags) {
+    if (flags & CaseMapAscii) {
         if (codepoint >= 'a' && codepoint <= 'z')
             result[0] = codepoint - 32;
         else
@@ -310,8 +310,9 @@ uint8_t EncodingObject::codepoint_to_uppercase(nat_int_t codepoint, nat_int_t re
     return 1;
 }
 
-uint8_t EncodingObject::codepoint_to_titlecase(nat_int_t codepoint, nat_int_t result[], bool ascii_only) {
-    if (ascii_only) return codepoint_to_uppercase(codepoint, result, true);
+uint8_t EncodingObject::codepoint_to_titlecase(nat_int_t codepoint, nat_int_t result[], CaseMapType flags) {
+    if (flags & CaseMapAscii)
+        return codepoint_to_uppercase(codepoint, result, CaseMapAscii);
 
     auto block = codepoint >> 8;
     auto index = tcase_index[block] + (codepoint & 0xff);

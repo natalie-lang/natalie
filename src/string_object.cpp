@@ -2758,16 +2758,16 @@ Value StringObject::rstrip_in_place(Env *env) {
 
 // This implements checking the case-fold options passed into arguments like
 // downcase, upcase, casecmp, etc and sets a bitfield enum.
-CaseFoldType StringObject::check_case_options(Env *env, Value arg1, Value arg2, CaseFoldType flags) {
+CaseMapType StringObject::check_case_options(Env *env, Value arg1, Value arg2, bool downcase) {
     SymbolObject *turk = "turkic"_s;
     SymbolObject *lith = "lithuanian"_s;
     // return for zero arg case
     if (arg1.is_null() && arg2.is_null())
-        return flags;
+        return CaseMapFull;
     // two arg case only accepts turkic and lithuanian (in either order)
     if (!arg1.is_null() && !arg2.is_null()) {
         if ((arg1 == turk && arg2 == lith) || (arg1 == lith && arg2 == turk)) {
-            return flags | FoldTurkicAzeri | FoldLithuanian;
+            return CaseMapTurkicAzeri | CaseMapLithuanian;
         } else {
             // any other pair of arguments is an error
             env->raise("ArgumentError", "invalid option");
@@ -2775,22 +2775,21 @@ CaseFoldType StringObject::check_case_options(Env *env, Value arg1, Value arg2, 
     }
     // acceptable symbols as options: [turkic lithuanian ascii fold]
     if (arg1 == "ascii"_s) {
-        return flags | Ascii;
+        return CaseMapAscii;
     } else if (arg1 == "fold"_s) {
-        if ((flags & (Upcase | Downcase)) == Downcase) {
-            flags = flags ^ (Fold | Downcase);
-            return flags;
+        if (downcase) {
+            return CaseMapFold;
         } else {
             env->raise("ArgumentError", "option :fold only allowed for downcasing");
         }
     } else if (arg1 == turk) {
-        return flags | FoldTurkicAzeri;
+        return CaseMapTurkicAzeri;
     } else if (arg1 == lith) {
-        return flags | FoldLithuanian;
+        return CaseMapLithuanian;
     } else {
         env->raise("ArgumentError", "invalid option");
     }
-    return flags;
+    return CaseMapFull;
 }
 
 // TODO: It is probably more efficient to do the cmp inline so that the
@@ -2816,18 +2815,17 @@ Value StringObject::is_casecmp(Env *env, Value other) {
 }
 
 StringObject *StringObject::capitalize(Env *env, Value arg1, Value arg2) {
-    auto flags = check_case_options(env, arg1, arg2, Fold);
+    auto flags = check_case_options(env, arg1, arg2);
     auto str = new StringObject { "", m_encoding };
     bool first_char = true;
-    auto ascii_only = flags & Ascii;
     nat_int_t result[3] = {};
     uint8_t length = 0;
     for (StringView c : *this) {
         nat_int_t codepoint = m_encoding->decode_codepoint(c);
         if (first_char)
-            length = EncodingObject::codepoint_to_titlecase(codepoint, result, ascii_only);
+            length = EncodingObject::codepoint_to_titlecase(codepoint, result, flags);
         else
-            length = EncodingObject::codepoint_to_lowercase(codepoint, result, ascii_only);
+            length = EncodingObject::codepoint_to_lowercase(codepoint, result, flags);
         for (uint8_t i = 0; i < length; i++)
             str->append(m_encoding->encode_codepoint(result[i]));
         first_char = false;
@@ -2846,15 +2844,15 @@ Value StringObject::capitalize_in_place(Env *env, Value arg1, Value arg2) {
 }
 
 StringObject *StringObject::downcase(Env *env, Value arg1, Value arg2) {
-    auto flags = check_case_options(env, arg1, arg2, Downcase);
+    auto flags = check_case_options(env, arg1, arg2, true);
     auto str = new StringObject { "", m_encoding };
     nat_int_t result[3] = {};
     for (StringView c : *this) {
         auto codepoint = m_encoding->decode_codepoint(c);
-        if (flags & Ascii) {
-            EncodingObject::codepoint_to_lowercase(codepoint, result, true);
+        if (flags & CaseMapAscii) {
+            EncodingObject::codepoint_to_lowercase(codepoint, result, flags);
             str->append(m_encoding->encode_codepoint(result[0]));
-        } else if ((flags & Fold || flags & FoldLithuanian) && !(flags & FoldTurkicAzeri)) {
+        } else if ((flags & CaseMapFold || flags & CaseMapLithuanian) && !(flags & CaseMapTurkicAzeri)) {
             auto result = EncodingObject::casefold_full(codepoint);
             if (result->is_array()) {
                 for (auto item : *result->as_array()) {
@@ -2895,13 +2893,12 @@ Value StringObject::dump(Env *env) {
 }
 
 StringObject *StringObject::upcase(Env *env, Value arg1, Value arg2) {
-    auto flags = check_case_options(env, arg1, arg2, Upcase);
+    auto flags = check_case_options(env, arg1, arg2);
     auto str = new StringObject { "", m_encoding };
-    auto ascii_only = flags & Ascii;
     nat_int_t result[3] = {};
     for (StringView c : *this) {
         auto codepoint = m_encoding->decode_codepoint(c);
-        auto length = EncodingObject::codepoint_to_uppercase(codepoint, result, ascii_only);
+        auto length = EncodingObject::codepoint_to_uppercase(codepoint, result, flags);
         for (uint8_t i = 0; i < length; i++)
             str->append(m_encoding->encode_codepoint(result[i]));
     }
@@ -2921,7 +2918,7 @@ Value StringObject::upcase_in_place(Env *env, Value arg1, Value arg2) {
 
 StringObject *StringObject::swapcase(Env *env, Value arg1, Value arg2) {
     // currently not doing anything with the returned flags
-    check_case_options(env, arg1, arg2, Fold);
+    check_case_options(env, arg1, arg2);
     auto str = new StringObject { "", m_encoding };
     for (StringView c : *this) {
         nat_int_t codept = m_encoding->decode_codepoint(c);
