@@ -1410,20 +1410,12 @@ Value Socket_s_getifaddrs(Env *env, Value, Args args, Block *) {
         return Object::_new(env, Addrinfo, { addrinfo_str }, nullptr);
     };
     auto result = new ArrayObject;
-    auto ifindex_lookup = new HashObject;
     for (ifaddrs *it = ifa; it != nullptr; it = it->ifa_next) {
         auto ifaddr = Object::allocate(env, Ifaddr, {}, nullptr);
         auto name = new StringObject { it->ifa_name };
         ifaddr->ivar_set(env, "@name"_s, name);
-#ifdef AF_PACKET
-        if (it->ifa_addr && it->ifa_addr->sa_family == AF_PACKET) {
-            const auto addr = reinterpret_cast<const sockaddr_ll *>(it->ifa_addr);
-            ifindex_lookup->refeq(env, name, Value::integer(addr->sll_ifindex));
-        }
-#else
-        if (!ifindex_lookup->has_key(env, name))
-            ifindex_lookup->refeq(env, name, Value::integer(ifindex_lookup->size() + 1));
-#endif
+        const auto ifindex = if_nametoindex(it->ifa_name);
+        ifaddr->ivar_set(env, "@ifindex"_s, Value::integer(ifindex));
         ifaddr->ivar_set(env, "@flags"_s, Value::integer(it->ifa_flags));
         ifaddr->ivar_set(env, "@addr"_s, sockaddr_to_addrinfo(it->ifa_addr));
         ifaddr->ivar_set(env, "@netmask"_s, sockaddr_to_addrinfo(it->ifa_netmask));
@@ -1439,10 +1431,6 @@ Value Socket_s_getifaddrs(Env *env, Value, Args args, Block *) {
             ifaddr->ivar_set(env, "@dstaddr"_s, sockaddr_to_addrinfo(it->ifa_ifu.ifu_dstaddr));
 #endif
         result->push(ifaddr);
-    }
-    for (auto ifaddr : *result) {
-        auto name = ifaddr->ivar_get(env, "@name"_s);
-        ifaddr->ivar_set(env, "@ifindex"_s, ifindex_lookup->ref(env, name));
     }
     return result;
 }
