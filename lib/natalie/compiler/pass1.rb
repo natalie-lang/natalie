@@ -2268,6 +2268,17 @@ module Natalie
         instructions = [GlobalVariableGetInstruction.new(:$!)]
 
         case node
+        when ::Prism::CallTargetNode
+          instructions.prepend(transform_expression(node.receiver, used: true))
+          instructions << PushArgcInstruction.new(1)
+          instructions << SendInstruction.new(
+            :"#{node.message}=",
+            receiver_is_self: node.receiver.nil? || node.receiver.is_a?(Prism::SelfNode),
+            with_block: false,
+            file: @file.path,
+            line: node.location.start_line,
+          )
+          instructions << PopInstruction.new
         when ::Prism::ClassVariableTargetNode
           instructions << ClassVariableSetInstruction.new(node.name)
         when ::Prism::ConstantTargetNode, ::Prism::ConstantPathTargetNode
@@ -2278,6 +2289,23 @@ module Natalie
           ]
         when ::Prism::GlobalVariableTargetNode
           instructions << GlobalVariableSetInstruction.new(node.name)
+        when ::Prism::IndexTargetNode
+          instructions = [transform_expression(node.receiver, used: true)]
+
+          # transform_arguments_node_for_callish pushes the arguments on the stack and adds an PushArgcInstruction
+          # Remove the PushArgcInstruction, push $!, and add an PushArgcInstruction with the size + 1
+          instructions.append(transform_arguments_node_for_callish(node.arguments)[:instructions][...-1])
+          instructions << GlobalVariableGetInstruction.new(:$!)
+          instructions << PushArgcInstruction.new(node.arguments.arguments.size + 1)
+
+          instructions << SendInstruction.new(
+            :[]=,
+            receiver_is_self: node.receiver.nil? || node.receiver.is_a?(Prism::SelfNode),
+            with_block: false,
+            file: @file.path,
+            line: node.location.start_line,
+          )
+          instructions << PopInstruction.new
         when ::Prism::InstanceVariableTargetNode
           instructions << InstanceVariableSetInstruction.new(node.name)
         when ::Prism::LocalVariableTargetNode
