@@ -349,7 +349,7 @@ end
 
 def ruby_version_string
   string = ENV['RUBY'] || DEFAULT_HOST_RUBY_VERSION
-  raise 'must be in the format rubyX.Y' unless string =~ /^ruby\d\.\d$/
+  raise 'must be in the format rubyX.Y' unless string =~ /^ruby\d\.\d(?:\.\d-preview\d)?$/
   string
 end
 
