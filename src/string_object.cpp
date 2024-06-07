@@ -2722,6 +2722,11 @@ Value StringObject::rjust(Env *env, Value length_obj, Value pad_obj) const {
 Value StringObject::rstrip(Env *env) const {
     if (length() == 0)
         return new StringObject { "", m_encoding };
+
+    if (!valid_encoding()) {
+        env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s)->as_class(), "invalid byte sequence in {}", m_encoding->name()->as_string()->string());
+    }
+
     assert(length() < NAT_INT_MAX);
     nat_int_t last_char;
     nat_int_t len = static_cast<nat_int_t>(length());
@@ -2742,6 +2747,9 @@ Value StringObject::rstrip_in_place(Env *env) {
     assert_not_frozen(env);
     if (length() == 0)
         return NilObject::the();
+
+    if (!valid_encoding())
+        env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s)->as_class(), "invalid byte sequence in {}", m_encoding->name()->as_string()->string());
 
     assert(length() < NAT_INT_MAX);
     nat_int_t last_char;
