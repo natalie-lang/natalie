@@ -121,10 +121,8 @@ describe "String#casecmp independent of case" do
   end
 
   it "returns 0 for empty strings in different encodings" do
-    NATFIXME 'empty strings of different encodings', exception: SpecFailedException do
-      ''.b.casecmp('').should == 0
-      ''.b.casecmp(''.encode("UTF-32LE")).should == 0
-    end
+    ''.b.casecmp('').should == 0
+    ''.b.casecmp(''.encode("UTF-32LE")).should == 0
   end
 end
 

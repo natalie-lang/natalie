@@ -749,6 +749,9 @@ Value StringObject::cmp(Env *env, Value other) {
         return NilObject::the();
     }
 
+    if (m_string.is_empty() && other_str->m_string.is_empty())
+        return Value::integer(0);
+
     auto comparison = m_string.cmp(other_str->m_string);
 
     if (comparison == 0 && !(is_ascii_only() && other->as_string()->is_ascii_only())) {
