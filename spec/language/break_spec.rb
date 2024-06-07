@@ -260,11 +260,11 @@ end
 
 describe "The break statement in a method" do
   # NATFIXME: unexpected env for break (RuntimeError)
-  #it "is invalid and raises a SyntaxError" do
+  xit "is invalid and raises a SyntaxError" do
     #-> {
       #eval("def m; break; end")
     #}.should raise_error(SyntaxError)
-  #end
+  end
 end
 
 describe "The break statement in a module literal" do
