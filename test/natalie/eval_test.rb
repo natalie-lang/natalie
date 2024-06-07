@@ -49,4 +49,11 @@ describe 'eval macro' do
   it 'raises a SyntaxError for invalid parse' do
     -> { eval('())))') }.should raise_error(SyntaxError)
   end
+
+  it 'can handle multiline statements with heredocs' do
+    eval(<<~RUBY).should == 1
+      a = 1
+      a
+    RUBY
+  end
 end
