@@ -34,14 +34,12 @@ describe "Numbered parameters" do
   end
 
   it "cannot be overwritten with local variable" do
-    NATFIXME 'Eval', exception: SpecFailedException, message: 'eval() only works on static strings' do
-      -> {
-        eval <<~CODE
-          _1 = 0
-          proc { _1 }.call("a").should == 0
-        CODE
-      }.should raise_error(SyntaxError, /_1 is reserved for numbered parameter/)
-    end
+    -> {
+      eval <<~CODE
+        _1 = 0
+        proc { _1 }.call("a").should == 0
+      CODE
+    }.should raise_error(SyntaxError, /_1 is reserved for numbered parameter/)
   end
 
   it "errors when numbered parameter is overwritten with local variable" do

@@ -159,6 +159,17 @@ module Natalie
         args = expr.arguments&.arguments || []
         node = args.first
         $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
+        if node.type == :interpolated_string_node && node.parts.all? { |subnode| subnode.type == :string_node }
+          node = Prism::StringNode.new(
+            nil,
+            nil,
+            node.opening_loc,
+            node.opening_loc,
+            node.closing_loc,
+            node.parts.map(&:unescaped).join,
+            node.location,
+          )
+        end
         if node.type == :string_node
           begin
             Natalie::Parser.new(node.unescaped, current_path, locals: locals).ast
