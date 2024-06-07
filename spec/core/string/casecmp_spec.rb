@@ -30,9 +30,7 @@ describe "String#casecmp independent of case" do
   end
 
   it "returns nil if incompatible encodings" do
-    NATFIXME 'returns nil if incompatible encodings', exception: SpecFailedException do
-      "あれ".casecmp("れ".encode(Encoding::EUC_JP)).should be_nil
-    end
+    "あれ".casecmp("れ".encode(Encoding::EUC_JP)).should be_nil
   end
 
   describe "in UTF-8 mode" do
@@ -145,9 +143,7 @@ describe 'String#casecmp? independent of case' do
   end
 
   it "returns nil if incompatible encodings" do
-    NATFIXME 'returns nil if incompatible encodings', exception: SpecFailedException do
-      "あれ".casecmp?("れ".encode(Encoding::EUC_JP)).should be_nil
-    end
+    "あれ".casecmp?("れ".encode(Encoding::EUC_JP)).should be_nil
   end
 
   describe 'for UNICODE characters' do

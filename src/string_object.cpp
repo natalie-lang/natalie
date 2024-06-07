@@ -2801,8 +2801,17 @@ Value StringObject::casecmp(Env *env, Value other) {
     other = StringObject::try_convert(env, other);
     if (other->is_nil())
         return NilObject::the();
+
+    auto other_str = other->as_string_or_raise(env);
+
+    if (is_empty() && other_str->is_empty())
+        return Value::integer(0);
+
+    if (!negotiate_compatible_encoding(other_str))
+        return NilObject::the();
+
     auto str1 = this->downcase(env, "ascii"_s, nullptr);
-    auto str2 = other->as_string()->downcase(env, "ascii"_s, nullptr);
+    auto str2 = other_str->downcase(env, "ascii"_s, nullptr);
     return str1->cmp(env, Value(str2));
 }
 
@@ -2810,10 +2819,20 @@ Value StringObject::is_casecmp(Env *env, Value other) {
     other = StringObject::try_convert(env, other);
     if (other->is_nil())
         return NilObject::the();
+
+    auto other_str = other->as_string_or_raise(env);
+
+    if (is_empty() && other_str->is_empty())
+        return Value::integer(0);
+
+    if (!negotiate_compatible_encoding(other_str))
+        return NilObject::the();
+
     auto str1 = this->downcase(env, "fold"_s, nullptr);
-    auto str2 = other->as_string()->downcase(env, "fold"_s, nullptr);
+    auto str2 = other_str->downcase(env, "fold"_s, nullptr);
     if (str1->string() == str2->string())
         return TrueObject::the();
+
     return FalseObject::the();
 }
 
