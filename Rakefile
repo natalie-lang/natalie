@@ -201,10 +201,25 @@ task test_all_ruby_spec_nightly: :build do
   sh 'bundle exec ruby spec/support/nightly_ruby_spec_runner.rb'
 end
 
-def num_procs
-  `command -v nproc 2>&1 >/dev/null && nproc || command -v sysctl 2>&1 >/dev/null && sysctl -n hw.ncpu || echo 4`.strip
-rescue SystemCallError
-  '4'
+task output_all_ruby_specs: :build do
+  version = RUBY_VERSION.sub(/\.\d+$/, '')
+  sh <<~END
+    bundle config set --local with 'run_all_specs'
+    bundle install
+    ruby spec/support/cpp_output_all_specs.rb output/ruby#{version}
+  END
+end
+
+task :copy_generated_files_to_output do
+  version = RUBY_VERSION.sub(/\.\d+$/, '')
+  Dir['build/generated/*'].each do |entry|
+    if File.directory?(entry)
+      mkdir_p entry.sub('build/generated', "output/ruby#{version}")
+    end
+  end
+  Rake::FileList['build/generated/**/*.cpp'].each do |path|
+    cp path, path.sub('build/generated', "output/ruby#{version}")
+  end
 end
 
 desc 'Build the self-hosted version of Natalie at bin/nat'
@@ -261,6 +276,7 @@ DOCKER_FLAGS = '-e DOCKER=true ' +
                end
 
 DEFAULT_HOST_RUBY_VERSION = 'ruby3.3'.freeze
+SUPPORTED_HOST_RUBY_VERSIONS = %w[ruby3.1 ruby3.2 ruby3.3].freeze
 
 task :docker_build_gcc do
   sh "docker build -t natalie_gcc_#{ruby_version_string} " \
@@ -305,6 +321,30 @@ task docker_bash_gdb: :docker_build_gcc do
 end
 
 task docker_test: %i[docker_test_gcc docker_test_clang docker_test_self_hosted docker_test_asan]
+
+task :docker_test_output do
+  rm_rf 'output'
+
+  SUPPORTED_HOST_RUBY_VERSIONS.each do |version|
+    mkdir_p "output/#{version}"
+    ENV['RUBY'] = version
+    Rake::Task[:docker_build_clang].invoke
+    Rake::Task[:docker_build_clang].reenable # allow to run again
+    sh "docker run #{DOCKER_FLAGS} --rm -v $(pwd)/output:/natalie/output " \
+       "--entrypoint rake natalie_clang_#{version} " \
+       'output_all_ruby_specs ' \
+       'copy_generated_files_to_output'
+  end
+
+  SUPPORTED_HOST_RUBY_VERSIONS.each_cons(2) do |v1, v2|
+    out = `diff -r output/#{v1} output/#{v2} 2>&1`.strip
+    if out.size.positive?
+      puts out
+      puts
+      raise "Output for #{v1} and #{v2} differs"
+    end
+  end
+end
 
 task docker_test_gcc: :docker_build_gcc do
   sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_gcc_#{ruby_version_string} test"
