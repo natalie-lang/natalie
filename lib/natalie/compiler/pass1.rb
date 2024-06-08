@@ -2270,6 +2270,14 @@ module Natalie
         case node
         when ::Prism::CallTargetNode
           instructions.prepend(transform_expression(node.receiver, used: true))
+          if node.safe_navigation?
+            get_exception_instruction = instructions.pop
+            instructions << DupInstruction.new
+            instructions << IsNilInstruction.new
+            instructions << IfInstruction.new
+            instructions << ElseInstruction.new(:if)
+            instructions << get_exception_instruction
+          end
           instructions << PushArgcInstruction.new(1)
           instructions << SendInstruction.new(
             :"#{node.message}=",
@@ -2278,6 +2286,7 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           )
+          instructions << EndInstruction.new(:if) if node.safe_navigation?
           instructions << PopInstruction.new
         when ::Prism::ClassVariableTargetNode
           instructions << ClassVariableSetInstruction.new(node.name)
