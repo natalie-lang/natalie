@@ -5,9 +5,6 @@ AllCops:
     - spec/**/*.rb
     - vendor/**/*
 
-Style/FrozenStringLiteralComment:
-  Enabled: false
-
 Layout/LeadingCommentSpace:
   Enabled: false
 
@@ -54,6 +51,9 @@ Style/Documentation:
 Style/DoubleNegation:
   Enabled: false
 
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
 Style/FormatString:
   Enabled: false
 
@@ -67,6 +67,9 @@ Style/LambdaCall:
   Enabled: false
 
 Style/NumericPredicate:
+  Enabled: false
+
+Style/Next:
   Enabled: false
 
 Style/OptionalBooleanParameter:
