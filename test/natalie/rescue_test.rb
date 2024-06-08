@@ -209,6 +209,17 @@ describe 'begin/rescue/else' do
     l.call
     ran.should == [:rescue]
   end
+
+  it 'can handle safe navigator writes on nil' do
+    caught = false
+    foo = nil
+    begin
+      raise 'exception'
+    rescue => foo&.bar
+      caught = true
+    end
+    caught.should be_true
+  end
 end
 
 describe 'raise' do
