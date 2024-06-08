@@ -207,15 +207,6 @@ rescue SystemCallError
   '4'
 end
 
-desc 'Run the test suite using many processes in parallel'
-task test_parallel: :build do
-  env = {}
-  env['PARALLEL'] = 'true'
-  env['REPORTER'] = 'dots'
-  env['NCPU'] = ENV['NCPU'] || num_procs
-  sh env, 'bundle exec ruby test/all.rb'
-end
-
 desc 'Build the self-hosted version of Natalie at bin/nat'
 task bootstrap: [:build, "build/libnat.#{SO_EXT}", 'bin/nat']
 
@@ -240,11 +231,11 @@ task tags: :ctags
 
 desc 'Format C++ code with clang-format'
 task :format do
-  sh "find include src lib " \
+  sh 'find include src lib ' \
      "-type f -name '*.?pp' " \
-     "! -path src/encoding/casemap.cpp " \
-     "! -path src/encoding/casefold.cpp " \
-     "-exec clang-format -i --style=file {} +"
+     '! -path src/encoding/casemap.cpp ' \
+     '! -path src/encoding/casefold.cpp ' \
+     '-exec clang-format -i --style=file {} +'
 end
 
 desc 'Show TODO and FIXME comments in the project'
@@ -261,13 +252,13 @@ task gc_lint: %i[build gc_lint_internal]
 # # # # Docker Tasks (used for CI) # # # #
 
 DOCKER_FLAGS = '-e DOCKER=true ' +
-  if !ENV['CI'] && $stdout.isatty
-    '-i -t'
-  elsif ENV['CI']
-    "-e CI=#{ENV['CI']}"
-  else
-    ''
-  end
+               if !ENV['CI'] && $stdout.isatty
+                 '-i -t'
+               elsif ENV['CI']
+                 "-e CI=#{ENV['CI']}"
+               else
+                 ''
+               end
 
 DEFAULT_HOST_RUBY_VERSION = 'ruby3.3'.freeze
 
@@ -336,7 +327,11 @@ task docker_test_asan: :docker_build_clang do
 end
 
 task docker_test_all_ruby_spec_nightly: :docker_build_clang do
-  sh "docker run #{DOCKER_FLAGS} -e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_all_ruby_spec_nightly"
+  sh "docker run #{DOCKER_FLAGS} " \
+     "-e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect}" \
+     '--rm ' \
+     '--entrypoint rake ' \
+     "natalie_clang_#{ruby_version_string} test_all_ruby_spec_nightly"
 end
 
 task docker_tidy: :docker_build_clang do
@@ -535,10 +530,12 @@ end
 
 file "build/libnat.#{SO_EXT}" => SOURCES + ['lib/natalie/api.cpp', 'build/libnatalie.a'] do |t|
   sh 'bin/natalie --write-obj build/libnat.rb.cpp lib/natalie.rb'
-  if system("pkg-config --exists libffi")
+  if system('pkg-config --exists libffi')
     flags = `pkg-config --cflags --libs libffi`.chomp
   end
-  sh "#{cxx} #{cxx_flags.join(' ')} #{flags} -std=#{STANDARD} -DNAT_OBJECT_FILE -shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup " \
+  sh "#{cxx} #{cxx_flags.join(' ')} #{flags} -std=#{STANDARD} " \
+     '-DNAT_OBJECT_FILE -shared -fPIC -rdynamic ' \
+     '-Wl,-undefined,dynamic_lookup ' \
      "-o #{t.name} build/libnat.rb.cpp build/libnatalie.a"
 end
 
@@ -597,7 +594,7 @@ task :tidy_internal do
 end
 
 task :gc_lint_internal do
-  sh "ruby test/gc_lint.rb"
+  sh 'ruby test/gc_lint.rb'
 end
 
 task :bundle_install do
@@ -648,7 +645,10 @@ def cxx_flags
       Natalie::Compiler::Flags::DEBUG_FLAGS
     end
   base_flags += ['-fPIC'] # needed for repl
-  base_flags += ['-D_DARWIN_C_SOURCE'] if RUBY_PLATFORM =~ /darwin/ # needed for Process.groups to return more than 16 groups on macOS
+  if RUBY_PLATFORM =~ /darwin/
+    # needed for Process.groups to return more than 16 groups on macOS
+    base_flags += ['-D_DARWIN_C_SOURCE']
+  end
   user_flags = Array(ENV['NAT_CXX_FLAGS'])
   base_flags + user_flags + include_paths.map { |path| "-I #{path}" }
 end
