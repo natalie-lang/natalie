@@ -11,14 +11,18 @@ env:
   CI: 1
 
 jobs:
+  output:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: diff output
+        run: rake docker_test_output
   linux:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        ruby_version:
-          - ruby3.1
-          - ruby3.2
-          - ruby3.3
         compiler:
           - gcc
           - clang
@@ -27,7 +31,7 @@ jobs:
         with:
           submodules: true
       - name: run tests
-        run: rake docker_test_${{ matrix.compiler }} RUBY=${{ matrix.ruby_version }}
+        run: rake docker_test_${{ matrix.compiler }} RUBY=ruby3.3
   macos:
     runs-on: macos-12
     steps:
@@ -61,7 +65,7 @@ jobs:
           export PATH="/usr/local/opt/ruby/bin:$PATH"
           rake test
   self-hosted:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -69,7 +73,7 @@ jobs:
       - name: build self-hosted binary
         run: rake docker_test_self_hosted
   asan:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
