@@ -5,8 +5,8 @@ gem 'minitest-reporters'
 gem 'rake'
 
 group :development do
-  gem 'stackprof'
   gem 'rubocop'
+  gem 'stackprof'
 end
 
 group :run_all_specs, optional: true do
