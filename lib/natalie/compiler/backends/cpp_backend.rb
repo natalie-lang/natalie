@@ -55,6 +55,7 @@ module Natalie
         @compiler_context = compiler_context
         augment_compiler_context
         @symbols = {}
+        @interned_strings = {}
         @inline_functions = {}
         @top = []
       end
@@ -126,6 +127,7 @@ module Natalie
           top:              @top,
           compiler_context: @compiler_context,
           symbols:          @symbols,
+          interned_strings: @interned_strings,
           inline_functions: @inline_functions,
         )
         transform.transform('return')
@@ -266,6 +268,7 @@ module Natalie
         [
           object_file_declarations,
           symbols_declaration,
+          interned_strings_declaration,
           @top.join("\n")
         ].join("\n\n")
       end
@@ -273,6 +276,7 @@ module Natalie
       def init_matter
         [
           init_symbols.join("\n"),
+          init_interned_strings.join("\n"),
           init_dollar_zero_global,
         ].compact.join("\n\n")
       end
@@ -283,6 +287,10 @@ module Natalie
 
       def symbols_declaration
         "static SymbolObject *#{symbols_var_name}[#{@symbols.size}] = {};"
+      end
+
+      def interned_strings_declaration
+        "static StringObject *#{interned_strings_var_name}[#{@interned_strings.size}] = {};"
       end
 
       def init_object_files
@@ -297,6 +305,22 @@ module Natalie
         end
       end
 
+      def init_interned_strings
+        @interned_strings.map do |str, index|
+          enum = str.encoding.name.tr('-', '_').upcase
+          encoding_object = "EncodingObject::get(Encoding::#{enum})"
+          new_string = if str.empty?
+                         "#{interned_strings_var_name}[#{index}] = new StringObject(#{encoding_object});"
+                       else
+                         "#{interned_strings_var_name}[#{index}] = new StringObject(#{string_to_cpp(str)}, #{str.bytesize}, #{encoding_object});"
+                       end
+          [
+            new_string,
+            "#{interned_strings_var_name}[#{index}]->freeze();",
+          ]
+        end
+      end
+
       def init_dollar_zero_global
         return if write_object_file?
 
@@ -305,6 +329,10 @@ module Natalie
 
       def symbols_var_name
         static_var_name('symbols')
+      end
+
+      def interned_strings_var_name
+        static_var_name('interned_strings')
       end
 
       def static_var_name(suffix)

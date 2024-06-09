@@ -2,7 +2,7 @@ module Natalie
   class Compiler
     class CppBackend
       class Transform
-        def initialize(instructions, top:, compiler_context:, symbols:, inline_functions:, stack: [], compiled_files: {})
+        def initialize(instructions, top:, compiler_context:, symbols:, interned_strings:, inline_functions:, stack: [], compiled_files: {})
           if instructions.is_a?(InstructionManager)
             @instructions = instructions
           else
@@ -13,6 +13,7 @@ module Natalie
           @code = []
           @compiler_context = compiler_context
           @symbols = symbols
+          @interned_strings = interned_strings
           @inline_functions = inline_functions
           @stack = stack
           @compiled_files = compiled_files
@@ -112,6 +113,7 @@ module Natalie
             top: @top,
             compiler_context: @compiler_context,
             symbols: @symbols,
+            interned_strings: @interned_strings,
             inline_functions: @inline_functions,
             compiled_files: @compiled_files,
           )
@@ -126,6 +128,7 @@ module Natalie
             top: @top,
             compiler_context: @compiler_context,
             symbols: @symbols,
+            interned_strings: @interned_strings,
             inline_functions: @inline_functions,
             compiled_files: @compiled_files,
           )
@@ -151,6 +154,12 @@ module Natalie
           index = @symbols[symbol] ||= @symbols.size
           comment = "/*:#{symbol.to_s.gsub(%r{\*/|\\}, '?')}*/"
           "#{symbols_var_name}[#{index}]#{comment}"
+        end
+
+        def interned_string(str)
+          index = @interned_strings[str] ||= @interned_strings.size
+          comment = "/*\"#{str.gsub(%r{\*/|\\}, '?')}\"*/"
+          "#{interned_strings_var_name}[#{index}]#{comment}"
         end
 
         def set_file(file)
@@ -199,6 +208,10 @@ module Natalie
 
         def symbols_var_name
           "#{@compiler_context[:var_prefix]}symbols"
+        end
+
+        def interned_strings_var_name
+          "#{@compiler_context[:var_prefix]}interned_strings"
         end
 
         def stringify_code(lines, result_prefix = nil)
