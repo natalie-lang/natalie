@@ -158,8 +158,7 @@ module Natalie
 
         def interned_string(str)
           index = @interned_strings[str] ||= @interned_strings.size
-          comment = "/*\"#{str.gsub(%r{\*/|\\}, '?')}\"*/"
-          "#{interned_strings_var_name}[#{index}]#{comment}"
+          "#{interned_strings_var_name}[#{index}]"
         end
 
         def set_file(file)
