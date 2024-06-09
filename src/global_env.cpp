@@ -112,8 +112,7 @@ void GlobalEnv::global_set_write_hook(Env *env, SymbolObject *name, GlobalVariab
 }
 
 void GlobalEnv::set_interned_strings(StringObject **interned_strings, const size_t interned_strings_size) {
-    m_interned_strings = interned_strings;
-    m_interned_strings_size = interned_strings_size;
+    m_interned_strings.push({ interned_strings, interned_strings_size });
 }
 
 void GlobalEnv::visit_children(Visitor &visitor) {
@@ -125,10 +124,9 @@ void GlobalEnv::visit_children(Visitor &visitor) {
         visitor.visit(m_Encodings[i]);
     for (auto pair : m_files)
         visitor.visit(pair.first);
-    if (m_interned_strings) {
-        for (size_t i = 0; i < m_interned_strings_size; i++)
-            visitor.visit(m_interned_strings[i]);
-    }
+    for (auto pair : m_interned_strings)
+        for (size_t i = 0; i < pair.size; i++)
+            visitor.visit(pair.strs[i]);
     visitor.visit(m_Array);
     visitor.visit(m_BasicObject);
     visitor.visit(m_Binding);

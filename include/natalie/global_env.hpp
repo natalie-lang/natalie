@@ -141,8 +141,11 @@ private:
 
     ClassObject *m_Encodings[EncodingCount];
 
-    StringObject **m_interned_strings { nullptr };
-    size_t m_interned_strings_size { 0 };
+    struct span {
+        StringObject **strs;
+        size_t size;
+    };
+    Vector<span> m_interned_strings {};
 
     Env *m_main_env { nullptr };
     MethodMissingReason m_method_missing_reason { MethodMissingReason::Undefined };
