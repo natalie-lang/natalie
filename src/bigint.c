@@ -10,14 +10,6 @@
 
 #define BIGINT_ASSERT(a, op, b) assert((a)op(b));
 
-// temporary
-void print_bigint(const bigint *n) {
-    printf("size = %d, cap = %d, neg = %d\n", n->size, n->capacity, n->neg);
-    for (int i = 0; i < n->size; i++) {
-        printf("words[%d] = %u\n", i, n->words[i]);
-    }
-}
-
 /* low bits of a * b */
 bigint_word bigint_word_mul_lo(bigint_word a, bigint_word b) {
     return a * b;
