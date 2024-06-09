@@ -306,7 +306,15 @@ module Natalie
       end
 
       def init_interned_strings
-        @interned_strings.map do |(str, encoding), index|
+        return [] if @interned_strings.empty?
+
+        # Start with setting the interned strings list all to nullptr and register the GC hook before creating strings
+        # Otherwise, we might start GC before we finished setting up this structure if the source contains enough strings
+        interned_strings = [
+          "memset(#{interned_strings_var_name}, 0, sizeof(#{interned_strings_var_name}));",
+          "GlobalEnv::the()->set_interned_strings(#{interned_strings_var_name}, #{@interned_strings.size});"
+        ]
+        interned_strings + @interned_strings.map do |(str, encoding), index|
           enum = encoding.name.tr('-', '_').upcase
           encoding_object = "EncodingObject::get(Encoding::#{enum})"
           new_string = if str.empty?

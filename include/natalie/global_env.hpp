@@ -104,6 +104,8 @@ public:
     bool has_file(SymbolObject *name) const { return m_files.get(name); }
     void add_file(Env *env, SymbolObject *name);
 
+    void set_interned_strings(StringObject **, const size_t);
+
     friend class SymbolObject;
 
     virtual void visit_children(Visitor &visitor) override final;
@@ -138,6 +140,9 @@ private:
     Natalie::Object *m_main_obj { nullptr };
 
     ClassObject *m_Encodings[EncodingCount];
+
+    StringObject **m_interned_strings { nullptr };
+    size_t m_interned_strings_size { 0 };
 
     Env *m_main_env { nullptr };
     MethodMissingReason m_method_missing_reason { MethodMissingReason::Undefined };
