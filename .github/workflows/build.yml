@@ -26,14 +26,28 @@ jobs:
         compiler:
           - gcc
           - clang
+        group:
+          - group1
+          - group2
+          - group3
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
       - name: run tests
-        run: rake docker_test_${{ matrix.compiler }} RUBY=ruby3.3
+        env:
+          RUBY: ruby3.3
+        run: |
+          export GLOB=$(ruby spec/support/split_specs.rb 3 ${{ matrix.group }})
+          rake docker_test_${{ matrix.compiler }}
   macos:
     runs-on: macos-12
+    strategy:
+      matrix:
+        group:
+          - group1
+          - group2
+          - group3
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,6 +76,7 @@ jobs:
         env:
           PKG_CONFIG_PATH: /usr/local/opt/openssl@3/lib/pkgconfig:/opt/homebrew/opt/openssl@3/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig:/opt/homebrew/opt/libffi/lib/pkgconfig
         run: |
+          export GLOB=$(ruby spec/support/split_specs.rb 3 ${{ matrix.group }})
           export PATH="/usr/local/opt/ruby/bin:$PATH"
           rake test
   self-hosted:

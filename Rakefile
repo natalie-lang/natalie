@@ -266,14 +266,16 @@ task gc_lint: %i[build gc_lint_internal]
 
 # # # # Docker Tasks (used for CI) # # # #
 
-DOCKER_FLAGS = '-e DOCKER=true ' +
-               if !ENV['CI'] && $stdout.isatty
-                 '-i -t'
-               elsif ENV['CI']
-                 "-e CI=#{ENV['CI']}"
-               else
-                 ''
-               end
+def docker_run_flags
+  ci = '-i -t' if !ENV['CI'] && $stdout.isatty
+  ci = "-e CI=#{ENV['CI']}" if ENV['CI']
+  glob = "-e GLOB='#{ENV['GLOB']}'" if ENV['GLOB']
+  [
+    '-e DOCKER=true',
+    ci,
+    glob,
+  ].compact.join(' ')
+end
 
 DEFAULT_HOST_RUBY_VERSION = 'ruby3.3'.freeze
 SUPPORTED_HOST_RUBY_VERSIONS = %w[ruby3.1 ruby3.2 ruby3.3].freeze
@@ -330,7 +332,7 @@ task :docker_test_output do
     ENV['RUBY'] = version
     Rake::Task[:docker_build_clang].invoke
     Rake::Task[:docker_build_clang].reenable # allow to run again
-    sh "docker run #{DOCKER_FLAGS} --rm -v $(pwd)/output:/natalie/output " \
+    sh "docker run #{docker_run_flags} --rm -v $(pwd)/output:/natalie/output " \
        "--entrypoint rake natalie_clang_#{version} " \
        'output_all_ruby_specs ' \
        'copy_generated_files_to_output'
@@ -347,27 +349,27 @@ task :docker_test_output do
 end
 
 task docker_test_gcc: :docker_build_gcc do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_gcc_#{ruby_version_string} test"
+  sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_gcc_#{ruby_version_string} test"
 end
 
 task docker_test_clang: :docker_build_clang do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test"
+  sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test"
 end
 
 task docker_test_self_hosted: :docker_build_clang do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_self_hosted"
+  sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_self_hosted"
 end
 
 task docker_test_self_hosted_full: :docker_build_clang do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_self_hosted_full"
+  sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_self_hosted_full"
 end
 
 task docker_test_asan: :docker_build_clang do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_asan"
+  sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_asan"
 end
 
 task docker_test_all_ruby_spec_nightly: :docker_build_clang do
-  sh "docker run #{DOCKER_FLAGS} " \
+  sh "docker run #{docker_run_flags} " \
      "-e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect}" \
      '--rm ' \
      '--entrypoint rake ' \
@@ -375,11 +377,11 @@ task docker_test_all_ruby_spec_nightly: :docker_build_clang do
 end
 
 task docker_tidy: :docker_build_clang do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} tidy"
+  sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} tidy"
 end
 
 task docker_gc_lint: :docker_build_clang do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} gc_lint"
+  sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} gc_lint"
 end
 
 def ruby_version_string
