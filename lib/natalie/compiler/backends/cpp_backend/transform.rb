@@ -156,8 +156,8 @@ module Natalie
           "#{symbols_var_name}[#{index}]#{comment}"
         end
 
-        def interned_string(str)
-          index = @interned_strings[str] ||= @interned_strings.size
+        def interned_string(str, encoding)
+          index = @interned_strings[[str, encoding]] ||= @interned_strings.size
           "#{interned_strings_var_name}[#{index}]"
         end
 

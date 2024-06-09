@@ -8,8 +8,7 @@ module Natalie
 
       def initialize(string, bytesize: string.bytesize, encoding: Encoding::UTF_8, frozen: false)
         super()
-        @string = string.dup
-        @string.force_encoding(encoding)
+        @string = string
         @bytesize = bytesize
         @encoding = encoding
         @frozen = frozen
@@ -21,7 +20,7 @@ module Natalie
 
       def generate(transform)
         if @frozen
-          str = transform.interned_string(@string);
+          str = transform.interned_string(@string, @encoding);
           transform.push("Value(#{str})")
         else
           enum = @encoding.name.tr('-', '_').upcase

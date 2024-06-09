@@ -306,8 +306,8 @@ module Natalie
       end
 
       def init_interned_strings
-        @interned_strings.map do |str, index|
-          enum = str.encoding.name.tr('-', '_').upcase
+        @interned_strings.map do |(str, encoding), index|
+          enum = encoding.name.tr('-', '_').upcase
           encoding_object = "EncodingObject::get(Encoding::#{enum})"
           new_string = if str.empty?
                          "#{interned_strings_var_name}[#{index}] = new StringObject(#{encoding_object});"

@@ -224,11 +224,9 @@ describe "Hash literal" do
 
     binary_hash.keys.first.encoding.should == Encoding::BINARY
     binary_hash.keys.first.should == utf8_hash.keys.first
-    NATFIXME 'Fix encoding of interned strings', exception: SpecFailedException do
-      utf8_hash.keys.first.encoding.should == Encoding::UTF_8
-      utf8_hash.keys.first.should == usascii_hash.keys.first
-      usascii_hash.keys.first.encoding.should == Encoding::US_ASCII
-    end
+    utf8_hash.keys.first.encoding.should == Encoding::UTF_8
+    utf8_hash.keys.first.should == usascii_hash.keys.first
+    usascii_hash.keys.first.encoding.should == Encoding::US_ASCII
   end
 
   ruby_bug "#20280", ""..."3.4" do

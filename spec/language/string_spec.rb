@@ -238,9 +238,7 @@ describe "Ruby String literals" do
     end
 
     it "produce different objects for literals with the same content in different files if they have different encodings" do
-      NATFIXME 'Handle encoding for frozen string literals', exception: SpecFailedException do
-        ruby_exe(fixture(__FILE__, "freeze_magic_comment_across_files_diff_enc.rb")).chomp.should == "true"
-      end
+      ruby_exe(fixture(__FILE__, "freeze_magic_comment_across_files_diff_enc.rb")).chomp.should == "true"
     end
   end
 
