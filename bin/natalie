@@ -350,8 +350,10 @@ class Runner
       system('batcat', path, '-lcpp')
     else
       puts File.read(path)
-      puts '-' * 80
-      puts path
+      unless ENV['DO_NOT_PRINT_CPP_PATH']
+        puts '-' * 80
+        puts path
+      end
     end
   end
 
