@@ -194,3 +194,23 @@ describe "IO#read" do
     end
   end
 end
+
+describe 'IO#close' do
+  it 'does not actually close underlying stdin FD' do
+    fd = IO.for_fd($stdin.fileno)
+    fd.close
+    IO.for_fd($stdin.fileno).closed?.should == false
+  end
+
+  it 'does not actually close underlying stdout FD' do
+    fd = IO.for_fd($stdout.fileno)
+    fd.close
+    IO.for_fd($stdout.fileno).closed?.should == false
+  end
+
+  it 'does not actually close underlying stderr FD' do
+    fd = IO.for_fd($stderr.fileno)
+    fd.close
+    IO.for_fd($stderr.fileno).closed?.should == false
+  end
+end

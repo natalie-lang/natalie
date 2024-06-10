@@ -685,6 +685,9 @@ Value IoObject::close(Env *env) {
 
     m_closed = true;
 
+    if (m_fileno == STDIN_FILENO || m_fileno == STDOUT_FILENO || m_fileno == STDERR_FILENO)
+        return NilObject::the();
+
     // Wake up all threads in case one is blocking on a read to this fd.
     // It is undefined behavior on Linux to continue a read() or select()
     // on a closed file descriptor.
