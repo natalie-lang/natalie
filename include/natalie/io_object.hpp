@@ -33,7 +33,7 @@ public:
         if (m_fileno == STDIN_FILENO || m_fileno == STDOUT_FILENO || m_fileno == STDERR_FILENO)
             return;
         if (m_autoclose && !m_closed && m_fileno != -1) {
-            // TODO: actually ::close() the fd :-)
+            ::close(m_fileno);
             m_closed = true;
             m_fileno = -1;
         }

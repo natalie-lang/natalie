@@ -198,9 +198,17 @@ namespace ioutil {
     }
 
     void flags_struct::parse_autoclose(Env *env) {
-        if (!m_kwargs) return;
+        if (!m_kwargs) {
+            m_autoclose = true;
+            return;
+        }
+
         auto autoclose = m_kwargs->remove(env, "autoclose"_s);
-        if (!autoclose) return;
+        if (!autoclose) {
+            m_autoclose = true;
+            return;
+        }
+
         m_autoclose = autoclose->is_truthy();
     }
 

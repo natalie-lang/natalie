@@ -680,10 +680,13 @@ Value IoObject::pwrite(Env *env, Value data, Value offset) {
 }
 
 Value IoObject::close(Env *env) {
-    if (m_closed)
+    if (m_closed || !m_autoclose)
         return NilObject::the();
 
     m_closed = true;
+
+    if (m_fileno == STDIN_FILENO || m_fileno == STDOUT_FILENO || m_fileno == STDERR_FILENO)
+        return NilObject::the();
 
     // Wake up all threads in case one is blocking on a read to this fd.
     // It is undefined behavior on Linux to continue a read() or select()
