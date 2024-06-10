@@ -680,7 +680,7 @@ Value IoObject::pwrite(Env *env, Value data, Value offset) {
 }
 
 Value IoObject::close(Env *env) {
-    if (m_closed)
+    if (m_closed || !m_autoclose)
         return NilObject::the();
 
     m_closed = true;

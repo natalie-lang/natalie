@@ -31,8 +31,7 @@ describe "IO#close" do
     -> { @io.write "data" }.should raise_error(IOError)
   end
 
-  # NATFIXME: Fix autoclose. This test crashes if we leave it enabled
-  xit 'does not close the stream if autoclose is false' do
+  it 'does not close the stream if autoclose is false' do
     other_io = IO.new(@io.fileno)
     other_io.autoclose = false
     other_io.close
