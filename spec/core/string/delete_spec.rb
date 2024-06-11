@@ -54,10 +54,8 @@ describe "String#delete" do
   end
 
   it "respects backslash for escaping a -" do
-    NATFIXME 'respects backslash for escaping a -', exception: ArgumentError do
-      'Non-Authoritative Information'.delete(' \-\'').should ==
-        'NonAuthoritativeInformation'
-    end
+    'Non-Authoritative Information'.delete(' \-\'').should ==
+      'NonAuthoritativeInformation'
   end
 
   it "raises if the given ranges are invalid" do

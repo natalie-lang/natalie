@@ -46,7 +46,7 @@ static auto character_class_handler(Env *env, Args args) {
         }
         for (; it != selectors->end(); ++it) {
             auto value = *it;
-            if (value == "-" && last_character != StringView()) {
+            if (value == "-" && last_character != StringView() && last_character != "\\") {
                 ++it;
                 if (it == selectors->end()) {
                     new_selectors.set(value.to_string());
