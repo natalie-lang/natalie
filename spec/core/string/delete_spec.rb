@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# frozen_string_literal: false
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
@@ -60,11 +61,9 @@ describe "String#delete" do
 
   it "raises if the given ranges are invalid" do
     not_supported_on :opal do
-      NATFIXME 'Encodings', exception: SpecFailedException do
-        xFF = [0xFF].pack('C')
-        range = "\x00 - #{xFF}".force_encoding('utf-8')
-        -> { "hello".delete(range).should == "" }.should raise_error(ArgumentError)
-      end
+      xFF = [0xFF].pack('C')
+      range = "\x00 - #{xFF}".force_encoding('utf-8')
+      -> { "hello".delete(range).should == "" }.should raise_error(ArgumentError)
     end
     -> { "hello".delete("h-e") }.should raise_error(ArgumentError)
     -> { "hello".delete("^h-e") }.should raise_error(ArgumentError)
