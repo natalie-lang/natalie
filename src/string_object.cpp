@@ -33,27 +33,33 @@ static auto character_class_handler(Env *env, Args args) {
         auto new_selectors = Hashmap<String>(HashType::TMString);
         StringView last_character = {};
         bool negated = false;
-        // Split into selectors
-        auto it = selectors->begin();
-        if (*it == "^") {
-            ++it;
 
-            if (it != selectors->end()) {
+        // Split into selectors
+        size_t index = 0;
+        auto result = selectors->next_char_result(&index);
+        if (result.second == "^") {
+            if (index != selectors->bytesize())
                 negated = true;
-            } else {
+            else
                 new_selectors.set("^");
-            }
+            result = selectors->next_char_result(&index);
         }
-        for (; it != selectors->end(); ++it) {
-            auto value = *it;
-            if (value == "-" && last_character != StringView()) {
-                ++it;
-                if (it == selectors->end()) {
+        while (!result.second.is_empty()) {
+            if (!result.first)
+                env->raise("ArgumentError", "invalid byte sequence in {}", selectors->encoding()->name()->as_string()->string());
+
+            auto value = result.second;
+            if (value == "-" && last_character != StringView() && last_character != "\\") {
+                result = selectors->next_char_result(&index);
+                if (result.second.is_empty()) {
                     new_selectors.set(value.to_string());
                     break;
                 }
 
-                auto next_value = *it;
+                auto next_value = result.second;
+                if (!result.first)
+                    env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character.to_string(), next_value.to_string());
+
                 if (last_character.to_string().cmp(next_value.to_string()) == 1)
                     env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character.to_string(), next_value.to_string());
 
@@ -68,6 +74,7 @@ static auto character_class_handler(Env *env, Args args) {
                 last_character = value;
                 new_selectors.set(value.to_string());
             }
+            result = selectors->next_char_result(&index);
         }
 
         // intersect with current selectors
