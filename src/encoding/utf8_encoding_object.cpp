@@ -159,8 +159,11 @@ bool Utf8EncodingObject::is_printable_char(const nat_int_t c) const {
 }
 
 String Utf8EncodingObject::escaped_char(const nat_int_t c) const {
-    char buf[7];
-    snprintf(buf, 7, "\\u%04llX", c);
+    char buf[21];
+    if (c > 0xFFFF)
+        snprintf(buf, sizeof(buf), "\\u{%llX}", c);
+    else
+        snprintf(buf, sizeof(buf), "\\u%04llX", c);
     return String(buf);
 }
 

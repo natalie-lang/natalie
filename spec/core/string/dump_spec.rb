@@ -314,34 +314,32 @@ describe "String#dump" do
   end
 
   it "returns a string with non-printing single-byte UTF-8 characters replaced by \\x notation" do
-    NATFIXME 'returns a string with non-printing single-byte UTF-8 characters replaced by \\x notation', exception: SpecFailedException do
-      [ [0000.chr('utf-8'), '"\x00"'],
-        [0001.chr('utf-8'), '"\x01"'],
-        [0002.chr('utf-8'), '"\x02"'],
-        [0003.chr('utf-8'), '"\x03"'],
-        [0004.chr('utf-8'), '"\x04"'],
-        [0005.chr('utf-8'), '"\x05"'],
-        [0006.chr('utf-8'), '"\x06"'],
-        [0016.chr('utf-8'), '"\x0E"'],
-        [0017.chr('utf-8'), '"\x0F"'],
-        [0020.chr('utf-8'), '"\x10"'],
-        [0021.chr('utf-8'), '"\x11"'],
-        [0022.chr('utf-8'), '"\x12"'],
-        [0023.chr('utf-8'), '"\x13"'],
-        [0024.chr('utf-8'), '"\x14"'],
-        [0025.chr('utf-8'), '"\x15"'],
-        [0026.chr('utf-8'), '"\x16"'],
-        [0027.chr('utf-8'), '"\x17"'],
-        [0030.chr('utf-8'), '"\x18"'],
-        [0031.chr('utf-8'), '"\x19"'],
-        [0032.chr('utf-8'), '"\x1A"'],
-        [0034.chr('utf-8'), '"\x1C"'],
-        [0035.chr('utf-8'), '"\x1D"'],
-        [0036.chr('utf-8'), '"\x1E"'],
-        [0037.chr('utf-8'), '"\x1F"'],
-        [0177.chr('utf-8'), '"\x7F"']
-      ].should be_computed_by(:dump)
-    end
+    [ [0000.chr('utf-8'), '"\x00"'],
+      [0001.chr('utf-8'), '"\x01"'],
+      [0002.chr('utf-8'), '"\x02"'],
+      [0003.chr('utf-8'), '"\x03"'],
+      [0004.chr('utf-8'), '"\x04"'],
+      [0005.chr('utf-8'), '"\x05"'],
+      [0006.chr('utf-8'), '"\x06"'],
+      [0016.chr('utf-8'), '"\x0E"'],
+      [0017.chr('utf-8'), '"\x0F"'],
+      [0020.chr('utf-8'), '"\x10"'],
+      [0021.chr('utf-8'), '"\x11"'],
+      [0022.chr('utf-8'), '"\x12"'],
+      [0023.chr('utf-8'), '"\x13"'],
+      [0024.chr('utf-8'), '"\x14"'],
+      [0025.chr('utf-8'), '"\x15"'],
+      [0026.chr('utf-8'), '"\x16"'],
+      [0027.chr('utf-8'), '"\x17"'],
+      [0030.chr('utf-8'), '"\x18"'],
+      [0031.chr('utf-8'), '"\x19"'],
+      [0032.chr('utf-8'), '"\x1A"'],
+      [0034.chr('utf-8'), '"\x1C"'],
+      [0035.chr('utf-8'), '"\x1D"'],
+      [0036.chr('utf-8'), '"\x1E"'],
+      [0037.chr('utf-8'), '"\x1F"'],
+      [0177.chr('utf-8'), '"\x7F"']
+    ].should be_computed_by(:dump)
   end
 
   it "returns a string with multi-byte UTF-8 characters less than or equal 0xFFFF replaced by \\uXXXX notation with upper-case hex digits" do
@@ -381,10 +379,8 @@ describe "String#dump" do
   end
 
   it "returns a string with multi-byte UTF-8 characters greater than 0xFFFF replaced by \\u{XXXXXX} notation with upper-case hex digits" do
-    NATFIXME 'returns a string with multi-byte UTF-8 characters greater than 0xFFFF replaced by \\u{XXXXXX} notation with upper-case hex digits', exception: SpecFailedException do
-      0x10000.chr('utf-8').dump.should == '"\u{10000}"'
-      0x10FFFF.chr('utf-8').dump.should == '"\u{10FFFF}"'
-    end
+    0x10000.chr('utf-8').dump.should == '"\u{10000}"'
+    0x10FFFF.chr('utf-8').dump.should == '"\u{10FFFF}"'
   end
 
   it "includes .force_encoding(name) if the encoding isn't ASCII compatible" do
