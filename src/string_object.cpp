@@ -503,24 +503,25 @@ Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value) {
     return this;
 }
 
-StringObject *StringObject::inspect(Env *env) const {
+static StringObject *inspect_internal(const StringObject *str, Env *env, bool for_dump = false) {
     StringObject *out = new StringObject { "\"" };
+    auto encoding = str->encoding();
 
     size_t index = 0;
-    auto [valid, ch] = next_char_result(&index);
+    auto [valid, ch] = str->next_char_result(&index);
     while (!ch.is_empty()) {
         if (!valid) {
             for (size_t i = 0; i < ch.size(); i++)
                 out->append_sprintf("\\x%02X", static_cast<uint8_t>(ch[i]));
-            auto pair = next_char_result(&index);
+            auto pair = str->next_char_result(&index);
             valid = pair.first;
             ch = pair.second;
             continue;
         }
-        const auto c = m_encoding->decode_codepoint(ch);
-        auto pair = next_char_result(&index);
+        const auto c = encoding->decode_codepoint(ch);
+        auto pair = str->next_char_result(&index);
         valid = pair.first;
-        const auto c2 = !valid || ch.is_empty() ? 0 : m_encoding->decode_codepoint(pair.second);
+        const auto c2 = !valid || ch.is_empty() ? 0 : encoding->decode_codepoint(pair.second);
 
         if (c == '"' || c == '\\' || (c == '#' && (c2 == '{' || c2 == '$' || c2 == '@'))) {
             out->append_char('\\');
@@ -541,17 +542,23 @@ StringObject *StringObject::inspect(Env *env) const {
             out->append("\\t");
         } else if (c == '\v') {
             out->append("\\v");
-        } else if (m_encoding->is_printable_char(c)) {
+        } else if (encoding->is_printable_char(c) && (!for_dump || c <= 0xFFFF)) {
             out->append(ch);
         } else {
-            auto escaped_char = m_encoding->escaped_char(c);
-            out->append(escaped_char);
+            if (for_dump && c < 128)
+                out->append_sprintf("\\x%02X", c);
+            else
+                out->append(encoding->escaped_char(c));
         }
         ch = pair.second;
     }
 
     out->append_char('"');
     return out;
+}
+
+StringObject *StringObject::inspect(Env *env) const {
+    return inspect_internal(this, env);
 }
 
 String StringObject::dbg_inspect() const {
@@ -2922,7 +2929,7 @@ Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
 
 Value StringObject::dump(Env *env) {
     auto result = new StringObject { m_encoding };
-    result->append(inspect(env));
+    result->append(inspect_internal(this, env, true));
     if (!m_encoding->is_ascii_compatible()) {
         result->append_sprintf(".force_encoding(\"%s\")", m_encoding->name()->c_str());
     }
