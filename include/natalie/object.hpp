@@ -81,6 +81,8 @@ public:
         m_singleton_class = other.m_singleton_class;
         m_owner = other.m_owner;
         m_flags = other.m_flags;
+        if (m_ivars)
+            delete m_ivars;
         m_ivars = other.m_ivars;
         other.m_type = Type::Nil;
         other.m_singleton_class = nullptr;
