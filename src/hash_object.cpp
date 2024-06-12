@@ -24,7 +24,7 @@ bool HashObject::is_ruby2_keywords_hash(Env *env, Value hash) {
 }
 
 Value HashObject::ruby2_keywords_hash(Env *env, Value hash) {
-    auto result = hash->as_hash_or_raise(env)->dup(env)->as_hash();
+    auto result = hash->as_hash_or_raise(env)->duplicate(env)->as_hash();
     result->m_is_ruby2_keywords_hash = true;
     return result;
 }
@@ -87,7 +87,7 @@ void HashObject::put(Env *env, Value key, Value val) {
     assert_not_frozen(env);
     Key key_container;
     if (!m_is_comparing_by_identity && key->is_string() && !key->is_frozen()) {
-        key = key->as_string()->dup(env);
+        key = key->as_string()->duplicate(env);
     }
     key_container.key = key;
 
@@ -664,7 +664,7 @@ bool HashObject::has_value(Env *env, Value value) {
 }
 
 Value HashObject::merge(Env *env, Args args, Block *block) {
-    return dup(env)->as_hash()->merge_in_place(env, args, block);
+    return duplicate(env)->as_hash()->merge_in_place(env, args, block);
 }
 
 Value HashObject::merge_in_place(Env *env, Args args, Block *block) {

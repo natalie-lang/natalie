@@ -83,7 +83,7 @@ public:
      * not impacted by those changes.
      */
     void dup_string(Env *env) {
-        m_string = m_string->dup(env)->as_string();
+        m_string = m_string->duplicate(env)->as_string();
     }
 
 private:

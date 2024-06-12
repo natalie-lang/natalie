@@ -164,6 +164,10 @@ Value KernelModule::define_singleton_method(Env *env, Value name, Block *block) 
     return name_obj;
 }
 
+Value KernelModule::dup(Env *env) {
+    return duplicate(env);
+}
+
 Value KernelModule::exit(Env *env, Value status) {
     if (!status || status->is_true()) {
         status = Value::integer(0);

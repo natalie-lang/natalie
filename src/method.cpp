@@ -51,7 +51,7 @@ Value Method::call(Env *env, Value self, Args args, Block *block) const {
         }
     } else if (self->is_synthesized()) {
         // Turn this object into a heap-allocated one.
-        self = self->dup(env);
+        self = self->duplicate(env);
     }
 
     return call_fn(args);

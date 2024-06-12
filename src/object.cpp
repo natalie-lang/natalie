@@ -1006,7 +1006,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     return nullptr;
 }
 
-Value Object::dup(Env *env) const {
+Value Object::duplicate(Env *env) const {
     switch (m_type) {
     case Object::Type::Array:
         return new ArrayObject { *as_array() };
@@ -1071,7 +1071,7 @@ Value Object::clone(Env *env, Value freeze) {
         }
     }
 
-    auto duplicate = this->dup(env);
+    auto duplicate = this->duplicate(env);
     if (!duplicate->singleton_class()) {
         auto s_class = singleton_class();
         if (s_class) {

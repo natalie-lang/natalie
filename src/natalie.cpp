@@ -623,12 +623,12 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
 
 Value to_ary_for_masgn(Env *env, Value obj) {
     if (obj->is_array())
-        return obj->dup(env);
+        return obj->duplicate(env);
 
     if (obj->respond_to(env, "to_ary"_s)) {
         auto array = obj.send(env, "to_ary"_s);
         if (array->is_array()) {
-            return array->dup(env);
+            return array->duplicate(env);
         } else if (!array->is_nil()) {
             auto class_name = obj->klass()->inspect_str();
             env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array->klass()->inspect_str());
@@ -707,9 +707,9 @@ std::pair<Value, Value> coerce(Env *env, Value lhs, Value rhs, CoerceInvalidRetu
     auto coerce_symbol = "coerce"_s;
     if (lhs->respond_to(env, coerce_symbol)) {
         if (lhs->is_synthesized())
-            lhs = lhs->dup(env);
+            lhs = lhs->duplicate(env);
         if (rhs->is_synthesized())
-            rhs = rhs->dup(env);
+            rhs = rhs->duplicate(env);
         Value coerced = lhs.send(env, coerce_symbol, { rhs });
         if (!coerced->is_array()) {
             if (invalid_return_value_mode == CoerceInvalidReturnValueMode::Raise)

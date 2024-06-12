@@ -36,7 +36,7 @@ Value DirObject::initialize(Env *env, Value path, Value encoding) {
     } else {
         m_encoding = EncodingObject::filesystem();
     }
-    m_path = path->as_string()->dup(env)->as_string();
+    m_path = path->as_string()->duplicate(env)->as_string();
     assert(m_path);
     return this;
 }
@@ -285,7 +285,7 @@ Value DirObject::home(Env *env, Value username) {
         // no argument version
         Value home_str = new StringObject { "HOME" };
         Value home_dir = GlobalEnv::the()->Object()->const_fetch("ENV"_s).send(env, "fetch"_s, { home_str });
-        return home_dir->dup(env);
+        return home_dir->duplicate(env);
     }
 }
 bool DirObject::is_empty(Env *env, Value dirname) {

@@ -1216,7 +1216,7 @@ Value OpenSSL_X509_Name_initialize(Env *env, Value self, Args args, Block *) {
         for (auto entry : *args.at(0)->to_ary(env)) {
             ArrayObject *add_entry_args = entry->to_ary(env);
             if (args.size() >= 2 && add_entry_args->size() == 2) {
-                add_entry_args = add_entry_args->dup(env)->as_array();
+                add_entry_args = add_entry_args->duplicate(env)->as_array();
                 add_entry_args->push(lookup->ref(env, add_entry_args->at(0)));
             }
             OpenSSL_X509_Name_add_entry(env, self, Args(add_entry_args), nullptr);
