@@ -1061,10 +1061,6 @@ Value Object::dup(Env *env) const {
     }
 }
 
-Value Object::clone(Env *env) {
-    return this->clone(env, nullptr);
-}
-
 Value Object::clone(Env *env, Value freeze) {
     bool freeze_bool = true;
     if (freeze) {

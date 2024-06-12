@@ -313,8 +313,7 @@ public:
     Method *find_method(Env *, SymbolObject *, MethodVisibility, Value) const;
 
     Value dup(Env *) const;
-    Value clone(Env *env);
-    Value clone(Env *env, Value freeze);
+    Value clone(Env *env, Value freeze = nullptr);
 
     bool is_a(Env *, Value) const;
     bool respond_to(Env *, Value, bool = true);
