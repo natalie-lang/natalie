@@ -9,6 +9,7 @@
 #include "natalie/global_variable_info.hpp"
 #include "natalie/method_missing_reason.hpp"
 #include "tm/hashmap.hpp"
+#include "tm/span.hpp"
 
 namespace Natalie {
 
@@ -141,11 +142,7 @@ private:
 
     ClassObject *m_Encodings[EncodingCount];
 
-    struct span {
-        StringObject **strs;
-        size_t size;
-    };
-    Vector<span> m_interned_strings {};
+    Vector<Span<StringObject *>> m_interned_strings {};
 
     Env *m_main_env { nullptr };
     MethodMissingReason m_method_missing_reason { MethodMissingReason::Undefined };

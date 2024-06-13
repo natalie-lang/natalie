@@ -124,9 +124,9 @@ void GlobalEnv::visit_children(Visitor &visitor) {
         visitor.visit(m_Encodings[i]);
     for (auto pair : m_files)
         visitor.visit(pair.first);
-    for (auto pair : m_interned_strings)
-        for (size_t i = 0; i < pair.size; i++)
-            visitor.visit(pair.strs[i]);
+    for (const auto &span : m_interned_strings)
+        for (auto str : span)
+            visitor.visit(str);
     visitor.visit(m_Array);
     visitor.visit(m_BasicObject);
     visitor.visit(m_Binding);
