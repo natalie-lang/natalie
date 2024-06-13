@@ -237,6 +237,9 @@ module Natalie
         # now add to the array the first splat item and everything after
         elements.each do |arg|
           if arg.type == :splat_node
+            if arg.expression.nil?
+              raise "Anonymous splat argument forwarding not yet supported (#{file.path}:#{arg.location.start_line})"
+            end
             instructions << transform_expression(arg.expression, used: true)
             instructions << ArrayConcatInstruction.new
           else
@@ -1196,6 +1199,10 @@ module Natalie
                when nil
                  []
                when Prism::ParametersNode
+                 if node&.block && node.block.name.nil?
+                   raise "Anonymous block argument forwarding not yet supported (#{file.path}:#{node.location.start_line})"
+                 end
+
                  (
                    node.requireds +
                    [node.rest] +
@@ -1439,6 +1446,9 @@ module Natalie
         # now, if applicable, add to the hash the splat element and everything after
         node.elements[prior_to_splat_count..].each do |element|
           if element.type == :assoc_splat_node
+            if element.value.nil?
+              raise "Anonymous keyword splat argument forwarding not yet supported (#{file.path}:#{node.location.start_line})"
+            end
             instructions << transform_expression(element.value, used: true)
             instructions << HashMergeInstruction.new
           else
