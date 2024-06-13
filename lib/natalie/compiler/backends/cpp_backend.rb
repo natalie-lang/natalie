@@ -55,6 +55,7 @@ module Natalie
         @compiler_context = compiler_context
         augment_compiler_context
         @symbols = {}
+        @interned_strings = {}
         @inline_functions = {}
         @top = []
       end
@@ -126,6 +127,7 @@ module Natalie
           top:              @top,
           compiler_context: @compiler_context,
           symbols:          @symbols,
+          interned_strings: @interned_strings,
           inline_functions: @inline_functions,
         )
         transform.transform('return')
@@ -266,6 +268,7 @@ module Natalie
         [
           object_file_declarations,
           symbols_declaration,
+          interned_strings_declaration,
           @top.join("\n")
         ].join("\n\n")
       end
@@ -273,6 +276,7 @@ module Natalie
       def init_matter
         [
           init_symbols.join("\n"),
+          init_interned_strings.join("\n"),
           init_dollar_zero_global,
         ].compact.join("\n\n")
       end
@@ -283,6 +287,12 @@ module Natalie
 
       def symbols_declaration
         "static SymbolObject *#{symbols_var_name}[#{@symbols.size}] = {};"
+      end
+
+      def interned_strings_declaration
+        return '' if @interned_strings.empty?
+
+        "static StringObject *#{interned_strings_var_name}[#{@interned_strings.size}] = { 0 };"
       end
 
       def init_object_files
@@ -297,6 +307,28 @@ module Natalie
         end
       end
 
+      def init_interned_strings
+        return [] if @interned_strings.empty?
+
+        # Start with setting the interned strings list all to nullptr and register the GC hook before creating strings
+        # Otherwise, we might start GC before we finished setting up this structure if the source contains enough strings
+        [
+          "GlobalEnv::the()->set_interned_strings(#{interned_strings_var_name}, #{@interned_strings.size});"
+        ] + @interned_strings.flat_map do |(str, encoding), index|
+          enum = encoding.name.tr('-', '_').upcase
+          encoding_object = "EncodingObject::get(Encoding::#{enum})"
+          new_string = if str.empty?
+                         "#{interned_strings_var_name}[#{index}] = new StringObject(#{encoding_object});"
+                       else
+                         "#{interned_strings_var_name}[#{index}] = new StringObject(#{string_to_cpp(str)}, #{str.bytesize}, #{encoding_object});"
+                       end
+          [
+            new_string,
+            "#{interned_strings_var_name}[#{index}]->freeze();",
+          ]
+        end
+      end
+
       def init_dollar_zero_global
         return if write_object_file?
 
@@ -305,6 +337,10 @@ module Natalie
 
       def symbols_var_name
         static_var_name('symbols')
+      end
+
+      def interned_strings_var_name
+        static_var_name('interned_strings')
       end
 
       def static_var_name(suffix)

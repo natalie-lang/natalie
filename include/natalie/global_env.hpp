@@ -9,6 +9,7 @@
 #include "natalie/global_variable_info.hpp"
 #include "natalie/method_missing_reason.hpp"
 #include "tm/hashmap.hpp"
+#include "tm/span.hpp"
 
 namespace Natalie {
 
@@ -104,6 +105,8 @@ public:
     bool has_file(SymbolObject *name) const { return m_files.get(name); }
     void add_file(Env *env, SymbolObject *name);
 
+    void set_interned_strings(StringObject **, const size_t);
+
     friend class SymbolObject;
 
     virtual void visit_children(Visitor &visitor) override final;
@@ -138,6 +141,8 @@ private:
     Natalie::Object *m_main_obj { nullptr };
 
     ClassObject *m_Encodings[EncodingCount];
+
+    Vector<Span<StringObject *>> m_interned_strings {};
 
     Env *m_main_env { nullptr };
     MethodMissingReason m_method_missing_reason { MethodMissingReason::Undefined };

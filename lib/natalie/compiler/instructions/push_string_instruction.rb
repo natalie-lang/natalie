@@ -19,17 +19,21 @@ module Natalie
       end
 
       def generate(transform)
-        enum = @encoding.name.tr('-', '_').upcase
-        encoding_object = "EncodingObject::get(Encoding::#{enum})"
-        name = if @string.empty?
-                 transform.exec_and_push(:string, "Value(new StringObject(#{encoding_object}))")
-               else
-                 transform.exec_and_push(
-                   :string,
-                   "Value(new StringObject(#{string_to_cpp(@string)}, (size_t)#{@bytesize}, #{encoding_object}))"
-                 )
-               end
-        transform.exec("#{name}->freeze()") if @frozen
+        if @frozen
+          str = transform.interned_string(@string, @encoding);
+          transform.push("Value(#{str})")
+        else
+          enum = @encoding.name.tr('-', '_').upcase
+          encoding_object = "EncodingObject::get(Encoding::#{enum})"
+          if @string.empty?
+            transform.exec_and_push(:string, "Value(new StringObject(#{encoding_object}))")
+          else
+            transform.exec_and_push(
+              :string,
+              "Value(new StringObject(#{string_to_cpp(@string)}, (size_t)#{@bytesize}, #{encoding_object}))"
+            )
+          end
+        end
       end
 
       def execute(vm)

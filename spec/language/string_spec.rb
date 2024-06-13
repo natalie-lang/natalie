@@ -222,21 +222,15 @@ describe "Ruby String literals" do
 
   describe "with a magic frozen comment" do
     it "produce the same object each time" do
-      NATFIXME 'Intern frozen string literals', exception: SpecFailedException do
-        ruby_exe(fixture(__FILE__, "freeze_magic_comment_one_literal.rb")).chomp.should == "true"
-      end
+      ruby_exe(fixture(__FILE__, "freeze_magic_comment_one_literal.rb")).chomp.should == "true"
     end
 
     it "produce the same object for literals with the same content" do
-      NATFIXME 'Intern frozen string literals', exception: SpecFailedException do
-        ruby_exe(fixture(__FILE__, "freeze_magic_comment_two_literals.rb")).chomp.should == "true"
-      end
+      ruby_exe(fixture(__FILE__, "freeze_magic_comment_two_literals.rb")).chomp.should == "true"
     end
 
     it "produce the same object for literals with the same content in different files" do
-      NATFIXME 'Intern frozen string literals', exception: SpecFailedException do
-        ruby_exe(fixture(__FILE__, "freeze_magic_comment_across_files.rb")).chomp.should == "true"
-      end
+      ruby_exe(fixture(__FILE__, "freeze_magic_comment_across_files.rb")).chomp.should == "true"
     end
 
     it "produce different objects for literals with the same content in different files if the other file doesn't have the comment" do
