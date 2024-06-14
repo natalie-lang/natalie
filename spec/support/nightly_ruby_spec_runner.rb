@@ -56,7 +56,7 @@ end
 
 puts 'Testing stats server before run...'
 response = send_stats(nil)
-if response.code == '400' && response.body == 'must pass "stats" param with json string'
+if response.code == '400' && response.body == 'missing "stats" param'
   puts 'Server responded as expected.'
 else
   puts 'Server did not respond as expected. I expected to see a 400 error about missing stats.'
