@@ -13,6 +13,11 @@ require 'net/http'
 
 WAIT_TIMEOUT = 180
 
+unless ENV['STATS_API_SECRET'].to_s.size > 0
+  puts 'No STATS_API_SECRET set, aborting.'
+  exit 1
+end
+
 pool = Concurrent::ThreadPoolExecutor.new(
   max_threads: 4,
   max_queue: 0 # unbounded work queue
@@ -35,6 +40,28 @@ def recursive_sort(hash)
     end
     seed
   end
+end
+
+def send_stats(stats)
+  uri = URI('https://stats.natalie-lang.org/stats')
+  https = Net::HTTP.new(uri.host, uri.port)
+  https.use_ssl = true
+  form = if stats
+           URI.encode_www_form('secret' => ENV['STATS_API_SECRET'], 'stats' => stats.to_json)
+         else
+           URI.encode_www_form('secret' => ENV['STATS_API_SECRET'])
+         end
+  https.post(uri.path, form)
+end
+
+puts 'Testing stats server before run...'
+response = send_stats(nil)
+if response.code == '400' && response.body == 'must pass "stats" param with json string'
+  puts 'Server responded as expected.'
+else
+  puts 'Server did not respond as expected. I expected to see a 400 error about missing stats.'
+  p(status: response.code, body: response.body)
+  exit 1
 end
 
 puts "Start running specs #{specs}"
@@ -130,19 +157,11 @@ stats = {
 }
 p stats.reject { |k, _| k == "Details" }
 
-unless ENV['STATS_API_SECRET'].to_s.size > 0
-  puts "No STATS_API_SECRET set, not sending stats to server"
-  exit
+response = send_stats(stats)
+if response.code == '201' && response.body.strip == 'ok'
+  puts 'Stats accepted by server.'
+else
+  puts 'Server did not respond as expected. I expected to see a 201 and an "ok" body.'
+  p(status: response.code, body: response.body)
+  exit 1
 end
-
-uri = URI('https://stats.natalie-lang.org/stats')
-p uri
-https = Net::HTTP.new(uri.host, uri.port)
-https.use_ssl = true
-p https.post(
-  uri.path,
-  URI.encode_www_form(
-    'stats' => stats.to_json,
-    'secret' => ENV['STATS_API_SECRET']
-  )
-)
