@@ -370,7 +370,7 @@ end
 
 task docker_test_all_ruby_spec_nightly: :docker_build_clang do
   sh "docker run #{docker_run_flags} " \
-     "-e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect}" \
+     "-e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect} " \
      '--rm ' \
      '--entrypoint rake ' \
      "natalie_clang_#{ruby_version_string} test_all_ruby_spec_nightly"
