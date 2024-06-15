@@ -1307,16 +1307,11 @@ module Natalie
         [PushFloatInstruction.new(node.value)]
       end
 
+      # Declare the variables used in the for loop
       def transform_for_declare_args(args)
         instructions = []
 
         case args.type
-        when :class_variable_target_node
-          # Do nothing, no need to declare class variables.
-        when :implicit_rest_node
-          # Do nothing, we can simply skip this one.
-        when :local_variable_write_node
-          instructions << VariableDeclareInstruction.new(args.name)
         when :local_variable_target_node
           instructions << VariableDeclareInstruction.new(args.name)
         when :multi_target_node
@@ -1324,8 +1319,6 @@ module Natalie
           targets.each do |arg|
             instructions += transform_for_declare_args(arg)
           end
-        else
-          raise "I don't yet know how to declare this variable: #{args.inspect}"
         end
 
         instructions
