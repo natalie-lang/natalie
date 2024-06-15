@@ -212,6 +212,8 @@ public:
     Value each_codepoint(Env *, Block *);
     Value codepoints(Env *, Block *);
 
+    Value each_grapheme_cluster(Env *, Block *);
+
     Value each_line(Env *, Value = nullptr, Value = nullptr, Block * = nullptr);
     Value lines(Env *, Value = nullptr, Value = nullptr, Block * = nullptr);
 

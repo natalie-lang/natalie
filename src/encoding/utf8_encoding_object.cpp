@@ -1,3 +1,4 @@
+#include "natalie/encoding/utf8_encoding_object.hpp"
 #include "natalie.hpp"
 
 namespace Natalie {
@@ -143,6 +144,50 @@ std::pair<bool, StringView> Utf8EncodingObject::next_char(const String &string, 
 
     *index += length;
     return { valid, StringView(&string, i, length) };
+}
+
+StringView Utf8EncodingObject::next_grapheme_cluster(const String &string, size_t *index) const {
+    auto [valid, view] = next_char(string, index);
+
+    bool join_next = false;
+    auto index2 = *index;
+    for (;;) {
+        auto [valid2, view2] = next_char(string, &index2);
+        if (!valid2 || view2.is_empty())
+            break;
+
+        // This is a silly way to get his number. Maybe we need an EncodingObject::next_codepoint API...?
+        auto codepoint = decode_codepoint(view2);
+
+        // https://en.wikipedia.org/wiki/Variation_Selectors_(Unicode_block)
+        if (codepoint >= 0xFE00 && codepoint <= 0xFE0F) {
+            view = StringView { &string, view.offset(), view.size() + view2.size() };
+            *index = index2;
+            continue;
+        }
+
+        // Zero-width joiner
+        // https://unicode-explorer.com/c/200D
+        if (codepoint == 0x200D) {
+            view = StringView { &string, view.offset(), view.size() + view2.size() };
+            *index = index2;
+            join_next = true;
+            continue;
+        }
+
+        break;
+    }
+
+    if (join_next) {
+        index2 = *index;
+        auto [valid2, view2] = next_char(string, &index2);
+        if (!valid2 || view2.is_empty())
+            return view;
+        view = StringView { &string, view.offset(), view.size() + view2.size() };
+        *index = index2;
+    }
+
+    return view;
 }
 
 /*
