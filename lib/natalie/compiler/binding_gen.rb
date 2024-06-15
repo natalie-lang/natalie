@@ -1262,6 +1262,7 @@ gen.binding('String', 'downcase!', 'StringObject', 'downcase_in_place', argc: 0.
 gen.binding('String', 'each_byte', 'StringObject', 'each_byte', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'each_char', 'StringObject', 'each_char', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'each_codepoint', 'StringObject', 'each_codepoint', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('String', 'each_grapheme_cluster', 'StringObject', 'each_grapheme_cluster', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'each_line', 'StringObject', 'each_line', argc: 0..1, kwargs: [:chomp], pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'empty?', 'StringObject', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('String', 'encode', 'StringObject', 'encode', argc: 1, pass_env: true, pass_block: false, return_type: :Object)

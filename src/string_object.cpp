@@ -202,6 +202,23 @@ Value StringObject::codepoints(Env *env, Block *block) {
     return ary;
 }
 
+Value StringObject::each_grapheme_cluster(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, StringObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "each_grapheme_cluster"_s }, size_block);
+    }
+
+    size_t index = 0;
+    for (;;) {
+        auto view = m_encoding->next_grapheme_cluster(m_string, &index);
+        if (view.is_empty())
+            break;
+        Value args[] = { new StringObject { view, m_encoding } };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+    }
+    return this;
+}
+
 String create_padding(String &padding, size_t length) {
     size_t quotient = ::floor(length / padding.size());
     size_t remainder = length % padding.size();

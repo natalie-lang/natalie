@@ -68,8 +68,15 @@ public:
     virtual bool is_dummy() const { return false; }
 
     virtual bool valid_codepoint(nat_int_t codepoint) const = 0;
+
     virtual std::pair<bool, StringView> prev_char(const String &, size_t *) const = 0;
     virtual std::pair<bool, StringView> next_char(const String &, size_t *) const = 0;
+
+    virtual StringView next_grapheme_cluster(const String &str, size_t *index) const {
+        auto [_valid, view] = next_char(str, index);
+        return view;
+    }
+
     virtual bool is_printable_char(const nat_int_t c) const;
     virtual String escaped_char(const nat_int_t c) const = 0;
     virtual Value encode(Env *, EncodingObject *, StringObject *) const;

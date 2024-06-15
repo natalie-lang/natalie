@@ -26,6 +26,8 @@ public:
     virtual std::pair<bool, StringView> prev_char(const String &string, size_t *index) const override;
     virtual std::pair<bool, StringView> next_char(const String &string, size_t *index) const override;
 
+    virtual StringView next_grapheme_cluster(const String &string, size_t *index) const override;
+
     virtual bool is_printable_char(const nat_int_t c) const override;
     virtual String escaped_char(const nat_int_t c) const override;
 
