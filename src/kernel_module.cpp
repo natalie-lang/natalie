@@ -170,6 +170,7 @@ Value KernelModule::dup(Env *env) {
     // classes that have their own `initialize_copy` method get the `dup_better` code path,
     // while the rest get the old, wrong code path.
     switch (type()) {
+    case Object::Type::Array:
     case Object::Type::String:
         return dup_better(env);
     default:
