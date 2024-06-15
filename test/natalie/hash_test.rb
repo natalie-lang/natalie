@@ -110,6 +110,13 @@ describe 'hash' do
       hash.default.should == 1
       hash.dup.default.should == 1
     end
+
+    it 'copies the compare_by_identity flag' do
+      hash = { a: 1 }
+      hash.compare_by_identity
+      dup = hash.dup
+      dup.compare_by_identity?.should == true
+    end
   end
 
   describe '#sort' do
@@ -367,6 +374,15 @@ describe 'hash' do
       id_was = h.object_id
       h.replace(h).should == { foo: 'bar' }
       h.object_id.should == id_was
+    end
+
+    it 'copies the compare_by_identity flag' do
+      h1 = { a: 1 }
+      h2 = { b: 2 }
+      h2.compare_by_identity
+      h1.compare_by_identity?.should == false
+      h1.replace(h2)
+      h1.compare_by_identity?.should == true
     end
   end
 end
