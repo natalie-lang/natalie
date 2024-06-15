@@ -53,12 +53,12 @@ describe :string_to_sym, shared: true do
     sym.to_s.should == binary_string
   end
 
-  it "ignores exising symbols with different encoding" do
+  it "ignores existing symbols with different encoding" do
     source = "fée"
 
     iso_symbol = source.force_encoding(Encoding::ISO_8859_1).send(@method)
     iso_symbol.encoding.should == Encoding::ISO_8859_1
-    binary_symbol = source.force_encoding(Encoding::BINARY).send(@method)
+    binary_symbol = source.dup.force_encoding(Encoding::BINARY).send(@method)
     NATFIXME 'Symbol lookup (s_symbols) does not check encoding', exception: SpecFailedException do
       binary_symbol.encoding.should == Encoding::BINARY
     end
@@ -70,7 +70,7 @@ describe :string_to_sym, shared: true do
     NATFIXME 'to_sym should raise EncodingError', exception: SpecFailedException do
       -> {
         invalid_utf8.send(@method)
-      }.should raise_error(EncodingError, /invalid/)
+      }.should raise_error(EncodingError, 'invalid symbol in encoding UTF-8 :"\xC3"')
     end
   end
 end
