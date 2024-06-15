@@ -144,10 +144,9 @@ describe "The for expression" do
     ForSpecs::ForInClassMethod::READER.call.should == :same_variable_set_outside
   end
 
-  # NATFIXME: Compile errors, it calls transform_expression(nil)
-  xit "returns expr" do
-    #for i in 1..3; end.should == (1..3)
-    #for i,j in { 1 => 10, 2 => 20 }; end.should == { 1 => 10, 2 => 20 }
+  it "returns expr" do
+    for i in 1..3; end.should == (1..3)
+    for i,j in { 1 => 10, 2 => 20 }; end.should == { 1 => 10, 2 => 20 }
   end
 
   it "breaks out of a loop upon 'break', returning nil" do

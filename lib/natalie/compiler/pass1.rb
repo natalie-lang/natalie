@@ -1335,7 +1335,7 @@ module Natalie
         instructions = transform_for_declare_args(node.index)
         instructions << DefineBlockInstruction.new(arity: 1)
         instructions += transform_block_args_for_for(node.index, used: true)
-        instructions += transform_expression(node.statements, used: true)
+        instructions += transform_expression(node.statements, used: true) if node.statements
         instructions << EndInstruction.new(:define_block)
         call = Prism.call_node(receiver: node.collection, name: :each, location: node.location)
         instructions << transform_call_node(call, used: used, with_block: true)
