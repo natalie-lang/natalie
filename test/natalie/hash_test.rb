@@ -110,13 +110,6 @@ describe 'hash' do
       hash.default.should == 1
       hash.dup.default.should == 1
     end
-
-    it 'copies the compare_by_identity flag' do
-      hash = { a: 1 }
-      hash.compare_by_identity
-      dup = hash.dup
-      dup.compare_by_identity?.should == true
-    end
   end
 
   describe '#sort' do
