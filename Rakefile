@@ -102,7 +102,7 @@ task test_self_hosted_full: %i[bootstrap build_test_support] do
   sh env, 'bundle exec ruby test/all.rb'
 end
 
-desc 'Test that some representatitve code runs with the AddressSanitizer enabled'
+desc 'Test that some representative code runs with the AddressSanitizer enabled'
 task test_asan: :build_asan do
   sh 'bin/natalie examples/hello.rb'
   sh 'bin/natalie examples/fib.rb'
