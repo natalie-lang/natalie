@@ -48,7 +48,7 @@ class File
       return SEPARATOR.dup if path.start_with?(SEPARATOR)
       return ""
     end
-    
+
     # Optional file-extension removal, which accepts a file-glob like extension
     # which is converted into a regex
     if ext
@@ -78,7 +78,7 @@ class File
     end
     tokens = path.sub(/#{SEPARATOR}+\z/, '') # strip all trailing separators
                .split(SEPARATOR) # then split on separator
-    depth.times do 
+    depth.times do
       tokens.pop # remove file/dirs from the end
       # effectively remove any additional trailing separators.
       while tokens[-1] == ""

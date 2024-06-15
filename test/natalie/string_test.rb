@@ -767,7 +767,7 @@ describe 'string' do
       s.chop!
       s.should == 'foo'.force_encoding('EUCJP')
     end
-    
+
     it "chops the last char of a string with two-byte final char" do
       # two-byte char removal
       s = "foo\xA1\xA1".force_encoding('EUCJP')
@@ -779,7 +779,7 @@ describe 'string' do
       s.chop!
       s.should == 'foo'.force_encoding('EUCJP')
     end
-    
+
     it "chops the last char of a string with three-byte final char" do
       # three-byte char removal (8E lead)
       s = "foo\x8F\xA1\xA2".force_encoding('EUCJP')

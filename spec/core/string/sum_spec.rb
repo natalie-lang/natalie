@@ -6,7 +6,7 @@ describe "String#sum" do
     "ruby".sum.should == 450
     "ruby".sum(8).should == 194
     "rubinius".sum(23).should == 881
-  end   
+  end
 
   it "tries to convert n to an integer using to_int" do
     obj = mock('8')

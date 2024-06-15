@@ -65,12 +65,12 @@ describe 'Zlib' do
 
     it 'inflates in chunks' do
       deflated = "x\x9C\xCBH\xCD\xC9\xC9W(\xCF/\xCAI\x01\x00\x1A\v\x04]".b
-      zstream = Zlib::Inflate.new                                                                                                                                                             
+      zstream = Zlib::Inflate.new
       deflated.chars.each_slice(5) do |chunk|
         zstream << chunk.join
       end
-      inflated = zstream.finish                                                                                                                                                               
-      zstream.close                                                                                                                                                                           
+      inflated = zstream.finish
+      zstream.close
       inflated.should == 'hello world'
     end
 

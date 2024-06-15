@@ -262,7 +262,7 @@ module Math
       auto v = ::lgamma_r(value->to_double(), &sign);
       return new ArrayObject { {  Value::floatingpoint(v), Value::integer(sign) } };
     END
-      
+
     __function__('::log10', ['double'], 'double')
 
     def log10(x)
@@ -451,7 +451,7 @@ module Math
   def lgamma(x)
     Math.lgamma(x)
   end
-  
+
   def log10(x)
     Math.log10(x)
   end

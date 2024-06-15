@@ -14,7 +14,7 @@ module Natalie
 
       def execute(vm)
         imaginary = vm.pop
-        
+
         vm.push(Complex(0, imaginary))
       end
 

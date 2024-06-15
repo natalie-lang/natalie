@@ -123,7 +123,7 @@ describe "String#swapcase!" do
     end
 
     it "updates string metadata" do
-      
+
       NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
 
         swapcased = "Aßet"
