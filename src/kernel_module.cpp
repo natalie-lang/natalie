@@ -171,6 +171,7 @@ Value KernelModule::dup(Env *env) {
     // while the rest get the old, wrong code path.
     switch (type()) {
     case Object::Type::Array:
+    case Object::Type::Hash:
     case Object::Type::String:
         return dup_better(env);
     default:
