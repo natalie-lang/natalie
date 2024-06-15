@@ -134,7 +134,7 @@ describe "IO#puts" do
       File.binread(@name).should == "\r"
     end
   end
-  
+
   platform_is_not :windows do # https://bugs.ruby-lang.org/issues/12436
     it "writes lf when IO is opened with newline: :lf" do
       NATFIXME "File.open newline arg unsupported", exception: ArgumentError, message: 'unknown keyword: :newline' do

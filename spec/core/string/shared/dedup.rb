@@ -15,7 +15,7 @@ describe :string_dedup, shared: true do
     output.should_not equal(input)
     output.should == 'foo'
   end
-  
+
   it "returns the same object for equal unfrozen strings" do
     origin = "this is a string"
     dynamic = %w(this is a string).join(' ')

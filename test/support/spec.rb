@@ -1557,7 +1557,7 @@ def run_specs
       context.each(&:run_before_all)
       last_context = context
     end
-    
+
     if fn
       @test_count += 1
       begin

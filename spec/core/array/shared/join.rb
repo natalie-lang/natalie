@@ -71,7 +71,7 @@ describe :array_join_with_default_separator, shared: true do
       ary4.send(@method).encoding.should == Encoding::US_ASCII
     end
   end
-  
+
   it "uses the widest common encoding when other strings are incompatible" do
     ary1 = ArraySpecs.array_with_utf8_and_usascii_strings
     ary2 = ArraySpecs.array_with_usascii_and_utf8_strings

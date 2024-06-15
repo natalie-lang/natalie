@@ -76,7 +76,7 @@ module Zlib
 
     def closed? = @closed
   end
-  
+
   class Deflate < ZStream
     __bind_method__ :initialize, :Zlib_deflate_initialize
     __bind_method__ :<<, :Zlib_deflate_append, 1
@@ -91,7 +91,7 @@ module Zlib
         zstream = Zlib::Deflate.new(level)
         zstream << input
         zstream.finish.tap do
-          zstream.close                                                                                                                                                                           
+          zstream.close
         end
       end
 
@@ -110,7 +110,7 @@ module Zlib
 
     class << self
       def inflate(input)
-        zstream = Zlib::Inflate.new                                                                                                                                                             
+        zstream = Zlib::Inflate.new
         zstream << input
         zstream.finish.tap do
           zstream.close

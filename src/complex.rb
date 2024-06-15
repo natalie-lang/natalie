@@ -32,7 +32,7 @@ class Complex
     imaginary = self.imaginary
 
     s = ""
-    
+
     if real.respond_to?(:nan?) && real.nan?
       s << "NaN"
     else
@@ -147,7 +147,7 @@ class Complex
     return Complex(self.real / other.to_f, self.imaginary / other.to_f)
   end
 
-  def *(other)    
+  def *(other)
     # (a + bi) * (c + di) = (ac - bd) + (ad + bc)i
     if other.is_a?(Complex)
       ac = self.real * other.real

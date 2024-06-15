@@ -8,7 +8,7 @@ require 'fileutils'
 options = { force: false }
 OptionParser.new do |opts|
   opts.banner = 'Usage: grab [options] spec'
-  
+
   opts.program_name = 'Ruby Specification Grabber'
   opts.version = '0.1'
 

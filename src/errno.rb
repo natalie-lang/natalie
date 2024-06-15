@@ -1,11 +1,11 @@
 class SystemCallError < StandardError
-  
+
   def initialize(msg=nil, errno=nil, location=nil)
     intmsg = location ? "#{msg} @ #{location}" : msg
     super(intmsg)
     @errno = errno
   end
-  
+
   def self.exception(*args)
     ordered_args = case args.size
                    when 3 then args
@@ -30,7 +30,7 @@ class SystemCallError < StandardError
   def errno
     @errno || self::Errno
   end
-  
+
   def self.===(other)
     if !other.is_a?(SystemCallError)
       return false unless other.respond_to?(:errno)
