@@ -49,7 +49,7 @@ describe :array_pack_basic_non_float, shared: true do
       NATFIXME 'warns that a directive is unknown', exception: ArgumentError, message: 'R is not supported' do
         -> { [@obj, @obj].pack("a R" + pack_format) }.should complain(/unknown pack directive 'R'/)
       end
-      # Excact error class depends on caller, both SpecFailedException and ArgumentError have been seen
+      # Exact error class depends on caller, both SpecFailedException and ArgumentError have been seen
       NATFIXME 'warns that a directive is unknown' do
         -> { [@obj, @obj].pack("a 0" + pack_format) }.should complain(/unknown pack directive '0'/)
       end

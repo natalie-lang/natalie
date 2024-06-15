@@ -142,7 +142,7 @@ describe 'Symbol#casecmp?' do
 
     # -- UTF-8 --
     lower_a_tilde = :"ã"
-    NATFIXME 'Pending encoding compatibilty check', exception: SpecFailedException do
+    NATFIXME 'Pending encoding compatibility check', exception: SpecFailedException do
     upper_a_tilde.casecmp?(lower_a_tilde).should == nil
     lower_a_tilde.casecmp?(upper_a_tilde).should == nil
     end

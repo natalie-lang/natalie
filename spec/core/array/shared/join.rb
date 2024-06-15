@@ -64,7 +64,7 @@ describe :array_join_with_default_separator, shared: true do
     ary3 = ArraySpecs.array_with_utf8_and_7bit_binary_strings
     ary4 = ArraySpecs.array_with_usascii_and_7bit_binary_strings
 
-    NATFIXME 'Revisit when Encoding.compatiblity? is implemented', exception: SpecFailedException do
+    NATFIXME 'Revisit when Encoding.compatibility? is implemented', exception: SpecFailedException do
       ary1.send(@method).encoding.should == Encoding::UTF_8
       ary2.send(@method).encoding.should == Encoding::US_ASCII
       ary3.send(@method).encoding.should == Encoding::UTF_8
@@ -83,7 +83,7 @@ describe :array_join_with_default_separator, shared: true do
   it "fails for arrays with incompatibly-encoded strings" do
     ary_utf8_bad_binary = ArraySpecs.array_with_utf8_and_binary_strings
 
-    NATFIXME 'Revisit when Encoding.compatiblity? is implemented', exception: SpecFailedException do
+    NATFIXME 'Revisit when Encoding.compatibility? is implemented', exception: SpecFailedException do
       -> { ary_utf8_bad_binary.send(@method) }.should raise_error(EncodingError)
     end
   end
