@@ -58,7 +58,7 @@ require 'bundler/inline'
 
 gemfile do
   source 'https://rubygems.org'
-  gem 'ffi-clang'
+  gem 'ffi-clang', '~> 0.9.0'
 end
 
 @classes = {}
