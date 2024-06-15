@@ -95,7 +95,7 @@ module Natalie
         casted_args = []
 
         if fn[:args][0] == 'Env *'
-          # Push the env directly. This allows us to ommit it from the __call__
+          # Push the env directly. This allows us to omit it from the __call__
           # macro call.
           casted_args << 'env'
         end

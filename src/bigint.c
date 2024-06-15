@@ -1199,7 +1199,7 @@ double bigint_double(const bigint *src) {
     if (src->size == 0) return 0.0;
 
     bigint_raw_get_high_bits(tmp, 20, src->words, src->size, n_mant_bits, &n);
-    /* this bit is stored implicitely */
+    /* this bit is stored implicitly */
     bigint_raw_clr_bit(tmp, n_mant_bits);
     exponent--;
     exponent += n;
