@@ -2232,18 +2232,32 @@ module Natalie
 
       def transform_rescue_node(node, used:)
         exceptions = node.exceptions.dup
-        unless exceptions.any?
+        if exceptions.empty?
           exceptions << Prism.constant_read_node(name: :StandardError, location: node.location)
         end
 
         instructions = [
           exceptions.map { |n| transform_expression(n, used: true) },
           CreateArrayInstruction.new(count: exceptions.size),
+        ]
+        if exceptions.any? { |exception| exception.type == :splat_node }
+          instructions.append(
+            PushArgcInstruction.new(0),
+            SendInstruction.new(
+              :flatten,
+              receiver_is_self: false,
+              with_block: false,
+              file: @file.path,
+              line: node.location.start_line,
+            ),
+          )
+        end
+        instructions.append(
           MatchExceptionInstruction.new,
           IfInstruction.new,
           transform_rescue_reference_node(node.reference),
           transform_body(node.statements, used: true, location: node.location),
-        ]
+        )
 
         instructions << ElseInstruction.new(:if)
         if node.consequent
