@@ -87,9 +87,9 @@ HashObject *EncodingObject::aliases(Env *env) {
         if (names->size() < 2)
             continue;
 
-        auto original = (*names)[0]->dup(env);
+        auto original = (*names)[0]->duplicate(env);
         for (size_t i = 1; i < names->size(); ++i)
-            aliases->put(env, (*names)[i]->dup(env), original);
+            aliases->put(env, (*names)[i]->duplicate(env), original);
     }
     return aliases;
 }

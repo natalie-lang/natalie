@@ -58,19 +58,7 @@ public:
             return nullptr;
     }
 
-    bool operator==(Value other) const {
-        if (is_fast_integer()) {
-            if (other.is_fast_integer())
-                return get_fast_integer() == other.get_fast_integer();
-            return false;
-        }
-        if (m_type == Type::Double) {
-            if (other.m_type == Type::Double)
-                return m_double == m_double;
-            return false;
-        }
-        return m_object == other.object();
-    }
+    bool operator==(Value other) const;
 
     bool operator!=(Value other) const {
         return !(*this == other);

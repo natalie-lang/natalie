@@ -164,6 +164,27 @@ Value KernelModule::define_singleton_method(Env *env, Value name, Block *block) 
     return name_obj;
 }
 
+Value KernelModule::dup(Env *env) {
+    // The semantics here are wrong. For each class, we need to define `initialize_copy`.
+    // Doing that all at once is a pain, so we'll split off classes here:
+    // classes that have their own `initialize_copy` method get the `dup_better` code path,
+    // while the rest get the old, wrong code path.
+    switch (type()) {
+    case Object::Type::Array:
+    case Object::Type::String:
+        return dup_better(env);
+    default:
+        return duplicate(env);
+    }
+}
+
+Value KernelModule::dup_better(Env *env) {
+    auto dup = Object::allocate(env, m_klass, {}, nullptr);
+    dup->copy_instance_variables(this);
+    dup->send(env, "initialize_dup"_s, { this });
+    return dup;
+}
+
 Value KernelModule::exit(Env *env, Value status) {
     if (!status || status->is_true()) {
         status = Value::integer(0);
@@ -350,13 +371,13 @@ Value KernelModule::hash(Env *env) {
 }
 
 Value KernelModule::initialize_copy(Env *env, Value object) {
-    if (this->send(env, "=="_s, { object })->is_truthy()) {
+    if (object == this)
         return this;
-    }
+
     this->assert_not_frozen(env);
-    if (m_klass != object->klass()) {
+    if (m_klass != object->klass())
         env->raise("TypeError", "initialize_copy should take same class object");
-    }
+
     return this;
 }
 

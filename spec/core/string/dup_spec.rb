@@ -10,9 +10,7 @@ describe "String#dup" do
   it "calls #initialize_copy on the new instance" do
     dup = @obj.dup
     ScratchPad.recorded.should_not == @obj.object_id
-    NATFIXME 'call initialize_copy on the new instance', exception: SpecFailedException do
-      ScratchPad.recorded.should == dup.object_id
-    end
+    ScratchPad.recorded.should == dup.object_id
   end
 
   it "copies instance variables" do

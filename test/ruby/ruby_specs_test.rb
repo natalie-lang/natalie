@@ -31,7 +31,7 @@ describe 'ruby/spec' do
         out_nat = Timeout.timeout(spec_timeout, nil, "execution expired running: #{path}") do
           `#{NAT_BINARY} #{path} 2>&1`
         end
-        puts out_nat unless $?.success?
+        puts out_nat if ENV['DEBUG'] || !$?.success?
         expect($?).must_be :success?
         expect(out_nat).wont_match(/traceback|error/i)
       end

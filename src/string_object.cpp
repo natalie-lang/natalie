@@ -398,7 +398,7 @@ Value StringObject::to_sym(Env *env) const {
 }
 
 Value StringObject::tr(Env *env, Value from_value, Value to_value) const {
-    auto copy = dup(env)->as_string();
+    auto copy = duplicate(env)->as_string();
     copy->tr_in_place(env, from_value, to_value);
     return copy;
 }
@@ -848,7 +848,7 @@ Value StringObject::crypt(Env *env, Value salt) {
 }
 
 Value StringObject::delete_str(Env *env, Args selectors) {
-    auto dup = this->dup(env)->as_string();
+    auto dup = this->duplicate(env)->as_string();
     auto result = dup->delete_in_place(env, std::move(selectors));
     if (result->is_nil())
         return dup;
@@ -1076,7 +1076,7 @@ Value StringObject::size(Env *env) const {
 
 Value StringObject::encode(Env *env, Value encoding) {
     auto orig_encoding = m_encoding;
-    StringObject *copy = dup(env)->as_string();
+    StringObject *copy = duplicate(env)->as_string();
     EncodingObject *encoding_obj = EncodingObject::find_encoding(env, encoding);
     return encoding_obj->encode(env, orig_encoding, copy);
 }
@@ -2389,7 +2389,7 @@ Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
     OnigRegion *region = onig_region_new();
     int result = splitter->as_regexp()->search(string(), 0, region, ONIG_OPTION_NONE);
     if (result == ONIG_MISMATCH) {
-        ary->push(dup(env));
+        ary->push(duplicate(env));
     } else {
         do {
             index = region->beg[0];
@@ -2416,7 +2416,7 @@ Value StringObject::split(Env *env, StringObject *splitstr, int max_count) {
     assert(splitlen > 0);
     nat_int_t index = index_int(env, splitstr, 0);
     if (index == -1) {
-        ary->push(dup(env));
+        ary->push(duplicate(env));
     } else {
         do {
             size_t u_index = static_cast<size_t>(index);
@@ -2461,7 +2461,7 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
     if (length() == 0) {
         return ary;
     } else if (max_count == 1 || splitter->is_nil()) {
-        ary->push(dup(env));
+        ary->push(duplicate(env));
     } else if (splitter->is_regexp()) {
         // special empty-split-regexp case, just return characters
         if (splitter->as_regexp()->pattern() == "") {
@@ -2550,7 +2550,7 @@ static Value lines_inner(Value self, EncodingObject *encoding, bool is_each_line
 
     const auto chomp = chomp_value ? chomp_value->is_truthy() : false;
     size_t last_index = 0;
-    auto self_dup = self->dup(env)->as_string();
+    auto self_dup = self->duplicate(env)->as_string();
     auto index = self_dup->index_int(env, separator->as_string(), 0);
 
     auto run_split = [&](auto callback) {
@@ -2616,7 +2616,7 @@ Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) const {
     if (padstr->string().is_empty())
         env->raise("ArgumentError", "zero width padding");
 
-    StringObject *copy = dup(env)->as_string();
+    StringObject *copy = duplicate(env)->as_string();
     while (copy->length() < length) {
         bool truncate = copy->length() + padstr->length() > length;
         copy->append(padstr);
@@ -2726,7 +2726,7 @@ Value StringObject::rjust(Env *env, Value length_obj, Value pad_obj) const {
     }
 
     StringObject *str_with_padding = new StringObject { "", m_encoding };
-    StringObject *copy = dup(env)->as_string();
+    StringObject *copy = duplicate(env)->as_string();
     str_with_padding->append(padding);
     str_with_padding->append(copy);
 
@@ -2879,7 +2879,7 @@ StringObject *StringObject::capitalize(Env *env, Value arg1, Value arg2) {
 
 Value StringObject::capitalize_in_place(Env *env, Value arg1, Value arg2) {
     assert_not_frozen(env);
-    StringObject *copy = dup(env)->as_string();
+    StringObject *copy = duplicate(env)->as_string();
     *this = *capitalize(env, arg1, arg2)->as_string();
     if (*this == *copy) {
         return Value(NilObject::the());
@@ -2918,7 +2918,7 @@ StringObject *StringObject::downcase(Env *env, Value arg1, Value arg2) {
 
 Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
     assert_not_frozen(env);
-    StringObject *copy = dup(env)->as_string();
+    StringObject *copy = duplicate(env)->as_string();
     *this = *downcase(env, arg1, arg2)->as_string();
 
     if (*this == *copy) {
@@ -2951,7 +2951,7 @@ StringObject *StringObject::upcase(Env *env, Value arg1, Value arg2) {
 
 Value StringObject::upcase_in_place(Env *env, Value arg1, Value arg2) {
     assert_not_frozen(env);
-    StringObject *copy = dup(env)->as_string();
+    StringObject *copy = duplicate(env)->as_string();
     *this = *upcase(env, arg1, arg2)->as_string();
 
     if (*this == *copy) {
@@ -2985,7 +2985,7 @@ StringObject *StringObject::swapcase(Env *env, Value arg1, Value arg2) {
 
 Value StringObject::swapcase_in_place(Env *env, Value arg1, Value arg2) {
     assert_not_frozen(env);
-    StringObject *copy = dup(env)->as_string();
+    StringObject *copy = duplicate(env)->as_string();
     *this = *swapcase(env, arg1, arg2)->as_string();
     if (*this == *copy) {
         return Value(NilObject::the());
@@ -2995,7 +2995,7 @@ Value StringObject::swapcase_in_place(Env *env, Value arg1, Value arg2) {
 
 Value StringObject::uplus(Env *env) {
     if (this->is_frozen()) {
-        return this->dup(env);
+        return this->duplicate(env);
     } else {
         return this;
     }
@@ -3005,7 +3005,7 @@ Value StringObject::uminus(Env *env) {
     if (this->is_frozen()) {
         return this;
     }
-    auto duplicate = this->dup(env);
+    auto duplicate = this->duplicate(env);
     duplicate->freeze();
     return duplicate;
 }
@@ -3399,13 +3399,13 @@ Value StringObject::delete_prefix(Env *env, Value val) {
         return after_delete;
     }
 
-    StringObject *copy = dup(env)->as_string();
+    StringObject *copy = duplicate(env)->as_string();
     return copy;
 }
 
 Value StringObject::delete_prefix_in_place(Env *env, Value val) {
     assert_not_frozen(env);
-    StringObject *copy = dup(env)->as_string();
+    StringObject *copy = duplicate(env)->as_string();
     *this = *delete_prefix(env, val)->as_string();
 
     if (*this == *copy) {
@@ -3424,13 +3424,13 @@ Value StringObject::delete_suffix(Env *env, Value val) {
         return new StringObject { c_str(), length() - arg_len, m_encoding };
     }
 
-    return dup(env)->as_string();
+    return duplicate(env)->as_string();
 }
 
 Value StringObject::delete_suffix_in_place(Env *env, Value val) {
     assert_not_frozen(env);
 
-    StringObject *copy = dup(env)->as_string();
+    StringObject *copy = duplicate(env)->as_string();
     *this = *delete_suffix(env, val)->as_string();
 
     if (*this == *copy) {

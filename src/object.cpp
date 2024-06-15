@@ -1006,7 +1006,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     return nullptr;
 }
 
-Value Object::dup(Env *env) const {
+Value Object::duplicate(Env *env) const {
     switch (m_type) {
     case Object::Type::Array:
         return new ArrayObject { *as_array() };
@@ -1061,10 +1061,6 @@ Value Object::dup(Env *env) const {
     }
 }
 
-Value Object::clone(Env *env) {
-    return this->clone(env, nullptr);
-}
-
 Value Object::clone(Env *env, Value freeze) {
     bool freeze_bool = true;
     if (freeze) {
@@ -1075,7 +1071,7 @@ Value Object::clone(Env *env, Value freeze) {
         }
     }
 
-    auto duplicate = this->dup(env);
+    auto duplicate = this->duplicate(env);
     if (!duplicate->singleton_class()) {
         auto s_class = singleton_class();
         if (s_class) {
@@ -1096,6 +1092,15 @@ Value Object::clone(Env *env, Value freeze) {
         duplicate->freeze();
 
     return duplicate;
+}
+
+void Object::copy_instance_variables(const Value other) {
+    auto other_obj = other.object_or_null();
+    assert(other_obj);
+    if (m_ivars)
+        delete m_ivars;
+    if (other_obj->m_ivars)
+        m_ivars = new TM::Hashmap<SymbolObject *, Value> { *other_obj->m_ivars };
 }
 
 bool Object::is_a(Env *env, Value val) const {

@@ -114,6 +114,44 @@ nat_int_t Value::as_fast_integer() const {
     return m_object->as_integer()->to_nat_int_t();
 }
 
+bool Value::operator==(Value other) const {
+    switch (m_type) {
+    case Type::Integer: {
+        switch (other.m_type) {
+        case Type::Integer:
+            return m_integer == other.m_integer;
+        case Type::Double:
+            return false;
+        default: {
+            if (other && other->is_integer()) {
+                auto i = other->as_integer();
+                if (i->is_fixnum())
+                    return m_integer == i->to_nat_int_t();
+            }
+            return false;
+        }
+        }
+    }
+    case Type::Double: {
+        switch (other.m_type) {
+        case Type::Integer:
+            return false;
+        case Type::Double:
+            return m_double == other.m_double;
+        default: {
+            if (other && other->is_float()) {
+                auto f = other->as_float();
+                return m_double == f->to_double();
+            }
+            return false;
+        }
+        }
+    }
+    default:
+        return m_object == other.m_object;
+    }
+}
+
 #undef PROFILED_SEND
 
 }

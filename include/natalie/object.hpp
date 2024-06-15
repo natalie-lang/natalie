@@ -81,6 +81,8 @@ public:
         m_singleton_class = other.m_singleton_class;
         m_owner = other.m_owner;
         m_flags = other.m_flags;
+        if (m_ivars)
+            delete m_ivars;
         m_ivars = other.m_ivars;
         other.m_type = Type::Nil;
         other.m_singleton_class = nullptr;
@@ -312,9 +314,10 @@ public:
 
     Method *find_method(Env *, SymbolObject *, MethodVisibility, Value) const;
 
-    Value dup(Env *) const;
-    Value clone(Env *env);
-    Value clone(Env *env, Value freeze);
+    Value duplicate(Env *) const;
+    Value clone(Env *env, Value freeze = nullptr);
+
+    void copy_instance_variables(Value);
 
     bool is_a(Env *, Value) const;
     bool respond_to(Env *, Value, bool = true);

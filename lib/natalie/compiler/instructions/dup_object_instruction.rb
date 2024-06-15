@@ -8,7 +8,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.exec_and_push(:duplicated_value, "#{transform.peek}->dup(env)")
+        transform.exec_and_push(:duplicated_value, "#{transform.peek}->duplicate(env)")
       end
 
       def execute(vm)

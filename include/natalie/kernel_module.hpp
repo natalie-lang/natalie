@@ -74,6 +74,8 @@ public:
     static bool block_given(Env *env, Block *block) { return !!block; }
 
     Value define_singleton_method(Env *env, Value name, Block *block);
+    Value dup(Env *env);
+    Value dup_better(Env *env); // This will eventually replace `dup`.
     Value hash(Env *env);
     Value initialize_copy(Env *env, Value object);
     Value inspect(Env *env);
