@@ -13,11 +13,10 @@ describe "The for expression" do
     j.should == 6
   end
 
-  # NATFIXME: Support Prism::ImplicitRestNode
-  xit "iterates over a list of arrays and destructures with empty comma" do
-    #for i, in [[1,2]]
-      #i.should == 1
-    #end
+  it "iterates over a list of arrays and destructures with empty comma" do
+    for i, in [[1,2]]
+      i.should == 1
+    end
   end
 
   it "iterates over an Hash passing each key-value pair to the block" do

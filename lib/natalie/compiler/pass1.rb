@@ -1313,6 +1313,8 @@ module Natalie
         case args.type
         when :class_variable_target_node
           # Do nothing, no need to declare class variables.
+        when :implicit_rest_node
+          # Do nothing, we can simply skip this one.
         when :local_variable_write_node
           instructions << VariableDeclareInstruction.new(args.name)
         when :local_variable_target_node
