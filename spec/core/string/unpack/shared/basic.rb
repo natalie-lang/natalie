@@ -42,7 +42,7 @@ describe :string_unpack_no_platform, shared: true do
       "a".unpack("C", offset: 1).should == [nil]
     end
 
-    it "raises an ArgumentError when the offset is larget than the string" do
+    it "raises an ArgumentError when the offset is larger than the string" do
       -> { "a".unpack("C", offset: 2) }.should raise_error(ArgumentError)
     end
   end

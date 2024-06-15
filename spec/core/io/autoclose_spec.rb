@@ -59,7 +59,7 @@ describe "IO#autoclose=" do
     @io.should_not.autoclose?
   end
 
-  it "can be set multple times" do
+  it "can be set multiple times" do
     @io.autoclose = true
     @io.should.autoclose?
 

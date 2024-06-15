@@ -832,7 +832,7 @@ module Kernel
     SprintfFormatter.new(format_string, arguments).format
   end
 
-  # NATFIXME: the ... syntax doesnt appear to pass the block
+  # NATFIXME: the ... syntax doesn't appear to pass the block
   def open(filename, *a, **kw, &blk)
     if filename.respond_to?(:to_open)
       result = filename.to_open(*a, **kw)

@@ -820,7 +820,7 @@ nat_int_t Object::object_id() const {
         const auto i = as_integer();
         if (i->is_fixnum()) {
             /* Recreate the logic from Ruby: Use a long as tagged pointer, where
-             * the rightmost bit is 1, and the remaning bits are the number shifted
+             * the rightmost bit is 1, and the remaining bits are the number shifted
              * one right.
              * The regular object ids are the actual memory addresses, these are at
              * least 8 bit aligned, so the rightmost bit will never be set. This

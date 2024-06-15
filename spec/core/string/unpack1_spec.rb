@@ -23,7 +23,7 @@ describe "String#unpack1" do
       "a".unpack1("C", offset: 1).should == nil
     end
 
-    it "raises an ArgumentError when the offset is larget than the string" do
+    it "raises an ArgumentError when the offset is larger than the string" do
       -> { "a".unpack1("C", offset: 2) }.should raise_error(ArgumentError)
     end
   end
