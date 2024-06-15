@@ -1094,6 +1094,15 @@ Value Object::clone(Env *env, Value freeze) {
     return duplicate;
 }
 
+void Object::copy_instance_variables(const Value other) {
+    auto other_obj = other.object_or_null();
+    assert(other_obj);
+    if (m_ivars)
+        delete m_ivars;
+    if (other_obj->m_ivars)
+        m_ivars = new TM::Hashmap<SymbolObject *, Value> { *other_obj->m_ivars };
+}
+
 bool Object::is_a(Env *env, Value val) const {
     if (!val->is_module()) return false;
     ModuleObject *module = val->as_module();

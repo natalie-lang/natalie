@@ -317,6 +317,8 @@ public:
     Value duplicate(Env *) const;
     Value clone(Env *env, Value freeze = nullptr);
 
+    void copy_instance_variables(Value);
+
     bool is_a(Env *, Value) const;
     bool respond_to(Env *, Value, bool = true);
     bool respond_to_method(Env *, Value, Value);
