@@ -357,6 +357,8 @@ Value HashObject::replace(Env *env, Value other) {
     if (this == other_hash)
         return this;
 
+    m_is_comparing_by_identity = other_hash->m_is_comparing_by_identity;
+
     clear(env);
     for (auto node : *other_hash) {
         put(env, node.key, node.val);
