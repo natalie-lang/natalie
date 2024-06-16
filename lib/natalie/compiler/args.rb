@@ -1,9 +1,10 @@
 module Natalie
   class Compiler
     class Args
-      def initialize(pass, local_only: true)
+      def initialize(pass, local_only: true, for_block: false)
         @pass = pass
         @local_only = local_only
+        @for_block = for_block
         @underscore_arg_set = false
       end
 
@@ -152,7 +153,7 @@ module Natalie
         @instructions << ArrayShiftInstruction.new
         @instructions << DupInstruction.new
         @instructions << ToArrayInstruction.new
-        sub_processor = self.class.new(@pass, local_only: @local_only)
+        sub_processor = self.class.new(@pass, local_only: @local_only, for_block: @for_block)
         @instructions << sub_processor.transform(arg)
         @instructions << PopInstruction.new
       end
@@ -167,8 +168,14 @@ module Natalie
 
       def transform_splat_arg(arg)
         if arg.expression
-          unless arg.expression.type == :required_parameter_node
-            raise "I don't know how to splat #{arg.expression.inspect}"
+          if @for_block
+            unless [:local_variable_target_node, :required_parameter_node].include?(arg.expression.type)
+              raise "I don't know how to splat #{arg.expression.inspect}"
+            end
+          else
+            unless arg.expression.type == :required_parameter_node
+              raise "I don't know how to splat #{arg.expression.inspect}"
+            end
           end
 
           name = arg.expression.name
