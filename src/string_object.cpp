@@ -666,7 +666,7 @@ Value StringObject::index(Env *env, Value needle, size_t start) const {
     return Value::integer(0);
 }
 
-nat_int_t StringObject::index_int(Env *env, Value needle, size_t start) const {
+nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) const {
     auto needle_str = needle->to_str(env)->as_string();
 
     if (needle_str->bytesize() == 0)
@@ -675,13 +675,13 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t start) const {
     if (bytesize() == 0)
         return -1;
 
-    if (start >= bytesize())
+    if (byte_start >= bytesize())
         return -1;
 
-    if (needle_str->bytesize() > bytesize() - start)
+    if (needle_str->bytesize() > bytesize() - byte_start)
         return -1;
 
-    auto ptr = memmem(c_str() + start, bytesize() - start, needle_str->c_str(), needle_str->bytesize());
+    auto ptr = memmem(c_str() + byte_start, bytesize() - byte_start, needle_str->c_str(), needle_str->bytesize());
     if (ptr == nullptr)
         return -1;
 

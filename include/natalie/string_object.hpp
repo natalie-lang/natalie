@@ -273,7 +273,7 @@ public:
 
     Value index(Env *, Value, Value) const;
     Value index(Env *, Value, size_t start) const;
-    nat_int_t index_int(Env *, Value, size_t start) const;
+    nat_int_t index_int(Env *, Value, size_t byte_start) const;
 
     Value rindex(Env *, Value) const;
 
