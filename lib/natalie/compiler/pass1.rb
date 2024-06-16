@@ -493,7 +493,7 @@ module Natalie
         end
 
         if node.safe_navigation?
-          # wrap the SendInstruction with an effective `unless reciever.nil?`
+          # wrap the SendInstruction with an effective `unless receiver.nil?`
           instructions << DupInstruction.new # duplicate receiver for IsNil below
           instructions << IsNilInstruction.new
           instructions << IfInstruction.new

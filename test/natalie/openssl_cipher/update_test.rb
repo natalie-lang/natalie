@@ -2,7 +2,7 @@ require_relative '../../../spec/spec_helper'
 require 'openssl'
 
 describe "OpenSSL::Cipher#update" do
-  it "returns an emtpy string when being called with a string smaller than block size" do
+  it "returns an empty string when being called with a string smaller than block size" do
     cipher = OpenSSL::Cipher.new("aes-256-cbc")
     cipher.encrypt
     cipher.random_key

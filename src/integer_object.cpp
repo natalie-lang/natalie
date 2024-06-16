@@ -260,7 +260,7 @@ Value IntegerObject::cmp(Env *env, Value arg) {
         arg = rhs;
     }
 
-    // Check if compareable
+    // Check if comparable
     if (!is_comparable_with(arg))
         return NilObject::the();
 

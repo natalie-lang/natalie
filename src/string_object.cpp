@@ -2669,7 +2669,7 @@ Value StringObject::strip(Env *env) const {
 }
 
 Value StringObject::strip_in_place(Env *env) {
-    // right side needs to go first beacuse then we have less to move in
+    // right side needs to go first because then we have less to move in
     // on the left side
     auto r = rstrip_in_place(env);
     auto l = lstrip_in_place(env);
@@ -3379,7 +3379,7 @@ Value StringObject::convert_float() {
     char *endptr = nullptr;
     String string = String(m_string);
 
-    // check for two consequtive underscores
+    // check for two consecutive underscores
     for (size_t i = 1; i < string.length(); ++i) {
         auto c2 = string[i];
         auto c1 = string[i - 1];

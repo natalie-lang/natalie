@@ -18,7 +18,7 @@ describe "NATFIXME" do
   end
 
   it "hides a failing block with exception" do
-    NATFIXME "cant load a missing thing", exception: LoadError do
+    NATFIXME "can't load a missing thing", exception: LoadError do
       load "/tmp/xyzzy.eW91dmVfYmVlbl9lYXRlbl9ieV9hX2dydWUK"
     end
   end
@@ -41,7 +41,7 @@ describe "NATFIXME" do
 
   it "raises when the block raises but with the wrong exception" do
     -> {
-      NATFIXME "cant load a missing thing", exception: ZeroDivisionError do
+      NATFIXME "can't load a missing thing", exception: ZeroDivisionError do
         load "/tmp/xyzzy.eW91dmVfYmVlbl9lYXRlbl9ieV9hX2dydWUK"
       end
     }.should raise_error(NatalieFixMeException)
@@ -49,7 +49,7 @@ describe "NATFIXME" do
 
   it "raises when the block raises but with the wrong message" do
     -> {
-      NATFIXME "cant load a missing thing", exception: ZeroDivisionError, message: "divided by ZERO" do
+      NATFIXME "can't load a missing thing", exception: ZeroDivisionError, message: "divided by ZERO" do
         1 / 0
       end
     }.should raise_error(NatalieFixMeException)
