@@ -340,7 +340,7 @@ task :docker_test_output do
 
   SUPPORTED_HOST_RUBY_VERSIONS.each_cons(2) do |v1, v2|
     out = `diff -r output/#{v1} output/#{v2} 2>&1`.strip
-    if out.size.positive?
+    unless out.empty?
       puts out
       puts
       raise "Output for #{v1} and #{v2} differs"
