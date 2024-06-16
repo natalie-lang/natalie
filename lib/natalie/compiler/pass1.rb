@@ -1268,7 +1268,7 @@ module Natalie
             spread: for_block && args.size > 1,
           )
 
-          instructions << Args.new(self, local_only: local_only).transform(args)
+          instructions << Args.new(self, local_only: local_only, for_block: for_block).transform(args)
 
           return instructions
         end

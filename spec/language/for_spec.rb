@@ -25,21 +25,19 @@ describe "The for expression" do
     end
   end
 
-  # NATFIXME: Support splat arguments
-  xit "iterates over a list of arrays and destructures with a splat" do
-    #for i, *j in [[1,2]]
-      #i.should == 1
-      #j.should == [2]
-    #end
+  it "iterates over a list of arrays and destructures with a splat" do
+    for i, *j in [[1,2]]
+      i.should == 1
+      j.should == [2]
+    end
   end
 
-  # NATFIXME: Support splat arguments
-  xit "iterates over a list of arrays and destructures with a splat and additional targets" do
-    #for i, *j, k in [[1,2,3,4]]
-      #i.should == 1
-      #j.should == [2,3]
-      #k.should == 4
-    #end
+  it "iterates over a list of arrays and destructures with a splat and additional targets" do
+    for i, *j, k in [[1,2,3,4]]
+      i.should == 1
+      j.should == [2,3]
+      k.should == 4
+    end
   end
 
   it "iterates over an Hash passing each key-value pair to the block" do
