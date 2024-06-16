@@ -32,8 +32,22 @@ describe :string_unpack_16bit_le, shared: true do
     ].should be_computed_by(:unpack, unpack_format(3))
   end
 
-  it "ignores NULL bytes between directives" do
-    "abcd".unpack(unpack_format("\000", 2)).should == [25185, 25699]
+  ruby_version_is ""..."3.3" do
+    it "ignores NULL bytes between directives" do
+      suppress_warning do
+        "abcd".unpack(unpack_format("\000", 2)).should == [25185, 25699]
+      end
+    end
+  end
+
+  ruby_version_is "3.3" do
+    it "raise ArgumentError for NULL bytes between directives" do
+      NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
+        -> {
+          "abcd".unpack(unpack_format("\000", 2))
+        }.should raise_error(ArgumentError, /unknown unpack directive/)
+      end
+    end
   end
 
   it "ignores spaces between directives" do
@@ -85,8 +99,22 @@ describe :string_unpack_16bit_be, shared: true do
     ].should be_computed_by(:unpack, unpack_format(3))
   end
 
-  it "ignores NULL bytes between directives" do
-    "badc".unpack(unpack_format("\000", 2)).should == [25185, 25699]
+  ruby_version_is ""..."3.3" do
+    it "ignores NULL bytes between directives" do
+      suppress_warning do
+        "badc".unpack(unpack_format("\000", 2)).should == [25185, 25699]
+      end
+    end
+  end
+
+  ruby_version_is "3.3" do
+    it "raise ArgumentError for NULL bytes between directives" do
+      NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
+        -> {
+          "badc".unpack(unpack_format("\000", 2))
+        }.should raise_error(ArgumentError, /unknown unpack directive/)
+      end
+    end
   end
 
   it "ignores spaces between directives" do
@@ -139,8 +167,22 @@ describe :string_unpack_32bit_le, shared: true do
     ].should be_computed_by(:unpack, unpack_format(3))
   end
 
-  it "ignores NULL bytes between directives" do
-    "abcdefgh".unpack(unpack_format("\000", 2)).should == [1684234849, 1751606885]
+  ruby_version_is ""..."3.3" do
+    it "ignores NULL bytes between directives" do
+      suppress_warning do
+        "abcdefgh".unpack(unpack_format("\000", 2)).should == [1684234849, 1751606885]
+      end
+    end
+  end
+
+  ruby_version_is "3.3" do
+    it "raise ArgumentError for NULL bytes between directives" do
+      NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
+        -> {
+          "abcdefgh".unpack(unpack_format("\000", 2))
+        }.should raise_error(ArgumentError, /unknown unpack directive/)
+      end
+    end
   end
 
   it "ignores spaces between directives" do
@@ -193,8 +235,22 @@ describe :string_unpack_32bit_be, shared: true do
     ].should be_computed_by(:unpack, unpack_format(3))
   end
 
-  it "ignores NULL bytes between directives" do
-    "dcbahgfe".unpack(unpack_format("\000", 2)).should == [1684234849, 1751606885]
+  ruby_version_is ""..."3.3" do
+    it "ignores NULL bytes between directives" do
+      suppress_warning do
+        "dcbahgfe".unpack(unpack_format("\000", 2)).should == [1684234849, 1751606885]
+      end
+    end
+  end
+
+  ruby_version_is "3.3" do
+    it "raise ArgumentError for NULL bytes between directives" do
+      NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
+        -> {
+          "dcbahgfe".unpack(unpack_format("\000", 2))
+        }.should raise_error(ArgumentError, /unknown unpack directive/)
+      end
+    end
   end
 
   it "ignores spaces between directives" do
@@ -243,9 +299,23 @@ describe :string_unpack_64bit_le, shared: true do
     "abc".unpack(unpack_format('*')).should == []
   end
 
-  it "ignores NULL bytes between directives" do
-    array = "abcdefghabghefcd".unpack(unpack_format("\000", 2))
-    array.should == [7523094288207667809, 7233738012216484449]
+  ruby_version_is ""..."3.3" do
+    it "ignores NULL bytes between directives" do
+      suppress_warning do
+        array = "abcdefghabghefcd".unpack(unpack_format("\000", 2))
+        array.should == [7523094288207667809, 7233738012216484449]
+      end
+    end
+  end
+
+  ruby_version_is "3.3" do
+    it "raise ArgumentError for NULL bytes between directives" do
+      NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
+        -> {
+          "badc".unpack(unpack_format("\000", 2))
+        }.should raise_error(ArgumentError, /unknown unpack directive/)
+      end
+    end
   end
 
   it "ignores spaces between directives" do
@@ -305,9 +375,23 @@ describe :string_unpack_64bit_be, shared: true do
     "abc".unpack(unpack_format('*')).should == []
   end
 
-  it "ignores NULL bytes between directives" do
-    array = "hgfedcbadcfehgba".unpack(unpack_format("\000", 2))
-    array.should == [7523094288207667809, 7233738012216484449]
+  ruby_version_is ""..."3.3" do
+    it "ignores NULL bytes between directives" do
+      suppress_warning do
+        array = "hgfedcbadcfehgba".unpack(unpack_format("\000", 2))
+        array.should == [7523094288207667809, 7233738012216484449]
+      end
+    end
+  end
+
+  ruby_version_is "3.3" do
+    it "raise ArgumentError for NULL bytes between directives" do
+      NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
+        -> {
+          "hgfedcbadcfehgba".unpack(unpack_format("\000", 2))
+        }.should raise_error(ArgumentError, /unknown unpack directive/)
+      end
+    end
   end
 
   it "ignores spaces between directives" do
