@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <functional>
 #include <stdarg.h>
 #include <stdint.h>
 #include <string.h>
@@ -214,6 +215,7 @@ public:
 
     Value each_grapheme_cluster(Env *, Block *);
 
+    void each_line(Env *, Value, Value, std::function<Value(StringObject *)>) const;
     Value each_line(Env *, Value = nullptr, Value = nullptr, Block * = nullptr);
     Value lines(Env *, Value = nullptr, Value = nullptr, Block * = nullptr);
 
@@ -273,7 +275,7 @@ public:
 
     Value index(Env *, Value, Value) const;
     Value index(Env *, Value, size_t start) const;
-    nat_int_t index_int(Env *, Value, size_t start) const;
+    nat_int_t index_int(Env *, Value, size_t byte_start) const;
 
     Value rindex(Env *, Value) const;
 

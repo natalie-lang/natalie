@@ -666,7 +666,7 @@ Value StringObject::index(Env *env, Value needle, size_t start) const {
     return Value::integer(0);
 }
 
-nat_int_t StringObject::index_int(Env *env, Value needle, size_t start) const {
+nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) const {
     auto needle_str = needle->to_str(env)->as_string();
 
     if (needle_str->bytesize() == 0)
@@ -675,13 +675,13 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t start) const {
     if (bytesize() == 0)
         return -1;
 
-    if (start >= bytesize())
+    if (byte_start >= bytesize())
         return -1;
 
-    if (needle_str->bytesize() > bytesize() - start)
+    if (needle_str->bytesize() > bytesize() - byte_start)
         return -1;
 
-    auto ptr = memmem(c_str() + start, bytesize() - start, needle_str->c_str(), needle_str->bytesize());
+    auto ptr = memmem(c_str() + byte_start, bytesize() - byte_start, needle_str->c_str(), needle_str->bytesize());
     if (ptr == nullptr)
         return -1;
 
@@ -2557,66 +2557,105 @@ Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
     return this;
 }
 
-// This function is used for both String#each_line and String#lines
-static Value lines_inner(Value self, EncodingObject *encoding, bool is_each_line, Env *env, Value separator, Value chomp_value, Block *block) {
+void StringObject::each_line(Env *env, Value separator, Value chomp_value, std::function<Value(StringObject *)> callback) const {
     if (separator) {
-        separator->assert_type(env, Object::Type::String, "String");
+        if (!separator->is_nil())
+            separator = separator->to_str(env);
     } else {
-        separator = new StringObject { "\n" };
+        auto dollar_slash = env->global_get("$/"_s);
+        if (dollar_slash->is_nil())
+            separator = NilObject::the();
+        else
+            separator = dollar_slash->to_str(env);
+    }
+
+    auto self_dup = duplicate(env)->as_string();
+
+    if (is_empty()) {
+        if (separator->is_nil())
+            callback(self_dup);
+        return;
+    }
+
+    if (separator->is_nil())
+        separator = new StringObject { "" };
+
+    bool paragraph_mode = false;
+    if (separator->as_string()->is_empty()) {
+        paragraph_mode = true;
+        separator = new StringObject { "\n\n" };
     }
 
     const auto chomp = chomp_value ? chomp_value->is_truthy() : false;
+    auto separator_length = separator->as_string()->length();
+
     size_t last_index = 0;
-    auto self_dup = self->duplicate(env)->as_string();
-    auto index = self_dup->index_int(env, separator->as_string(), 0);
+    for (;;) {
+        auto index = self_dup->index_int(env, separator, last_index);
+        auto ptr = &self_dup->c_str()[last_index];
 
-    auto run_split = [&](auto callback) {
-        if (separator->as_string()->is_empty() || index == -1) {
-            callback(self_dup);
-        } else {
-            do {
-                const auto u_index = static_cast<size_t>(index);
-                auto out = new StringObject { &self_dup->c_str()[last_index], u_index - last_index + separator->as_string()->length(), encoding };
-                if (chomp) out->chomp_in_place(env, separator);
-                callback(out);
-                last_index = u_index + separator->as_string()->length();
-                index = self_dup->index_int(env, separator->as_string(), last_index);
-            } while (index != -1);
-            auto out = new StringObject { &self_dup->c_str()[last_index], self_dup->length() - last_index, encoding };
-            if (chomp) out->chomp_in_place(env, separator);
-            if (!out->is_empty()) callback(out);
+        if (index == -1) {
+            auto length = bytesize() - last_index;
+            if (length == 0)
+                break;
+            auto out = new StringObject { ptr, bytesize() - last_index, encoding() };
+            callback(out);
+            break;
         }
-    };
 
-    if (block) {
-        run_split([&](Value out) {
-            Value args[] = { out };
-            return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
-        });
-        return self;
-    } else if (is_each_line) {
-        Vector<Value> args { separator };
-        if (chomp) {
-            auto hash = new HashObject {};
-            hash->put(env, "chomp"_s, chomp_value);
-            args.push(hash);
+        auto u_index = static_cast<size_t>(index);
+        auto length = u_index - last_index + separator_length;
+
+        if (paragraph_mode) {
+            for (size_t i = u_index + separator_length; i < bytesize(); i++) {
+                if (self_dup->c_str()[i] == '\n')
+                    u_index++;
+                else
+                    break;
+            }
         }
-        return self->enum_for(env, "each_line", Args(args, chomp));
-    } else {
-        ArrayObject *ary = new ArrayObject {};
-        run_split([&](Value out) {
-            ary->push(out);
-        });
-        return ary;
+
+        auto out = new StringObject { ptr, length, encoding() };
+
+        if (chomp)
+            out->chomp_in_place(env, separator);
+
+        callback(out);
+
+        last_index = u_index + separator_length;
     }
 }
 
-Value StringObject::each_line(Env *env, Value separator, Value chomp_value, Block *block) {
-    return lines_inner(this, m_encoding, true, env, separator, chomp_value, block);
+Value StringObject::each_line(Env *env, Value separator, Value chomp, Block *block) {
+    if (!block) {
+        Vector<Value> args { separator };
+        auto do_chomp = chomp ? chomp->is_truthy() : false;
+        if (do_chomp) {
+            auto hash = new HashObject {};
+            hash->put(env, "chomp"_s, chomp);
+            args.push(hash);
+        }
+        return enum_for(env, "each_line", Args(args, do_chomp));
+    }
+
+    each_line(env, separator, chomp, [&](StringObject *part) -> Value {
+        Value args[] = { part };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+        return this;
+    });
+    return this;
 }
 
-Value StringObject::lines(Env *env, Value separator, Value chomp_value, Block *block) {
-    return lines_inner(this, m_encoding, false, env, separator, chomp_value, block);
+Value StringObject::lines(Env *env, Value separator, Value chomp, Block *block) {
+    if (block)
+        return each_line(env, separator, chomp, block);
+
+    ArrayObject *ary = new ArrayObject {};
+    each_line(env, separator, chomp, [&](StringObject *part) -> Value {
+        ary->push(part);
+        return this;
+    });
+    return ary;
 }
 
 Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) const {
