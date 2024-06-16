@@ -1330,7 +1330,7 @@ Value OpenSSL_X509_Store_verify(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto cert = args[0];
     if (args.size() > 1)
-        env->raise("NotImplementedError", "NATFIXME: Add support for certifcate chain argument");
+        env->raise("NotImplementedError", "NATFIXME: Add support for certificate chain argument");
 
     auto Certificate = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Certificate"_s })->as_class();
     if (!cert->is_a(env, Certificate))

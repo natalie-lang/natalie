@@ -48,7 +48,7 @@ module Natalie
         def bytesize
           result = 1 # 8 bits Number of sections
           result += 5 unless @rodata_size.zero? # 8 bits identifier + 32 bits size
-          result += 5 # code, 8 bits identifer + 32 bits size
+          result += 5 # code, 8 bits identifier + 32 bits size
           result
         end
 

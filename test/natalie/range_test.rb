@@ -93,7 +93,7 @@ describe 'range' do
   end
 
   describe '#to_a' do
-    it 'returns the range expaneded to an array' do
+    it 'returns the range expanded to an array' do
       r = 1..10
       r.to_a.should == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
       r = 1...10
