@@ -12,12 +12,10 @@ end
 
 describe "String#=~" do
   it "behaves the same way as index() when given a regexp" do
-    NATFIXME 'Implement Regexp argument in String#index', exception: TypeError, message: 'no implicit conversion of Regexp into String' do
-      ("rudder" =~ /udder/).should == "rudder".index(/udder/)
-      ("boat" =~ /[^fl]oat/).should == "boat".index(/[^fl]oat/)
-      ("bean" =~ /bag/).should == "bean".index(/bag/)
-      ("true" =~ /false/).should == "true".index(/false/)
-    end
+    ("rudder" =~ /udder/).should == "rudder".index(/udder/)
+    ("boat" =~ /[^fl]oat/).should == "boat".index(/[^fl]oat/)
+    ("bean" =~ /bag/).should == "bean".index(/bag/)
+    ("true" =~ /false/).should == "true".index(/false/)
   end
 
   it "raises a TypeError if a obj is a string" do

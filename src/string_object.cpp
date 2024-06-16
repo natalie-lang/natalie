@@ -635,7 +635,7 @@ bool StringObject::end_with(Env *env, Args args) const {
     return false;
 }
 
-Value StringObject::index(Env *env, Value needle, Value offset) const {
+Value StringObject::index(Env *env, Value needle, Value offset) {
     int offset_i = (offset) ? IntegerObject::convert_to_int(env, offset) : 0;
     int len = char_count(env);
     if (offset_i < -1 * len) {
@@ -648,29 +648,45 @@ Value StringObject::index(Env *env, Value needle, Value offset) const {
     return index(env, needle, ::abs(offset_i));
 }
 
-// TODO: Handle Regexp needle case
-Value StringObject::index(Env *env, Value needle, size_t start) const {
-    auto byte_index = index_int(env, needle, start);
-    if (byte_index == -1) {
+Value StringObject::index(Env *env, Value needle, size_t start) {
+    auto byte_start = char_index_to_byte_index(start);
+    if (byte_start == -1)
         return NilObject::the();
-    }
-    size_t byte_index_size_t = static_cast<size_t>(byte_index);
-    size_t char_index = 0, index = 0;
-    auto c = next_char(&index);
-    while (!c.is_empty()) {
-        if (index > byte_index_size_t)
-            return IntegerObject::from_size_t(env, char_index);
-        char_index++;
-        c = next_char(&index);
-    }
-    return Value::integer(0);
+    auto byte_index = index_int(env, needle, byte_start);
+    if (byte_index == -1)
+        return NilObject::the();
+    auto char_index = byte_index_to_char_index(byte_index);
+    return IntegerObject::from_size_t(env, char_index);
 }
 
-nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) const {
+nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
+    if (needle->is_regexp()) {
+        if (needle->as_regexp()->pattern().is_empty())
+            return byte_start;
+
+        if (bytesize() == 0)
+            return -1;
+
+        if (byte_start >= bytesize())
+            return -1;
+
+        OnigRegion *region = onig_region_new();
+        int result = needle->as_regexp()->search(string(), byte_start, region, ONIG_OPTION_NONE);
+        if (result == ONIG_MISMATCH) {
+            env->caller()->set_last_match(nullptr);
+            return -1;
+        }
+
+        auto match = new MatchDataObject { region, this, needle->as_regexp() };
+        env->caller()->set_last_match(match);
+        return region->beg[0];
+    }
+
     auto needle_str = needle->to_str(env)->as_string();
+    assert_compatible_string(env, needle_str);
 
     if (needle_str->bytesize() == 0)
-        return 0;
+        return byte_start;
 
     if (bytesize() == 0)
         return -1;
@@ -1847,7 +1863,7 @@ size_t StringObject::byte_index_to_char_index(ArrayObject *chars, size_t byte_in
     return char_index;
 }
 
-size_t StringObject::char_index_to_byte_index(size_t char_index) const {
+ssize_t StringObject::char_index_to_byte_index(size_t char_index) const {
     if (m_encoding->is_single_byte_encoding())
         return char_index;
 
@@ -1857,12 +1873,12 @@ size_t StringObject::char_index_to_byte_index(size_t char_index) const {
     while (char_index > current_char_index) {
         view = next_char(&current_byte_index);
         current_char_index++;
-        if (view.is_empty()) break;
+        if (view.is_empty()) return -1;
     }
     return current_byte_index;
 }
 
-size_t StringObject::byte_index_to_char_index(size_t byte_index) const {
+ssize_t StringObject::byte_index_to_char_index(size_t byte_index) const {
     if (m_encoding->is_single_byte_encoding())
         return byte_index;
 
@@ -1872,7 +1888,7 @@ size_t StringObject::byte_index_to_char_index(size_t byte_index) const {
     while (byte_index > current_byte_index) {
         view = next_char(&current_byte_index);
         current_char_index++;
-        if (view.is_empty()) break;
+        if (view.is_empty()) return -1;
     }
     return current_char_index;
 }
