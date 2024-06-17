@@ -273,9 +273,9 @@ public:
     StringObject *successive(Env *);
     StringObject *successive_in_place(Env *);
 
-    Value index(Env *, Value, Value) const;
-    Value index(Env *, Value, size_t start) const;
-    nat_int_t index_int(Env *, Value, size_t byte_start) const;
+    Value index(Env *, Value, Value);
+    Value index(Env *, Value, size_t start);
+    nat_int_t index_int(Env *, Value, size_t byte_start);
 
     Value rindex(Env *, Value) const;
 
@@ -396,8 +396,8 @@ public:
 
     static size_t byte_index_to_char_index(ArrayObject *chars, size_t byte_index);
 
-    size_t char_index_to_byte_index(size_t) const;
-    size_t byte_index_to_char_index(size_t) const;
+    ssize_t char_index_to_byte_index(size_t) const;
+    ssize_t byte_index_to_char_index(size_t) const;
 
     static CaseMapType check_case_options(Env *env, Value arg1, Value arg2, bool downcase = false);
 
