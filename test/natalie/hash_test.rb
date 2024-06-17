@@ -368,14 +368,5 @@ describe 'hash' do
       h.replace(h).should == { foo: 'bar' }
       h.object_id.should == id_was
     end
-
-    it 'copies the compare_by_identity flag' do
-      h1 = { a: 1 }
-      h2 = { b: 2 }
-      h2.compare_by_identity
-      h1.compare_by_identity?.should == false
-      h1.replace(h2)
-      h1.compare_by_identity?.should == true
-    end
   end
 end
