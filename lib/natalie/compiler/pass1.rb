@@ -2000,17 +2000,18 @@ module Natalie
       end
 
       def transform_match_required_node(node, used:)
-        unless node.pattern.is_a?(Prism::LocalVariableTargetNode)
+        case node.pattern.type
+        when :local_variable_target_node
+          instructions = [
+            VariableDeclareInstruction.new(node.pattern.name),
+            transform_expression(node.value, used: true),
+            VariableSetInstruction.new(node.pattern.name),
+          ]
+          instructions << PushNilInstruction.new if used
+          instructions
+        else
           raise SyntaxError, "Pattern not yet supported: #{node.pattern.inspect}"
         end
-
-        instructions = [
-          VariableDeclareInstruction.new(node.pattern.name),
-          transform_expression(node.value, used: true),
-          VariableSetInstruction.new(node.pattern.name),
-        ]
-        instructions << PushNilInstruction.new if used
-        instructions
       end
 
       def transform_match_write_node(node, used:)
