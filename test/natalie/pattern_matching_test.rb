@@ -13,3 +13,9 @@ describe 'pattern matching' do
     l.call.should be_nil
   end
 end
+
+describe 'NoMatchingPatternError' do
+  it 'is a subclass of StandardError' do
+    NoMatchingPatternError.superclass.should == StandardError
+  end
+end
