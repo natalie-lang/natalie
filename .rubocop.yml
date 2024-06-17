@@ -5,11 +5,11 @@ AllCops:
     - spec/**/*.rb
     - vendor/**/*
 
-Layout/LeadingCommentSpace:
-  Enabled: false
-
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
+
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
 
 Layout/HashAlignment:
   EnforcedHashRocketStyle: table
@@ -18,11 +18,19 @@ Layout/HashAlignment:
 Layout/HeredocIndentation:
   Enabled: false
 
-Layout/FirstArrayElementIndentation:
-  EnforcedStyle: consistent
+Layout/LeadingCommentSpace:
+  Enabled: false
 
 Lint/BooleanSymbol:
   Enabled: false
+
+# No autoload in Natalie, so we do need to require pp/set
+Lint/RedundantRequireStatement:
+  Enabled: false
+
+Lint/Void:
+  Exclude:
+    - test/**/*.rb
 
 Metrics:
   Enabled: false
@@ -51,10 +59,10 @@ Style/Documentation:
 Style/DoubleNegation:
   Enabled: false
 
-Style/FrozenStringLiteralComment:
+Style/FormatString:
   Enabled: false
 
-Style/FormatString:
+Style/FrozenStringLiteralComment:
   Enabled: false
 
 Style/GuardClause:
@@ -66,10 +74,10 @@ Style/IfUnlessModifier:
 Style/LambdaCall:
   Enabled: false
 
-Style/NumericPredicate:
+Style/Next:
   Enabled: false
 
-Style/Next:
+Style/NumericPredicate:
   Enabled: false
 
 Style/OptionalBooleanParameter:
@@ -93,19 +101,11 @@ Style/StringConcatenation:
 Style/TrailingCommaInArguments:
   Enabled: false
 
-Style/TrailingCommaInHashLiteral:
-  Enabled: false
-
 Style/TrailingCommaInArrayLiteral:
   Enabled: false
 
-Style/WhileUntilModifier:
+Style/TrailingCommaInHashLiteral:
   Enabled: false
 
-Lint/Void:
-  Exclude:
-    - test/**/*.rb
-
-# No autoload in Natalie, so we do need to require pp/set
-Lint/RedundantRequireStatement:
+Style/WhileUntilModifier:
   Enabled: false
