@@ -82,6 +82,8 @@ class StandardError < Exception; end
     end
   # end NameError subclasses
 
+  class NoMatchingPatternError < StandardError; end
+
   class IOError < StandardError; end
     class EOFError < IOError; end
   # end IOError subclasses
