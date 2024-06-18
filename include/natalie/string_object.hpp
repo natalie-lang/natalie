@@ -169,6 +169,7 @@ public:
     bool is_ascii_only() const;
     EncodingObject *negotiate_compatible_encoding(StringObject *) const;
     void assert_compatible_string(Env *, StringObject *) const;
+    void assert_valid_encoding(Env *) const;
     EncodingObject *assert_compatible_string_and_update_encoding(Env *, StringObject *);
 
     void prepend_char(Env *, char);

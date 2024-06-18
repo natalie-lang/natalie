@@ -398,7 +398,7 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
     StringObject *str_obj = other->as_string();
 
     if (!str_obj->valid_encoding())
-        env->raise("ArgumentError", "invalid byte sequence in {}", str_obj->encoding()->name()->as_string()->string());
+        env->raise_invalid_byte_sequence_error(str_obj->encoding());
 
     nat_int_t start_byte_index = 0;
     if (start != nullptr) {

@@ -149,6 +149,11 @@ void Env::raise_errno(StringObject *detail) {
     raise_exception(error);
 }
 
+void Env::raise_invalid_byte_sequence_error(EncodingObject *encoding) {
+    auto name = encoding->name()->as_string()->string();
+    raise("ArgumentError", "invalid byte sequence in {}", name);
+}
+
 void Env::raise_no_method_error(Object *receiver, SymbolObject *name, MethodMissingReason reason) {
     String inspect_string;
     if (receiver->is_nil() || receiver->is_true() || receiver->is_false()) {
