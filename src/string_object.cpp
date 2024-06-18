@@ -1863,14 +1863,25 @@ size_t StringObject::byte_index_to_char_index(ArrayObject *chars, size_t byte_in
     return char_index;
 }
 
-ssize_t StringObject::char_index_to_byte_index(size_t char_index) const {
+ssize_t StringObject::char_index_to_byte_index(ssize_t char_index) const {
+    if (char_index < 0) {
+        size_t byte_index = bytesize();
+        ssize_t current_char_index = 0;
+        TM::StringView view;
+        do {
+            view = prev_char(&byte_index);
+            current_char_index--;
+        } while (byte_index != 0 && char_index < current_char_index);
+        return byte_index;
+    }
+
     if (m_encoding->is_single_byte_encoding())
         return char_index;
 
     size_t current_byte_index = 0;
     size_t current_char_index = 0;
     TM::StringView view;
-    while (char_index > current_char_index) {
+    while (static_cast<size_t>(char_index) > current_char_index) {
         view = next_char(&current_byte_index);
         current_char_index++;
         if (view.is_empty()) return -1;
