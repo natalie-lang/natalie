@@ -83,8 +83,8 @@ public:
             env->raise("ArgumentError", "negative length {} given", result);
         if (result < static_cast<nat_int_t>(std::numeric_limits<T>::min()))
             env->raise("RangeError", "integer {} too small to convert to `{}'", result, typeinfo<T>().name());
-        if (static_cast<unsigned long long>(result) > std::numeric_limits<T>::max())
-            env->raise("RangeError", "integer {} too big to convert to `{}' (max = {})", result, typeinfo<T>().name());
+        if (((std::numeric_limits<T>::is_signed && result > 0) || !std::numeric_limits<T>::is_signed) && static_cast<unsigned long long>(result) > std::numeric_limits<T>::max())
+            env->raise("RangeError", "integer {} too big to convert to `{}'", result, typeinfo<T>().name());
         return static_cast<T>(result);
     }
 

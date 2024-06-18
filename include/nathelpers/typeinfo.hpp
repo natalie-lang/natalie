@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdio>
 
 namespace Natalie {
 
@@ -20,8 +21,13 @@ struct typeinfo<int8_t> {
 };
 
 template <>
-struct typeinfo<std::size_t> {
+struct typeinfo<size_t> {
     constexpr const char *name() { return "size_t"; }
+};
+
+template <>
+struct typeinfo<ssize_t> {
+    constexpr const char *name() { return "ssize_t"; }
 };
 
 #ifdef __APPLE__
