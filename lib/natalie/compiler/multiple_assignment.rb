@@ -103,6 +103,12 @@ module Natalie
         when :class_variable_target_node
           @instructions << ClassVariableSetInstruction.new(arg.name)
           @instructions << ClassVariableGetInstruction.new(arg.name)
+        when :constant_target_node
+          name, prep_instruction = constant_name(arg)
+          @instructions << prep_instruction
+          @instructions << ConstSetInstruction.new(name)
+          @instructions << prep_instruction
+          @instructions << ConstFindInstruction.new(name, strict: true)
         when :global_variable_target_node
           @instructions << GlobalVariableSetInstruction.new(arg.name)
           @instructions << GlobalVariableGetInstruction.new(arg.name)
