@@ -397,33 +397,10 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
     other->assert_type(env, Object::Type::String, "String");
     StringObject *str_obj = other->as_string();
 
-    nat_int_t start_char_index = 0;
     nat_int_t start_byte_index = 0;
     if (start != nullptr) {
-        start_byte_index = start->as_integer_or_raise(env)->to_nat_int_t();
-
-        if (start_byte_index < 0) {
-            // FIXME: move this logic to StringObject::char_index_to_byte_index
-            size_t byte_index = str_obj->bytesize();
-            ssize_t char_index = 0;
-            TM::StringView view;
-            do {
-                view = str_obj->prev_char(&byte_index);
-                char_index--;
-            } while (byte_index != 0 && start_byte_index < char_index);
-            start_byte_index = byte_index;
-        } else {
-            // FIXME: use StringObject::char_index_to_byte_index
-            size_t byte_index = 0;
-            ssize_t char_index = 0;
-            TM::StringView view;
-            while (start_byte_index > char_index) {
-                view = str_obj->next_char(&byte_index);
-                char_index++;
-                if (view.is_empty()) break;
-            }
-            start_byte_index = byte_index;
-        }
+        auto char_index = IntegerObject::convert_to_native_type<ssize_t>(env, start);
+        start_byte_index = str_obj->char_index_to_byte_index(char_index);
     }
 
     auto result = match_at_byte_offset(env, str_obj, start_byte_index);
