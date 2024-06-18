@@ -46,7 +46,7 @@ static auto character_class_handler(Env *env, Args args) {
         }
         while (!result.second.is_empty()) {
             if (!result.first)
-                env->raise("ArgumentError", "invalid byte sequence in {}", selectors->encoding()->name()->as_string()->string());
+                env->raise_invalid_byte_sequence_error(selectors->encoding());
 
             auto value = result.second;
             if (value == "-" && last_character != StringView() && last_character != "\\") {
@@ -168,7 +168,7 @@ Value StringObject::each_codepoint(Env *env, Block *block) {
         auto char_obj = StringObject { c, m_encoding };
 
         if (!char_obj.valid_encoding())
-            env->raise("ArgumentError", "invalid byte sequence in {}", m_encoding->name()->as_string()->string());
+            env->raise_invalid_byte_sequence_error(m_encoding);
 
         Value args[] = { char_obj.ord(env) };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
@@ -183,7 +183,7 @@ Value StringObject::codepoints(Env *env, Block *block) {
             auto char_obj = StringObject { c, m_encoding };
 
             if (!char_obj.valid_encoding())
-                env->raise("ArgumentError", "invalid byte sequence in {}", m_encoding->name()->as_string()->string());
+                env->raise_invalid_byte_sequence_error(m_encoding);
 
             Value args[] = { char_obj.ord(env) };
             NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
@@ -192,7 +192,7 @@ Value StringObject::codepoints(Env *env, Block *block) {
     }
 
     if (!this->valid_encoding())
-        env->raise("ArgumentError", "invalid byte sequence in {}", m_encoding->name()->as_string()->string());
+        env->raise_invalid_byte_sequence_error(m_encoding);
 
     ArrayObject *ary = new ArrayObject {};
     for (auto c : *this) {
@@ -935,13 +935,13 @@ Value StringObject::ord(Env *env) const {
     size_t index = 0;
     auto result = next_char_result(&index);
     if (!result.first)
-        env->raise("ArgumentError", "invalid byte sequence in {}", m_encoding->name()->as_string()->string());
+        env->raise_invalid_byte_sequence_error(m_encoding);
     auto c = result.second;
     if (c.is_empty())
         env->raise("ArgumentError", "empty string");
     auto code = m_encoding->decode_codepoint(c);
     if (code == -1)
-        env->raise("ArgumentError", "invalid byte sequence in {}", m_encoding->name()->as_string()->string());
+        env->raise_invalid_byte_sequence_error(m_encoding);
     return Value::integer(code);
 }
 
@@ -2483,9 +2483,7 @@ Value StringObject::split(Env *env, StringObject *splitstr, int max_count) {
 // + proper handling of negative max-count-values
 
 Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
-
-    if (!this->valid_encoding())
-        env->raise("ArgumentError", "invalid byte sequence in {}", m_encoding->name()->as_string()->string());
+    assert_valid_encoding(env);
 
     ArrayObject *ary = new ArrayObject {};
     if (!splitter || splitter->is_nil()) {
@@ -2522,8 +2520,7 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
             env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter->klass()->inspect_str());
 
         StringObject *splitstr = splitter->as_string();
-        if (!splitstr->valid_encoding())
-            env->raise("ArgumentError", "invalid byte sequence in {}", splitstr->m_encoding->name()->as_string()->string());
+        splitstr->assert_valid_encoding(env);
 
         // special empty-split-string case, just return characters
         if (splitstr->is_empty()) {
@@ -3198,6 +3195,11 @@ void StringObject::assert_compatible_string(Env *env, StringObject *other_string
 
     auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
     env->raise(exception_class, "incompatible character encodings: {} and {}", m_encoding->name()->string(), other_string->m_encoding->name()->string());
+}
+
+void StringObject::assert_valid_encoding(Env *env) const {
+    if (valid_encoding()) return;
+    env->raise_invalid_byte_sequence_error(m_encoding);
 }
 
 EncodingObject *StringObject::assert_compatible_string_and_update_encoding(Env *env, StringObject *other_string) {
