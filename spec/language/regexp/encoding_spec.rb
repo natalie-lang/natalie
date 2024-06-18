@@ -173,9 +173,7 @@ describe "Regexps with encoding modifiers" do
 
   it "raises ArgumentError when trying to match a broken String" do
     s = "\x80".dup.force_encoding('UTF-8')
-    NATFIXME 'it raises ArgumentError when trying to match a broken String', exception: SpecFailedException do
-      -> { s =~ /./ }.should raise_error(ArgumentError, "invalid byte sequence in UTF-8")
-    end
+    -> { s =~ /./ }.should raise_error(ArgumentError, "invalid byte sequence in UTF-8")
   end
 
   it "computes the Regexp Encoding for each interpolated Regexp instance" do
