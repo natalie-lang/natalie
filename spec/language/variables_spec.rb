@@ -636,10 +636,8 @@ describe "Multiple assignment" do
 
     it "assigns constants" do
       module VariableSpecs
-        NATFIXME 'Compile error', exception: NameError, message: 'uninitialized constant VariableSpecs::SINGLE_SPLATTED_RHS' do
-          #(*SINGLE_SPLATTED_RHS) = *1
-          SINGLE_SPLATTED_RHS.should == [1]
-        end
+        (*SINGLE_SPLATTED_RHS) = *1
+        SINGLE_SPLATTED_RHS.should == [1]
       end
     end
   end
