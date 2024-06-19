@@ -22,7 +22,7 @@ describe 'pattern matching' do
   end
 
   it 'has no used mode, always returns nil' do
-    # (1 => a).should is a parse error, so use a lambda instead
+    # (1 => Integer).should is a parse error, so use a lambda instead
     l = -> { 1 => Integer }
     l.call.should be_nil
   end
@@ -33,6 +33,13 @@ describe 'pattern matching' do
 
   it 'will raise NoMatchingPatternError on invalid match with the constant path' do
     -> { 1 => Float::INFINITY }.should raise_error(NoMatchingPatternError, '1: Infinity === 1 does not return true')
+  end
+
+  it 'has the correct scoping for the lhs' do
+    a = 1
+    (b = 2; a + b) => Integer
+    a.should == 1
+    b.should == 2
   end
 
   it 'evaluates the lhs only once and uses that value in the error message' do
