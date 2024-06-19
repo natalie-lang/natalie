@@ -82,9 +82,27 @@ module Natalie
         end
 
         def transform_local_variable_target_node(node, value)
+          # Transform `expr => var` into `var = ->(res) { res }.call(expr)`
+          # For now we create the instructions directly, but we should look into generating Ruby
           [
-            VariableDeclareInstruction.new(node.name),
+            DefineBlockInstruction.new(arity: 1),
+            CheckArgsInstruction.new(positional: 1, keywords: []),
+            PushArgInstruction.new(0),
+            VariableSetInstruction.new(:result, local_only: true),
+            VariableGetInstruction.new(:result),
+            EndInstruction.new(:define_block),
+            CreateLambdaInstruction.new(file: compiler.file.path, line: node.location.start_line),
             compiler.transform_expression(value, used: true),
+            PushArgcInstruction.new(1),
+            SendInstruction.new(
+              :call,
+              args_array_on_stack: false,
+              receiver_is_self: false,
+              with_block: false,
+              has_keyword_hash: false,
+              file: compiler.file.path,
+              line: node.location.start_line,
+            ),
             VariableSetInstruction.new(node.name),
           ]
         end
