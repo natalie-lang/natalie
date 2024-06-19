@@ -35,6 +35,13 @@ describe 'pattern matching' do
     -> { 1 => Float::INFINITY }.should raise_error(NoMatchingPatternError, '1: Infinity === 1 does not return true')
   end
 
+  it 'has the correct scoping for the lhs' do
+    a = 1
+    (b = 2; a + b) => Integer
+    a.should == 1
+    b.should == 2
+  end
+
   it 'evaluates the lhs only once and uses that value in the error message' do
     a = 1
     -> { a += 1 => Float::INFINITY }.should raise_error(NoMatchingPatternError, '2: Infinity === 2 does not return true')
