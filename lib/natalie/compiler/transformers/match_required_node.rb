@@ -63,8 +63,8 @@ module Natalie
             StringAppendInstruction.new,
             PushSelfInstruction.new, # [msg, self],
             SwapInstruction.new, # [self, msg]
-            PushSelfInstruction.new, # [self, msg, self]
-            ConstFindInstruction.new(:NoMatchingPatternError, strict: false), # [self, msg, NoMatchingPatternError]
+            PushObjectClassInstruction.new, # [self, msg, Object]
+            ConstFindInstruction.new(:NoMatchingPatternError, strict: true), # [self, msg, NoMatchingPatternError]
             SwapInstruction.new, # [self, NoMatchingPatternError, msg]
             PushArgcInstruction.new(2),
             SendInstruction.new(
