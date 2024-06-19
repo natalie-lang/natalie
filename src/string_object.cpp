@@ -116,8 +116,16 @@ StringView StringObject::prev_char(Env *env, size_t *index) const {
     return pair.second;
 }
 
+std::pair<bool, StringView> StringObject::peek_char_result(size_t index) const {
+    return m_encoding->next_char(m_string, &index);
+}
+
 std::pair<bool, StringView> StringObject::next_char_result(size_t *index) const {
     return m_encoding->next_char(m_string, index);
+}
+
+StringView StringObject::peek_char(size_t index) const {
+    return next_char_result(&index).second;
 }
 
 StringView StringObject::next_char(size_t *index) const {
