@@ -22,7 +22,7 @@ describe 'pattern matching' do
   end
 
   it 'has no used mode, always returns nil' do
-    # (1 => a).should is a parse error, so use a lambda instead
+    # (1 => Integer).should is a parse error, so use a lambda instead
     l = -> { 1 => Integer }
     l.call.should be_nil
   end
