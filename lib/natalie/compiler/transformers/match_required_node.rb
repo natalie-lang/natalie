@@ -13,15 +13,21 @@ module Natalie
         def call(node)
           case node.pattern.type
           when :array_pattern_node
-            visit_array_pattern_node(node.pattern, node.value)
+            transform_array_pattern_node(node.pattern, node.value)
           when :local_variable_target_node
-            visit_local_variable_target_node(node.pattern, node.value)
+            transform_local_variable_target_node(node.pattern, node.value)
           else
-            eqeqeq_check(node.pattern, node.value)
+            transform_eqeqeq_check(node.pattern, node.value)
           end
         end
 
-        def eqeqeq_check(node, value)
+        private
+
+        def transform_array_pattern_node(node, _value)
+          raise SyntaxError, "Pattern not yet supported: #{node.inspect}"
+        end
+
+        def transform_eqeqeq_check(node, value)
           [
             compiler.transform_expression(value, used: true),
             DupInstruction.new, # Required for the error message
@@ -75,11 +81,7 @@ module Natalie
           ]
         end
 
-        def visit_array_pattern_node(node, _value)
-          raise SyntaxError, "Pattern not yet supported: #{node.inspect}"
-        end
-
-        def visit_local_variable_target_node(node, value)
+        def transform_local_variable_target_node(node, value)
           [
             VariableDeclareInstruction.new(node.name),
             compiler.transform_expression(value, used: true),
