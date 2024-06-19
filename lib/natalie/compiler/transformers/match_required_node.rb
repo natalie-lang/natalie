@@ -10,7 +10,7 @@ module Natalie
           @compiler = compiler
         end
 
-        def visit_constant_path_node(node)
+        def method_missing(_method, node)
           [
             compiler.transform_expression(value, used: true),
             DupInstruction.new, # Required for the error message
@@ -63,7 +63,10 @@ module Natalie
             PopInstruction.new,
           ]
         end
-        alias visit_constant_read_node visit_constant_path_node
+
+        def visit_array_pattern_node(node)
+          raise SyntaxError, "Pattern not yet supported: #{node.inspect}"
+        end
 
         def visit_local_variable_target_node(node)
           [
@@ -76,10 +79,6 @@ module Natalie
         def visit_match_required_node(node)
           @value = node.value
           node.pattern.accept(self)
-        end
-
-        def method_missing(_method, node)
-          raise SyntaxError, "Pattern not yet supported: #{node.inspect}"
         end
       end
     end
