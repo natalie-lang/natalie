@@ -21,6 +21,14 @@ describe 'pattern matching' do
     -> { 1.0 / 0.0 => Float::INFINITY }.should_not raise_error(NoMatchingPatternError)
   end
 
+  it 'can match against anything that implements #===' do
+    1 => 1
+    -> { 1 => 2 }.should raise_error(NoMatchingPatternError, '1: 2 === 1 does not return true')
+
+    1 => (1..10)
+    -> { 1 => (2..10) }.should raise_error(NoMatchingPatternError, '1: 2..10 === 1 does not return true')
+  end
+
   it 'has no used mode, always returns nil' do
     # (1 => Integer).should is a parse error, so use a lambda instead
     l = -> { 1 => Integer }
