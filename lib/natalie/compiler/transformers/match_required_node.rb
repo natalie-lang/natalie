@@ -10,7 +10,7 @@ module Natalie
           @compiler = compiler
         end
 
-        def method_missing(_method, node)
+        def eqeqeq_check(node)
           [
             compiler.transform_expression(value, used: true),
             DupInstruction.new, # Required for the error message
@@ -78,7 +78,14 @@ module Natalie
 
         def visit_match_required_node(node)
           @value = node.value
-          node.pattern.accept(self)
+          case node.pattern.type
+          when :array_pattern_node
+            visit_array_pattern_node(node.pattern)
+          when :local_variable_target_node
+            visit_local_variable_target_node(node.pattern)
+          else
+            eqeqeq_check(node.pattern)
+          end
         end
       end
     end
