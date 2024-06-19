@@ -4,13 +4,13 @@ module Natalie
   class Compiler
     module Transformers
       class MatchRequiredNode
-        attr_reader :compiler, :value
+        attr_reader :compiler
 
         def initialize(compiler)
           @compiler = compiler
         end
 
-        def eqeqeq_check(node)
+        def eqeqeq_check(node, value)
           [
             compiler.transform_expression(value, used: true),
             DupInstruction.new, # Required for the error message
@@ -64,27 +64,26 @@ module Natalie
           ]
         end
 
-        def visit_array_pattern_node(node)
+        def visit_array_pattern_node(node, _value)
           raise SyntaxError, "Pattern not yet supported: #{node.inspect}"
         end
 
-        def visit_local_variable_target_node(node)
+        def visit_local_variable_target_node(node, value)
           [
             VariableDeclareInstruction.new(node.name),
-            compiler.transform_expression(@value, used: true),
+            compiler.transform_expression(value, used: true),
             VariableSetInstruction.new(node.name),
           ]
         end
 
         def visit_match_required_node(node)
-          @value = node.value
           case node.pattern.type
           when :array_pattern_node
-            visit_array_pattern_node(node.pattern)
+            visit_array_pattern_node(node.pattern, node.value)
           when :local_variable_target_node
-            visit_local_variable_target_node(node.pattern)
+            visit_local_variable_target_node(node.pattern, node.value)
           else
-            eqeqeq_check(node.pattern)
+            eqeqeq_check(node.pattern, node.value)
           end
         end
       end
