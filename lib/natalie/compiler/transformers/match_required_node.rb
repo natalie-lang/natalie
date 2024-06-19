@@ -83,24 +83,13 @@ module Natalie
 
         def transform_local_variable_target_node(node, value)
           # Transform `expr => var` into `var = ->(res) { res }.call(expr)`
-          code_str = '->(result) { result }'
+          code_str = <<~RUBY
+            #{node.name} = lambda do |result|
+              result
+            end.call(#{value.location.slice})
+          RUBY
           parser = Natalie::Parser.new(code_str, compiler.file.path, locals: [node.name])
-
-          [
-            compiler.transform_expression(parser.ast.statements, used: true),
-            compiler.transform_expression(value, used: true),
-            PushArgcInstruction.new(1),
-            SendInstruction.new(
-              :call,
-              args_array_on_stack: false,
-              receiver_is_self: false,
-              with_block: false,
-              has_keyword_hash: false,
-              file: compiler.file.path,
-              line: node.location.start_line,
-            ),
-            VariableSetInstruction.new(node.name),
-          ]
+          compiler.transform_expression(parser.ast.statements, used: false)
         end
       end
     end
