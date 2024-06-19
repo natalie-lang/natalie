@@ -1099,11 +1099,31 @@ Value StringObject::size(Env *env) const {
     return IntegerObject::from_size_t(env, char_count(env));
 }
 
-Value StringObject::encode(Env *env, Value encoding) {
-    auto orig_encoding = m_encoding;
+Value StringObject::encode(Env *env, Value dst_encoding, Value src_encoding, HashObject *kwargs) {
     StringObject *copy = duplicate(env)->as_string();
-    EncodingObject *encoding_obj = EncodingObject::find_encoding(env, encoding);
-    return encoding_obj->encode(env, orig_encoding, copy);
+    return copy->encode_in_place(env, dst_encoding, src_encoding, kwargs);
+}
+
+Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_encoding, HashObject *kwargs) {
+    if (!dst_encoding)
+        dst_encoding = EncodingObject::default_internal();
+    if (!dst_encoding)
+        dst_encoding = EncodingObject::get(Encoding::UTF_8);
+
+    EncodeNewlineOption newline_option = EncodeNewlineOption::None;
+    if (kwargs) {
+        if (kwargs->remove(env, "universal_newline"_s))
+            newline_option = EncodeNewlineOption::Universal;
+        else if (kwargs->remove(env, "crlf_newline"_s))
+            newline_option = EncodeNewlineOption::Crlf;
+        else if (kwargs->remove(env, "cr_newline"_s))
+            newline_option = EncodeNewlineOption::Cr;
+    }
+
+    env->ensure_no_extra_keywords(kwargs);
+    auto orig_encoding = m_encoding;
+    EncodingObject *encoding_obj = EncodingObject::find_encoding(env, dst_encoding);
+    return encoding_obj->encode(env, orig_encoding, this, newline_option);
 }
 
 Value StringObject::force_encoding(Env *env, Value encoding) {

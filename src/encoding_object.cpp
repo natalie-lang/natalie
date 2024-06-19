@@ -12,14 +12,16 @@ EncodingObject::EncodingObject()
 //
 // TODO:
 // * support encoding options
-Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str) const {
+Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str, EncodeNewlineOption newline_option) const {
     if (num() == orig_encoding->num())
         return str;
 
     StringObject temp_string = StringObject("", (EncodingObject *)this);
     ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s)->as_class();
 
-    for (auto c : *str) {
+    size_t index = 0;
+    auto [valid, c] = str->next_char_result(&index);
+    while (!c.is_empty()) {
         auto char_obj = StringObject { c, orig_encoding };
         auto source_codepoint = char_obj.ord(env)->as_integer()->to_nat_int_t();
         auto unicode_codepoint = orig_encoding->to_unicode_codepoint(source_codepoint);
@@ -71,6 +73,8 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
 
         auto destination_char_obj = encode_codepoint(destination_codepoint);
         temp_string.append(destination_char_obj);
+
+        std::tie(valid, c) = str->next_char_result(&index);
     }
 
     str->set_str(temp_string.string().c_str(), temp_string.string().length());

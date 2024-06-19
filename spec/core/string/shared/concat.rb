@@ -32,11 +32,9 @@ describe :string_concat, shared: true do
       b = "".send(@method, 33)
       b.should == "!"
 
-      NATFIXME 'Implement String#encode!', exception: NoMethodError, message: "undefined method `encode!'" do
-        b.encode!(Encoding::UTF_8)
-        b.send(@method, 0x203D)
-        b.should == "!\u203D"
-      end
+      b.encode!(Encoding::UTF_8)
+      b.send(@method, 0x203D)
+      b.should == "!\u203D"
     end
 
     # #5855
