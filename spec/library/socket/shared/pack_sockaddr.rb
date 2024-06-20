@@ -76,9 +76,7 @@ describe :socket_pack_sockaddr_un, shared: true do
 
     it "handles correctly paths with multibyte chars" do
       sockaddr_un = Socket.public_send(@method, '/home/вася/sock')
-      NATFIXME 'Support second argument on String#encode', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        path = Socket.unpack_sockaddr_un(sockaddr_un).encode('UTF-8', 'UTF-8')
-      end
+      path = Socket.unpack_sockaddr_un(sockaddr_un).encode('UTF-8', 'UTF-8')
       path = Socket.unpack_sockaddr_un(sockaddr_un).encode('UTF-8') # NATFIXME: Run this line instead
       path.should == '/home/вася/sock'
     end

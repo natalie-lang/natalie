@@ -78,7 +78,7 @@ describe :hash_to_s, shared: true do
 
   it "does not raise if inspected result is not default external encoding" do
     utf_16be = mock("utf_16be")
-    NATFIXME 'Implement String#encode!', exception: NoMethodError, message: "undefined method `encode!'" do
+    NATFIXME 'Fix String#encode!', exception: SpecFailedException do
       utf_16be.should_receive(:inspect).and_return(%<"utf_16be \u3042">.encode!(Encoding::UTF_16BE))
 
       {a: utf_16be}.send(@method).should == '{:a=>"utf_16be \u3042"}'

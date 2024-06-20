@@ -78,7 +78,7 @@ class BindingGen
       singleton: false,
       static: false,
       pass_klass: false,
-      kwargs: [],
+      kwargs: nil,
       visibility: :public,
       optimized: false,
       aliases: []
@@ -173,7 +173,12 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
     end
 
     def args_to_pass
-      kwargs = @kwargs.map { |kw| "kwarg_#{kw}" }
+      case @kwargs
+      when Array
+        kwargs = @kwargs.map { |kw| "kwarg_#{kw}" }
+      when true
+        kwargs = 'kwargs'
+      end
       [env_arg, *args, *kwargs, block_arg, klass_arg].compact.join(', ')
     end
 
@@ -233,9 +238,12 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
     private
 
     def pop_kwargs
-      if @kwargs.any?
+      case @kwargs
+      when Array
         "auto kwargs = args.pop_keyword_hash();\n" +
           @kwargs.map { |kw| "auto kwarg_#{kw} = kwargs ? kwargs->remove(env, #{kw.to_s.inspect}_s) : nullptr;" }.join("\n")
+      when true
+        "auto kwargs = args.pop_keyword_hash();\n"
       end
     end
 
@@ -257,7 +265,7 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
     end
 
     def kwargs_assertion
-      'env->ensure_no_extra_keywords(kwargs);' if @kwargs.any?
+      'env->ensure_no_extra_keywords(kwargs);' if @kwargs.is_a?(Array)
     end
 
     def env_arg
@@ -1265,7 +1273,8 @@ gen.binding('String', 'each_codepoint', 'StringObject', 'each_codepoint', argc: 
 gen.binding('String', 'each_grapheme_cluster', 'StringObject', 'each_grapheme_cluster', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'each_line', 'StringObject', 'each_line', argc: 0..1, kwargs: [:chomp], pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'empty?', 'StringObject', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.binding('String', 'encode', 'StringObject', 'encode', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'encode', 'StringObject', 'encode', argc: 0..2, kwargs: true, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'encode!', 'StringObject', 'encode_in_place', argc: 0..2, kwargs: true, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'encoding', 'StringObject', 'encoding', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('String', 'end_with?', 'StringObject', 'end_with', argc: :any, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('String', 'eql?', 'StringObject', 'eql', argc: 1, pass_env: false, pass_block: false, return_type: :bool)

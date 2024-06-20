@@ -77,9 +77,16 @@ public:
         return view;
     }
 
+    enum class EncodeNewlineOption {
+        None,
+        Cr,
+        Crlf,
+        Universal,
+    };
+    virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeNewlineOption = EncodeNewlineOption::None) const;
+
     virtual bool is_printable_char(const nat_int_t c) const;
     virtual String escaped_char(const nat_int_t c) const = 0;
-    virtual Value encode(Env *, EncodingObject *, StringObject *) const;
     virtual String encode_codepoint(nat_int_t codepoint) const = 0;
     virtual nat_int_t decode_codepoint(StringView &str) const = 0;
 

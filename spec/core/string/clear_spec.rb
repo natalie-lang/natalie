@@ -17,12 +17,10 @@ describe "String#clear" do
   end
 
   it "preserves its encoding" do
-    NATFIXME 'Implement String#encode!', exception: NoMethodError, message: "undefined method `encode!'" do
-      @s.encode!(Encoding::SHIFT_JIS)
-      @s.encoding.should == Encoding::SHIFT_JIS
-      @s.clear.encoding.should == Encoding::SHIFT_JIS
-      @s.encoding.should == Encoding::SHIFT_JIS
-    end
+    @s.encode!(Encoding::SHIFT_JIS)
+    @s.encoding.should == Encoding::SHIFT_JIS
+    @s.clear.encoding.should == Encoding::SHIFT_JIS
+    @s.encoding.should == Encoding::SHIFT_JIS
   end
 
   it "works with multibyte Strings" do

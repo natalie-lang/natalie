@@ -204,7 +204,9 @@ public:
     std::pair<bool, StringView> prev_char_result(size_t *) const;
     StringView prev_char(size_t *) const;
     StringView prev_char(Env *, size_t *) const;
+    std::pair<bool, StringView> peek_char_result(size_t) const;
     std::pair<bool, StringView> next_char_result(size_t *) const;
+    StringView peek_char(size_t) const;
     StringView next_char(size_t *) const;
     StringView next_char(Env *, size_t *) const;
 
@@ -337,7 +339,8 @@ public:
     Value downcase_in_place(Env *, Value, Value);
     Value dump(Env *);
     Value each_byte(Env *, Block *);
-    Value encode(Env *, Value);
+    Value encode(Env *, Value = nullptr, Value = nullptr, HashObject * = nullptr);
+    Value encode_in_place(Env *, Value = nullptr, Value = nullptr, HashObject * = nullptr);
     bool eq(Env *, Value arg);
     Value eqtilde(Env *, Value);
     Value force_encoding(Env *, Value);
@@ -504,6 +507,8 @@ private:
     nat_int_t unpack_offset(Env *, Value) const;
 
     using Object::Object;
+
+    using EncodeNewlineOption = EncodingObject::EncodeNewlineOption;
 
     String m_string {};
     EncodingObject *m_encoding { nullptr };

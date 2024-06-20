@@ -21,6 +21,10 @@ Layout/HeredocIndentation:
 Layout/LeadingCommentSpace:
   Enabled: false
 
+Layout/LineLength:
+  Exclude:
+    - lib/natalie/compiler/binding_gen.rb
+
 Lint/BooleanSymbol:
   Enabled: false
 
