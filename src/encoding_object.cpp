@@ -12,8 +12,8 @@ EncodingObject::EncodingObject()
 //
 // TODO:
 // * support encoding options
-Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str, EncodeNewlineOption newline_option) const {
-    if (num() == orig_encoding->num() && newline_option == EncodeNewlineOption::None)
+Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str, EncodeOptions options) const {
+    if (num() == orig_encoding->num() && options.newline_option == EncodeNewlineOption::None)
         return str;
 
     StringObject temp_string = StringObject("", (EncodingObject *)this);
@@ -22,7 +22,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
     size_t index = 0;
     auto [valid, c] = str->next_char_result(&index);
     while (!c.is_empty()) {
-        switch (newline_option) {
+        switch (options.newline_option) {
         case EncodeNewlineOption::None:
             break;
         case EncodeNewlineOption::Cr:

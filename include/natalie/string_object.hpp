@@ -508,6 +508,7 @@ private:
 
     using Object::Object;
 
+    using EncodeOptions = EncodingObject::EncodeOptions;
     using EncodeNewlineOption = EncodingObject::EncodeNewlineOption;
 
     String m_string {};

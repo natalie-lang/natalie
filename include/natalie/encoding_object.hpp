@@ -83,7 +83,12 @@ public:
         Crlf,
         Universal,
     };
-    virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeNewlineOption = EncodeNewlineOption::None) const;
+
+    typedef struct EncodeOptions {
+        EncodeNewlineOption newline_option = EncodeNewlineOption::None;
+    } EncodeOptions;
+
+    virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeOptions) const;
 
     virtual bool is_printable_char(const nat_int_t c) const;
     virtual String escaped_char(const nat_int_t c) const = 0;

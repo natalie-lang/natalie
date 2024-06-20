@@ -1128,20 +1128,20 @@ Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_enco
     if (!dst_encoding)
         dst_encoding = EncodingObject::get(Encoding::UTF_8);
 
-    EncodeNewlineOption newline_option = EncodeNewlineOption::None;
+    EncodeOptions options;
     if (kwargs) {
         if (kwargs->remove(env, "universal_newline"_s))
-            newline_option = EncodeNewlineOption::Universal;
+            options.newline_option = EncodeNewlineOption::Universal;
         else if (kwargs->remove(env, "crlf_newline"_s))
-            newline_option = EncodeNewlineOption::Crlf;
+            options.newline_option = EncodeNewlineOption::Crlf;
         else if (kwargs->remove(env, "cr_newline"_s))
-            newline_option = EncodeNewlineOption::Cr;
+            options.newline_option = EncodeNewlineOption::Cr;
     }
 
     env->ensure_no_extra_keywords(kwargs);
     auto orig_encoding = m_encoding;
     EncodingObject *encoding_obj = EncodingObject::find_encoding(env, dst_encoding);
-    return encoding_obj->encode(env, orig_encoding, this, newline_option);
+    return encoding_obj->encode(env, orig_encoding, this, options);
 }
 
 Value StringObject::force_encoding(Env *env, Value encoding) {
