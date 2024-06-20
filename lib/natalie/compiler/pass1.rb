@@ -2002,7 +2002,7 @@ module Natalie
 
       def transform_match_required_node(node, used:)
         match_required_node_compiler = Transformers::MatchRequiredNode.new(self)
-        instructions = node.accept(match_required_node_compiler)
+        instructions = match_required_node_compiler.call(node)
         instructions << PushNilInstruction.new if used
         instructions
       end

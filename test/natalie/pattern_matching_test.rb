@@ -7,6 +7,23 @@ describe 'pattern matching' do
     a.should == 1
   end
 
+  it 'does not define a local variable if the expression fails' do
+    -> {
+      (raise RuntimeError, 'expected error'; 2) => a
+    }.should raise_error(RuntimeError, 'expected error')
+    -> { a }.should raise_error(NameError, /undefined (?:local variable or )?method `a' for main/)
+  end
+
+  it 'does not change an existing variable if the expression fails' do
+    a = 1
+    2 => a
+    a.should == 2
+    -> {
+      (raise RuntimeError, 'expected error'; 3) => a
+    }.should raise_error(RuntimeError, 'expected error')
+    a.should == 2
+  end
+
   it 'has no used mode, always returns nil' do
     # (1 => a).should is a parse error, so use a lambda instead
     l = -> { 1 => a }
