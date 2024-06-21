@@ -1121,6 +1121,8 @@ Value StringObject::encode(Env *env, Value dst_encoding, Value src_encoding, Has
 }
 
 Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_encoding, HashObject *kwargs) {
+    assert_not_frozen(env);
+
     if (!dst_encoding)
         dst_encoding = EncodingObject::default_internal();
     if (!dst_encoding)
