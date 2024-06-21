@@ -186,14 +186,16 @@ Value StringObject::each_codepoint(Env *env, Block *block) {
 }
 
 Value StringObject::codepoints(Env *env, Block *block) {
+    size_t index = 0;
+
     if (block) {
-        for (auto c : *this) {
-            auto char_obj = StringObject { c, m_encoding };
-
-            if (!char_obj.valid_encoding())
+        for (;;) {
+            auto [valid, length, codepoint] = m_encoding->next_codepoint(m_string, &index);
+            if (!valid)
                 env->raise_invalid_byte_sequence_error(m_encoding);
-
-            Value args[] = { char_obj.ord(env) };
+            if (length == 0)
+                break;
+            Value args[] = { Value::integer(codepoint) };
             NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
         }
         return this;
@@ -203,9 +205,13 @@ Value StringObject::codepoints(Env *env, Block *block) {
         env->raise_invalid_byte_sequence_error(m_encoding);
 
     ArrayObject *ary = new ArrayObject {};
-    for (auto c : *this) {
-        auto char_obj = StringObject { c, m_encoding };
-        ary->push(char_obj.ord(env));
+    for (;;) {
+        auto [valid, length, codepoint] = m_encoding->next_codepoint(m_string, &index);
+        if (!valid)
+            env->raise_invalid_byte_sequence_error(m_encoding);
+        if (length == 0)
+            break;
+        ary->push(Value::integer(codepoint));
     }
     return ary;
 }
