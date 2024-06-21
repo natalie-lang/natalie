@@ -532,6 +532,8 @@ static StringObject *inspect_internal(const StringObject *str, Env *env, bool fo
     StringObject *out = new StringObject { "\"" };
     auto encoding = str->encoding();
 
+    auto utf8_encoding = EncodingObject::get(Encoding::UTF_8);
+
     size_t index = 0;
     auto [valid, ch] = str->next_char_result(&index);
     while (!ch.is_empty()) {
@@ -568,7 +570,8 @@ static StringObject *inspect_internal(const StringObject *str, Env *env, bool fo
         } else if (c == '\v') {
             out->append("\\v");
         } else if (encoding->is_printable_char(c) && (!for_dump || c <= 0xFFFF)) {
-            out->append(ch);
+            auto u = utf8_encoding->encode_codepoint(c);
+            out->append(u);
         } else {
             if (for_dump && c < 128)
                 out->append_sprintf("\\x%02X", c);
@@ -1136,6 +1139,14 @@ Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_enco
             options.newline_option = EncodeNewlineOption::Crlf;
         else if (kwargs->remove(env, "cr_newline"_s))
             options.newline_option = EncodeNewlineOption::Cr;
+
+        auto invalid = kwargs->remove(env, "invalid"_s);
+        if (invalid) {
+            if (invalid->is_nil())
+                options.invalid_option = EncodeInvalidOption::Raise;
+            else if (invalid == "replace"_s)
+                options.invalid_option = EncodeInvalidOption::Replace;
+        }
     }
 
     env->ensure_no_extra_keywords(kwargs);
