@@ -176,16 +176,13 @@ StringView Utf8EncodingObject::next_grapheme_cluster(const String &string, size_
     bool join_next = false;
     auto index2 = *index;
     for (;;) {
-        auto [valid2, view2] = next_char(string, &index2);
-        if (!valid2 || view2.is_empty())
+        auto [valid2, length, codepoint] = next_codepoint(string, &index2);
+        if (!valid2 || length == 0)
             break;
-
-        // This is a silly way to get his number. Maybe we need an EncodingObject::next_codepoint API...?
-        auto codepoint = decode_codepoint(view2);
 
         // https://en.wikipedia.org/wiki/Variation_Selectors_(Unicode_block)
         if (codepoint >= 0xFE00 && codepoint <= 0xFE0F) {
-            view = StringView { &string, view.offset(), view.size() + view2.size() };
+            view = StringView { &string, view.offset(), view.size() + length };
             *index = index2;
             continue;
         }
@@ -193,7 +190,7 @@ StringView Utf8EncodingObject::next_grapheme_cluster(const String &string, size_
         // Zero-width joiner
         // https://unicode-explorer.com/c/200D
         if (codepoint == 0x200D) {
-            view = StringView { &string, view.offset(), view.size() + view2.size() };
+            view = StringView { &string, view.offset(), view.size() + length };
             *index = index2;
             join_next = true;
             continue;
@@ -204,10 +201,10 @@ StringView Utf8EncodingObject::next_grapheme_cluster(const String &string, size_
 
     if (join_next) {
         index2 = *index;
-        auto [valid2, view2] = next_char(string, &index2);
-        if (!valid2 || view2.is_empty())
+        auto [valid2, length, codepoint] = next_codepoint(string, &index2);
+        if (!valid2 || codepoint == 0)
             return view;
-        view = StringView { &string, view.offset(), view.size() + view2.size() };
+        view = StringView { &string, view.offset(), view.size() + length };
         *index = index2;
     }
 
