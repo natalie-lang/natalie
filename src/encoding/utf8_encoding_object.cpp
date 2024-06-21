@@ -239,7 +239,8 @@ String Utf8EncodingObject::encode_codepoint(nat_int_t codepoint) const {
         buf.append_char(0b10000000 | ((codepoint >> 6) & 0x3f));
         buf.append_char(0b10000000 | (codepoint & 0x3f));
     } else {
-        TM_UNREACHABLE();
+        buf.append_char(0xFF);
+        buf.append_char(0xFD);
     }
     return buf;
 }

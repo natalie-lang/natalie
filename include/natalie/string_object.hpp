@@ -509,6 +509,7 @@ private:
     using Object::Object;
 
     using EncodeOptions = EncodingObject::EncodeOptions;
+    using EncodeInvalidOption = EncodingObject::EncodeInvalidOption;
     using EncodeNewlineOption = EncodingObject::EncodeNewlineOption;
 
     String m_string {};

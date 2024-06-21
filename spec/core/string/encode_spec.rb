@@ -56,11 +56,9 @@ describe "String#encode" do
 
   describe "when passed options" do
     it "returns a copy when Encoding.default_internal is nil" do
-      NATFIXME 'encode options' do
-        Encoding.default_internal = nil
-        str = "あ"
-        str.encode(invalid: :replace).should_not equal(str)
-      end
+      Encoding.default_internal = nil
+      str = "あ"
+      str.encode(invalid: :replace).should_not equal(str)
     end
 
     it "normalizes newlines with cr_newline option" do
@@ -185,12 +183,10 @@ describe "String#encode" do
 
   describe "when passed to, from, options" do
     it "returns a copy when both encodings are the same" do
-      NATFIXME 'encode options' do
-        str = "あ"
-        encoded = str.encode("utf-8", "utf-8", invalid: :replace)
-        encoded.should_not equal(str)
-        encoded.should == str
-      end
+      str = "あ"
+      encoded = str.encode("utf-8", "utf-8", invalid: :replace)
+      encoded.should_not equal(str)
+      encoded.should == str
     end
 
     it "returns a copy in the destination encoding when both encodings are the same" do
@@ -244,11 +240,9 @@ describe "String#encode!" do
 
   describe "when passed options" do
     it "returns self for ASCII-only String when Encoding.default_internal is nil" do
-      NATFIXME 'encode options' do
-        Encoding.default_internal = nil
-        str = +"abc"
-        str.encode!(invalid: :replace).should equal(str)
-      end
+      Encoding.default_internal = nil
+      str = +"abc"
+      str.encode!(invalid: :replace).should equal(str)
     end
   end
 

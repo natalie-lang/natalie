@@ -50,9 +50,19 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
             break;
         }
 
-        auto char_obj = StringObject { c, orig_encoding };
-        auto source_codepoint = char_obj.ord(env)->as_integer()->to_nat_int_t();
-        auto unicode_codepoint = orig_encoding->to_unicode_codepoint(source_codepoint);
+        auto source_codepoint = valid ? orig_encoding->decode_codepoint(c) : -1;
+
+        nat_int_t unicode_codepoint;
+        if (source_codepoint == -1) {
+            switch (options.invalid_option) {
+            case EncodeInvalidOption::Raise:
+                env->raise_invalid_byte_sequence_error(this);
+            case EncodeInvalidOption::Replace:
+                unicode_codepoint = 0xFFFD;
+            }
+        } else {
+            unicode_codepoint = orig_encoding->to_unicode_codepoint(source_codepoint);
+        }
 
         // handle error
         if (unicode_codepoint < 0) {

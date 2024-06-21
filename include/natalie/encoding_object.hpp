@@ -77,6 +77,11 @@ public:
         return view;
     }
 
+    enum class EncodeInvalidOption {
+        Raise,
+        Replace,
+    };
+
     enum class EncodeNewlineOption {
         None,
         Cr,
@@ -85,6 +90,7 @@ public:
     };
 
     typedef struct EncodeOptions {
+        EncodeInvalidOption invalid_option = EncodeInvalidOption::Raise;
         EncodeNewlineOption newline_option = EncodeNewlineOption::None;
     } EncodeOptions;
 
