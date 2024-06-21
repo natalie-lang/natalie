@@ -270,6 +270,14 @@ Value EncodingObject::inspect(Env *env) const {
     return StringObject::format("#<Encoding:{}>", name());
 }
 
+// Default implementation is pretty dumb; we'll need to override this for
+// every multi-byte encoding, I think.
+std::tuple<bool, int, nat_int_t> EncodingObject::next_codepoint(const String &string, size_t *index) const {
+    auto [valid, view] = next_char(string, index);
+    auto codepoint = view.is_empty() ? 0 : decode_codepoint(view);
+    return { valid, view.length(), codepoint };
+}
+
 Value EncodingObject::locale_charmap() {
     auto codeset = ::nl_langinfo(CODESET);
     assert(codeset);

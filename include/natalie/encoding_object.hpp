@@ -69,6 +69,8 @@ public:
 
     virtual bool valid_codepoint(nat_int_t codepoint) const = 0;
 
+    virtual std::tuple<bool, int, nat_int_t> next_codepoint(const String &, size_t *) const;
+
     virtual std::pair<bool, StringView> prev_char(const String &, size_t *) const = 0;
     virtual std::pair<bool, StringView> next_char(const String &, size_t *) const = 0;
 
