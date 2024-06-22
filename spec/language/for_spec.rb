@@ -69,26 +69,22 @@ describe "The for expression" do
   it "allows an instance variable as an iterator name" do
     m = [1,2,3]
     n = 0
-    #for @var in m
-      #n += 1
-    #end
-    #@var.should == 3
-    NATFIXME 'Support Prism::InstanceVariableTargetNode', exception: SpecFailedException do
-      n.should == 3
+    for @var in m
+      n += 1
     end
+    @var.should == 3
+    n.should == 3
   end
 
   it "allows a class variable as an iterator name" do
     class OFor
       m = [1,2,3]
       n = 0
-      #for @@var in m
-        #n += 1
-      #end
-      #@@var.should == 3
-      NATFIXME 'Support Prism::ClassVariableTargetNode', exception: SpecFailedException do
-        n.should == 3
+      for @@var in m
+        n += 1
       end
+      @@var.should == 3
+      n.should == 3
     end
   end
 
@@ -96,15 +92,15 @@ describe "The for expression" do
     class OFor
       m = [1,2,3]
       n = 0
-      NATFIXME 'Support Prism::ConstantTargetNode', exception: SpecFailedException do
+      NATFIXME 'Complain when assigning to initialized constant', exception: SpecFailedException, message: /should have printed a warning/ do
         -> {
-          #for CONST in m
-            #n += 1
-          #end
+          for CONST in m
+            n += 1
+          end
         }.should complain(/already initialized constant/)
-        CONST.should == 3
-        n.should == 3
       end
+      CONST.should == 3
+      n.should == 3
     end
   end
 

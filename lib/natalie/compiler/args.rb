@@ -46,6 +46,12 @@ module Natalie
         when ::Prism::ArrayNode
           clean_up_keyword_args
           transform_destructured_arg(arg)
+        when ::Prism::InstanceVariableTargetNode
+          transform_instance_variable_arg(arg)
+        when ::Prism::ClassVariableTargetNode
+          transform_class_variable_arg(arg)
+        when ::Prism::ConstantTargetNode
+          transform_constant_arg(arg)
         when ::Prism::RequiredParameterNode
           clean_up_keyword_args
           transform_required_arg(arg)
@@ -156,6 +162,22 @@ module Natalie
         sub_processor = self.class.new(@pass, local_only: @local_only, for_block: @for_block)
         @instructions << sub_processor.transform(arg)
         @instructions << PopInstruction.new
+      end
+
+      def transform_instance_variable_arg(arg)
+        @instructions << ArrayShiftInstruction.new
+        @instructions << InstanceVariableSetInstruction.new(arg.name)
+      end
+
+      def transform_class_variable_arg(arg)
+        @instructions << ArrayShiftInstruction.new
+        @instructions << ClassVariableSetInstruction.new(arg.name)
+      end
+
+      def transform_constant_arg(arg)
+        @instructions << ArrayShiftInstruction.new
+        @instructions << PushSelfInstruction.new
+        @instructions << ConstSetInstruction.new(arg.name)
       end
 
       def transform_rest_arg(arg)
