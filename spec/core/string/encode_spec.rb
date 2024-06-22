@@ -92,7 +92,7 @@ describe "String#encode" do
     end
 
     it "replace multiple invalid bytes at the end with a single replacement character" do
-      NATFIXME 'encoding from utf-8 to utf-8 with invalid chars' do
+      NATFIXME 'same encoding with invalid chars', exception: SpecFailedException, message: /should be ==/ do
         "\xE3\x81\x93\xE3\x81".encode("UTF-8", invalid: :replace).should == "\u3053\ufffd"
       end
     end
@@ -136,7 +136,7 @@ describe "String#encode" do
 
   describe "when passed to, from" do
     it "returns a copy in the destination encoding when both encodings are the same" do
-      NATFIXME 'src encoding' do
+      NATFIXME 'honor source encoding', exception: Encoding::UndefinedConversionError, message: /from ASCII-8BIT to UTF-8/ do
         str = "あ".dup.force_encoding("binary")
         encoded = str.encode("utf-8", "utf-8")
 
@@ -147,7 +147,7 @@ describe "String#encode" do
     end
 
     it "returns the transcoded string" do
-      NATFIXME 'not sure' do
+      NATFIXME 'honor source encoding', exception: SpecFailedException, message: /should be ==/ do
         str = "\x00\x00\x00\x1F"
         str.encode(Encoding::UTF_8, Encoding::UTF_16BE).should == "\u0000\u001f"
       end
@@ -172,7 +172,7 @@ describe "String#encode" do
     end
 
     it "returns a copy in the destination encoding when both encodings are the same" do
-      NATFIXME 'encode options' do
+      NATFIXME 'honor source encoding', exception: Encoding::UndefinedConversionError, message: /from ASCII-8BIT to UTF-8/ do
         str = "あ".dup.force_encoding("binary")
         encoded = str.encode("utf-8", "utf-8", invalid: :replace)
 
