@@ -92,63 +92,51 @@ describe "String#encode" do
     end
 
     it "replace multiple invalid bytes at the end with a single replacement character" do
-      NATFIXME 'encode options' do
+      NATFIXME 'same encoding with invalid chars', exception: SpecFailedException, message: /should be ==/ do
         "\xE3\x81\x93\xE3\x81".encode("UTF-8", invalid: :replace).should == "\u3053\ufffd"
       end
     end
 
     it "replaces invalid encoding in source using a specified replacement even when a fallback is given" do
-      NATFIXME 'encode options' do
-        encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace, replace: "foo", fallback: -> c { "bar" })
-        encoded.should == "\u3061foofoo".encode("UTF-16LE")
-        encoded.encode("UTF-8").should == "ちfoofoo"
-      end
+      encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace, replace: "foo", fallback: -> c { "bar" })
+      encoded.should == "\u3061foofoo".encode("UTF-16LE")
+      encoded.encode("UTF-8").should == "ちfoofoo"
     end
 
     it "replaces undefined encoding in destination with default replacement" do
-      NATFIXME 'encode options' do
-        encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace)
-        encoded.should == "B?".encode(Encoding::US_ASCII)
-        encoded.encode("UTF-8").should == "B?"
-      end
+      encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace)
+      encoded.should == "B?".encode(Encoding::US_ASCII)
+      encoded.encode("UTF-8").should == "B?"
     end
 
     it "replaces undefined encoding in destination with a specified replacement" do
-      NATFIXME 'encode options' do
-        encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace, replace: "foo")
-        encoded.should == "Bfoo".encode(Encoding::US_ASCII)
-        encoded.encode("UTF-8").should == "Bfoo"
-      end
+      encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace, replace: "foo")
+      encoded.should == "Bfoo".encode(Encoding::US_ASCII)
+      encoded.encode("UTF-8").should == "Bfoo"
     end
 
     it "replaces undefined encoding in destination with a specified replacement even if a fallback is given" do
-      NATFIXME 'encode options' do
-        encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace, replace: "foo", fallback: proc {|x| "bar"})
-        encoded.should == "Bfoo".encode(Encoding::US_ASCII)
-        encoded.encode("UTF-8").should == "Bfoo"
-      end
+      encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace, replace: "foo", fallback: proc {|x| "bar"})
+      encoded.should == "Bfoo".encode(Encoding::US_ASCII)
+      encoded.encode("UTF-8").should == "Bfoo"
     end
 
     it "replaces undefined encoding in destination using a fallback proc" do
-      NATFIXME 'encode fallback' do
-        encoded = "B\ufffd".encode(Encoding::US_ASCII, fallback: proc {|x| "bar"})
-        encoded.should == "Bbar".encode(Encoding::US_ASCII)
-        encoded.encode("UTF-8").should == "Bbar"
-      end
+      encoded = "B\ufffd".encode(Encoding::US_ASCII, fallback: proc {|x| "bar"})
+      encoded.should == "Bbar".encode(Encoding::US_ASCII)
+      encoded.encode("UTF-8").should == "Bbar"
     end
 
     it "replaces invalid encoding in source using replace even when fallback is given as proc" do
-      NATFIXME 'encode options' do
-        encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace, replace: "foo", fallback: proc {|x| "bar"})
-        encoded.should == "\u3061foofoo".encode("UTF-16LE")
-        encoded.encode("UTF-8").should == "ちfoofoo"
-      end
+      encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace, replace: "foo", fallback: proc {|x| "bar"})
+      encoded.should == "\u3061foofoo".encode("UTF-16LE")
+      encoded.encode("UTF-8").should == "ちfoofoo"
     end
   end
 
   describe "when passed to, from" do
     it "returns a copy in the destination encoding when both encodings are the same" do
-      NATFIXME 'src encoding' do
+      NATFIXME 'honor source encoding', exception: Encoding::UndefinedConversionError, message: /from ASCII-8BIT to UTF-8/ do
         str = "あ".dup.force_encoding("binary")
         encoded = str.encode("utf-8", "utf-8")
 
@@ -159,7 +147,7 @@ describe "String#encode" do
     end
 
     it "returns the transcoded string" do
-      NATFIXME 'not sure' do
+      NATFIXME 'honor source encoding', exception: SpecFailedException, message: /should be ==/ do
         str = "\x00\x00\x00\x1F"
         str.encode(Encoding::UTF_8, Encoding::UTF_16BE).should == "\u0000\u001f"
       end
@@ -168,12 +156,10 @@ describe "String#encode" do
 
   describe "when passed to, options" do
     it "returns a copy when the destination encoding is the same as the String encoding" do
-      NATFIXME 'encode options' do
-        str = "あ"
-        encoded = str.encode(Encoding::UTF_8, undef: :replace)
-        encoded.should_not equal(str)
-        encoded.should == str
-      end
+      str = "あ"
+      encoded = str.encode(Encoding::UTF_8, undef: :replace)
+      encoded.should_not equal(str)
+      encoded.should == str
     end
   end
 
@@ -186,7 +172,7 @@ describe "String#encode" do
     end
 
     it "returns a copy in the destination encoding when both encodings are the same" do
-      NATFIXME 'encode options' do
+      NATFIXME 'honor source encoding', exception: Encoding::UndefinedConversionError, message: /from ASCII-8BIT to UTF-8/ do
         str = "あ".dup.force_encoding("binary")
         encoded = str.encode("utf-8", "utf-8", invalid: :replace)
 

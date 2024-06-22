@@ -84,6 +84,11 @@ public:
         Replace,
     };
 
+    enum class EncodeUndefOption {
+        Raise,
+        Replace,
+    };
+
     enum class EncodeNewlineOption {
         None,
         Cr,
@@ -93,8 +98,10 @@ public:
 
     struct EncodeOptions {
         EncodeInvalidOption invalid_option = EncodeInvalidOption::Raise;
+        EncodeUndefOption undef_option = EncodeUndefOption::Raise;
         EncodeNewlineOption newline_option = EncodeNewlineOption::None;
         StringObject *replace_option = nullptr;
+        Value fallback_option = nullptr;
     };
 
     virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeOptions) const;

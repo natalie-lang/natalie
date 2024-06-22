@@ -511,6 +511,7 @@ private:
     using EncodeOptions = EncodingObject::EncodeOptions;
     using EncodeInvalidOption = EncodingObject::EncodeInvalidOption;
     using EncodeNewlineOption = EncodingObject::EncodeNewlineOption;
+    using EncodeUndefOption = EncodingObject::EncodeUndefOption;
 
     String m_string {};
     EncodingObject *m_encoding { nullptr };
