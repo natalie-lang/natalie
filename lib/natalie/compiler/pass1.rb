@@ -2666,6 +2666,7 @@ module Natalie
         args.count do |arg|
           %i[
             class_variable_target_node
+            constant_target_node
             instance_variable_target_node
             local_variable_target_node
             multi_target_node
