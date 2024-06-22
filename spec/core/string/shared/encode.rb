@@ -158,10 +158,8 @@ describe :string_encode, shared: true do
     end
 
     it "replaces invalid characters in the destination encoding" do
-      NATFIXME 'encode options' do
-        xFF = [0xFF].pack('C').force_encoding('utf-8')
-        "ab#{xFF}c".send(@method, Encoding::ISO_8859_1, invalid: :replace).should == "ab?c"
-      end
+      xFF = [0xFF].pack('C').force_encoding('utf-8')
+      "ab#{xFF}c".send(@method, Encoding::ISO_8859_1, invalid: :replace).should == "ab?c"
     end
 
     it "calls #to_hash to convert the options object" do

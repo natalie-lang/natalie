@@ -78,7 +78,10 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                     temp_string.append(options.replace_option);
                     continue;
                 }
-                unicode_codepoint = 0xFFFD;
+                if (is_single_byte_encoding())
+                    unicode_codepoint = '?';
+                else
+                    unicode_codepoint = 0xFFFD;
             }
         } else {
             unicode_codepoint = orig_encoding->to_unicode_codepoint(source_codepoint);
@@ -134,7 +137,10 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                     temp_string.append(options.replace_option);
                     continue;
                 }
-                destination_codepoint = 0xFFFD;
+                if (is_single_byte_encoding())
+                    destination_codepoint = '?';
+                else
+                    destination_codepoint = 0xFFFD;
             }
         }
 

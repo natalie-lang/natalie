@@ -104,11 +104,9 @@ describe "String#encode" do
     end
 
     it "replaces undefined encoding in destination with default replacement" do
-      NATFIXME 'undef option' do
-        encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace)
-        encoded.should == "B?".encode(Encoding::US_ASCII)
-        encoded.encode("UTF-8").should == "B?"
-      end
+      encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace)
+      encoded.should == "B?".encode(Encoding::US_ASCII)
+      encoded.encode("UTF-8").should == "B?"
     end
 
     it "replaces undefined encoding in destination with a specified replacement" do
