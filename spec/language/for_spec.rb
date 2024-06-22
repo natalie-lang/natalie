@@ -80,13 +80,11 @@ describe "The for expression" do
     class OFor
       m = [1,2,3]
       n = 0
-      #for @@var in m
-        #n += 1
-      #end
-      #@@var.should == 3
-      NATFIXME 'Support Prism::ClassVariableTargetNode', exception: SpecFailedException do
-        n.should == 3
+      for @@var in m
+        n += 1
       end
+      @@var.should == 3
+      n.should == 3
     end
   end
 

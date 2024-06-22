@@ -48,6 +48,8 @@ module Natalie
           transform_destructured_arg(arg)
         when ::Prism::InstanceVariableTargetNode
           transform_instance_variable_arg(arg)
+        when ::Prism::ClassVariableTargetNode
+          transform_class_variable_arg(arg)
         when ::Prism::RequiredParameterNode
           clean_up_keyword_args
           transform_required_arg(arg)
@@ -163,6 +165,11 @@ module Natalie
       def transform_instance_variable_arg(arg)
         @instructions << ArrayShiftInstruction.new
         @instructions << InstanceVariableSetInstruction.new(arg.name)
+      end
+
+      def transform_class_variable_arg(arg)
+        @instructions << ArrayShiftInstruction.new
+        @instructions << ClassVariableSetInstruction.new(arg.name)
       end
 
       def transform_rest_arg(arg)
