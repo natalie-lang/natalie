@@ -25,75 +25,48 @@ std::tuple<bool, int, nat_int_t> Utf8EncodingObject::next_codepoint(const String
 
     nat_int_t codepoint = 0;
     int bytes = 0;
-    if ((c >> 3) == 0b11110) { // 11110xxx, 4 bytes
+    if ((c >> 3) == 0b11110) {
         codepoint = (c ^ 0xF0) << 18;
-        if (i + 1 < len) {
-            auto value = (unsigned char)string[i + 1];
-            if (value >> 6 == 0b10)
-                codepoint += (value ^ 0x80) << 12;
-            else {
-                *index += 1;
-                return { false, 1, codepoint };
-            }
-        }
-        if (i + 2 < len) {
-            auto value = (unsigned char)string[i + 2];
-            if (value >> 6 == 0b10)
-                codepoint += (value ^ 0x80) << 6;
-            else {
-                *index += 2;
-                return { false, 2, codepoint };
-            }
-        }
-        if (i + 3 < len) {
-            auto value = (unsigned char)string[i + 3];
-            if (value >> 6 == 0b10)
-                codepoint += value ^ 0x80;
-            else {
-                *index += 3;
-                return { false, 3, codepoint };
-            }
-        }
         bytes = 4;
-    } else if ((c >> 4) == 0b1110) { // 1110xxxx, 3 bytes
+    } else if ((c >> 4) == 0b1110) {
         codepoint = (c ^ 0xE0) << 12;
-        if (i + 1 < len) {
-            auto value = (unsigned char)string[i + 1];
-            if (value >> 6 == 0b10)
-                codepoint += (value ^ 0x80) << 6;
-            else {
-                *index += 1;
-                return { false, 1, codepoint };
-            }
-        }
-        if (i + 2 < len) {
-            auto value = (unsigned char)string[i + 2];
-            if (value >> 6 == 0b10)
-                codepoint += value ^ 0x80;
-            else {
-                *index += 2;
-                return { false, 2, codepoint };
-            }
-        }
         bytes = 3;
-    } else if ((c >> 5) == 0b110) { // 110xxxxx, 2 bytes
+    } else if ((c >> 5) == 0b110) {
         codepoint = (c ^ 0xC0) << 6;
-        if (i + 1 < len) {
-            auto value = (unsigned char)string[i + 1];
-            if (value >> 6 == 0b10)
-                codepoint += value ^ 0x80;
-            else {
-                *index += 1;
-                return { false, 1, codepoint };
-            }
-        }
         bytes = 2;
-    } else if ((c >> 7) == 0b0) { // 0xxxxxxx, 1 byte
+    } else if ((c >> 7) == 0b0) {
         codepoint = c;
         bytes = 1;
-    } else { // invalid, 1 byte
+    } else {
         *index += 1;
         return { false, 1, c };
+    }
+
+    if (bytes > 1 && i + 1 < len) {
+        auto value = (unsigned char)string[i + 1];
+        if (value >> 6 != 0b10) {
+            *index += 1;
+            return { false, 1, codepoint };
+        }
+        codepoint += (value ^ 0x80) << ((bytes - 2) * 6);
+    }
+
+    if (bytes > 2 && i + 2 < len) {
+        auto value = (unsigned char)string[i + 2];
+        if (value >> 6 != 0b10) {
+            *index += 2;
+            return { false, 2, codepoint };
+        }
+        codepoint += (value ^ 0x80) << ((bytes - 3) * 6);
+    }
+
+    if (bytes > 3 && i + 3 < len) {
+        auto value = (unsigned char)string[i + 3];
+        if (value >> 6 != 0b10) {
+            *index += 3;
+            return { false, 3, codepoint };
+        }
+        codepoint += value ^ 0x80;
     }
 
     if (*index + bytes > len) {
