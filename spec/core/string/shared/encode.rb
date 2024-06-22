@@ -88,20 +88,16 @@ describe :string_encode, shared: true do
 
   describe "when passed options" do
     it "does not process transcoding options if not transcoding" do
-      NATFIXME 'encode options' do
-        result = "あ\ufffdあ".send(@method, undef: :replace)
-        result.should == "あ\ufffdあ"
-      end
+      result = "あ\ufffdあ".send(@method, undef: :replace)
+      result.should == "あ\ufffdあ"
     end
 
     it "calls #to_hash to convert the object" do
-      NATFIXME 'encode options' do
-        options = mock("string encode options")
-        options.should_receive(:to_hash).and_return({ undef: :replace })
+      options = mock("string encode options")
+      options.should_receive(:to_hash).and_return({ undef: :replace })
 
-        result = "あ\ufffdあ".send(@method, **options)
-        result.should == "あ\ufffdあ"
-      end
+      result = "あ\ufffdあ".send(@method, **options)
+      result.should == "あ\ufffdあ"
     end
 
     it "transcodes to Encoding.default_internal when set" do
@@ -111,7 +107,7 @@ describe :string_encode, shared: true do
     end
 
     it "raises an Encoding::ConverterNotFoundError when no conversion is possible despite 'invalid: :replace, undef: :replace'" do
-      NATFIXME 'encode options' do
+      NATFIXME 'undef option' do
         Encoding.default_internal = Encoding::Emacs_Mule
         str = [0x80].pack('C').force_encoding Encoding::BINARY
         -> do
@@ -121,7 +117,7 @@ describe :string_encode, shared: true do
     end
 
     it "replaces invalid characters when replacing Emacs-Mule encoded strings" do
-      NATFIXME 'encode options' do
+      NATFIXME 'Emacs-Mule' do
         got = [0x80].pack('C').force_encoding('Emacs-Mule').send(@method, invalid: :replace)
 
         got.should == "?".encode('Emacs-Mule')
@@ -155,12 +151,10 @@ describe :string_encode, shared: true do
 
   describe "when passed to, options" do
     it "replaces undefined characters in the destination encoding" do
-      NATFIXME 'encode options' do
-        result = "あ?あ".send(@method, Encoding::EUC_JP, undef: :replace)
-        # testing for: "\xA4\xA2?\xA4\xA2"
-        xA4xA2 = [0xA4, 0xA2].pack('CC')
-        result.should == "#{xA4xA2}?#{xA4xA2}".force_encoding("euc-jp")
-      end
+      result = "あ?あ".send(@method, Encoding::EUC_JP, undef: :replace)
+      # testing for: "\xA4\xA2?\xA4\xA2"
+      xA4xA2 = [0xA4, 0xA2].pack('CC')
+      result.should == "#{xA4xA2}?#{xA4xA2}".force_encoding("euc-jp")
     end
 
     it "replaces invalid characters in the destination encoding" do
@@ -171,20 +165,18 @@ describe :string_encode, shared: true do
     end
 
     it "calls #to_hash to convert the options object" do
-      NATFIXME 'encode options' do
-        options = mock("string encode options")
-        options.should_receive(:to_hash).and_return({ undef: :replace })
+      options = mock("string encode options")
+      options.should_receive(:to_hash).and_return({ undef: :replace })
 
-        result = "あ?あ".send(@method, Encoding::EUC_JP, **options)
-        xA4xA2 = [0xA4, 0xA2].pack('CC').force_encoding('utf-8')
-        result.should == "#{xA4xA2}?#{xA4xA2}".force_encoding("euc-jp")
-      end
+      result = "あ?あ".send(@method, Encoding::EUC_JP, **options)
+      xA4xA2 = [0xA4, 0xA2].pack('CC').force_encoding('utf-8')
+      result.should == "#{xA4xA2}?#{xA4xA2}".force_encoding("euc-jp")
     end
   end
 
   describe "when passed to, from, options" do
     it "replaces undefined characters in the destination encoding" do
-      NATFIXME 'encode options' do
+      NATFIXME 'undef option and src encoding' do
         str = "あ?あ".force_encoding Encoding::BINARY
         result = str.send(@method, "euc-jp", "utf-8", undef: :replace)
         xA4xA2 = [0xA4, 0xA2].pack('CC').force_encoding('utf-8')
@@ -193,7 +185,7 @@ describe :string_encode, shared: true do
     end
 
     it "replaces invalid characters in the destination encoding" do
-      NATFIXME 'encode options' do
+      NATFIXME 'src encoding' do
         xFF = [0xFF].pack('C').force_encoding('utf-8')
         str = "ab#{xFF}c".force_encoding Encoding::BINARY
         str.send(@method, "iso-8859-1", "utf-8", invalid: :replace).should == "ab?c"
@@ -201,7 +193,7 @@ describe :string_encode, shared: true do
     end
 
     it "calls #to_str to convert the to object to an encoding" do
-      NATFIXME 'encode options' do
+      NATFIXME 'src encoding' do
         to = mock("string encode to encoding")
         to.should_receive(:to_str).and_return("iso-8859-1")
 
@@ -212,7 +204,7 @@ describe :string_encode, shared: true do
     end
 
     it "calls #to_str to convert the from object to an encoding" do
-      NATFIXME 'encode options' do
+      NATFIXME 'src encoding' do
         from = mock("string encode to encoding")
         from.should_receive(:to_str).and_return("utf-8")
 
@@ -223,7 +215,7 @@ describe :string_encode, shared: true do
     end
 
     it "calls #to_hash to convert the options object" do
-      NATFIXME 'encode options' do
+      NATFIXME 'keyword splat should call to_hash?' do
         options = mock("string encode options")
         options.should_receive(:to_hash).and_return({ invalid: :replace })
 
@@ -236,31 +228,31 @@ describe :string_encode, shared: true do
 
   describe "given the xml: :text option" do
     it "replaces all instances of '&' with '&amp;'" do
-      NATFIXME 'encode options' do
+      NATFIXME 'xml option' do
         '& and &'.send(@method, "UTF-8", xml: :text).should == '&amp; and &amp;'
       end
     end
 
     it "replaces all instances of '<' with '&lt;'" do
-      NATFIXME 'encode options' do
+      NATFIXME 'xml option' do
         '< and <'.send(@method, "UTF-8", xml: :text).should == '&lt; and &lt;'
       end
     end
 
     it "replaces all instances of '>' with '&gt;'" do
-      NATFIXME 'encode options' do
+      NATFIXME 'xml option' do
         '> and >'.send(@method, "UTF-8", xml: :text).should == '&gt; and &gt;'
       end
     end
 
     it "does not replace '\"'" do
-      NATFIXME 'encode options' do
+      NATFIXME 'xml option' do
         '" and "'.send(@method, "UTF-8", xml: :text).should == '" and "'
       end
     end
 
     it "replaces undefined characters with their upper-case hexadecimal numeric character references" do
-      NATFIXME 'encode options' do
+      NATFIXME 'xml option' do
         'ürst'.send(@method, Encoding::US_ASCII, xml: :text).should == '&#xFC;rst'
       end
     end
@@ -268,37 +260,37 @@ describe :string_encode, shared: true do
 
   describe "given the xml: :attr option" do
     it "surrounds the encoded text with double-quotes" do
-      NATFIXME 'encode options' do
+      NATFIXME 'xml option' do
         'abc'.send(@method, "UTF-8", xml: :attr).should == '"abc"'
       end
     end
 
     it "replaces all instances of '&' with '&amp;'" do
-      NATFIXME 'encode options' do
+      NATFIXME 'xml option' do
         '& and &'.send(@method, "UTF-8", xml: :attr).should == '"&amp; and &amp;"'
       end
     end
 
     it "replaces all instances of '<' with '&lt;'" do
-      NATFIXME 'encode options' do
+      NATFIXME 'xml option' do
         '< and <'.send(@method, "UTF-8", xml: :attr).should == '"&lt; and &lt;"'
       end
     end
 
     it "replaces all instances of '>' with '&gt;'" do
-      NATFIXME 'encode options' do
+      NATFIXME 'xml option' do
         '> and >'.send(@method, "UTF-8", xml: :attr).should == '"&gt; and &gt;"'
       end
     end
 
     it "replaces all instances of '\"' with '&quot;'" do
-      NATFIXME 'encode options' do
+      NATFIXME 'xml option' do
         '" and "'.send(@method, "UTF-8", xml: :attr).should == '"&quot; and &quot;"'
       end
     end
 
     it "replaces undefined characters with their upper-case hexadecimal numeric character references" do
-      NATFIXME 'encode options' do
+      NATFIXME 'xml option' do
         'ürst'.send(@method, Encoding::US_ASCII, xml: :attr).should == '"&#xFC;rst"'
       end
     end

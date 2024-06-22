@@ -112,19 +112,15 @@ describe "String#encode" do
     end
 
     it "replaces undefined encoding in destination with a specified replacement" do
-      NATFIXME 'undef option' do
-        encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace, replace: "foo")
-        encoded.should == "Bfoo".encode(Encoding::US_ASCII)
-        encoded.encode("UTF-8").should == "Bfoo"
-      end
+      encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace, replace: "foo")
+      encoded.should == "Bfoo".encode(Encoding::US_ASCII)
+      encoded.encode("UTF-8").should == "Bfoo"
     end
 
     it "replaces undefined encoding in destination with a specified replacement even if a fallback is given" do
-      NATFIXME 'undef option' do
-        encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace, replace: "foo", fallback: proc {|x| "bar"})
-        encoded.should == "Bfoo".encode(Encoding::US_ASCII)
-        encoded.encode("UTF-8").should == "Bfoo"
-      end
+      encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace, replace: "foo", fallback: proc {|x| "bar"})
+      encoded.should == "Bfoo".encode(Encoding::US_ASCII)
+      encoded.encode("UTF-8").should == "Bfoo"
     end
 
     it "replaces undefined encoding in destination using a fallback proc" do
@@ -162,12 +158,10 @@ describe "String#encode" do
 
   describe "when passed to, options" do
     it "returns a copy when the destination encoding is the same as the String encoding" do
-      NATFIXME 'encode options' do
-        str = "あ"
-        encoded = str.encode(Encoding::UTF_8, undef: :replace)
-        encoded.should_not equal(str)
-        encoded.should == str
-      end
+      str = "あ"
+      encoded = str.encode(Encoding::UTF_8, undef: :replace)
+      encoded.should_not equal(str)
+      encoded.should == str
     end
   end
 

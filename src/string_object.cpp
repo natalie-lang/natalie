@@ -1154,6 +1154,14 @@ Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_enco
                 options.invalid_option = EncodeInvalidOption::Replace;
         }
 
+        auto undef = kwargs->remove(env, "undef"_s);
+        if (undef) {
+            if (undef->is_nil())
+                options.undef_option = EncodeUndefOption::Raise;
+            else if (undef == "replace"_s)
+                options.undef_option = EncodeUndefOption::Replace;
+        }
+
         auto replace = kwargs->remove(env, "replace"_s);
         if (replace && !replace->is_nil())
             options.replace_option = replace->as_string_or_raise(env)->encode(env, dst_encoding)->as_string_or_raise(env);

@@ -54,9 +54,8 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
 
         auto source_codepoint = valid ? c : -1;
 
-        constexpr nat_int_t INVALID_CONTINUE = -1;
-        constexpr nat_int_t INVALID_RAISE = -2;
-        auto handle_invalid = [&](nat_int_t cpt) -> nat_int_t {
+        nat_int_t unicode_codepoint;
+        if (source_codepoint == -1) {
             switch (options.invalid_option) {
             case EncodeInvalidOption::Raise:
                 if (options.fallback_option) {
@@ -67,26 +66,16 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                         result = options.fallback_option->send(env, "call"_s, { Value::integer(c) });
                     }
                     temp_string.append(result->to_s(env));
-                    return INVALID_CONTINUE;
+                    continue;
                 }
-                return INVALID_RAISE;
+                env->raise_invalid_byte_sequence_error(this);
             case EncodeInvalidOption::Replace:
                 if (options.replace_option) {
                     temp_string.append(options.replace_option);
-                    return INVALID_CONTINUE;
+                    continue;
                 }
-                return 0xFFFD;
+                unicode_codepoint = 0xFFFD;
             }
-            NAT_UNREACHABLE();
-        };
-
-        nat_int_t unicode_codepoint;
-        if (source_codepoint == -1) {
-            unicode_codepoint = handle_invalid(source_codepoint);
-            if (unicode_codepoint == INVALID_CONTINUE)
-                continue;
-            if (unicode_codepoint == INVALID_RAISE)
-                env->raise_invalid_byte_sequence_error(this);
         } else {
             unicode_codepoint = orig_encoding->to_unicode_codepoint(source_codepoint);
         }
@@ -114,10 +103,18 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
 
         // handle error
         if (destination_codepoint < 0) {
-            destination_codepoint = handle_invalid(source_codepoint);
-            if (destination_codepoint == INVALID_CONTINUE)
-                continue;
-            if (destination_codepoint == INVALID_RAISE) {
+            switch (options.undef_option) {
+            case EncodeUndefOption::Raise:
+                if (options.fallback_option) {
+                    Value result;
+                    if (options.fallback_option->respond_to(env, "[]"_s)) {
+                        result = options.fallback_option->send(env, "[]"_s, { Value::integer(c) });
+                    } else if (options.fallback_option->respond_to(env, "call"_s)) {
+                        result = options.fallback_option->send(env, "call"_s, { Value::integer(c) });
+                    }
+                    temp_string.append(result->to_s(env));
+                    continue;
+                }
                 StringObject *message;
                 if (orig_encoding->num() != Encoding::UTF_8)
                     message = StringObject::format(
@@ -134,6 +131,12 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                     message = StringObject::format("U+{} from UTF-8 to {}", hex, name());
                 }
                 env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
+            case EncodeUndefOption::Replace:
+                if (options.replace_option) {
+                    temp_string.append(options.replace_option);
+                    continue;
+                }
+                destination_codepoint = 0xFFFD;
             }
         }
 
