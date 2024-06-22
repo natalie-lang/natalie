@@ -186,14 +186,16 @@ Value StringObject::each_codepoint(Env *env, Block *block) {
 }
 
 Value StringObject::codepoints(Env *env, Block *block) {
+    size_t index = 0;
+
     if (block) {
-        for (auto c : *this) {
-            auto char_obj = StringObject { c, m_encoding };
-
-            if (!char_obj.valid_encoding())
+        for (;;) {
+            auto [valid, length, codepoint] = m_encoding->next_codepoint(m_string, &index);
+            if (!valid)
                 env->raise_invalid_byte_sequence_error(m_encoding);
-
-            Value args[] = { char_obj.ord(env) };
+            if (length == 0)
+                break;
+            Value args[] = { Value::integer(codepoint) };
             NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
         }
         return this;
@@ -203,9 +205,13 @@ Value StringObject::codepoints(Env *env, Block *block) {
         env->raise_invalid_byte_sequence_error(m_encoding);
 
     ArrayObject *ary = new ArrayObject {};
-    for (auto c : *this) {
-        auto char_obj = StringObject { c, m_encoding };
-        ary->push(char_obj.ord(env));
+    for (;;) {
+        auto [valid, length, codepoint] = m_encoding->next_codepoint(m_string, &index);
+        if (!valid)
+            env->raise_invalid_byte_sequence_error(m_encoding);
+        if (length == 0)
+            break;
+        ary->push(Value::integer(codepoint));
     }
     return ary;
 }
@@ -532,6 +538,8 @@ static StringObject *inspect_internal(const StringObject *str, Env *env, bool fo
     StringObject *out = new StringObject { "\"" };
     auto encoding = str->encoding();
 
+    auto utf8_encoding = EncodingObject::get(Encoding::UTF_8);
+
     size_t index = 0;
     auto [valid, ch] = str->next_char_result(&index);
     while (!ch.is_empty()) {
@@ -568,7 +576,8 @@ static StringObject *inspect_internal(const StringObject *str, Env *env, bool fo
         } else if (c == '\v') {
             out->append("\\v");
         } else if (encoding->is_printable_char(c) && (!for_dump || c <= 0xFFFF)) {
-            out->append(ch);
+            auto u = utf8_encoding->encode_codepoint(c);
+            out->append(u);
         } else {
             if (for_dump && c < 128)
                 out->append_sprintf("\\x%02X", c);
@@ -1128,20 +1137,32 @@ Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_enco
     if (!dst_encoding)
         dst_encoding = EncodingObject::get(Encoding::UTF_8);
 
-    EncodeNewlineOption newline_option = EncodeNewlineOption::None;
+    EncodeOptions options;
     if (kwargs) {
         if (kwargs->remove(env, "universal_newline"_s))
-            newline_option = EncodeNewlineOption::Universal;
+            options.newline_option = EncodeNewlineOption::Universal;
         else if (kwargs->remove(env, "crlf_newline"_s))
-            newline_option = EncodeNewlineOption::Crlf;
+            options.newline_option = EncodeNewlineOption::Crlf;
         else if (kwargs->remove(env, "cr_newline"_s))
-            newline_option = EncodeNewlineOption::Cr;
+            options.newline_option = EncodeNewlineOption::Cr;
+
+        auto invalid = kwargs->remove(env, "invalid"_s);
+        if (invalid) {
+            if (invalid->is_nil())
+                options.invalid_option = EncodeInvalidOption::Raise;
+            else if (invalid == "replace"_s)
+                options.invalid_option = EncodeInvalidOption::Replace;
+        }
+
+        auto replace = kwargs->remove(env, "replace"_s);
+        if (replace && !replace->is_nil())
+            options.replace_option = replace->as_string_or_raise(env)->encode(env, dst_encoding)->as_string_or_raise(env);
     }
 
     env->ensure_no_extra_keywords(kwargs);
     auto orig_encoding = m_encoding;
     EncodingObject *encoding_obj = EncodingObject::find_encoding(env, dst_encoding);
-    return encoding_obj->encode(env, orig_encoding, this, newline_option);
+    return encoding_obj->encode(env, orig_encoding, this, options);
 }
 
 Value StringObject::force_encoding(Env *env, Value encoding) {

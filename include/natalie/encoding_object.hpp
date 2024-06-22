@@ -69,6 +69,8 @@ public:
 
     virtual bool valid_codepoint(nat_int_t codepoint) const = 0;
 
+    virtual std::tuple<bool, int, nat_int_t> next_codepoint(const String &, size_t *) const;
+
     virtual std::pair<bool, StringView> prev_char(const String &, size_t *) const = 0;
     virtual std::pair<bool, StringView> next_char(const String &, size_t *) const = 0;
 
@@ -77,13 +79,25 @@ public:
         return view;
     }
 
+    enum class EncodeInvalidOption {
+        Raise,
+        Replace,
+    };
+
     enum class EncodeNewlineOption {
         None,
         Cr,
         Crlf,
         Universal,
     };
-    virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeNewlineOption = EncodeNewlineOption::None) const;
+
+    typedef struct EncodeOptions {
+        EncodeInvalidOption invalid_option = EncodeInvalidOption::Raise;
+        EncodeNewlineOption newline_option = EncodeNewlineOption::None;
+        StringObject *replace_option = nullptr;
+    } EncodeOptions;
+
+    virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeOptions) const;
 
     virtual bool is_printable_char(const nat_int_t c) const;
     virtual String escaped_char(const nat_int_t c) const = 0;

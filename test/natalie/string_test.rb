@@ -201,6 +201,22 @@ describe 'string' do
       s.force_encoding 'ascii-8bit'
       s.chars.map { |c| c.ord }.should == [240, 159, 152, 137, 226, 128, 157, 196, 131, 97]
     end
+
+    it 'returns characters from an improperly-encoded string' do
+      "\xF0\x9F\x98\x81".chars.should == ["😁"] # proper four bytes
+      "\xF0\x9F\x98".chars.should == ["\xF0", "\x9F", "\x98"]
+      "\xF0\x9F".chars.should == ["\xF0", "\x9F"]
+      "\xF0".chars.should == ["\xF0"]
+
+      # second byte doesn't match 10xxxxxx
+      "\xF0x\x9F\x81".chars.should == ["\xF0", "x", "\x9F", "\x81"]
+
+      # third byte doesn't match 10xxxxxx
+      "\xF0\x9Fx\x81".chars.should == ["\xF0", "\x9F", "x", "\x81"]
+
+      # fourth byte doesn't match 10xxxxxx
+      "\xF0\x9F\x98x".chars.should == ["\xF0", "\x9F", "\x98", "x"]
+    end
   end
 
   describe '#[]' do

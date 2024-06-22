@@ -105,11 +105,9 @@ describe :string_encode, shared: true do
     end
 
     it "transcodes to Encoding.default_internal when set" do
-      NATFIXME 'encode options' do
-        Encoding.default_internal = Encoding::UTF_8
-        str = [0xA4, 0xA2].pack('CC').force_encoding Encoding::EUC_JP
-        str.send(@method, invalid: :replace).should == "あ"
-      end
+      Encoding.default_internal = Encoding::UTF_8
+      str = [0xA4, 0xA2].pack('CC').force_encoding Encoding::EUC_JP
+      str.send(@method, invalid: :replace).should == "あ"
     end
 
     it "raises an Encoding::ConverterNotFoundError when no conversion is possible despite 'invalid: :replace, undef: :replace'" do

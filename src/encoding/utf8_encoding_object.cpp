@@ -3,6 +3,147 @@
 
 namespace Natalie {
 
+/*
+    Code point ↔ UTF-8 conversion:
+
+    First code point Last code point Byte 1   Byte 2   Byte 3   Byte 4
+    U+0000           U+007F          0xxxxxxx
+    U+0080           U+07FF          110xxxxx 10xxxxxx
+    U+0800           U+FFFF          1110xxxx 10xxxxxx 10xxxxxx
+    U+10000          U+10FFFF        11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+
+    See: https://en.wikipedia.org/wiki/UTF-8
+*/
+std::tuple<bool, int, nat_int_t> Utf8EncodingObject::next_codepoint(const String &string, size_t *index) const {
+    size_t len = string.size();
+
+    if (*index >= len)
+        return { true, 0, -1 };
+
+    size_t i = *index;
+    unsigned char c = string[i];
+
+    nat_int_t codepoint = 0;
+    int bytes = 0;
+    if ((c >> 3) == 0b11110) {
+        codepoint = (c ^ 0xF0) << 18;
+        bytes = 4;
+    } else if ((c >> 4) == 0b1110) {
+        codepoint = (c ^ 0xE0) << 12;
+        bytes = 3;
+    } else if ((c >> 5) == 0b110) {
+        codepoint = (c ^ 0xC0) << 6;
+        bytes = 2;
+    } else if ((c >> 7) == 0b0) {
+        codepoint = c;
+        bytes = 1;
+    } else {
+        *index += 1;
+        return { false, 1, c };
+    }
+
+    if (bytes > 1 && i + 1 < len) {
+        auto value = (unsigned char)string[i + 1];
+        if (value >> 6 != 0b10) {
+            *index += 1;
+            return { false, 1, codepoint };
+        }
+        codepoint += (value ^ 0x80) << ((bytes - 2) * 6);
+    }
+
+    if (bytes > 2 && i + 2 < len) {
+        auto value = (unsigned char)string[i + 2];
+        if (value >> 6 != 0b10) {
+            *index += 2;
+            return { false, 2, codepoint };
+        }
+        codepoint += (value ^ 0x80) << ((bytes - 3) * 6);
+    }
+
+    if (bytes > 3 && i + 3 < len) {
+        auto value = (unsigned char)string[i + 3];
+        if (value >> 6 != 0b10) {
+            *index += 3;
+            return { false, 3, codepoint };
+        }
+        codepoint += value ^ 0x80;
+    }
+
+    if (*index + bytes > len) {
+        bytes = len - *index;
+        *index = len;
+        return { false, bytes, codepoint };
+    } else {
+        *index += bytes;
+    }
+
+    bool valid = true;
+
+    // Check whether a codepoint is in a valid range
+    switch (bytes) {
+    case 1:
+        // no check
+        // all values that can be represented with 7 bits (0-127) are correct
+        break;
+    case 2: {
+        // Codepoints range: U+0080..U+07FF
+        // Check the highest 4 significant bits of
+        // 110xxxx-	10------
+        unsigned char extra_bits = (unsigned char)string[i] & 0b11110;
+
+        if (extra_bits == 0) {
+            valid = false;
+            bytes = 1;
+        }
+
+        break;
+    }
+    case 3: {
+        // Codepoints range: U+0800..U+FFFF.
+        // Check the highest 5 significant bits of
+        // 1110xxxx	10x-----	10------
+        //
+        // U+D800..U+DFFF - invalid codepoints
+        // xxxx1101 xx1----- xx------
+        unsigned char extra_bits1 = (unsigned char)string[i] & 0b1111;
+        unsigned char extra_bits2 = (unsigned char)string[i + 1] & 0b100000;
+        unsigned char significant_bits1 = (unsigned char)string[i] & 0b1111;
+        unsigned char significant_bits2 = (unsigned char)string[i + 1] & 0b111111;
+
+        if (extra_bits1 == 0 && extra_bits2 == 0) {
+            valid = false;
+            bytes = 1;
+        } else if (significant_bits1 == 0b1101 && (significant_bits2 >> 5) == 1) {
+            valid = false;
+            bytes = 1;
+        }
+
+        break;
+    }
+    case 4: {
+        // Codepoints range: U+10000..U+10FFFF.
+        // 11110xxx	10xxxxxx 10xxxxxx 10xxxxxx
+        unsigned char significant_bits1 = (unsigned char)string[i] & 0b111;
+        unsigned char significant_bits2 = (unsigned char)string[i + 1] & 0b111111;
+        unsigned char significant_bits3 = (unsigned char)string[i + 2] & 0b111111;
+        unsigned char significant_bits4 = (unsigned char)string[i + 3] & 0b111111;
+
+        int codepoint = significant_bits4 | (significant_bits3 << 6) | (significant_bits2 << 12) | (significant_bits1 << 18);
+
+        if (codepoint < 0x10000 || codepoint > 0x10FFFF) {
+            valid = false;
+            bytes = 1; // TODO: Remove?
+        }
+
+        break;
+    }
+    default:
+        NAT_UNREACHABLE();
+    }
+
+    return { valid, bytes, codepoint };
+}
+
 std::pair<bool, StringView> Utf8EncodingObject::prev_char(const String &string, size_t *index) const {
     if (*index == 0)
         return { true, StringView() };
@@ -25,124 +166,18 @@ std::pair<bool, StringView> Utf8EncodingObject::prev_char(const String &string, 
     return { true, StringView(&string, *index, length) };
 }
 
-/*
-    Code point ↔ UTF-8 conversion:
-
-    First code point Last code point Byte 1   Byte 2   Byte 3   Byte 4
-    U+0000           U+007F          0xxxxxxx
-    U+0080           U+07FF          110xxxxx 10xxxxxx
-    U+0800           U+FFFF          1110xxxx 10xxxxxx 10xxxxxx
-    U+10000          U+10FFFF        11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-
-    See: https://en.wikipedia.org/wiki/UTF-8
-*/
 std::pair<bool, StringView> Utf8EncodingObject::next_char(const String &string, size_t *index) const {
-    size_t len = string.size();
-
-    if (*index >= len)
-        return { true, StringView() };
-
     size_t i = *index;
-    int length = 0;
-    unsigned char c = string[i];
-    bool valid = true;
+    auto [valid, length, codepoint] = next_codepoint(string, index);
 
-    // Check the first byte and determine length
-    if ((c >> 3) == 0b11110) { // 11110xxx, 4 bytes
-        if (i + 3 >= len) {
-            *index = len;
-            return { false, StringView(&string, i) };
-        }
-        length = 4;
-    } else if ((c >> 4) == 0b1110) { // 1110xxxx, 3 bytes
-        if (i + 2 >= len) {
-            *index = len;
-            return { false, StringView(&string, i) };
-        }
-        length = 3;
-    } else if ((c >> 5) == 0b110) { // 110xxxxx, 2 bytes
-        if (i + 1 >= len) {
-            *index = len;
-            return { false, StringView(&string, i) };
-        }
-        length = 2;
-    } else if ((c >> 7) == 0b0) { // 0xxxxxxx, 1 byte
+    if (!valid && length > 1) {
+        // next_codepoint is greedy: invalid characters consume as many bytes as possible.
+        // But String#chars and similar methods only want single bytes for invalid characters.
+        // So reset the index and only consume a single byte.
+        *index = i + 1;
         length = 1;
-    } else {
-        *index += 1;
-        return { false, StringView(&string, i, 1) };
     }
 
-    // All, but the 1st, bytes should match the format 10xxxxxx
-    for (size_t j = i + 1; j <= i + length - 1; j++) {
-        unsigned char cj = string[j];
-        if (cj >> 6 != 0b10) {
-            *index += 1;
-            return { false, StringView(&string, i, 1) };
-        }
-    }
-
-    // Check whether a codepoint is in a valid range
-    switch (length) {
-    case 1:
-        // no check
-        // all values that can be represented with 7 bits (0-127) are correct
-        break;
-    case 2: {
-        // Codepoints range: U+0080..U+07FF
-        // Check the highest 4 significant bits of
-        // 110xxxx-	10------
-        unsigned char extra_bits = (unsigned char)string[i] & 0b11110;
-
-        if (extra_bits == 0) {
-            valid = false;
-            length = 1;
-        }
-
-        break;
-    }
-    case 3: {
-        // Codepoints range: U+0800..U+FFFF.
-        // Check the highest 5 significant bits of
-        // 1110xxxx	10x-----	10------
-        //
-        // U+D800..U+DFFF - invalid codepoints
-        // xxxx1101 xx1----- xx------
-        unsigned char extra_bits1 = (unsigned char)string[i] & 0b1111;
-        unsigned char extra_bits2 = (unsigned char)string[i + 1] & 0b100000;
-        unsigned char significant_bits1 = (unsigned char)string[i] & 0b1111;
-        unsigned char significant_bits2 = (unsigned char)string[i + 1] & 0b111111;
-
-        if (extra_bits1 == 0 && extra_bits2 == 0) {
-            valid = false;
-            length = 1;
-        } else if (significant_bits1 == 0b1101 && (significant_bits2 >> 5) == 1) {
-            valid = false;
-            length = 1;
-        }
-
-        break;
-    }
-    case 4: {
-        // Codepoints range: U+10000..U+10FFFF.
-        // 11110xxx	10xxxxxx 10xxxxxx 10xxxxxx
-        unsigned char significant_bits1 = (unsigned char)string[i] & 0b111;
-        unsigned char significant_bits2 = (unsigned char)string[i + 1] & 0b111111;
-        unsigned char significant_bits3 = (unsigned char)string[i + 2] & 0b111111;
-        unsigned char significant_bits4 = (unsigned char)string[i + 3] & 0b111111;
-
-        int codepoint = significant_bits4 | (significant_bits3 << 6) | (significant_bits2 << 12) | (significant_bits1 << 18);
-
-        if (codepoint < 0x10000 || codepoint > 0x10FFFF) {
-            valid = false;
-            length = 1;
-        }
-
-        break;
-    }
-    }
-
-    *index += length;
     return { valid, StringView(&string, i, length) };
 }
 
@@ -152,16 +187,13 @@ StringView Utf8EncodingObject::next_grapheme_cluster(const String &string, size_
     bool join_next = false;
     auto index2 = *index;
     for (;;) {
-        auto [valid2, view2] = next_char(string, &index2);
-        if (!valid2 || view2.is_empty())
+        auto [valid2, length, codepoint] = next_codepoint(string, &index2);
+        if (!valid2 || length == 0)
             break;
-
-        // This is a silly way to get his number. Maybe we need an EncodingObject::next_codepoint API...?
-        auto codepoint = decode_codepoint(view2);
 
         // https://en.wikipedia.org/wiki/Variation_Selectors_(Unicode_block)
         if (codepoint >= 0xFE00 && codepoint <= 0xFE0F) {
-            view = StringView { &string, view.offset(), view.size() + view2.size() };
+            view = StringView { &string, view.offset(), view.size() + length };
             *index = index2;
             continue;
         }
@@ -169,7 +201,7 @@ StringView Utf8EncodingObject::next_grapheme_cluster(const String &string, size_
         // Zero-width joiner
         // https://unicode-explorer.com/c/200D
         if (codepoint == 0x200D) {
-            view = StringView { &string, view.offset(), view.size() + view2.size() };
+            view = StringView { &string, view.offset(), view.size() + length };
             *index = index2;
             join_next = true;
             continue;
@@ -180,10 +212,10 @@ StringView Utf8EncodingObject::next_grapheme_cluster(const String &string, size_
 
     if (join_next) {
         index2 = *index;
-        auto [valid2, view2] = next_char(string, &index2);
-        if (!valid2 || view2.is_empty())
+        auto [valid2, length, codepoint] = next_codepoint(string, &index2);
+        if (!valid2 || codepoint == 0)
             return view;
-        view = StringView { &string, view.offset(), view.size() + view2.size() };
+        view = StringView { &string, view.offset(), view.size() + length };
         *index = index2;
     }
 
@@ -239,7 +271,8 @@ String Utf8EncodingObject::encode_codepoint(nat_int_t codepoint) const {
         buf.append_char(0b10000000 | ((codepoint >> 6) & 0x3f));
         buf.append_char(0b10000000 | (codepoint & 0x3f));
     } else {
-        TM_UNREACHABLE();
+        buf.append_char(0xFF);
+        buf.append_char(0xFD);
     }
     return buf;
 }
@@ -264,5 +297,4 @@ nat_int_t Utf8EncodingObject::decode_codepoint(StringView &str) const {
         return -1;
     }
 }
-
 }

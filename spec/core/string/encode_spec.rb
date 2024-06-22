@@ -56,11 +56,9 @@ describe "String#encode" do
 
   describe "when passed options" do
     it "returns a copy when Encoding.default_internal is nil" do
-      NATFIXME 'encode options' do
-        Encoding.default_internal = nil
-        str = "あ"
-        str.encode(invalid: :replace).should_not equal(str)
-      end
+      Encoding.default_internal = nil
+      str = "あ"
+      str.encode(invalid: :replace).should_not equal(str)
     end
 
     it "normalizes newlines with cr_newline option" do
@@ -82,19 +80,15 @@ describe "String#encode" do
     end
 
     it "replaces invalid encoding in source with default replacement" do
-      NATFIXME 'encode options' do
-        encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace)
-        encoded.should == "\u3061\ufffd\ufffd".encode("UTF-16LE")
-        encoded.encode("UTF-8").should == "ち\ufffd\ufffd"
-      end
+      encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace)
+      encoded.should == "\u3061\ufffd\ufffd".encode("UTF-16LE")
+      encoded.encode("UTF-8").should == "ち\ufffd\ufffd"
     end
 
     it "replaces invalid encoding in source with a specified replacement" do
-      NATFIXME 'encode options' do
-        encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace, replace: "foo")
-        encoded.should == "\u3061foofoo".encode("UTF-16LE")
-        encoded.encode("UTF-8").should == "ちfoofoo"
-      end
+      encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace, replace: "foo")
+      encoded.should == "\u3061foofoo".encode("UTF-16LE")
+      encoded.encode("UTF-8").should == "ちfoofoo"
     end
 
     it "replace multiple invalid bytes at the end with a single replacement character" do
@@ -185,12 +179,10 @@ describe "String#encode" do
 
   describe "when passed to, from, options" do
     it "returns a copy when both encodings are the same" do
-      NATFIXME 'encode options' do
-        str = "あ"
-        encoded = str.encode("utf-8", "utf-8", invalid: :replace)
-        encoded.should_not equal(str)
-        encoded.should == str
-      end
+      str = "あ"
+      encoded = str.encode("utf-8", "utf-8", invalid: :replace)
+      encoded.should_not equal(str)
+      encoded.should == str
     end
 
     it "returns a copy in the destination encoding when both encodings are the same" do
@@ -244,11 +236,9 @@ describe "String#encode!" do
 
   describe "when passed options" do
     it "returns self for ASCII-only String when Encoding.default_internal is nil" do
-      NATFIXME 'encode options' do
-        Encoding.default_internal = nil
-        str = +"abc"
-        str.encode!(invalid: :replace).should equal(str)
-      end
+      Encoding.default_internal = nil
+      str = +"abc"
+      str.encode!(invalid: :replace).should equal(str)
     end
   end
 

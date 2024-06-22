@@ -149,7 +149,7 @@ void Env::raise_errno(StringObject *detail) {
     raise_exception(error);
 }
 
-void Env::raise_invalid_byte_sequence_error(EncodingObject *encoding) {
+void Env::raise_invalid_byte_sequence_error(const EncodingObject *encoding) {
     auto name = encoding->name()->as_string()->string();
     raise("ArgumentError", "invalid byte sequence in {}", name);
 }

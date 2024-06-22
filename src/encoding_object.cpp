@@ -12,47 +12,63 @@ EncodingObject::EncodingObject()
 //
 // TODO:
 // * support encoding options
-Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str, EncodeNewlineOption newline_option) const {
-    if (num() == orig_encoding->num() && newline_option == EncodeNewlineOption::None)
+Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str, EncodeOptions options) const {
+    if (num() == orig_encoding->num() && options.newline_option == EncodeNewlineOption::None)
         return str;
 
     StringObject temp_string = StringObject("", (EncodingObject *)this);
     ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s)->as_class();
 
     size_t index = 0;
-    auto [valid, c] = str->next_char_result(&index);
-    while (!c.is_empty()) {
-        switch (newline_option) {
+    auto string = str->string();
+    for (;;) {
+        auto [valid, length, c] = orig_encoding->next_codepoint(string, &index);
+
+        if (length == 0)
+            break;
+
+        switch (options.newline_option) {
         case EncodeNewlineOption::None:
             break;
         case EncodeNewlineOption::Cr:
-            if (c == "\n") {
-                temp_string.append("\r");
-                std::tie(valid, c) = str->next_char_result(&index);
+            if (c == '\n') {
+                temp_string.append_char('\r');
                 continue;
             }
             break;
         case EncodeNewlineOption::Crlf:
-            if (c == "\n") {
+            if (c == '\n') {
                 temp_string.append("\r\n");
-                std::tie(valid, c) = str->next_char_result(&index);
                 continue;
             }
             break;
         case EncodeNewlineOption::Universal:
-            if (c == "\r") {
+            if (c == '\r') {
                 temp_string.append("\n");
                 if (str->peek_char(index) == "\n")
                     index++;
-                std::tie(valid, c) = str->next_char_result(&index);
                 continue;
             }
             break;
         }
 
-        auto char_obj = StringObject { c, orig_encoding };
-        auto source_codepoint = char_obj.ord(env)->as_integer()->to_nat_int_t();
-        auto unicode_codepoint = orig_encoding->to_unicode_codepoint(source_codepoint);
+        auto source_codepoint = valid ? c : -1;
+
+        nat_int_t unicode_codepoint;
+        if (source_codepoint == -1) {
+            switch (options.invalid_option) {
+            case EncodeInvalidOption::Raise:
+                env->raise_invalid_byte_sequence_error(this);
+            case EncodeInvalidOption::Replace:
+                if (options.replace_option) {
+                    temp_string.append(options.replace_option);
+                    continue;
+                }
+                unicode_codepoint = 0xFFFD;
+            }
+        } else {
+            unicode_codepoint = orig_encoding->to_unicode_codepoint(source_codepoint);
+        }
 
         // handle error
         if (unicode_codepoint < 0) {
@@ -101,8 +117,6 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
 
         auto destination_char_obj = encode_codepoint(destination_codepoint);
         temp_string.append(destination_char_obj);
-
-        std::tie(valid, c) = str->next_char_result(&index);
     }
 
     str->set_str(temp_string.string().c_str(), temp_string.string().length());
@@ -258,6 +272,14 @@ Value EncodingObject::inspect(Env *env) const {
     if (is_dummy())
         return StringObject::format("#<Encoding:{} (dummy)>", name());
     return StringObject::format("#<Encoding:{}>", name());
+}
+
+// Default implementation is pretty dumb; we'll need to override this for
+// every multi-byte encoding, I think.
+std::tuple<bool, int, nat_int_t> EncodingObject::next_codepoint(const String &string, size_t *index) const {
+    auto [valid, view] = next_char(string, index);
+    auto codepoint = view.is_empty() ? 0 : decode_codepoint(view);
+    return { valid, view.length(), codepoint };
 }
 
 Value EncodingObject::locale_charmap() {

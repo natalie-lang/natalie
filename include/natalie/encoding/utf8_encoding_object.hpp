@@ -23,6 +23,8 @@ public:
         return codepoint >= 0 && codepoint < 0x110000;
     }
 
+    virtual std::tuple<bool, int, nat_int_t> next_codepoint(const String &, size_t *) const override;
+
     virtual std::pair<bool, StringView> prev_char(const String &string, size_t *index) const override;
     virtual std::pair<bool, StringView> next_char(const String &string, size_t *index) const override;
 
