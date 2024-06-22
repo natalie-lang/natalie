@@ -91,11 +91,11 @@ public:
         Universal,
     };
 
-    typedef struct EncodeOptions {
+    struct EncodeOptions {
         EncodeInvalidOption invalid_option = EncodeInvalidOption::Raise;
         EncodeNewlineOption newline_option = EncodeNewlineOption::None;
         StringObject *replace_option = nullptr;
-    } EncodeOptions;
+    };
 
     virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeOptions) const;
 
