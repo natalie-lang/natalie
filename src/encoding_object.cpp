@@ -52,6 +52,16 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
             break;
         }
 
+        auto handle_fallback = [&](nat_int_t cpt) {
+            Value result;
+            if (options.fallback_option->respond_to(env, "[]"_s)) {
+                result = options.fallback_option->send(env, "[]"_s, { Value::integer(cpt) });
+            } else if (options.fallback_option->respond_to(env, "call"_s)) {
+                result = options.fallback_option->send(env, "call"_s, { Value::integer(cpt) });
+            }
+            temp_string.append(result->to_s(env));
+        };
+
         auto source_codepoint = valid ? c : -1;
 
         nat_int_t unicode_codepoint;
@@ -59,13 +69,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
             switch (options.invalid_option) {
             case EncodeInvalidOption::Raise:
                 if (options.fallback_option) {
-                    Value result;
-                    if (options.fallback_option->respond_to(env, "[]"_s)) {
-                        result = options.fallback_option->send(env, "[]"_s, { Value::integer(c) });
-                    } else if (options.fallback_option->respond_to(env, "call"_s)) {
-                        result = options.fallback_option->send(env, "call"_s, { Value::integer(c) });
-                    }
-                    temp_string.append(result->to_s(env));
+                    handle_fallback(c);
                     continue;
                 }
                 env->raise_invalid_byte_sequence_error(this);
@@ -106,13 +110,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
             switch (options.undef_option) {
             case EncodeUndefOption::Raise:
                 if (options.fallback_option) {
-                    Value result;
-                    if (options.fallback_option->respond_to(env, "[]"_s)) {
-                        result = options.fallback_option->send(env, "[]"_s, { Value::integer(c) });
-                    } else if (options.fallback_option->respond_to(env, "call"_s)) {
-                        result = options.fallback_option->send(env, "call"_s, { Value::integer(c) });
-                    }
-                    temp_string.append(result->to_s(env));
+                    handle_fallback(unicode_codepoint);
                     continue;
                 }
                 StringObject *message;
