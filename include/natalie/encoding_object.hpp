@@ -95,6 +95,7 @@ public:
         EncodeInvalidOption invalid_option = EncodeInvalidOption::Raise;
         EncodeNewlineOption newline_option = EncodeNewlineOption::None;
         StringObject *replace_option = nullptr;
+        Value fallback_option = nullptr;
     };
 
     virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeOptions) const;

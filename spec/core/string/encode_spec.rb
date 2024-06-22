@@ -92,21 +92,19 @@ describe "String#encode" do
     end
 
     it "replace multiple invalid bytes at the end with a single replacement character" do
-      NATFIXME 'encode options' do
+      NATFIXME 'encoding from utf-8 to utf-8 with invalid chars' do
         "\xE3\x81\x93\xE3\x81".encode("UTF-8", invalid: :replace).should == "\u3053\ufffd"
       end
     end
 
     it "replaces invalid encoding in source using a specified replacement even when a fallback is given" do
-      NATFIXME 'encode options' do
-        encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace, replace: "foo", fallback: -> c { "bar" })
-        encoded.should == "\u3061foofoo".encode("UTF-16LE")
-        encoded.encode("UTF-8").should == "ちfoofoo"
-      end
+      encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace, replace: "foo", fallback: -> c { "bar" })
+      encoded.should == "\u3061foofoo".encode("UTF-16LE")
+      encoded.encode("UTF-8").should == "ちfoofoo"
     end
 
     it "replaces undefined encoding in destination with default replacement" do
-      NATFIXME 'encode options' do
+      NATFIXME 'undef option' do
         encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace)
         encoded.should == "B?".encode(Encoding::US_ASCII)
         encoded.encode("UTF-8").should == "B?"
@@ -114,7 +112,7 @@ describe "String#encode" do
     end
 
     it "replaces undefined encoding in destination with a specified replacement" do
-      NATFIXME 'encode options' do
+      NATFIXME 'undef option' do
         encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace, replace: "foo")
         encoded.should == "Bfoo".encode(Encoding::US_ASCII)
         encoded.encode("UTF-8").should == "Bfoo"
@@ -122,7 +120,7 @@ describe "String#encode" do
     end
 
     it "replaces undefined encoding in destination with a specified replacement even if a fallback is given" do
-      NATFIXME 'encode options' do
+      NATFIXME 'undef option' do
         encoded = "B\ufffd".encode(Encoding::US_ASCII, undef: :replace, replace: "foo", fallback: proc {|x| "bar"})
         encoded.should == "Bfoo".encode(Encoding::US_ASCII)
         encoded.encode("UTF-8").should == "Bfoo"
@@ -130,19 +128,15 @@ describe "String#encode" do
     end
 
     it "replaces undefined encoding in destination using a fallback proc" do
-      NATFIXME 'encode fallback' do
-        encoded = "B\ufffd".encode(Encoding::US_ASCII, fallback: proc {|x| "bar"})
-        encoded.should == "Bbar".encode(Encoding::US_ASCII)
-        encoded.encode("UTF-8").should == "Bbar"
-      end
+      encoded = "B\ufffd".encode(Encoding::US_ASCII, fallback: proc {|x| "bar"})
+      encoded.should == "Bbar".encode(Encoding::US_ASCII)
+      encoded.encode("UTF-8").should == "Bbar"
     end
 
     it "replaces invalid encoding in source using replace even when fallback is given as proc" do
-      NATFIXME 'encode options' do
-        encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace, replace: "foo", fallback: proc {|x| "bar"})
-        encoded.should == "\u3061foofoo".encode("UTF-16LE")
-        encoded.encode("UTF-8").should == "ちfoofoo"
-      end
+      encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace, replace: "foo", fallback: proc {|x| "bar"})
+      encoded.should == "\u3061foofoo".encode("UTF-16LE")
+      encoded.encode("UTF-8").should == "ちfoofoo"
     end
   end
 

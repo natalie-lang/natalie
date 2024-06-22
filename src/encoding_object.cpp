@@ -54,18 +54,39 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
 
         auto source_codepoint = valid ? c : -1;
 
-        nat_int_t unicode_codepoint;
-        if (source_codepoint == -1) {
+        constexpr nat_int_t INVALID_CONTINUE = -1;
+        constexpr nat_int_t INVALID_RAISE = -2;
+        auto handle_invalid = [&](nat_int_t cpt) -> nat_int_t {
             switch (options.invalid_option) {
             case EncodeInvalidOption::Raise:
-                env->raise_invalid_byte_sequence_error(this);
+                if (options.fallback_option) {
+                    Value result;
+                    if (options.fallback_option->respond_to(env, "[]"_s)) {
+                        result = options.fallback_option->send(env, "[]"_s, { Value::integer(c) });
+                    } else if (options.fallback_option->respond_to(env, "call"_s)) {
+                        result = options.fallback_option->send(env, "call"_s, { Value::integer(c) });
+                    }
+                    temp_string.append(result->to_s(env));
+                    return INVALID_CONTINUE;
+                }
+                return INVALID_RAISE;
             case EncodeInvalidOption::Replace:
                 if (options.replace_option) {
                     temp_string.append(options.replace_option);
-                    continue;
+                    return INVALID_CONTINUE;
                 }
-                unicode_codepoint = 0xFFFD;
+                return 0xFFFD;
             }
+            NAT_UNREACHABLE();
+        };
+
+        nat_int_t unicode_codepoint;
+        if (source_codepoint == -1) {
+            unicode_codepoint = handle_invalid(source_codepoint);
+            if (unicode_codepoint == INVALID_CONTINUE)
+                continue;
+            if (unicode_codepoint == INVALID_RAISE)
+                env->raise_invalid_byte_sequence_error(this);
         } else {
             unicode_codepoint = orig_encoding->to_unicode_codepoint(source_codepoint);
         }
@@ -73,7 +94,6 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         // handle error
         if (unicode_codepoint < 0) {
             StringObject *message;
-
             if (num() != Encoding::UTF_8) {
                 // Example: "\x8F" to UTF-8 in conversion from ASCII-8BIT to UTF-8 to US-ASCII
                 message = StringObject::format(
@@ -87,7 +107,6 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                     String::hex(source_codepoint, String::HexFormat::Uppercase),
                     orig_encoding->name());
             }
-
             env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
         }
 
@@ -95,24 +114,27 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
 
         // handle error
         if (destination_codepoint < 0) {
-            StringObject *message;
-
-            if (orig_encoding->num() != Encoding::UTF_8)
-                message = StringObject::format(
-                    // Example: "U+043F to WINDOWS-1252 in conversion from Windows-1251 to UTF-8 to WINDOWS-1252",
-                    "U+{} to {} in conversion from {} to UTF-8 to {}",
-                    String::hex(source_codepoint, String::HexFormat::Uppercase),
-                    name(),
-                    orig_encoding->name(),
-                    name());
-            else {
-                // Example: U+0439 from UTF-8 to ASCII-8BIT
-                auto hex = String();
-                hex.append_sprintf("%04X", source_codepoint);
-                message = StringObject::format("U+{} from UTF-8 to {}", hex, name());
+            destination_codepoint = handle_invalid(source_codepoint);
+            if (destination_codepoint == INVALID_CONTINUE)
+                continue;
+            if (destination_codepoint == INVALID_RAISE) {
+                StringObject *message;
+                if (orig_encoding->num() != Encoding::UTF_8)
+                    message = StringObject::format(
+                        // Example: "U+043F to WINDOWS-1252 in conversion from Windows-1251 to UTF-8 to WINDOWS-1252",
+                        "U+{} to {} in conversion from {} to UTF-8 to {}",
+                        String::hex(source_codepoint, String::HexFormat::Uppercase),
+                        name(),
+                        orig_encoding->name(),
+                        name());
+                else {
+                    // Example: U+0439 from UTF-8 to ASCII-8BIT
+                    auto hex = String();
+                    hex.append_sprintf("%04X", source_codepoint);
+                    message = StringObject::format("U+{} from UTF-8 to {}", hex, name());
+                }
+                env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
             }
-
-            env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
         }
 
         auto destination_char_obj = encode_codepoint(destination_codepoint);
