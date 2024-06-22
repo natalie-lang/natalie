@@ -86,11 +86,9 @@ describe "String#encode" do
     end
 
     it "replaces invalid encoding in source with a specified replacement" do
-      NATFIXME 'encode options' do
-        encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace, replace: "foo")
-        encoded.should == "\u3061foofoo".encode("UTF-16LE")
-        encoded.encode("UTF-8").should == "ちfoofoo"
-      end
+      encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace, replace: "foo")
+      encoded.should == "\u3061foofoo".encode("UTF-16LE")
+      encoded.encode("UTF-8").should == "ちfoofoo"
     end
 
     it "replace multiple invalid bytes at the end with a single replacement character" do

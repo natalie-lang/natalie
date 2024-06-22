@@ -1153,6 +1153,10 @@ Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_enco
             else if (invalid == "replace"_s)
                 options.invalid_option = EncodeInvalidOption::Replace;
         }
+
+        auto replace = kwargs->remove(env, "replace"_s);
+        if (replace && !replace->is_nil())
+            options.replace_option = replace->as_string_or_raise(env)->encode(env, dst_encoding)->as_string_or_raise(env);
     }
 
     env->ensure_no_extra_keywords(kwargs);

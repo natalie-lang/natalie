@@ -59,6 +59,11 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
             case EncodeInvalidOption::Raise:
                 env->raise_invalid_byte_sequence_error(this);
             case EncodeInvalidOption::Replace:
+                if (options.replace_option) {
+                    temp_string.append(options.replace_option);
+                    std::tie(valid, length, c) = orig_encoding->next_codepoint(string, &index);
+                    continue;
+                }
                 unicode_codepoint = 0xFFFD;
             }
         } else {
