@@ -80,11 +80,9 @@ describe "String#encode" do
     end
 
     it "replaces invalid encoding in source with default replacement" do
-      NATFIXME 'encode options' do
-        encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace)
-        encoded.should == "\u3061\ufffd\ufffd".encode("UTF-16LE")
-        encoded.encode("UTF-8").should == "ち\ufffd\ufffd"
-      end
+      encoded = "ち\xE3\x81\xFF".encode("UTF-16LE", invalid: :replace)
+      encoded.should == "\u3061\ufffd\ufffd".encode("UTF-16LE")
+      encoded.encode("UTF-8").should == "ち\ufffd\ufffd"
     end
 
     it "replaces invalid encoding in source with a specified replacement" do

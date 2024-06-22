@@ -20,37 +20,38 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
     ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s)->as_class();
 
     size_t index = 0;
-    auto [valid, c] = str->next_char_result(&index);
-    while (!c.is_empty()) {
+    auto string = str->string();
+    auto [valid, length, c] = orig_encoding->next_codepoint(string, &index);
+    while (length > 0) {
         switch (options.newline_option) {
         case EncodeNewlineOption::None:
             break;
         case EncodeNewlineOption::Cr:
-            if (c == "\n") {
-                temp_string.append("\r");
-                std::tie(valid, c) = str->next_char_result(&index);
+            if (c == '\n') {
+                temp_string.append_char('\r');
+                std::tie(valid, length, c) = orig_encoding->next_codepoint(string, &index);
                 continue;
             }
             break;
         case EncodeNewlineOption::Crlf:
-            if (c == "\n") {
+            if (c == '\n') {
                 temp_string.append("\r\n");
-                std::tie(valid, c) = str->next_char_result(&index);
+                std::tie(valid, length, c) = orig_encoding->next_codepoint(string, &index);
                 continue;
             }
             break;
         case EncodeNewlineOption::Universal:
-            if (c == "\r") {
+            if (c == '\r') {
                 temp_string.append("\n");
                 if (str->peek_char(index) == "\n")
                     index++;
-                std::tie(valid, c) = str->next_char_result(&index);
+                std::tie(valid, length, c) = orig_encoding->next_codepoint(string, &index);
                 continue;
             }
             break;
         }
 
-        auto source_codepoint = valid ? orig_encoding->decode_codepoint(c) : -1;
+        auto source_codepoint = valid ? c : -1;
 
         nat_int_t unicode_codepoint;
         if (source_codepoint == -1) {
@@ -112,7 +113,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         auto destination_char_obj = encode_codepoint(destination_codepoint);
         temp_string.append(destination_char_obj);
 
-        std::tie(valid, c) = str->next_char_result(&index);
+        std::tie(valid, length, c) = orig_encoding->next_codepoint(string, &index);
     }
 
     str->set_str(temp_string.string().c_str(), temp_string.string().length());

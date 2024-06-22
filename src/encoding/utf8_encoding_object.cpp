@@ -27,18 +27,66 @@ std::tuple<bool, int, nat_int_t> Utf8EncodingObject::next_codepoint(const String
     int bytes = 0;
     if ((c >> 3) == 0b11110) { // 11110xxx, 4 bytes
         codepoint = (c ^ 0xF0) << 18;
-        if (i + 1 < len) codepoint += ((unsigned char)string[i + 1] ^ 0x80) << 12;
-        if (i + 2 < len) codepoint += ((unsigned char)string[i + 2] ^ 0x80) << 6;
-        if (i + 3 < len) codepoint += (unsigned char)string[i + 3] ^ 0x80;
+        if (i + 1 < len) {
+            auto value = (unsigned char)string[i + 1];
+            if (value >> 6 == 0b10)
+                codepoint += (value ^ 0x80) << 12;
+            else {
+                *index += 1;
+                return { false, 1, codepoint };
+            }
+        }
+        if (i + 2 < len) {
+            auto value = (unsigned char)string[i + 2];
+            if (value >> 6 == 0b10)
+                codepoint += (value ^ 0x80) << 6;
+            else {
+                *index += 2;
+                return { false, 2, codepoint };
+            }
+        }
+        if (i + 3 < len) {
+            auto value = (unsigned char)string[i + 3];
+            if (value >> 6 == 0b10)
+                codepoint += value ^ 0x80;
+            else {
+                *index += 3;
+                return { false, 3, codepoint };
+            }
+        }
         bytes = 4;
     } else if ((c >> 4) == 0b1110) { // 1110xxxx, 3 bytes
         codepoint = (c ^ 0xE0) << 12;
-        if (i + 1 < len) codepoint += ((unsigned char)string[i + 1] ^ 0x80) << 6;
-        if (i + 2 < len) codepoint += (unsigned char)string[i + 2] ^ 0x80;
+        if (i + 1 < len) {
+            auto value = (unsigned char)string[i + 1];
+            if (value >> 6 == 0b10)
+                codepoint += (value ^ 0x80) << 6;
+            else {
+                *index += 1;
+                return { false, 1, codepoint };
+            }
+        }
+        if (i + 2 < len) {
+            auto value = (unsigned char)string[i + 2];
+            if (value >> 6 == 0b10)
+                codepoint += value ^ 0x80;
+            else {
+                *index += 2;
+                return { false, 2, codepoint };
+            }
+        }
         bytes = 3;
     } else if ((c >> 5) == 0b110) { // 110xxxxx, 2 bytes
         codepoint = (c ^ 0xC0) << 6;
-        if (i + 1 < len) codepoint += (unsigned char)string[i + 1] ^ 0x80;
+        if (i + 1 < len) {
+            auto value = (unsigned char)string[i + 1];
+            if (value >> 6 == 0b10)
+                codepoint += value ^ 0x80;
+            else {
+                *index += 1;
+                return { false, 1, codepoint };
+            }
+        }
         bytes = 2;
     } else if ((c >> 7) == 0b0) { // 0xxxxxxx, 1 byte
         codepoint = c;
@@ -48,22 +96,12 @@ std::tuple<bool, int, nat_int_t> Utf8EncodingObject::next_codepoint(const String
         return { false, 1, c };
     }
 
-    if (codepoint < 0)
-        abort();
-
     if (*index + bytes > len) {
         bytes = len - *index;
         *index = len;
         return { false, bytes, codepoint };
     } else {
         *index += bytes;
-    }
-
-    // All, but the 1st, bytes should match the format 10xxxxxx
-    for (int j = 1; j < bytes; j++) {
-        unsigned char cj = string[i + j];
-        if (cj >> 6 != 0b10)
-            return { false, bytes, codepoint };
     }
 
     bool valid = true;
