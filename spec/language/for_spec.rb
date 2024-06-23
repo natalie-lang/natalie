@@ -104,6 +104,18 @@ describe "The for expression" do
     end
   end
 
+  it "allows a global variable as an iterator name" do
+    old_global_var = $var
+    m = [1,2,3]
+    n = 0
+    for $var in m
+      n += 1
+    end
+    $var.should == 3
+    n.should == 3
+    $var = old_global_var
+  end
+
   # 1.9 behaviour verified by nobu in
   # http://redmine.ruby-lang.org/issues/show/2053
   it "yields only as many values as there are arguments" do
