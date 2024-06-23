@@ -72,6 +72,33 @@ describe 'pattern matching' do
     -> { a += 1 => Float::INFINITY }.should raise_error(NoMatchingPatternError, '2: Infinity === 2 does not return true')
     a.should == 2
   end
+
+  it 'can handle array targets with fixed size and only local variable target nodes' do
+    [1, 2, 3] => a, b, c
+    a.should == 1
+    b.should == 2
+    c.should == 3
+  end
+
+  it 'can handle array targets with any input that implements #deconstruct' do
+    deconstruct = mock('deconstruct')
+    deconstruct.should_receive(:deconstruct).and_return([1, 2])
+    deconstruct => a, b
+    a.should == 1
+    b.should == 2
+  end
+
+  it 'raises an exception for input that does not implement #deconstruct' do
+    -> {
+      1 => a, b
+    }.should raise_error(NoMatchingPatternError, '1: 1 does not respond to #deconstruct')
+  end
+
+  it 'raises an exception for array target with invalid size' do
+    -> {
+      [1, 2] => a, b, c
+    }.should raise_error(NoMatchingPatternError, '[1, 2]: [1, 2] length mismatch (given 2, expected 3)')
+  end
 end
 
 describe 'NoMatchingPatternError' do
