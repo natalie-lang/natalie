@@ -2671,6 +2671,7 @@ module Natalie
           %i[
             class_variable_target_node
             constant_target_node
+            global_variable_target_node
             instance_variable_target_node
             local_variable_target_node
             multi_target_node
