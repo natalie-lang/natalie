@@ -50,6 +50,8 @@ module Natalie
           transform_instance_variable_arg(arg)
         when ::Prism::ClassVariableTargetNode
           transform_class_variable_arg(arg)
+        when ::Prism::GlobalVariableTargetNode
+          transform_global_variable_arg(arg)
         when ::Prism::ConstantTargetNode
           transform_constant_arg(arg)
         when ::Prism::RequiredParameterNode
@@ -172,6 +174,11 @@ module Natalie
       def transform_class_variable_arg(arg)
         @instructions << ArrayShiftInstruction.new
         @instructions << ClassVariableSetInstruction.new(arg.name)
+      end
+
+      def transform_global_variable_arg(arg)
+        @instructions << ArrayShiftInstruction.new
+        @instructions << GlobalVariableSetInstruction.new(arg.name)
       end
 
       def transform_constant_arg(arg)
