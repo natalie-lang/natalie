@@ -109,6 +109,10 @@ module Natalie
         @macro_expander.expand(node, locals: locals, depth: @depth, file: @file)
       end
 
+      def current_locals
+        @locals_stack.last
+      end
+
       def transform_body(body, location:, used:)
         return transform_begin_node(body, used:) if body.is_a?(Prism::BeginNode)
         body = body.body if body.is_a?(Prism::StatementsNode)
