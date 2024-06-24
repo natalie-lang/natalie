@@ -65,7 +65,7 @@ module Natalie
               result
             end.call(#{value.location.slice})
           RUBY
-          parser = Natalie::Parser.new(code_str, compiler.file.path, locals: [node.name])
+          parser = Natalie::Parser.new(code_str, compiler.file.path, locals: compiler.current_locals)
           compiler.transform_expression(parser.ast.statements, used: false)
         end
       end
