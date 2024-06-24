@@ -1,10 +1,30 @@
 require_relative '../spec_helper'
 
+module PatternMatchingHelper
+  def self.one = 1
+end
+
 # NATFIXME: Temprorary file until we can run some things in `language/pattern_matching_spec.rb`
 describe 'pattern matching' do
   it 'can assign a single value' do
     1 => a
     a.should == 1
+  end
+
+  it 'can assign a single value from an expression' do
+    1 + 1 => a
+    a.should == 2
+  end
+
+  it 'can assign a single value from a variable' do
+    a = 1
+    a => b
+    b.should == 1
+  end
+
+  it 'can assign a single value from a method call' do
+   PatternMatchingHelper.one => a
+   a.should == 1
   end
 
   it 'does not define a local variable if the expression fails' do

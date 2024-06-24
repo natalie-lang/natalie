@@ -4,12 +4,6 @@ module Natalie
   class Compiler
     module Transformers
       class MatchRequiredNode
-        attr_reader :compiler
-
-        def initialize(compiler)
-          @compiler = compiler
-        end
-
         def call(node)
           case node.pattern.type
           when :array_pattern_node
@@ -30,7 +24,7 @@ module Natalie
 
           # Transform `expr => [a, b] into `a, b = ->(expr) { expr.deconstruct }.call(expr)`
           target = node.requireds.map(&:name).join(', ')
-          code_str = <<~RUBY
+          <<~RUBY
             #{target} = lambda do |result|
               values = result.deconstruct
               if values.size != #{node.requireds.size}
@@ -41,32 +35,26 @@ module Natalie
               raise ::NoMatchingPatternError, "\#{result}: \#{result} does not respond to #deconstruct"
             end.call(#{value.location.slice})
           RUBY
-          parser = Natalie::Parser.new(code_str, compiler.file.path, locals: compiler.current_locals)
-          compiler.transform_expression(parser.ast.statements, used: false)
         end
 
         def transform_eqeqeq_check(node, value)
           # Transform `expr => var` into `->(res, var) { res === var }.call(expr, var)`
-          code_str = <<~RUBY
+          <<~RUBY
             lambda do |result, expect|
               unless expect === result
                 raise ::NoMatchingPatternError, "\#{result}: \#{expect} === \#{result} does not return true"
               end
             end.call(#{value.location.slice}, #{node.location.slice})
           RUBY
-          parser = Natalie::Parser.new(code_str, compiler.file.path, locals: compiler.current_locals)
-          compiler.transform_expression(parser.ast.statements, used: false)
         end
 
         def transform_local_variable_target_node(node, value)
           # Transform `expr => var` into `var = ->(res) { res }.call(expr)`
-          code_str = <<~RUBY
+          <<~RUBY
             #{node.name} = lambda do |result|
               result
             end.call(#{value.location.slice})
           RUBY
-          parser = Natalie::Parser.new(code_str, compiler.file.path, locals: [node.name])
-          compiler.transform_expression(parser.ast.statements, used: false)
         end
       end
     end
