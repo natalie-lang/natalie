@@ -109,10 +109,6 @@ module Natalie
         @macro_expander.expand(node, locals: locals, depth: @depth, file: @file)
       end
 
-      def current_locals
-        @locals_stack.last
-      end
-
       def transform_body(body, location:, used:)
         return transform_begin_node(body, used:) if body.is_a?(Prism::BeginNode)
         body = body.body if body.is_a?(Prism::StatementsNode)
@@ -2007,7 +2003,7 @@ module Natalie
       def transform_match_required_node(node, used:)
         match_required_node_compiler = Transformers::MatchRequiredNode.new
         code_str = match_required_node_compiler.call(node)
-        parser = Natalie::Parser.new(code_str, @file.path, locals: current_locals)
+        parser = Natalie::Parser.new(code_str, @file.path, locals: @locals_stack.last)
         instructions = transform_expression(parser.ast.statements, used: false)
         instructions << PushNilInstruction.new if used
         instructions
