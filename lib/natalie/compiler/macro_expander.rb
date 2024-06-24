@@ -170,6 +170,7 @@ module Natalie
             node.location,
           )
         end
+        line = nil
         if node.type == :string_node
           if args.size > 2
             if args[2].is_a?(Prism::StringNode)
@@ -178,8 +179,15 @@ module Natalie
               $stderr.puts 'FIXME: passed file to eval() will be ignored'
             end
           end
+          if args.size > 3
+            if args[3].is_a?(Prism::IntegerNode)
+              line = args[3].value
+            else
+              $stderr.puts 'FIXME: passed line to eval() will be ignored'
+            end
+          end
           begin
-            Natalie::Parser.new(node.unescaped, current_path, locals: locals).ast
+            Natalie::Parser.new(node.unescaped, current_path, line: line, locals: locals).ast
           rescue Parser::ParseError => e
             drop_error(:SyntaxError, e.message, location: node.location)
           end
