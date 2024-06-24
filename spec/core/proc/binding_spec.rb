@@ -15,8 +15,9 @@ describe "Proc#binding" do
 
     lambdas_binding = obj.test_binding(1, 2).binding
 
-    # NATFIXME: binding passed to eval() will be ignored.
-    # eval("some", lambdas_binding).should == 1
-    # eval("params", lambdas_binding).should == 2
+    NATFIXME 'binding passed to eval() will be ignored.', exception: NoMethodError, message: "undefined method `some' for main" do
+      eval("some", lambdas_binding).should == 1
+      eval("params", lambdas_binding).should == 2
+    end
   end
 end
