@@ -171,6 +171,13 @@ module Natalie
           )
         end
         if node.type == :string_node
+          if args.size > 2
+            if args[2].is_a?(Prism::StringNode)
+              current_path = args[2].unescaped
+            else
+              $stderr.puts 'FIXME: passed file to eval() will be ignored'
+            end
+          end
           begin
             Natalie::Parser.new(node.unescaped, current_path, locals: locals).ast
           rescue Parser::ParseError => e
