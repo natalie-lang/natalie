@@ -4,23 +4,15 @@ module Natalie
   class Compiler
     module Transformers
       class MatchRequiredNode
-        attr_reader :compiler
-
-        def initialize(compiler)
-          @compiler = compiler
-        end
-
         def call(node)
-          code_str = case node.pattern.type
-                     when :array_pattern_node
-                       transform_array_pattern_node(node.pattern, node.value)
-                     when :local_variable_target_node
-                       transform_local_variable_target_node(node.pattern, node.value)
-                     else
-                       transform_eqeqeq_check(node.pattern, node.value)
-                     end
-          parser = Natalie::Parser.new(code_str, compiler.file.path, locals: compiler.current_locals)
-          compiler.transform_expression(parser.ast.statements, used: false)
+          case node.pattern.type
+          when :array_pattern_node
+            transform_array_pattern_node(node.pattern, node.value)
+          when :local_variable_target_node
+            transform_local_variable_target_node(node.pattern, node.value)
+          else
+            transform_eqeqeq_check(node.pattern, node.value)
+          end
         end
 
         private

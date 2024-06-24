@@ -2005,8 +2005,10 @@ module Natalie
       end
 
       def transform_match_required_node(node, used:)
-        match_required_node_compiler = Transformers::MatchRequiredNode.new(self)
-        instructions = match_required_node_compiler.call(node)
+        match_required_node_compiler = Transformers::MatchRequiredNode.new
+        code_str = match_required_node_compiler.call(node)
+        parser = Natalie::Parser.new(code_str, @file.path, locals: current_locals)
+        instructions = transform_expression(parser.ast.statements, used: false)
         instructions << PushNilInstruction.new if used
         instructions
       end
