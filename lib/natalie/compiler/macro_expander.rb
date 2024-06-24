@@ -158,7 +158,7 @@ module Natalie
       def macro_eval(expr:, current_path:, locals:, **)
         args = expr.arguments&.arguments || []
         node = args.first
-        $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
+        $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1 && args[1].type != :nil_node
         if node.type == :interpolated_string_node && node.parts.all? { |subnode| subnode.type == :string_node }
           node = Prism::StringNode.new(
             nil,
