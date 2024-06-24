@@ -56,4 +56,9 @@ describe 'eval macro' do
       a
     RUBY
   end
+
+  it 'can handle file and line argument' do
+    eval('"#{__FILE__}:#{__LINE__}"', nil, 'foo.rb').should == 'foo.rb:1'
+    eval('"#{__FILE__}:#{__LINE__}"', nil, 'foo.rb', 1234).should == 'foo.rb:1234'
+  end
 end
