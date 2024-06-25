@@ -547,6 +547,12 @@ ClassObject *Object::as_class_or_raise(Env *env) {
     return static_cast<ClassObject *>(this);
 }
 
+EncodingObject *Object::as_encoding_or_raise(Env *env) {
+    if (!is_encoding())
+        env->raise("TypeError", "{} can't be coerced into Encoding", m_klass->inspect_str());
+    return static_cast<EncodingObject *>(this);
+}
+
 ExceptionObject *Object::as_exception_or_raise(Env *env) {
     if (!is_exception())
         env->raise("TypeError", "{} can't be coerced into Exception", m_klass->inspect_str());

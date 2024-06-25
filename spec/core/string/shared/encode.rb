@@ -127,25 +127,21 @@ describe :string_encode, shared: true do
 
   describe "when passed to, from" do
     it "transcodes between the encodings ignoring the String encoding" do
-      NATFIXME 'honor source encoding', exception: SpecFailedException, message: /should be ==/ do
-        str = "あ"
-        result = [0xA6, 0xD0, 0x8F, 0xAB, 0xE4, 0x8F, 0xAB, 0xB1].pack('C8')
-        result.force_encoding Encoding::EUC_JP
-        str.send(@method, "euc-jp", "ibm437").should == result
-      end
+      str = "あ"
+      result = [0xA6, 0xD0, 0x8F, 0xAB, 0xE4, 0x8F, 0xAB, 0xB1].pack('C8')
+      result.force_encoding Encoding::EUC_JP
+      str.send(@method, "euc-jp", "ibm437").should == result
     end
 
     it "calls #to_str to convert the from object to an Encoding" do
-      NATFIXME 'honor source encoding', exception: SpecFailedException, message: /should be ==/ do
-        enc = mock("string encode encoding")
-        enc.should_receive(:to_str).and_return("ibm437")
+      enc = mock("string encode encoding")
+      enc.should_receive(:to_str).and_return("ibm437")
 
-        str = "あ"
-        result = [0xA6, 0xD0, 0x8F, 0xAB, 0xE4, 0x8F, 0xAB, 0xB1].pack('C8')
-        result.force_encoding Encoding::EUC_JP
+      str = "あ"
+      result = [0xA6, 0xD0, 0x8F, 0xAB, 0xE4, 0x8F, 0xAB, 0xB1].pack('C8')
+      result.force_encoding Encoding::EUC_JP
 
-        str.send(@method, "euc-jp", enc).should == result
-      end
+      str.send(@method, "euc-jp", enc).should == result
     end
   end
 
@@ -174,53 +170,43 @@ describe :string_encode, shared: true do
 
   describe "when passed to, from, options" do
     it "replaces undefined characters in the destination encoding" do
-      NATFIXME 'honor source encoding', exception: Encoding::UndefinedConversionError, message: /to UTF-8 in conversion from ASCII-8BIT to UTF-8 to EUC-JP/ do
-        str = "あ?あ".force_encoding Encoding::BINARY
-        result = str.send(@method, "euc-jp", "utf-8", undef: :replace)
-        xA4xA2 = [0xA4, 0xA2].pack('CC').force_encoding('utf-8')
-        result.should == "#{xA4xA2}?#{xA4xA2}".force_encoding("euc-jp")
-      end
+      str = "あ?あ".force_encoding Encoding::BINARY
+      result = str.send(@method, "euc-jp", "utf-8", undef: :replace)
+      xA4xA2 = [0xA4, 0xA2].pack('CC').force_encoding('utf-8')
+      result.should == "#{xA4xA2}?#{xA4xA2}".force_encoding("euc-jp")
     end
 
     it "replaces invalid characters in the destination encoding" do
-      NATFIXME 'honor source encoding', exception: Encoding::UndefinedConversionError, message: /to UTF-8 in conversion from ASCII-8BIT to UTF-8 to ISO-8859-1/ do
-        xFF = [0xFF].pack('C').force_encoding('utf-8')
-        str = "ab#{xFF}c".force_encoding Encoding::BINARY
-        str.send(@method, "iso-8859-1", "utf-8", invalid: :replace).should == "ab?c"
-      end
+      xFF = [0xFF].pack('C').force_encoding('utf-8')
+      str = "ab#{xFF}c".force_encoding Encoding::BINARY
+      str.send(@method, "iso-8859-1", "utf-8", invalid: :replace).should == "ab?c"
     end
 
     it "calls #to_str to convert the to object to an encoding" do
-      NATFIXME 'honor source encoding', exception: Encoding::UndefinedConversionError, message: /to UTF-8 in conversion from ASCII-8BIT to UTF-8 to ISO-8859-1/ do
-        to = mock("string encode to encoding")
-        to.should_receive(:to_str).and_return("iso-8859-1")
+      to = mock("string encode to encoding")
+      to.should_receive(:to_str).and_return("iso-8859-1")
 
-        xFF = [0xFF].pack('C').force_encoding('utf-8')
-        str = "ab#{xFF}c".force_encoding Encoding::BINARY
-        str.send(@method, to, "utf-8", invalid: :replace).should == "ab?c"
-      end
+      xFF = [0xFF].pack('C').force_encoding('utf-8')
+      str = "ab#{xFF}c".force_encoding Encoding::BINARY
+      str.send(@method, to, "utf-8", invalid: :replace).should == "ab?c"
     end
 
     it "calls #to_str to convert the from object to an encoding" do
-      NATFIXME 'honor source encoding', exception: Encoding::UndefinedConversionError, message: /to UTF-8 in conversion from ASCII-8BIT to UTF-8 to ISO-8859-1/ do
-        from = mock("string encode to encoding")
-        from.should_receive(:to_str).and_return("utf-8")
+      from = mock("string encode to encoding")
+      from.should_receive(:to_str).and_return("utf-8")
 
-        xFF = [0xFF].pack('C').force_encoding('utf-8')
-        str = "ab#{xFF}c".force_encoding Encoding::BINARY
-        str.send(@method, "iso-8859-1", from, invalid: :replace).should == "ab?c"
-      end
+      xFF = [0xFF].pack('C').force_encoding('utf-8')
+      str = "ab#{xFF}c".force_encoding Encoding::BINARY
+      str.send(@method, "iso-8859-1", from, invalid: :replace).should == "ab?c"
     end
 
     it "calls #to_hash to convert the options object" do
-      NATFIXME 'keyword splat should call to_hash?' do
-        options = mock("string encode options")
-        options.should_receive(:to_hash).and_return({ invalid: :replace })
+      options = mock("string encode options")
+      options.should_receive(:to_hash).and_return({ invalid: :replace })
 
-        xFF = [0xFF].pack('C').force_encoding('utf-8')
-        str = "ab#{xFF}c".force_encoding Encoding::BINARY
-        str.send(@method, "iso-8859-1", "utf-8", **options).should == "ab?c"
-      end
+      xFF = [0xFF].pack('C').force_encoding('utf-8')
+      str = "ab#{xFF}c".force_encoding Encoding::BINARY
+      str.send(@method, "iso-8859-1", "utf-8", **options).should == "ab?c"
     end
   end
 
