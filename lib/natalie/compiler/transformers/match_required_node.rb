@@ -28,7 +28,7 @@ module Natalie
             #{target} = lambda do |result|
               values = result.deconstruct
               if values.size != #{node.requireds.size}
-                raise ::NoMatchingPatternError, "\#{result}: \#{result} length mismatch (given \#{values.size}, expected #{node.requireds.size})"
+                raise ::NoMatchingPatternError, "\#{result}: \#{values} length mismatch (given \#{values.size}, expected #{node.requireds.size})"
               end
               values
             rescue NoMethodError
