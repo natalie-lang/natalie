@@ -100,6 +100,16 @@ describe 'pattern matching' do
     c.should == 3
   end
 
+  it 'can recursively handle local variables' do
+    x = 1
+    y = 2
+    -> {
+      [x, x + y] => a, b
+      a.should == 1
+      b.should == 3
+    }.call
+  end
+
   it 'can handle array targets with any input that implements #deconstruct' do
     deconstruct = mock('deconstruct')
     deconstruct.should_receive(:deconstruct).and_return([1, 2])
