@@ -35,6 +35,11 @@ public:
     virtual nat_int_t decode_codepoint(StringView &str) const override;
 
     virtual bool is_single_byte_encoding() const override final { return true; }
+
+private:
+    static const TM::Hashmap<nat_int_t, nat_int_t> &to_unicode_map();
+
+    static inline TM::Hashmap<nat_int_t, nat_int_t> s_to_unicode_map {};
 };
 
 }
