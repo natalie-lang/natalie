@@ -168,26 +168,22 @@ describe "The for expression" do
     arr = [:a, :b, :c]
     m = [1,2,3]
     n = 0
-    #for arr[1] in m
-      #n += 1
-    #end
-    NATFIXME 'Suppport IndexTargetNode in for loop', exception: SpecFailedException do
-      arr.should == [:a, 3, :c]
-      n.should == 3
+    for arr[1] in m
+      n += 1
     end
+    arr.should == [:a, 3, :c]
+    n.should == 3
   end
 
   it "allows a hash index writer as an iterator name" do
     hash = { a: 10, b: 20, c: 30 }
     m = [1,2,3]
     n = 0
-    #for hash[:b] in m
-      #n += 1
-    #end
-    NATFIXME 'Suppport IndexTargetNode in for loop', exception: SpecFailedException do
-      hash.should == { a: 10, b: 3, c: 30 }
-      n.should == 3
+    for hash[:b] in m
+      n += 1
     end
+    hash.should == { a: 10, b: 3, c: 30 }
+    n.should == 3
   end
 
   # 1.9 behaviour verified by nobu in

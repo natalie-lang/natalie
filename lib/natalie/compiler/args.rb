@@ -56,6 +56,8 @@ module Natalie
           transform_constant_arg(arg)
         when ::Prism::CallTargetNode
           transform_call_arg(arg)
+        when ::Prism::IndexTargetNode
+          transform_index_arg(arg)
         when ::Prism::RequiredParameterNode
           clean_up_keyword_args
           transform_required_arg(arg)
@@ -213,6 +215,26 @@ module Natalie
         if arg.safe_navigation?
           @instructions << EndInstruction.new(:if)
         end
+      end
+
+      def transform_index_arg(arg)
+        @instructions << ArrayShiftInstruction.new
+        @instructions.concat(@pass.transform_expression(arg.receiver, used: true))
+        @instructions << SwapInstruction.new
+        arg.arguments.arguments.each do |argument|
+          @instructions.concat(@pass.transform_expression(argument, used: true))
+          @instructions << SwapInstruction.new
+        end
+        @instructions << PushArgcInstruction.new(arg.arguments.arguments.size + 1)
+        @instructions << SendInstruction.new(
+          :[]=,
+          args_array_on_stack: false,
+          receiver_is_self: arg.receiver.is_a?(Prism::SelfNode),
+          with_block: false,
+          has_keyword_hash: false,
+          file: @pass.file.path,
+          line: arg.location.start_line,
+        )
       end
 
       def transform_rest_arg(arg)
