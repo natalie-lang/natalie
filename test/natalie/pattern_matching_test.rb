@@ -100,6 +100,16 @@ describe 'pattern matching' do
     c.should == 3
   end
 
+  it 'can recursively handle local variables' do
+    x = 1
+    y = 2
+    -> {
+      [x, x + y] => a, b
+      a.should == 1
+      b.should == 3
+    }.call
+  end
+
   it 'can handle array targets with any input that implements #deconstruct' do
     deconstruct = mock('deconstruct')
     deconstruct.should_receive(:deconstruct).and_return([1, 2])
@@ -118,6 +128,14 @@ describe 'pattern matching' do
     -> {
       [1, 2] => a, b, c
     }.should raise_error(NoMatchingPatternError, '[1, 2]: [1, 2] length mismatch (given 2, expected 3)')
+  end
+
+  it 'uses both the original input and the result of #deconstruct in the error message' do
+    struct = Struct.new(:a, :b)
+    s = struct.new(1, 2)
+    -> {
+      s => a, b, c
+    }.should raise_error(NoMatchingPatternError, "#{s}: [1, 2] length mismatch (given 2, expected 3)")
   end
 end
 
