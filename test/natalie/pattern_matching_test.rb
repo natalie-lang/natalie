@@ -119,6 +119,14 @@ describe 'pattern matching' do
       [1, 2] => a, b, c
     }.should raise_error(NoMatchingPatternError, '[1, 2]: [1, 2] length mismatch (given 2, expected 3)')
   end
+
+  it 'uses both the original input and the result of #deconstruct in the error message' do
+    struct = Struct.new(:a, :b)
+    s = struct.new(1, 2)
+    -> {
+      s => a, b, c
+    }.should raise_error(NoMatchingPatternError, "#{s}: [1, 2] length mismatch (given 2, expected 3)")
+  end
 end
 
 describe 'NoMatchingPatternError' do
