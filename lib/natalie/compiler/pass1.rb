@@ -2003,7 +2003,9 @@ module Natalie
       def transform_match_required_node(node, used:)
         match_required_node_compiler = Transformers::MatchRequiredNode.new
         code_str = match_required_node_compiler.call(node)
-        parser = Natalie::Parser.new(code_str, @file.path, locals: @locals_stack.last)
+        locals = @locals_stack.last
+        locals += [node.value.name] if node.value.is_a?(Prism::LocalVariableReadNode)
+        parser = Natalie::Parser.new(code_str, @file.path, locals:)
         instructions = transform_expression(parser.ast.statements, used: false)
         instructions << PushNilInstruction.new if used
         instructions
