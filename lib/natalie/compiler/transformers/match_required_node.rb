@@ -18,17 +18,24 @@ module Natalie
         private
 
         def transform_array_pattern_node(node, value)
-          raise SyntaxError, 'Rest argument in array pattern not yet supported' unless node.rest.nil?
+          raise SyntaxError, 'Named rest argument in array pattern not yet supported' unless node.rest&.expression.nil?
           raise SyntaxError, 'Post arguments in array pattern not yet supported' unless node.posts.empty?
           raise SyntaxError, 'Targets other then local variables not yet supported' unless node.requireds.all? { |n| n.type == :local_variable_target_node }
 
           # Transform `expr => [a, b] into `a, b = ->(expr) { expr.deconstruct }.call(expr)`
-          target = node.requireds.map(&:name).join(', ')
+          targets = node.requireds.map(&:name)
+          expected_size = node.requireds.size
+          expected_size_str = node.requireds.size.to_s
+          if node.rest
+            targets << :*
+            expected_size = "(#{expected_size}..)"
+            expected_size_str << '+'
+          end
           <<~RUBY
-            #{target} = lambda do |result|
+            #{targets.join(', ')} = lambda do |result|
               values = result.deconstruct
-              if values.size != #{node.requireds.size}
-                raise ::NoMatchingPatternError, "\#{result}: \#{values} length mismatch (given \#{values.size}, expected #{node.requireds.size})"
+              unless #{expected_size} === values.size
+                raise ::NoMatchingPatternError, "\#{result}: \#{values} length mismatch (given \#{values.size}, expected #{expected_size_str})"
               end
               values
             rescue NoMethodError
