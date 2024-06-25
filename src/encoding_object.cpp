@@ -53,13 +53,34 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         }
 
         auto handle_fallback = [&](nat_int_t cpt) {
-            Value result;
+            auto ch = new StringObject { orig_encoding->encode_codepoint(cpt) };
+            Value result = NilObject::the();
             if (options.fallback_option->respond_to(env, "[]"_s)) {
-                result = options.fallback_option->send(env, "[]"_s, { Value::integer(cpt) });
+                result = options.fallback_option->send(env, "[]"_s, { ch });
             } else if (options.fallback_option->respond_to(env, "call"_s)) {
-                result = options.fallback_option->send(env, "call"_s, { Value::integer(cpt) });
+                result = options.fallback_option->send(env, "call"_s, { ch });
             }
-            temp_string.append(result->to_s(env));
+
+            if (result->is_nil()) {
+                auto message = StringObject::format(
+                    "U+{} from {} to {}",
+                    String::hex(cpt, String::HexFormat::Uppercase),
+                    orig_encoding->name(),
+                    name());
+                env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
+            }
+
+            auto result_str = result->to_str(env);
+            if (result_str->encoding()->num() != num()) {
+                try {
+                    result_str = result_str->encode(env, EncodingObject::get(num()))->to_str(env);
+                } catch (ExceptionObject *e) {
+                    // FIXME: I'm not sure how Ruby knows the character is "too big" for the target encoding.
+                    // We don't have that kind of information yet.
+                    env->raise("ArgumentError", "too big fallback string");
+                }
+            }
+            temp_string.append(result_str);
         };
 
         auto source_codepoint = valid ? c : -1;
@@ -68,10 +89,6 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         if (source_codepoint == -1) {
             switch (options.invalid_option) {
             case EncodeInvalidOption::Raise:
-                if (options.fallback_option) {
-                    handle_fallback(c);
-                    continue;
-                }
                 env->raise_invalid_byte_sequence_error(this);
             case EncodeInvalidOption::Replace:
                 if (options.replace_option) {
@@ -87,7 +104,6 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
             unicode_codepoint = orig_encoding->to_unicode_codepoint(source_codepoint);
         }
 
-        // handle error
         if (unicode_codepoint < 0) {
             StringObject *message;
             if (num() != Encoding::UTF_8) {
