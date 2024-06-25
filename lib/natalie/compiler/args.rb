@@ -54,6 +54,8 @@ module Natalie
           transform_global_variable_arg(arg)
         when ::Prism::ConstantTargetNode
           transform_constant_arg(arg)
+        when ::Prism::CallTargetNode
+          transform_call_arg(arg)
         when ::Prism::RequiredParameterNode
           clean_up_keyword_args
           transform_required_arg(arg)
@@ -185,6 +187,22 @@ module Natalie
         @instructions << ArrayShiftInstruction.new
         @instructions << PushSelfInstruction.new
         @instructions << ConstSetInstruction.new(arg.name)
+      end
+
+      def transform_call_arg(arg)
+        @instructions << ArrayShiftInstruction.new
+        @instructions.concat(@pass.transform_expression(arg.receiver, used: true))
+        @instructions << SwapInstruction.new
+        @instructions << PushArgcInstruction.new(1)
+        @instructions << SendInstruction.new(
+          arg.name,
+          args_array_on_stack: false,
+          receiver_is_self: arg.receiver.is_a?(Prism::SelfNode),
+          with_block: false,
+          has_keyword_hash: false,
+          file: @pass.file.path,
+          line: arg.location.start_line,
+        )
       end
 
       def transform_rest_arg(arg)
