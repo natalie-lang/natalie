@@ -192,6 +192,13 @@ module Natalie
       def transform_call_arg(arg)
         @instructions << ArrayShiftInstruction.new
         @instructions.concat(@pass.transform_expression(arg.receiver, used: true))
+        if arg.safe_navigation?
+          @instructions << DupInstruction.new
+          @instructions << IsNilInstruction.new
+          @instructions << IfInstruction.new
+          @instructions << PopInstruction.new
+          @instructions << ElseInstruction.new(:if)
+        end
         @instructions << SwapInstruction.new
         @instructions << PushArgcInstruction.new(1)
         @instructions << SendInstruction.new(
@@ -203,6 +210,9 @@ module Natalie
           file: @pass.file.path,
           line: arg.location.start_line,
         )
+        if arg.safe_navigation?
+          @instructions << EndInstruction.new(:if)
+        end
       end
 
       def transform_rest_arg(arg)

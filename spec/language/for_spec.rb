@@ -151,18 +151,16 @@ describe "The for expression" do
     end
 
     it "allows an attribute with safe navigation on a nil base as an iterator name" do
-      NATFIXME 'Suppport CallTargetNode with safe navigation and nil receiver in for loop', exception: NoMethodError, message: "undefined method `target=' for nil" do
-        ofor = nil
-        m = [1,2,3]
-        n = 0
-        eval <<~RUBY
-          for ofor&.target in m
-            n += 1
-          end
-        RUBY
-        ofor.should be_nil
-        n.should == 3
-      end
+      ofor = nil
+      m = [1,2,3]
+      n = 0
+      eval <<~RUBY
+        for ofor&.target in m
+          n += 1
+        end
+      RUBY
+      ofor.should be_nil
+      n.should == 3
     end
   #end
 
