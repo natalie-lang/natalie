@@ -137,6 +137,66 @@ describe 'pattern matching' do
       s => a, b, c
     }.should raise_error(NoMatchingPatternError, "#{s}: [1, 2] length mismatch (given 2, expected 3)")
   end
+
+  it 'can handle unnamed splat output without additional fields' do
+    [1, 2] => [a, b, *]
+    a.should == 1
+    b.should == 2
+  end
+
+  it 'can handle unnamed splat output with additional fields' do
+    [1, 2, 3, 4] => [a, b, *]
+    a.should == 1
+    b.should == 2
+  end
+
+  it 'can handle unnamed splat as only target' do
+    [1, 2, 3, 4] => [*]
+  end
+
+  it 'raises an exception if the input is too short' do
+    -> {
+      [1, 2] => [a, b, c, *]
+    }.should raise_error(NoMatchingPatternError, '[1, 2]: [1, 2] length mismatch (given 2, expected 3+)')
+  end
+
+  it 'can handle named splat output without additional fields' do
+    [1, 2] => [a, b, *c]
+    a.should == 1
+    b.should == 2
+    c.should == []
+  end
+
+  it 'can handle named splat output with additional fields' do
+    [1, 2, 3, 4] => [a, b, *c]
+    a.should == 1
+    b.should == 2
+    c.should == [3, 4]
+  end
+
+  it 'can handle named splat as only target' do
+    [1, 2, 3, 4] => [*c]
+    c.should == [1, 2, 3, 4]
+  end
+
+  it 'raises an exception if the input is too short' do
+    -> {
+      [1, 2] => [a, b, c, *d]
+    }.should raise_error(NoMatchingPatternError, '[1, 2]: [1, 2] length mismatch (given 2, expected 3+)')
+  end
+
+  it 'can handle post targets' do
+    [1, 2, 3, 4] => [a, *b, c]
+    a.should == 1
+    b.should == [2, 3]
+    c.should == 4
+  end
+
+  it 'raises an exception if the input is too short' do
+    -> {
+      [1, 2] => [a, b, *c, d]
+    }.should raise_error(NoMatchingPatternError, '[1, 2]: [1, 2] length mismatch (given 2, expected 3+)')
+  end
 end
 
 describe 'NoMatchingPatternError' do
