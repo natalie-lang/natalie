@@ -124,8 +124,7 @@ describe 'pattern matching' do
     struct = Struct.new(:a, :b)
     s = struct.new(1, 2)
     -> {
-      s2 = s # NATFIXME: Workaround for scoping issue, we should use `s` directly in the line below
-      s2 => a, b, c
+      s => a, b, c
     }.should raise_error(NoMatchingPatternError, "#{s}: [1, 2] length mismatch (given 2, expected 3)")
   end
 end
