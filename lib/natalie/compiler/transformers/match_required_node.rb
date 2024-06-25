@@ -27,7 +27,7 @@ module Natalie
           expected_size = node.requireds.size
           expected_size_str = node.requireds.size.to_s
           if node.rest
-            targets << :*
+            targets << :"*#{node.rest.expression&.name}"
             expected_size = "(#{expected_size}..)"
             expected_size_str << '+'
           end
