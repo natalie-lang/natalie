@@ -18,19 +18,19 @@ module Natalie
         private
 
         def transform_array_pattern_node(node, value)
-          raise SyntaxError, 'Named rest argument in array pattern not yet supported' unless node.rest&.expression.nil?
-          raise SyntaxError, 'Post arguments in array pattern not yet supported' unless node.posts.empty?
           raise SyntaxError, 'Targets other then local variables not yet supported' unless node.requireds.all? { |n| n.type == :local_variable_target_node }
+          raise SyntaxError, 'Targets other then local variables not yet supported' unless node.posts.all? { |n| n.type == :local_variable_target_node }
 
           # Transform `expr => [a, b] into `a, b = ->(expr) { expr.deconstruct }.call(expr)`
           targets = node.requireds.map(&:name)
-          expected_size = node.requireds.size
-          expected_size_str = node.requireds.size.to_s
+          expected_size = node.requireds.size + node.posts.size
+          expected_size_str = expected_size.to_s
           if node.rest
             targets << :"*#{node.rest.expression&.name}"
             expected_size = "(#{expected_size}..)"
             expected_size_str << '+'
           end
+          targets.concat(node.posts.map(&:name))
           <<~RUBY
             #{targets.join(', ')} = lambda do |result|
               values = result.deconstruct
