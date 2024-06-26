@@ -229,7 +229,7 @@ Value EncodingObject::find(Env *env, Value name) {
     env->raise("ArgumentError", "unknown encoding name - {}", name->inspect_str(env));
 }
 
-// Lookup an EncodingObject by its string-name, or raise if unsuccessful.
+// Lookup an EncodingObject by its string-name, or return null.
 EncodingObject *EncodingObject::find_encoding_by_name(Env *env, String name) {
     auto lcase_name = name.lowercase();
     ArrayObject *list = EncodingObject::list(env);
@@ -244,7 +244,7 @@ EncodingObject *EncodingObject::find_encoding_by_name(Env *env, String name) {
             }
         }
     }
-    env->raise("ArgumentError", "unknown encoding name - {}", name);
+    return nullptr;
 }
 
 // If an EncodingObject then return it, if a StringObject,
@@ -253,7 +253,12 @@ EncodingObject *EncodingObject::find_encoding(Env *env, Value encoding) {
     Value enc_or_nil = EncodingObject::find(env, encoding);
     if (enc_or_nil->is_encoding())
         return enc_or_nil->as_encoding();
-    return EncodingObject::find_encoding_by_name(env, String("BINARY"));
+
+    auto enc = EncodingObject::find_encoding_by_name(env, String("BINARY"));
+    if (!enc)
+        env->raise("ArgumentError", "unknown encoding name - {}", encoding);
+
+    return enc;
 }
 
 ArrayObject *EncodingObject::list(Env *) {

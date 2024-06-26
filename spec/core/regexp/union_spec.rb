@@ -32,7 +32,7 @@ describe "Regexp.union" do
   end
 
   it "returns a Regexp with US-ASCII encoding if all arguments are ASCII-only" do
-    NATFIXME 'Implement SJIS encoding', exception: ArgumentError, message: 'unknown encoding name - "SJIS"' do
+    NATFIXME 'Implement SJIS encoding', exception: Encoding::ConverterNotFoundError, message: 'code converter not found (UTF-8 to SJIS)' do
       Regexp.union("a".encode("UTF-8"), "b".encode("SJIS")).encoding.should == Encoding::US_ASCII
     end
   end
