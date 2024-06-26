@@ -27,6 +27,10 @@ describe 'pattern matching' do
    a.should == 1
   end
 
+  it 'can handle unnamed variable' do
+    1 => _
+  end
+
   it 'does not define a local variable if the expression fails' do
     -> {
       (raise RuntimeError, 'expected error'; 2) => a
@@ -118,6 +122,11 @@ describe 'pattern matching' do
     b.should == 2
   end
 
+  it 'can handle unnamed variables' do
+    [1, 2, 3] => a, _, _
+    a.should == 1
+  end
+
   it 'raises an exception for input that does not implement #deconstruct' do
     -> {
       1 => a, b
@@ -190,6 +199,11 @@ describe 'pattern matching' do
     a.should == 1
     b.should == [2, 3]
     c.should == 4
+  end
+
+  it 'can handle unnamed variables' do
+    [1, 2, 3, 4] => [_, *_, a]
+    a.should == 4
   end
 
   it 'raises an exception if the input is too short' do
