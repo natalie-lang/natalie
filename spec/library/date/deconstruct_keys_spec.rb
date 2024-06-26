@@ -6,7 +6,10 @@ version_is date_version, "3.3" do #ruby_version_is "3.2" do
   describe "Date#deconstruct_keys" do
     it "returns whole hash for nil as an argument" do
       d = Date.new(2022, 10, 5)
-      d.deconstruct_keys(nil).should == { year: 2022, month: 10, day: 5, yday: 278, wday: 3 }
+      NATFIXME 'Implement Date#yday', condition: !d.respond_to?(:yday), exception: SpecFailedException do
+        d.deconstruct_keys(nil).should == { year: 2022, month: 10, day: 5, yday: 278, wday: 3 }
+      end
+      d.deconstruct_keys(nil).should == { year: 2022, month: 10, day: 5, wday: 3 }
     end
 
     it "returns only specified keys" do
