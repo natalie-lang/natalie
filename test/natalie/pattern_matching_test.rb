@@ -240,6 +240,30 @@ describe 'pattern matching' do
       [1, 2, 3] => 1, a, 3, 4
     }.should raise_error(NoMatchingPatternError, '[1, 2, 3]: [1, 2, 3] length mismatch (given 3, expected 4)')
   end
+
+  it 'can combine match and set in match lists with rest' do
+    [1, 2, 3, 4] => 1, a, *b
+    a.should == 2
+    b.should == [3, 4]
+  end
+
+  it 'raises an exception if the pattern does not match in match lists with rest' do
+    -> {
+      [1, 2] => [1, 3, *]
+    }.should raise_error(NoMatchingPatternError, '[1, 2]: 3 === 2 does not return true')
+  end
+
+  it 'raises an exception if the pattern does not match in combined match and set in match lists with rest' do
+    -> {
+      [1, 2, 3, 4] => [1, *, 2]
+    }.should raise_error(NoMatchingPatternError, '[1, 2, 3, 4]: 2 === 4 does not return true')
+  end
+
+  it 'raises an exception if the pattern does not match in combined match and set in match lists with rest if the size does not match' do
+    -> {
+      [1, 4] => 1, *a, 3, 4
+    }.should raise_error(NoMatchingPatternError, '[1, 4]: [1, 4] length mismatch (given 2, expected 3+)')
+  end
 end
 
 describe 'NoMatchingPatternError' do
