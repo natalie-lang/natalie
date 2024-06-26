@@ -174,6 +174,20 @@ describe 'string' do
       s = 'abc 😢'.encode 'utf-8'
       -> { s.encode 'bogus-fake-encoding' }.should raise_error(StandardError) # TODO: not actually the right error ;-)
     end
+
+    context "UTF-16BE" do
+      it 'encodes and decodes two-byte characters' do
+        s = "é".encode(Encoding::UTF_16BE, Encoding::UTF_8)
+        s.bytes.should == [0, 233]
+        s.encode(Encoding::UTF_8, Encoding::UTF_16BE).bytes.should == [195, 169]
+      end
+
+      it 'encodes and decodes four-byte characters' do
+        s = "😢".encode(Encoding::UTF_16BE, Encoding::UTF_8)
+        s.bytes.should == [216, 61, 222, 34]
+        s.encode(Encoding::UTF_8, Encoding::UTF_16BE).bytes.should == [240, 159, 152, 162]
+      end
+    end
   end
 
   describe '#force_encoding' do

@@ -143,10 +143,8 @@ describe "String#encode" do
     end
 
     it "returns the transcoded string" do
-      NATFIXME 'honor source encoding', exception: SpecFailedException, message: /should be ==/ do
-        str = "\x00\x00\x00\x1F"
-        str.encode(Encoding::UTF_8, Encoding::UTF_16BE).should == "\u0000\u001f"
-      end
+      str = "\x00\x00\x00\x1F"
+      str.encode(Encoding::UTF_8, Encoding::UTF_16BE).should == "\u0000\u001f"
     end
   end
 

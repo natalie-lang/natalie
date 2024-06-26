@@ -63,8 +63,8 @@ std::pair<bool, StringView> Utf16BeEncodingObject::next_char(const String &strin
         return { false, StringView(&string, i, 1) };
     }
 
-    size_t code_unit_low = (unsigned char)string[i]
-        + ((unsigned char)string[i + 1] << 8);
+    size_t code_unit_low = ((unsigned char)string[i] << 8)
+        + (unsigned char)string[i + 1];
 
     //  2-bytes logic
 
@@ -82,8 +82,8 @@ std::pair<bool, StringView> Utf16BeEncodingObject::next_char(const String &strin
 
     //  4-bytes logic
 
-    size_t code_unit_high = (unsigned char)string[i + 2]
-        + ((unsigned char)string[i + 3] << 8);
+    size_t code_unit_high = ((unsigned char)string[i + 2] << 8)
+        + (unsigned char)string[i + 3];
 
     // 1st code unit - D800..DBFF and 2nd - DC00..DFFF
     if (code_unit_low >= 0xD800 && code_unit_low <= 0xDBFF
@@ -120,10 +120,10 @@ String Utf16BeEncodingObject::encode_codepoint(nat_int_t codepoint) const {
         size_t code_unit_low = ((codepoint - 0x10000) & 0x03FF) + 0xDC00;
         size_t code_unit_high = ((codepoint - 0x10000) >> 10) + 0xD800;
 
-        buf.append_char(code_unit_low >> 8);
-        buf.append_char(code_unit_low & 0xFF);
         buf.append_char(code_unit_high >> 8);
         buf.append_char(code_unit_high & 0xFF);
+        buf.append_char(code_unit_low >> 8);
+        buf.append_char(code_unit_low & 0xFF);
     } else {
         TM_UNREACHABLE();
     }
@@ -136,13 +136,13 @@ nat_int_t Utf16BeEncodingObject::decode_codepoint(StringView &str) const {
     case 2:
         // assert(result < 0xD800 || result > 0xDFFF)
 
-        return ((unsigned char)str[1] << 8)
-            + ((unsigned char)str[0]);
+        return ((unsigned char)str[0] << 8)
+            + ((unsigned char)str[1]);
     case 4: {
-        int high_surrogate = ((unsigned char)str[2])
-            + ((unsigned char)str[3] << 8);
-        int low_surrogate = ((unsigned char)str[0])
-            + ((unsigned char)str[1] << 8);
+        int high_surrogate = ((unsigned char)str[0] << 8)
+            + ((unsigned char)str[1]);
+        int low_surrogate = ((unsigned char)str[2] << 8)
+            + ((unsigned char)str[3]);
 
         // assert(high_surrogate >= 0xD800 && high_surrogate <= 0xDBFF)
         // assert(low_surrogate >= 0xDC00 && low_surrogate <= 0xDFFF)
