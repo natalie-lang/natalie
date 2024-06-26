@@ -569,6 +569,10 @@ Value ThreadObject::thread_variable_set(Env *env, Value key, Value value) {
         env->raise("TypeError", "{} is not a symbol", key->inspect_str(env));
     if (!m_thread_variables)
         m_thread_variables = new HashObject;
+    if (value->is_nil()) {
+        m_thread_variables->delete_key(env, key, nullptr);
+        return value;
+    }
     return m_thread_variables->refeq(env, key, value);
 }
 
