@@ -1174,9 +1174,24 @@ Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_enco
             options.fallback_option = fallback;
     }
 
+    auto find_encoding = [&](Value encoding) {
+        if (encoding->is_encoding())
+            return encoding->as_encoding();
+
+        auto name = encoding->to_str(env)->string();
+        return EncodingObject::find_encoding_by_name(env, name);
+    };
+
     env->ensure_no_extra_keywords(kwargs);
-    EncodingObject *dst_encoding_obj = EncodingObject::find_encoding(env, dst_encoding);
-    EncodingObject *src_encoding_obj = EncodingObject::find_encoding(env, src_encoding);
+    EncodingObject *dst_encoding_obj = find_encoding(dst_encoding);
+    EncodingObject *src_encoding_obj = find_encoding(src_encoding);
+    if (!dst_encoding_obj || !src_encoding_obj) {
+        auto klass = m_encoding->klass()->const_find(env, "ConverterNotFoundError"_s)->as_class();
+        auto to_name = dst_encoding->to_s(env)->string();
+        auto from_name = src_encoding->to_s(env)->string();
+        env->raise(klass, "code converter not found ({} to {})", from_name, to_name);
+    }
+
     return dst_encoding_obj->encode(env, src_encoding_obj, this, options);
 }
 

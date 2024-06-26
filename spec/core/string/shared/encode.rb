@@ -78,11 +78,9 @@ describe :string_encode, shared: true do
     end
 
     it "raises an Encoding::ConverterNotFoundError for an invalid encoding" do
-      NATFIXME 'wrong error', exception: SpecFailedException, message: /ConverterNotFoundError.*but instead.*ArgumentError/ do
-        -> do
-          "abc".send(@method, "xyz")
-        end.should raise_error(Encoding::ConverterNotFoundError)
-      end
+      -> do
+        "abc".send(@method, "xyz")
+      end.should raise_error(Encoding::ConverterNotFoundError)
     end
   end
 

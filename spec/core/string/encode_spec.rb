@@ -92,9 +92,7 @@ describe "String#encode" do
     end
 
     it "replace multiple invalid bytes at the end with a single replacement character" do
-      NATFIXME 'same encoding with invalid chars', exception: SpecFailedException, message: /should be ==/ do
-        "\xE3\x81\x93\xE3\x81".encode("UTF-8", invalid: :replace).should == "\u3053\ufffd"
-      end
+      "\xE3\x81\x93\xE3\x81".encode("UTF-8", invalid: :replace).should == "\u3053\ufffd"
     end
 
     it "replaces invalid encoding in source using a specified replacement even when a fallback is given" do
@@ -136,21 +134,17 @@ describe "String#encode" do
 
   describe "when passed to, from" do
     it "returns a copy in the destination encoding when both encodings are the same" do
-      NATFIXME 'same encoding for source and destination', exception: SpecFailedException, message: '#<Encoding:ASCII-8BIT> should be == to #<Encoding:UTF-8>' do
-        str = "あ".dup.force_encoding("binary")
-        encoded = str.encode("utf-8", "utf-8")
+      str = "あ".dup.force_encoding("binary")
+      encoded = str.encode("utf-8", "utf-8")
 
-        encoded.should_not equal(str)
-        encoded.should == str.force_encoding("utf-8")
-        encoded.encoding.should == Encoding::UTF_8
-      end
+      encoded.should_not equal(str)
+      encoded.should == str.force_encoding("utf-8")
+      encoded.encoding.should == Encoding::UTF_8
     end
 
     it "returns the transcoded string" do
-      NATFIXME 'honor source encoding', exception: SpecFailedException, message: /should be ==/ do
-        str = "\x00\x00\x00\x1F"
-        str.encode(Encoding::UTF_8, Encoding::UTF_16BE).should == "\u0000\u001f"
-      end
+      str = "\x00\x00\x00\x1F"
+      str.encode(Encoding::UTF_8, Encoding::UTF_16BE).should == "\u0000\u001f"
     end
   end
 
@@ -172,14 +166,12 @@ describe "String#encode" do
     end
 
     it "returns a copy in the destination encoding when both encodings are the same" do
-      NATFIXME 'same encoding for source and destination', exception: SpecFailedException, message: '#<Encoding:ASCII-8BIT> should be == to #<Encoding:UTF-8>' do
-        str = "あ".dup.force_encoding("binary")
-        encoded = str.encode("utf-8", "utf-8", invalid: :replace)
+      str = "あ".dup.force_encoding("binary")
+      encoded = str.encode("utf-8", "utf-8", invalid: :replace)
 
-        encoded.should_not equal(str)
-        encoded.should == str.force_encoding("utf-8")
-        encoded.encoding.should == Encoding::UTF_8
-      end
+      encoded.should_not equal(str)
+      encoded.should == str.force_encoding("utf-8")
+      encoded.encoding.should == Encoding::UTF_8
     end
   end
 end
