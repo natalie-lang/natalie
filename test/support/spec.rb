@@ -311,8 +311,9 @@ def version_is(*args)
   end
 end
 
-# We do not want replicate ruby bugs
-def ruby_bug(*); end
+def ruby_bug(bug_id, _version, &block)
+  describe("We do not reproduce bug #{bug_id}", &block)
+end
 
 def slow_test
   yield if ENV['ENABLE_SLOW_TESTS']

@@ -88,21 +88,27 @@ describe 'Range#minmax' do
 
     ruby_bug "#17014", ""..."3.0" do
       it 'should return nil pair if beginning and end are equal without iterating the range' do
-        @x.should_not_receive(:succ)
+        NATFIXME 'it should return nil pair if beginning and end are equal without iterating the range', exception: NoMethodError, message: "undefined method `<' for an instance of MockObject" do
+          @x.should_not_receive(:succ)
 
-        (@x...@x).minmax.should == [nil, nil]
+          (@x...@x).minmax.should == [nil, nil]
+        end
       end
 
       it 'should return nil pair if beginning is greater than end without iterating the range' do
-        @y.should_not_receive(:succ)
+        NATFIXME 'it should return nil pair if beginning is greater than end without iterating the range', exception: NoMethodError, message: "undefined method `<' for an instance of MockObject" do
+          @y.should_not_receive(:succ)
 
-        (@y...@x).minmax.should == [nil, nil]
+          (@y...@x).minmax.should == [nil, nil]
+        end
       end
 
       it 'should return the minimum and maximum values for a non-numeric range by iterating the range' do
-        @x.should_receive(:succ).once.and_return(@y)
+        NATFIXME 'it should return the minimum and maximum values for a non-numeric range by iterating the range', exception: NoMethodError, message: "undefined method `<' for an instance of MockObject" do
+          @x.should_receive(:succ).once.and_return(@y)
 
-        (@x...@y).minmax.should == [@x, @x]
+          (@x...@y).minmax.should == [@x, @x]
+        end
       end
     end
 
