@@ -8,14 +8,7 @@ namespace Natalie {
 EncodingObject::EncodingObject()
     : Object { Object::Type::Encoding, GlobalEnv::the()->Object()->const_fetch("Encoding"_s)->as_class() } { }
 
-// Pretty naive implementation that doesn't support encoding options.
-//
-// TODO:
-// * support encoding options
 Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str, EncodeOptions options) const {
-    if (num() == orig_encoding->num() && options.newline_option == EncodeNewlineOption::None)
-        return str;
-
     StringObject temp_string = StringObject("", (EncodingObject *)this);
     ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s)->as_class();
 
