@@ -18,8 +18,6 @@ module Natalie
         private
 
         def transform_array_pattern_node(node, value)
-          raise SyntaxError, 'Targets other then local variables in post not yet supported' unless node.posts.all? { |n| n.type == :local_variable_target_node }
-
           # Transform `expr => [a, b] into `a, b = ->(expr) { expr.deconstruct }.call(expr)`
           targets = node.requireds.filter_map { |n| n.name if n.type == :local_variable_target_node }
           expected_size = node.requireds.size + node.posts.size
@@ -29,8 +27,8 @@ module Natalie
             expected_size = "(#{expected_size}..)"
             expected_size_str << '+'
           end
-          targets.concat(node.posts.map(&:name))
-          targets_str = if targets.empty?
+          targets.concat(node.posts.filter_map { |n| n.name if n.type == :local_variable_target_node })
+          targets_str = if targets.empty? || targets == [:*]
                           ''
                         elsif targets.size == 1 && !targets.first.start_with?('*')
                           "#{targets.first}, * = "
@@ -48,7 +46,22 @@ module Natalie
               RUBY
             end
           end
-          main_loop_instructions << "outputs.concat(values.slice(#{node.requireds.size}..))"
+          if node.posts.empty?
+            main_loop_instructions << "outputs.concat(values.slice(#{node.requireds.size}..))"
+          else
+            main_loop_instructions << "outputs.concat(values.slice(#{node.requireds.size}...(values.size - #{node.posts.size})))"
+            main_loop_instructions += node.posts.map.with_index do |n, i|
+              if n.type == :local_variable_target_node
+                "outputs << values[#{i - node.posts.size}]"
+              else
+                <<~RUBY
+                  unless #{n.location.slice} === values[#{i - node.posts.size}]
+                    raise ::NoMatchingPatternError, "\#{result}: #{n.location.slice} === \#{values[#{i - node.posts.size}]} does not return true"
+                  end
+                RUBY
+              end
+            end
+          end
           <<~RUBY
             #{targets_str}lambda do |result|
               values = result.deconstruct
