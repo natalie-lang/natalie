@@ -3,6 +3,8 @@ require 'natalie/inline'
 class Date
   include Comparable
 
+  VERSION = '3.3.0'
+
   ITALY = 2_299_161 # 1582-10-15
   ENGLAND = 2_361_222 # 1752-09-14
 
