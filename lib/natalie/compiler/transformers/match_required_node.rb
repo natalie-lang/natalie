@@ -35,7 +35,7 @@ module Natalie
                         else
                           "#{targets.join(', ')} = "
                         end
-          main_loop_instructions = node.requireds.map.with_index do |n, i|
+          main_loop_instructions = node.requireds.each_with_index.map do |n, i|
             if n.type == :local_variable_target_node
               "outputs << values[#{i}]"
             else
@@ -50,7 +50,7 @@ module Natalie
             main_loop_instructions << "outputs.concat(values.slice(#{node.requireds.size}..))"
           else
             main_loop_instructions << "outputs.concat(values.slice(#{node.requireds.size}...(values.size - #{node.posts.size})))"
-            main_loop_instructions += node.posts.map.with_index do |n, i|
+            main_loop_instructions += node.posts.each_with_index.map do |n, i|
               if n.type == :local_variable_target_node
                 "outputs << values[#{i - node.posts.size}]"
               else
