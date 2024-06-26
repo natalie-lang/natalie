@@ -175,6 +175,10 @@ describe 'string' do
       -> { s.encode 'bogus-fake-encoding' }.should raise_error(StandardError) # TODO: not actually the right error ;-)
     end
 
+    it 'does not raise an error when encoding binary to binary' do
+      "\xFF".force_encoding('ASCII-8BIT').encode('ASCII-8BIT').should == "\xFF".force_encoding("ASCII-8BIT")
+    end
+
     context "UTF-16BE" do
       it 'encodes and decodes two-byte characters' do
         s = "é".encode(Encoding::UTF_16BE, Encoding::UTF_8)

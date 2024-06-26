@@ -9,6 +9,9 @@ EncodingObject::EncodingObject()
     : Object { Object::Type::Encoding, GlobalEnv::the()->Object()->const_fetch("Encoding"_s)->as_class() } { }
 
 Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str, EncodeOptions options) const {
+    if (orig_encoding->num() == Encoding::ASCII_8BIT && num() == Encoding::ASCII_8BIT)
+        return str;
+
     StringObject temp_string = StringObject("", (EncodingObject *)this);
     ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s)->as_class();
 
