@@ -3,6 +3,8 @@ require 'natalie/inline'
 class Date
   include Comparable
 
+  VERSION = '3.3.0'
+
   ITALY = 2_299_161 # 1582-10-15
   ENGLAND = 2_361_222 # 1752-09-14
 
@@ -218,6 +220,14 @@ class Date
 
   def asctime
     strftime('%a %b %e %H:%M:%S %Y')
+  end
+
+  def deconstruct_keys(names)
+    raise TypeError, "wrong argument type #{names.class} (expected Array or nil)" if !names.nil? && !names.is_a?(Array)
+
+    result = { year:, month:, day:, wday: }
+    result = result.slice(*names) unless names.nil?
+    result
   end
 
   def downto(min)
