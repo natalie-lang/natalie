@@ -182,7 +182,8 @@ describe "Integer#<< (with n << m)" do
     end
 
     ruby_bug "#18517", ""..."3.2" do
-      it "returns 0 when m > 0 long and n == 0" do
+      # NATFIXME: Timeout error
+      xit "returns 0 when m > 0 long and n == 0" do
         (0 << (2**40)).should == 0
       end
     end
@@ -192,7 +193,8 @@ describe "Integer#<< (with n << m)" do
     end
 
     ruby_bug "#18518", ""..."3.3" do
-      it "raises NoMemoryError when m > 0 and n != 0" do
+      # NATFIXME: Timeout error
+      xit "raises NoMemoryError when m > 0 and n != 0" do
         coerce_long = mock("long")
         coerce_long.stub!(:to_int).and_return(2**40)
         coerce_bignum = mock("bignum")

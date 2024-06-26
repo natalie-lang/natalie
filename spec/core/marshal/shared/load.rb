@@ -160,33 +160,43 @@ describe :marshal_load, shared: true do
 
       ruby_bug "#19427", ""..."3.3" do
         it "does freeze extended objects" do
-          object = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x00", freeze: true)
-          object.should.frozen?
+          NATFIXME 'does freeze extended objects', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
+            object = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x00", freeze: true)
+            object.should.frozen?
+          end
         end
 
         it "does freeze extended objects with instance variables" do
-          object = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x06:\n@ivarT", freeze: true)
-          object.should.frozen?
+          NATFIXME 'does freeze extended objects with instance variables', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
+            object = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x06:\n@ivarT", freeze: true)
+            object.should.frozen?
+          end
         end
       end
 
       ruby_bug "#19427", "3.1"..."3.3" do
         it "returns frozen object having #_dump method" do
-          object = Marshal.send(@method, Marshal.dump(UserDefined.new), freeze: true)
-          object.should.frozen?
+          NATFIXME 'returns frozen object having #_dump method', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
+            object = Marshal.send(@method, Marshal.dump(UserDefined.new), freeze: true)
+            object.should.frozen?
+          end
         end
 
         it "returns frozen object responding to #marshal_dump and #marshal_load" do
-          object = Marshal.send(@method, Marshal.dump(UserMarshal.new), freeze: true)
-          object.should.frozen?
+          NATFIXME 'returns frozen object responding to #marshal_dump and #marshal_load', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
+            object = Marshal.send(@method, Marshal.dump(UserMarshal.new), freeze: true)
+            object.should.frozen?
+          end
         end
 
         it "returns frozen object extended by a module" do
           object = Object.new
           object.extend(MarshalSpec::ModuleToExtendBy)
 
-          object = Marshal.send(@method, Marshal.dump(object), freeze: true)
-          object.should.frozen?
+          NATFIXME 'returns frozen object extended by a module', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
+            object = Marshal.send(@method, Marshal.dump(object), freeze: true)
+            object.should.frozen?
+          end
         end
       end
 
@@ -268,26 +278,32 @@ describe :marshal_load, shared: true do
     ruby_bug "#18141", ""..."3.1" do
       it "call the proc with fully initialized strings" do
         utf8_string = "foo".encode(Encoding::UTF_8)
-        Marshal.send(@method, Marshal.dump(utf8_string), proc { |arg|
-          if arg.is_a?(String)
-            arg.should == utf8_string
-            arg.encoding.should == Encoding::UTF_8
-          end
-          arg
-        })
+        NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+          Marshal.send(@method, Marshal.dump(utf8_string), proc { |arg|
+            if arg.is_a?(String)
+              arg.should == utf8_string
+              arg.encoding.should == Encoding::UTF_8
+            end
+            arg
+          })
+        end
       end
 
       it "no longer mutate the object after it was passed to the proc" do
-        string = Marshal.load(Marshal.dump("foo"), :freeze.to_proc)
-        string.should.frozen?
+        NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+          string = Marshal.load(Marshal.dump("foo"), :freeze.to_proc)
+          string.should.frozen?
+        end
       end
     end
 
     ruby_bug "#19427", ""..."3.3" do
       it "call the proc with extended objects" do
-        objs = []
-        obj = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x00", Proc.new { |o| objs << o; o })
-        objs.should == [obj]
+        NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+          objs = []
+          obj = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x00", Proc.new { |o| objs << o; o })
+          objs.should == [obj]
+        end
       end
     end
 
@@ -298,7 +314,8 @@ describe :marshal_load, shared: true do
     end
 
     ruby_bug "#18141", ""..."3.1" do
-      it "calls the proc for recursively visited data" do
+      # NATFIXME: Cuases an infinite loop/stack overflow
+      xit "calls the proc for recursively visited data" do
         a = [1]
         a << a
         ret = []
@@ -308,7 +325,8 @@ describe :marshal_load, shared: true do
         ret.size.should == 2
       end
 
-      it "loads an Array with proc" do
+      # NATFIXME: Cuases an infinite loop/stack overflow
+      xit "loads an Array with proc" do
         arr = []
         s = +'hi'
         s.instance_variable_set(:@foo, 5)
@@ -421,36 +439,40 @@ describe :marshal_load, shared: true do
 
   ruby_bug "#18141", ""..."3.1" do
     it "loads an array containing objects having _dump method, and with proc" do
-      arr = []
-      myproc = Proc.new { |o| arr << o.dup; o }
-      o1 = UserDefined.new;
-      o2 = UserDefinedWithIvar.new
-      obj = [o1, o2, o1, o2]
+      NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+        arr = []
+        myproc = Proc.new { |o| arr << o.dup; o }
+        o1 = UserDefined.new;
+        o2 = UserDefinedWithIvar.new
+        obj = [o1, o2, o1, o2]
 
-      Marshal.send(@method, "\x04\b[\tu:\x10UserDefined\x18\x04\b[\aI\"\nstuff\x06:\x06EF@\x06u:\x18UserDefinedWithIvar>\x04\b[\bI\"\nstuff\a:\x06EF:\t@foo:\x18UserDefinedWithIvarI\"\tmore\x06;\x00F@\a@\x06@\a", myproc)
+        Marshal.send(@method, "\x04\b[\tu:\x10UserDefined\x18\x04\b[\aI\"\nstuff\x06:\x06EF@\x06u:\x18UserDefinedWithIvar>\x04\b[\bI\"\nstuff\a:\x06EF:\t@foo:\x18UserDefinedWithIvarI\"\tmore\x06;\x00F@\a@\x06@\a", myproc)
 
-      arr[0].should == o1
-      arr[1].should == o2
-      arr[2].should == obj
-      arr.size.should == 3
+        arr[0].should == o1
+        arr[1].should == o2
+        arr[2].should == obj
+        arr.size.should == 3
+      end
     end
 
     it "loads an array containing objects having marshal_dump method, and with proc" do
-      arr = []
-      proc = Proc.new { |o| arr << o.dup; o }
-      o1 = UserMarshal.new
-      o2 = UserMarshalWithIvar.new
+      NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+        arr = []
+        proc = Proc.new { |o| arr << o.dup; o }
+        o1 = UserMarshal.new
+        o2 = UserMarshalWithIvar.new
 
-      Marshal.send(@method, "\004\b[\tU:\020UserMarshal\"\nstuffU:\030UserMarshalWithIvar[\006\"\fmy data@\006@\b", proc)
+        Marshal.send(@method, "\004\b[\tU:\020UserMarshal\"\nstuffU:\030UserMarshalWithIvar[\006\"\fmy data@\006@\b", proc)
 
-      arr[0].should == 'stuff'
-      arr[1].should == o1
-      arr[2].should == 'my data'
-      arr[3].should == ['my data']
-      arr[4].should == o2
-      arr[5].should == [o1, o2, o1, o2]
+        arr[0].should == 'stuff'
+        arr[1].should == o1
+        arr[2].should == 'my data'
+        arr[3].should == ['my data']
+        arr[4].should == o2
+        arr[5].should == [o1, o2, o1, o2]
 
-      arr.size.should == 6
+        arr.size.should == 6
+      end
     end
   end
 
@@ -1048,9 +1070,11 @@ describe :marshal_load, shared: true do
         obj = Regexp.new("hello")
         obj.instance_variable_set(:@regexp_ivar, [42])
 
-        new_obj = Marshal.send(@method, "\x04\bI/\nhello\x00\a:\x06EF:\x11@regexp_ivar[\x06i/")
-        new_obj.instance_variables.should == [:@regexp_ivar]
-        new_obj.instance_variable_get(:@regexp_ivar).should == [42]
+        NATFIXME 'Correct incorrect ivar name', exception: NameError, message: "`@@regexp_ivar' is not allowed as an instance variable name" do
+          new_obj = Marshal.send(@method, "\x04\bI/\nhello\x00\a:\x06EF:\x11@regexp_ivar[\x06i/")
+          new_obj.instance_variables.should == [:@regexp_ivar]
+          new_obj.instance_variable_get(:@regexp_ivar).should == [42]
+        end
       end
     end
 

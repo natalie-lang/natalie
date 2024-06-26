@@ -239,9 +239,11 @@ describe "String#index with Regexp" do
       "a".index(/a/)
       $~.should_not == nil
 
-      string = "blablabla"
-      string.index(/bla/, string.length + 1)
-      $~.should == nil
+      NATFIXME 'it always clears $~', exception: SpecFailedException do
+        string = "blablabla"
+        string.index(/bla/, string.length + 1)
+        $~.should == nil
+      end
     end
   end
 
@@ -336,9 +338,11 @@ describe "String#index with Regexp" do
   ruby_bug "#19763", ""..."3.3.0" do
     it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
       re = Regexp.new "れ".encode(Encoding::EUC_JP)
-      -> do
-        "あれ".index re
-      end.should raise_error(Encoding::CompatibilityError, "incompatible encoding regexp match (EUC-JP regexp with UTF-8 string)")
+      NATFIXME 'it raises an Encoding::CompatibilityError if the encodings are incompatible', exception: SpecFailedException do
+        -> do
+          "あれ".index re
+        end.should raise_error(Encoding::CompatibilityError, "incompatible encoding regexp match (EUC-JP regexp with UTF-8 string)")
+      end
     end
   end
 
