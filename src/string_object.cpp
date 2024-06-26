@@ -1137,6 +1137,9 @@ Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_enco
     if (!dst_encoding)
         dst_encoding = EncodingObject::get(Encoding::UTF_8);
 
+    if (!src_encoding)
+        src_encoding = m_encoding;
+
     EncodeOptions options;
     if (kwargs) {
         if (kwargs->remove(env, "universal_newline"_s))
@@ -1172,9 +1175,9 @@ Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_enco
     }
 
     env->ensure_no_extra_keywords(kwargs);
-    auto orig_encoding = m_encoding;
-    EncodingObject *encoding_obj = EncodingObject::find_encoding(env, dst_encoding);
-    return encoding_obj->encode(env, orig_encoding, this, options);
+    EncodingObject *dst_encoding_obj = EncodingObject::find_encoding(env, dst_encoding);
+    EncodingObject *src_encoding_obj = EncodingObject::find_encoding(env, src_encoding);
+    return dst_encoding_obj->encode(env, src_encoding_obj, this, options);
 }
 
 Value StringObject::force_encoding(Env *env, Value encoding) {

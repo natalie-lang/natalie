@@ -136,7 +136,7 @@ describe "String#encode" do
 
   describe "when passed to, from" do
     it "returns a copy in the destination encoding when both encodings are the same" do
-      NATFIXME 'honor source encoding', exception: Encoding::UndefinedConversionError, message: /from ASCII-8BIT to UTF-8/ do
+      NATFIXME 'same encoding for source and destination', exception: SpecFailedException, message: '#<Encoding:ASCII-8BIT> should be == to #<Encoding:UTF-8>' do
         str = "あ".dup.force_encoding("binary")
         encoded = str.encode("utf-8", "utf-8")
 
@@ -172,7 +172,7 @@ describe "String#encode" do
     end
 
     it "returns a copy in the destination encoding when both encodings are the same" do
-      NATFIXME 'honor source encoding', exception: Encoding::UndefinedConversionError, message: /from ASCII-8BIT to UTF-8/ do
+      NATFIXME 'same encoding for source and destination', exception: SpecFailedException, message: '#<Encoding:ASCII-8BIT> should be == to #<Encoding:UTF-8>' do
         str = "あ".dup.force_encoding("binary")
         encoded = str.encode("utf-8", "utf-8", invalid: :replace)
 
