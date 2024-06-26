@@ -42,28 +42,56 @@ describe 'Kernel#caller' do
     path = fixture(__FILE__, "caller_at_exit.rb")
     lines = ruby_exe(path).lines
     NATFIXME 'Natalie backtrace differs from MRI', exception: SpecFailedException do
-      lines.should == [
-        "#{path}:6:in `foo'\n",
-        "#{path}:2:in `block in <main>'\n"
-      ]
+      lines.size.should == 2
+      lines[0].should =~ /\A#{path}:6:in [`'](?:Object#)?foo'\n\z/
+      lines[1].should =~ /\A#{path}:2:in [`']block in <main>'\n\z/
     end
-    lines.should == [
-      "#{path}:6:in `foo'\n",
-      "#{path}:2:in `block in block'\n",
-      "#{path}:5:in `<main>'\n"
-    ]
+    lines.size.should == 3
+    lines[0].should =~ /\A#{path}:6:in [`'](?:Object#)?foo'\n\z/
+    lines[1].should =~ /\A#{path}:2:in [`']block in block'\n\z/
+    lines[2].should =~ /\A#{path}:5:in [`']<main>'\n\z/
+  end
+
+  it "can be called with a range" do
+    locations1 = caller(0)
+    locations2 = caller(2..4)
+    locations1[2..4].should == locations2
   end
 
   it "works with endless ranges" do
     locations1 = KernelSpecs::CallerTest.locations(0)
     locations2 = KernelSpecs::CallerTest.locations(eval("(2..)"))
-    locations2.map(&:to_s).should == locations1[2..-1].map(&:to_s)
+    locations2.should == locations1[2..-1]
   end
 
   it "works with beginless ranges" do
     locations1 = KernelSpecs::CallerTest.locations(0)
     locations2 = KernelSpecs::CallerTest.locations((..5))
-    locations2.map(&:to_s)[eval("(2..)")].should == locations1[(..5)].map(&:to_s)[eval("(2..)")]
+    locations2[eval("(2..)")].should == locations1[(..5)][eval("(2..)")]
+  end
+
+  it "can be called with a range whose end is negative" do
+    locations1 = caller(0)
+    locations2 = caller(2..-1)
+    locations3 = caller(2..-2)
+    locations1[2..-1].should == locations2
+    locations1[2..-2].should == locations3
+  end
+
+  it "must return nil if omitting more locations than available" do
+    NATFIXME 'it must return nil if omitting more locations than available', exception: SpecFailedException do
+      caller(100).should == nil
+      caller(100..-1).should == nil
+    end
+  end
+
+  it "must return [] if omitting exactly the number of locations available" do
+    omit = caller(0).length
+    caller(omit).should == []
+  end
+
+  it "must return the same locations when called with 1..-1 and when called with no arguments" do
+    caller.should == caller(1..-1)
   end
 
   guard -> { Kernel.instance_method(:tap).source_location } do
@@ -73,8 +101,7 @@ describe 'Kernel#caller' do
 
       loc = nil
       tap { loc = caller(1, 1)[0] }
-      loc.should.end_with? "in `tap'"
-      loc.should.start_with? "<internal:"
+      loc.should =~ /\A<internal:.*in [`'](?:Kernel#)?tap'\z/
     end
   end
 end
