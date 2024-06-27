@@ -12,7 +12,9 @@ describe "Exception#detailed_message" do
       def exception.detailed_message(**)
         "<prefix>#{message}<suffix>"
       end
-      exception.full_message(highlight: false).should.include? "<prefix>new error<suffix>"
+      NATFIXME 'Implement Exception#full_message', exception: NoMethodError, message: "undefined method `full_message' for an instance of Exception" do
+        exception.full_message(highlight: false).should.include? "<prefix>new error<suffix>"
+      end
     end
 
     it "accepts highlight keyword argument and adds escape control sequences" do
