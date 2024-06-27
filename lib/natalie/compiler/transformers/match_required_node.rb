@@ -18,11 +18,8 @@ module Natalie
         private
 
         def transform_array_pattern_node(node, value)
-          raise SyntaxError, 'Targets other then local variables not yet supported' unless node.requireds.all? { |n| n.type == :local_variable_target_node }
-          raise SyntaxError, 'Targets other then local variables not yet supported' unless node.posts.all? { |n| n.type == :local_variable_target_node }
-
           # Transform `expr => [a, b] into `a, b = ->(expr) { expr.deconstruct }.call(expr)`
-          targets = node.requireds.map(&:name)
+          targets = node.requireds.filter_map { |n| n.name if n.type == :local_variable_target_node }
           expected_size = node.requireds.size + node.posts.size
           expected_size_str = expected_size.to_s
           if node.rest
@@ -30,14 +27,50 @@ module Natalie
             expected_size = "(#{expected_size}..)"
             expected_size_str << '+'
           end
-          targets.concat(node.posts.map(&:name))
+          targets.concat(node.posts.filter_map { |n| n.name if n.type == :local_variable_target_node })
+          targets_str = if targets.empty? || targets == [:*]
+                          ''
+                        elsif targets.size == 1 && !targets.first.start_with?('*')
+                          "#{targets.first}, * = "
+                        else
+                          "#{targets.join(', ')} = "
+                        end
+          main_loop_instructions = node.requireds.each_with_index.map do |n, i|
+            if n.type == :local_variable_target_node
+              "outputs << values[#{i}]"
+            else
+              <<~RUBY
+                unless #{n.location.slice} === values[#{i}]
+                  raise ::NoMatchingPatternError, "\#{result}: #{n.location.slice} === \#{values[#{i}]} does not return true"
+                end
+              RUBY
+            end
+          end
+          if node.posts.empty?
+            main_loop_instructions << "outputs.concat(values.slice(#{node.requireds.size}..))"
+          else
+            main_loop_instructions << "outputs.concat(values.slice(#{node.requireds.size}...(values.size - #{node.posts.size})))"
+            main_loop_instructions += node.posts.each_with_index.map do |n, i|
+              if n.type == :local_variable_target_node
+                "outputs << values[#{i - node.posts.size}]"
+              else
+                <<~RUBY
+                  unless #{n.location.slice} === values[#{i - node.posts.size}]
+                    raise ::NoMatchingPatternError, "\#{result}: #{n.location.slice} === \#{values[#{i - node.posts.size}]} does not return true"
+                  end
+                RUBY
+              end
+            end
+          end
           <<~RUBY
-            #{targets.join(', ')} = lambda do |result|
+            #{targets_str}lambda do |result|
               values = result.deconstruct
+              outputs = []
               unless #{expected_size} === values.size
                 raise ::NoMatchingPatternError, "\#{result}: \#{values} length mismatch (given \#{values.size}, expected #{expected_size_str})"
               end
-              values
+              #{main_loop_instructions.join("\n")}
+              outputs
             rescue NoMethodError
               raise ::NoMatchingPatternError, "\#{result}: \#{result} does not respond to #deconstruct"
             end.call(#{value.location.slice})
