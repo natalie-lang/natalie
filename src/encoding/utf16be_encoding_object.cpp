@@ -8,37 +8,37 @@ std::pair<bool, StringView> Utf16BeEncodingObject::prev_char(const String &strin
 
     size_t i = *index;
 
-    // there are not enough bytes left
-    if (*index < 2) {
-        *index--;
+    // uneven number of bytes
+    if (*index % 2 == 1) {
+        (*index)--;
         return { false, StringView(&string, i - 1, 1) };
     }
 
-    size_t code_unit_high = (unsigned char)string[i - 2]
-        + ((unsigned char)string[i - 1] << 8);
+    size_t code_unit_low = ((unsigned char)string[i - 2] << 8)
+        + (unsigned char)string[i - 1];
 
     //  2-bytes logic
 
     // single code unit - 0000..D7FF or E000..FFFF
-    if (code_unit_high <= 0xD7FF || code_unit_high >= 0xE000) {
+    if (code_unit_low < 0xDC00 || code_unit_low > 0xDFFF) {
         *index -= 2;
         return { true, StringView(&string, i - 2, 2) };
     }
 
     // there are not enough bytes left
     if (*index < 4) {
-        *index--;
+        (*index)--;
         return { false, StringView(&string, i - 1, 1) };
     }
 
     //  4-bytes logic
 
-    size_t code_unit_low = (unsigned char)string[i - 4]
-        + ((unsigned char)string[i - 3] << 8);
+    size_t code_unit_high = ((unsigned char)string[i - 4] << 8)
+        + (unsigned char)string[i - 3];
 
     // 1st code unit - D800..DBFF and 2nd - DC00..DFFF
-    if (code_unit_low >= 0xD800 && code_unit_low <= 0xDBFF
-        && code_unit_high >= 0xDC00 && code_unit_high <= 0xDFFF) {
+    if (code_unit_high >= 0xD800 && code_unit_high <= 0xDBFF
+        && code_unit_low >= 0xDC00 && code_unit_low <= 0xDFFF) {
         *index -= 4;
         return { true, StringView(&string, i - 4, 4) };
     }
@@ -63,13 +63,13 @@ std::pair<bool, StringView> Utf16BeEncodingObject::next_char(const String &strin
         return { false, StringView(&string, i, 1) };
     }
 
-    size_t code_unit_low = ((unsigned char)string[i] << 8)
+    size_t code_unit_high = ((unsigned char)string[i] << 8)
         + (unsigned char)string[i + 1];
 
     //  2-bytes logic
 
     // single code unit - 0000..D7FF or E000..FFFF
-    if (code_unit_low <= 0xD7FF || code_unit_low >= 0xE000) {
+    if (code_unit_high <= 0xD7FF || code_unit_high >= 0xE000) {
         *index += 2;
         return { true, StringView(&string, i, 2) };
     }
@@ -82,12 +82,12 @@ std::pair<bool, StringView> Utf16BeEncodingObject::next_char(const String &strin
 
     //  4-bytes logic
 
-    size_t code_unit_high = ((unsigned char)string[i + 2] << 8)
+    size_t code_unit_low = ((unsigned char)string[i + 2] << 8)
         + (unsigned char)string[i + 3];
 
     // 1st code unit - D800..DBFF and 2nd - DC00..DFFF
-    if (code_unit_low >= 0xD800 && code_unit_low <= 0xDBFF
-        && code_unit_high >= 0xDC00 && code_unit_high <= 0xDFFF) {
+    if (code_unit_high >= 0xD800 && code_unit_high <= 0xDBFF
+        && code_unit_low >= 0xDC00 && code_unit_low <= 0xDFFF) {
         *index += 4;
         return { true, StringView(&string, i, 4) };
     }

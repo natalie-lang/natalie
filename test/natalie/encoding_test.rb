@@ -818,6 +818,116 @@ describe 'encodings' do
     end
   end
 
+  describe 'UTF-16BE' do
+    it 'can convert codepoints' do
+      [
+        0x61,
+        0x20AC,
+        0x1FAFF,
+      ].each do |codepoint|
+        codepoint.chr(Encoding::UTF_16BE).ord.should == codepoint
+      end
+    end
+
+    it 'can convert to UTF-8' do
+      {
+        0x61    => 0x61,
+        0x20AC  => 0x20AC,
+        0x8EA1  => 0x8EA1,
+        0x1F4A9 => 0x1F4A9,
+        0x1FAFF => 0x1FAFF,
+      }.each do |codepoint, expected|
+        codepoint.chr(Encoding::UTF_16BE).encode(Encoding::UTF_8).ord.to_s(16).should == expected.to_s(16)
+      end
+    end
+
+    it 'can convert from UTF-8' do
+      {
+        0x61    => 0x61,
+        0x20AC  => 0x20AC,
+        0x8EA1  => 0x8EA1,
+        0x1F4A9 => 0x1F4A9,
+        0x1FAFF => 0x1FAFF,
+      }.each do |codepoint, expected|
+        codepoint.chr(Encoding::UTF_8).encode(Encoding::UTF_16BE).ord.to_s(16).should == expected.to_s(16)
+      end
+    end
+
+    it 'can chop a character (this uses EncodingObject::prev_char)' do
+      [
+        0x61,
+        0x20AC,
+        0x8EA1,
+        0x1F4A9,
+        0x1FAFF,
+      ].each do |codepoint|
+        string = 'a'.encode(Encoding::UTF_16BE) + codepoint.chr(Encoding::UTF_16BE)
+        string.encoding.should == Encoding::UTF_16BE
+        string.chop!
+        string.encoding.should == Encoding::UTF_16BE
+        string.bytes.should == 'a'.encode(Encoding::UTF_16BE).bytes
+      end
+
+      "\xD8\x00\xDC\x00\x00\xFF".force_encoding(Encoding::UTF_16BE).chop!.bytes.should == [216, 0, 220, 0]
+      "\xD8\x00\xDC\x00\xFF".force_encoding(Encoding::UTF_16BE).chop!.bytes.should == [216, 0, 220, 0]
+    end
+  end
+
+  describe 'UTF-16LE' do
+    it 'can convert codepoints' do
+      [
+        0x61,
+        0x20AC,
+        0x1FAFF,
+      ].each do |codepoint|
+        codepoint.chr(Encoding::UTF_16LE).ord.should == codepoint
+      end
+    end
+
+    it 'can convert to UTF-8' do
+      {
+        0x61    => 0x61,
+        0x20AC  => 0x20AC,
+        0x8EA1  => 0x8EA1,
+        0x1F4A9 => 0x1F4A9,
+        0x1FAFF => 0x1FAFF,
+      }.each do |codepoint, expected|
+        codepoint.chr(Encoding::UTF_16LE).encode(Encoding::UTF_8).ord.to_s(16).should == expected.to_s(16)
+      end
+    end
+
+    it 'can convert from UTF-8' do
+      {
+        0x61    => 0x61,
+        0x20AC  => 0x20AC,
+        0x8EA1  => 0x8EA1,
+        0x1F4A9 => 0x1F4A9,
+        0x1FAFF => 0x1FAFF,
+      }.each do |codepoint, expected|
+        codepoint.chr(Encoding::UTF_8).encode(Encoding::UTF_16LE).ord.to_s(16).should == expected.to_s(16)
+      end
+    end
+
+    it 'can chop a character (this uses EncodingObject::prev_char)' do
+      [
+        0x61,
+        0x20AC,
+        0x8EA1,
+        0x1F4A9,
+        0x1FAFF,
+      ].each do |codepoint|
+        string = 'a'.encode(Encoding::UTF_16LE) + codepoint.chr(Encoding::UTF_16LE)
+        string.encoding.should == Encoding::UTF_16LE
+        string.chop!
+        string.encoding.should == Encoding::UTF_16LE
+        string.bytes.should == 'a'.encode(Encoding::UTF_16LE).bytes
+      end
+
+      "\x00\xD8\x00\xDC\xFF\x00".force_encoding(Encoding::UTF_16LE).chop!.bytes.should == [0, 216, 0, 220]
+      "\x00\xD8\x00\xDC\xFF".force_encoding(Encoding::UTF_16LE).chop!.bytes.should == [0, 216, 0, 220]
+    end
+  end
+
   describe 'Windows-1251' do
     it 'can convert codepoints' do
       [
