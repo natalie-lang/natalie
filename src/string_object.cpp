@@ -1172,6 +1172,16 @@ Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_enco
         auto fallback = kwargs->remove(env, "fallback"_s);
         if (fallback && !fallback->is_nil())
             options.fallback_option = fallback;
+
+        auto xml = kwargs->remove(env, "xml"_s);
+        if (xml) {
+            if (xml == "attr"_s)
+                options.xml_option = EncodeXmlOption::Attr;
+            else if (xml == "text"_s)
+                options.xml_option = EncodeXmlOption::Text;
+            else
+                env->raise("ArgumentError", "unexpected value for xml option: {}", xml->inspect_str(env));
+        }
     }
 
     auto find_encoding = [&](Value encoding) {

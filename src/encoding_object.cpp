@@ -12,8 +12,11 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
     if (orig_encoding->num() == Encoding::ASCII_8BIT && num() == Encoding::ASCII_8BIT)
         return str;
 
-    StringObject temp_string = StringObject("", (EncodingObject *)this);
     ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s)->as_class();
+    StringObject temp_string = StringObject("", (EncodingObject *)this);
+
+    if (options.xml_option == EncodeXmlOption::Attr)
+        temp_string.append_char('"');
 
     size_t index = 0;
     auto string = str->string();
@@ -46,6 +49,43 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                 continue;
             }
             break;
+        }
+
+        switch (options.xml_option) {
+        case EncodeXmlOption::None:
+            break;
+        case EncodeXmlOption::Attr:
+            switch (c) {
+            case '&':
+                temp_string.append("&amp;");
+                continue;
+            case '<':
+                temp_string.append("&lt;");
+                continue;
+            case '>':
+                temp_string.append("&gt;");
+                continue;
+            case '"':
+                temp_string.append("&quot;");
+                continue;
+            default:
+                break;
+            }
+            break;
+        case EncodeXmlOption::Text:
+            switch (c) {
+            case '&':
+                temp_string.append("&amp;");
+                continue;
+            case '<':
+                temp_string.append("&lt;");
+                continue;
+            case '>':
+                temp_string.append("&gt;");
+                continue;
+            default:
+                break;
+            }
         }
 
         auto handle_fallback = [&](nat_int_t cpt) {
@@ -124,10 +164,21 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         if (destination_codepoint < 0) {
             switch (options.undef_option) {
             case EncodeUndefOption::Raise:
+                switch (options.xml_option) {
+                case EncodeXmlOption::None:
+                    break;
+                case EncodeXmlOption::Attr:
+                case EncodeXmlOption::Text:
+                    auto entity = String::format("&#x{};", String::hex(unicode_codepoint, String::HexFormat::Uppercase));
+                    temp_string.append(entity);
+                    continue;
+                }
+
                 if (options.fallback_option) {
                     handle_fallback(unicode_codepoint);
                     continue;
                 }
+
                 StringObject *message;
                 if (orig_encoding->num() != Encoding::UTF_8)
                     message = StringObject::format(
@@ -159,6 +210,9 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         auto destination_char_obj = encode_codepoint(destination_codepoint);
         temp_string.append(destination_char_obj);
     }
+
+    if (options.xml_option == EncodeXmlOption::Attr)
+        temp_string.append_char('"');
 
     str->set_str(temp_string.string().c_str(), temp_string.string().length());
     str->set_encoding(EncodingObject::get(num()));
