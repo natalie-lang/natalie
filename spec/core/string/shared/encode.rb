@@ -394,71 +394,49 @@ describe :string_encode, shared: true do
 
   describe "given the xml: :text option" do
     it "replaces all instances of '&' with '&amp;'" do
-      NATFIXME 'xml option', exception: ArgumentError, message: 'unknown keyword: :xml' do
-        '& and &'.send(@method, "UTF-8", xml: :text).should == '&amp; and &amp;'
-      end
+      '& and &'.send(@method, "UTF-8", xml: :text).should == '&amp; and &amp;'
     end
 
     it "replaces all instances of '<' with '&lt;'" do
-      NATFIXME 'xml option', exception: ArgumentError, message: 'unknown keyword: :xml' do
-        '< and <'.send(@method, "UTF-8", xml: :text).should == '&lt; and &lt;'
-      end
+      '< and <'.send(@method, "UTF-8", xml: :text).should == '&lt; and &lt;'
     end
 
     it "replaces all instances of '>' with '&gt;'" do
-      NATFIXME 'xml option', exception: ArgumentError, message: 'unknown keyword: :xml' do
-        '> and >'.send(@method, "UTF-8", xml: :text).should == '&gt; and &gt;'
-      end
+      '> and >'.send(@method, "UTF-8", xml: :text).should == '&gt; and &gt;'
     end
 
     it "does not replace '\"'" do
-      NATFIXME 'xml option', exception: ArgumentError, message: 'unknown keyword: :xml' do
-        '" and "'.send(@method, "UTF-8", xml: :text).should == '" and "'
-      end
+      '" and "'.send(@method, "UTF-8", xml: :text).should == '" and "'
     end
 
     it "replaces undefined characters with their upper-case hexadecimal numeric character references" do
-      NATFIXME 'xml option', exception: ArgumentError, message: 'unknown keyword: :xml' do
-        'ürst'.send(@method, Encoding::US_ASCII, xml: :text).should == '&#xFC;rst'
-      end
+      'ürst'.send(@method, Encoding::US_ASCII, xml: :text).should == '&#xFC;rst'
     end
   end
 
   describe "given the xml: :attr option" do
     it "surrounds the encoded text with double-quotes" do
-      NATFIXME 'xml option', exception: ArgumentError, message: 'unknown keyword: :xml' do
-        'abc'.send(@method, "UTF-8", xml: :attr).should == '"abc"'
-      end
+      'abc'.send(@method, "UTF-8", xml: :attr).should == '"abc"'
     end
 
     it "replaces all instances of '&' with '&amp;'" do
-      NATFIXME 'xml option', exception: ArgumentError, message: 'unknown keyword: :xml' do
-        '& and &'.send(@method, "UTF-8", xml: :attr).should == '"&amp; and &amp;"'
-      end
+      '& and &'.send(@method, "UTF-8", xml: :attr).should == '"&amp; and &amp;"'
     end
 
     it "replaces all instances of '<' with '&lt;'" do
-      NATFIXME 'xml option', exception: ArgumentError, message: 'unknown keyword: :xml' do
-        '< and <'.send(@method, "UTF-8", xml: :attr).should == '"&lt; and &lt;"'
-      end
+      '< and <'.send(@method, "UTF-8", xml: :attr).should == '"&lt; and &lt;"'
     end
 
     it "replaces all instances of '>' with '&gt;'" do
-      NATFIXME 'xml option', exception: ArgumentError, message: 'unknown keyword: :xml' do
-        '> and >'.send(@method, "UTF-8", xml: :attr).should == '"&gt; and &gt;"'
-      end
+      '> and >'.send(@method, "UTF-8", xml: :attr).should == '"&gt; and &gt;"'
     end
 
     it "replaces all instances of '\"' with '&quot;'" do
-      NATFIXME 'xml option', exception: ArgumentError, message: 'unknown keyword: :xml' do
-        '" and "'.send(@method, "UTF-8", xml: :attr).should == '"&quot; and &quot;"'
-      end
+      '" and "'.send(@method, "UTF-8", xml: :attr).should == '"&quot; and &quot;"'
     end
 
     it "replaces undefined characters with their upper-case hexadecimal numeric character references" do
-      NATFIXME 'xml option', exception: ArgumentError, message: 'unknown keyword: :xml' do
-        'ürst'.send(@method, Encoding::US_ASCII, xml: :attr).should == '"&#xFC;rst"'
-      end
+      'ürst'.send(@method, Encoding::US_ASCII, xml: :attr).should == '"&#xFC;rst"'
     end
   end
 

@@ -511,6 +511,7 @@ private:
     using EncodeOptions = EncodingObject::EncodeOptions;
     using EncodeInvalidOption = EncodingObject::EncodeInvalidOption;
     using EncodeNewlineOption = EncodingObject::EncodeNewlineOption;
+    using EncodeXmlOption = EncodingObject::EncodeXmlOption;
     using EncodeUndefOption = EncodingObject::EncodeUndefOption;
 
     String m_string {};

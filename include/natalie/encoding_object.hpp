@@ -96,10 +96,17 @@ public:
         Universal,
     };
 
+    enum class EncodeXmlOption {
+        None,
+        Attr,
+        Text,
+    };
+
     struct EncodeOptions {
         EncodeInvalidOption invalid_option = EncodeInvalidOption::Raise;
         EncodeUndefOption undef_option = EncodeUndefOption::Raise;
         EncodeNewlineOption newline_option = EncodeNewlineOption::None;
+        EncodeXmlOption xml_option = EncodeXmlOption::None;
         StringObject *replace_option = nullptr;
         Value fallback_option = nullptr;
     };
