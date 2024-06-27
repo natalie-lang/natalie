@@ -8,9 +8,9 @@ std::pair<bool, StringView> Utf16LeEncodingObject::prev_char(const String &strin
 
     size_t i = *index;
 
-    // there are not enough bytes left
-    if (*index < 2) {
-        *index--;
+    // uneven number of bytes
+    if (*index % 2 == 1) {
+        (*index)--;
         return { false, StringView(&string, i - 1, 1) };
     }
 
@@ -27,7 +27,7 @@ std::pair<bool, StringView> Utf16LeEncodingObject::prev_char(const String &strin
 
     // there are not enough bytes left
     if (*index < 4) {
-        *index--;
+        (*index)--;
         return { false, StringView(&string, i - 1, 1) };
     }
 
