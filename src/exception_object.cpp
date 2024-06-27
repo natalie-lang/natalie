@@ -122,6 +122,30 @@ Value ExceptionObject::message(Env *env) {
     return this->send(env, "to_s"_s);
 }
 
+Value ExceptionObject::detailed_message(Env *env, Args args) {
+    auto kwargs = args.pop_keyword_hash();
+    const auto highlight = kwargs ? kwargs->delete_key(env, "highlight"_s, nullptr)->is_truthy() : false;
+    args.ensure_argc_is(env, 0);
+
+    auto message = send(env, "message"_s)->as_string();
+    if (message->is_empty()) {
+        if (klass() == find_top_level_const(env, "RuntimeError"_s)->as_class()) {
+            message->set_str("unhandled exception");
+        } else {
+            message->set_str(klass()->inspect_str().c_str());
+        }
+        if (highlight)
+            message = StringObject::format("\e[1;4m{}\e[m", message);
+        return message;
+    }
+
+    if (!klass()->class_name())
+        return message;
+
+    const char *fmt = highlight ? "\e[1m{} (\e[1;4m{}\e[m\e[1m)\e[m" : "{} ({})";
+    return StringObject::format(fmt, message, klass()->inspect_str());
+}
+
 Value ExceptionObject::backtrace(Env *env) {
     if (!m_backtrace && !m_backtrace_value)
         return NilObject::the();

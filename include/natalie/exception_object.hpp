@@ -43,6 +43,7 @@ public:
 
     StringObject *to_s(Env *env);
     Value message(Env *env);
+    Value detailed_message(Env *, Args);
 
     Backtrace *backtrace() { return m_backtrace; }
     void build_backtrace(Env *env) { m_backtrace = env->backtrace(); }
