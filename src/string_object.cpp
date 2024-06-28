@@ -2652,27 +2652,36 @@ bool StringObject::include(const char *arg) const {
 
 Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
     assert_not_frozen(env);
-    nat_int_t index_i = index_obj->to_int(env)->to_nat_int_t();
+
+    auto char_index = IntegerObject::convert_to_native_type<ssize_t>(env, index_obj->to_int(env));
     StringObject *string = other_str->to_str(env);
-    size_t count = char_count(env);
-    size_t index = index_i < 0 ? (count + index_i + 1) : index_i;
-    if (index_i == -1) {
+
+    if (char_index == -1) {
+        assert_compatible_string_and_update_encoding(env, string);
         append(string);
         return this;
     }
-    if (index > count) {
-        env->raise("IndexError", "index {} out of string", index_obj);
-    }
-    if (string->is_empty()) {
+
+    auto byte_index = char_index_to_byte_index(char_index, true);
+    if (byte_index < 0)
+        env->raise("IndexError", "index {} out of string", char_index);
+
+    if (string->is_empty())
+        return this;
+
+    if (m_encoding != string->m_encoding)
+        assert_compatible_string_and_update_encoding(env, string);
+
+    if ((size_t)byte_index == m_string.length()) {
+        append(string);
         return this;
     }
-    Value slice = slice_in_place(env, Value::integer(index), Value::integer(count - index));
-    append(string);
-    if (slice->is_string()) {
-        append(slice->as_string());
-    }
-    // NATFIXME: Return string with compatible encoding
-    // NATFIXME: Raise Encoding::CompatibilityError if the encodings are incompatible
+
+    String slice = m_string.substring(byte_index);
+    m_string.truncate(byte_index);
+    m_string.append(string->m_string);
+    m_string.append(slice);
+
     return this;
 }
 

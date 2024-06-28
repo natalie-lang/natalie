@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-
+# frozen_string_literal: false
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
@@ -57,7 +57,7 @@ describe "String#insert with index, other" do
     "ありがとう".insert(1, 'ü').should == "あüりがとう"
   end
 
-  xit "returns a String in the compatible encoding" do
+  it "returns a String in the compatible encoding" do
     str = "".force_encoding(Encoding::US_ASCII)
     str.insert(0, "ありがとう")
     str.encoding.should == Encoding::UTF_8
@@ -65,11 +65,9 @@ describe "String#insert with index, other" do
 
   it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
     pat = "ア".encode Encoding::EUC_JP
-    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
-      -> do
-        "あれ".insert 0, pat
-      end.should raise_error(Encoding::CompatibilityError)
-    end
+    -> do
+      "あれ".insert 0, pat
+    end.should raise_error(Encoding::CompatibilityError)
   end
 
   it "should not call subclassed string methods" do
