@@ -14,6 +14,8 @@ module Natalie
         @frozen = frozen
       end
 
+      attr_accessor :frozen
+
       def to_s
         "push_string #{@string.inspect}, #{@bytesize}, #{@encoding.name}#{@frozen ? ', frozen' : ''}"
       end
