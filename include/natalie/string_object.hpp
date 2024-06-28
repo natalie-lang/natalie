@@ -173,7 +173,6 @@ public:
     EncodingObject *assert_compatible_string_and_update_encoding(Env *, StringObject *);
 
     void prepend_char(Env *, char);
-    void insert(Env *, size_t, char);
 
     void append_char(char);
     void append(signed char);
@@ -401,7 +400,7 @@ public:
 
     static size_t byte_index_to_char_index(ArrayObject *chars, size_t byte_index);
 
-    ssize_t char_index_to_byte_index(ssize_t) const;
+    ssize_t char_index_to_byte_index(ssize_t, bool = false) const;
     ssize_t byte_index_to_char_index(size_t) const;
 
     static CaseMapType check_case_options(Env *env, Value arg1, Value arg2, bool downcase = false);
