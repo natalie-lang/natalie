@@ -1954,15 +1954,19 @@ size_t StringObject::byte_index_to_char_index(ArrayObject *chars, size_t byte_in
     return char_index;
 }
 
-ssize_t StringObject::char_index_to_byte_index(ssize_t char_index) const {
+// For String#insert, -1 means *after* the last character.
+// For any method looking at the characters, -1 means to include the last character.
+ssize_t StringObject::char_index_to_byte_index(ssize_t char_index, bool for_insert) const {
     if (char_index < 0) {
         size_t byte_index = bytesize();
-        ssize_t current_char_index = 0;
+        ssize_t current_char_index = for_insert ? -1 : 0;
         TM::StringView view;
-        do {
+        while (char_index < current_char_index) {
+            if (byte_index == 0)
+                return -1;
             view = prev_char(&byte_index);
             current_char_index--;
-        } while (byte_index != 0 && char_index < current_char_index);
+        }
         return byte_index;
     }
 
