@@ -3309,10 +3309,6 @@ void StringObject::prepend_char(Env *env, char c) {
     m_string.prepend_char(c);
 }
 
-void StringObject::insert(Env *, size_t position, char c) {
-    m_string.insert(position, c);
-}
-
 void StringObject::append_char(char c) {
     m_string.append_char(c);
 }

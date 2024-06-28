@@ -173,7 +173,6 @@ public:
     EncodingObject *assert_compatible_string_and_update_encoding(Env *, StringObject *);
 
     void prepend_char(Env *, char);
-    void insert(Env *, size_t, char);
 
     void append_char(char);
     void append(signed char);
