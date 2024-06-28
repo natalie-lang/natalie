@@ -233,6 +233,21 @@ Value StringObject::each_grapheme_cluster(Env *env, Block *block) {
     return this;
 }
 
+Value StringObject::grapheme_clusters(Env *env, Block *block) {
+    if (block)
+        return each_grapheme_cluster(env, block);
+
+    auto ary = new ArrayObject {};
+    size_t index = 0;
+    for (;;) {
+        auto view = m_encoding->next_grapheme_cluster(m_string, &index);
+        if (view.is_empty())
+            break;
+        ary->push(new StringObject { view, m_encoding });
+    }
+    return ary;
+}
+
 String create_padding(String &padding, size_t length) {
     size_t quotient = ::floor(length / padding.size());
     size_t remainder = length % padding.size();

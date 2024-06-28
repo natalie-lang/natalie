@@ -1281,6 +1281,7 @@ gen.binding('String', 'end_with?', 'StringObject', 'end_with', argc: :any, pass_
 gen.binding('String', 'eql?', 'StringObject', 'eql', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('String', 'force_encoding', 'StringObject', 'force_encoding', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'getbyte', 'StringObject', 'getbyte', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'grapheme_clusters', 'StringObject', 'grapheme_clusters', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'gsub', 'StringObject', 'gsub', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'gsub!', 'StringObject', 'gsub_in_place', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'hex', 'StringObject', 'hex', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
