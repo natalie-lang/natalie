@@ -490,7 +490,14 @@ module Natalie
         if receiver.nil?
           instructions << PushSelfInstruction.new
         else
-          instructions << transform_expression(receiver, used: true)
+          inst = transform_expression(receiver, used: true)
+
+          if node.name == :freeze && !node.safe_navigation? && !with_block && inst.size == 1 && inst.first.is_a?(PushStringInstruction)
+            # "foo".freeze get special treatment so we can intern the string at compile time
+            inst.first.frozen = true
+          end
+
+          instructions << inst
         end
 
         if node.safe_navigation?
