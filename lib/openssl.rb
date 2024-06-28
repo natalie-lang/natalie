@@ -335,6 +335,7 @@ module OpenSSL
 
     class SSLSocket
       attr_reader :context, :hostname, :io
+      attr_accessor :sync_close # Dummy method
 
       __bind_method__ :initialize, :OpenSSL_SSL_SSLSocket_initialize
       __bind_method__ :close, :OpenSSL_SSL_SSLSocket_close
@@ -342,6 +343,14 @@ module OpenSSL
       __bind_method__ :hostname=, :OpenSSL_SSL_SSLSocket_set_hostname
       __bind_method__ :read, :OpenSSL_SSL_SSLSocket_read
       __bind_method__ :write, :OpenSSL_SSL_SSLSocket_write
+
+      def connect_nonblock(exception: false) = connect # Dummy method
+      def post_connection_check(address) = nil # Dummy method
+      def ssl_version = :TLS1_3 # Dummy method
+      def cipher = [:NONE] # Dummy method
+
+      # Methods forwarded to IO
+      def closed? = @io.closed?
     end
   end
 

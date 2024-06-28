@@ -564,8 +564,16 @@ Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args args, Block *) {
     }
     if (!SSL_set_fd(ssl, fd))
         OpenSSL_SSL_raise_error(env, "SSL_set_fd");
-    if (SSL_connect(ssl) <= 0)
+    if (SSL_connect(ssl) <= 0) {
+        unsigned long err = ERR_peek_last_error();
+        const char *err_msg = ERR_reason_error_string(err);
+        const char *verify_msg = X509_verify_cert_error_string(SSL_get_verify_result(ssl));
+        if (err_msg)
+            fprintf(stderr, "err_msg = %s\n", err_msg);
+        if (verify_msg)
+            fprintf(stderr, "verify_msg = %s\n", verify_msg);
         OpenSSL_SSL_raise_error(env, "SSL_connect");
+    }
     return self;
 }
 
