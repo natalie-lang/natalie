@@ -8,6 +8,10 @@ module Natalie
           case node.pattern.type
           when :array_pattern_node
             transform_array_pattern_node(node.pattern, node.value)
+          when :find_pattern_node
+            raise SyntaxError, 'FindPatternNode not yet supported'
+          when :hash_pattern_node
+            raise SyntaxError, 'HashPatternNode not yet supported'
           when :local_variable_target_node
             transform_local_variable_target_node(node.pattern, node.value)
           else
@@ -18,6 +22,8 @@ module Natalie
         private
 
         def transform_array_pattern_node(node, value)
+          raise SyntaxError, 'Using constant in Array pattern not yet supported' unless node.constant.nil?
+
           # Transform `expr => [a, b] into `a, b = ->(expr) { expr.deconstruct }.call(expr)`
           targets = node.requireds.filter_map { |n| n.name if n.type == :local_variable_target_node }
           expected_size = node.requireds.size + node.posts.size
