@@ -217,6 +217,7 @@ public:
     Value codepoints(Env *, Block *);
 
     Value each_grapheme_cluster(Env *, Block *);
+    Value grapheme_clusters(Env *, Block *);
 
     void each_line(Env *, Value, Value, std::function<Value(StringObject *)>) const;
     Value each_line(Env *, Value = nullptr, Value = nullptr, Block * = nullptr);
