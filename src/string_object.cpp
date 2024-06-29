@@ -667,7 +667,31 @@ bool StringObject::end_with(Env *env, Args args) const {
     return false;
 }
 
-static Value byteindex_string_needle(Env *env, const StringObject *haystack, const StringObject *needle_obj, size_t offset) {
+static Value byteindex_regexp_needle(Env *env, const StringObject *haystack, RegexpObject *needle, size_t offset) {
+    if (!haystack->negotiate_compatible_encoding(needle->pattern())) {
+        auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
+        auto enc1 = needle->pattern()->encoding()->name()->string();
+        auto enc2 = haystack->encoding()->name()->string();
+        env->raise(exception_class, "incompatible encoding regexp match ({} regexp with {} string)", enc1, enc2);
+    }
+
+    if (needle->pattern()->is_empty())
+        return Value::integer(offset);
+
+    OnigRegion *region = onig_region_new();
+    int result = needle->search(env, haystack, offset, region, ONIG_OPTION_NONE);
+    if (result == ONIG_MISMATCH) {
+        env->caller()->set_last_match(nullptr);
+        return NilObject::the();
+    }
+
+    auto match = new MatchDataObject { region, haystack, needle };
+    env->caller()->set_last_match(match);
+    auto byte_index = region->beg[0];
+    return Value::integer(byte_index);
+}
+
+static Value byteindex_string_needle(Env *env, const StringObject *haystack, StringObject *needle_obj, size_t offset) {
     haystack->assert_compatible_string(env, needle_obj);
     String needle = needle_obj->string();
 
@@ -705,6 +729,9 @@ Value StringObject::byteindex(Env *env, Value needle_obj, Value offset_obj) cons
     if (offset < 0 || (size_t)offset > bytesize())
         return NilObject::the();
 
+    if (needle_obj->is_regexp())
+        return byteindex_regexp_needle(env, this, needle_obj->as_regexp(), offset);
+
     auto needle = needle_obj->to_str2(env);
     return byteindex_string_needle(env, this, needle, offset);
 }
@@ -735,6 +762,7 @@ Value StringObject::index(Env *env, Value needle, size_t start) {
 
 nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
     if (needle->is_regexp()) {
+        // FIXME: use byteindex_regexp_needle shared code
         if (needle->as_regexp()->pattern()->is_empty())
             return byte_start;
 
@@ -3354,8 +3382,7 @@ void StringObject::assert_compatible_string(Env *env, const StringObject *other_
     if (compatible_encoding)
         return;
 
-    auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
-    env->raise(exception_class, "incompatible character encodings: {} and {}", m_encoding->name()->string(), other_string->m_encoding->name()->string());
+    m_encoding->raise_compatibility_error(env, other_string->m_encoding.ptr());
 }
 
 void StringObject::assert_valid_encoding(Env *env) const {

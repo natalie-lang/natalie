@@ -545,6 +545,7 @@ int RegexpObject::search(Env *env, const StringObject *string_obj, int start, On
     const unsigned char *char_start = unsigned_str + start;
     const unsigned char *char_range = char_end;
 
+    // FIXME: check if it's already FIXEDENCODING
     if (string_obj->encoding() != encoding()) {
         RegexpObject temp_regexp;
         temp_regexp.initialize_internal(env, m_pattern, m_options | RegexOpts::FixedEncoding);

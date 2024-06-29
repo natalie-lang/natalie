@@ -37,12 +37,10 @@ describe :byte_index_common, shared: true do
     end
 
     it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
-      NATFIXME 'Support Regexp', exception: SpecFailedException, message: /should have raised Encoding::CompatibilityError/ do
-        re = Regexp.new "れ".encode(Encoding::EUC_JP)
-        -> do
-          "あれ".send(@method, re)
-        end.should raise_error(Encoding::CompatibilityError, "incompatible encoding regexp match (EUC-JP regexp with UTF-8 string)")
-      end
+      re = Regexp.new "れ".encode(Encoding::EUC_JP)
+      -> do
+        "あれ".send(@method, re)
+      end.should raise_error(Encoding::CompatibilityError, "incompatible encoding regexp match (EUC-JP regexp with UTF-8 string)")
     end
   end
 
@@ -55,13 +53,11 @@ describe :byte_index_common, shared: true do
     end
 
     it "sets $~ to MatchData of match and nil when there's none" do
-      NATFIXME 'Support Regexp', exception: TypeError do
-        'hello.'.send(@method, /.e./)
-        $~[0].should == 'hel'
+      'hello.'.send(@method, /.e./)
+      $~[0].should == 'hel'
 
-        'hello.'.send(@method, /not/)
-        $~.should == nil
-      end
+      'hello.'.send(@method, /not/)
+      $~.should == nil
     end
   end
 end

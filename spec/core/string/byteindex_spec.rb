@@ -168,81 +168,75 @@ end
 describe "String#byteindex with Regexp" do
   ruby_version_is "3.2" do
     it "behaves the same as String#byteindex(string) for escaped string regexps" do
-      NATFIXME 'Support Regexp', exception: TypeError do
-        ["blablabla", "hello cruel world...!"].each do |str|
-          ["", "b", "bla", "lab", "o c", "d."].each do |needle|
-            regexp = Regexp.new(Regexp.escape(needle))
-            str.byteindex(regexp).should == str.byteindex(needle)
+      ["blablabla", "hello cruel world...!"].each do |str|
+        ["", "b", "bla", "lab", "o c", "d."].each do |needle|
+          regexp = Regexp.new(Regexp.escape(needle))
+          str.byteindex(regexp).should == str.byteindex(needle)
 
-            0.upto(str.size + 1) do |start|
-              str.byteindex(regexp, start).should == str.byteindex(needle, start)
-            end
+          0.upto(str.size + 1) do |start|
+            str.byteindex(regexp, start).should == str.byteindex(needle, start)
+          end
 
-            (-str.size - 1).upto(-1) do |start|
-              str.byteindex(regexp, start).should == str.byteindex(needle, start)
-            end
+          (-str.size - 1).upto(-1) do |start|
+            str.byteindex(regexp, start).should == str.byteindex(needle, start)
           end
         end
       end
     end
 
     it "returns the byteindex of the first match of regexp" do
-      NATFIXME 'Support Regexp', exception: TypeError do
-        "blablabla".byteindex(/bla/).should == 0
-        "blablabla".byteindex(/BLA/i).should == 0
+      "blablabla".byteindex(/bla/).should == 0
+      "blablabla".byteindex(/BLA/i).should == 0
 
-        "blablabla".byteindex(/.{0}/).should == 0
-        "blablabla".byteindex(/.{6}/).should == 0
-        "blablabla".byteindex(/.{9}/).should == 0
+      "blablabla".byteindex(/.{0}/).should == 0
+      "blablabla".byteindex(/.{6}/).should == 0
+      "blablabla".byteindex(/.{9}/).should == 0
 
-        "blablabla".byteindex(/.*/).should == 0
-        "blablabla".byteindex(/.+/).should == 0
+      "blablabla".byteindex(/.*/).should == 0
+      "blablabla".byteindex(/.+/).should == 0
 
-        "blablabla".byteindex(/lab|b/).should == 0
+      "blablabla".byteindex(/lab|b/).should == 0
 
-        not_supported_on :opal do
-          "blablabla".byteindex(/\A/).should == 0
-          "blablabla".byteindex(/\Z/).should == 9
-          "blablabla".byteindex(/\z/).should == 9
-          "blablabla\n".byteindex(/\Z/).should == 9
-          "blablabla\n".byteindex(/\z/).should == 10
-        end
-
-        "blablabla".byteindex(/^/).should == 0
-        "\nblablabla".byteindex(/^/).should == 0
-        "b\nablabla".byteindex(/$/).should == 1
-        "bl\nablabla".byteindex(/$/).should == 2
-
-        "blablabla".byteindex(/.l./).should == 0
+      not_supported_on :opal do
+        "blablabla".byteindex(/\A/).should == 0
+        "blablabla".byteindex(/\Z/).should == 9
+        "blablabla".byteindex(/\z/).should == 9
+        "blablabla\n".byteindex(/\Z/).should == 9
+        "blablabla\n".byteindex(/\z/).should == 10
       end
+
+      "blablabla".byteindex(/^/).should == 0
+      "\nblablabla".byteindex(/^/).should == 0
+      "b\nablabla".byteindex(/$/).should == 1
+      "bl\nablabla".byteindex(/$/).should == 2
+
+      "blablabla".byteindex(/.l./).should == 0
     end
 
     it "starts the search at the given offset" do
-      NATFIXME 'Support Regexp', exception: TypeError do
-        "blablabla".byteindex(/.{0}/, 5).should == 5
-        "blablabla".byteindex(/.{1}/, 5).should == 5
-        "blablabla".byteindex(/.{2}/, 5).should == 5
-        "blablabla".byteindex(/.{3}/, 5).should == 5
-        "blablabla".byteindex(/.{4}/, 5).should == 5
+      "blablabla".byteindex(/.{0}/, 5).should == 5
+      "blablabla".byteindex(/.{1}/, 5).should == 5
+      "blablabla".byteindex(/.{2}/, 5).should == 5
+      "blablabla".byteindex(/.{3}/, 5).should == 5
+      "blablabla".byteindex(/.{4}/, 5).should == 5
 
-        "blablabla".byteindex(/.{0}/, 3).should == 3
-        "blablabla".byteindex(/.{1}/, 3).should == 3
-        "blablabla".byteindex(/.{2}/, 3).should == 3
-        "blablabla".byteindex(/.{5}/, 3).should == 3
-        "blablabla".byteindex(/.{6}/, 3).should == 3
+      "blablabla".byteindex(/.{0}/, 3).should == 3
+      "blablabla".byteindex(/.{1}/, 3).should == 3
+      "blablabla".byteindex(/.{2}/, 3).should == 3
+      "blablabla".byteindex(/.{5}/, 3).should == 3
+      "blablabla".byteindex(/.{6}/, 3).should == 3
 
-        "blablabla".byteindex(/.l./, 0).should == 0
-        "blablabla".byteindex(/.l./, 1).should == 3
-        "blablabla".byteindex(/.l./, 2).should == 3
-        "blablabla".byteindex(/.l./, 3).should == 3
+      "blablabla".byteindex(/.l./, 0).should == 0
+      "blablabla".byteindex(/.l./, 1).should == 3
+      "blablabla".byteindex(/.l./, 2).should == 3
+      "blablabla".byteindex(/.l./, 3).should == 3
 
-        "xblaxbla".byteindex(/x./, 0).should == 0
-        "xblaxbla".byteindex(/x./, 1).should == 4
-        "xblaxbla".byteindex(/x./, 2).should == 4
+      "xblaxbla".byteindex(/x./, 0).should == 0
+      "xblaxbla".byteindex(/x./, 1).should == 4
+      "xblaxbla".byteindex(/x./, 2).should == 4
 
-        not_supported_on :opal do
-          "blablabla\n".byteindex(/\Z/, 9).should == 9
-        end
+      not_supported_on :opal do
+        "blablabla\n".byteindex(/\Z/, 9).should == 9
       end
     end
 
@@ -258,13 +252,11 @@ describe "String#byteindex with Regexp" do
     end
 
     it "returns nil if the substring isn't found" do
-      NATFIXME 'Support Regexp', exception: TypeError do
-        "blablabla".byteindex(/BLA/).should == nil
+      "blablabla".byteindex(/BLA/).should == nil
 
-        "blablabla".byteindex(/.{10}/).should == nil
-        "blaxbla".byteindex(/.x/, 3).should == nil
-        "blaxbla".byteindex(/..x/, 2).should == nil
-      end
+      "blablabla".byteindex(/.{10}/).should == nil
+      "blaxbla".byteindex(/.x/, 3).should == nil
+      "blaxbla".byteindex(/..x/, 2).should == nil
     end
 
     it "returns nil if the Regexp matches the empty string and the offset is out of range" do
@@ -272,51 +264,41 @@ describe "String#byteindex with Regexp" do
     end
 
     it "supports \\G which matches at the given start offset" do
-      NATFIXME 'Support Regexp', exception: TypeError do
-        "helloYOU.".byteindex(/\GYOU/, 5).should == 5
-        "helloYOU.".byteindex(/\GYOU/).should == nil
+      "helloYOU.".byteindex(/\GYOU/, 5).should == 5
+      "helloYOU.".byteindex(/\GYOU/).should == nil
 
-        re = /\G.+YOU/
-        # The # marks where \G will match.
-        [
-          ["#hi!YOUall.", 0],
-          ["h#i!YOUall.", 1],
-          ["hi#!YOUall.", 2],
-          ["hi!#YOUall.", nil]
-        ].each do |spec|
+      re = /\G.+YOU/
+      # The # marks where \G will match.
+      [
+        ["#hi!YOUall.", 0],
+        ["h#i!YOUall.", 1],
+        ["hi#!YOUall.", 2],
+        ["hi!#YOUall.", nil]
+      ].each do |spec|
 
-          start = spec[0].byteindex("#")
-          str = spec[0].delete("#")
+        start = spec[0].byteindex("#")
+        str = spec[0].delete("#")
 
-          str.byteindex(re, start).should == spec[1]
-        end
+        str.byteindex(re, start).should == spec[1]
       end
     end
 
     it "converts start_offset to an integer via to_int" do
-      NATFIXME 'Support Regexp', exception: TypeError do
-        obj = mock('1')
-        obj.should_receive(:to_int).and_return(1)
-        "RWOARW".byteindex(/R./, obj).should == 4
-      end
+      obj = mock('1')
+      obj.should_receive(:to_int).and_return(1)
+      "RWOARW".byteindex(/R./, obj).should == 4
     end
 
     it "returns the character byteindex of a multibyte character" do
-      NATFIXME 'Support Regexp', exception: TypeError do
-        "ありがとう".byteindex(/が/).should == 6
-      end
+      "ありがとう".byteindex(/が/).should == 6
     end
 
     it "returns the character byteindex after offset" do
-      NATFIXME 'Support Regexp', exception: TypeError do
-        "われわれ".byteindex(/わ/, 3).should == 6
-      end
+      "われわれ".byteindex(/わ/, 3).should == 6
     end
 
     it "treats the offset as a byteindex" do
-      NATFIXME 'Support Regexp', exception: TypeError do
-        "われわわれ".byteindex(/わ/, 6).should == 6
-      end
+      "われわわれ".byteindex(/わ/, 6).should == 6
     end
   end
 end
