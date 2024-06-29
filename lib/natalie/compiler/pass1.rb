@@ -2007,6 +2007,37 @@ module Natalie
         instructions
       end
 
+      def transform_match_predicate_node(node, used:)
+        instructions = [
+          TryInstruction.new,
+          *transform_match_required_node(node, used: false),
+          PushTrueInstruction.new,
+          CatchInstruction.new,
+          PushObjectClassInstruction.new,
+          ConstFindInstruction.new(:NoMatchingPatternError, strict: true),
+          CreateArrayInstruction.new(count: 1),
+          MatchExceptionInstruction.new,
+          IfInstruction.new,
+          PushFalseInstruction.new,
+          ElseInstruction.new(:if),
+          PushSelfInstruction.new,
+          PushArgcInstruction.new(0),
+          SendInstruction.new(
+            :raise,
+            args_array_on_stack: false,
+            receiver_is_self: true,
+            with_block: false,
+            has_keyword_hash: false,
+            file: @file.path,
+            line: node.location.start_line,
+          ),
+          EndInstruction.new(:if),
+          EndInstruction.new(:try),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_match_required_node(node, used:)
         match_required_node_compiler = Transformers::MatchRequiredNode.new
         code_str = match_required_node_compiler.call(node)
