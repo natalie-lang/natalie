@@ -277,9 +277,7 @@ describe :regexp_new_string, shared: true do
     end
 
     it "accepts a one-digit octal value" do
-      NATFIXME "accepts a one-digit octal value", exception: SpecFailedException do
-        Regexp.send(@method, "\0").should == /#{"\x00"}/
-      end
+      Regexp.send(@method, "\0").should == /#{"\x00"}/
     end
 
     it "accepts a two-digit octal value" do
@@ -401,9 +399,7 @@ describe :regexp_new_string, shared: true do
     end
 
     it "accepts \\u{HHHH} for a single Unicode codepoint" do
-      NATFIXME "accepts \\u{HHHH} for a single Unicode codepoint", exception: SpecFailedException do
-        Regexp.send(@method, "\u{0000}").should == /#{"\x00"}/
-      end
+      Regexp.send(@method, "\u{0000}").should == /#{"\x00"}/
     end
 
     it "accepts \\u{HHHHH} for a single Unicode codepoint" do
@@ -411,9 +407,7 @@ describe :regexp_new_string, shared: true do
     end
 
     it "accepts \\u{HHHHHH} for a single Unicode codepoint" do
-      NATFIXME "accepts \\u{HHHHHH} for a single Unicode codepoint", exception: SpecFailedException do
-        Regexp.send(@method, "\u{000000}").should == /#{"\x00"}/
-      end
+      Regexp.send(@method, "\u{000000}").should == /#{"\x00"}/
     end
 
     it "accepts characters followed by \\u{HHHH}" do
@@ -503,9 +497,7 @@ describe :regexp_new_string, shared: true do
     end
 
     it "returns a Regexp with UTF-8 encoding if any UTF-8 escape sequences outside 7-bit ASCII are present" do
-      NATFIXME "returns a Regexp with UTF-8 encoding if any UTF-8 escape sequences outside 7-bit ASCII are present", exception: SpecFailedException do
-        Regexp.send(@method, "\u{ff}").encoding.should == Encoding::UTF_8
-      end
+      Regexp.send(@method, "\u{ff}").encoding.should == Encoding::UTF_8
     end
 
     it "returns a Regexp with source String having UTF-8 encoding if any UTF-8 escape sequences outside 7-bit ASCII are present" do
@@ -514,16 +506,12 @@ describe :regexp_new_string, shared: true do
 
     it "returns a Regexp with the input String's encoding" do
       str = "\x82\xa0".dup.force_encoding(Encoding::Shift_JIS)
-      NATFIXME "returns a Regexp with the input String's encoding", exception: SpecFailedException do
-        Regexp.send(@method, str).encoding.should == Encoding::Shift_JIS
-      end
+      Regexp.send(@method, str).encoding.should == Encoding::Shift_JIS
     end
 
     it "returns a Regexp with source String having the input String's encoding" do
       str = "\x82\xa0".dup.force_encoding(Encoding::Shift_JIS)
-      NATFIXME "returns a Regexp with source String having the input String's encoding", exception: SpecFailedException do
-        Regexp.send(@method, str).source.encoding.should == Encoding::Shift_JIS
-      end
+      Regexp.send(@method, str).source.encoding.should == Encoding::Shift_JIS
     end
   end
 end
@@ -633,9 +621,7 @@ describe :regexp_new_regexp, shared: true do
 
   not_supported_on :opal do
     it "sets the encoding to UTF-8 if the Regexp literal has the 'u' option" do
-      NATFIXME "sets the encoding to UTF-8 if the Regexp literal has the 'u' option", exception: SpecFailedException do
-        Regexp.send(@method, /Hi/u).encoding.should == Encoding::UTF_8
-      end
+      Regexp.send(@method, /Hi/u).encoding.should == Encoding::UTF_8
     end
 
     it "sets the encoding to EUC-JP if the Regexp literal has the 'e' option" do

@@ -615,9 +615,7 @@ describe "Regexp with character classes" do
   end
 
   it "raises a RegexpError for an unterminated unicode property" do
-    NATFIXME 'it raises a RegexpError for an unterminated unicode property', exception: SpecFailedException do
-      -> { Regexp.new('\p{') }.should raise_error(RegexpError)
-    end
+    -> { Regexp.new('\p{') }.should raise_error(RegexpError)
   end
 
   it "supports \\X (unicode 9.0 with UTR #51 workarounds)" do

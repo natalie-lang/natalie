@@ -49,6 +49,11 @@ describe 'regexp' do
     #-> { eval('/\u{111111}/') }.should raise_error(SyntaxError)
   end
 
+  it 'uses the right onigmo encoding' do
+    pattern = Regexp.new("木".encode('EUC-JP'), Regexp::FIXEDENCODING)
+    pattern.encoding.should == Encoding::EUC_JP
+  end
+
   it 'can embed regexp that ignores multiline and comments' do
     r1 = /
     foo
