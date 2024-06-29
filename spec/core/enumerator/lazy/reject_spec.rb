@@ -34,9 +34,7 @@ describe "Enumerator::Lazy#reject" do
   end
 
   it "lets exceptions raised in the block go through" do
-    # TODO: Implement Integer#times without block
-    # lazy = 10.times.lazy.map do |i|
-    lazy = (0..9).lazy.map do |i|
+    lazy = 10.times.lazy.map do |i|
       raise "foo"
     end
 

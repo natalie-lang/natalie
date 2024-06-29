@@ -13,10 +13,7 @@ describe "StringScanner#getch" do
 
   it "is multi-byte character sensitive" do
     # Japanese hiragana "A" in EUC-JP
-    #src = "\244\242".force_encoding("euc-jp")
-
-    # nerd face emoji in UTF-8
-    src = "\xF0\x9F\xA4\x93".force_encoding("utf-8")
+    src = "\244\242".dup.force_encoding("euc-jp")
 
     s = StringScanner.new(src)
     s.getch.should == src

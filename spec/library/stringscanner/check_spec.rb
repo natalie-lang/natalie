@@ -21,4 +21,5 @@ describe "StringScanner#check" do
     @s.check(/is/).should == nil
     @s.matched.should == nil
   end
+
 end

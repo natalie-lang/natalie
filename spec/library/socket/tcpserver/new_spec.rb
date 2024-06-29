@@ -83,10 +83,7 @@ describe "TCPServer.new" do
   it "has a single argument form and treats it as a port number" do
     @server = TCPServer.new(0)
     addr = @server.addr
-    addr[0].should == 'AF_INET'
     addr[1].should be_kind_of(Integer)
-    addr[2].should == '0.0.0.0'
-    addr[3].should == '0.0.0.0'
   end
 
   it "coerces port to a string when it is the only argument" do

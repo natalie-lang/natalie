@@ -122,5 +122,3 @@ describe "Dir.chdir" do
     Dir.pwd.should == @original
   end
 end
-
-

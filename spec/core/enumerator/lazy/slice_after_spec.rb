@@ -1,5 +1,4 @@
 require_relative '../../../spec_helper'
-require_relative '../../enumerable/fixtures/classes'
 
 describe "Enumerator::Lazy#slice_after" do
   it "works with an infinite enumerable" do

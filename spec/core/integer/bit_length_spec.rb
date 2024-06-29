@@ -48,23 +48,20 @@ describe "Integer#bit_length" do
       (2**1000).bit_length.should == 1001
       (2**1000+1).bit_length.should == 1001
 
-      # NATFIXME: Improve BigInt speed to let this run in reasonable time
-      # (2**10000-1).bit_length.should == 10000
-      # (2**10000).bit_length.should == 10001
-      # (2**10000+1).bit_length.should == 10001
+      (2**10000-1).bit_length.should == 10000
+      (2**10000).bit_length.should == 10001
+      (2**10000+1).bit_length.should == 10001
 
       (1 << 100).bit_length.should == 101
       (1 << 100).succ.bit_length.should == 101
       (1 << 100).pred.bit_length.should == 100
-      # NATFIXME: Improve BigInt speed to let this run in reasonable time
-      # (1 << 10000).bit_length.should == 10001
+      (1 << 10000).bit_length.should == 10001
     end
 
     it "returns the position of the leftmost 0 bit of a negative number" do
-      # NATFIXME: Improve BigInt speed to let this run in reasonable time
-      # (-2**10000-1).bit_length.should == 10001
-      # (-2**10000).bit_length.should == 10000
-      # (-2**10000+1).bit_length.should == 10000
+      (-2**10000-1).bit_length.should == 10001
+      (-2**10000).bit_length.should == 10000
+      (-2**10000+1).bit_length.should == 10000
 
       (-2**1000-1).bit_length.should == 1001
       (-2**1000).bit_length.should == 1000
@@ -73,8 +70,7 @@ describe "Integer#bit_length" do
       ((-1 << 100)-1).bit_length.should == 101
       ((-1 << 100)-1).succ.bit_length.should == 100
       ((-1 << 100)-1).pred.bit_length.should == 101
-      # NATFIXME: Improve BigInt speed to let this run in reasonable time
-      # ((-1 << 10000)-1).bit_length.should == 10001
+      ((-1 << 10000)-1).bit_length.should == 10001
     end
   end
 end

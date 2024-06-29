@@ -26,12 +26,9 @@ describe 'Socket.tcp' do
   end
 
   it 'yields the Socket when a block is given' do
-    yielded = false
     Socket.tcp(@host, @port) do |socket|
-      yielded = true
       socket.should be_an_instance_of(Socket)
     end
-    yielded.should == true
   end
 
   it 'closes the Socket automatically when a block is given' do

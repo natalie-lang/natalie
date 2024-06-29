@@ -48,6 +48,6 @@ describe "Range#first" do
   end
 
   it "raises a RangeError when called on an beginless range" do
-    -> { eval("(..1)").first }.should raise_error(RangeError)
+    -> { (..1).first }.should raise_error(RangeError)
   end
 end

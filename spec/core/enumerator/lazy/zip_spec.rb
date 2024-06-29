@@ -35,11 +35,8 @@ describe "Enumerator::Lazy#zip" do
 
   it "calls the block with a gathered array when yield with multiple arguments" do
     yields = @yieldsmixed.zip(EnumeratorLazySpecs::YieldsMixed.new.to_enum).force
-    # yields.should == [EnumeratorLazySpecs::YieldsMixed.gathered_yields,
-                      # EnumeratorLazySpecs::YieldsMixed.gathered_yields].transpose
-    # Those values are taken from running the spec with ruby
-    # TODO: Implement Array#transpose to uncomment the lines above
-    yields.should == [[nil, nil], [0, 0], [[0, 1], [0, 1]], [[0, 1, 2], [0, 1, 2]], [[0, 1, 2], [0, 1, 2]], [nil, nil], [:default_arg, :default_arg], [[], []], [[], []], [[0], [0]], [[0, 1], [0, 1]], [[0, 1, 2], [0, 1, 2]]]
+    yields.should == [EnumeratorLazySpecs::YieldsMixed.gathered_yields,
+                      EnumeratorLazySpecs::YieldsMixed.gathered_yields].transpose
   end
 
   it "returns a Lazy when no arguments given" do

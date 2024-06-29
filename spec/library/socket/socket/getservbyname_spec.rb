@@ -1,7 +1,7 @@
 require_relative '../spec_helper'
 require_relative '../fixtures/classes'
 
-describe "Socket.getservbyname" do
+describe "Socket#getservbyname" do
   it "returns the port for service 'discard'" do
     Socket.getservbyname('discard').should == 9
   end

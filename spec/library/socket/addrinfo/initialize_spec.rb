@@ -368,7 +368,7 @@ describe "Addrinfo#initialize" do
               value = Socket.const_get(type)
               block = -> { Addrinfo.new(@sockaddr, nil, nil, value) }
 
-              block.should raise_error(SocketError, "getaddrinfo: ai_socktype not supported")
+              block.should raise_error(SocketError)
             end
           end
         end

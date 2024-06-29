@@ -43,4 +43,8 @@ describe "StringIO#string=" do
     @io.string = obj
     @io.string.should == "to_str"
   end
+
+  it "raises a TypeError when the passed Object can't be converted to an Integer" do
+    -> { @io.seek(Object.new) }.should raise_error(TypeError)
+  end
 end

@@ -1,3 +1,4 @@
+# frozen_string_literal: false
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 require_relative 'shared/strip'
@@ -31,6 +32,12 @@ describe "String#strip!" do
     a = "hello"
     a.strip!.should == nil
     a.should == "hello"
+  end
+
+  it "makes a string empty if it is only whitespace" do
+    "".strip!.should == nil
+    " ".strip.should == ""
+    "  ".strip.should == ""
   end
 
   it "removes leading and trailing NULL bytes and whitespace" do

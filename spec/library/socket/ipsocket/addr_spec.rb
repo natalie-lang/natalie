@@ -81,7 +81,7 @@ describe 'Socket::IPSocket#addr' do
 
       describe 'using :cats as the argument' do
         it 'raises ArgumentError' do
-          -> { @server.addr(:cats) }.should raise_error(ArgumentError, 'invalid reverse_lookup flag: :cats')
+          -> { @server.addr(:cats) }.should raise_error(ArgumentError)
         end
       end
     end

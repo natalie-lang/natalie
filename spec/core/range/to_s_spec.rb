@@ -17,7 +17,7 @@ describe "Range#to_s" do
   end
 
   it "can show beginless ranges" do
-    eval("(..1)").to_s.should == "..1"
-    eval("(...1.0)").to_s.should == "...1.0"
+    (..1).to_s.should == "..1"
+    (...1.0).to_s.should == "...1.0"
   end
 end

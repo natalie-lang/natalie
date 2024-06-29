@@ -58,9 +58,9 @@ describe "Array#sort" do
     b = ArraySpecs::MockForCompared.new
     c = ArraySpecs::MockForCompared.new
 
-    ArraySpecs::MockForCompared.compared?.should == false
+    ArraySpecs::MockForCompared.should_not.compared?
     [a, b, c].sort.should == [c, b, a]
-    ArraySpecs::MockForCompared.compared?.should == true
+    ArraySpecs::MockForCompared.should.compared?
   end
 
   it "does not deal with exceptions raised by unimplemented or incorrect #<=>" do
@@ -89,8 +89,8 @@ describe "Array#sort" do
   end
 
   it "does not call #<=> on elements when invoked with a block even if Array is large (Rubinius #412)" do
-    a = Array.new(100)
-    (0...100).each {|i| a[i] = ArraySpecs::UFOSceptic.new }
+    a = Array.new(1500)
+    (0...1500).each {|i| a[i] = ArraySpecs::UFOSceptic.new }
 
     a.sort { -1 }.should be_an_instance_of(Array)
   end
@@ -120,7 +120,7 @@ describe "Array#sort" do
           raise
         end
       end
-      a.sort {|n, m| (n - m) * 10}.should == [-4, 1, 2, 5, 7, 10, 12]
+      a.sort {|n, m| (n - m) * (2 ** 200)}.should == [-4, 1, 2, 5, 7, 10, 12]
     ensure
       class Integer
         alias <=> old_spaceship
@@ -207,9 +207,9 @@ describe "Array#sort!" do
     b = ArraySpecs::MockForCompared.new
     c = ArraySpecs::MockForCompared.new
 
-    ArraySpecs::MockForCompared.compared?.should == false
+    ArraySpecs::MockForCompared.should_not.compared?
     [a, b, c].sort!.should == [c, b, a]
-    ArraySpecs::MockForCompared.compared?.should == true
+    ArraySpecs::MockForCompared.should.compared?
   end
 
   it "does not call #<=> on contained objects when invoked with a block" do
@@ -220,8 +220,8 @@ describe "Array#sort!" do
   end
 
   it "does not call #<=> on elements when invoked with a block even if Array is large (Rubinius #412)" do
-    a = Array.new(100)
-    (0...100).each {|i| a[i] = ArraySpecs::UFOSceptic.new }
+    a = Array.new(1500)
+    (0...1500).each {|i| a[i] = ArraySpecs::UFOSceptic.new }
 
     a.sort! { -1 }.should be_an_instance_of(Array)
   end
