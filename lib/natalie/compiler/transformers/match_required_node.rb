@@ -14,6 +14,8 @@ module Natalie
             raise SyntaxError, 'HashPatternNode not yet supported'
           when :local_variable_target_node
             transform_local_variable_target_node(node.pattern, node.value)
+          when :pinned_expression_node
+            raise SyntaxError, 'PinnedExpressionNode not yet supported'
           else
             transform_eqeqeq_check(node.pattern, node.value)
           end
@@ -22,6 +24,8 @@ module Natalie
         private
 
         def transform_array_pattern_node(node, value)
+          raise SyntaxError, 'PinnedExpressionNode not yet supported' if (node.requireds + node.posts).any? { |n| n.is_a?(Prism::PinnedExpressionNode) }
+
           # Transform `expr => [a, b] into `a, b = ->(expr) { expr.deconstruct }.call(expr)`
           targets = node.requireds.filter_map { |n| n.name if n.type == :local_variable_target_node }
           expected_size = node.requireds.size + node.posts.size
