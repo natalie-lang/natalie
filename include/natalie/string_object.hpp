@@ -276,6 +276,8 @@ public:
     StringObject *successive(Env *);
     StringObject *successive_in_place(Env *);
 
+    Value byteindex(Env *, Value, Value = nullptr) const;
+
     Value index(Env *, Value, Value);
     Value index(Env *, Value, size_t start);
     nat_int_t index_int(Env *, Value, size_t byte_start);

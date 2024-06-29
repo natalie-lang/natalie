@@ -667,6 +667,42 @@ bool StringObject::end_with(Env *env, Args args) const {
     return false;
 }
 
+Value StringObject::byteindex(Env *env, Value needle_obj, Value offset_obj) const {
+    StringObject *needle_str = needle_obj->to_str2(env);
+    String needle = needle_str->string();
+
+    assert_compatible_string(env, needle_str);
+
+    ssize_t offset = 0;
+    if (offset_obj)
+        offset = IntegerObject::convert_to_native_type<ssize_t>(env, offset_obj);
+    if (offset < 0)
+        offset += bytesize();
+    if (offset < 0 || (size_t)offset + needle.size() > bytesize())
+        return NilObject::the();
+
+    if ((size_t)offset < bytesize()) {
+        auto character_check = new StringObject { m_string.substring(offset, std::min(bytesize() - offset, (size_t)4)) };
+        size_t ignored = 0;
+        auto [valid, _char] = character_check->next_char_result(&ignored);
+        if (!valid)
+            env->raise("IndexError", "offset {} does not land on character boundary", offset);
+    }
+
+    if (needle.is_empty())
+        return Value::integer(offset);
+
+    if ((size_t)offset >= bytesize())
+        return NilObject::the();
+
+    auto pointer = memmem(c_str() + offset, bytesize() - offset, needle.c_str(), needle.size());
+    if (!pointer)
+        return NilObject::the();
+
+    auto result = (const char *)pointer - c_str();
+    return Value::integer(result);
+}
+
 Value StringObject::index(Env *env, Value needle, Value offset) {
     int offset_i = (offset) ? IntegerObject::convert_to_int(env, offset) : 0;
     int len = char_count(env);
