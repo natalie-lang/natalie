@@ -8,15 +8,11 @@ describe :marshal_load, shared: true do
 
   it "raises an ArgumentError when the dumped data is truncated" do
     obj = {first: 1, second: 2, third: 3}
-    NATFIXME 'raises an ArgumentError when the dumped data is truncated', exception: SpecFailedException, message: "undefined method `>' for nil" do
-      -> { Marshal.send(@method, Marshal.dump(obj)[0, 5]) }.should raise_error(ArgumentError, "marshal data too short")
-    end
+    -> { Marshal.send(@method, Marshal.dump(obj)[0, 5]) }.should raise_error(ArgumentError, "marshal data too short")
   end
 
   it "raises an ArgumentError when the argument is empty String" do
-    NATFIXME 'raises an ArgumentError when the argument is empty String', exception: SpecFailedException, message: 'incompatible marshal file format' do
-      -> { Marshal.send(@method, "") }.should raise_error(ArgumentError, "marshal data too short")
-    end
+    -> { Marshal.send(@method, "") }.should raise_error(ArgumentError, "marshal data too short")
   end
 
   it "raises an ArgumentError when the dumped class is missing" do
@@ -379,7 +375,7 @@ describe :marshal_load, shared: true do
 
     it "loads the String in non US-ASCII and non UTF-8 encoding" do
       source_object = UserDefinedString.new("a".encode("windows-1251"))
-      NATFIXME 'loads the String in non US-ASCII and non UTF-8 encoding', exception: NoMethodError, message: "undefined method `>' for nil" do
+      NATFIXME 'loads the String in non US-ASCII and non UTF-8 encoding', exception: ArgumentError, message: 'marshal data too short' do
         object = Marshal.send(@method, Marshal.dump(source_object))
         object.string.should == "a".encode("windows-1251")
       end
@@ -488,7 +484,7 @@ describe :marshal_load, shared: true do
     arr = ArraySubPush.new
     arr[0] = '1'
     arr_dump = Marshal.dump(arr)
-    NATFIXME 'loads subclasses of Array with overridden << and push correctly', exception: NoMethodError, message: "undefined method `>' for nil" do
+    NATFIXME 'loads subclasses of Array with overridden << and push correctly', exception: ArgumentError, message: 'marshal data too short' do
       Marshal.send(@method, arr_dump).should == arr
     end
   end
@@ -511,7 +507,7 @@ describe :marshal_load, shared: true do
     temp_file = tmp("marshal.rubyspec.tmp.#{Process.pid}")
     file = File.new(temp_file, "w+")
     begin
-      NATFIXME 'raises EOFError on loading an empty file', exception: SpecFailedException, message: 'incompatible marshal file format' do
+      NATFIXME 'raises EOFError on loading an empty file', exception: SpecFailedException, message: 'marshal data too short' do
         -> { Marshal.send(@method, file) }.should raise_error(EOFError)
       end
     ensure
@@ -616,7 +612,7 @@ describe :marshal_load, shared: true do
       h = { key: s }
       h.instance_variable_set :@hash_ivar, 'hash ivar'
 
-      NATFIXME 'preserves hash ivars when hash contains a string having ivar', exception: NoMethodError, message: "undefined method `>' for nil" do
+      NATFIXME 'preserves hash ivars when hash contains a string having ivar', exception: ArgumentError, message: 'marshal data too short' do
         unmarshalled = Marshal.send(@method, Marshal.dump(h))
         unmarshalled.instance_variable_get(:@hash_ivar).should == 'hash ivar'
         unmarshalled[:key].instance_variable_get(:@string_ivar).should == 'string ivar'
@@ -750,7 +746,7 @@ describe :marshal_load, shared: true do
     it "loads a string through StringIO stream" do
       require 'stringio'
       obj = "This is a string which should be unmarshalled through StringIO stream!"
-      NATFIXME 'loads a string through StringIO stream', exception: NoMethodError, message: "undefined method `>' for nil" do
+      NATFIXME 'loads a string through StringIO stream', exception: ArgumentError, message: 'marshal data too short' do
         Marshal.send(@method, StringIO.new(Marshal.dump(obj))).should == obj
       end
     end
@@ -1178,9 +1174,7 @@ describe :marshal_load, shared: true do
        "\004\bi\004\0",
        "\004\bi\004\0\0",
        "\004\bi\004\0\0\0"].each do |invalid|
-        NATFIXME 'raises ArgumentError if the input is too short', exception: SpecFailedException, message: /undefined method `.*' for nil/ do
-          -> { Marshal.send(@method, invalid) }.should raise_error(ArgumentError)
-        end
+        -> { Marshal.send(@method, invalid) }.should raise_error(ArgumentError)
       end
     end
 
