@@ -22,8 +22,6 @@ module Natalie
         private
 
         def transform_array_pattern_node(node, value)
-          raise SyntaxError, 'Using constant in Array pattern not yet supported' unless node.constant.nil?
-
           # Transform `expr => [a, b] into `a, b = ->(expr) { expr.deconstruct }.call(expr)`
           targets = node.requireds.filter_map { |n| n.name if n.type == :local_variable_target_node }
           expected_size = node.requireds.size + node.posts.size
@@ -41,6 +39,14 @@ module Natalie
                         else
                           "#{targets.join(', ')} = "
                         end
+          const_check = ''
+          if node.constant
+            const_check = <<~RUBY
+              unless #{node.constant.full_name} === result
+                raise ::NoMatchingPatternError, "\#{result}: #{node.constant.full_name} === \#{result} does not return true"
+              end
+            RUBY
+          end
           main_loop_instructions = node.requireds.each_with_index.map do |n, i|
             if n.type == :local_variable_target_node
               "outputs << values[#{i}]"
@@ -70,6 +76,7 @@ module Natalie
           end
           <<~RUBY
             #{targets_str}lambda do |result|
+              #{const_check}
               values = result.deconstruct
               outputs = []
               unless #{expected_size} === values.size
