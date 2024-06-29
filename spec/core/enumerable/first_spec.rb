@@ -19,9 +19,7 @@ describe "Enumerable#first" do
 
   it "raises a RangeError when passed a Bignum" do
     enum = EnumerableSpecs::Empty.new
-    NATFIXME 'raises a RangeError when passed a Bignum', exception: SpecFailedException do
-      -> { enum.first(bignum_value) }.should raise_error(RangeError)
-    end
+    -> { enum.first(bignum_value) }.should raise_error(RangeError)
   end
 
   describe "when passed an argument" do
