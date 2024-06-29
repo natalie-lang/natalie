@@ -225,7 +225,7 @@ class Date
   def deconstruct_keys(names)
     raise TypeError, "wrong argument type #{names.class} (expected Array or nil)" if !names.nil? && !names.is_a?(Array)
 
-    result = { year:, month:, day:, wday: }
+    result = { year:, month:, day:, yday:, wday: }
     result = result.slice(*names) unless names.nil?
     result
   end
@@ -391,6 +391,12 @@ class Date
 
   def wednesday?
     wday == 3
+  end
+
+  def yday
+    monthdays = MONTHDAYS.drop(1)
+    monthdays[1] = Date.leap?(year) ? 29 : 28
+    monthdays.take(month - 1).sum + day
   end
 
   attr_reader :year
