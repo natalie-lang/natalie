@@ -6,7 +6,7 @@ module PatternMatchingHelper
   ABStruct = Struct.new(:a, :b)
 end
 
-# NATFIXME: Temprorary file until we can run some things in `language/pattern_matching_spec.rb`
+# NATFIXME: Temporary file until we can run some things in `language/pattern_matching_spec.rb`
 describe 'pattern matching' do
   it 'can assign a single value' do
     1 => a
