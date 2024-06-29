@@ -268,9 +268,7 @@ describe "String#byteindex with Regexp" do
     end
 
     it "returns nil if the Regexp matches the empty string and the offset is out of range" do
-      NATFIXME 'Support Regexp', exception: TypeError do
-        "ruby".byteindex(//, 12).should be_nil
-      end
+      "ruby".byteindex(//, 12).should be_nil
     end
 
     it "supports \\G which matches at the given start offset" do
