@@ -311,11 +311,17 @@ module Marshal
     end
 
     def read_byte
-      @source.getbyte
+      byte = @source.getbyte
+      raise ArgumentError, 'marshal data too short' if byte.nil?
+
+      byte
     end
 
     def read_bytes(integer)
-      @source.read(integer)
+      bytes = @source.read(integer)
+      raise ArgumentError, 'marshal data too short' if bytes.size < integer
+
+      bytes
     end
 
     def read_version
@@ -550,6 +556,8 @@ module Marshal
 
     def read_byte
       byte = @source.getbyte(@offset)
+      raise ArgumentError, 'marshal data too short' if byte.nil?
+
       @offset += 1
       byte
     end
