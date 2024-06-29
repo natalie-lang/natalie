@@ -359,6 +359,8 @@ module Enumerable
   def inject(*args)
     gather = ->(item) { item.size <= 1 ? item.first : item }
     if args.size == 0
+      raise ArgumentError, 'wrong number of arguments (given 0, expected 1..2)' unless block_given?
+
       enum = enum_for(:each)
       memo = nil
       begin
@@ -378,7 +380,7 @@ module Enumerable
       else
         raise "don't know how to handle arg: #{args.first.inspect}"
       end
-    else
+    elsif args.size == 2
       if block_given? && $VERBOSE
         c = caller_locations(1).first
         warn("#{c.path}:#{c.lineno}: warning: given block not used")
@@ -386,6 +388,8 @@ module Enumerable
       memo, sym = args
       each { |obj| memo = memo.send(sym, obj) }
       memo
+    else
+      raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1..2)"
     end
   end
 

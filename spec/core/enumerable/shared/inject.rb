@@ -102,10 +102,8 @@ describe :enumerable_inject, shared: true do
 
   ruby_bug '#18635', ''...'3.2' do
     it "raises an ArgumentError when no parameters or block is given" do
-      NATFIXME 'it raises an ArgumentError when no parameters or block is given', exception: SpecFailedException, message: /LocalJumpError: no block given/ do
-        -> { [1,2].send(@method) }.should raise_error(ArgumentError)
-        -> { {one: 1, two: 2}.send(@method) }.should raise_error(ArgumentError)
-      end
+      -> { [1,2].send(@method) }.should raise_error(ArgumentError)
+      -> { {one: 1, two: 2}.send(@method) }.should raise_error(ArgumentError)
     end
   end
 end
