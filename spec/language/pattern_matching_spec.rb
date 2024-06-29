@@ -30,13 +30,13 @@ describe "Pattern matching" do
     end
   end
 
-  # NATFIXME: Handle Prism::MatchPredicateNode
   describe "One-line pattern matching" do
-    xit "can be used to check if a pattern matches for Array-like entities" do
-      #([0, 1] in [a, b]).should == true
-      #([0, 1] in [a, b, c]).should == false
+    it "can be used to check if a pattern matches for Array-like entities" do
+      ([0, 1] in [a, b]).should == true
+      ([0, 1] in [a, b, c]).should == false
     end
 
+    # NATFIXME: Handle Prism::HashPatternNode
     xit "can be used to check if a pattern matches for Hash-like entities" do
       #({ a: 0, b: 1 } in { a:, b: }).should == true
       #({ a: 0, b: 1 } in { a:, b:, c: }).should == false
