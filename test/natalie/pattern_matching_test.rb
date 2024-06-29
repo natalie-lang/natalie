@@ -2,6 +2,8 @@ require_relative '../spec_helper'
 
 module PatternMatchingHelper
   def self.one = 1
+
+  ABStruct = Struct.new(:a, :b)
 end
 
 # NATFIXME: Temprorary file until we can run some things in `language/pattern_matching_spec.rb`
@@ -140,8 +142,7 @@ describe 'pattern matching' do
   end
 
   it 'uses both the original input and the result of #deconstruct in the error message' do
-    struct = Struct.new(:a, :b)
-    s = struct.new(1, 2)
+    s = PatternMatchingHelper::ABStruct.new(1, 2)
     -> {
       s => a, b, c
     }.should raise_error(NoMatchingPatternError, "#{s}: [1, 2] length mismatch (given 2, expected 3)")
@@ -263,6 +264,41 @@ describe 'pattern matching' do
     -> {
       [1, 4] => 1, *a, 3, 4
     }.should raise_error(NoMatchingPatternError, '[1, 4]: [1, 4] length mismatch (given 2, expected 3+)')
+  end
+
+  it 'can handle array targets with a constant' do
+    s = PatternMatchingHelper::ABStruct.new(1, 2)
+    s => PatternMatchingHelper::ABStruct[a, b]
+    a.should == 1
+    b.should == 2
+  end
+
+  it 'matches Struct constant for any Struct class instance' do
+    s = PatternMatchingHelper::ABStruct.new(1, 2)
+    s => Struct[a, b]
+    a.should == 1
+    b.should == 2
+  end
+
+  it 'raises the correct error message for invalid classes' do
+    s = Struct.new(:b, :c).new(1, 2)
+    -> {
+      s => PatternMatchingHelper::ABStruct[_, _]
+    }.should raise_error(NoMatchingPatternError, "#{s}: PatternMatchingHelper::ABStruct === #{s} does not return true")
+  end
+
+  it 'raises the correct error message for invalid pattern size' do
+    s = PatternMatchingHelper::ABStruct.new(1, 2)
+    -> {
+      s => PatternMatchingHelper::ABStruct[_]
+    }.should raise_error(NoMatchingPatternError, "#{s}: [1, 2] length mismatch (given 2, expected 1)")
+  end
+
+  it 'raises the correct error message for invalid patterns' do
+    s = PatternMatchingHelper::ABStruct.new(1, 2)
+    -> {
+      s => PatternMatchingHelper::ABStruct[1, 3]
+    }.should raise_error(NoMatchingPatternError, "#{s}: 3 === 2 does not return true")
   end
 end
 
