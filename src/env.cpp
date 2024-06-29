@@ -215,6 +215,31 @@ void Env::raise_not_comparable_error(Value lhs, Value rhs) {
     raise("ArgumentError", std::move(message));
 }
 
+void Env::raise_type_error(const Object *obj, const char *expected) {
+    if (obj->type() == ObjectType::Nil) {
+        auto lowercase_expected = new StringObject { expected };
+        lowercase_expected->downcase_in_place(this);
+        raise("TypeError", "no implicit conversion from nil to {}", lowercase_expected->string());
+    } else {
+        raise("TypeError", "no implicit conversion of {} into {}", obj->klass()->inspect_str(), expected);
+    }
+}
+
+// This is the same as Env::raise_type_error, but with more consistent error messages.
+// We need both methods because CRuby is inconsistent. :-(
+void Env::raise_type_error2(const Object *obj, const char *expected) {
+    switch (obj->type()) {
+    case ObjectType::Nil:
+        raise("TypeError", "no implicit conversion of nil into {}", expected);
+    case ObjectType::True:
+        raise("TypeError", "no implicit conversion of true into {}", expected);
+    case ObjectType::False:
+        raise("TypeError", "no implicit conversion of false into {}", expected);
+    default:
+        raise("TypeError", "no implicit conversion of {} into {}", obj->klass()->inspect_str(), expected);
+    }
+}
+
 bool Env::has_catch(Value value) const {
     return (m_catch && value->equal(m_catch)) || (m_caller && m_caller->has_catch(value)) || (m_outer && m_outer->has_catch(value));
 }

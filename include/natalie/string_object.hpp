@@ -336,7 +336,7 @@ public:
     Value delete_suffix(Env *, Value);
     Value delete_suffix_in_place(Env *, Value);
     StringObject *downcase(Env *, Value, Value);
-    Value downcase_in_place(Env *, Value, Value);
+    Value downcase_in_place(Env *, Value = nullptr, Value = nullptr);
     Value dump(Env *);
     Value each_byte(Env *, Block *);
     Value encode(Env *, Value = nullptr, Value = nullptr, HashObject * = nullptr);
