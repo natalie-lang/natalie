@@ -3,17 +3,17 @@ describe "Pattern matching" do
     ScratchPad.record []
   end
 
-  # NATFIXME: Handle Prism::CaseMatchNode
   describe "Ruby 3.1 improvements" do
     ruby_version_is "3.1" do
-      xit "can omit parentheses in one line pattern matching" do
-        #[1, 2] => a, b
-        #[a, b].should == [1, 2]
+      it "can omit parentheses in one line pattern matching" do
+        [1, 2] => a, b
+        [a, b].should == [1, 2]
 
         #{a: 1} => a:
         #a.should == 1
       end
 
+      # NATFIXME: Handle Prism::CaseMatchNode
       xit "supports pinning instance variables" do
         #@a = /a/
         #case 'abc'
