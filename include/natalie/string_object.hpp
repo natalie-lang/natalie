@@ -12,6 +12,7 @@
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/object.hpp"
+#include "tm/non_null_ptr.hpp"
 
 namespace Natalie {
 
@@ -35,7 +36,7 @@ public:
     StringObject()
         : StringObject { "" } { }
 
-    StringObject(EncodingObject *encoding)
+    StringObject(NonNullPtr<EncodingObject> encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
         assert(m_encoding);
@@ -49,7 +50,7 @@ public:
         set_str(str);
     }
 
-    StringObject(const char *str, EncodingObject *encoding)
+    StringObject(const char *str, NonNullPtr<EncodingObject> encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
         assert(m_encoding);
@@ -70,7 +71,7 @@ public:
         set_str(str, length);
     }
 
-    StringObject(const char *str, size_t length, EncodingObject *encoding)
+    StringObject(const char *str, size_t length, NonNullPtr<EncodingObject> encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
         assert(m_encoding);
@@ -85,9 +86,9 @@ public:
     }
 
     StringObject(const StringObject &other)
-        : Object { other } {
+        : Object { other }
+        , m_encoding { other.m_encoding } {
         set_str(other.c_str(), other.length());
-        set_encoding(other.encoding());
     }
 
     StringObject(const String &str)
@@ -104,14 +105,14 @@ public:
         m_string = std::move(str);
     }
 
-    StringObject(const String &str, EncodingObject *encoding)
+    StringObject(const String &str, NonNullPtr<EncodingObject> encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
         assert(m_encoding);
         m_string = str;
     }
 
-    StringObject(String &&str, EncodingObject *encoding)
+    StringObject(String &&str, NonNullPtr<EncodingObject> encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
         assert(m_encoding);
@@ -132,7 +133,7 @@ public:
         m_string = std::move(str);
     }
 
-    StringObject(const StringView &str, EncodingObject *encoding)
+    StringObject(const StringView &str, NonNullPtr<EncodingObject> encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
         assert(m_encoding);
@@ -164,7 +165,7 @@ public:
     }
 
     bool valid_encoding() const;
-    EncodingObject *encoding() const { return m_encoding; }
+    EncodingObject *encoding() const { return m_encoding.ptr(); }
     void set_encoding(EncodingObject *encoding) { m_encoding = encoding; }
     bool is_ascii_only() const;
     EncodingObject *negotiate_compatible_encoding(StringObject *) const;
@@ -446,7 +447,7 @@ public:
 
     virtual void visit_children(Visitor &visitor) override final {
         Object::visit_children(visitor);
-        visitor.visit(m_encoding);
+        visitor.visit(m_encoding.ptr());
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -515,7 +516,7 @@ private:
     using EncodeUndefOption = EncodingObject::EncodeUndefOption;
 
     String m_string {};
-    EncodingObject *m_encoding { nullptr };
+    NonNullPtr<EncodingObject> m_encoding;
 };
 
 }

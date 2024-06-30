@@ -176,7 +176,7 @@ Value StringObject::each_codepoint(Env *env, Block *block) {
         auto char_obj = StringObject { c, m_encoding };
 
         if (!char_obj.valid_encoding())
-            env->raise_invalid_byte_sequence_error(m_encoding);
+            env->raise_invalid_byte_sequence_error(m_encoding.ptr());
 
         Value args[] = { char_obj.ord(env) };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
@@ -192,7 +192,7 @@ Value StringObject::codepoints(Env *env, Block *block) {
         for (;;) {
             auto [valid, length, codepoint] = m_encoding->next_codepoint(m_string, &index);
             if (!valid)
-                env->raise_invalid_byte_sequence_error(m_encoding);
+                env->raise_invalid_byte_sequence_error(m_encoding.ptr());
             if (length == 0)
                 break;
             Value args[] = { Value::integer(codepoint) };
@@ -202,13 +202,13 @@ Value StringObject::codepoints(Env *env, Block *block) {
     }
 
     if (!this->valid_encoding())
-        env->raise_invalid_byte_sequence_error(m_encoding);
+        env->raise_invalid_byte_sequence_error(m_encoding.ptr());
 
     ArrayObject *ary = new ArrayObject {};
     for (;;) {
         auto [valid, length, codepoint] = m_encoding->next_codepoint(m_string, &index);
         if (!valid)
-            env->raise_invalid_byte_sequence_error(m_encoding);
+            env->raise_invalid_byte_sequence_error(m_encoding.ptr());
         if (length == 0)
             break;
         ary->push(Value::integer(codepoint));
@@ -436,7 +436,7 @@ Value StringObject::chr(Env *env) {
 }
 
 SymbolObject *StringObject::to_symbol(Env *env) const {
-    return SymbolObject::intern(m_string, m_encoding);
+    return SymbolObject::intern(m_string, m_encoding.ptr());
 }
 
 Value StringObject::to_sym(Env *env) const {
@@ -862,7 +862,7 @@ Value StringObject::concat(Env *env, Args args) {
         } else if (arg->is_integer() && arg->as_integer()->is_negative()) {
             env->raise("RangeError", "{} out of char range", arg->as_integer()->to_s(env)->as_string()->string());
         } else if (arg->is_integer()) {
-            str_obj = arg.send(env, "chr"_s, { m_encoding })->as_string();
+            str_obj = arg.send(env, "chr"_s, { m_encoding.ptr() })->as_string();
         } else {
             str_obj = arg->to_str(env);
         }
@@ -967,13 +967,13 @@ Value StringObject::ord(Env *env) const {
     size_t index = 0;
     auto result = next_char_result(&index);
     if (!result.first)
-        env->raise_invalid_byte_sequence_error(m_encoding);
+        env->raise_invalid_byte_sequence_error(m_encoding.ptr());
     auto c = result.second;
     if (c.is_empty())
         env->raise("ArgumentError", "empty string");
     auto code = m_encoding->decode_codepoint(c);
     if (code == -1)
-        env->raise_invalid_byte_sequence_error(m_encoding);
+        env->raise_invalid_byte_sequence_error(m_encoding.ptr());
     return Value::integer(code);
 }
 
@@ -995,7 +995,7 @@ Value StringObject::prepend(Env *env, Args args) {
         } else if (arg->is_integer() && arg->as_integer()->to_nat_int_t() < 0) {
             env->raise("RangeError", "{} out of char range", arg->as_integer()->to_s(env)->as_string()->string());
         } else if (arg->is_integer()) {
-            str_obj = arg.send(env, "chr"_s, { m_encoding })->as_string();
+            str_obj = arg.send(env, "chr"_s, { m_encoding.ptr() })->as_string();
         } else {
             str_obj = arg->to_str(env);
         }
@@ -1153,7 +1153,7 @@ Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_enco
         dst_encoding = EncodingObject::get(Encoding::UTF_8);
 
     if (!src_encoding)
-        src_encoding = m_encoding;
+        src_encoding = m_encoding.ptr();
 
     EncodeOptions options;
     if (kwargs) {
@@ -3286,9 +3286,9 @@ bool StringObject::is_ascii_only() const {
 
 EncodingObject *StringObject::negotiate_compatible_encoding(StringObject *other_string) const {
     if (m_encoding == other_string->m_encoding)
-        return m_encoding;
+        return m_encoding.ptr();
 
-    if (!m_encoding->is_compatible_with(other_string->m_encoding))
+    if (!m_encoding->is_compatible_with(other_string->m_encoding.ptr()))
         return nullptr;
 
     bool this_is_ascii = is_ascii_only();
@@ -3299,12 +3299,12 @@ EncodingObject *StringObject::negotiate_compatible_encoding(StringObject *other_
 
     // Special case for BINARY
     if (m_encoding->num() == Encoding::ASCII_8BIT)
-        return m_encoding;
+        return m_encoding.ptr();
 
     if (this_is_ascii)
-        return other_string->m_encoding;
+        return other_string->m_encoding.ptr();
     else
-        return m_encoding;
+        return m_encoding.ptr();
 }
 
 void StringObject::assert_compatible_string(Env *env, StringObject *other_string) const {
@@ -3318,7 +3318,7 @@ void StringObject::assert_compatible_string(Env *env, StringObject *other_string
 
 void StringObject::assert_valid_encoding(Env *env) const {
     if (valid_encoding()) return;
-    env->raise_invalid_byte_sequence_error(m_encoding);
+    env->raise_invalid_byte_sequence_error(m_encoding.ptr());
 }
 
 EncodingObject *StringObject::assert_compatible_string_and_update_encoding(Env *env, StringObject *other_string) {
@@ -3326,7 +3326,7 @@ EncodingObject *StringObject::assert_compatible_string_and_update_encoding(Env *
     if (compatible_encoding) {
         if (m_encoding != compatible_encoding)
             m_encoding = compatible_encoding;
-        return m_encoding;
+        return m_encoding.ptr();
     }
 
     auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
