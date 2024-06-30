@@ -36,22 +36,19 @@ describe "Thread#stop?" do
     ThreadSpecs.status_of_killed_thread.should.stop?
   end
 
-  # NATFIXME: The below specs are all dying and we haven't implemented
-  # Thread.abort_on_exception nor Thread.report_on_exception yet.
+  it "describes a thread with an uncaught exception" do
+    ThreadSpecs.status_of_thread_with_uncaught_exception.should.stop?
+  end
 
-  #it "describes a thread with an uncaught exception" do
-    #ThreadSpecs.status_of_thread_with_uncaught_exception.should.stop?
-  #end
+  it "describes a dying running thread" do
+    ThreadSpecs.status_of_dying_running_thread.should_not.stop?
+  end
 
-  #it "describes a dying running thread" do
-    #ThreadSpecs.status_of_dying_running_thread.should_not.stop?
-  #end
+  it "describes a dying sleeping thread" do
+    ThreadSpecs.status_of_dying_sleeping_thread.should.stop?
+  end
 
-  #it "describes a dying sleeping thread" do
-    #ThreadSpecs.status_of_dying_sleeping_thread.should.stop?
-  #end
-
-  #it "describes a dying thread after sleep" do
-    #ThreadSpecs.status_of_dying_thread_after_sleep.should_not.stop?
-  #end
+  it "describes a dying thread after sleep" do
+    ThreadSpecs.status_of_dying_thread_after_sleep.should_not.stop?
+  end
 end

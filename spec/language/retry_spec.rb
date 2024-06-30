@@ -31,10 +31,12 @@ describe "The retry statement" do
     results.should == [1, 2, 3, 1, 2, 4, 5, 6, 4, 5]
   end
 
-  # NOTE: this is a compile error in Natalie
-  # it "raises a SyntaxError when used outside of a begin statement" do
-  #  -> { eval 'retry' }.should raise_error(SyntaxError)
-  # end
+  it "raises a SyntaxError when used outside of a rescue statement" do
+    -> { eval 'retry' }.should raise_error(SyntaxError)
+    -> { eval 'begin; retry; end' }.should raise_error(SyntaxError)
+    -> { eval 'def m; retry; end' }.should raise_error(SyntaxError)
+    -> { eval 'module RetrySpecs; retry; end' }.should raise_error(SyntaxError)
+  end
 end
 
 describe "The retry keyword inside a begin block's rescue block" do

@@ -16,8 +16,6 @@ describe "String#partition with String" do
 
   it "accepts regexp" do
     "hello!".partition(/l./).should == ["he", "ll", "o!"]
-    "hello!".partition(/g./).should == ["hello!", "", ""]
-    "hello!".partition(/hello!/).should == ["", "hello!", ""]
   end
 
   it "sets global vars if regexp used" do
@@ -39,5 +37,27 @@ describe "String#partition with String" do
 
   it "takes precedence over a given block" do
     "hello world".partition("o") { true }.should == ["hell", "o", " world"]
+  end
+
+  it "handles a pattern in a superset encoding" do
+    string = "hello".dup.force_encoding(Encoding::US_ASCII)
+
+    result = string.partition("é")
+
+    result.should == ["hello", "", ""]
+    result[0].encoding.should == Encoding::US_ASCII
+    result[1].encoding.should == Encoding::US_ASCII
+    result[2].encoding.should == Encoding::US_ASCII
+  end
+
+  it "handles a pattern in a subset encoding" do
+    pattern = "o".dup.force_encoding(Encoding::US_ASCII)
+
+    result = "héllo world".partition(pattern)
+
+    result.should == ["héll", "o", " world"]
+    result[0].encoding.should == Encoding::UTF_8
+    result[1].encoding.should == Encoding::US_ASCII
+    result[2].encoding.should == Encoding::UTF_8
   end
 end

@@ -1,7 +1,7 @@
 require_relative '../spec_helper'
 require_relative '../fixtures/classes'
 
-describe "IPSocket.getaddress" do
+describe "Socket::IPSocket#getaddress" do
 
   it "returns the IP address of hostname" do
     addr_local = IPSocket.getaddress(SocketSpecs.hostname)

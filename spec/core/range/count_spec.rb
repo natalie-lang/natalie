@@ -5,8 +5,8 @@ describe "Range#count" do
     inf = Float::INFINITY
     eval("('a'...)").count.should == inf
     eval("(7..)").count.should == inf
-    eval("(...'a')").count.should == inf
-    eval("(...nil)").count.should == inf
-    eval("(..10.0)").count.should == inf
+    (...'a').count.should == inf
+    (...nil).count.should == inf
+    (..10.0).count.should == inf
   end
 end

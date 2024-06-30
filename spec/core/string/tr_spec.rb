@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# frozen_string_literal: false
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
@@ -14,6 +15,15 @@ describe "String#tr" do
     "123456789".tr("2-5","abcdefg").should == "1abcd6789"
     "hello ^-^".tr("e-", "__").should == "h_llo ^_^"
     "hello ^-^".tr("---", "_").should == "hello ^_^"
+  end
+
+  ruby_bug "#19769", ""..."3.3" do
+    it "accepts c1-c1 notation to denote range of one character" do
+      "hello".tr('e-e', 'x').should == "hxllo"
+      "123456789".tr("2-23","xy").should == "1xy456789"
+      "hello ^-^".tr("e-", "a-a_").should == "hallo ^_^"
+      "hello ^-^".tr("---o", "_a").should == "hella ^_^"
+    end
   end
 
   it "pads to_str with its last char if it is shorter than from_string" do

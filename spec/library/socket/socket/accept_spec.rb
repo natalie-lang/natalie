@@ -13,7 +13,7 @@ describe 'Socket#accept' do
     end
 
     platform_is :linux do # hangs on other platforms
-      describe 'using an unbound socket' do
+      describe 'using an unbound socket'  do
         it 'raises Errno::EINVAL' do
           -> { @server.accept }.should raise_error(Errno::EINVAL)
         end
@@ -53,7 +53,6 @@ describe 'Socket#accept' do
           thread = Thread.new do
             @server.accept
           end
-          Thread.pass while thread.status and thread.status != "sleep"
 
           client.connect(@server_addr)
 

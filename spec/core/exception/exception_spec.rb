@@ -46,6 +46,7 @@ describe "Exception#exception" do
     rescue RuntimeError
       $!
     end
+
     exception.class.should == RuntimeError
     exception.message.should == ""
     exception.backtrace.first.should =~ /exception_spec/

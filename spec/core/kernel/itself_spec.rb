@@ -1,5 +1,5 @@
 require_relative '../../spec_helper'
-# require_relative 'fixtures/classes'
+require_relative 'fixtures/classes'
 
 describe "Kernel#itself" do
   it "returns the receiver itself" do

@@ -18,12 +18,12 @@ describe "Range#inspect" do
   end
 
   it "works for beginless ranges" do
-    eval("(..1)").inspect.should ==  "..1"
-    eval("(...0.1)").inspect.should ==  "...0.1"
+    (..1).inspect.should ==  "..1"
+    (...0.1).inspect.should ==  "...0.1"
   end
 
   it "works for nil ... nil ranges" do
-    eval("(..nil)").inspect.should ==  "nil..nil"
+    (..nil).inspect.should ==  "nil..nil"
     eval("(nil...)").inspect.should ==  "nil...nil"
   end
 end

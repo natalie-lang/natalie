@@ -51,7 +51,7 @@ describe "Enumerator::Lazy#take" do
 
     describe "when the returned lazy enumerator is evaluated by .force" do
       it "stops after specified times" do
-        map_thin = (0..Float::INFINITY).lazy.map(&:succ).take(2).force.should == [1, 2]
+        (0..Float::INFINITY).lazy.map(&:succ).take(2).force.should == [1, 2]
 
         @eventsmixed.take(10).take(1).force
         ScratchPad.recorded.should == [:before_yield]

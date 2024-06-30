@@ -2,8 +2,7 @@ require_relative '../../spec_helper'
 
 describe "Enumerator#next" do
   before :each do
-    # @enum = 1.upto(3)
-    @enum = (1..3).to_enum
+    @enum = 1.upto(3)
   end
 
   it "returns the next element of the enumeration" do
@@ -32,7 +31,7 @@ describe "Enumerator#next" do
       raise exception
     end
 
-    result = (0..1).map { enum.next rescue $! }
+    result = 2.times.map { enum.next rescue $! }
 
     result.should == [exception, exception]
   end
