@@ -1233,16 +1233,8 @@ Value Object::instance_eval(Env *env, Value string, Block *block) {
 }
 
 void Object::assert_type(Env *env, Object::Type expected_type, const char *expected_class_name) const {
-    if ((type()) != expected_type) {
-        if (type() == ObjectType::Nil) {
-            // For some reason the errors with nil are slightly different...
-            char first_letter = std::tolower(expected_class_name[0]);
-            char const beginning[] = { first_letter, '\0' };
-            env->raise("TypeError", "no implicit conversion from nil to {}{}", beginning, expected_class_name + 1);
-        } else {
-            env->raise("TypeError", "no implicit conversion of {} into {}", klass()->inspect_str(), expected_class_name);
-        }
-    }
+    if ((type()) != expected_type)
+        env->raise_type_error(this, expected_class_name);
 }
 
 void Object::assert_not_frozen(Env *env) {
@@ -1439,9 +1431,29 @@ StringObject *Object::to_str(Env *env) {
     if (is_string()) return as_string();
 
     auto to_str = "to_str"_s;
-    if (!respond_to(env, to_str)) {
-        assert_type(env, Type::String, "String");
-    }
+    if (!respond_to(env, to_str))
+        env->raise_type_error(this, "String");
+
+    auto result = send(env, to_str);
+
+    if (result->is_string())
+        return result->as_string();
+
+    env->raise(
+        "TypeError", "can't convert {} to String ({}#to_str gives {})",
+        klass()->inspect_str(),
+        klass()->inspect_str(),
+        result->klass()->inspect_str());
+}
+
+// This is just like Object::to_str, but it raises more consistent error messages.
+// We still need the old error messages because CRuby is inconsistent. :-(
+StringObject *Object::to_str2(Env *env) {
+    if (is_string()) return as_string();
+
+    auto to_str = "to_str"_s;
+    if (!respond_to(env, to_str))
+        env->raise_type_error2(this, "String");
 
     auto result = send(env, to_str);
 
