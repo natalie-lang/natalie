@@ -34,6 +34,7 @@ describe :dir_exist, shared: true do
   end
 
   it "doesn't expand paths" do
+    skip "$HOME not valid directory" unless ENV['HOME'] && File.directory?(ENV['HOME'])
     NATFIXME "File.expand_path incorrect output", exception: SpecFailedException do
       Dir.send(@method, File.expand_path('~')).should be_true
     end

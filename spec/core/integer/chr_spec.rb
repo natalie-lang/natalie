@@ -10,12 +10,14 @@ describe "Integer#chr without argument" do
   end
 
   it "raises a RangeError is self is less than 0" do
-    -> { -1.chr }.should raise_error(RangeError)
-    -> { (-bignum_value).chr }.should raise_error(RangeError)
+    -> { -1.chr }.should raise_error(RangeError, /-1 out of char range/)
+    NATFIXME 'it raises a RangeError for a negative bignum', exception: SpecFailedException do
+      -> { (-bignum_value).chr }.should raise_error(RangeError, /bignum out of char range/)
+    end
   end
 
   it "raises a RangeError if self is too large" do
-    -> { 2206368128.chr(Encoding::UTF_8) }.should raise_error(RangeError)
+    -> { 2206368128.chr(Encoding::UTF_8) }.should raise_error(RangeError, /2206368128 out of char range/)
   end
 
   describe "when Encoding.default_internal is nil" do
@@ -48,8 +50,10 @@ describe "Integer#chr without argument" do
     end
 
     it "raises a RangeError is self is greater than 255" do
-      -> { 256.chr }.should raise_error(RangeError)
-      -> { bignum_value.chr }.should raise_error(RangeError)
+      -> { 256.chr }.should raise_error(RangeError, /256 out of char range/)
+      NATFIXME 'it raises a RangeError for a negative bignum', exception: SpecFailedException do
+        -> { bignum_value.chr }.should raise_error(RangeError, /bignum out of char range/)
+      end
     end
   end
 
@@ -141,7 +145,7 @@ describe "Integer#chr without argument" do
           #[620,    "TIS-620"]
         ].each do |integer, encoding_name|
           Encoding.default_internal = Encoding.find(encoding_name)
-          -> { integer.chr }.should raise_error(RangeError)
+          -> { integer.chr }.should raise_error(RangeError, /(invalid codepoint|out of char range)/)
         end
         NATFIXME 'Implement TIS-620 and restore it above', exception: ArgumentError do
           Encoding.default_internal = Encoding.find('TIS-620')
@@ -172,12 +176,14 @@ describe "Integer#chr with an encoding argument" do
 
   # http://redmine.ruby-lang.org/issues/4869
   it "raises a RangeError is self is less than 0" do
-    -> { -1.chr(Encoding::UTF_8) }.should raise_error(RangeError)
-    -> { (-bignum_value).chr(Encoding::EUC_JP) }.should raise_error(RangeError)
+    -> { -1.chr(Encoding::UTF_8) }.should raise_error(RangeError, /-1 out of char range/)
+    NATFIXME 'it raises a RangeError for a negative bignum', exception: SpecFailedException do
+      -> { (-bignum_value).chr(Encoding::EUC_JP) }.should raise_error(RangeError, /bignum out of char range/)
+    end
   end
 
   it "raises a RangeError if self is too large" do
-    -> { 2206368128.chr(Encoding::UTF_8) }.should raise_error(RangeError)
+    -> { 2206368128.chr(Encoding::UTF_8) }.should raise_error(RangeError, /2206368128 out of char range/)
   end
 
   it "returns a String with the specified encoding" do
@@ -202,7 +208,7 @@ describe "Integer#chr with an encoding argument" do
     0x00DF.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
     NATFIXME 'Range check for SHIFT_JIS', exception: RangeError, message: 'out of char range' do
       0x8140.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
-    0xFC4B.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+      0xFC4B.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
     end
   end
 
