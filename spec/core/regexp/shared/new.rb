@@ -56,7 +56,9 @@ describe :regexp_new_string, shared: true do
   end
 
   it "raises a RegexpError when passed an incorrect regexp" do
-    -> { Regexp.send(@method, "^[$", 0) }.should raise_error(RegexpError)
+      NATFIXME 'Update error message', exception: SpecFailedException, message: /but the message was/ do
+      -> { Regexp.send(@method, "^[$", 0) }.should raise_error(RegexpError, Regexp.new(Regexp.escape("premature end of char-class: /^[$/")))
+    end
   end
 
   it "does not set Regexp options if only given one argument" do
@@ -262,7 +264,7 @@ describe :regexp_new_string, shared: true do
   describe "with escaped characters" do
     it "raises a Regexp error if there is a trailing backslash" do
       NATFIXME "raises a Regexp error if there is a trailing backslash", exception: SpecFailedException do
-        -> { Regexp.send(@method, "\\") }.should raise_error(RegexpError)
+        -> { Regexp.send(@method, "\\") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("too short escape sequence: /\\/")))
       end
     end
 
@@ -298,7 +300,7 @@ describe :regexp_new_string, shared: true do
 
     it "raises a RegexpError if \\x is not followed by any hexadecimal digits" do
       NATFIXME "raises a RegexpError if \\x is not followed by any hexadecimal digits", exception: SpecFailedException do
-        -> { Regexp.send(@method, "\\" + "xn") }.should raise_error(RegexpError)
+        -> { Regexp.send(@method, "\\" + "xn") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("invalid hex escape: /\\xn/")))
       end
     end
 
@@ -463,18 +465,20 @@ describe :regexp_new_string, shared: true do
     end
 
     it "raises a RegexpError if less than four digits are given for \\uHHHH" do
-      -> { Regexp.send(@method, "\\" + "u304") }.should raise_error(RegexpError)
+      NATFIXME 'Update error message', exception: SpecFailedException, message: /but the message was/ do
+        -> { Regexp.send(@method, "\\" + "u304") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("invalid Unicode escape: /\\u304/")))
+      end
     end
 
     it "raises a RegexpError if the \\u{} escape is empty" do
       NATFIXME "raises a RegexpError if the \\u{} escape is empty", exception: SpecFailedException do
-        -> { Regexp.send(@method, "\\" + "u{}") }.should raise_error(RegexpError)
+        -> { Regexp.send(@method, "\\" + "u{}") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("invalid Unicode list: /\\u{}/")))
       end
     end
 
     it "raises a RegexpError if more than six hexadecimal digits are given" do
       NATFIXME "raises a RegexpError if more than six hexadecimal digits are given", exception: SpecFailedException do
-        -> { Regexp.send(@method, "\\" + "u{0ffffff}") }.should raise_error(RegexpError)
+        -> { Regexp.send(@method, "\\" + "u{0ffffff}") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("invalid Unicode range: /\\u{0ffffff}/")))
       end
     end
 
@@ -509,14 +513,14 @@ describe :regexp_new_string, shared: true do
     end
 
     it "returns a Regexp with the input String's encoding" do
-      str = "\x82\xa0".force_encoding(Encoding::Shift_JIS)
+      str = "\x82\xa0".dup.force_encoding(Encoding::Shift_JIS)
       NATFIXME "returns a Regexp with the input String's encoding", exception: SpecFailedException do
         Regexp.send(@method, str).encoding.should == Encoding::Shift_JIS
       end
     end
 
     it "returns a Regexp with source String having the input String's encoding" do
-      str = "\x82\xa0".force_encoding(Encoding::Shift_JIS)
+      str = "\x82\xa0".dup.force_encoding(Encoding::Shift_JIS)
       NATFIXME "returns a Regexp with source String having the input String's encoding", exception: SpecFailedException do
         Regexp.send(@method, str).source.encoding.should == Encoding::Shift_JIS
       end
