@@ -307,8 +307,8 @@ describe 'pattern matching' do
   end
 
   it 'generated the correct error message for pinned expressions' do
+    a = 2
     -> {
-      a = 2
       1 => ^a
     }.should raise_error(NoMatchingPatternError, '1: 2 === 1 does not return true')
   end

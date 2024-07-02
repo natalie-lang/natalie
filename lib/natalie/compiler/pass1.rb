@@ -2042,7 +2042,7 @@ module Natalie
         match_required_node_compiler = Transformers::MatchRequiredNode.new
         code_str = match_required_node_compiler.call(node)
         locals = @locals_stack.last
-        child_nodes = [node.value]
+        child_nodes = [node.value, node.pattern]
         until child_nodes.empty?
           next_node = child_nodes.shift
           if next_node.is_a?(Prism::LocalVariableReadNode)
