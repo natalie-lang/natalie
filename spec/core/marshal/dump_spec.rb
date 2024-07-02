@@ -136,7 +136,7 @@ describe "Marshal.dump" do
 
     it "dumps the String in multibyte encoding" do
       object = UserDefinedString.new("a".encode("utf-32le"))
-      NATFIXME 'Encoding of output', exception: Encoding::CompatibilityError, message: 'incompatible character encodings: ASCII-8BIT and UTF-32LE' do
+      NATFIXME 'Encoding of output', exception: SpecFailedException, message: /should be == / do
         Marshal.dump(object).should == "\x04\bIu:\x16UserDefinedString\ta\x00\x00\x00\x06:\rencoding\"\rUTF-32LE"
       end
     end

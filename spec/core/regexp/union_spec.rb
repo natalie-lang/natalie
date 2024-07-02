@@ -79,9 +79,7 @@ describe "Regexp.union" do
   end
 
   it "returns a Regexp with UTF-8 if one part is UTF-8" do
-    NATFIXME 'Encodings', exception: SpecFailedException do
-      Regexp.union(/probl[éeè]me/i, /help/i).encoding.should == Encoding::UTF_8
-    end
+    Regexp.union(/probl[éeè]me/i, /help/i).encoding.should == Encoding::UTF_8
   end
 
   it "returns a Regexp if an array of string with special characters is passed" do

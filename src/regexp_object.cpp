@@ -36,40 +36,40 @@ static StringObject *regexp_stringify(const TM::String &str, const size_t start,
 
 static const auto ruby_encoding_lookup = []() {
     // No constructor with std::initializer_list, use a lambda to make a const value
-    auto map = Hashmap<OnigEncoding, Value>();
+    auto map = Hashmap<OnigEncoding, Encoding>();
 
-    map.put(ONIG_ENCODING_ASCII, EncodingObject::get(Encoding::US_ASCII));
-    map.put(ONIG_ENCODING_ISO_8859_1, EncodingObject::get(Encoding::ISO_8859_1));
-    map.put(ONIG_ENCODING_ISO_8859_2, EncodingObject::get(Encoding::ISO_8859_2));
-    map.put(ONIG_ENCODING_ISO_8859_3, EncodingObject::get(Encoding::ISO_8859_3));
-    map.put(ONIG_ENCODING_ISO_8859_4, EncodingObject::get(Encoding::ISO_8859_4));
-    map.put(ONIG_ENCODING_ISO_8859_5, EncodingObject::get(Encoding::ISO_8859_5));
-    map.put(ONIG_ENCODING_ISO_8859_6, EncodingObject::get(Encoding::ISO_8859_6));
-    map.put(ONIG_ENCODING_ISO_8859_7, EncodingObject::get(Encoding::ISO_8859_7));
-    map.put(ONIG_ENCODING_ISO_8859_8, EncodingObject::get(Encoding::ISO_8859_8));
-    map.put(ONIG_ENCODING_ISO_8859_9, EncodingObject::get(Encoding::ISO_8859_9));
-    map.put(ONIG_ENCODING_ISO_8859_10, EncodingObject::get(Encoding::ISO_8859_10));
-    map.put(ONIG_ENCODING_ISO_8859_11, EncodingObject::get(Encoding::ISO_8859_11));
-    map.put(ONIG_ENCODING_ISO_8859_13, EncodingObject::get(Encoding::ISO_8859_13));
-    map.put(ONIG_ENCODING_ISO_8859_14, EncodingObject::get(Encoding::ISO_8859_14));
-    map.put(ONIG_ENCODING_ISO_8859_15, EncodingObject::get(Encoding::ISO_8859_15));
-    map.put(ONIG_ENCODING_ISO_8859_16, EncodingObject::get(Encoding::ISO_8859_16));
-    map.put(ONIG_ENCODING_UTF_8, EncodingObject::get(Encoding::UTF_8));
-    map.put(ONIG_ENCODING_UTF_16BE, EncodingObject::get(Encoding::UTF_16BE));
-    map.put(ONIG_ENCODING_UTF_16LE, EncodingObject::get(Encoding::UTF_16LE));
-    map.put(ONIG_ENCODING_UTF_32BE, EncodingObject::get(Encoding::UTF_32BE));
-    map.put(ONIG_ENCODING_UTF_32LE, EncodingObject::get(Encoding::UTF_32LE));
-    map.put(ONIG_ENCODING_EUC_JP, EncodingObject::get(Encoding::EUC_JP));
+    map.put(ONIG_ENCODING_ASCII, Encoding::US_ASCII);
+    map.put(ONIG_ENCODING_ISO_8859_1, Encoding::ISO_8859_1);
+    map.put(ONIG_ENCODING_ISO_8859_2, Encoding::ISO_8859_2);
+    map.put(ONIG_ENCODING_ISO_8859_3, Encoding::ISO_8859_3);
+    map.put(ONIG_ENCODING_ISO_8859_4, Encoding::ISO_8859_4);
+    map.put(ONIG_ENCODING_ISO_8859_5, Encoding::ISO_8859_5);
+    map.put(ONIG_ENCODING_ISO_8859_6, Encoding::ISO_8859_6);
+    map.put(ONIG_ENCODING_ISO_8859_7, Encoding::ISO_8859_7);
+    map.put(ONIG_ENCODING_ISO_8859_8, Encoding::ISO_8859_8);
+    map.put(ONIG_ENCODING_ISO_8859_9, Encoding::ISO_8859_9);
+    map.put(ONIG_ENCODING_ISO_8859_10, Encoding::ISO_8859_10);
+    map.put(ONIG_ENCODING_ISO_8859_11, Encoding::ISO_8859_11);
+    map.put(ONIG_ENCODING_ISO_8859_13, Encoding::ISO_8859_13);
+    map.put(ONIG_ENCODING_ISO_8859_14, Encoding::ISO_8859_14);
+    map.put(ONIG_ENCODING_ISO_8859_15, Encoding::ISO_8859_15);
+    map.put(ONIG_ENCODING_ISO_8859_16, Encoding::ISO_8859_16);
+    map.put(ONIG_ENCODING_UTF_8, Encoding::UTF_8);
+    map.put(ONIG_ENCODING_UTF_16BE, Encoding::UTF_16BE);
+    map.put(ONIG_ENCODING_UTF_16LE, Encoding::UTF_16LE);
+    map.put(ONIG_ENCODING_UTF_32BE, Encoding::UTF_32BE);
+    map.put(ONIG_ENCODING_UTF_32LE, Encoding::UTF_32LE);
+    map.put(ONIG_ENCODING_EUC_JP, Encoding::EUC_JP);
     // ONIG_ENCODING_EUC_TW has no local encoding
     // ONIG_ENCODING_EUC_KR has no local encoding
     // ONIG_ENCODING_EUC_CN has no local encoding
-    map.put(ONIG_ENCODING_SHIFT_JIS, EncodingObject::get(Encoding::SHIFT_JIS));
+    map.put(ONIG_ENCODING_SHIFT_JIS, Encoding::SHIFT_JIS);
     // ONIG_ENCODING_WINDOWS_31J has no local encoding
     // ONIG_ENCODING_KOI8_R has no local encoding
     // ONIG_ENCODING_KOI8_U has no local encoding
-    map.put(ONIG_ENCODING_WINDOWS_1250, EncodingObject::get(Encoding::Windows_1250));
-    map.put(ONIG_ENCODING_WINDOWS_1251, EncodingObject::get(Encoding::Windows_1251));
-    map.put(ONIG_ENCODING_WINDOWS_1252, EncodingObject::get(Encoding::Windows_1252));
+    map.put(ONIG_ENCODING_WINDOWS_1250, Encoding::Windows_1250);
+    map.put(ONIG_ENCODING_WINDOWS_1251, Encoding::Windows_1251);
+    map.put(ONIG_ENCODING_WINDOWS_1252, Encoding::Windows_1252);
     // ONIG_ENCODING_WINDOWS_1253 has no local encoding
     // ONIG_ENCODING_WINDOWS_1254 has no local encoding
     // ONIG_ENCODING_WINDOWS_1257 has no local encoding
@@ -80,7 +80,7 @@ static const auto ruby_encoding_lookup = []() {
 }();
 
 static const auto onig_encoding_lookup = []() {
-    auto map = Hashmap<Value, OnigEncoding>();
+    auto map = Hashmap<Encoding, OnigEncoding>();
     for (auto [onig_encoding, ruby_encoding] : ruby_encoding_lookup) {
         map.put(ruby_encoding, onig_encoding);
     }
@@ -89,14 +89,15 @@ static const auto onig_encoding_lookup = []() {
 
 EncodingObject *RegexpObject::onig_encoding_to_ruby_encoding(const OnigEncoding encoding) {
     auto result = ruby_encoding_lookup.get(encoding);
-    if (result) return result->as_encoding();
+    if (result != Encoding::NONE)
+        return EncodingObject::get(result);
 
     // Use US_ASCII as the default
     return EncodingObject::get(Encoding::US_ASCII);
 }
 
-OnigEncoding RegexpObject::ruby_encoding_to_onig_encoding(const Value encoding) {
-    auto result = onig_encoding_lookup.get(encoding);
+OnigEncoding RegexpObject::ruby_encoding_to_onig_encoding(NonNullPtr<const EncodingObject> encoding) {
+    auto result = onig_encoding_lookup.get(encoding->num());
     if (result) return result;
 
     // Use US_ASCII as the default
@@ -202,53 +203,57 @@ Value RegexpObject::regexp_union(Env *env, Args args) {
 
 Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
     assert_not_frozen(env);
+
     if (is_initialized())
         env->raise("TypeError", "already initialized regexp");
+
     if (pattern->is_regexp()) {
         auto other = pattern->as_regexp();
         if (opts && !opts->is_nil())
             env->warn("flags ignored");
-        initialize(env, other->pattern(), other->options());
-    } else {
-        nat_int_t options = 0;
-        if (opts != nullptr) {
-            if (opts.is_fast_integer()) {
-                options = opts.get_fast_integer();
-            } else if (opts->is_integer()) {
-                options = opts->as_integer()->to_nat_int_t();
-            } else if (opts->is_string()) {
-                for (auto c : *opts->as_string()) {
-                    if (c == "i") {
-                        options |= RegexOpts::IgnoreCase;
-                    } else if (c == "m") {
-                        options |= RegexOpts::MultiLine;
-                    } else if (c == "x") {
-                        options |= RegexOpts::Extended;
-                    } else {
-                        env->raise("ArgumentError", "unknown regexp option: {}", opts->as_string()->string());
-                    }
-                }
-            } else {
-                env->verbose_warn("expected true or false as ignorecase: {}", opts->inspect_str(env));
-                if (opts->is_truthy())
-                    options = RegexOpts::IgnoreCase;
-            }
-        }
-
-        initialize(env, pattern->to_str(env)->c_str(), static_cast<int>(options));
+        initialize_internal(env, other->m_pattern, other->options());
+        return this;
     }
+
+    nat_int_t options = 0;
+    if (opts != nullptr) {
+        if (opts.is_fast_integer()) {
+            options = opts.get_fast_integer();
+        } else if (opts->is_integer()) {
+            options = opts->as_integer()->to_nat_int_t();
+        } else if (opts->is_string()) {
+            for (auto c : *opts->as_string()) {
+                if (c == "i") {
+                    options |= RegexOpts::IgnoreCase;
+                } else if (c == "m") {
+                    options |= RegexOpts::MultiLine;
+                } else if (c == "x") {
+                    options |= RegexOpts::Extended;
+                } else {
+                    env->raise("ArgumentError", "unknown regexp option: {}", opts->as_string()->string());
+                }
+            }
+        } else {
+            env->verbose_warn("expected true or false as ignorecase: {}", opts->inspect_str(env));
+            if (opts->is_truthy())
+                options = RegexOpts::IgnoreCase;
+        }
+    }
+
+    initialize_internal(env, pattern->to_str(env), static_cast<int>(options));
+
     return this;
 }
 
-static String prepare_pattern_for_onigmo(const String &pattern, bool *fixed_encoding) {
+static String prepare_pattern_for_onigmo(const StringObject *pattern, bool *fixed_encoding) {
     String new_pattern;
-    auto length = pattern.length();
+    auto length = pattern->bytesize();
     size_t index = 0;
 
     auto next_char = [&length, &index, &pattern]() -> unsigned char {
         if (index >= length)
             return '\0';
-        return pattern[index++];
+        return pattern->string()[index++];
     };
 
     EncodingObject *utf8 = nullptr;
@@ -322,6 +327,8 @@ static String prepare_pattern_for_onigmo(const String &pattern, bool *fixed_enco
         }
 
         default:
+            if (c > 127)
+                *fixed_encoding = true;
             new_pattern.append_char(c);
         }
     }
@@ -329,27 +336,33 @@ static String prepare_pattern_for_onigmo(const String &pattern, bool *fixed_enco
     return new_pattern;
 }
 
-void RegexpObject::initialize(Env *env, const String &pattern, int options) {
+void RegexpObject::initialize_internal(Env *env, const StringObject *pattern, int options) {
     regex_t *regex;
     OnigErrorInfo einfo;
-    m_pattern = pattern;
 
-    bool fixed_encoding = false;
+    bool no_encoding = options & RegexOpts::NoEncoding;
+    bool fixed_encoding = options & RegexOpts::FixedEncoding;
     auto tweaked_pattern = prepare_pattern_for_onigmo(pattern, &fixed_encoding);
+
     if (fixed_encoding)
         options |= RegexOpts::FixedEncoding;
+    m_options = options;
+    m_pattern = pattern;
+
+    // FixedEncoding and NoEncoding are not options that Onigmo understands.
+    options &= ~RegexOpts::FixedEncoding;
+    options &= ~RegexOpts::NoEncoding;
 
     UChar *pat = (UChar *)tweaked_pattern.c_str();
-    // NATFIXME: Fully support character encodings in capture groups
-    int result = onig_new(&regex, pat, pat + tweaked_pattern.length(),
-        options, ONIG_ENCODING_UTF_8, ONIG_SYNTAX_DEFAULT, &einfo);
+    OnigEncoding enc = fixed_encoding && !no_encoding ? ruby_encoding_to_onig_encoding(pattern->encoding()) : ONIG_ENCODING_ASCII;
+    int result = onig_new(&regex, pat, pat + tweaked_pattern.length(), options, enc, ONIG_SYNTAX_DEFAULT, &einfo);
+
     if (result != ONIG_NORMAL) {
         OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
         onig_error_code_to_str(s, result, &einfo);
-        env->raise("RegexpError", "{}: /{}/", reinterpret_cast<const char *>(s), pattern);
+        env->raise("RegexpError", "{}: /{}/", reinterpret_cast<const char *>(s), pattern->string());
     }
     m_regex = regex;
-    m_options = options;
 }
 
 Value RegexpObject::inspect(Env *env) {
@@ -357,19 +370,14 @@ Value RegexpObject::inspect(Env *env) {
         return KernelModule::inspect(env, this);
     StringObject *out = new StringObject { "/" };
     auto str = pattern();
-    size_t len = str.length();
-    regexp_stringify(str, 0, len, out);
+    size_t len = str->length();
+    regexp_stringify(str->string(), 0, len, out);
     out->append_char('/');
     if (options() & RegexOpts::MultiLine) out->append_char('m');
     if (options() & RegexOpts::IgnoreCase) out->append_char('i');
     if (options() & RegexOpts::Extended) out->append_char('x');
     if (options() & RegexOpts::NoEncoding) out->append_char('n');
     return out;
-}
-
-Value RegexpObject::encoding(Env *env) {
-    // NATFIXME: Implement support for other encodings.
-    return EncodingObject::get(Encoding::US_ASCII);
 }
 
 Value RegexpObject::eqtilde(Env *env, Value other) {
@@ -422,7 +430,7 @@ Value RegexpObject::match_at_byte_offset(Env *env, StringObject *str, size_t byt
     Env *caller_env = env->caller();
 
     OnigRegion *region = onig_region_new();
-    int result = search(str->string(), byte_index, region, ONIG_OPTION_NONE);
+    int result = search(env, str, byte_index, region, ONIG_OPTION_NONE);
 
     if (result >= 0) {
         auto match = new MatchDataObject { region, str, this };
@@ -465,7 +473,7 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
     }
 
     OnigRegion *region = onig_region_new();
-    int result = search(str_obj->string(), start_index, region, ONIG_OPTION_NONE);
+    int result = search(env, str_obj, start_index, region, ONIG_OPTION_NONE);
 
     if (result >= 0) {
         return true;
@@ -525,12 +533,29 @@ bool RegexpObject::operator==(const RegexpObject &other) const {
     int our_options = m_options | RegexOpts::NoEncoding;
     int their_options = other.m_options | RegexOpts::NoEncoding;
 
-    return m_pattern == other.m_pattern && our_options == their_options;
+    return m_pattern->string() == other.m_pattern->string() && our_options == their_options;
+}
+
+int RegexpObject::search(Env *env, const StringObject *string_obj, int start, OnigRegion *region, OnigOptionType options) {
+    auto string = string_obj->string();
+    const unsigned char *unsigned_str = (unsigned char *)string.c_str();
+    const unsigned char *char_end = unsigned_str + string.size();
+    const unsigned char *char_start = unsigned_str + start;
+    const unsigned char *char_range = char_end;
+
+    if (string_obj->encoding() != encoding()) {
+        RegexpObject temp_regexp;
+        temp_regexp.initialize_internal(env, m_pattern, m_options | RegexOpts::FixedEncoding);
+        return onig_search(temp_regexp.m_regex, unsigned_str, char_end, char_start, char_range, region, options);
+    }
+
+    return onig_search(m_regex, unsigned_str, char_end, char_start, char_range, region, options);
 }
 
 Value RegexpObject::source(Env *env) const {
     assert_initialized(env);
-    return new StringObject { pattern() };
+    assert(m_pattern);
+    return new StringObject(*m_pattern);
 }
 
 Value RegexpObject::to_s(Env *env) const {
@@ -541,7 +566,7 @@ Value RegexpObject::to_s(Env *env) const {
     auto is_i = options() & RegexOpts::IgnoreCase;
     auto is_x = options() & RegexOpts::Extended;
 
-    auto str = pattern();
+    auto str = m_pattern->string();
     size_t len = str.length();
     size_t start = 0;
 
@@ -619,7 +644,7 @@ Value RegexpObject::to_s(Env *env) const {
 }
 
 String RegexpObject::dbg_inspect() const {
-    return String::format("/{}/", m_pattern);
+    return String::format("/{}/", m_pattern->string());
 }
 
 }

@@ -40,9 +40,14 @@ public:
     RegexpObject(ClassObject *klass)
         : Object { Object::Type::Regexp, klass } { }
 
-    RegexpObject(Env *env, const String &pattern, int options = 0)
+    RegexpObject(Env *env, const StringObject *pattern, int options = 0)
         : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
-        initialize(env, pattern, options);
+        initialize_internal(env, pattern, options);
+    }
+
+    RegexpObject(Env *env, const String pattern, int options = 0)
+        : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
+        initialize_internal(env, new StringObject(pattern), options);
     }
 
     virtual ~RegexpObject() {
@@ -57,8 +62,8 @@ public:
         return regexp;
     }
 
-    static EncodingObject *onig_encoding_to_ruby_encoding(const OnigEncoding encoding);
-    static OnigEncoding ruby_encoding_to_onig_encoding(const Value encoding);
+    static EncodingObject *onig_encoding_to_ruby_encoding(OnigEncoding encoding);
+    static OnigEncoding ruby_encoding_to_onig_encoding(NonNullPtr<const EncodingObject> encoding);
     static Value last_match(Env *, Value);
     static Value quote(Env *, Value);
     static Value try_convert(Env *, Value);
@@ -72,11 +77,11 @@ public:
 
     Value hash(Env *env) {
         assert_initialized(env);
-        auto hash = (m_options & ~RegexOpts::NoEncoding) + m_pattern.djb2_hash();
+        auto hash = (m_options & ~RegexOpts::NoEncoding & ~RegexOpts::FixedEncoding) + m_pattern->string().djb2_hash();
         return Value::integer(hash);
     }
 
-    void initialize(Env *env, const String &pattern, int options = 0);
+    void initialize_internal(Env *, const StringObject *, int = 0);
 
     bool is_initialized() const { return m_options > -1; }
 
@@ -85,7 +90,14 @@ public:
             env->raise("TypeError", "uninitialized Regexp");
     }
 
-    const String &pattern() const { return m_pattern; }
+    const StringObject *pattern() const { return m_pattern; }
+
+    EncodingObject *encoding() const {
+        if (!is_initialized())
+            return EncodingObject::get(Encoding::ASCII_8BIT);
+
+        return onig_encoding_to_ruby_encoding(onig_get_encoding(m_regex));
+    }
 
     int options() const { return m_options; }
 
@@ -127,13 +139,7 @@ public:
         return m_options & RegexOpts::IgnoreCase;
     }
 
-    int search(const TM::String &string, int start, OnigRegion *region, OnigOptionType options) {
-        const unsigned char *unsigned_str = (unsigned char *)string.c_str();
-        const unsigned char *char_end = unsigned_str + string.size();
-        const unsigned char *char_start = unsigned_str + start;
-        const unsigned char *char_range = char_end;
-        return onig_search(m_regex, unsigned_str, char_end, char_start, char_range, region, options);
-    }
+    int search(Env *env, const StringObject *string_obj, int start, OnigRegion *region, OnigOptionType options);
 
     bool eq(Env *env, Value other) const {
         assert_initialized(env);
@@ -160,7 +166,6 @@ public:
     bool has_match(Env *env, Value, Value);
     Value initialize(Env *, Value, Value);
     Value inspect(Env *env);
-    Value encoding(Env *env);
     Value eqtilde(Env *env, Value);
     Value match(Env *env, Value, Value = nullptr, Block * = nullptr);
     Value match_at_byte_offset(Env *env, StringObject *, size_t);
@@ -175,12 +180,18 @@ public:
         snprintf(buf, len, "<RegexpObject %p>", this);
     }
 
+    void visit_children(Visitor &visitor) override {
+        Object::visit_children(visitor);
+        if (m_pattern)
+            visitor.visit(m_pattern);
+    }
+
 private:
     friend MatchDataObject;
 
     regex_t *m_regex { nullptr };
     int m_options { -1 };
-    String m_pattern {};
+    const StringObject *m_pattern { nullptr };
 };
 
 }

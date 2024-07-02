@@ -383,7 +383,7 @@ describe :marshal_load, shared: true do
 
     it "loads the String in multibyte encoding" do
       source_object = UserDefinedString.new("a".encode("utf-32le"))
-      NATFIXME 'loads the String in multibyte encoding', exception: Encoding::CompatibilityError, message: 'incompatible character encodings: ASCII-8BIT and UTF-32LE' do
+      NATFIXME 'loads the String in multibyte encoding', exception: SpecFailedException, message: '"a" should be == to "a"' do
         object = Marshal.send(@method, Marshal.dump(source_object))
         object.string.should == "a".encode("utf-32le")
       end

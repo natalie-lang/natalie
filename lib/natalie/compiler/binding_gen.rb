@@ -1212,7 +1212,7 @@ gen.binding('Regexp', '===', 'RegexpObject', 'eqeqeq', argc: 1, pass_env: true, 
 gen.binding('Regexp', '=~', 'RegexpObject', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Regexp', '~', 'RegexpObject', 'tilde', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Regexp', 'casefold?', 'RegexpObject', 'casefold', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('Regexp', 'encoding', 'RegexpObject', 'encoding', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Regexp', 'encoding', 'RegexpObject', 'encoding', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Regexp', 'eql?', 'RegexpObject', 'eq', argc: 1, pass_env: true, pass_block: false, aliases: ['=='], return_type: :bool)
 gen.binding('Regexp', 'hash', 'RegexpObject', 'hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Regexp', 'initialize', 'RegexpObject', 'initialize', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, visibility: :private)

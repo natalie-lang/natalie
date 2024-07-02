@@ -36,6 +36,7 @@ public:
     virtual nat_int_t decode_codepoint(StringView &str) const override;
 
     virtual bool is_single_byte_encoding() const override final { return false; }
+    virtual bool is_ascii_compatible() const override final { return true; }
 };
 
 }

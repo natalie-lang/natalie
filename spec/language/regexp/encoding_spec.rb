@@ -31,21 +31,15 @@ describe "Regexps with encoding modifiers" do
   end
 
   it "supports /n (No encoding)" do
-    NATFIXME 'it supports /n (No encoding)', exception: SpecFailedException do
-      /./n.match("\303\251").to_a.should == ["\303"]
-    end
+    /./n.match("\303\251").to_a.should == ["\303"]
   end
 
   it "supports /n (No encoding) with interpolation" do
-    NATFIXME 'it supports /n (No encoding) with interpolation', exception: SpecFailedException do
-      /#{/./}/n.match("\303\251").to_a.should == ["\303"]
-    end
+    /#{/./}/n.match("\303\251").to_a.should == ["\303"]
   end
 
   it "supports /n (No encoding) with interpolation /o" do
-    NATFIXME 'it supports /n (No encoding) with interpolation /o', exception: SpecFailedException do
-      /#{/./}/n.match("\303\251").to_a.should == ["\303"]
-    end
+    /#{/./}/n.match("\303\251").to_a.should == ["\303"]
   end
 
   it "warns when using /n with a match string with non-ASCII characters and an encoding other than ASCII-8BIT" do
@@ -59,9 +53,7 @@ describe "Regexps with encoding modifiers" do
   end
 
   it 'uses BINARY when is not initialized' do
-    NATFIXME 'it uses BINARY when is not initialized', exception: SpecFailedException do
-      Regexp.allocate.encoding.should == Encoding::BINARY
-    end
+    Regexp.allocate.encoding.should == Encoding::BINARY
   end
 
   it 'uses BINARY as /n encoding if not all chars are 7-bit' do
@@ -126,15 +118,11 @@ describe "Regexps with encoding modifiers" do
   end
 
   it 'uses UTF-8 as /u encoding' do
-    NATFIXME 'it uses UTF-8 as /u encoding', exception: SpecFailedException do
-      /./u.encoding.should == Encoding::UTF_8
-    end
+    /./u.encoding.should == Encoding::UTF_8
   end
 
   it 'preserves UTF-8 as /u encoding through interpolation' do
-    NATFIXME 'it preserves UTF-8 as /u encoding through interpolation', exception: SpecFailedException do
-      /#{/./}/u.encoding.should == Encoding::UTF_8
-    end
+    /#{/./}/u.encoding.should == Encoding::UTF_8
   end
 
   it "selects last of multiple encoding specifiers" do
@@ -183,9 +171,7 @@ describe "Regexps with encoding modifiers" do
     NATFIXME 'Implement Regexp#fixed_encoding?', exception: NoMethodError, message: "undefined method `fixed_encoding?' for an instance of Regexp" do
       r.should.fixed_encoding?
     end
-    NATFIXME 'it computes the Regexp Encoding for each interpolated Regexp instance', exception: SpecFailedException do
-      r.encoding.should == Encoding::UTF_8
-    end
+    r.encoding.should == Encoding::UTF_8
 
     r = make_regexp.call("abc".dup.force_encoding(Encoding::UTF_8))
     NATFIXME 'Implement Regexp#fixed_encoding?', exception: NoMethodError, message: "undefined method `fixed_encoding?' for an instance of Regexp" do

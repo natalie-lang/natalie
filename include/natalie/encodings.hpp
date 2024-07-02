@@ -1,10 +1,13 @@
 #pragma once
 
+#include <stddef.h>
+
 namespace Natalie {
 
 const size_t EncodingCount = 44;
 
 enum class Encoding {
+    NONE = 0,
     ASCII_8BIT = 1,
     US_ASCII = 2,
     UTF_8 = 3,
