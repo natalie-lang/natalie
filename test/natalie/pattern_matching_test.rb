@@ -301,12 +301,12 @@ describe 'pattern matching' do
     }.should raise_error(NoMatchingPatternError, "#{s}: 3 === 2 does not return true")
   end
 
-  it 'supports pinned expressions' do
+  it 'supports pinned variables' do
     a = 1
     1 => ^a
   end
 
-  it 'generated the correct error message for pinned expressions' do
+  it 'generated the correct error message for pinned variables' do
     a = 2
     -> {
       1 => ^a
