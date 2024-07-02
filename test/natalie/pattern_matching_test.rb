@@ -300,6 +300,18 @@ describe 'pattern matching' do
       s => PatternMatchingHelper::ABStruct[1, 3]
     }.should raise_error(NoMatchingPatternError, "#{s}: 3 === 2 does not return true")
   end
+
+  it 'supports pinned expressions' do
+    a = 1
+    1 => ^a
+  end
+
+  it 'generated the correct error message for pinned expressions' do
+    -> {
+      a = 2
+      1 => ^a
+    }.should raise_error(NoMatchingPatternError, '1: 2 === 1 does not return true')
+  end
 end
 
 describe 'NoMatchingPatternError' do
