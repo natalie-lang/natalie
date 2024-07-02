@@ -4,7 +4,7 @@
 
 namespace Natalie {
 
-const size_t EncodingCount = 44;
+const size_t EncodingCount = 45;
 
 enum class Encoding {
     NONE = 0,
@@ -52,6 +52,7 @@ enum class Encoding {
     Windows_1250 = 42,
     Windows_1251 = 43,
     Windows_1252 = 44,
+    Windows_1253 = 45,
 };
 
 }
