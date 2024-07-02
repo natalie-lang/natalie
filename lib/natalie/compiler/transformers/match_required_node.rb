@@ -15,7 +15,7 @@ module Natalie
           when :local_variable_target_node
             transform_local_variable_target_node(node.pattern, node.value)
           when :pinned_expression_node
-            raise SyntaxError, 'PinnedExpressionNode not yet supported'
+            transform_eqeqeq_check(node.pattern.expression, node.value)
           when :pinned_variable_node
             transform_eqeqeq_check(node.pattern.variable, node.value)
           else
