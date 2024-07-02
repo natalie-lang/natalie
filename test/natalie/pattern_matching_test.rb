@@ -312,6 +312,26 @@ describe 'pattern matching' do
       1 => ^a
     }.should raise_error(NoMatchingPatternError, '1: 2 === 1 does not return true')
   end
+
+  it 'supports pinned expressions' do
+    a = 1
+    2 => ^(a + 1)
+  end
+
+  it 'generated the correct error message for pinned expressions' do
+    a = 1
+    -> {
+      1 => ^(a + a)
+    }.should raise_error(NoMatchingPatternError, '1: 2 === 1 does not return true')
+  end
+
+  it 'evaluates a pinned expression only once' do
+    a = 1
+    -> {
+      1 => ^(a += a)
+    }.should raise_error(NoMatchingPatternError, '1: 2 === 1 does not return true')
+    a.should == 2
+  end
 end
 
 describe 'NoMatchingPatternError' do
