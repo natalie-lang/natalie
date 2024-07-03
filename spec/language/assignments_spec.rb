@@ -128,9 +128,7 @@ describe 'Assignments' do
         end
 
         a = klass_with_private_methods.new(k: 0)
-        NATFIXME 'it ignores method visibility when receiver is self', exception: NoMethodError, message: "private method `[]' called for an instance of #{klass_with_private_methods}" do
-          a.public_method(:k, 2).should == 2
-        end
+        a.public_method(:k, 2).should == 2
       end
 
       context 'splatted argument' do
