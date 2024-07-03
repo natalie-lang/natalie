@@ -141,10 +141,8 @@ describe 'Optional variable assignments' do
           def a=(v) @a = v; 42 end
         end
 
-        NATFIXME 'ignores method visibility when receiver is self', exception: NoMethodError, message: "private method `a' called" do
-          a = klass_with_private_methods.new(false)
-          a.public_method(10).should == 10
-        end
+        a = klass_with_private_methods.new(false)
+        a.public_method(10).should == 10
       end
     end
 

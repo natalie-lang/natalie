@@ -262,10 +262,8 @@ end
 describe "Invoking a private getter method" do
   it "permits self as a receiver" do
     receiver = LangSendSpecs::PrivateGetter.new
-    NATFIXME 'it permits self as a receiver', exception: NoMethodError, message: "private method `foo' called for an instance of LangSendSpecs::PrivateGetter" do
-      receiver.call_self_foo_or_equals(6)
-      receiver.call_self_foo.should == 6
-    end
+    receiver.call_self_foo_or_equals(6)
+    receiver.call_self_foo.should == 6
   end
 end
 
