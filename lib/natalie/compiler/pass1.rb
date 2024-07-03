@@ -558,7 +558,7 @@ module Natalie
           PushArgcInstruction.new(0),
           SendInstruction.new(
             node.read_name,
-            receiver_is_self: false,
+            receiver_is_self: obj.is_a?(Prism::SelfNode),
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
@@ -579,7 +579,7 @@ module Natalie
           PushArgcInstruction.new(1),
           SendInstruction.new(
             node.write_name,
-            receiver_is_self: false,
+            receiver_is_self: obj.is_a?(Prism::SelfNode),
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
@@ -692,7 +692,7 @@ module Natalie
           PushArgcInstruction.new(0),
           SendInstruction.new(
             node.read_name,
-            receiver_is_self: false,
+            receiver_is_self: node.receiver.is_a?(Prism::SelfNode),
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
@@ -718,7 +718,7 @@ module Natalie
           PushArgcInstruction.new(1),
           SendInstruction.new(
             node.write_name,
-            receiver_is_self: false,
+            receiver_is_self: node.receiver.is_a?(Prism::SelfNode),
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
@@ -1533,7 +1533,7 @@ module Natalie
           PushArgcInstruction.new(key_args.size),
           SendInstruction.new(
             :[],
-            receiver_is_self: false,
+            receiver_is_self: obj.is_a?(Prism::SelfNode),
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
@@ -1562,7 +1562,7 @@ module Natalie
           PushArgcInstruction.new(key_args.size + 1),
           SendInstruction.new(
             :[]=,
-            receiver_is_self: false,
+            receiver_is_self: obj.is_a?(Prism::SelfNode),
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
@@ -1678,7 +1678,7 @@ module Natalie
           PushArgcInstruction.new(key_args.size),
           SendInstruction.new(
             :[],
-            receiver_is_self: false,
+            receiver_is_self: obj.is_a?(Prism::SelfNode),
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
@@ -1726,7 +1726,7 @@ module Natalie
           PushArgcInstruction.new(key_args.size + 1),
           SendInstruction.new(
             :[]=,
-            receiver_is_self: false,
+            receiver_is_self: obj.is_a?(Prism::SelfNode),
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
