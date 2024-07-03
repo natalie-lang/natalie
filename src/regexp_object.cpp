@@ -308,6 +308,8 @@ static String prepare_pattern_for_onigmo(const StringObject *pattern, bool *fixe
                     new_pattern.append_char(c);
                 }
 
+                *fixed_encoding = true;
+
                 break;
             }
 

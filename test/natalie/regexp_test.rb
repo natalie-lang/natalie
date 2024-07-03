@@ -74,9 +74,12 @@ describe 'regexp' do
     end
 
     it 'automatically applies FIXEDENCODING flag' do
-      c = Regexp.new('\x80', Regexp::NOENCODING)
-      c.options.should == Regexp::FIXEDENCODING | Regexp::NOENCODING
-      c.to_s.should == '(?-mix:\x80)'
+      r = Regexp.new('\x80', Regexp::NOENCODING)
+      r.options.should == Regexp::FIXEDENCODING | Regexp::NOENCODING
+      r.to_s.should == '(?-mix:\x80)'
+
+      r = Regexp.new('\u1234', 0)
+      r.options.should == Regexp::FIXEDENCODING
     end
   end
 
