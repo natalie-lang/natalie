@@ -1,8 +1,15 @@
 require_relative '../spec_helper'
 
 class Foo
+  attr_accessor :arr
+  private :arr=
+
   def foo
     'foo'
+  end
+
+  def self_splat_assign(val)
+    *self.arr = val
   end
 end
 
@@ -26,5 +33,13 @@ describe 'calling send from C++ code to an undefined method' do
     obj = Object.new
     obj.singleton_class.undef_method(:==)
     -> { 1 == obj }.should raise_error(NoMethodError)
+  end
+end
+
+describe 'calling multiwrite splat node' do
+  it 'works' do
+    foo = Foo.new
+    foo.self_splat_assign([1, 2])
+    foo.arr.should == [1, 2]
   end
 end

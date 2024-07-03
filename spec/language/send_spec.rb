@@ -251,10 +251,8 @@ describe "Invoking a private setter method" do
 
     it "for multiple assignment" do
       receiver = LangSendSpecs::PrivateSetter.new
-      NATFIXME 'it permits self as a receiver', exception: NoMethodError, message: "private method `foo=' called for an instance of LangSendSpecs::PrivateSetter" do
-        receiver.call_self_foo_equals_masgn(42)
-        receiver.foo.should == 42
-      end
+      receiver.call_self_foo_equals_masgn(42)
+      receiver.foo.should == 42
     end
   end
 end
