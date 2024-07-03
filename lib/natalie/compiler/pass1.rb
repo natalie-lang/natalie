@@ -2150,8 +2150,25 @@ module Natalie
       end
 
       def transform_numbered_reference_read_node(node, used:)
+        if node.number == 0
+          instructions = [
+            PushSelfInstruction.new,
+            PushStringInstruction.new("warning: `#{node.location.slice}' is too big for a number variable, always nil"),
+            PushArgcInstruction.new(1),
+            SendInstruction.new(
+              :warn,
+              receiver_is_self: true,
+              with_block: false,
+              file: @file.path,
+              line: node.location.start_line,
+            ),
+            PopInstruction.new,
+          ]
+          instructions << PushNilInstruction.new if used
+          return instructions
+        end
+
         return [] unless used
-        return [PushNilInstruction.new] if node.number == 0
         [
           PushLastMatchInstruction.new,
           DupInstruction.new,
