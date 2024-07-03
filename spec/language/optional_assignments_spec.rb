@@ -221,10 +221,8 @@ describe 'Optional variable assignments' do
           def []=(k, v) @a[k] = v; 42 end
         end
 
-        NATFIXME 'ignores method visibility when receiver is self', exception: NoMethodError, message: "private method `[]' called" do
-          a = klass_with_private_methods.new(k: false)
-          a.public_method(:k, 10).should == 10
-        end
+        a = klass_with_private_methods.new(k: false)
+        a.public_method(:k, 10).should == 10
       end
 
       context 'splatted argument' do
