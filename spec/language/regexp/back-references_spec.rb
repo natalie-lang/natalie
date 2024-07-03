@@ -23,7 +23,7 @@ describe "Regexps with back-references" do
   end
 
   it "returns nil for numbered variable with too large index" do
-    NATFIXME 'eval() only works on static strings', exception: SpecFailedException do
+    NATFIXME 'print warning for numbered variable with too large index', exception: SpecFailedException, message: /but the output was/ do
       -> {
         eval(<<~CODE).should == nil
           "a" =~ /(.)/

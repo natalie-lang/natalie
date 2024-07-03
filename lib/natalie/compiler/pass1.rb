@@ -2151,6 +2151,7 @@ module Natalie
 
       def transform_numbered_reference_read_node(node, used:)
         return [] unless used
+        return [PushNilInstruction.new] if node.number == 0
         [
           PushLastMatchInstruction.new,
           DupInstruction.new,
