@@ -630,7 +630,7 @@ module Natalie
           PushArgcInstruction.new(0),
           SendInstruction.new(
             reader,
-            receiver_is_self: false,
+            receiver_is_self: obj.is_a?(Prism::SelfNode),
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
@@ -654,7 +654,7 @@ module Natalie
           PushArgcInstruction.new(1),
           SendInstruction.new(
             writer,
-            receiver_is_self: false,
+            receiver_is_self: obj.is_a?(Prism::SelfNode),
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
