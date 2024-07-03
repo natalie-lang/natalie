@@ -49,6 +49,11 @@ describe 'regexp' do
     #-> { eval('/\u{111111}/') }.should raise_error(SyntaxError)
   end
 
+  it 'uses the right onigmo encoding' do
+    pattern = Regexp.new("木".encode('EUC-JP'), Regexp::FIXEDENCODING)
+    pattern.encoding.should == Encoding::EUC_JP
+  end
+
   it 'can embed regexp that ignores multiline and comments' do
     r1 = /
     foo
@@ -69,9 +74,12 @@ describe 'regexp' do
     end
 
     it 'automatically applies FIXEDENCODING flag' do
-      c = Regexp.new('\x80', Regexp::NOENCODING)
-      c.options.should == Regexp::FIXEDENCODING | Regexp::NOENCODING
-      c.to_s.should == '(?-mix:\x80)'
+      r = Regexp.new('\x80', Regexp::NOENCODING)
+      r.options.should == Regexp::FIXEDENCODING | Regexp::NOENCODING
+      r.to_s.should == '(?-mix:\x80)'
+
+      r = Regexp.new('\u1234', 0)
+      r.options.should == Regexp::FIXEDENCODING
     end
   end
 

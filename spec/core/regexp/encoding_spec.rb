@@ -26,15 +26,11 @@ describe "Regexp#encoding" do
   end
 
   it "defaults to UTF-8 if a literal UTF-8 character appears" do
-    NATFIXME 'Encoding', exception: SpecFailedException do
-      /¥/.encoding.should == Encoding::UTF_8
-    end
+    /¥/.encoding.should == Encoding::UTF_8
   end
 
   it "returns UTF-8 if the 'u' modifier is supplied" do
-    NATFIXME 'Encoding', exception: SpecFailedException do
-      /ASCII/u.encoding.should == Encoding::UTF_8
-    end
+    /ASCII/u.encoding.should == Encoding::UTF_8
   end
 
   it "returns Windows-31J if the 's' modifier is supplied" do

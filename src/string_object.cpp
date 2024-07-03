@@ -729,7 +729,7 @@ Value StringObject::index(Env *env, Value needle, size_t start) {
 
 nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
     if (needle->is_regexp()) {
-        if (needle->as_regexp()->pattern().is_empty())
+        if (needle->as_regexp()->pattern()->is_empty())
             return byte_start;
 
         if (bytesize() == 0)
@@ -739,7 +739,7 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
             return -1;
 
         OnigRegion *region = onig_region_new();
-        int result = needle->as_regexp()->search(string(), byte_start, region, ONIG_OPTION_NONE);
+        int result = needle->as_regexp()->search(env, this, byte_start, region, ONIG_OPTION_NONE);
         if (result == ONIG_MISMATCH) {
             env->caller()->set_last_match(nullptr);
             return -1;
@@ -2577,7 +2577,7 @@ Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
     size_t last_index = 0;
     size_t index, len;
     OnigRegion *region = onig_region_new();
-    int result = splitter->as_regexp()->search(string(), 0, region, ONIG_OPTION_NONE);
+    int result = splitter->as_regexp()->search(env, this, 0, region, ONIG_OPTION_NONE);
     if (result == ONIG_MISMATCH) {
         ary->push(duplicate(env));
     } else {
@@ -2591,7 +2591,7 @@ Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
                 onig_region_free(region, true);
                 return ary;
             }
-            result = splitter->as_regexp()->search(string(), last_index, region, ONIG_OPTION_NONE);
+            result = splitter->as_regexp()->search(env, this, last_index, region, ONIG_OPTION_NONE);
         } while (result != ONIG_MISMATCH);
         ary->push(new StringObject { &c_str()[last_index], bytesize() - last_index, m_encoding });
     }
@@ -2652,7 +2652,7 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
         ary->push(duplicate(env));
     } else if (splitter->is_regexp()) {
         // special empty-split-regexp case, just return characters
-        if (splitter->as_regexp()->pattern() == "") {
+        if (splitter->as_regexp()->pattern()->is_empty()) {
             ary = this->chars(env)->as_array();
         } else {
             // split using regexp
@@ -3308,7 +3308,7 @@ bool StringObject::valid_encoding() const {
 }
 
 bool StringObject::is_ascii_only() const {
-    if (m_encoding != nullptr && !m_encoding->is_ascii_compatible())
+    if (!m_encoding->is_ascii_compatible())
         return false;
 
     for (size_t i = 0; i < length(); i++) {
