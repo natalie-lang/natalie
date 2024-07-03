@@ -95,7 +95,7 @@ module Natalie
           @instructions << PushArgcInstruction.new(1)
           @instructions << SendInstruction.new(
             arg.name,
-            receiver_is_self: false,
+            receiver_is_self: arg.receiver.is_a?(Prism::SelfNode),
             with_block: false,
             file: @file,
             line: @line,
