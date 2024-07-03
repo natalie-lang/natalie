@@ -267,6 +267,29 @@ static String prepare_pattern_for_onigmo(const StringObject *pattern, bool *fixe
             c = next_char();
             switch (c) {
 
+            case 'p': {
+                *fixed_encoding = true;
+                new_pattern.append_char('\\');
+                new_pattern.append_char('p');
+                c = next_char();
+                new_pattern.append_char(c);
+                if (c == '{') {
+                    // This is weird, but we have to close any open \p{ sequence,
+                    // or Onigmo won't produce an error about the bad character property.
+                    bool closed = false;
+                    while ((c = next_char()) != '\0') {
+                        new_pattern.append_char(c);
+                        if (c == '}') {
+                            closed = true;
+                            break;
+                        }
+                    }
+                    if (!closed)
+                        new_pattern.append_char('}');
+                }
+                break;
+            }
+
             case 'u': {
                 c = next_char();
 
