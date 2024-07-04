@@ -380,9 +380,7 @@ describe 'Optional variable assignments' do
 
         (ScratchPad << :evaluated; @a).b &&= 20
 
-        NATFIXME 'does evaluate receiver only once when assigns', exception: SpecFailedException do
-          ScratchPad.recorded.should == [:evaluated]
-        end
+        ScratchPad.recorded.should == [:evaluated]
         @a.b.should == 20
       end
 

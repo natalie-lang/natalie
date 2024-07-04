@@ -542,6 +542,9 @@ module Natalie
         # a
         instructions = [
           transform_expression(node.receiver, used: true),
+
+          # duplicate for use in the truthy case, so we only evaluate `a` once
+          DupInstruction.new,
         ]
 
         if node.safe_navigation?
@@ -549,6 +552,7 @@ module Natalie
             DupInstruction.new,
             IsNilInstruction.new,
             IfInstruction.new,
+            PopInstruction.new,
             ElseInstruction.new(:if),
           )
         end
@@ -574,7 +578,6 @@ module Natalie
           PopInstruction.new,
 
           # a.foo=('bar')
-          transform_expression(node.receiver, used: true),
           transform_expression(node.value, used: true),
           PushArgcInstruction.new(1),
           SendInstruction.new(
@@ -587,6 +590,9 @@ module Natalie
 
           ElseInstruction.new(:if),
           # if !a.foo, return duplicated value
+
+          SwapInstruction.new,
+          PopInstruction.new,
 
           EndInstruction.new(:if),
         )
