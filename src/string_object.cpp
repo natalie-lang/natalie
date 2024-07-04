@@ -667,22 +667,39 @@ bool StringObject::end_with(Env *env, Args args) const {
     return false;
 }
 
-Value StringObject::byteindex(Env *env, Value needle_obj, Value offset_obj) const {
-    StringObject *needle_str = needle_obj->to_str2(env);
-    String needle = needle_str->string();
+static Value byteindex_regexp_needle(Env *env, const StringObject *haystack, RegexpObject *needle, size_t offset) {
+    if (!haystack->negotiate_compatible_encoding(needle->pattern())) {
+        auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
+        auto enc1 = needle->pattern()->encoding()->name()->string();
+        auto enc2 = haystack->encoding()->name()->string();
+        env->raise(exception_class, "incompatible encoding regexp match ({} regexp with {} string)", enc1, enc2);
+    }
 
-    assert_compatible_string(env, needle_str);
+    if (needle->pattern()->is_empty())
+        return Value::integer(offset);
 
-    ssize_t offset = 0;
-    if (offset_obj)
-        offset = IntegerObject::convert_to_native_type<ssize_t>(env, offset_obj);
-    if (offset < 0)
-        offset += bytesize();
-    if (offset < 0 || (size_t)offset + needle.size() > bytesize())
+    OnigRegion *region = onig_region_new();
+    int result = needle->search(env, haystack, offset, region, ONIG_OPTION_NONE);
+    if (result == ONIG_MISMATCH) {
+        env->caller()->set_last_match(nullptr);
+        return NilObject::the();
+    }
+
+    auto match = new MatchDataObject { region, haystack, needle };
+    env->caller()->set_last_match(match);
+    auto byte_index = region->beg[0];
+    return Value::integer(byte_index);
+}
+
+static Value byteindex_string_needle(Env *env, const StringObject *haystack, StringObject *needle_obj, size_t offset) {
+    haystack->assert_compatible_string(env, needle_obj);
+    String needle = needle_obj->string();
+
+    if ((size_t)offset + needle.size() > haystack->bytesize())
         return NilObject::the();
 
-    if ((size_t)offset < bytesize()) {
-        auto character_check = new StringObject { m_string.substring(offset, std::min(bytesize() - offset, (size_t)4)) };
+    if ((size_t)offset < haystack->bytesize()) {
+        auto character_check = new StringObject { haystack->string().substring(offset, std::min(haystack->bytesize() - offset, (size_t)4)) };
         size_t ignored = 0;
         auto [valid, _char] = character_check->next_char_result(&ignored);
         if (!valid)
@@ -692,15 +709,31 @@ Value StringObject::byteindex(Env *env, Value needle_obj, Value offset_obj) cons
     if (needle.is_empty())
         return Value::integer(offset);
 
-    if ((size_t)offset >= bytesize())
+    if ((size_t)offset >= haystack->bytesize())
         return NilObject::the();
 
-    auto pointer = memmem(c_str() + offset, bytesize() - offset, needle.c_str(), needle.size());
+    auto pointer = memmem(haystack->c_str() + offset, haystack->bytesize() - offset, needle.c_str(), needle.size());
     if (!pointer)
         return NilObject::the();
 
-    auto result = (const char *)pointer - c_str();
+    auto result = (const char *)pointer - haystack->c_str();
     return Value::integer(result);
+}
+
+Value StringObject::byteindex(Env *env, Value needle_obj, Value offset_obj) const {
+    ssize_t offset = 0;
+    if (offset_obj)
+        offset = IntegerObject::convert_to_native_type<ssize_t>(env, offset_obj);
+    if (offset < 0)
+        offset += bytesize();
+    if (offset < 0 || (size_t)offset > bytesize())
+        return NilObject::the();
+
+    if (needle_obj->is_regexp())
+        return byteindex_regexp_needle(env, this, needle_obj->as_regexp(), offset);
+
+    auto needle = needle_obj->to_str2(env);
+    return byteindex_string_needle(env, this, needle, offset);
 }
 
 Value StringObject::index(Env *env, Value needle, Value offset) {
@@ -729,6 +762,7 @@ Value StringObject::index(Env *env, Value needle, size_t start) {
 
 nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
     if (needle->is_regexp()) {
+        // FIXME: use byteindex_regexp_needle shared code
         if (needle->as_regexp()->pattern()->is_empty())
             return byte_start;
 
@@ -3320,7 +3354,7 @@ bool StringObject::is_ascii_only() const {
     return true;
 }
 
-EncodingObject *StringObject::negotiate_compatible_encoding(StringObject *other_string) const {
+EncodingObject *StringObject::negotiate_compatible_encoding(const StringObject *other_string) const {
     if (m_encoding == other_string->m_encoding)
         return m_encoding.ptr();
 
@@ -3343,13 +3377,12 @@ EncodingObject *StringObject::negotiate_compatible_encoding(StringObject *other_
         return m_encoding.ptr();
 }
 
-void StringObject::assert_compatible_string(Env *env, StringObject *other_string) const {
+void StringObject::assert_compatible_string(Env *env, const StringObject *other_string) const {
     auto compatible_encoding = negotiate_compatible_encoding(other_string);
     if (compatible_encoding)
         return;
 
-    auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
-    env->raise(exception_class, "incompatible character encodings: {} and {}", m_encoding->name()->string(), other_string->m_encoding->name()->string());
+    m_encoding->raise_compatibility_error(env, other_string->m_encoding.ptr());
 }
 
 void StringObject::assert_valid_encoding(Env *env) const {

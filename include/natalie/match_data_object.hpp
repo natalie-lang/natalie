@@ -20,10 +20,10 @@ public:
     MatchDataObject(ClassObject *klass)
         : Object { Object::Type::MatchData, klass } { }
 
-    MatchDataObject(OnigRegion *region, StringObject *string, RegexpObject *regexp)
+    MatchDataObject(OnigRegion *region, const StringObject *string, RegexpObject *regexp)
         : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch("MatchData"_s)->as_class() }
         , m_region { region }
-        , m_string { string }
+        , m_string { new StringObject(*string) }
         , m_regexp { regexp } { }
 
     virtual ~MatchDataObject() override {

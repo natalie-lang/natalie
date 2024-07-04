@@ -368,6 +368,11 @@ void EncodingObject::raise_encoding_invalid_byte_sequence_error(Env *env, const 
     env->raise(InvalidByteSequenceError, message);
 }
 
+void EncodingObject::raise_compatibility_error(Env *env, const EncodingObject *other_encoding) const {
+    auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
+    env->raise(exception_class, "incompatible character encodings: {} and {}", name()->string(), other_encoding->name()->string());
+}
+
 Value EncodingObject::inspect(Env *env) const {
     if (is_dummy())
         return StringObject::format("#<Encoding:{} (dummy)>", name());

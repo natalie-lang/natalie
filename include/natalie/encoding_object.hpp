@@ -125,7 +125,8 @@ public:
 
     virtual bool is_compatible_with(EncodingObject *) const;
 
-    [[noreturn]] void raise_encoding_invalid_byte_sequence_error(Env *env, const String &, size_t) const;
+    [[noreturn]] void raise_encoding_invalid_byte_sequence_error(Env *, const String &, size_t) const;
+    [[noreturn]] void raise_compatibility_error(Env *, const EncodingObject *) const;
 
     static HashObject *aliases(Env *);
     static Value find(Env *, Value);

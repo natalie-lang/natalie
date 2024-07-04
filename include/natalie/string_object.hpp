@@ -168,8 +168,8 @@ public:
     EncodingObject *encoding() const { return m_encoding.ptr(); }
     void set_encoding(EncodingObject *encoding) { m_encoding = encoding; }
     bool is_ascii_only() const;
-    EncodingObject *negotiate_compatible_encoding(StringObject *) const;
-    void assert_compatible_string(Env *, StringObject *) const;
+    EncodingObject *negotiate_compatible_encoding(const StringObject *) const;
+    void assert_compatible_string(Env *, const StringObject *) const;
     void assert_valid_encoding(Env *) const;
     EncodingObject *assert_compatible_string_and_update_encoding(Env *, StringObject *);
 
