@@ -81,6 +81,19 @@ describe 'regexp' do
       r = Regexp.new('\u1234', 0)
       r.options.should == Regexp::FIXEDENCODING
     end
+
+    it 'recognizes character properties' do
+      Regexp.new("\\p{L}").should be_an_instance_of(Regexp)
+      Regexp.new("\\p{Arabic}").should be_an_instance_of(Regexp)
+      Regexp.new("\\p{ Arabic }").should be_an_instance_of(Regexp)
+    end
+
+    it 'raises a RegexpError for bad character properties' do
+      -> { Regexp.new('\p{}') }.should raise_error(RegexpError)
+      -> { Regexp.new('\p{zzz}') }.should raise_error(RegexpError)
+      -> { Regexp.new('\p{') }.should raise_error(RegexpError)
+      -> { Regexp.new('\p{ ') }.should raise_error(RegexpError)
+    end
   end
 
   describe '#==' do
