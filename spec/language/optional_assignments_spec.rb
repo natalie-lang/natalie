@@ -529,7 +529,7 @@ describe 'Optional variable assignments' do
       context 'splatted argument' do
         it 'correctly handles it' do
           @b[:m] = 0
-          NATFIXME 'correctly handles spallted argument', exception: SpecFailedException do
+          NATFIXME 'correctly handles splatted argument', exception: SpecFailedException do
             (@b[*[:m]] &&= 10).should == 10
             @b[:m].should == 10
 
