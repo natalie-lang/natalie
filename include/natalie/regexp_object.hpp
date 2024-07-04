@@ -139,7 +139,7 @@ public:
         return m_options & RegexOpts::IgnoreCase;
     }
 
-    int search(Env *env, const StringObject *string_obj, int start, OnigRegion *region, OnigOptionType options);
+    long search(Env *env, const StringObject *string_obj, long start, OnigRegion *region, OnigOptionType options, bool reverse = false);
 
     bool eq(Env *env, Value other) const {
         assert_initialized(env);

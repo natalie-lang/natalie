@@ -497,10 +497,12 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
         start_index += str_obj->length();
     }
 
+    // FIXME: I don't think we need region -- can pass nullptr
     OnigRegion *region = onig_region_new();
     int result = search(env, str_obj, start_index, region, ONIG_OPTION_NONE);
 
     if (result >= 0) {
+        // FIXME: need to free with onig_region_free
         return true;
     } else if (result == ONIG_MISMATCH) {
         onig_region_free(region, true);
@@ -561,13 +563,14 @@ bool RegexpObject::operator==(const RegexpObject &other) const {
     return m_pattern->string() == other.m_pattern->string() && our_options == their_options;
 }
 
-int RegexpObject::search(Env *env, const StringObject *string_obj, int start, OnigRegion *region, OnigOptionType options) {
+long RegexpObject::search(Env *env, const StringObject *string_obj, long start, OnigRegion *region, OnigOptionType options, bool reverse) {
     auto string = string_obj->string();
     const unsigned char *unsigned_str = (unsigned char *)string.c_str();
     const unsigned char *char_end = unsigned_str + string.size();
     const unsigned char *char_start = unsigned_str + start;
-    const unsigned char *char_range = char_end;
+    const unsigned char *char_range = reverse ? unsigned_str : char_end;
 
+    // FIXME: check if it's already FIXEDENCODING
     // FIXME: check if it's already FIXEDENCODING
     if (string_obj->encoding() != encoding()) {
         RegexpObject temp_regexp;

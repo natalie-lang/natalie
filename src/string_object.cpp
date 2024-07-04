@@ -667,7 +667,7 @@ bool StringObject::end_with(Env *env, Args args) const {
     return false;
 }
 
-static Value byteindex_regexp_needle(Env *env, const StringObject *haystack, RegexpObject *needle, size_t offset) {
+static Value byteindex_regexp_needle(Env *env, const StringObject *haystack, RegexpObject *needle, OnigPosition offset, bool reverse = false) {
     if (!haystack->negotiate_compatible_encoding(needle->pattern())) {
         auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
         auto enc1 = needle->pattern()->encoding()->name()->string();
@@ -679,8 +679,11 @@ static Value byteindex_regexp_needle(Env *env, const StringObject *haystack, Reg
         return Value::integer(offset);
 
     OnigRegion *region = onig_region_new();
-    int result = needle->search(env, haystack, offset, region, ONIG_OPTION_NONE);
+
+    int result = needle->search(env, haystack, offset, region, ONIG_OPTION_NONE, reverse);
+
     if (result == ONIG_MISMATCH) {
+        onig_region_free(region, true);
         env->caller()->set_last_match(nullptr);
         return NilObject::the();
     }
@@ -691,12 +694,17 @@ static Value byteindex_regexp_needle(Env *env, const StringObject *haystack, Reg
     return Value::integer(byte_index);
 }
 
-static Value byteindex_string_needle(Env *env, const StringObject *haystack, StringObject *needle_obj, size_t offset) {
+static Value byteindex_string_needle(Env *env, const StringObject *haystack, StringObject *needle_obj, size_t offset, bool reverse = false) {
     haystack->assert_compatible_string(env, needle_obj);
     String needle = needle_obj->string();
 
-    if ((size_t)offset + needle.size() > haystack->bytesize())
-        return NilObject::the();
+    if (reverse) {
+        if ((size_t)offset > haystack->bytesize())
+            return NilObject::the();
+    } else {
+        if ((size_t)offset + needle.size() > haystack->bytesize())
+            return NilObject::the();
+    }
 
     if ((size_t)offset < haystack->bytesize()) {
         auto character_check = new StringObject { haystack->string().substring(offset, std::min(haystack->bytesize() - offset, (size_t)4)) };
@@ -709,10 +717,23 @@ static Value byteindex_string_needle(Env *env, const StringObject *haystack, Str
     if (needle.is_empty())
         return Value::integer(offset);
 
-    if ((size_t)offset >= haystack->bytesize())
+    if (!reverse && (size_t)offset >= haystack->bytesize())
         return NilObject::the();
 
-    auto pointer = memmem(haystack->c_str() + offset, haystack->bytesize() - offset, needle.c_str(), needle.size());
+    void *pointer = nullptr;
+    if (reverse) {
+        if (offset + needle.size() >= haystack->bytesize())
+            offset = haystack->bytesize() - needle.size();
+        for (ssize_t i = offset; i >= 0; i--) {
+            if (memcmp(haystack->c_str() + i, needle.c_str(), needle.size()) == 0) {
+                pointer = (void *)(haystack->c_str() + i);
+                break;
+            }
+        }
+    } else {
+        pointer = memmem(haystack->c_str() + offset, haystack->bytesize() - offset, needle.c_str(), needle.size());
+    }
+
     if (!pointer)
         return NilObject::the();
 
@@ -734,6 +755,23 @@ Value StringObject::byteindex(Env *env, Value needle_obj, Value offset_obj) cons
 
     auto needle = needle_obj->to_str2(env);
     return byteindex_string_needle(env, this, needle, offset);
+}
+
+Value StringObject::byterindex(Env *env, Value needle_obj, Value offset_obj) const {
+    ssize_t offset = bytesize();
+    if (offset_obj)
+        offset = IntegerObject::convert_to_native_type<ssize_t>(env, offset_obj);
+    if (offset < 0)
+        offset += bytesize();
+    if (offset < 0)
+        return NilObject::the();
+    offset = std::min((size_t)offset, bytesize());
+
+    if (needle_obj->is_regexp())
+        return byteindex_regexp_needle(env, this, needle_obj->as_regexp(), offset, true);
+
+    auto needle = needle_obj->to_str2(env);
+    return byteindex_string_needle(env, this, needle, offset, true);
 }
 
 Value StringObject::index(Env *env, Value needle, Value offset) {
@@ -773,6 +811,7 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
             return -1;
 
         OnigRegion *region = onig_region_new();
+        // FIXME: need to free with onig_region_free
         int result = needle->as_regexp()->search(env, this, byte_start, region, ONIG_OPTION_NONE);
         if (result == ONIG_MISMATCH) {
             env->caller()->set_last_match(nullptr);
