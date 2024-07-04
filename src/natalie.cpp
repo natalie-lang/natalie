@@ -453,28 +453,36 @@ Env *build_top_env() {
     ENV->extend_once(env, Enumerable);
 
     Value RUBY_VERSION = new StringObject { "3.3.0" };
+    RUBY_VERSION->freeze();
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
 
     Value RUBY_COPYRIGHT = new StringObject { "natalie - Copyright (c) 2023 Tim Morgan and contributors" };
+    RUBY_COPYRIGHT->freeze();
     Object->const_set("RUBY_COPYRIGHT"_s, RUBY_COPYRIGHT);
 
     auto ruby_revision_short = TM::String(ruby_revision, 10);
     StringObject *RUBY_DESCRIPTION = StringObject::format("natalie ({} revision {}) [{}]", ruby_release_date, ruby_revision_short, ruby_platform);
+    RUBY_DESCRIPTION->freeze();
     Object->const_set("RUBY_DESCRIPTION"_s, RUBY_DESCRIPTION);
 
     Value RUBY_ENGINE = new StringObject { "natalie" };
+    RUBY_ENGINE->freeze();
     Object->const_set("RUBY_ENGINE"_s, RUBY_ENGINE);
 
     Value RUBY_PATCHLEVEL = new IntegerObject { -1 };
+    RUBY_PATCHLEVEL->freeze();
     Object->const_set("RUBY_PATCHLEVEL"_s, RUBY_PATCHLEVEL);
 
     StringObject *RUBY_PLATFORM = new StringObject { ruby_platform };
+    RUBY_PLATFORM->freeze();
     Object->const_set("RUBY_PLATFORM"_s, RUBY_PLATFORM);
 
     Value RUBY_RELEASE_DATE = new StringObject { ruby_release_date };
+    RUBY_RELEASE_DATE->freeze();
     Object->const_set("RUBY_RELEASE_DATE"_s, RUBY_RELEASE_DATE);
 
     Value RUBY_REVISION = new StringObject { ruby_revision };
+    RUBY_REVISION->freeze();
     Object->const_set("RUBY_REVISION"_s, RUBY_REVISION);
 
     ModuleObject *GC = new ModuleObject { "GC" };
