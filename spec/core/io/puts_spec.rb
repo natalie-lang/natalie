@@ -33,7 +33,7 @@ describe "IO#puts" do
     ScratchPad.recorded.should == "\n"
   end
 
-  it "writes empty string with a newline when when given nil as multiple args" do
+  it "writes empty string with a newline when given nil as multiple args" do
     @io.puts(nil, nil).should == nil
     ScratchPad.recorded.should == "\n\n"
   end
@@ -44,6 +44,7 @@ describe "IO#puts" do
     object = mock('hola')
     object.should_receive(:method_missing).with(:to_ary)
     object.should_receive(:to_s).and_return("#<Object:0x...>")
+
     @io.puts(object).should == nil
     ScratchPad.recorded.should == "#<Object:0x...>\n"
   end
@@ -67,6 +68,7 @@ describe "IO#puts" do
   it "returns general object info if :to_s does not return a string" do
     object = mock('hola')
     object.should_receive(:to_s).and_return(false)
+
     @io.puts(object).should == nil
     NATFIXME "Object#inspect missing instance-variables causes this to break" do
       ScratchPad.recorded.should == object.inspect.split(" ")[0] + ">\n"

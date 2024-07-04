@@ -74,7 +74,7 @@ describe "Literal Regexps" do
     end
   end
 
-  it "supports non-paired delimiters delimiters with %r" do
+  it "supports non-paired delimiters with %r" do
     LanguageSpecs.non_paired_delimiters.each do |c|
       NATFIXME 'Eval', exception: TypeError, message: 'eval() only works on static strings' do
         eval("%r#{c} foo #{c}").should == / foo /

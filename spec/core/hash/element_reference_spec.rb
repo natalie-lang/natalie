@@ -12,7 +12,7 @@ describe "Hash#[]" do
     h[[]].should == "baz"
   end
 
-  it "returns nil as default default value" do
+  it "returns nil as default value" do
     { 0 => 0 }[5].should == nil
   end
 
@@ -30,7 +30,7 @@ describe "Hash#[]" do
   end
 
   it "does not create copies of the immediate default value" do
-    str = "foo"
+    str = +"foo"
     h = Hash.new(str)
     a = h[:a]
     b = h[:b]
