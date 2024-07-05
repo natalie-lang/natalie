@@ -167,7 +167,7 @@
  *	FREE_DTOA_LOCK(...) are avoided; instead each thread with thread
  *	number < n has a separate copy of relevant data structures.
  *	After set_max_dtoa_threads(n), a call set_max_dtoa_threads(m)
- *	with m <= n has has no effect, but a call with m > n is honored.
+ *	with m <= n has no effect, but a call with m > n is honored.
  *	Such a call invokes REALLOC (assumed to be "realloc" if REALLOC
  *	is not #defined) to extend the size of the relevant array.
 
