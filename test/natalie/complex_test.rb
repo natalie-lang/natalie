@@ -22,7 +22,7 @@ describe 'complex' do
     r.imaginary.should == 3
   end
 
-  it 'does not have have Comparable mixin more than once' do
+  it 'does not have Comparable mixin more than once' do
     Complex.ancestors.count(Comparable).should == 1
   end
 end
