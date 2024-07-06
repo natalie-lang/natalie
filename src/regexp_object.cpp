@@ -497,18 +497,13 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
         start_index += str_obj->length();
     }
 
-    // FIXME: I don't think we need region -- can pass nullptr
-    OnigRegion *region = onig_region_new();
-    int result = search(env, str_obj, start_index, region, ONIG_OPTION_NONE);
+    int result = search(env, str_obj, start_index, nullptr, ONIG_OPTION_NONE);
 
     if (result >= 0) {
-        // FIXME: need to free with onig_region_free
         return true;
     } else if (result == ONIG_MISMATCH) {
-        onig_region_free(region, true);
         return false;
     } else {
-        onig_region_free(region, true);
         OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
         onig_error_code_to_str(s, result);
         env->raise("RuntimeError", (char *)s);
