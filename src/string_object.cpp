@@ -811,9 +811,9 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
             return -1;
 
         OnigRegion *region = onig_region_new();
-        // FIXME: need to free with onig_region_free
         int result = needle->as_regexp()->search(env, this, byte_start, region, ONIG_OPTION_NONE);
         if (result == ONIG_MISMATCH) {
+            onig_region_free(region, true);
             env->caller()->set_last_match(nullptr);
             return -1;
         }
