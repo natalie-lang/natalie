@@ -163,6 +163,10 @@ public:
         return this->send(env, "=~"_s, { env->global_get("$_"_s) });
     }
 
+    bool is_fixed_encoding() const {
+        return m_options & RegexOpts::FixedEncoding;
+    }
+
     bool has_match(Env *env, Value, Value);
     Value initialize(Env *, Value, Value);
     Value inspect(Env *env);

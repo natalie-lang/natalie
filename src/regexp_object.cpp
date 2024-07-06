@@ -570,9 +570,7 @@ long RegexpObject::search(Env *env, const StringObject *string_obj, long start, 
     const unsigned char *char_start = unsigned_str + start;
     const unsigned char *char_range = reverse ? unsigned_str : char_end;
 
-    // FIXME: check if it's already FIXEDENCODING
-    // FIXME: check if it's already FIXEDENCODING
-    if (string_obj->encoding() != encoding()) {
+    if (!is_fixed_encoding() && string_obj->encoding() != encoding()) {
         RegexpObject temp_regexp;
         temp_regexp.initialize_internal(env, m_pattern, m_options | RegexOpts::FixedEncoding);
         return onig_search(temp_regexp.m_regex, unsigned_str, char_end, char_start, char_range, region, options);
