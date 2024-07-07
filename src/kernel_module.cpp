@@ -528,23 +528,23 @@ Value KernelModule::print(Env *env, Args args) {
 
 Value KernelModule::private_methods(Env *env, Value recur) {
     if (singleton_class())
-        return singleton_class()->private_instance_methods(env, recur);
+        return singleton_class()->private_instance_methods(env, TrueObject::the());
     else
-        return klass()->private_instance_methods(env, FalseObject::the());
+        return klass()->private_instance_methods(env, recur);
 }
 
 Value KernelModule::protected_methods(Env *env, Value recur) {
     if (singleton_class())
-        return singleton_class()->protected_instance_methods(env, recur);
+        return singleton_class()->protected_instance_methods(env, TrueObject::the());
     else
-        return klass()->protected_instance_methods(env, FalseObject::the());
+        return klass()->protected_instance_methods(env, recur);
 }
 
 Value KernelModule::public_methods(Env *env, Value recur) {
     if (singleton_class())
-        return singleton_class()->public_instance_methods(env, recur);
+        return singleton_class()->public_instance_methods(env, TrueObject::the());
     else
-        return klass()->public_instance_methods(env, FalseObject::the());
+        return klass()->public_instance_methods(env, recur);
 }
 
 Value KernelModule::proc(Env *env, Block *block) {
