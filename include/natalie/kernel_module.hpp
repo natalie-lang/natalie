@@ -90,6 +90,7 @@ public:
     bool neqtilde(Env *, Value);
     Value private_methods(Env *, Value = nullptr);
     Value protected_methods(Env *, Value = nullptr);
+    Value public_methods(Env *, Value = nullptr);
     Value remove_instance_variable(Env *env, Value name_val);
     Value tap(Env *env, Block *block);
     bool is_a(Env *env, Value module);

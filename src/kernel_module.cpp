@@ -540,6 +540,13 @@ Value KernelModule::protected_methods(Env *env, Value recur) {
         return klass()->protected_instance_methods(env, FalseObject::the());
 }
 
+Value KernelModule::public_methods(Env *env, Value recur) {
+    if (singleton_class())
+        return singleton_class()->public_instance_methods(env, recur);
+    else
+        return klass()->public_instance_methods(env, FalseObject::the());
+}
+
 Value KernelModule::proc(Env *env, Block *block) {
     if (block) {
         return new ProcObject { block };
