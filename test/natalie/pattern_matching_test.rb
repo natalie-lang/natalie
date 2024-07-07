@@ -332,6 +332,19 @@ describe 'pattern matching' do
     }.should raise_error(NoMatchingPatternError, '1: 2 === 1 does not return true')
     a.should == 2
   end
+
+  it 'supports pinned variables in requireds of array match expressions' do
+    a = 1
+    [1, 2] => ^a, b
+    b.should == 2
+  end
+
+  it 'generated the correct error message for pinned variables in requireds of array match expressions' do
+    a = 2
+    -> {
+      [1, 2] => ^a, b
+    }.should raise_error(NoMatchingPatternError, '[1, 2]: 2 === 1 does not return true')
+  end
 end
 
 describe 'NoMatchingPatternError' do
