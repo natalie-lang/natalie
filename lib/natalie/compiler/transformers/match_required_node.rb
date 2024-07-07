@@ -54,12 +54,14 @@ module Natalie
             RUBY
           end
           main_loop_instructions = node.requireds.each_with_index.map do |n, i|
+            compare_to = n.type == :pinned_variable_node ? n.variable.location.slice : n.location.slice
             if n.type == :local_variable_target_node
               "outputs << values[#{i}]"
             else
               <<~RUBY
-                unless #{n.location.slice} === values[#{i}]
-                  raise ::NoMatchingPatternError, "\#{result}: #{n.location.slice} === \#{values[#{i}]} does not return true"
+                unless #{compare_to} === values[#{i}]
+                  compare_to_str = #{n.type == :pinned_variable_node ? "\"\#{#{n.variable.location.slice}}\"" : compare_to}
+                  raise ::NoMatchingPatternError, "\#{result}: \#{compare_to_str} === \#{values[#{i}]} does not return true"
                 end
               RUBY
             end
