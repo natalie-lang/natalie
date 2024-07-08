@@ -56,6 +56,11 @@ module Kernel
     Random::DEFAULT.rand(*args)
   end
 
+  def select(...)
+    IO.select(...)
+  end
+  module_function :select
+
   def warn(*msgs, category: nil, uplevel: nil)
     if !category.nil? && !category.is_a?(Symbol)
       category = category.to_sym if category.respond_to?(:to_sym)
