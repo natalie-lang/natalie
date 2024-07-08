@@ -57,6 +57,7 @@ module Kernel
   end
 
   def warn(*msgs, category: nil, uplevel: nil)
+    return if $VERBOSE.nil?
     if !category.nil? && !category.is_a?(Symbol)
       category = category.to_sym if category.respond_to?(:to_sym)
       raise TypeError, "no implicit conversion of #{category.class} into Symbol" unless category.is_a?(Symbol)

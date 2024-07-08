@@ -43,12 +43,10 @@ describe "Kernel#warn" do
   end
 
   it "does not call #write on $stderr if $VERBOSE is nil" do
-    NATFIXME 'does not call #write on $stderr if $VERBOSE is nil', exception: SpecFailedException do
-      -> {
-        $VERBOSE = nil
-        warn("this is some simple text")
-      }.should output(nil, "")
-    end
+    -> {
+      $VERBOSE = nil
+      warn("this is some simple text")
+    }.should output(nil, "")
   end
 
   it "writes each argument on a line when passed multiple arguments" do
