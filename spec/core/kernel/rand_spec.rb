@@ -3,9 +3,7 @@ require_relative 'fixtures/classes'
 
 describe "Kernel#rand" do
   it "is a private method" do
-    NATFIXME 'it is a private method', exception: SpecFailedException do
-      Kernel.should have_private_instance_method(:rand)
-    end
+    Kernel.should have_private_instance_method(:rand)
   end
 
   it "returns a float if no argument is passed" do
