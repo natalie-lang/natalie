@@ -55,6 +55,7 @@ module Kernel
   def rand(*args)
     Random::DEFAULT.rand(*args)
   end
+  module_function :rand
 
   def select(...)
     IO.select(...)
