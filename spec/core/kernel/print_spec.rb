@@ -13,9 +13,7 @@ describe "Kernel#print" do
   it "prints $_ when no arguments are given" do
     orig_value = $_
     $_ = 'foo'
-    NATFIXME 'it prints $_ when no arguments are given', exception: SpecFailedException do
-      -> { print }.should output("foo")
-    end
+    -> { print }.should output("foo")
   ensure
     $_ = orig_value
   end

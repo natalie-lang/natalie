@@ -520,6 +520,8 @@ Value KernelModule::print(Env *env, Args args) {
     if (!_stdout->respond_to(env, "print"_s)) {
         env->raise("TypeError", "$stdout must have print method, {} given", _stdout->klass()->inspect_str());
     }
+    if (args.size() == 0)
+        args = Args { env->global_get("$_"_s) };
     // NATFIXME: Kernel.print should actually call IO.print and not
     // IO.write, but for now using IO.print causes crashes.
     // return _stdout->send(env, "print"_s, args);
