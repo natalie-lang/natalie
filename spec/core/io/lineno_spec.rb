@@ -26,7 +26,7 @@ describe "IO#lineno" do
   end
 
   it "raises an IOError on a duplexed stream with the read side closed" do
-    NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
+    NATFIXME 'Support "r+" access mode', exception: Errno::EINVAL do
       cmd = platform_is(:windows) ? 'rem' : 'cat'
       IO.popen(cmd, 'r+') do |p|
         p.close_read
@@ -73,7 +73,7 @@ describe "IO#lineno=" do
   end
 
   it "raises an IOError on a duplexed stream with the read side closed" do
-    NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
+    NATFIXME 'Support "r+" access mode', exception: Errno::EINVAL do
       cmd = platform_is(:windows) ? 'rem' : 'cat'
       IO.popen(cmd, 'r+') do |p|
         p.close_read

@@ -337,7 +337,7 @@ end
 
 describe "IO.copy_stream" do
   it "does not use buffering when writing to STDOUT" do
-    NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
+    NATFIXME 'Support array argument', exception: TypeError, message: 'no implicit conversion of Array into String' do
       IO.popen([*ruby_exe, fixture(__FILE__ , "copy_in_out.rb")], "r+") do |io|
         io.write("bar")
         io.read(3).should == "bar"

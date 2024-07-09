@@ -106,39 +106,29 @@ describe "IO.popen" do
 
   describe "with a block" do
     it "yields an open IO to the block" do
-      NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
-        IO.popen(ruby_cmd('exit'), "r") do |io|
-          io.closed?.should be_false
-        end
+      IO.popen(ruby_cmd('exit'), "r") do |io|
+        io.closed?.should be_false
       end
     end
 
     it "yields an instance of a subclass when called on a subclass" do
-      NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
-        IOSpecs::SubIO.popen(ruby_cmd('exit'), "r") do |io|
-          io.should be_an_instance_of(IOSpecs::SubIO)
-        end
+      IOSpecs::SubIO.popen(ruby_cmd('exit'), "r") do |io|
+        io.should be_an_instance_of(IOSpecs::SubIO)
       end
     end
 
     it "closes the IO after yielding" do
-      NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
-        io = IO.popen(ruby_cmd('exit'), "r") { |_io| _io }
-        io.closed?.should be_true
-      end
+      io = IO.popen(ruby_cmd('exit'), "r") { |_io| _io }
+      io.closed?.should be_true
     end
 
     it "allows the IO to be closed inside the block" do
-      NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
-        io = IO.popen(ruby_cmd('exit'), 'r') { |_io| _io.close; _io }
-        io.closed?.should be_true
-      end
+      io = IO.popen(ruby_cmd('exit'), 'r') { |_io| _io.close; _io }
+      io.closed?.should be_true
     end
 
     it "returns the value of the block" do
-      NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
-        IO.popen(ruby_cmd('exit'), "r") { :hello }.should == :hello
-      end
+      IO.popen(ruby_cmd('exit'), "r") { :hello }.should == :hello
     end
   end
 
@@ -185,7 +175,7 @@ describe "IO.popen" do
 
   context "with a leading ENV Hash" do
     it "accepts a single String command" do
-      NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
+      NATFIXME 'Support env argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
         IO.popen({"FOO" => "bar"}, "echo #{@var}") do |io|
           io.read.should == "bar\n"
         end
@@ -220,7 +210,7 @@ describe "IO.popen" do
 
     it "accepts an Array of command and arguments" do
       exe, *args = ruby_exe
-      NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
+      NATFIXME 'Support array argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
         IO.popen({"FOO" => "bar"}, [[exe, "specfu"], *args, "-e", "puts ENV['FOO']"]) do |io|
           io.read.should == "bar\n"
         end
@@ -257,7 +247,7 @@ describe "IO.popen" do
 
   context "with a leading Array argument" do
     it "uses the Array as command plus args for the child process" do
-      NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
+      NATFIXME 'Support array argument', exception: TypeError, message: 'no implicit conversion of Array into String' do
         IO.popen([*ruby_exe, "-e", "puts 'hello'"]) do |io|
           io.read.should == "hello\n"
         end
@@ -265,7 +255,7 @@ describe "IO.popen" do
     end
 
     it "accepts a leading ENV Hash" do
-      NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
+      NATFIXME 'Support array argument', exception: TypeError, message: 'no implicit conversion of Array into String' do
         IO.popen([{"FOO" => "bar"}, *ruby_exe, "-e", "puts ENV['FOO']"]) do |io|
           io.read.should == "bar\n"
         end
@@ -273,7 +263,7 @@ describe "IO.popen" do
     end
 
     it "accepts a trailing Hash of Process.exec options" do
-      NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
+      NATFIXME 'Support array argument', exception: TypeError, message: 'no implicit conversion of Array into String' do
         IO.popen([*ruby_exe, "does_not_exist", {err: [:child, :out]}]) do |io|
           io.read.should =~ /LoadError/
         end
@@ -281,7 +271,7 @@ describe "IO.popen" do
     end
 
     it "accepts an IO mode argument following the Array" do
-      NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
+      NATFIXME 'Support array argument', exception: TypeError, message: 'no implicit conversion of Array into String' do
         IO.popen([*ruby_exe, "does_not_exist", {err: [:child, :out]}], "r") do |io|
           io.read.should =~ /LoadError/
         end
@@ -289,7 +279,7 @@ describe "IO.popen" do
     end
 
     it "accepts [env, command, arg1, arg2, ..., exec options]" do
-      NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
+      NATFIXME 'Support array argument', exception: TypeError, message: 'no implicit conversion of Array into String' do
         IO.popen([{"FOO" => "bar"}, *ruby_exe, "-e", "STDERR.puts ENV[:FOO.to_s]",
                   err: [:child, :out]]) do |io|
           io.read.should == "bar\n"
@@ -298,7 +288,7 @@ describe "IO.popen" do
     end
 
     it "accepts '[env, command, arg1, arg2, ..., exec options], mode'" do
-      NATFIXME 'Support block argument', exception: NotImplementedError, message: 'IO.popen with block is not yet supported' do
+      NATFIXME 'Support array argument', exception: TypeError, message: 'no implicit conversion of Array into String' do
         IO.popen([{"FOO" => "bar"}, *ruby_exe, "-e", "STDERR.puts ENV[:FOO.to_s]",
                   err: [:child, :out]], "r") do |io|
           io.read.should == "bar\n"

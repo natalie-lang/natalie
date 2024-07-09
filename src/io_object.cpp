@@ -1189,8 +1189,6 @@ Value IoObject::popen(Env *env, Args args, Block *block, ClassObject *klass) {
         env->raise("NotImplementedError", "IO.popen with keyword arguments is not yet supported");
     if (args.size() > 2)
         env->raise("NotImplementedError", "IO.popen with env is not yet supported");
-    if (block)
-        env->raise("NotImplementedError", "IO.popen with block is not yet supported");
     args.ensure_argc_between(env, 1, 3);
     auto command = args.at(0)->to_str(env);
     if (*command->c_str() == '-')
@@ -1201,7 +1199,12 @@ Value IoObject::popen(Env *env, Args args, Block *block, ClassObject *klass) {
         env->raise_errno();
     auto io = _new(env, klass, { IntegerObject::create(::fileno(fileptr)) }, nullptr);
     io->as_io()->m_fileptr = fileptr;
-    return io;
+
+    if (!block)
+        return io;
+
+    Defer close_io([&]() { io->public_send(env, "close"_s); });
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { io }, nullptr);
 }
 
 int IoObject::pos(Env *env) {
