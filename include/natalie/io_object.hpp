@@ -81,6 +81,7 @@ public:
     bool isatty(Env *) const;
     int lineno(Env *) const;
     static Value pipe(Env *, Value, Value, Block *, ClassObject *);
+    static Value popen(Env *, Args, Block *, ClassObject *);
     int pos(Env *);
     Value pread(Env *, Value, Value, Value = nullptr);
     Value putc(Env *, Value);
@@ -143,6 +144,7 @@ private:
     EncodingObject *m_external_encoding { nullptr };
     EncodingObject *m_internal_encoding { nullptr };
     int m_fileno { -1 };
+    FILE *m_fileptr { nullptr };
     int m_lineno { 0 };
     std::atomic<bool> m_closed { false };
     bool m_autoclose { true };

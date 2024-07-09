@@ -693,7 +693,12 @@ Value IoObject::close(Env *env) {
     // on a closed file descriptor.
     ThreadObject::interrupt();
 
-    int result = ::close(m_fileno);
+    int result;
+    if (m_fileptr) {
+        result = pclose(m_fileptr);
+    } else {
+        result = ::close(m_fileno);
+    }
     if (result == -1)
         env->raise_errno();
 
@@ -1177,6 +1182,26 @@ Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding,
         io_write->public_send(env, "close"_s);
     });
     return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { pipes }, nullptr);
+}
+
+Value IoObject::popen(Env *env, Args args, Block *block, ClassObject *klass) {
+    if (args.has_keyword_hash())
+        env->raise("NotImplementedError", "IO.popen with keyword arguments is not yet supported");
+    if (args.size() > 2)
+        env->raise("NotImplementedError", "IO.popen with env is not yet supported");
+    if (block)
+        env->raise("NotImplementedError", "IO.popen with block is not yet supported");
+    args.ensure_argc_between(env, 1, 3);
+    auto command = args.at(0)->to_str(env);
+    if (*command->c_str() == '-')
+        env->raise("NotImplementedError", "IO.popen with \"-\" to fork is not yet supported");
+    auto type = args.at(1, new StringObject { "r" })->to_str(env);
+    auto fileptr = ::popen(command->c_str(), type->c_str());
+    if (!fileptr)
+        env->raise_errno();
+    auto io = _new(env, klass, { IntegerObject::create(::fileno(fileptr)) }, nullptr);
+    io->as_io()->m_fileptr = fileptr;
+    return io;
 }
 
 int IoObject::pos(Env *env) {

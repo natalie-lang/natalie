@@ -90,36 +90,40 @@ end
 describe "IO#close on an IO.popen stream" do
 
   it "clears #pid" do
-    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for class IO" do
-      io = IO.popen ruby_cmd('r = loop{puts "y"; 0} rescue 1; exit r'), 'r'
+    io = IO.popen ruby_cmd('r = loop{puts "y"; 0} rescue 1; exit r'), 'r'
 
+    NATFIXME 'Implement IO#pid', exception: NoMethodError, message: "undefined method `pid' for an instance of IO" do
       io.pid.should_not == 0
+    end
 
-      io.close
+    io.close
 
+    NATFIXME 'Implement IO#pid', exception: SpecFailedException, message: "undefined method `pid' for an instance of IO" do
       -> { io.pid }.should raise_error(IOError)
     end
   end
 
   it "sets $?" do
-    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for class IO" do
-      io = IO.popen ruby_cmd('exit 0'), 'r'
-      io.close
+    io = IO.popen ruby_cmd('exit 0'), 'r'
+    io.close
 
+    NATFIXME 'Handle $? with IO.popen', exception: NoMethodError, message: "undefined method `exitstatus' for nil" do
       $?.exitstatus.should == 0
+    end
 
-      io = IO.popen ruby_cmd('exit 1'), 'r'
-      io.close
+    io = IO.popen ruby_cmd('exit 1'), 'r'
+    io.close
 
+    NATFIXME 'Handle $? with IO.popen', exception: NoMethodError, message: "undefined method `exitstatus' for nil" do
       $?.exitstatus.should == 1
     end
   end
 
   it "waits for the child to exit" do
-    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for class IO" do
-      io = IO.popen ruby_cmd('r = loop{puts "y"; 0} rescue 1; exit r'), 'r'
-      io.close
+    io = IO.popen ruby_cmd('r = loop{puts "y"; 0} rescue 1; exit r'), 'r'
+    io.close
 
+    NATFIXME 'Handle $? with IO.popen', exception: NoMethodError, message: "undefined method `exitstatus' for nil" do
       $?.exitstatus.should_not == 0
     end
   end
