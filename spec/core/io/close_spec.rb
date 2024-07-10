@@ -88,7 +88,6 @@ describe "IO#close" do
 end
 
 describe "IO#close on an IO.popen stream" do
-
   it "clears #pid" do
     io = IO.popen ruby_cmd('r = loop{puts "y"; 0} rescue 1; exit r'), 'r'
 
@@ -103,25 +102,18 @@ describe "IO#close on an IO.popen stream" do
     io = IO.popen ruby_cmd('exit 0'), 'r'
     io.close
 
-    NATFIXME 'Handle $? with IO.popen', exception: NoMethodError, message: "undefined method `exitstatus' for nil" do
-      $?.exitstatus.should == 0
-    end
+    $?.exitstatus.should == 0
 
     io = IO.popen ruby_cmd('exit 1'), 'r'
     io.close
 
-    NATFIXME 'Handle $? with IO.popen', exception: NoMethodError, message: "undefined method `exitstatus' for nil" do
-      $?.exitstatus.should == 1
-    end
+    $?.exitstatus.should == 1
   end
 
   it "waits for the child to exit" do
     io = IO.popen ruby_cmd('r = loop{puts "y"; 0} rescue 1; exit r'), 'r'
     io.close
 
-    NATFIXME 'Handle $? with IO.popen', exception: NoMethodError, message: "undefined method `exitstatus' for nil" do
-      $?.exitstatus.should_not == 0
-    end
+    $?.exitstatus.should_not == 0
   end
-
 end

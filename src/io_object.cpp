@@ -703,6 +703,7 @@ Value IoObject::close(Env *env) {
     int result;
     if (m_fileptr && m_pid > 0) {
         result = pclose2(m_fileptr, m_pid);
+        set_status_object(env, m_pid, result);
     } else {
         result = ::close(m_fileno);
     }

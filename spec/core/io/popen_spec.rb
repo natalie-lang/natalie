@@ -39,9 +39,7 @@ describe "IO.popen" do
     io = IO.popen ruby_cmd('r = loop{puts "y"; 0} rescue 1; exit r'), 'r'
     io.close
 
-    NATFIXME 'Handle $? with IO.popen', exception: NoMethodError, message: "undefined method `exitstatus' for nil" do
-      $?.exitstatus.should_not == 0
-    end
+    $?.exitstatus.should_not == 0
   end
 
   it "writes to a write-only pipe" do
@@ -70,9 +68,7 @@ describe "IO.popen" do
     @io.write("bar")
     @io.close
 
-    NATFIXME 'Handle $? with IO.popen', exception: NoMethodError, message: "undefined method `exitstatus' for nil" do
-      $?.exitstatus.should == 0
-    end
+    $?.exitstatus.should == 0
 
     File.read(@fname).should == "bar"
   end
