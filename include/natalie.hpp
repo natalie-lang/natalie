@@ -173,10 +173,10 @@ inline Block *to_block(Env *, Block *block) { return block; }
 
 Value shell_backticks(Env *, Value);
 
-FILE *popen2(const char *, const char *, int &);
+FILE *popen2(const char *, const char *, pid_t &);
 int pclose2(FILE *, pid_t);
 
-void set_status_object(Env *, int, int);
+void set_status_object(Env *, pid_t, int);
 
 Value super(Env *, Value, Args, Block *);
 

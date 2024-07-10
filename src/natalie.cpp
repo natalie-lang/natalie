@@ -744,7 +744,7 @@ Block *to_block(Env *env, Value proc_or_nil) {
 
 Value shell_backticks(Env *env, Value command) {
     command->assert_type(env, Object::Type::String, "String");
-    int pid;
+    pid_t pid;
     auto process = popen2(command->as_string()->c_str(), "r", pid);
     if (!process)
         env->raise_errno();
@@ -767,7 +767,7 @@ Value shell_backticks(Env *env, Value command) {
 }
 
 // https://stackoverflow.com/a/26852210/197498
-FILE *popen2(const char *command, const char *type, int &pid) {
+FILE *popen2(const char *command, const char *type, pid_t &pid) {
     pid_t child_pid;
     int fd[2];
     if (pipe(fd) != 0) {
@@ -778,7 +778,7 @@ FILE *popen2(const char *command, const char *type, int &pid) {
     const int read = 0;
     const int write = 1;
 
-    bool is_read = strcmp(type, "r") == 0;
+    const bool is_read = strcmp(type, "r") == 0;
 
     if ((child_pid = fork()) == -1) {
         perror("fork");
@@ -789,10 +789,10 @@ FILE *popen2(const char *command, const char *type, int &pid) {
     if (child_pid == 0) {
         if (is_read) {
             close(fd[read]); // close the READ end of the pipe since the child's fd is write-only
-            dup2(fd[write], 1); // redirect stdout to pipe
+            dup2(fd[write], STDOUT_FILENO); // redirect stdout to pipe
         } else {
             close(fd[write]); // close the WRITE end of the pipe since the child's fd is read-only
-            dup2(fd[read], 0); // redirect stdin to pipe
+            dup2(fd[read], STDIN_FILENO); // redirect stdin to pipe
         }
 
         setpgid(child_pid, child_pid); // needed so negative PIDs can kill children of /bin/sh
@@ -829,7 +829,7 @@ int pclose2(FILE *fp, pid_t pid) {
     return stat;
 }
 
-void set_status_object(Env *env, int pid, int status) {
+void set_status_object(Env *env, pid_t pid, int status) {
     auto status_obj = GlobalEnv::the()->Object()->const_fetch("Process"_s)->const_fetch("Status"_s).send(env, "new"_s);
     status_obj->ivar_set(env, "@to_i"_s, Value::integer(status));
     status_obj->ivar_set(env, "@exitstatus"_s, Value::integer(WEXITSTATUS(status)));
