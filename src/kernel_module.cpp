@@ -52,7 +52,27 @@ Value KernelModule::at_exit(Env *env, Block *block) {
 }
 
 Value KernelModule::backtick(Env *env, Value command) {
-    return shell_backticks(env, command->to_str(env));
+    constexpr size_t NAT_SHELL_READ_BYTES = 1024;
+    pid_t pid;
+    auto process = popen2(command->to_str(env)->c_str(), "r", pid);
+    if (!process)
+        env->raise_errno();
+    char buf[NAT_SHELL_READ_BYTES];
+    auto result = fgets(buf, NAT_SHELL_READ_BYTES, process);
+    StringObject *out;
+    if (result) {
+        out = new StringObject { buf };
+        while (1) {
+            result = fgets(buf, NAT_SHELL_READ_BYTES, process);
+            if (!result) break;
+            out->append(buf);
+        }
+    } else {
+        out = new StringObject {};
+    }
+    int status = pclose2(process, pid);
+    set_status_object(env, pid, status);
+    return out;
 }
 
 Value KernelModule::binding(Env *env) {
