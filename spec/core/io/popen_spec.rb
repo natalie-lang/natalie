@@ -58,12 +58,11 @@ describe "IO.popen" do
     -> { @io.read }.should raise_error(IOError)
   end
 
-  it "reads and writes a read/write pipe" do
-    NATFIXME 'Support "r+" access mode', exception: Errno::EINVAL do
-      @io = IO.popen(ruby_cmd('IO.copy_stream(STDIN,STDOUT)'), "r+")
-      @io.write("bar")
-      @io.read(3).should == "bar"
-    end
+  # NATFIXME: Support "r+" access mode
+  xit "reads and writes a read/write pipe" do
+    @io = IO.popen(ruby_cmd('IO.copy_stream(STDIN,STDOUT)'), "r+")
+    @io.write("bar")
+    @io.read(3).should == "bar"
   end
 
   it "waits for the child to finish" do

@@ -145,6 +145,7 @@ private:
     EncodingObject *m_internal_encoding { nullptr };
     int m_fileno { -1 };
     FILE *m_fileptr { nullptr };
+    int m_pid { -1 };
     int m_lineno { 0 };
     std::atomic<bool> m_closed { false };
     bool m_autoclose { true };

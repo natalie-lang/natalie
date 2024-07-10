@@ -694,8 +694,8 @@ Value IoObject::close(Env *env) {
     ThreadObject::interrupt();
 
     int result;
-    if (m_fileptr) {
-        result = pclose(m_fileptr);
+    if (m_fileptr && m_pid > 0) {
+        result = pclose2(m_fileptr, m_pid);
     } else {
         result = ::close(m_fileno);
     }
@@ -1194,11 +1194,13 @@ Value IoObject::popen(Env *env, Args args, Block *block, ClassObject *klass) {
     if (*command->c_str() == '-')
         env->raise("NotImplementedError", "IO.popen with \"-\" to fork is not yet supported");
     auto type = args.at(1, new StringObject { "r" })->to_str(env);
-    auto fileptr = ::popen(command->c_str(), type->c_str());
+    pid_t pid;
+    auto fileptr = popen2(command->c_str(), type->c_str(), pid);
     if (!fileptr)
         env->raise_errno();
     auto io = _new(env, klass, { IntegerObject::create(::fileno(fileptr)) }, nullptr);
     io->as_io()->m_fileptr = fileptr;
+    io->as_io()->m_pid = pid;
 
     if (!block)
         return io;

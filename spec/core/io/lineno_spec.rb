@@ -26,13 +26,11 @@ describe "IO#lineno" do
   end
 
   it "raises an IOError on a duplexed stream with the read side closed" do
-    NATFIXME 'Support "r+" access mode', condition: !RUBY_PLATFORM.include?('darwin'), exception: Errno::EINVAL do
-      NATFIXME 'Implement IO#close_read', condition: RUBY_PLATFORM.include?('darwin'), exception: NoMethodError, message: "undefined method `close_read' for an instance of IO" do
-        cmd = platform_is(:windows) ? 'rem' : 'cat'
-        IO.popen(cmd, 'r+') do |p|
-          p.close_read
-          -> { p.lineno }.should raise_error(IOError)
-        end
+    NATFIXME 'Implement IO#close_read', exception: NoMethodError, message: "undefined method `close_read' for an instance of IO" do
+      cmd = platform_is(:windows) ? 'rem' : 'cat'
+      IO.popen(cmd, 'r+') do |p|
+        p.close_read
+        -> { p.lineno }.should raise_error(IOError)
       end
     end
   end
@@ -75,13 +73,11 @@ describe "IO#lineno=" do
   end
 
   it "raises an IOError on a duplexed stream with the read side closed" do
-    NATFIXME 'Support "r+" access mode', condition: !RUBY_PLATFORM.include?('darwin'), exception: Errno::EINVAL do
-      NATFIXME 'Implement IO#close_read', condition: RUBY_PLATFORM.include?('darwin'), exception: NoMethodError, message: "undefined method `close_read' for an instance of IO" do
-        cmd = platform_is(:windows) ? 'rem' : 'cat'
-        IO.popen(cmd, 'r+') do |p|
-          p.close_read
-          -> { p.lineno = 0 }.should raise_error(IOError)
-        end
+    NATFIXME 'Implement IO#close_read', exception: NoMethodError, message: "undefined method `close_read' for an instance of IO" do
+      cmd = platform_is(:windows) ? 'rem' : 'cat'
+      IO.popen(cmd, 'r+') do |p|
+        p.close_read
+        -> { p.lineno = 0 }.should raise_error(IOError)
       end
     end
   end
