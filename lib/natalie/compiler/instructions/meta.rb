@@ -81,7 +81,6 @@ module Natalie
       RetryInstruction,
       ReturnInstruction,
       SendInstruction,
-      ShellInstruction,
       SingletonClassInstruction,
       StringAppendInstruction,
       StringToRegexpInstruction,

@@ -1890,8 +1890,16 @@ module Natalie
 
       def transform_interpolated_x_string_node(node, used:)
         instructions = [
+          PushSelfInstruction.new,
           transform_interpolated_stringish_node(node, used: true, unescaped: false),
-          ShellInstruction.new
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            :`,
+            receiver_is_self: true,
+            with_block: false,
+            file: @file.path,
+            line: node.location.start_line,
+          )
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -2616,8 +2624,16 @@ module Natalie
 
       def transform_x_string_node(node, used:)
         instructions = [
+          PushSelfInstruction.new,
           PushStringInstruction.new(node.unescaped),
-          ShellInstruction.new,
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            :`,
+            receiver_is_self: true,
+            with_block: false,
+            file: @file.path,
+            line: node.location.start_line,
+          )
         ]
         instructions << PopInstruction.new unless used
         instructions

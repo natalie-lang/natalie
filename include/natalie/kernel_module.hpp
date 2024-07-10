@@ -37,6 +37,7 @@ public:
     static Value Array(Env *env, Value value);
     static Value abort_method(Env *env, Value message);
     static Value at_exit(Env *env, Block *block);
+    static Value backtick(Env *, Value);
     static Value binding(Env *env);
     static Value caller(Env *env, Value start = nullptr, Value length = nullptr);
     static Value caller_locations(Env *env, Value start = nullptr, Value length = nullptr);

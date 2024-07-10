@@ -51,6 +51,10 @@ Value KernelModule::at_exit(Env *env, Block *block) {
     return proc;
 }
 
+Value KernelModule::backtick(Env *env, Value command) {
+    return shell_backticks(env, command->to_str(env));
+}
+
 Value KernelModule::binding(Env *env) {
     return new BindingObject { env };
 }

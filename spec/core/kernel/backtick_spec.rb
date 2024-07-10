@@ -11,9 +11,7 @@ describe "Kernel#`" do
   end
 
   it "is a private method" do
-    NATFIXME 'Convert ` to method on Kernel', exception: SpecFailedException do
-      Kernel.should have_private_instance_method(:`)
-    end
+    Kernel.should have_private_instance_method(:`)
   end
 
   it "returns the standard output of the executed sub-process" do
@@ -21,13 +19,12 @@ describe "Kernel#`" do
     `echo disc #{ip}`.should == "disc world\n"
   end
 
-  it "lets the standard error stream pass through to the inherited stderr" do
-    NATFIXME 'it lets the standard error stream pass through to the inherited stderr', exception: SpecFailedException do
-      cmd = ruby_cmd('STDERR.print "error stream"')
-      -> {
-        `#{cmd}`.should == ""
-      }.should output_to_fd("error stream", STDERR)
-    end
+  # NATFIXME: Issues with capturing stderr stream?
+  xit "lets the standard error stream pass through to the inherited stderr" do
+    cmd = ruby_cmd('STDERR.print "error stream"')
+    -> {
+      `#{cmd}`.should == ""
+    }.should output_to_fd("error stream", STDERR)
   end
 
   it "produces a String in the default external encoding" do
@@ -90,9 +87,7 @@ end
 
 describe "Kernel.`" do
   it "tries to convert the given argument to String using #to_str" do
-    NATFIXME 'Convert ` to method on Kernel', exception: NoMethodError, message: "undefined method ``' for module Kernel" do
-      (obj = mock('echo test')).should_receive(:to_str).and_return("echo test")
-      Kernel.`(obj).should == "test\n"  #` fix vim syntax highlighting
-    end
+    (obj = mock('echo test')).should_receive(:to_str).and_return("echo test")
+    Kernel.`(obj).should == "test\n"  #` fix vim syntax highlighting
   end
 end
