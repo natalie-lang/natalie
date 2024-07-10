@@ -157,10 +157,10 @@ def skip(test = nil, &block)
   xit(test, &block)
 end
 
-def it_behaves_like(behavior, method, obj = nil)
+def it_behaves_like(behavior, method, obj = :zzzz_not_given)
   before :all do
     @method = method if method
-    @object = obj if obj
+    @object = obj unless obj == :zzzz_not_given
   end
 
   block = @shared[behavior]
@@ -172,7 +172,14 @@ def it_behaves_like(behavior, method, obj = nil)
 end
 
 def it_should_behave_like(*shared_groups)
-  shared_groups.each { |behavior| it_behaves_like behavior, @method, @object }
+  shared_groups.each do |behavior|
+    block = @shared[behavior]
+    if block
+      block.call
+    else
+      raise "Cannot find shared behavior: #{behavior.inspect} (available: #{@shared.keys.inspect})"
+    end
+  end
 end
 
 def specify(test = nil, &block)
