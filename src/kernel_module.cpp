@@ -51,9 +51,8 @@ Value KernelModule::at_exit(Env *env, Block *block) {
     return proc;
 }
 
-#define NAT_SHELL_READ_BYTES 1024
-
 Value KernelModule::backtick(Env *env, Value command) {
+    constexpr size_t NAT_SHELL_READ_BYTES = 1024;
     pid_t pid;
     auto process = popen2(command->to_str(env)->c_str(), "r", pid);
     if (!process)
