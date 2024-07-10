@@ -171,8 +171,6 @@ std::pair<Value, Value> coerce(Env *, Value, Value, CoerceInvalidReturnValueMode
 Block *to_block(Env *, Value);
 inline Block *to_block(Env *, Block *block) { return block; }
 
-Value shell_backticks(Env *, Value);
-
 FILE *popen2(const char *, const char *, pid_t &);
 int pclose2(FILE *, pid_t);
 

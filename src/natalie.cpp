@@ -740,32 +740,6 @@ Block *to_block(Env *env, Value proc_or_nil) {
     return proc_or_nil->to_proc(env)->block();
 }
 
-#define NAT_SHELL_READ_BYTES 1024
-
-Value shell_backticks(Env *env, Value command) {
-    command->assert_type(env, Object::Type::String, "String");
-    pid_t pid;
-    auto process = popen2(command->as_string()->c_str(), "r", pid);
-    if (!process)
-        env->raise_errno();
-    char buf[NAT_SHELL_READ_BYTES];
-    auto result = fgets(buf, NAT_SHELL_READ_BYTES, process);
-    StringObject *out;
-    if (result) {
-        out = new StringObject { buf };
-        while (1) {
-            result = fgets(buf, NAT_SHELL_READ_BYTES, process);
-            if (!result) break;
-            out->append(buf);
-        }
-    } else {
-        out = new StringObject {};
-    }
-    int status = pclose2(process, pid);
-    set_status_object(env, pid, status);
-    return out;
-}
-
 // https://stackoverflow.com/a/26852210/197498
 FILE *popen2(const char *command, const char *type, pid_t &pid) {
     pid_t child_pid;
