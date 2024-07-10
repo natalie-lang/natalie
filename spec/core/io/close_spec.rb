@@ -92,15 +92,11 @@ describe "IO#close on an IO.popen stream" do
   it "clears #pid" do
     io = IO.popen ruby_cmd('r = loop{puts "y"; 0} rescue 1; exit r'), 'r'
 
-    NATFIXME 'Implement IO#pid', exception: NoMethodError, message: "undefined method `pid' for an instance of IO" do
-      io.pid.should_not == 0
-    end
+    io.pid.should_not == 0
 
     io.close
 
-    NATFIXME 'Implement IO#pid', exception: SpecFailedException, message: "undefined method `pid' for an instance of IO" do
-      -> { io.pid }.should raise_error(IOError)
-    end
+    -> { io.pid }.should raise_error(IOError)
   end
 
   it "sets $?" do

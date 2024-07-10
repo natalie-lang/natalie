@@ -80,6 +80,7 @@ public:
     bool is_nonblock(Env *) const;
     bool isatty(Env *) const;
     int lineno(Env *) const;
+    Value pid(Env *) const;
     static Value pipe(Env *, Value, Value, Block *, ClassObject *);
     static Value popen(Env *, Args, Block *, ClassObject *);
     int pos(Env *);

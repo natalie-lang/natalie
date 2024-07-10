@@ -571,6 +571,13 @@ Value IoObject::get_path() const {
     return new StringObject { *m_path };
 }
 
+Value IoObject::pid(Env *env) const {
+    if (m_pid == -1)
+        return NilObject::the();
+    raise_if_closed(env);
+    return Value::integer(m_pid);
+}
+
 Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
     raise_if_closed(env);
     if (!is_readable(m_fileno))
