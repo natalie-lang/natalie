@@ -47,7 +47,7 @@ public:
             seed = new_seed(env);
         auto default_random = GlobalEnv::the()->Random()->const_fetch("DEFAULT"_s)->as_random();
         auto old_seed = default_random->seed();
-        auto new_seed = seed->to_int(env)->to_nat_int_t();
+        auto new_seed = IntegerObject::convert_to_native_type<nat_int_t>(env, seed);
         default_random->m_seed = new_seed;
         default_random->m_generator = new std::mt19937(new_seed);
         return old_seed;
