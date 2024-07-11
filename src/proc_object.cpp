@@ -67,8 +67,8 @@ Value ProcObject::ruby2_keywords(Env *env) {
         auto new_args = args.to_array_for_block(env, 0, -1, true);
         if (!kwargs->is_empty())
             new_args->push(HashObject::ruby2_keywords_hash(env, kwargs));
-        auto old_block = env->outer()->var_get("old_block", 1)->as_proc();
-        return old_block->call(env, new_args, block);
+        auto old_block = env->outer()->var_get("old_block", 1)->as_proc()->block();
+        return old_block->m_fn(env, self, new_args, block);
     };
 
     auto inner_env = new Env { *env };

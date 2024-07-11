@@ -15,4 +15,15 @@ describe 'lambda' do
       end
     end
   end
+
+  describe '#ruby2_keywords' do
+    it 'does not capture self when used as a method' do
+      klass = Class.new do
+        define_method(:plain, ->(*) { self })
+        define_method(:wrapped, ->(*) { self }.ruby2_keywords)
+      end
+      obj = klass.new
+      obj.plain.should == obj.wrapped
+    end
+  end
 end
