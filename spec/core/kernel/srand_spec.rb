@@ -45,10 +45,11 @@ describe "Kernel#srand" do
     srand.should == -17
   end
 
-  # NATFIXME: Support bigint value
-  xit "accepts an Integer as a seed" do
-    srand(0x12345678901234567890)
-    srand.should == 0x12345678901234567890
+  it "accepts an Integer as a seed" do
+    NATFIXME 'Support bigint value', exception: RangeError, message: "bignum too big to convert into `long long int'" do
+      srand(0x12345678901234567890)
+      srand.should == 0x12345678901234567890
+    end
   end
 
   it "calls #to_int on seed" do

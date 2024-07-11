@@ -30,6 +30,11 @@ struct typeinfo<ssize_t> {
     constexpr const char *name() { return "ssize_t"; }
 };
 
+template <>
+struct typeinfo<long long int> {
+    constexpr const char *name() { return "long long int"; }
+};
+
 #ifdef __APPLE__
 template <>
 struct typeinfo<uint64_t> {
