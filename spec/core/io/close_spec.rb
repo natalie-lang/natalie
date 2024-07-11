@@ -53,7 +53,7 @@ describe "IO#close" do
   it 'raises an IOError with a clear message' do
     matching_exception = nil
 
-    NATFIXME 'IOError message does not match', exception: SpecFailedException do
+    NATFIXME 'it should raise an IOError', exception: SpecFailedException, message: /but instead raised nothing/ do
       -> do
         IOSpecs::THREAD_CLOSE_RETRIES.times do
           read_io, write_io = IO.pipe
