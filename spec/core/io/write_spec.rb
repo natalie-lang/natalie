@@ -302,7 +302,7 @@ describe "IO#write on STDOUT" do
     it "raises SignalException SIGPIPE if the stream is closed instead of Errno::EPIPE like other IOs" do
       stderr_file = tmp("stderr")
       begin
-        NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for class IO" do
+        NATFIXME 'Support keyword arguments', exception: NotImplementedError, message: 'IO.popen with keyword arguments is not yet supported' do
           IO.popen([*ruby_exe, "-e", "loop { puts :ok }"], "r", err: stderr_file) do |io|
             io.gets.should == "ok\n"
             io.close
