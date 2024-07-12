@@ -463,8 +463,13 @@ Value KernelModule::lambda(Env *env, Block *block) {
 }
 
 Value KernelModule::loop(Env *env, Block *block) {
-    if (!block)
-        return this->enum_for(env, "loop");
+    if (!block) {
+        auto infinity_fn = [](Env *env, Value, Args, Block *) -> Value {
+            return FloatObject::positive_infinity(env);
+        };
+        auto size_block = new Block { env, this, infinity_fn, 0 };
+        return send(env, "enum_for"_s, { "loop"_s }, size_block);
+    }
 
     for (;;) {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);

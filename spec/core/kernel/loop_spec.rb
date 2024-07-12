@@ -79,9 +79,7 @@ describe "Kernel.loop" do
     describe "returned Enumerator" do
       describe "size" do
         it "returns Float::INFINITY" do
-          NATFIXME 'size returns Float::INFINITY', exception: SpecFailedException do
-            loop.size.should == Float::INFINITY
-          end
+          loop.size.should == Float::INFINITY
         end
       end
     end
