@@ -257,19 +257,19 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
         // initialized with array like ["AF_INET", 49429, "hal", "192.168.0.128"]
         //                          or ["AF_UNIX", "/tmp/sock"]
         auto ary = sockaddr->as_array();
-        afamily = Socket_const_get(env, ary->at(0), true);
+        afamily = Socket_const_get(env, ary->ref(env, Value::integer(0)), true);
         self->ivar_set(env, "@afamily"_s, Value::integer(afamily));
         self->ivar_set(env, "@pfamily"_s, Value::integer(afamily));
         switch (afamily) {
         case AF_UNIX:
-            unix_path = ary->at(1)->as_string();
+            unix_path = ary->ref(env, Value::integer(1))->as_string();
             break;
         case AF_INET:
         case AF_INET6:
-            port = ary->at(1)->as_integer();
-            host = ary->at(2)->as_string();
-            if (ary->at(3)->is_string())
-                host = ary->at(3)->as_string();
+            port = ary->ref(env, Value::integer(1))->to_int(env);
+            host = ary->ref(env, Value::integer(2))->to_str(env);
+            if (ary->ref(env, Value::integer(3))->is_string())
+                host = ary->at(3)->to_str(env);
             break;
         default:
             env->raise("ArgumentError", "bad sockaddr");
