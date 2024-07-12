@@ -47,7 +47,9 @@ class StandardError < Exception; end
   class EncodingError < StandardError; end
   class FiberError < StandardError; end
   class IndexError < StandardError; end
-    class StopIteration < IndexError; end
+    class StopIteration < IndexError
+      attr_reader :result
+    end
       class ClosedQueueError < StopIteration; end
     # end StopIteration subclasses
     class KeyError < IndexError
