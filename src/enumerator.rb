@@ -106,7 +106,11 @@ class Enumerator
       @fiber = Fiber.new { @enum_block.call @yielder }
     end
 
-    raise_stop_iteration = -> { raise StopIteration, 'iteration reached and end' }
+    raise_stop_iteration = ->(result = nil) do
+      stop_iteration = StopIteration.new('iteration reached and end')
+      stop_iteration.instance_variable_set(:@result, result) unless result.nil?
+      raise stop_iteration
+    end
 
     raise_stop_iteration.() if @fiber.status == :terminated
 
@@ -124,7 +128,7 @@ class Enumerator
 
     if @fiber.status == :terminated
       @final_result = @last_result
-      raise_stop_iteration.()
+      raise_stop_iteration.(@final_result)
     end
     @last_result
   end
