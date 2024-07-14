@@ -433,8 +433,7 @@ class Enumerator
     def uniq(&block)
       enum_block = ->(yielder) do
         visited = {}
-        loop do
-          element = self.next
+        each do |element|
           visiting = block ? block.call(element) : element
 
           yielder.yield(*element) unless visited.include?(visiting)
@@ -442,6 +441,7 @@ class Enumerator
           # We just care about the keys
           visited[visiting] = 0
         end
+        visited.clear
       end
 
       lazy = Lazy.new(self) {}

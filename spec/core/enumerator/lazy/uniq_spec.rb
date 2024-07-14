@@ -14,9 +14,7 @@ describe 'Enumerator::Lazy#uniq' do
 
     it 'return same value after rewind' do
       @lazy.force.should == [0, 1]
-      NATFIXME 'it return same value after rewind', exception: SpecFailedException do
-        @lazy.force.should == [0, 1]
-      end
+      @lazy.force.should == [0, 1]
     end
 
     it 'sets the size to nil' do
@@ -36,9 +34,7 @@ describe 'Enumerator::Lazy#uniq' do
 
     it 'return same value after rewind' do
       @lazy.force.should == [0, 1]
-      NATFIXME 'it return same value after rewind', exception: SpecFailedException do
-        @lazy.force.should == [0, 1]
-      end
+      @lazy.force.should == [0, 1]
     end
 
     it 'sets the size to nil' do
@@ -68,9 +64,7 @@ describe 'Enumerator::Lazy#uniq' do
     it 'return same value after rewind' do
       enum = @lazy.uniq { |_, label| label.downcase }
       enum.force.should == [[0, 'foo'], [2, 'bar']]
-      NATFIXME 'it return same value after rewind', exception: SpecFailedException do
-        enum.force.should == [[0, 'foo'], [2, 'bar']]
-      end
+      enum.force.should == [[0, 'foo'], [2, 'bar']]
     end
 
     it 'returns all yield arguments as an array' do
