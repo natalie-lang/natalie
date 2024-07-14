@@ -42,22 +42,18 @@ describe "Kernel.loop" do
   end
 
   it "rescues StopIteration" do
-    NATFIXME 'it rescues StopIteration', exception: StopIteration do
-      loop do
-        raise StopIteration
-      end
-      42.should == 42
+    loop do
+      raise StopIteration
     end
+    42.should == 42
   end
 
   it "rescues StopIteration's subclasses" do
     finish = Class.new StopIteration
-    NATFIXME "it rescues StopIteration's subclasses", exception: finish do
-      loop do
-        raise finish
-      end
-      42.should == 42
+    loop do
+      raise finish
     end
+    42.should == 42
   end
 
   it "does not rescue other errors" do
@@ -70,9 +66,7 @@ describe "Kernel.loop" do
       y << 2
       :stopped
     }
-    NATFIXME 'it returns StopIteration#result, the result value of a finished iterator', exception: StopIteration do
-      loop { e.next }.should == :stopped
-    end
+    loop { e.next }.should == :stopped
   end
 
   describe "when no block is given" do

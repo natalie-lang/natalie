@@ -471,10 +471,20 @@ Value KernelModule::loop(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "loop"_s }, size_block);
     }
 
-    for (;;) {
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
+    try {
+        for (;;) {
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
+        }
+        return NilObject::the();
+    } catch (ExceptionObject *exception) {
+        auto StopIteration = find_top_level_const(env, "StopIteration"_s);
+        if (exception->is_a(env, StopIteration)) {
+            GlobalEnv::the()->set_rescued(true);
+            return exception->send(env, "result"_s);
+        } else {
+            throw exception;
+        }
     }
-    return NilObject::the();
 }
 
 Value KernelModule::method(Env *env, Value name) {
