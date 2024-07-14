@@ -107,7 +107,7 @@ class Enumerator
     end
 
     raise_stop_iteration = ->(result = nil) do
-      stop_iteration = StopIteration.new('iteration reached and end')
+      stop_iteration = StopIteration.new('iteration reached an end')
       stop_iteration.instance_variable_set(:@result, result) unless result.nil?
       raise stop_iteration
     end
