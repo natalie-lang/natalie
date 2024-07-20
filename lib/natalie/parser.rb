@@ -63,9 +63,10 @@ module Natalie
     class IncompleteExpression < ParseError
     end
 
-    def initialize(code_str, path, locals: [])
+    def initialize(code_str, path, line: nil, locals: [])
       @code_str = code_str
       @path = path
+      @line = line
       @locals = locals
     end
 
@@ -74,7 +75,7 @@ module Natalie
     end
 
     def result
-      @result ||= Prism.parse(@code_str, filepath: @path, scopes: [@locals])
+      @result ||= Prism.parse(@code_str, filepath: @path, line: @line, scopes: [@locals])
     end
 
     def source = result.source
