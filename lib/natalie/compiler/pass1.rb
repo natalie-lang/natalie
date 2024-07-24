@@ -1028,9 +1028,6 @@ module Natalie
         instructions = [
           prep_instruction,
           DupInstruction.new, # For the const_set
-        ]
-        instructions << DupInstruction.new if used # For the return value
-        instructions.append(
           ConstFindInstruction.new(name, strict: true),
           transform_expression(node.value, used: true),
           PushArgcInstruction.new(1),
@@ -1043,10 +1040,16 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-          SwapInstruction.new,
-          ConstSetInstruction.new(name),
-        )
-        instructions << ConstFindInstruction.new(name, strict: true) if used
+        ]
+        if used
+          instructions.append(
+            DupInstruction.new,
+            MoveRelInstruction.new(2),
+          )
+        else
+          instructions << SwapInstruction.new
+        end
+        instructions << ConstSetInstruction.new(name)
         instructions
       end
 
