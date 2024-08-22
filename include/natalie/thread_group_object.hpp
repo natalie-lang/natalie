@@ -32,7 +32,7 @@ public:
     virtual void visit_children(Visitor &) override final;
 
 private:
-    std::mutex m_mutex;
+    static inline std::mutex m_mutex;
 
     static inline ThreadGroupObject *m_default { nullptr };
     Vector<ThreadObject *> m_threads;
