@@ -128,6 +128,7 @@ Value RegexpObject::quote(Env *env, Value string) {
         case '.':
         case '+':
         case '^':
+        case '$':
         case '[':
         case ']':
         case '(':
