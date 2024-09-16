@@ -102,12 +102,22 @@ module Natalie
 
         def transform_eqeqeq_check(node, value)
           # Transform `expr => var` into `->(res, var) { res === var }.call(expr, var)`
+          alternations = []
+          alternation_handler = lambda do |n|
+            if n.is_a?(Prism::AlternationPatternNode)
+              alternation_handler.call(n.left)
+              alternation_handler.call(n.right)
+            else
+              alternations << n.location.slice
+            end
+          end
+          alternation_handler.call(node)
           <<~RUBY
             lambda do |result, expect|
-              unless expect === result
-                raise ::NoMatchingPatternError, "\#{result}: \#{expect} === \#{result} does not return true"
+              if expect.none? { |e| e === result }
+                raise ::NoMatchingPatternError, "\#{result}: \#{expect.last} === \#{result} does not return true"
               end
-            end.call(#{value.location.slice}, #{node.location.slice})
+            end.call(#{value.location.slice}, [#{alternations.join(', ')}])
           RUBY
         end
 
