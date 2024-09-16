@@ -357,6 +357,20 @@ describe 'pattern matching' do
       [1, 2] => *, ^a
     }.should raise_error(NoMatchingPatternError, '[1, 2]: 1 === 2 does not return true')
   end
+
+  it 'can handle alternation' do
+    1 => String | Integer
+  end
+
+  it 'can handle more than 2 alternations' do
+    1 => String | Symbol | Integer
+  end
+
+  it 'can fail with missing alternation' do
+    -> {
+      1 => String | Symbol
+    }.should raise_error(NoMatchingPatternError, '1: Symbol === 1 does not return true')
+  end
 end
 
 describe 'NoMatchingPatternError' do
