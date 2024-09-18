@@ -56,9 +56,7 @@ describe :regexp_new_string, shared: true do
   end
 
   it "raises a RegexpError when passed an incorrect regexp" do
-      NATFIXME 'Update error message', exception: SpecFailedException, message: /but the message was/ do
-      -> { Regexp.send(@method, "^[$", 0) }.should raise_error(RegexpError, Regexp.new(Regexp.escape("premature end of char-class: /^[$/")))
-    end
+    -> { Regexp.send(@method, "^[$", 0) }.should raise_error(RegexpError, Regexp.new(Regexp.escape("premature end of char-class: /^[$/")))
   end
 
   it "does not set Regexp options if only given one argument" do
