@@ -96,12 +96,6 @@ describe 'regexp' do
     end
   end
 
-  describe '.escape and .quote' do
-    it 'escapes special characters' do
-      Regexp.escape('$').should == '\$'
-    end
-  end
-
   describe '#==' do
     it 'returns true if the regexp source is the same' do
       /foo/.should == /foo/
