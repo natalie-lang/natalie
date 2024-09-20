@@ -455,9 +455,7 @@ describe :regexp_new_string, shared: true do
     end
 
     it "raises a RegexpError if less than four digits are given for \\uHHHH" do
-      NATFIXME 'Update error message', exception: SpecFailedException, message: /but the message was/ do
-        -> { Regexp.send(@method, "\\" + "u304") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("invalid Unicode escape: /\\u304/")))
-      end
+      -> { Regexp.send(@method, "\\" + "u304") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("invalid Unicode escape: /\\u304/")))
     end
 
     it "raises a RegexpError if the \\u{} escape is empty" do

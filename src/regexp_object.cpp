@@ -329,7 +329,15 @@ static String prepare_pattern_for_onigmo(Env *env, const StringObject *pattern, 
                 default:
                     new_pattern.append_char('\\');
                     new_pattern.append_char('u');
+                    if (!isxdigit(c))
+                        env->raise("RegexpError", "invalid Unicode escape: /{}/", pattern->string());
                     new_pattern.append_char(c);
+                    for (int i = 1; i < 4; i++) {
+                        c = next_char();
+                        if (!isxdigit(c))
+                            env->raise("RegexpError", "invalid Unicode escape: /{}/", pattern->string());
+                        new_pattern.append_char(c);
+                    }
                 }
 
                 *fixed_encoding = true;
