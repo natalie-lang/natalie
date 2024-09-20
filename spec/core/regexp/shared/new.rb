@@ -293,9 +293,7 @@ describe :regexp_new_string, shared: true do
     end
 
     it "raises a RegexpError if \\x is not followed by any hexadecimal digits" do
-      NATFIXME "raises a RegexpError if \\x is not followed by any hexadecimal digits", exception: SpecFailedException do
-        -> { Regexp.send(@method, "\\" + "xn") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("invalid hex escape: /\\xn/")))
-      end
+      -> { Regexp.send(@method, "\\" + "xn") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("invalid hex escape: /\\xn/")))
     end
 
     it "accepts an escaped string interpolation" do

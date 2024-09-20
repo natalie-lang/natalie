@@ -338,9 +338,15 @@ static String prepare_pattern_for_onigmo(Env *env, const StringObject *pattern, 
             }
 
             case 'x': {
+                c = next_char();
+                if (!std::isxdigit(c))
+                    env->raise("RegexpError", "invalid hex escape: /{}/", pattern->string());
+
                 *fixed_encoding = true;
                 new_pattern.append_char('\\');
                 new_pattern.append_char('x');
+                new_pattern.append_char(c);
+
                 break;
             }
 
