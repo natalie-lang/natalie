@@ -43,10 +43,8 @@ describe 'regexp' do
 
     -> { eval('/\u{1111111}/') }.should raise_error(SyntaxError)
 
-    # NATFIXME: These break Natalie's compiler, so the test won't even compile
-    # We should fix this so the error is raised whenever eval is run.
-    #-> { eval('/\u{}/') }.should raise_error(SyntaxError)
-    #-> { eval('/\u{111111}/') }.should raise_error(SyntaxError)
+    -> { eval('/\u{}/') }.should raise_error(SyntaxError)
+    -> { eval('/\u{111111}/') }.should raise_error(SyntaxError)
   end
 
   it 'uses the right onigmo encoding' do
