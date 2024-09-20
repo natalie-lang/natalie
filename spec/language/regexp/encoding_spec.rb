@@ -168,15 +168,11 @@ describe "Regexps with encoding modifiers" do
     make_regexp = -> str { /#{str}/ }
 
     r = make_regexp.call("été".dup.force_encoding(Encoding::UTF_8))
-    NATFIXME 'Implement Regexp#fixed_encoding?', exception: NoMethodError, message: "undefined method `fixed_encoding?' for an instance of Regexp" do
-      r.should.fixed_encoding?
-    end
+    r.should.fixed_encoding?
     r.encoding.should == Encoding::UTF_8
 
     r = make_regexp.call("abc".dup.force_encoding(Encoding::UTF_8))
-    NATFIXME 'Implement Regexp#fixed_encoding?', exception: NoMethodError, message: "undefined method `fixed_encoding?' for an instance of Regexp" do
-      r.should_not.fixed_encoding?
-    end
+    r.should_not.fixed_encoding?
     r.encoding.should == Encoding::US_ASCII
   end
 end
