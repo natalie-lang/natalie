@@ -261,9 +261,7 @@ describe :regexp_new_string, shared: true do
 
   describe "with escaped characters" do
     it "raises a Regexp error if there is a trailing backslash" do
-      NATFIXME "raises a Regexp error if there is a trailing backslash", exception: SpecFailedException do
-        -> { Regexp.send(@method, "\\") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("too short escape sequence: /\\/")))
-      end
+      -> { Regexp.send(@method, "\\") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("too short escape sequence: /\\/")))
     end
 
     it "does not raise a Regexp error if there is an escaped trailing backslash" do
