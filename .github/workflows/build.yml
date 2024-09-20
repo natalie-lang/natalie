@@ -55,8 +55,8 @@ jobs:
       - name: install ruby
         run: |
           brew update
-          brew uninstall -f ruby
-          brew uninstall -f ruby@3.0
+          brew uninstall -f --ignore-dependencies ruby
+          brew uninstall -f --ignore-dependencies ruby@3.0
           rm -rf /usr/local/lib/ruby/gems/3.0.0 /usr/local/opt/ruby@3.0
           brew install ruby@3.3
       - name: check ruby
