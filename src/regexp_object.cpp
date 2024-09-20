@@ -246,7 +246,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
     return this;
 }
 
-static String prepare_pattern_for_onigmo(const StringObject *pattern, bool *fixed_encoding) {
+static String prepare_pattern_for_onigmo(Env *env, const StringObject *pattern, bool *fixed_encoding) {
     String new_pattern;
     auto length = pattern->bytesize();
     size_t index = 0;
@@ -344,6 +344,10 @@ static String prepare_pattern_for_onigmo(const StringObject *pattern, bool *fixe
                 break;
             }
 
+            case '\0':
+                env->raise("RegexpError", "too short escape sequence: /{}/", pattern->string());
+                break;
+
             default:
                 new_pattern.append_char('\\');
                 new_pattern.append_char(c);
@@ -368,7 +372,7 @@ void RegexpObject::initialize_internal(Env *env, const StringObject *pattern, in
 
     bool no_encoding = options & RegexOpts::NoEncoding;
     bool fixed_encoding = options & RegexOpts::FixedEncoding;
-    auto tweaked_pattern = prepare_pattern_for_onigmo(pattern, &fixed_encoding);
+    auto tweaked_pattern = prepare_pattern_for_onigmo(env, pattern, &fixed_encoding);
 
     if (fixed_encoding)
         options |= RegexOpts::FixedEncoding;
