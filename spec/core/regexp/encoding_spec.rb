@@ -20,8 +20,7 @@ describe "Regexp#encoding" do
     end
   end
 
-  # NATFIXME: Crashes with GC unreachable
-  xit "defaults to UTF-8 if \\u escapes appear" do
+  it "defaults to UTF-8 if \\u escapes appear" do
     /\u{9879}/.encoding.should == Encoding::UTF_8
   end
 
