@@ -288,11 +288,13 @@ class Set
     end
   end
 
-  def merge(other)
-    unless other.is_a?(Enumerable)
-      raise ArgumentError, "value must be enumerable"
+  def merge(*others)
+    others.each do |other|
+      unless other.is_a?(Enumerable)
+        raise ArgumentError, "value must be enumerable"
+      end
+      other.each { |element| add(element) }
     end
-    other.each { |element| add(element) }
     self
   end
 
