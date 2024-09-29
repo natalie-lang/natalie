@@ -34,6 +34,11 @@ class Data
         end
       end
 
+      define_method(:inspect) do
+        "#<data #{self.class}#{members.map { |member| " #{member}=#{public_send(member).inspect}" }.join(',')}>"
+      end
+      alias_method :to_s, :inspect
+
       define_method(:to_h) { members.to_h { |member| [member, public_send(member)] } }
 
       define_method(:with) do |**kwargs|
