@@ -564,10 +564,10 @@ module Marshal
     end
 
     def read_bytes(integer)
-      if @source.length - @offset >= integer
-        string = @source.slice(@offset, integer)
+      if @source.bytesize - @offset >= integer
+        string = @source.byteslice(@offset, integer)
         @offset += integer
-        string
+        string.b
       else
         raise ArgumentError, 'marshal data too short'
       end

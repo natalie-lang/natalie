@@ -798,11 +798,9 @@ describe :marshal_load, shared: true do
     it "loads a String as BINARY if no encoding is specified at the end" do
       str = "\xC3\xB8".dup.force_encoding("BINARY")
       data = "\x04\b\"\a\xC3\xB8".dup.force_encoding("UTF-8")
-      NATFIXME 'loads a String as BINARY if no encoding is specified at the end', exception: ArgumentError, message: 'marshal data too short' do
-        result = Marshal.send(@method, data)
-        result.encoding.should == Encoding::BINARY
-        result.should == str
-      end
+      result = Marshal.send(@method, data)
+      result.encoding.should == Encoding::BINARY
+      result.should == str
     end
 
     it "raises ArgumentError when end of byte sequence reached before string characters end" do
