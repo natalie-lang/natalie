@@ -219,6 +219,7 @@ module Marshal
     end
 
     def write_class(value)
+      raise TypeError, "singleton class can't be dumped" if value.singleton_class?
       write_char('c')
       write_string_bytes(value.name)
     end
