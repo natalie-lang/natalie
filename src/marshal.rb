@@ -237,7 +237,7 @@ module Marshal
 
     def write_user_marshaled_object(value)
       write_char('U')
-      write(value.class.name.to_sym)
+      write(value.class.to_s.to_sym)
       write(value.send(:marshal_dump))
     end
 

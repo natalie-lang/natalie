@@ -107,10 +107,8 @@ describe "Marshal.dump" do
     end
 
     it "does not use Class#name" do
-      NATFIXME 'does not use Class#name', exception: SpecFailedException do
-        UserMarshal.should_not_receive(:name)
-        Marshal.dump(UserMarshal.new)
-      end
+      UserMarshal.should_not_receive(:name)
+      Marshal.dump(UserMarshal.new)
     end
 
     it "raises TypeError if an Object is an instance of an anonymous class" do
