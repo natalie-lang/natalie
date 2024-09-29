@@ -231,9 +231,7 @@ describe "Marshal.dump" do
     end
 
     it "raises TypeError with a singleton Class" do
-      NATFIXME 'raises TypeError with a singleton Class', exception: SpecFailedException do
-        -> { Marshal.dump(class << self; self end) }.should raise_error(TypeError)
-      end
+      -> { Marshal.dump(class << self; self end) }.should raise_error(TypeError)
     end
   end
 
