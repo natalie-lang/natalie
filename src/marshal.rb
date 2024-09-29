@@ -225,6 +225,7 @@ module Marshal
     end
 
     def write_module(value)
+      raise TypeError, "can't dump anonymous module #{value}" if value.name.nil?
       write_char('m')
       write_string_bytes(value.name)
     end
