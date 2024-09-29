@@ -319,21 +319,15 @@ describe "Marshal.dump" do
 
   describe "with a String" do
     it "dumps a blank String" do
-      NATFIXME 'dumps a blank String', exception: SpecFailedException do
-        Marshal.dump("".dup.force_encoding("binary")).should == "\004\b\"\000"
-      end
+      Marshal.dump("".dup.force_encoding("binary")).should == "\004\b\"\000"
     end
 
     it "dumps a short String" do
-      NATFIXME 'dumps a short String', exception: SpecFailedException do
-        Marshal.dump("short".dup.force_encoding("binary")).should == "\004\b\"\012short"
-      end
+      Marshal.dump("short".dup.force_encoding("binary")).should == "\004\b\"\012short"
     end
 
     it "dumps a long String" do
-      NATFIXME 'dumps a long String', exception: SpecFailedException do
-        Marshal.dump(("big" * 100).force_encoding("binary")).should == "\004\b\"\002,\001#{"big" * 100}"
-      end
+      Marshal.dump(("big" * 100).force_encoding("binary")).should == "\004\b\"\002,\001#{"big" * 100}"
     end
 
     it "dumps a String extended with a Module" do
