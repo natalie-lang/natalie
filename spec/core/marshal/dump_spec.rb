@@ -254,9 +254,7 @@ describe "Marshal.dump" do
     end
 
     it "raises TypeError with an anonymous Module" do
-      NATFIXME 'raises TypeError with an anonymous Module', exception: SpecFailedException do
-        -> { Marshal.dump(Module.new) }.should raise_error(TypeError, /can't dump anonymous module/)
-      end
+      -> { Marshal.dump(Module.new) }.should raise_error(TypeError, /can't dump anonymous module/)
     end
   end
 
