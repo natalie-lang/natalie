@@ -232,6 +232,7 @@ module Marshal
 
     def write_regexp(value)
       write_char('I')
+      write_char('/')
       write_string_bytes(value.source)
       write_byte(value.options)
       write_encoding_bytes(value)

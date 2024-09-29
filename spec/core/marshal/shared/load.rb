@@ -1068,7 +1068,7 @@ describe :marshal_load, shared: true do
 
     it "preserves Regexp encoding" do
       source_object = Regexp.new("a".encode("utf-32le"))
-      NATFIXME 'Support regexp dump', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'Support encoding in regexp dump', exception: SpecFailedException do
         regexp = Marshal.send(@method, Marshal.dump(source_object))
 
         regexp.encoding.should == Encoding::UTF_32LE
@@ -1077,13 +1077,11 @@ describe :marshal_load, shared: true do
     end
 
     it "raises ArgumentError when end of byte sequence reached before source string end" do
-      NATFIXME 'raises ArgumentError when end of byte sequence reached before source string end', exception: SpecFailedException do
-        Marshal.dump(/hello world/).should == "\x04\bI/\x10hello world\x00\x06:\x06EF"
+      Marshal.dump(/hello world/).should == "\x04\bI/\x10hello world\x00\x06:\x06EF"
 
-        -> {
-          Marshal.send(@method, "\x04\bI/\x10hel")
-        }.should raise_error(ArgumentError, "marshal data too short")
-      end
+      -> {
+        Marshal.send(@method, "\x04\bI/\x10hel")
+      }.should raise_error(ArgumentError, "marshal data too short")
     end
   end
 

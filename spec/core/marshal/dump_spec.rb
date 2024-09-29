@@ -390,15 +390,11 @@ describe "Marshal.dump" do
 
   describe "with a Regexp" do
     it "dumps a Regexp" do
-      NATFIXME 'dumps a Regexp', exception: SpecFailedException do
-        Marshal.dump(/\A.\Z/).should == "\x04\bI/\n\\A.\\Z\x00\x06:\x06EF"
-      end
+      Marshal.dump(/\A.\Z/).should == "\x04\bI/\n\\A.\\Z\x00\x06:\x06EF"
     end
 
     it "dumps a Regexp with flags" do
-      NATFIXME 'dumps a Regexp with flags', exception: SpecFailedException do
-        Marshal.dump(//im).should == "\x04\bI/\x00\x05\x06:\x06EF"
-      end
+      Marshal.dump(//im).should == "\x04\bI/\x00\x05\x06:\x06EF"
     end
 
     it "dumps a Regexp with instance variables" do
