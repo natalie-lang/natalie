@@ -140,10 +140,10 @@ module Marshal
     end
 
     def write_string(value)
-      write_char('I')
+      write_char('I') if value.encoding != Encoding::ASCII_8BIT
       write_char('"')
       write_string_bytes(value)
-      write_encoding_bytes(value)
+      write_encoding_bytes(value) if value.encoding != Encoding::ASCII_8BIT
     end
 
     def write_symbol(value)

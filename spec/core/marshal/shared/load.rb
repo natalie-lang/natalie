@@ -484,9 +484,7 @@ describe :marshal_load, shared: true do
     arr = ArraySubPush.new
     arr[0] = '1'
     arr_dump = Marshal.dump(arr)
-    NATFIXME 'loads subclasses of Array with overridden << and push correctly', exception: ArgumentError, message: 'marshal data too short' do
-      Marshal.send(@method, arr_dump).should == arr
-    end
+    Marshal.send(@method, arr_dump).should == arr
   end
 
   it "raises a TypeError with bad Marshal version" do
@@ -612,7 +610,7 @@ describe :marshal_load, shared: true do
       h = { key: s }
       h.instance_variable_set :@hash_ivar, 'hash ivar'
 
-      NATFIXME 'preserves hash ivars when hash contains a string having ivar', exception: ArgumentError, message: 'marshal data too short' do
+      NATFIXME 'preserves hash ivars when hash contains a string having ivar', exception: SpecFailedException do
         unmarshalled = Marshal.send(@method, Marshal.dump(h))
         unmarshalled.instance_variable_get(:@hash_ivar).should == 'hash ivar'
         unmarshalled[:key].instance_variable_get(:@string_ivar).should == 'string ivar'
@@ -746,9 +744,7 @@ describe :marshal_load, shared: true do
     it "loads a string through StringIO stream" do
       require 'stringio'
       obj = "This is a string which should be unmarshalled through StringIO stream!"
-      NATFIXME 'loads a string through StringIO stream', exception: ArgumentError, message: 'marshal data too short' do
-        Marshal.send(@method, StringIO.new(Marshal.dump(obj))).should == obj
-      end
+      Marshal.send(@method, StringIO.new(Marshal.dump(obj))).should == obj
     end
 
     it "sets binmode if it is loading through StringIO stream" do
@@ -810,13 +806,11 @@ describe :marshal_load, shared: true do
     end
 
     it "raises ArgumentError when end of byte sequence reached before string characters end" do
-      NATFIXME 'raises ArgumentError when end of byte sequence reached before string characters end', exception: SpecFailedException do
-        Marshal.dump("hello").should == "\x04\b\"\nhello"
+      Marshal.dump("hello").should == "\x04\b\"\nhello"
 
-        -> {
-          Marshal.send(@method, "\x04\b\"\nhel")
-        }.should raise_error(ArgumentError, "marshal data too short")
-      end
+      -> {
+        Marshal.send(@method, "\x04\b\"\nhel")
+      }.should raise_error(ArgumentError, "marshal data too short")
     end
   end
 
