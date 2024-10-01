@@ -39,7 +39,13 @@ class Data
       end
       alias_method :to_s, :inspect
 
-      define_method(:to_h) { members.to_h { |member| [member, public_send(member)] } }
+      define_method(:to_h) do |&block|
+        if block
+          members.to_h { |member| block.call(member, public_send(member)) }
+        else
+          members.to_h { |member| [member, public_send(member)] }
+        end
+      end
 
       define_method(:with) do |**kwargs|
         if kwargs.empty?
