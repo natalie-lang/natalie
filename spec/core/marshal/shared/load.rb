@@ -310,7 +310,7 @@ describe :marshal_load, shared: true do
     end
 
     ruby_bug "#18141", ""..."3.1" do
-      # NATFIXME: Cuases an infinite loop/stack overflow
+      # NATFIXME: Causes an infinite loop/stack overflow
       xit "calls the proc for recursively visited data" do
         a = [1]
         a << a
@@ -321,7 +321,7 @@ describe :marshal_load, shared: true do
         ret.size.should == 2
       end
 
-      # NATFIXME: Cuases an infinite loop/stack overflow
+      # NATFIXME: Causes an infinite loop/stack overflow
       xit "loads an Array with proc" do
         arr = []
         s = +'hi'
@@ -349,7 +349,7 @@ describe :marshal_load, shared: true do
   end
 
   describe "when called with nil for the proc argument" do
-    # NATFIXME: Cuases an infinite loop/stack overflow
+    # NATFIXME: Causes an infinite loop/stack overflow
     xit "behaves as if no proc argument was passed" do
       a = [1]
       a << a
