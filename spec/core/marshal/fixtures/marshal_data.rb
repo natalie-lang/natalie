@@ -1,4 +1,7 @@
 # -*- encoding: binary -*-
+
+require_relative 'marshal_multibyte_data'
+
 class UserDefined
   class Nested
     def ==(other)
@@ -266,18 +269,6 @@ module MarshalSpec
       "Foo"
     end
   end
-
-  # NATFIXME: Support module_eval
-  #module_eval(<<~ruby.dup.force_encoding(Encoding::UTF_8))
-    #class MultibyteぁあぃいClass
-    #end
-
-    #module MultibyteけげこごModule
-    #end
-
-    #class MultibyteぁあぃいTime < Time
-    #end
-  #ruby
 
   class ObjectWithFreezeRaisingException < Object
     def freeze
