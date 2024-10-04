@@ -321,8 +321,7 @@ describe :marshal_load, shared: true do
         ret.size.should == 2
       end
 
-      # NATFIXME: Causes an infinite loop/stack overflow
-      xit "loads an Array with proc" do
+      it "loads an Array with proc" do
         arr = []
         s = +'hi'
         s.instance_variable_set(:@foo, 5)
@@ -337,12 +336,14 @@ describe :marshal_load, shared: true do
         obj.instance_variable_set(:@zoo, 'ant')
         proc = Proc.new { |o| arr << o.dup; o}
 
-        Marshal.send(@method, "\x04\bI[\vI\"\ahi\a:\x06EF:\t@fooi\ni\x0F@\x06@\x06IS:\x14Struct::Brittle\x06:\x06af\x060\x06:\n@clueI\"\tnone\x06;\x00FI[\b;\b:\x06b:\x06c\x06:\t@twoi\a\x06:\t@zooI\"\bant\x06;\x00F", proc)
+        NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+          Marshal.send(@method, "\x04\bI[\vI\"\ahi\a:\x06EF:\t@fooi\ni\x0F@\x06@\x06IS:\x14Struct::Brittle\x06:\x06af\x060\x06:\n@clueI\"\tnone\x06;\x00FI[\b;\b:\x06b:\x06c\x06:\t@twoi\a\x06:\t@zooI\"\bant\x06;\x00F", proc)
 
-        arr.should == [
-          false, 5, "hi", 10, "hi", "hi", 0.0, false, "none", st,
-          :b, :c, 2, a, false, "ant", ["hi", 10, "hi", "hi", st, [:a, :b, :c]],
-        ]
+          arr.should == [
+            false, 5, "hi", 10, "hi", "hi", 0.0, false, "none", st,
+            :b, :c, 2, a, false, "ant", ["hi", 10, "hi", "hi", st, [:a, :b, :c]],
+          ]
+        end
         Struct.send(:remove_const, :Brittle)
       end
     end
