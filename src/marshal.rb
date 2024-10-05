@@ -36,6 +36,7 @@ module Marshal
     def initialize(output)
       @output = output
       @symbol_lookup = {}
+      @object_lookup = {}
     end
 
     def write_byte(value)
@@ -194,6 +195,11 @@ module Marshal
       end
     end
 
+    def write_object_link(value)
+      write_char('@')
+      write_integer_bytes(@object_lookup.fetch(value.object_id))
+    end
+
     def write_array(values)
       write_char('[')
       write_integer_bytes(values.size)
@@ -264,6 +270,15 @@ module Marshal
     end
 
     def write(value)
+      if value.respond_to?(:object_id) && @object_lookup.key?(value.object_id)
+        write_object_link(value)
+        return @output
+      end
+
+      if !value.nil? && !value.is_a?(TrueClass) && !value.is_a?(FalseClass) && !value.is_a?(Integer) && !value.is_a?(Float) && !value.is_a?(Symbol)
+        @object_lookup[value.object_id] = @object_lookup.size
+      end
+
       if value.nil?
         write_nil
       elsif value.is_a?(TrueClass)
