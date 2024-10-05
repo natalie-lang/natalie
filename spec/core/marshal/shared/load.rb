@@ -310,15 +310,16 @@ describe :marshal_load, shared: true do
     end
 
     ruby_bug "#18141", ""..."3.1" do
-      # NATFIXME: Causes an infinite loop/stack overflow
-      xit "calls the proc for recursively visited data" do
+      it "calls the proc for recursively visited data" do
         a = [1]
         a << a
         ret = []
-        Marshal.send(@method, Marshal.dump(a), proc { |arg| ret << arg.inspect; arg })
-        ret[0].should == 1.inspect
-        ret[1].should == a.inspect
-        ret.size.should == 2
+        NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+          Marshal.send(@method, Marshal.dump(a), proc { |arg| ret << arg.inspect; arg })
+          ret[0].should == 1.inspect
+          ret[1].should == a.inspect
+          ret.size.should == 2
+        end
       end
 
       it "loads an Array with proc" do
@@ -350,12 +351,13 @@ describe :marshal_load, shared: true do
   end
 
   describe "when called with nil for the proc argument" do
-    # NATFIXME: Causes an infinite loop/stack overflow
-    xit "behaves as if no proc argument was passed" do
+    it "behaves as if no proc argument was passed" do
       a = [1]
       a << a
-      b = Marshal.send(@method, Marshal.dump(a), nil)
-      b.should == a
+      NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+        b = Marshal.send(@method, Marshal.dump(a), nil)
+        b.should == a
+      end
     end
   end
 
