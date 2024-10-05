@@ -248,11 +248,18 @@ module Marshal
       raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
       write_char('o')
       write(value.class.name.to_sym)
-      ivar_names = value.instance_variables
-      write_integer_bytes(ivar_names.size)
-      ivar_names.each do |ivar_name|
+      ivars = value.instance_variables.map { |ivar_name| [ivar_name, value.instance_variable_get(ivar_name)] }
+      if value.is_a?(Range)
+        ivars.concat([
+          [:excl, value.exclude_end?],
+          [:begin, value.begin],
+          [:end, value.end],
+        ])
+      end
+      write_integer_bytes(ivars.size)
+      ivars.each do |ivar_name, ivar_value|
         write(ivar_name)
-        write(value.instance_variable_get(ivar_name))
+        write(ivar_value)
       end
     end
 
@@ -475,6 +482,9 @@ module Marshal
       object_class = find_constant(name)
       object = object_class.allocate
       ivars_hash = read_hash
+      if object_class == Range
+        object = Range.new(ivars_hash.delete(:begin), ivars_hash.delete(:end), ivars_hash.delete(:excl))
+      end
       ivars_hash.each do |ivar_name, value|
         object.instance_variable_set(ivar_name, value)
       end
