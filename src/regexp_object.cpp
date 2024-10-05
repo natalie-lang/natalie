@@ -316,10 +316,15 @@ static String prepare_pattern_for_onigmo(Env *env, const StringObject *pattern, 
                                 break;
                             c = next_char();
                         }
-                        if ((c == '}' || c == ' ') && utf8->in_encoding_codepoint_range(codepoint))
-                            new_pattern.append(utf8->encode_codepoint(codepoint));
-                        else
-                            new_pattern.append_char(c);
+                        if (c == '}' || c == ' ') {
+                            if (utf8->in_encoding_codepoint_range(codepoint)) {
+                                new_pattern.append(utf8->encode_codepoint(codepoint));
+                            } else {
+                                env->raise("RegexpError", "invalid Unicode range: /{}/", pattern->string());
+                            }
+                        } else {
+                            env->raise("RegexpError", "invalid Unicode list: /{}/", pattern->string());
+                        }
                         while (c == ' ')
                             c = next_char();
                     } while (c != '}');
