@@ -486,8 +486,7 @@ describe "Marshal.dump" do
       end
     end
 
-    # NATFIXME: This results in an infinite loop
-    xit "dumps a recursive Array" do
+    it "dumps a recursive Array" do
       a = []
       a << a
       Marshal.dump(a).should == "\x04\b[\x06@\x00"
@@ -898,9 +897,7 @@ describe "Marshal.dump" do
 
   it "dumps subsequent appearances of an object as a link" do
     o = Object.new
-    NATFIXME 'dumps subsequent appearances of an object as a link', exception: SpecFailedException do
-      Marshal.dump([o, o]).should == "\004\b[\ao:\vObject\000@\006"
-    end
+    Marshal.dump([o, o]).should == "\004\b[\ao:\vObject\000@\006"
   end
 
   MarshalSpec::DATA_19.each do |description, (object, marshal, attributes)|
