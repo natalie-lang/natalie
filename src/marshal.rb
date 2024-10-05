@@ -248,11 +248,11 @@ module Marshal
       raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
       write_char('o')
       write(value.class.name.to_sym)
-      ivar_names = value.instance_variables
-      write_integer_bytes(ivar_names.size)
-      ivar_names.each do |ivar_name|
+      ivars = value.instance_variables.map { |ivar_name| [ivar_name, value.instance_variable_get(ivar_name)] }
+      write_integer_bytes(ivars.size)
+      ivars.each do |ivar_name, ivar_value|
         write(ivar_name)
-        write(value.instance_variable_get(ivar_name))
+        write(ivar_value)
       end
     end
 
