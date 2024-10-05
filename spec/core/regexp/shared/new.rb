@@ -462,10 +462,12 @@ describe :regexp_new_string, shared: true do
       end
     end
 
+    it "raises a RegexpError if the \\u{} escape contains non hexadecimal digits" do
+      -> { Regexp.send(@method, "\\" + "u{abcX}") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("invalid Unicode list: /\\u{abcX}/")))
+    end
+
     it "raises a RegexpError if more than six hexadecimal digits are given" do
-      NATFIXME "raises a RegexpError if more than six hexadecimal digits are given", exception: SpecFailedException do
-        -> { Regexp.send(@method, "\\" + "u{0ffffff}") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("invalid Unicode range: /\\u{0ffffff}/")))
-      end
+      -> { Regexp.send(@method, "\\" + "u{0ffffff}") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("invalid Unicode range: /\\u{0ffffff}/")))
     end
 
     it "returns a Regexp with US-ASCII encoding if only 7-bit ASCII characters are present regardless of the input String's encoding" do
