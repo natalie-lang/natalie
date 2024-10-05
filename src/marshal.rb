@@ -482,6 +482,9 @@ module Marshal
       object_class = find_constant(name)
       object = object_class.allocate
       ivars_hash = read_hash
+      if object_class == Range
+        object = Range.new(ivars_hash.delete(:begin), ivars_hash.delete(:end), ivars_hash.delete(:excl))
+      end
       ivars_hash.each do |ivar_name, value|
         object.instance_variable_set(ivar_name, value)
       end
