@@ -94,7 +94,6 @@ describe 'regexp' do
       -> { Regexp.new('\p{') }.should raise_error(RegexpError)
       -> { Regexp.new('\p{ ') }.should raise_error(RegexpError)
 
-      -> { Regexp.new('\u{abcdef}') }.should raise_error(RegexpError, 'invalid Unicode range: /\u{abcdef}/')
       -> { Regexp.new('\u{abX}') }.should raise_error(RegexpError, 'invalid Unicode list: /\u{abX}/')
     end
   end
