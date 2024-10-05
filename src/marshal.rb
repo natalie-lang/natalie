@@ -249,6 +249,13 @@ module Marshal
       write_char('o')
       write(value.class.name.to_sym)
       ivars = value.instance_variables.map { |ivar_name| [ivar_name, value.instance_variable_get(ivar_name)] }
+      if value.is_a?(Range)
+        ivars.concat([
+          [:excl, value.exclude_end?],
+          [:begin, value.begin],
+          [:end, value.end],
+        ])
+      end
       write_integer_bytes(ivars.size)
       ivars.each do |ivar_name, ivar_value|
         write(ivar_name)

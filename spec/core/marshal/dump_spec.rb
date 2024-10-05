@@ -741,18 +741,20 @@ describe "Marshal.dump" do
   end
 
   describe "with a Range" do
-    # NATFIXME: This breaks with a segfault
-    xit "dumps a Range inclusive of end (with indeterminant order)" do
+    it "dumps a Range inclusive of end (with indeterminant order)" do
       dump = Marshal.dump(1..2)
-      load = Marshal.load(dump)
-      load.should == (1..2)
+      NATFIXME 'Support Range in Marshal.load', exception: NameError, message: "`excl' is not allowed as an instance variable name" do
+        load = Marshal.load(dump)
+        load.should == (1..2)
+      end
     end
 
-    # NATFIXME: This breaks with a segfault
-    xit "dumps a Range exclusive of end (with indeterminant order)" do
+    it "dumps a Range exclusive of end (with indeterminant order)" do
       dump = Marshal.dump(1...2)
-      load = Marshal.load(dump)
-      load.should == (1...2)
+      NATFIXME 'Support Range in Marshal.load', exception: NameError, message: "`excl' is not allowed as an instance variable name" do
+        load = Marshal.load(dump)
+        load.should == (1...2)
+      end
     end
 
     it "raises TypeError with an anonymous Range subclass" do
