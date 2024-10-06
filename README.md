@@ -155,6 +155,8 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 | file(s)          | copyright                         | license           |
 | ---------------- | --------------------------------- | ----------------- |
 | `bigint.*`       | 983                               | Unlicense         |
+| `cgi.rb`         | Wakou Aoyama                      | BSD               |
+| `cgi/*`          | Wakou Aoyama                      | BSD               |
 | `delegate.rb`    | Yukihiro Matsumoto                | BSD               |
 | `dtoa.c`         | David M. Gay, Lucent Technologies | custom permissive |
 | `ipaddr.rb`      | Hajimu Umemoto and Akinori Musha  | BSD               |

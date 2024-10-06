@@ -3,6 +3,7 @@ class File
   Separator = SEPARATOR
   ALT_SEPARATOR = nil
   PATH_SEPARATOR = ":".freeze
+  BINARY = 0
 
   # NATFIXME: File.join still has many unhandled special cases
   def self.join(*parts)
