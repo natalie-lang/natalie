@@ -316,7 +316,7 @@ static String prepare_pattern_for_onigmo(Env *env, const StringObject *pattern, 
                                 break;
                             c = next_char();
                         }
-                        if (c == '}' || c == ' ') {
+                        if ((c == '}' || c == ' ') && codepoint != 0) {
                             if (utf8->in_encoding_codepoint_range(codepoint)) {
                                 new_pattern.append(utf8->encode_codepoint(codepoint));
                             } else {
