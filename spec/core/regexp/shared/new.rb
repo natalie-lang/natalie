@@ -457,9 +457,7 @@ describe :regexp_new_string, shared: true do
     end
 
     it "raises a RegexpError if the \\u{} escape is empty" do
-      NATFIXME "raises a RegexpError if the \\u{} escape is empty", exception: SpecFailedException do
-        -> { Regexp.send(@method, "\\" + "u{}") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("invalid Unicode list: /\\u{}/")))
-      end
+      -> { Regexp.send(@method, "\\" + "u{}") }.should raise_error(RegexpError, Regexp.new(Regexp.escape("invalid Unicode list: /\\u{}/")))
     end
 
     it "raises a RegexpError if the \\u{} escape contains non hexadecimal digits" do
