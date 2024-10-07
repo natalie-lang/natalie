@@ -9,8 +9,6 @@ class Integer
             raise TypeError, "can't convert #{n.class} to Integer (#{n.class}#to_int gives #{result.class})"
           end
         end
-      else
-        nil
       end
     end
   end
@@ -31,7 +29,7 @@ class Integer
     if radix < 0
       raise ArgumentError, 'negative radix'
     elsif radix < 2
-      raise ArgumentError, "invalid radix 0"
+      raise ArgumentError, 'invalid radix 0'
     end
 
     quotient = self
@@ -74,6 +72,10 @@ class Integer
     else
       super
     end
+  end
+
+  def ceildiv(n)
+    -div(-n)
   end
 
   def gcdlcm(n)
