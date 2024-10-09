@@ -166,10 +166,10 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
     def format_function_body(body)
       # Delete empty lines
       body.chomp!
-      body.gsub! /^\n/, ''
+      body.gsub!(/^\n/, '')
 
       # Add indentation
-      body.gsub! /^/, ' ' * 4
+      body.gsub!(/^/, ' ' * 4)
     end
 
     def args_to_pass
@@ -500,7 +500,6 @@ gen.binding('Enumerator::ArithmeticSequence', 'last', 'Enumerator::ArithmeticSeq
 gen.binding('Enumerator::ArithmeticSequence', 'size', 'Enumerator::ArithmeticSequenceObject', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Enumerator::ArithmeticSequence', 'step', 'Enumerator::ArithmeticSequenceObject', 'step', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
-
 gen.singleton_binding('ENV', '[]', 'EnvObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', '[]=', 'EnvObject', 'refeq', argc: 2, pass_env: true, pass_block: false, aliases: ['store'], return_type: :Object)
 gen.singleton_binding('ENV', 'assoc', 'EnvObject', 'assoc', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
@@ -572,7 +571,7 @@ gen.static_binding('Fiber', 'yield', 'FiberObject', 'yield', argc: :any, pass_en
 gen.binding('Fiber', 'alive?', 'FiberObject', 'is_alive', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Fiber', 'blocking?', 'FiberObject', 'is_blocking', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Fiber', 'hash', 'FiberObject', 'hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Fiber', 'initialize', 'FiberObject', 'initialize', argc: 0, kwargs: [:blocking, :storage], pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('Fiber', 'initialize', 'FiberObject', 'initialize', argc: 0, kwargs: %i[blocking storage], pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Fiber', 'resume', 'FiberObject', 'resume', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Fiber', 'status', 'FiberObject', 'status', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Fiber', 'storage', 'FiberObject', 'storage', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -714,7 +713,7 @@ gen.static_binding('Dir', 'entries', 'DirObject', 'entries', argc: 1, kwargs: [:
 gen.static_binding('Dir', 'exist?', 'FileObject', 'is_directory', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('Dir', 'foreach', 'DirObject', 'foreach', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: true, return_type: :Object)
 gen.static_binding('Dir', 'getwd', 'DirObject', 'pwd', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-# TODO Dir.glob
+# TODO: Dir.glob
 gen.static_binding('Dir', 'home', 'DirObject', 'home', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Dir', 'mkdir', 'DirObject', 'mkdir', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Dir', 'open', 'DirObject', 'open', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: true, return_type: :Object)
@@ -752,7 +751,7 @@ gen.binding('Float', '==', 'FloatObject', 'eq', argc: 1, pass_env: true, pass_bl
 gen.binding('Float', '>', 'FloatObject', 'gt', argc: 1, pass_env: true, pass_block: false, return_type: :bool, optimized: true)
 gen.binding('Float', '>=', 'FloatObject', 'gte', argc: 1, pass_env: true, pass_block: false, return_type: :bool, optimized: true)
 gen.binding('Float', 'abs', 'FloatObject', 'abs', argc: 0, pass_env: true, pass_block: false, aliases: ['magnitude'], return_type: :Object, optimized: true)
-gen.binding('Float', 'arg', 'FloatObject', 'arg', argc: 0, pass_env: true, pass_block: false, aliases: ['phase', 'angle'], return_type: :Object, optimized: true)
+gen.binding('Float', 'arg', 'FloatObject', 'arg', argc: 0, pass_env: true, pass_block: false, aliases: %w[phase angle], return_type: :Object, optimized: true)
 gen.binding('Float', 'ceil', 'FloatObject', 'ceil', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Float', 'coerce', 'FloatObject', 'coerce', argc: 1, pass_env: true, pass_block: false, return_type: :Object, optimized: false)
 gen.binding('Float', 'denominator', 'FloatObject', 'denominator', argc: 0, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
@@ -1159,7 +1158,6 @@ gen.module_function_binding('Process::Sys', 'getuid', 'ProcessModule', 'uid', ar
 gen.module_function_binding('Process::UID', 'eid', 'ProcessModule', 'euid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process::UID', 'rid', 'ProcessModule', 'uid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
-
 gen.static_binding('Random', 'new_seed', 'RandomObject', 'new_seed', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Random', 'srand', 'RandomObject', 'srand', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Random', 'urandom', 'RandomObject', 'urandom', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
@@ -1218,7 +1216,7 @@ gen.binding('Regexp', '~', 'RegexpObject', 'tilde', argc: 0, pass_env: true, pas
 gen.binding('Regexp', 'casefold?', 'RegexpObject', 'casefold', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Regexp', 'encoding', 'RegexpObject', 'encoding', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Regexp', 'eql?', 'RegexpObject', 'eq', argc: 1, pass_env: true, pass_block: false, aliases: ['=='], return_type: :bool)
-gen.binding('Regexp', 'fixed_encoding?' ,'RegexpObject', 'is_fixed_encoding', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Regexp', 'fixed_encoding?', 'RegexpObject', 'is_fixed_encoding', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Regexp', 'hash', 'RegexpObject', 'hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Regexp', 'initialize', 'RegexpObject', 'initialize', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, visibility: :private)
 gen.binding('Regexp', 'inspect', 'RegexpObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -1294,7 +1292,7 @@ gen.binding('String', 'gsub!', 'StringObject', 'gsub_in_place', argc: 1..2, pass
 gen.binding('String', 'hex', 'StringObject', 'hex', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'include?', 'StringObject', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('String', 'index', 'StringObject', 'index', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'initialize', 'StringObject', 'initialize', argc: 0..1, kwargs: [:encoding, :capacity], pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'initialize', 'StringObject', 'initialize', argc: 0..1, kwargs: %i[encoding capacity], pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'initialize_copy', 'StringObject', 'initialize_copy', argc: 1, pass_env: true, pass_block: false, aliases: ['replace'], return_type: :Object)
 gen.binding('String', 'insert', 'StringObject', 'insert', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'inspect', 'StringObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -1391,7 +1389,7 @@ gen.binding('Thread', 'initialize', 'ThreadObject', 'initialize', argc: :any, pa
 gen.binding('Thread', 'join', 'ThreadObject', 'join', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'key?', 'ThreadObject', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Thread', 'keys', 'ThreadObject', 'keys', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Thread', 'kill', 'ThreadObject', 'kill', argc: 0, pass_env: true, pass_block: false, aliases: ['exit', 'terminate'], return_type: :Object)
+gen.binding('Thread', 'kill', 'ThreadObject', 'kill', argc: 0, pass_env: true, pass_block: false, aliases: %w[exit terminate], return_type: :Object)
 gen.binding('Thread', 'name', 'ThreadObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'name=', 'ThreadObject', 'set_name', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'priority', 'ThreadObject', 'priority', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -1440,7 +1438,8 @@ gen.binding('Time', '-', 'TimeObject', 'minus', argc: 1, pass_env: true, pass_bl
 gen.binding('Time', '<=>', 'TimeObject', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'asctime', 'TimeObject', 'asctime', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'eql?', 'TimeObject', 'eql', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('Time', 'gmtoff', 'TimeObject', 'utc_offset', argc: 0, pass_env: true, pass_block: false, aliases: ['gmt_offset', 'utc_offset'], return_type: :Object)
+gen.binding('Time', 'getutc', 'TimeObject', 'to_utc', argc: 0, pass_env: true, pass_block: false, aliases: ['getgm'], return_type: :Object)
+gen.binding('Time', 'gmtoff', 'TimeObject', 'utc_offset', argc: 0, pass_env: true, pass_block: false, aliases: %w[gmt_offset utc_offset], return_type: :Object)
 gen.binding('Time', 'isdst', 'TimeObject', 'isdst', argc: 0, pass_env: true, pass_block: false, aliases: ['dst?'], return_type: :bool)
 gen.binding('Time', 'hour', 'TimeObject', 'hour', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'inspect', 'TimeObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
