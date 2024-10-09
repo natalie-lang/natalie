@@ -38,14 +38,12 @@ describe "String#rindex with String" do
       chr = str[0]
       str.rindex(str).should == str.rindex(chr)
 
-      NATFIXME 'Support offset argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        0.upto(str.size + 1) do |start|
-          str.rindex(str, start).should == str.rindex(chr, start)
-        end
+      0.upto(str.size + 1) do |start|
+        str.rindex(str, start).should == str.rindex(chr, start)
+      end
 
-        (-str.size - 1).upto(-1) do |start|
-          str.rindex(str, start).should == str.rindex(chr, start)
-        end
+      (-str.size - 1).upto(-1) do |start|
+        str.rindex(str, start).should == str.rindex(chr, start)
       end
     end
   end
@@ -68,9 +66,7 @@ describe "String#rindex with String" do
   end
 
   it "returns the index of the last occurrence of the given substring" do
-    NATFIXME 'Fix empty argument', exception: SpecFailedException do
-      "blablabla".rindex("").should == 9
-    end
+    "blablabla".rindex("").should == 9
     "blablabla".rindex("a").should == 8
     "blablabla".rindex("la").should == 7
     "blablabla".rindex("bla").should == 6
@@ -113,47 +109,45 @@ describe "String#rindex with String" do
   end
 
   it "starts the search at the given offset" do
-    NATFIXME 'Support offset argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-      "blablabla".rindex("bl", 0).should == 0
-      "blablabla".rindex("bl", 1).should == 0
-      "blablabla".rindex("bl", 2).should == 0
-      "blablabla".rindex("bl", 3).should == 3
+    "blablabla".rindex("bl", 0).should == 0
+    "blablabla".rindex("bl", 1).should == 0
+    "blablabla".rindex("bl", 2).should == 0
+    "blablabla".rindex("bl", 3).should == 3
 
-      "blablabla".rindex("bla", 0).should == 0
-      "blablabla".rindex("bla", 1).should == 0
-      "blablabla".rindex("bla", 2).should == 0
-      "blablabla".rindex("bla", 3).should == 3
+    "blablabla".rindex("bla", 0).should == 0
+    "blablabla".rindex("bla", 1).should == 0
+    "blablabla".rindex("bla", 2).should == 0
+    "blablabla".rindex("bla", 3).should == 3
 
-      "blablabla".rindex("blab", 0).should == 0
-      "blablabla".rindex("blab", 1).should == 0
-      "blablabla".rindex("blab", 2).should == 0
-      "blablabla".rindex("blab", 3).should == 3
-      "blablabla".rindex("blab", 6).should == 3
-      "blablablax".rindex("blab", 6).should == 3
+    "blablabla".rindex("blab", 0).should == 0
+    "blablabla".rindex("blab", 1).should == 0
+    "blablabla".rindex("blab", 2).should == 0
+    "blablabla".rindex("blab", 3).should == 3
+    "blablabla".rindex("blab", 6).should == 3
+    "blablablax".rindex("blab", 6).should == 3
 
-      "blablabla".rindex("la", 1).should == 1
-      "blablabla".rindex("la", 2).should == 1
-      "blablabla".rindex("la", 3).should == 1
-      "blablabla".rindex("la", 4).should == 4
+    "blablabla".rindex("la", 1).should == 1
+    "blablabla".rindex("la", 2).should == 1
+    "blablabla".rindex("la", 3).should == 1
+    "blablabla".rindex("la", 4).should == 4
 
-      "blablabla".rindex("lab", 1).should == 1
-      "blablabla".rindex("lab", 2).should == 1
-      "blablabla".rindex("lab", 3).should == 1
-      "blablabla".rindex("lab", 4).should == 4
+    "blablabla".rindex("lab", 1).should == 1
+    "blablabla".rindex("lab", 2).should == 1
+    "blablabla".rindex("lab", 3).should == 1
+    "blablabla".rindex("lab", 4).should == 4
 
-      "blablabla".rindex("ab", 2).should == 2
-      "blablabla".rindex("ab", 3).should == 2
-      "blablabla".rindex("ab", 4).should == 2
-      "blablabla".rindex("ab", 5).should == 5
+    "blablabla".rindex("ab", 2).should == 2
+    "blablabla".rindex("ab", 3).should == 2
+    "blablabla".rindex("ab", 4).should == 2
+    "blablabla".rindex("ab", 5).should == 5
 
-      "blablabla".rindex("", 0).should == 0
-      "blablabla".rindex("", 1).should == 1
-      "blablabla".rindex("", 2).should == 2
-      "blablabla".rindex("", 7).should == 7
-      "blablabla".rindex("", 8).should == 8
-      "blablabla".rindex("", 9).should == 9
-      "blablabla".rindex("", 10).should == 9
-    end
+    "blablabla".rindex("", 0).should == 0
+    "blablabla".rindex("", 1).should == 1
+    "blablabla".rindex("", 2).should == 2
+    "blablabla".rindex("", 7).should == 7
+    "blablabla".rindex("", 8).should == 8
+    "blablabla".rindex("", 9).should == 9
+    "blablabla".rindex("", 10).should == 9
   end
 
   it "starts the search at offset + self.length if offset is negative" do
@@ -161,10 +155,8 @@ describe "String#rindex with String" do
 
     ["bl", "bla", "blab", "la", "lab", "ab", ""].each do |needle|
       (-str.length .. -1).each do |offset|
-        NATFIXME 'Support offset argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-          str.rindex(needle, offset).should ==
-          str.rindex(needle, offset + str.length)
-        end
+        str.rindex(needle, offset).should ==
+        str.rindex(needle, offset + str.length)
       end
     end
   end
@@ -175,41 +167,35 @@ describe "String#rindex with String" do
     "blablabla".rindex("BLA").should == nil
     "blablabla".rindex("blablablabla").should == nil
 
-    NATFIXME 'Support offset argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-      "hello".rindex("lo", 0).should == nil
-      "hello".rindex("lo", 1).should == nil
-      "hello".rindex("lo", 2).should == nil
+    "hello".rindex("lo", 0).should == nil
+    "hello".rindex("lo", 1).should == nil
+    "hello".rindex("lo", 2).should == nil
 
-      "hello".rindex("llo", 0).should == nil
-      "hello".rindex("llo", 1).should == nil
+    "hello".rindex("llo", 0).should == nil
+    "hello".rindex("llo", 1).should == nil
 
-      "hello".rindex("el", 0).should == nil
-      "hello".rindex("ello", 0).should == nil
+    "hello".rindex("el", 0).should == nil
+    "hello".rindex("ello", 0).should == nil
 
-      "hello".rindex("", -6).should == nil
-      "hello".rindex("", -7).should == nil
+    "hello".rindex("", -6).should == nil
+    "hello".rindex("", -7).should == nil
 
-      "hello".rindex("h", -6).should == nil
-    end
+    "hello".rindex("h", -6).should == nil
   end
 
   it "tries to convert start_offset to an integer via to_int" do
-    NATFIXME 'Support offset argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-      obj = mock('5')
-      def obj.to_int() 5 end
-      "str".rindex("st", obj).should == 0
+    obj = mock('5')
+    def obj.to_int() 5 end
+    "str".rindex("st", obj).should == 0
 
-      obj = mock('5')
-      def obj.respond_to?(arg, *) true end
-      def obj.method_missing(*args) 5 end
-      "str".rindex("st", obj).should == 0
-    end
+    obj = mock('5')
+    def obj.respond_to?(arg, *) true end
+    def obj.method_missing(*args) 5 end
+    "str".rindex("st", obj).should == 0
   end
 
   it "raises a TypeError when given offset is nil" do
-    NATFIXME 'Support offset argument', exception: SpecFailedException do
-      -> { "str".rindex("st", nil) }.should raise_error(TypeError)
-    end
+    -> { "str".rindex("st", nil) }.should raise_error(TypeError)
   end
 
   it "handles a substring in a superset encoding" do
@@ -232,9 +218,9 @@ end
 
 describe "String#rindex with Regexp" do
   it "behaves the same as String#rindex(string) for escaped string regexps" do
-    ["blablabla", "hello cruel world...!"].each do |str|
-      ["", "b", "bla", "lab", "o c", "d."].each do |needle|
-        NATFIXME 'Support Regexp argument', exception: TypeError, message: 'no implicit conversion of Regexp into String' do
+    NATFIXME "I don't think this will work with upstream Onigmo.", exception: SpecFailedException do
+      ["blablabla", "hello cruel world...!"].each do |str|
+        ["", "b", "bla", "lab", "o c", "d."].each do |needle|
           regexp = Regexp.new(Regexp.escape(needle))
           str.rindex(regexp).should == str.rindex(needle)
 
@@ -251,52 +237,48 @@ describe "String#rindex with Regexp" do
   end
 
   it "returns the index of the first match from the end of string of regexp" do
-    NATFIXME 'Support Regexp argument', exception: TypeError, message: 'no implicit conversion of Regexp into String' do
-      "blablabla".rindex(/bla/).should == 6
-      "blablabla".rindex(/BLA/i).should == 6
+    "blablabla".rindex(/bla/).should == 6
+    "blablabla".rindex(/BLA/i).should == 6
 
-      "blablabla".rindex(/.{0}/).should == 9
-      "blablabla".rindex(/.{1}/).should == 8
-      "blablabla".rindex(/.{2}/).should == 7
-      "blablabla".rindex(/.{6}/).should == 3
-      "blablabla".rindex(/.{9}/).should == 0
+    "blablabla".rindex(/.{0}/).should == 9
+    "blablabla".rindex(/.{1}/).should == 8
+    "blablabla".rindex(/.{2}/).should == 7
+    "blablabla".rindex(/.{6}/).should == 3
+    "blablabla".rindex(/.{9}/).should == 0
 
-      "blablabla".rindex(/.*/).should == 9
-      "blablabla".rindex(/.+/).should == 8
+    "blablabla".rindex(/.*/).should == 9
+    "blablabla".rindex(/.+/).should == 8
 
-      "blablabla".rindex(/bla|a/).should == 8
+    "blablabla".rindex(/bla|a/).should == 8
 
-      not_supported_on :opal do
-        "blablabla".rindex(/\A/).should == 0
-        "blablabla".rindex(/\Z/).should == 9
-        "blablabla".rindex(/\z/).should == 9
-        "blablabla\n".rindex(/\Z/).should == 10
-        "blablabla\n".rindex(/\z/).should == 10
-      end
-
-      "blablabla".rindex(/^/).should == 0
-      not_supported_on :opal do
-        "\nblablabla".rindex(/^/).should == 1
-        "b\nlablabla".rindex(/^/).should == 2
-      end
-      "blablabla".rindex(/$/).should == 9
-
-      "blablabla".rindex(/.l./).should == 6
+    not_supported_on :opal do
+      "blablabla".rindex(/\A/).should == 0
+      "blablabla".rindex(/\Z/).should == 9
+      "blablabla".rindex(/\z/).should == 9
+      "blablabla\n".rindex(/\Z/).should == 10
+      "blablabla\n".rindex(/\z/).should == 10
     end
+
+    "blablabla".rindex(/^/).should == 0
+    not_supported_on :opal do
+      "\nblablabla".rindex(/^/).should == 1
+      "b\nlablabla".rindex(/^/).should == 2
+    end
+    "blablabla".rindex(/$/).should == 9
+
+    "blablabla".rindex(/.l./).should == 6
   end
 
   it "sets $~ to MatchData of match and nil when there's none" do
-    NATFIXME 'Support Regexp argument', exception: TypeError, message: 'no implicit conversion of Regexp into String' do
-      'hello.'.rindex(/.(.)/)
-      $~[0].should == 'o.'
+    'hello.'.rindex(/.(.)/)
+    $~[0].should == 'o.'
 
-      'hello.'.rindex(/not/)
-      $~.should == nil
-    end
+    'hello.'.rindex(/not/)
+    $~.should == nil
   end
 
   it "starts the search at the given offset" do
-    NATFIXME 'Support offset argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+    NATFIXME 'Onigmo cannot handle this case. CRuby has forked Onigmo and the patches have not gone upstream.', exception: SpecFailedException do
       "blablabla".rindex(/.{0}/, 5).should == 5
       "blablabla".rindex(/.{1}/, 5).should == 5
       "blablabla".rindex(/.{2}/, 5).should == 5
@@ -334,32 +316,28 @@ describe "String#rindex with Regexp" do
 
     ["bl", "bla", "blab", "la", "lab", "ab", ""].each do |needle|
       (-str.length .. -1).each do |offset|
-        NATFIXME 'Support offset argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-          str.rindex(needle, offset).should ==
-          str.rindex(needle, offset + str.length)
-        end
+        str.rindex(needle, offset).should ==
+        str.rindex(needle, offset + str.length)
       end
     end
   end
 
   it "returns nil if the substring isn't found" do
-    NATFIXME 'Support Regexp argument', exception: TypeError, message: 'no implicit conversion of Regexp into String' do
-      "blablabla".rindex(/BLA/).should == nil
-      "blablabla".rindex(/.{10}/).should == nil
-      "blablablax".rindex(/.x/, 7).should == nil
-      "blablablax".rindex(/..x/, 6).should == nil
+    "blablabla".rindex(/BLA/).should == nil
+    "blablabla".rindex(/.{10}/).should == nil
+    "blablablax".rindex(/.x/, 7).should == nil
+    "blablablax".rindex(/..x/, 6).should == nil
 
-      not_supported_on :opal do
-        "blablabla".rindex(/\Z/, 5).should == nil
-        "blablabla".rindex(/\z/, 5).should == nil
-        "blablabla\n".rindex(/\z/, 9).should == nil
-      end
+    not_supported_on :opal do
+      "blablabla".rindex(/\Z/, 5).should == nil
+      "blablabla".rindex(/\z/, 5).should == nil
+      "blablabla\n".rindex(/\z/, 9).should == nil
     end
   end
 
   not_supported_on :opal do
     it "supports \\G which matches at the given start offset" do
-      NATFIXME 'Support offset argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      NATFIXME 'Add \G support', exception: SpecFailedException, message: /should be ==/ do
         "helloYOU.".rindex(/YOU\G/, 8).should == 5
         "helloYOU.".rindex(/YOU\G/).should == nil
 
@@ -383,44 +361,34 @@ describe "String#rindex with Regexp" do
   end
 
   it "tries to convert start_offset to an integer via to_int" do
-     NATFIXME 'Support offset argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-      obj = mock('5')
-      def obj.to_int() 5 end
-      "str".rindex(/../, obj).should == 1
+    obj = mock('5')
+    def obj.to_int() 5 end
+    "str".rindex(/../, obj).should == 1
 
-      obj = mock('5')
-      def obj.respond_to?(arg, *) true end
-      def obj.method_missing(*args); 5; end
-      "str".rindex(/../, obj).should == 1
-    end
+    obj = mock('5')
+    def obj.respond_to?(arg, *) true end
+    def obj.method_missing(*args); 5; end
+    "str".rindex(/../, obj).should == 1
   end
 
   it "raises a TypeError when given offset is nil" do
-    NATFIXME 'Support offset argument', exception: SpecFailedException do
-      -> { "str".rindex(/../, nil) }.should raise_error(TypeError)
-    end
+    -> { "str".rindex(/../, nil) }.should raise_error(TypeError)
   end
 
   it "returns the reverse character index of a multibyte character" do
     "ありがりがとう".rindex("が").should == 4
-    NATFIXME 'Support Regexp argument', exception: TypeError, message: 'no implicit conversion of Regexp into String' do
-      "ありがりがとう".rindex(/が/).should == 4
-    end
+    "ありがりがとう".rindex(/が/).should == 4
   end
 
   it "returns the character index before the finish" do
-     NATFIXME 'Support offset argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-       "ありがりがとう".rindex("が", 3).should == 2
-       "ありがりがとう".rindex(/が/, 3).should == 2
-     end
+    "ありがりがとう".rindex("が", 3).should == 2
+    "ありがりがとう".rindex(/が/, 3).should == 2
   end
 
   it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
     re = Regexp.new "れ".encode(Encoding::EUC_JP)
-    NATFIXME 'Support Regexp argument', exception: SpecFailedException do
-      -> do
-        "あれ".rindex re
-      end.should raise_error(Encoding::CompatibilityError, "incompatible encoding regexp match (EUC-JP regexp with UTF-8 string)")
-    end
+    -> do
+      "あれ".rindex re
+    end.should raise_error(Encoding::CompatibilityError, "incompatible encoding regexp match (EUC-JP regexp with UTF-8 string)")
   end
 end
