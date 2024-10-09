@@ -275,6 +275,10 @@ Value TimeObject::to_s(Env *env) {
     }
 }
 
+Value TimeObject::to_utc(Env *env) {
+    return utc(env, year(env), month(env), mday(env), hour(env), min(env), sec(env), subsec(env))->minus(env, utc_offset(env));
+}
+
 Value TimeObject::usec(Env *env) {
     if (m_subsec) {
         return m_subsec->as_rational()->mul(env, new IntegerObject { 1000000 })->as_rational()->to_i(env);

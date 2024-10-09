@@ -54,6 +54,7 @@ public:
     Value to_i(Env *) const { return m_integer; }
     Value to_r(Env *);
     Value to_s(Env *);
+    Value to_utc(Env *);
     Value usec(Env *);
     Value utc_offset(Env *) const;
     Value wday(Env *) const;
