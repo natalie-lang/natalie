@@ -845,23 +845,90 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
     return (char *)ptr - c_str();
 }
 
-Value StringObject::rindex(Env *env, Value needle) const {
-    auto needle_str = needle->to_str(env)->as_string();
-    auto needle_len = needle_str->bytesize();
-
-    auto len = bytesize();
-    auto byte_index = len;
-
-    if (needle_len > len)
+Value StringObject::rindex(Env *env, Value needle, Value offset) const {
+    int len = char_count(env);
+    int offset_i = (offset) ? IntegerObject::convert_to_int(env, offset) : len;
+    if (offset_i < -1 * len) {
+        // extremely negative offset larger than string length returns nil
         return NilObject::the();
+    } else if (offset_i < 0) {
+        // negative offset adds to string length
+        offset_i += len;
+    } else if (offset_i > len) {
+        offset_i = len;
+    }
+    return rindex(env, needle, ::abs(offset_i));
+}
 
+Value StringObject::rindex(Env *env, Value needle, size_t start) const {
+    auto byte_start = char_index_to_byte_index(start);
+    if (byte_start == -1)
+        return NilObject::the();
+    auto byte_index = rindex_int(env, needle, byte_start);
+    if (byte_index == -1)
+        return NilObject::the();
+    auto char_index = byte_index_to_char_index(byte_index);
+    return IntegerObject::from_size_t(env, char_index);
+}
+
+nat_int_t StringObject::rindex_int(Env *env, Value needle, size_t byte_start) const {
+    if (needle->is_regexp()) {
+        // FIXME: use byteindex_regexp_needle shared code
+
+        auto needle_regexp = needle->as_regexp();
+        if (!negotiate_compatible_encoding(needle_regexp->pattern())) {
+            auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
+            auto enc1 = needle_regexp->encoding()->name()->string();
+            auto enc2 = encoding()->name()->string();
+            env->raise(exception_class, "incompatible encoding regexp match ({} regexp with {} string)", enc1, enc2);
+        }
+
+        if (needle->as_regexp()->pattern()->is_empty())
+            return byte_start;
+
+        if (bytesize() == 0)
+            return -1;
+
+        if (byte_start > bytesize())
+            return -1;
+
+        OnigRegion *region = onig_region_new();
+        int result = needle_regexp->search(env, this, byte_start, region, ONIG_OPTION_NONE, true);
+        if (result == ONIG_MISMATCH) {
+            onig_region_free(region, true);
+            env->caller()->set_last_match(nullptr);
+            return -1;
+        }
+
+        auto match = new MatchDataObject { region, this, needle_regexp };
+        env->caller()->set_last_match(match);
+        return region->beg[0];
+    }
+
+    auto needle_str = needle->to_str(env)->as_string();
+    assert_compatible_string(env, needle_str);
+
+    if (needle_str->bytesize() == 0)
+        return byte_start;
+
+    if (bytesize() == 0)
+        return -1;
+
+    if (byte_start > bytesize())
+        return -1;
+
+    auto byte_index = bytesize();
     auto c = prev_char(&byte_index);
+    auto needle_len = needle_str->length();
     while (!c.is_empty()) {
-        if (needle_len <= len - byte_index && memcmp(needle_str->c_str(), c_str() + byte_index, needle_len) == 0)
-            return Value::integer(byte_index_to_char_index(byte_index));
+        if (byte_index <= byte_start && needle_len <= bytesize() - byte_index && memcmp(needle_str->c_str(), c_str() + byte_index, needle_len) == 0) {
+            return byte_index;
+        }
+
         c = prev_char(&byte_index);
     }
-    return NilObject::the();
+
+    return -1;
 }
 
 Value StringObject::initialize(Env *env, Value arg, Value encoding, Value capacity) {

@@ -284,7 +284,9 @@ public:
     Value index(Env *, Value, size_t start);
     nat_int_t index_int(Env *, Value, size_t byte_start);
 
-    Value rindex(Env *, Value) const;
+    Value rindex(Env *, Value, Value = nullptr) const;
+    Value rindex(Env *, Value, size_t) const;
+    nat_int_t rindex_int(Env *, Value, size_t) const;
 
     void truncate(size_t length) {
         m_string.truncate(length);
