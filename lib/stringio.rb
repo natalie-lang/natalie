@@ -240,6 +240,13 @@ class StringIO
     @index = new_index
   end
 
+  def print(*args)
+    args = [$_] if args.empty?
+    args.each { |arg| write(arg) }
+    write($\) unless $\.nil?
+    nil
+  end
+
   def printf(format_str, *args)
     write(Kernel.sprintf(format_str, *args))
     nil
