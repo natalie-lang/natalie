@@ -137,9 +137,7 @@ describe "StringIO#initialize when passed [Object, mode]" do
 
     io.send(:initialize, source, "w")
 
-    NATFIXME 'it truncates all the content if passed w mode', exception: SpecFailedException do
-      io.string.should.empty?
-    end
+    io.string.should.empty?
     io.string.encoding.should == Encoding::ISO_8859_1
   end
 

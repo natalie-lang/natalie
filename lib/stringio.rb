@@ -84,6 +84,8 @@ class StringIO
       raise Errno::EACCES, 'Permission denied'
     end
 
+    @string.clear if @mode == 'w'
+
     @mutex = Mutex.new
 
     warn('warning: StringIO::new() does not take block; use StringIO::open() instead') if block_given?
@@ -138,6 +140,7 @@ class StringIO
 
   def each_byte
     return enum_for(:each_byte) unless block_given?
+    __assert_not_read_closed
 
     until eof?
       getc.each_byte { |b| yield b }
@@ -148,6 +151,7 @@ class StringIO
 
   def each_char
     return enum_for(:each_char) unless block_given?
+    __assert_not_read_closed
 
     until eof?
       yield getc
