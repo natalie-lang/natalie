@@ -942,6 +942,7 @@ gen.binding('IO', 'write_nonblock', 'IoObject', 'write_nonblock', argc: 1, kwarg
 
 gen.module_function_binding('Kernel', '`', 'KernelModule', 'backtick', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'Array', 'KernelModule', 'Array', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_function_binding('Kernel', '__callee__', 'KernelModule', 'cur_callee', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'abort', 'KernelModule', 'abort_method', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'at_exit', 'KernelModule', 'at_exit', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.module_function_binding('Kernel', 'binding', 'KernelModule', 'binding', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
