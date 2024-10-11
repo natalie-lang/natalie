@@ -816,12 +816,16 @@ Value super(Env *env, Value self, Args args, Block *block) {
     auto klass = self->singleton_class();
     if (!klass)
         klass = self->klass();
-    auto super_method = klass->find_method(env, SymbolObject::intern(current_method->name()), current_method);
+    auto after_method = current_method;
+    if (current_method->original_method())
+        after_method = current_method->original_method();
+
+    auto super_method = klass->find_method(env, SymbolObject::intern(after_method->name()), after_method);
     if (!super_method.is_defined()) {
         if (self->is_module()) {
-            env->raise("NoMethodError", "super: no superclass method `{}' for {}:{}", current_method->name(), self->as_module()->inspect_str(), self->klass()->inspect_str());
+            env->raise("NoMethodError", "super: no superclass method `{}' for {}:{}", current_method->original_name(), self->as_module()->inspect_str(), self->klass()->inspect_str());
         } else {
-            env->raise("NoMethodError", "super: no superclass method `{}' for {}", current_method->name(), self->inspect_str(env));
+            env->raise("NoMethodError", "super: no superclass method `{}' for {}", current_method->original_name(), self->inspect_str(env));
         }
     }
     assert(super_method.method() != current_method);
