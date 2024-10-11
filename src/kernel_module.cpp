@@ -841,7 +841,10 @@ Value KernelModule::test(Env *env, Value cmd, Value file) {
 
 Value KernelModule::this_method(Env *env) {
     auto method = env->caller()->current_method();
-    return SymbolObject::intern(method->name());
+    if (method) {
+        return SymbolObject::intern(method->original_name());
+    }
+    return NilObject::the();
 }
 
 Value KernelModule::throw_method(Env *env, Value name, Value value) {
