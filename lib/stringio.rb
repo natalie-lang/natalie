@@ -252,6 +252,16 @@ class StringIO
     nil
   end
 
+  def puts(*args)
+    args = [$_] if args.empty?
+    args.flatten.each do |arg|
+      arg = arg.to_s unless arg.is_a?(String)
+      write(arg)
+      write("\n") unless arg.end_with?("\n")
+    end
+    nil
+  end
+
   def read(length = nil, out_string = nil)
     __assert_not_read_closed
 
