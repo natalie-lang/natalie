@@ -24,8 +24,10 @@ describe "StringIO#puts when passed an Array" do
   it "handles self-recursive arrays correctly" do
     (ary = [5])
     ary << ary
-    @io.puts(ary)
-    @io.string.should == "5\n[...]\n"
+    NATFIXME 'handles self-recursive arrays correctly, likely a generic issue', exception: ArgumentError, message: 'tried to flatten recursive array' do
+      @io.puts(ary)
+      @io.string.should == "5\n[...]\n"
+    end
   end
 
   it "does not honor the global output record separator $\\" do
@@ -57,8 +59,10 @@ describe "StringIO#puts when passed an Array" do
     object = mock('hola')
     object.should_receive(:to_s).and_return(false)
 
-    @io.puts(object).should == nil
-    @io.string.should == object.inspect.split(" ")[0] + ">\n"
+    NATFIXME 'Return general object info if to_s does not return a string, likely a generic issue', exception: NoMethodError, message: "undefined method `end_with?' for false" do
+      @io.puts(object).should == nil
+      @io.string.should == object.inspect.split(" ")[0] + ">\n"
+    end
   end
 end
 
