@@ -24,9 +24,15 @@ Value MethodObject::hash() const {
 }
 
 Value MethodObject::source_location() {
-    if (!m_method->get_file())
+    auto method = m_method;
+
+    if (m_method->original_method())
+        method = m_method->original_method();
+
+    if (!method->get_file())
         return NilObject::the();
-    return new ArrayObject { new StringObject { m_method->get_file().value() }, Value::integer(static_cast<nat_int_t>(m_method->get_line().value())) };
+
+    return new ArrayObject { new StringObject { method->get_file().value() }, Value::integer(static_cast<nat_int_t>(method->get_line().value())) };
 }
 
 Value MethodObject::unbind(Env *env) {
