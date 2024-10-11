@@ -5,7 +5,7 @@ namespace Natalie {
 bool MethodObject::eq(Env *env, Value other_value) {
     if (other_value->is_method()) {
         auto other = other_value->as_method();
-        return m_object == other->m_object && m_method == other->m_method;
+        return m_object == other->m_object && (m_method == other->m_method || (m_method->original_method() && m_method->original_method() == other->m_method));
     } else {
         return false;
     }
