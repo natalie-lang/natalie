@@ -19,6 +19,10 @@ Value MethodObject::gtgt(Env *env, Value other) {
     return to_proc(env)->gtgt(env, other);
 }
 
+Value MethodObject::hash() const {
+    return Value::integer(m_method->original_name().djb2_hash());
+}
+
 Value MethodObject::source_location() {
     if (!m_method->get_file())
         return NilObject::the();
