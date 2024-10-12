@@ -26,7 +26,7 @@ module Prism
 
   # Create a FalseNode with the optionally given location.
   def self.false_node(location:)
-    FalseNode.new(nil, location)
+    FalseNode.new(nil, nil, location, 0)
   end
 
   # Create an LocalVariableWriteNode with the optionally given location.

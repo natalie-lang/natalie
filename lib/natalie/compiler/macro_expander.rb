@@ -183,11 +183,11 @@ module Natalie
       end
 
       def macro_nat_ignore_require(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
-        false_node # Script has not been loaded
+        Prism.false_node(location: nil) # Script has not been loaded
       end
 
       def macro_nat_ignore_require_relative(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
-        false_node # Script has not been loaded
+        Prism.false_node(location: nil) # Script has not been loaded
       end
 
       def macro_include_str!(expr:, current_path:, **)
@@ -265,7 +265,7 @@ module Natalie
 
       def load_cpp_file(path, require_once:, location:)
         name = File.split(path).last.split('.').first
-        return false_node if @compiler_context[:required_cpp_files][path]
+        return Prism.false_node(location: nil) if @compiler_context[:required_cpp_files][path]
         @compiler_context[:required_cpp_files][path] = name
         cpp_source = File.read(path)
         init_function = "Value init_#{name}(Env *env, Value self)"
@@ -307,10 +307,6 @@ module Natalie
 
       def drop_load_error(message, location:)
         drop_error(:LoadError, message, print_warning: @log_load_error, location: location)
-      end
-
-      def false_node
-        ::Prism::FalseNode.new(nil, nil)
       end
 
       def nothing(expr)
