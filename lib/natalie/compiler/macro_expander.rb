@@ -163,11 +163,12 @@ module Natalie
           node = Prism::StringNode.new(
             nil,
             nil,
+            node.location,
+            0,
             node.opening_loc,
             node.opening_loc,
             node.closing_loc,
             node.parts.map(&:unescaped).join,
-            node.location,
           )
         end
         if node.type == :string_node
@@ -182,11 +183,11 @@ module Natalie
       end
 
       def macro_nat_ignore_require(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
-        false_node # Script has not been loaded
+        Prism.false_node(location: nil) # Script has not been loaded
       end
 
       def macro_nat_ignore_require_relative(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
-        false_node # Script has not been loaded
+        Prism.false_node(location: nil) # Script has not been loaded
       end
 
       def macro_include_str!(expr:, current_path:, **)
@@ -216,7 +217,7 @@ module Natalie
         end
 
         path_to_add = VM.compile_and_run(
-          ::Prism::StatementsNode.new(nil, expr.arguments&.arguments, location(expr)),
+          ::Prism::StatementsNode.new(nil, nil, location(expr), 0, expr.arguments&.arguments),
           path: current_path
         )
 
@@ -264,7 +265,7 @@ module Natalie
 
       def load_cpp_file(path, require_once:, location:)
         name = File.split(path).last.split('.').first
-        return false_node if @compiler_context[:required_cpp_files][path]
+        return Prism.false_node(location: nil) if @compiler_context[:required_cpp_files][path]
         @compiler_context[:required_cpp_files][path] = name
         cpp_source = File.read(path)
         init_function = "Value init_#{name}(Env *env, Value self)"
@@ -274,6 +275,9 @@ module Natalie
         end
         ::Prism::StatementsNode.new(
           nil,
+          nil,
+          location,
+          0,
           [
             Prism.call_node(
               receiver: nil,
@@ -284,8 +288,7 @@ module Natalie
               location: location
             ),
             ::Prism.true_node(location: location)
-          ],
-          location
+          ]
         )
       end
 
@@ -306,12 +309,8 @@ module Natalie
         drop_error(:LoadError, message, print_warning: @log_load_error, location: location)
       end
 
-      def false_node
-        ::Prism::FalseNode.new(nil, nil)
-      end
-
       def nothing(expr)
-        ::Prism::StatementsNode.new(nil, [], location(expr))
+        ::Prism::StatementsNode.new(nil, nil, location(expr), 0, [])
       end
 
       def location(expr)
