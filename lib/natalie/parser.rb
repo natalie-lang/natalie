@@ -36,7 +36,7 @@ module Prism
 
   # Create a NilNode with the optionally given location.
   def self.nil_node(location:)
-    NilNode.new(nil, location)
+    NilNode.new(nil, nil, location, 0)
   end
 
   # Create an OrNode with the optionally given left, right, and location.
