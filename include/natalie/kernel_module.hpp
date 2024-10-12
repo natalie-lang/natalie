@@ -44,6 +44,7 @@ public:
     static Value catch_method(Env *, Value = nullptr, Block * = nullptr);
     static Value Complex(Env *env, Value real, Value imaginary, Value exception);
     static Value Complex(Env *env, Value real, Value imaginary, bool exception = true);
+    static Value cur_callee(Env *env);
     static Value cur_dir(Env *env);
     static Value exit(Env *env, Value status);
     static Value exit_bang(Env *env, Value status);

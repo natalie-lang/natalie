@@ -158,6 +158,15 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
         return nullptr;
 }
 
+Value KernelModule::cur_callee(Env *env) {
+    auto method = env->caller()->current_method();
+    if (method) {
+        return SymbolObject::intern(method->name());
+    }
+
+    return NilObject::the();
+}
+
 Value KernelModule::cur_dir(Env *env) {
     if (env->file() == nullptr) {
         env->raise("RuntimeError", "could not get current directory");
@@ -832,7 +841,10 @@ Value KernelModule::test(Env *env, Value cmd, Value file) {
 
 Value KernelModule::this_method(Env *env) {
     auto method = env->caller()->current_method();
-    return SymbolObject::intern(method->name());
+    if (method) {
+        return SymbolObject::intern(method->original_name());
+    }
+    return NilObject::the();
 }
 
 Value KernelModule::throw_method(Env *env, Value name, Value value) {

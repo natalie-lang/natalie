@@ -19,6 +19,7 @@ public:
     bool eq(Env *, Value);
     Value ltlt(Env *, Value);
     Value gtgt(Env *, Value);
+    Value hash() const;
     Value source_location();
 
     Value inspect(Env *env) {

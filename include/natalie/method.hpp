@@ -53,6 +53,16 @@ public:
     Method(const TM::String &name, ModuleObject *owner, Block *block)
         : Method(TM::String(name), owner, block) { }
 
+    static Method *from_other(const TM::String &name, Method *other) {
+        auto method = new Method { name, other->owner(), other->fn(), other->arity() };
+        method->m_self = other->m_self;
+        method->m_env = other->m_env;
+        method->m_file = other->m_file;
+        method->m_line = other->m_line;
+        method->set_original_method(other);
+        return method;
+    }
+
     MethodFnPtr fn() { return m_fn; }
     void set_fn(MethodFnPtr fn) { m_fn = fn; }
 
@@ -67,6 +77,14 @@ public:
     String name() const { return m_name; }
     ModuleObject *owner() const { return m_owner; }
 
+    String original_name() const {
+        if (m_original_method)
+            return m_original_method->name();
+        return name();
+    }
+    void set_original_method(Method *method) { m_original_method = method; }
+    Method *original_method() const { return m_original_method; }
+
     int arity() const { return m_arity; }
 
     const Optional<String> &get_file() const { return m_file; }
@@ -76,6 +94,7 @@ public:
         visitor.visit(m_owner);
         visitor.visit(m_env);
         visitor.visit(m_self);
+        visitor.visit(m_original_method);
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -84,6 +103,7 @@ public:
 
 private:
     String m_name {};
+    Method *m_original_method = nullptr;
     ModuleObject *m_owner;
     MethodFnPtr m_fn;
     Value m_self { nullptr };

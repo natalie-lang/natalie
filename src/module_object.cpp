@@ -334,7 +334,10 @@ Value ModuleObject::const_missing(Env *env, Value name) {
 void ModuleObject::make_method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     auto method_info = find_method(env, old_name);
     assert_method_defined(env, old_name, method_info);
-    define_method(env, new_name, method_info.method(), method_info.visibility());
+
+    auto old_method = method_info.method();
+    auto new_method = Method::from_other(new_name->string(), old_method);
+    define_method(env, new_name, new_method, method_info.visibility());
 };
 
 void ModuleObject::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {

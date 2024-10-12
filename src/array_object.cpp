@@ -28,9 +28,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
         env->verbose_warn("given block not used");
 
     if (!size) {
-        ArrayObject new_array;
-        *this = std::move(new_array);
-        return this;
+        return initialize_copy(env, new ArrayObject);
     }
 
     if (!value) {
@@ -39,9 +37,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
             size = size->send(env, to_ary);
 
         if (size->is_array()) {
-            auto target = *size->as_array();
-            *this = std::move(target);
-            return this;
+            return initialize_copy(env, size);
         }
     }
 

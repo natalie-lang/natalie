@@ -363,6 +363,22 @@ describe 'array' do
     end
   end
 
+  describe 'Array#initialize' do
+    it 'keeps instance variables if called from subclass' do
+      foo_class = Class.new(Array) do
+        attr_reader :foo
+
+        def initialize
+          @foo = 1
+          super([1])
+        end
+      end
+
+      foo = foo_class.new
+      foo.foo.should == 1
+    end
+  end
+
   describe '#inspect' do
     it 'returns the syntax representation' do
       [1, 2, 3].inspect.should == '[1, 2, 3]'
