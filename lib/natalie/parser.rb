@@ -14,11 +14,6 @@ module Prism
     CallNode.new(nil, nil, location, flags, receiver, nil, name, nil, nil, arguments, nil, block)
   end
 
-  # Create a ClassVariableWriteNode with the optionally given values.
-  def self.class_variable_write_node(name:, location:, value: nil)
-    ClassVariableWriteNode.new(nil, name, nil, value, nil, location)
-  end
-
   # Create a ConstantReadNode with the optionally given values.
   def self.constant_read_node(name:, location:)
     ConstantReadNode.new(nil, nil, location, 0, name)
@@ -27,11 +22,6 @@ module Prism
   # Create a FalseNode with the optionally given location.
   def self.false_node(location:)
     FalseNode.new(nil, nil, location, 0)
-  end
-
-  # Create an LocalVariableWriteNode with the optionally given location.
-  def self.local_variable_write_node(name:, value:, location:)
-    LocalVariableWriteNode.new(nil, name, 0, nil, value, nil, location)
   end
 
   # Create a NilNode with the optionally given location.
