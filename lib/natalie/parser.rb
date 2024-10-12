@@ -21,7 +21,7 @@ module Prism
 
   # Create a ConstantReadNode with the optionally given values.
   def self.constant_read_node(name:, location:)
-    ConstantReadNode.new(nil, name, location)
+    ConstantReadNode.new(nil, nil, location, 0, name)
   end
 
   # Create a FalseNode with the optionally given location.
