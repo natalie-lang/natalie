@@ -5,7 +5,7 @@ require 'prism'
 module Prism
   # Create an ArrayNode with the optionally given elements and location.
   def self.array_node(location:, elements: [])
-    ArrayNode.new(nil, 0, elements, nil, nil, location)
+    ArrayNode.new(nil, nil, location, 0, elements, nil, nil)
   end
 
   # Create a CallNode with the optionally given values.
