@@ -15,6 +15,24 @@ describe :stringio_read, shared: true do
     buffer.should == "example"
   end
 
+  ruby_version_is ""..."3.4" do
+    it "does not preserve the encoding of the given buffer" do
+      buffer = ''.encode(Encoding::ISO_8859_1)
+      @io.send(@method, 7, buffer)
+
+      buffer.encoding.should_not == Encoding::ISO_8859_1
+    end
+  end
+
+  ruby_version_is "3.4" do
+    it "preserves the encoding of the given buffer" do
+      buffer = ''.encode(Encoding::ISO_8859_1)
+      @io.send(@method, 7, buffer)
+
+      buffer.encoding.should == Encoding::ISO_8859_1
+    end
+  end
+
   it "tries to convert the passed buffer Object to a String using #to_str" do
     obj = mock("to_str")
     obj.should_receive(:to_str).and_return(buffer = +"")
@@ -88,6 +106,14 @@ describe :stringio_read_no_arguments, shared: true do
   it "correctly updates the current position" do
     @io.send(@method)
     @io.pos.should eql(7)
+  end
+
+  it "correctly update the current position in bytes when multi-byte characters are used" do
+    @io.print("example\u03A3") # Overwrite the original string with 8 characters containing 9 bytes.
+    @io.send(@method)
+    NATFIXME 'it correctly update the current position in bytes when multi-byte characters are used', exception: SpecFailedException do
+      @io.pos.should eql(9)
+    end
   end
 end
 
