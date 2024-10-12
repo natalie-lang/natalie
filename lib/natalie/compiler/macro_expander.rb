@@ -274,6 +274,9 @@ module Natalie
         end
         ::Prism::StatementsNode.new(
           nil,
+          nil,
+          location,
+          0,
           [
             Prism.call_node(
               receiver: nil,
@@ -284,8 +287,7 @@ module Natalie
               location: location
             ),
             ::Prism.true_node(location: location)
-          ],
-          location
+          ]
         )
       end
 

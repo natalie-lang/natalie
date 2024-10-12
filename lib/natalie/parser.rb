@@ -46,12 +46,12 @@ module Prism
 
   # Create a StringNode with the optionally given location.
   def self.string_node(unescaped:, location:)
-    StringNode.new(nil, 0, nil, nil, nil, unescaped, location)
+    StringNode.new(nil, nil, location, 0, nil, nil, nil, unescaped)
   end
 
   # Create a TrueNode with the optionally given location.
   def self.true_node(location:)
-    TrueNode.new(nil, location)
+    TrueNode.new(nil, nil, location, 0)
   end
 end
 
