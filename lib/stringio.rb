@@ -434,6 +434,32 @@ class StringIO
     nil
   end
 
+  def ungetc(argument)
+    __assert_not_read_closed
+
+    argument = argument.to_str if !argument.is_a?(String) && argument.respond_to?(:to_str)
+    raise TypeError, "no implicit conversion of #{argument.class} into String" unless argument.is_a?(String)
+
+    if @index > @string.bytesize
+      @string.concat("\x00".b * (@index - @string.bytesize))
+    end
+
+    if @index.zero?
+      @string.prepend(argument)
+    else
+      argument.bytes.reverse.each do |byte|
+        if @index.zero?
+          @string.prepend(byte)
+        else
+          @index -= 1
+          @string.setbyte(@index, byte)
+        end
+      end
+    end
+
+    nil
+  end
+
   def putc(argument)
     __assert_not_write_closed
 
