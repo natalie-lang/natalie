@@ -311,7 +311,7 @@ module Natalie
       end
 
       def nothing(expr)
-        ::Prism::StatementsNode.new(nil, [], location(expr))
+        ::Prism::StatementsNode.new(nil, nil, location(expr), 0, [])
       end
 
       def location(expr)
