@@ -216,7 +216,7 @@ module Natalie
         end
 
         path_to_add = VM.compile_and_run(
-          ::Prism::StatementsNode.new(nil, expr.arguments&.arguments, location(expr)),
+          ::Prism::StatementsNode.new(nil, nil, location(expr), 0, expr.arguments&.arguments),
           path: current_path
         )
 
