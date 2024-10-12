@@ -163,11 +163,12 @@ module Natalie
           node = Prism::StringNode.new(
             nil,
             nil,
+            node.location,
+            0,
             node.opening_loc,
             node.opening_loc,
             node.closing_loc,
             node.parts.map(&:unescaped).join,
-            node.location,
           )
         end
         if node.type == :string_node
