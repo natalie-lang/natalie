@@ -1231,7 +1231,7 @@ module Natalie
                  ).compact
                when Prism::NumberedParametersNode
                  node.maximum.times.map do |i|
-                   Prism::RequiredParameterNode.new(nil, nil, :"_#{i + 1}", node.location)
+                   Prism::RequiredParameterNode.new(nil, nil, node.location, 0, :"_#{i + 1}")
                  end
                else
                  [node]
