@@ -796,10 +796,10 @@ module Natalie
           end
         end
 
-        instructions << if node.consequent.nil?
+        instructions << if node.else_clause.nil?
                           PushNilInstruction.new
                         else
-                          transform_expression(node.consequent, used: true)
+                          transform_expression(node.else_clause, used: true)
                         end
 
         instructions << [EndInstruction.new(:if)] * node.conditions.length
@@ -1475,7 +1475,7 @@ module Natalie
 
       def transform_if_node(node, used:)
         true_body = node.statements || Prism.nil_node(location: node.location)
-        false_body = node.consequent || Prism.nil_node(location: node.location)
+        false_body = node.subsequent || Prism.nil_node(location: node.location)
         true_instructions = transform_expression(true_body, used: true)
         false_instructions = transform_expression(false_body, used: true)
         instructions = [
@@ -2353,8 +2353,8 @@ module Natalie
         )
 
         instructions << ElseInstruction.new(:if)
-        if node.consequent
-          instructions += transform_expression(node.consequent, used: true)
+        if node.subsequent
+          instructions += transform_expression(node.subsequent, used: true)
         else
           instructions += [
             PushSelfInstruction.new,
@@ -2572,7 +2572,7 @@ module Natalie
 
       def transform_unless_node(node, used:)
         true_body = node.statements || Prism.nil_node(location: node.location)
-        false_body = node.consequent || Prism.nil_node(location: node.location)
+        false_body = node.else_clause || Prism.nil_node(location: node.location)
         true_instructions = transform_expression(true_body, used: true)
         false_instructions = transform_expression(false_body, used: true)
         instructions = [
