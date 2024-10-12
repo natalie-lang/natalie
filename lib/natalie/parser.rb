@@ -41,7 +41,7 @@ module Prism
 
   # Create an OrNode with the optionally given left, right, and location.
   def self.or_node(location:, left: nil, right: nil)
-    OrNode.new(nil, left, right, nil, location)
+    OrNode.new(nil, nil, location, 0, left, right, nil)
   end
 
   # Create a StringNode with the optionally given location.
