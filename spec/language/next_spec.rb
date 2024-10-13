@@ -113,11 +113,9 @@ end
 describe "The next statement" do
   describe "in a method" do
     it "is invalid and raises a SyntaxError" do
-      NATFIXME 'it should raise a SyntaxError', exception: SpecFailedException do
-        -> {
-          eval("def m; next; end")
-        }.should raise_error(SyntaxError)
-      end
+      -> {
+        eval("def m; next; end")
+      }.should raise_error(SyntaxError)
     end
   end
 end

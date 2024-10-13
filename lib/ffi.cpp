@@ -48,6 +48,13 @@ static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
                 return &ffi_type_pointer;
             }
         }
+        auto enums = self->ivar_get(env, "@enums"_s);
+        if (!enums->is_nil()) {
+            auto hash = enums->as_hash_or_raise(env);
+            if (hash->has_key(env, type_sym)) {
+                return &ffi_type_sint32;
+            }
+        }
         env->raise("TypeError", "unable to resolve type '{}'", type_sym->string());
     }
 }
@@ -65,7 +72,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
     assert(cif);
 
     auto arg_types = env->outer()->var_get("arg_types", 1)->as_array();
-    auto return_type = env->outer()->var_get("arg_types", 2)->as_symbol();
+    auto return_type = env->outer()->var_get("return_type", 2)->as_symbol();
 
     Value fn_obj = env->outer()->var_get("fn", 4);
     auto fn = (void (*)())fn_obj->as_void_p()->void_ptr();
@@ -141,6 +148,15 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
     } else if (return_type == void_sym) {
         return NilObject::the();
     } else {
+        auto enums = self->ivar_get(env, "@enums"_s);
+        if (!enums->is_nil()) {
+            auto hash = enums->as_hash_or_raise(env);
+            if (hash->has_key(env, return_type)) {
+                hash = hash->ref(env, return_type)->as_hash_or_raise(env);
+                auto return_type_obj = Value::integer(static_cast<int32_t>(result));
+                return hash->fetch(env, return_type_obj, return_type_obj, nullptr);
+            }
+        }
         env->raise("StandardError", "I don't yet know how to handle return type {}", return_type->string());
     }
 }

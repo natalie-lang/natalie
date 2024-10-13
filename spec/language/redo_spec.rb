@@ -60,11 +60,9 @@ describe "The redo statement" do
 
   describe "in a method" do
     it "is invalid and raises a SyntaxError" do
-      NATFIXME 'it is invalid and raises a SyntaxError', exception: SpecFailedException do
-        -> {
-          eval("def m; redo; end")
-        }.should raise_error(SyntaxError)
-      end
+      -> {
+        eval("def m; redo; end")
+      }.should raise_error(SyntaxError)
     end
   end
 end

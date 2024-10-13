@@ -14,6 +14,32 @@ module FFI
       @ffi_typedefs ||= {}
       @ffi_typedefs[name] = FFI::FunctionType.new(param_types, return_type)
     end
+
+    def enum(name, values)
+      if !name.is_a?(Symbol) || !values.is_a?(Array)
+        raise ArgumentError, "invalid enum call, only `enum :name, [:value1, :value...]' is supported"
+      end
+
+      enum = {}
+      i = 0
+      while i < values.size
+        enum_name = values[i]
+        raise TypeError, "expected Symbol, got #{enum_name.class}" unless enum_name.is_a?(Symbol)
+        i += 1
+        enum_value = if values[i].is_a?(Integer)
+                       i += 1
+                       values[i - 1]
+                     elsif !enum.empty?
+                       enum.values.last + 1
+                     else
+                       0
+                     end
+        enum[enum_name] = enum_value
+      end
+
+      @enums ||= {}
+      @enums[name] = enum.invert
+    end
   end
 
   class FunctionType
