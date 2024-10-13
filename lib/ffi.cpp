@@ -65,7 +65,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
     assert(cif);
 
     auto arg_types = env->outer()->var_get("arg_types", 1)->as_array();
-    auto return_type = env->outer()->var_get("arg_types", 2)->as_symbol();
+    auto return_type = env->outer()->var_get("return_type", 2)->as_symbol();
 
     Value fn_obj = env->outer()->var_get("fn", 4);
     auto fn = (void (*)())fn_obj->as_void_p()->void_ptr();
