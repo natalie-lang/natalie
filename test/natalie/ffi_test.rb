@@ -10,11 +10,13 @@ STUB_LIBRARY_PATH = File.expand_path("../../build/test/support/ffi_stubs.#{SO_EX
 module TestStubs
   extend FFI::Library
   ffi_lib STUB_LIBRARY_PATH
+  enum :test_enum, [:A, :B, :C, 10, :D, :ERR, -1]
   attach_function :get_null, [], :pointer
   attach_function :test_bool, [:bool], :bool
   attach_function :test_char, [:char], :char
   attach_function :test_char_pointer, [:pointer], :pointer
   attach_function :test_size_t, [:size_t], :size_t
+  attach_function :test_enum_call, [:char], :test_enum
 end
 
 module LibRubyParser
@@ -138,6 +140,15 @@ describe 'FFI' do
 
   it 'can pass and return integers' do
     TestStubs.test_size_t(3).should == 3
+  end
+
+  it 'can return enum values' do
+    TestStubs.test_enum_call('a'.ord).should == :A
+    TestStubs.test_enum_call('b'.ord).should == :B
+    TestStubs.test_enum_call('c'.ord).should == :C
+    TestStubs.test_enum_call('d'.ord).should == :D
+    TestStubs.test_enum_call('e'.ord).should == 20
+    TestStubs.test_enum_call('f'.ord).should == :ERR
   end
 
   describe 'Pointer' do
