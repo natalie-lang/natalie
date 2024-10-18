@@ -22,7 +22,7 @@ describe 'puts a string' do
     code = <<~RUBY
       # -*- encoding: utf-8 -*-
 
-      puts "😊".encoding
+      puts "\xF0\x9F\x98\x8A".encoding
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
@@ -33,7 +33,7 @@ describe 'puts a string' do
     code = <<~RUBY
       # -*- encoding: binary -*-
 
-      puts "😊".encoding
+      puts "\xF0\x9F\x98\x8A".encoding
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
