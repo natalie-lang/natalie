@@ -263,6 +263,7 @@ public:
     Value instance_variables(Env *);
 
     Value cvar_get(Env *, SymbolObject *);
+    virtual Value cvar_get_or_raise(Env *, SymbolObject *);
     virtual Value cvar_get_or_null(Env *, SymbolObject *);
     virtual Value cvar_set(Env *, SymbolObject *, Value);
 
@@ -354,7 +355,7 @@ public:
 
     bool neq(Env *env, Value other);
 
-    Value instance_eval(Env *, Value, Block *);
+    Value instance_eval(Env *, Args, Block *);
 
     void assert_type(Env *, Object::Type, const char *) const;
     void assert_not_frozen(Env *);

@@ -48,8 +48,12 @@ public:
     void set_calling_env(Env *env) { m_calling_env = env; }
     void clear_calling_env() { m_calling_env = nullptr; }
 
-    void set_self(Value self) { m_self = self; }
+    void set_self(Value self) {
+        m_original_self = m_self;
+        m_self = self;
+    }
     Value self() const { return m_self; }
+    Value original_self() const { return m_original_self; }
 
     void copy_fn_pointer_to_method(Method *);
 
@@ -57,6 +61,7 @@ public:
         visitor.visit(m_env);
         visitor.visit(m_calling_env);
         visitor.visit(m_self);
+        visitor.visit(m_original_self);
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -69,6 +74,7 @@ private:
     Env *m_env { nullptr };
     Env *m_calling_env { nullptr };
     Value m_self { nullptr };
+    Value m_original_self { nullptr };
     BlockType m_type { BlockType::Proc };
 };
 
