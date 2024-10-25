@@ -159,6 +159,7 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 | `cgi/*`          | Wakou Aoyama                      | BSD               |
 | `delegate.rb`    | Yukihiro Matsumoto                | BSD               |
 | `dtoa.c`         | David M. Gay, Lucent Technologies | custom permissive |
+| `erb/util.rb`    | Masatoshi SEKI                    | BSD               |
 | `ipaddr.rb`      | Hajimu Umemoto and Akinori Musha  | BSD               |
 | `find.rb`        | Kazuki Tsujimoto                  | BSD               |
 | `linenoise`      | S. Sanfilippo and P. Noordhuis    | BSD               |
