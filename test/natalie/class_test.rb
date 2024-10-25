@@ -34,6 +34,16 @@ describe 'class' do
       Foo.new.foo2.should == 'foo2'
       Foo.new.foo.should == 'foo'
     end
+
+    it 'should check if the reopened constant really is a class' do
+      -> {
+        class RUBY_VERSION; end
+      }.should raise_error(TypeError, /RUBY_VERSION is not a class/)
+
+      -> {
+        class Comparable; end
+      }.should raise_error(TypeError, /Comparable is not a class/)
+    end
   end
 end
 
