@@ -173,7 +173,8 @@ class Hash
   end
 
   def to_proc
-    lambda { |arg| self[*arg] }
+    this = self
+    ->(arg) { this[*arg] }
   end
 
   def values_at(*keys)

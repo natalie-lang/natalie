@@ -49,17 +49,14 @@ describe "Hash#to_proc" do
       end
 
       context "to instance_exec" do
-        # NATFIXME: I think this spec might even fail because we are using `self` in the returned proc
         it "always retrieves the original hash's values" do
           hash = {foo: 1, bar: 2}
           proc = hash.to_proc
 
-          NATFIXME 'implement instance_exec', exception: NoMethodError, message: "undefined method `instance_exec'" do
-            hash.instance_exec(:foo, &proc).should == 1
+          hash.instance_exec(:foo, &proc).should == 1
 
-            hash2 = {quux: 1}
-            hash2.instance_exec(:foo, &proc).should == 1
-          end
+          hash2 = {quux: 1}
+          hash2.instance_exec(:foo, &proc).should == 1
         end
       end
     end
