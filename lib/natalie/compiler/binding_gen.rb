@@ -459,6 +459,7 @@ gen.binding('BasicObject', 'equal?', 'Object', 'equal', argc: 1, pass_env: false
 gen.binding('BasicObject', '!=', 'Object', 'neq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('BasicObject', 'initialize', 'Object', 'initialize', argc: 0, pass_env: true, pass_block: false, return_type: :Object, visibility: :private)
 gen.binding('BasicObject', 'instance_eval', 'Object', 'instance_eval', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('BasicObject', 'instance_exec', 'Object', 'instance_exec', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('BasicObject', 'method_missing', 'Object', 'method_missing', argc: :any, pass_env: true, pass_block: true, return_type: :Object, visibility: :private)
 
 gen.binding('Binding', 'source_location', 'BindingObject', 'source_location', argc: 0, pass_env: false, pass_block: false, return_type: :Object)

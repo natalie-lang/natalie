@@ -356,6 +356,7 @@ public:
     bool neq(Env *env, Value other);
 
     Value instance_eval(Env *, Args, Block *);
+    Value instance_exec(Env *, Args, Block *);
 
     void assert_type(Env *, Object::Type, const char *) const;
     void assert_not_frozen(Env *);

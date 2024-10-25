@@ -7,8 +7,7 @@ module BasicObjectSpecs
 
   module InstExec
     def self.included(base)
-      # NATFIXME: BasicObject#instance_exec is not implemented yet
-      # base.instance_exec { @@count = 2 }
+      base.instance_exec { @@count = 2 }
     end
   end
 

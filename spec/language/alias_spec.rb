@@ -157,14 +157,12 @@ describe "The alias keyword" do
   end
 
   it "operates on the class/module metaclass when used in instance_exec" do
-    NATFIXME 'implement instance_exec', exception: NoMethodError, message: "undefined method `instance_exec'" do
-      AliasObject.instance_exec do
-        alias __klass_method2 klass_method
-      end
-
-      AliasObject.__klass_method2.should == 7
-      -> { Object.__klass_method2 }.should raise_error(NoMethodError)
+    AliasObject.instance_exec do
+      alias __klass_method2 klass_method
     end
+
+    AliasObject.__klass_method2.should == 7
+    -> { Object.__klass_method2 }.should raise_error(NoMethodError)
   end
 
   it "operates on methods defined via attr, attr_reader, and attr_accessor" do

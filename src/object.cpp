@@ -1264,6 +1264,20 @@ Value Object::instance_eval(Env *env, Args args, Block *block) {
     return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, block_args), nullptr);
 }
 
+Value Object::instance_exec(Env *env, Args args, Block *block) {
+    if (!block)
+        env->raise("LocalJumpError", "no block given");
+    block->set_self(this);
+
+    GlobalEnv::the()->set_instance_evaling(true);
+    Defer done_instance_evaling([block]() {
+        GlobalEnv::the()->set_instance_evaling(false);
+        block->set_self(block->original_self());
+    });
+
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, args, nullptr);
+}
+
 void Object::assert_type(Env *env, Object::Type expected_type, const char *expected_class_name) const {
     if ((type()) != expected_type)
         env->raise_type_error(this, expected_class_name);
@@ -1498,5 +1512,4 @@ StringObject *Object::to_str2(Env *env) {
         klass()->inspect_str(),
         result->klass()->inspect_str());
 }
-
 }
