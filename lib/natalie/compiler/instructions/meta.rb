@@ -3,6 +3,8 @@ module Natalie
     INSTRUCTIONS = [
       AliasGlobalInstruction,
       AliasMethodInstruction,
+      AnonymousBlockGetInstruction,
+      AnonymousBlockSetInstruction,
       ArrayConcatInstruction,
       ArrayPopInstruction,
       ArrayPopWithDefaultInstruction,
