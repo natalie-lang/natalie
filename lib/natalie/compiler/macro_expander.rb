@@ -158,7 +158,7 @@ module Natalie
       def macro_eval(expr:, current_path:, locals:, **)
         args = expr.arguments&.arguments || []
         node = args.first
-        $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
+        $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1 && args[1].type != :nil_node
         if node.type == :interpolated_string_node && node.parts.all? { |subnode| subnode.type == :string_node }
           node = Prism::StringNode.new(
             nil,
@@ -171,9 +171,24 @@ module Natalie
             node.parts.map(&:unescaped).join,
           )
         end
+        line = nil
         if node.type == :string_node
+          if args.size > 2
+            if args[2].is_a?(Prism::StringNode)
+              current_path = args[2].unescaped
+            else
+              $stderr.puts 'FIXME: passed file to eval() will be ignored'
+            end
+          end
+          if args.size > 3
+            if args[3].is_a?(Prism::IntegerNode)
+              line = args[3].value
+            else
+              $stderr.puts 'FIXME: passed line to eval() will be ignored'
+            end
+          end
           begin
-            Natalie::Parser.new(node.unescaped, current_path, locals: locals).ast
+            Natalie::Parser.new(node.unescaped, current_path, line: line, locals: locals).ast
           rescue Parser::ParseError => e
             drop_error(:SyntaxError, e.message, location: node.location)
           end
