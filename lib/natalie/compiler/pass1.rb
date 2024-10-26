@@ -350,7 +350,11 @@ module Natalie
 
       def transform_block_argument_node(node, used:)
         return [] unless used
-        [transform_expression(node.expression, used: true)]
+        if node.expression
+          [transform_expression(node.expression, used: true)]
+        else
+          [AnonymousBlockGetInstruction.new]
+        end
       end
 
       def transform_block_node(node, used:, is_lambda:)
@@ -1216,10 +1220,6 @@ module Natalie
                when nil
                  []
                when Prism::ParametersNode
-                 if node&.block && node.block.name.nil?
-                   raise "Anonymous block argument forwarding not yet supported (#{file.path}:#{node.location.start_line})"
-                 end
-
                  (
                    node.requireds +
                    [node.rest] +
@@ -1249,7 +1249,12 @@ module Natalie
         if args.last&.type == :block_parameter_node
           block_arg = args.pop
           instructions << PushBlockInstruction.new
-          instructions << VariableSetInstruction.new(block_arg.name, local_only: local_only)
+          instructions <<
+            if block_arg.name
+              VariableSetInstruction.new(block_arg.name, local_only: local_only)
+            else
+              AnonymousBlockSetInstruction.new
+            end
         end
 
         has_complicated_args = args.any? do |arg|
