@@ -1,0 +1,60 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.13.5/.schema/devbox.schema.json",
+  "packages": {
+    "autoconf": "latest",
+    "automake": "latest",
+    "ccache": "latest",
+    "clang": "latest",
+    "git": "latest",
+    "glibcLocales": "latest",
+    "libffi": {
+      "version": "latest",
+      "outputs": [
+        "out",
+        "dev"
+      ]
+    },
+    "libtool": "latest",
+    "libxcrypt": "latest",
+    "libyaml": {
+      "version": "latest",
+      "outputs": [
+        "out",
+        "dev"
+      ]
+    },
+    "openssl": {
+      "version": "latest",
+      "outputs": [
+        "out",
+        "dev"
+      ]
+    },
+    "ruby_3_3": "latest",
+    "tzdata": {
+      "version": "latest",
+      "outputs": [
+        "out",
+        "dev"
+      ]
+    },
+    "lldb": "latest"
+  },
+  "env": {
+    "CC": "ccache clang",
+    "CXX": "ccache clang++",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8"
+  },
+  "shell": {
+    "init_hook": [],
+    "scripts": {
+      "build": [
+        "rake build"
+      ],
+      "test": [
+        "rake test"
+      ]
+    }
+  }
+}

@@ -32,6 +32,19 @@ Natalie is tested on macOS and Ubuntu Linux. Windows is not yet supported.
 
 Natalie requires a system Ruby (MRI) to host the compiler, for now.
 
+### Devbox Setup
+
+If you have [Devbox](https://www.jetify.com/devbox) installed, then you can start a shell and get going quickly:
+
+```sh
+git clone https://github.com/natalie-lang/natalie
+cd natalie
+devbox shell
+rake
+```
+
+### Manual Setup
+
 Prerequisites:
 
 - git
@@ -47,13 +60,7 @@ Prerequisites:
 - ccache (optional, but recommended)
 - compiledb (optional, but recommended)
 
-Install the above prerequisites on your platform, then run:
-
-```sh
-git clone https://github.com/natalie-lang/natalie
-cd natalie
-rake
-```
+Install the above prerequisites on your platform, then run `rake`.
 
 ### Troubleshooting Build Errors
 
