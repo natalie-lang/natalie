@@ -1085,7 +1085,11 @@ Value StringObject::crypt(Env *env, Value salt) {
     if (strlen(salt_str->c_str()) < 2)
         env->raise("ArgumentError", "salt too short (need >=2 bytes)");
 
-    return new StringObject { ::crypt(c_str(), salt_str->c_str()) };
+    auto crypted = ::crypt(c_str(), salt_str->c_str());
+    if (!crypted)
+        env->raise_errno();
+
+    return new StringObject { crypted };
 }
 
 Value StringObject::delete_str(Env *env, Args selectors) {
