@@ -5,6 +5,8 @@ module Natalie
       AliasMethodInstruction,
       AnonymousBlockGetInstruction,
       AnonymousBlockSetInstruction,
+      AnonymousSplatGetInstruction,
+      AnonymousSplatSetInstruction,
       ArrayConcatInstruction,
       ArrayPopInstruction,
       ArrayPopWithDefaultInstruction,

@@ -277,6 +277,28 @@ describe 'method' do
     blank_splat_middle(1, 2, 3, 4).should == [1, 4]
   end
 
+  def anonymous_splat_forward_receiver(*args)
+    args
+  end
+
+  def anonymous_splat_forwarding_middle(a, *,  b)
+    anonymous_splat_forward_receiver(*)
+  end
+
+  def anonymous_splat_forwarding_first(*,  a)
+    anonymous_splat_forward_receiver(*)
+  end
+
+  def anonymous_splat_forwarding_last(a, *)
+    anonymous_splat_forward_receiver(*)
+  end
+
+  it 'forwards splats' do
+    anonymous_splat_forwarding_middle(1, 2, 3, 4, 5).should == [2, 3, 4]
+    anonymous_splat_forwarding_first(1, 2, 3, 4, 5).should == [1, 2, 3, 4]
+    anonymous_splat_forwarding_last(1, 2, 3, 4, 5).should == [2, 3, 4, 5]
+  end
+
   def method_name
     __method__
   end

@@ -241,6 +241,9 @@ module Natalie
         if (name = arg.name)
           @instructions << variable_set(name)
           @instructions << VariableGetInstruction.new(name)
+        else
+          @instructions << AnonymousSplatSetInstruction.new
+          @instructions << AnonymousSplatGetInstruction.new
         end
         :reverse
       end

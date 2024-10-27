@@ -238,10 +238,13 @@ module Natalie
         # now add to the array the first splat item and everything after
         elements.each do |arg|
           if arg.type == :splat_node
-            if arg.expression.nil?
-              raise "Anonymous splat argument forwarding not yet supported (#{file.path}:#{arg.location.start_line})"
-            end
-            instructions << transform_expression(arg.expression, used: true)
+            instructions <<
+              if arg.expression
+                transform_expression(arg.expression, used: true)
+              else
+                AnonymousSplatGetInstruction.new
+              end
+
             instructions << ArrayConcatInstruction.new
           else
             instructions << transform_expression(arg, used: true)
