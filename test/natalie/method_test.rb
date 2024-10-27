@@ -277,6 +277,28 @@ describe 'method' do
     blank_splat_middle(1, 2, 3, 4).should == [1, 4]
   end
 
+  def anonymous_splat_forward_receiver(*args)
+    args
+  end
+
+  def anonymous_splat_forwarding_middle(a, *,  b)
+    anonymous_splat_forward_receiver(*)
+  end
+
+  def anonymous_splat_forwarding_first(*,  a)
+    anonymous_splat_forward_receiver(*)
+  end
+
+  def anonymous_splat_forwarding_last(a, *)
+    anonymous_splat_forward_receiver(*)
+  end
+
+  it 'forwards splats' do
+    anonymous_splat_forwarding_middle(1, 2, 3, 4, 5).should == [2, 3, 4]
+    anonymous_splat_forwarding_first(1, 2, 3, 4, 5).should == [1, 2, 3, 4]
+    anonymous_splat_forwarding_last(1, 2, 3, 4, 5).should == [2, 3, 4, 5]
+  end
+
   def method_name
     __method__
   end
@@ -439,6 +461,14 @@ def method_with_kwargs14(a = '', **kwargs)
   [a, kwargs]
 end
 
+def method_forwarding_kwargs_receiver(a: nil, **kwargs)
+  [a, kwargs]
+end
+
+def method_forwarding_kwargs(a: 1, **)
+  method_forwarding_kwargs_receiver(a:, **)
+end
+
 def method_implicit_kwargs(*args)
   args
 end
@@ -478,6 +508,11 @@ describe 'method with keyword args' do
     method_with_kwargs14.should == ['', {}]
     method_with_kwargs14(a: 1).should == ['', { a: 1 }]
     method_with_kwargs14([]).should == [[], {}]
+  end
+
+  it 'anonymously forward keyword args' do
+    method_forwarding_kwargs(b: 2, c: 3).should == [1, { b: 2, c: 3 }]
+    method_forwarding_kwargs(a: 2, b: 2, c: 3).should == [2, { b: 2, c: 3 }]
   end
 
   it 'accepts hash key shorthand' do
