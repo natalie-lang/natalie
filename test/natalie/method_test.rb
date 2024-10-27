@@ -461,6 +461,14 @@ def method_with_kwargs14(a = '', **kwargs)
   [a, kwargs]
 end
 
+def method_forwarding_kwargs_receiver(a: nil, **kwargs)
+  [a, kwargs]
+end
+
+def method_forwarding_kwargs(a: 1, **)
+  method_forwarding_kwargs_receiver(a:, **)
+end
+
 def method_implicit_kwargs(*args)
   args
 end
@@ -500,6 +508,11 @@ describe 'method with keyword args' do
     method_with_kwargs14.should == ['', {}]
     method_with_kwargs14(a: 1).should == ['', { a: 1 }]
     method_with_kwargs14([]).should == [[], {}]
+  end
+
+  it 'anonymously forward keyword args' do
+    method_forwarding_kwargs(b: 2, c: 3).should == [1, { b: 2, c: 3 }]
+    method_forwarding_kwargs(a: 2, b: 2, c: 3).should == [2, { b: 2, c: 3 }]
   end
 
   it 'accepts hash key shorthand' do

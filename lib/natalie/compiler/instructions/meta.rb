@@ -5,6 +5,8 @@ module Natalie
       AliasMethodInstruction,
       AnonymousBlockGetInstruction,
       AnonymousBlockSetInstruction,
+      AnonymousKeywordSplatGetInstruction,
+      AnonymousKeywordSplatSetInstruction,
       AnonymousSplatGetInstruction,
       AnonymousSplatSetInstruction,
       ArrayConcatInstruction,

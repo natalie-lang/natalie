@@ -1466,10 +1466,12 @@ module Natalie
         # now, if applicable, add to the hash the splat element and everything after
         node.elements[prior_to_splat_count..].each do |element|
           if element.type == :assoc_splat_node
-            if element.value.nil?
-              raise "Anonymous keyword splat argument forwarding not yet supported (#{file.path}:#{node.location.start_line})"
-            end
-            instructions << transform_expression(element.value, used: true)
+            instructions <<
+              if element.value
+                transform_expression(element.value, used: true)
+              else
+                AnonymousKeywordSplatGetInstruction.new
+              end
             instructions << HashMergeInstruction.new
           else
             instructions << transform_expression(element.key, used: true)

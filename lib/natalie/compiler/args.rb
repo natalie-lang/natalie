@@ -274,6 +274,9 @@ module Natalie
         if arg.name
           @instructions << variable_set(arg.name)
           @instructions << VariableGetInstruction.new(arg.name)
+        else
+          @instructions << AnonymousKeywordSplatSetInstruction.new
+          @instructions << AnonymousKeywordSplatGetInstruction.new
         end
         @has_keyword_splat = true
         :reverse unless remaining_keyword_args.any?
