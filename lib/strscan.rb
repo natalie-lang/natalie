@@ -2,11 +2,12 @@ class StringScanner
   class Error < StandardError
   end
 
-  private def initialize(string)
+  private def initialize(string, fixed_anchor: false)
     @string = string.to_str
     @pos = 0
     @prev_pos = nil
     @matched = nil
+    @fixed_anchor = fixed_anchor
   end
 
   attr_reader :string, :matched, :pos

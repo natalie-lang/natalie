@@ -64,31 +64,27 @@ end
 
 describe "StringScanner#scan with fixed_anchor: true" do
   before :each do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-      @s = StringScanner.new("This\nis\na\ntest", fixed_anchor: true)
-    end
+    @s = StringScanner.new("This\nis\na\ntest", fixed_anchor: true)
   end
 
   it "returns the matched string" do
-    NATFIXME 'Broken setup', exception: SpecFailedException do
-      @s.scan(/\w+/).should == "This"
-      @s.scan(/.../m).should == "\nis"
-      @s.scan(//).should == ""
-      @s.scan(/\s+/).should == "\n"
-    end
+    @s.scan(/\w+/).should == "This"
+    @s.scan(/.../m).should == "\nis"
+    @s.scan(//).should == ""
+    @s.scan(/\s+/).should == "\n"
   end
 
   it "treats ^ as matching from the beginning of line" do
-    NATFIXME 'Broken setup', exception: SpecFailedException do
-      @s.scan(/\w+\n/).should == "This\n"
-      @s.scan(/^\w/).should == "i"
+    @s.scan(/\w+\n/).should == "This\n"
+    @s.scan(/^\w/).should == "i"
+    NATFIXME 'StringScanner#scan with fixed_anchor: true', exception: SpecFailedException do
       @s.scan(/^\w/).should be_nil
     end
   end
 
   it "treats \\A as matching from the beginning of string" do
-    NATFIXME 'Broken setup', exception: SpecFailedException do
-      @s.scan(/\A\w/).should == "T"
+    @s.scan(/\A\w/).should == "T"
+    NATFIXME 'StringScanner#scan with fixed_anchor: true', exception: SpecFailedException do
       @s.scan(/\A\w/).should be_nil
     end
   end
