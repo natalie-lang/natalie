@@ -412,11 +412,12 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
 
     if (GlobalEnv::the()->instance_evaling()) {
         // Set class variable in block definition scope
-        if (env->this_block() && env->this_block()->original_self()) {
-            if (env->this_block()->original_self()->is_module()) {
-                return set_cvar_in(env->this_block()->original_self()->as_module());
+        auto context = GlobalEnv::the()->current_instance_eval_context();
+        if (context.block_original_self) {
+            if (context.block_original_self->is_module()) {
+                return set_cvar_in(context.block_original_self->as_module());
             } else {
-                return set_cvar_in(env->this_block()->original_self()->klass());
+                return set_cvar_in(context.block_original_self->klass());
             }
         }
     }

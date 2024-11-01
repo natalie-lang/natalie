@@ -678,10 +678,10 @@ Value Object::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode sea
 
 Value Object::const_find_with_autoload(Env *env, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     if (GlobalEnv::the()->instance_evaling()) {
-        if (env->caller() && env->caller()->caller() && env->caller()->caller()->module()) {
+        auto context = GlobalEnv::the()->current_instance_eval_context();
+        if (context.caller_env->module()) {
             // We want to search the constant in the context in which instance_eval was called
-            // This seems pretty hacky, it might be a better idea to store the "context" in which instance_eval was called instead
-            return env->caller()->caller()->module()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
+            return context.caller_env->module()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
         }
     }
     return m_klass->const_find_with_autoload(env, self, name, search_mode, failure_mode);
@@ -780,9 +780,8 @@ Value Object::instance_variables(Env *env) {
 Value Object::cvar_get(Env *env, SymbolObject *name) {
     if (GlobalEnv::the()->instance_evaling()) {
         // Get class variable in block definition scope
-        if (env->this_block() && env->this_block()->original_self()) {
-            return env->this_block()->original_self()->cvar_get_or_raise(env, name);
-        }
+        auto context = GlobalEnv::the()->current_instance_eval_context();
+        return context.block_original_self->cvar_get_or_raise(env, name);
     }
     return cvar_get_or_raise(env, name);
 }
@@ -1254,11 +1253,11 @@ Value Object::instance_eval(Env *env, Args args, Block *block) {
     }
 
     Value self = this;
+    GlobalEnv::the()->push_instance_eval_context(env->caller(), block->self());
     block->set_self(self);
-    GlobalEnv::the()->set_instance_evaling(true);
     Defer done_instance_evaling([block]() {
-        GlobalEnv::the()->set_instance_evaling(false);
-        block->set_self(block->original_self());
+        auto context = GlobalEnv::the()->pop_instance_eval_context();
+        block->set_self(context.block_original_self);
     });
     Value block_args[] = { self };
     return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, block_args), nullptr);
@@ -1267,12 +1266,12 @@ Value Object::instance_eval(Env *env, Args args, Block *block) {
 Value Object::instance_exec(Env *env, Args args, Block *block) {
     if (!block)
         env->raise("LocalJumpError", "no block given");
-    block->set_self(this);
 
-    GlobalEnv::the()->set_instance_evaling(true);
+    GlobalEnv::the()->push_instance_eval_context(env->caller(), block->self());
+    block->set_self(this);
     Defer done_instance_evaling([block]() {
-        GlobalEnv::the()->set_instance_evaling(false);
-        block->set_self(block->original_self());
+        auto context = GlobalEnv::the()->pop_instance_eval_context();
+        block->set_self(context.block_original_self);
     });
 
     return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, args, nullptr);
