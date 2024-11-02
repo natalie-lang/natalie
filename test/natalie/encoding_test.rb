@@ -868,8 +868,8 @@ describe 'encodings' do
         string.bytes.should == 'a'.encode(Encoding::UTF_16BE).bytes
       end
 
-      "\xD8\x00\xDC\x00\x00\xFF".force_encoding(Encoding::UTF_16BE).chop!.bytes.should == [216, 0, 220, 0]
-      "\xD8\x00\xDC\x00\xFF".force_encoding(Encoding::UTF_16BE).chop!.bytes.should == [216, 0, 220, 0]
+      (+"\xD8\x00\xDC\x00\x00\xFF").force_encoding(Encoding::UTF_16BE).chop!.bytes.should == [216, 0, 220, 0]
+      (+"\xD8\x00\xDC\x00\xFF").force_encoding(Encoding::UTF_16BE).chop!.bytes.should == [216, 0, 220, 0]
     end
   end
 
@@ -923,8 +923,8 @@ describe 'encodings' do
         string.bytes.should == 'a'.encode(Encoding::UTF_16LE).bytes
       end
 
-      "\x00\xD8\x00\xDC\xFF\x00".force_encoding(Encoding::UTF_16LE).chop!.bytes.should == [0, 216, 0, 220]
-      "\x00\xD8\x00\xDC\xFF".force_encoding(Encoding::UTF_16LE).chop!.bytes.should == [0, 216, 0, 220]
+      (+"\x00\xD8\x00\xDC\xFF\x00").force_encoding(Encoding::UTF_16LE).chop!.bytes.should == [0, 216, 0, 220]
+      (+"\x00\xD8\x00\xDC\xFF").force_encoding(Encoding::UTF_16LE).chop!.bytes.should == [0, 216, 0, 220]
     end
   end
 
