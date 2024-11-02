@@ -37,7 +37,7 @@ else
 end
 SPEC_TEMP_DIR = spec_temp_dir
 
-SPEC_TEMP_UNIQUIFIER = "0"
+SPEC_TEMP_UNIQUIFIER = +"0"
 
 at_exit do
   begin
