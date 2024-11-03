@@ -74,7 +74,7 @@ describe "Zlib::Inflate.inflate" do
     data = [120, 156, 75, 203, 207, 7, 0, 2, 130, 1, 69].pack('C*')
     z = Zlib::Inflate.new
     # add bytes, one by one
-    result = ""
+    result = +""
     data.each_byte { |d| result << z.inflate(d.chr)}
     result << z.finish
     NATFIXME 'it properly handles data in chunks', exception: SpecFailedException do
@@ -86,7 +86,8 @@ describe "Zlib::Inflate.inflate" do
     data = [120, 156, 75, 203, 207, 7, 0, 2, 130, 1, 69].pack('C*')[0,5]
     z = Zlib::Inflate.new
     # add bytes, one by one, but not all
-    result = ""
+    result = +""
+    data.each_byte { |d| result << z.inflate(d.chr)}
     NATFIXME 'it properly handles incomplete data', exception: SpecFailedException do
       -> { result << z.finish }.should raise_error(Zlib::BufError)
     end
@@ -95,7 +96,7 @@ describe "Zlib::Inflate.inflate" do
   it "properly handles excessive data, byte-by-byte" do
     main_data = [120, 156, 75, 203, 207, 7, 0, 2, 130, 1, 69].pack('C*')
     data =  main_data * 2
-    result = ""
+    result = +""
 
     z = Zlib::Inflate.new
     # add bytes, one by one
@@ -112,7 +113,7 @@ describe "Zlib::Inflate.inflate" do
   it "properly handles excessive data, in one go" do
     main_data = [120, 156, 75, 203, 207, 7, 0, 2, 130, 1, 69].pack('C*')
     data =  main_data * 2
-    result = ""
+    result = +""
 
     z = Zlib::Inflate.new
     result << z.inflate(data)

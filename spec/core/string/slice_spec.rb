@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-
+# frozen_string_literal: false
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 require_relative 'shared/slice'
@@ -24,10 +24,8 @@ describe "String#slice with Regexp, index" do
   it_behaves_like :string_slice_regexp_index, :slice
 end
 
-quarantine! do
-  describe "String#slice with Regexp, group" do
-    it_behaves_like :string_slice_regexp_group, :slice
-  end
+describe "String#slice with Regexp, group" do
+  it_behaves_like :string_slice_regexp_group, :slice
 end
 
 describe "String#slice with String" do
@@ -121,14 +119,14 @@ describe "String#slice! with index, length" do
     -> { "hello".freeze.slice!(4, -3) }.should raise_error(FrozenError)
   end
 
-  quarantine! do
-    it "calls to_int on idx and length" do
-      "hello".slice!(0.5, 2.5).should == "he"
+  it "calls to_int on idx and length" do
+    "hello".slice!(0.5, 2.5).should == "he"
 
-      obj = mock('2')
-      def obj.to_int() 2 end
-      "hello".slice!(obj, obj).should == "ll"
+    obj = mock('2')
+    def obj.to_int() 2 end
+    "hello".slice!(obj, obj).should == "ll"
 
+    NATFIXME 'calls to_int on range arguments', exception: NoMethodError, message: "undefined method `to_int' for an instance of MockObject" do
       obj = mock('2')
       def obj.respond_to?(name, *) name == :to_int; end
       def obj.method_missing(name, *) name == :to_int ? 2 : super; end
@@ -185,31 +183,31 @@ describe "String#slice! Range" do
     s.slice!(0..4).should be_an_instance_of(String)
   end
 
-  quarantine! do
-    it "calls to_int on range arguments" do
-      from = mock('from')
-      to = mock('to')
+  it "calls to_int on range arguments" do
+    from = mock('from')
+    to = mock('to')
 
-      # So we can construct a range out of them...
-      def from.<=>(o) 0 end
-      def to.<=>(o) 0 end
+    # So we can construct a range out of them...
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
 
-      def from.to_int() 1 end
-      def to.to_int() -2 end
+    def from.to_int() 1 end
+    def to.to_int() -2 end
 
-      "hello there".slice!(from..to).should == "ello ther"
+    "hello there".slice!(from..to).should == "ello ther"
 
-      from = mock('from')
-      to = mock('to')
+    from = mock('from')
+    to = mock('to')
 
-      def from.<=>(o) 0 end
-      def to.<=>(o) 0 end
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
 
-      def from.respond_to?(name, *) name == :to_int; end
-      def from.method_missing(name) name == :to_int ? 1 : super; end
-      def to.respond_to?(name, *) name == :to_int; end
-      def to.method_missing(name) name == :to_int ? -2 : super; end
+    def from.respond_to?(name, *) name == :to_int; end
+    def from.method_missing(name) name == :to_int ? 1 : super; end
+    def to.respond_to?(name, *) name == :to_int; end
+    def to.method_missing(name) name == :to_int ? -2 : super; end
 
+    NATFIXME 'calls to_int on range arguments', exception: NoMethodError, message: "undefined method `to_int' for an instance of MockObject" do
       "hello there".slice!(from..to).should == "ello ther"
     end
   end

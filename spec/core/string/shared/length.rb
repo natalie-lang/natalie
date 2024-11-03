@@ -12,14 +12,14 @@ describe :string_length, shared: true do
 
   it "returns the length of a string in different encodings" do
     utf8_str = 'こにちわ' * 100
-    utf8_str.size.should == 400
-    utf8_str.encode(Encoding::UTF_32BE).size.should == 400
+    utf8_str.send(@method).should == 400
+    utf8_str.encode(Encoding::UTF_32BE).send(@method).should == 400
     # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
-    # utf8_str.encode(Encoding::SHIFT_JIS).size.should == 400
+    # utf8_str.encode(Encoding::SHIFT_JIS).send(@method).should == 400
   end
 
   it "returns the length of the new self after encoding is changed" do
-    str = 'こにちわ'
+    str = +'こにちわ'
     str.send(@method)
 
     str.force_encoding('BINARY').send(@method).should == 12
@@ -33,8 +33,26 @@ describe :string_length, shared: true do
     concat.encoding.should == Encoding::UTF_8
     concat.bytesize.should == 4
 
-    concat.size.should == 2
+    concat.send(@method).should == 2
     concat.force_encoding(Encoding::ASCII_8BIT)
-    concat.size.should == 4
+    concat.send(@method).should == 4
+  end
+
+  it "adds 1 for every invalid byte in UTF-8" do
+    NATFIXME 'adds 1 for every invalid byte in UTF-8', exception: SpecFailedException do
+      "\xF4\x90\x80\x80".send(@method).should == 4
+      "a\xF4\x90\x80\x80b".send(@method).should == 6
+      "é\xF4\x90\x80\x80è".send(@method).should == 6
+    end
+  end
+
+  it "adds 1 (and not 2) for a incomplete surrogate in UTF-16" do
+    "\x00\xd8".dup.force_encoding("UTF-16LE").send(@method).should == 1
+    "\xd8\x00".dup.force_encoding("UTF-16BE").send(@method).should == 1
+  end
+
+  it "adds 1 for a broken sequence in UTF-32" do
+    "\x04\x03\x02\x01".dup.force_encoding("UTF-32LE").send(@method).should == 1
+    "\x01\x02\x03\x04".dup.force_encoding("UTF-32BE").send(@method).should == 1
   end
 end
