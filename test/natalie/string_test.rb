@@ -335,7 +335,8 @@ describe 'string' do
 
   describe '#[]=' do
     it 'returns passed string' do
-      (("abc".dup)[1] = "x").should == "x"
+      str = +"abc"
+      (str[1] = "x").should == "x"
     end
   end
 
