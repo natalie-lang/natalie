@@ -4,14 +4,16 @@ require_relative 'fixtures/classes'
 
 describe "String#split with String" do
   it "throws an ArgumentError if the string  is not a valid" do
-    s = "\xDF".force_encoding(Encoding::UTF_8)
+    s = "\xDF".dup.force_encoding(Encoding::UTF_8)
+
     -> { s.split }.should raise_error(ArgumentError)
     -> { s.split(':') }.should raise_error(ArgumentError)
   end
 
   it "throws an ArgumentError if the pattern is not a valid string" do
     str = 'проверка'
-    broken_str = "\xDF".force_encoding(Encoding::UTF_8)
+    broken_str = "\xDF".dup.force_encoding(Encoding::UTF_8)
+
     -> { str.split(broken_str) }.should raise_error(ArgumentError)
   end
 
@@ -103,6 +105,7 @@ describe "String#split with String" do
       begin
         [",", ":", "", "XY", nil].each do |fs|
           $; = fs
+
           ["x,y,z,,,", "1:2:", "aXYbXYcXY", ""].each do |str|
             expected = str.split(fs || " ")
 
@@ -170,20 +173,16 @@ describe "String#split with String" do
 
   it "tries converting its pattern argument to a string via to_str" do
     obj = mock('::')
-    # obj.should_receive(:to_str).and_return("::")
+    obj.should_receive(:to_str).and_return("::")
 
-    NATFIXME 'tries converting its pattern argument to a string via to_str', exception: TypeError, message: 'expected Regexp' do
-      "hello::world".split(obj).should == ["hello", "world"]
-    end
+    "hello::world".split(obj).should == ["hello", "world"]
   end
 
   it "tries converting limit to an integer via to_int" do
     obj = mock('2')
-    # obj.should_receive(:to_int).and_return(2)
+    obj.should_receive(:to_int).and_return(2)
 
-    NATFIXME 'tries converting limit to an integer via to_int', exception: TypeError, message: 'into Integer' do
-      "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
-    end
+    "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
   end
 
   it "doesn't set $~" do
@@ -240,7 +239,8 @@ end
 
 describe "String#split with Regexp" do
   it "throws an ArgumentError if the string  is not a valid" do
-    s = "\xDF".force_encoding(Encoding::UTF_8)
+    s = "\xDF".dup.force_encoding(Encoding::UTF_8)
+
     -> { s.split(/./) }.should raise_error(ArgumentError)
   end
 
@@ -378,11 +378,9 @@ describe "String#split with Regexp" do
 
   it "tries converting limit to an integer via to_int" do
     obj = mock('2')
-    # obj.should_receive(:to_int).and_return(2)
+    obj.should_receive(:to_int).and_return(2)
 
-    NATFIXME 'tries converting limit to an integer via to_int', exception: TypeError, message: 'into Integer' do
-      "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
-    end
+    "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
   end
 
   it "returns a type error if limit can't be converted to an integer" do
@@ -428,7 +426,7 @@ describe "String#split with Regexp" do
   end
 
   it "returns an ArgumentError if an invalid UTF-8 string is supplied" do
-    broken_str = 'проверка' # in russian, means "test"
+    broken_str = +'проверка' # in russian, means "test"
     broken_str.force_encoding('binary')
     broken_str.chop!
     broken_str.force_encoding('utf-8')
@@ -440,12 +438,9 @@ describe "String#split with Regexp" do
     str = 'a,b,c,d,e'
 
     p = proc { str.split(/,/) }
-    NATFIXME 'Maybe need a mutex in RegexpObject::search() or StringObject::split()', exception: SpecFailedException do
-      results = 10.times.map { Thread.new { x = nil; 100.times { x = p.call }; x } }.map(&:value)
+    results = 10.times.map { Thread.new { x = nil; 100.times { x = p.call }; x } }.map(&:value)
 
-      results << nil # NATFIXME: remove this once above bug is fixed
-      results.should == [%w[a b c d e]] * 10
-    end
+    results.should == [%w[a b c d e]] * 10
   end
 
   context "when a block is given" do
@@ -560,7 +555,6 @@ describe "String#split with Regexp" do
     end
   end
 
-  # NATFIXME: for a String subclass
   describe "for a String subclass" do
     it "yields instances of String" do
       a = []

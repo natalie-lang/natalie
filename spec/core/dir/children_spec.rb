@@ -47,7 +47,7 @@ describe "Dir.children" do
     encoding = Encoding.find("filesystem")
     encoding = Encoding::BINARY if encoding == Encoding::US_ASCII
     platform_is_not :windows do
-      children.should include("こんにちは.txt".force_encoding(encoding))
+      children.should include("こんにちは.txt".dup.force_encoding(encoding))
     end
     children.first.encoding.should equal(Encoding.find("filesystem"))
   end
@@ -115,7 +115,7 @@ describe "Dir#children" do
     encoding = Encoding.find("filesystem")
     encoding = Encoding::BINARY if encoding == Encoding::US_ASCII
     platform_is_not :windows do
-      children.should include("こんにちは.txt".force_encoding(encoding))
+      children.should include("こんにちは.txt".dup.force_encoding(encoding))
     end
     children.first.encoding.should equal(Encoding.find("filesystem"))
   end
@@ -133,6 +133,21 @@ describe "Dir#children" do
       @dir = Dir.new(File.join(DirSpecs.mock_dir, 'special'))
       children = @dir.children.sort
       children.first.encoding.should equal(Encoding::EUC_KR)
+    end
+  end
+
+  it "returns the same result when called repeatedly" do
+    NATFIXME 'it returns the same result when called repeatedly', exception: SpecFailedException do
+      @dir = Dir.open DirSpecs.mock_dir
+
+      a = []
+      @dir.each {|dir| a << dir}
+
+      b = []
+      @dir.each {|dir| b << dir}
+
+      a.sort.should == b.sort
+      a.sort.should == DirSpecs.expected_paths
     end
   end
 end

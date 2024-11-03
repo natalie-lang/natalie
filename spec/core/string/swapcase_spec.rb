@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# frozen_string_literal: false
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
@@ -19,6 +20,7 @@ describe "String#swapcase" do
         "äÖü".swapcase.should == "ÄöÜ"
       end
     end
+
     it "updates string metadata" do
       NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
         swapcased = "Aßet".swapcase
@@ -44,7 +46,6 @@ describe "String#swapcase" do
   describe "full Unicode case mapping adapted for Turkic languages" do
     it "swaps case of ASCII characters according to Turkic semantics" do
       NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-
         "aiS".swapcase(:turkic).should == "Aİs"
       end
     end
@@ -123,9 +124,7 @@ describe "String#swapcase!" do
     end
 
     it "updates string metadata" do
-
       NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-
         swapcased = "Aßet"
         swapcased.swapcase!
 
@@ -184,10 +183,6 @@ describe "String#swapcase!" do
 
     it "allows Turkic as an extra option (and applies Turkic semantics)" do
       NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-
-
-
-
         a = "iS"
         a.swapcase!(:lithuanian, :turkic)
         a.should == "İs"

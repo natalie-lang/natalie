@@ -1,3 +1,4 @@
+# frozen_string_literal: false
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
@@ -231,10 +232,10 @@ describe "String#sub with pattern and block" do
     offsets = []
 
     str.sub(/([aeiou])/) do
-        md = $~
-        md.string.should == str
-        offsets << md.offset(0)
-        str
+      md = $~
+      md.string.should == str
+      offsets << md.offset(0)
+      str
     end.should == "hhellollo"
 
     offsets.should == [[1, 2]]
@@ -340,10 +341,10 @@ describe "String#sub! with pattern and block" do
     offsets = []
 
     str.dup.sub!(/([aeiou])/) do
-        md = $~
-        md.string.should == str
-        offsets << md.offset(0)
-        str
+      md = $~
+      md.string.should == str
+      offsets << md.offset(0)
+      str
     end.should == "hhellollo"
 
     offsets.should == [[1, 2]]

@@ -19,7 +19,7 @@ describe :array_inspect, shared: true do
   end
 
   it "does not call #to_s on a String returned from #inspect" do
-    str = "abc"
+    str = +"abc"
     str.should_not_receive(:to_s)
 
     [str].send(@method).should == '["abc"]'
@@ -101,8 +101,8 @@ describe :array_inspect, shared: true do
 
     it "does not raise if inspected result is not default external encoding" do
       NATFIXME 'Fix String#encode!', exception: SpecFailedException do
-        utf_16be = mock("utf_16be")
-        utf_16be.should_receive(:inspect).and_return(%<"utf_16be \u3042">.encode!(Encoding::UTF_16BE))
+        utf_16be = mock(+"utf_16be")
+        utf_16be.should_receive(:inspect).and_return(%<"utf_16be \u3042">.encode(Encoding::UTF_16BE))
 
         [utf_16be].send(@method).should == '["utf_16be \u3042"]'
       end

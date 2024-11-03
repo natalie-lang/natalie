@@ -56,7 +56,7 @@ describe :string_to_sym, shared: true do
   it "ignores existing symbols with different encoding" do
     source = "fée"
 
-    iso_symbol = source.force_encoding(Encoding::ISO_8859_1).send(@method)
+    iso_symbol = source.dup.force_encoding(Encoding::ISO_8859_1).send(@method)
     iso_symbol.encoding.should == Encoding::ISO_8859_1
     binary_symbol = source.dup.force_encoding(Encoding::BINARY).send(@method)
     NATFIXME 'Symbol lookup (s_symbols) does not check encoding', exception: SpecFailedException do

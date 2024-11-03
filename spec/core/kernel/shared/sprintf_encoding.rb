@@ -15,15 +15,15 @@ describe :kernel_sprintf_encoding, shared: true do
 
   it "returns a String in the same encoding as the format String if compatible" do
     NATFIXME 'KOI8_U encoding not implemented', exception: NameError do
-      string = "%s".force_encoding(Encoding::KOI8_U)
+      string = "%s".dup.force_encoding(Encoding::KOI8_U)
       result = @method.call(string, "dogs")
       result.encoding.should equal(Encoding::KOI8_U)
     end
   end
 
   it "returns a String in the argument's encoding if format encoding is more restrictive" do
-    string = "foo %s".force_encoding(Encoding::US_ASCII)
-    argument = "b\303\274r".force_encoding(Encoding::UTF_8)
+    string = "foo %s".dup.force_encoding(Encoding::US_ASCII)
+    argument = "b\303\274r".dup.force_encoding(Encoding::UTF_8)
 
     result = @method.call(string, argument)
     result.encoding.should equal(Encoding::UTF_8)
@@ -60,7 +60,7 @@ describe :kernel_sprintf_encoding, shared: true do
     end
 
     it "uses the encoding of the format string to interpret codepoints" do
-      format = "%c".force_encoding("euc-jp")
+      format = "%c".dup.force_encoding("euc-jp")
       result = @method.call(format, 9415601)
 
       NATFIXME 'uses the encoding of the format string to interpret codepoints', exception: SpecFailedException do

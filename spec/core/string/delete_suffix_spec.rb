@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# frozen_string_literal: false
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
@@ -21,6 +22,12 @@ describe "String#delete_suffix" do
     r.should == s
   end
 
+  it "does not remove partial bytes, only full characters" do
+    NATFIXME 'does not remove partial bytes, only full characters', exception: SpecFailedException do
+      "\xe3\x81\x82".delete_suffix("\x82").should == "\xe3\x81\x82"
+    end
+  end
+
   it "doesn't set $~" do
     $~ = nil
 
@@ -37,6 +44,10 @@ describe "String#delete_suffix" do
   it "returns a String instance when called on a subclass instance" do
     s = StringSpecs::MyString.new('hello')
     s.delete_suffix('ello').should be_an_instance_of(String)
+  end
+
+  it "returns a String in the same encoding as self" do
+    "hello".encode("US-ASCII").delete_suffix("ello").encoding.should == Encoding::US_ASCII
   end
 end
 
