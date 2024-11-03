@@ -176,7 +176,7 @@ describe 'string' do
     end
 
     it 'does not raise an error when encoding binary to binary' do
-      (+"\xFF").force_encoding('ASCII-8BIT').encode('ASCII-8BIT').should == (+"\xFF").force_encoding("ASCII-8BIT")
+      "\xFF".dup.force_encoding('ASCII-8BIT').encode('ASCII-8BIT').should == "\xFF".dup.force_encoding("ASCII-8BIT")
     end
 
     context "UTF-16BE" do
@@ -335,7 +335,7 @@ describe 'string' do
 
   describe '#[]=' do
     it 'returns passed string' do
-      ((+"abc")[1] = "x").should == "x"
+      (("abc".dup)[1] = "x").should == "x"
     end
   end
 
@@ -582,7 +582,7 @@ describe 'string' do
 
   describe '#chomp!' do
     it 'does not read out of bounds' do
-      (+"\n").chomp!.should == ''
+      "\n".dup.chomp!.should == ''
     end
   end
 
@@ -610,11 +610,11 @@ describe 'string' do
         s.chop!
         s.should == ''.encode('UTF-32LE')
 
-        s = (+"\x00\x00\x00").force_encoding('UTF-32LE') # incorrect binary representation - it should take 4 bytes, not 3
+        s = "\x00\x00\x00".dup.force_encoding('UTF-32LE') # incorrect binary representation - it should take 4 bytes, not 3
         s.chop!
         s.should == "".encode('UTF-32LE')
 
-        s = (+"\x00\x00\x00\x00\x00\xD8\x00\x00").force_encoding('UTF-32LE') # incorrect codepoint 0xD800 - it isn't supported
+        s = "\x00\x00\x00\x00\x00\xD8\x00\x00".dup.force_encoding('UTF-32LE') # incorrect codepoint 0xD800 - it isn't supported
         s.chop!
         s.should == "\u0000".encode('UTF-32LE')
       end
@@ -631,11 +631,11 @@ describe 'string' do
         s.chop!
         s.should == ''.encode('UTF-32BE')
 
-        s = (+"\x00\x00\x00").force_encoding('UTF-32BE') # incorrect binary representation - it should take 4 bytes, not 3
+        s = "\x00\x00\x00".dup.force_encoding('UTF-32BE') # incorrect binary representation - it should take 4 bytes, not 3
         s.chop!
         s.should == "".encode('UTF-32BE')
 
-        s = (+"\x00\x00\x00\x00\x00\x00\xD8\x00").force_encoding('UTF-32BE') # incorrect codepoint 0xD800 - it isn't supported
+        s = "\x00\x00\x00\x00\x00\x00\xD8\x00".dup.force_encoding('UTF-32BE') # incorrect codepoint 0xD800 - it isn't supported
         s.chop!
         s.should == "\u0000".encode('UTF-32BE')
       end
@@ -661,23 +661,23 @@ describe 'string' do
         s.should == 'foo'.encode('UTF-16LE')
 
         # FIXME
-        # s = 'foo'.encode('UTF-16LE') + (+"\xFF").force_encoding('UTF-16LE') # incorrect 1-byte sequence
+        # s = 'foo'.encode('UTF-16LE') + "\xFF".dup.force_encoding('UTF-16LE') # incorrect 1-byte sequence
         # s.chop!
         # s.bytes.should == 'foo'.encode('UTF-16LE').bytes
 
         # FIXME
-        # s = 'foo'.encode('UTF-16LE') + (+"\x00\xD8\x00").force_encoding('UTF-16LE') # incorrect 3-byte sequence
+        # s = 'foo'.encode('UTF-16LE') + "\x00\xD8\x00".dup.force_encoding('UTF-16LE') # incorrect 3-byte sequence
         # s.chop!
-        # s.should == 'foo'.encode('UTF-16LE') + (+"\x00\xD8").force_encoding('UTF-16LE')
+        # s.should == 'foo'.encode('UTF-16LE') + "\x00\xD8".dup.force_encoding('UTF-16LE')
 
         # incorrect sequence: the second code unit - DC00-1 - within D800-DFFF
-        s = 'foo'.encode('UTF-16LE') + (+"\x00\xD8\xFF\xDB").force_encoding('UTF-16LE')
+        s = 'foo'.encode('UTF-16LE') + "\x00\xD8\xFF\xDB".dup.force_encoding('UTF-16LE')
         s.chop!
-        s.should == 'foo'.encode('UTF-16LE') + (+"\x00\xD8").force_encoding('UTF-16LE')
+        s.should == 'foo'.encode('UTF-16LE') + "\x00\xD8".dup.force_encoding('UTF-16LE')
 
         # FIXME
         # incorrect sequence: the first code unit - DBFF+1 - within D800-DFFF
-        # s = 'foo'.encode('UTF-16LE') + (+"\x00\xDC\x00\xDC").force_encoding('UTF-16LE')
+        # s = 'foo'.encode('UTF-16LE') + "\x00\xDC\x00\xDC".dup.force_encoding('UTF-16LE')
         # s.chop!
         # s.should == 'foo'.encode('UTF-16LE')
       end
@@ -790,35 +790,35 @@ describe 'string' do
     # Test EucJpEncoding::prev_char method
     it "chops the last char of an empty string" do
       # empty string case
-      s = (+'').force_encoding('EUCJP')
+      s = ''.dup.force_encoding('EUCJP')
       s.chop!
-      s.should == (+'').force_encoding('EUCJP')
+      s.should == ''.dup.force_encoding('EUCJP')
     end
 
     it "chops the last char of a string with single-byte final char" do
       # single-byte char
-      s = (+"foo\x77").force_encoding('EUCJP')
+      s = "foo\x77".dup.force_encoding('EUCJP')
       s.chop!
-      s.should == (+'foo').force_encoding('EUCJP')
+      s.should == 'foo'.dup.force_encoding('EUCJP')
     end
 
     it "chops the last char of a string with two-byte final char" do
       # two-byte char removal
-      s = (+"foo\xA1\xA1").force_encoding('EUCJP')
+      s = "foo\xA1\xA1".dup.force_encoding('EUCJP')
       s.chop!
-      s.should == (+'foo').force_encoding('EUCJP')
+      s.should == 'foo'.dup.force_encoding('EUCJP')
 
       # two-byte char removal (8E lead)
-      s = (+"foo\x8E\xA1").force_encoding('EUCJP')
+      s = "foo\x8E\xA1".dup.force_encoding('EUCJP')
       s.chop!
-      s.should == (+'foo').force_encoding('EUCJP')
+      s.should == 'foo'.dup.force_encoding('EUCJP')
     end
 
     it "chops the last char of a string with three-byte final char" do
       # three-byte char removal (8E lead)
-      s = (+"foo\x8F\xA1\xA2").force_encoding('EUCJP')
+      s = "foo\x8F\xA1\xA2".dup.force_encoding('EUCJP')
       s.chop!
-      s.should == (+'foo').force_encoding('EUCJP')
+      s.should == 'foo'.dup.force_encoding('EUCJP')
     end
   end
 
