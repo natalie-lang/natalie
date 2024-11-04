@@ -17,6 +17,7 @@ module TestStubs
   attach_function :test_char_pointer, [:pointer], :pointer
   attach_function :test_size_t, [:size_t], :size_t
   attach_function :test_enum_call, [:char], :test_enum
+  attach_function :test_enum_argument, [:test_enum], :char
 end
 
 module LibRubyParser
@@ -149,6 +150,21 @@ describe 'FFI' do
     TestStubs.test_enum_call('d'.ord).should == :D
     TestStubs.test_enum_call('e'.ord).should == 20
     TestStubs.test_enum_call('f'.ord).should == :ERR
+  end
+
+  it 'can handle enum arguments' do
+    TestStubs.test_enum_argument(:A).should == 'a'.ord
+    TestStubs.test_enum_argument(:B).should == 'b'.ord
+    TestStubs.test_enum_argument(:C).should == 'c'.ord
+    TestStubs.test_enum_argument(:D).should == 'd'.ord
+    TestStubs.test_enum_argument(:ERR).should == 'e'.ord
+    -> { TestStubs.test_enum_argument(:UNLISTED) }.should raise_error(ArgumentError, 'invalid enum value, :UNLISTED')
+    -> { TestStubs.test_enum_argument('UNLISTED') }.should raise_error(ArgumentError, 'invalid enum value, "UNLISTED"')
+  end
+
+  it 'accepts numeric values as enum arguments, even when not defined in the enum' do
+    TestStubs.test_enum_argument(1).should == 'b'.ord
+    TestStubs.test_enum_argument(123).should == 'x'.ord
   end
 
   describe 'Pointer' do
