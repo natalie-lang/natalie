@@ -2,11 +2,12 @@ class StringScanner
   class Error < StandardError
   end
 
-  private def initialize(string)
+  private def initialize(string, fixed_anchor: false)
     @string = string.to_str
     @pos = 0
     @prev_pos = nil
     @matched = nil
+    @fixed_anchor = fixed_anchor
   end
 
   attr_reader :string, :matched, :pos
@@ -86,8 +87,18 @@ class StringScanner
       raise TypeError, "no implicit conversion of #{pattern.class} into String" unless pattern.is_a?(String)
       pattern = Regexp.new(Regexp.quote(pattern))
     end
-    anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
-    if (@match = rest.match(anchored_pattern))
+    @match = if @fixed_anchor
+               @string.match(pattern, @pos)
+             else
+               anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
+               rest.match(anchored_pattern)
+             end
+    if @match
+      if @fixed_anchor && pattern.source.start_with?('^') && @match.pre_match.size > @pos
+        @match = nil
+        @matched = nil
+        return nil
+      end
       @matched = @match.to_s
       @prev_pos = @pos
       @pos += @matched.size
