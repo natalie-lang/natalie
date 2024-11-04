@@ -17,7 +17,7 @@ describe "``" do
       str.frozen?.should == true
     end
 
-    NATFIXME 'Implement instance_exec', exception: NoMethodError, message: /undefined method `instance_exec'/ do
+    NATFIXME 'this is broken', exception: SpecFailedException do
       runner.instance_exec do
         `test command`
       end
@@ -38,15 +38,13 @@ describe "``" do
       str << "mutated"
     end
 
-    NATFIXME 'Implement instance_exec', exception: NoMethodError, message: /undefined method `instance_exec'/ do
-      2.times do
-        runner.instance_exec do
-          `test #{:command}` # rubocop:disable Lint/LiteralInInterpolation
-        end
+    2.times do
+      runner.instance_exec do
+        `test #{:command}` # rubocop:disable Lint/LiteralInInterpolation
       end
-
-      called.should == true
     end
+
+    called.should == true
   end
 end
 
@@ -67,7 +65,7 @@ describe "%x" do
       str.frozen?.should == true
     end
 
-    NATFIXME 'Implement instance_exec', exception: NoMethodError, message: /undefined method `instance_exec'/ do
+    NATFIXME 'this is broken', exception: SpecFailedException do
       runner.instance_exec do
         %x{test command}
       end
@@ -88,14 +86,12 @@ describe "%x" do
       str << "mutated"
     end
 
-    NATFIXME 'Implement instance_exec', exception: NoMethodError, message: /undefined method `instance_exec'/ do
-      2.times do
-        runner.instance_exec do
-          %x{test #{:command}} # rubocop:disable Lint/LiteralInInterpolation
-        end
+    2.times do
+      runner.instance_exec do
+        %x{test #{:command}} # rubocop:disable Lint/LiteralInInterpolation
       end
-
-      called.should == true
     end
+
+    called.should == true
   end
 end

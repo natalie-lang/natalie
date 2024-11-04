@@ -389,24 +389,40 @@ Value ModuleObject::cvar_get_or_null(Env *env, SymbolObject *name) {
 }
 
 Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
-    if (!name->is_cvar_name())
-        env->raise_name_error(name, "`{}' is not allowed as a class variable name", name->string());
+    auto set_cvar_in = [env, name, &val](ModuleObject *module) -> Value {
+        if (!name->is_cvar_name())
+            env->raise_name_error(name, "`{}' is not allowed as a class variable name", name->string());
 
-    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ModuleObject *current = this;
+        ModuleObject *current = module;
 
-    Value exists = nullptr;
-    while (current) {
-        exists = current->m_class_vars.get(name, env);
-        if (exists) {
-            current->m_class_vars.put(name, val.object(), env);
-            return val;
+        Value exists = nullptr;
+        while (current) {
+            exists = current->m_class_vars.get(name, env);
+            if (exists) {
+                current->m_class_vars.put(name, val.object(), env);
+                return val;
+            }
+            current = current->m_superclass;
         }
-        current = current->m_superclass;
+        module->m_class_vars.put(name, val.object(), env);
+        return val;
+    };
+
+    if (GlobalEnv::the()->instance_evaling()) {
+        // Set class variable in block definition scope
+        auto context = GlobalEnv::the()->current_instance_eval_context();
+        if (context.block_original_self) {
+            if (context.block_original_self->is_module()) {
+                return set_cvar_in(context.block_original_self->as_module());
+            } else {
+                return set_cvar_in(context.block_original_self->klass());
+            }
+        }
     }
-    m_class_vars.put(name, val.object(), env);
-    return val;
+
+    return set_cvar_in(this);
 }
 
 bool ModuleObject::class_variable_defined(Env *env, Value name) {

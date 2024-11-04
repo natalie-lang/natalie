@@ -8,6 +8,7 @@
 #include "natalie/gc.hpp"
 #include "natalie/global_variable_info.hpp"
 #include "natalie/method_missing_reason.hpp"
+#include "natalie/value.hpp"
 #include "tm/hashmap.hpp"
 #include "tm/span.hpp"
 
@@ -16,6 +17,11 @@ namespace Natalie {
 extern "C" {
 #include "onigmo.h"
 }
+
+struct InstanceEvalContext {
+    Env *caller_env;
+    Value block_original_self;
+};
 
 class GlobalEnv : public Cell {
 public:
@@ -96,8 +102,10 @@ public:
     MethodMissingReason method_missing_reason() const { return m_method_missing_reason; }
     void set_method_missing_reason(MethodMissingReason reason) { m_method_missing_reason = reason; }
 
-    bool instance_evaling() const { return m_instance_evaling; }
-    void set_instance_evaling(bool instance_evaling) { m_instance_evaling = instance_evaling; }
+    bool instance_evaling() const { return !m_instance_eval_contexts.is_empty(); }
+    void push_instance_eval_context(Env *caller_env, Value block_original_self) { m_instance_eval_contexts.push(InstanceEvalContext { caller_env, block_original_self }); }
+    const InstanceEvalContext &current_instance_eval_context() { return m_instance_eval_contexts.last(); }
+    InstanceEvalContext pop_instance_eval_context() { return m_instance_eval_contexts.pop(); }
 
     bool rescued() const { return m_rescued; }
     void set_rescued(bool rescued) { m_rescued = rescued; }
@@ -146,7 +154,9 @@ private:
 
     Env *m_main_env { nullptr };
     MethodMissingReason m_method_missing_reason { MethodMissingReason::Undefined };
-    bool m_instance_evaling { false };
+
+    Vector<InstanceEvalContext> m_instance_eval_contexts {};
+
     bool m_rescued { false };
     bool m_verbose { false };
 

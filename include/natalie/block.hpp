@@ -48,7 +48,9 @@ public:
     void set_calling_env(Env *env) { m_calling_env = env; }
     void clear_calling_env() { m_calling_env = nullptr; }
 
-    void set_self(Value self) { m_self = self; }
+    void set_self(Value self) {
+        m_self = self;
+    }
     Value self() const { return m_self; }
 
     void copy_fn_pointer_to_method(Method *);

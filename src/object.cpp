@@ -677,6 +677,13 @@ Value Object::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode sea
 }
 
 Value Object::const_find_with_autoload(Env *env, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+    if (GlobalEnv::the()->instance_evaling()) {
+        auto context = GlobalEnv::the()->current_instance_eval_context();
+        if (context.caller_env->module()) {
+            // We want to search the constant in the context in which instance_eval was called
+            return context.caller_env->module()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
+        }
+    }
     return m_klass->const_find_with_autoload(env, self, name, search_mode, failure_mode);
 }
 
@@ -771,6 +778,15 @@ Value Object::instance_variables(Env *env) {
 }
 
 Value Object::cvar_get(Env *env, SymbolObject *name) {
+    if (GlobalEnv::the()->instance_evaling()) {
+        // Get class variable in block definition scope
+        auto context = GlobalEnv::the()->current_instance_eval_context();
+        return context.block_original_self->cvar_get_or_raise(env, name);
+    }
+    return cvar_get_or_raise(env, name);
+}
+
+Value Object::cvar_get_or_raise(Env *env, SymbolObject *name) {
     Value val = cvar_get_or_null(env, name);
     if (val) {
         return val;
@@ -870,11 +886,17 @@ SymbolObject *Object::undefine_singleton_method(Env *env, SymbolObject *name) {
 }
 
 SymbolObject *Object::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
+    if (GlobalEnv::the()->instance_evaling()) {
+        return define_singleton_method(env, name, fn, arity, optimized);
+    }
     m_klass->define_method(env, name, fn, arity, optimized);
     return name;
 }
 
 SymbolObject *Object::define_method(Env *env, SymbolObject *name, Block *block) {
+    if (GlobalEnv::the()->instance_evaling()) {
+        return define_singleton_method(env, name, block);
+    }
     m_klass->define_method(env, name, block);
     return name;
 }
@@ -1220,16 +1242,39 @@ void Object::freeze() {
     if (m_singleton_class) m_singleton_class->freeze();
 }
 
-Value Object::instance_eval(Env *env, Value string, Block *block) {
-    if (string || !block) {
+Value Object::instance_eval(Env *env, Args args, Block *block) {
+    if (block) {
+        args.ensure_argc_is(env, 0);
+    }
+
+    if (args.size() > 0 || !block) {
+        args.ensure_argc_between(env, 1, 3);
         env->raise("ArgumentError", "Natalie only supports instance_eval with a block");
     }
+
     Value self = this;
+    GlobalEnv::the()->push_instance_eval_context(env->caller(), block->self());
     block->set_self(self);
-    GlobalEnv::the()->set_instance_evaling(true);
-    Defer done_instance_evaling([]() { GlobalEnv::the()->set_instance_evaling(false); });
-    Value args[] = { self };
-    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+    Defer done_instance_evaling([block]() {
+        auto context = GlobalEnv::the()->pop_instance_eval_context();
+        block->set_self(context.block_original_self);
+    });
+    Value block_args[] = { self };
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, block_args), nullptr);
+}
+
+Value Object::instance_exec(Env *env, Args args, Block *block) {
+    if (!block)
+        env->raise("LocalJumpError", "no block given");
+
+    GlobalEnv::the()->push_instance_eval_context(env->caller(), block->self());
+    block->set_self(this);
+    Defer done_instance_evaling([block]() {
+        auto context = GlobalEnv::the()->pop_instance_eval_context();
+        block->set_self(context.block_original_self);
+    });
+
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, args, nullptr);
 }
 
 void Object::assert_type(Env *env, Object::Type expected_type, const char *expected_class_name) const {
@@ -1466,5 +1511,4 @@ StringObject *Object::to_str2(Env *env) {
         klass()->inspect_str(),
         result->klass()->inspect_str());
 }
-
 }

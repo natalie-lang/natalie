@@ -127,6 +127,10 @@ void GlobalEnv::visit_children(Visitor &visitor) {
     for (const auto &span : m_interned_strings)
         for (auto str : span)
             visitor.visit(str);
+    for (const auto &instance_eval_context : m_instance_eval_contexts) {
+        visitor.visit(instance_eval_context.caller_env);
+        visitor.visit(instance_eval_context.block_original_self);
+    }
     visitor.visit(m_Array);
     visitor.visit(m_BasicObject);
     visitor.visit(m_Binding);
