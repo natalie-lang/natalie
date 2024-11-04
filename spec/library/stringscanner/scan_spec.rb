@@ -77,9 +77,7 @@ describe "StringScanner#scan with fixed_anchor: true" do
   it "treats ^ as matching from the beginning of line" do
     @s.scan(/\w+\n/).should == "This\n"
     @s.scan(/^\w/).should == "i"
-    NATFIXME 'StringScanner#scan with fixed_anchor: true and ^ anchor', exception: SpecFailedException do
-      @s.scan(/^\w/).should be_nil
-    end
+    @s.scan(/^\w/).should be_nil
   end
 
   it "treats \\A as matching from the beginning of string" do

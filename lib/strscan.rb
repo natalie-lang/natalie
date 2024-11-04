@@ -94,6 +94,11 @@ class StringScanner
                rest.match(anchored_pattern)
              end
     if @match
+      if @fixed_anchor && pattern.source.start_with?('^') && @match.pre_match.size > @pos
+        @match = nil
+        @matched = nil
+        return nil
+      end
       @matched = @match.to_s
       @prev_pos = @pos
       @pos += @matched.size
