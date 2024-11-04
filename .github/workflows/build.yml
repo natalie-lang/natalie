@@ -41,7 +41,7 @@ jobs:
           export GLOB=$(ruby spec/support/split_specs.rb 3 ${{ matrix.group }})
           rake docker_test_${{ matrix.compiler }}
   macos:
-    runs-on: macos-12
+    runs-on: macos-latest
     strategy:
       matrix:
         group:
@@ -60,9 +60,8 @@ jobs:
           rm -rf /usr/local/lib/ruby/gems/3.0.0 /usr/local/opt/ruby@3.0
           brew install ruby@3.3
       - name: check ruby
-        env:
-          PATH: "/usr/local/opt/ruby/bin:/usr/local/bin/:/usr/bin"
         run: |
+          export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
           which ruby
           ruby --version
           which bundle
@@ -77,7 +76,7 @@ jobs:
           PKG_CONFIG_PATH: /usr/local/opt/openssl@3/lib/pkgconfig:/opt/homebrew/opt/openssl@3/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig:/opt/homebrew/opt/libffi/lib/pkgconfig
         run: |
           export GLOB=$(ruby spec/support/split_specs.rb 3 ${{ matrix.group }})
-          export PATH="/usr/local/opt/ruby/bin:$PATH"
+          export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
           rake test
   self-hosted:
     runs-on: ubuntu-24.04
