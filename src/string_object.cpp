@@ -1,6 +1,7 @@
 #include "natalie/string_object.hpp"
 #include "ctype.h"
 #include "natalie.hpp"
+#include "natalie/crypt.h"
 #include "natalie/string_unpacker.hpp"
 #include "string.h"
 
