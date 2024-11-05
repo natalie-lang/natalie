@@ -33,7 +33,7 @@ Value KernelModule::abort_method(Env *env, Value message) {
         exception = SystemExit.send(env, "new"_s, { Value::integer(1), message })->as_exception();
 
         auto out = env->global_get("$stderr"_s);
-        out->send(env, "write"_s, { message });
+        out->send(env, "puts"_s, { message });
     } else {
         exception = SystemExit.send(env, "new"_s, { Value::integer(1) })->as_exception();
     }
