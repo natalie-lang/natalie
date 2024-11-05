@@ -1150,6 +1150,7 @@ gen.module_function_binding('Process', 'pid', 'ProcessModule', 'pid', argc: 0, p
 gen.module_function_binding('Process', 'ppid', 'ProcessModule', 'ppid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process', 'setpgrp', 'ProcessModule', 'setpgrp', argc: 0, pass_env: true, pass_block: false, return_type: :int)
 gen.module_function_binding('Process', 'setsid', 'ProcessModule', 'setsid', argc: 0, pass_env: true, pass_block: false, return_type: :int)
+gen.module_function_binding('Process', 'times', 'ProcessModule', 'times', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process', 'uid', 'ProcessModule', 'uid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process', 'uid=', 'ProcessModule', 'setuid', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process::GID', 'eid', 'ProcessModule', 'egid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

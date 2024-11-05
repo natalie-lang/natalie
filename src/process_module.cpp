@@ -1,6 +1,8 @@
 #include "natalie.hpp"
 
 #include <signal.h>
+#include <sys/resource.h>
+#include <sys/time.h>
 #include <time.h>
 
 namespace Natalie {
@@ -67,6 +69,23 @@ Value ProcessModule::kill(Env *env, Args args) {
         env->raise_exception(exception);
     }
     return Value::integer(pids->size());
+}
+
+Value ProcessModule::times(Env *env) {
+    rusage rusage_self, rusage_children;
+    if (getrusage(RUSAGE_SELF, &rusage_self) == -1)
+        env->raise_errno();
+    if (getrusage(RUSAGE_CHILDREN, &rusage_children) == -1)
+        env->raise_errno();
+    auto tv_to_float = [](const timeval tv) {
+        return Value::floatingpoint(static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) / 1e6);
+    };
+    auto utime = tv_to_float(rusage_self.ru_utime);
+    auto stime = tv_to_float(rusage_self.ru_stime);
+    auto cutime = tv_to_float(rusage_children.ru_utime);
+    auto cstime = tv_to_float(rusage_children.ru_stime);
+    auto Tms = fetch_nested_const({ "Process"_s, "Tms"_s })->as_class();
+    return _new(env, Tms, { utime, stime, cutime, cstime }, nullptr);
 }
 
 }
