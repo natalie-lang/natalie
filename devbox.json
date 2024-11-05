@@ -15,7 +15,6 @@
       ]
     },
     "libtool": "latest",
-    "libxcrypt": "latest",
     "libyaml": {
       "version": "latest",
       "outputs": [

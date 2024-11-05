@@ -161,9 +161,9 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 
 | file(s)          | copyright                         | license           |
 | ---------------- | --------------------------------- | ----------------- |
-| `bigint.*`       | 983                               | Unlicense         |
-| `cgi.rb`         | Wakou Aoyama                      | BSD               |
-| `cgi/*`          | Wakou Aoyama                      | BSD               |
+| `bigint.{h,c}`   | 983                               | Unlicense         |
+| `cgi.rb`/`cgi/*` | Wakou Aoyama                      | BSD               |
+| `crypt.{h,c}`    | The Regents of the Univ. of Cali. | BSD               |
 | `delegate.rb`    | Yukihiro Matsumoto                | BSD               |
 | `dtoa.c`         | David M. Gay, Lucent Technologies | custom permissive |
 | `erb/util.rb`    | Masatoshi SEKI                    | BSD               |
@@ -175,8 +175,7 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 | `prettyprint.rb` | Yukihiro Matsumoto                | BSD               |
 | `shellwords.rb`  | Akinori MUSHA                     | BSD               |
 | `spec/*`         | Engine Yard, Inc.                 | MIT               |
-| `uri.rb`         | Akira Yamada                      | BSD               |
-| `uri/*`          | Akira Yamada                      | BSD               |
+| `uri.rb`/`uri/*` | Akira Yamada                      | BSD               |
 | `version.rb`     | Engine Yard, Inc.                 | MIT               |
 | `zlib`           | Jean-loup Gailly and Mark Adler   | zlib license      |
 

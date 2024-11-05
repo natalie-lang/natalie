@@ -421,7 +421,7 @@ end
 STANDARD = 'c++17'.freeze
 HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
 
-PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp')
+PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp', 'src/des_tables.c')
 RUBY_SOURCES = Rake::FileList['src/**/*.rb'].exclude('**/extconf.rb')
 SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generated/bindings.cpp']
 SOURCES = PRIMARY_SOURCES + RUBY_SOURCES + SPECIAL_SOURCES
