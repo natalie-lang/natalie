@@ -1167,49 +1167,121 @@ module Natalie
         return [] unless used
 
         body = transform_expression(node.value, used: true)
-        case body.last
-        when ConstFindInstruction
-          type = 'constant'
-        when CreateHashInstruction
-          # peculiarity that hashes always return 'expression'
-          type = 'expression'
-          return [PushStringInstruction.new(type)]
-        when GlobalVariableGetInstruction
-          type = 'global-variable'
-        when InstanceVariableGetInstruction
-          type = 'instance-variable'
-        when PushFalseInstruction
-          type = 'false'
-        when SendInstruction
-          if body.last.with_block
-            # peculiarity that send with a block always returns 'expression'
-            type = 'expression'
-            return [PushStringInstruction.new(type)]
+
+        current_node = node.value
+        loop do
+          case current_node
+          when Prism::ParenthesesNode
+            current_node = current_node.body
+          when Prism::StatementsNode
+            current_node = current_node.body.last
           else
-            type = 'method'
+            break
           end
-        when PushNilInstruction
-          type = 'nil'
-        when PushTrueInstruction
-          type = 'true'
-        when VariableGetInstruction
-          type = 'local-variable'
-        else
-          type = 'expression'
         end
+
+        instant_return_type = ->(type) {
+          [PushStringInstruction.new(type, frozen: true)]
+        }
+
+        type =
+          case current_node
+          when Prism::LocalVariableWriteNode, Prism::InstanceVariableWriteNode, Prism::GlobalVariableWriteNode,
+              Prism::ClassVariableWriteNode, Prism::ConstantWriteNode, Prism::ConstantPathWriteNode,
+              Prism::MultiWriteNode, Prism::LocalVariableOperatorWriteNode, Prism::InstanceVariableOperatorWriteNode,
+              Prism::GlobalVariableOperatorWriteNode, Prism::ClassVariableOperatorWriteNode, Prism::ConstantOperatorWriteNode,
+              Prism::ConstantPathOperatorWriteNode, Prism::CallOperatorWriteNode, Prism::IndexOperatorWriteNode,
+              Prism::LocalVariableOrWriteNode, Prism::InstanceVariableOrWriteNode, Prism::GlobalVariableOrWriteNode,
+              Prism::ClassVariableOrWriteNode, Prism::ConstantOrWriteNode, Prism::ConstantPathOrWriteNode,
+              Prism::CallOrWriteNode, Prism::IndexOrWriteNode, Prism::LocalVariableAndWriteNode, Prism::InstanceVariableAndWriteNode,
+              Prism::GlobalVariableAndWriteNode, Prism::ClassVariableAndWriteNode, Prism::ConstantAndWriteNode,
+              Prism::ConstantPathAndWriteNode, Prism::CallAndWriteNode, Prism::IndexAndWriteNode
+            return instant_return_type.('assignment')
+          when Prism::TrueNode
+            return instant_return_type.('true')
+          when Prism::FalseNode
+            return instant_return_type.('false')
+          when Prism::NilNode
+            return instant_return_type.('nil')
+          when Prism::SelfNode
+            return instant_return_type.('self')
+          when Prism::IfNode, Prism::UnlessNode, Prism::CaseNode, Prism::ForNode, Prism::AndNode, Prism::OrNode,
+              Prism::RetryNode, Prism::ReturnNode, Prism::RedoNode, Prism::BreakNode, Prism::WhileNode,
+              Prism::UntilNode, Prism::NextNode, Prism::BeginNode, Prism::StringNode, Prism::InterpolatedStringNode,
+              Prism::InterpolatedRegularExpressionNode, Prism::IntegerNode, Prism::FloatNode,
+              Prism::HashNode, Prism::SymbolNode, Prism::RegularExpressionNode, Prism::RangeNode
+            return instant_return_type.('expression')
+          when Prism::CallNode
+            if current_node.block
+              return instant_return_type.('expression')
+            end
+            'method'
+          when Prism::YieldNode
+            'yield'
+          when Prism::SuperNode, Prism::ForwardingSuperNode
+            'super'
+          when Prism::ConstantReadNode, Prism::ConstantPathNode
+            'constant'
+          when Prism::LocalVariableReadNode
+            'local-variable'
+          when Prism::InstanceVariableReadNode
+            'instance-variable'
+          when Prism::ClassVariableReadNode
+            'class variable'
+          when Prism::GlobalVariableReadNode, Prism::BackReferenceReadNode
+            'global-variable'
+          when Prism::NumberedReferenceReadNode
+            if current_node.number == 0
+              'global-variable'
+            else
+              send_instruction_index = body.find_index { |instruction| instruction.is_a?(SendInstruction) }
+
+              # If the match data is present (new if clause), we return "global-variable" otherwise nil
+              return [
+                *body[..send_instruction_index],
+                IfInstruction.new,
+                PushStringInstruction.new('global-variable', frozen: true),
+                ElseInstruction.new(:if),
+                PushNilInstruction.new,
+                EndInstruction.new(:if),
+                *body[(send_instruction_index + 1)..]
+              ]
+            end
+          else
+            'expression'
+          end
+
+
         body.each_with_index do |instruction, index|
           case instruction
           when GlobalVariableGetInstruction
-            body[index] = GlobalVariableDefinedInstruction.new(instruction.name)
+            body[index] = [GlobalVariableDefinedInstruction.new(instruction.name), instruction]
           when InstanceVariableGetInstruction
-            body[index] = InstanceVariableDefinedInstruction.new(instruction.name)
+            body[index] = [InstanceVariableDefinedInstruction.new(instruction.name), instruction]
           when SendInstruction
-            body[index] = instruction.to_method_defined_instruction
+            if index == body.length - 1
+              body[index] = instruction.to_method_defined_instruction
+            else
+              # Arguments should not be evaluated so we instead push nil for and send instructions
+              # inside of arguments. This is super hacky because it looks at the name of the method
+              if current_node.is_a?(Prism::CallNode) && current_node.arguments &&
+                  current_node.arguments.arguments.select { |node| node.is_a?(Prism::CallNode) }.map(&:name).include?(body[index].message)
+
+                # Remove all related instructions
+                argc_instruction = body[index - 1]
+                body[index - 1] = nil
+                argc_instruction.count.times do |n|
+                  body[index - n - 2] = nil
+                end
+                body[index] = PushNilInstruction.new
+              end
+            end
           end
         end
+
         [
           IsDefinedInstruction.new(type: type),
-          body,
+          body.compact.flatten,
           EndInstruction.new(:is_defined),
         ]
       end

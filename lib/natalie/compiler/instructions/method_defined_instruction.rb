@@ -30,8 +30,11 @@ module Natalie
 
         receiver = transform.pop
 
+        # NOTE: This seems hacky but defined?(puts) returns true even though it's a private method so
+        # we have to include all methods in this case
+        include_all = receiver == 'self'
         transform.exec(
-          "if (!#{receiver}->respond_to(env, #{transform.intern(@message)})) throw new ExceptionObject"
+          "if (!#{receiver}->respond_to(env, #{transform.intern(@message)}, #{include_all})) throw new ExceptionObject"
         )
         transform.push_nil
       end
