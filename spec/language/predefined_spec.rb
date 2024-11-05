@@ -905,7 +905,7 @@ describe "Execution variable $:" do
   end
 
   it "default $LOAD_PATH entries until sitelibdir included have @gem_prelude_index set" do
-    NATFIXME 'Add MSpecScript', exception: NameError, message: 'uninitialized constant MSpecScript' do
+    NATFIXME 'it default $LOAD_PATH entries until sitelibdir included have @gem_prelude_index set', exception: SpecFailedException do
       skip "no sense in ruby itself" if MSpecScript.instance_variable_defined?(:@testing_ruby)
 
       $:.should.include?(RbConfig::CONFIG['sitelibdir'])
