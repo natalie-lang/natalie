@@ -154,6 +154,7 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 
 | file(s)          | copyright                         | license           |
 | ---------------- | --------------------------------- | ----------------- |
+| `benchmark.rb`   | Gotoken                           | BSD               |
 | `bigint.*`       | 983                               | Unlicense         |
 | `cgi.rb`         | Wakou Aoyama                      | BSD               |
 | `cgi/*`          | Wakou Aoyama                      | BSD               |
