@@ -970,14 +970,12 @@ Value StringObject::mul(Env *env, Value arg) const {
     if (nat_int && (std::numeric_limits<size_t>::max() / nat_int) < length())
         env->raise("ArgumentError", "argument too big");
 
-    StringObject *new_string = new StringObject { "", m_encoding };
-    if (this->is_empty())
-        return new_string;
-
-    for (nat_int_t i = 0; i < nat_int; i++) {
-        new_string->append(this);
+    String new_string { length() * nat_int, '\0' };
+    if (!is_empty()) {
+        for (nat_int_t i = 0; i < nat_int; i++)
+            new_string.replace_bytes(i * length(), length(), string());
     }
-    return new_string;
+    return new StringObject { std::move(new_string), m_encoding };
 }
 
 Value StringObject::clear(Env *env) {
