@@ -63,6 +63,7 @@ typedef union {
     void *vp;
     unsigned short us;
     unsigned char uc;
+    int32_t s32;
     uint64_t u64;
 } FFI_Library_call_arg_slot;
 
@@ -127,7 +128,25 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
                 arg_values[i].u64 = size;
             arg_pointers[i] = &(arg_values[i].u64);
         } else {
-            env->raise("StandardError", "I don't yet know how to handle argument type {} (arg {})", type->inspect_str(env), (int)i);
+            auto enums = self->ivar_get(env, "@enums"_s);
+            if (!enums->is_nil() && enums->as_hash_or_raise(env)->has_key(env, type)) {
+                auto enum_values = enums->as_hash()->ref(env, type);
+                auto mapped_value = enum_values->send(env, "key"_s, { val });
+                if (mapped_value->is_nil() && val->is_integer())
+                    mapped_value = val;
+                if (mapped_value->is_nil()) {
+                    env->raise("ArgumentError", "invalid enum value, {}", val->inspect_str(env));
+                } else {
+                    const auto int_val = mapped_value->as_integer_or_raise(env)->to_nat_int_t();
+                    if (int_val < std::numeric_limits<int32_t>::min() || int_val > std::numeric_limits<int32_t>::max())
+                        arg_values[i].s32 = 0;
+                    else
+                        arg_values[i].s32 = static_cast<int32_t>(int_val);
+                    arg_pointers[i] = &(arg_values[i].s32);
+                }
+            } else {
+                env->raise("StandardError", "I don't yet know how to handle argument type {} (arg {})", type->inspect_str(env), (int)i);
+            }
         }
     }
 

@@ -44,3 +44,20 @@ test_enum_t test_enum_call(unsigned const char c) {
         return ENUMTEST_VALUE_ERR;
     }
 }
+
+char test_enum_argument(const test_enum_t e) {
+    switch (e) {
+    case ENUMTEST_VALUE_A:
+        return 'a';
+    case ENUMTEST_VALUE_B:
+        return 'b';
+    case ENUMTEST_VALUE_C:
+        return 'c';
+    case ENUMTEST_VALUE_D:
+        return 'd';
+    case ENUMTEST_VALUE_ERR:
+        return 'e';
+    default:
+        return 'x';
+    }
+}
