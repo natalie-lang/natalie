@@ -10,7 +10,8 @@ class IO
         yield(obj)
       ensure
         begin
-          obj.fsync unless obj.tty? || obj.respond_to?(:setsockopt)
+          stat = obj.stat
+          obj.fsync unless stat.blockdev? || stat.chardev? || stat.pipe? || stat.socket? && !obj.tty?
           obj.close
         rescue IOError => e
           raise unless e.message == 'closed stream'
