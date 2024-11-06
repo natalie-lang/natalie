@@ -1036,6 +1036,12 @@ Value StringObject::concat(Env *env, Args args) {
         } else if (arg->is_integer() && arg->as_integer()->is_negative()) {
             env->raise("RangeError", "{} out of char range", arg->as_integer()->to_s(env)->as_string()->string());
         } else if (arg->is_integer()) {
+            // Special case: US-ASCII << (128..255) will change the string to binary
+            if (m_encoding == EncodingObject::get(Encoding::US_ASCII) && arg->as_integer()->is_fixnum()) {
+                const auto nat_int = arg->as_integer()->to_nat_int_t();
+                if (nat_int >= 128 && nat_int <= 255)
+                    m_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
+            }
             str_obj = arg.send(env, "chr"_s, { m_encoding.ptr() })->as_string();
         } else {
             str_obj = arg->to_str(env);
