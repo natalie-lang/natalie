@@ -40,15 +40,13 @@ describe :string_concat, shared: true do
 
     # #5855
     it "returns a BINARY string if self is US-ASCII and the argument is between 128-255 (inclusive)" do
-      NATFIXME 'out of range', exception: RangeError, message: '128 out of char range' do
-        a = ("".encode(Encoding::US_ASCII).send(@method, 128))
-        a.encoding.should == Encoding::BINARY
-        a.should == 128.chr
+      a = ("".encode(Encoding::US_ASCII).send(@method, 128))
+      a.encoding.should == Encoding::BINARY
+      a.should == 128.chr
 
-        a = ("".encode(Encoding::US_ASCII).send(@method, 255))
-        a.encoding.should == Encoding::BINARY
-        a.should == 255.chr
-      end
+      a = ("".encode(Encoding::US_ASCII).send(@method, 255))
+      a.encoding.should == Encoding::BINARY
+      a.should == 255.chr
     end
 
     it "raises RangeError if the argument is an invalid codepoint for self's encoding" do
