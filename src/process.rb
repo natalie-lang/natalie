@@ -98,4 +98,7 @@ module Process
   end
 
   module_function :waitpid
+
+  def warmup = true
+  module_function :warmup
 end
