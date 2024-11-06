@@ -87,4 +87,15 @@ module Process
       exitstatus & 127
     end
   end
+
+  # According to the docs, Process.waitpid is an alias for Process.pid, but it looks like the
+  # return values are different.
+  # This version passes the specs, if any inconsistency with MRI is found, those specs should
+  # be expanded.
+  def waitpid(...)
+    wait(...)
+    nil
+  end
+
+  module_function :waitpid
 end
