@@ -3,6 +3,7 @@
 #include <signal.h>
 #include <sys/resource.h>
 #include <sys/time.h>
+#include <sys/wait.h>
 #include <time.h>
 
 namespace Natalie {
@@ -86,6 +87,17 @@ Value ProcessModule::times(Env *env) {
     auto cstime = tv_to_float(rusage_children.ru_stime);
     auto Tms = fetch_nested_const({ "Process"_s, "Tms"_s })->as_class();
     return _new(env, Tms, { utime, stime, cutime, cstime }, nullptr);
+}
+
+Value ProcessModule::wait(Env *env, Value pidval, Value flagsval) {
+    const pid_t pid = pidval ? IntegerObject::convert_to_native_type<pid_t>(env, pidval) : -1;
+    const int flags = (flagsval && !flagsval->is_nil()) ? IntegerObject::convert_to_native_type<int>(env, flagsval) : 0;
+    int status;
+    const auto result = waitpid(pid, &status, flags);
+    if (result == -1)
+        env->raise_errno();
+    set_status_object(env, result, status);
+    return Value::integer(static_cast<nat_int_t>(result));
 }
 
 }

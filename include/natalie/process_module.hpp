@@ -125,6 +125,7 @@ public:
     static Value groups(Env *env);
     static Value kill(Env *, Args);
     static Value times(Env *);
+    static Value wait(Env *, Value = nullptr, Value = nullptr);
 
 private:
     static uid_t value_to_uid(Env *env, Value idval) {

@@ -1,8 +1,5 @@
 require 'natalie/inline'
 
-__inline__ '#include <sys/wait.h>'
-__inline__ '#include <time.h>'
-
 module Process
   __constant__('CLOCK_BOOTTIME', 'int')
   __constant__('CLOCK_BOOTTIME_ALARM', 'int')
@@ -89,19 +86,5 @@ module Process
       return nil unless signaled?
       exitstatus & 127
     end
-  end
-
-  class << self
-    __define_method__ :wait, <<-END
-        args.ensure_argc_between(env, 0, 2);
-        nat_int_t pid = -1, flags = 0;
-        arg_spread(env, args, "|ii", &pid, &flags);
-        int status;
-        auto result = waitpid(pid, &status, flags);
-        if (result == -1)
-            env->raise_errno();
-        set_status_object(env, result, status);
-        return Value::integer(static_cast<nat_int_t>(result));
-    END
   end
 end
