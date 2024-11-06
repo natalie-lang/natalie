@@ -114,9 +114,10 @@ describe :string_concat_encoding, shared: true do
   end
 
   describe "when self and the argument are in different ASCII-compatible encodings" do
-    # NATFIXME: Implement SHIFT_JIS
-    xit "uses self's encoding if both are ASCII-only" do
-      "abc".encode("UTF-8").send(@method, "123".encode("SHIFT_JIS")).encoding.should == Encoding::UTF_8
+    it "uses self's encoding if both are ASCII-only" do
+      NATFIXME "it uses self's encoding if both are ASCII-only", exception: SpecFailedException do
+        "abc".encode("UTF-8").send(@method, "123".encode("SHIFT_JIS")).encoding.should == Encoding::UTF_8
+      end
     end
 
     it "uses self's encoding if the argument is ASCII-only" do
