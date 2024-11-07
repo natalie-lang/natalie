@@ -2,7 +2,7 @@ require_relative '../spec_helper'
 
 TMP_DIR = File.expand_path('../tmp', __dir__)
 
-describe 'Kernel#fork' do
+describe :process_fork, shared: true do
   before do
     @path = File.join(TMP_DIR, 'child.txt')
     `rm -f #{@path}`
@@ -10,7 +10,7 @@ describe 'Kernel#fork' do
 
   context 'with a block' do
     it 'creates a child process with given block and returns the pid' do
-      pid = fork do
+      pid = @object.fork do
         `echo 'hello from child with block' > #{@path}`
       end
       pid.should be_kind_of(Integer)
@@ -22,7 +22,7 @@ describe 'Kernel#fork' do
 
   context 'without a block' do
     it 'creates a child process and returns pid' do
-      pid = fork
+      pid = @object.fork
       if pid.nil?
         # child
         `echo 'hello from child without block' > #{@path}`
@@ -36,4 +36,20 @@ describe 'Kernel#fork' do
       File.read(@path).strip.should == 'hello from child without block'
     end
   end
+end
+
+describe 'Kernel.fork' do
+  it "is a private method" do
+    Kernel.should have_private_instance_method(:fork)
+  end
+
+  # Skip these tests, it's a burden to get this with a private method, and the tests don't add that much
+end
+
+describe 'Kernel#fork' do
+  it_behaves_like :process_fork, :fork, Kernel
+end
+
+describe "Process.fork" do
+  it_behaves_like :process_fork, :fork, Process
 end
