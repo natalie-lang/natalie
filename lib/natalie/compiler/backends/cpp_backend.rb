@@ -63,8 +63,16 @@ module Natalie
       attr_reader :cpp_path
 
       def compile_to_binary
+        prepare_temp
+        compile_temp_to_binary
+      end
+
+      def prepare_temp
         check_build
         write_file
+      end
+
+      def compile_temp_to_binary
         cmd = compiler_command
         out = `#{cmd} 2>&1`
         File.unlink(@cpp_path) unless @compiler.keep_cpp? || $? != 0

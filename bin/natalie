@@ -248,14 +248,14 @@ class Runner
   end
 
   def edit_compile_run_loop
-    compiler.write_file
+    compiler.backend.prepare_temp
     loop do
-      system(ENV['EDITOR'] || 'vim', compiler.c_path)
+      system(ENV['EDITOR'] || 'vim', compiler.backend.cpp_path)
       out = Tempfile.create("natalie#{extension}")
       out.close
       compiler.out_path = out.path
       begin
-        compiler.compile_c_to_binary
+        compiler.backend.compile_temp_to_binary
       rescue Natalie::Compiler::CompileError => e
         puts e
       else
