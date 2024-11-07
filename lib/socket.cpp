@@ -818,6 +818,49 @@ Value IPSocket_peeraddr(Env *env, Value self, Args args, Block *) {
     return new ArrayObject({ family, port, host, ip });
 }
 
+Value IPSocket_recvfrom(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
+    const auto size = IntegerObject::convert_to_nat_int_t(env, args[0]);
+    const auto flags = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
+
+    TM::String buf { static_cast<size_t>(size), '\0' };
+    sockaddr_storage addr {};
+    socklen_t addr_len = sizeof(addr);
+
+    const auto recvfrom_result = recvfrom(
+        self->as_io()->fileno(),
+        &buf[0], buf.size(),
+        flags,
+        reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
+    if (recvfrom_result < 0)
+        env->raise_errno();
+
+    if (static_cast<size_t>(recvfrom_result) < buf.size())
+        buf.truncate(recvfrom_result);
+
+    auto ipaddr_info = IPSocket_addr(env, self, {}, nullptr);
+    // We need the other port
+    switch (addr.ss_family) {
+    case AF_INET: {
+        auto addr_in = reinterpret_cast<sockaddr_in *>(&addr);
+        ipaddr_info->as_array()->operator[](1) = Value::integer(ntohs(addr_in->sin_port));
+        break;
+    }
+    case AF_INET6: {
+        auto addr_in6 = reinterpret_cast<sockaddr_in6 *>(&addr);
+        ipaddr_info->as_array()->operator[](1) = Value::integer(ntohs(addr_in6->sin6_port));
+        break;
+    }
+    default:
+        // Some issue, which means we should replace the ipaddr info
+        ipaddr_info = NilObject::the();
+    }
+    return new ArrayObject {
+        new StringObject { std::move(buf), Encoding::ASCII_8BIT },
+        ipaddr_info,
+    };
+}
+
 Value UNIXSocket_addr(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 0);
 
@@ -1221,6 +1264,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
         break;
     }
     default:
+        fprintf(stderr, "family: %i\n", family);
         env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
     }
 
