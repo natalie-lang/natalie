@@ -8,11 +8,13 @@ platform_is_not :windows do
 
     it "sets the maximum number of gids allowed in the supplemental group access list" do
       n = Process.maxgroups
-      begin
-        Process.maxgroups = n - 1
-        Process.maxgroups.should == n - 1
-      ensure
-        Process.maxgroups = n
+      NATFIXME 'Implement Process.maxgroups=', exception: NoMethodError, message: "undefined method `maxgroups=' for module Process" do
+        begin
+          Process.maxgroups = n - 1
+          Process.maxgroups.should == n - 1
+        ensure
+          Process.maxgroups = n
+        end
       end
     end
   end

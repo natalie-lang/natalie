@@ -124,6 +124,7 @@ public:
     static Value clock_gettime(Env *, Value);
     static Value groups(Env *env);
     static Value kill(Env *, Args);
+    static long maxgroups();
     static Value times(Env *);
     static Value wait(Env *, Value = nullptr, Value = nullptr);
 

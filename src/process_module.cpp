@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <unistd.h>
 
 namespace Natalie {
 
@@ -70,6 +71,10 @@ Value ProcessModule::kill(Env *env, Args args) {
         env->raise_exception(exception);
     }
     return Value::integer(pids->size());
+}
+
+long ProcessModule::maxgroups() {
+    return sysconf(_SC_NGROUPS_MAX);
 }
 
 Value ProcessModule::times(Env *env) {
