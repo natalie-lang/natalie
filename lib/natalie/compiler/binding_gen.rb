@@ -1146,6 +1146,8 @@ gen.module_function_binding('Process', 'getsid', 'ProcessModule', 'getsid', argc
 gen.module_function_binding('Process', 'gid', 'ProcessModule', 'gid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process', 'gid=', 'ProcessModule', 'setgid', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process', 'kill', 'ProcessModule', 'kill', argc: 2.., pass_env: true, pass_block: false, return_type: :Object)
+gen.module_function_binding('Process', 'maxgroups', 'ProcessModule', 'maxgroups', argc: 0, pass_env: false, pass_block: false, return_type: :int)
+gen.module_function_binding('Process', 'maxgroups=', 'ProcessModule', 'setmaxgroups', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process', 'pid', 'ProcessModule', 'pid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process', 'ppid', 'ProcessModule', 'ppid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process', 'setpgrp', 'ProcessModule', 'setpgrp', argc: 0, pass_env: true, pass_block: false, return_type: :int)

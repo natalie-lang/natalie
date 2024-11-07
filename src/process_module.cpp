@@ -5,8 +5,15 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <unistd.h>
 
 namespace Natalie {
+
+namespace globals {
+
+    static Optional<long> maxgroups;
+
+}
 
 Value ProcessModule::groups(Env *env) {
     auto size = getgroups(0, nullptr);
@@ -70,6 +77,21 @@ Value ProcessModule::kill(Env *env, Args args) {
         env->raise_exception(exception);
     }
     return Value::integer(pids->size());
+}
+
+long ProcessModule::maxgroups() {
+    if (!globals::maxgroups)
+        globals::maxgroups = sysconf(_SC_NGROUPS_MAX);
+    return *globals::maxgroups;
+}
+
+Value ProcessModule::setmaxgroups(Env *env, Value val) {
+    auto int_val = val->to_int(env);
+    if (int_val->send(env, "positive?"_s)->is_falsey())
+        env->raise("ArgumentError", "maxgroups {} should be positive", int_val->inspect_str(env));
+    const long actual_maxgroups = sysconf(_SC_NGROUPS_MAX);
+    globals::maxgroups = std::min(IntegerObject::convert_to_native_type<long>(env, int_val), actual_maxgroups);
+    return val;
 }
 
 Value ProcessModule::times(Env *env) {
