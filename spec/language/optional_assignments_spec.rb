@@ -667,9 +667,7 @@ describe 'Optional constant assignment' do
 
     it 'correctly defines non-existing constants' do
       ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT1 ||= :assigned
-      NATFIXME "Don't use const_missing in defined?(const)", exception: SpecFailedException do
-        ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT1.should == :assigned
-      end
+      ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT1.should == :assigned
     end
 
     it 'correctly overwrites nil constants' do
@@ -684,9 +682,7 @@ describe 'Optional constant assignment' do
       x = 0
       (x += 1; ConstantSpecs::ClassA)::OR_ASSIGNED_CONSTANT2 ||= :assigned
       x.should == 1
-      NATFIXME "Don't use const_missing in defined?(const)", exception: SpecFailedException do
-        ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT2.should == :assigned
-      end
+      ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT2.should == :assigned
     end
 
     it 'causes side-effects of the module part to be applied only once (for nil constant)' do
@@ -708,10 +704,8 @@ describe 'Optional constant assignment' do
       }.should raise_error(Exception)
 
       x.should == 1
-      NATFIXME 'it does not evaluate the right-hand side if the module part raises an exception (for undefined constant)', exception: SpecFailedException do
-        y.should == 0
-        defined?(ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT3).should == nil
-      end
+      y.should == 0
+      defined?(ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT3).should == nil
     end
 
     it 'does not evaluate the right-hand side if the module part raises an exception (for nil constant)' do
