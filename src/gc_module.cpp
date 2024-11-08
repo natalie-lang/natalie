@@ -9,4 +9,9 @@ bool GCModule::disable() {
     return false;
 }
 
+bool GCModule::enable() {
+    Heap::the().gc_enable();
+    return true;
+}
+
 }

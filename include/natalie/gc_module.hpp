@@ -8,12 +8,8 @@ namespace Natalie {
 
 class GCModule : public Object {
 public:
-    static bool enable() {
-        Heap::the().gc_enable();
-        return true;
-    }
-
     static bool disable();
+    static bool enable();
 
     static Value start(Env *env) {
         Heap::the().collect();
