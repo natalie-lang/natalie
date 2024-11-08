@@ -3,8 +3,10 @@
 namespace Natalie {
 
 bool GCModule::disable() {
+    if (!Heap::the().gc_enabled())
+        return true;
     Heap::the().gc_disable();
-    return true;
+    return false;
 }
 
 }
