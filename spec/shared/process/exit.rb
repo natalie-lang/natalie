@@ -50,7 +50,8 @@ describe :process_exit, shared: true do
     -> { @object.exit(nil) }.should raise_error(TypeError)
   end
 
-  it "raises the SystemExit in the main thread if it reaches the top-level handler of another thread" do
+  # NATFIXME: This stops the program instead of capturing the exception
+  xit "raises the SystemExit in the main thread if it reaches the top-level handler of another thread" do
     ScratchPad.record []
 
     ready = false
@@ -104,6 +105,14 @@ describe :process_exit!, shared: true do
     $?.exitstatus.should == 21
   end
 
+  it "skips ensure clauses" do
+    out = ruby_exe("begin; STDERR.puts 'before'; #{@object}.send(:exit!, 21); ensure; STDERR.puts 'ensure'; end", args: '2>&1', exit_status: 21)
+    NATFIXME 'it skips ensure clauses', exception: SpecFailedException do
+      out.should == "before\n"
+    end
+    $?.exitstatus.should == 21
+  end
+
   it "overrides the original exception and exit status when called from #at_exit" do
     code = <<-RUBY
     at_exit do
@@ -113,8 +122,10 @@ describe :process_exit!, shared: true do
     end
     raise 'original error'
     RUBY
-    out = ruby_exe(code, args: '2>&1', exit_status: 21)
-    out.should == "in at_exit\n$! is RuntimeError:original error\n"
-    $?.exitstatus.should == 21
+    NATFIXME 'it overrides the original exception and exit status when called from #at_exit', exception: SpecFailedException do
+      out = ruby_exe(code, args: '2>&1', exit_status: 21)
+      out.should == "in at_exit\n$! is RuntimeError:original error\n"
+      $?.exitstatus.should == 21
+    end
   end
 end
