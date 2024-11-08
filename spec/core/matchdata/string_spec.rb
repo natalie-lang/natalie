@@ -20,7 +20,7 @@ describe "MatchData#string" do
   it "returns a frozen copy of the matched string for gsub!(String)" do
     s = +'he[[o'
     s.gsub!('[', ']')
-    NATFIXME 'Implement $~', exception: NoMethodError, message: "undefined method `string' for nil" do
+    NATFIXME 'Implement $~', exception: NoMethodError, message: /undefined method [`']string' for nil/ do
       $~.string.should == 'he[[o'
       $~.string.should.frozen?
     end

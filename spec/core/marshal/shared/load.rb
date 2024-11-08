@@ -662,7 +662,7 @@ describe :marshal_load, shared: true do
     it "loads an encoded Symbol" do
       s = "\u2192"
 
-      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: "undefined method `force_encoding' for an instance of Symbol" do
+      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: /undefined method [`']force_encoding' for an instance of Symbol/ do
         sym = Marshal.send(@method, "\x04\bI:\b\xE2\x86\x92\x06:\x06ET")
         sym.should == s.encode("utf-8").to_sym
         sym.encoding.should == Encoding::UTF_8
@@ -701,7 +701,7 @@ describe :marshal_load, shared: true do
       symbol1 = "I:\t\xE2\x82\xACa\x06:\x06ET"
       symbol2 = "I:\t\xE2\x82\xACb\x06;\x06T"
       dump = "\x04\b[\a#{symbol1}#{symbol2}"
-      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: "undefined method `force_encoding' for an instance of Symbol" do
+      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: /undefined method [`']force_encoding' for an instance of Symbol/ do
         value = Marshal.send(@method, dump)
         value.map(&:encoding).should == [Encoding::UTF_8, Encoding::UTF_8]
         expected = [
@@ -952,7 +952,7 @@ describe :marshal_load, shared: true do
 
     it "loads an Object with a non-US-ASCII instance variable" do
       ivar = "@é".dup.force_encoding(Encoding::UTF_8).to_sym
-      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: "undefined method `force_encoding' for an instance of Symbol" do
+      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: /undefined method [`']force_encoding' for an instance of Symbol/ do
         obj = Marshal.send(@method, "\x04\bo:\vObject\x06I:\b@\xC3\xA9\x06:\x06ETi\x06")
         obj.instance_variables.should == [ivar]
         obj.instance_variables[0].encoding.should == Encoding::UTF_8

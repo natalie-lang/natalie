@@ -22,7 +22,7 @@ describe "Module#alias_method" do
   it "preserves the arguments information of the original methods" do
     @class.make_alias :uno, :public_one
     @class.make_alias :double, :public_two
-    NATFIXME 'Implement Method#parameters', exception: NoMethodError, message: "undefined method `parameters' for an instance of UnboundMethod" do
+    NATFIXME 'Implement Method#parameters', exception: NoMethodError, message: /undefined method [`']parameters' for an instance of UnboundMethod/ do
       @class.instance_method(:uno).parameters.should == @class.instance_method(:public_one).parameters
       @class.instance_method(:double).parameters.should == @class.instance_method(:public_two).parameters
     end
@@ -47,7 +47,7 @@ describe "Module#alias_method" do
   it "handles aliasing a method only present in a refinement" do
     c = @class
     Module.new do
-      NATFIXME 'Implement refinements', exception: NoMethodError, message: /undefined method `refine' for module/ do
+      NATFIXME 'Implement refinements', exception: NoMethodError, message: /undefined method [`']refine' for module/ do
         refine c do
           def uno_refined_method
           end
@@ -123,13 +123,13 @@ describe "Module#alias_method" do
   end
 
   it "can call a method with super aliased twice" do
-    NATFIXME 'it can call a method with super aliased twice', exception: NoMethodError, message: /super: no superclass method `alias_super_call'/ do
+    NATFIXME 'it can call a method with super aliased twice', exception: NoMethodError, message: /super: no superclass method [`']alias_super_call'/ do
       ModuleSpecs::AliasingSuper::Target.new.super_call(1).should == 1
     end
   end
 
   it "preserves original super call after alias redefine" do
-    NATFIXME 'it preserves original super call after alias redefine', exception: NoMethodError, message: /super: no superclass method `super_call'/ do
+    NATFIXME 'it preserves original super call after alias redefine', exception: NoMethodError, message: /super: no superclass method [`']super_call'/ do
       ModuleSpecs::AliasingSuper::RedefineAfterAlias.new.alias_super_call(1).should == 1
     end
   end

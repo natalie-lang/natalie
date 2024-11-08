@@ -59,7 +59,7 @@ describe "StringIO#puts when passed an Array" do
     object = mock('hola')
     object.should_receive(:to_s).and_return(false)
 
-    NATFIXME 'Return general object info if to_s does not return a string, likely a generic issue', exception: NoMethodError, message: "undefined method `end_with?' for false" do
+    NATFIXME 'Return general object info if to_s does not return a string, likely a generic issue', exception: NoMethodError, message: /undefined method [`']end_with\?' for false/ do
       @io.puts(object).should == nil
       @io.string.should == object.inspect.split(" ")[0] + ">\n"
     end

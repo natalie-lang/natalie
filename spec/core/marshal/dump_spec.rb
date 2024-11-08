@@ -710,7 +710,7 @@ describe "Marshal.dump" do
 
     it "dumps a BasicObject subclass if it defines respond_to?" do
       obj = MarshalSpec::BasicObjectSubWithRespondToFalse.new
-      NATFIXME 'it dumps a BasicObject subclass if it defines respond_to?', exception: NoMethodError, message: "undefined method `nil?' for an instance of MarshalSpec::BasicObjectSubWithRespondToFalse" do
+      NATFIXME 'it dumps a BasicObject subclass if it defines respond_to?', exception: NoMethodError, message: /undefined method [`']nil\?' for an instance of MarshalSpec::BasicObjectSubWithRespondToFalse/ do
         Marshal.dump(obj).should == "\x04\bo:2MarshalSpec::BasicObjectSubWithRespondToFalse\x00"
       end
     end
@@ -882,7 +882,7 @@ describe "Marshal.dump" do
 
   it "raises an ArgumentError when the recursion limit is exceeded" do
     h = {'one' => {'two' => {'three' => 0}}}
-    NATFIXME 'Support recursion limit', exception: SpecFailedException, message: "undefined method `ungetbyte' for an instance of Integer" do
+    NATFIXME 'Support recursion limit', exception: SpecFailedException, message: /undefined method [`']ungetbyte' for an instance of Integer/ do
       -> { Marshal.dump(h, 3) }.should raise_error(ArgumentError)
       -> { Marshal.dump([h], 4) }.should raise_error(ArgumentError)
       -> { Marshal.dump([], 0) }.should raise_error(ArgumentError)
@@ -891,7 +891,7 @@ describe "Marshal.dump" do
   end
 
   it "ignores the recursion limit if the limit is negative" do
-    NATFIXME 'Support recursion limit', exception: NoMethodError, message: "undefined method `ungetbyte' for an instance of Integer" do
+    NATFIXME 'Support recursion limit', exception: NoMethodError, message: /undefined method [`']ungetbyte' for an instance of Integer/ do
       Marshal.dump([], -1).should == "\004\b[\000"
       Marshal.dump([[]], -1).should == "\004\b[\006[\000"
       Marshal.dump([[[]]], -1).should == "\004\b[\006[\006[\000"
@@ -900,14 +900,14 @@ describe "Marshal.dump" do
 
   describe "when passed an IO" do
     it "writes the serialized data to the IO-Object" do
-      NATFIXME 'should not depend on ungetbyte', exception: NoMethodError, message: "undefined method `ungetbyte' for an instance of MockObject" do
+      NATFIXME 'should not depend on ungetbyte', exception: NoMethodError, message: /undefined method [`']ungetbyte' for an instance of MockObject/ do
         (obj = mock('test')).should_receive(:write).at_least(1)
         Marshal.dump("test", obj)
       end
     end
 
     it "returns the IO-Object" do
-      NATFIXME 'should not depend on ungetbyte', exception: NoMethodError, message: "undefined method `ungetbyte' for an instance of MockObject" do
+      NATFIXME 'should not depend on ungetbyte', exception: NoMethodError, message: /undefined method [`']ungetbyte' for an instance of MockObject/ do
         (obj = mock('test')).should_receive(:write).at_least(1)
         Marshal.dump("test", obj).should == obj
       end
@@ -915,7 +915,7 @@ describe "Marshal.dump" do
 
     it "raises an Error when the IO-Object does not respond to #write" do
       obj = mock('test')
-      NATFIXME 'should not depend on ungetbyte', exception: SpecFailedException, message: /undefined method `ungetbyte'/ do
+      NATFIXME 'should not depend on ungetbyte', exception: SpecFailedException, message: /undefined method [`']ungetbyte'/ do
         -> { Marshal.dump("test", obj) }.should raise_error(TypeError)
       end
     end
@@ -923,7 +923,7 @@ describe "Marshal.dump" do
 
     it "calls binmode when it's defined" do
       obj = mock('test')
-      NATFIXME 'should not depend on ungetbyte', exception: NoMethodError, message: "undefined method `ungetbyte' for an instance of MockObject" do
+      NATFIXME 'should not depend on ungetbyte', exception: NoMethodError, message: /undefined method [`']ungetbyte' for an instance of MockObject/ do
         obj.should_receive(:write).at_least(1)
         obj.should_receive(:binmode).at_least(1)
         Marshal.dump("test", obj)

@@ -49,7 +49,7 @@ describe "Kernel#`" do
       ip = 'world'
       `echo disc #{ip}`
       $?.should be_kind_of(Process::Status)
-      NATFIXME 'Implement Process::Status#stopped?', exception: NoMethodError, message: "undefined method `stopped?' for an instance of Process::Status" do
+      NATFIXME 'Implement Process::Status#stopped?', exception: NoMethodError, message: /undefined method [`']stopped\?' for an instance of Process::Status/ do
         $?.should_not.stopped?
       end
       $?.should.exited?
@@ -57,7 +57,7 @@ describe "Kernel#`" do
       $?.should.success?
       `echo disc #{ip}; exit 99`
       $?.should be_kind_of(Process::Status)
-      NATFIXME 'Implement Process::Status#stopped?', exception: NoMethodError, message: "undefined method `stopped?' for an instance of Process::Status" do
+      NATFIXME 'Implement Process::Status#stopped?', exception: NoMethodError, message: /undefined method [`']stopped\?' for an instance of Process::Status/ do
         $?.should_not.stopped?
       end
       $?.should.exited?

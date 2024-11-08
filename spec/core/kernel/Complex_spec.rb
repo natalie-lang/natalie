@@ -5,7 +5,7 @@ require_relative 'fixtures/Complex'
 describe "Kernel.Complex()" do
   describe "when passed [Complex, Complex]" do
     it "returns a new Complex number based on the two given numbers" do
-      NATFIXME 'returns a new Complex number based on the two given numbers', exception: NoMethodError, message: "undefined method `negative?' for an instance of Complex" do
+      NATFIXME 'returns a new Complex number based on the two given numbers', exception: NoMethodError, message: /undefined method [`']negative\?' for an instance of Complex/ do
         Complex(Complex(3, 4), Complex(5, 6)).should == Complex(3 - 6, 4 + 5)
         Complex(Complex(1.5, 2), Complex(-5, 6.3)).should == Complex(1.5 - 6.3, 2 - 5)
       end
@@ -294,7 +294,7 @@ describe "Kernel.Complex()" do
     describe "and [anything, non-Numeric] argument" do
       it "swallows an error" do
         Complex("a",  :sym, exception: false).should == nil
-        NATFIXME '[anything, non-Numeric] argument', exception: NoMethodError, message: "undefined method `real' for nil" do
+        NATFIXME '[anything, non-Numeric] argument', exception: NoMethodError, message: /undefined method [`']real' for nil/ do
           Complex(:sym, :sym, exception: false).should == nil
           Complex(0,    :sym, exception: false).should == nil
         end
@@ -305,7 +305,7 @@ describe "Kernel.Complex()" do
       it "swallows an error" do
         Complex("a", "b", exception: false).should == nil
         Complex("a", 0, exception: false).should == nil
-        NATFIXME 'non-numeric String arguments', exception: NoMethodError, message: "undefined method `real' for nil" do
+        NATFIXME 'non-numeric String arguments', exception: NoMethodError, message: /undefined method [`']real' for nil/ do
           Complex(0, "b", exception: false).should == nil
         end
       end
@@ -314,7 +314,7 @@ describe "Kernel.Complex()" do
     describe "and nil arguments" do
       it "swallows an error" do
         Complex(nil, exception: false).should == nil
-        NATFIXME 'nil arguments', exception: NoMethodError, message: "undefined method `real' for nil" do
+        NATFIXME 'nil arguments', exception: NoMethodError, message: /undefined method [`']real' for nil/ do
           Complex(0, nil, exception: false).should == nil
           Complex(nil, 0, exception: false).should == nil
         end

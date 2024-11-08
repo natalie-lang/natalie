@@ -4,7 +4,7 @@ describe "Random#==" do
   it "returns true if the two objects have the same state" do
     a = Random.new(42)
     b = Random.new(42)
-    NATFIXME 'Implement Random#state', exception: NoMethodError, message: "undefined method `state'" do
+    NATFIXME 'Implement Random#state', exception: NoMethodError, message: /undefined method [`']state'/ do
       a.send(:state).should == b.send(:state)
     end
     NATFIXME 'Implement Random#==', exception: SpecFailedException do
@@ -15,7 +15,7 @@ describe "Random#==" do
   it "returns false if the two objects have different state" do
     a = Random.new
     b = Random.new
-    NATFIXME 'Implement Random#state', exception: NoMethodError, message: "undefined method `state'" do
+    NATFIXME 'Implement Random#state', exception: NoMethodError, message: /undefined method [`']state'/ do
       a.send(:state).should_not == b.send(:state)
     end
     a.should_not == b

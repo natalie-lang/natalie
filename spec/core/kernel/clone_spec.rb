@@ -159,7 +159,7 @@ describe "Kernel#clone" do
 
     cloned = object.clone
 
-    NATFIXME 'Implement Kernel#singleton_methods', exception: NoMethodError, message: "undefined method `singleton_methods'" do
+    NATFIXME 'Implement Kernel#singleton_methods', exception: NoMethodError, message: /undefined method [`']singleton_methods'/ do
       cloned.singleton_methods.should == [:bar]
 
       # bar should replace previous one

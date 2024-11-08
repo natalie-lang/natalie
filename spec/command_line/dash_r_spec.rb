@@ -25,7 +25,7 @@ describe "The -r command line option" do
   end
 
   it "does not require the file if the main script file does not exist" do
-    NATFIXME 'Implement #to_a on the return value of ruby_exe', exception: NoMethodError, message: "undefined method `to_a' for an instance of String" do
+    NATFIXME 'Implement #to_a on the return value of ruby_exe', exception: NoMethodError, message: /undefined method [`']to_a' for an instance of String/ do
       out = `#{ruby_exe.to_a.join(' ')} -r #{@test_file} #{fixture(__FILE__, "does_not_exist.rb")} 2>&1`
       $?.should_not.success?
       out.should_not.include?("REQUIRED")

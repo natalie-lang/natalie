@@ -85,7 +85,7 @@ describe "Numbered parameters" do
   end
 
   it "affects block parameters" do
-    NATFIXME 'Implement Proc#parameters', exception: NoMethodError, message: "undefined method `parameters' for an instance of Proc" do
+    NATFIXME 'Implement Proc#parameters', exception: NoMethodError, message: /undefined method [`']parameters' for an instance of Proc/ do
       -> { _1 }.parameters.should == [[:req, :_1]]
       -> { _2 }.parameters.should == [[:req, :_1], [:req, :_2]]
 
@@ -95,7 +95,7 @@ describe "Numbered parameters" do
   end
 
   it "affects binding local variables" do
-    NATFIXME 'Implement Binding#local_variables', exception: NoMethodError, message: "undefined method `local_variables' for an instance of Binding" do
+    NATFIXME 'Implement Binding#local_variables', exception: NoMethodError, message: /undefined method [`']local_variables' for an instance of Binding/ do
       -> { _1; binding.local_variables }.call("a").should == [:_1]
       -> { _2; binding.local_variables }.call("a", "b").should == [:_1, :_2]
     end

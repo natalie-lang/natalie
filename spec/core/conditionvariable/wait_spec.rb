@@ -165,7 +165,7 @@ describe "ConditionVariable#wait" do
         # Cause interactions with the waiting threads.
         # On TruffleRuby, this causes a safepoint which has interesting
         # interactions with the ConditionVariable.
-        NATFIXME 'Implement Thread#backtrace', exception: NoMethodError, message: "undefined method `backtrace' for an instance of Thread" do
+        NATFIXME 'Implement Thread#backtrace', exception: NoMethodError, message: /undefined method [`']backtrace' for an instance of Thread/ do
           bt = t.backtrace
           bt.should be_kind_of(Array)
           bt.size.should >= 2

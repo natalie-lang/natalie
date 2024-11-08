@@ -73,7 +73,7 @@ describe "Mutex#sleep" do
   it "returns the rounded number of seconds asleep" do
     m = Mutex.new
     locked = false
-    NATFIXME 'Implement Thread.start', exception: NoMethodError, message: "undefined method `start' for class Thread" do
+    NATFIXME 'Implement Thread.start', exception: NoMethodError, message: /undefined method [`']start' for class Thread/ do
       th = Thread.start do
         m.lock
         locked = true
