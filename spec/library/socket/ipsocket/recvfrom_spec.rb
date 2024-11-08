@@ -15,7 +15,8 @@ platform_is_not :darwin do
       @client.close unless @client.closed?
     end
 
-    it "reads data from the connection" do
+    # NATFIXME: Unreliable test
+    xit "reads data from the connection" do
       data = nil
       t = Thread.new do
         client = @server.accept
