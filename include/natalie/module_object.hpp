@@ -48,8 +48,8 @@ public:
 
     Value is_autoload(Env *, Value) const;
 
-    virtual Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
-    virtual Value const_find_with_autoload(Env *, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
+    virtual Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing) override;
+    virtual Value const_find_with_autoload(Env *, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing) override;
     virtual Value const_get(SymbolObject *) const override;
     virtual Value const_fetch(SymbolObject *) override;
     virtual Value const_set(SymbolObject *, Value) override;
@@ -175,6 +175,9 @@ public:
         else
             snprintf(buf, len, "<ModuleObject %p name=(none)>", this);
     }
+
+private:
+    Value handle_missing_constant(Env *, Value, ConstLookupFailureMode);
 
 protected:
     Constant *find_constant(Env *, SymbolObject *, ModuleObject **, ConstLookupSearchMode = ConstLookupSearchMode::Strict);

@@ -227,11 +227,8 @@ Value ModuleObject::const_find_with_autoload(Env *env, Value self, SymbolObject 
     ModuleObject *module = nullptr;
     auto constant = find_constant(env, name, &module, search_mode);
 
-    if (!constant) {
-        if (failure_mode == ConstLookupFailureMode::Null)
-            return nullptr;
-        return send(env, "const_missing"_s, { name });
-    }
+    if (!constant)
+        return handle_missing_constant(env, name, failure_mode);
 
     if (constant->needs_load()) {
         assert(module);
@@ -245,13 +242,24 @@ Value ModuleObject::const_find_with_autoload(Env *env, Value self, SymbolObject 
 Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     auto constant = find_constant(env, name, nullptr, search_mode);
 
-    if (!constant) {
-        if (failure_mode == ConstLookupFailureMode::Null)
-            return nullptr;
-        return send(env, "const_missing"_s, { name });
-    }
+    if (!constant)
+        return handle_missing_constant(env, name, failure_mode);
 
     return constant->value();
+}
+
+Value ModuleObject::handle_missing_constant(Env *env, Value name, ConstLookupFailureMode failure_mode) {
+    if (failure_mode == ConstLookupFailureMode::Null)
+        return nullptr;
+
+    if (failure_mode == ConstLookupFailureMode::Raise) {
+        auto name_str = name->to_s(env);
+        if (this == GlobalEnv::the()->Object())
+            env->raise_name_error(name_str, "uninitialized constant {}", name_str->string());
+        env->raise_name_error(name_str, "uninitialized constant {}::{}", inspect_str(), name_str->string());
+    }
+
+    return send(env, "const_missing"_s, { name });
 }
 
 Value ModuleObject::const_set(SymbolObject *name, Value val) {
@@ -325,10 +333,7 @@ Value ModuleObject::constants(Env *env, Value inherit) const {
 }
 
 Value ModuleObject::const_missing(Env *env, Value name) {
-    auto name_str = name->to_s(env);
-    if (this == GlobalEnv::the()->Object())
-        env->raise_name_error(name_str, "uninitialized constant {}", name_str->string());
-    env->raise_name_error(name_str, "uninitialized constant {}::{}", inspect_str(), name_str->string());
+    return handle_missing_constant(env, name, ConstLookupFailureMode::Raise);
 }
 
 void ModuleObject::make_method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
