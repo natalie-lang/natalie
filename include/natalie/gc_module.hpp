@@ -13,10 +13,7 @@ public:
         return true;
     }
 
-    static bool disable() {
-        Heap::the().gc_disable();
-        return true;
-    }
+    static bool disable();
 
     static Value start(Env *env) {
         Heap::the().collect();
