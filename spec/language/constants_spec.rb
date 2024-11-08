@@ -732,9 +732,7 @@ describe "Module#public_constant marked constants" do
 
     it "is defined? with A::B form" do
       @module.send :public_constant, :PRIVATE_CONSTANT_MODULE
-      NATFIXME 'is defined? with A::B form', exception: SpecFailedException do
-        defined?(@module::PRIVATE_CONSTANT_MODULE).should == "constant"
-      end
+      defined?(@module::PRIVATE_CONSTANT_MODULE).should == "constant"
     end
   end
 
@@ -750,9 +748,7 @@ describe "Module#public_constant marked constants" do
 
     it "is defined? with A::B form" do
       @class.send :public_constant, :PRIVATE_CONSTANT_CLASS
-      NATFIXME 'is defined? with A::B form', exception: SpecFailedException do
-        defined?(@class::PRIVATE_CONSTANT_CLASS).should == "constant"
-      end
+      defined?(@class::PRIVATE_CONSTANT_CLASS).should == "constant"
     end
   end
 

@@ -32,7 +32,7 @@ Value GlobalEnv::global_get(Env *env, SymbolObject *name) {
         env->raise_name_error(name, "`{}' is not allowed as a global variable name", name->string());
 
     auto info = m_global_variables.get(name, env);
-    if (info)
+    if (info && info->object(env))
         return info->object(env);
     else
         return NilObject::the();
@@ -50,7 +50,8 @@ Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val, bool readon
             env->raise_name_error(name, "{} is a read only variable", name->string());
         if (readonly)
             assert(info->is_readonly()); // changing a global to read-only is not anticipated.
-        info->set_object(env, val.object());
+        if (val)
+            info->set_object(env, val.object());
     } else {
         auto info = new GlobalVariableInfo { val.object(), readonly };
         m_global_variables.put(name, info, env);
@@ -93,7 +94,7 @@ void GlobalEnv::global_set_read_hook(Env *env, SymbolObject *name, bool readonly
 
     auto info = m_global_variables.get(name, env);
     if (!info) {
-        global_set(env, name, NilObject::the(), readonly);
+        global_set(env, name, nullptr, readonly);
         info = m_global_variables.get(name, env);
     }
     assert(readonly == info->is_readonly());
