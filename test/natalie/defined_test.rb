@@ -9,6 +9,12 @@ class Foo
   end
 end
 
+class ConstMissingConst
+  def self.const_missing(const)
+    const
+  end
+end
+
 def foo; end
 
 describe 'defined?' do
@@ -17,6 +23,10 @@ describe 'defined?' do
     defined?(::NUM).should == 'constant'
     defined?(Foo).should == 'constant'
     defined?(NonExistent).should == nil
+  end
+
+  it 'does not call const_missing' do
+    defined?(ConstMissingConst::Bar).should == nil
   end
 
   it 'recognizes namespaced constants' do

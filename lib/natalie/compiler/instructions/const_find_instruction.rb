@@ -3,9 +3,10 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class ConstFindInstruction < BaseInstruction
-      def initialize(name, strict:, file: nil, line: nil)
+      def initialize(name, strict:, failure_mode: 'ConstMissing', file: nil, line: nil)
         @name = name.to_sym
         @strict = strict
+        @failure_mode = failure_mode
 
         # source location info
         @file = file
@@ -26,7 +27,16 @@ module Natalie
 
         namespace = transform.pop
         search_mode = @strict ? 'Strict' : 'NotStrict'
-        transform.exec_and_push(:const, "#{namespace}->const_find_with_autoload(env, self, #{transform.intern(name)}, Object::ConstLookupSearchMode::#{search_mode})")
+        transform.exec_and_push(
+          :const,
+          "#{namespace}->const_find_with_autoload(" \
+            'env, ' \
+            'self, ' \
+            "#{transform.intern(name)}, " \
+            "Object::ConstLookupSearchMode::#{search_mode}, " \
+            "Object::ConstLookupFailureMode::#{@failure_mode}" \
+          ')'
+        )
       end
 
       def execute(vm)
@@ -50,6 +60,10 @@ module Natalie
         begin
           return obj if obj.constants.include?(@name)
         end while (obj = parent(obj))
+      end
+
+      def raise_if_missing!
+        @failure_mode = 'Raise'
       end
 
       def serialize(rodata)

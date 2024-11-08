@@ -1258,6 +1258,8 @@ module Natalie
             body[index] = [GlobalVariableDefinedInstruction.new(instruction.name), instruction]
           when InstanceVariableGetInstruction
             body[index] = [InstanceVariableDefinedInstruction.new(instruction.name), instruction]
+          when ConstFindInstruction
+            body[index].raise_if_missing!
           when SendInstruction
             if index == body.length - 1
               body[index] = instruction.to_method_defined_instruction
