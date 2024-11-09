@@ -718,23 +718,25 @@ Value KernelModule::sleep(Env *env, Value length) {
 
 Value KernelModule::spawn(Env *env, Args args) {
     pid_t pid;
-    args.ensure_argc_at_least(env, 1);
     int result;
 
     Vector<char *> new_env;
-    if (args.size() > 1 && args.at(0)->is_hash()) {
-        auto hash = args.shift()->as_hash_or_raise(env);
+
+    if (args.size() >= 1 && (args.at(0)->is_hash() || args.at(0)->respond_to(env, "to_hash"_s))) {
+        auto hash = args.shift()->to_hash(env);
         for (auto ep = environ; *ep; ep++)
             new_env.push(strdup(*ep));
         for (auto pair : *hash) {
             auto combined = String::format(
                 "{}={}",
-                pair.key->as_string_or_raise(env)->string(),
-                pair.val->as_string_or_raise(env)->string());
+                pair.key->to_str(env)->string(),
+                pair.val->to_str(env)->string());
             new_env.push(strdup(combined.c_str()));
         }
         new_env.push(nullptr);
     }
+
+    args.ensure_argc_at_least(env, 1);
 
     Defer free_new_env([&]() {
         for (auto str : new_env) {
@@ -743,8 +745,7 @@ Value KernelModule::spawn(Env *env, Args args) {
     });
 
     if (args.size() == 1) {
-        auto arg = args.at(0);
-        arg->assert_type(env, Object::Type::String, "String");
+        auto arg = args.at(0)->to_str(env);
         auto splitter = new RegexpObject { env, "\\s+" };
         auto split = arg->as_string()->split(env, splitter, 0)->as_array();
         const char *cmd[split->size() + 1];
@@ -762,12 +763,10 @@ Value KernelModule::spawn(Env *env, Args args) {
     } else {
         const char *cmd[args.size() + 1];
         for (size_t i = 0; i < args.size(); i++) {
-            auto arg = args[i];
-            arg->assert_type(env, Object::Type::String, "String");
-            cmd[i] = arg->as_string()->c_str();
+            cmd[i] = args[i]->to_str(env)->c_str();
         }
         cmd[args.size()] = nullptr;
-        auto program = args[0]->as_string();
+        auto program = args[0]->to_str(env);
         result = posix_spawnp(
             &pid,
             program->c_str(),

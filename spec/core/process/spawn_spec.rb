@@ -100,7 +100,7 @@ describe "Process.spawn" do
 
     it "calls #to_str to convert the argument to a String" do
       o = mock("to_str")
-      NATFIXME 'it calls #to_str to convert the argument to a String', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
+      NATFIXME 'output to fd', exception: SpecFailedException do
         o.should_receive(:to_str).and_return("echo foo")
         -> { Process.wait Process.spawn(o) }.should output_to_fd("foo\n")
       end
@@ -136,7 +136,7 @@ describe "Process.spawn" do
     end
 
     it "calls #to_str to convert the arguments to Strings" do
-      NATFIXME 'it calls #to_str to convert the arguments to Strings', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
+      NATFIXME 'output to fd', exception: SpecFailedException do
         o = mock("to_str")
         o.should_receive(:to_str).and_return("foo")
         -> { Process.wait Process.spawn("echo", o) }.should output_to_fd("foo\n")
@@ -249,7 +249,7 @@ describe "Process.spawn" do
 
   it "unsets environment variables whose value is nil" do
     ENV["FOO"] = "BAR"
-    NATFIXME 'Support env', exception: TypeError, message: "NilClass can't be coerced into String" do
+    NATFIXME 'Support env', exception: TypeError, message: 'no implicit conversion from nil to string' do
       -> do
         Process.wait Process.spawn({"FOO" => nil}, ruby_cmd("p ENV['FOO']"))
       end.should output_to_fd("nil\n")
@@ -279,7 +279,7 @@ describe "Process.spawn" do
   end
 
   it "calls #to_hash to convert the environment" do
-    NATFIXME 'it calls #to_hash to convert the environment', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
+    NATFIXME 'Support env', exception: Errno::ENOENT do
       o = mock("to_hash")
       o.should_receive(:to_hash).and_return({"FOO" => "BAR"})
       Process.wait Process.spawn(o, "echo #{@var}>#{@name}")
@@ -288,7 +288,7 @@ describe "Process.spawn" do
   end
 
   it "calls #to_str to convert the environment keys" do
-    NATFIXME 'it calls #to_str to convert the environment keys', exception: TypeError, message: "MockObject can't be coerced into String" do
+    NATFIXME 'Support env', exception: Errno::ENOENT do
       o = mock("to_str")
       o.should_receive(:to_str).and_return("FOO")
       Process.wait Process.spawn({o => "BAR"}, "echo #{@var}>#{@name}")
@@ -297,7 +297,7 @@ describe "Process.spawn" do
   end
 
   it "calls #to_str to convert the environment values" do
-    NATFIXME 'it calls #to_str to convert the environment values', exception: TypeError, message: "MockObject can't be coerced into String" do
+    NATFIXME 'Support env', exception: Errno::ENOENT do
       o = mock("to_str")
       o.should_receive(:to_str).and_return("BAR")
       Process.wait Process.spawn({"FOO" => o}, "echo #{@var}>#{@name}")
@@ -812,9 +812,7 @@ describe "Process.spawn" do
   end
 
   it "raises an ArgumentError if passed env or options but no command arguments" do
-    NATFIXME 'it raises an ArgumentError if passed env or options but no command arguments', exception: SpecFailedException, message: /no implicit conversion of Hash into String/ do
-      -> { Process.spawn({}) }.should raise_error(ArgumentError)
-    end
+    -> { Process.spawn({}) }.should raise_error(ArgumentError)
   end
 
   it "raises an ArgumentError if passed env and options but no command arguments" do
