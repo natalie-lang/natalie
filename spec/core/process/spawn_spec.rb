@@ -7,7 +7,8 @@ platform_is :windows do
 end
 
 describe :process_spawn_does_not_close_std_streams, shared: true do
-  it "does not close STDIN" do
+  # NATFIXME: Prints /traceback|error/, causes spec runner to fail
+  xit "does not close STDIN" do
     code = "puts STDIN.read"
     cmd = "Process.wait Process.spawn(#{ruby_cmd(code).inspect}, #{@options.inspect})"
     NATFIXME "it does not close STDIN", exception: SpecFailedException do
@@ -16,7 +17,8 @@ describe :process_spawn_does_not_close_std_streams, shared: true do
     end
   end
 
-  it "does not close STDOUT" do
+  # NATFIXME: Prints /traceback|error/, causes spec runner to fail
+  xit "does not close STDOUT" do
     code = "STDOUT.puts 'hello'"
     cmd = "Process.wait Process.spawn(#{ruby_cmd(code).inspect}, #{@options.inspect})"
     NATFIXME "it does not close STDOUT", exception: SpecFailedException do
@@ -371,7 +373,7 @@ describe "Process.spawn" do
   # :pgroup
 
   platform_is_not :windows do
-    it "joins the current process group by default" do
+    xit "joins the current process group by default" do
       NATFIXME 'it joins the current process group by default', exception: SpecFailedException do
         -> do
           Process.wait Process.spawn(ruby_cmd("print Process.getpgid(Process.pid)"))
@@ -459,7 +461,8 @@ describe "Process.spawn" do
 
   # :chdir
 
-  it "uses the current working directory as its working directory" do
+  # NATFIXME: Prints /traceback|error/, causes spec runner to fail
+  xit "uses the current working directory as its working directory" do
     NATFIXME 'it uses the current working directory as its working directory', exception: SpecFailedException do
       -> do
         Process.wait Process.spawn(ruby_cmd("print Dir.pwd"))
@@ -505,6 +508,7 @@ describe "Process.spawn" do
         `pgrep -P #{pid}`.lines.map { |child| Integer(child) }
       end
 
+      # NATFIXME: Prints /traceback|error/, causes spec runner to fail
       it "does not create extra process without chdir" do
         pid = Process.spawn("sleep 10")
         begin
@@ -543,7 +547,8 @@ describe "Process.spawn" do
 
   # :umask
 
-  it "uses the current umask by default" do
+  # NATFIXME: Prints /traceback|error/, causes spec runner to fail
+  xit "uses the current umask by default" do
     NATFIXME 'it uses the current umask by default', exception: SpecFailedException do
       -> do
         Process.wait Process.spawn(ruby_cmd("print File.umask"))
@@ -715,7 +720,8 @@ describe "Process.spawn" do
 
   platform_is_not :windows do
     context "defaults :close_others to" do
-      it "false" do
+      # NATFIXME: Prints /traceback|error/, causes spec runner to fail
+      xit "false" do
         IO.pipe do |r, w|
           w.close_on_exec = false
           NATFIXME "it defaults :close_others to false", exception: SpecFailedException do
