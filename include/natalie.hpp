@@ -132,6 +132,12 @@ extern "C" {
 #include "onigmo.h"
 }
 
+enum FlipFlopState {
+    On,
+    Transitioning,
+    Off,
+};
+
 void init_bindings(Env *);
 
 Env *build_top_env();
