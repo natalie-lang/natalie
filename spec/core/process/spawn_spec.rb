@@ -279,7 +279,7 @@ describe "Process.spawn" do
   end
 
   it "calls #to_hash to convert the environment" do
-    NATFIXME 'it calls #to_hash to convert the environment', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
+    NATFIXME 'Support env', exception: Errno::ENOENT do
       o = mock("to_hash")
       o.should_receive(:to_hash).and_return({"FOO" => "BAR"})
       Process.wait Process.spawn(o, "echo #{@var}>#{@name}")
@@ -812,9 +812,7 @@ describe "Process.spawn" do
   end
 
   it "raises an ArgumentError if passed env or options but no command arguments" do
-    NATFIXME 'it raises an ArgumentError if passed env or options but no command arguments', exception: SpecFailedException, message: /no implicit conversion of Hash into String/ do
-      -> { Process.spawn({}) }.should raise_error(ArgumentError)
-    end
+    -> { Process.spawn({}) }.should raise_error(ArgumentError)
   end
 
   it "raises an ArgumentError if passed env and options but no command arguments" do

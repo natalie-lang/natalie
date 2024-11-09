@@ -718,12 +718,12 @@ Value KernelModule::sleep(Env *env, Value length) {
 
 Value KernelModule::spawn(Env *env, Args args) {
     pid_t pid;
-    args.ensure_argc_at_least(env, 1);
     int result;
 
     Vector<char *> new_env;
-    if (args.size() > 1 && args.at(0)->is_hash()) {
-        auto hash = args.shift()->as_hash_or_raise(env);
+
+    if (args.size() >= 1 && (args.at(0)->is_hash() || args.at(0)->respond_to(env, "to_hash"_s))) {
+        auto hash = args.shift()->to_hash(env);
         for (auto ep = environ; *ep; ep++)
             new_env.push(strdup(*ep));
         for (auto pair : *hash) {
@@ -735,6 +735,8 @@ Value KernelModule::spawn(Env *env, Args args) {
         }
         new_env.push(nullptr);
     }
+
+    args.ensure_argc_at_least(env, 1);
 
     Defer free_new_env([&]() {
         for (auto str : new_env) {
