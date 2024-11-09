@@ -99,6 +99,13 @@ module Process
 
   module_function :waitpid
 
+  def wait2(...)
+    result = wait(...)
+    return nil if result == 0
+    [result, $?]
+  end
+  module_function :wait2
+
   def warmup = true
   module_function :warmup
 end
