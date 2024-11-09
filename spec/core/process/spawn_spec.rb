@@ -100,7 +100,7 @@ describe "Process.spawn" do
 
     it "calls #to_str to convert the argument to a String" do
       o = mock("to_str")
-      NATFIXME 'it calls #to_str to convert the argument to a String', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
+      NATFIXME 'output to fd', exception: SpecFailedException do
         o.should_receive(:to_str).and_return("echo foo")
         -> { Process.wait Process.spawn(o) }.should output_to_fd("foo\n")
       end

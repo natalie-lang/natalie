@@ -743,8 +743,7 @@ Value KernelModule::spawn(Env *env, Args args) {
     });
 
     if (args.size() == 1) {
-        auto arg = args.at(0);
-        arg->assert_type(env, Object::Type::String, "String");
+        auto arg = args.at(0)->to_str(env);
         auto splitter = new RegexpObject { env, "\\s+" };
         auto split = arg->as_string()->split(env, splitter, 0)->as_array();
         const char *cmd[split->size() + 1];
