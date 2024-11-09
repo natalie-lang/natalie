@@ -21,7 +21,7 @@ class OptionParser
     end
 
     def match?(arg)
-      name = arg.split('=', 2).first
+      name = arg.split('=', 2).first || ''
       name[0...2] == "-#{short_name}" || name == "--#{long_name}"
     end
 
