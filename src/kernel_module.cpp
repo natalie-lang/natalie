@@ -729,8 +729,8 @@ Value KernelModule::spawn(Env *env, Args args) {
         for (auto pair : *hash) {
             auto combined = String::format(
                 "{}={}",
-                pair.key->as_string_or_raise(env)->string(),
-                pair.val->as_string_or_raise(env)->string());
+                pair.key->to_str(env)->string(),
+                pair.val->to_str(env)->string());
             new_env.push(strdup(combined.c_str()));
         }
         new_env.push(nullptr);

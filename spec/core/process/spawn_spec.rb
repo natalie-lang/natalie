@@ -249,7 +249,7 @@ describe "Process.spawn" do
 
   it "unsets environment variables whose value is nil" do
     ENV["FOO"] = "BAR"
-    NATFIXME 'Support env', exception: TypeError, message: "NilClass can't be coerced into String" do
+    NATFIXME 'Support env', exception: TypeError, message: 'no implicit conversion from nil to string' do
       -> do
         Process.wait Process.spawn({"FOO" => nil}, ruby_cmd("p ENV['FOO']"))
       end.should output_to_fd("nil\n")
@@ -288,7 +288,7 @@ describe "Process.spawn" do
   end
 
   it "calls #to_str to convert the environment keys" do
-    NATFIXME 'it calls #to_str to convert the environment keys', exception: TypeError, message: "MockObject can't be coerced into String" do
+    NATFIXME 'Support env', exception: Errno::ENOENT do
       o = mock("to_str")
       o.should_receive(:to_str).and_return("FOO")
       Process.wait Process.spawn({o => "BAR"}, "echo #{@var}>#{@name}")
@@ -297,7 +297,7 @@ describe "Process.spawn" do
   end
 
   it "calls #to_str to convert the environment values" do
-    NATFIXME 'it calls #to_str to convert the environment values', exception: TypeError, message: "MockObject can't be coerced into String" do
+    NATFIXME 'Support env', exception: Errno::ENOENT do
       o = mock("to_str")
       o.should_receive(:to_str).and_return("BAR")
       Process.wait Process.spawn({"FOO" => o}, "echo #{@var}>#{@name}")
