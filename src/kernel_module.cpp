@@ -761,12 +761,10 @@ Value KernelModule::spawn(Env *env, Args args) {
     } else {
         const char *cmd[args.size() + 1];
         for (size_t i = 0; i < args.size(); i++) {
-            auto arg = args[i];
-            arg->assert_type(env, Object::Type::String, "String");
-            cmd[i] = arg->as_string()->c_str();
+            cmd[i] = args[i]->to_str(env)->c_str();
         }
         cmd[args.size()] = nullptr;
-        auto program = args[0]->as_string();
+        auto program = args[0]->to_str(env);
         result = posix_spawnp(
             &pid,
             program->c_str(),
