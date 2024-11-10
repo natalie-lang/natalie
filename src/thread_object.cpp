@@ -143,8 +143,8 @@ namespace Natalie {
 thread_local ThreadObject *tl_current_thread = nullptr;
 
 static Value validate_key(Env *env, Value key) {
-    if (key->is_string())
-        key = key->as_string()->to_sym(env);
+    if (key->is_string() || key->respond_to(env, "to_str"_s))
+        key = key->to_str(env)->to_sym(env);
     if (!key->is_symbol())
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
     return key;
