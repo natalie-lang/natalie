@@ -294,14 +294,13 @@ describe "Operators" do
     -> { eval("1...2...3")  }.should raise_error(SyntaxError)
   end
 
-  # NATFIXME: Support Prism::FlipFlopNode
-  xit ".. ... have higher precedence than ? :" do
-    ## Use variables to avoid warnings
-    #from = 1
-    #to = 2
-    ## These are flip-flop, not Range instances
-    #(from..to ? 3 : 4).should == 3
-    #(from...to ? 3 : 4).should == 3
+  it ".. ... have higher precedence than ? :" do
+    # Use variables to avoid warnings
+    from = 1
+    to = 2
+    # These are flip-flop, not Range instances
+    (from..to ? 3 : 4).should == 3
+    (from...to ? 3 : 4).should == 3
   end
 
   it "? : is right-associative" do
