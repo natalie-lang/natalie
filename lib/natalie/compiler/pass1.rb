@@ -1401,6 +1401,39 @@ module Natalie
         [PushFalseInstruction.new]
       end
 
+      def transform_flip_flop_node(node, used:)
+        if !used
+          raise 'flip flop must be used in an if condition?'
+        end
+
+        warning_instructions = []
+
+        process_condition = ->(condition_node) {
+          case condition_node
+          when Prism::StringNode
+            warning_instructions << compile_time_warning(node, "string literal in flip-flop", used: false)
+            transform_expression(condition_node, used: true)
+          when Prism::IntegerNode
+            warning_instructions << compile_time_warning(node, "integer literal in flip-flop", used: false)
+            [PushNilInstruction.new]
+          else
+            transform_expression(condition_node, used: true)
+          end
+        }
+
+        switch_on_body = process_condition.(node.left)
+        switch_off_body = process_condition.(node.right)
+
+        [
+          *warning_instructions,
+          FlipFlopInstruction.new(exclude_end: node.exclude_end?),
+          switch_on_body,
+          ElseInstruction.new(:flip_flop),
+          switch_off_body,
+          EndInstruction.new(:flip_flop),
+        ]
+      end
+
       def transform_float_node(node, used:)
         return [] unless used
         [PushFloatInstruction.new(node.value)]
@@ -2252,21 +2285,7 @@ module Natalie
 
       def transform_numbered_reference_read_node(node, used:)
         if node.number == 0
-          instructions = [
-            PushSelfInstruction.new,
-            PushStringInstruction.new("warning: `#{node.location.slice}' is too big for a number variable, always nil"),
-            PushArgcInstruction.new(1),
-            SendInstruction.new(
-              :warn,
-              receiver_is_self: true,
-              with_block: false,
-              file: @file.path,
-              line: node.location.start_line,
-            ),
-            PopInstruction.new,
-          ]
-          instructions << PushNilInstruction.new if used
-          return instructions
+          return compile_time_warning(node, "`#{node.location.slice}' is too big for a number variable, always nil", used:)
         end
 
         return [] unless used
@@ -2878,6 +2897,28 @@ module Natalie
         yield
       ensure
         @locals_stack.pop
+      end
+
+      # NATFIXME: Warnings should only be printed once. Currently if those
+      # instructions are placed inside a loop this will print n times.
+      # Maybe we can fix this when implementing BEGIN which also needs a way
+      # to move instructions to the top.
+      def compile_time_warning(node, warning, used:)
+        instructions = [
+          PushSelfInstruction.new,
+          PushStringInstruction.new("warning: #{warning}"),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            :warn,
+            receiver_is_self: true,
+            with_block: false,
+            file: @file.path,
+            line: node.location.start_line,
+          ),
+          PopInstruction.new,
+        ]
+        instructions << PushNilInstruction.new if used
+        instructions
       end
 
       class << self

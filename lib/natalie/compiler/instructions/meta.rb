@@ -44,6 +44,7 @@ module Natalie
       DupRelInstruction,
       ElseInstruction,
       EndInstruction,
+      FlipFlopInstruction,
       GlobalVariableDefinedInstruction,
       GlobalVariableGetInstruction,
       GlobalVariableSetInstruction,

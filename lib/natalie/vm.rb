@@ -9,6 +9,7 @@ module Natalie
       @path = path
       @self = @main = build_main
       @method_visibility = :public
+      @flip_flop_states = []
       @global_variables = {
         "$0": @path,
         "$stderr": $stderr,
@@ -19,7 +20,7 @@ module Natalie
 
     attr_accessor :self, :method_visibility, :global_variables, :rescued
 
-    attr_reader :stack, :main
+    attr_reader :stack, :main, :flip_flop_states
 
     def ip
       @instructions.ip
