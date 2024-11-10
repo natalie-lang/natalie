@@ -390,21 +390,20 @@ describe "Operators" do
     b.should == 9
   end
 
-  # NATFIXME: Compile errors, variable a is not declared in C++
-  xit "= %= /= -= += |= &= >>= <<= *= &&= ||= **= have higher precedence than defined? operator" do
-    #(defined? a =   10).should == "assignment"
-    #(defined? a %=  10).should == "assignment"
-    #(defined? a /=  10).should == "assignment"
-    #(defined? a -=  10).should == "assignment"
-    #(defined? a +=  10).should == "assignment"
-    #(defined? a |=  10).should == "assignment"
-    #(defined? a &=  10).should == "assignment"
-    #(defined? a >>= 10).should == "assignment"
-    #(defined? a <<= 10).should == "assignment"
-    #(defined? a *=  10).should == "assignment"
-    #(defined? a &&= 10).should == "assignment"
-    #(defined? a ||= 10).should == "assignment"
-    #(defined? a **= 10).should == "assignment"
+  it "= %= /= -= += |= &= >>= <<= *= &&= ||= **= have higher precedence than defined? operator" do
+    (defined? a =   10).should == "assignment"
+    (defined? a %=  10).should == "assignment"
+    (defined? a /=  10).should == "assignment"
+    (defined? a -=  10).should == "assignment"
+    (defined? a +=  10).should == "assignment"
+    (defined? a |=  10).should == "assignment"
+    (defined? a &=  10).should == "assignment"
+    (defined? a >>= 10).should == "assignment"
+    (defined? a <<= 10).should == "assignment"
+    (defined? a *=  10).should == "assignment"
+    (defined? a &&= 10).should == "assignment"
+    (defined? a ||= 10).should == "assignment"
+    (defined? a **= 10).should == "assignment"
   end
 
   # XXX: figure out how to test it
