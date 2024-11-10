@@ -68,6 +68,7 @@
 #include "natalie/encoding/windows1250_encoding_object.hpp"
 #include "natalie/encoding/windows1251_encoding_object.hpp"
 #include "natalie/encoding/windows1252_encoding_object.hpp"
+#include "natalie/encoding/windows1253_encoding_object.hpp"
 
 #include "natalie/encoding_object.hpp"
 #include "natalie/enumerator/arithmetic_sequence_object.hpp"

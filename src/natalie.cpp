@@ -343,6 +343,9 @@ Env *build_top_env() {
     Value EncodingWindows1252 = new Windows1252EncodingObject {};
     Encoding->const_set("Windows_1252"_s, EncodingWindows1252);
     Encoding->const_set("CP1252"_s, EncodingWindows1252);
+    Value EncodingWindows1253 = new Windows1253EncodingObject {};
+    Encoding->const_set("Windows_1253"_s, EncodingWindows1253);
+    Encoding->const_set("CP1253"_s, EncodingWindows1253);
 
     // Must set defaults after the encodings are defined above.
     EncodingObject::initialize_defaults(env);
