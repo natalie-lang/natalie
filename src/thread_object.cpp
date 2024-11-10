@@ -143,10 +143,10 @@ namespace Natalie {
 thread_local ThreadObject *tl_current_thread = nullptr;
 
 static Value validate_key(Env *env, Value key) {
-    if (key->is_string())
-        key = key->as_string()->to_sym(env);
+    if (key->is_string() || key->respond_to(env, "to_str"_s))
+        key = key->to_str(env)->to_sym(env);
     if (!key->is_symbol())
-        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
+        env->raise("TypeError", "{} is not a symbol", key->inspect_str(env));
     return key;
 }
 
@@ -541,32 +541,21 @@ Value ThreadObject::refeq(Env *env, Value key, Value value) {
 }
 
 bool ThreadObject::has_thread_variable(Env *env, Value key) const {
-    if (!key->is_symbol() && !key->is_string() && key->respond_to(env, "to_str"_s))
-        key = key->to_str(env);
-    if (key->is_string())
-        key = key->as_string()->to_sym(env);
+    key = validate_key(env, key);
     return m_thread_variables && m_thread_variables->has_key(env, key);
 }
 
 Value ThreadObject::thread_variable_get(Env *env, Value key) {
     if (!m_thread_variables)
         return NilObject::the();
-    if (!key->is_symbol() && !key->is_string() && key->respond_to(env, "to_str"_s))
-        key = key->to_str(env);
-    if (key->is_string())
-        key = key->as_string()->to_sym(env);
+    key = validate_key(env, key);
     return m_thread_variables->ref(env, key);
 }
 
 Value ThreadObject::thread_variable_set(Env *env, Value key, Value value) {
     if (is_frozen())
         env->raise("FrozenError", "can't modify frozen thread locals");
-    if (!key->is_symbol() && !key->is_string() && key->respond_to(env, "to_str"_s))
-        key = key->to_str(env);
-    if (key->is_string())
-        key = key->as_string()->to_sym(env);
-    if (!key->is_symbol())
-        env->raise("TypeError", "{} is not a symbol", key->inspect_str(env));
+    key = validate_key(env, key);
     if (!m_thread_variables)
         m_thread_variables = new HashObject;
     if (value->is_nil()) {
