@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-Value Method::call(Env *env, Value self, const Args& args, Block *block) const {
+Value Method::call(Env *env, Value self, const Args &args, Block *block) const {
     assert(m_fn);
 
     Env *closure_env;

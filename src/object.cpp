@@ -943,20 +943,20 @@ Value Object::module_function(Env *env, Args args) {
     abort();
 }
 
-Value Object::public_send(Env *env, SymbolObject *name, const Args& args, Block *block, Value sent_from) {
+Value Object::public_send(Env *env, SymbolObject *name, const Args &args, Block *block, Value sent_from) {
     return send(env, name, args, block, MethodVisibility::Public, sent_from);
 }
 
-Value Object::public_send(Env *env, const Args& args, Block *block) {
+Value Object::public_send(Env *env, const Args &args, Block *block) {
     auto name = args[0]->to_symbol(env, Object::Conversion::Strict);
     return public_send(env->caller(), name, Args::shift(args), block);
 }
 
-Value Object::send(Env *env, SymbolObject *name, const Args& args, Block *block, Value sent_from) {
+Value Object::send(Env *env, SymbolObject *name, const Args &args, Block *block, Value sent_from) {
     return send(env, name, args, block, MethodVisibility::Private, sent_from);
 }
 
-Value Object::send(Env *env, const Args& args, Block *block) {
+Value Object::send(Env *env, const Args &args, Block *block) {
     auto name = args[0]->to_symbol(env, Object::Conversion::Strict);
     return send(env->caller(), name, Args::shift(args), block);
 }
