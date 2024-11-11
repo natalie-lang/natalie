@@ -38,12 +38,6 @@
 
 #define NAT_QUOTE(val) #val
 
-#ifdef __APPLE__
-#define NAT_ASM_PREFIX "_"
-#else
-#define NAT_ASM_PREFIX ""
-#endif
-
 #define NAT_MAKE_NONCOPYABLE(c) \
     c(const c &) = delete;      \
     c &operator=(const c &) = delete
