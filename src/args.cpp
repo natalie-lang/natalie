@@ -44,7 +44,7 @@ Args &Args::operator=(const Args &other) {
     return *this;
 }
 
-Args Args::shift(Args &args) {
+Args Args::shift(const Args &args) {
     assert(args.size() > 0);
     if (args.size() == 1)
         return Args();
