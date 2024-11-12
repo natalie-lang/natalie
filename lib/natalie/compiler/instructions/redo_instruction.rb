@@ -8,7 +8,7 @@ module Natalie
       end
 
       def generate(transform)
-        value = transform.memoize(:nil_with_redo_flag, 'Value(NilObject::the())')
+        value = transform.memoize(:obj_with_redo_flag, 'Object::_new(env, GlobalEnv::the()->Object(), {}, nullptr)');
         transform.exec("#{value}->add_redo_flag()")
         transform.exec("return #{value}")
         transform.push_nil
