@@ -3481,7 +3481,7 @@ EncodingObject *StringObject::negotiate_compatible_encoding(const StringObject *
     if (m_encoding->num() == Encoding::ASCII_8BIT)
         return m_encoding.ptr();
 
-    if (this_is_ascii)
+    else if (this_is_ascii && !other_is_ascii)
         return other_string->m_encoding.ptr();
     else
         return m_encoding.ptr();
