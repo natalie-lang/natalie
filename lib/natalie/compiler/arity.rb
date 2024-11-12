@@ -22,6 +22,8 @@ module Natalie
           @args = args.maximum.times.map do |i|
             Prism::RequiredParameterNode.new(nil, nil, args.location, 0, :"_#{i + 1}")
           end
+        when ::Prism::ItParametersNode
+          @args = []
         else
           raise "expected args node, but got: #{args.inspect}"
         end
