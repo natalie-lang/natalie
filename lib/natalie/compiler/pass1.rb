@@ -2025,6 +2025,23 @@ module Natalie
         instructions
       end
 
+      def transform_it_local_variable_read_node(node, used:)
+        # Ruby 3.3 behaviour: call the method `it` instead
+        instructions = [
+          PushSelfInstruction.new,
+          PushArgcInstruction.new(0),
+          SendInstruction.new(
+            :it,
+            receiver_is_self: true,
+            with_block: false,
+            file: @file.path,
+            line: node.location.start_line,
+          )
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       alias transform_keyword_hash_node transform_hash_node
 
       def transform_lambda_node(node, used:)

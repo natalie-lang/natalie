@@ -77,6 +77,10 @@ module Natalie
         when ::Prism::ImplicitRestNode
           clean_up_keyword_args
           transform_implicit_rest_arg(arg)
+        when ::Prism::ItParametersNode
+          clean_up_keyword_args
+          shift_or_pop_next_arg
+          @instructions << variable_set(:it)
         else
           raise "unhandled node: #{arg.inspect} (#{@pass.file.path}##{arg.location.start_line})"
         end
