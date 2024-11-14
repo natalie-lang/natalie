@@ -243,7 +243,7 @@ void FiberObject::swap_to_previous(Env *env, Args args) {
     m_previous_fiber = nullptr;
 }
 
-void FiberObject::visit_children(Visitor &visitor) {
+void FiberObject::visit_children(Visitor &visitor) const {
     Object::visit_children(visitor);
     for (auto arg : m_args)
         visitor.visit(arg);

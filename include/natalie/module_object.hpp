@@ -167,7 +167,7 @@ public:
     bool has_env() { return !!m_env; }
     Env *env() { return m_env; }
 
-    virtual void visit_children(Visitor &) override final;
+    virtual void visit_children(Visitor &) const override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         if (m_class_name)

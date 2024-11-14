@@ -28,7 +28,7 @@ public:
 
     virtual ~DirObject();
 
-    virtual void visit_children(Visitor &visitor) override {
+    virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);
         visitor.visit(m_path);
         visitor.visit(m_encoding);

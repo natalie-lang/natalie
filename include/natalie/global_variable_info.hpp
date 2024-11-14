@@ -22,7 +22,7 @@ public:
     void set_read_hook(read_hook_t read_hook) { m_read_hook = read_hook; }
     void set_write_hook(write_hook_t write_hook) { m_write_hook = write_hook; }
 
-    virtual void visit_children(Visitor &visitor) override final;
+    virtual void visit_children(Visitor &visitor) const override final;
 
 private:
     class Object *m_object { nullptr };

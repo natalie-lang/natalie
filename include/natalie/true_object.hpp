@@ -29,7 +29,7 @@ public:
     bool xor_method(const Env *, Value) const;
     Value to_s(const Env *) const;
 
-    virtual void visit_children(Visitor &visitor) override final;
+    virtual void visit_children(Visitor &visitor) const override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<TrueObject %p>", this);

@@ -386,7 +386,7 @@ Env *Env::non_block_env() {
     return env;
 }
 
-void Env::visit_children(Visitor &visitor) {
+void Env::visit_children(Visitor &visitor) const {
     visitor.visit(m_vars);
     visitor.visit(m_outer);
     visitor.visit(m_block);

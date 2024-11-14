@@ -116,7 +116,7 @@ void GlobalEnv::set_interned_strings(StringObject **interned_strings, const size
     m_interned_strings.push({ interned_strings, interned_strings_size });
 }
 
-void GlobalEnv::visit_children(Visitor &visitor) {
+void GlobalEnv::visit_children(Visitor &visitor) const {
     for (auto pair : m_global_variables) {
         visitor.visit(pair.first);
         visitor.visit(pair.second);

@@ -43,7 +43,7 @@ public:
         snprintf(buf, len, "<Enumerator::ArithmeticSequence %p>", this);
     }
 
-    virtual void visit_children(Visitor &visitor) override {
+    virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);
         visitor.visit(m_begin);
         visitor.visit(m_end);

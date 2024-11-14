@@ -25,7 +25,7 @@ void Cell::operator delete(void *) {
     // object creation. We can just ignore that and let sweep() clean up the cell later.
 }
 
-void MarkingVisitor::visit(Value val) {
+void Cell::Visitor::visit(Value val) {
     visit(val.object_or_null());
 }
 
@@ -138,6 +138,8 @@ void Heap::collect() {
 
     if (is_profiled)
         mark_profiler_event->end_now();
+
+    visitor.visit_all();
 
     ThreadObject::wake_up_the_world();
 

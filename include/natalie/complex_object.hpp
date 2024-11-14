@@ -40,7 +40,7 @@ public:
     Value inspect(Env *);
     Value real(Env *);
 
-    virtual void visit_children(Visitor &visitor) override {
+    virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);
         visitor.visit(m_real);
         visitor.visit(m_imaginary);

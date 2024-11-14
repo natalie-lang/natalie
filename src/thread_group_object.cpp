@@ -38,7 +38,7 @@ ArrayObject *ThreadGroupObject::list() {
     return result;
 }
 
-void ThreadGroupObject::visit_children(Visitor &visitor) {
+void ThreadGroupObject::visit_children(Visitor &visitor) const {
     Object::visit_children(visitor);
     visitor.visit(m_default);
     for (auto thread : m_threads)

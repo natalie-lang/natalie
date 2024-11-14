@@ -55,7 +55,7 @@ public:
 
     void copy_fn_pointer_to_method(Method *);
 
-    virtual void visit_children(Visitor &visitor) override final {
+    virtual void visit_children(Visitor &visitor) const override final {
         visitor.visit(m_env);
         visitor.visit(m_calling_env);
         visitor.visit(m_self);

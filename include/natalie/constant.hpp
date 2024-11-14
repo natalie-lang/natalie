@@ -34,7 +34,7 @@ public:
     StringObject *autoload_path() const { return m_autoload_path; }
     void autoload(Env *, Value);
 
-    void visit_children(Visitor &visitor);
+    virtual void visit_children(Visitor &visitor) const override;
 
 private:
     SymbolObject *m_name;

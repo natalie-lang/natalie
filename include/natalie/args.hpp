@@ -66,6 +66,7 @@ public:
     const Value *data() const { return m_data.data(); }
 
     Vector<Value> &vector() { return m_data; }
+    const Vector<Value> &vector() const { return m_data; }
 
     bool has_keyword_hash() const { return m_has_keyword_hash; }
     HashObject *keyword_hash() const;

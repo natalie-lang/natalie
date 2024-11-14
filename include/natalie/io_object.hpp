@@ -39,7 +39,7 @@ public:
         }
     }
 
-    virtual void visit_children(Visitor &visitor) override {
+    virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);
         visitor.visit(m_external_encoding);
         visitor.visit(m_internal_encoding);

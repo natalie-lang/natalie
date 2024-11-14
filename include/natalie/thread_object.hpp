@@ -198,7 +198,7 @@ public:
     ThreadGroupObject *group() { return m_group; }
     void set_group(ThreadGroupObject *group) { m_group = group; }
 
-    virtual void visit_children(Visitor &) override final;
+    virtual void visit_children(Visitor &) const override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(

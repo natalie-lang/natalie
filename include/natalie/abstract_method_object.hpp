@@ -19,7 +19,7 @@ public:
     Method *method() { return m_method; }
     int arity() { return m_method->arity(); }
 
-    virtual void visit_children(Visitor &visitor) override {
+    virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);
         visitor.visit(m_method);
     }

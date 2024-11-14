@@ -30,7 +30,7 @@ public:
 
     bool is_defined() const { return !m_undefined && m_method; }
 
-    void visit_children(Cell::Visitor &);
+    void visit_children(Cell::Visitor &) const;
 
 private:
     MethodVisibility m_visibility { MethodVisibility::Public };

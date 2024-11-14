@@ -27,7 +27,7 @@ public:
     Value path() const { return m_file; }
     StringObject *to_s() const;
 
-    void visit_children(Visitor &);
+    virtual void visit_children(Visitor &) const override;
 
 private:
     StringObject *m_source_location { nullptr };

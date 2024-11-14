@@ -24,7 +24,7 @@ public:
         size_t hash { 0 };
         bool removed { false };
 
-        virtual void visit_children(Visitor &visitor) override final {
+        virtual void visit_children(Visitor &visitor) const override final {
             visitor.visit(prev);
             visitor.visit(next);
             visitor.visit(key);
@@ -205,7 +205,7 @@ public:
     Value to_h(Env *, Block *);
     Value to_hash() { return this; }
 
-    virtual void visit_children(Visitor &) override final;
+    virtual void visit_children(Visitor &) const override final;
 
     virtual String dbg_inspect() const override;
 
