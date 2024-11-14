@@ -110,21 +110,19 @@ describe "BasicObject#instance_eval" do
   end
 
   it "treats block-local variables as local to the block" do
-    NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-      prc = instance_eval <<-CODE
-        proc do |x, prc|
-          if x
-            n = 2
-          else
-            n = 1
-            prc.call(true, prc)
-            n
-          end
+    prc = instance_eval <<-CODE
+      proc do |x, prc|
+        if x
+          n = 2
+        else
+          n = 1
+          prc.call(true, prc)
+          n
         end
-      CODE
+      end
+    CODE
 
-      prc.call(false, prc).should == 1
-    end
+    prc.call(false, prc).should == 1
   end
 
   it "makes the receiver metaclass the scoped class when used with a string" do
@@ -296,12 +294,10 @@ describe "BasicObject#instance_eval" do
   end
 
   it "has access to the caller's local variables" do
-    NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-      x = nil
+    x = nil
 
-      instance_eval "x = :value"
-      x.should == :value
-    end
+    instance_eval "x = :value"
+    x.should == :value
   end
 
   it "converts string argument with #to_str method" do
