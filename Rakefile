@@ -431,6 +431,16 @@ RUBY_OBJECT_FILES = RUBY_SOURCES.pathmap('build/generated/%{^src/,}p.o')
 SPECIAL_OBJECT_FILES = SPECIAL_SOURCES.pathmap('%p.o')
 OBJECT_FILES = PRIMARY_OBJECT_FILES + RUBY_OBJECT_FILES + SPECIAL_OBJECT_FILES
 
+# Find duplicate object files (even if in different directories), because a static library
+# with duplicate names causes the following runtime warning on macOS:
+#
+#     warning: (arm64)  skipping debug map object with duplicate name and timestamp
+#
+object_file_names = OBJECT_FILES.map { |f| File.basename(f) }
+if (duplicated_object_files = object_file_names.select { |f| object_file_names.count(f) > 1 }).any?
+  raise "Duplicate object files detected: #{duplicated_object_files.inspect}"
+end
+
 require 'tempfile'
 
 task(:set_build_debug) do
