@@ -59,6 +59,8 @@ module Natalie
       def get_hidden_macro_name(node)
         if node.type == :call_node && node.receiver&.type == :global_variable_read_node && %i[$LOAD_PATH $:].include?(node.receiver.name) && %i[<< unshift].include?(node.name)
           :update_load_path
+        elsif node.type == :call_node && node.name == :instance_eval && node.block.nil? && node.arguments&.arguments&.size == 1 && compile_time_string?(node.arguments.arguments.first)
+          :instance_eval
         end
       end
 
@@ -215,6 +217,14 @@ module Natalie
 
         load_path << path_to_add
         Prism.nil_node(location: expr.location)
+      end
+
+      def macro_instance_eval(expr:, current_path:, depth:, locals:, **)
+        ast = Natalie::Parser.new(string_node_to_string(expr.arguments.child_nodes.first), current_path, locals:).ast
+        block = Prism::BlockNode.new(ast.child_nodes.first, nil, expr.arguments.location, 0, nil, nil, ast.statements, expr.arguments.child_nodes.first.opening_loc, expr.arguments.child_nodes.first.closing_loc)
+        Prism::CallNode.new(expr.__send__(:source), expr.node_id, expr.location, expr.__send__(:flags), expr.receiver, expr.call_operator_loc, expr.name, expr.message_loc, expr.opening_loc, nil, expr.closing_loc, block)
+      rescue Parser::ParseError => e
+        drop_error(:SyntaxError, e.message, location: expr.location)
       end
 
       def interpret?
