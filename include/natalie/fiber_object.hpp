@@ -98,7 +98,7 @@ public:
         NAT_UNREACHABLE();
     }
 
-    virtual void visit_children(Visitor &) override final;
+    virtual void visit_children(Visitor &) const override final;
     void visit_children_from_stack(Visitor &) const;
     void visit_children_from_asan_fake_stack(Visitor &, Cell *) const;
 

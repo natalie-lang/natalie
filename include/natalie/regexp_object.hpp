@@ -184,7 +184,7 @@ public:
         snprintf(buf, len, "<RegexpObject %p>", this);
     }
 
-    void visit_children(Visitor &visitor) override {
+    virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);
         if (m_pattern)
             visitor.visit(m_pattern);

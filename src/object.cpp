@@ -1340,7 +1340,7 @@ Value Object::enum_for(Env *env, const char *method, Args args) {
     return this->public_send(env, "enum_for"_s, Args(std::move(args2), args.has_keyword_hash()));
 }
 
-void Object::visit_children(Visitor &visitor) {
+void Object::visit_children(Visitor &visitor) const {
     visitor.visit(m_klass);
     visitor.visit(m_singleton_class);
     visitor.visit(m_owner);

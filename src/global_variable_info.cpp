@@ -16,7 +16,7 @@ Value GlobalVariableInfo::object(Env *env) {
     return m_object;
 }
 
-void GlobalVariableInfo::visit_children(Visitor &visitor) {
+void GlobalVariableInfo::visit_children(Visitor &visitor) const {
     visitor.visit(m_object);
 }
 

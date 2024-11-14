@@ -3,7 +3,7 @@
 
 namespace Natalie {
 
-void ThrowCatchException::visit_children(Visitor &visitor) {
+void ThrowCatchException::visit_children(Visitor &visitor) const {
     visitor.visit(m_name);
     visitor.visit(m_value);
 }

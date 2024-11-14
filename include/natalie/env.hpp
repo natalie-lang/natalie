@@ -176,7 +176,7 @@ public:
 
     bool is_main() { return this == GlobalEnv::the()->main_env(); }
 
-    virtual void visit_children(Visitor &visitor) override final;
+    virtual void visit_children(Visitor &visitor) const override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<Env %p>", this);

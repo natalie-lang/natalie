@@ -42,7 +42,7 @@ public:
         return m_method->call(env, m_object, args, block);
     }
 
-    virtual void visit_children(Visitor &visitor) override final {
+    virtual void visit_children(Visitor &visitor) const override final {
         AbstractMethodObject::visit_children(visitor);
         visitor.visit(m_object);
         visitor.visit(m_method);

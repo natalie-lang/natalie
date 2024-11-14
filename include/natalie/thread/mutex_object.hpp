@@ -29,7 +29,7 @@ public:
     bool is_locked();
     bool is_owned();
 
-    void visit_children(Visitor &);
+    virtual void visit_children(Visitor &) const override;
 
 private:
     std::mutex m_mutex;

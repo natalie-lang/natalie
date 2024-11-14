@@ -450,7 +450,7 @@ public:
 
     virtual String dbg_inspect() const override;
 
-    virtual void visit_children(Visitor &visitor) override final {
+    virtual void visit_children(Visitor &visitor) const override final {
         Object::visit_children(visitor);
         visitor.visit(m_encoding.ptr());
     }

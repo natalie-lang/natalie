@@ -36,7 +36,7 @@ public:
     Value to_r(const Env *) const;
     Value inspect(const Env *) const;
 
-    virtual void visit_children(Visitor &visitor) override final;
+    virtual void visit_children(Visitor &visitor) const override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<NilObject %p>", this);

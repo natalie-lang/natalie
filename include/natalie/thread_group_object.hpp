@@ -29,7 +29,7 @@ public:
     static void initialize_default();
     static ThreadGroupObject *get_default() { return m_default; }
 
-    virtual void visit_children(Visitor &) override final;
+    virtual void visit_children(Visitor &) const override final;
 
 private:
     static inline std::mutex m_mutex;

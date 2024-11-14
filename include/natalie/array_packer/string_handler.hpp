@@ -19,7 +19,7 @@ namespace ArrayPacker {
 
         using PackHandlerFn = void (StringHandler::*)();
 
-        virtual void visit_children(Visitor &visitor) override {
+        virtual void visit_children(Visitor &visitor) const override {
             visitor.visit(m_string_object);
         }
 

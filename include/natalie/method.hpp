@@ -90,7 +90,7 @@ public:
     const Optional<String> &get_file() const { return m_file; }
     const Optional<size_t> &get_line() const { return m_line; }
 
-    virtual void visit_children(Visitor &visitor) override final {
+    virtual void visit_children(Visitor &visitor) const override final {
         visitor.visit(m_owner);
         visitor.visit(m_env);
         visitor.visit(m_self);

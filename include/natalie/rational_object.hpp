@@ -48,7 +48,7 @@ public:
     Value to_s(Env *);
     Value truncate(Env *, Value);
 
-    virtual void visit_children(Visitor &visitor) override {
+    virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);
         visitor.visit(m_numerator);
         visitor.visit(m_denominator);

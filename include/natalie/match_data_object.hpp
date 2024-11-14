@@ -69,7 +69,7 @@ public:
         snprintf(buf, len, "<MatchDataObject %p>", this);
     }
 
-    virtual void visit_children(Visitor &visitor) override final {
+    virtual void visit_children(Visitor &visitor) const override final {
         Object::visit_children(visitor);
         visitor.visit(m_string);
         visitor.visit(m_regexp);

@@ -207,7 +207,7 @@ public:
     Value values_at(Env *, Args);
     Value zip(Env *, Args, Block *);
 
-    virtual void visit_children(Visitor &visitor) override final {
+    virtual void visit_children(Visitor &visitor) const override final {
         Object::visit_children(visitor);
         for (auto val : m_vector) {
             visitor.visit(val);

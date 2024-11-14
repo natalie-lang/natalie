@@ -60,7 +60,7 @@ public:
 
     int arity() { return m_block ? m_block->arity() : 0; }
 
-    virtual void visit_children(Visitor &visitor) override {
+    virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);
         visitor.visit(m_block);
     }

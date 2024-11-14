@@ -619,7 +619,7 @@ void ThreadObject::unlock_mutexes() const {
         pair.first->unlock_without_checks();
 }
 
-void ThreadObject::visit_children(Visitor &visitor) {
+void ThreadObject::visit_children(Visitor &visitor) const {
     Object::visit_children(visitor);
     for (auto arg : m_args.vector())
         visitor.visit(arg);

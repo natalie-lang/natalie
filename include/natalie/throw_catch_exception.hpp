@@ -14,7 +14,7 @@ public:
     Value get_name() const { return m_name; }
     Value get_value() const { return m_value; }
 
-    void visit_children(Visitor &visitor);
+    virtual void visit_children(Visitor &visitor) const override;
 
 private:
     Value m_name { nullptr };

@@ -22,14 +22,11 @@ public:
 
     class Visitor {
     public:
-        virtual void visit(Cell *cell) = 0;
-        void visit(const Cell *cell) {
-            visit(const_cast<Cell *>(cell));
-        }
+        virtual void visit(const Cell *cell) = 0;
         void visit(Value);
     };
 
-    virtual void visit_children(Visitor &) {
+    virtual void visit_children(Visitor &) const {
     }
 
     // only for debugging the GC
@@ -52,16 +49,16 @@ public:
         return m_marked;
     }
 
-    void mark() {
+    void mark() const {
         m_marked = true;
     }
 
-    void unmark() {
+    void unmark() const {
         m_marked = false;
     }
 
 private:
-    bool m_marked { false };
+    mutable bool m_marked { false };
 };
 
 }

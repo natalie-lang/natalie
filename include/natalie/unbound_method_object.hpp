@@ -50,7 +50,7 @@ public:
         }
     }
 
-    virtual void visit_children(Visitor &visitor) override final {
+    virtual void visit_children(Visitor &visitor) const override final {
         AbstractMethodObject::visit_children(visitor);
         visitor.visit(m_module_or_class);
         visitor.visit(m_method);

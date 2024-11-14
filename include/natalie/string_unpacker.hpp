@@ -21,7 +21,7 @@ public:
     ArrayObject *unpack(Env *env);
     Value unpack1(Env *env);
 
-    virtual void visit_children(Visitor &visitor) override {
+    virtual void visit_children(Visitor &visitor) const override {
         visitor.visit(m_source);
         visitor.visit(m_unpacked_value);
         visitor.visit(m_unpacked_array);

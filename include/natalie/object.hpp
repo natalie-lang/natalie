@@ -368,7 +368,7 @@ public:
 
     Value enum_for(Env *env, const char *method, Args args = {});
 
-    virtual void visit_children(Visitor &visitor) override;
+    virtual void visit_children(Visitor &visitor) const override;
 
     virtual String dbg_inspect() const;
 

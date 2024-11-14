@@ -1123,7 +1123,7 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
     return NilObject::the();
 }
 
-void ModuleObject::visit_children(Visitor &visitor) {
+void ModuleObject::visit_children(Visitor &visitor) const {
     Object::visit_children(visitor);
     visitor.visit(m_env);
     visitor.visit(m_superclass);

@@ -700,7 +700,7 @@ Value HashObject::slice(Env *env, Args args) {
     return new_hash;
 }
 
-void HashObject::visit_children(Visitor &visitor) {
+void HashObject::visit_children(Visitor &visitor) const {
     Object::visit_children(visitor);
     for (auto pair : m_hashmap) {
         visitor.visit(pair.first);
