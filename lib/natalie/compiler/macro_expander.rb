@@ -159,21 +159,9 @@ module Natalie
         args = expr.arguments&.arguments || []
         node = args.first
         $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
-        if node.type == :interpolated_string_node && node.parts.all? { |subnode| subnode.type == :string_node }
-          node = Prism::StringNode.new(
-            nil,
-            nil,
-            node.location,
-            0,
-            node.opening_loc,
-            node.opening_loc,
-            node.closing_loc,
-            node.parts.map(&:unescaped).join,
-          )
-        end
-        if node.type == :string_node
+        if compile_time_string?(node)
           begin
-            Natalie::Parser.new(node.unescaped, current_path, locals: locals).ast
+            Natalie::Parser.new(string_node_to_string(node), current_path, locals: locals).ast
           rescue Parser::ParseError => e
             drop_error(:SyntaxError, e.message, location: node.location)
           end
@@ -320,6 +308,20 @@ module Natalie
         else
           raise "unknown node type: #{expr.inspect}"
         end
+      end
+
+      def compile_time_string?(expr)
+        expr&.type == :string_node || expr&.type == :interpolated_string_node && expr.parts.all? { |subexpr| subexpr.type == :string_node }
+      end
+
+      def string_node_to_string(expr)
+        case expr.type
+        when :string_node
+          return expr.unescaped
+        when :interpolated_string_node
+          return expr.parts.map(&:unescaped).join if expr.parts.all? { |subexpr| subexpr.type == :string_node }
+        end
+        raise "Not a compile time string: #{expr.location.slice}"
       end
     end
   end
