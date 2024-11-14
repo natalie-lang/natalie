@@ -22,9 +22,11 @@ public:
 
     class Visitor {
     public:
-        virtual void visit(Cell *) = 0;
-        virtual void visit(const Cell *) = 0;
-        virtual void visit(Value) = 0;
+        virtual void visit(Cell *cell) = 0;
+        void visit(const Cell *cell) {
+            visit(const_cast<Cell *>(cell));
+        }
+        void visit(Value);
     };
 
     virtual void visit_children(Visitor &) {
