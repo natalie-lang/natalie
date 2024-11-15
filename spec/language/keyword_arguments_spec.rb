@@ -168,20 +168,18 @@ describe "Keyword arguments" do
     end
 
     it "works with (...)" do
-      NATFIXME 'instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-        instance_eval <<~DEF
-        def m(...)
-          target(...)
-        end
-        DEF
-
-        empty = {}
-        m(**empty).should == [[], {}]
-        m(empty).should == [[{}], {}]
-
-        m(a: 1).should == [[], {a: 1}]
-        m({a: 1}).should == [[{a: 1}], {}]
+      instance_eval <<~DEF
+      def m(...)
+        target(...)
       end
+      DEF
+
+      empty = {}
+      m(**empty).should == [[], {}]
+      m(empty).should == [[{}], {}]
+
+      m(a: 1).should == [[], {a: 1}]
+      m({a: 1}).should == [[{a: 1}], {}]
     end
 
     it "works with call(*ruby2_keyword_args)" do

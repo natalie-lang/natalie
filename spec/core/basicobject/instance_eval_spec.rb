@@ -16,10 +16,8 @@ describe "BasicObject#instance_eval" do
   end
 
   it "evaluates strings" do
-    NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-      a = BasicObject.new
-      a.instance_eval('self').equal?(a).should be_true
-    end
+    a = BasicObject.new
+    a.instance_eval('self').equal?(a).should be_true
   end
 
   it "raises an ArgumentError when no arguments and no block are given" do
@@ -74,25 +72,21 @@ describe "BasicObject#instance_eval" do
   it "binds self to the receiver" do
     s = "hola"
     (s == s.instance_eval { self }).should be_true
-    NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-      o = mock('o')
-      (o == o.instance_eval("self")).should be_true
-    end
+    o = mock('o')
+    (o == o.instance_eval("self")).should be_true
   end
 
   it "executes in the context of the receiver" do
     "Ruby-fu".instance_eval { size }.should == 7
-    NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-      "hola".instance_eval("size").should == 4
-      Object.class_eval { "hola".instance_eval("to_s") }.should == "hola"
-    end
+    "hola".instance_eval("size").should == 4
+    Object.class_eval { "hola".instance_eval("to_s") }.should == "hola"
     Object.class_eval { "Ruby-fu".instance_eval{ to_s } }.should == "Ruby-fu"
   end
 
   ruby_version_is "3.3" do
     it "uses the caller location as default location" do
-      NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-        f = Object.new
+      f = Object.new
+      NATFIXME 'it uses the caller location as default location', exception: SpecFailedException do
         f.instance_eval("[__FILE__, __LINE__]").should == ["(eval at #{__FILE__}:#{__LINE__})", 1]
       end
     end
@@ -100,9 +94,7 @@ describe "BasicObject#instance_eval" do
 
   it "has access to receiver's instance variables" do
     BasicObjectSpecs::IVars.new.instance_eval { @secret }.should == 99
-    NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-      BasicObjectSpecs::IVars.new.instance_eval("@secret").should == 99
-    end
+    BasicObjectSpecs::IVars.new.instance_eval("@secret").should == 99
   end
 
   it "raises TypeError for frozen objects when tries to set receiver's instance variables" do
@@ -118,25 +110,23 @@ describe "BasicObject#instance_eval" do
   end
 
   it "treats block-local variables as local to the block" do
-    NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-      prc = instance_eval <<-CODE
-        proc do |x, prc|
-          if x
-            n = 2
-          else
-            n = 1
-            prc.call(true, prc)
-            n
-          end
+    prc = instance_eval <<-CODE
+      proc do |x, prc|
+        if x
+          n = 2
+        else
+          n = 1
+          prc.call(true, prc)
+          n
         end
-      CODE
+      end
+    CODE
 
-      prc.call(false, prc).should == 1
-    end
+    prc.call(false, prc).should == 1
   end
 
   it "makes the receiver metaclass the scoped class when used with a string" do
-    NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
+    NATFIXME 'it makes the receiver metaclass the scoped class when used with a string', exception: NameError, message: /uninitialized constant \S+::B/ do
       obj = Object.new
       obj.instance_eval %{
         class B; end
@@ -148,10 +138,10 @@ describe "BasicObject#instance_eval" do
 
   describe "constants lookup when a String given" do
     it "looks in the receiver singleton class first" do
-      NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-        receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverSingletonClass::ReceiverScope::Receiver.new
-        caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverSingletonClass::CallerScope::Caller.new
+      receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverSingletonClass::ReceiverScope::Receiver.new
+      caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverSingletonClass::CallerScope::Caller.new
 
+      NATFIXME 'it looks in the receiver singleton class first', exception: SpecFailedException do
         caller.get_constant_with_string(receiver).should == :singleton_class
       end
     end
@@ -167,38 +157,36 @@ describe "BasicObject#instance_eval" do
 
     ruby_version_is "3.1" do
       it "looks in the receiver class next" do
-        NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-          receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::ReceiverScope::Receiver.new
-          caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::CallerScope::Caller.new
+        receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::ReceiverScope::Receiver.new
+        caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::CallerScope::Caller.new
 
-          caller.get_constant_with_string(receiver).should == :Receiver
-        end
+        caller.get_constant_with_string(receiver).should == :Receiver
       end
     end
 
     it "looks in the caller class next" do
-      NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-        receiver = BasicObjectSpecs::InstEval::Constants::ConstantInCallerClass::ReceiverScope::Receiver.new
-        caller = BasicObjectSpecs::InstEval::Constants::ConstantInCallerClass::CallerScope::Caller.new
+      receiver = BasicObjectSpecs::InstEval::Constants::ConstantInCallerClass::ReceiverScope::Receiver.new
+      caller = BasicObjectSpecs::InstEval::Constants::ConstantInCallerClass::CallerScope::Caller.new
 
+      NATFIXME 'it looks in the caller class next', exception: SpecFailedException do
         caller.get_constant_with_string(receiver).should == :Caller
       end
     end
 
     it "looks in the caller outer scopes next" do
-      NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-        receiver = BasicObjectSpecs::InstEval::Constants::ConstantInCallerOuterScopes::ReceiverScope::Receiver.new
-        caller = BasicObjectSpecs::InstEval::Constants::ConstantInCallerOuterScopes::CallerScope::Caller.new
+      receiver = BasicObjectSpecs::InstEval::Constants::ConstantInCallerOuterScopes::ReceiverScope::Receiver.new
+      caller = BasicObjectSpecs::InstEval::Constants::ConstantInCallerOuterScopes::CallerScope::Caller.new
 
+      NATFIXME 'it looks in the caller outer scopes next', exception: SpecFailedException do
         caller.get_constant_with_string(receiver).should == :CallerScope
       end
     end
 
     it "looks in the receiver class hierarchy next" do
-      NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-        receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverParentClass::ReceiverScope::Receiver.new
-        caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverParentClass::CallerScope::Caller.new
+      receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverParentClass::ReceiverScope::Receiver.new
+      caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverParentClass::CallerScope::Caller.new
 
+      NATFIXME 'it looks in the receiver class hierarchy next', exception: SpecFailedException do
         caller.get_constant_with_string(receiver).should == :ReceiverParent
       end
     end
@@ -219,12 +207,10 @@ describe "BasicObject#instance_eval" do
 
   describe "class variables lookup" do
     it "gets class variables in the caller class when called with a String" do
-      NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-        receiver = BasicObjectSpecs::InstEval::CVar::Get::ReceiverScope.new
-        caller = BasicObjectSpecs::InstEval::CVar::Get::CallerScope.new
+      receiver = BasicObjectSpecs::InstEval::CVar::Get::ReceiverScope.new
+      caller = BasicObjectSpecs::InstEval::CVar::Get::CallerScope.new
 
-        caller.get_class_variable_with_string(receiver).should == :value_defined_in_caller_scope
-      end
+      caller.get_class_variable_with_string(receiver).should == :value_defined_in_caller_scope
     end
 
     it "gets class variables in the block definition scope when called with a block" do
@@ -255,19 +241,15 @@ describe "BasicObject#instance_eval" do
     end
 
     it "does not have access to class variables in the receiver class when called with a String" do
-      NATFIXME 'Natalie does not support instance_eval with string', exception: SpecFailedException do
-        receiver = BasicObjectSpecs::InstEval::CVar::Get::ReceiverScope.new
-        caller = BasicObjectSpecs::InstEval::CVar::Get::CallerWithoutCVarScope.new
-        -> { caller.get_class_variable_with_string(receiver) }.should raise_error(NameError, /uninitialized class variable @@cvar/)
-      end
+      receiver = BasicObjectSpecs::InstEval::CVar::Get::ReceiverScope.new
+      caller = BasicObjectSpecs::InstEval::CVar::Get::CallerWithoutCVarScope.new
+      -> { caller.get_class_variable_with_string(receiver) }.should raise_error(NameError, /uninitialized class variable @@cvar/)
     end
 
     it "does not have access to class variables in the receiver's singleton class when called with a String" do
-      NATFIXME 'Natalie does not support instance_eval with string', exception: SpecFailedException do
-        receiver = BasicObjectSpecs::InstEval::CVar::Get::ReceiverWithCVarDefinedInSingletonClass
-        caller = BasicObjectSpecs::InstEval::CVar::Get::CallerWithoutCVarScope.new
-        -> { caller.get_class_variable_with_string(receiver) }.should raise_error(NameError, /uninitialized class variable @@cvar/)
-      end
+      receiver = BasicObjectSpecs::InstEval::CVar::Get::ReceiverWithCVarDefinedInSingletonClass
+      caller = BasicObjectSpecs::InstEval::CVar::Get::CallerWithoutCVarScope.new
+      -> { caller.get_class_variable_with_string(receiver) }.should raise_error(NameError, /uninitialized class variable @@cvar/)
     end
   end
 
@@ -312,12 +294,10 @@ describe "BasicObject#instance_eval" do
   end
 
   it "has access to the caller's local variables" do
-    NATFIXME 'Natalie does not support instance_eval with string', exception: ArgumentError, message: 'Natalie only supports instance_eval with a block' do
-      x = nil
+    x = nil
 
-      instance_eval "x = :value"
-      x.should == :value
-    end
+    instance_eval "x = :value"
+    x.should == :value
   end
 
   it "converts string argument with #to_str method" do
