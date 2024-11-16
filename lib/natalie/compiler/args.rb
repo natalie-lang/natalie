@@ -72,7 +72,8 @@ module Natalie
         return true if @node.nil?
         return false unless @node.is_a?(Prism::ParametersNode)
         return false if @node.requireds.any? { |arg| arg.type != :required_parameter_node }
-        return false if @node.optionals.any? || @node.posts.any? || @node.rest || @node.keywords.any? || @node.keyword_rest
+        return false if @node.optionals.any? || @node.posts.any? ||
+                        @node.rest || @node.keywords.any? || @node.keyword_rest
         return false if @node.requireds.count { |a| a.type == :required_parameter_node && a.name == :_ } > 1
         return false if @for_block && @node.requireds.size > 1
 
@@ -364,25 +365,26 @@ module Natalie
       end
 
       def args_to_array
-        @args_to_array ||= case @node
-        when nil
-          []
-        when Prism::ParametersNode
-          (
-            @node.requireds +
-            [@node.rest] +
-            @node.optionals +
-            @node.posts +
-            @node.keywords +
-            [@node.keyword_rest]
-          ).compact
-        when Prism::NumberedParametersNode
-          @node.maximum.times.map do |i|
-            Prism::RequiredParameterNode.new(nil, nil, @node.location, 0, :"_#{i + 1}")
+        @args_to_array ||=
+          case @node
+          when nil
+            []
+          when Prism::ParametersNode
+            (
+              @node.requireds +
+              [@node.rest] +
+              @node.optionals +
+              @node.posts +
+              @node.keywords +
+              [@node.keyword_rest]
+            ).compact
+          when Prism::NumberedParametersNode
+            @node.maximum.times.map do |i|
+              Prism::RequiredParameterNode.new(nil, nil, @node.location, 0, :"_#{i + 1}")
+            end
+          else
+            [@node]
           end
-        else
-          [@node]
-        end
       end
 
       def minimum_arg_count
