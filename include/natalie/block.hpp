@@ -25,13 +25,13 @@ public:
         , m_type { type } { }
 
     // NOTE: This should only be called from one of the RUN_BLOCK_* macros!
-    Value _run(Env *env, Args args = {}, Block *block = nullptr) {
+    Value _run(Env *env, Args &&args = {}, Block *block = nullptr) {
         assert(has_env());
         Env e { m_env };
         e.set_caller(env);
         e.set_this_block(this);
         args.pop_empty_keyword_hash();
-        auto result = m_fn(&e, m_self, args, block);
+        auto result = m_fn(&e, m_self, std::move(args), block);
         return result;
     }
 

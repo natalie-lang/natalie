@@ -136,8 +136,8 @@ public:
     SymbolObject *attr_writer(Env *, Value);
     ArrayObject *attr_accessor(Env *, Args);
 
-    static Value attr_reader_block_fn(Env *, Value, Args, Block *);
-    static Value attr_writer_block_fn(Env *, Value, Args, Block *);
+    static Value attr_reader_block_fn(Env *, Value, Args &&, Block *);
+    static Value attr_writer_block_fn(Env *, Value, Args &&, Block *);
 
     Value module_eval(Env *, Block *);
     Value module_exec(Env *, Args, Block *);

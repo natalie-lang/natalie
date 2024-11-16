@@ -21,7 +21,7 @@ module Natalie
         fn = transform.temp("autoload_const_#{@name}_fn")
         transform.with_new_scope(body) do |t|
           fn_code = []
-          fn_code << "Value #{fn}(Env *env, Value self, Args args = {}, Block *block = nullptr) {"
+          fn_code << "Value #{fn}(Env *env, Value self, Args &&args = {}, Block *block = nullptr) {"
           fn_code << t.transform('return')
           fn_code << '}'
           transform.top(fn_code)

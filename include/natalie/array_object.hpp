@@ -52,11 +52,11 @@ public:
     }
 
     // Array[]
-    static Value square_new(Env *env, Args args, ClassObject *klass) {
+    static Value square_new(Env *env, Args &&args, ClassObject *klass) {
         return new ArrayObject { args.size(), args.data(), klass };
     }
 
-    static Value size_fn(Env *, Value self, Args, Block *) {
+    static Value size_fn(Env *, Value self, Args &&, Block *) {
         return Value::integer(self->as_array()->size());
     }
 
@@ -125,7 +125,7 @@ public:
     Value initialize(Env *, Value, Value, Block *);
 
     Value add(Env *, Value);
-    Value any(Env *, Args, Block *);
+    Value any(Env *, Args &&, Block *);
     Value at(Env *, Value);
     Value assoc(Env *, Value);
     Value bsearch(Env *, Block *);
@@ -134,13 +134,13 @@ public:
     Value clear(Env *);
     Value compact(Env *);
     Value compact_in_place(Env *);
-    Value concat(Env *, Args);
+    Value concat(Env *, Args &&);
     Value cycle(Env *, Value, Block *);
     Value delete_at(Env *, Value);
     Value delete_if(Env *, Block *);
     Value delete_item(Env *, Value, Block *);
-    Value difference(Env *, Args);
-    Value dig(Env *, Args);
+    Value difference(Env *, Args &&);
+    Value dig(Env *, Args &&);
     Value drop(Env *, Value);
     Value drop_while(Env *, Block *);
     Value each(Env *, Block *);
@@ -157,9 +157,9 @@ public:
     Value index(Env *, Value, Block *);
     Value initialize_copy(Env *, Value);
     Value inspect(Env *);
-    Value insert(Env *, Args);
+    Value insert(Env *, Args &&);
     Value intersection(Env *, Value);
-    Value intersection(Env *, Args);
+    Value intersection(Env *, Args &&);
     bool intersects(Env *, Value);
     Value _subjoin(Env *, Value, Value);
     Value join(Env *, Value);
@@ -172,12 +172,12 @@ public:
     Value min(Env *, Value, Block *);
     Value minmax(Env *, Block *);
     Value multiply(Env *, Value);
-    Value none(Env *, Args, Block *);
-    Value one(Env *, Args, Block *);
+    Value none(Env *, Args &&, Block *);
+    Value one(Env *, Args &&, Block *);
     Value pack(Env *, Value, Value);
     Value pop(Env *, Value);
-    Value product(Env *, Args, Block *);
-    Value push(Env *, Args);
+    Value product(Env *, Args &&, Block *);
+    Value push(Env *, Args &&);
     Value rassoc(Env *, Value);
     Value ref(Env *, Value, Value = nullptr);
     Value refeq(Env *, Value, Value, Value);
@@ -197,15 +197,15 @@ public:
     Value sort(Env *, Block *);
     Value sub(Env *, Value);
     static Value try_convert(Env *, Value);
-    Value sum(Env *, Args, Block *);
+    Value sum(Env *, Args &&, Block *);
     Value union_of(Env *, Value);
-    Value union_of(Env *, Args);
+    Value union_of(Env *, Args &&);
     Value uniq(Env *, Block *);
     Value uniq_in_place(Env *, Block *);
-    Value unshift(Env *, Args);
+    Value unshift(Env *, Args &&);
     Value to_h(Env *, Block *);
-    Value values_at(Env *, Args);
-    Value zip(Env *, Args, Block *);
+    Value values_at(Env *, Args &&);
+    Value zip(Env *, Args &&, Block *);
 
     virtual void visit_children(Visitor &visitor) const override final {
         Object::visit_children(visitor);

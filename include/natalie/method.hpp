@@ -72,7 +72,7 @@ public:
     bool is_optimized() const { return m_optimized; }
     void set_optimized(bool optimized) { m_optimized = optimized; }
 
-    Value call(Env *env, Value self, const Args &args, Block *block) const;
+    Value call(Env *env, Value self, Args &&args, Block *block) const;
 
     String name() const { return m_name; }
     ModuleObject *owner() const { return m_owner; }

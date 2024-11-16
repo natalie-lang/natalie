@@ -6,7 +6,7 @@ Value init_tempfile(Env *env, Value self) {
     return NilObject::the();
 }
 
-Value Tempfile_initialize(Env *env, Value self, Args args, Block *) {
+Value Tempfile_initialize(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 0, 2);
     auto basename = args.at(0, nullptr);

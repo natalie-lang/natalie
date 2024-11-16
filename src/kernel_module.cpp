@@ -473,7 +473,7 @@ Value KernelModule::lambda(Env *env, Block *block) {
 
 Value KernelModule::loop(Env *env, Block *block) {
     if (!block) {
-        auto infinity_fn = [](Env *env, Value, Args, Block *) -> Value {
+        auto infinity_fn = [](Env *env, Value, Args &&, Block *) -> Value {
             return FloatObject::positive_infinity(env);
         };
         auto size_block = new Block { env, this, infinity_fn, 0 };

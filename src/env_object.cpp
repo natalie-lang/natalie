@@ -10,7 +10,7 @@ extern char **environ;
 
 namespace Natalie {
 
-static Value env_size(Env *env, Value self, Args, Block *) {
+static Value env_size(Env *env, Value self, Args &&, Block *) {
     return self->send(env, "size"_s);
 }
 

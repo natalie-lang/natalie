@@ -4,7 +4,7 @@
 
 using namespace Natalie;
 
-Value Linenoise_add_history(Env *env, Value self, Args args, Block *) {
+Value Linenoise_add_history(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto line = args[0]->as_string_or_raise(env)->string();
 
@@ -13,13 +13,13 @@ Value Linenoise_add_history(Env *env, Value self, Args args, Block *) {
     return args[0];
 }
 
-Value Linenoise_clear_screen(Env *env, Value self, Args args, Block *) {
+Value Linenoise_clear_screen(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     linenoiseClearScreen();
     return NilObject::the();
 }
 
-Value Linenoise_get_history(Env *env, Value self, Args args, Block *) {
+Value Linenoise_get_history(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
     char **history = nullptr;
@@ -34,12 +34,12 @@ Value Linenoise_get_history(Env *env, Value self, Args args, Block *) {
     return ary;
 }
 
-Value Linenoise_get_multi_line(Env *env, Value self, Args args, Block *) {
+Value Linenoise_get_multi_line(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     return bool_object(linenoiseGetMultiLine());
 }
 
-Value Linenoise_load_history(Env *env, Value self, Args args, Block *) {
+Value Linenoise_load_history(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto path = args[0]->as_string_or_raise(env)->string();
 
@@ -48,7 +48,7 @@ Value Linenoise_load_history(Env *env, Value self, Args args, Block *) {
     return NilObject::the();
 }
 
-Value Linenoise_readline(Env *env, Value self, Args args, Block *) {
+Value Linenoise_readline(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
 
     auto prompt = args[0]->as_string_or_raise(env)->string();
@@ -61,7 +61,7 @@ Value Linenoise_readline(Env *env, Value self, Args args, Block *) {
     return new StringObject { line };
 }
 
-Value Linenoise_save_history(Env *env, Value self, Args args, Block *) {
+Value Linenoise_save_history(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto path = args[0]->as_string_or_raise(env)->string();
 
@@ -80,7 +80,7 @@ static void completion_callback(const char *edit_buffer, linenoiseCompletions *c
         linenoiseAddCompletion(completions, completion->as_string_or_raise(env)->c_str());
 }
 
-Value Linenoise_set_completion_callback(Env *env, Value self, Args args, Block *) {
+Value Linenoise_set_completion_callback(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     args[0]->assert_type(env, Object::Type::Proc, "Proc");
     auto proc = args[0]->as_proc();
@@ -117,7 +117,7 @@ static char *hints_callback(const char *buf, int *color, int *bold) {
     return strdup(hint);
 }
 
-Value Linenoise_set_hints_callback(Env *env, Value self, Args args, Block *) {
+Value Linenoise_set_hints_callback(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     args[0]->assert_type(env, Object::Type::Proc, "Proc");
     auto proc = args[0]->as_proc();
@@ -140,7 +140,7 @@ static const char *highlight_callback(const char *edit_buffer, int *length) {
     return string->c_str();
 }
 
-Value Linenoise_set_highlight_callback(Env *env, Value self, Args args, Block *) {
+Value Linenoise_set_highlight_callback(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     args[0]->assert_type(env, Object::Type::Proc, "Proc");
     auto proc = args[0]->as_proc();
@@ -152,7 +152,7 @@ Value Linenoise_set_highlight_callback(Env *env, Value self, Args args, Block *)
     return NilObject::the();
 }
 
-Value Linenoise_set_history(Env *env, Value self, Args args, Block *) {
+Value Linenoise_set_history(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto ary = args[0]->as_array_or_raise(env);
 
@@ -164,14 +164,14 @@ Value Linenoise_set_history(Env *env, Value self, Args args, Block *) {
     return ary;
 }
 
-Value Linenoise_set_history_max_len(Env *env, Value self, Args args, Block *) {
+Value Linenoise_set_history_max_len(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto length = args[0]->as_integer_or_raise(env)->to_nat_int_t();
     linenoiseHistorySetMaxLen(length);
     return Value::integer(length);
 }
 
-Value Linenoise_set_multi_line(Env *env, Value self, Args args, Block *) {
+Value Linenoise_set_multi_line(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto enabled = args[0]->is_truthy();
     linenoiseSetMultiLine(enabled);

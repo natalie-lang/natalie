@@ -140,7 +140,7 @@ Value Object::create(Env *env, ClassObject *klass) {
     return obj;
 }
 
-Value Object::_new(Env *env, Value klass_value, Args args, Block *block) {
+Value Object::_new(Env *env, Value klass_value, Args &&args, Block *block) {
     Value obj = create(env, klass_value->as_class());
     if (!obj)
         NAT_UNREACHABLE();
@@ -149,7 +149,7 @@ Value Object::_new(Env *env, Value klass_value, Args args, Block *block) {
     return obj;
 }
 
-Value Object::allocate(Env *env, Value klass_value, Args args, Block *block) {
+Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
     args.ensure_argc_is(env, 0);
 
     ClassObject *klass = klass_value->as_class();
@@ -986,7 +986,7 @@ Value Object::method_missing_send(Env *env, SymbolObject *name, Args &&args, Blo
     return send(env, "method_missing"_s, Args(new_args, args.has_keyword_hash()), block);
 }
 
-Value Object::method_missing(Env *env, Args args, Block *block) {
+Value Object::method_missing(Env *env, Args &&args, Block *block) {
     if (args.size() == 0) {
         env->raise("ArgError", "no method name given");
     } else if (!args[0]->is_symbol()) {
@@ -1275,7 +1275,7 @@ Value Object::instance_exec(Env *env, Args args, Block *block) {
         block->set_self(context.block_original_self);
     });
 
-    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, args, nullptr);
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, std::move(args), nullptr);
 }
 
 void Object::assert_type(Env *env, Object::Type expected_type, const char *expected_class_name) const {
