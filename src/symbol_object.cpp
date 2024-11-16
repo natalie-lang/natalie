@@ -142,11 +142,11 @@ Value SymbolObject::cmp(Env *env, Value other_value) {
     return Value::integer(m_name.cmp(other->m_name));
 }
 
-bool SymbolObject::start_with(Env *env, Args args) {
+bool SymbolObject::start_with(Env *env, Args &&args) {
     return to_s(env)->start_with(env, std::move(args));
 }
 
-bool SymbolObject::end_with(Env *env, Args args) {
+bool SymbolObject::end_with(Env *env, Args &&args) {
     return to_s(env)->end_with(env, std::move(args));
 }
 
