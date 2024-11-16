@@ -460,17 +460,13 @@ describe "Invoking a method" do
 
   it "with optional argument(s), expands an array to arguments grouped in parentheses" do
     specs.destructure4o(1, [2, 3]).should == [1, 1, nil, [2, 3]]
-    NATFIXME 'it expands an array to arguments grouped in parentheses', exception: SpecFailedException do
-      specs.destructure4o(1, [], 2).should == [1, nil, nil, 2]
-    end
+    specs.destructure4o(1, [], 2).should == [1, nil, nil, 2]
     specs.destructure4os(1, [2, 3]).should == [1, 2, [3]]
     specs.destructure5o(1, [2, 3]).should == [1, 2, 1, nil, [2, 3]]
-    NATFIXME 'it expands an array to arguments grouped in parentheses', exception: SpecFailedException do
-      specs.destructure7o(1, [2, 3]).should == [1, 2, 1, nil, 2, 3]
-      specs.destructure7b(1, [2, 3]) do |(a,*b,c)|
-        [a, c]
-      end.should == [1, 3]
-    end
+    specs.destructure7o(1, [2, 3]).should == [1, 2, 1, nil, 2, 3]
+    specs.destructure7b(1, [2, 3]) do |(a,*b,c)|
+      [a, c]
+    end.should == [1, 3]
   end
 
   describe "new-style hash arguments" do

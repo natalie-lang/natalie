@@ -1293,94 +1293,27 @@ module Natalie
 
         node = node.parameters if node.is_a?(Prism::BlockParametersNode)
 
-        args = case node
-               when nil
-                 []
-               when Prism::ParametersNode
-                 (
-                   node.requireds +
-                   [node.rest] +
-                   node.optionals +
-                   node.posts +
-                   node.keywords +
-                   [node.keyword_rest] +
-                   [node.block]
-                 ).compact
-               when Prism::NumberedParametersNode
-                 node.maximum.times.map do |i|
-                   Prism::RequiredParameterNode.new(nil, nil, node.location, 0, :"_#{i + 1}")
-                 end
-               else
-                 [node]
-               end
-
         instructions = []
 
         # special ... syntax
-        if args.size == 1 && args.first.type == :forwarding_parameter_node
+        if node.is_a?(Prism::ParametersNode) && node.keyword_rest.is_a?(Prism::ForwardingParameterNode)
           # nothing to do
           return []
         end
 
         # &block pass
-        if args.last&.type == :block_parameter_node
-          block_arg = args.pop
+        if node.is_a?(Prism::ParametersNode) && node.block.is_a?(Prism::BlockParameterNode)
           instructions << PushBlockInstruction.new
           instructions <<
-            if block_arg.name
-              VariableSetInstruction.new(block_arg.name, local_only: local_only)
+            if node.block.name
+              VariableSetInstruction.new(node.block.name, local_only: local_only)
             else
               AnonymousBlockSetInstruction.new
             end
         end
 
-        has_complicated_args = args.any? do |arg|
-          arg.type != :required_parameter_node
-        end
-
-        if args.count { |a| a.type == :required_parameter_node && a.name == :_ } > 1
-          has_complicated_args = true
-        end
-
-        may_need_to_destructure_args_for_block = for_block && args.size > 1
-
-        if has_complicated_args || may_need_to_destructure_args_for_block
-          min_count = minimum_arg_count(args)
-          max_count = maximum_arg_count(args)
-          required_keywords = required_keywords(args)
-
-          instructions << PopKeywordArgsInstruction.new if any_keyword_args?(args)
-
-          if check_args
-            argc = min_count == max_count ? min_count : min_count..max_count
-            instructions << CheckArgsInstruction.new(positional: argc, keywords: required_keywords)
-          end
-
-          if required_keywords.any?
-            instructions << CheckRequiredKeywordsInstruction.new(required_keywords)
-          end
-
-          instructions << PushArgsInstruction.new(
-            for_block: for_block,
-            min_count: min_count,
-            max_count: max_count,
-            spread: for_block && args.size > 1,
-          )
-
-          instructions << Args.new(self, local_only: local_only, for_block: for_block).transform(args)
-
-          return instructions
-        end
-
-        if check_args
-          instructions << CheckArgsInstruction.new(positional: args.size, keywords: [])
-        end
-
-        args.each_with_index do |arg, index|
-          instructions << PushArgInstruction.new(index, nil_default: for_block)
-          instructions << VariableSetInstruction.new(arg.name, local_only: local_only)
-        end
-
+        args_compiler = Args.new(node:, pass: self, check_args:, local_only:, for_block:)
+        instructions << args_compiler.transform
         instructions
       end
 
@@ -1451,6 +1384,17 @@ module Natalie
           targets.each do |arg|
             instructions += transform_for_declare_args(arg)
           end
+        when :call_target_node,
+             :class_variable_target_node,
+             :constant_target_node,
+             :global_variable_target_node,
+             :implicit_rest_node,
+             :index_target_node,
+             :instance_variable_target_node,
+             :splat_node
+          :noop
+        else
+          raise "unexpected for loop argument type: #{args.type}"
         end
 
         instructions
@@ -2864,49 +2808,6 @@ module Natalie
         inline_enabled &&
           node.receiver.nil? &&
           INLINE_CPP_MACROS.include?(node.name)
-      end
-
-      def minimum_arg_count(args)
-        args.count do |arg|
-          arg.type == :required_parameter_node || arg.type == :multi_target_node
-        end
-      end
-
-      def maximum_arg_count(args)
-        # splat means no maximum
-        return nil if args.any? { |arg| arg.type == :rest_parameter_node }
-
-        args.count do |arg|
-          %i[
-            call_target_node
-            class_variable_target_node
-            constant_target_node
-            global_variable_target_node
-            index_target_node
-            instance_variable_target_node
-            local_variable_target_node
-            multi_target_node
-            optional_parameter_node
-            required_parameter_node
-          ].include?(arg.type)
-        end
-      end
-
-      def any_keyword_args?(args)
-        args.any? do |arg|
-          arg.is_a?(::Prism::RequiredKeywordParameterNode) ||
-            arg.is_a?(::Prism::OptionalKeywordParameterNode) ||
-            arg.is_a?(::Prism::KeywordRestParameterNode) ||
-            arg.is_a?(::Prism::NoKeywordsParameterNode)
-        end
-      end
-
-      def required_keywords(args)
-        args.filter_map do |arg|
-          if arg.is_a?(::Prism::RequiredKeywordParameterNode)
-            arg.name
-          end
-        end
       end
 
       def with_locals(locals)
