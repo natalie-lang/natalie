@@ -482,7 +482,8 @@ file 'build/libnatalie.a' => %w[
   build/libnatalie_base.a
   build/onigmo/lib/libonigmo.a
 ] do |t|
-  if RUBY_PLATFORM =~ /darwin/
+  apple_libtool = system('libtool -V 2>&1 | grep Apple 2>&1 >/dev/null')
+  if apple_libtool
     sh "libtool -static -o #{t.name} #{t.sources.join(' ')}"
   else
     ar_script = ["create #{t.name}"]
