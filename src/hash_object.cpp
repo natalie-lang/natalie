@@ -227,7 +227,7 @@ Value HashObject::initialize(Env *env, Value default_value, Block *block) {
 }
 
 // Hash[]
-Value HashObject::square_new(Env *env, Args args, ClassObject *klass) {
+Value HashObject::square_new(Env *env, Args &&args, ClassObject *klass) {
     if (args.size() == 0) {
         return new HashObject { klass };
     } else if (args.size() == 1) {
@@ -396,7 +396,7 @@ Value HashObject::delete_key(Env *env, Value key, Block *block) {
         return NilObject::the();
 }
 
-Value HashObject::dig(Env *env, Args args) {
+Value HashObject::dig(Env *env, Args &&args) {
     args.ensure_argc_at_least(env, 1);
     auto dig = "dig"_s;
     auto idx = args.shift();
@@ -509,7 +509,7 @@ Value HashObject::each(Env *env, Block *block) {
     return this;
 }
 
-Value HashObject::except(Env *env, Args args) {
+Value HashObject::except(Env *env, Args &&args) {
     HashObject *new_hash = new HashObject {};
     for (auto &node : *this) {
         new_hash->put(env, node.key, node.val);
@@ -539,7 +539,7 @@ Value HashObject::fetch(Env *env, Value key, Value default_value, Block *block) 
     return value;
 }
 
-Value HashObject::fetch_values(Env *env, Args args, Block *block) {
+Value HashObject::fetch_values(Env *env, Args &&args, Block *block) {
     if (args.size() == 0) return new ArrayObject;
 
     auto array = new ArrayObject { args.size() };
@@ -666,11 +666,11 @@ bool HashObject::has_value(Env *env, Value value) {
     return false;
 }
 
-Value HashObject::merge(Env *env, Args args, Block *block) {
-    return duplicate(env)->as_hash()->merge_in_place(env, args, block);
+Value HashObject::merge(Env *env, Args &&args, Block *block) {
+    return duplicate(env)->as_hash()->merge_in_place(env, std::move(args), block);
 }
 
-Value HashObject::merge_in_place(Env *env, Args args, Block *block) {
+Value HashObject::merge_in_place(Env *env, Args &&args, Block *block) {
     this->assert_not_frozen(env);
 
     for (size_t i = 0; i < args.size(); i++) {
@@ -689,7 +689,7 @@ Value HashObject::merge_in_place(Env *env, Args args, Block *block) {
     return this;
 }
 
-Value HashObject::slice(Env *env, Args args) {
+Value HashObject::slice(Env *env, Args &&args) {
     auto new_hash = new HashObject {};
     for (size_t i = 0; i < args.size(); i++) {
         Value key = args[i];
