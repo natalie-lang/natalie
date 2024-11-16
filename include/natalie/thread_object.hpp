@@ -67,7 +67,7 @@ public:
 
     static void build_main_thread(Env *env, void *start_of_stack);
 
-    ThreadObject *initialize(Env *env, Args args, Block *block);
+    ThreadObject *initialize(Env *env, Args &&args, Block *block);
 
     std::thread::native_handle_type native_thread_handle() const { return m_native_thread_handle; }
     void set_native_thread_handle(std::thread::native_handle_type handle) { m_native_thread_handle = handle; }
@@ -119,7 +119,7 @@ public:
 
     Value join(Env *);
     Value kill(Env *);
-    Value raise(Env *, Args args);
+    Value raise(Env *, Args &&args);
     Value run(Env *);
     Value wakeup(Env *);
 

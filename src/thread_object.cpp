@@ -65,7 +65,7 @@ static void *nat_create_thread(void *thread_object) {
     try {
         // This is the guts of the thread --
         // the user code that does what we came here to do.
-        auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, args, nullptr);
+        auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, std::move(args), nullptr);
 
         // If we got here and the thread has an exception,
         // this is our last chance to raise it. The catch directly below
@@ -198,7 +198,7 @@ void ThreadObject::build_main_fiber() {
     m_current_fiber = m_main_fiber = FiberObject::build_main_fiber(this, m_start_of_stack);
 }
 
-ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
+ThreadObject *ThreadObject::initialize(Env *env, Args &&args, Block *block) {
     if (this == ThreadObject::main())
         env->raise("ThreadError", "already initialized");
 
@@ -348,7 +348,7 @@ Value ThreadObject::kill(Env *env) {
     return this;
 }
 
-Value ThreadObject::raise(Env *env, Args args) {
+Value ThreadObject::raise(Env *env, Args &&args) {
     if (m_status == Status::Dead)
         return NilObject::the();
 
