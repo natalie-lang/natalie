@@ -334,7 +334,7 @@ Value MatchDataObject::to_s(Env *env) const {
     return group(0);
 }
 
-ArrayObject *MatchDataObject::values_at(Env *env, Args args) {
+ArrayObject *MatchDataObject::values_at(Env *env, Args &&args) {
     auto result = new ArrayObject {};
     for (size_t i = 0; i < args.size(); i++) {
         auto key = args[i];
