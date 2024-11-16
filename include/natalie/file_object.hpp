@@ -19,12 +19,12 @@ public:
     FileObject()
         : IoObject { GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class() } { }
 
-    Value initialize(Env *, Args, Block *);
+    Value initialize(Env *, Args &&, Block *);
 
     static Value absolute_path(Env *env, Value path, Value dir = nullptr);
     static Value expand_path(Env *env, Value path, Value root);
     static void unlink(Env *env, Value path);
-    static Value unlink(Env *env, Args args);
+    static Value unlink(Env *env, Args &&args);
 
     static void build_constants(Env *env, ModuleObject *);
 
@@ -57,7 +57,7 @@ public:
     static Value atime(Env *env, Value path);
     static Value ctime(Env *env, Value path);
     static Value mtime(Env *env, Value path);
-    static Value utime(Env *env, Args args);
+    static Value utime(Env *env, Args &&args);
 
     Value atime(Env *env);
     Value ctime(Env *env);
@@ -77,8 +77,8 @@ public:
     static nat_int_t symlink(Env *env, Value from, Value to);
     static nat_int_t mkfifo(Env *env, Value path, Value mode);
 
-    static Value chmod(Env *env, Args args);
-    static Value chown(Env *env, Args args);
+    static Value chmod(Env *env, Args &&args);
+    static Value chown(Env *env, Args &&args);
     Value chmod(Env *env, Value mode);
     Value chown(Env *env, Value uid, Value gid);
 
