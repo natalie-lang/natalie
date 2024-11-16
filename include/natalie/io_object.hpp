@@ -46,15 +46,11 @@ public:
         visitor.visit(m_path);
     }
 
-    static Value size_fn(Env *env, Value self, Args, Block *) {
-        return Value(NilObject::the());
-    }
-
     Value advise(Env *, Value, Value, Value);
     Value append(Env *, Value);
     Value autoclose(Env *, Value);
     static Value binread(Env *, Value, Value = nullptr, Value = nullptr);
-    static Value binwrite(Env *, Args);
+    static Value binwrite(Env *, Args &&);
     Value binmode(Env *);
     Value close(Env *);
     static Value copy_stream(Env *, Value, Value, Value = nullptr, Value = nullptr);
@@ -69,7 +65,7 @@ public:
     Value getbyte(Env *);
     Value getc(Env *);
     Value gets(Env *, Value = nullptr, Value = nullptr, Value = nullptr);
-    Value initialize(Env *, Args, Block * = nullptr);
+    Value initialize(Env *, Args &&, Block * = nullptr);
     Value inspect() const;
     Value internal_encoding() const { return m_internal_encoding; }
     bool is_autoclose(Env *) const;
@@ -82,15 +78,15 @@ public:
     int lineno(Env *) const;
     Value pid(Env *) const;
     static Value pipe(Env *, Value, Value, Block *, ClassObject *);
-    static Value popen(Env *, Args, Block *, ClassObject *);
+    static Value popen(Env *, Args &&, Block *, ClassObject *);
     int pos(Env *);
     Value pread(Env *, Value, Value, Value = nullptr);
     Value putc(Env *, Value);
-    Value puts(Env *, Args);
+    Value puts(Env *, Args &&);
     void puts(Env *, Value);
     void putstr(Env *, StringObject *);
     void putary(Env *, ArrayObject *);
-    Value print(Env *, Args);
+    Value print(Env *, Args &&);
     Value pwrite(Env *, Value, Value);
     Value seek(Env *, Value, Value);
     Value set_close_on_exec(Env *, Value);
@@ -102,7 +98,7 @@ public:
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
     Value read(Env *, Value, Value);
-    static Value read_file(Env *, Args);
+    static Value read_file(Env *, Args &&);
     Value readbyte(Env *);
     Value readline(Env *, Value = nullptr, Value = nullptr, Value = nullptr);
     int rewind(Env *);
@@ -117,12 +113,12 @@ public:
     static Value try_convert(Env *, Value);
     Value ungetbyte(Env *, Value);
     Value ungetc(Env *, Value);
-    Value wait(Env *, Args);
+    Value wait(Env *, Args &&);
     Value wait_readable(Env *, Value = nullptr);
     Value wait_writable(Env *, Value = nullptr);
 
-    Value write(Env *, Args);
-    static Value write_file(Env *, Args);
+    Value write(Env *, Args &&);
+    static Value write_file(Env *, Args &&);
     Value write_nonblock(Env *, Value, Value = nullptr);
 
     Value get_path() const;

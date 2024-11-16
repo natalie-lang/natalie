@@ -45,7 +45,7 @@ static void throw_unless_writable(Env *env, const IoObject *const self) {
     env->raise_errno();
 }
 
-Value IoObject::initialize(Env *env, Args args, Block *block) {
+Value IoObject::initialize(Env *env, Args &&args, Block *block) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 1, 2);
     Value file_number = args.at(0);
@@ -120,7 +120,7 @@ Value IoObject::binread(Env *env, Value filename, Value length, Value offset) {
     return data;
 }
 
-Value IoObject::binwrite(Env *env, Args args) {
+Value IoObject::binwrite(Env *env, Args &&args) {
     auto kwargs = args.pop_keyword_hash();
     if (!kwargs)
         kwargs = new HashObject {};
@@ -274,7 +274,7 @@ int IoObject::lineno(Env *env) const {
     return m_lineno;
 }
 
-Value IoObject::read_file(Env *env, Args args) {
+Value IoObject::read_file(Env *env, Args &&args) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 1, 3);
     auto filename = args.at(0);
@@ -298,7 +298,7 @@ Value IoObject::read_file(Env *env, Args args) {
     return data;
 }
 
-Value IoObject::write_file(Env *env, Args args) {
+Value IoObject::write_file(Env *env, Args &&args) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 2, 3);
     auto filename = args.at(0);
@@ -471,7 +471,7 @@ int IoObject::write(Env *env, Value obj) {
     return result;
 }
 
-Value IoObject::write(Env *env, Args args) {
+Value IoObject::write(Env *env, Args &&args) {
     int bytes_written = 0;
     for (size_t i = 0; i < args.size(); i++) {
         bytes_written += write(env, args[i]);
@@ -645,7 +645,7 @@ void IoObject::puts(Env *env, Value val) {
     }
 }
 
-Value IoObject::puts(Env *env, Args args) {
+Value IoObject::puts(Env *env, Args &&args) {
     if (args.size() == 0) {
         this->send(env, "write"_s, Args({ new StringObject { "\n" } }));
     } else {
@@ -656,7 +656,7 @@ Value IoObject::puts(Env *env, Args args) {
     return NilObject::the();
 }
 
-Value IoObject::print(Env *env, Args args) {
+Value IoObject::print(Env *env, Args &&args) {
     if (args.size() > 0) {
         auto fsep = env->output_file_separator();
         auto valid_fsep = !fsep->is_nil();
@@ -890,7 +890,7 @@ Value IoObject::ungetc(Env *env, Value c) {
     return ungetbyte(env, c->to_str(env));
 }
 
-Value IoObject::wait(Env *env, Args args) {
+Value IoObject::wait(Env *env, Args &&args) {
     raise_if_closed(env);
 
     nat_int_t events = 0;
@@ -1192,7 +1192,7 @@ Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding,
     return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { pipes }, nullptr);
 }
 
-Value IoObject::popen(Env *env, Args args, Block *block, ClassObject *klass) {
+Value IoObject::popen(Env *env, Args &&args, Block *block, ClassObject *klass) {
     if (args.has_keyword_hash())
         env->raise("NotImplementedError", "IO.popen with keyword arguments is not yet supported");
     if (args.size() > 2)
