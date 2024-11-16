@@ -18,7 +18,6 @@ extern "C" {
 #include "onigmo.h"
 }
 
-static const Args empty_args = {};
 class Object : public Cell {
 public:
     using Type = ObjectType;
@@ -301,8 +300,13 @@ public:
         return buf;
     }
 
-    Value public_send(Env *, SymbolObject *, const Args & = empty_args, Block * = nullptr, Value sent_from = nullptr);
-    Value public_send(Env *, const Args &, Block *);
+    Value public_send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Value sent_from = nullptr);
+    Value public_send(Env *, Args &&, Block *);
+
+    // NATFIXME: Transition method, should be removed at the end of the change
+    Value public_send(Env *env, const Args &args, Block *block) {
+        return public_send(env, Args(args), block);
+    }
 
     Value send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Value sent_from = nullptr);
     Value send(Env *, Args &&, Block *);

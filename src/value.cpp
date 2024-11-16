@@ -60,7 +60,7 @@ Value Value::public_send(Env *env, SymbolObject *name, Args args, Block *block, 
     PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
 
     return on_object_value([&](Object &object) {
-        return object.public_send(env, name, args, block, sent_from);
+        return object.public_send(env, name, Args(args), block, sent_from);
     });
 }
 
