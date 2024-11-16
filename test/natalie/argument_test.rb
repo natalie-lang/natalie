@@ -99,3 +99,13 @@ end
 describe 'implicit rest arg' do
   [[1, 2, 3]].map { |x,| x }.should == [1]
 end
+
+def keyword_references_positional(a = 1, b: a)
+  [a, b]
+end
+
+describe 'keyword argument having a previous positional argument as default' do
+  keyword_references_positional.should == [1, 1]
+  keyword_references_positional(2).should == [2, 2]
+  keyword_references_positional(2, b: 3).should == [2, 3]
+end
