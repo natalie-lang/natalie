@@ -152,13 +152,11 @@ describe "A block yielded a single" do
     end
 
     it "does not call #to_hash on the last element if keyword arguments are present" do
-      NATFIXME 'does not call #to_hash on the last element if keyword arguments are present', exception: SpecFailedException do
-        obj = mock("destructure block keyword arguments")
-        obj.should_not_receive(:to_hash)
+      obj = mock("destructure block keyword arguments")
+      obj.should_not_receive(:to_hash)
 
-        result = m([1, 2, 3, obj]) { |a, *b, c, **k| [a, b, c, k] }
-        result.should == [1, [2, 3], obj, {}]
-      end
+      result = m([1, 2, 3, obj]) { |a, *b, c, **k| [a, b, c, k] }
+      result.should == [1, [2, 3], obj, {}]
     end
 
     it "does not call #to_hash on the last element when there are more arguments than parameters" do

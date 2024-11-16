@@ -1,141 +1,168 @@
 module Natalie
   class Compiler
     class Args
-      def initialize(pass, local_only: true, for_block: false)
+      def initialize(node:, pass:, check_args:, local_only: true, for_block: false)
+        @node = node
         @pass = pass
+        @check_args = check_args
         @local_only = local_only
         @for_block = for_block
         @underscore_arg_set = false
       end
 
-      def transform(node)
-        @from_side = :left
+      def transform
         @instructions = []
-        if node.instance_of?(Array)
-          @args = node
-        elsif node.is_a?(::Prism::MultiTargetNode)
-          @args = node.lefts + [node.rest].compact + node.rights
+        return transform_simply if simple?
+
+        do_setup
+        case @node
+        when Prism::MultiTargetNode
+          @instructions << ArrayShiftInstruction.new
+          @instructions << ToArrayInstruction.new
+          transform_multi_target_arg(@node)
+          @instructions << PopInstruction.new
+        when Prism::ParametersNode
+          @node.requireds.each do |arg|
+            transform_required_arg(arg)
+          end
+          @node.posts.reverse_each do |arg|
+            transform_required_post_arg(arg)
+          end
+          @node.optionals.each do |arg|
+            transform_optional_arg(arg)
+          end
+          if @node.rest
+            transform_rest_arg(@node.rest)
+          end
+          @node.keywords.each do |arg|
+            transform_keyword_arg(arg)
+          end
+          if @node.keyword_rest
+            transform_keyword_rest_arg(@node.keyword_rest)
+          end
+        when Prism::LocalVariableTargetNode
+          transform_required_arg(@node)
+        when Prism::ItParametersNode
+          @instructions << ArrayShiftInstruction.new
+          @instructions << variable_set(:it)
+        when ::Prism::NumberedParametersNode
+          transform_numbered_arg(@node)
+        when ::Prism::InstanceVariableTargetNode
+          transform_instance_variable_arg(@node)
+        when ::Prism::ClassVariableTargetNode
+          transform_class_variable_arg(@node)
+        when ::Prism::GlobalVariableTargetNode
+          transform_global_variable_arg(@node)
+        when ::Prism::ConstantTargetNode
+          transform_constant_arg(@node)
+        when ::Prism::CallTargetNode
+          transform_call_arg(@node)
+        when ::Prism::IndexTargetNode
+          transform_index_arg(@node)
         else
           raise "unhandled node: #{node.inspect}"
         end
-        while @args.any?
-          arg = @from_side == :left ? @args.shift : @args.pop
-          if transform_arg(arg) == :reverse
-            @from_side = { left: :right, right: :left }.fetch(@from_side)
-          end
-        end
         clean_up
+        @instructions
       end
 
       private
 
-      def transform_arg(arg)
-        case arg
-        when ::Prism::LocalVariableTargetNode
-          clean_up_keyword_args
-          transform_required_arg(arg)
-        when ::Prism::MultiTargetNode
-          clean_up_keyword_args
-          transform_destructured_arg(arg)
-        when ::Prism::OptionalParameterNode
-          clean_up_keyword_args
-          transform_optional_arg(arg)
-        when ::Prism::SplatNode
-          clean_up_keyword_args
-          transform_splat_arg(arg)
-        when ::Prism::ArrayNode
-          clean_up_keyword_args
-          transform_destructured_arg(arg)
-        when ::Prism::InstanceVariableTargetNode
-          transform_instance_variable_arg(arg)
-        when ::Prism::ClassVariableTargetNode
-          transform_class_variable_arg(arg)
-        when ::Prism::GlobalVariableTargetNode
-          transform_global_variable_arg(arg)
-        when ::Prism::ConstantTargetNode
-          transform_constant_arg(arg)
-        when ::Prism::CallTargetNode
-          transform_call_arg(arg)
-        when ::Prism::IndexTargetNode
-          transform_index_arg(arg)
-        when ::Prism::RequiredParameterNode
-          clean_up_keyword_args
-          transform_required_arg(arg)
-        when ::Prism::NumberedParametersNode
-          transform_numbered_arg(arg)
-        when ::Prism::RestParameterNode
-          clean_up_keyword_args
-          transform_rest_arg(arg)
-        when ::Prism::KeywordRestParameterNode
-          transform_keyword_splat_arg(arg)
-        when ::Prism::RequiredKeywordParameterNode
-          transform_required_keyword_arg(arg)
-        when ::Prism::OptionalKeywordParameterNode
-          transform_optional_keyword_arg(arg)
-        when ::Prism::NoKeywordsParameterNode
-          transform_no_keyword_arg(arg)
-        when ::Prism::ImplicitRestNode
-          clean_up_keyword_args
-          transform_implicit_rest_arg(arg)
-        when ::Prism::ItParametersNode
-          clean_up_keyword_args
-          shift_or_pop_next_arg
-          @instructions << variable_set(:it)
-        else
-          raise "unhandled node: #{arg.inspect} (#{@pass.file.path}##{arg.location.start_line})"
-        end
+      def simple?
+        return true if @node.nil?
+        return false unless @node.is_a?(Prism::ParametersNode)
+        return false if @node.requireds.any? { |arg| arg.type != :required_parameter_node }
+        return false if @node.optionals.any? || @node.posts.any? || @node.rest || @node.keywords.any? || @node.keyword_rest
+        return false if @node.requireds.count { |a| a.type == :required_parameter_node && a.name == :_ } > 1
+        return false if @for_block && @node.requireds.size > 1
+
+        true
       end
 
-      def remaining_required_args
-        @args.select do |arg|
-          arg.is_a?(::Prism::RequiredParameterNode)
+      def transform_simply
+        args = @node&.requireds || []
+
+        if @check_args
+          @instructions << CheckArgsInstruction.new(positional: args.size, keywords: [])
         end
+
+        args.each_with_index do |arg, index|
+          @instructions << PushArgInstruction.new(index, nil_default: @for_block)
+          @instructions << VariableSetInstruction.new(arg.name, local_only: @local_only)
+        end
+
+        @instructions
       end
 
-      def remaining_keyword_args
-        @args.select do |arg|
-          arg.is_a?(::Prism::RequiredKeywordParameterNode) ||
-          arg.is_a?(::Prism::OptionalKeywordParameterNode)
-        end
-      end
+      def do_setup
+        min_count = minimum_arg_count
+        max_count = maximum_arg_count
 
-      def kwsplat?
-        @args.any? do |arg|
-          arg.is_a?(::Prism::KeywordRestParameterNode)
+        @instructions << PopKeywordArgsInstruction.new if any_keyword_args?
+
+        if @check_args
+          argc = min_count == max_count ? min_count : min_count..max_count
+          @instructions << CheckArgsInstruction.new(positional: argc, keywords: required_keywords)
         end
+
+        if required_keywords.any?
+          @instructions << CheckRequiredKeywordsInstruction.new(required_keywords)
+        end
+
+        spread = @for_block && args_to_array.size > 1
+        @instructions << PushArgsInstruction.new(for_block: @for_block, min_count:, max_count:, spread:)
       end
 
       def transform_required_arg(arg)
-        shift_or_pop_next_arg
-        @instructions << variable_set(arg.name)
+        case arg
+        when Prism::MultiTargetNode
+          @instructions << ArrayShiftInstruction.new
+          @instructions << ToArrayInstruction.new
+          transform_multi_target_arg(arg)
+          @instructions << PopInstruction.new
+        when Prism::RequiredParameterNode, Prism::LocalVariableTargetNode
+          @instructions << ArrayShiftInstruction.new
+          @instructions << variable_set(arg.name)
+        else
+          raise "unhandled node: #{arg.inspect}"
+        end
+      end
+
+      def transform_required_post_arg(arg)
+        case arg
+        when Prism::MultiTargetNode
+          @instructions << ArrayPopInstruction.new
+          @instructions << ToArrayInstruction.new
+          transform_multi_target_arg(arg)
+          @instructions << PopInstruction.new
+        when Prism::RequiredParameterNode, Prism::LocalVariableTargetNode
+          @instructions << ArrayPopInstruction.new
+          @instructions << variable_set(arg.name)
+        else
+          raise "unhandled node: #{arg.inspect}"
+        end
       end
 
       def transform_numbered_arg(arg)
         arg.maximum.times do |i|
-          shift_or_pop_next_arg
+          @instructions << ArrayShiftInstruction.new
           @instructions << variable_set(:"_#{i + 1}")
         end
       end
 
-      def transform_optional_arg(arg)
-        if remaining_required_args.any?
-          # we cannot steal a value that might be needed to fulfill a required arg that follows
-          # so put it back and work from the right side
-          @args.unshift(arg)
-          return :reverse
-        elsif remaining_keyword_args.any? || kwsplat?
-          # we cannot steal the keyword hash as if it is a regular arg,
-          # so put it back and work from the right side
-          @args.unshift(arg)
-          return :reverse
-        elsif @from_side == :right
-          # optional args must be assigned from the left-to-right;
-          # if we arrived here, it must be because we fulfilled all the required args on the right
-          # and now we can start from the left again
-          @args.push(arg)
-          return :reverse
+      def transform_multi_target_arg(node)
+        node.lefts.each do |arg|
+          transform_required_arg(arg)
         end
+        node.rights.reverse_each do |arg|
+          transform_required_post_arg(arg)
+        end
+        if node.rest
+          transform_rest_arg(node.rest)
+        end
+      end
 
+      def transform_optional_arg(arg)
         name = arg.name
         default_value = arg.value
 
@@ -144,34 +171,36 @@ module Natalie
         end
 
         @instructions << @pass.transform_expression(default_value, used: true)
-        shift_or_pop_next_arg_with_default
+        @instructions << ArrayShiftWithDefaultInstruction.new
         @instructions << variable_set(name)
       end
 
+      def transform_keyword_arg(arg)
+        swap_keyword_arg_hash_with_args_array
+        case arg
+        when Prism::RequiredKeywordParameterNode
+          @instructions << HashDeleteInstruction.new(arg.name)
+          @instructions << variable_set(arg.name)
+        when Prism::OptionalKeywordParameterNode
+          @instructions << @pass.transform_expression(arg.value, used: true)
+          @instructions << HashDeleteWithDefaultInstruction.new(arg.name)
+          @instructions << variable_set(arg.name)
+        else
+          raise "unhandled node: #{arg.inspect}"
+        end
+      end
+
       def transform_required_keyword_arg(arg)
-        move_keyword_arg_hash_from_args_array_to_stack
+        swap_keyword_arg_hash_with_args_array
         @instructions << HashDeleteInstruction.new(arg.name)
         @instructions << variable_set(arg.name)
       end
 
       def transform_optional_keyword_arg(arg)
-        move_keyword_arg_hash_from_args_array_to_stack
+        swap_keyword_arg_hash_with_args_array
         @instructions << @pass.transform_expression(arg.value, used: true)
         @instructions << HashDeleteWithDefaultInstruction.new(arg.name)
         @instructions << variable_set(arg.name)
-      end
-
-      def transform_no_keyword_arg(arg)
-        move_keyword_arg_hash_from_args_array_to_stack
-      end
-
-      def transform_destructured_arg(arg)
-        @instructions << ArrayShiftInstruction.new
-        @instructions << DupInstruction.new
-        @instructions << ToArrayInstruction.new
-        sub_processor = self.class.new(@pass, local_only: @local_only, for_block: @for_block)
-        @instructions << sub_processor.transform(arg)
-        @instructions << PopInstruction.new
       end
 
       def transform_instance_variable_arg(arg)
@@ -210,11 +239,11 @@ module Natalie
         @instructions << SendInstruction.new(
           arg.name,
           args_array_on_stack: false,
-          receiver_is_self: arg.receiver.is_a?(Prism::SelfNode),
-          with_block: false,
-          has_keyword_hash: false,
-          file: @pass.file.path,
-          line: arg.location.start_line,
+          receiver_is_self:    arg.receiver.is_a?(Prism::SelfNode),
+          with_block:          false,
+          has_keyword_hash:    false,
+          file:                @pass.file.path,
+          line:                arg.location.start_line,
         )
         if arg.safe_navigation?
           @instructions << EndInstruction.new(:if)
@@ -233,29 +262,37 @@ module Natalie
         @instructions << SendInstruction.new(
           :[]=,
           args_array_on_stack: false,
-          receiver_is_self: arg.receiver.is_a?(Prism::SelfNode),
-          with_block: false,
-          has_keyword_hash: false,
-          file: @pass.file.path,
-          line: arg.location.start_line,
+          receiver_is_self:    arg.receiver.is_a?(Prism::SelfNode),
+          with_block:          false,
+          has_keyword_hash:    false,
+          file:                @pass.file.path,
+          line:                arg.location.start_line,
         )
       end
 
       def transform_rest_arg(arg)
-        if (name = arg.name)
-          @instructions << variable_set(name)
-          @instructions << VariableGetInstruction.new(name)
+        case arg
+        when Prism::SplatNode
+          transform_splat_arg(arg)
+        when Prism::RestParameterNode
+          if (name = arg.name)
+            @instructions << variable_set(name)
+            @instructions << VariableGetInstruction.new(name)
+          else
+            @instructions << AnonymousSplatSetInstruction.new
+            @instructions << AnonymousSplatGetInstruction.new
+          end
+        when Prism::ImplicitRestNode
+          :noop
         else
-          @instructions << AnonymousSplatSetInstruction.new
-          @instructions << AnonymousSplatGetInstruction.new
+          raise "unhandled node: #{arg.inspect}"
         end
-        :reverse
       end
 
       def transform_splat_arg(arg)
         if arg.expression
           if @for_block
-            unless [:local_variable_target_node, :required_parameter_node].include?(arg.expression.type)
+            unless %i[local_variable_target_node required_parameter_node].include?(arg.expression.type)
               raise "I don't know how to splat #{arg.expression.inspect}"
             end
           else
@@ -270,25 +307,25 @@ module Natalie
           @instructions << variable_set(name)
           @instructions << VariableGetInstruction.new(name)
         end
-        :reverse
       end
 
-      def transform_keyword_splat_arg(arg)
-        move_keyword_arg_hash_from_args_array_to_stack
-        if arg.name
-          @instructions << variable_set(arg.name)
-          @instructions << VariableGetInstruction.new(arg.name)
+      def transform_keyword_rest_arg(arg)
+        swap_keyword_arg_hash_with_args_array
+        case arg
+        when Prism::NoKeywordsParameterNode
+          :noop
+        when Prism::KeywordRestParameterNode
+          if arg.name
+            @instructions << variable_set(arg.name)
+            @instructions << VariableGetInstruction.new(arg.name)
+          else
+            @instructions << AnonymousKeywordSplatSetInstruction.new
+            @instructions << AnonymousKeywordSplatGetInstruction.new
+          end
+          @has_keyword_rest = true
         else
-          @instructions << AnonymousKeywordSplatSetInstruction.new
-          @instructions << AnonymousKeywordSplatGetInstruction.new
+          raise "unhandled node: #{arg.inspect}"
         end
-        @has_keyword_splat = true
-        :reverse unless remaining_keyword_args.any?
-      end
-
-      def transform_implicit_rest_arg(arg)
-        # We don't need to do anything with this value.
-        :reverse
       end
 
       def variable_set(name)
@@ -306,40 +343,85 @@ module Natalie
         VariableSetInstruction.new(name, local_only: @local_only)
       end
 
-      def shift_or_pop_next_arg
-        if @from_side == :left
-          @instructions << ArrayShiftInstruction.new
-        else
-          @instructions << ArrayPopInstruction.new
-        end
-      end
-
-      def shift_or_pop_next_arg_with_default
-        if @from_side == :left
-          @instructions << ArrayShiftWithDefaultInstruction.new
-        else
-          @instructions << ArrayPopWithDefaultInstruction.new
-        end
-      end
-
-      def move_keyword_arg_hash_from_args_array_to_stack
-        return if @keyword_arg_hash_on_stack
+      def swap_keyword_arg_hash_with_args_array
+        return if @keyword_arg_hash_ready
 
         @instructions << SwapInstruction.new
-        @keyword_arg_hash_on_stack = true
+        @keyword_arg_hash_ready = true
       end
 
       def clean_up_keyword_args
-        if @keyword_arg_hash_on_stack
-          @instructions << CheckExtraKeywordsInstruction.new unless @has_keyword_splat
+        if @keyword_arg_hash_ready
+          @instructions << CheckExtraKeywordsInstruction.new unless @has_keyword_rest
           @instructions << PopInstruction.new
         end
-        @keyword_arg_hash_on_stack = false
+        @keyword_arg_hash_ready = false
       end
 
       def clean_up
         clean_up_keyword_args
         @instructions << PopInstruction.new
+      end
+
+      def args_to_array
+        @flatten_args ||= case @node
+        when nil
+          []
+        when Prism::ParametersNode
+          (
+            @node.requireds +
+            [@node.rest] +
+            @node.optionals +
+            @node.posts +
+            @node.keywords +
+            [@node.keyword_rest]
+          ).compact
+        when Prism::NumberedParametersNode
+          @node.maximum.times.map do |i|
+            Prism::RequiredParameterNode.new(nil, nil, @node.location, 0, :"_#{i + 1}")
+          end
+        else
+          [@node]
+        end
+      end
+
+      def minimum_arg_count
+        args_to_array.count do |arg|
+          arg.type == :required_parameter_node || arg.type == :multi_target_node
+        end
+      end
+
+      def maximum_arg_count
+        return nil if @node.is_a?(Prism::ParametersNode) && @node.rest.is_a?(Prism::RestParameterNode)
+
+        args_to_array.count do |arg|
+          %i[
+            call_target_node
+            class_variable_target_node
+            constant_target_node
+            global_variable_target_node
+            index_target_node
+            instance_variable_target_node
+            local_variable_target_node
+            multi_target_node
+            optional_parameter_node
+            required_parameter_node
+          ].include?(arg.type)
+        end
+      end
+
+      def required_keywords
+        return [] unless @node.is_a?(Prism::ParametersNode)
+
+        @node.keywords.filter_map do |arg|
+          arg.name if arg.type == :required_keyword_parameter_node
+        end
+      end
+
+      def any_keyword_args?
+        return false unless @node.is_a?(Prism::ParametersNode)
+
+        @node.keywords.any? || !!@node.keyword_rest
       end
     end
   end
