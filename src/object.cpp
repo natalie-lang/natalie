@@ -656,7 +656,7 @@ ClassObject *Object::subclass(Env *env, const char *name) {
     return as_class()->subclass(env, name);
 }
 
-Value Object::extend(Env *env, Args args) {
+Value Object::extend(Env *env, Args &&args) {
     assert_not_frozen(env);
     for (size_t i = 0; i < args.size(); i++) {
         if (args[i]->type() == Object::Type::Module) {
@@ -922,23 +922,23 @@ void Object::module_function(Env *env, SymbolObject *name) {
     module_function(env, Args { name });
 }
 
-Value Object::private_method(Env *env, Args args) {
+Value Object::private_method(Env *env, Args &&args) {
     if (!is_main_object()) {
         printf("tried to call private_method on something that has no methods\n");
         abort();
     }
-    return m_klass->private_method(env, args);
+    return m_klass->private_method(env, std::move(args));
 }
 
-Value Object::protected_method(Env *env, Args args) {
+Value Object::protected_method(Env *env, Args &&args) {
     if (!is_main_object()) {
         printf("tried to call protected_method on something that has no methods\n");
         abort();
     }
-    return m_klass->protected_method(env, args);
+    return m_klass->protected_method(env, std::move(args));
 }
 
-Value Object::module_function(Env *env, Args args) {
+Value Object::module_function(Env *env, Args &&args) {
     printf("tried to call module_function on something that isn't a module\n");
     abort();
 }
@@ -1243,7 +1243,7 @@ void Object::freeze() {
     if (m_singleton_class) m_singleton_class->freeze();
 }
 
-Value Object::instance_eval(Env *env, Args args, Block *block) {
+Value Object::instance_eval(Env *env, Args &&args, Block *block) {
     if (block) {
         args.ensure_argc_is(env, 0);
     }
@@ -1264,7 +1264,7 @@ Value Object::instance_eval(Env *env, Args args, Block *block) {
     return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, block_args), nullptr);
 }
 
-Value Object::instance_exec(Env *env, Args args, Block *block) {
+Value Object::instance_exec(Env *env, Args &&args, Block *block) {
     if (!block)
         env->raise("LocalJumpError", "no block given");
 

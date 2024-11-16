@@ -953,13 +953,13 @@ Value ModuleObject::module_exec(Env *env, Args args, Block *block) {
     return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, std::move(args), nullptr);
 }
 
-Value ModuleObject::private_method(Env *env, Args args) {
-    set_method_visibility(env, args, MethodVisibility::Private);
+Value ModuleObject::private_method(Env *env, Args &&args) {
+    set_method_visibility(env, std::move(args), MethodVisibility::Private);
     return this;
 }
 
-Value ModuleObject::protected_method(Env *env, Args args) {
-    set_method_visibility(env, args, MethodVisibility::Protected);
+Value ModuleObject::protected_method(Env *env, Args &&args) {
+    set_method_visibility(env, std::move(args), MethodVisibility::Protected);
     return this;
 }
 
@@ -1001,7 +1001,7 @@ void ModuleObject::set_method_visibility(Env *env, Args args, MethodVisibility v
     }
 }
 
-Value ModuleObject::module_function(Env *env, Args args) {
+Value ModuleObject::module_function(Env *env, Args &&args) {
     if (is_class()) {
         env->raise("TypeError", "module_function must be called for modules");
     }

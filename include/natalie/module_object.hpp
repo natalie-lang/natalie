@@ -142,13 +142,13 @@ public:
     Value module_eval(Env *, Block *);
     Value module_exec(Env *, Args, Block *);
 
-    Value private_method(Env *, Args) override;
-    Value protected_method(Env *, Args) override;
+    Value private_method(Env *, Args &&) override;
+    Value protected_method(Env *, Args &&) override;
     Value public_method(Env *, Args);
     Value private_class_method(Env *, Args);
     Value public_class_method(Env *, Args);
     void set_method_visibility(Env *, Args, MethodVisibility);
-    Value module_function(Env *, Args) override;
+    Value module_function(Env *, Args &&) override;
 
     Value deprecate_constant(Env *, Args);
     Value private_constant(Env *, Args);

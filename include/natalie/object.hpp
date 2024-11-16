@@ -246,7 +246,7 @@ public:
 
     void set_singleton_class(ClassObject *);
 
-    Value extend(Env *, Args);
+    Value extend(Env *, Args &&);
     void extend_once(Env *, ModuleObject *);
 
     virtual Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
@@ -278,9 +278,9 @@ public:
 
     Value main_obj_define_method(Env *, Value, Value, Block *);
 
-    virtual Value private_method(Env *, Args);
-    virtual Value protected_method(Env *, Args);
-    virtual Value module_function(Env *, Args);
+    virtual Value private_method(Env *, Args &&);
+    virtual Value protected_method(Env *, Args &&);
+    virtual Value module_function(Env *, Args &&);
 
     void private_method(Env *, SymbolObject *);
     void protected_method(Env *, SymbolObject *);
@@ -356,8 +356,8 @@ public:
 
     bool neq(Env *env, Value other);
 
-    Value instance_eval(Env *, Args, Block *);
-    Value instance_exec(Env *, Args, Block *);
+    Value instance_eval(Env *, Args &&, Block *);
+    Value instance_exec(Env *, Args &&, Block *);
 
     void assert_type(Env *, Object::Type, const char *) const;
     void assert_not_frozen(Env *);
