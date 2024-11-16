@@ -944,7 +944,7 @@ Value Object::module_function(Env *env, Args args) {
 }
 
 Value Object::public_send(Env *env, SymbolObject *name, const Args &args, Block *block, Value sent_from) {
-    return send(env, name, args, block, MethodVisibility::Public, sent_from);
+    return send(env, name, Args(args), block, MethodVisibility::Public, sent_from);
 }
 
 Value Object::public_send(Env *env, const Args &args, Block *block) {
@@ -953,7 +953,7 @@ Value Object::public_send(Env *env, const Args &args, Block *block) {
 }
 
 Value Object::send(Env *env, SymbolObject *name, const Args &args, Block *block, Value sent_from) {
-    return send(env, name, args, block, MethodVisibility::Private, sent_from);
+    return send(env, name, Args(args), block, MethodVisibility::Private, sent_from);
 }
 
 Value Object::send(Env *env, const Args &args, Block *block) {
@@ -961,18 +961,18 @@ Value Object::send(Env *env, const Args &args, Block *block) {
     return send(env->caller(), name, Args::shift(args), block);
 }
 
-Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, MethodVisibility visibility_at_least, Value sent_from) {
+Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility_at_least, Value sent_from) {
     static const auto initialize = SymbolObject::intern("initialize");
     Method *method = find_method(env, name, visibility_at_least, sent_from);
     // TODO: make a copy if has empty keyword hash (unless that's not rare)
     args.pop_empty_keyword_hash();
     if (method) {
-        auto result = method->call(env, this, args, block);
+        auto result = method->call(env, this, std::move(args), block);
         if (name == initialize)
             result = this;
         return result;
     } else if (respond_to(env, "method_missing"_s)) {
-        return method_missing_send(env, name, args, block);
+        return method_missing_send(env, name, std::move(args), block);
     } else {
         env->raise_no_method_error(this, name, GlobalEnv::the()->method_missing_reason());
     }

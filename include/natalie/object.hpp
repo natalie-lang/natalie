@@ -312,7 +312,7 @@ public:
         return send(env, name, Args(args), block);
     }
 
-    Value send(Env *, SymbolObject *, Args, Block *, MethodVisibility, Value = nullptr);
+    Value send(Env *, SymbolObject *, Args &&, Block *, MethodVisibility, Value = nullptr);
     Value method_missing_send(Env *, SymbolObject *, Args, Block *);
     Value method_missing(Env *, Args, Block *);
 
