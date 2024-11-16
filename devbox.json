@@ -6,7 +6,6 @@
     "ccache": "latest",
     "clang": "latest",
     "git": "latest",
-    "glibcLocales": "latest",
     "libffi": {
       "version": "latest",
       "outputs": [
@@ -22,6 +21,7 @@
         "dev"
       ]
     },
+    "lldb": "latest",
     "openssl": {
       "version": "latest",
       "outputs": [
@@ -36,14 +36,11 @@
         "out",
         "dev"
       ]
-    },
-    "lldb": "latest"
+    }
   },
   "env": {
     "CC": "ccache clang",
-    "CXX": "ccache clang++",
-    "LANG": "C.UTF-8",
-    "LC_ALL": "C.UTF-8"
+    "CXX": "ccache clang++"
   },
   "shell": {
     "init_hook": [],
