@@ -191,19 +191,6 @@ module Natalie
         end
       end
 
-      def transform_required_keyword_arg(arg)
-        swap_keyword_arg_hash_with_args_array
-        @instructions << HashDeleteInstruction.new(arg.name)
-        @instructions << variable_set(arg.name)
-      end
-
-      def transform_optional_keyword_arg(arg)
-        swap_keyword_arg_hash_with_args_array
-        @instructions << @pass.transform_expression(arg.value, used: true)
-        @instructions << HashDeleteWithDefaultInstruction.new(arg.name)
-        @instructions << variable_set(arg.name)
-      end
-
       def transform_instance_variable_arg(arg)
         @instructions << ArrayShiftInstruction.new
         @instructions << InstanceVariableSetInstruction.new(arg.name)
