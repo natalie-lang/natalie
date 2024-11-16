@@ -1331,7 +1331,7 @@ String Object::inspect_str(Env *env) {
     return inspected->as_string()->string();
 }
 
-Value Object::enum_for(Env *env, const char *method, Args args) {
+Value Object::enum_for(Env *env, const char *method, Args &&args) {
     Vector<Value> args2(args.size() + 1);
     args2.push(SymbolObject::intern(method));
     for (size_t i = 0; i < args.size(); i++) {

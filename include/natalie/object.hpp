@@ -365,7 +365,7 @@ public:
 
     String inspect_str(Env *);
 
-    Value enum_for(Env *env, const char *method, Args args = {});
+    Value enum_for(Env *env, const char *method, Args &&args = {});
 
     virtual void visit_children(Visitor &visitor) const override;
 
