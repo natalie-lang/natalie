@@ -399,8 +399,9 @@ Value HashObject::delete_key(Env *env, Value key, Block *block) {
 Value HashObject::dig(Env *env, Args args) {
     args.ensure_argc_at_least(env, 1);
     auto dig = "dig"_s;
-    Value val = ref(env, args[0]);
-    if (args.size() == 1)
+    auto idx = args.shift();
+    Value val = ref(env, idx);
+    if (args.size() == 0)
         return val;
 
     if (val == NilObject::the())
@@ -409,7 +410,7 @@ Value HashObject::dig(Env *env, Args args) {
     if (!val->respond_to(env, dig))
         env->raise("TypeError", "{} does not have #dig method", val->klass()->inspect_str());
 
-    return val.send(env, dig, Args::shift(args));
+    return val.send(env, dig, args);
 }
 
 Value HashObject::size(Env *env) const {

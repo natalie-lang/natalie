@@ -132,8 +132,8 @@ Value SymbolObject::to_proc_block_fn(Env *env, Value self_value, Args args, Bloc
     args.ensure_argc_at_least(env, 1);
     SymbolObject *name_obj = env->outer()->var_get("name", 0)->as_symbol();
     assert(name_obj);
-    auto method_args = Args::shift(args);
-    return args[0].send(env, name_obj, method_args);
+    auto receiver = args.shift();
+    return receiver.send(env, name_obj, args);
 }
 
 Value SymbolObject::cmp(Env *env, Value other_value) {

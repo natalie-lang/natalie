@@ -29,8 +29,8 @@ public:
 
     Value bind_call(Env *env, Args args, Block *block) {
         args.ensure_argc_at_least(env, 1);
-        auto obj = args[0];
-        return bind_call(env, obj, Args::shift(args), block);
+        auto obj = args.shift();
+        return bind_call(env, obj, args, block);
     }
 
     bool eq(Env *env, Value other_value) {
