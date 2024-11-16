@@ -304,8 +304,13 @@ public:
     Value public_send(Env *, SymbolObject *, const Args & = empty_args, Block * = nullptr, Value sent_from = nullptr);
     Value public_send(Env *, const Args &, Block *);
 
-    Value send(Env *, SymbolObject *, const Args & = empty_args, Block * = nullptr, Value sent_from = nullptr);
-    Value send(Env *, const Args &, Block *);
+    Value send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Value sent_from = nullptr);
+    Value send(Env *, Args &&, Block *);
+
+    // NATFIXME: Transition method, should be removed at the end of the change
+    Value send(Env *env, const Args &args, Block *block) {
+        return send(env, Args(args), block);
+    }
 
     Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Value sent_from = nullptr) {
         // NOTE: sent_from is unused, but accepting it makes the SendInstruction codegen simpler. :-)

@@ -68,7 +68,7 @@ Value Value::send(Env *env, SymbolObject *name, Args args, Block *block, Value s
     PROFILED_SEND(NativeProfilerEvent::Type::SEND);
 
     return on_object_value([&](Object &object) {
-        return object.send(env, name, args, block, sent_from);
+        return object.send(env, name, Args(args), block, sent_from);
     });
 }
 

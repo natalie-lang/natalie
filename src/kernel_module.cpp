@@ -563,7 +563,7 @@ Value KernelModule::print(Env *env, Args args) {
     // NATFIXME: Kernel.print should actually call IO.print and not
     // IO.write, but for now using IO.print causes crashes.
     // return _stdout->send(env, "print"_s, args);
-    return _stdout->send(env, "write"_s, args);
+    return _stdout->send(env, "write"_s, std::move(args));
 }
 
 Value KernelModule::private_methods(Env *env, Value recur) {
@@ -597,7 +597,7 @@ Value KernelModule::proc(Env *env, Block *block) {
 
 Value KernelModule::puts(Env *env, Args args) {
     auto _stdout = env->global_get("$stdout"_s);
-    return _stdout->send(env, "puts"_s, args);
+    return _stdout->send(env, "puts"_s, std::move(args));
 }
 
 Value KernelModule::raise(Env *env, Args args) {

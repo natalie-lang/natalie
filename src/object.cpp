@@ -145,7 +145,7 @@ Value Object::_new(Env *env, Value klass_value, Args args, Block *block) {
     if (!obj)
         NAT_UNREACHABLE();
 
-    obj->send(env, "initialize"_s, args, block);
+    obj->send(env, "initialize"_s, std::move(args), block);
     return obj;
 }
 
@@ -952,13 +952,13 @@ Value Object::public_send(Env *env, const Args &args, Block *block) {
     return public_send(env->caller(), name, Args::shift(args), block);
 }
 
-Value Object::send(Env *env, SymbolObject *name, const Args &args, Block *block, Value sent_from) {
-    return send(env, name, Args(args), block, MethodVisibility::Private, sent_from);
+Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
+    return send(env, name, std::move(args), block, MethodVisibility::Private, sent_from);
 }
 
-Value Object::send(Env *env, const Args &args, Block *block) {
-    auto name = args[0]->to_symbol(env, Object::Conversion::Strict);
-    return send(env->caller(), name, Args::shift(args), block);
+Value Object::send(Env *env, Args &&args, Block *block) {
+    auto name = args.shift()->to_symbol(env, Object::Conversion::Strict);
+    return send(env->caller(), name, std::move(args), block);
 }
 
 Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility_at_least, Value sent_from) {
@@ -1112,7 +1112,7 @@ Value Object::clone(Env *env, Value freeze) {
         auto keyword_hash = new HashObject {};
         keyword_hash->put(env, "freeze"_s, freeze);
         auto args = Args({ this, keyword_hash }, true);
-        duplicate->send(env, "initialize_clone"_s, args);
+        duplicate->send(env, "initialize_clone"_s, std::move(args));
     } else {
         duplicate->send(env, "initialize_clone"_s, { this });
     }
