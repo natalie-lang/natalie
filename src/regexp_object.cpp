@@ -176,7 +176,7 @@ Value RegexpObject::try_convert(Env *env, Value value) {
     return value;
 }
 
-Value RegexpObject::regexp_union(Env *env, Args args) {
+Value RegexpObject::regexp_union(Env *env, Args &&args) {
     auto patterns = args.size() == 1 && args[0]->is_array() ? args[0]->as_array() : args.to_array();
     if (patterns->is_empty())
         return RegexpObject::literal(env, "(?!)");
