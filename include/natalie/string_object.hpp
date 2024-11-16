@@ -305,9 +305,9 @@ public:
     }
 
     bool internal_start_with(Env *, Value);
-    bool start_with(Env *, Args);
+    bool start_with(Env *, Args &&);
     bool end_with(Env *, Value) const;
-    bool end_with(Env *, Args) const;
+    bool end_with(Env *, Args &&) const;
     bool is_empty() const { return m_string.is_empty(); }
 
     Value gsub(Env *, Value, Value = nullptr, Block *block = nullptr);
@@ -332,11 +332,11 @@ public:
     Value chop_in_place(Env *);
     Value clear(Env *);
     Value cmp(Env *, Value);
-    Value concat(Env *env, Args args);
-    Value count(Env *env, Args args);
+    Value concat(Env *env, Args &&args);
+    Value count(Env *env, Args &&args);
     Value crypt(Env *, Value);
-    Value delete_str(Env *, Args);
-    Value delete_in_place(Env *, Args);
+    Value delete_str(Env *, Args &&);
+    Value delete_in_place(Env *, Args &&);
     Value delete_prefix(Env *, Value);
     Value delete_prefix_in_place(Env *, Value);
     Value delete_suffix(Env *, Value);
@@ -362,7 +362,7 @@ public:
     Value mul(Env *, Value) const;
     Value ord(Env *) const;
     Value partition(Env *, Value);
-    Value prepend(Env *, Args);
+    Value prepend(Env *, Args &&);
     Value ref(Env *, Value, Value = nullptr);
     Value ref_slice_range_in_place(size_t, size_t);
     Value ref_fast_index(Env *, size_t) const;

@@ -18,7 +18,7 @@ constexpr bool is_strippable_whitespace(char c) {
         || c == ' ';
 };
 
-static auto character_class_handler(Env *env, Args args) {
+static auto character_class_handler(Env *env, Args &&args) {
     args.ensure_argc_at_least(env, 1);
 
     auto basic_characters = Hashmap<String>(HashType::TMString);
@@ -637,7 +637,7 @@ bool StringObject::internal_start_with(Env *env, Value needle) {
     return i == 0;
 }
 
-bool StringObject::start_with(Env *env, Args args) {
+bool StringObject::start_with(Env *env, Args &&args) {
     for (size_t i = 0; i < args.size(); ++i) {
         auto arg = args[i];
 
@@ -659,7 +659,7 @@ bool StringObject::end_with(Env *env, Value needle) const {
     return i == 0;
 }
 
-bool StringObject::end_with(Env *env, Args args) const {
+bool StringObject::end_with(Env *env, Args &&args) const {
     for (size_t i = 0; i < args.size(); ++i) {
         if (end_with(env, args[i]))
             return true;
@@ -1019,7 +1019,7 @@ Value StringObject::cmp(Env *env, Value other) {
     return Value::integer(comparison);
 }
 
-Value StringObject::concat(Env *env, Args args) {
+Value StringObject::concat(Env *env, Args &&args) {
     assert_not_frozen(env);
 
     StringObject *original = new StringObject(*this);
@@ -1067,9 +1067,9 @@ Value StringObject::concat(Env *env, Args args) {
     return this;
 }
 
-Value StringObject::count(Env *env, Args args) {
+Value StringObject::count(Env *env, Args &&args) {
     nat_int_t total_count = 0;
-    auto handler = character_class_handler(env, args);
+    auto handler = character_class_handler(env, std::move(args));
     for (auto character : *this) {
         if (handler(character))
             total_count++;
@@ -1092,7 +1092,7 @@ Value StringObject::crypt(Env *env, Value salt) {
     return new StringObject { ::crypt(c_str(), salt_str->c_str()) };
 }
 
-Value StringObject::delete_str(Env *env, Args selectors) {
+Value StringObject::delete_str(Env *env, Args &&selectors) {
     auto dup = this->duplicate(env)->as_string();
     auto result = dup->delete_in_place(env, std::move(selectors));
     if (result->is_nil())
@@ -1100,10 +1100,10 @@ Value StringObject::delete_str(Env *env, Args selectors) {
     return result;
 }
 
-Value StringObject::delete_in_place(Env *env, Args selectors) {
+Value StringObject::delete_in_place(Env *env, Args &&selectors) {
     assert_not_frozen(env);
     const auto old_len = bytesize();
-    auto handler = character_class_handler(env, selectors);
+    auto handler = character_class_handler(env, std::move(selectors));
     size_t index = 0;
     while (index < m_string.size()) {
         const auto old_index = index;
@@ -1157,7 +1157,7 @@ Value StringObject::ord(Env *env) const {
     return Value::integer(code);
 }
 
-Value StringObject::prepend(Env *env, Args args) {
+Value StringObject::prepend(Env *env, Args &&args) {
     assert_not_frozen(env);
 
     StringObject *original = new StringObject(*this);
