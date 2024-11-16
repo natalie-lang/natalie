@@ -978,7 +978,7 @@ Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Meth
     }
 }
 
-Value Object::method_missing_send(Env *env, SymbolObject *name, Args args, Block *block) {
+Value Object::method_missing_send(Env *env, SymbolObject *name, Args &&args, Block *block) {
     Vector<Value> new_args(args.size() + 1);
     new_args.push(name);
     for (size_t i = 0; i < args.size(); i++)
