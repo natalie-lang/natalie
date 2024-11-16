@@ -70,15 +70,25 @@ public:
 
     operator bool() const { return !is_null(); }
 
-    Value public_send(Env *, SymbolObject *, Args = {}, Block * = nullptr, Value sent_from = nullptr);
+    Value public_send(Env *, SymbolObject *, Args && = {}, Block * = nullptr, Value sent_from = nullptr);
 
     Value public_send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Value sent_from = nullptr) {
         return public_send(env, name, Args(args), block, sent_from);
     }
 
-    Value send(Env *, SymbolObject *, Args = {}, Block * = nullptr, Value sent_from = nullptr);
+    // NATFIXME: Transition method, should be removed at the end of the change
+    Value public_send(Env *env, SymbolObject *name, const Args &args, Block *block = nullptr, Value sent_from = nullptr) {
+        return public_send(env, name, Args(args), block, sent_from);
+    }
+
+    Value send(Env *, SymbolObject *, Args && = {}, Block * = nullptr, Value sent_from = nullptr);
 
     Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Value sent_from = nullptr) {
+        return send(env, name, Args(args), block, sent_from);
+    }
+
+    // NATFIXME: Transition method, should be removed at the end of the change
+    Value send(Env *env, SymbolObject *name, const Args &args, Block *block = nullptr, Value sent_from = nullptr) {
         return send(env, name, Args(args), block, sent_from);
     }
 

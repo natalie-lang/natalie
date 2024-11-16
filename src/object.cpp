@@ -1295,7 +1295,7 @@ void Object::assert_not_frozen(Env *env, Value receiver) {
         String message = String::format("can't modify frozen {}: {}", klass()->inspect_str(), inspect_str(env));
         auto kwargs = new HashObject(env, { "receiver"_s, receiver });
         auto args = Args({ new StringObject { message }, kwargs }, true);
-        ExceptionObject *error = FrozenError.send(env, "new"_s, args)->as_exception();
+        ExceptionObject *error = FrozenError.send(env, "new"_s, std::move(args))->as_exception();
         env->raise_exception(error);
     }
 }
