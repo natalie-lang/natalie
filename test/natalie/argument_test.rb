@@ -1,20 +1,10 @@
 require_relative '../spec_helper'
 
-def argument_proxy(*args, **kwargs)
-  [args, kwargs]
-end
-
-def underscore_arguments(_, _) _ end
-
-def optional_splat_keyword_arguments(o = 1, *s, k:)
-  [o, s, k]
-end
-
-def optional_keyword_keyword_rest_arguments(o = 1, k: 2, **kr)
-  [o, k, kr]
-end
-
 describe 'splat operators' do
+  def argument_proxy(*args, **kwargs)
+    [args, kwargs]
+  end
+
   it 'should work with literal arguments' do
     argument_proxy(1).should == [[1], {}]
     argument_proxy(1, 2).should == [[1, 2], {}]
@@ -85,27 +75,47 @@ describe 'forward args' do
 end
 
 describe 'underscore args' do
-  underscore_arguments(1, 2).should == 1
+  def underscore_arguments(_, _) _ end # rubocop:disable Lint/UnderscorePrefixedVariableName
+
+  it 'does not overwrite the first underscore' do
+    underscore_arguments(1, 2).should == 1
+  end
 end
 
 describe 'keyword argument following splat and optional' do
-  optional_splat_keyword_arguments(:a, :b, k: :c).should == [:a, [:b], :c]
+  def optional_splat_keyword_arguments(o = 1, *s, k:)
+    [o, s, k]
+  end
+
+  it 'works' do
+    optional_splat_keyword_arguments(:a, :b, k: :c).should == [:a, [:b], :c]
+  end
 end
 
 describe 'optional and keyword argument followed by keyword rest' do
-  optional_keyword_keyword_rest_arguments(:a, k: :b, c: :d).should == [:a, :b, { c: :d }]
+  def optional_keyword_keyword_rest_arguments(o = 1, k: 2, **kr)
+    [o, k, kr]
+  end
+
+  it 'works' do
+    optional_keyword_keyword_rest_arguments(:a, k: :b, c: :d).should == [:a, :b, { c: :d }]
+  end
 end
 
 describe 'implicit rest arg' do
-  [[1, 2, 3]].map { |x,| x }.should == [1]
-end
-
-def keyword_references_positional(a = 1, b: a)
-  [a, b]
+  it 'discards extra values' do
+    [[1, 2, 3]].map { |x,| x }.should == [1]
+  end
 end
 
 describe 'keyword argument having a previous positional argument as default' do
-  keyword_references_positional.should == [1, 1]
-  keyword_references_positional(2).should == [2, 2]
-  keyword_references_positional(2, b: 3).should == [2, 3]
+  def keyword_references_positional(a = 1, b: a)
+    [a, b]
+  end
+
+  it 'works' do
+    keyword_references_positional.should == [1, 1]
+    keyword_references_positional(2).should == [2, 2]
+    keyword_references_positional(2, b: 3).should == [2, 3]
+  end
 end
