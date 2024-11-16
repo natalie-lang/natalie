@@ -40,7 +40,7 @@ Value ProcessModule::clock_gettime(Env *env, Value clock_id) {
     return new FloatObject { result };
 }
 
-Value ProcessModule::kill(Env *env, Args args) {
+Value ProcessModule::kill(Env *env, Args &&args) {
     env->ensure_no_extra_keywords(args.pop_keyword_hash());
     args.ensure_argc_at_least(env, 2);
     auto signal = args.shift();
