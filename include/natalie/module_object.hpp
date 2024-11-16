@@ -40,10 +40,10 @@ public:
 
     Value initialize(Env *, Block *);
 
-    Value include(Env *, Args args);
+    Value include(Env *, Args &&args);
     void include_once(Env *, ModuleObject *);
 
-    Value prepend(Env *, Args args);
+    Value prepend(Env *, Args &&args);
     void prepend_once(Env *, ModuleObject *);
 
     Value is_autoload(Env *, Value) const;
@@ -129,35 +129,35 @@ public:
     Optional<String> name() { return m_class_name; }
     virtual String backtrace_name() const;
 
-    ArrayObject *attr(Env *, Args);
-    ArrayObject *attr_reader(Env *, Args);
+    ArrayObject *attr(Env *, Args &&);
+    ArrayObject *attr_reader(Env *, Args &&);
     SymbolObject *attr_reader(Env *, Value);
-    ArrayObject *attr_writer(Env *, Args);
+    ArrayObject *attr_writer(Env *, Args &&);
     SymbolObject *attr_writer(Env *, Value);
-    ArrayObject *attr_accessor(Env *, Args);
+    ArrayObject *attr_accessor(Env *, Args &&);
 
     static Value attr_reader_block_fn(Env *, Value, Args &&, Block *);
     static Value attr_writer_block_fn(Env *, Value, Args &&, Block *);
 
     Value module_eval(Env *, Block *);
-    Value module_exec(Env *, Args, Block *);
+    Value module_exec(Env *, Args &&, Block *);
 
     Value private_method(Env *, Args &&) override;
     Value protected_method(Env *, Args &&) override;
-    Value public_method(Env *, Args);
-    Value private_class_method(Env *, Args);
-    Value public_class_method(Env *, Args);
-    void set_method_visibility(Env *, Args, MethodVisibility);
+    Value public_method(Env *, Args &&);
+    Value private_class_method(Env *, Args &&);
+    Value public_class_method(Env *, Args &&);
+    void set_method_visibility(Env *, Args &&, MethodVisibility);
     Value module_function(Env *, Args &&) override;
 
-    Value deprecate_constant(Env *, Args);
-    Value private_constant(Env *, Args);
-    Value public_constant(Env *, Args);
+    Value deprecate_constant(Env *, Args &&);
+    Value private_constant(Env *, Args &&);
+    Value public_constant(Env *, Args &&);
 
     bool const_defined(Env *, Value, Value = nullptr);
     Value alias_method(Env *, Value, Value);
-    Value remove_method(Env *, Args);
-    Value undef_method(Env *, Args);
+    Value remove_method(Env *, Args &&);
+    Value undef_method(Env *, Args &&);
     Value ruby2_keywords(Env *, Value);
 
     bool eqeqeq(Env *env, Value other) {
