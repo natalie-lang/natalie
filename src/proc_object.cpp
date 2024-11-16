@@ -7,7 +7,7 @@ Value ProcObject::initialize(Env *env, Block *block) {
     return this;
 }
 
-Value ProcObject::call(Env *env, Args args, Block *block) {
+Value ProcObject::call(Env *env, Args &&args, Block *block) {
     assert(m_block);
     if (is_lambda() && m_break_point != 0) {
         try {
