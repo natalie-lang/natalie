@@ -171,8 +171,12 @@ module Natalie
           raise SyntaxError, "circular argument reference - #{name}"
         end
 
+        @instructions << ArrayIsEmptyInstruction.new
+        @instructions << IfInstruction.new
         @instructions << @pass.transform_expression(default_value, used: true)
-        @instructions << ArrayShiftWithDefaultInstruction.new
+        @instructions << ElseInstruction.new(:if)
+        @instructions << ArrayShiftInstruction.new
+        @instructions << EndInstruction.new(:if)
         @instructions << variable_set(name)
       end
 
@@ -183,8 +187,12 @@ module Natalie
           @instructions << HashDeleteInstruction.new(arg.name)
           @instructions << variable_set(arg.name)
         when Prism::OptionalKeywordParameterNode
+          @instructions << HashHasKeyInstruction.new(arg.name)
+          @instructions << IfInstruction.new
+          @instructions << HashDeleteInstruction.new(arg.name)
+          @instructions << ElseInstruction.new(:if)
           @instructions << @pass.transform_expression(arg.value, used: true)
-          @instructions << HashDeleteWithDefaultInstruction.new(arg.name)
+          @instructions << EndInstruction.new(:if)
           @instructions << variable_set(arg.name)
         else
           raise "unhandled node: #{arg.inspect}"

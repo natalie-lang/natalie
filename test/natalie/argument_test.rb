@@ -119,3 +119,22 @@ describe 'keyword argument having a previous positional argument as default' do
     keyword_references_positional(2, b: 3).should == [2, 3]
   end
 end
+
+describe 'default values' do
+  def blow_up
+    raise 'should not be called'
+  end
+
+  def positional_arg_with_default_value_call(a = blow_up)
+    a
+  end
+
+  def keyword_arg_with_default_value_call(a: blow_up)
+    a
+  end
+
+  it 'does not evaluate argument default value unless needed' do
+    -> { positional_arg_with_default_value_call(1) }.should_not raise_error
+    -> { keyword_arg_with_default_value_call(a: 1) }.should_not raise_error
+  end
+end

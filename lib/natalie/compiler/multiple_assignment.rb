@@ -160,14 +160,6 @@ module Natalie
         end
       end
 
-      def shift_or_pop_next_arg_with_default
-        if @consumer.from_side == :left
-          @instructions << ArrayShiftWithDefaultInstruction.new
-        else
-          @instructions << ArrayPopWithDefaultInstruction.new
-        end
-      end
-
       # returns a pair of [name, prep_instruction]
       # prep_instruction being the instruction(s) needed to get the owner of the constant
       def constant_name(name)
