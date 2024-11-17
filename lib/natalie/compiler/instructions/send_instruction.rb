@@ -58,7 +58,7 @@ module Natalie
       def generate(transform)
         if @args_array_on_stack
           if @forward_args
-            args_list = transform.pop
+            args_list = "std::move(#{transform.pop})"
           else
             args = "#{transform.pop}->as_array()"
             args_list = "Args(#{args}, #{@has_keyword_hash ? 'true' : 'false'})"
