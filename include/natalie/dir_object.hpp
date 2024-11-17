@@ -34,7 +34,7 @@ public:
         visitor.visit(m_encoding);
     }
 
-    static Value size_fn(Env *env, Value self, Args, Block *) {
+    static Value size_fn(Env *env, Value self, Args &&, Block *) {
         return Value(NilObject::the());
     }
 

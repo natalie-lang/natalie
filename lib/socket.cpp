@@ -24,7 +24,7 @@ Value init_socket(Env *env, Value self) {
     return NilObject::the();
 }
 
-Value Socket_const_name_to_i(Env *env, Value self, Args args, Block *) {
+Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto name = args.at(0);
     bool default_zero = false;
@@ -158,7 +158,7 @@ static int Addrinfo_sockaddr_family(Env *env, StringObject *sockaddr) {
     return (reinterpret_cast<const struct sockaddr *>(sockaddr->c_str()))->sa_family;
 }
 
-Value Addrinfo_getaddrinfo(Env *env, Value self, Args args, Block *block) {
+Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 2, 6);
     auto nodename = args[0];
     auto servicename = args[1];
@@ -216,7 +216,7 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args args, Block *block) {
     return output;
 }
 
-Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
+Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 1, 4);
     auto sockaddr = args.at(0);
     auto afamily = Socket_const_get(env, args.at(1, NilObject::the()), true);
@@ -385,7 +385,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
-Value Addrinfo_getnameinfo(Env *env, Value self, Args args, Block *) {
+Value Addrinfo_getnameinfo(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
     const auto flags = IntegerObject::convert_to_native_type<int>(env, args.at(0, Value::integer(0)));
     auto sockaddr = self->send(env, "to_sockaddr"_s)->as_string();
@@ -402,7 +402,7 @@ Value Addrinfo_getnameinfo(Env *env, Value self, Args args, Block *) {
     };
 }
 
-Value Addrinfo_to_sockaddr(Env *env, Value self, Args args, Block *block) {
+Value Addrinfo_to_sockaddr(Env *env, Value self, Args &&args, Block *block) {
     auto Socket = self->const_find(env, "Socket"_s, Object::ConstLookupSearchMode::NotStrict);
 
     auto afamily = self->ivar_get(env, "@afamily"_s)->as_integer_or_raise(env)->to_nat_int_t();
@@ -422,7 +422,7 @@ Value Addrinfo_to_sockaddr(Env *env, Value self, Args args, Block *block) {
     }
 }
 
-Value BasicSocket_s_for_fd(Env *env, Value self, Args args, Block *block) {
+Value BasicSocket_s_for_fd(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto fd = args.at(0);
 
@@ -433,7 +433,7 @@ Value BasicSocket_s_for_fd(Env *env, Value self, Args args, Block *block) {
     return sock;
 }
 
-Value BasicSocket_getpeername(Env *env, Value self, Args args, Block *) {
+Value BasicSocket_getpeername(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
     sockaddr_storage addr {};
@@ -449,7 +449,7 @@ Value BasicSocket_getpeername(Env *env, Value self, Args args, Block *) {
     return new StringObject { reinterpret_cast<const char *>(&addr), addr_len, Encoding::ASCII_8BIT };
 }
 
-Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {
+Value BasicSocket_getsockname(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
     sockaddr_storage addr {};
@@ -465,7 +465,7 @@ Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {
     return new StringObject { reinterpret_cast<const char *>(&addr), addr_len, Encoding::ASCII_8BIT };
 }
 
-Value BasicSocket_getsockopt(Env *env, Value self, Args args, Block *block) {
+Value BasicSocket_getsockopt(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 2);
     auto level = Socket_const_get(env, args.at(0));
     auto optname_val = args.at(1);
@@ -495,7 +495,7 @@ Value BasicSocket_getsockopt(Env *env, Value self, Args args, Block *block) {
     return Option.send(env, "new"_s, { Value::integer(family), Value::integer(level), Value::integer(optname), data });
 }
 
-Value BasicSocket_local_address(Env *env, Value self, Args args, Block *) {
+Value BasicSocket_local_address(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     auto packed = self.send(env, "getsockname"_s);
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
@@ -510,7 +510,7 @@ static ssize_t blocking_recv(Env *env, IoObject *io, char *buf, size_t len, int 
     return ::recv(io->fileno(), buf, len, flags);
 }
 
-Value BasicSocket_recv(Env *env, Value self, Args args, Block *) {
+Value BasicSocket_recv(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 3);
     auto maxlen = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
     auto flags = args.at(1, Value::integer(0))->as_integer_or_raise(env)->to_nat_int_t();
@@ -539,7 +539,7 @@ Value BasicSocket_recv(Env *env, Value self, Args args, Block *) {
     return new StringObject { buf, static_cast<size_t>(bytes) };
 }
 
-Value BasicSocket_recv_nonblock(Env *env, Value self, Args args, Block *) {
+Value BasicSocket_recv_nonblock(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 1, 3);
 
@@ -576,7 +576,7 @@ Value BasicSocket_recv_nonblock(Env *env, Value self, Args args, Block *) {
     return buffer;
 }
 
-Value BasicSocket_send(Env *env, Value self, Args args, Block *) {
+Value BasicSocket_send(Env *env, Value self, Args &&args, Block *) {
     // send(mesg, flags [, dest_sockaddr]) => numbytes_sent
     args.ensure_argc_between(env, 2, 3);
     auto mesg = args.at(0)->to_str(env)->as_string();
@@ -599,7 +599,7 @@ Value BasicSocket_send(Env *env, Value self, Args args, Block *) {
     return Value::integer(bytes);
 }
 
-Value BasicSocket_setsockopt(Env *env, Value self, Args args, Block *block) {
+Value BasicSocket_setsockopt(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 1, 3);
 
     unsigned short level = 0;
@@ -662,7 +662,7 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args args, Block *block) {
     return Value::integer(result);
 }
 
-Value BasicSocket_shutdown(Env *env, Value self, Args args, Block *) {
+Value BasicSocket_shutdown(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
 
     int how = SHUT_RDWR;
@@ -698,7 +698,7 @@ Value BasicSocket_shutdown(Env *env, Value self, Args args, Block *) {
     return NilObject::the();
 }
 
-Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
+Value IPSocket_addr(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
     auto reverse_lookup = args.at(0, NilObject::the());
 
@@ -758,7 +758,7 @@ Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
     return new ArrayObject({ family, port, host, ip });
 }
 
-Value IPSocket_peeraddr(Env *env, Value self, Args args, Block *) {
+Value IPSocket_peeraddr(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
     auto reverse_lookup = args.at(0, NilObject::the());
 
@@ -818,7 +818,7 @@ Value IPSocket_peeraddr(Env *env, Value self, Args args, Block *) {
     return new ArrayObject({ family, port, host, ip });
 }
 
-Value IPSocket_recvfrom(Env *env, Value self, Args args, Block *) {
+Value IPSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     const auto size = IntegerObject::convert_to_nat_int_t(env, args[0]);
     const auto flags = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
@@ -861,7 +861,7 @@ Value IPSocket_recvfrom(Env *env, Value self, Args args, Block *) {
     };
 }
 
-Value UNIXSocket_addr(Env *env, Value self, Args args, Block *block) {
+Value UNIXSocket_addr(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 0);
 
     struct sockaddr_un addr { };
@@ -880,7 +880,7 @@ Value UNIXSocket_addr(Env *env, Value self, Args args, Block *block) {
     };
 }
 
-Value UNIXSocket_peeraddr(Env *env, Value self, Args args, Block *block) {
+Value UNIXSocket_peeraddr(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 0);
 
     struct sockaddr_un addr { };
@@ -899,7 +899,7 @@ Value UNIXSocket_peeraddr(Env *env, Value self, Args args, Block *block) {
     };
 }
 
-Value UNIXSocket_recvfrom(Env *env, Value self, Args args, Block *) {
+Value UNIXSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 3);
     const auto size = IntegerObject::convert_to_nat_int_t(env, args[0]);
     const auto flags = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
@@ -931,7 +931,7 @@ Value UNIXSocket_recvfrom(Env *env, Value self, Args args, Block *) {
     };
 }
 
-Value UNIXSocket_pair(Env *env, Value self, Args args, Block *block) {
+Value UNIXSocket_pair(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 0, 2);
     // NATFIXME: Add support for symbolized type (like :SOCK_STREAM)
     const auto type = IntegerObject::convert_to_nat_int_t(env, args.at(0, Value::integer(SOCK_STREAM)));
@@ -947,7 +947,7 @@ Value UNIXSocket_pair(Env *env, Value self, Args args, Block *block) {
     };
 }
 
-Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
+Value Socket_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 2, 3);
     auto afamily = Socket_const_get(env, args.at(0), true);
     auto socktype = Socket_const_get(env, args.at(1), true);
@@ -989,12 +989,12 @@ Value Socket_accept(Env *env, Value self, bool blocking = true, bool exception =
     return Socket_accept(env, socket, addr, len);
 }
 
-Value Socket_accept(Env *env, Value self, Args args, Block *block) {
+Value Socket_accept(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 0);
     return Socket_accept(env, self, true);
 }
 
-Value Socket_accept_nonblock(Env *env, Value self, Args args, Block *block) {
+Value Socket_accept_nonblock(Env *env, Value self, Args &&args, Block *block) {
     auto kwargs = args.pop_keyword_hash();
     auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
     env->ensure_no_extra_keywords(kwargs);
@@ -1002,7 +1002,7 @@ Value Socket_accept_nonblock(Env *env, Value self, Args args, Block *block) {
     return Socket_accept(env, self, false, exception->is_truthy());
 }
 
-Value Socket_bind(Env *env, Value self, Args args, Block *block) {
+Value Socket_bind(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto sockaddr = args.at(0);
 
@@ -1068,16 +1068,16 @@ Value Socket_bind(Env *env, Value self, Args args, Block *block) {
     }
 }
 
-Value Socket_close(Env *env, Value self, Args args, Block *block) {
+Value Socket_close(Env *env, Value self, Args &&args, Block *block) {
     self->as_io()->close(env);
     return NilObject::the();
 }
 
-Value Socket_is_closed(Env *env, Value self, Args args, Block *block) {
+Value Socket_is_closed(Env *env, Value self, Args &&args, Block *block) {
     return bool_object(self->as_io()->is_closed());
 }
 
-Value Socket_connect(Env *env, Value self, Args args, Block *block) {
+Value Socket_connect(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto remote_sockaddr = args.at(0);
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
@@ -1097,7 +1097,7 @@ Value Socket_connect(Env *env, Value self, Args args, Block *block) {
     return Value::integer(0);
 }
 
-Value Socket_listen(Env *env, Value self, Args args, Block *block) {
+Value Socket_listen(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto backlog = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
 
@@ -1108,7 +1108,7 @@ Value Socket_listen(Env *env, Value self, Args args, Block *block) {
     return Value::integer(result);
 }
 
-Value Socket_recvfrom(Env *env, Value self, Args args, Block *) {
+Value Socket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     const auto maxlen = IntegerObject::convert_to_native_type<size_t>(env, args.at(0));
     auto flags = 0;
@@ -1143,7 +1143,7 @@ Value Socket_recvfrom(Env *env, Value self, Args args, Block *) {
     };
 }
 
-Value Socket_sysaccept(Env *env, Value self, Args args, Block *block) {
+Value Socket_sysaccept(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 0);
     sockaddr_storage addr;
     socklen_t len = sizeof(addr);
@@ -1151,7 +1151,7 @@ Value Socket_sysaccept(Env *env, Value self, Args args, Block *block) {
     return Socket_accept(env, socket, addr, len);
 }
 
-Value Socket_pair(Env *env, Value self, Args args, Block *block) {
+Value Socket_pair(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 2, 3);
     const auto domain = Socket_const_get(env, args.at(0));
     const auto type = Socket_const_get(env, args.at(1));
@@ -1167,7 +1167,7 @@ Value Socket_pair(Env *env, Value self, Args args, Block *block) {
     };
 }
 
-Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
+Value Socket_pack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 2);
     auto service = args.at(0);
     auto host = args.at(1);
@@ -1203,7 +1203,7 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
     return packed;
 }
 
-Value Socket_pack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
+Value Socket_pack_sockaddr_un(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto path = args.at(0);
     path->assert_type(env, Object::Type::String, "String");
@@ -1220,7 +1220,7 @@ Value Socket_pack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
     return new StringObject { (const char *)&un, sizeof(un), Encoding::ASCII_8BIT };
 }
 
-Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
+Value Socket_unpack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto sockaddr = args.at(0);
 
@@ -1274,7 +1274,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
     return ary;
 }
 
-Value Socket_unpack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
+Value Socket_unpack_sockaddr_un(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto sockaddr = args.at(0);
 
@@ -1343,7 +1343,7 @@ static String Socket_getaddrinfo_result_host(struct addrinfo *result) {
     }
 }
 
-Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
+Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
     // getaddrinfo(nodename, servname[, family[, socktype[, protocol[, flags[, reverse_lookup]]]]]) => array
     args.ensure_argc_between(env, 2, 7);
     auto nodename = args.at(0);
@@ -1416,7 +1416,7 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
     return ary;
 }
 
-Value Socket_s_gethostname(Env *env, Value, Args args, Block *) {
+Value Socket_s_gethostname(Env *env, Value, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     char hostname[256];
     if (gethostname(hostname, sizeof(hostname)) < 0)
@@ -1424,7 +1424,7 @@ Value Socket_s_gethostname(Env *env, Value, Args args, Block *) {
     return new StringObject { hostname, Encoding::ASCII_8BIT };
 }
 
-Value Socket_s_getifaddrs(Env *env, Value, Args args, Block *) {
+Value Socket_s_getifaddrs(Env *env, Value, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     ifaddrs *ifa;
     if (getifaddrs(&ifa) < 0)
@@ -1479,7 +1479,7 @@ Value Socket_s_getifaddrs(Env *env, Value, Args args, Block *) {
     return result;
 }
 
-Value Socket_s_getservbyname(Env *env, Value self, Args args, Block *) {
+Value Socket_s_getservbyname(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto name = args[0]->to_str(env);
     const char *proto = "tcp";
@@ -1492,7 +1492,7 @@ Value Socket_s_getservbyname(Env *env, Value self, Args args, Block *) {
     return Value::integer(ntohs(result->s_port));
 }
 
-Value Socket_s_getservbyport(Env *env, Value self, Args args, Block *) {
+Value Socket_s_getservbyport(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto port = IntegerObject::convert_to_native_type<int>(env, args[0]);
     const char *proto = "tcp";
@@ -1505,7 +1505,7 @@ Value Socket_s_getservbyport(Env *env, Value self, Args args, Block *) {
     return new StringObject { result->s_name };
 }
 
-Value Socket_Option_bool(Env *env, Value self, Args, Block *) {
+Value Socket_Option_bool(Env *env, Value self, Args &&, Block *) {
     auto data = self->ivar_get(env, "@data"_s)->as_string_or_raise(env);
 
     switch (data->length()) {
@@ -1520,7 +1520,7 @@ Value Socket_Option_bool(Env *env, Value self, Args, Block *) {
     }
 }
 
-Value Socket_Option_int(Env *env, Value self, Args, Block *) {
+Value Socket_Option_int(Env *env, Value self, Args &&, Block *) {
     auto data = self->ivar_get(env, "@data"_s)->as_string_or_raise(env);
 
     if (data->length() != sizeof(int))
@@ -1530,7 +1530,7 @@ Value Socket_Option_int(Env *env, Value self, Args, Block *) {
     return Value::integer(i);
 }
 
-Value Socket_Option_s_linger(Env *env, Value self, Args args, Block *) {
+Value Socket_Option_s_linger(Env *env, Value self, Args &&args, Block *) {
     unsigned short family = 0; // any
     unsigned short level = SOL_SOCKET;
     unsigned short optname = SO_LINGER;
@@ -1548,7 +1548,7 @@ Value Socket_Option_s_linger(Env *env, Value self, Args args, Block *) {
     return self.send(env, "new"_s, { Value::integer(family), Value::integer(level), Value::integer(optname), data_string });
 }
 
-Value Socket_Option_linger(Env *env, Value self, Args, Block *) {
+Value Socket_Option_linger(Env *env, Value self, Args &&, Block *) {
     auto data = self->ivar_get(env, "@data"_s)->as_string_or_raise(env);
 
     if (data->length() != sizeof(struct linger))
@@ -1560,7 +1560,7 @@ Value Socket_Option_linger(Env *env, Value self, Args, Block *) {
     return new ArrayObject({ on_off, linger });
 }
 
-Value TCPSocket_initialize(Env *env, Value self, Args args, Block *block) {
+Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 2, 4);
 
@@ -1616,7 +1616,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
-Value TCPServer_initialize(Env *env, Value self, Args args, Block *block) {
+Value TCPServer_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 1, 2);
     auto hostname = args.at(0);
     auto port = args.at(1, NilObject::the());
@@ -1659,7 +1659,7 @@ Value TCPServer_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
-Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
+Value TCPServer_accept(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
     if (self->as_io()->is_closed())
@@ -1670,7 +1670,7 @@ Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
     return Server_accept(env, self, "TCPSocket"_s, addr, len, true);
 }
 
-Value TCPServer_accept_nonblock(Env *env, Value self, Args args, Block *) {
+Value TCPServer_accept_nonblock(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
     args.ensure_argc_is(env, 0);
@@ -1684,19 +1684,19 @@ Value TCPServer_accept_nonblock(Env *env, Value self, Args args, Block *) {
     return Server_accept(env, self, "TCPSocket"_s, addr, len, false, exception->is_truthy());
 }
 
-Value TCPServer_listen(Env *env, Value self, Args args, Block *) {
+Value TCPServer_listen(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    return Socket_listen(env, self, args, nullptr);
+    return Socket_listen(env, self, std::move(args), nullptr);
 }
 
-Value TCPServer_sysaccept(Env *env, Value self, Args args, Block *block) {
+Value TCPServer_sysaccept(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 0);
     sockaddr_storage addr;
     socklen_t len = sizeof(addr);
     return Server_sysaccept(env, self, addr, len, true);
 }
 
-Value UDPSocket_initialize(Env *env, Value self, Args args, Block *block) {
+Value UDPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 0, 1);
     auto family = Socket_const_name_to_i(env, self, { args.at(0, Value::integer(AF_INET)) }, nullptr);
 
@@ -1713,7 +1713,7 @@ Value UDPSocket_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
-Value UDPSocket_bind(Env *env, Value self, Args args, Block *block) {
+Value UDPSocket_bind(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 2);
 
     auto Socket = find_top_level_const(env, "Socket"_s);
@@ -1721,7 +1721,7 @@ Value UDPSocket_bind(Env *env, Value self, Args args, Block *block) {
     return Socket_bind(env, self, { sockaddr }, nullptr);
 }
 
-Value UDPSocket_connect(Env *env, Value self, Args args, Block *block) {
+Value UDPSocket_connect(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 2);
 
     auto Socket = find_top_level_const(env, "Socket"_s);
@@ -1729,7 +1729,7 @@ Value UDPSocket_connect(Env *env, Value self, Args args, Block *block) {
     return Socket_connect(env, self, { sockaddr }, nullptr);
 }
 
-Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args args, Block *) {
+Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
     args.ensure_argc_between(env, 1, 3);
@@ -1805,7 +1805,7 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args args, Block *) {
     };
 }
 
-Value UNIXSocket_initialize(Env *env, Value self, Args args, Block *block) {
+Value UNIXSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
 
     auto path = args.at(0);
@@ -1836,7 +1836,7 @@ Value UNIXSocket_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
-Value UNIXServer_initialize(Env *env, Value self, Args args, Block *block) {
+Value UNIXServer_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto path = args.at(0);
 
@@ -1858,14 +1858,14 @@ Value UNIXServer_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
-Value UNIXServer_accept(Env *env, Value self, Args args, Block *) {
+Value UNIXServer_accept(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     sockaddr_storage addr;
     socklen_t len = sizeof(addr);
     return Server_accept(env, self, "UNIXSocket"_s, addr, len, true);
 }
 
-Value UNIXServer_accept_nonblock(Env *env, Value self, Args args, Block *) {
+Value UNIXServer_accept_nonblock(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
     args.ensure_argc_is(env, 0);
@@ -1875,12 +1875,12 @@ Value UNIXServer_accept_nonblock(Env *env, Value self, Args args, Block *) {
     return Server_accept(env, self, "UNIXSocket"_s, addr, len, false, exception->is_truthy());
 }
 
-Value UNIXServer_listen(Env *env, Value self, Args args, Block *) {
+Value UNIXServer_listen(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    return Socket_listen(env, self, args, nullptr);
+    return Socket_listen(env, self, std::move(args), nullptr);
 }
 
-Value UNIXServer_sysaccept(Env *env, Value self, Args args, Block *) {
+Value UNIXServer_sysaccept(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     sockaddr_storage addr;
     socklen_t len = sizeof(addr);

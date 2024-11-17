@@ -410,7 +410,7 @@ Value HashObject::dig(Env *env, Args args) {
     if (!val->respond_to(env, dig))
         env->raise("TypeError", "{} does not have #dig method", val->klass()->inspect_str());
 
-    return val.send(env, dig, args);
+    return val.send(env, dig, std::move(args));
 }
 
 Value HashObject::size(Env *env) const {

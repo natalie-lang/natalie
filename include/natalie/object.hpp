@@ -18,7 +18,6 @@ extern "C" {
 #include "onigmo.h"
 }
 
-static const Args empty_args = {};
 class Object : public Cell {
 public:
     using Type = ObjectType;
@@ -100,8 +99,8 @@ public:
     }
 
     static Value create(Env *, ClassObject *);
-    static Value _new(Env *, Value, Args, Block *);
-    static Value allocate(Env *, Value, Args, Block *);
+    static Value _new(Env *, Value, Args &&, Block *);
+    static Value allocate(Env *, Value, Args &&, Block *);
 
     Type type() const { return m_type; }
     ClassObject *klass() const { return m_klass; }
@@ -301,20 +300,20 @@ public:
         return buf;
     }
 
-    Value public_send(Env *, SymbolObject *, const Args & = empty_args, Block * = nullptr, Value sent_from = nullptr);
-    Value public_send(Env *, const Args &, Block *);
+    Value public_send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Value sent_from = nullptr);
+    Value public_send(Env *, Args &&, Block *);
 
-    Value send(Env *, SymbolObject *, const Args & = empty_args, Block * = nullptr, Value sent_from = nullptr);
-    Value send(Env *, const Args &, Block *);
+    Value send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Value sent_from = nullptr);
+    Value send(Env *, Args &&, Block *);
 
     Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Value sent_from = nullptr) {
         // NOTE: sent_from is unused, but accepting it makes the SendInstruction codegen simpler. :-)
         return send(env, name, Args(args), block);
     }
 
-    Value send(Env *, SymbolObject *, Args, Block *, MethodVisibility, Value = nullptr);
-    Value method_missing_send(Env *, SymbolObject *, Args, Block *);
-    Value method_missing(Env *, Args, Block *);
+    Value send(Env *, SymbolObject *, Args &&, Block *, MethodVisibility, Value = nullptr);
+    Value method_missing_send(Env *, SymbolObject *, Args &&, Block *);
+    Value method_missing(Env *, Args &&, Block *);
 
     Method *find_method(Env *, SymbolObject *, MethodVisibility, Value) const;
 

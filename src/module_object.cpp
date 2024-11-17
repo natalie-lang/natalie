@@ -815,7 +815,7 @@ SymbolObject *ModuleObject::attr_reader(Env *env, Value obj) {
     return name;
 }
 
-Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args args, Block *block) {
+Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args &&args, Block *block) {
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
     assert(name_obj->is_symbol());
@@ -842,7 +842,7 @@ SymbolObject *ModuleObject::attr_writer(Env *env, Value obj) {
     return method_name;
 }
 
-Value ModuleObject::attr_writer_block_fn(Env *env, Value self, Args args, Block *block) {
+Value ModuleObject::attr_writer_block_fn(Env *env, Value self, Args &&args, Block *block) {
     Value val = args[0];
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
@@ -950,7 +950,7 @@ Value ModuleObject::module_exec(Env *env, Args args, Block *block) {
         env->raise_local_jump_error(NilObject::the(), Natalie::LocalJumpErrorType::None);
     Value self = this;
     block->set_self(self);
-    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, args, nullptr);
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, std::move(args), nullptr);
 }
 
 Value ModuleObject::private_method(Env *env, Args args) {
@@ -1106,13 +1106,13 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
         env->raise("TypeError", "{} is not a symbol nor a string", name->inspect_str(env));
     }
 
-    auto method_wrapper = [](Env *env, Value self, Args args, Block *block) -> Value {
+    auto method_wrapper = [](Env *env, Value self, Args &&args, Block *block) -> Value {
         auto kwargs = args.has_keyword_hash() ? args.pop_keyword_hash() : new HashObject;
         auto new_args = args.to_array_for_block(env, 0, -1, true);
         if (!kwargs->is_empty())
             new_args->push(HashObject::ruby2_keywords_hash(env, kwargs));
         auto old_method = env->outer()->var_get("old_method", 1)->as_unbound_method();
-        return old_method->bind_call(env, self, new_args, block);
+        return old_method->bind_call(env, self, std::move(new_args), block);
     };
 
     auto inner_env = new Env { *env };

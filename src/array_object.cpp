@@ -226,11 +226,11 @@ Value ArrayObject::sub(Env *env, Value other) {
     return new_array;
 }
 
-Value ArrayObject::sum(Env *env, Args args, Block *block) {
+Value ArrayObject::sum(Env *env, Args &&args, Block *block) {
     // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto method_info = Enumerable->find_method(env, "sum"_s);
-    return method_info.method()->call(env, this, args, block);
+    return method_info.method()->call(env, this, std::move(args), block);
 }
 
 Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
@@ -352,12 +352,12 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
     return val;
 }
 
-Value ArrayObject::any(Env *env, Args args, Block *block) {
+Value ArrayObject::any(Env *env, Args &&args, Block *block) {
     // FIXME: delegating to Enumerable#any? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#any? in MRI and it won't affect Array#any?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto method_info = Enumerable->find_method(env, "any?"_s);
-    return method_info.method()->call(env, this, args, block);
+    return method_info.method()->call(env, this, std::move(args), block);
 }
 
 bool ArrayObject::eq(Env *env, Value other) {
@@ -738,7 +738,7 @@ Value ArrayObject::delete_item(Env *env, Value target, Block *block) {
     return deleted_item;
 }
 
-Value ArrayObject::difference(Env *env, Args args) {
+Value ArrayObject::difference(Env *env, Args &&args) {
     Value last = new ArrayObject { *this };
 
     for (size_t i = 0; i < args.size(); i++) {
@@ -748,7 +748,7 @@ Value ArrayObject::difference(Env *env, Args args) {
     return last;
 }
 
-Value ArrayObject::dig(Env *env, Args args) {
+Value ArrayObject::dig(Env *env, Args &&args) {
     args.ensure_argc_at_least(env, 1);
     auto dig = "dig"_s;
     auto idx = args.shift();
@@ -762,7 +762,7 @@ Value ArrayObject::dig(Env *env, Args args) {
     if (!val->respond_to(env, dig))
         env->raise("TypeError", "{} does not have #dig method", val->klass()->inspect_str());
 
-    return val.send(env, dig, args);
+    return val.send(env, dig, std::move(args));
 }
 
 Value ArrayObject::drop(Env *env, Value n) {
@@ -1009,7 +1009,7 @@ Value ArrayObject::pack(Env *env, Value directives, Value buffer) {
     }
 }
 
-Value ArrayObject::push(Env *env, Args args) {
+Value ArrayObject::push(Env *env, Args &&args) {
     assert_not_frozen(env);
     for (size_t i = 0; i < args.size(); i++) {
         push(args[i]);
@@ -1543,7 +1543,7 @@ Value ArrayObject::hash(Env *env) {
     });
 }
 
-Value ArrayObject::insert(Env *env, Args args) {
+Value ArrayObject::insert(Env *env, Args &&args) {
     this->assert_not_frozen(env);
 
     if (args.size() == 1)
@@ -1592,7 +1592,7 @@ bool ArrayObject::include_eql(Env *env, Value arg) {
     return false;
 }
 
-Value ArrayObject::intersection(Env *env, Args args) {
+Value ArrayObject::intersection(Env *env, Args &&args) {
     auto *result = new ArrayObject { *this };
     result->uniq_in_place(env, nullptr);
 
@@ -1661,7 +1661,7 @@ Value ArrayObject::union_of(Env *env, Value arg) {
     return result;
 }
 
-Value ArrayObject::union_of(Env *env, Args args) {
+Value ArrayObject::union_of(Env *env, Args &&args) {
     auto *result = new ArrayObject(*this);
 
     // TODO: we probably want to make | call this instead of this way for optimization
@@ -1673,7 +1673,7 @@ Value ArrayObject::union_of(Env *env, Args args) {
     return result;
 }
 
-Value ArrayObject::unshift(Env *env, Args args) {
+Value ArrayObject::unshift(Env *env, Args &&args) {
     assert_not_frozen(env);
     for (size_t i = 0; i < args.size(); i++) {
         m_vector.insert(i, args[i]);
@@ -1710,7 +1710,7 @@ Value ArrayObject::reverse_in_place(Env *env) {
     return this;
 }
 
-Value ArrayObject::concat(Env *env, Args args) {
+Value ArrayObject::concat(Env *env, Args &&args) {
     assert_not_frozen(env);
 
     ArrayObject *original = new ArrayObject(*this);
@@ -1792,23 +1792,23 @@ Value ArrayObject::find_index(Env *env, Value object, Block *block, bool search_
     return NilObject::the();
 }
 
-Value ArrayObject::none(Env *env, Args args, Block *block) {
+Value ArrayObject::none(Env *env, Args &&args, Block *block) {
     // FIXME: delegating to Enumerable#none? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#none? in MRI and it won't affect Array#none?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto method_info = Enumerable->find_method(env, "none?"_s);
-    return method_info.method()->call(env, this, args, block);
+    return method_info.method()->call(env, this, std::move(args), block);
 }
 
-Value ArrayObject::one(Env *env, Args args, Block *block) {
+Value ArrayObject::one(Env *env, Args &&args, Block *block) {
     // FIXME: delegating to Enumerable#one? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#one? in MRI and it won't affect Array#one?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto method_info = Enumerable->find_method(env, "one?"_s);
-    return method_info.method()->call(env, this, args, block);
+    return method_info.method()->call(env, this, std::move(args), block);
 }
 
-Value ArrayObject::product(Env *env, Args args, Block *block) {
+Value ArrayObject::product(Env *env, Args &&args, Block *block) {
     Vector<ArrayObject *> arrays;
     arrays.push(this);
     for (size_t i = 0; i < args.size(); ++i)
@@ -2092,7 +2092,7 @@ Value ArrayObject::try_convert(Env *env, Value val) {
         new_item_class_name);
 }
 
-Value ArrayObject::values_at(Env *env, Args args) {
+Value ArrayObject::values_at(Env *env, Args &&args) {
     TM::Vector<nat_int_t> indices;
 
     for (size_t i = 0; i < args.size(); ++i) {
@@ -2145,10 +2145,10 @@ Value ArrayObject::values_at(Env *env, Args args) {
     return accumulator;
 }
 
-Value ArrayObject::zip(Env *env, Args args, Block *block) {
+Value ArrayObject::zip(Env *env, Args &&args, Block *block) {
     // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto method_info = Enumerable->find_method(env, "zip"_s);
-    return method_info.method()->call(env, this, args, block);
+    return method_info.method()->call(env, this, std::move(args), block);
 }
 }

@@ -146,7 +146,7 @@ module Natalie
         name = comptime_symbol(name)
         fn = transform.temp("defn_#{name}")
         output = []
-        output << "Value #{fn}(Env *env, Value self, Args args, Block *block) {"
+        output << "Value #{fn}(Env *env, Value self, Args &&args, Block *block) {"
         if args
           args = args.elements
           output << "args.ensure_argc_is(env, #{args.size});"

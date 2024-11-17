@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-Value Method::call(Env *env, Value self, const Args &args, Block *block) const {
+Value Method::call(Env *env, Value self, Args &&args, Block *block) const {
     assert(m_fn);
 
     Env *closure_env;
@@ -22,15 +22,15 @@ Value Method::call(Env *env, Value self, const Args &args, Block *block) const {
         self = m_self;
     }
 
-    auto call_fn = [&](Args args) {
+    auto call_fn = [&](Args &&args) {
         if (block && !block->calling_env()) {
             Defer clear_calling_env([&]() {
                 block->clear_calling_env();
             });
             block->set_calling_env(env);
-            return m_fn(&e, self, args, block);
+            return m_fn(&e, self, std::move(args), block);
         } else {
-            return m_fn(&e, self, args, block);
+            return m_fn(&e, self, std::move(args), block);
         }
     };
 
@@ -54,6 +54,6 @@ Value Method::call(Env *env, Value self, const Args &args, Block *block) const {
         self = self->duplicate(env);
     }
 
-    return call_fn(args);
+    return call_fn(std::move(args));
 }
 }

@@ -36,10 +36,10 @@ public:
         return new ProcObject { block };
     }
 
-    Value call(Env *env, Args args, Block *block) {
+    Value call(Env *env, Args &&args, Block *block) {
         if (m_method_missing_name)
-            return m_object->method_missing_send(env, m_method_missing_name, args, block);
-        return m_method->call(env, m_object, args, block);
+            return m_object->method_missing_send(env, m_method_missing_name, std::move(args), block);
+        return m_method->call(env, m_object, std::move(args), block);
     }
 
     virtual void visit_children(Visitor &visitor) const override final {

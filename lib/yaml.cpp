@@ -255,7 +255,7 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
     }
 }
 
-Value YAML_dump(Env *env, Value self, Args args, Block *) {
+Value YAML_dump(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto value = args.at(0);
 
@@ -392,7 +392,7 @@ static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
     }
 }
 
-Value YAML_load(Env *env, Value self, Args args, Block *) {
+Value YAML_load(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
 
     yaml_parser_t parser;

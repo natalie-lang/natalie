@@ -10,7 +10,7 @@ Value init_ffi(Env *env, Value self) {
     return NilObject::the();
 }
 
-Value FFI_Library_ffi_lib(Env *env, Value self, Args args, Block *) {
+Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto name = args.at(0);
     name->assert_type(env, Object::Type::String, "String");
@@ -67,7 +67,7 @@ typedef union {
     uint64_t u64;
 } FFI_Library_call_arg_slot;
 
-static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *block) {
+static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block *block) {
     Value cif_obj = env->outer()->var_get("cif", 0);
     auto cif = (ffi_cif *)cif_obj->as_void_p()->void_ptr();
     assert(cif);
@@ -180,7 +180,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
     }
 }
 
-Value FFI_Library_attach_function(Env *env, Value self, Args args, Block *) {
+Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 3);
     auto name = args.at(0)->to_symbol(env, Object::Conversion::Strict);
     auto arg_types = args.at(1);
@@ -244,7 +244,7 @@ Value FFI_Library_attach_function(Env *env, Value self, Args args, Block *) {
     return NilObject::the();
 }
 
-Value FFI_AbstractMemory_put_int8(Env *env, Value self, Args args, Block *) {
+Value FFI_AbstractMemory_put_int8(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 2);
 
     auto offset = IntegerObject::convert_to_native_type<size_t>(env, args.at(0));
@@ -256,14 +256,14 @@ Value FFI_AbstractMemory_put_int8(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
-Value FFI_Pointer_address(Env *env, Value self, Args args, Block *) {
+Value FFI_Pointer_address(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
     auto address = self->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
     return Value::integer((nat_int_t)address);
 }
 
-Value FFI_Pointer_read_string(Env *env, Value self, Args args, Block *) {
+Value FFI_Pointer_read_string(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
 
     auto address = (void *)self.send(env, "address"_s)->as_integer_or_raise(env)->to_nat_int_t();
@@ -278,12 +278,12 @@ Value FFI_Pointer_read_string(Env *env, Value self, Args args, Block *) {
     return new StringObject { (char *)address, Encoding::ASCII_8BIT };
 }
 
-Value FFI_Pointer_to_obj(Env *env, Value self, Args args, Block *) {
+Value FFI_Pointer_to_obj(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     return (Object *)self.send(env, "address"_s)->as_integer_or_raise(env)->to_nat_int_t();
 }
 
-Value FFI_Pointer_write_string(Env *env, Value self, Args args, Block *) {
+Value FFI_Pointer_write_string(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
 
     auto str = args.at(0)->as_string_or_raise(env);
@@ -295,7 +295,7 @@ Value FFI_Pointer_write_string(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
-Value FFI_MemoryPointer_initialize(Env *env, Value self, Args args, Block *block) {
+Value FFI_MemoryPointer_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 1, 3);
 
     size_t size = 0;
@@ -358,7 +358,7 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args args, Block *block
     return NilObject::the();
 }
 
-Value FFI_Pointer_initialize(Env *env, Value self, Args args, Block *) {
+Value FFI_Pointer_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
 
     Value type, address;
@@ -394,7 +394,7 @@ Value FFI_Pointer_initialize(Env *env, Value self, Args args, Block *) {
     return NilObject::the();
 }
 
-Value FFI_Pointer_free(Env *env, Value self, Args args, Block *) {
+Value FFI_Pointer_free(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
     auto ptr_obj = self->ivar_get(env, "@ptr"_s)->as_void_p();
@@ -406,7 +406,7 @@ Value FFI_Pointer_free(Env *env, Value self, Args args, Block *) {
     return NilObject::the();
 }
 
-Value FFI_MemoryPointer_inspect(Env *env, Value self, Args args, Block *) {
+Value FFI_MemoryPointer_inspect(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
     auto ptr = (void *)self.send(env, "address"_s)->as_integer_or_raise(env)->to_nat_int_t();
@@ -417,21 +417,21 @@ Value FFI_MemoryPointer_inspect(Env *env, Value self, Args args, Block *) {
         size->to_nat_int_t());
 }
 
-Value FFI_Pointer_is_autorelease(Env *env, Value self, Args args, Block *) {
+Value FFI_Pointer_is_autorelease(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
     auto ptr_obj = self->ivar_get(env, "@ptr"_s);
     return ptr_obj->ivar_get(env, "@autorelease"_s);
 }
 
-Value FFI_Pointer_set_autorelease(Env *env, Value self, Args args, Block *) {
+Value FFI_Pointer_set_autorelease(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
 
     auto ptr_obj = self->ivar_get(env, "@ptr"_s);
     return ptr_obj->ivar_set(env, "@autorelease"_s, bool_object(args.at(0)->is_truthy()));
 }
 
-Value Object_to_ptr(Env *env, Value self, Args args, Block *) {
+Value Object_to_ptr(Env *env, Value self, Args &&, Block *) {
     auto address = Value::integer((nat_int_t)self.object());
     auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s });
     return Pointer.send(env, "new"_s, { address });

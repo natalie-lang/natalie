@@ -183,7 +183,7 @@ int pclose2(FILE *, pid_t);
 
 void set_status_object(Env *, pid_t, int);
 
-Value super(Env *, Value, Args, Block *);
+Value super(Env *, Value, Args &&, Block *);
 
 void clean_up_and_exit(int status);
 

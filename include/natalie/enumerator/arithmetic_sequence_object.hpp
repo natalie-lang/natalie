@@ -58,7 +58,7 @@ private:
 
     ArithmeticSequenceObject(Env *, Origin, Value, Value, Value, bool);
     ArithmeticSequenceObject(Env *, Origin, const TM::String &, Value, Value, Value, bool);
-    static Value enum_block(Env *, Value, Args, Block *);
+    static Value enum_block(Env *, Value, Args &&, Block *);
 
     bool ascending(Env *env) {
         if (!m_ascending.present())

@@ -19,25 +19,25 @@ void Zlib_buffer_cleanup(VoidPObject *self) {
     delete[] buffer;
 }
 
-Value Zlib_ZStream_adler(Env *env, Value self, Args args, Block *) {
+Value Zlib_ZStream_adler(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     return Value::integer(strm->adler);
 }
 
-Value Zlib_ZStream_avail_in(Env *env, Value self, Args args, Block *) {
+Value Zlib_ZStream_avail_in(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     return Value::integer(strm->avail_in);
 }
 
-Value Zlib_ZStream_avail_out(Env *env, Value self, Args args, Block *) {
+Value Zlib_ZStream_avail_out(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     return Value::integer(strm->avail_out);
 }
 
-Value Zlib_ZStream_data_type(Env *env, Value self, Args args, Block *) {
+Value Zlib_ZStream_data_type(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     return Value::integer(strm->data_type);
@@ -45,7 +45,7 @@ Value Zlib_ZStream_data_type(Env *env, Value self, Args args, Block *) {
 
 static constexpr size_t ZLIB_BUF_SIZE = 16384;
 
-Value Zlib_deflate_initialize(Env *env, Value self, Args args, Block *) {
+Value Zlib_deflate_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 4);
     auto Zlib = GlobalEnv::the()->Object()->const_get("Zlib"_s);
     auto level = args.at(0, Zlib->const_get("DEFAULT_COMPRESSION"_s))->as_integer_or_raise(env);
@@ -103,7 +103,7 @@ void Zlib_do_deflate(Env *env, Value self, const String &string, int flush) {
     } while (index < string.length());
 }
 
-Value Zlib_deflate_append(Env *env, Value self, Args args, Block *) {
+Value Zlib_deflate_append(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto string = args[0]->as_string_or_raise(env);
 
@@ -112,7 +112,7 @@ Value Zlib_deflate_append(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
-Value Zlib_deflate_deflate(Env *env, Value self, Args args, Block *) {
+Value Zlib_deflate_deflate(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto string = args[0]->as_string_or_raise(env);
     auto flush = Z_NO_FLUSH;
@@ -124,7 +124,7 @@ Value Zlib_deflate_deflate(Env *env, Value self, Args args, Block *) {
     return self->ivar_get(env, "@result"_s);
 }
 
-Value Zlib_deflate_set_dictionary(Env *env, Value self, Args args, Block *) {
+Value Zlib_deflate_set_dictionary(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto dictionary = args.at(0)->to_str(env);
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
@@ -133,7 +133,7 @@ Value Zlib_deflate_set_dictionary(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
-Value Zlib_deflate_params(Env *env, Value self, Args args, Block *) {
+Value Zlib_deflate_params(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 2);
     auto level = args.at(0)->as_integer_or_raise(env);
     auto strategy = args.at(1)->as_integer_or_raise(env);
@@ -170,19 +170,19 @@ Value Zlib_deflate_params(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
-Value Zlib_deflate_close(Env *env, Value self, Args args, Block *) {
+Value Zlib_deflate_close(Env *env, Value self, Args &&args, Block *) {
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     deflateEnd(strm);
     self->ivar_set(env, "@closed"_s, TrueObject::the());
     return self;
 }
 
-Value Zlib_deflate_finish(Env *env, Value self, Args args, Block *) {
+Value Zlib_deflate_finish(Env *env, Value self, Args &&args, Block *) {
     Zlib_do_deflate(env, self, "", Z_FINISH);
     return self->ivar_get(env, "@result"_s);
 }
 
-Value Zlib_inflate_initialize(Env *env, Value self, Args args, Block *) {
+Value Zlib_inflate_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
     auto window_bits = args.at(0, fetch_nested_const({ "Zlib"_s, "MAX_WBITS"_s }))->as_integer_or_raise(env);
 
@@ -247,7 +247,7 @@ void Zlib_do_inflate(Env *env, Value self, const String &string, int flush) {
     } while (ret != Z_STREAM_END);
 }
 
-Value Zlib_inflate_append(Env *env, Value self, Args args, Block *) {
+Value Zlib_inflate_append(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto string = args[0]->as_string_or_raise(env);
 
@@ -256,7 +256,7 @@ Value Zlib_inflate_append(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
-Value Zlib_inflate_inflate(Env *env, Value self, Args args, Block *) {
+Value Zlib_inflate_inflate(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto string = args[0]->as_string_or_raise(env);
     auto flush = Z_NO_FLUSH;
@@ -268,18 +268,18 @@ Value Zlib_inflate_inflate(Env *env, Value self, Args args, Block *) {
     return self->ivar_get(env, "@result"_s);
 }
 
-Value Zlib_inflate_finish(Env *env, Value self, Args args, Block *) {
+Value Zlib_inflate_finish(Env *env, Value self, Args &&args, Block *) {
     return self->ivar_get(env, "@result"_s);
 }
 
-Value Zlib_inflate_close(Env *env, Value self, Args args, Block *) {
+Value Zlib_inflate_close(Env *env, Value self, Args &&args, Block *) {
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     inflateEnd(strm);
     self->ivar_set(env, "@closed"_s, TrueObject::the());
     return self;
 }
 
-Value Zlib_adler32(Env *env, Value self, Args args, Block *) {
+Value Zlib_adler32(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 2);
     auto string = args.at(0, new StringObject { "", Encoding::ASCII_8BIT })->to_str(env);
     auto checksum = args.at(1, Value::integer(1))->to_int(env);
@@ -288,7 +288,7 @@ Value Zlib_adler32(Env *env, Value self, Args args, Block *) {
     return Value::integer(result);
 }
 
-Value Zlib_crc32(Env *env, Value self, Args args, Block *) {
+Value Zlib_crc32(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 2);
     unsigned long crc;
     if (args.size() < 2) {
@@ -312,7 +312,7 @@ Value Zlib_crc32(Env *env, Value self, Args args, Block *) {
     return new IntegerObject { (nat_int_t)crc };
 }
 
-Value Zlib_crc_table(Env *env, Value self, Args args, Block *) {
+Value Zlib_crc_table(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     auto res = new ArrayObject { 256 };
     auto table = get_crc_table();
@@ -321,7 +321,7 @@ Value Zlib_crc_table(Env *env, Value self, Args args, Block *) {
     return res;
 }
 
-Value Zlib_zlib_version(Env *env, Value self, Args args, Block *) {
+Value Zlib_zlib_version(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     return new StringObject { ZLIB_VERSION, Encoding::ASCII_8BIT };
 }

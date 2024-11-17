@@ -814,7 +814,7 @@ void set_status_object(Env *env, pid_t pid, int status) {
     env->global_set("$?"_s, status_obj, true);
 }
 
-Value super(Env *env, Value self, Args args, Block *block) {
+Value super(Env *env, Value self, Args &&args, Block *block) {
     auto current_method = env->current_method();
     auto klass = self->singleton_class();
     if (!klass)
@@ -833,7 +833,7 @@ Value super(Env *env, Value self, Args args, Block *block) {
     }
     assert(super_method.method() != current_method);
     args.pop_empty_keyword_hash();
-    return super_method.method()->call(env, self, args, block);
+    return super_method.method()->call(env, self, std::move(args), block);
 }
 
 void clean_up_and_exit(int status) {

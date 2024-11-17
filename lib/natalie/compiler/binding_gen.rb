@@ -148,7 +148,7 @@ auto return_value = self->#{cpp_method}(#{args_to_pass});
 #{return_code}
       FUNC
       format_function_body(body)
-      puts "Value #{name}(Env *env, Value self_value, Args args, Block *block) {\n#{body}\n}\n\n"
+      puts "Value #{name}(Env *env, Value self_value, Args &&args, Block *block) {\n#{body}\n}\n\n"
     end
 
     def write_static_function
@@ -160,7 +160,7 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
 #{return_code}
       FUNC
       format_function_body(body)
-      puts "Value #{name}(Env *env, Value klass, Args args, Block *block) {\n#{body}\n}\n\n"
+      puts "Value #{name}(Env *env, Value klass, Args &&args, Block *block) {\n#{body}\n}\n\n"
     end
 
     def format_function_body(body)
@@ -276,7 +276,7 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
       if max_argc
         (0...max_argc).map { |i| "args.at(#{i}, nullptr)" }
       else
-        ['args']
+        ['std::move(args)']
       end
     end
 

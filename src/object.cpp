@@ -140,16 +140,16 @@ Value Object::create(Env *env, ClassObject *klass) {
     return obj;
 }
 
-Value Object::_new(Env *env, Value klass_value, Args args, Block *block) {
+Value Object::_new(Env *env, Value klass_value, Args &&args, Block *block) {
     Value obj = create(env, klass_value->as_class());
     if (!obj)
         NAT_UNREACHABLE();
 
-    obj->send(env, "initialize"_s, args, block);
+    obj->send(env, "initialize"_s, std::move(args), block);
     return obj;
 }
 
-Value Object::allocate(Env *env, Value klass_value, Args args, Block *block) {
+Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
     args.ensure_argc_is(env, 0);
 
     ClassObject *klass = klass_value->as_class();
@@ -943,42 +943,42 @@ Value Object::module_function(Env *env, Args args) {
     abort();
 }
 
-Value Object::public_send(Env *env, SymbolObject *name, const Args &args, Block *block, Value sent_from) {
-    return send(env, name, args, block, MethodVisibility::Public, sent_from);
+Value Object::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
+    return send(env, name, std::move(args), block, MethodVisibility::Public, sent_from);
 }
 
-Value Object::public_send(Env *env, const Args &args, Block *block) {
-    auto name = args[0]->to_symbol(env, Object::Conversion::Strict);
-    return public_send(env->caller(), name, Args::shift(args), block);
+Value Object::public_send(Env *env, Args &&args, Block *block) {
+    auto name = args.shift()->to_symbol(env, Object::Conversion::Strict);
+    return public_send(env->caller(), name, std::move(args), block);
 }
 
-Value Object::send(Env *env, SymbolObject *name, const Args &args, Block *block, Value sent_from) {
-    return send(env, name, args, block, MethodVisibility::Private, sent_from);
+Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
+    return send(env, name, std::move(args), block, MethodVisibility::Private, sent_from);
 }
 
-Value Object::send(Env *env, const Args &args, Block *block) {
-    auto name = args[0]->to_symbol(env, Object::Conversion::Strict);
-    return send(env->caller(), name, Args::shift(args), block);
+Value Object::send(Env *env, Args &&args, Block *block) {
+    auto name = args.shift()->to_symbol(env, Object::Conversion::Strict);
+    return send(env->caller(), name, std::move(args), block);
 }
 
-Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, MethodVisibility visibility_at_least, Value sent_from) {
+Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility_at_least, Value sent_from) {
     static const auto initialize = SymbolObject::intern("initialize");
     Method *method = find_method(env, name, visibility_at_least, sent_from);
     // TODO: make a copy if has empty keyword hash (unless that's not rare)
     args.pop_empty_keyword_hash();
     if (method) {
-        auto result = method->call(env, this, args, block);
+        auto result = method->call(env, this, std::move(args), block);
         if (name == initialize)
             result = this;
         return result;
     } else if (respond_to(env, "method_missing"_s)) {
-        return method_missing_send(env, name, args, block);
+        return method_missing_send(env, name, std::move(args), block);
     } else {
         env->raise_no_method_error(this, name, GlobalEnv::the()->method_missing_reason());
     }
 }
 
-Value Object::method_missing_send(Env *env, SymbolObject *name, Args args, Block *block) {
+Value Object::method_missing_send(Env *env, SymbolObject *name, Args &&args, Block *block) {
     Vector<Value> new_args(args.size() + 1);
     new_args.push(name);
     for (size_t i = 0; i < args.size(); i++)
@@ -986,7 +986,7 @@ Value Object::method_missing_send(Env *env, SymbolObject *name, Args args, Block
     return send(env, "method_missing"_s, Args(new_args, args.has_keyword_hash()), block);
 }
 
-Value Object::method_missing(Env *env, Args args, Block *block) {
+Value Object::method_missing(Env *env, Args &&args, Block *block) {
     if (args.size() == 0) {
         env->raise("ArgError", "no method name given");
     } else if (!args[0]->is_symbol()) {
@@ -1112,7 +1112,7 @@ Value Object::clone(Env *env, Value freeze) {
         auto keyword_hash = new HashObject {};
         keyword_hash->put(env, "freeze"_s, freeze);
         auto args = Args({ this, keyword_hash }, true);
-        duplicate->send(env, "initialize_clone"_s, args);
+        duplicate->send(env, "initialize_clone"_s, std::move(args));
     } else {
         duplicate->send(env, "initialize_clone"_s, { this });
     }
@@ -1275,7 +1275,7 @@ Value Object::instance_exec(Env *env, Args args, Block *block) {
         block->set_self(context.block_original_self);
     });
 
-    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, args, nullptr);
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, std::move(args), nullptr);
 }
 
 void Object::assert_type(Env *env, Object::Type expected_type, const char *expected_class_name) const {
@@ -1295,7 +1295,7 @@ void Object::assert_not_frozen(Env *env, Value receiver) {
         String message = String::format("can't modify frozen {}: {}", klass()->inspect_str(), inspect_str(env));
         auto kwargs = new HashObject(env, { "receiver"_s, receiver });
         auto args = Args({ new StringObject { message }, kwargs }, true);
-        ExceptionObject *error = FrozenError.send(env, "new"_s, args)->as_exception();
+        ExceptionObject *error = FrozenError.send(env, "new"_s, std::move(args))->as_exception();
         env->raise_exception(error);
     }
 }

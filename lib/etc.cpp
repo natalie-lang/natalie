@@ -44,7 +44,7 @@ Value init_etc(Env *env, Value self) {
     return NilObject::the();
 }
 
-Value Etc_confstr(Env *env, Value self, Args args, Block *) {
+Value Etc_confstr(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     const int name = IntegerObject::convert_to_nat_int_t(env, args[0]);
     const auto size = ::confstr(name, nullptr, 0);
@@ -59,25 +59,25 @@ Value Etc_confstr(Env *env, Value self, Args args, Block *) {
     return new StringObject { std::move(buf) };
 }
 
-Value Etc_endgrent(Env *env, Value self, Args args, Block *_block) {
+Value Etc_endgrent(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     ::endgrent();
     return NilObject::the();
 }
-Value Etc_endpwent(Env *env, Value self, Args args, Block *_block) {
+Value Etc_endpwent(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     ::endpwent();
     return NilObject::the();
 }
 
-Value Etc_getgrent(Env *env, Value self, Args args, Block *_block) {
+Value Etc_getgrent(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     struct group *grp = ::getgrent();
     if (!grp) return NilObject::the();
     return group_to_struct(env, self, grp);
 }
 
-Value Etc_getgrgid(Env *env, Value self, Args args, Block *_block) {
+Value Etc_getgrgid(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_between(env, 0, 1);
     uid_t uid;
     if (args.size() == 1) {
@@ -90,7 +90,7 @@ Value Etc_getgrgid(Env *env, Value self, Args args, Block *_block) {
     return group_to_struct(env, self, grp);
 }
 
-Value Etc_getgrnam(Env *env, Value self, Args args, Block *_block) {
+Value Etc_getgrnam(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 1);
     auto firstarg = args.at(0);
     firstarg->assert_type(env, Object::Type::String, "String");
@@ -102,7 +102,7 @@ Value Etc_getgrnam(Env *env, Value self, Args args, Block *_block) {
 }
 
 //
-Value Etc_getlogin(Env *env, Value self, Args args, Block *_block) {
+Value Etc_getlogin(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     char *login = ::getlogin();
     if (!login) login = ::getenv("USER");
@@ -110,14 +110,14 @@ Value Etc_getlogin(Env *env, Value self, Args args, Block *_block) {
     return new StringObject { login, EncodingObject::locale() };
 }
 
-Value Etc_getpwent(Env *env, Value self, Args args, Block *_block) {
+Value Etc_getpwent(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     struct passwd *pwd = ::getpwent();
     if (!pwd) return NilObject::the();
     return passwd_to_struct(env, self, pwd);
 }
 
-Value Etc_getpwnam(Env *env, Value self, Args args, Block *_block) {
+Value Etc_getpwnam(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 1);
     auto firstarg = args.at(0);
     firstarg->assert_type(env, Object::Type::String, "String");
@@ -128,7 +128,7 @@ Value Etc_getpwnam(Env *env, Value self, Args args, Block *_block) {
     return passwd_to_struct(env, self, pwd);
 }
 
-Value Etc_getpwuid(Env *env, Value self, Args args, Block *_block) {
+Value Etc_getpwuid(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_between(env, 0, 1);
     uid_t uid;
     if (args.size() == 1) {
@@ -141,26 +141,26 @@ Value Etc_getpwuid(Env *env, Value self, Args args, Block *_block) {
     return passwd_to_struct(env, self, pwd);
 }
 
-Value Etc_nprocessors(Env *env, Value self, Args args, Block *) {
+Value Etc_nprocessors(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     const auto result = sysconf(_SC_NPROCESSORS_ONLN);
     if (result < 0) env->raise_errno();
     return IntegerObject::create(result);
 }
 
-Value Etc_setgrent(Env *env, Value self, Args args, Block *_block) {
+Value Etc_setgrent(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     ::setgrent();
     return NilObject::the();
 }
 
-Value Etc_setpwent(Env *env, Value self, Args args, Block *_block) {
+Value Etc_setpwent(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     ::setpwent();
     return NilObject::the();
 }
 
-Value Etc_sysconf(Env *env, Value self, Args args, Block *_block) {
+Value Etc_sysconf(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 1);
     nat_int_t nameval = IntegerObject::convert_to_nat_int_t(env, args.at(0));
     errno = 0;
@@ -172,7 +172,7 @@ Value Etc_sysconf(Env *env, Value self, Args args, Block *_block) {
     return new IntegerObject { status };
 }
 
-Value Etc_uname(Env *env, Value, Args args, Block *) {
+Value Etc_uname(Env *env, Value, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
     utsname buf;

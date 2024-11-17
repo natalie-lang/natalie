@@ -125,7 +125,7 @@ Value ArithmeticSequenceObject::iterate(Env *env, std::function<Value(Value)> fu
     return this;
 }
 
-Value ArithmeticSequenceObject::enum_block(Env *env, Value self, Args args, Block *) {
+Value ArithmeticSequenceObject::enum_block(Env *env, Value self, Args &&args, Block *) {
     auto yielder = args.at(0);
     auto enumerator = self->as_enumerator_arithmetic_sequence();
 

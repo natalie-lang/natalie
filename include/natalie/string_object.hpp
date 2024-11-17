@@ -142,11 +142,11 @@ public:
 
     const String &string() const { return m_string; }
 
-    static Value size_fn(Env *env, Value self, Args, Block *) {
+    static Value size_fn(Env *env, Value self, Args &&, Block *) {
         return self->as_string()->size(env);
     }
 
-    static Value bytesize_fn(Env *env, Value self, Args, Block *) {
+    static Value bytesize_fn(Env *env, Value self, Args &&, Block *) {
         auto bytesize = self->as_string()->bytesize();
         return Value::integer(bytesize);
     }
