@@ -187,6 +187,14 @@
       "source": "devbox-search",
       "version": "18.1.8",
       "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "path": "/nix/store/700a0ayy1s1h7zg9dqiqy0xvmhfr26l6-clang-wrapper-16.0.6",
+              "default": true
+            }
+          ]
+        },
         "aarch64-linux": {
           "outputs": [
             {
@@ -515,6 +523,14 @@
       "source": "devbox-search",
       "version": "18.1.8",
       "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "path": "/nix/store/bnwmfifd3fkmkf5nwzy6dp17jppc8875-lldb-16.0.6",
+              "default": true
+            }
+          ]
+        },
         "aarch64-linux": {
           "outputs": [
             {
