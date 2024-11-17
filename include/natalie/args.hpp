@@ -47,7 +47,6 @@ public:
 
     Args &operator=(const Args &other);
 
-    static Args shift(const Args &args);
     Value shift();
 
     Value operator[](size_t index) const;
