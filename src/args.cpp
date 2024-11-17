@@ -44,14 +44,6 @@ Args &Args::operator=(const Args &other) {
     return *this;
 }
 
-Args Args::shift(const Args &args) {
-    assert(args.size() > 0);
-    if (args.size() == 1)
-        return Args();
-    auto ary = new ArrayObject(args.size() - 1, args.data() + 1);
-    return Args(ary, args.has_keyword_hash());
-}
-
 Value Args::shift() {
     assert(m_data.size() > 0);
     return m_data.pop_front();
