@@ -75,7 +75,7 @@ public:
     static Value set_scheduler(Env *, Value);
     Value set_storage(Env *, Value);
     Value storage(Env *) const;
-    void swap_to_previous(Env *env, Args args);
+    void swap_to_previous(Env *env, Args &&args);
 
     void *start_of_stack() { return m_start_of_stack; }
 
@@ -117,7 +117,7 @@ public:
     static FiberObject *main();
 
     Vector<Value> &args() { return m_args; }
-    void set_args(Args args);
+    void set_args(Args &&args);
 
     ExceptionObject *error() { return m_error; }
     void set_error(ExceptionObject *error) { m_error = error; }

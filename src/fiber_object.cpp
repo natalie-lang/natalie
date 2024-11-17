@@ -120,7 +120,7 @@ Value FiberObject::resume(Env *env, Args args) {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         ThreadObject::current()->m_current_fiber = this;
         ThreadObject::current()->set_start_of_stack(m_start_of_stack);
-        set_args(args);
+        set_args(Args(args));
 
 #ifdef __SANITIZE_ADDRESS__
         auto fake_stack = __asan_get_current_fake_stack();
@@ -216,7 +216,7 @@ Value FiberObject::yield(Env *env, Args args) {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         current_fiber->set_status(Status::Suspended);
         current_fiber->m_end_of_stack = &args;
-        current_fiber->swap_to_previous(env, args);
+        current_fiber->swap_to_previous(env, Args(args));
     }
 
     mco_yield(mco_running());
@@ -231,14 +231,14 @@ Value FiberObject::yield(Env *env, Args args) {
     }
 }
 
-void FiberObject::swap_to_previous(Env *env, Args args) {
+void FiberObject::swap_to_previous(Env *env, Args &&args) {
     assert(m_previous_fiber);
     auto new_current = m_previous_fiber;
     {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         ThreadObject::current()->m_current_fiber = new_current;
         ThreadObject::current()->set_start_of_stack(new_current->start_of_stack());
-        new_current->set_args(args);
+        new_current->set_args(std::move(args));
     }
     m_previous_fiber = nullptr;
 }
@@ -295,7 +295,7 @@ NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_asan_fake_stack(Visito
 void FiberObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const { }
 #endif
 
-void FiberObject::set_args(Args args) {
+void FiberObject::set_args(Args &&args) {
     m_args.clear();
     for (size_t i = 0; i < args.size(); ++i) {
         m_args.push(args[i]);
