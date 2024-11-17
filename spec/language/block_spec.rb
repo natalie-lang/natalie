@@ -279,7 +279,7 @@ describe "A block" do
     res.should == 1
   end
 
-  xit "allows to define a block variable with the same name as the enclosing block" do
+  it "allows to define a block variable with the same name as the enclosing block" do
     o = BlockSpecs::OverwriteBlockVariable.new
     o.z { 1 }.should == 1
   end
@@ -728,8 +728,8 @@ describe "A block" do
   end
 
   describe "taking |*a, b:|" do
-    xit "merges the hash into the splatted array" do
-      #@y.k { |*a, b:| [a, b] }.should == [[], true]
+    it "merges the hash into the splatted array" do
+      @y.k { |*a, b:| [a, b] }.should == [[], true]
     end
   end
 
@@ -739,19 +739,19 @@ describe "A block" do
       @y.m([1, [2, 3, 4]]) { |_, (_, a, _)| a }.should == 3
     end
 
-    xit "assigns the first variable named" do
+    it "assigns the first variable named" do
       @y.m(1, 2) { |_, _| _ }.should == 1
     end
   end
 
   describe "taking identically-named arguments" do
-    xit "raises a SyntaxError for standard arguments" do
+    it "raises a SyntaxError for standard arguments" do
       -> { eval "lambda { |x,x| }" }.should raise_error(SyntaxError)
       -> { eval "->(x,x) {}" }.should raise_error(SyntaxError)
       -> { eval "Proc.new { |x,x| }" }.should raise_error(SyntaxError)
     end
 
-    xit "accepts unnamed arguments" do
+    it "accepts unnamed arguments" do
       eval("lambda { |_,_| }").should be_an_instance_of(Proc)
       eval("->(_,_) {}").should be_an_instance_of(Proc)
       eval("Proc.new { |_,_| }").should be_an_instance_of(Proc)
@@ -795,6 +795,7 @@ describe "A block" do
   end
 end
 
+# NATFIXME: All disabled specs fail with "variable not defined" at compile time
 describe "Block-local variables" do
   xit "are introduced with a semi-colon in the parameter list" do
     #[1].map {|one; bl| bl }.should == [nil]
@@ -804,30 +805,30 @@ describe "Block-local variables" do
     #[1].map {|one; bl, bl2| [bl, bl2] }.should == [[nil, nil]]
   end
 
-  xit "can not have the same name as one of the standard parameters" do
-    #-> { eval "[1].each {|foo; foo| }" }.should raise_error(SyntaxError)
-    #-> { eval "[1].each {|foo, bar; glark, bar| }" }.should raise_error(SyntaxError)
+  it "can not have the same name as one of the standard parameters" do
+    -> { eval "[1].each {|foo; foo| }" }.should raise_error(SyntaxError)
+    -> { eval "[1].each {|foo, bar; glark, bar| }" }.should raise_error(SyntaxError)
   end
 
-  xit "can not be prefixed with an asterisk" do
-    #-> { eval "[1].each {|foo; *bar| }" }.should raise_error(SyntaxError)
-    #-> do
-      #eval "[1].each {|foo, bar; glark, *fnord| }"
-    #end.should raise_error(SyntaxError)
+  it "can not be prefixed with an asterisk" do
+    -> { eval "[1].each {|foo; *bar| }" }.should raise_error(SyntaxError)
+    -> do
+      eval "[1].each {|foo, bar; glark, *fnord| }"
+    end.should raise_error(SyntaxError)
   end
 
-  xit "can not be prefixed with an ampersand" do
-    #-> { eval "[1].each {|foo; &bar| }" }.should raise_error(SyntaxError)
-    #-> do
-      #eval "[1].each {|foo, bar; glark, &fnord| }"
-    #end.should raise_error(SyntaxError)
+  it "can not be prefixed with an ampersand" do
+    -> { eval "[1].each {|foo; &bar| }" }.should raise_error(SyntaxError)
+    -> do
+      eval "[1].each {|foo, bar; glark, &fnord| }"
+    end.should raise_error(SyntaxError)
   end
 
-  xit "can not be assigned default values" do
-    #-> { eval "[1].each {|foo; bar=1| }" }.should raise_error(SyntaxError)
-    #-> do
-      #eval "[1].each {|foo, bar; glark, fnord=:fnord| }"
-    #end.should raise_error(SyntaxError)
+  it "can not be assigned default values" do
+    -> { eval "[1].each {|foo; bar=1| }" }.should raise_error(SyntaxError)
+    -> do
+      eval "[1].each {|foo, bar; glark, fnord=:fnord| }"
+    end.should raise_error(SyntaxError)
   end
 
   xit "need not be preceded by standard parameters" do
@@ -835,36 +836,40 @@ describe "Block-local variables" do
     #[1].map {|; glark, bar| [glark, bar] }.should == [[nil, nil]]
   end
 
-  xit "only allow a single semi-colon in the parameter list" do
-    #-> { eval "[1].each {|foo; bar; glark| }" }.should raise_error(SyntaxError)
-    #-> { eval "[1].each {|; bar; glark| }" }.should raise_error(SyntaxError)
+  it "only allow a single semi-colon in the parameter list" do
+    -> { eval "[1].each {|foo; bar; glark| }" }.should raise_error(SyntaxError)
+    -> { eval "[1].each {|; bar; glark| }" }.should raise_error(SyntaxError)
   end
 
-  xit "override shadowed variables from the outer scope" do
+  it "override shadowed variables from the outer scope" do
     out = :out
-    #[1].each {|; out| out = :in }
-    out.should == :out
+    [1].each {|; out| out = :in }
+    NATFIXME 'it override shadowed variables from the outer scope', exception: SpecFailedException do
+      out.should == :out
+    end
 
     a = :a
     b = :b
     c = :c
     d = :d
-    #{ant: :bee}.each_pair do |a, b; c, d|
-      #a = :A
-      #b = :B
-      #c = :C
-      #d = :D
-    #end
+    {ant: :bee}.each_pair do |a, b; c, d|
+      a = :A
+      b = :B
+      c = :C
+      d = :D
+    end
     a.should == :a
     b.should == :b
-    c.should == :c
-    d.should == :d
+    NATFIXME 'it override shadowed variables from the outer scope', exception: SpecFailedException do
+      c.should == :c
+      d.should == :d
+    end
   end
 
-  xit "are not automatically instantiated in the outer scope" do
-    #defined?(glark).should be_nil
-    #[1].each {|;glark| 1}
-    #defined?(glark).should be_nil
+  it "are not automatically instantiated in the outer scope" do
+    defined?(glark).should be_nil
+    [1].each {|;glark| 1}
+    defined?(glark).should be_nil
   end
 
   xit "are automatically instantiated in the block" do
@@ -899,7 +904,7 @@ describe "Post-args" do
     end.call(1, 2, 3).should == [[], 1, 2, 3]
   end
 
-  xit "are required for a lambda" do
+  it "are required for a lambda" do
     -> {
       -> *a, b do
         [a, b]
@@ -974,20 +979,21 @@ describe "Post-args" do
       end.call(2, 3).should == [2, 6, [], 3]
     end
 
+    # NATFIXME: circular argument reference - a
     describe "with a circular argument reference" do
-      #xit "raises a SyntaxError if using an existing local with the same name as the argument" do
+      xit "raises a SyntaxError if using an existing local with the same name as the argument" do
         #a = 1
         #-> {
           #@proc = eval "proc { |a=a| a }"
         #}.should raise_error(SyntaxError)
-      #end
+      end
 
-      #xit "raises a SyntaxError if there is an existing method with the same name as the argument" do
+      xit "raises a SyntaxError if there is an existing method with the same name as the argument" do
         #def a; 1; end
         #-> {
           #@proc = eval "proc { |a=a| a }"
         #}.should raise_error(SyntaxError)
-      #end
+      end
 
       it "calls an existing method with the same name as the argument if explicitly using ()" do
         def a; 1; end
