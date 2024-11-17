@@ -536,7 +536,7 @@ bool KernelModule::neqtilde(Env *env, Value other) {
     return send(env, "=~"_s, { other })->is_falsey();
 }
 
-Value KernelModule::p(Env *env, Args args) {
+Value KernelModule::p(Env *env, Args &&args) {
     if (args.size() == 0) {
         return NilObject::the();
     } else if (args.size() == 1) {
@@ -555,7 +555,7 @@ Value KernelModule::p(Env *env, Args args) {
     }
 }
 
-Value KernelModule::print(Env *env, Args args) {
+Value KernelModule::print(Env *env, Args &&args) {
     auto _stdout = env->global_get("$stdout"_s);
     assert(_stdout);
     if (args.size() == 0)
@@ -595,12 +595,12 @@ Value KernelModule::proc(Env *env, Block *block) {
     }
 }
 
-Value KernelModule::puts(Env *env, Args args) {
+Value KernelModule::puts(Env *env, Args &&args) {
     auto _stdout = env->global_get("$stdout"_s);
     return _stdout->send(env, "puts"_s, std::move(args));
 }
 
-Value KernelModule::raise(Env *env, Args args) {
+Value KernelModule::raise(Env *env, Args &&args) {
     auto exception = ExceptionObject::create_for_raise(env, std::move(args), env->exception(), true);
     env->raise_exception(exception);
 }
@@ -716,7 +716,7 @@ Value KernelModule::sleep(Env *env, Value length) {
     return ThreadObject::current()->sleep(env, secs);
 }
 
-Value KernelModule::spawn(Env *env, Args args) {
+Value KernelModule::spawn(Env *env, Args &&args) {
     pid_t pid;
     int result;
 

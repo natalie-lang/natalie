@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args args, ExceptionObject *current_exception, bool accept_cause) {
+ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, ExceptionObject *current_exception, bool accept_cause) {
     auto kwargs = args.pop_keyword_hash();
     auto cause = accept_cause && kwargs ? kwargs->remove(env, "cause"_s) : nullptr;
     args.ensure_argc_between(env, 0, 3);
@@ -24,7 +24,7 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args args, Exceptio
     if (klass && !klass->is_class() && klass->respond_to(env, "exception"_s)) {
         Vector<Value> args;
         if (message) args.push(message);
-        klass = klass->send(env, "exception"_s, args);
+        klass = klass->send(env, "exception"_s, std::move(args));
     }
 
     if (!klass && current_exception)
@@ -122,7 +122,7 @@ Value ExceptionObject::message(Env *env) {
     return this->send(env, "to_s"_s);
 }
 
-Value ExceptionObject::detailed_message(Env *env, Args args) {
+Value ExceptionObject::detailed_message(Env *env, Args &&args) {
     auto kwargs = args.pop_keyword_hash();
     const auto highlight = kwargs ? kwargs->delete_key(env, "highlight"_s, nullptr)->is_truthy() : false;
     args.ensure_argc_is(env, 0);

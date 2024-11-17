@@ -36,7 +36,7 @@ static int effective_uid_access(const char *path_name, int type) {
 #endif
 }
 
-Value FileObject::initialize(Env *env, Args args, Block *block) {
+Value FileObject::initialize(Env *env, Args &&args, Block *block) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 1, 3);
     auto filename = args.at(0);
@@ -143,7 +143,7 @@ void FileObject::unlink(Env *env, Value path) {
         env->raise_errno();
 }
 
-Value FileObject::unlink(Env *env, Args args) {
+Value FileObject::unlink(Env *env, Args &&args) {
     for (size_t i = 0; i < args.size(); ++i) {
         FileObject::unlink(env, args[i]);
     }
@@ -449,7 +449,7 @@ nat_int_t FileObject::mkfifo(Env *env, Value path, Value mode) {
     return 0;
 }
 
-Value FileObject::chmod(Env *env, Args args) {
+Value FileObject::chmod(Env *env, Args &&args) {
     // requires mode argument, file arguments are optional
     args.ensure_argc_at_least(env, 1);
     auto mode = args[0];
@@ -463,7 +463,7 @@ Value FileObject::chmod(Env *env, Args args) {
     return Value::integer(args.size() - 1);
 }
 
-Value FileObject::chown(Env *env, Args args) {
+Value FileObject::chown(Env *env, Args &&args) {
     // requires uid/gid arguments, file arguments are optional
     args.ensure_argc_at_least(env, 2);
     auto uid = args.at(0);
@@ -646,7 +646,7 @@ Value FileObject::mtime(Env *env, Value path) {
     return statobj->mtime(env);
 }
 
-Value FileObject::utime(Env *env, Args args) {
+Value FileObject::utime(Env *env, Args &&args) {
     args.ensure_argc_at_least(env, 2);
 
     TimeObject *atime, *mtime;

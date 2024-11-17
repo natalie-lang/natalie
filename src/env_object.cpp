@@ -177,7 +177,7 @@ Value EnvObject::ref(Env *env, Value name) {
     }
 }
 
-Value EnvObject::except(Env *env, Args args) {
+Value EnvObject::except(Env *env, Args &&args) {
     auto result = to_hash(env, nullptr)->as_hash();
     for (size_t i = 0; i < args.size(); i++) {
         result->remove(env, args[i]);
@@ -384,7 +384,7 @@ bool EnvObject::is_empty() const {
     return false;
 }
 
-Value EnvObject::slice(Env *env, Args args) {
+Value EnvObject::slice(Env *env, Args &&args) {
     if (args.has_keyword_hash())
         env->raise("TypeError", "no implicit conversion of Hash into String");
 
@@ -401,7 +401,7 @@ Value EnvObject::slice(Env *env, Args args) {
     return result;
 }
 
-Value EnvObject::update(Env *env, Args args, Block *block) {
+Value EnvObject::update(Env *env, Args &&args, Block *block) {
     for (size_t i = 0; i < args.size(); i++) {
         auto h = args[i];
 
@@ -429,7 +429,7 @@ Value EnvObject::values(Env *env) {
     return to_hash(env, nullptr)->as_hash()->values(env);
 }
 
-Value EnvObject::values_at(Env *env, Args args) {
+Value EnvObject::values_at(Env *env, Args &&args) {
     auto result = new ArrayObject { args.size() };
     for (size_t i = 0; i < args.size(); i++) {
         result->push(ref(env, args[i]));

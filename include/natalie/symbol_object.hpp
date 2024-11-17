@@ -56,8 +56,8 @@ public:
         return m_name.is_empty();
     }
 
-    bool end_with(Env *, Args);
-    bool start_with(Env *, Args);
+    bool end_with(Env *, Args &&);
+    bool start_with(Env *, Args &&);
 
     Value eqtilde(Env *, Value);
     bool has_match(Env *, Value, Value = nullptr) const;

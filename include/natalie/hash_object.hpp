@@ -82,7 +82,7 @@ public:
         return *this;
     }
 
-    static Value square_new(Env *, Args args, ClassObject *klass);
+    static Value square_new(Env *, Args &&args, ClassObject *klass);
 
     static Value size_fn(Env *env, Value self, Args &&, Block *) {
         return self->as_hash()->size(env);
@@ -174,7 +174,7 @@ public:
     bool is_comparing_by_identity() const;
     Value delete_if(Env *, Block *);
     Value delete_key(Env *, Value, Block *);
-    Value dig(Env *, Args);
+    Value dig(Env *, Args &&);
     Value each(Env *, Block *);
     bool eq(Env *, Value, SymbolObject *);
     bool eq(Env *, Value);
@@ -183,9 +183,9 @@ public:
     bool gt(Env *, Value);
     bool lte(Env *, Value);
     bool lt(Env *, Value);
-    Value except(Env *, Args);
+    Value except(Env *, Args &&);
     Value fetch(Env *, Value, Value, Block *);
-    Value fetch_values(Env *, Args, Block *);
+    Value fetch_values(Env *, Args &&, Block *);
     Value hash(Env *);
     bool has_key(Env *, Value);
     bool has_value(Env *, Value);
@@ -193,11 +193,11 @@ public:
     Value inspect(Env *);
     Value keep_if(Env *, Block *);
     Value keys(Env *);
-    Value merge(Env *, Args, Block *);
-    Value merge_in_place(Env *, Args, Block *);
+    Value merge(Env *, Args &&, Block *);
+    Value merge_in_place(Env *, Args &&, Block *);
     Value ref(Env *, Value);
     Value refeq(Env *, Value, Value);
-    Value slice(Env *, Args);
+    Value slice(Env *, Args &&);
     Value replace(Env *, Value);
     Value rehash(Env *);
     Value values(Env *);

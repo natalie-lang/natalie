@@ -48,7 +48,7 @@ public:
         return this;
     }
 
-    Value call(Env *, Args = {}, Block * = nullptr);
+    Value call(Env *, Args && = {}, Block * = nullptr);
     bool equal_value(Value) const;
     Value ltlt(Env *, Value);
     Value gtgt(Env *, Value);

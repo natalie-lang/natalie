@@ -24,7 +24,7 @@ Value ModuleObject::initialize(Env *env, Block *block) {
     return this;
 }
 
-Value ModuleObject::include(Env *env, Args args) {
+Value ModuleObject::include(Env *env, Args &&args) {
     for (int i = args.size() - 1; i >= 0; i--) {
         include_once(env, args[i]->as_module());
     }
@@ -52,7 +52,7 @@ void ModuleObject::include_once(Env *env, ModuleObject *module) {
         module->send(env, "included"_s, { this });
 }
 
-Value ModuleObject::prepend(Env *env, Args args) {
+Value ModuleObject::prepend(Env *env, Args &&args) {
     for (int i = args.size() - 1; i >= 0; i--) {
         prepend_once(env, args[i]->as_module());
     }
@@ -782,7 +782,7 @@ String ModuleObject::backtrace_name() const {
     return String::format("<module:{}>", m_class_name.value());
 }
 
-ArrayObject *ModuleObject::attr(Env *env, Args args) {
+ArrayObject *ModuleObject::attr(Env *env, Args &&args) {
     bool accessor = false;
     auto size = args.size();
     if (args.size() > 1 && args[size - 1]->is_boolean()) {
@@ -797,7 +797,7 @@ ArrayObject *ModuleObject::attr(Env *env, Args args) {
     }
 }
 
-ArrayObject *ModuleObject::attr_reader(Env *env, Args args) {
+ArrayObject *ModuleObject::attr_reader(Env *env, Args &&args) {
     auto ary = new ArrayObject {};
     for (size_t i = 0; i < args.size(); i++) {
         auto name = attr_reader(env, args[i]);
@@ -823,7 +823,7 @@ Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args &&args, Bloc
     return self->ivar_get(env, ivar_name);
 }
 
-ArrayObject *ModuleObject::attr_writer(Env *env, Args args) {
+ArrayObject *ModuleObject::attr_writer(Env *env, Args &&args) {
     auto ary = new ArrayObject {};
     for (size_t i = 0; i < args.size(); i++) {
         auto name = attr_writer(env, args[i]);
@@ -852,7 +852,7 @@ Value ModuleObject::attr_writer_block_fn(Env *env, Value self, Args &&args, Bloc
     return val;
 }
 
-ArrayObject *ModuleObject::attr_accessor(Env *env, Args args) {
+ArrayObject *ModuleObject::attr_accessor(Env *env, Args &&args) {
     auto ary = new ArrayObject {};
     for (size_t i = 0; i < args.size(); i++) {
         ary->push(attr_reader(env, args[i]));
@@ -945,7 +945,7 @@ Value ModuleObject::module_eval(Env *env, Block *block) {
     return result;
 }
 
-Value ModuleObject::module_exec(Env *env, Args args, Block *block) {
+Value ModuleObject::module_exec(Env *env, Args &&args, Block *block) {
     if (!block)
         env->raise_local_jump_error(NilObject::the(), Natalie::LocalJumpErrorType::None);
     Value self = this;
@@ -953,32 +953,32 @@ Value ModuleObject::module_exec(Env *env, Args args, Block *block) {
     return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, std::move(args), nullptr);
 }
 
-Value ModuleObject::private_method(Env *env, Args args) {
-    set_method_visibility(env, args, MethodVisibility::Private);
+Value ModuleObject::private_method(Env *env, Args &&args) {
+    set_method_visibility(env, std::move(args), MethodVisibility::Private);
     return this;
 }
 
-Value ModuleObject::protected_method(Env *env, Args args) {
-    set_method_visibility(env, args, MethodVisibility::Protected);
+Value ModuleObject::protected_method(Env *env, Args &&args) {
+    set_method_visibility(env, std::move(args), MethodVisibility::Protected);
     return this;
 }
 
-Value ModuleObject::public_method(Env *env, Args args) {
-    set_method_visibility(env, args, MethodVisibility::Public);
+Value ModuleObject::public_method(Env *env, Args &&args) {
+    set_method_visibility(env, std::move(args), MethodVisibility::Public);
     return this;
 }
 
-Value ModuleObject::private_class_method(Env *env, Args args) {
-    singleton_class(env)->set_method_visibility(env, args, MethodVisibility::Private);
+Value ModuleObject::private_class_method(Env *env, Args &&args) {
+    singleton_class(env)->set_method_visibility(env, std::move(args), MethodVisibility::Private);
     return this;
 }
 
-Value ModuleObject::public_class_method(Env *env, Args args) {
-    singleton_class(env)->set_method_visibility(env, args, MethodVisibility::Public);
+Value ModuleObject::public_class_method(Env *env, Args &&args) {
+    singleton_class(env)->set_method_visibility(env, std::move(args), MethodVisibility::Public);
     return this;
 }
 
-void ModuleObject::set_method_visibility(Env *env, Args args, MethodVisibility visibility) {
+void ModuleObject::set_method_visibility(Env *env, Args &&args, MethodVisibility visibility) {
     // private (no args)
     if (args.size() == 0) {
         m_method_visibility = visibility;
@@ -1001,7 +1001,7 @@ void ModuleObject::set_method_visibility(Env *env, Args args, MethodVisibility v
     }
 }
 
-Value ModuleObject::module_function(Env *env, Args args) {
+Value ModuleObject::module_function(Env *env, Args &&args) {
     if (is_class()) {
         env->raise("TypeError", "module_function must be called for modules");
     }
@@ -1021,7 +1021,7 @@ Value ModuleObject::module_function(Env *env, Args args) {
     return this;
 }
 
-Value ModuleObject::deprecate_constant(Env *env, Args args) {
+Value ModuleObject::deprecate_constant(Env *env, Args &&args) {
     for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto constant = m_constants.get(name);
@@ -1032,7 +1032,7 @@ Value ModuleObject::deprecate_constant(Env *env, Args args) {
     return this;
 }
 
-Value ModuleObject::private_constant(Env *env, Args args) {
+Value ModuleObject::private_constant(Env *env, Args &&args) {
     for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto constant = m_constants.get(name);
@@ -1043,7 +1043,7 @@ Value ModuleObject::private_constant(Env *env, Args args) {
     return this;
 }
 
-Value ModuleObject::public_constant(Env *env, Args args) {
+Value ModuleObject::public_constant(Env *env, Args &&args) {
     for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto constant = m_constants.get(name);
@@ -1078,7 +1078,7 @@ Value ModuleObject::alias_method(Env *env, Value new_name_value, Value old_name_
     return new_name;
 }
 
-Value ModuleObject::remove_method(Env *env, Args args) {
+Value ModuleObject::remove_method(Env *env, Args &&args) {
     for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto method = m_methods.get(name, env);
@@ -1089,7 +1089,7 @@ Value ModuleObject::remove_method(Env *env, Args args) {
     return this;
 }
 
-Value ModuleObject::undef_method(Env *env, Args args) {
+Value ModuleObject::undef_method(Env *env, Args &&args) {
     for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto method_info = find_method(env, name);

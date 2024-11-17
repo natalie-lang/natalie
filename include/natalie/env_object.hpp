@@ -20,7 +20,7 @@ public:
     Value each(Env *, Block *block);
     Value each_key(Env *, Block *);
     Value each_value(Env *, Block *);
-    Value except(Env *, Args);
+    Value except(Env *, Args &&);
     Value fetch(Env *, Value name, Value default_value, Block *block);
     bool has_key(Env *, Value name);
     Value has_value(Env *, Value name);
@@ -41,12 +41,12 @@ public:
     Value select_in_place(Env *, Block *);
     Value shift();
     size_t size() const;
-    Value slice(Env *, Args);
+    Value slice(Env *, Args &&);
     Value to_s() const;
     Value to_hash(Env *, Block *);
-    Value update(Env *env, Args args, Block *block);
+    Value update(Env *env, Args &&args, Block *block);
     Value values(Env *);
-    Value values_at(Env *, Args args);
+    Value values_at(Env *, Args &&args);
 };
 
 }

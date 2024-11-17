@@ -649,7 +649,7 @@ Value to_ary_for_masgn(Env *env, Value obj) {
     return new ArrayObject { obj };
 }
 
-void arg_spread(Env *env, Args args, const char *arrangement, ...) {
+void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
     va_list va_args;
     va_start(va_args, arrangement);
     size_t len = strlen(arrangement);

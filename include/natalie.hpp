@@ -166,7 +166,7 @@ struct ArgValueByPathOptions {
     int offset_from_end;
 };
 
-void arg_spread(Env *env, Args args, const char *arrangement, ...);
+void arg_spread(Env *env, const Args &args, const char *arrangement, ...);
 
 enum class CoerceInvalidReturnValueMode {
     Raise,
