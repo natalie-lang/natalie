@@ -121,7 +121,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
 
         auto source_codepoint = valid ? c : -1;
 
-        nat_int_t unicode_codepoint;
+        nat_int_t unicode_codepoint = -1;
         if (source_codepoint == -1) {
             switch (options.invalid_option) {
             case EncodeInvalidOption::Raise:
