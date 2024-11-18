@@ -98,8 +98,8 @@ void Heap::collect() {
 
     static auto is_profiled = NativeProfiler::the()->enabled();
 
-    NativeProfilerEvent *collect_profiler_event;
-    NativeProfilerEvent *mark_profiler_event;
+    NativeProfilerEvent *collect_profiler_event = nullptr;
+    NativeProfilerEvent *mark_profiler_event = nullptr;
 
     if (is_profiled) {
         collect_profiler_event = NativeProfilerEvent::named(NativeProfilerEvent::Type::GC, "GC_Collect")->start_now();
@@ -146,7 +146,7 @@ void Heap::collect() {
 
 void Heap::sweep() {
     static auto is_profiled = NativeProfiler::the()->enabled();
-    NativeProfilerEvent *profiler_event;
+    NativeProfilerEvent *profiler_event = nullptr;
     if (is_profiled)
         profiler_event = NativeProfilerEvent::named(NativeProfilerEvent::Type::GC, "GC_Sweep")->start_now();
     Defer log_event([&]() {
@@ -175,7 +175,7 @@ void *Heap::allocate(size_t size) {
     std::lock_guard<std::recursive_mutex> gc_lock(g_gc_recursive_mutex);
 
     static auto is_profiled = NativeProfiler::the()->enabled();
-    NativeProfilerEvent *profiler_event;
+    NativeProfilerEvent *profiler_event = nullptr;
     if (is_profiled)
         profiler_event = NativeProfilerEvent::named(NativeProfilerEvent::Type::ALLOCATE, "Allocate")->start_now();
     Defer log_event([&]() {

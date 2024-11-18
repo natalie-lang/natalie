@@ -10,7 +10,7 @@ Value Value::floatingpoint(double value) {
 
 #define PROFILED_SEND(type)                                                             \
     static auto is_profiled = NativeProfiler::the()->enabled();                         \
-    NativeProfilerEvent *event;                                                         \
+    NativeProfilerEvent *event = nullptr;                                               \
     if (is_profiled) {                                                                  \
         auto classnameOf = [](Value val) -> String {                                    \
             if (val.m_type == Type::Integer)                                            \
