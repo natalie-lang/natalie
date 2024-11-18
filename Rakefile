@@ -235,7 +235,7 @@ end
 
 desc 'Generate tags file for development'
 task :ctags do
-  if system('which ctags 2>&1 >/dev/null')
+  if system('command -v ctags 2>&1 >/dev/null')
     out = `ctags #{HEADERS + SOURCES} 2>&1`
     puts out unless $?.success?
   else
@@ -396,7 +396,7 @@ end
 
 # # # # Build Compile Database # # # #
 
-if system('which compiledb 2>&1 >/dev/null')
+if system('command -v compiledb 2>&1 >/dev/null')
   $compiledb_out = [] # rubocop:disable Style/GlobalVars
 
   def $stderr.puts(str)
@@ -662,7 +662,7 @@ end
 
 def ccache_exists?
   return @ccache_exists if defined?(@ccache_exists)
-  @ccache_exists = system('which ccache 2>&1 > /dev/null')
+  @ccache_exists = system('command -v ccache 2>&1 > /dev/null')
 end
 
 def cc
