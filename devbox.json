@@ -5,6 +5,7 @@
     "automake": "latest",
     "ccache": "latest",
     "clang": "latest",
+    "ctags": "latest",
     "git": "latest",
     "libffi": {
       "version": "latest",
