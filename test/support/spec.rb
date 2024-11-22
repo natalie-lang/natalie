@@ -154,6 +154,10 @@ def xit(test, &block)
   @specs << [$context.dup, test, nil]
 end
 
+def evaluate(code, &block)
+  @specs << [$context.dup, 'Implement eval for dynamic strings', nil]
+end
+
 def skip(test = nil, &block)
   xit(test, &block)
 end
