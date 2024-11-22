@@ -201,8 +201,8 @@ describe 'method' do
     default_nils.should == [nil, nil]
     default_nils(1).should == [1, nil]
     default_nils(1, 2).should == [1, 2]
-    out = `bin/natalie -e "def circular_argument_reference(a = a); a; end" 2>&1`
-    out.should =~ /parameter default value references itself|circular argument reference - a/
+    out = `bin/natalie -e "def circular_argument_reference(a = a); p a; end; circular_argument_reference" 2>&1`
+    out.should =~ /^nil$/
   end
 
   def default_first1(x = 1)

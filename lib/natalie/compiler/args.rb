@@ -168,7 +168,7 @@ module Natalie
         default_value = arg.value
 
         if default_value&.type == :local_variable_read_node && default_value.name == name
-          raise SyntaxError, "circular argument reference - #{name}"
+          default_value = Prism.nil_node(location: default_value.location)
         end
 
         @instructions << ArrayIsEmptyInstruction.new
