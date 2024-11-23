@@ -1406,7 +1406,8 @@ module Natalie
       end
 
       def transform_for_node(node, used:)
-        instructions = transform_for_declare_args(node.index)
+        instructions = @locals_stack.fetch(-1, []).map { |name| VariableDeclareInstruction.new(name) }
+        instructions += transform_for_declare_args(node.index)
         instructions << DefineBlockInstruction.new(arity: 1)
         instructions += transform_block_args_for_for(node.index, used: true)
         instructions += transform_expression(node.statements, used: true) if node.statements

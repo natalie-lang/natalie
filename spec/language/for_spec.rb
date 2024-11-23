@@ -220,22 +220,20 @@ describe "The for expression" do
     j.should == 6
   end
 
-  xit "executes code in containing variable scope" do
+  it "executes code in containing variable scope" do
     for i in 1..2
       a = 123
     end
 
-    # NATFIXME: Compile time error: "variable not defined a"
-    #a.should == 123
+    a.should == 123
   end
 
-  xit "executes code in containing variable scope with 'do'" do
+  it "executes code in containing variable scope with 'do'" do
     for i in 1..2 do
       a = 123
     end
 
-    # NATFIXME: Compile time error: "variable not defined a"
-    #a.should == 123
+    a.should == 123
   end
 
   it "does not try to access variables outside the method" do
