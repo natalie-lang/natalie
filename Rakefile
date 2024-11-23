@@ -77,7 +77,7 @@ end
 
 desc 'Run the most-recently-modified test when any source files change (requires entr binary)'
 task :watch do
-  files = Rake::FileList['**/*.cpp', '**/*.c', '**/*.hpp', '**/*.rb'].exclude('{build,ext}/**/*')
+  files = Rake::FileList['**/*.cpp', '**/*.c', '**/*.hpp', '**/*.rb'].exclude('{build,ext,master}/**/*')
   sh "ls #{files} | entr -c -s 'rake test_last_modified'"
 end
 
