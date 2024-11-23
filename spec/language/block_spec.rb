@@ -795,14 +795,13 @@ describe "A block" do
   end
 end
 
-# NATFIXME: All disabled specs fail with "variable not defined" at compile time
 describe "Block-local variables" do
-  xit "are introduced with a semi-colon in the parameter list" do
-    #[1].map {|one; bl| bl }.should == [nil]
+  it "are introduced with a semi-colon in the parameter list" do
+    [1].map {|one; bl| bl }.should == [nil]
   end
 
-  xit "can be specified in a comma-separated list after the semi-colon" do
-    #[1].map {|one; bl, bl2| [bl, bl2] }.should == [[nil, nil]]
+  it "can be specified in a comma-separated list after the semi-colon" do
+    [1].map {|one; bl, bl2| [bl, bl2] }.should == [[nil, nil]]
   end
 
   it "can not have the same name as one of the standard parameters" do
@@ -831,9 +830,9 @@ describe "Block-local variables" do
     end.should raise_error(SyntaxError)
   end
 
-  xit "need not be preceded by standard parameters" do
-    #[1].map {|; foo| foo }.should == [nil]
-    #[1].map {|; glark, bar| [glark, bar] }.should == [[nil, nil]]
+  it "need not be preceded by standard parameters" do
+    [1].map {|; foo| foo }.should == [nil]
+    [1].map {|; glark, bar| [glark, bar] }.should == [[nil, nil]]
   end
 
   it "only allow a single semi-colon in the parameter list" do
@@ -872,20 +871,20 @@ describe "Block-local variables" do
     defined?(glark).should be_nil
   end
 
-  xit "are automatically instantiated in the block" do
-    #[1].each do |;glark|
-      #glark.should be_nil
-    #end
+  it "are automatically instantiated in the block" do
+    [1].each do |;glark|
+      glark.should be_nil
+    end
   end
 
-  xit "are visible in deeper scopes before initialization" do
-    #[1].each {|;glark|
-      #[1].each {
-        #defined?(glark).should_not be_nil
-        #glark = 1
-      #}
-      #glark.should == 1
-    #}
+  it "are visible in deeper scopes before initialization" do
+    [1].each {|;glark|
+      [1].each {
+        defined?(glark).should_not be_nil
+        glark = 1
+      }
+      glark.should == 1
+    }
   end
 end
 
