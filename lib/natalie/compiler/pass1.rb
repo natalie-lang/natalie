@@ -1291,7 +1291,11 @@ module Natalie
       def transform_defn_args(node, used:, for_block: false, check_args: true, local_only: true)
         return [] unless used
 
-        node = node.parameters if node.is_a?(Prism::BlockParametersNode)
+        locals = []
+        if node.is_a?(Prism::BlockParametersNode)
+          locals = node.locals.map(&:name)
+          node = node.parameters
+        end
 
         instructions = []
 
@@ -1314,6 +1318,7 @@ module Natalie
 
         args_compiler = Args.new(node:, pass: self, check_args:, local_only:, for_block:)
         instructions << args_compiler.transform
+        instructions += locals.map { |name| VariableDeclareInstruction.new(name) }
         instructions
       end
 
