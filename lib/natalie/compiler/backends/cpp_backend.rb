@@ -27,19 +27,17 @@ module Natalie
         File.join(BUILD_DIR, 'onigmo/include'),
       ].freeze
 
-      CRYPT_LIBRARIES = DARWIN ? [] : %w[-lcrypt]
-
       # When running `bin/natalie script.rb`, we use dynamic linking to speed things up.
       LIBRARIES_FOR_DYNAMIC_LINKING = %w[
         -lnatalie_base
         -lonigmo
-      ] + CRYPT_LIBRARIES
+      ].freeze
 
       # When using the REPL or compiling a binary with the `-c` option,
       # we use static linking for compatibility.
       LIBRARIES_FOR_STATIC_LINKING = %w[
         -lnatalie
-      ] + CRYPT_LIBRARIES
+      ].freeze
 
       LIB_PATHS = [
         BUILD_DIR,
