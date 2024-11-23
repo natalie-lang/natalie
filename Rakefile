@@ -235,7 +235,7 @@ end
 
 desc 'Generate tags file for development'
 task :ctags do
-  if system('which ctags 2>&1 >/dev/null')
+  if system('command -v ctags 2>&1 >/dev/null')
     out = `ctags #{HEADERS + SOURCES} 2>&1`
     puts out unless $?.success?
   else
@@ -396,7 +396,7 @@ end
 
 # # # # Build Compile Database # # # #
 
-if system('which compiledb 2>&1 >/dev/null')
+if system('command -v compiledb 2>&1 >/dev/null')
   $compiledb_out = [] # rubocop:disable Style/GlobalVars
 
   def $stderr.puts(str)
@@ -492,7 +492,8 @@ file 'build/libnatalie.a' => %w[
   build/libnatalie_base.a
   build/onigmo/lib/libonigmo.a
 ] do |t|
-  if RUBY_PLATFORM =~ /darwin/
+  apple_libtool = system('libtool -V 2>&1 | grep Apple 2>&1 >/dev/null')
+  if apple_libtool
     sh "libtool -static -o #{t.name} #{t.sources.join(' ')}"
   else
     ar_script = ["create #{t.name}"]
@@ -661,7 +662,7 @@ end
 
 def ccache_exists?
   return @ccache_exists if defined?(@ccache_exists)
-  @ccache_exists = system('which ccache 2>&1 > /dev/null')
+  @ccache_exists = system('command -v ccache 2>&1 > /dev/null')
 end
 
 def cc
