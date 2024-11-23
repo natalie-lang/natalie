@@ -3,59 +3,87 @@
 namespace Natalie {
 
 Value Args::operator[](size_t index) const {
-    // TODO: remove the assertion here once we're
-    // in a good place with the transition to Args
-    assert(index < m_data.size());
-    return m_data[index];
+    return (*tl_current_arg_stack)[m_args_start_index + index];
 }
 
 Value Args::at(size_t index) const {
-    assert(index < m_data.size());
-    return m_data.at(index);
+    return tl_current_arg_stack->at(m_args_start_index + index);
 }
 
 Value Args::at(size_t index, Value default_value) const {
-    if (index >= m_data.size())
+    auto offset = m_args_start_index + index;
+    if (offset >= tl_current_arg_stack->size() || offset >= m_args_start_index + m_args_size)
         return default_value;
-    return m_data[index];
+    return (*tl_current_arg_stack)[offset];
 }
 
 Args::Args(size_t size, const Value *data, bool has_keyword_hash)
-    : m_data { size }
+    : m_args_size { size }
     , m_has_keyword_hash { has_keyword_hash } {
     for (size_t i = 0; i < size; i++)
-        m_data.push(data[i]);
+        tl_current_arg_stack->push(data[i]);
+}
+
+Args::Args(const TM::Vector<Value> &vec, bool has_keyword_hash)
+    : m_args_size { vec.size() }
+    , m_has_keyword_hash { has_keyword_hash } {
+    for (auto arg : vec)
+        tl_current_arg_stack->push(arg);
 }
 
 Args::Args(ArrayObject *array, bool has_keyword_hash)
-    : m_data { array->size() }
+    : m_args_size { array->size() }
     , m_has_keyword_hash { has_keyword_hash } {
-    for (Value e : *array)
-        m_data.push(e);
+    for (Value arg : *array)
+        tl_current_arg_stack->push(arg);
 }
 
-Args::Args(const Args &other)
-    : m_data { other.m_data }
-    , m_has_keyword_hash { other.m_has_keyword_hash } { }
+Args::Args(std::initializer_list<Value> args, bool has_keyword_hash)
+    : m_args_original_start_index { tl_current_arg_stack->size() }
+    , m_args_start_index { tl_current_arg_stack->size() }
+    , m_args_size { args.size() }
+    , m_has_keyword_hash { has_keyword_hash } {
+    for (Value arg : args)
+        tl_current_arg_stack->push(arg);
+}
 
-Args &Args::operator=(const Args &other) {
-    m_data = Vector<Value> { other.m_data };
-    m_has_keyword_hash = other.m_has_keyword_hash;
-    return *this;
+Args::Args(Args &other)
+    : m_args_size { other.m_args_size }
+    , m_has_keyword_hash { other.m_has_keyword_hash } {
+    for (size_t i = 0; i < other.size(); i++)
+        tl_current_arg_stack->push(other[i]);
 }
 
 Value Args::shift() {
-    assert(m_data.size() > 0);
-    return m_data.pop_front();
+    auto value = first();
+    m_args_start_index++;
+    m_args_size--;
+    return value;
+}
+
+Value Args::pop() {
+    auto value = last();
+    m_args_size--;
+    return value;
+}
+
+Value Args::first() const {
+    assert(m_args_size > 0);
+    return (*tl_current_arg_stack)[m_args_start_index];
+}
+
+Value Args::last() const {
+    assert(m_args_size > 0);
+    return (*tl_current_arg_stack)[m_args_start_index + m_args_size - 1];
 }
 
 ArrayObject *Args::to_array() const {
-    return new ArrayObject { m_data.size(), m_data.data() };
+    return new ArrayObject { m_args_size, tl_current_arg_stack->data() + m_args_start_index };
 }
 
 ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread) const {
-    if (m_data.size() == 1 && spread) {
-        auto ary = to_ary(env, m_data[0], true)->duplicate(env)->as_array();
+    if (m_args_size == 1 && spread) {
+        auto ary = to_ary(env, at(0), true)->duplicate(env)->as_array();
         ssize_t count = ary->size();
         if (max_count != -1 && count > max_count)
             ary->truncate(max_count);
@@ -63,8 +91,8 @@ ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_c
             ary->fill(env, NilObject::the(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);
         return ary;
     }
-    auto len = max_count >= 0 ? std::min(m_data.size(), (size_t)max_count) : m_data.size();
-    auto ary = new ArrayObject { len, m_data.data() };
+    auto len = max_count >= 0 ? std::min(m_args_size, (size_t)max_count) : m_args_size;
+    auto ary = new ArrayObject { len, tl_current_arg_stack->data() + m_args_start_index };
     ssize_t count = ary->size();
     if (count < min_count)
         ary->fill(env, NilObject::the(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);
@@ -72,18 +100,18 @@ ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_c
 }
 
 void Args::ensure_argc_is(Env *env, size_t expected, std::initializer_list<const String> keywords) const {
-    if (m_data.size() != expected)
-        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}{})", m_data.size(), expected, argc_error_suffix(keywords));
+    if (m_args_size != expected)
+        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}{})", m_args_size, expected, argc_error_suffix(keywords));
 }
 
 void Args::ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, std::initializer_list<const String> keywords) const {
-    if (m_data.size() < expected_low || m_data.size() > expected_high)
-        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}..{}{})", m_data.size(), expected_low, expected_high, argc_error_suffix(keywords));
+    if (m_args_size < expected_low || m_args_size > expected_high)
+        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}..{}{})", m_args_size, expected_low, expected_high, argc_error_suffix(keywords));
 }
 
 void Args::ensure_argc_at_least(Env *env, size_t expected, std::initializer_list<const String> keywords) const {
-    if (m_data.size() < expected)
-        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}+{})", m_data.size(), expected, argc_error_suffix(keywords));
+    if (m_args_size < expected)
+        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}+{})", m_args_size, expected, argc_error_suffix(keywords));
 }
 
 String Args::argc_error_suffix(std::initializer_list<const String> keywords) const {
@@ -101,12 +129,18 @@ String Args::argc_error_suffix(std::initializer_list<const String> keywords) con
     return out;
 }
 
+Value *Args::data() const {
+    return &tl_current_arg_stack->data()[m_args_start_index];
+}
+
 HashObject *Args::keyword_hash() const {
-    if (!m_has_keyword_hash || m_data.is_empty())
+    if (!m_has_keyword_hash || m_args_size == 0)
         return nullptr;
-    auto hash = m_data.last().object_or_null();
+
+    auto hash = last().object_or_null();
     if (!hash || !hash->is_hash())
         return nullptr;
+
     return hash->as_hash();
 }
 
@@ -114,7 +148,8 @@ HashObject *Args::pop_keyword_hash() {
     auto hash = keyword_hash();
     if (!hash)
         return nullptr;
-    m_data.set_size(m_data.size() - 1);
+
+    m_args_size--;
     m_has_keyword_hash = false;
     return hash;
 }
@@ -133,4 +168,5 @@ Value Args::keyword_arg(Env *env, SymbolObject *name) const {
         return NilObject::the();
     return hash->get(env, name);
 }
+
 }

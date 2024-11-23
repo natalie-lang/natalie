@@ -788,12 +788,12 @@ ArrayObject *ModuleObject::attr(Env *env, Args &&args) {
     if (args.size() > 1 && args[size - 1]->is_boolean()) {
         env->verbose_warn("optional boolean argument is obsoleted");
         accessor = args[size - 1]->is_truthy();
-        size--;
+        args.pop();
     }
     if (accessor) {
-        return attr_accessor(env, Args(size, args.data()));
+        return attr_accessor(env, Args(args));
     } else {
-        return attr_reader(env, Args(size, args.data()));
+        return attr_reader(env, Args(args));
     }
 }
 
@@ -988,17 +988,25 @@ void ModuleObject::set_method_visibility(Env *env, Args &&args, MethodVisibility
     // private [:foo, :bar]
     if (args.size() == 1 && args[0]->is_array()) {
         auto array = args[0]->as_array();
-        args = Args(array);
+        for (auto &value : *array) {
+            auto name = value->to_symbol(env, Conversion::Strict);
+            set_method_visibility(env, name, visibility);
+        }
+        return;
     }
 
     // private :foo, :bar
     for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
-        ModuleObject *matching_class_or_module = nullptr;
-        auto method_info = find_method(env, name, &matching_class_or_module);
-        assert_method_defined(env, name, method_info);
-        m_methods.put(name, MethodInfo(visibility, method_info.method()));
+        set_method_visibility(env, name, visibility);
     }
+}
+
+void ModuleObject::set_method_visibility(Env *env, SymbolObject *name, MethodVisibility visibility) {
+    ModuleObject *matching_class_or_module = nullptr;
+    auto method_info = find_method(env, name, &matching_class_or_module);
+    assert_method_defined(env, name, method_info);
+    m_methods.put(name, MethodInfo(visibility, method_info.method()));
 }
 
 Value ModuleObject::module_function(Env *env, Args &&args) {

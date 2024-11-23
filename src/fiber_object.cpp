@@ -6,13 +6,7 @@
 
 namespace Natalie {
 
-FiberObject *FiberObject::build_main_fiber(ThreadObject *thread, void *start_of_stack) {
-    auto fiber = new FiberObject;
-    assert(start_of_stack);
-    fiber->m_start_of_stack = start_of_stack;
-    fiber->m_thread = thread;
-    return fiber;
-}
+thread_local TM::Vector<Value> *tl_current_arg_stack = nullptr;
 
 FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Block *block) {
     assert(this != FiberObject::main()); // can never be main fiber
@@ -118,9 +112,10 @@ Value FiberObject::resume(Env *env, Args args) {
     auto suspending_fiber = m_previous_fiber = current();
     {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        set_args(args.size(), args.data());
         ThreadObject::current()->m_current_fiber = this;
+        tl_current_arg_stack = &m_args_stack;
         ThreadObject::current()->set_start_of_stack(m_start_of_stack);
-        set_args(Args(args));
 
 #ifdef __SANITIZE_ADDRESS__
         auto fake_stack = __asan_get_current_fake_stack();
@@ -216,7 +211,7 @@ Value FiberObject::yield(Env *env, Args args) {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         current_fiber->set_status(Status::Suspended);
         current_fiber->m_end_of_stack = &args;
-        current_fiber->swap_to_previous(env, Args(args));
+        current_fiber->swap_to_previous(env, args.size(), args.data());
     }
 
     mco_yield(mco_running());
@@ -231,14 +226,15 @@ Value FiberObject::yield(Env *env, Args args) {
     }
 }
 
-void FiberObject::swap_to_previous(Env *env, Args &&args) {
+void FiberObject::swap_to_previous(Env *env, size_t arg_size, Value *arg_data) {
     assert(m_previous_fiber);
     auto new_current = m_previous_fiber;
     {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        new_current->set_args(arg_size, arg_data);
         ThreadObject::current()->m_current_fiber = new_current;
+        tl_current_arg_stack = &new_current->m_args_stack;
         ThreadObject::current()->set_start_of_stack(new_current->start_of_stack());
-        new_current->set_args(std::move(args));
     }
     m_previous_fiber = nullptr;
 }
@@ -246,6 +242,8 @@ void FiberObject::swap_to_previous(Env *env, Args &&args) {
 void FiberObject::visit_children(Visitor &visitor) const {
     Object::visit_children(visitor);
     for (auto arg : m_args)
+        visitor.visit(arg);
+    for (auto arg : m_args_stack)
         visitor.visit(arg);
     visitor.visit(m_previous_fiber);
     visitor.visit(m_error);
@@ -295,10 +293,10 @@ NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_asan_fake_stack(Visito
 void FiberObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const { }
 #endif
 
-void FiberObject::set_args(Args &&args) {
+void FiberObject::set_args(size_t arg_size, Value *arg_data) {
     m_args.clear();
-    for (size_t i = 0; i < args.size(); ++i) {
-        m_args.push(args[i]);
+    for (size_t i = 0; i < arg_size; ++i) {
+        m_args.push(arg_data[i]);
     }
 }
 
@@ -306,14 +304,6 @@ HashObject *FiberObject::ensure_thread_storage() {
     if (!m_thread_storage)
         m_thread_storage = new HashObject {};
     return m_thread_storage;
-}
-
-FiberObject *FiberObject::current() {
-    return ThreadObject::current()->current_fiber();
-}
-
-FiberObject *FiberObject::main() {
-    return ThreadObject::current()->main_fiber();
 }
 
 }
@@ -355,9 +345,10 @@ void fiber_wrapper_func(mco_coro *co) {
         fiber->set_end_of_stack(&fiber);
     }
 
-    if (reraise)
-        fiber->swap_to_previous(env, {});
-    else
-        fiber->swap_to_previous(env, { return_arg });
+    if (reraise) {
+        fiber->swap_to_previous(env, 0, nullptr);
+    } else {
+        fiber->swap_to_previous(env, 1, &return_arg);
+    }
 }
 }

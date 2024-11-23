@@ -559,7 +559,7 @@ Value KernelModule::print(Env *env, Args &&args) {
     auto _stdout = env->global_get("$stdout"_s);
     assert(_stdout);
     if (args.size() == 0)
-        args = Args { env->global_get("$_"_s) };
+        return _stdout->send(env, "write"_s, Args { env->global_get("$_"_s) });
     // NATFIXME: Kernel.print should actually call IO.print and not
     // IO.write, but for now using IO.print causes crashes.
     // return _stdout->send(env, "print"_s, args);

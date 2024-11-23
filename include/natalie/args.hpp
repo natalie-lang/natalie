@@ -17,37 +17,38 @@ class HashObject;
 class SymbolObject;
 class Value;
 
+extern thread_local Vector<Value> *tl_current_arg_stack;
+
 class Args {
 public:
     Args() { }
-
     Args(size_t size, const Value *data, bool has_keyword_hash = false);
-
-    Args(const TM::Vector<Value> &vec, bool has_keyword_hash = false)
-        : m_data { vec }
-        , m_has_keyword_hash { has_keyword_hash } { }
-
-    Args(TM::Vector<Value> &&vec, bool has_keyword_hash = false)
-        : m_data { std::move(vec) }
-        , m_has_keyword_hash { has_keyword_hash } { }
-
+    Args(const TM::Vector<Value> &vec, bool has_keyword_hash = false);
     Args(ArrayObject *array, bool has_keyword_hash = false);
-
-    Args(std::initializer_list<Value> args, bool has_keyword_hash = false)
-        : m_data { args }
-        , m_has_keyword_hash { has_keyword_hash } { }
-
-    Args(const Args &other);
+    Args(std::initializer_list<Value> args, bool has_keyword_hash = false);
+    Args(Args &other);
 
     Args(Args &&other)
-        : m_data { std::move(other.m_data) }
+        : m_args_original_start_index { other.m_args_original_start_index }
+        , m_args_start_index { other.m_args_start_index }
+        , m_args_size { other.m_args_size }
         , m_has_keyword_hash { other.m_has_keyword_hash } {
+        other.m_moved_out = true;
         other.m_has_keyword_hash = false;
     }
 
-    Args &operator=(const Args &other);
+    ~Args() {
+        if (!m_moved_out)
+            tl_current_arg_stack->set_size(m_args_original_start_index);
+    }
+
+    Args &operator=(const Args &other) = delete;
 
     Value shift();
+    Value pop();
+
+    Value first() const;
+    Value last() const;
 
     Value operator[](size_t index) const;
 
@@ -61,11 +62,10 @@ public:
     void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, std::initializer_list<const String> keywords = {}) const;
     void ensure_argc_at_least(Env *env, size_t expected, std::initializer_list<const String> keywords = {}) const;
 
-    size_t size() const { return m_data.size(); }
-    const Value *data() const { return m_data.data(); }
+    size_t start_index() const { return m_args_start_index; }
+    size_t size() const { return m_args_size; }
 
-    Vector<Value> &vector() { return m_data; }
-    const Vector<Value> &vector() const { return m_data; }
+    Value *data() const;
 
     bool has_keyword_hash() const { return m_has_keyword_hash; }
     HashObject *keyword_hash() const;
@@ -79,7 +79,10 @@ private:
 
     String argc_error_suffix(std::initializer_list<const String> keywords) const;
 
-    Vector<Value> m_data {};
+    size_t m_args_original_start_index { tl_current_arg_stack->size() };
+    size_t m_args_start_index { tl_current_arg_stack->size() };
+    size_t m_args_size { 0 };
+    bool m_moved_out { false };
     bool m_has_keyword_hash { false };
 };
 };
