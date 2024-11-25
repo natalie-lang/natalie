@@ -581,8 +581,8 @@ file 'bin/nat' => OBJECT_FILES + ['bin/natalie'] do
   sh 'bin/natalie -c bin/nat bin/natalie'
 end
 
-file "build/libnat.#{SO_EXT}" => SOURCES + ['lib/natalie/api.cpp', 'build/libnatalie.a'] do |t|
-  sh 'bin/natalie --write-obj build/libnat.rb.cpp lib/natalie.rb'
+file "build/libnat.#{SO_EXT}" => SOURCES + ['lib/libnat_api.rb', 'lib/libnat_api.cpp', 'build/libnatalie.a'] do |t|
+  sh 'bin/natalie --write-obj build/libnat.rb.cpp lib/libnat_api.rb'
   if system('pkg-config --exists libffi')
     flags = `pkg-config --cflags --libs libffi`.chomp
   end
