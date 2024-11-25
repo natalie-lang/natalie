@@ -10,7 +10,7 @@
 
 using namespace Natalie;
 
-Value init_api(Env *env, Value self) {
+Value init_libnat_api(Env *env, Value self) {
     return NilObject::the();
 }
 
