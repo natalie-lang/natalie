@@ -57,4 +57,17 @@ describe 'Enumerable' do
       -> { [1].zip [], Object.new, [] }.should raise_error(TypeError)
     end
   end
+
+  describe '#sum' do
+    it 'should return the correct result with optimized Range operations' do
+      (1..1000).sum.should == 500500
+      (1...1000).sum.should == 499500
+      (10..20).sum.should == 165
+    end
+
+    it 'falls back to the default implementation when range is not numeric or a start is given' do
+      ('a'..'c').sum('').should == 'abc'
+      (1..3).sum(10).should == 16
+    end
+  end
 end
