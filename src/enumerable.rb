@@ -871,6 +871,10 @@ module Enumerable
 
   def sum(init = 0)
     block_given = block_given?
+    if !block_given && init == 0 && is_a?(Range) && first.is_a?(Integer) && self.last.is_a?(Integer)
+      last = exclude_end? ? self.last - 1 : self.last
+      return (first + last) * (last - first + 1) / 2
+    end
     each do |item|
       if block_given
         init += yield item
