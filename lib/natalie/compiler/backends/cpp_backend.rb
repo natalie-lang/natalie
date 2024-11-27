@@ -33,8 +33,7 @@ module Natalie
         -lonigmo
       ].freeze
 
-      # When using the REPL or compiling a binary with the `-c` option,
-      # we use static linking for compatibility.
+      # When compiling a binary with the `-c` option, we use static linking for compatibility.
       LIBRARIES_FOR_STATIC_LINKING = %w[
         -lnatalie
       ].freeze
@@ -88,7 +87,7 @@ module Natalie
         [
           cc,
           build_flags,
-          (shared? ? '-fPIC -shared' : ''),
+          (@compiler.repl? ? LIBNAT_AND_REPL_FLAGS.join(' ') : ''),
           inc_paths.map { |path| "-I #{path}" }.join(' '),
           "-o #{@compiler.out_path}",
           '-x c++ -std=c++17',
@@ -156,7 +155,9 @@ module Natalie
       end
 
       def libraries
-        if @compiler.dynamic_linking?
+        if @compiler.repl?
+          []
+        elsif @compiler.dynamic_linking?
           LIBRARIES_FOR_DYNAMIC_LINKING
         else
           LIBRARIES_FOR_STATIC_LINKING
@@ -264,10 +265,6 @@ module Natalie
 
       def write_object_file?
         !!@compiler.write_obj_path
-      end
-
-      def shared?
-        @compiler.repl?
       end
 
       def declarations

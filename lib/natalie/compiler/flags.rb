@@ -34,6 +34,13 @@ module Natalie
         -fprofile-arcs
         -ftest-coverage
       ].freeze
+
+      LIBNAT_AND_REPL_FLAGS = %w[
+        -fPIC
+        -shared
+        -rdynamic
+        -Wl,-undefined,dynamic_lookup
+      ]
     end
   end
 end

@@ -581,7 +581,7 @@ file 'bin/nat' => OBJECT_FILES + ['bin/natalie'] do
   sh 'bin/natalie -c bin/nat bin/natalie'
 end
 
-file "build/libnat.#{SO_EXT}" => SOURCES + ['lib/libnat_api.rb', 'lib/libnat_api.cpp', 'build/libnatalie.a'] do |t|
+file "build/libnat.#{SO_EXT}" => SOURCES + ['lib/libnat_api.rb', 'lib/libnat_api.cpp'] do |t|
   sh 'bin/natalie --write-obj build/libnat.rb.cpp lib/libnat_api.rb'
   if system('pkg-config --exists libffi')
     flags = `pkg-config --cflags --libs libffi`.chomp
@@ -589,7 +589,7 @@ file "build/libnat.#{SO_EXT}" => SOURCES + ['lib/libnat_api.rb', 'lib/libnat_api
   sh "#{cxx} #{cxx_flags.join(' ')} #{flags} -std=#{STANDARD} " \
      '-DNAT_OBJECT_FILE -shared -fPIC -rdynamic ' \
      '-Wl,-undefined,dynamic_lookup ' \
-     "-o #{t.name} build/libnat.rb.cpp build/libnatalie.a"
+     "-o #{t.name} build/libnat.rb.cpp"
 end
 
 rule '.c.o' => 'src/%n' do |t|
