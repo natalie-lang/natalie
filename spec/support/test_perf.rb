@@ -25,8 +25,8 @@ end
 pp totals
 
 stats = {
-  commit: `git rev-parse HEAD`.strip,
-  branch: `git rev-parse --abbrev-ref HEAD`.strip,
+  commit: ENV.fetch('GIT_SHA'),
+  branch: ENV.fetch('GIT_REF'),
   ir: totals
 }
 
