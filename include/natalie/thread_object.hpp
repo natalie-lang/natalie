@@ -65,7 +65,8 @@ public:
         detach();
     }
 
-    static void build_main_thread(Env *env, void *start_of_stack);
+    static void prepare_main_thread();
+    static void finish_main_thread_setup(Env *env, void *start_of_stack);
 
     ThreadObject *initialize(Env *env, Args &&args, Block *block);
 
@@ -96,7 +97,7 @@ public:
     void set_exception(ExceptionObject *exception) { m_exception = exception; }
     ExceptionObject *exception() { return m_exception; }
 
-    ArrayObject *args() { return m_args.to_array(); }
+    ArrayObject *args() { return new ArrayObject(m_args.size(), m_args.data()); }
     Block *block() { return m_block; }
 
     bool is_alive() const {
@@ -277,7 +278,7 @@ private:
 
     friend FiberObject;
 
-    Args m_args {};
+    TM::Vector<Value> m_args;
     Block *m_block { nullptr };
     std::thread m_thread {};
     std::thread::native_handle_type m_native_thread_handle { 0 };

@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
     setvbuf(stdout, nullptr, _IOLBF, 1024);
 
     Env *env = ::build_top_env();
-    ThreadObject::build_main_thread(env, __builtin_frame_address(0));
+    ThreadObject::finish_main_thread_setup(env, __builtin_frame_address(0));
 
     trap_signal(SIGINT, sigint_handler);
     trap_signal(SIGPIPE, sigpipe_handler);

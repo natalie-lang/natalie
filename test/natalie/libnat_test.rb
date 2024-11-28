@@ -25,7 +25,7 @@ module LibNat
   def self.compile(ast, path, encoding)
     compiler = Natalie::Compiler.new(ast: ast, path: path, encoding: encoding)
     temp = Tempfile.create("natalie.#{RbConfig::CONFIG['SOEXT']}")
-    compiler.repl = true # actually this should be called "shared"
+    compiler.repl = true # actually this should be called something else ¯\_(ツ)_/¯
     compiler.out_path = temp.path
     compiler.compile
     temp.path

@@ -377,6 +377,11 @@ Env *build_top_env() {
     Thread->const_set("Mutex"_s, ThreadMutex);
     Object->const_set("Mutex"_s, ThreadMutex);
 
+    // We need a main ThreadObject and main FiberObject
+    // to hold our args stack. This has to happen before
+    // we make any calls using Args.
+    ThreadObject::prepare_main_thread();
+
     ClassObject *Method = Object->subclass(env, "Method", Object::Type::Method);
     Object->const_set("Method"_s, Method);
 

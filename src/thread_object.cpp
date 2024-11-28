@@ -178,24 +178,34 @@ bool ThreadObject::is_stopped() const {
     return m_sleeping || m_status == Status::Dead;
 }
 
-void ThreadObject::build_main_thread(Env *env, void *start_of_stack) {
+void ThreadObject::prepare_main_thread() {
     assert(!s_main); // can only be built once
     auto thread = new ThreadObject;
-    assert(start_of_stack);
-    thread->m_start_of_stack = start_of_stack;
     thread->m_status = ThreadObject::Status::Active;
     thread->m_suspend_status = ThreadObject::SuspendStatus::Running;
+    thread->m_current_fiber = thread->m_main_fiber = new FiberObject;
+    tl_current_arg_stack = &thread->m_current_fiber->m_args_stack;
+    s_main = thread;
+    tl_current_thread = thread;
+}
+
+void ThreadObject::finish_main_thread_setup(Env *env, void *start_of_stack) {
+    assert(start_of_stack);
+    auto thread = s_main;
+    thread->m_start_of_stack = start_of_stack;
     ThreadGroupObject::get_default()->add(env, thread);
     set_stack_for_thread(thread);
     thread->build_main_fiber();
-    s_main = thread;
-    tl_current_thread = thread;
     add_to_list(thread);
     setup_interrupt_pipe(env);
 }
 
 void ThreadObject::build_main_fiber() {
-    m_current_fiber = m_main_fiber = FiberObject::build_main_fiber(this, m_start_of_stack);
+    if (!m_main_fiber)
+        m_main_fiber = m_current_fiber = new FiberObject;
+    tl_current_arg_stack = &m_current_fiber->m_args_stack;
+    m_main_fiber->m_start_of_stack = m_start_of_stack;
+    m_main_fiber->m_thread = this;
 }
 
 ThreadObject *ThreadObject::initialize(Env *env, Args &&args, Block *block) {
@@ -227,7 +237,9 @@ ThreadObject *ThreadObject::initialize(Env *env, Args &&args, Block *block) {
 
     m_context = (ucontext_t *)malloc(sizeof(ucontext_t));
 
-    m_args = args;
+    for (size_t i = 0; i < args.size(); i++)
+        m_args.push(args[i]);
+
     m_block = block;
 
     m_file = env->file();
@@ -621,7 +633,7 @@ void ThreadObject::unlock_mutexes() const {
 
 void ThreadObject::visit_children(Visitor &visitor) const {
     Object::visit_children(visitor);
-    for (auto arg : m_args.vector())
+    for (auto arg : m_args)
         visitor.visit(arg);
     visitor.visit(m_block);
     visitor.visit(m_exception);

@@ -5,6 +5,7 @@ coverage-report
 .cache
 bin/nat
 /rubyspec_temp
+/master
 
 # Editor tools
 .ccls

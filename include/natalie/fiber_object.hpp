@@ -16,6 +16,7 @@
 #include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
+#include "natalie/thread_object.hpp"
 
 extern "C" {
 void fiber_wrapper_func(mco_coro *co);
@@ -27,6 +28,8 @@ typedef struct {
 }
 
 namespace Natalie {
+
+extern thread_local Vector<Value> *tl_current_arg_stack;
 
 class FiberObject : public Object {
 public:
@@ -53,8 +56,6 @@ public:
         mco_destroy(m_coroutine);
     }
 
-    static FiberObject *build_main_fiber(ThreadObject *, void *);
-
     constexpr static int STACK_SIZE = 1024 * 1024;
 
     FiberObject *initialize(Env *env, Value, Value, Block *block);
@@ -75,7 +76,7 @@ public:
     static Value set_scheduler(Env *, Value);
     Value set_storage(Env *, Value);
     Value storage(Env *) const;
-    void swap_to_previous(Env *env, Args &&args);
+    void swap_to_previous(Env *env, size_t arg_size, Value *arg_data);
 
     void *start_of_stack() { return m_start_of_stack; }
 
@@ -113,11 +114,11 @@ public:
             m_start_of_stack);
     }
 
-    static FiberObject *current();
-    static FiberObject *main();
+    static FiberObject *current() { return tl_current_thread->current_fiber(); }
+    static FiberObject *main() { return tl_current_thread->main_fiber(); }
 
     Vector<Value> &args() { return m_args; }
-    void set_args(Args &&args);
+    void set_args(size_t arg_size, Value *arg_data);
 
     ExceptionObject *error() { return m_error; }
     void set_error(ExceptionObject *error) { m_error = error; }
@@ -126,6 +127,10 @@ public:
     HashObject *ensure_thread_storage();
 
 private:
+    friend Args;
+    friend ThreadObject;
+
+    TM::Vector<Value> m_args_stack { 100 };
     Block *m_block { nullptr };
     bool m_blocking { false };
     HashObject *m_storage { nullptr };
@@ -140,7 +145,7 @@ private:
     Status m_status { Status::Created };
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
-    Vector<Value> m_args {};
+    TM::Vector<Value> m_args {};
     FiberObject *m_previous_fiber { nullptr };
     ExceptionObject *m_error { nullptr };
 };

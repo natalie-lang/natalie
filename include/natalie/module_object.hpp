@@ -148,6 +148,7 @@ public:
     Value private_class_method(Env *, Args &&);
     Value public_class_method(Env *, Args &&);
     void set_method_visibility(Env *, Args &&, MethodVisibility);
+    void set_method_visibility(Env *, SymbolObject *, MethodVisibility);
     Value module_function(Env *, Args &&) override;
 
     Value deprecate_constant(Env *, Args &&);
