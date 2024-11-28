@@ -1,0 +1,21 @@
+name: Performance Test
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  DOCKER_FLAGS: ""
+  CI: 1
+
+jobs:
+  performance_test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - run: rake docker_test_perf
+        env:
+          STATS_API_SECRET: ${{ secrets.STATS_API_SECRET }}

@@ -9,10 +9,19 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build
 RUN pip3 install compiledb || pip3 install compiledb --break-system-packages
 RUN gem install bundler --no-doc
 
+# Valgrind on our docker image is too old to handle compressed debug symbols or some such.
+WORKDIR /tmp
+RUN wget https://sourceware.org/pub/valgrind/valgrind-3.24.0.tar.bz2 && \
+  tar xvf valgrind-3.24.0.tar.bz2 && \
+  cd valgrind-3.24.0 && \
+  ./configure && \
+  make -j 4 && \
+  make install
+
 ENV LC_ALL=C.UTF-8
 ENV LLVM_CONFIG=/usr/lib/llvm-14/bin/llvm-config
 
-WORKDIR natalie
+WORKDIR /natalie
 COPY .git/ .git/
 COPY .gitmodules .gitmodules
 COPY .clang-tidy .clang-tidy
@@ -39,7 +48,9 @@ COPY examples examples
 COPY lib lib
 COPY src src
 COPY include include
-RUN rake build
+
+ARG NAT_BUILD_MODE=debug
+RUN rake build_${NAT_BUILD_MODE}
 
 COPY spec spec
 COPY test test
