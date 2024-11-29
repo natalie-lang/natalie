@@ -201,6 +201,10 @@ task test_all_ruby_spec_nightly: :build do
   sh 'bundle exec ruby spec/support/nightly_ruby_spec_runner.rb'
 end
 
+task test_perf: :build_release do
+  sh 'ruby spec/support/test_perf.rb'
+end
+
 task output_all_ruby_specs: :build do
   version = RUBY_VERSION.sub(/\.\d+$/, '')
   sh <<~END
@@ -296,6 +300,17 @@ task :docker_build_clang do
      '.'
 end
 
+task :docker_build_clang_release do
+  sh "docker build -t natalie_clang_#{ruby_version_string}_release " \
+     "--build-arg IMAGE='ruby:#{ruby_version_number}' " \
+     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
+     '--build-arg CC=clang ' \
+     '--build-arg CXX=clang++ ' \
+     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
+     '--build-arg NAT_BUILD_MODE=release ' \
+     '.'
+end
+
 task docker_bash: :docker_build_clang do
   sh "docker run -it --rm --entrypoint bash natalie_clang_#{ruby_version_string}"
 end
@@ -374,6 +389,16 @@ task docker_test_all_ruby_spec_nightly: :docker_build_clang do
      '--rm ' \
      '--entrypoint rake ' \
      "natalie_clang_#{ruby_version_string} test_all_ruby_spec_nightly"
+end
+
+task docker_test_perf: :docker_build_clang_release do
+  sh "docker run #{docker_run_flags} " \
+     "-e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect} " \
+     "-e GIT_SHA=#{(ENV['LAST_COMMIT_SHA'] || '').inspect} " \
+     "-e GIT_REF=#{(ENV['GITHUB_HEAD_REF'] || '').inspect} " \
+     '--rm ' \
+     '--entrypoint rake ' \
+     "natalie_clang_#{ruby_version_string}_release test_perf"
 end
 
 task docker_tidy: :docker_build_clang do

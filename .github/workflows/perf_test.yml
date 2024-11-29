@@ -1,0 +1,32 @@
+name: Performance Test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  DOCKER_FLAGS: ""
+  CI: 1
+
+jobs:
+  performance_test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Setup Environment (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          echo "LAST_COMMIT_SHA=${{ github.event.pull_request.head.sha }}" >> ${GITHUB_ENV}
+      - name: Setup Environment (Push)
+        if: ${{ github.event_name == 'push' }}
+        shell: bash
+        run: |
+          echo "LAST_COMMIT_SHA=${GITHUB_SHA}" >> ${GITHUB_ENV}
+      - run: rake docker_test_perf
+        env:
+          STATS_API_SECRET: ${{ secrets.STATS_API_SECRET }}
