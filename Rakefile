@@ -395,7 +395,7 @@ task docker_test_perf: :docker_build_clang_release do
   sh "docker run #{docker_run_flags} " \
      "-e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect} " \
      "-e GIT_SHA=#{(ENV['LAST_COMMIT_SHA'] || '').inspect} " \
-     "-e GIT_REF=#{(ENV['GITHUB_HEAD_REF'] || '').inspect} " \
+     "-e GIT_BRANCH=#{(ENV['BRANCH'] || '').inspect} " \
      '--rm ' \
      '--entrypoint rake ' \
      "natalie_clang_#{ruby_version_string}_release test_perf"

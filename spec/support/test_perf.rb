@@ -26,7 +26,7 @@ pp totals
 
 stats = {
   commit: ENV.fetch('GIT_SHA'),
-  branch: ENV.fetch('GIT_REF'),
+  branch: ENV.fetch('GIT_BRANCH'),
   ir: totals
 }
 
