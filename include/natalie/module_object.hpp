@@ -111,8 +111,8 @@ public:
 
     void methods(Env *, ArrayObject *, bool = true);
     void define_method(Env *, SymbolObject *, Method *, MethodVisibility);
-    MethodInfo find_method(Env *, SymbolObject *, ModuleObject ** = nullptr, const Method ** = nullptr) const;
-    MethodInfo find_method(Env *, SymbolObject *, const Method *) const;
+    MethodInfo find_method(Env *, SymbolObject *, ModuleObject ** = nullptr, const Method ** = nullptr);
+    MethodInfo find_method(Env *, SymbolObject *, const Method *);
     void assert_method_defined(Env *, SymbolObject *, MethodInfo);
 
     Value instance_method(Env *, Value);
@@ -128,7 +128,7 @@ public:
     bool ancestors_includes(Env *, ModuleObject *);
     bool is_subclass_of(ModuleObject *);
 
-    bool is_method_defined(Env *, Value) const;
+    bool is_method_defined(Env *, Value);
 
     String inspect_module() const;
     Value inspect(Env *) const;
@@ -183,6 +183,8 @@ private:
 
     ClassObject *as_class();
 
+    void cache_method(SymbolObject *, MethodInfo, Env *);
+
 protected:
     Constant *find_constant(Env *, SymbolObject *, ModuleObject **, ConstLookupSearchMode = ConstLookupSearchMode::Strict);
 
@@ -190,6 +192,8 @@ protected:
     Optional<String> m_name {};
     ClassObject *m_superclass { nullptr };
     ModuleObject *m_owner { nullptr };
+    TM::Hashmap<SymbolObject *, MethodInfo> m_method_cache {};
+    int m_method_cache_version { 0 };
     TM::Hashmap<SymbolObject *, MethodInfo> m_methods {};
     TM::Hashmap<SymbolObject *, Optional<Value>> m_class_vars {};
     Vector<ModuleObject *> m_included_modules {};
