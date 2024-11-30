@@ -703,7 +703,7 @@ Value IoObject::close(Env *env) {
     // Wake up all threads in case one is blocking on a read to this fd.
     // It is undefined behavior on Linux to continue a read() or select()
     // on a closed file descriptor.
-    ThreadObject::interrupt();
+    ThreadObject::wake_all();
 
     int result;
     if (m_fileptr && m_pid > 0) {
@@ -1070,15 +1070,15 @@ Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_io
     auto write_ios_ary = write_ios && !write_ios->is_nil() ? write_ios->to_ary(env) : new ArrayObject {};
     auto error_ios_ary = error_ios && !error_ios->is_nil() ? error_ios->to_ary(env) : new ArrayObject {};
 
-    auto interrupt_fileno = ThreadObject::interrupt_read_fileno();
+    auto wake_pipe_fileno = ThreadObject::wake_pipe_read_fileno();
 
     int nfds = 0;
     auto read_fds = create_fd_set(env, read_ios_ary, &nfds);
     auto write_fds = create_fd_set(env, write_ios_ary, &nfds);
     auto error_fds = create_fd_set(env, error_ios_ary, &nfds);
 
-    FD_SET(interrupt_fileno, &read_fds);
-    nfds = std::max(nfds, interrupt_fileno + 1);
+    FD_SET(wake_pipe_fileno, &read_fds);
+    nfds = std::max(nfds, wake_pipe_fileno + 1);
 
     fd_set read_fds_copy = read_fds;
     fd_set write_fds_copy = write_fds;
@@ -1096,10 +1096,10 @@ Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_io
         } else if (result == -1) {
             // An error the user needs to handle.
             break;
-        } else if (FD_ISSET(interrupt_fileno, &read_fds)) {
+        } else if (FD_ISSET(wake_pipe_fileno, &read_fds)) {
             // Interrupted by our thread file descriptor.
             // This thread may need to raise or exit.
-            ThreadObject::clear_interrupt();
+            ThreadObject::clear_wake_pipe();
             ThreadObject::check_current_exception(env);
             if (any_closed(read_ios_ary) || any_closed(write_ios_ary) || any_closed(error_ios_ary))
                 env->raise("IOError", "closed stream");
@@ -1120,7 +1120,7 @@ Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_io
     if (result == 0)
         return NilObject::the();
 
-    FD_CLR(interrupt_fileno, &read_fds);
+    FD_CLR(wake_pipe_fileno, &read_fds);
 
     auto readable_ios = create_output_fds(env, &read_fds, read_ios_ary);
     auto writeable_ios = create_output_fds(env, &write_fds, write_ios_ary);
@@ -1132,9 +1132,9 @@ void IoObject::select_read(Env *env, timeval *timeout) const {
     fd_set readfds;
     FD_ZERO(&readfds);
     FD_SET(m_fileno, &readfds);
-    auto interrupt_fileno = ThreadObject::interrupt_read_fileno();
-    FD_SET(interrupt_fileno, &readfds);
-    auto nfds = std::max(m_fileno, interrupt_fileno) + 1;
+    auto wake_pipe_fileno = ThreadObject::wake_pipe_read_fileno();
+    FD_SET(wake_pipe_fileno, &readfds);
+    auto nfds = std::max(m_fileno, wake_pipe_fileno) + 1;
 
     fd_set readfds_copy = readfds;
 
@@ -1161,8 +1161,8 @@ void IoObject::select_read(Env *env, timeval *timeout) const {
             }
         }
 
-        if (FD_ISSET(interrupt_fileno, &readfds)) {
-            ThreadObject::clear_interrupt();
+        if (FD_ISSET(wake_pipe_fileno, &readfds)) {
+            ThreadObject::clear_wake_pipe();
             ThreadObject::check_current_exception(env);
             if (m_closed)
                 env->raise("IOError", "closed stream");

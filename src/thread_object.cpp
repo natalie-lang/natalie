@@ -197,7 +197,7 @@ void ThreadObject::finish_main_thread_setup(Env *env, void *start_of_stack) {
     set_stack_for_thread(thread);
     thread->build_main_fiber();
     add_to_list(thread);
-    setup_interrupt_pipe(env);
+    setup_wake_pipe(env);
 }
 
 void ThreadObject::build_main_fiber() {
@@ -354,7 +354,7 @@ Value ThreadObject::kill(Env *env) {
     } else {
         m_exception = exception;
         wakeup(env);
-        ThreadObject::interrupt();
+        ThreadObject::wake_all();
     }
 
     return this;
@@ -379,7 +379,7 @@ Value ThreadObject::raise(Env *env, Args &&args) {
 
     // In case this thread is blocking on read/select/whatever,
     // we may need to interrupt it (and all other threads, incidentally).
-    ThreadObject::interrupt();
+    ThreadObject::wake_all();
 
     return NilObject::the();
 }
@@ -666,19 +666,19 @@ void ThreadObject::wait_until_running() const {
         sched_yield();
 }
 
-void ThreadObject::setup_interrupt_pipe(Env *env) {
+void ThreadObject::setup_wake_pipe(Env *env) {
     int pipefd[2];
     if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
         env->raise_errno();
-    s_interrupt_read_fileno = pipefd[0];
-    s_interrupt_write_fileno = pipefd[1];
+    s_wake_pipe_read_fileno = pipefd[0];
+    s_wake_pipe_write_fileno = pipefd[1];
 }
 
-void ThreadObject::interrupt() {
-    assert(::write(s_interrupt_write_fileno, "!", 1) != -1);
+void ThreadObject::wake_all() {
+    assert(::write(s_wake_pipe_write_fileno, "!", 1) != -1);
 }
 
-void ThreadObject::clear_interrupt() {
+void ThreadObject::clear_wake_pipe() {
     // arbitrarily-chosen buffer size just to avoid several single-byte reads
     constexpr int BUF_SIZE = 8;
     char buf[BUF_SIZE];
@@ -686,7 +686,7 @@ void ThreadObject::clear_interrupt() {
     do {
         // This fd is non-blocking, so this can set errno to EAGAIN,
         // but we don't care -- we just want the buffer to be empty.
-        bytes = ::read(s_interrupt_read_fileno, buf, BUF_SIZE);
+        bytes = ::read(s_wake_pipe_read_fileno, buf, BUF_SIZE);
     } while (bytes > 0);
 }
 
