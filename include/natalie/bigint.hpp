@@ -206,7 +206,7 @@ struct BigInt {
         return strtol(buf, nullptr, 10);
     }
 
-    long to_long_long() const {
+    long long to_long_long() const {
         char buf[32];
         bigint_write(buf, 32, data);
         return strtoll(buf, nullptr, 10);

@@ -165,6 +165,20 @@ describe 'integer' do
       (1 == Rational(1, 2)).should == false
       (1 == Rational(1, 1)).should == true
     end
+
+    it 'handles bignums correctly' do
+      (1 == bignum_value).should == false
+      (0 == bignum_value).should == false
+      (-1 == bignum_value).should == false
+
+      (bignum_value == 1).should == false
+      (bignum_value == 0).should == false
+      (bignum_value == -1).should == false
+
+      (bignum_value == bignum_value).should == true
+      (-bignum_value == -bignum_value).should == true
+      (-bignum_value == bignum_value - 1).should == false
+    end
   end
 
   describe 'eql?' do
@@ -195,6 +209,29 @@ describe 'integer' do
       (0 < Rational(1, 2)).should == true
       (1 < Rational(1, 2)).should == false
       (1 < Rational(1, 1)).should == false
+    end
+
+    it 'handles bignums correctly' do
+      (1 < bignum_value).should == true
+      (0 < bignum_value).should == true
+      (-1 < bignum_value).should == true
+
+      (1 < -bignum_value).should == false
+      (0 < -bignum_value).should == false
+      (-1 < -bignum_value).should == false
+
+      (bignum_value < 1).should == false
+      (bignum_value < 0).should == false
+      (bignum_value < -1).should == false
+
+      (-bignum_value < 1).should == true
+      (-bignum_value < 0).should == true
+      (-bignum_value < -1).should == true
+
+      (-bignum_value < bignum_value).should == true
+      (bignum_value < -bignum_value).should == false
+      (bignum_value < bignum_value - 1).should == false
+      (bignum_value - 1 < bignum_value).should == true
     end
   end
 
