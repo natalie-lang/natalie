@@ -29,8 +29,7 @@ Value MutexObject::lock(Env *env) {
 
 Value MutexObject::sleep(Env *env, Value timeout) {
     if (!timeout || timeout->is_nil()) {
-        unlock(env);
-        ThreadObject::current()->sleep(env, -1.0);
+        ThreadObject::current()->sleep(env, -1.0, this);
         lock(env);
         return this;
     }
@@ -43,9 +42,8 @@ Value MutexObject::sleep(Env *env, Value timeout) {
     if (timeout_int < 0)
         env->raise("ArgumentError", "timeout must be positive");
 
-    unlock(env);
     const auto timeout_float = timeout->is_float() ? static_cast<float>(timeout->as_float()->to_double()) : static_cast<float>(timeout_int);
-    ThreadObject::current()->sleep(env, timeout_float);
+    ThreadObject::current()->sleep(env, timeout_float, this);
     lock(env);
 
     return Value::integer(timeout_int);

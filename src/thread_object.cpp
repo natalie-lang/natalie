@@ -3,6 +3,7 @@
 #include <signal.h>
 
 #include "natalie.hpp"
+#include "natalie/thread/mutex_object.hpp"
 #include "natalie/thread_object.hpp"
 
 static void set_stack_for_thread(Natalie::ThreadObject *thread_object) {
@@ -397,13 +398,14 @@ Value ThreadObject::wakeup(Env *env) {
 
     {
         std::unique_lock sleep_lock { m_sleep_lock };
+        m_wakeup = true;
         m_sleep_cond.notify_one();
     }
 
     return this;
 }
 
-Value ThreadObject::sleep(Env *env, float timeout) {
+Value ThreadObject::sleep(Env *env, float timeout, Thread::MutexObject *mutex_to_unlock) {
     timespec t_begin;
     if (::clock_gettime(CLOCK_MONOTONIC, &t_begin) < 0)
         env->raise_errno();
@@ -417,16 +419,23 @@ Value ThreadObject::sleep(Env *env, float timeout) {
         return Value::integer(elapsed);
     };
 
+    m_wakeup = false;
+    if (mutex_to_unlock)
+        mutex_to_unlock->unlock(env);
+
     if (timeout < 0.0) {
         {
             std::unique_lock sleep_lock { m_sleep_lock };
 
             check_exception(env);
 
-            Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
-            ThreadObject::set_current_sleeping(true);
+            if (!m_wakeup) {
+                Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+                ThreadObject::set_current_sleeping(true);
 
-            m_sleep_cond.wait(sleep_lock);
+                m_sleep_cond.wait(sleep_lock);
+            }
+            m_wakeup = false;
         }
 
         check_exception(env);
@@ -440,10 +449,13 @@ Value ThreadObject::sleep(Env *env, float timeout) {
 
         check_exception(env);
 
-        Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
-        ThreadObject::set_current_sleeping(true);
+        if (!m_wakeup) {
+            Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+            ThreadObject::set_current_sleeping(true);
 
-        m_sleep_cond.wait_for(sleep_lock, wait);
+            m_sleep_cond.wait_for(sleep_lock, wait);
+        }
+        m_wakeup = false;
     }
 
     check_exception(env);

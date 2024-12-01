@@ -124,7 +124,7 @@ public:
     Value run(Env *);
     Value wakeup(Env *);
 
-    Value sleep(Env *, float);
+    Value sleep(Env *, float, Thread::MutexObject * = nullptr);
 
     void set_value(Value value) { m_value = value; }
     Value value(Env *);
@@ -318,6 +318,7 @@ private:
 
     // This condition variable is used to wake a sleeping thread,
     // i.e. a thread where Kernel#sleep has been called.
+    bool m_wakeup { false };
     std::condition_variable m_sleep_cond;
     std::mutex m_sleep_lock;
 
