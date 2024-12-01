@@ -124,7 +124,7 @@ public:
     Value run(Env *);
     Value wakeup(Env *);
 
-    Value sleep(Env *, float);
+    Value sleep(Env *, float, Thread::MutexObject * = nullptr);
 
     void set_value(Value value) { m_value = value; }
     Value value(Env *);
@@ -252,10 +252,10 @@ public:
 
     static void check_current_exception(Env *env);
 
-    static void setup_interrupt_pipe(Env *env);
-    static int interrupt_read_fileno() { return s_interrupt_read_fileno; }
-    static void interrupt();
-    static void clear_interrupt();
+    static void setup_wake_pipe(Env *env);
+    static int wake_pipe_read_fileno() { return s_wake_pipe_read_fileno; }
+    static void wake_all();
+    static void clear_wake_pipe();
 
     static ClassObject *thread_kill_class() { return s_thread_kill_class; }
     static ClassObject *thread_kill_class(Env *env) {
@@ -318,6 +318,7 @@ private:
 
     // This condition variable is used to wake a sleeping thread,
     // i.e. a thread where Kernel#sleep has been called.
+    bool m_wakeup { false };
     std::condition_variable m_sleep_cond;
     std::mutex m_sleep_lock;
 
@@ -329,13 +330,13 @@ private:
     // In addition to m_sleep_cond which can wake a sleeping thread,
     // we also need a way to wake a thread that is blocked on reading
     // from a file descriptor. Any time select(2) is called, we can
-    // add this s_interrupt_read_fileno to the fd_set so we have
+    // add this s_wake_pipe_read_fileno to the fd_set so we have
     // a way to unblock the call. This is also signaled when any
     // IO object is closed, since we'll need to wake up any blocking
     // select() calls and check if the IO object was closed.
     // TODO: we'll need to rebuild these after a fork :-/
-    inline static int s_interrupt_read_fileno { -1 };
-    inline static int s_interrupt_write_fileno { -1 };
+    inline static int s_wake_pipe_read_fileno { -1 };
+    inline static int s_wake_pipe_write_fileno { -1 };
 
     // We use this special class as an off-the-books exception class
     // for killing threads. It cannot be rescued in user code, but it

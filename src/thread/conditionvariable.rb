@@ -7,9 +7,11 @@ class Thread
 
     def broadcast
       @mutex.synchronize do
-        while !@waiting.empty?
+        until @waiting.empty?
           thread = @waiting.shift
-          thread.wakeup if thread&.status == 'sleep'
+          if thread.status != 'dead'
+            thread.wakeup
+          end
         end
       end
     end
@@ -21,10 +23,13 @@ class Thread
     def signal
       @mutex.synchronize do
         thread = nil
-        while !@waiting.empty? && thread&.status != 'sleep'
+        until @waiting.empty?
           thread = @waiting.shift
+          if thread.status != 'dead'
+            thread.wakeup
+            break
+          end
         end
-        thread&.wakeup
       end
     end
 

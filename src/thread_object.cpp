@@ -3,6 +3,7 @@
 #include <signal.h>
 
 #include "natalie.hpp"
+#include "natalie/thread/mutex_object.hpp"
 #include "natalie/thread_object.hpp"
 
 static void set_stack_for_thread(Natalie::ThreadObject *thread_object) {
@@ -197,7 +198,7 @@ void ThreadObject::finish_main_thread_setup(Env *env, void *start_of_stack) {
     set_stack_for_thread(thread);
     thread->build_main_fiber();
     add_to_list(thread);
-    setup_interrupt_pipe(env);
+    setup_wake_pipe(env);
 }
 
 void ThreadObject::build_main_fiber() {
@@ -354,7 +355,7 @@ Value ThreadObject::kill(Env *env) {
     } else {
         m_exception = exception;
         wakeup(env);
-        ThreadObject::interrupt();
+        ThreadObject::wake_all();
     }
 
     return this;
@@ -379,7 +380,7 @@ Value ThreadObject::raise(Env *env, Args &&args) {
 
     // In case this thread is blocking on read/select/whatever,
     // we may need to interrupt it (and all other threads, incidentally).
-    ThreadObject::interrupt();
+    ThreadObject::wake_all();
 
     return NilObject::the();
 }
@@ -397,13 +398,14 @@ Value ThreadObject::wakeup(Env *env) {
 
     {
         std::unique_lock sleep_lock { m_sleep_lock };
+        m_wakeup = true;
         m_sleep_cond.notify_one();
     }
 
     return this;
 }
 
-Value ThreadObject::sleep(Env *env, float timeout) {
+Value ThreadObject::sleep(Env *env, float timeout, Thread::MutexObject *mutex_to_unlock) {
     timespec t_begin;
     if (::clock_gettime(CLOCK_MONOTONIC, &t_begin) < 0)
         env->raise_errno();
@@ -417,16 +419,23 @@ Value ThreadObject::sleep(Env *env, float timeout) {
         return Value::integer(elapsed);
     };
 
+    m_wakeup = false;
+    if (mutex_to_unlock)
+        mutex_to_unlock->unlock(env);
+
     if (timeout < 0.0) {
         {
             std::unique_lock sleep_lock { m_sleep_lock };
 
             check_exception(env);
 
-            Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
-            ThreadObject::set_current_sleeping(true);
+            if (!m_wakeup) {
+                Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+                ThreadObject::set_current_sleeping(true);
 
-            m_sleep_cond.wait(sleep_lock);
+                m_sleep_cond.wait(sleep_lock);
+            }
+            m_wakeup = false;
         }
 
         check_exception(env);
@@ -440,10 +449,13 @@ Value ThreadObject::sleep(Env *env, float timeout) {
 
         check_exception(env);
 
-        Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
-        ThreadObject::set_current_sleeping(true);
+        if (!m_wakeup) {
+            Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+            ThreadObject::set_current_sleeping(true);
 
-        m_sleep_cond.wait_for(sleep_lock, wait);
+            m_sleep_cond.wait_for(sleep_lock, wait);
+        }
+        m_wakeup = false;
     }
 
     check_exception(env);
@@ -666,19 +678,19 @@ void ThreadObject::wait_until_running() const {
         sched_yield();
 }
 
-void ThreadObject::setup_interrupt_pipe(Env *env) {
+void ThreadObject::setup_wake_pipe(Env *env) {
     int pipefd[2];
     if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
         env->raise_errno();
-    s_interrupt_read_fileno = pipefd[0];
-    s_interrupt_write_fileno = pipefd[1];
+    s_wake_pipe_read_fileno = pipefd[0];
+    s_wake_pipe_write_fileno = pipefd[1];
 }
 
-void ThreadObject::interrupt() {
-    assert(::write(s_interrupt_write_fileno, "!", 1) != -1);
+void ThreadObject::wake_all() {
+    assert(::write(s_wake_pipe_write_fileno, "!", 1) != -1);
 }
 
-void ThreadObject::clear_interrupt() {
+void ThreadObject::clear_wake_pipe() {
     // arbitrarily-chosen buffer size just to avoid several single-byte reads
     constexpr int BUF_SIZE = 8;
     char buf[BUF_SIZE];
@@ -686,7 +698,7 @@ void ThreadObject::clear_interrupt() {
     do {
         // This fd is non-blocking, so this can set errno to EAGAIN,
         // but we don't care -- we just want the buffer to be empty.
-        bytes = ::read(s_interrupt_read_fileno, buf, BUF_SIZE);
+        bytes = ::read(s_wake_pipe_read_fileno, buf, BUF_SIZE);
     } while (bytes > 0);
 }
 
