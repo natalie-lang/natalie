@@ -308,6 +308,7 @@ task :docker_build_clang_release do
      '--build-arg CXX=clang++ ' \
      '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
      '--build-arg NAT_BUILD_MODE=release ' \
+     "--build-arg NEED_VALGRIND=#{ENV.fetch('NEED_VALGRIND', 'false')} " \
      '.'
 end
 
@@ -391,7 +392,9 @@ task docker_test_all_ruby_spec_nightly: :docker_build_clang do
      "natalie_clang_#{ruby_version_string} test_all_ruby_spec_nightly"
 end
 
-task docker_test_perf: :docker_build_clang_release do
+task :docker_test_perf do
+  ENV['NEED_VALGRIND'] = 'true'
+  Rake::Task['docker_build_clang_release'].invoke
   sh "docker run #{docker_run_flags} " \
      "-e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect} " \
      "-e GIT_SHA=#{(ENV['LAST_COMMIT_SHA'] || '').inspect} " \

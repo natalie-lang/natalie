@@ -10,13 +10,16 @@ RUN pip3 install compiledb || pip3 install compiledb --break-system-packages
 RUN gem install bundler --no-doc
 
 # Valgrind on our docker image is too old to handle compressed debug symbols or some such.
-WORKDIR /tmp
-RUN wget https://sourceware.org/pub/valgrind/valgrind-3.24.0.tar.bz2 && \
+ARG NEED_VALGRIND=false
+RUN if [ "$NEED_VALGRIND" = "true" ]; then \
+  cd /tmp && \
+  wget https://sourceware.org/pub/valgrind/valgrind-3.24.0.tar.bz2 && \
   tar xvf valgrind-3.24.0.tar.bz2 && \
   cd valgrind-3.24.0 && \
   ./configure && \
   make -j 4 && \
-  make install
+  make install; \
+  fi
 
 ENV LC_ALL=C.UTF-8
 ENV LLVM_CONFIG=/usr/lib/llvm-14/bin/llvm-config
