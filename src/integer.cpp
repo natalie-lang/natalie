@@ -24,9 +24,15 @@ Integer::Integer(double other) {
     }
 }
 
-Integer::Integer(const TM::String &other)
-    : m_bignum(new BigInt(other))
-    , m_is_fixnum(false) {
+Integer::Integer(const TM::String &other) {
+    auto bigint = BigInt(other);
+    if (bigint >= NAT_MIN_FIXNUM && bigint <= NAT_MAX_FIXNUM) {
+        m_is_fixnum = true;
+        m_fixnum = bigint.to_long_long();
+    } else {
+        m_is_fixnum = false;
+        m_bignum = new BigInt(bigint);
+    }
 }
 
 Integer::Integer(const BigInt &other) {
@@ -251,9 +257,20 @@ Integer &Integer::operator--() {
 }
 
 bool Integer::operator<(const Integer &other) const {
-    if (is_bignum() || other.is_bignum()) {
-        return to_bigint() < other.to_bigint();
+    if (is_bignum()) {
+        if (other.is_bignum())
+            return *m_bignum < *other.m_bignum;
+        else if (m_bignum->is_negative())
+            return true;
+        else
+            return false;
+    } else if (other.is_bignum()) {
+        if (other.is_negative())
+            return false;
+        else
+            return true;
     }
+
     return m_fixnum < other.m_fixnum;
 }
 
@@ -270,8 +287,14 @@ bool Integer::operator>=(const Integer &other) const {
 }
 
 bool Integer::operator==(const Integer &other) const {
-    if (is_bignum() || other.is_bignum())
-        return to_bigint() == other.to_bigint();
+    if (is_bignum()) {
+        if (other.is_bignum())
+            return *m_bignum == *other.m_bignum;
+        else
+            return false;
+    } else if (other.is_bignum()) {
+        return false;
+    }
 
     return m_fixnum == other.m_fixnum;
 }
@@ -307,12 +330,14 @@ bool Integer::operator>=(const double &other) const {
 bool Integer::operator==(const double &other) const {
     if (is_bignum())
         return to_bigint() == other;
+
     return to_double() == other;
 }
 
 bool Integer::operator!=(const double &other) const {
     if (is_bignum())
         return to_bigint() != other;
+
     return to_double() != other;
 }
 
