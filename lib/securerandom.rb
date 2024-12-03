@@ -1,19 +1,9 @@
+require 'random/formatter'
+
 class SecureRandom
-  class << self
-    def base64(n=nil)
-      [random_bytes(n)].pack('m0')
-    end
+  extend Random::Formatter
 
-    def bytes(n)
-      Random.urandom(n)
-    end
-
-    def hex(n=nil)
-      random_bytes(n).unpack1('H*')
-    end
-
-    def random_bytes(n=nil)
-      Random.urandom(n ? n.to_int : 16)
-    end
+  def self.bytes(n)
+    Random.urandom(n)
   end
 end
