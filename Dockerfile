@@ -52,7 +52,7 @@ COPY lib lib
 COPY src src
 COPY include include
 
-ARG NAT_BUILD_MODE=debug
+ARG NAT_BUILD_MODE=release
 RUN rake build_${NAT_BUILD_MODE}
 
 COPY spec spec
