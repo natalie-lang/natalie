@@ -129,6 +129,10 @@ Env *build_top_env() {
     Object->const_set("Random"_s, Random);
     Random->const_set("DEFAULT"_s, (new RandomObject)->initialize(env, nullptr));
 
+    ModuleObject *RandomFormatter = new ModuleObject { "Formatter" };
+    Random->const_set("Formatter"_s, RandomFormatter);
+    Random->extend_once(env, RandomFormatter);
+
     ClassObject *Regexp = Object->subclass(env, "Regexp", Object::Type::Regexp);
     global_env->set_Regexp(Regexp);
     Object->const_set("Regexp"_s, Regexp);
