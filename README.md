@@ -163,6 +163,7 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 | `erb/util.rb`    | Masatoshi SEKI                    | BSD               |
 | `ipaddr.rb`      | Hajimu Umemoto and Akinori Musha  | BSD               |
 | `find.rb`        | Kazuki Tsujimoto                  | BSD               |
+| `formatter.rb`   | Yukihiro Matsumoto                | BSD               |
 | `linenoise`      | S. Sanfilippo and P. Noordhuis    | BSD               |
 | `minicoro.h`     | Eduardo Bart                      | MIT               |
 | `pp.rb`          | Yukihiro Matsumoto                | BSD               |
