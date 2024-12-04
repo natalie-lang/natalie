@@ -24,6 +24,11 @@ unless ENV['STATS_API_SECRET'].to_s.size > 0
   exit 0
 end
 
+unless ENV.fetch('GIT_BRANCH') == 'master'
+  puts 'Not on master branch, aborting.'
+  exit 0
+end
+
 stats = {
   commit: ENV.fetch('GIT_SHA'),
   branch: ENV.fetch('GIT_BRANCH'),
