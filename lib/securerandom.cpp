@@ -42,13 +42,13 @@ Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
                     if (min->is_float()) {
                         min_rand = min->as_float()->to_double();
                     } else {
-                        min_rand = (double)min->as_integer()->to_nat_int_t();
+                        min_rand = static_cast<double>(IntegerObject::convert_to_native_type<nat_int_t>(env, min));
                     }
 
                     if (max->is_float()) {
                         max_rand = max->as_float()->to_double();
                     } else {
-                        max_rand = (double)max->as_integer()->to_nat_int_t();
+                        max_rand = static_cast<double>(IntegerObject::convert_to_native_type<nat_int_t>(env, max));
                     }
 
                     return generate_random(min_rand, max_rand);

@@ -58,19 +58,19 @@ Value RandomObject::rand(Env *env, Value arg) {
                     if (min->is_float()) {
                         min_rand = min->as_float()->to_double();
                     } else {
-                        min_rand = (double)min->as_integer()->to_nat_int_t();
+                        min_rand = static_cast<double>(IntegerObject::convert_to_native_type<nat_int_t>(env, min));
                     }
 
                     if (max->is_float()) {
                         max_rand = max->as_float()->to_double();
                     } else {
-                        max_rand = (double)max->as_integer()->to_nat_int_t();
+                        max_rand = static_cast<double>(IntegerObject::convert_to_native_type<nat_int_t>(env, max));
                     }
 
                     return generate_random(min_rand, max_rand);
                 } else {
-                    nat_int_t min_rand = min->as_integer()->to_nat_int_t();
-                    nat_int_t max_rand = max->as_integer()->to_nat_int_t();
+                    auto min_rand = IntegerObject::convert_to_native_type<nat_int_t>(env, min);
+                    auto max_rand = IntegerObject::convert_to_native_type<nat_int_t>(env, max);
 
                     if (arg->as_range()->exclude_end()) {
                         max_rand -= 1;
