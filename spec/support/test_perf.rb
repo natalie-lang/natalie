@@ -4,11 +4,6 @@ require 'json'
 require 'uri'
 require 'net/http'
 
-unless ENV['STATS_API_SECRET'].to_s.size > 0
-  puts 'No STATS_API_SECRET set, aborting.'
-  exit 1
-end
-
 
 totals = {}
 {
@@ -23,6 +18,11 @@ totals = {}
   totals[name] = File.read("callgrind.#{name}.total").to_i
 end
 pp totals
+
+unless ENV['STATS_API_SECRET'].to_s.size > 0
+  puts 'No STATS_API_SECRET set, aborting.'
+  exit 0
+end
 
 stats = {
   commit: ENV.fetch('GIT_SHA'),
