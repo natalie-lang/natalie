@@ -69,21 +69,17 @@ describe "SecureRandom.random_number" do
   end
 
   it "generates a random float number between 0.0 and 1.0 if argument is negative" do
-    NATFIXME 'it generates a random float number between 0.0 and 1.0 if argument is negative', exception: ArgumentError, message: 'invalid argument - -10' do
-      num = SecureRandom.random_number(-10)
-      num.should be_kind_of(Float)
-      0.0.should <= num
-      num.should < 1.0
-    end
+    num = SecureRandom.random_number(-10)
+    num.should be_kind_of(Float)
+    0.0.should <= num
+    num.should < 1.0
   end
 
   it "generates a random float number between 0.0 and 1.0 if argument is negative float" do
-    NATFIXME 'it generates a random float number between 0.0 and 1.0 if argument is negative float', exception: ArgumentError, message: 'invalid argument - -11.1' do
-      num = SecureRandom.random_number(-11.1)
-      num.should be_kind_of(Float)
-      0.0.should <= num
-      num.should < 1.0
-    end
+    num = SecureRandom.random_number(-11.1)
+    num.should be_kind_of(Float)
+    0.0.should <= num
+    num.should < 1.0
   end
 
   it "generates different float numbers with subsequent invocations" do

@@ -23,9 +23,8 @@ Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
     } else {
         if (arg->is_float()) {
             double max = arg->as_float()->to_double();
-            if (max <= 0) {
-                env->raise("ArgumentError", "invalid argument - {}", arg->inspect_str(env));
-            }
+            if (max <= 0)
+                max = 1.0;
             return generate_random(0.0, max);
         } else if (arg->is_range()) {
             Value min = arg->as_range()->begin();
@@ -67,9 +66,8 @@ Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
         }
 
         nat_int_t max = IntegerObject::convert_to_nat_int_t(env, arg);
-        if (max <= 0) {
-            env->raise("ArgumentError", "invalid argument - {}", arg->inspect_str(env));
-        }
+        if (max <= 0)
+            return generate_random(0.0, 1.0);
         return generate_random(0, max - 1);
     }
 }
