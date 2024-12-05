@@ -1,14 +1,22 @@
 class Random
   class << self
-    def rand(*args)
-      DEFAULT.rand(*args)
+    def rand(...)
+      DEFAULT.rand(...)
     end
-    alias random_number rand
 
-    def bytes(*args)
-      Random.new.bytes(*args)
+    def random_number(...)
+      DEFAULT.random_number(...)
+    end
+
+    def bytes(...)
+      Random.new.bytes(...)
     end
   end
 
-  alias random_number rand
+  def random_number(*args)
+    if args.size == 1 && args[0].is_a?(Numeric) && args[0].negative?
+      args[0] = 1.0
+    end
+    rand(*args)
+  end
 end
