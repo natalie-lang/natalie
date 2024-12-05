@@ -65,6 +65,10 @@ Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
             env->raise("ArgumentError", "bad value for range");
         }
 
+        auto Numeric = GlobalEnv::the()->Object()->const_get("Numeric"_s);
+        if (!arg->is_a(env, Numeric))
+            env->raise("ArgumentError", "No implicit conversion of {} into Integer", arg->klass()->inspect_str());
+
         nat_int_t max = IntegerObject::convert_to_nat_int_t(env, arg);
         if (max <= 0)
             return generate_random(0.0, 1.0);
