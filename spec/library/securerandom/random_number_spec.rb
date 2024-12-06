@@ -94,10 +94,8 @@ describe "SecureRandom.random_number" do
   end
 
   it "raises ArgumentError if the argument is non-numeric" do
-    NATFIXME 'it raises ArgumentError if the argument is non-numeric', exception: SpecFailedException do
-      -> {
-        SecureRandom.random_number(Object.new)
-      }.should raise_error(ArgumentError)
-    end
+    -> {
+      SecureRandom.random_number(Object.new)
+    }.should raise_error(ArgumentError)
   end
 end

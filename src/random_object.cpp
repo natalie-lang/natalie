@@ -82,6 +82,9 @@ Value RandomObject::rand(Env *env, Value arg) {
             env->raise("ArgumentError", "bad value for range");
         }
 
+        if (arg->is_nil())
+            env->raise("ArgumentError", "invalid argument - {}", arg->to_s(env)->string());
+
         nat_int_t max = IntegerObject::convert_to_nat_int_t(env, arg);
         if (max <= 0) {
             env->raise("ArgumentError", "invalid argument - {}", arg->inspect_str(env));
