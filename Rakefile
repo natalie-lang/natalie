@@ -2,7 +2,7 @@ require_relative './lib/natalie/compiler/flags'
 
 task default: :build
 
-DEFAULT_BUILD_TYPE = 'debug'.freeze
+DEFAULT_BUILD_TYPE = 'release'.freeze
 DL_EXT = RbConfig::CONFIG['DLEXT']
 SO_EXT = RbConfig::CONFIG['SOEXT']
 SRC_DIRECTORIES = Dir.new('src').children.select { |p| File.directory?(File.join('src', p)) }
@@ -13,7 +13,12 @@ task :build do
   Rake::Task["build_#{type}"].invoke
 end
 
-desc 'Build Natalie with no optimization and all warnings (default)'
+desc 'Build Natalie with release optimizations enabled and warnings off (default)'
+task build_release: %i[set_build_release libnatalie prism_c_ext] do
+  puts 'Build mode: release'
+end
+
+desc 'Build Natalie with no optimization and all warnings'
 task build_debug: %i[set_build_debug libnatalie prism_c_ext ctags] do
   puts 'Build mode: debug'
 end
@@ -21,11 +26,6 @@ end
 desc 'Build Natalie with AddressSanitizer enabled'
 task build_asan: %i[set_build_asan libnatalie prism_c_ext] do
   puts 'Build mode: asan'
-end
-
-desc 'Build Natalie with release optimizations enabled and warnings off'
-task build_release: %i[set_build_release libnatalie prism_c_ext] do
-  puts 'Build mode: release'
 end
 
 desc 'Remove temporary files created during build'
@@ -284,31 +284,26 @@ end
 DEFAULT_HOST_RUBY_VERSION = 'ruby3.3'.freeze
 SUPPORTED_HOST_RUBY_VERSIONS = %w[ruby3.1 ruby3.2 ruby3.3].freeze
 
+def default_docker_build_args
+  [
+    "--build-arg IMAGE='ruby:#{ruby_version_number}'",
+    '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD',
+    "--build-arg NAT_BUILD_MODE=#{ENV.fetch('NAT_BUILD_MODE', 'release')}",
+    "--build-arg NEED_VALGRIND=#{ENV.fetch('NEED_VALGRIND', 'false')}",
+  ]
+end
+
 task :docker_build_gcc do
   sh "docker build -t natalie_gcc_#{ruby_version_string} " \
-     "--build-arg IMAGE='ruby:#{ruby_version_number}' " \
-     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD .'
+     "#{default_docker_build_args.join(' ')} " \
+     '.'
 end
 
 task :docker_build_clang do
   sh "docker build -t natalie_clang_#{ruby_version_string} " \
-     "--build-arg IMAGE='ruby:#{ruby_version_number}' " \
-     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
+     "#{default_docker_build_args.join(' ')} " \
      '--build-arg CC=clang ' \
      '--build-arg CXX=clang++ ' \
-     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
-     '.'
-end
-
-task :docker_build_clang_release do
-  sh "docker build -t natalie_clang_#{ruby_version_string}_release " \
-     "--build-arg IMAGE='ruby:#{ruby_version_number}' " \
-     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
-     '--build-arg CC=clang ' \
-     '--build-arg CXX=clang++ ' \
-     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
-     '--build-arg NAT_BUILD_MODE=release ' \
-     "--build-arg NEED_VALGRIND=#{ENV.fetch('NEED_VALGRIND', 'false')} " \
      '.'
 end
 
@@ -394,14 +389,14 @@ end
 
 task :docker_test_perf do
   ENV['NEED_VALGRIND'] = 'true'
-  Rake::Task['docker_build_clang_release'].invoke
+  Rake::Task['docker_build_clang'].invoke
   sh "docker run #{docker_run_flags} " \
      "-e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect} " \
      "-e GIT_SHA=#{(ENV['LAST_COMMIT_SHA'] || '').inspect} " \
      "-e GIT_BRANCH=#{(ENV['BRANCH'] || '').inspect} " \
      '--rm ' \
      '--entrypoint rake ' \
-     "natalie_clang_#{ruby_version_string}_release test_perf"
+     "natalie_clang_#{ruby_version_string} test_perf"
 end
 
 task docker_tidy: :docker_build_clang do

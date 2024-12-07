@@ -38,6 +38,7 @@ jobs:
       - name: run tests
         env:
           RUBY: ruby3.3
+          NAT_BUILD_MODE: debug
         run: |
           export GLOB=$(ruby spec/support/split_specs.rb 3 ${{ matrix.group }})
           rake docker_test_${{ matrix.compiler }}
@@ -50,6 +51,7 @@ jobs:
           - group1
           - group2
           - group3
+          - group4
     steps:
       - uses: actions/checkout@v4
         with:
@@ -78,8 +80,9 @@ jobs:
       - name: test with clang on macOS
         env:
           PKG_CONFIG_PATH: /usr/local/opt/openssl@3/lib/pkgconfig:/opt/homebrew/opt/openssl@3/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig:/opt/homebrew/opt/libffi/lib/pkgconfig
+          NAT_BUILD_MODE: release
         run: |
-          export GLOB=$(ruby spec/support/split_specs.rb 3 ${{ matrix.group }})
+          export GLOB=$(ruby spec/support/split_specs.rb 4 ${{ matrix.group }})
           export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
           rake test
   self-hosted:

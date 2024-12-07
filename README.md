@@ -73,9 +73,6 @@ rake
 - If you get an error about missing `bundler`, then your operating system probably didn't
   install it alongside Ruby. You can run `gem install bundler` to get it.
 
-**NOTE:** Currently, the default build is the "debug" build, since Nataile is in active development.
-But you can build in release mode with `rake build_release`.
-
 ## Usage
 
 **REPL:**
