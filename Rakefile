@@ -284,20 +284,26 @@ end
 DEFAULT_HOST_RUBY_VERSION = 'ruby3.3'.freeze
 SUPPORTED_HOST_RUBY_VERSIONS = %w[ruby3.1 ruby3.2 ruby3.3].freeze
 
+def default_docker_build_args
+  [
+    "--build-arg IMAGE='ruby:#{ruby_version_number}'",
+    '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD',
+    "--build-arg NAT_BUILD_MODE=#{ENV.fetch('NAT_BUILD_MODE', 'release')}",
+    "--build-arg NEED_VALGRIND=#{ENV.fetch('NEED_VALGRIND', 'false')}",
+  ]
+end
+
 task :docker_build_gcc do
   sh "docker build -t natalie_gcc_#{ruby_version_string} " \
-     "--build-arg IMAGE='ruby:#{ruby_version_number}' " \
-     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD .'
+     "#{default_docker_build_args.join(' ')} " \
+     '.'
 end
 
 task :docker_build_clang do
   sh "docker build -t natalie_clang_#{ruby_version_string} " \
-     "--build-arg IMAGE='ruby:#{ruby_version_number}' " \
-     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
+     "#{default_docker_build_args.join(' ')} " \
      '--build-arg CC=clang ' \
      '--build-arg CXX=clang++ ' \
-     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
-     "--build-arg NEED_VALGRIND=#{ENV.fetch('NEED_VALGRIND', 'false')} " \
      '.'
 end
 
