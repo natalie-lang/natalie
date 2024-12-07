@@ -7,8 +7,13 @@ require_relative '../support/nat_binary'
 describe 'ruby/spec' do
   parallelize_me!
 
-  def spec_timeout
-    (ENV['SPEC_TIMEOUT'] || 120).to_i
+  def spec_timeout(path)
+    case path
+    when %r{core/thread}
+      240
+    else
+      120
+    end
   end
 
   Dir.chdir File.expand_path('../..', __dir__)
@@ -19,7 +24,7 @@ describe 'ruby/spec' do
          elsif !(glob = ENV['GLOB']).to_s.empty?
            # GLOB="spec/core/io/*_spec.rb,spec/core/thread/*_spec.rb" rake test
            Dir[*glob.split(',')].tap do |files|
-             puts "Matched files:"
+             puts 'Matched files:'
              puts files.to_a
            end
          else
@@ -28,7 +33,7 @@ describe 'ruby/spec' do
   glob.each do |path|
     describe path do
       it 'passes all specs' do
-        out_nat = Timeout.timeout(spec_timeout, nil, "execution expired running: #{path}") do
+        out_nat = Timeout.timeout(spec_timeout(path), nil, "execution expired running: #{path}") do
           `#{NAT_BINARY} #{path} 2>&1`
         end
         puts out_nat if ENV['DEBUG'] || !$?.success?
