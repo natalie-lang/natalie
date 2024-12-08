@@ -18,3 +18,4 @@ jobs:
       - run: rake docker_test_all_ruby_spec_nightly
         env:
           STATS_API_SECRET: ${{ secrets.STATS_API_SECRET }}
+          NAT_BUILD_MODE: debug
