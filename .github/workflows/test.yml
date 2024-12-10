@@ -31,17 +31,30 @@ jobs:
           - group1
           - group2
           - group3
+    env:
+      GEM_HOME: ~/gems
+      NAT_BUILD_MODE: debug
+      CC: ${{ matrix.compiler == 'clang' && 'clang' || 'gcc' }}
+      CXX: ${{ matrix.compiler == 'clang' && 'clang++' || 'g++' }}
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: run tests
+      - name: install software
         env:
-          RUBY: ruby3.3
-          NAT_BUILD_MODE: debug
+          DEBIAN_FRONTEND: noninteractive
+          GEM_HOME: ~/gems
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y -q build-essential autoconf automake libtool clang lcov libclang-dev
+      - uses: ruby/setup-ruby@v1
+      - name: build Natalie
+        run: |
+          rake build
+      - name: run tests
         run: |
           export GLOB=$(ruby spec/support/split_specs.rb 3 ${{ matrix.group }})
-          rake docker_test_${{ matrix.compiler }}
+          rake test
   macos:
     runs-on: macos-latest
     strategy:
