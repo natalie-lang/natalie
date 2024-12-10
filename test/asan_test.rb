@@ -11,32 +11,34 @@ TEST_GLOBS = [
   'test/natalie/**/*_test.rb',
 ].freeze
 
-# FIXME: These tests fail, crash, or produce warnings from the AddressSanitizer.
-SKIP_TESTS = %w[
+TESTS_THAT_FAIL = %w[
   test/natalie/array_test.rb
-  test/natalie/dir_test.rb
-  test/natalie/encoding_test.rb
   test/natalie/enumerator_test.rb
-  test/natalie/enum_for_with_keyword_arguments_test.rb
   test/natalie/equality_test.rb
   test/natalie/ffi_test.rb
-  test/natalie/fiber/scheduler_sleep_test.rb
   test/natalie/fiber_test.rb
   test/natalie/integer_test.rb
-  test/natalie/kernel_test.rb
   test/natalie/libnat_test.rb
-  test/natalie/loop_test.rb
   test/natalie/module_test.rb
   test/natalie/openssl_test.rb
   test/natalie/optparse_test.rb
   test/natalie/pp_test.rb
   test/natalie/require_test.rb
-  test/natalie/reverse_each_test.rb
   test/natalie/singleton_class_test.rb
+  test/natalie/thread_test.rb
+].freeze
+
+TESTS_THAT_PRODUCE_WARNINGS = %w[
+  test/natalie/dir_test.rb
+  test/natalie/encoding_test.rb
+  test/natalie/enum_for_with_keyword_arguments_test.rb
+  test/natalie/fiber/scheduler_sleep_test.rb
+  test/natalie/kernel_test.rb
+  test/natalie/loop_test.rb
+  test/natalie/reverse_each_test.rb
   test/natalie/stringio_test.rb
   test/natalie/string_test.rb
   test/natalie/struct_test.rb
-  test/natalie/thread_test.rb
 ].freeze
 
 describe 'ASAN tests' do
@@ -46,30 +48,40 @@ describe 'ASAN tests' do
 
   Dir.chdir File.expand_path('..', __dir__)
   Dir[*TEST_GLOBS].each do |path|
-    next if SKIP_TESTS.include?(path)
+    next if TESTS_THAT_FAIL.include?(path)
 
-    code = File.read(path, encoding: 'utf-8')
     describe path do
-      if code =~ /# skip-ruby/
-        it 'it passes' do
-          run_nat(path)
+      if TESTS_THAT_PRODUCE_WARNINGS.include?(path)
+        it 'it runs with warnings' do
+          out = run_nat(path)
+          expect(out).must_match(/ASan/)
         end
       else
-        it 'has the same output in ruby and natalie' do
-          run_both_and_compare(path)
+        it 'it runs without warnings' do
+          out = run_nat(path)
+          expect(out).wont_match(/ASan/)
         end
       end
     end
   end
 
   {
-    'examples/hello.rb' => [],
-    'examples/fib.rb'   => [],
-    #'examples/boardslam.rb' => [3, 5, 1], # FIXME: produces ASAN warning :-(
-  }.each do |path, args|
+    'examples/hello.rb'     => {},
+    'examples/fib.rb'       => {},
+    'examples/boardslam.rb' => { args: [3, 5, 1], warnings: true },
+  }.each do |path, details|
+    args = details[:args] || []
     describe path do
-      it 'has the same output in ruby and natalie' do
-        run_both_and_compare(path, *args)
+      if details[:warnings]
+        it 'it runs with warnings' do
+          out = run_nat(path, *args)
+          expect(out).must_match(/ASan/)
+        end
+      else
+        it 'it runs without warnings' do
+          out = run_nat(path, *args)
+          expect(out).wont_match(/ASan/)
+        end
       end
     end
   end
