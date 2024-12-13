@@ -252,6 +252,15 @@ module Marshal
       write(value.send(:marshal_dump))
     end
 
+    def write_user_marshaled_object_2(value)
+      raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
+      write_char('u')
+      write(value.class.to_s.to_sym)
+      dump = value.send(:_dump, -1)
+      write_integer_bytes(dump.size)
+      write_bytes(value.send(:_dump, -1))
+    end
+
     def write_object(value)
       raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
       write_char('o')
@@ -307,6 +316,8 @@ module Marshal
         write_regexp(value)
       elsif value.respond_to?(:marshal_dump, true)
         write_user_marshaled_object(value)
+      elsif value.respond_to?(:_dump, true)
+        write_user_marshaled_object_2(value)
       elsif value.is_a?(Object)
         write_object(value)
       else

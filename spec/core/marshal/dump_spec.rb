@@ -120,9 +120,7 @@ describe "Marshal.dump" do
 
   describe "with an object responding to #_dump" do
     it "dumps the String returned by #_dump" do
-      NATFIXME 'dumps the String returned by #_dump', exception: SpecFailedException do
-        Marshal.dump(UserDefined.new).should == "\004\bu:\020UserDefined\022\004\b[\a:\nstuff;\000"
-      end
+      Marshal.dump(UserDefined.new).should == "\004\bu:\020UserDefined\022\004\b[\a:\nstuff;\000"
     end
 
     it "dumps the String in non US-ASCII and non UTF-8 encoding" do
@@ -141,9 +139,7 @@ describe "Marshal.dump" do
 
     it "ignores overridden name method" do
       obj = MarshalSpec::UserDefinedWithOverriddenName.new
-      NATFIXME 'ignores overridden name method', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bu:/MarshalSpec::UserDefinedWithOverriddenName\x12\x04\b[\a:\nstuff;\x00"
-      end
+      Marshal.dump(obj).should == "\x04\bu:/MarshalSpec::UserDefinedWithOverriddenName\x12\x04\b[\a:\nstuff;\x00"
     end
 
     it "raises a TypeError if _dump returns a non-string" do

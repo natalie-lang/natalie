@@ -378,7 +378,7 @@ describe :marshal_load, shared: true do
 
     it "loads the String in non US-ASCII and non UTF-8 encoding" do
       source_object = UserDefinedString.new("a".encode("windows-1251"))
-      NATFIXME 'loads the String in non US-ASCII and non UTF-8 encoding', exception: ArgumentError, message: 'marshal data too short' do
+      NATFIXME 'loads the String in non US-ASCII and non UTF-8 encoding', exception: ArgumentError, message: 'dump format error' do
         object = Marshal.send(@method, Marshal.dump(source_object))
         object.string.should == "a".encode("windows-1251")
       end
@@ -386,7 +386,7 @@ describe :marshal_load, shared: true do
 
     it "loads the String in multibyte encoding" do
       source_object = UserDefinedString.new("a".encode("utf-32le"))
-      NATFIXME 'loads the String in multibyte encoding', exception: SpecFailedException, message: '"a" should be == to "a"' do
+      NATFIXME 'loads the String in multibyte encoding', exception: ArgumentError, message: 'dump format error' do
         object = Marshal.send(@method, Marshal.dump(source_object))
         object.string.should == "a".encode("utf-32le")
       end
