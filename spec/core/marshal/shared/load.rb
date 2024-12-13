@@ -613,7 +613,7 @@ describe :marshal_load, shared: true do
       h = { key: s }
       h.instance_variable_set :@hash_ivar, 'hash ivar'
 
-      NATFIXME 'preserves hash ivars when hash contains a string having ivar', exception: SpecFailedException do
+      NATFIXME 'issue with additional @ in ivar name', exception: NameError do
         unmarshalled = Marshal.send(@method, Marshal.dump(h))
         unmarshalled.instance_variable_get(:@hash_ivar).should == 'hash ivar'
         unmarshalled[:key].instance_variable_get(:@string_ivar).should == 'string ivar'
