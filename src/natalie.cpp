@@ -464,7 +464,7 @@ Env *build_top_env() {
     Object->const_set("ENV"_s, ENV);
     ENV->extend_once(env, Enumerable);
 
-    Value RUBY_VERSION = new StringObject { "3.3.0" };
+    Value RUBY_VERSION = new StringObject { "3.4.0" };
     RUBY_VERSION->freeze();
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
 

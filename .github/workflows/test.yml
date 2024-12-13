@@ -37,7 +37,7 @@ jobs:
           submodules: true
       - name: run tests
         env:
-          RUBY: ruby3.3
+          RUBY: ruby3.4
           NAT_BUILD_MODE: debug
         run: |
           export GLOB=$(ruby spec/support/split_specs.rb 3 ${{ matrix.group }})
@@ -62,8 +62,8 @@ jobs:
           brew uninstall -f --ignore-dependencies ruby
           brew uninstall -f --ignore-dependencies ruby@3.0
           rm -rf /usr/local/lib/ruby/gems/3.0.0 /usr/local/opt/ruby@3.0
-          brew install ruby@3.3
-          brew link -f --overwrite ruby@3.3
+          brew install ruby@3.4
+          brew link -f --overwrite ruby@3.4
       - name: check ruby
         run: |
           export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
@@ -83,7 +83,7 @@ jobs:
           PKG_CONFIG_PATH: /usr/local/opt/openssl@3/lib/pkgconfig:/opt/homebrew/opt/openssl@3/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig:/opt/homebrew/opt/libffi/lib/pkgconfig
           NAT_BUILD_MODE: release
         run: |
-          export PATH="/opt/homebrew/opt/ruby@3.3/bin:$PATH"
+          export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
           export GLOB=$(ruby spec/support/split_specs.rb 4 ${{ matrix.group }})
           rake test
   self-hosted:
