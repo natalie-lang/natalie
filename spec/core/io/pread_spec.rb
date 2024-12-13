@@ -59,6 +59,14 @@ guard -> { platform_is_not :windows or ruby_version_is "3.3" } do
       @file.pread(0, 4).should == ""
     end
 
+    it "returns a buffer for maxlen = 0 when buffer specified" do
+      buffer = +"foo"
+      NATFIXME 'it returns a buffer for maxlen = 0 when buffer specified', exception: SpecFailedException do
+        @file.pread(0, 4, buffer).should.equal?(buffer)
+      end
+      buffer.should == "foo"
+    end
+
     it "ignores the offset for maxlen = 0, even if it is out of file bounds" do
       @file.pread(0, 400).should == ""
     end
