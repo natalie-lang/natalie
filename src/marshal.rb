@@ -505,6 +505,16 @@ module Marshal
       object
     end
 
+    def read_user_marshaled_object_2
+      name = read_value
+      object_class = find_constant(name)
+      unless object_class.respond_to?(:_load)
+        raise TypeError, "#{object_class} needs to have method `_load'"
+      end
+      data = read_string
+      object_class._load(data)
+    end
+
     def read_object
       name = read_value
       object_class = find_constant(name)
@@ -569,6 +579,8 @@ module Marshal
         read_regexp
       when 'U'
         read_user_marshaled_object
+      when 'u'
+        read_user_marshaled_object_2
       when 'o'
         read_object
       when 'I'

@@ -366,27 +366,23 @@ describe :marshal_load, shared: true do
       # this string represents: <#UserPreviouslyDefinedWithInitializedIvar @field2=7 @field1=6>
       dump_str = "\004\bu:-UserPreviouslyDefinedWithInitializedIvar\a:\f@field2i\f:\f@field1i\v"
 
-      NATFIXME 'does not set instance variables of an object with user-defined _dump/_load', exception: ArgumentError, message: 'dump format error' do
-        UserPreviouslyDefinedWithInitializedIvar.should_receive(:_load).and_return(UserPreviouslyDefinedWithInitializedIvar.new)
-        marshaled_obj = Marshal.send(@method, dump_str)
+      UserPreviouslyDefinedWithInitializedIvar.should_receive(:_load).and_return(UserPreviouslyDefinedWithInitializedIvar.new)
+      marshaled_obj = Marshal.send(@method, dump_str)
 
-        marshaled_obj.should be_an_instance_of(UserPreviouslyDefinedWithInitializedIvar)
-        marshaled_obj.field1.should be_nil
-        marshaled_obj.field2.should be_nil
-      end
+      marshaled_obj.should be_an_instance_of(UserPreviouslyDefinedWithInitializedIvar)
+      marshaled_obj.field1.should be_nil
+      marshaled_obj.field2.should be_nil
     end
 
     it "loads the String in non US-ASCII and non UTF-8 encoding" do
       source_object = UserDefinedString.new("a".encode("windows-1251"))
-      NATFIXME 'loads the String in non US-ASCII and non UTF-8 encoding', exception: ArgumentError, message: 'dump format error' do
-        object = Marshal.send(@method, Marshal.dump(source_object))
-        object.string.should == "a".encode("windows-1251")
-      end
+      object = Marshal.send(@method, Marshal.dump(source_object))
+      object.string.should == "a".encode("windows-1251")
     end
 
     it "loads the String in multibyte encoding" do
       source_object = UserDefinedString.new("a".encode("utf-32le"))
-      NATFIXME 'loads the String in multibyte encoding', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'loads the String in multibyte encoding', exception: SpecFailedException do
         object = Marshal.send(@method, Marshal.dump(source_object))
         object.string.should == "a".encode("utf-32le")
       end
@@ -410,7 +406,7 @@ describe :marshal_load, shared: true do
         # this string represents: {a: <#UserDefinedImmediate A>, b: <#UserDefinedImmediate A>, c: <#String "string">, d: <#String "string">}
         hash_dump = "\x04\b{\t:\x06aIu:\x19UserDefinedImmediate\x00\x06:\x06ET:\x06b@\x06:\x06cI\"\vstring\x06;\aT:\x06d@\a"
 
-        NATFIXME 'loads any structure with multiple references to the same object, followed by multiple instances of another object', exception: ArgumentError, message: 'dump format error' do
+        NATFIXME 'loads any structure with multiple references to the same object, followed by multiple instances of another object', exception: NoMethodError, message: "undefined method `force_encoding' for nil" do
           marshaled_obj = Marshal.send(@method, hash_dump)
           marshaled_obj.should == {a: nil, b: nil, c: str, d: str}
 
@@ -428,7 +424,7 @@ describe :marshal_load, shared: true do
         # this string represents: [<#UserDefinedImmediate A>, <#UserDefinedImmediate B>, <#String "string">, <#String "string">]
         array_dump = "\x04\b[\tIu:\x19UserDefinedImmediate\x00\x06:\x06ETIu;\x00\x00\x06;\x06TI\"\vstring\x06;\x06T@\b"
 
-        NATFIXME 'loads an array containing references to multiple instances of the object, followed by multiple instances of another object', exception: ArgumentError, message: 'dump format error' do
+        NATFIXME 'loads an array containing references to multiple instances of the object, followed by multiple instances of another object', exception: NoMethodError, message: "undefined method `force_encoding' for nil" do
           marshaled_obj = Marshal.send(@method, array_dump)
           marshaled_obj.should == [nil, nil, str, str]
         end
