@@ -608,7 +608,8 @@ module Marshal
 
     def find_constant(name)
       begin
-        Object.const_get(name)
+        # NATFIXME: Should be supported directly in const_get
+        name.to_s.split('::').reduce(Object) { |memo, part| memo.const_get(part) }
       rescue NameError
         raise ArgumentError, "undefined class/module #{name}"
       end

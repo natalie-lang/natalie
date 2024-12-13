@@ -855,13 +855,11 @@ describe :marshal_load, shared: true do
 
       Thread.current[threadlocal_key] = nil
 
-      NATFIXME "It can't find the class for some reason", exception: ArgumentError, message: 'undefined class/module MarshalSpec::StructWithUserInitialize' do
-        dumped = Marshal.dump(s)
-        loaded = Marshal.send(@method, dumped)
+      dumped = Marshal.dump(s)
+      loaded = Marshal.send(@method, dumped)
 
-        Thread.current[threadlocal_key].should == nil
-        loaded.a.should == 'foo'
-      end
+      Thread.current[threadlocal_key].should == nil
+      loaded.a.should == 'foo'
     end
   end
 
