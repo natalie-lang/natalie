@@ -127,33 +127,70 @@ describe 'hash' do
     { key => 'val' }[key].should == 'val'
   end
 
-  it 'maintains insertion order' do
-    hash = { 1 => 1, 2 => 2, 3 => 3, 'four' => 4, :five => 5 }
-    hash.inspect.should == '{1=>1, 2=>2, 3=>3, "four"=>4, :five=>5}'
-    hash['six'] = 6
-    hash.inspect.should == '{1=>1, 2=>2, 3=>3, "four"=>4, :five=>5, "six"=>6}'
-    hash[2] = 'two'
-    hash.inspect.should == '{1=>1, 2=>"two", 3=>3, "four"=>4, :five=>5, "six"=>6}'
-    hash[2] = nil
-    hash.inspect.should == '{1=>1, 2=>nil, 3=>3, "four"=>4, :five=>5, "six"=>6}'
-    hash[2] = 'two'
-    hash.inspect.should == '{1=>1, 2=>"two", 3=>3, "four"=>4, :five=>5, "six"=>6}'
-    hash.delete(2)
-    hash.inspect.should == '{1=>1, 3=>3, "four"=>4, :five=>5, "six"=>6}'
-    hash[2] = 2
-    hash.inspect.should == '{1=>1, 3=>3, "four"=>4, :five=>5, "six"=>6, 2=>2}'
+  ruby_version_is ''...'3.4' do
+    it 'maintains insertion order' do
+      hash = { 1 => 1, 2 => 2, 3 => 3, 'four' => 4, :five => 5 }
+      hash.inspect.should == '{1=>1, 2=>2, 3=>3, "four"=>4, :five=>5}'
+      hash['six'] = 6
+      hash.inspect.should == '{1=>1, 2=>2, 3=>3, "four"=>4, :five=>5, "six"=>6}'
+      hash[2] = 'two'
+      hash.inspect.should == '{1=>1, 2=>"two", 3=>3, "four"=>4, :five=>5, "six"=>6}'
+      hash[2] = nil
+      hash.inspect.should == '{1=>1, 2=>nil, 3=>3, "four"=>4, :five=>5, "six"=>6}'
+      hash[2] = 'two'
+      hash.inspect.should == '{1=>1, 2=>"two", 3=>3, "four"=>4, :five=>5, "six"=>6}'
+      hash.delete(2)
+      hash.inspect.should == '{1=>1, 3=>3, "four"=>4, :five=>5, "six"=>6}'
+      hash[2] = 2
+      hash.inspect.should == '{1=>1, 3=>3, "four"=>4, :five=>5, "six"=>6, 2=>2}'
+    end
   end
 
-  it 'can delete the last key' do
-    hash = {}
-    hash.inspect.should == '{}'
-    hash.size.should == 0
-    hash[1] = 1
-    hash.inspect.should == '{1=>1}'
-    hash.size.should == 1
-    hash.delete(1)
-    hash.inspect.should == '{}'
-    hash.size.should == 0
+  ruby_version_is '3.4' do
+    it 'maintains insertion order' do
+      hash = { 1 => 1, 2 => 2, 3 => 3, 'four' => 4, :five => 5 }
+      hash.inspect.should == '{1 => 1, 2 => 2, 3 => 3, "four" => 4, five: 5}'
+      hash['six'] = 6
+      hash.inspect.should == '{1 => 1, 2 => 2, 3 => 3, "four" => 4, five: 5, "six" => 6}'
+      hash[2] = 'two'
+      hash.inspect.should == '{1 => 1, 2 => "two", 3 => 3, "four" => 4, five: 5, "six" => 6}'
+      hash[2] = nil
+      hash.inspect.should == '{1 => 1, 2 => nil, 3 => 3, "four" => 4, five: 5, "six" => 6}'
+      hash[2] = 'two'
+      hash.inspect.should == '{1 => 1, 2 => "two", 3 => 3, "four" => 4, five: 5, "six" => 6}'
+      hash.delete(2)
+      hash.inspect.should == '{1 => 1, 3 => 3, "four" => 4, five: 5, "six" => 6}'
+      hash[2] = 2
+      hash.inspect.should == '{1 => 1, 3 => 3, "four" => 4, five: 5, "six" => 6, 2 => 2}'
+    end
+  end
+
+  ruby_version_is ''...'3.4' do
+    it 'can delete the last key' do
+      hash = {}
+      hash.inspect.should == '{}'
+      hash.size.should == 0
+      hash[1] = 1
+      hash.inspect.should == '{1=>1}'
+      hash.size.should == 1
+      hash.delete(1)
+      hash.inspect.should == '{}'
+      hash.size.should == 0
+    end
+  end
+
+  ruby_version_is '3.4' do
+    it 'can delete the last key' do
+      hash = {}
+      hash.inspect.should == '{}'
+      hash.size.should == 0
+      hash[1] = 1
+      hash.inspect.should == '{1 => 1}'
+      hash.size.should == 1
+      hash.delete(1)
+      hash.inspect.should == '{}'
+      hash.size.should == 0
+    end
   end
 
   it 'can be compared for equality' do

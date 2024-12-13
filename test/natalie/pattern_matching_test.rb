@@ -37,7 +37,7 @@ describe 'pattern matching' do
     -> {
       (raise RuntimeError, 'expected error'; 2) => a
     }.should raise_error(RuntimeError, 'expected error')
-    -> { a }.should raise_error(NameError, /undefined (?:local variable or )?method `a' for main/)
+    -> { a }.should raise_error(NameError, /undefined (?:local variable or )?method [`']a' for main/)
   end
 
   it 'does not change an existing variable if the expression fails' do

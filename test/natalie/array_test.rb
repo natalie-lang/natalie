@@ -991,10 +991,20 @@ describe 'array' do
       [1].join(',').should == '1'
     end
 
-    it 'returns the items joined together in a string' do
-      %w[foo bar].join('').should == 'foobar'
-      %w[foo bar].join(',').should == 'foo,bar'
-      [:foo, 2, nil, 'bar', { baz: :buz }].join(',').should == 'foo,2,,bar,{:baz=>:buz}'
+    ruby_version_is ''...'3.4' do
+      it 'returns the items joined together in a string' do
+        %w[foo bar].join('').should == 'foobar'
+        %w[foo bar].join(',').should == 'foo,bar'
+        [:foo, 2, nil, 'bar', { baz: :buz }].join(',').should == 'foo,2,,bar,{:baz=>:buz}'
+      end
+    end
+
+    ruby_version_is '3.4' do
+      it 'returns the items joined together in a string' do
+        %w[foo bar].join('').should == 'foobar'
+        %w[foo bar].join(',').should == 'foo,bar'
+        [:foo, 2, nil, 'bar', { baz: :buz }].join(',').should == 'foo,2,,bar,{baz: :buz}'
+      end
     end
 
     it 'does not mutate anything' do
