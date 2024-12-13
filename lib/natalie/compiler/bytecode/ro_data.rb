@@ -23,7 +23,6 @@ module Natalie
         def add(value)
           return @add_lookup[value] if @add_lookup.key?(value)
 
-          size = value.bytesize
           position = @buffer.size
           @buffer << [value.bytesize].pack('w')
           @buffer << value.b
