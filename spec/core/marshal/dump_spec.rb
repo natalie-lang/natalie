@@ -187,7 +187,7 @@ describe "Marshal.dump" do
         t = Time.utc(2022)
         reference = "@\a"
 
-        NATFIXME 'indexes instance variables and then a Time object itself', exception: SpecFailedException do
+        NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
           Marshal.dump([t, t]).should == "\x04\b[\aIu:\tTime\r \x80\x1E\xC0\x00\x00\x00\x00\x06:\tzoneI\"\bUTC\x06:\x06EF#{reference}"
         end
       end
@@ -782,8 +782,8 @@ describe "Marshal.dump" do
       @internal = Encoding.default_internal
       Encoding.default_internal = Encoding::UTF_8
 
-      NATFIXME 'Implement Time#_dump', exception: NoMethodError, message: "undefined method `_dump' for an instance of Time" do
-        @utc = Time.utc(2012, 1, 1)
+      @utc = Time.utc(2012, 1, 1)
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
         @utc_dump = @utc.send(:_dump)
 
         with_timezone 'AST', 3 do
@@ -812,16 +812,16 @@ describe "Marshal.dump" do
     end
 
     it "dumps the zone, but not the offset if zone is UTC" do
-      dump = Marshal.dump(@utc)
-      zone = ":\tzoneI\"\bUTC\x06:\x06EF" # Last is 'F' (US-ASCII)
-      NATFIXME 'dumps the zone, but not the offset if zone is UTC', exception: SpecFailedException do
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        dump = Marshal.dump(@utc)
+        zone = ":\tzoneI\"\bUTC\x06:\x06EF" # Last is 'F' (US-ASCII)
         dump.should == "\x04\bIu:\tTime\r#{@utc_dump}\x06#{zone}"
       end
     end
 
     it "ignores overridden name method" do
       obj = MarshalSpec::TimeWithOverriddenName.new
-      NATFIXME 'ignores overridden name method', exception: SpecFailedException do
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
         Marshal.dump(obj).should include("MarshalSpec::TimeWithOverriddenName")
       end
     end
@@ -834,7 +834,7 @@ describe "Marshal.dump" do
     end
 
     it "raises TypeError with an anonymous Time subclass" do
-      NATFIXME 'raises TypeError with an anonymous Time subclass', exception: SpecFailedException do
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
         -> { Marshal.dump(Class.new(Time).now) }.should raise_error(TypeError)
       end
     end

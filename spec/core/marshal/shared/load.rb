@@ -1244,37 +1244,46 @@ describe :marshal_load, shared: true do
     end
   end
 
-  # NATFIXME: This crashes
-  xdescribe "for a Time" do
+  describe "for a Time" do
     it "loads" do
-      Marshal.send(@method, Marshal.dump(Time.at(1))).should == Time.at(1)
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        Marshal.send(@method, Marshal.dump(Time.at(1))).should == Time.at(1)
+      end
     end
 
     it "loads serialized instance variables" do
       t = Time.new
       t.instance_variable_set(:@foo, 'bar')
 
-      Marshal.send(@method, Marshal.dump(t)).instance_variable_get(:@foo).should == 'bar'
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        Marshal.send(@method, Marshal.dump(t)).instance_variable_get(:@foo).should == 'bar'
+      end
     end
 
     it "loads Time objects stored as links" do
       t = Time.new
 
-      t1, t2 = Marshal.send(@method, Marshal.dump([t, t]))
-      t1.should equal t2
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        t1, t2 = Marshal.send(@method, Marshal.dump([t, t]))
+        t1.should equal t2
+      end
     end
 
     it "keeps the local zone" do
       with_timezone 'AST', 3 do
         t = Time.local(2012, 1, 1)
-        Marshal.send(@method, Marshal.dump(t)).zone.should == t.zone
+        NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+          Marshal.send(@method, Marshal.dump(t)).zone.should == t.zone
+        end
       end
     end
 
     it "keeps UTC zone" do
-      t = Time.now.utc
-      t2 = Marshal.send(@method, Marshal.dump(t))
-      t2.should.utc?
+      NATFIXME 'Implement Time#utc', exception: NoMethodError, message: "undefined method `utc' for an instance of Time" do
+        t = Time.now.utc
+        t2 = Marshal.send(@method, Marshal.dump(t))
+        t2.should.utc?
+      end
     end
 
     it "keeps the zone" do
@@ -1285,25 +1294,33 @@ describe :marshal_load, shared: true do
       end
 
       with_timezone 'EET', -2 do
-        Marshal.send(@method, Marshal.dump(t)).zone.should == 'AST'
+        NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+          Marshal.send(@method, Marshal.dump(t)).zone.should == 'AST'
+        end
       end
     end
 
     it "keeps utc offset" do
       t = Time.new(2007,11,1,15,25,0, "+09:00")
-      t2 = Marshal.send(@method, Marshal.dump(t))
-      t2.utc_offset.should == 32400
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        t2 = Marshal.send(@method, Marshal.dump(t))
+        t2.utc_offset.should == 32400
+      end
     end
 
     it "keeps nanoseconds" do
       t = Time.now
-      Marshal.send(@method, Marshal.dump(t)).nsec.should == t.nsec
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        Marshal.send(@method, Marshal.dump(t)).nsec.should == t.nsec
+      end
     end
 
     it "does not add any additional instance variable" do
       t = Time.now
-      t2 = Marshal.send(@method, Marshal.dump(t))
-      t2.instance_variables.should.empty?
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        t2 = Marshal.send(@method, Marshal.dump(t))
+        t2.instance_variables.should.empty?
+      end
     end
   end
 
