@@ -114,7 +114,8 @@ class OptionParser
     yield self if block_given?
   end
 
-  attr_accessor :banner, :program_name, :version
+  attr_accessor :banner, :program_name
+  attr_writer :version
 
   def on(*args, options: nil, &block)
     short_name, short_value = args.grep(/^\-[^\-]/).first&.split(/[ =]/, 2)
