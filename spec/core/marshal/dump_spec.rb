@@ -38,7 +38,7 @@ describe "Marshal.dump" do
       ].should be_computed_by(:dump)
     end
 
-    platform_is wordsize: 64 do
+    platform_is c_long_size: 64 do
       it "dumps a positive Fixnum > 31 bits as a Bignum" do
         Marshal.dump(2**31 + 1).should == "\x04\bl+\a\x01\x00\x00\x80"
       end
@@ -314,6 +314,34 @@ describe "Marshal.dump" do
   describe "with a Complex" do
     it "dumps a Complex" do
       Marshal.dump(Complex(2, 3)).should == "\x04\bU:\fComplex[\ai\ai\b"
+    end
+  end
+
+  ruby_version_is "3.2" do
+    describe "with a Data" do
+      it "dumps a Data" do
+        NATFIXME 'dump Data', exception: SpecFailedException do
+          Marshal.dump(MarshalSpec::DataSpec::Measure.new(100, 'km')).should == "\x04\bS:#MarshalSpec::DataSpec::Measure\a:\vamountii:\tunit\"\akm"
+        end
+      end
+
+      it "dumps an extended Data" do
+        NATFIXME 'dump Data', exception: SpecFailedException do
+          obj = MarshalSpec::DataSpec::MeasureExtended.new(100, "km")
+          Marshal.dump(obj).should == "\x04\bS:+MarshalSpec::DataSpec::MeasureExtended\a:\vamountii:\tunit\"\akm"
+        end
+      end
+
+      it "ignores overridden name method" do
+        NATFIXME 'dump Data', exception: SpecFailedException do
+          obj = MarshalSpec::DataSpec::MeasureWithOverriddenName.new(100, "km")
+          Marshal.dump(obj).should == "\x04\bS:5MarshalSpec::DataSpec::MeasureWithOverriddenName\a:\vamountii:\tunit\"\akm"
+        end
+      end
+
+      it "raises TypeError with an anonymous Struct" do
+        -> { Marshal.dump(Data.define(:a).new(1)) }.should raise_error(TypeError, /can't dump anonymous class/)
+      end
     end
   end
 

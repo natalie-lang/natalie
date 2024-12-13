@@ -12,7 +12,7 @@ describe :dir_glob, shared: true do
   end
 
   it "raises an Encoding::CompatibilityError if the argument encoding is not compatible with US-ASCII" do
-    pattern = "file*".dup.force_encoding Encoding::UTF_16BE
+    pattern = "files*".dup.force_encoding Encoding::UTF_16BE
     -> { Dir.send(@method, pattern) }.should raise_error(Encoding::CompatibilityError)
   end
 
@@ -403,7 +403,7 @@ describe :dir_glob, shared: true do
     it "accepts both relative and absolute paths" do
       require 'pathname'
 
-      NATFIXME 'Pathname#relative_path_from' do
+      NATFIXME 'Pathname#relative_path_from', exception: NoMethodError, message: "undefined method `relative_path_from' for an instance of Pathname" do
         path_abs = File.join(@mock_dir, "a/b/c")
         path_rel = Pathname.new(path_abs).relative_path_from(Pathname.new(Dir.pwd))
 

@@ -28,7 +28,7 @@ describe "Module#deprecate_constant" do
       @module.deprecate_constant :PUBLIC1
 
       -> { @module::PUBLIC1 }.should complain(/warning: constant .+::PUBLIC1 is deprecated/)
-      NATFIXME 'Implement depracations in Module#const_get', exception: SpecFailedException do
+      NATFIXME 'Implement deprecations in Module#const_get', exception: SpecFailedException do
         -> { @module.const_get :PRIVATE }.should complain(/warning: constant .+::PRIVATE is deprecated/)
       end
     end
@@ -42,6 +42,17 @@ describe "Module#deprecate_constant" do
         -> { @module::PUBLIC1 }.should_not complain
       ensure
         Warning[:deprecated] = deprecated
+      end
+    end
+  end
+
+  ruby_bug '#20900', ''...'3.4' do
+    describe "when removing the deprecated module" do
+      it "warns with a message" do
+        @module.deprecate_constant :PUBLIC1
+        NATFIXME 'Implement deprecations in Module#remove_const', exception: SpecFailedException do
+          -> { @module.module_eval {remove_const :PUBLIC1} }.should complain(/warning: constant .+::PUBLIC1 is deprecated/)
+        end
       end
     end
   end

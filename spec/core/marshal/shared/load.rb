@@ -869,6 +869,40 @@ describe :marshal_load, shared: true do
     end
   end
 
+  ruby_version_is "3.2" do
+    describe "for a Data" do
+      it "loads a Data" do
+        obj = MarshalSpec::DataSpec::Measure.new(100, 'km')
+        dumped = "\x04\bS:#MarshalSpec::DataSpec::Measure\a:\vamountii:\tunit\"\akm"
+        NATFIXME 'dump and load Data', exception: SpecFailedException do
+          Marshal.dump(obj).should == dumped
+
+          Marshal.send(@method, dumped).should == obj
+        end
+      end
+
+      it "loads an extended Data" do
+        obj = MarshalSpec::DataSpec::MeasureExtended.new(100, "km")
+        dumped = "\x04\bS:+MarshalSpec::DataSpec::MeasureExtended\a:\vamountii:\tunit\"\akm"
+        NATFIXME 'dump and load Data', exception: SpecFailedException do
+          Marshal.dump(obj).should == dumped
+
+          Marshal.send(@method, dumped).should == obj
+        end
+      end
+
+      it "returns a frozen object" do
+        obj = MarshalSpec::DataSpec::Measure.new(100, 'km')
+        dumped = "\x04\bS:#MarshalSpec::DataSpec::Measure\a:\vamountii:\tunit\"\akm"
+        NATFIXME 'dump and load Data', exception: SpecFailedException do
+          Marshal.dump(obj).should == dumped
+
+          Marshal.send(@method, dumped).should.frozen?
+        end
+      end
+    end
+  end
+
   describe "for an Exception" do
     it "loads a marshalled exception with no message" do
       obj = Exception.new
@@ -1195,7 +1229,7 @@ describe :marshal_load, shared: true do
   end
 
   describe "for a Bignum" do
-    platform_is wordsize: 64 do
+    platform_is c_long_size: 64 do
       context "that is Bignum on 32-bit platforms but Fixnum on 64-bit" do
         it "dumps a Fixnum" do
           val = Marshal.send(@method, "\004\bl+\ab:wU")
