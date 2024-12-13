@@ -30,7 +30,6 @@ module Natalie
       end
 
       def serialize(_)
-        name_string = @name.to_s
         [
           instruction_number,
           @exclude_end ? 1 : 0,
