@@ -529,6 +529,24 @@ module Marshal
       object_class._load(data)
     end
 
+    def read_struct
+      name = read_value
+      object_class = find_constant(name)
+      size = read_integer
+      values = size.times.each_with_object({}) do |_, tmp|
+        name = read_value
+        value = read_value
+        tmp[name] = value
+      end
+      if object_class.ancestors.include?(Data)
+        object_class.new(**values)
+      else
+        object = object_class.allocate
+        values.each { |k, v| object.send(:"#{k}=", v) }
+        object
+      end
+    end
+
     def read_object
       name = read_value
       object_class = find_constant(name)
@@ -595,6 +613,8 @@ module Marshal
         read_user_marshaled_object_with_allocate
       when 'u'
         read_user_marshaled_object_without_allocate
+      when 'S'
+        read_struct
       when 'o'
         read_object
       when 'I'

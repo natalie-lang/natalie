@@ -830,20 +830,18 @@ describe :marshal_load, shared: true do
     it "loads a struct having ivar" do
       obj = Struct.new("Thick").new
       obj.instance_variable_set(:@foo, 5)
-      NATFIXME 'loads a struct having ivar', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'ivar names', exception: NameError, message: "`@@foo' is not allowed as an instance variable name" do
         reloaded = Marshal.send(@method, "\004\bIS:\022Struct::Thick\000\006:\t@fooi\n")
         reloaded.should == obj
         reloaded.instance_variable_get(:@foo).should == 5
-        Struct.send(:remove_const, :Thick)
       end
+      Struct.send(:remove_const, :Thick)
     end
 
     it "loads a struct having fields" do
       obj = Struct.new("Ure1", :a, :b).new
-      NATFIXME 'loads a struct having fields', exception: ArgumentError, message: 'dump format error' do
-        Marshal.send(@method, "\004\bS:\021Struct::Ure1\a:\006a0:\006b0").should == obj
-        Struct.send(:remove_const, :Ure1)
-      end
+      Marshal.send(@method, "\004\bS:\021Struct::Ure1\a:\006a0:\006b0").should == obj
+      Struct.send(:remove_const, :Ure1)
     end
 
     it "does not call initialize on the unmarshaled struct" do
@@ -870,9 +868,7 @@ describe :marshal_load, shared: true do
         dumped = "\x04\bS:#MarshalSpec::DataSpec::Measure\a:\vamountii:\tunit\"\akm"
         Marshal.dump(obj).should == dumped
 
-        NATFIXME 'load Data', exception: ArgumentError, message: 'dump format error' do
-          Marshal.send(@method, dumped).should == obj
-        end
+        Marshal.send(@method, dumped).should == obj
       end
 
       it "loads an extended Data" do
@@ -880,9 +876,7 @@ describe :marshal_load, shared: true do
         dumped = "\x04\bS:+MarshalSpec::DataSpec::MeasureExtended\a:\vamountii:\tunit\"\akm"
         Marshal.dump(obj).should == dumped
 
-        NATFIXME 'load Data', exception: ArgumentError, message: 'dump format error' do
-          Marshal.send(@method, dumped).should == obj
-        end
+        Marshal.send(@method, dumped).should == obj
       end
 
       it "returns a frozen object" do
@@ -890,9 +884,7 @@ describe :marshal_load, shared: true do
         dumped = "\x04\bS:#MarshalSpec::DataSpec::Measure\a:\vamountii:\tunit\"\akm"
         Marshal.dump(obj).should == dumped
 
-        NATFIXME 'load Data', exception: ArgumentError, message: 'dump format error' do
-          Marshal.send(@method, dumped).should.frozen?
-        end
+        Marshal.send(@method, dumped).should.frozen?
       end
     end
   end
