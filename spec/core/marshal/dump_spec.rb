@@ -120,9 +120,7 @@ describe "Marshal.dump" do
 
   describe "with an object responding to #_dump" do
     it "dumps the String returned by #_dump" do
-      NATFIXME 'dumps the String returned by #_dump', exception: SpecFailedException do
-        Marshal.dump(UserDefined.new).should == "\004\bu:\020UserDefined\022\004\b[\a:\nstuff;\000"
-      end
+      Marshal.dump(UserDefined.new).should == "\004\bu:\020UserDefined\022\004\b[\a:\nstuff;\000"
     end
 
     it "dumps the String in non US-ASCII and non UTF-8 encoding" do
@@ -141,9 +139,7 @@ describe "Marshal.dump" do
 
     it "ignores overridden name method" do
       obj = MarshalSpec::UserDefinedWithOverriddenName.new
-      NATFIXME 'ignores overridden name method', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bu:/MarshalSpec::UserDefinedWithOverriddenName\x12\x04\b[\a:\nstuff;\x00"
-      end
+      Marshal.dump(obj).should == "\x04\bu:/MarshalSpec::UserDefinedWithOverriddenName\x12\x04\b[\a:\nstuff;\x00"
     end
 
     it "raises a TypeError if _dump returns a non-string" do
@@ -191,7 +187,7 @@ describe "Marshal.dump" do
         t = Time.utc(2022)
         reference = "@\a"
 
-        NATFIXME 'indexes instance variables and then a Time object itself', exception: SpecFailedException do
+        NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
           Marshal.dump([t, t]).should == "\x04\b[\aIu:\tTime\r \x80\x1E\xC0\x00\x00\x00\x00\x06:\tzoneI\"\bUTC\x06:\x06EF#{reference}"
         end
       end
@@ -786,8 +782,8 @@ describe "Marshal.dump" do
       @internal = Encoding.default_internal
       Encoding.default_internal = Encoding::UTF_8
 
-      NATFIXME 'Implement Time#_dump', exception: NoMethodError, message: "undefined method `_dump' for an instance of Time" do
-        @utc = Time.utc(2012, 1, 1)
+      @utc = Time.utc(2012, 1, 1)
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
         @utc_dump = @utc.send(:_dump)
 
         with_timezone 'AST', 3 do
@@ -816,16 +812,16 @@ describe "Marshal.dump" do
     end
 
     it "dumps the zone, but not the offset if zone is UTC" do
-      dump = Marshal.dump(@utc)
-      zone = ":\tzoneI\"\bUTC\x06:\x06EF" # Last is 'F' (US-ASCII)
-      NATFIXME 'dumps the zone, but not the offset if zone is UTC', exception: SpecFailedException do
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        dump = Marshal.dump(@utc)
+        zone = ":\tzoneI\"\bUTC\x06:\x06EF" # Last is 'F' (US-ASCII)
         dump.should == "\x04\bIu:\tTime\r#{@utc_dump}\x06#{zone}"
       end
     end
 
     it "ignores overridden name method" do
       obj = MarshalSpec::TimeWithOverriddenName.new
-      NATFIXME 'ignores overridden name method', exception: SpecFailedException do
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
         Marshal.dump(obj).should include("MarshalSpec::TimeWithOverriddenName")
       end
     end
@@ -838,7 +834,7 @@ describe "Marshal.dump" do
     end
 
     it "raises TypeError with an anonymous Time subclass" do
-      NATFIXME 'raises TypeError with an anonymous Time subclass', exception: SpecFailedException do
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
         -> { Marshal.dump(Class.new(Time).now) }.should raise_error(TypeError)
       end
     end

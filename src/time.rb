@@ -41,4 +41,8 @@ class Time
   def saturday?
     wday == 6
   end
+
+  def _dump(depth = -1)
+    raise NotImplementedError, 'Implement Time#_dump'
+  end
 end

@@ -246,10 +246,19 @@ module Marshal
       write_encoding_bytes(value)
     end
 
-    def write_user_marshaled_object(value)
+    def write_user_marshaled_object_with_allocate(value)
       write_char('U')
       write(value.class.to_s.to_sym)
       write(value.send(:marshal_dump))
+    end
+
+    def write_user_marshaled_object_without_allocate(value)
+      raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
+      write_char('u')
+      write(value.class.to_s.to_sym)
+      dump = value.send(:_dump, -1)
+      write_integer_bytes(dump.size)
+      write_bytes(value.send(:_dump, -1))
     end
 
     def write_object(value)
@@ -306,7 +315,9 @@ module Marshal
       elsif value.is_a?(Regexp)
         write_regexp(value)
       elsif value.respond_to?(:marshal_dump, true)
-        write_user_marshaled_object(value)
+        write_user_marshaled_object_with_allocate(value)
+      elsif value.respond_to?(:_dump, true)
+        write_user_marshaled_object_without_allocate(value)
       elsif value.is_a?(Object)
         write_object(value)
       else
@@ -480,7 +491,7 @@ module Marshal
       Regexp.new(string, options)
     end
 
-    def read_user_marshaled_object
+    def read_user_marshaled_object_with_allocate
       name = read_value
       object_class = find_constant(name)
       data = read_value
@@ -492,6 +503,16 @@ module Marshal
       end
       object.marshal_load(data)
       object
+    end
+
+    def read_user_marshaled_object_without_allocate
+      name = read_value
+      object_class = find_constant(name)
+      unless object_class.respond_to?(:_load)
+        raise TypeError, "#{object_class} needs to have method `_load'"
+      end
+      data = read_string
+      object_class._load(data)
     end
 
     def read_object
@@ -557,7 +578,9 @@ module Marshal
       when '/'
         read_regexp
       when 'U'
-        read_user_marshaled_object
+        read_user_marshaled_object_with_allocate
+      when 'u'
+        read_user_marshaled_object_without_allocate
       when 'o'
         read_object
       when 'I'

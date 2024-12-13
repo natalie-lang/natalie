@@ -366,27 +366,23 @@ describe :marshal_load, shared: true do
       # this string represents: <#UserPreviouslyDefinedWithInitializedIvar @field2=7 @field1=6>
       dump_str = "\004\bu:-UserPreviouslyDefinedWithInitializedIvar\a:\f@field2i\f:\f@field1i\v"
 
-      NATFIXME 'does not set instance variables of an object with user-defined _dump/_load', exception: ArgumentError, message: 'dump format error' do
-        UserPreviouslyDefinedWithInitializedIvar.should_receive(:_load).and_return(UserPreviouslyDefinedWithInitializedIvar.new)
-        marshaled_obj = Marshal.send(@method, dump_str)
+      UserPreviouslyDefinedWithInitializedIvar.should_receive(:_load).and_return(UserPreviouslyDefinedWithInitializedIvar.new)
+      marshaled_obj = Marshal.send(@method, dump_str)
 
-        marshaled_obj.should be_an_instance_of(UserPreviouslyDefinedWithInitializedIvar)
-        marshaled_obj.field1.should be_nil
-        marshaled_obj.field2.should be_nil
-      end
+      marshaled_obj.should be_an_instance_of(UserPreviouslyDefinedWithInitializedIvar)
+      marshaled_obj.field1.should be_nil
+      marshaled_obj.field2.should be_nil
     end
 
     it "loads the String in non US-ASCII and non UTF-8 encoding" do
       source_object = UserDefinedString.new("a".encode("windows-1251"))
-      NATFIXME 'loads the String in non US-ASCII and non UTF-8 encoding', exception: ArgumentError, message: 'marshal data too short' do
-        object = Marshal.send(@method, Marshal.dump(source_object))
-        object.string.should == "a".encode("windows-1251")
-      end
+      object = Marshal.send(@method, Marshal.dump(source_object))
+      object.string.should == "a".encode("windows-1251")
     end
 
     it "loads the String in multibyte encoding" do
       source_object = UserDefinedString.new("a".encode("utf-32le"))
-      NATFIXME 'loads the String in multibyte encoding', exception: SpecFailedException, message: '"a" should be == to "a"' do
+      NATFIXME 'loads the String in multibyte encoding', exception: SpecFailedException do
         object = Marshal.send(@method, Marshal.dump(source_object))
         object.string.should == "a".encode("utf-32le")
       end
@@ -410,7 +406,7 @@ describe :marshal_load, shared: true do
         # this string represents: {a: <#UserDefinedImmediate A>, b: <#UserDefinedImmediate A>, c: <#String "string">, d: <#String "string">}
         hash_dump = "\x04\b{\t:\x06aIu:\x19UserDefinedImmediate\x00\x06:\x06ET:\x06b@\x06:\x06cI\"\vstring\x06;\aT:\x06d@\a"
 
-        NATFIXME 'loads any structure with multiple references to the same object, followed by multiple instances of another object', exception: ArgumentError, message: 'dump format error' do
+        NATFIXME 'loads any structure with multiple references to the same object, followed by multiple instances of another object', exception: NoMethodError, message: "undefined method `force_encoding' for nil" do
           marshaled_obj = Marshal.send(@method, hash_dump)
           marshaled_obj.should == {a: nil, b: nil, c: str, d: str}
 
@@ -428,7 +424,7 @@ describe :marshal_load, shared: true do
         # this string represents: [<#UserDefinedImmediate A>, <#UserDefinedImmediate B>, <#String "string">, <#String "string">]
         array_dump = "\x04\b[\tIu:\x19UserDefinedImmediate\x00\x06:\x06ETIu;\x00\x00\x06;\x06TI\"\vstring\x06;\x06T@\b"
 
-        NATFIXME 'loads an array containing references to multiple instances of the object, followed by multiple instances of another object', exception: ArgumentError, message: 'dump format error' do
+        NATFIXME 'loads an array containing references to multiple instances of the object, followed by multiple instances of another object', exception: NoMethodError, message: "undefined method `force_encoding' for nil" do
           marshaled_obj = Marshal.send(@method, array_dump)
           marshaled_obj.should == [nil, nil, str, str]
         end
@@ -1248,37 +1244,46 @@ describe :marshal_load, shared: true do
     end
   end
 
-  # NATFIXME: This crashes
-  xdescribe "for a Time" do
+  describe "for a Time" do
     it "loads" do
-      Marshal.send(@method, Marshal.dump(Time.at(1))).should == Time.at(1)
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        Marshal.send(@method, Marshal.dump(Time.at(1))).should == Time.at(1)
+      end
     end
 
     it "loads serialized instance variables" do
       t = Time.new
       t.instance_variable_set(:@foo, 'bar')
 
-      Marshal.send(@method, Marshal.dump(t)).instance_variable_get(:@foo).should == 'bar'
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        Marshal.send(@method, Marshal.dump(t)).instance_variable_get(:@foo).should == 'bar'
+      end
     end
 
     it "loads Time objects stored as links" do
       t = Time.new
 
-      t1, t2 = Marshal.send(@method, Marshal.dump([t, t]))
-      t1.should equal t2
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        t1, t2 = Marshal.send(@method, Marshal.dump([t, t]))
+        t1.should equal t2
+      end
     end
 
     it "keeps the local zone" do
       with_timezone 'AST', 3 do
         t = Time.local(2012, 1, 1)
-        Marshal.send(@method, Marshal.dump(t)).zone.should == t.zone
+        NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+          Marshal.send(@method, Marshal.dump(t)).zone.should == t.zone
+        end
       end
     end
 
     it "keeps UTC zone" do
-      t = Time.now.utc
-      t2 = Marshal.send(@method, Marshal.dump(t))
-      t2.should.utc?
+      NATFIXME 'Implement Time#utc', exception: NoMethodError, message: "undefined method `utc' for an instance of Time" do
+        t = Time.now.utc
+        t2 = Marshal.send(@method, Marshal.dump(t))
+        t2.should.utc?
+      end
     end
 
     it "keeps the zone" do
@@ -1289,25 +1294,33 @@ describe :marshal_load, shared: true do
       end
 
       with_timezone 'EET', -2 do
-        Marshal.send(@method, Marshal.dump(t)).zone.should == 'AST'
+        NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+          Marshal.send(@method, Marshal.dump(t)).zone.should == 'AST'
+        end
       end
     end
 
     it "keeps utc offset" do
       t = Time.new(2007,11,1,15,25,0, "+09:00")
-      t2 = Marshal.send(@method, Marshal.dump(t))
-      t2.utc_offset.should == 32400
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        t2 = Marshal.send(@method, Marshal.dump(t))
+        t2.utc_offset.should == 32400
+      end
     end
 
     it "keeps nanoseconds" do
       t = Time.now
-      Marshal.send(@method, Marshal.dump(t)).nsec.should == t.nsec
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        Marshal.send(@method, Marshal.dump(t)).nsec.should == t.nsec
+      end
     end
 
     it "does not add any additional instance variable" do
       t = Time.now
-      t2 = Marshal.send(@method, Marshal.dump(t))
-      t2.instance_variables.should.empty?
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
+        t2 = Marshal.send(@method, Marshal.dump(t))
+        t2.instance_variables.should.empty?
+      end
     end
   end
 
