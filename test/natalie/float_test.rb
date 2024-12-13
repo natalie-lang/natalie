@@ -29,10 +29,29 @@ describe 'float' do
   end
 
   describe 'Float()' do
-    it 'raises an error for invalid inputs' do
-      -> { Float('') }.should raise_error(ArgumentError, 'invalid value for Float(): ""')
-      %w[x . 10. 5x 0b1 10e10.5 10__10 10.10__10].each do |input|
-        -> { Float(input) }.should raise_error(ArgumentError, "invalid value for Float(): #{input.inspect}")
+    ruby_version_is ''...'3.4' do
+      it 'cannot parse 10.' do
+        -> { Float('10.') }.should raise_error(ArgumentError, 'invalid value for Float(): "10."')
+      end
+
+      it 'raises an error for invalid inputs' do
+        -> { Float('') }.should raise_error(ArgumentError, 'invalid value for Float(): ""')
+        %w[x . 5x 0b1 10e10.5 10__10 10.10__10].each do |input|
+          -> { Float(input) }.should raise_error(ArgumentError, "invalid value for Float(): #{input.inspect}")
+        end
+      end
+    end
+
+    ruby_version_is '3.4' do
+      it 'can parse 10.' do
+        Float('10.').should == 10.0
+      end
+
+      it 'raises an error for invalid inputs' do
+        -> { Float('') }.should raise_error(ArgumentError, 'invalid value for Float(): ""')
+        %w[x . 5x 0b1 10e10.5 10__10 10.10__10].each do |input|
+          -> { Float(input) }.should raise_error(ArgumentError, "invalid value for Float(): #{input.inspect}")
+        end
       end
     end
   end
