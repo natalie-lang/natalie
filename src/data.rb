@@ -55,6 +55,10 @@ class Data
         end
       end
 
+      define_method :== do |other|
+        self.class == other.class && to_h == other.to_h
+      end
+
       define_singleton_method(:[]) { |*args, **kwargs| new(*args, **kwargs) }
 
       define_singleton_method(:members) { members }
