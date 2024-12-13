@@ -386,9 +386,7 @@ describe "Marshal.dump" do
     it "dumps a String with instance variables" do
       str = +""
       str.instance_variable_set("@foo", "bar")
-      NATFIXME 'dumps a String with instance variables', exception: SpecFailedException do
-        Marshal.dump(str.force_encoding("binary")).should == "\x04\bI\"\x00\x06:\t@foo\"\bbar"
-      end
+      Marshal.dump(str.force_encoding("binary")).should == "\x04\bI\"\x00\x06:\t@foo\"\bbar"
     end
 
     it "dumps a US-ASCII String" do
@@ -428,9 +426,7 @@ describe "Marshal.dump" do
     it "dumps a Regexp with instance variables" do
       o = Regexp.new("")
       o.instance_variable_set(:@ivar, :ivar)
-      NATFIXME 'dumps a Regexp with instance variables', exception: SpecFailedException do
-        Marshal.dump(o).should == "\x04\bI/\x00\x00\a:\x06EF:\n@ivar:\tivar"
-      end
+      Marshal.dump(o).should == "\x04\bI/\x00\x00\a:\x06EF:\n@ivar:\tivar"
     end
 
     it "dumps an extended Regexp" do
