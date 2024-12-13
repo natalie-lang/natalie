@@ -10,6 +10,10 @@ ruby_version_is ''...'3.2' do
     it 'results in a readable representation' do
       1.should == 1
     end
+
+    it 'should be a subclass of Data' do
+      1.should == 1
+    end
   end
 end
 
@@ -25,6 +29,13 @@ ruby_version_is '3.2' do
     it 'results in a readable representation' do
       data = DataSpecs::Measure.new(amount: 42, unit: 'km')
       data.to_s.should == '#<data DataSpecs::Measure amount=42, unit="km">'
+    end
+  end
+
+  describe 'Data#is_a?' do
+    it 'should be a subclass of Data' do
+      data = DataSpecs::Measure.new(amount: 42, unit: 'km')
+      data.should be_kind_of(Data)
     end
   end
 end

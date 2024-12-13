@@ -246,6 +246,18 @@ module Marshal
       write_encoding_bytes(value)
     end
 
+    def write_data(value)
+      raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
+      write_char('S')
+      write(value.class.to_s.to_sym)
+      values = value.to_h
+      write_integer_bytes(values.size)
+      values.each do |name, value|
+        write(name)
+        write(value)
+      end
+    end
+
     def write_user_marshaled_object_with_allocate(value)
       write_char('U')
       write(value.class.to_s.to_sym)
@@ -314,6 +326,8 @@ module Marshal
         write_module(value)
       elsif value.is_a?(Regexp)
         write_regexp(value)
+      elsif value.is_a?(Data)
+        write_data(value)
       elsif value.respond_to?(:marshal_dump, true)
         write_user_marshaled_object_with_allocate(value)
       elsif value.respond_to?(:_dump, true)

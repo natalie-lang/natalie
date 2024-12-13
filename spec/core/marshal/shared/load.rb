@@ -870,9 +870,9 @@ describe :marshal_load, shared: true do
       it "loads a Data" do
         obj = MarshalSpec::DataSpec::Measure.new(100, 'km')
         dumped = "\x04\bS:#MarshalSpec::DataSpec::Measure\a:\vamountii:\tunit\"\akm"
-        NATFIXME 'dump and load Data', exception: SpecFailedException do
-          Marshal.dump(obj).should == dumped
+        Marshal.dump(obj).should == dumped
 
+        NATFIXME 'load Data', exception: ArgumentError, message: 'dump format error' do
           Marshal.send(@method, dumped).should == obj
         end
       end
@@ -880,9 +880,9 @@ describe :marshal_load, shared: true do
       it "loads an extended Data" do
         obj = MarshalSpec::DataSpec::MeasureExtended.new(100, "km")
         dumped = "\x04\bS:+MarshalSpec::DataSpec::MeasureExtended\a:\vamountii:\tunit\"\akm"
-        NATFIXME 'dump and load Data', exception: SpecFailedException do
-          Marshal.dump(obj).should == dumped
+        Marshal.dump(obj).should == dumped
 
+        NATFIXME 'load Data', exception: ArgumentError, message: 'dump format error' do
           Marshal.send(@method, dumped).should == obj
         end
       end
@@ -890,9 +890,9 @@ describe :marshal_load, shared: true do
       it "returns a frozen object" do
         obj = MarshalSpec::DataSpec::Measure.new(100, 'km')
         dumped = "\x04\bS:#MarshalSpec::DataSpec::Measure\a:\vamountii:\tunit\"\akm"
-        NATFIXME 'dump and load Data', exception: SpecFailedException do
-          Marshal.dump(obj).should == dumped
+        Marshal.dump(obj).should == dumped
 
+        NATFIXME 'load Data', exception: ArgumentError, message: 'dump format error' do
           Marshal.send(@method, dumped).should.frozen?
         end
       end

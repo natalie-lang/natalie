@@ -2,7 +2,7 @@ class Data
   def self.define(*members, &block)
     members = members.map(&:to_sym)
 
-    Class.new do
+    Class.new(Data) do
       members.each do |name|
         define_method(name) { instance_variable_get(:"@#{name}") }
       end
