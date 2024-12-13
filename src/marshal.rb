@@ -257,6 +257,7 @@ module Marshal
       write_char('u')
       write(value.class.to_s.to_sym)
       dump = value.send(:_dump, -1)
+      raise TypeError, '_dump() must return string' unless dump.is_a?(String)
       write_integer_bytes(dump.size)
       write_bytes(value.send(:_dump, -1))
     end

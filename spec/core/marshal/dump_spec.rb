@@ -144,10 +144,8 @@ describe "Marshal.dump" do
 
     it "raises a TypeError if _dump returns a non-string" do
       m = mock("marshaled")
-      NATFIXME 'raises a TypeError if _dump returns a non-string', exception: SpecFailedException do
-        m.should_receive(:_dump).and_return(0)
-        -> { Marshal.dump(m) }.should raise_error(TypeError)
-      end
+      m.should_receive(:_dump).and_return(0)
+      -> { Marshal.dump(m) }.should raise_error(TypeError)
     end
 
     it "raises TypeError if an Object is an instance of an anonymous class" do
