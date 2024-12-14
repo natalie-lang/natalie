@@ -968,41 +968,29 @@ describe "Marshal.dump" do
   describe "when passed a StringIO" do
     it "should raise an error" do
       require "stringio"
-      NATFIXME 'raises a TypeError if marshalling a StringIO instance', exception: SpecFailedException do
-        -> { Marshal.dump(StringIO.new) }.should raise_error(TypeError)
-      end
+      -> { Marshal.dump(StringIO.new) }.should raise_error(TypeError)
     end
   end
 
   it "raises a TypeError if marshalling a Method instance" do
-    NATFIXME 'raises a TypeError if marshalling a Method instance', exception: SpecFailedException do
-      -> { Marshal.dump(Marshal.method(:dump)) }.should raise_error(TypeError)
-    end
+    -> { Marshal.dump(Marshal.method(:dump)) }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if marshalling a Proc" do
-    NATFIXME 'raises a TypeError if marshalling a Proc', exception: SpecFailedException do
-      -> { Marshal.dump(proc {}) }.should raise_error(TypeError)
-    end
+    -> { Marshal.dump(proc {}) }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if dumping a IO/File instance" do
-    NATFIXME 'raises a TypeError if dumping a IO/File instance', exception: SpecFailedException do
-      -> { Marshal.dump(STDIN) }.should raise_error(TypeError)
-      -> { File.open(__FILE__) { |f| Marshal.dump(f) } }.should raise_error(TypeError)
-    end
+    -> { Marshal.dump(STDIN) }.should raise_error(TypeError)
+    -> { File.open(__FILE__) { |f| Marshal.dump(f) } }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if dumping a MatchData instance" do
-    NATFIXME 'raises a TypeError if dumping a MatchData instance', exception: SpecFailedException do
-      -> { Marshal.dump(/(.)/.match("foo")) }.should raise_error(TypeError)
-    end
+    -> { Marshal.dump(/(.)/.match("foo")) }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if dumping a Mutex instance" do
     m = Mutex.new
-    NATFIXME 'raises a TypeError if dumping a Mutex instance', exception: SpecFailedException do
-      -> { Marshal.dump(m) }.should raise_error(TypeError)
-    end
+    -> { Marshal.dump(m) }.should raise_error(TypeError)
   end
 end
