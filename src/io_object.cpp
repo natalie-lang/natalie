@@ -306,11 +306,14 @@ Value IoObject::write_file(Env *env, Args &&args) {
     auto string = args.at(1);
     auto offset = args.at(2, nullptr);
     auto mode = Value::integer(O_WRONLY | O_CREAT | O_CLOEXEC);
+    Value perm = nullptr;
 
     if (!offset || offset->is_nil())
         mode = Value::integer(IntegerObject::convert_to_nat_int_t(env, mode) | O_TRUNC);
     if (kwargs && kwargs->has_key(env, "mode"_s))
         mode = kwargs->delete_key(env, "mode"_s, nullptr);
+    if (kwargs && kwargs->has_key(env, "perm"_s))
+        perm = kwargs->delete_key(env, "perm"_s, nullptr);
     if (filename->is_string() && filename->as_string()->string()[0] == '|')
         env->raise("NotImplementedError", "no support for pipe in IO.write");
 
@@ -323,7 +326,12 @@ Value IoObject::write_file(Env *env, Args &&args) {
         auto open_args_has_kw = next_args->last()->is_hash();
         file = _new(env, File, Args(next_args, open_args_has_kw), nullptr)->as_file();
     } else {
-        file = _new(env, File, Args({ filename, mode, kwargs }, true), nullptr)->as_file();
+        auto next_args = new ArrayObject { filename, mode };
+        if (perm)
+            next_args->push(perm);
+        if (kwargs)
+            next_args->push(kwargs);
+        file = _new(env, File, Args(next_args, kwargs != nullptr), nullptr)->as_file();
     }
     if (offset && !offset->is_nil())
         file->set_pos(env, offset);

@@ -199,10 +199,8 @@ describe "IO.write" do
 
   it "writes the file with the permissions in the :perm parameter" do
     rm_r @filename
-    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'unknown keyword: :perm' do
-      IO.write(@filename, 'write :perm spec', mode: "w", perm: 0o755).should == 16
-      (File.stat(@filename).mode & 0o777) == 0o755
-    end
+    IO.write(@filename, 'write :perm spec', mode: "w", perm: 0o755).should == 16
+    (File.stat(@filename).mode & 0o777) == 0o755
   end
 
   it "writes binary data if no encoding is given" do
