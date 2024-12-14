@@ -278,7 +278,6 @@ class Runner
   end
 
   def run_temp_and_wait(path)
-    build_dir = File.expand_path('../build', __dir__)
     var_name = RbConfig::CONFIG['LIBPATHENV']
     env = { var_name => Natalie::Compiler::CppBackend::LIB_PATHS.join(':') }
     pid = spawn(env, path, *ARGV)

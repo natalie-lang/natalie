@@ -201,7 +201,7 @@ module Natalie
 
         def value_has_side_effects?(value)
           return false if value =~ /^Value\((False|Nil|True)Object::the\(\)\)$/
-          return false if value =~ /^Value\([\w_]*symbols\[\d+\]\/\*\:[^\*]+\*\/\)$/
+          return false if value =~ /^Value\(\w*symbols\[\d+\]\/\*\:[^\*]+\*\/\)$/
           true
         end
 
