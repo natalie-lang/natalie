@@ -830,20 +830,18 @@ describe :marshal_load, shared: true do
     it "loads a struct having ivar" do
       obj = Struct.new("Thick").new
       obj.instance_variable_set(:@foo, 5)
-      NATFIXME 'loads a struct having ivar', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'ivar names', exception: NameError, message: "`@@foo' is not allowed as an instance variable name" do
         reloaded = Marshal.send(@method, "\004\bIS:\022Struct::Thick\000\006:\t@fooi\n")
         reloaded.should == obj
         reloaded.instance_variable_get(:@foo).should == 5
-        Struct.send(:remove_const, :Thick)
       end
+      Struct.send(:remove_const, :Thick)
     end
 
     it "loads a struct having fields" do
       obj = Struct.new("Ure1", :a, :b).new
-      NATFIXME 'loads a struct having fields', exception: ArgumentError, message: 'dump format error' do
-        Marshal.send(@method, "\004\bS:\021Struct::Ure1\a:\006a0:\006b0").should == obj
-        Struct.send(:remove_const, :Ure1)
-      end
+      Marshal.send(@method, "\004\bS:\021Struct::Ure1\a:\006a0:\006b0").should == obj
+      Struct.send(:remove_const, :Ure1)
     end
 
     it "does not call initialize on the unmarshaled struct" do
@@ -855,13 +853,11 @@ describe :marshal_load, shared: true do
 
       Thread.current[threadlocal_key] = nil
 
-      NATFIXME "It can't find the class for some reason", exception: ArgumentError, message: 'undefined class/module MarshalSpec::StructWithUserInitialize' do
-        dumped = Marshal.dump(s)
-        loaded = Marshal.send(@method, dumped)
+      dumped = Marshal.dump(s)
+      loaded = Marshal.send(@method, dumped)
 
-        Thread.current[threadlocal_key].should == nil
-        loaded.a.should == 'foo'
-      end
+      Thread.current[threadlocal_key].should == nil
+      loaded.a.should == 'foo'
     end
   end
 
@@ -870,31 +866,25 @@ describe :marshal_load, shared: true do
       it "loads a Data" do
         obj = MarshalSpec::DataSpec::Measure.new(100, 'km')
         dumped = "\x04\bS:#MarshalSpec::DataSpec::Measure\a:\vamountii:\tunit\"\akm"
-        NATFIXME 'dump and load Data', exception: SpecFailedException do
-          Marshal.dump(obj).should == dumped
+        Marshal.dump(obj).should == dumped
 
-          Marshal.send(@method, dumped).should == obj
-        end
+        Marshal.send(@method, dumped).should == obj
       end
 
       it "loads an extended Data" do
         obj = MarshalSpec::DataSpec::MeasureExtended.new(100, "km")
         dumped = "\x04\bS:+MarshalSpec::DataSpec::MeasureExtended\a:\vamountii:\tunit\"\akm"
-        NATFIXME 'dump and load Data', exception: SpecFailedException do
-          Marshal.dump(obj).should == dumped
+        Marshal.dump(obj).should == dumped
 
-          Marshal.send(@method, dumped).should == obj
-        end
+        Marshal.send(@method, dumped).should == obj
       end
 
       it "returns a frozen object" do
         obj = MarshalSpec::DataSpec::Measure.new(100, 'km')
         dumped = "\x04\bS:#MarshalSpec::DataSpec::Measure\a:\vamountii:\tunit\"\akm"
-        NATFIXME 'dump and load Data', exception: SpecFailedException do
-          Marshal.dump(obj).should == dumped
+        Marshal.dump(obj).should == dumped
 
-          Marshal.send(@method, dumped).should.frozen?
-        end
+        Marshal.send(@method, dumped).should.frozen?
       end
     end
   end

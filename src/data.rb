@@ -2,7 +2,7 @@ class Data
   def self.define(*members, &block)
     members = members.map(&:to_sym)
 
-    Class.new do
+    Class.new(Data) do
       members.each do |name|
         define_method(name) { instance_variable_get(:"@#{name}") }
       end
@@ -53,6 +53,10 @@ class Data
         else
           self.class.new(**to_h.merge(kwargs.transform_keys(&:to_sym)))
         end
+      end
+
+      define_method :== do |other|
+        self.class == other.class && to_h == other.to_h
       end
 
       define_singleton_method(:[]) { |*args, **kwargs| new(*args, **kwargs) }

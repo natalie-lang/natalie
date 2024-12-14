@@ -314,23 +314,17 @@ describe "Marshal.dump" do
   ruby_version_is "3.2" do
     describe "with a Data" do
       it "dumps a Data" do
-        NATFIXME 'dump Data', exception: SpecFailedException do
-          Marshal.dump(MarshalSpec::DataSpec::Measure.new(100, 'km')).should == "\x04\bS:#MarshalSpec::DataSpec::Measure\a:\vamountii:\tunit\"\akm"
-        end
+        Marshal.dump(MarshalSpec::DataSpec::Measure.new(100, 'km')).should == "\x04\bS:#MarshalSpec::DataSpec::Measure\a:\vamountii:\tunit\"\akm"
       end
 
       it "dumps an extended Data" do
-        NATFIXME 'dump Data', exception: SpecFailedException do
-          obj = MarshalSpec::DataSpec::MeasureExtended.new(100, "km")
-          Marshal.dump(obj).should == "\x04\bS:+MarshalSpec::DataSpec::MeasureExtended\a:\vamountii:\tunit\"\akm"
-        end
+        obj = MarshalSpec::DataSpec::MeasureExtended.new(100, "km")
+        Marshal.dump(obj).should == "\x04\bS:+MarshalSpec::DataSpec::MeasureExtended\a:\vamountii:\tunit\"\akm"
       end
 
       it "ignores overridden name method" do
-        NATFIXME 'dump Data', exception: SpecFailedException do
-          obj = MarshalSpec::DataSpec::MeasureWithOverriddenName.new(100, "km")
-          Marshal.dump(obj).should == "\x04\bS:5MarshalSpec::DataSpec::MeasureWithOverriddenName\a:\vamountii:\tunit\"\akm"
-        end
+        obj = MarshalSpec::DataSpec::MeasureWithOverriddenName.new(100, "km")
+        Marshal.dump(obj).should == "\x04\bS:5MarshalSpec::DataSpec::MeasureWithOverriddenName\a:\vamountii:\tunit\"\akm"
       end
 
       it "raises TypeError with an anonymous Struct" do

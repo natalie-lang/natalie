@@ -246,6 +246,18 @@ module Marshal
       write_encoding_bytes(value)
     end
 
+    def write_data(value)
+      raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
+      write_char('S')
+      write(value.class.to_s.to_sym)
+      values = value.to_h
+      write_integer_bytes(values.size)
+      values.each do |name, value|
+        write(name)
+        write(value)
+      end
+    end
+
     def write_user_marshaled_object_with_allocate(value)
       write_char('U')
       write(value.class.to_s.to_sym)
@@ -315,6 +327,8 @@ module Marshal
         write_module(value)
       elsif value.is_a?(Regexp)
         write_regexp(value)
+      elsif value.is_a?(Data)
+        write_data(value)
       elsif value.respond_to?(:marshal_dump, true)
         write_user_marshaled_object_with_allocate(value)
       elsif value.respond_to?(:_dump, true)
@@ -516,6 +530,24 @@ module Marshal
       object_class._load(data)
     end
 
+    def read_struct
+      name = read_value
+      object_class = find_constant(name)
+      size = read_integer
+      values = size.times.each_with_object({}) do |_, tmp|
+        name = read_value
+        value = read_value
+        tmp[name] = value
+      end
+      if object_class.ancestors.include?(Data)
+        object_class.new(**values)
+      else
+        object = object_class.allocate
+        values.each { |k, v| object.send(:"#{k}=", v) }
+        object
+      end
+    end
+
     def read_object
       name = read_value
       object_class = find_constant(name)
@@ -582,6 +614,8 @@ module Marshal
         read_user_marshaled_object_with_allocate
       when 'u'
         read_user_marshaled_object_without_allocate
+      when 'S'
+        read_struct
       when 'o'
         read_object
       when 'I'
@@ -595,7 +629,8 @@ module Marshal
 
     def find_constant(name)
       begin
-        Object.const_get(name)
+        # NATFIXME: Should be supported directly in const_get
+        name.to_s.split('::').reduce(Object) { |memo, part| memo.const_get(part) }
       rescue NameError
         raise ArgumentError, "undefined class/module #{name}"
       end
