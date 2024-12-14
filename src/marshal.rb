@@ -342,6 +342,10 @@ module Marshal
         write_user_marshaled_object_with_allocate(value)
       elsif value.respond_to?(:_dump, true)
         write_user_marshaled_object_without_allocate(value)
+      elsif value.is_a?(Mutex) || value.is_a?(Proc) || value.is_a?(Method) || (defined?(StringIO) && value.is_a?(StringIO))
+        raise TypeError, "no _dump_data is defined for class #{value.class}"
+      elsif value.is_a?(MatchData) || value.is_a?(IO)
+        raise TypeError, "can't dump #{value.class}"
       elsif value.is_a?(Object)
         write_object(value)
       else
