@@ -438,18 +438,16 @@ describe "Marshal.dump" do
 
     it "dumps an ascii-compatible Regexp" do
       o = Regexp.new("a".encode("us-ascii"), Regexp::FIXEDENCODING)
-      NATFIXME 'dumps an ascii-compatible Regexp', exception: SpecFailedException do
-        Marshal.dump(o).should == "\x04\bI/\x06a\x10\x06:\x06EF"
+      Marshal.dump(o).should == "\x04\bI/\x06a\x10\x06:\x06EF"
 
-        o = Regexp.new("a".encode("us-ascii"))
-        Marshal.dump(o).should == "\x04\bI/\x06a\x00\x06:\x06EF"
+      o = Regexp.new("a".encode("us-ascii"))
+      Marshal.dump(o).should == "\x04\bI/\x06a\x00\x06:\x06EF"
 
-        o = Regexp.new("a".encode("windows-1251"), Regexp::FIXEDENCODING)
-        Marshal.dump(o).should == "\x04\bI/\x06a\x10\x06:\rencoding\"\x11Windows-1251"
+      o = Regexp.new("a".encode("windows-1251"), Regexp::FIXEDENCODING)
+      Marshal.dump(o).should == "\x04\bI/\x06a\x10\x06:\rencoding\"\x11Windows-1251"
 
-        o = Regexp.new("a".encode("windows-1251"))
-        Marshal.dump(o).should == "\x04\bI/\x06a\x00\x06:\x06EF"
-      end
+      o = Regexp.new("a".encode("windows-1251"))
+      Marshal.dump(o).should == "\x04\bI/\x06a\x00\x06:\x06EF"
     end
 
     it "dumps a UTF-8 Regexp" do
@@ -467,10 +465,10 @@ describe "Marshal.dump" do
 
     it "dumps a Regexp in another encoding" do
       o = Regexp.new("".dup.force_encoding("utf-16le"), Regexp::FIXEDENCODING)
-      NATFIXME 'dumps a Regexp in another encoding', exception: SpecFailedException do
-        Marshal.dump(o).should == "\x04\bI/\x00\x10\x06:\rencoding\"\rUTF-16LE"
+      Marshal.dump(o).should == "\x04\bI/\x00\x10\x06:\rencoding\"\rUTF-16LE"
 
-        o = Regexp.new("a".encode("utf-16le"), Regexp::FIXEDENCODING)
+      o = Regexp.new("a".encode("utf-16le"), Regexp::FIXEDENCODING)
+      NATFIXME 'encoding issues', exception: Encoding::CompatibilityError do
         Marshal.dump(o).should == "\x04\bI/\aa\x00\x10\x06:\rencoding\"\rUTF-16LE"
       end
     end

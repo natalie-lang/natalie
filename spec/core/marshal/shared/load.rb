@@ -554,7 +554,7 @@ describe :marshal_load, shared: true do
       s.instance_variable_set(:@foo, 10)
       obj = ['5', s, 'hi'].extend(Meths, MethsMore)
       obj.instance_variable_set(:@mix, s)
-      NATFIXME 'loads an array having ivar', exception: NameError, message: "`@@foo' is not allowed as an instance variable name" do
+      NATFIXME 'loads an array having ivar', exception: ArgumentError, message: 'dump format error' do
         new_obj = Marshal.send(@method, "\004\bI[\b\"\0065I\"\twell\006:\t@fooi\017\"\ahi\006:\t@mix@\a")
         new_obj.should == obj
         new_obj.instance_variable_get(:@mix).should equal new_obj[1]
@@ -609,8 +609,8 @@ describe :marshal_load, shared: true do
       h = { key: s }
       h.instance_variable_set :@hash_ivar, 'hash ivar'
 
-      NATFIXME 'issue with additional @ in ivar name', exception: NameError do
-        unmarshalled = Marshal.send(@method, Marshal.dump(h))
+      unmarshalled = Marshal.send(@method, Marshal.dump(h))
+      NATFIXME 'it preserves hash ivars when hash contains a string having ivar', exception: SpecFailedException do
         unmarshalled.instance_variable_get(:@hash_ivar).should == 'hash ivar'
         unmarshalled[:key].instance_variable_get(:@string_ivar).should == 'string ivar'
       end
@@ -755,10 +755,8 @@ describe :marshal_load, shared: true do
     end
 
     it "loads a string with an ivar" do
-      NATFIXME 'loads a string with an ivar', exception: NameError, message: "`@@foo' is not allowed as an instance variable name" do
-        str = Marshal.send(@method, "\x04\bI\"\x00\x06:\t@fooI\"\bbar\x06:\x06EF")
-        str.instance_variable_get("@foo").should == "bar"
-      end
+      str = Marshal.send(@method, "\x04\bI\"\x00\x06:\t@fooI\"\bbar\x06:\x06EF")
+      str.instance_variable_get("@foo").should == "bar"
     end
 
     it "loads a String subclass with custom constructor" do
@@ -789,9 +787,7 @@ describe :marshal_load, shared: true do
       data = "\x04\bI\"\x0Fm\x00\xF6\x00h\x00r\x00e\x00\x06:\rencoding\"\rUTF-16LE"
       result = Marshal.send(@method, data)
       result.should == str
-      NATFIXME 'loads a String in another encoding', exception: SpecFailedException do
-        result.encoding.should equal(Encoding::UTF_16LE)
-      end
+      result.encoding.should equal(Encoding::UTF_16LE)
     end
 
     it "loads a String as BINARY if no encoding is specified at the end" do
@@ -830,11 +826,9 @@ describe :marshal_load, shared: true do
     it "loads a struct having ivar" do
       obj = Struct.new("Thick").new
       obj.instance_variable_set(:@foo, 5)
-      NATFIXME 'ivar names', exception: NameError, message: "`@@foo' is not allowed as an instance variable name" do
-        reloaded = Marshal.send(@method, "\004\bIS:\022Struct::Thick\000\006:\t@fooi\n")
-        reloaded.should == obj
-        reloaded.instance_variable_get(:@foo).should == 5
-      end
+      reloaded = Marshal.send(@method, "\004\bIS:\022Struct::Thick\000\006:\t@fooi\n")
+      reloaded.should == obj
+      reloaded.instance_variable_get(:@foo).should == 5
       Struct.send(:remove_const, :Thick)
     end
 
@@ -1081,8 +1075,8 @@ describe :marshal_load, shared: true do
         obj = Regexp.new("hello")
         obj.instance_variable_set(:@regexp_ivar, [42])
 
-        NATFIXME 'Correct incorrect ivar name', exception: NameError, message: "`@@regexp_ivar' is not allowed as an instance variable name" do
-          new_obj = Marshal.send(@method, "\x04\bI/\nhello\x00\a:\x06EF:\x11@regexp_ivar[\x06i/")
+        new_obj = Marshal.send(@method, "\x04\bI/\nhello\x00\a:\x06EF:\x11@regexp_ivar[\x06i/")
+        NATFIXME 'restore the regexp instance variables', exception: SpecFailedException do
           new_obj.instance_variables.should == [:@regexp_ivar]
           new_obj.instance_variable_get(:@regexp_ivar).should == [42]
         end
