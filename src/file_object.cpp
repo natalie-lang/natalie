@@ -83,47 +83,92 @@ Value FileObject::absolute_path(Env *env, Value path, Value dir) {
 }
 
 Value FileObject::expand_path(Env *env, Value path, Value root) {
-    path = ioutil::convert_using_to_path(env, path);
+    auto expand_tilde = [&](String &&string) {
+        if (string.is_empty() || string[0] != '~')
+            return string;
 
-    StringObject *merged;
-    if (path->as_string()->length() > 0 && path->as_string()->string()[0] == '/') {
-        merged = path->as_string();
-    } else if (root && !root->is_nil()) {
+        String user;
+        size_t len = 0;
+        for (; len + 1 < string.length(); len++) {
+            if (string[1 + len] == '/')
+                break;
+        }
+        if (len > 0)
+            user = string.substring(1, len);
+
+        String home;
+        if (user.is_empty()) {
+            // if HOME is set, use that...
+            auto home_ptr = getenv("HOME");
+            if (home_ptr) {
+                home = home_ptr;
+            } else {
+                // if not, use the password database...
+                auto pw = getpwuid(getuid());
+                if (!pw)
+                    home = "~";
+                else
+                    home = pw->pw_dir;
+            }
+        } else {
+            auto pw = getpwnam(user.c_str());
+            if (!pw)
+                env->raise("ArgumentError", "user {} doesn't exist", user);
+            else
+                home = pw->pw_dir;
+        }
+
+        if (home.is_empty() || home[0] != '/')
+            env->raise("ArgumentError", "non-absolute home");
+
+        if (string.length() == 1 + user.length()) {
+            return home;
+        } else {
+            assert(string.length() > 1 + user.length());
+            return String::format("{}{}", home, &string[1 + user.length()]);
+        }
+    };
+
+    auto path_string_object = ioutil::convert_using_to_path(env, path);
+    auto path_string = path_string_object->string();
+
+    path_string = expand_tilde(std::move(path_string));
+
+    auto fs_path = std::filesystem::path(path_string.c_str());
+    if (fs_path.is_relative() && root && !root->is_nil()) {
         root = ioutil::convert_using_to_path(env, root);
-        root = expand_path(env, root, nullptr);
-        merged = StringObject::format("{}/{}", root->as_string(), path->as_string());
-    } else {
-        char root[MAXPATHLEN + 1];
-        if (!getcwd(root, MAXPATHLEN + 1))
-            env->raise_errno();
-        merged = StringObject::format("{}/{}", root, path->as_string());
+        path_string = expand_tilde(String::format("{}/{}", root->as_string()->string(), path_string));
+        fs_path = std::filesystem::path(path_string.c_str());
     }
 
-    // This is a bit weird, but since the regexp stuff below sets last_match
-    // on the **calling** env, we need to call these with a child env.
-    Env e { env };
-    e.set_caller(env);
+    if (fs_path.string().empty())
+        return new StringObject { std::filesystem::current_path().c_str() };
 
-    // collapse ..
-    auto dotdot = new RegexpObject { env, "[^/]*/\\.\\.(/|\\z)" };
-    StringObject empty_string { "" };
-    do {
-        merged = merged->sub(&e, dotdot, &empty_string)->as_string();
-    } while (env->has_last_match());
-
-    // collapse .
-    auto dot = new RegexpObject { env, "/\\.(/|\\z)" };
-    StringObject slash { "/" };
-    do {
-        merged = merged->sub(&e, dot, &slash)->as_string();
-    } while (env->has_last_match());
-
-    // remove trailing slash
-    if (merged->length() > 1 && merged->string()[merged->length() - 1] == '/') {
-        merged->truncate(merged->length() - 1);
+    if (fs_path.is_relative()) {
+        try {
+            fs_path = std::filesystem::absolute(fs_path);
+        } catch (std::filesystem::filesystem_error &) {
+            env->raise("ArgumentError", "error expanding path 1");
+        }
     }
 
-    return merged;
+    std::filesystem::path expanded;
+    try {
+        expanded = fs_path.lexically_normal();
+    } catch (std::filesystem::filesystem_error &) {
+        env->raise("ArgumentError", "error expanding path");
+    }
+
+    auto default_external = EncodingObject::default_external();
+    auto target_encoding = path_string_object->encoding();
+    if (!default_external->is_compatible_with(target_encoding))
+        target_encoding->raise_compatibility_error(env, default_external);
+
+    auto expanded_string = new StringObject { expanded.c_str(), path_string_object->encoding() };
+    if (expanded_string->length() > 1 && expanded_string->string().last_char() == '/')
+        expanded_string->truncate(expanded_string->length() - 1);
+
+    return expanded_string;
 }
 
 Value FileObject::flock(Env *env, Value locking_constant) {
