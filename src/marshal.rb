@@ -570,9 +570,10 @@ module Marshal
           elsif value == true
             object.force_encoding(Encoding::UTF_8)
           end
+        elsif name == :encoding
+          object.force_encoding(value)
         else
-          ivar_name = '@' + name.to_s
-          object.instance_variable_set(ivar_name, value)
+          object.instance_variable_set(name, value)
         end
       end
     end
