@@ -104,15 +104,24 @@ module Marshal
     def write_encoding_bytes(value)
       ivars = value.instance_variables.map { |ivar_name| [ivar_name, value.instance_variable_get(ivar_name)] }
       case value.encoding
+      when Encoding::ASCII_8BIT
+        nil # no encoding saved
       when Encoding::US_ASCII
         ivars.prepend([:E, false])
       when Encoding::UTF_8
         ivars.prepend([:E, true])
+      else
+        ivars.prepend([:encoding, value.encoding.name])
       end
       write_integer_bytes(ivars.size) unless ivars.empty?
       ivars.each do |ivar_name, ivar_value|
         write(ivar_name)
-        write(ivar_value)
+        if ivar_name == :encoding
+          write_char('"')
+          write_string_bytes(ivar_value)
+        else
+          write(ivar_value)
+        end
       end
     end
 
