@@ -372,6 +372,27 @@ class StringIO
     self
   end
 
+  def set_encoding_by_bom
+    return nil if closed_read?
+    raise FrozenError, "can't modify frozen #{self.class}" if frozen?
+    if @string.byteslice(0, 4) == "\x00\x00\xFE\xFF".b
+      set_encoding(Encoding::UTF_32BE)
+    elsif @string.byteslice(0, 4) == "\xFF\xFE\x00\x00".b
+      set_encoding(Encoding::UTF_32LE)
+    elsif @string.byteslice(0, 2) == "\xFE\xFF".b
+      set_encoding(Encoding::UTF_16BE)
+    elsif @string.byteslice(0, 2) == "\xFF\xFE".b
+      set_encoding(Encoding::UTF_16LE)
+    elsif @string.byteslice(0, "\u{FEFF}".bytesize) == "\u{FEFF}".b
+      set_encoding(Encoding::UTF_8)
+    else
+      @index = 0
+      return nil
+    end
+    @index = 1
+    external_encoding
+  end
+
   def size
     @string.size
   end
