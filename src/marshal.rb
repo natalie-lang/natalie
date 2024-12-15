@@ -264,6 +264,18 @@ module Marshal
       write_ivars(ivars) unless ivars.empty?
     end
 
+    def write_exception(value, ivars)
+      message = value.message
+      if message == value.class.inspect
+        message = nil
+      elsif message.ascii_only?
+        message = message.b
+      end
+      ivars.prepend([:bt, value.backtrace])
+      ivars.prepend([:mesg, message])
+      write_object(value, ivars)
+    end
+
     def write_range(value, ivars)
       ivars.concat([
         [:excl, value.exclude_end?],
@@ -357,6 +369,8 @@ module Marshal
         write_data(value)
       elsif value.is_a?(Struct)
         write_struct(value, ivars)
+      elsif value.is_a?(Exception)
+        write_exception(value, ivars)
       elsif value.is_a?(Range)
         write_range(value, ivars)
       elsif value.respond_to?(:marshal_dump, true)
@@ -589,6 +603,9 @@ module Marshal
       ivars_hash = read_hash
       if object_class == Range
         object = Range.new(ivars_hash.delete(:begin), ivars_hash.delete(:end), ivars_hash.delete(:excl))
+      elsif object.is_a?(Exception)
+        object = object_class.new(ivars_hash.delete(:mesg))
+        object.set_backtrace(ivars_hash.delete(:bt)) if ivars_hash.key?(:bt)
       end
       ivars_hash.each do |ivar_name, value|
         object.instance_variable_set(ivar_name, value)

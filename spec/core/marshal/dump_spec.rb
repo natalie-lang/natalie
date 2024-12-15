@@ -818,31 +818,23 @@ describe "Marshal.dump" do
 
   describe "with an Exception" do
     it "dumps an empty Exception" do
-      NATFIXME 'dumps an empty Exception', exception: SpecFailedException do
-        Marshal.dump(Exception.new).should == "\x04\bo:\x0EException\a:\tmesg0:\abt0"
-      end
+      Marshal.dump(Exception.new).should == "\x04\bo:\x0EException\a:\tmesg0:\abt0"
     end
 
     it "dumps the message for the exception" do
-      NATFIXME 'dumps the message for the exception', exception: SpecFailedException do
-        Marshal.dump(Exception.new("foo")).should == "\x04\bo:\x0EException\a:\tmesg\"\bfoo:\abt0"
-      end
+      Marshal.dump(Exception.new("foo")).should == "\x04\bo:\x0EException\a:\tmesg\"\bfoo:\abt0"
     end
 
     it "contains the filename in the backtrace" do
       obj = Exception.new("foo")
       obj.set_backtrace(["foo/bar.rb:10"])
-      NATFIXME 'contains the filename in the backtrace', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bo:\x0EException\a:\tmesg\"\bfoo:\abt[\x06\"\x12foo/bar.rb:10"
-      end
+      Marshal.dump(obj).should == "\x04\bo:\x0EException\a:\tmesg\"\bfoo:\abt[\x06\"\x12foo/bar.rb:10"
     end
 
     it "dumps instance variables if they exist" do
       obj = Exception.new("foo")
       obj.instance_variable_set(:@ivar, 1)
-      NATFIXME 'dumps instance variables if they exist', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bo:\x0EException\b:\tmesg\"\bfoo:\abt0:\n@ivari\x06"
-      end
+      Marshal.dump(obj).should == "\x04\bo:\x0EException\b:\tmesg\"\bfoo:\abt0:\n@ivari\x06"
     end
 
     it "dumps the cause for the exception" do
@@ -872,9 +864,7 @@ describe "Marshal.dump" do
       rescue => e
       end
 
-      NATFIXME 'dumps the message for the raised NoMethodError exception', exception: SpecFailedException do
-        Marshal.dump(e).should =~ /undefined method [`']foo' for ("":String|an instance of String)/
-      end
+      Marshal.dump(e).should =~ /undefined method [`']foo' for ("":String|an instance of String)/
     end
 
     it "raises TypeError if an Object is an instance of an anonymous class" do
