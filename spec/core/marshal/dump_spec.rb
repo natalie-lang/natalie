@@ -90,7 +90,7 @@ describe "Marshal.dump" do
         "€a".dup.force_encoding(Encoding::UTF_8).to_sym,
         "€b".dup.force_encoding(Encoding::UTF_8).to_sym
       ]
-      NATFIXME 'Encoding of output', exception: Encoding::CompatibilityError, message: 'incompatible character encodings: ASCII-8BIT and UTF-8' do
+      NATFIXME 'symbol links for ivar names', exception: SpecFailedException do
         Marshal.dump(value).should == "\x04\b[\a#{symbol1}#{symbol2}"
 
         value = [*value, value[0]]
@@ -388,9 +388,7 @@ describe "Marshal.dump" do
     it "dumps a String in another encoding" do
       str = "\x6d\x00\xf6\x00\x68\x00\x72\x00\x65\x00".dup.force_encoding("utf-16le")
       result = "\x04\bI\"\x0Fm\x00\xF6\x00h\x00r\x00e\x00\x06:\rencoding\"\rUTF-16LE"
-      NATFIXME 'String encoding of result', exception: Encoding::CompatibilityError, message: 'incompatible character encodings: ASCII-8BIT and UTF-16LE' do
-        Marshal.dump(str).should == result
-      end
+      Marshal.dump(str).should == result
     end
 
     it "dumps multiple strings using symlinks for the :E (encoding) symbol" do
@@ -462,9 +460,7 @@ describe "Marshal.dump" do
       Marshal.dump(o).should == "\x04\bI/\x00\x10\x06:\rencoding\"\rUTF-16LE"
 
       o = Regexp.new("a".encode("utf-16le"), Regexp::FIXEDENCODING)
-      NATFIXME 'encoding issues', exception: Encoding::CompatibilityError do
-        Marshal.dump(o).should == "\x04\bI/\aa\x00\x10\x06:\rencoding\"\rUTF-16LE"
-      end
+      Marshal.dump(o).should == "\x04\bI/\aa\x00\x10\x06:\rencoding\"\rUTF-16LE"
     end
 
     it "ignores overridden name method when dumps a Regexp subclass" do
