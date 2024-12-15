@@ -610,10 +610,8 @@ describe :marshal_load, shared: true do
       h.instance_variable_set :@hash_ivar, 'hash ivar'
 
       unmarshalled = Marshal.send(@method, Marshal.dump(h))
-      NATFIXME 'it preserves hash ivars when hash contains a string having ivar', exception: SpecFailedException do
-        unmarshalled.instance_variable_get(:@hash_ivar).should == 'hash ivar'
-        unmarshalled[:key].instance_variable_get(:@string_ivar).should == 'string ivar'
-      end
+      unmarshalled.instance_variable_get(:@hash_ivar).should == 'hash ivar'
+      unmarshalled[:key].instance_variable_get(:@string_ivar).should == 'string ivar'
     end
 
     ruby_version_is "3.1" do

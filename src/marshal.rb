@@ -211,7 +211,8 @@ module Marshal
       write_ivars(ivars) unless ivars.empty?
     end
 
-    def write_hash(values)
+    def write_hash(values, ivars)
+      write_char('I') unless ivars.empty?
       if values.default.nil?
         write_char('{')
       else
@@ -225,6 +226,7 @@ module Marshal
       unless values.default.nil?
         write(values.default)
       end
+      write_ivars(ivars) unless ivars.empty?
     end
 
     def write_class(value)
@@ -326,7 +328,7 @@ module Marshal
       elsif value.is_a?(Array)
         write_array(value, ivars)
       elsif value.is_a?(Hash)
-        write_hash(value)
+        write_hash(value, ivars)
       elsif value.is_a?(Class)
         write_class(value)
       elsif value.is_a?(Module)
