@@ -212,10 +212,19 @@ module Marshal
     end
 
     def write_array(values)
+      write_char('I') unless values.instance_variables.empty?
       write_char('[')
       write_integer_bytes(values.size)
       values.each do |value|
         write(value)
+      end
+      unless values.instance_variables.empty?
+        ivars = values.instance_variables.map { |ivar_name| [ivar_name, values.instance_variable_get(ivar_name)] }
+        write_integer_bytes(ivars.size)
+        ivars.each do |ivar_name, ivar_value|
+          write(ivar_name)
+          write(ivar_value)
+        end
       end
     end
 

@@ -499,9 +499,7 @@ describe "Marshal.dump" do
     it "dumps an Array with instance variables" do
       a = []
       a.instance_variable_set(:@ivar, 1)
-      NATFIXME 'dumps an Array with instance variables', exception: SpecFailedException do
-        Marshal.dump(a).should == "\004\bI[\000\006:\n@ivari\006"
-      end
+      Marshal.dump(a).should == "\004\bI[\000\006:\n@ivari\006"
     end
 
     it "dumps an extended Array" do
