@@ -79,9 +79,7 @@ describe "Marshal.dump" do
 
     it "dumps a binary encoded Symbol" do
       s = "\u2192".dup.force_encoding("binary").to_sym
-      NATFIXME 'dumps a binary encoded Symbol', exception: SpecFailedException do
-        Marshal.dump(s).should == "\x04\b:\b\xE2\x86\x92"
-      end
+      Marshal.dump(s).should == "\x04\b:\b\xE2\x86\x92"
     end
 
     it "dumps multiple Symbols sharing the same encoding" do
@@ -384,9 +382,7 @@ describe "Marshal.dump" do
 
     it "dumps a UTF-8 String" do
       str = "\x6d\xc3\xb6\x68\x72\x65".dup.force_encoding("utf-8")
-      NATFIXME 'dumps a UTF-8 String', exception: SpecFailedException do
-        Marshal.dump(str).should == "\x04\bI\"\vm\xC3\xB6hre\x06:\x06ET"
-      end
+      Marshal.dump(str).should == "\x04\bI\"\vm\xC3\xB6hre\x06:\x06ET"
     end
 
     it "dumps a String in another encoding" do
@@ -452,15 +448,13 @@ describe "Marshal.dump" do
 
     it "dumps a UTF-8 Regexp" do
       o = Regexp.new("".dup.force_encoding("utf-8"), Regexp::FIXEDENCODING)
-      NATFIXME 'dumps a UTF-8 Regexp', exception: SpecFailedException do
-        Marshal.dump(o).should == "\x04\bI/\x00\x10\x06:\x06ET"
+      Marshal.dump(o).should == "\x04\bI/\x00\x10\x06:\x06ET"
 
-        o = Regexp.new("a".dup.force_encoding("utf-8"), Regexp::FIXEDENCODING)
-        Marshal.dump(o).should == "\x04\bI/\x06a\x10\x06:\x06ET"
+      o = Regexp.new("a".dup.force_encoding("utf-8"), Regexp::FIXEDENCODING)
+      Marshal.dump(o).should == "\x04\bI/\x06a\x10\x06:\x06ET"
 
-        o = Regexp.new("\u3042".dup.force_encoding("utf-8"), Regexp::FIXEDENCODING)
-        Marshal.dump(o).should == "\x04\bI/\b\xE3\x81\x82\x10\x06:\x06ET"
-      end
+      o = Regexp.new("\u3042".dup.force_encoding("utf-8"), Regexp::FIXEDENCODING)
+      Marshal.dump(o).should == "\x04\bI/\b\xE3\x81\x82\x10\x06:\x06ET"
     end
 
     it "dumps a Regexp in another encoding" do

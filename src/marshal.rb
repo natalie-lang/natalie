@@ -97,7 +97,7 @@ module Marshal
 
     def write_string_bytes(value)
       string = value.to_s
-      write_integer_bytes(string.length)
+      write_integer_bytes(string.bytesize)
       write_bytes(string)
     end
 
