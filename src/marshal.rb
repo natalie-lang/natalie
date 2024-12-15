@@ -249,6 +249,21 @@ module Marshal
       end
     end
 
+    def write_struct(value, ivars)
+      raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
+      values = value.to_h
+      ivars.delete_if { |key, _| values.key?(key) }
+      write_char('I') unless ivars.empty?
+      write_char('S')
+      write(value.class.to_s.to_sym)
+      write_integer_bytes(values.size)
+      values.each do |name, value|
+        write(name)
+        write(value)
+      end
+      write_ivars(ivars) unless ivars.empty?
+    end
+
     def write_range(value, ivars)
       ivars.concat([
         [:excl, value.exclude_end?],
@@ -340,6 +355,8 @@ module Marshal
         write_regexp(value, ivars)
       elsif value.is_a?(Data)
         write_data(value)
+      elsif value.is_a?(Struct)
+        write_struct(value, ivars)
       elsif value.is_a?(Range)
         write_range(value, ivars)
       elsif value.respond_to?(:marshal_dump, true)

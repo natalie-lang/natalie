@@ -589,9 +589,7 @@ describe "Marshal.dump" do
 
   describe "with a Struct" do
     it "dumps a Struct" do
-      NATFIXME 'dumps a Struct', exception: SpecFailedException do
-        Marshal.dump(Struct::Pyramid.new).should == "\004\bS:\024Struct::Pyramid\000"
-      end
+      Marshal.dump(Struct::Pyramid.new).should == "\004\bS:\024Struct::Pyramid\000"
     end
 
     it "dumps a Struct" do
@@ -603,9 +601,7 @@ describe "Marshal.dump" do
     it "dumps a Struct with instance variables" do
       st = Struct.new("Thick").new
       st.instance_variable_set(:@ivar, 1)
-      NATFIXME 'dumps a Struct with instance variables', exception: SpecFailedException do
-        Marshal.dump(st).should == "\004\bIS:\022Struct::Thick\000\006:\n@ivari\006"
-      end
+      Marshal.dump(st).should == "\004\bIS:\022Struct::Thick\000\006:\n@ivari\006"
       Struct.send(:remove_const, :Thick)
     end
 
