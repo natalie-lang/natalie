@@ -101,8 +101,7 @@ module Marshal
       write_bytes(string)
     end
 
-    def write_encoding_bytes(value)
-      ivars = value.instance_variables.map { |ivar_name| [ivar_name, value.instance_variable_get(ivar_name)] }
+    def write_encoding_bytes(value, ivars)
       case value.encoding
       when Encoding::ASCII_8BIT
         nil # no encoding saved
@@ -113,11 +112,7 @@ module Marshal
       else
         ivars.prepend([:encoding, value.encoding.name.b])
       end
-      write_integer_bytes(ivars.size) unless ivars.empty?
-      ivars.each do |ivar_name, ivar_value|
-        write(ivar_name)
-        write(ivar_value)
-      end
+      write_ivars(ivars) unless ivars.empty?
     end
 
     def write_char(string)
@@ -146,11 +141,11 @@ module Marshal
       end
     end
 
-    def write_string(value)
-      write_char('I') if value.encoding != Encoding::ASCII_8BIT || !value.instance_variables.empty?
+    def write_string(value, ivars)
+      write_char('I') if value.encoding != Encoding::ASCII_8BIT || !ivars.empty?
       write_char('"')
       write_string_bytes(value)
-      write_encoding_bytes(value)
+      write_encoding_bytes(value, ivars)
     end
 
     def write_symbol(value)
@@ -206,21 +201,14 @@ module Marshal
       write_integer_bytes(@object_lookup.fetch(value.object_id))
     end
 
-    def write_array(values)
-      write_char('I') unless values.instance_variables.empty?
+    def write_array(values, ivars)
+      write_char('I') unless ivars.empty?
       write_char('[')
       write_integer_bytes(values.size)
       values.each do |value|
         write(value)
       end
-      unless values.instance_variables.empty?
-        ivars = values.instance_variables.map { |ivar_name| [ivar_name, values.instance_variable_get(ivar_name)] }
-        write_integer_bytes(ivars.size)
-        ivars.each do |ivar_name, ivar_value|
-          write(ivar_name)
-          write(ivar_value)
-        end
-      end
+      write_ivars(ivars) unless ivars.empty?
     end
 
     def write_hash(values)
@@ -251,12 +239,12 @@ module Marshal
       write_string_bytes(value.name)
     end
 
-    def write_regexp(value)
+    def write_regexp(value, ivars)
       write_char('I')
       write_char('/')
       write_string_bytes(value.source)
       write_byte(value.options)
-      write_encoding_bytes(value)
+      write_encoding_bytes(value, ivars)
     end
 
     def write_data(value)
@@ -287,11 +275,10 @@ module Marshal
       write_bytes(value.send(:_dump, -1))
     end
 
-    def write_object(value)
+    def write_object(value, ivars)
       raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
       write_char('o')
       write(value.class.name.to_sym)
-      ivars = value.instance_variables.map { |ivar_name| [ivar_name, value.instance_variable_get(ivar_name)] }
       if value.is_a?(Range)
         ivars.concat([
           [:excl, value.exclude_end?],
@@ -299,6 +286,10 @@ module Marshal
           [:end, value.end],
         ])
       end
+      write_ivars(ivars)
+    end
+
+    def write_ivars(ivars)
       write_integer_bytes(ivars.size)
       ivars.each do |ivar_name, ivar_value|
         write(ivar_name)
@@ -316,6 +307,8 @@ module Marshal
         @object_lookup[value.object_id] = @object_lookup.size
       end
 
+      ivars = value.instance_variables.map { |ivar_name| [ivar_name, value.instance_variable_get(ivar_name)] }
+
       if value.nil?
         write_nil
       elsif value.is_a?(TrueClass)
@@ -325,13 +318,13 @@ module Marshal
       elsif value.is_a?(Integer)
         write_integer(value)
       elsif value.is_a?(String)
-        write_string(value)
+        write_string(value, ivars)
       elsif value.is_a?(Symbol)
         write_symbol(value)
       elsif value.is_a?(Float)
         write_float(value)
       elsif value.is_a?(Array)
-        write_array(value)
+        write_array(value, ivars)
       elsif value.is_a?(Hash)
         write_hash(value)
       elsif value.is_a?(Class)
@@ -339,7 +332,7 @@ module Marshal
       elsif value.is_a?(Module)
         write_module(value)
       elsif value.is_a?(Regexp)
-        write_regexp(value)
+        write_regexp(value, ivars)
       elsif value.is_a?(Data)
         write_data(value)
       elsif value.respond_to?(:marshal_dump, true)
@@ -351,7 +344,7 @@ module Marshal
       elsif value.is_a?(MatchData) || value.is_a?(IO)
         raise TypeError, "can't dump #{value.class}"
       elsif value.is_a?(Object)
-        write_object(value)
+        write_object(value, ivars)
       else
         raise TypeError, "can't dump #{value.class}"
       end
