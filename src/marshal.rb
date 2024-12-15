@@ -249,6 +249,15 @@ module Marshal
       end
     end
 
+    def write_range(value, ivars)
+      ivars.concat([
+        [:excl, value.exclude_end?],
+        [:begin, value.begin],
+        [:end, value.end],
+      ])
+      write_object(value, ivars)
+    end
+
     def write_user_marshaled_object_with_allocate(value)
       write_char('U')
       write(value.class.to_s.to_sym)
@@ -269,13 +278,6 @@ module Marshal
       raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
       write_char('o')
       write(value.class.name.to_sym)
-      if value.is_a?(Range)
-        ivars.concat([
-          [:excl, value.exclude_end?],
-          [:begin, value.begin],
-          [:end, value.end],
-        ])
-      end
       write_ivars(ivars)
     end
 
@@ -338,6 +340,8 @@ module Marshal
         write_regexp(value, ivars)
       elsif value.is_a?(Data)
         write_data(value)
+      elsif value.is_a?(Range)
+        write_range(value, ivars)
       elsif value.respond_to?(:marshal_dump, true)
         write_user_marshaled_object_with_allocate(value)
       elsif value.respond_to?(:_dump, true)
