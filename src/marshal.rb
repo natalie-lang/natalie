@@ -101,20 +101,6 @@ module Marshal
       write_bytes(string)
     end
 
-    def write_encoding_bytes(value, ivars)
-      case value.encoding
-      when Encoding::ASCII_8BIT
-        nil # no encoding saved
-      when Encoding::US_ASCII
-        ivars.prepend([:E, false])
-      when Encoding::UTF_8
-        ivars.prepend([:E, true])
-      else
-        ivars.prepend([:encoding, value.encoding.name.b])
-      end
-      write_ivars(ivars) unless ivars.empty?
-    end
-
     def write_char(string)
       write_byte(string[0])
     end
@@ -142,10 +128,11 @@ module Marshal
     end
 
     def write_string(value, ivars)
-      write_char('I') if value.encoding != Encoding::ASCII_8BIT || !ivars.empty?
+      add_encoding_to_ivars(value, ivars)
+      write_char('I') unless ivars.empty?
       write_char('"')
       write_string_bytes(value)
-      write_encoding_bytes(value, ivars)
+      write_ivars(ivars) unless ivars.empty?
     end
 
     def write_symbol(value)
@@ -242,11 +229,12 @@ module Marshal
     end
 
     def write_regexp(value, ivars)
+      add_encoding_to_ivars(value, ivars)
       write_char('I')
       write_char('/')
       write_string_bytes(value.source)
       write_byte(value.options)
-      write_encoding_bytes(value, ivars)
+      write_ivars(ivars)
     end
 
     def write_data(value)
@@ -296,6 +284,19 @@ module Marshal
       ivars.each do |ivar_name, ivar_value|
         write(ivar_name)
         write(ivar_value)
+      end
+    end
+
+    def add_encoding_to_ivars(value, ivars)
+      case value.encoding
+      when Encoding::ASCII_8BIT
+        nil # no encoding saved
+      when Encoding::US_ASCII
+        ivars.prepend([:E, false])
+      when Encoding::UTF_8
+        ivars.prepend([:E, true])
+      else
+        ivars.prepend([:encoding, value.encoding.name.b])
       end
     end
 
