@@ -111,17 +111,12 @@ module Marshal
       when Encoding::UTF_8
         ivars.prepend([:E, true])
       else
-        ivars.prepend([:encoding, value.encoding.name])
+        ivars.prepend([:encoding, value.encoding.name.b])
       end
       write_integer_bytes(ivars.size) unless ivars.empty?
       ivars.each do |ivar_name, ivar_value|
         write(ivar_name)
-        if ivar_name == :encoding
-          write_char('"')
-          write_string_bytes(ivar_value)
-        else
-          write(ivar_value)
-        end
+        write(ivar_value)
       end
     end
 
