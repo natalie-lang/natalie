@@ -225,7 +225,7 @@ module Natalie
 
         ast = Natalie::Parser.new(string_node_to_string(expr.arguments.child_nodes.first), current_path, locals:).ast
         block = Prism::BlockNode.new(ast.child_nodes.first, nil, expr.arguments.location, 0, nil, nil, ast.statements, expr.arguments.child_nodes.first.opening_loc, expr.arguments.child_nodes.first.closing_loc)
-        Prism::CallNode.new(expr.__send__(:source), expr.node_id, expr.location, expr.__send__(:flags), expr.receiver, expr.call_operator_loc, expr.name, expr.message_loc, expr.opening_loc, nil, expr.closing_loc, block)
+        expr.copy(arguments: nil, block:)
       rescue Parser::ParseError => e
         drop_error(:SyntaxError, e.message, location: expr.location)
       end
