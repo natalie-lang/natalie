@@ -401,7 +401,7 @@ module Marshal
     end
 
     def write_bytes(value)
-      @output.concat(value)
+      @output.concat(value.b)
     end
   end
 
