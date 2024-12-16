@@ -393,11 +393,9 @@ describe :marshal_load, shared: true do
         str = "string"
 
         # this string represents: [<#UserDefinedImmediate A>, <#String "string">, <#String "string">]
-        NATFIXME 'Load object links', exception: IndexError, message: 'index 1 outside of array bounds: -1...1' do
-          marshaled_obj = Marshal.send(@method, "\004\b[\bu:\031UserDefinedImmediate\000\"\vstring@\a")
+        marshaled_obj = Marshal.send(@method, "\004\b[\bu:\031UserDefinedImmediate\000\"\vstring@\a")
 
-          marshaled_obj.should == [nil, str, str]
-        end
+        marshaled_obj.should == [nil, str, str]
       end
 
       it "loads any structure with multiple references to the same object, followed by multiple instances of another object" do
@@ -915,13 +913,11 @@ describe :marshal_load, shared: true do
       obj = Exception.new("foo")
       obj.instance_variable_set :@arr, arr
 
-      NATFIXME 'Load object links', exception: IndexError, message: 'index 2 outside of array bounds: -2...2' do
-        loaded = Marshal.send(@method, "\x04\bo:\x0EException\b:\tmesg\"\bfoo:\abt0:\t@arr[\t:\aso;\t\"\ahi@\b")
-        new_arr = loaded.instance_variable_get :@arr
+      loaded = Marshal.send(@method, "\x04\bo:\x0EException\b:\tmesg\"\bfoo:\abt0:\t@arr[\t:\aso;\t\"\ahi@\b")
+      new_arr = loaded.instance_variable_get :@arr
 
-        loaded.message.should == obj.message
-        new_arr.should == arr
-      end
+      loaded.message.should == obj.message
+      new_arr.should == arr
     end
   end
 
@@ -948,12 +944,10 @@ describe :marshal_load, shared: true do
       obj = Object.new
       obj.instance_variable_set :@str, arr
 
-      NATFIXME 'Load object links', exception: IndexError, message: 'index 1 outside of array bounds: -1...1' do
-        new_obj = Marshal.send(@method, "\004\bo:\vObject\006:\t@str[\t:\aso;\a\"\ahi@\a")
-        new_str = new_obj.instance_variable_get :@str
+      new_obj = Marshal.send(@method, "\004\bo:\vObject\006:\t@str[\t:\aso;\a\"\ahi@\a")
+      new_str = new_obj.instance_variable_get :@str
 
-        new_str.should == arr
-      end
+      new_str.should == arr
     end
 
     it "loads an Object with a non-US-ASCII instance variable" do

@@ -438,7 +438,7 @@ module Marshal
 
     def read_object_link
       index = read_integer
-      @object_lookup.fetch(index - 1)
+      @object_lookup.fetch(index)
     end
 
     def read_signed_byte
@@ -643,58 +643,61 @@ module Marshal
 
     def read_value
       char = read_byte.chr
-      value = case char
-              when '0'
-                nil
-              when 'T'
-                true
-              when 'F'
-                false
-              when '@'
-                read_object_link
-              when 'i'
-                read_integer
-              when 'l'
-                read_big_integer
-              when '"'
-                read_string
-              when ':'
-                read_symbol
-              when ';'
-                read_symbol_link
-              when 'f'
-                read_float
-              when '['
-                read_array
-              when '{'
-                read_hash
-              when '}'
-                read_hash_with_default
-              when 'c'
-                read_class
-              when 'm'
-                read_module
-              when '/'
-                read_regexp
-              when 'U'
-                read_user_marshaled_object_with_allocate
-              when 'u'
-                read_user_marshaled_object_without_allocate
-              when 'S'
-                read_struct
-              when 'o'
-                read_object
-              when 'I'
-                result = read_value
-                read_ivars(result) unless result.is_a?(Regexp)
-                result
-              else
-                raise ArgumentError, 'dump format error'
-              end
-      if !value.nil? && !value.is_a?(TrueClass) && !value.is_a?(FalseClass) && !value.is_a?(Integer) && !value.is_a?(Float) && !value.is_a?(Symbol)
-        @object_lookup << value
+      case char
+      when '0'
+        nil
+      when 'T'
+        true
+      when 'F'
+        false
+      when '@'
+        read_object_link
+      when 'i'
+        read_integer
+      when 'l'
+        read_big_integer
+      when ':'
+        read_symbol
+      when ';'
+        read_symbol_link
+      when 'f'
+        read_float
+      when 'I'
+        result = read_value
+        read_ivars(result) unless result.is_a?(Regexp)
+        result
+      else
+        index = @object_lookup.size
+        @object_lookup << nil # placeholder
+        value = case char
+                when '"'
+                  read_string
+                when '['
+                  read_array
+                when '{'
+                  read_hash
+                when '}'
+                  read_hash_with_default
+                when 'c'
+                  read_class
+                when 'm'
+                  read_module
+                when '/'
+                  read_regexp
+                when 'U'
+                  read_user_marshaled_object_with_allocate
+                when 'u'
+                  read_user_marshaled_object_without_allocate
+                when 'S'
+                  read_struct
+                when 'o'
+                  read_object
+                else
+                  raise ArgumentError, 'dump format error'
+                end
+        @object_lookup[index] = value
+        value
       end
-      value
     end
 
     def find_constant(name)
