@@ -271,6 +271,7 @@ module Marshal
       elsif message.ascii_only?
         message = message.b
       end
+      ivars.prepend([:cause, value.cause]) if value.cause
       ivars.prepend([:bt, value.backtrace])
       ivars.prepend([:mesg, message])
       write_object(value, ivars)
@@ -606,6 +607,11 @@ module Marshal
       elsif object.is_a?(Exception)
         object = object_class.new(ivars_hash.delete(:mesg))
         object.set_backtrace(ivars_hash.delete(:bt)) if ivars_hash.key?(:bt)
+        if ivars_hash.key?(:cause)
+          exception = object
+          cause = ivars_hash.delete(:cause)
+          __inline__ 'exception_var->as_exception_or_raise(env)->set_cause(cause_var->as_exception_or_raise(env));'
+        end
       end
       ivars_hash.each do |ivar_name, value|
         object.instance_variable_set(ivar_name, value)
