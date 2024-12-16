@@ -214,6 +214,10 @@ class Struct
         Struct.const_set(klass, result)
       end
 
+      def result.new(...)
+        Object.method(:new).unbind.bind(self).call(...)
+      end
+
       result
     end
   end
