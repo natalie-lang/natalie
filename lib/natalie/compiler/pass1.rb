@@ -1318,7 +1318,6 @@ module Natalie
 
         args_compiler = Args.new(node:, pass: self, check_args:, local_only:, for_block:)
         instructions << args_compiler.transform
-        instructions += locals.map { |name| VariableDeclareInstruction.new(name) }
         instructions
       end
 
@@ -1382,8 +1381,6 @@ module Natalie
         instructions = []
 
         case args.type
-        when :local_variable_target_node
-          instructions << VariableDeclareInstruction.new(args.name)
         when :multi_target_node
           targets = args.lefts + [args.rest].compact + args.rights
           targets.each do |arg|
@@ -1396,6 +1393,7 @@ module Natalie
              :implicit_rest_node,
              :index_target_node,
              :instance_variable_target_node,
+             :local_variable_target_node,
              :splat_node
           :noop
         else
@@ -1406,8 +1404,7 @@ module Natalie
       end
 
       def transform_for_node(node, used:)
-        instructions = @locals_stack.fetch(-1, []).map { |name| VariableDeclareInstruction.new(name) }
-        instructions += transform_for_declare_args(node.index)
+        instructions = transform_for_declare_args(node.index)
         instructions << DefineBlockInstruction.new(arity: 1)
         instructions += transform_block_args_for_for(node.index, used: true)
         instructions += transform_expression(node.statements, used: true) if node.statements
@@ -2081,10 +2078,7 @@ module Natalie
       end
 
       def transform_local_variable_write_node(node, used:)
-        instructions = [
-          VariableDeclareInstruction.new(node.name),
-          transform_expression(node.value, used: true),
-        ]
+        instructions = transform_expression(node.value, used: true)
         instructions << DupInstruction.new if used
         instructions << VariableSetInstruction.new(node.name)
         instructions
@@ -2818,7 +2812,10 @@ module Natalie
 
       def with_locals(locals)
         @locals_stack << locals
-        yield
+        instructions = []
+        instructions += locals.map { |name| VariableDeclareInstruction.new(name) } unless locals.nil?
+        instructions += yield
+        instructions
       ensure
         @locals_stack.pop
       end
