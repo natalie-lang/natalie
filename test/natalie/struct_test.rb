@@ -14,6 +14,11 @@ describe 'Struct' do
     s.new(1, 2)
   end
 
+  it 'unbinds the .new method once a struct is created' do
+    s = Struct.new(:a, :b)
+    -> { s.new(1, 1) }.should_not raise_error(ArgumentError, 'duplicate member: 1')
+  end
+
   ruby_version_is ''...'3.3' do
     it 'cannot be initialized without arguments' do
       -> { Struct.new }.should raise_error(ArgumentError, 'wrong number of arguments (given 0, expected 1+)')
