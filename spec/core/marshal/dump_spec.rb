@@ -847,10 +847,8 @@ describe "Marshal.dump" do
       end
 
       reloaded = Marshal.load(Marshal.dump(exc))
-      NATFIXME 'dumps the cause for the exception', exception: SpecFailedException do
-        reloaded.cause.should be_an_instance_of(StandardError)
-        reloaded.cause.message.should == "the cause"
-      end
+      reloaded.cause.should be_an_instance_of(StandardError)
+      reloaded.cause.message.should == "the cause"
     end
 
     # NoMethodError uses an exception formatter on TruffleRuby and computes a message lazily
