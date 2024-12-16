@@ -371,9 +371,9 @@ module Natalie
           instructions << transform_block_args(node.parameters, used: true)
         end
 
-        with_locals(node.locals) do
+        instructions += with_locals(node.locals) do
           body = node.body || Prism.nil_node(location: node.location)
-          instructions << transform_expression(body, used: true)
+          transform_expression(body, used: true)
         end
 
         instructions << EndInstruction.new(:define_block)
@@ -833,8 +833,8 @@ module Natalie
           file: @file.path,
           line: node.location.start_line,
         )
-        with_locals(node.locals) do
-          instructions += transform_body(node.body, used: true, location: node.location)
+        instructions += with_locals(node.locals) do
+          transform_body(node.body, used: true, location: node.location)
         end
         instructions << EndInstruction.new(:define_class)
         instructions << PopInstruction.new unless used
@@ -2213,8 +2213,8 @@ module Natalie
           file: @file.path,
           line: node.location.start_line,
         )
-        with_locals(node.locals) do
-          instructions += transform_body(node.body, used: true, location: node.location)
+        instructions += with_locals(node.locals) do
+          transform_body(node.body, used: true, location: node.location)
         end
         instructions << EndInstruction.new(:define_module)
         instructions << PopInstruction.new unless used
