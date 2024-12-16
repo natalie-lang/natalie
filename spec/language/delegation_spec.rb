@@ -36,26 +36,28 @@ describe "delegation with def(...)" do
 end
 
 describe "delegation with def(x, ...)" do
-  # NATFIXME: Support Prism::ForwardingParameterNode
-  xit "delegates rest and kwargs" do
-    #a = Class.new(DelegationSpecs::Target) do
-      #def delegate(x, ...)
-        #target(...)
-      #end
-    #end
+  it "delegates rest and kwargs" do
+    a = Class.new(DelegationSpecs::Target) do
+      def delegate(x, ...)
+        target(...)
+      end
+    end
 
-    #a.new.delegate(0, 1, b: 2).should == [[1], {b: 2}]
+    NATFIXME 'Partial delegation', exception: SpecFailedException do
+      a.new.delegate(0, 1, b: 2).should == [[1], {b: 2}]
+    end
   end
 
-  # NATFIXME: Support Prism::ForwardingParameterNode
-  xit "delegates block" do
-    #a = Class.new(DelegationSpecs::Target) do
-      #def delegate_block(x, ...)
-        #target_block(...)
-      #end
-    #end
+  it "delegates block" do
+    a = Class.new(DelegationSpecs::Target) do
+      def delegate_block(x, ...)
+        target_block(...)
+      end
+    end
 
-    #a.new.delegate_block(0, 1, b: 2) { |x| x }.should == [{b: 2}, [1]]
+    NATFIXME 'Partial delegation', exception: SpecFailedException do
+      a.new.delegate_block(0, 1, b: 2) { |x| x }.should == [{b: 2}, [1]]
+    end
   end
 end
 
