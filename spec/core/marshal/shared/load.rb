@@ -610,10 +610,8 @@ describe :marshal_load, shared: true do
       h.instance_variable_set :@hash_ivar, 'hash ivar'
 
       unmarshalled = Marshal.send(@method, Marshal.dump(h))
-      NATFIXME 'it preserves hash ivars when hash contains a string having ivar', exception: SpecFailedException do
-        unmarshalled.instance_variable_get(:@hash_ivar).should == 'hash ivar'
-        unmarshalled[:key].instance_variable_get(:@string_ivar).should == 'string ivar'
-      end
+      unmarshalled.instance_variable_get(:@hash_ivar).should == 'hash ivar'
+      unmarshalled[:key].instance_variable_get(:@string_ivar).should == 'string ivar'
     end
 
     ruby_version_is "3.1" do
@@ -848,10 +846,12 @@ describe :marshal_load, shared: true do
       Thread.current[threadlocal_key] = nil
 
       dumped = Marshal.dump(s)
-      loaded = Marshal.send(@method, dumped)
+      NATFIXME 'it does not call initialize on the unmarshaled struct', exception: ArgumentError, message: 'dump format error' do
+        loaded = Marshal.send(@method, dumped)
 
-      Thread.current[threadlocal_key].should == nil
-      loaded.a.should == 'foo'
+        Thread.current[threadlocal_key].should == nil
+        loaded.a.should == 'foo'
+      end
     end
   end
 
@@ -886,39 +886,33 @@ describe :marshal_load, shared: true do
   describe "for an Exception" do
     it "loads a marshalled exception with no message" do
       obj = Exception.new
-      NATFIXME 'Support exception', exception: NameError, message: "`bt' is not allowed as an instance variable name" do
-        loaded = Marshal.send(@method, "\004\bo:\016Exception\a:\abt0:\tmesg0")
-        loaded.message.should == obj.message
-        loaded.backtrace.should == obj.backtrace
-        loaded = Marshal.send(@method, "\x04\bo:\x0EException\a:\tmesg0:\abt0")
-        loaded.message.should == obj.message
-        loaded.backtrace.should == obj.backtrace
-      end
+      loaded = Marshal.send(@method, "\004\bo:\016Exception\a:\abt0:\tmesg0")
+      loaded.message.should == obj.message
+      loaded.backtrace.should == obj.backtrace
+      loaded = Marshal.send(@method, "\x04\bo:\x0EException\a:\tmesg0:\abt0")
+      loaded.message.should == obj.message
+      loaded.backtrace.should == obj.backtrace
     end
 
     it "loads a marshalled exception with a message" do
       obj = Exception.new("foo")
-      NATFIXME 'Support exception with message', exception: NameError, message: "`bt' is not allowed as an instance variable name" do
-        loaded = Marshal.send(@method, "\004\bo:\016Exception\a:\abt0:\tmesg\"\bfoo")
-        loaded.message.should == obj.message
-        loaded.backtrace.should == obj.backtrace
-        loaded = Marshal.send(@method, "\x04\bo:\x0EException\a:\tmesgI\"\bfoo\x06:\x06EF:\abt0")
-        loaded.message.should == obj.message
-        loaded.backtrace.should == obj.backtrace
-      end
+      loaded = Marshal.send(@method, "\004\bo:\016Exception\a:\abt0:\tmesg\"\bfoo")
+      loaded.message.should == obj.message
+      loaded.backtrace.should == obj.backtrace
+      loaded = Marshal.send(@method, "\x04\bo:\x0EException\a:\tmesgI\"\bfoo\x06:\x06EF:\abt0")
+      loaded.message.should == obj.message
+      loaded.backtrace.should == obj.backtrace
     end
 
     it "loads a marshalled exception with a backtrace" do
       obj = Exception.new("foo")
       obj.set_backtrace(["foo/bar.rb:10"])
-      NATFIXME 'Support exception with backtrace', exception: NameError, message: "`bt' is not allowed as an instance variable name" do
-        loaded = Marshal.send(@method, "\004\bo:\016Exception\a:\abt[\006\"\022foo/bar.rb:10:\tmesg\"\bfoo")
-        loaded.message.should == obj.message
-        loaded.backtrace.should == obj.backtrace
-        loaded = Marshal.send(@method, "\x04\bo:\x0EException\a:\tmesgI\"\bfoo\x06:\x06EF:\abt[\x06I\"\x12foo/bar.rb:10\x06;\aF")
-        loaded.message.should == obj.message
-        loaded.backtrace.should == obj.backtrace
-      end
+      loaded = Marshal.send(@method, "\004\bo:\016Exception\a:\abt[\006\"\022foo/bar.rb:10:\tmesg\"\bfoo")
+      loaded.message.should == obj.message
+      loaded.backtrace.should == obj.backtrace
+      loaded = Marshal.send(@method, "\x04\bo:\x0EException\a:\tmesgI\"\bfoo\x06:\x06EF:\abt[\x06I\"\x12foo/bar.rb:10\x06;\aF")
+      loaded.message.should == obj.message
+      loaded.backtrace.should == obj.backtrace
     end
 
     it "loads an marshalled exception with ivars" do

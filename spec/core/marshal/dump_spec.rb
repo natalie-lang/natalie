@@ -499,9 +499,7 @@ describe "Marshal.dump" do
     it "dumps an Array with instance variables" do
       a = []
       a.instance_variable_set(:@ivar, 1)
-      NATFIXME 'dumps an Array with instance variables', exception: SpecFailedException do
-        Marshal.dump(a).should == "\004\bI[\000\006:\n@ivari\006"
-      end
+      Marshal.dump(a).should == "\004\bI[\000\006:\n@ivari\006"
     end
 
     it "dumps an extended Array" do
@@ -566,9 +564,7 @@ describe "Marshal.dump" do
     it "dumps a Hash with instance variables" do
       a = {}
       a.instance_variable_set(:@ivar, 1)
-      NATFIXME 'dumps a Hash with instance variables', exception: SpecFailedException do
-        Marshal.dump(a).should == "\004\bI{\000\006:\n@ivari\006"
-      end
+      Marshal.dump(a).should == "\004\bI{\000\006:\n@ivari\006"
     end
 
     it "dumps an extended Hash" do
@@ -593,9 +589,7 @@ describe "Marshal.dump" do
 
   describe "with a Struct" do
     it "dumps a Struct" do
-      NATFIXME 'dumps a Struct', exception: SpecFailedException do
-        Marshal.dump(Struct::Pyramid.new).should == "\004\bS:\024Struct::Pyramid\000"
-      end
+      Marshal.dump(Struct::Pyramid.new).should == "\004\bS:\024Struct::Pyramid\000"
     end
 
     it "dumps a Struct" do
@@ -607,9 +601,7 @@ describe "Marshal.dump" do
     it "dumps a Struct with instance variables" do
       st = Struct.new("Thick").new
       st.instance_variable_set(:@ivar, 1)
-      NATFIXME 'dumps a Struct with instance variables', exception: SpecFailedException do
-        Marshal.dump(st).should == "\004\bIS:\022Struct::Thick\000\006:\n@ivari\006"
-      end
+      Marshal.dump(st).should == "\004\bIS:\022Struct::Thick\000\006:\n@ivari\006"
       Struct.send(:remove_const, :Thick)
     end
 
@@ -826,31 +818,23 @@ describe "Marshal.dump" do
 
   describe "with an Exception" do
     it "dumps an empty Exception" do
-      NATFIXME 'dumps an empty Exception', exception: SpecFailedException do
-        Marshal.dump(Exception.new).should == "\x04\bo:\x0EException\a:\tmesg0:\abt0"
-      end
+      Marshal.dump(Exception.new).should == "\x04\bo:\x0EException\a:\tmesg0:\abt0"
     end
 
     it "dumps the message for the exception" do
-      NATFIXME 'dumps the message for the exception', exception: SpecFailedException do
-        Marshal.dump(Exception.new("foo")).should == "\x04\bo:\x0EException\a:\tmesg\"\bfoo:\abt0"
-      end
+      Marshal.dump(Exception.new("foo")).should == "\x04\bo:\x0EException\a:\tmesg\"\bfoo:\abt0"
     end
 
     it "contains the filename in the backtrace" do
       obj = Exception.new("foo")
       obj.set_backtrace(["foo/bar.rb:10"])
-      NATFIXME 'contains the filename in the backtrace', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bo:\x0EException\a:\tmesg\"\bfoo:\abt[\x06\"\x12foo/bar.rb:10"
-      end
+      Marshal.dump(obj).should == "\x04\bo:\x0EException\a:\tmesg\"\bfoo:\abt[\x06\"\x12foo/bar.rb:10"
     end
 
     it "dumps instance variables if they exist" do
       obj = Exception.new("foo")
       obj.instance_variable_set(:@ivar, 1)
-      NATFIXME 'dumps instance variables if they exist', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bo:\x0EException\b:\tmesg\"\bfoo:\abt0:\n@ivari\x06"
-      end
+      Marshal.dump(obj).should == "\x04\bo:\x0EException\b:\tmesg\"\bfoo:\abt0:\n@ivari\x06"
     end
 
     it "dumps the cause for the exception" do
@@ -880,9 +864,7 @@ describe "Marshal.dump" do
       rescue => e
       end
 
-      NATFIXME 'dumps the message for the raised NoMethodError exception', exception: SpecFailedException do
-        Marshal.dump(e).should =~ /undefined method [`']foo' for ("":String|an instance of String)/
-      end
+      Marshal.dump(e).should =~ /undefined method [`']foo' for ("":String|an instance of String)/
     end
 
     it "raises TypeError if an Object is an instance of an anonymous class" do
