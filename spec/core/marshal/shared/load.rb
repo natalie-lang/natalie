@@ -393,7 +393,7 @@ describe :marshal_load, shared: true do
         str = "string"
 
         # this string represents: [<#UserDefinedImmediate A>, <#String "string">, <#String "string">]
-        NATFIXME 'loads an array containing an instance of the object, followed by multiple instances of another object', exception: ArgumentError, message: 'dump format error' do
+        NATFIXME 'Load object links', exception: IndexError, message: 'index 1 outside of array bounds: -1...1' do
           marshaled_obj = Marshal.send(@method, "\004\b[\bu:\031UserDefinedImmediate\000\"\vstring@\a")
 
           marshaled_obj.should == [nil, str, str]
@@ -554,12 +554,10 @@ describe :marshal_load, shared: true do
       s.instance_variable_set(:@foo, 10)
       obj = ['5', s, 'hi'].extend(Meths, MethsMore)
       obj.instance_variable_set(:@mix, s)
-      NATFIXME 'loads an array having ivar', exception: ArgumentError, message: 'dump format error' do
-        new_obj = Marshal.send(@method, "\004\bI[\b\"\0065I\"\twell\006:\t@fooi\017\"\ahi\006:\t@mix@\a")
-        new_obj.should == obj
-        new_obj.instance_variable_get(:@mix).should equal new_obj[1]
-        new_obj[1].instance_variable_get(:@foo).should == 10
-      end
+      new_obj = Marshal.send(@method, "\004\bI[\b\"\0065I\"\twell\006:\t@fooi\017\"\ahi\006:\t@mix@\a")
+      new_obj.should == obj
+      new_obj.instance_variable_get(:@mix).should equal new_obj[1]
+      new_obj[1].instance_variable_get(:@foo).should == 10
     end
 
     it "loads an extended Array object containing a user-marshaled object" do
@@ -733,9 +731,7 @@ describe :marshal_load, shared: true do
     it "loads a string having ivar with ref to self" do
       obj = +'hi'
       obj.instance_variable_set(:@self, obj)
-      NATFIXME 'loads a string having ivar with ref to self', exception: ArgumentError, message: 'dump format error' do
-        Marshal.send(@method, "\004\bI\"\ahi\006:\n@self@\000").should == obj
-      end
+      Marshal.send(@method, "\004\bI\"\ahi\006:\n@self@\000").should == obj
     end
 
     it "loads a string through StringIO stream" do
@@ -846,12 +842,10 @@ describe :marshal_load, shared: true do
       Thread.current[threadlocal_key] = nil
 
       dumped = Marshal.dump(s)
-      NATFIXME 'it does not call initialize on the unmarshaled struct', exception: ArgumentError, message: 'dump format error' do
-        loaded = Marshal.send(@method, dumped)
+      loaded = Marshal.send(@method, dumped)
 
-        Thread.current[threadlocal_key].should == nil
-        loaded.a.should == 'foo'
-      end
+      Thread.current[threadlocal_key].should == nil
+      loaded.a.should == 'foo'
     end
   end
 
@@ -921,7 +915,7 @@ describe :marshal_load, shared: true do
       obj = Exception.new("foo")
       obj.instance_variable_set :@arr, arr
 
-      NATFIXME 'Support ivar', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'Load object links', exception: IndexError, message: 'index 2 outside of array bounds: -2...2' do
         loaded = Marshal.send(@method, "\x04\bo:\x0EException\b:\tmesg\"\bfoo:\abt0:\t@arr[\t:\aso;\t\"\ahi@\b")
         new_arr = loaded.instance_variable_get :@arr
 
@@ -954,7 +948,7 @@ describe :marshal_load, shared: true do
       obj = Object.new
       obj.instance_variable_set :@str, arr
 
-      NATFIXME 'Support ivar', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'Load object links', exception: IndexError, message: 'index 1 outside of array bounds: -1...1' do
         new_obj = Marshal.send(@method, "\004\bo:\vObject\006:\t@str[\t:\aso;\a\"\ahi@\a")
         new_str = new_obj.instance_variable_get :@str
 
