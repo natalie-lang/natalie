@@ -2847,7 +2847,7 @@ module Natalie
 
       class << self
         def debug_instructions(instructions)
-          instructions.each_with_index do |instruction, index|
+          instructions.flatten.each_with_index do |instruction, index|
             desc = "#{index} #{instruction}"
             puts desc
           end
