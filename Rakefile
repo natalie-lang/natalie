@@ -104,81 +104,7 @@ end
 
 desc 'Test that some representative code runs with the AddressSanitizer enabled'
 task test_asan: :build_asan do
-  sh 'bin/natalie examples/hello.rb'
-  sh 'bin/natalie examples/fib.rb'
-  sh 'bin/natalie examples/boardslam.rb 3 5 1'
-  # These are some tests that are known to pass with AddressSanitizer enabled.
-  # We'd like to have all tests passing, of course, but let's start here and
-  # then hack away at other failing ones when we get time...
-  %w[
-    test/natalie/argument_test.rb
-    test/natalie/autoload_test.rb
-    test/natalie/backtrace_test.rb
-    test/natalie/block_test.rb
-    test/natalie/boolean_test.rb
-    test/natalie/bootstrap_test.rb
-    test/natalie/break_test.rb
-    test/natalie/builtin_constants_test.rb
-    test/natalie/call_order_test.rb
-    test/natalie/caller_test.rb
-    test/natalie/class_var_test.rb
-    test/natalie/comparable_test.rb
-    test/natalie/complex_test.rb
-    test/natalie/const_defined_test.rb
-    test/natalie/constant_test.rb
-    test/natalie/define_method_test.rb
-    test/natalie/defined_test.rb
-    test/natalie/dup_test.rb
-    test/natalie/enumerable_test.rb
-    test/natalie/env_test.rb
-    test/natalie/equality_test.rb
-    test/natalie/eval_test.rb
-    test/natalie/fiddle_test.rb
-    test/natalie/file_test.rb
-    test/natalie/fileutils_test.rb
-    test/natalie/fork_test.rb
-    test/natalie/freeze_test.rb
-    test/natalie/global_test.rb
-    test/natalie/if_test.rb
-    test/natalie/implicit_conversions_test.rb
-    test/natalie/instance_eval_test.rb
-    test/natalie/io_test.rb
-    test/natalie/ivar_test.rb
-    test/natalie/kernel_integer_test.rb
-    test/natalie/kernel_test.rb
-    test/natalie/lambda_test.rb
-    test/natalie/load_path_test.rb
-    test/natalie/loop_test.rb
-    test/natalie/matchdata_test.rb
-    test/natalie/method_test.rb
-    test/natalie/method_visibility_test.rb
-    test/natalie/module_test.rb
-    test/natalie/modulo_test.rb
-    test/natalie/namespace_test.rb
-    test/natalie/next_test.rb
-    test/natalie/nil_test.rb
-    test/natalie/numeric_test.rb
-    test/natalie/range_test.rb
-    test/natalie/rational_test.rb
-    test/natalie/rbconfig_test.rb
-    test/natalie/regexp_test.rb
-    test/natalie/require_test.rb
-    test/natalie/return_test.rb
-    test/natalie/reverse_each_test.rb
-    test/natalie/send_test.rb
-    test/natalie/shell_test.rb
-    test/natalie/singleton_class_test.rb
-    test/natalie/socket_test.rb
-    test/natalie/spawn_test.rb
-    test/natalie/special_globals_test.rb
-    test/natalie/super_test.rb
-    test/natalie/symbol_test.rb
-    test/natalie/tempfile_test.rb
-    test/natalie/yield_test.rb
-    test/natalie/zlib_test.rb
-  ].each do |path|
-    sh "bin/natalie #{path}"
-  end
+  sh 'ruby test/asan_test.rb'
 end
 
 task test_all_ruby_spec_nightly: :build do
@@ -375,7 +301,9 @@ task docker_test_self_hosted_full: :docker_build_clang do
   sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_self_hosted_full"
 end
 
-task docker_test_asan: :docker_build_clang do
+task :docker_test_asan do
+  ENV['NAT_BUILD_MODE'] = 'asan'
+  Rake::Task['docker_build_clang'].invoke
   sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_asan"
 end
 
@@ -573,7 +501,7 @@ file 'build/generated/numbers.rb' do |t|
     f1.puts '  printf("NAT_MIN_FIXNUM = %lli\n", NAT_MIN_FIXNUM);'
     f1.puts '}'
     f1.close
-    sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -o #{f2.path} #{f1.path}"
+    sh "#{cxx} #{include_flags.join(' ')} -std=#{STANDARD} -o #{f2.path} #{f1.path}"
     sh "#{f2.path} > #{t.name}"
   ensure
     File.unlink(f1.path)
@@ -726,7 +654,11 @@ def cxx_flags
     base_flags += ['-D_DARWIN_C_SOURCE']
   end
   user_flags = Array(ENV['NAT_CXX_FLAGS'])
-  base_flags + user_flags + include_paths.map { |path| "-I #{path}" }
+  base_flags + user_flags + include_flags
+end
+
+def include_flags
+  include_paths.map { |path| "-I #{path}" }
 end
 
 def include_paths
