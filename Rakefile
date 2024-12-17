@@ -375,7 +375,9 @@ task docker_test_self_hosted_full: :docker_build_clang do
   sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_self_hosted_full"
 end
 
-task docker_test_asan: :docker_build_clang do
+task :docker_test_asan do
+  ENV['NAT_BUILD_MODE'] = 'asan'
+  Rake::Task['docker_build_clang'].invoke
   sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_asan"
 end
 
@@ -573,7 +575,7 @@ file 'build/generated/numbers.rb' do |t|
     f1.puts '  printf("NAT_MIN_FIXNUM = %lli\n", NAT_MIN_FIXNUM);'
     f1.puts '}'
     f1.close
-    sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -o #{f2.path} #{f1.path}"
+    sh "#{cxx} #{include_flags.join(' ')} -std=#{STANDARD} -o #{f2.path} #{f1.path}"
     sh "#{f2.path} > #{t.name}"
   ensure
     File.unlink(f1.path)
@@ -726,7 +728,11 @@ def cxx_flags
     base_flags += ['-D_DARWIN_C_SOURCE']
   end
   user_flags = Array(ENV['NAT_CXX_FLAGS'])
-  base_flags + user_flags + include_paths.map { |path| "-I #{path}" }
+  base_flags + user_flags + include_flags
+end
+
+def include_flags
+  include_paths.map { |path| "-I #{path}" }
 end
 
 def include_paths
