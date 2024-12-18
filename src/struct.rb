@@ -5,7 +5,7 @@ class Struct
     alias [] new
   end
 
-  def self.new(*attrs, &block)
+  def self.new(*attrs, keyword_init: nil, &block)
     duplicates = attrs.tally.find { |_, size| size > 1 }
     unless duplicates.nil?
       raise ArgumentError, "duplicate member: #{duplicates.first}"
@@ -17,15 +17,6 @@ class Struct
       attrs.shift
     end
 
-    if attrs.last.is_a?(Hash)
-      options = attrs.pop
-      unknown_keys = options.keys.difference([:keyword_init])
-      if unknown_keys.any?
-        raise ArgumentError, "unknown keyword: #{unknown_keys.map(&:inspect).join(', ')}"
-      end
-    else
-      options = {}
-    end
     result = Class.new(Struct) do
       include Enumerable
 
@@ -38,7 +29,7 @@ class Struct
       end
       alias_method :size, :length
 
-      if options[:keyword_init]
+      if keyword_init
         define_method :initialize do |args = {}|
           unless args.is_a?(Hash)
             raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
@@ -61,7 +52,7 @@ class Struct
       end
 
       self.class.define_method :keyword_init? do
-        options[:keyword_init] ? true : options[:keyword_init]
+        keyword_init ? true : keyword_init
       end
 
       define_method :each do
