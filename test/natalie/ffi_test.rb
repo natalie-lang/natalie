@@ -56,6 +56,18 @@ describe 'FFI' do
     lib.name.should == STUB_LIBRARY_PATH
   end
 
+  it 'raises an error if no library can be found' do
+    lambda do
+      Module.new do
+        extend FFI::Library
+        ffi_lib ["non_existent.so", "neither_existent.so"]
+      end
+    end.should raise_error(
+      LoadError,
+      /Could not open library.*non_existent\.so.*Could not open library.*neither_existent\.so/m
+    )
+  end
+
   it 'links to a shared object' do
     libs = LibRubyParser.instance_variable_get(:@ffi_libs)
     libs.size.should == 1
