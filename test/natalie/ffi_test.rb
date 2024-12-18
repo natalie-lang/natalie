@@ -68,6 +68,15 @@ describe 'FFI' do
     )
   end
 
+  it 'raises an error if an empty list is provided' do
+    lambda do
+      Module.new do
+        extend FFI::Library
+        ffi_lib []
+      end
+    end.should raise_error(LoadError)
+  end
+
   it 'links to a shared object' do
     libs = LibRubyParser.instance_variable_get(:@ffi_libs)
     libs.size.should == 1
