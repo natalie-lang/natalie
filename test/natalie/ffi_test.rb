@@ -34,7 +34,7 @@ end
 describe 'FFI' do
   it 'raises an error if the library cannot be found' do
     lambda do
-      module Foo
+      Module.new do
         extend FFI::Library
         ffi_lib "non_existent.so"
       end
