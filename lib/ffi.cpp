@@ -23,9 +23,13 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
                 break;
             }
         }
-        // NATFIXME: Correct error message
-        if (!handle)
-            env->raise("LoadError", "Could not open library '{}': {}.", name->inspect_str(env), dlerror());
+        if (!handle) {
+            auto error = new StringObject;
+            for (auto name2 : *name->as_array())
+                error->append_sprintf("Could not open library '%s': %s.\n", name2->as_string()->string().c_str(), dlerror());
+            error->chomp_in_place(env, nullptr);
+            env->raise("LoadError", error->string());
+        }
     } else {
         name->assert_type(env, Object::Type::String, "String");
         handle = dlopen(name->as_string()->c_str(), RTLD_LAZY);
