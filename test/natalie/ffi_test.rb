@@ -44,6 +44,18 @@ describe 'FFI' do
     )
   end
 
+  it 'supports an array of strings as library and uses the first one available' do
+    foo = Module.new do
+      extend FFI::Library
+      ffi_lib ['non_existent.so', STUB_LIBRARY_PATH, PRISM_LIBRARY_PATH]
+    end
+    libs = foo.instance_variable_get(:@ffi_libs)
+    libs.size.should == 1
+    lib = libs.first
+    lib.should be_an_instance_of FFI::DynamicLibrary
+    lib.name.should == STUB_LIBRARY_PATH
+  end
+
   it 'links to a shared object' do
     libs = LibRubyParser.instance_variable_get(:@ffi_libs)
     libs.size.should == 1
