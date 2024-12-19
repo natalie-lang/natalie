@@ -13,10 +13,29 @@ Value init_ffi(Env *env, Value self) {
 Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto name = args.at(0);
-    name->assert_type(env, Object::Type::String, "String");
-    auto handle = dlopen(name->as_string()->c_str(), RTLD_LAZY);
-    if (!handle)
-        env->raise("LoadError", "Could not open library '{}': {}.", name->as_string()->c_str(), dlerror());
+    void *handle = nullptr;
+    if (name->is_array()) {
+        for (auto name2 : *name->as_array()) {
+            name2->assert_type(env, Object::Type::String, "String");
+            handle = dlopen(name2->as_string()->c_str(), RTLD_LAZY);
+            if (handle) {
+                name = name2;
+                break;
+            }
+        }
+        if (!handle) {
+            auto error = new StringObject;
+            for (auto name2 : *name->as_array())
+                error->append_sprintf("Could not open library '%s': %s.\n", name2->as_string()->string().c_str(), dlerror());
+            error->chomp_in_place(env, nullptr);
+            env->raise("LoadError", error->string());
+        }
+    } else {
+        name->assert_type(env, Object::Type::String, "String");
+        handle = dlopen(name->as_string()->c_str(), RTLD_LAZY);
+        if (!handle)
+            env->raise("LoadError", "Could not open library '{}': {}.", name->as_string()->c_str(), dlerror());
+    }
     auto handle_ptr = new VoidPObject { handle, [](auto p) { dlclose(p->void_ptr()); } };
     auto libs = self->ivar_get(env, "@ffi_libs"_s);
     if (libs->is_nil())
