@@ -62,8 +62,8 @@ public:
     virtual String backtrace_name() const override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
-        if (m_class_name)
-            snprintf(buf, len, "<ClassObject %p name=%s>", this, m_class_name.value().c_str());
+        if (m_name)
+            snprintf(buf, len, "<ClassObject %p name=%s>", this, m_name.value().c_str());
         else
             snprintf(buf, len, "<ClassObject %p name=(none)>", this);
     }

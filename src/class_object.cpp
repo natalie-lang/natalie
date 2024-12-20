@@ -42,7 +42,7 @@ void ClassObject::initialize_subclass_without_checks(ClassObject *subclass, Env 
         subclass->set_singleton_class(singleton);
     }
     if (!name.is_empty())
-        subclass->set_class_name(name);
+        subclass->set_name(name);
     subclass->m_superclass = this;
     if (!object_type)
         object_type = m_object_type;
@@ -57,7 +57,7 @@ ClassObject *ClassObject::bootstrap_class_class(Env *env) {
     Class->m_klass = Class;
     Class->m_object_type = Type::Class;
     Class->m_is_initialized = true;
-    Class->set_class_name("Class");
+    Class->set_name("Class");
     return Class;
 }
 
@@ -68,7 +68,7 @@ ClassObject *ClassObject::bootstrap_basic_object(Env *env, ClassObject *Class) {
     BasicObject->m_klass = Class;
     BasicObject->m_superclass = nullptr;
     BasicObject->m_is_initialized = true;
-    BasicObject->set_class_name("BasicObject");
+    BasicObject->set_name("BasicObject");
     auto singleton = new ClassObject { Class };
     Class->initialize_subclass_without_checks(singleton, env, "#<Class:BasicObject>");
     BasicObject->set_singleton_class(singleton);
@@ -76,9 +76,9 @@ ClassObject *ClassObject::bootstrap_basic_object(Env *env, ClassObject *Class) {
 }
 
 String ClassObject::backtrace_name() const {
-    if (!m_class_name)
+    if (!m_name)
         return inspect_str();
-    return String::format("<class:{}>", m_class_name.value());
+    return String::format("<class:{}>", m_name.value());
 }
 
 }

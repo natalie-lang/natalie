@@ -17,7 +17,7 @@ Value Value::floatingpoint(double value) {
                 return String("FastInteger");                                           \
             if (val.m_type == Type::Double)                                             \
                 return String("FastDouble");                                            \
-            auto maybe_classname = val->klass()->class_name();                          \
+            auto maybe_classname = val->klass()->name();                                \
             if (maybe_classname.present())                                              \
                 return maybe_classname.value();                                         \
             else                                                                        \

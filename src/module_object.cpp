@@ -7,7 +7,7 @@ ModuleObject::ModuleObject()
 
 ModuleObject::ModuleObject(const char *name)
     : ModuleObject {} {
-    this->set_class_name(name);
+    this->set_name(name);
 }
 
 ModuleObject::ModuleObject(Type type, ClassObject *klass)
@@ -272,14 +272,14 @@ Value ModuleObject::const_set(SymbolObject *name, Value val) {
             if (val->singleton_class()) val->singleton_class()->set_owner(this);
         }
 
-        if (!val->as_module()->class_name()) {
-            auto class_name = name->string();
-            val->as_module()->set_class_name(class_name);
+        if (!val->as_module()->name()) {
+            auto module_name = name->string();
+            val->as_module()->set_name(module_name);
 
             auto singleton_class = val->singleton_class();
             while (singleton_class) {
-                class_name = String::format("#<Class:{}>", class_name);
-                singleton_class->set_class_name(class_name);
+                auto class_name = String::format("#<Class:{}>", module_name);
+                singleton_class->set_name(class_name);
                 singleton_class = singleton_class->singleton_class();
             }
         }
@@ -734,16 +734,16 @@ bool ModuleObject::is_method_defined(Env *env, Value name_value) const {
 }
 
 String ModuleObject::inspect_str() const {
-    if (m_class_name) {
+    if (m_name) {
         if (owner() && owner() != GlobalEnv::the()->Object()) {
-            return String::format("{}::{}", owner()->inspect_str(), m_class_name.value());
+            return String::format("{}::{}", owner()->inspect_str(), m_name.value());
         } else {
-            return String(m_class_name.value());
+            return String(m_name.value());
         }
     } else if (is_class()) {
         return String::format("#<Class:{}>", pointer_id());
-    } else if (is_module() && m_class_name) {
-        return String(m_class_name.value());
+    } else if (is_module() && m_name) {
+        return String(m_name.value());
     } else {
         return String::format("#<{}:{}>", klass()->inspect_str(), pointer_id());
     }
@@ -754,14 +754,14 @@ Value ModuleObject::inspect(Env *env) const {
 }
 
 String ModuleObject::dbg_inspect() const {
-    if (m_class_name)
-        return String::format("\"{}\"", m_class_name.value());
+    if (m_name)
+        return String::format("\"{}\"", m_name.value());
     return Object::dbg_inspect();
 }
 
 Value ModuleObject::name(Env *env) const {
-    if (m_class_name) {
-        String name = m_class_name.value();
+    if (m_name) {
+        String name = m_name.value();
         auto the_owner = owner();
         if (the_owner && the_owner != GlobalEnv::the()->Object()) {
             auto owner_name = the_owner->name();
@@ -777,9 +777,9 @@ Value ModuleObject::name(Env *env) const {
 }
 
 String ModuleObject::backtrace_name() const {
-    if (!m_class_name)
+    if (!m_name)
         return inspect_str();
-    return String::format("<module:{}>", m_class_name.value());
+    return String::format("<module:{}>", m_name.value());
 }
 
 ArrayObject *ModuleObject::attr(Env *env, Args &&args) {
