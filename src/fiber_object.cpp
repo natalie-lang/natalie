@@ -2,7 +2,7 @@
 #include "natalie/thread_object.hpp"
 
 #define MINICORO_IMPL
-#include "minicoro.h"
+#include "minicoro/minicoro.h"
 
 namespace Natalie {
 

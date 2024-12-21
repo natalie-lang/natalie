@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <sys/mman.h>
 
-#include "minicoro.h"
+#include "minicoro/minicoro.h"
 
 #include "natalie/array_object.hpp"
 #include "natalie/class_object.hpp"
