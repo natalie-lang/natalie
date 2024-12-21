@@ -89,7 +89,10 @@ public:
     void *end_of_stack() { return m_end_of_stack; }
     void set_end_of_stack(void *ptr) { m_end_of_stack = ptr; }
 
-    size_t stack_size() const { return (uintptr_t)m_start_of_stack - (uintptr_t)m_end_of_stack; }
+    size_t stack_size() const {
+        assert(m_end_of_stack);
+        return (uintptr_t)m_start_of_stack - (uintptr_t)m_end_of_stack;
+    }
     void set_stack_size(size_t size) { m_end_of_stack = (void *)((uintptr_t)m_start_of_stack - size); }
 
     void set_status(Status status) { m_status = status; }

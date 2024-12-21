@@ -72,6 +72,7 @@ FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Bl
     mco_result res = mco_create(&m_coroutine, &desc);
     assert(res == MCO_SUCCESS);
     m_start_of_stack = (void *)((uintptr_t)m_coroutine->stack_base + m_coroutine->stack_size);
+    m_end_of_stack = (void *)((uintptr_t)m_start_of_stack - STACK_SIZE);
 
     return this;
 }
