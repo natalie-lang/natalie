@@ -1315,7 +1315,7 @@ bool Object::neq(Env *env, Value other) {
 }
 
 String Object::dbg_inspect() const {
-    auto klass = m_klass->class_name();
+    auto klass = m_klass->name();
     return String::format(
         "#<{}:{}>",
         klass ? *klass : "Object",
@@ -1469,7 +1469,7 @@ HashObject *Object::to_hash(Env *env) {
 StringObject *Object::to_s(Env *env) {
     auto str = send(env, "to_s"_s);
     if (!str->is_string())
-        env->raise("TypeError", "no implicit conversion of {} into String", m_klass->class_name());
+        env->raise("TypeError", "no implicit conversion of {} into String", m_klass->name());
     return str->as_string();
 }
 

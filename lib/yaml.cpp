@@ -176,7 +176,7 @@ static void emit_openstruct_value(Env *env, Value value, yaml_emitter_t &emitter
 
 static void emit_struct_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
     TM::String mapping_header = "!ruby/struct";
-    if (auto name = value->klass()->class_name()) {
+    if (auto name = value->klass()->name()) {
         mapping_header.append_char(':');
         mapping_header.append(*name);
     }

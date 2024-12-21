@@ -139,7 +139,7 @@ Value ExceptionObject::detailed_message(Env *env, Args &&args) {
         return message;
     }
 
-    if (!klass()->class_name())
+    if (!klass()->name())
         return message;
 
     const char *fmt = highlight ? "\e[1m{} (\e[1;4m{}\e[m\e[1m)\e[m" : "{} ({})";

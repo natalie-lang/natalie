@@ -67,17 +67,17 @@ public:
 
     Value eval_body(Env *, Value (*)(Env *, Value));
 
-    Optional<String> class_name() const {
-        return m_class_name;
+    Optional<String> name() const {
+        return m_name;
     }
 
-    void set_class_name(String name) {
-        m_class_name = std::move(name);
+    void set_name(String name) {
+        m_name = std::move(name);
     }
 
-    void set_class_name(const char *name) {
+    void set_name(const char *name) {
         assert(name);
-        m_class_name = String(name);
+        m_name = String(name);
     }
 
     virtual ClassObject *superclass(Env *) { return m_superclass; }
@@ -126,7 +126,7 @@ public:
     Value inspect(Env *) const;
     String dbg_inspect() const override;
     Value name(Env *) const;
-    Optional<String> name() { return m_class_name; }
+    Optional<String> name() { return m_name; }
     virtual String backtrace_name() const;
 
     ArrayObject *attr(Env *, Args &&);
@@ -171,8 +171,8 @@ public:
     virtual void visit_children(Visitor &) const override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
-        if (m_class_name)
-            snprintf(buf, len, "<ModuleObject %p name=%s>", this, m_class_name.value().c_str());
+        if (m_name)
+            snprintf(buf, len, "<ModuleObject %p name=%s>", this, m_name.value().c_str());
         else
             snprintf(buf, len, "<ModuleObject %p name=(none)>", this);
     }
@@ -185,7 +185,7 @@ protected:
 
     Env *m_env { nullptr };
     TM::Hashmap<SymbolObject *, Constant *> m_constants {};
-    Optional<String> m_class_name {};
+    Optional<String> m_name {};
     ClassObject *m_superclass { nullptr };
     TM::Hashmap<SymbolObject *, MethodInfo> m_methods {};
     TM::Hashmap<SymbolObject *, Value> m_class_vars {};
