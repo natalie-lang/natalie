@@ -26,6 +26,7 @@ module Natalie
       ].freeze
 
       ASAN_FLAGS = DEBUG_FLAGS + %w[
+        -D NAT_GC_DISABLE=true
         -fsanitize=address
         -fno-omit-frame-pointer
       ]
@@ -40,7 +41,7 @@ module Natalie
         -shared
         -rdynamic
         -Wl,-undefined,dynamic_lookup
-      ]
+      ].freeze
     end
   end
 end
