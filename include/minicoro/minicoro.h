@@ -531,14 +531,14 @@ extern "C" {
 
 #if defined(__has_feature)
   #if __has_feature(address_sanitizer)
-    #define _MCO_USE_ASAN
+    //#define _MCO_USE_ASAN // this functionality moved into fiber_object.cpp
   #endif
   #if __has_feature(thread_sanitizer)
     #define _MCO_USE_TSAN
   #endif
 #endif
 #if defined(__SANITIZE_ADDRESS__)
-  #define _MCO_USE_ASAN
+  //#define _MCO_USE_ASAN // this functionality moved into fiber_object.cpp
 #endif
 #if defined(__SANITIZE_THREAD__)
   #define _MCO_USE_TSAN

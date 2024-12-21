@@ -4,7 +4,39 @@
 #define MINICORO_IMPL
 #include "minicoro/minicoro.h"
 
+#ifdef __SANITIZE_ADDRESS__
+extern "C" void __sanitizer_start_switch_fiber(void **fake_stack_save, const void *bottom, size_t size);
+extern "C" void __sanitizer_finish_switch_fiber(void *fake_stack_save, const void **bottom_old, size_t *size_old);
+#endif
+
 namespace Natalie {
+
+#ifdef __SANITIZE_ADDRESS__
+#define START_SWITCH_FIBER(from_fiber, to_fiber)                                                               \
+    {                                                                                                          \
+        void *fake_stack_start = nullptr;                                                                      \
+        __sanitizer_start_switch_fiber(&fake_stack_start, to_fiber->start_of_stack(), to_fiber->stack_size()); \
+        from_fiber->set_asan_fake_stack_start(fake_stack_start);                                               \
+    }
+
+#define START_SWITCH_FIBER_FINAL(to_fiber)                                                           \
+    {                                                                                                \
+        __sanitizer_start_switch_fiber(nullptr, to_fiber->start_of_stack(), to_fiber->stack_size()); \
+    }
+
+#define FINISH_SWITCH_FIBER(from_fiber, to_fiber)                                                                        \
+    {                                                                                                                    \
+        void *start_of_stack = nullptr;                                                                                  \
+        size_t stack_size = 0;                                                                                           \
+        __sanitizer_finish_switch_fiber(to_fiber->asan_fake_stack_start(), (const void **)&start_of_stack, &stack_size); \
+        from_fiber->set_start_of_stack(start_of_stack);                                                                  \
+        from_fiber->set_stack_size(stack_size);                                                                          \
+    }
+#else
+#define START_SWITCH_FIBER(from_fiber, to_fiber)
+#define START_SWITCH_FIBER_FINAL(to_fiber)
+#define FINISH_SWITCH_FIBER(from_fiber, to_fiber)
+#endif
 
 thread_local TM::Vector<Value> *tl_current_arg_stack = nullptr;
 
@@ -110,30 +142,31 @@ Value FiberObject::resume(Env *env, Args args) {
         env->raise("FiberError", "attempt to resume the current fiber");
 
     auto suspending_fiber = m_previous_fiber = current();
+
+    // RESUME START SWITCH
+    START_SWITCH_FIBER(suspending_fiber, this);
+
     {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         set_args(args.size(), args.data());
         ThreadObject::current()->m_current_fiber = this;
         tl_current_arg_stack = &m_args_stack;
         ThreadObject::current()->set_start_of_stack(m_start_of_stack);
-
-#ifdef __SANITIZE_ADDRESS__
-        auto fake_stack = __asan_get_current_fake_stack();
-        void *real_stack = __asan_addr_is_in_fake_stack(fake_stack, &args, nullptr, nullptr);
-        suspending_fiber->m_end_of_stack = real_stack ? real_stack : &args;
-        suspending_fiber->m_asan_fake_stack = __asan_get_current_fake_stack();
-#else
         suspending_fiber->m_end_of_stack = &args;
-#endif
     }
 
     auto res = mco_resume(m_coroutine);
     assert(res == MCO_SUCCESS);
 
+    auto new_current = FiberObject::current();
+
+    // YIELD FINISH SWITCH
+    FINISH_SWITCH_FIBER(this, new_current);
+
     if (m_error)
         env->raise_exception(m_error);
 
-    auto fiber_args = FiberObject::current()->args();
+    auto fiber_args = new_current->args();
     if (fiber_args.size() == 0) {
         return NilObject::the();
     } else if (fiber_args.size() == 1) {
@@ -204,7 +237,8 @@ Value FiberObject::storage(Env *env) const {
 
 Value FiberObject::yield(Env *env, Args args) {
     auto current_fiber = FiberObject::current();
-    if (!current_fiber->m_previous_fiber)
+    auto previous_fiber = current_fiber->m_previous_fiber;
+    if (!previous_fiber)
         env->raise("FiberError", "can't yield from root fiber");
 
     {
@@ -214,9 +248,17 @@ Value FiberObject::yield(Env *env, Args args) {
         current_fiber->swap_to_previous(env, args.size(), args.data());
     }
 
+    // YIELD START SWITCH
+    START_SWITCH_FIBER(current_fiber, previous_fiber);
+
     mco_yield(mco_running());
 
-    auto fiber_args = FiberObject::current()->args();
+    auto new_current = FiberObject::current();
+
+    // RESUME FINISH SWITCH
+    FINISH_SWITCH_FIBER(new_current->previous_fiber(), new_current);
+
+    auto fiber_args = new_current->args();
     if (fiber_args.size() == 0) {
         return NilObject::the();
     } else if (fiber_args.size() == 1) {
@@ -279,7 +321,7 @@ NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_stack(Visitor &visitor
 NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const {
     void *begin = nullptr;
     void *end = nullptr;
-    void *real_stack = __asan_addr_is_in_fake_stack(m_asan_fake_stack, potential_cell, &begin, &end);
+    void *real_stack = __asan_addr_is_in_fake_stack(m_asan_fake_stack_start, potential_cell, &begin, &end);
 
     if (!real_stack) return;
 
@@ -314,6 +356,10 @@ void fiber_wrapper_func(mco_coro *co) {
     auto user_data = (coroutine_user_data *)co->user_data;
     auto env = user_data->env;
     auto fiber = user_data->fiber;
+    auto previous_fiber = fiber->previous_fiber();
+
+    // RESUME FINISH SWITCH
+    FINISH_SWITCH_FIBER(previous_fiber, fiber);
 
     {
         std::lock_guard<std::recursive_mutex> lock(Natalie::g_gc_recursive_mutex);
@@ -350,5 +396,9 @@ void fiber_wrapper_func(mco_coro *co) {
     } else {
         fiber->swap_to_previous(env, 1, &return_arg);
     }
+
+    // YIELD START SWITCH (FINAL IMPLICIT YIELD)
+    //__sanitizer_start_switch_fiber(nullptr, previous_fiber->start_of_stack(), previous_fiber->stack_size());
+    START_SWITCH_FIBER_FINAL(previous_fiber);
 }
 }
