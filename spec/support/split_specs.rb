@@ -14,10 +14,16 @@ groups, num = ARGV
 raise 'expected "groupN"' unless num =~ /group(\d+)/
 num = $1.to_i - 1
 
-list = Dir['spec/**/*_spec.rb']
-slice_size = (list.size / groups.to_f).ceil
+raise "expected 1-#{groups}" unless (0...groups.to_i).include?(num)
+
+list = Dir['spec/**/*_spec.rb', 'test/**/*_test.rb']
+
+rand = Random.new(42)
+sorted_list = list.sort_by { |item| rand.rand }
+
+slice_size = (sorted_list.size / groups.to_f).ceil
 groups = []
-list.each_slice(slice_size).each do |group|
+sorted_list.each_slice(slice_size).each do |group|
   groups << group
 end
 
