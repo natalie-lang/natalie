@@ -220,13 +220,17 @@ def default_docker_build_args
 end
 
 task :docker_build_gcc do
-  sh "docker build -t natalie_gcc_#{ruby_version_string} " \
+  suffix = ruby_version_string
+  suffix += '_asan' if ENV['NAT_BUILD_MODE'] == 'asan'
+  sh "docker build -t natalie_gcc_#{suffix} " \
      "#{default_docker_build_args.join(' ')} " \
      '.'
 end
 
 task :docker_build_clang do
-  sh "docker build -t natalie_clang_#{ruby_version_string} " \
+  suffix = ruby_version_string
+  suffix += '_asan' if ENV['NAT_BUILD_MODE'] == 'asan'
+  sh "docker build -t natalie_clang_#{suffix} " \
      "#{default_docker_build_args.join(' ')} " \
      '--build-arg CC=clang ' \
      '--build-arg CXX=clang++ ' \
@@ -303,8 +307,8 @@ end
 
 task :docker_test_asan do
   ENV['NAT_BUILD_MODE'] = 'asan'
-  Rake::Task['docker_build_clang'].invoke
-  sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_asan"
+  Rake::Task['docker_build_gcc'].invoke
+  sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_gcc_#{ruby_version_string}_asan test_asan"
 end
 
 task docker_test_all_ruby_spec_nightly: :docker_build_clang do
