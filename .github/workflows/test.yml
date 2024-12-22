@@ -99,5 +99,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
+      - name: Fix kernel mmap rnd bits for ASan
+        run: sudo sysctl vm.mmap_rnd_bits=28
       - name: test with AddressSanitizer
         run: rake docker_test_asan
