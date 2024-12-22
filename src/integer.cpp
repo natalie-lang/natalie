@@ -78,6 +78,8 @@ Integer::Integer(Integer &&other) {
 }
 
 Integer &Integer::operator=(const Integer &other) {
+    if (is_bignum() && m_bignum != other.m_bignum)
+        delete m_bignum;
     if (other.is_fixnum()) {
         m_fixnum = other.m_fixnum;
         m_is_fixnum = true;
@@ -90,6 +92,8 @@ Integer &Integer::operator=(const Integer &other) {
 
 Integer &Integer::operator=(Integer &&other) {
     if (&other == this) return *this;
+    if (is_bignum() && m_bignum != other.m_bignum)
+        delete m_bignum;
     if (other.is_fixnum()) {
         m_fixnum = other.m_fixnum;
         m_is_fixnum = true;

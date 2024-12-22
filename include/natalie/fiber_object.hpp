@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <sys/mman.h>
 
-#include "minicoro.h"
+#include "minicoro/minicoro.h"
 
 #include "natalie/array_object.hpp"
 #include "natalie/class_object.hpp"
@@ -78,11 +78,22 @@ public:
     Value storage(Env *) const;
     void swap_to_previous(Env *env, size_t arg_size, Value *arg_data);
 
-    void *start_of_stack() { return m_start_of_stack; }
-
     mco_coro *coroutine() { return m_coroutine; }
     Block *block() { return m_block; }
+
+    // "bottom" -- high address
+    void *start_of_stack() { return m_start_of_stack; }
+    void set_start_of_stack(void *ptr) { m_start_of_stack = ptr; }
+
+    // "top" -- low address
+    void *end_of_stack() { return m_end_of_stack; }
     void set_end_of_stack(void *ptr) { m_end_of_stack = ptr; }
+
+    size_t stack_size() const {
+        assert(m_end_of_stack);
+        return (uintptr_t)m_start_of_stack - (uintptr_t)m_end_of_stack;
+    }
+    void set_stack_size(size_t size) { m_end_of_stack = (void *)((uintptr_t)m_start_of_stack - size); }
 
     void set_status(Status status) { m_status = status; }
     SymbolObject *status(Env *env) {
@@ -126,6 +137,13 @@ public:
     HashObject *thread_storage() { return m_thread_storage; }
     HashObject *ensure_thread_storage();
 
+    FiberObject *previous_fiber() const { return m_previous_fiber; }
+
+#ifdef __SANITIZE_ADDRESS__
+    void *asan_fake_stack_start() const { return m_asan_fake_stack_start; }
+    void set_asan_fake_stack_start(void *start) { m_asan_fake_stack_start = start; }
+#endif
+
 private:
     friend Args;
     friend ThreadObject;
@@ -140,7 +158,8 @@ private:
     ThreadObject *m_thread { nullptr };
     HashObject *m_thread_storage { nullptr };
 #ifdef __SANITIZE_ADDRESS__
-    void *m_asan_fake_stack { nullptr };
+    void *m_asan_fake_stack_start { nullptr };
+    size_t m_asan_fake_stack_size { 0 };
 #endif
     Status m_status { Status::Created };
     TM::Optional<TM::String> m_file {};
