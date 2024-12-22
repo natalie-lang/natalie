@@ -49,6 +49,7 @@ jobs:
             IMAGE=ruby:3.3
             NAT_CXX_FLAGS=-DNAT_GC_GUARD
             NAT_BUILD_MODE=debug
+            BUILD_TEST_SUPPORT=true
             CC=${{ matrix.compiler == 'clang' && 'clang' || 'gcc' }}
             CXX=${{ matrix.compiler == 'clang' && 'clang++' || 'g++' }}
           context: .

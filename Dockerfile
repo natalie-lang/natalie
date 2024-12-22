@@ -58,4 +58,9 @@ RUN rake build_${NAT_BUILD_MODE}
 COPY spec spec
 COPY test test
 
+ARG BUILD_TEST_SUPPORT=false
+RUN if [ "$BUILD_TEST_SUPPORT" = "true" ]; then \
+  rake build_test_support; \
+  fi
+
 ENTRYPOINT ["/natalie/bin/natalie"]
