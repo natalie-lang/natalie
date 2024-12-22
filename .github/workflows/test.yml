@@ -54,7 +54,7 @@ jobs:
             CXX=${{ matrix.compiler == 'clang' && 'clang++' || 'g++' }}
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/natalie-${{ matrix.compiler }}:${{ github.run_id }}
+          tags: ghcr.io/${{ github.repository_owner }}/natalie:${{ matrix.compiler }}-${{ github.run_id }}
           outputs: type=image,push=true,sha=true
   linux:
     needs: build-docker
@@ -82,11 +82,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Pull Docker image
-        run: docker pull ghcr.io/${{ github.repository_owner }}/natalie-${{ matrix.compiler }}:${{ github.run_id }}
+        run: docker pull ghcr.io/${{ github.repository_owner }}/natalie:${{ matrix.compiler }}-${{ github.run_id }}
       - name: Run tests
         run: |
           export GLOB=$(ruby spec/support/split_specs.rb 3 ${{ matrix.group }})
-          docker run --entrypoint rake ghcr.io/${{ github.repository_owner }}/natalie-${{ matrix.compiler }}:${{ github.run_id }} test
+          docker run -e GLOB="$GLOB" --entrypoint rake ghcr.io/${{ github.repository_owner }}/natalie:${{ matrix.compiler }}-${{ github.run_id }} test
   macos:
     runs-on: macos-latest
     strategy:
