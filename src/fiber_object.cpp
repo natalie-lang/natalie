@@ -358,6 +358,7 @@ void fiber_wrapper_func(mco_coro *co) {
     auto env = user_data->env;
     auto fiber = user_data->fiber;
     auto previous_fiber = fiber->previous_fiber();
+    (void)previous_fiber;
 
     // RESUME FINISH SWITCH
     FINISH_SWITCH_FIBER(previous_fiber, fiber);
