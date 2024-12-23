@@ -17,20 +17,23 @@ describe 'ruby/spec' do
   end
 
   Dir.chdir File.expand_path('../..', __dir__)
-  glob = if ENV['DEBUG_COMPILER']
-           # I use this when I'm working on the compiler,
-           # as it catches 99% of bugs and finishes a lot quicker.
-           Dir['spec/language/*_spec.rb']
-         elsif !(glob = ENV['GLOB']).to_s.empty?
-           # GLOB="spec/core/io/*_spec.rb,spec/core/thread/*_spec.rb" rake test
-           Dir[*glob.split(',')].tap do |files|
-             puts 'Matched files:'
-             puts files.to_a
-           end
-         else
-           Dir['spec/**/*_spec.rb']
-         end
-  glob.each do |path|
+  files = if ENV['DEBUG_COMPILER']
+            # I use this when I'm working on the compiler,
+            # as it catches 99% of bugs and finishes a lot quicker.
+            Dir['spec/language/*_spec.rb']
+          else
+            Dir['spec/**/*_spec.rb']
+          end
+
+  if !(glob = ENV['GLOB']).to_s.empty?
+    # GLOB="spec/core/io/*_spec.rb,spec/core/thread/*_spec.rb" rake test
+    glob_files = files & Dir[*glob.split(',')]
+    puts "Matched #{glob_files.size} out of #{files.size} total spec files:"
+    puts glob_files.to_a
+    files = glob_files
+  end
+
+  files.each do |path|
     describe path do
       it 'passes all specs' do
         out_nat = Timeout.timeout(spec_timeout(path), nil, "execution expired running: #{path}") do
