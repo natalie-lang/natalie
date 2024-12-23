@@ -1,21 +1,26 @@
 # This file is used to count instructions for a few small programs and send them to natalie-lang.org.
 
+require 'fileutils'
 require 'json'
-require 'uri'
 require 'net/http'
-
+require 'uri'
 
 totals = {}
 {
-  hello:     './hello',
-  fib:       './fib',
-  boardslam: './boardslam 3 5 1',
+  hello:     '/tmp/hello',
+  fib:       '/tmp/fib',
+  boardslam: '/tmp/boardslam 3 5 1',
+  nat:       'bin/nat -c /tmp/bs examples/boardslam.rb',
 }.each do |name, command|
-  system "bin/natalie -c #{name} examples/#{name}.rb"
-  system "valgrind --tool=callgrind --callgrind-out-file=callgrind.#{name}.out #{command}"
-  system "callgrind_annotate callgrind.#{name}.out | grep 'PROGRAM TOTALS' | sed 's/,//g' | awk '{ print $1 }' " \
-         "> callgrind.#{name}.total"
-  totals[name] = File.read("callgrind.#{name}.total").to_i
+  unless name == :nat
+    system "bin/natalie -c /tmp/#{name} examples/#{name}.rb"
+  end
+  out_path = "/tmp/callgrind.#{name}.out"
+  total_path = "/tmp/callgrind.#{name}.total"
+  system "valgrind --tool=callgrind --callgrind-out-file=#{out_path} #{command}"
+  system "callgrind_annotate #{out_path} | grep 'PROGRAM TOTALS' | sed 's/,//g' | awk '{ print $1 }' " \
+         "> #{total_path}"
+  totals[name] = File.read(total_path).to_i
 end
 pp totals
 

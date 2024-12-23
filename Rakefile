@@ -127,7 +127,7 @@ task test_all_ruby_spec_nightly: :build do
   sh 'bundle exec ruby spec/support/nightly_ruby_spec_runner.rb'
 end
 
-task test_perf: :build_release do
+task test_perf: [:clean, :build_release, 'bin/nat'] do
   sh 'ruby spec/support/test_perf.rb'
 end
 
