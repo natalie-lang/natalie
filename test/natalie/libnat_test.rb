@@ -6,6 +6,11 @@ require 'ffi'
 require 'tempfile'
 require 'natalie/inline'
 
+LIBNAT_PATH = "build/libnat.#{RbConfig::CONFIG['SOEXT']}"
+unless File.exist?(LIBNAT_PATH)
+  `rake #{LIBNAT_PATH}`
+end
+
 module LibNat
   extend FFI::Library
   ffi_lib "build/libnat.#{RbConfig::CONFIG['SOEXT']}"

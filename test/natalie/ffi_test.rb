@@ -7,6 +7,10 @@ SO_EXT = RbConfig::CONFIG['SOEXT']
 PRISM_LIBRARY_PATH = File.expand_path("../../build/prism/build/libprism.#{SO_EXT}", __dir__)
 STUB_LIBRARY_PATH = File.expand_path("../../build/test/support/ffi_stubs.#{SO_EXT}", __dir__)
 
+unless File.exist?(STUB_LIBRARY_PATH)
+  `rake #{STUB_LIBRARY_PATH}`
+end
+
 module TestStubs
   extend FFI::Library
   ffi_lib STUB_LIBRARY_PATH

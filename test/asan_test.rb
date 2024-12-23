@@ -7,16 +7,23 @@ require 'minitest/spec'
 require 'minitest/autorun'
 require_relative 'support/compare_rubies'
 
-TESTS_THAT_RUN = %w[
-  test/natalie/enumerator_test.rb
+TESTS = Dir['test/natalie/**/*_test.rb'].to_a
+
+TESTS_TO_SKIP = [
+  'test/natalie/ffi_test.rb', # memory leak
+  'test/natalie/thread_test.rb', # calls GC.start, but we're not ready for that
 ].freeze
 
 describe 'ASAN tests' do
   include CompareRubies
 
+  parallelize_me!
+
   Dir.chdir File.expand_path('..', __dir__)
 
-  TESTS_THAT_RUN.each do |path|
+  TESTS.each do |path|
+    next if TESTS_TO_SKIP.include?(path)
+
     describe path do
       it 'it runs without warnings' do
         out = run_nat(path)
