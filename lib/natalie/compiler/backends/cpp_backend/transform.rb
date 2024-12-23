@@ -52,7 +52,7 @@ module Natalie
 
         def memoize(name, code)
           result = temp(name)
-          @code << stringify_code(code, "auto #{result} = ")
+          @code << stringify_code(code, "auto #{result} =")
           result
         end
 
