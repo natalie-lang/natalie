@@ -8,7 +8,7 @@ PRISM_LIBRARY_PATH = File.expand_path("../../build/prism/build/libprism.#{SO_EXT
 STUB_LIBRARY_PATH = File.expand_path("../../build/test/support/ffi_stubs.#{SO_EXT}", __dir__)
 
 unless File.exist?(STUB_LIBRARY_PATH)
-  `rake #{STUB_LIBRARY_PATH}`
+  `rake 'build/test/support/ffi_stubs.#{SO_EXT}'`
 end
 
 module TestStubs
@@ -91,7 +91,7 @@ describe 'FFI' do
 
   it 'raises an error if an unknown symbol is used' do
     lambda do
-      module Foo
+      Module.new do
         extend FFI::Library
         ffi_lib PRISM_LIBRARY_PATH
         attach_function :something_unknown, [], :pointer
@@ -104,7 +104,7 @@ describe 'FFI' do
 
   it 'raises an error if an unknown type is used' do
     lambda do
-      module Foo
+      Module.new do
         extend FFI::Library
         ffi_lib PRISM_LIBRARY_PATH
         attach_function :pm_version, [], :some_bad_type
