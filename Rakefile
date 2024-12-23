@@ -103,7 +103,7 @@ task test_self_hosted_full: %i[bootstrap build_test_support] do
 end
 
 desc 'Test that some representative code runs with the AddressSanitizer enabled'
-task test_asan: :build_asan do
+task test_asan: [:clean, :build_asan, 'bin/nat'] do
   sh 'ruby test/asan_test.rb'
 end
 
