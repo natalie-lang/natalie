@@ -240,12 +240,14 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
         env->raise_exception(exception);
     }
 
+    auto ffi_return_type = get_ffi_type(env, self, return_type);
+
     auto cif = new ffi_cif;
     auto status = ffi_prep_cif(
         cif,
         FFI_DEFAULT_ABI,
         arg_count,
-        get_ffi_type(env, self, return_type),
+        ffi_return_type,
         ffi_args);
 
     if (status != FFI_OK)
