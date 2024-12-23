@@ -102,4 +102,6 @@ jobs:
       - name: Fix kernel mmap rnd bits for ASan
         run: sudo sysctl vm.mmap_rnd_bits=28
       - name: test with AddressSanitizer
+        env:
+          SPEC_TIMEOUT: 480
         run: rake docker_test_asan

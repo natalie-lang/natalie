@@ -5,7 +5,7 @@ TMP_DIR = File.expand_path('../tmp', __dir__)
 describe :process_fork, shared: true do
   before do
     @path = File.join(TMP_DIR, 'child.txt')
-    `rm -f #{@path}`
+    `mkdir -p #{TMP_DIR} && rm -f #{@path}`
   end
 
   context 'with a block' do
