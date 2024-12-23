@@ -1,8 +1,8 @@
 require 'timeout'
 
 module CompareRubies
-  SPEC_TIMEOUT = 240
-  NAT_BINARY = ENV['NAT_BINARY'] || 'bin/natalie'
+  SPEC_TIMEOUT = ENV.fetch('SPEC_TIMEOUT', '240').to_i
+  NAT_BINARY = ENV.fetch('NAT_BINARY', 'bin/natalie')
 
   def run_nat(path, *args)
     out_nat = sh("#{NAT_BINARY} -I test/support #{path} #{args.join(' ')} 2>&1")
