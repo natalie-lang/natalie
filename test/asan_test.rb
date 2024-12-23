@@ -60,4 +60,13 @@ describe 'ASAN tests' do
       expect(out).wont_match(/ASan/)
     end
   end
+
+  describe 'bin/nat' do
+    it 'it runs without warnings' do
+      out = sh('bin/nat -c /tmp/bs examples/boardslam.rb')
+      puts out unless $?.success?
+      expect($?).must_be :success?
+      expect(out).wont_match(/ASan/)
+    end
+  end
 end
