@@ -117,7 +117,9 @@ module Natalie
             inline_functions: @inline_functions,
             compiled_files: @compiled_files,
           )
-          yield(t)
+          result = yield(t)
+          @file = nil # env->set_file() inside the new transform shouldn't affect outside
+          result
         end
 
         def with_same_scope(instructions)

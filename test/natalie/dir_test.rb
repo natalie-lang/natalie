@@ -38,3 +38,15 @@ describe 'Dir' do
     end
   end
 end
+
+describe '__dir__' do
+  it 'returns the directory containing the source file' do
+    __dir__.should =~ %r{test/natalie$}
+  end
+
+  it 'does not get confused by requiring another file' do
+    true.should == true # some expression to cache Transform @file
+    require('optparse')
+    __dir__.should =~ %r{test/natalie$}
+  end
+end
