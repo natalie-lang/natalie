@@ -7,7 +7,10 @@ require 'minitest/spec'
 require 'minitest/autorun'
 require_relative 'support/compare_rubies'
 
-TESTS = Dir['test/natalie/**/*_test.rb'].to_a
+TESTS = Dir[
+  'test/natalie/**/*_test.rb',
+  'spec/language/*_spec.rb',
+].to_a
 
 TESTS_TO_SKIP = [
   'test/natalie/ffi_test.rb', # memory leak
