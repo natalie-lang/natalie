@@ -3,3 +3,5 @@ build
 ext/natalie_parser/*.o
 ext/natalie_parser/*.log
 ext/natalie_parser/*.h
+test/tmp
+rubyspec_temp

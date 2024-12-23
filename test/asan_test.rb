@@ -3,6 +3,7 @@
 #     rake clean build_asan
 #     ruby test/asan_test.rb
 
+require 'fileutils'
 require 'minitest/spec'
 require 'minitest/autorun'
 require_relative 'support/compare_rubies'
@@ -23,6 +24,10 @@ describe 'ASAN tests' do
   parallelize_me!
 
   Dir.chdir File.expand_path('..', __dir__)
+
+  before do
+    FileUtils.mkdir_p 'test/tmp'
+  end
 
   TESTS.each do |path|
     next if TESTS_TO_SKIP.include?(path)
