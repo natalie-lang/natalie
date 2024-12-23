@@ -15,6 +15,7 @@ TESTS = Dir[
 
 TESTS_TO_SKIP = [
   'test/natalie/ffi_test.rb', # memory leak
+  'test/natalie/libnat_test.rb', # too slow, times out frequently
   'test/natalie/thread_test.rb', # calls GC.start, but we're not ready for that
 ].freeze
 
