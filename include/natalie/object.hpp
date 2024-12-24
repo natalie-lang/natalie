@@ -125,6 +125,7 @@ public:
     bool is_complex() const { return m_type == Type::Complex; }
     bool is_dir() const { return m_type == Type::Dir; }
     bool is_encoding() const { return m_type == Type::Encoding; }
+    bool is_env() const { return m_type == Type::Env; }
     bool is_exception() const { return m_type == Type::Exception; }
     bool is_float() const { return m_type == Type::Float; }
     bool is_hash() const { return m_type == Type::Hash; }
@@ -165,6 +166,8 @@ public:
     const DirObject *as_dir() const;
     EncodingObject *as_encoding();
     const EncodingObject *as_encoding() const;
+    EnvObject *as_env();
+    const EnvObject *as_env() const;
     ExceptionObject *as_exception();
     const ExceptionObject *as_exception() const;
     FalseObject *as_false();
@@ -231,9 +234,6 @@ public:
     IntegerObject *as_integer_or_raise(Env *);
     MatchDataObject *as_match_data_or_raise(Env *);
     StringObject *as_string_or_raise(Env *);
-
-    EnvObject *as_env_object_for_method_binding();
-    ParserObject *as_parser_object_for_method_binding();
 
     SymbolObject *to_symbol(Env *, Conversion);
     SymbolObject *to_instance_variable_name(Env *);
