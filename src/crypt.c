@@ -1183,7 +1183,7 @@ static struct crypt_data default_crypt_data;
  */
 char *
 crypt(const char *key, const char *setting) {
-    return crypt_r(key, setting, &default_crypt_data);
+    return crypt_r2(key, setting, &default_crypt_data);
 }
 #endif
 
@@ -1192,7 +1192,7 @@ crypt(const char *key, const char *setting) {
  * encryption produced by the "key" and "setting".
  */
 char *
-crypt_r(const char *key, const char *setting, struct crypt_data *data) {
+crypt_r2(const char *key, const char *setting, struct crypt_data *data) {
     register char *encp;
     register long i;
     register int t;

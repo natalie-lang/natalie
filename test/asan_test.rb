@@ -13,6 +13,7 @@ TESTS = if ENV['SOME_TESTS'] == 'true'
           Dir[
             'spec/language/*_spec.rb',
             'test/natalie/**/*_test.rb',
+            'spec/core/string/crypt_spec.rb',
           ].to_a
         else
           # runs nightly -- all tests
@@ -53,7 +54,6 @@ TESTS_TO_SKIP = [
   'spec/core/process/uid_spec.rb', # not sure why this breaks
   'spec/core/process/euid_spec.rb', # not sure why this breaks
   'spec/core/process/egid_spec.rb', # not sure why this breaks
-  'spec/core/string/crypt_spec.rb', # heap buffer overflow in Natalie::StringObject::crypt
 ].freeze
 
 describe 'ASAN tests' do
