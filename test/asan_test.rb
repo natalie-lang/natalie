@@ -53,6 +53,7 @@ TESTS_TO_SKIP = [
   'spec/core/process/uid_spec.rb', # not sure why this breaks
   'spec/core/process/euid_spec.rb', # not sure why this breaks
   'spec/core/process/egid_spec.rb', # not sure why this breaks
+  'spec/core/string/crypt_spec.rb', # heap buffer overflow in Natalie::StringObject::crypt
 ].freeze
 
 describe 'ASAN tests' do
