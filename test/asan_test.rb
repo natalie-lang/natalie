@@ -8,7 +8,7 @@ require 'minitest/spec'
 require 'minitest/autorun'
 require_relative 'support/compare_rubies'
 
-TESTS = if ENV['SOME_TESTS']
+TESTS = if ENV['SOME_TESTS'] == 'true'
           # runs on every PR -- some tests
           Dir[
             'spec/language/*_spec.rb',
