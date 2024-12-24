@@ -96,7 +96,6 @@
 #include "natalie/native_profiler.hpp"
 #include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"
-#include "natalie/parser_object.hpp"
 #include "natalie/proc_object.hpp"
 #include "natalie/process_module.hpp"
 #include "natalie/random_object.hpp"

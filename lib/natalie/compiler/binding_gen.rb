@@ -347,7 +347,7 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
         value
       elsif special_case_class?
         raise 'should not reach here'
-      elsif %w[EnvObject ParserObject].include?(cpp_class)
+      elsif cpp_class == 'EnvObject'
         # TODO
         underscored = cpp_class.gsub(/([a-z])([A-Z])/, '\1_\2').downcase
         "#{value}->as_#{underscored}_for_method_binding()"

@@ -233,7 +233,6 @@ public:
     StringObject *as_string_or_raise(Env *);
 
     EnvObject *as_env_object_for_method_binding();
-    ParserObject *as_parser_object_for_method_binding();
 
     SymbolObject *to_symbol(Env *, Conversion);
     SymbolObject *to_instance_variable_name(Env *);
