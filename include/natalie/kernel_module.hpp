@@ -11,34 +11,15 @@
 
 namespace Natalie {
 
-class KernelModule : public Object {
+class KernelModule {
 public:
-    bool equal(Value other) {
-        return other == this;
-    }
-
-    Value klass_obj(Env *env) {
-        if (klass()) {
-            return klass();
-        } else {
-            return NilObject::the();
-        }
-    }
-
-    Value singleton_class_obj(Env *env) {
-        return singleton_class(env);
-    }
-
-    Value freeze_obj(Env *env) {
-        freeze();
-        return this;
-    }
-
+    // module functions
     static Value Array(Env *env, Value value);
     static Value abort_method(Env *env, Value message);
     static Value at_exit(Env *env, Block *block);
     static Value backtick(Env *, Value);
     static Value binding(Env *env);
+    static bool block_given(Env *env, Block *block) { return !!block; }
     static Value caller(Env *env, Value start = nullptr, Value length = nullptr);
     static Value caller_locations(Env *env, Value start = nullptr, Value length = nullptr);
     static Value catch_method(Env *, Value = nullptr, Block * = nullptr);
@@ -73,29 +54,49 @@ public:
     static Value test(Env *, Value, Value);
     static Value this_method(Env *env);
     static Value throw_method(Env *, Value, Value = nullptr);
-    static bool block_given(Env *env, Block *block) { return !!block; }
 
-    Value define_singleton_method(Env *env, Value name, Block *block);
-    Value dup(Env *env);
-    Value dup_better(Env *env); // This will eventually replace `dup`.
-    Value hash(Env *env);
-    Value initialize_copy(Env *env, Value object);
-    Value inspect(Env *env);
-    static Value inspect(Env *env, Value value);
-    Value main_obj_inspect(Env *);
-    bool instance_variable_defined(Env *env, Value name_val);
-    Value instance_variable_get(Env *env, Value name_val);
-    Value instance_variable_set(Env *env, Value name_val, Value value);
-    Value loop(Env *env, Block *block);
-    Value method(Env *env, Value name);
-    Value methods(Env *env, Value regular_val);
-    bool neqtilde(Env *, Value);
-    Value private_methods(Env *, Value = nullptr);
-    Value protected_methods(Env *, Value = nullptr);
-    Value public_methods(Env *, Value = nullptr);
-    Value remove_instance_variable(Env *env, Value name_val);
-    Value tap(Env *env, Block *block);
-    bool is_a(Env *env, Value module);
+    // instance methods (mixed into Object)
+
+    static bool equal(Value self, Value other) {
+        return other == self;
+    }
+
+    static Value klass_obj(Env *env, Value self) {
+        if (self->klass()) {
+            return self->klass();
+        } else {
+            return NilObject::the();
+        }
+    }
+
+    static Value singleton_class_obj(Env *env, Value self) {
+        return self->singleton_class(env);
+    }
+
+    static Value freeze_obj(Env *env, Value self) {
+        self->freeze();
+        return self;
+    }
+
+    static Value define_singleton_method(Env *env, Value self, Value name, Block *block);
+    static Value dup(Env *env, Value self);
+    static Value dup_better(Env *env, Value self); // This will eventually replace `dup`.
+    static Value hash(Env *env, Value self);
+    static Value initialize_copy(Env *env, Value self, Value object);
+    static Value inspect(Env *env, Value self);
+    static bool instance_variable_defined(Env *env, Value self, Value name_val);
+    static Value instance_variable_get(Env *env, Value self, Value name_val);
+    static Value instance_variable_set(Env *env, Value self, Value name_val, Value value);
+    static Value loop(Env *env, Value self, Block *block);
+    static Value method(Env *env, Value self, Value name);
+    static Value methods(Env *env, Value self, Value regular_val);
+    static bool neqtilde(Env *env, Value self, Value other);
+    static Value private_methods(Env *env, Value self, Value recur = nullptr);
+    static Value protected_methods(Env *env, Value self, Value recur = nullptr);
+    static Value public_methods(Env *env, Value self, Value recur = nullptr);
+    static Value remove_instance_variable(Env *env, Value self, Value name_val);
+    static Value tap(Env *env, Value self, Block *block);
+    static bool is_a(Env *env, Value self, Value module);
 };
 
 }
