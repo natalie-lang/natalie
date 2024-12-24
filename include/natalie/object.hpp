@@ -232,7 +232,6 @@ public:
     MatchDataObject *as_match_data_or_raise(Env *);
     StringObject *as_string_or_raise(Env *);
 
-    KernelModule *as_kernel_module_for_method_binding();
     EnvObject *as_env_object_for_method_binding();
     ParserObject *as_parser_object_for_method_binding();
 
@@ -277,6 +276,7 @@ public:
     SymbolObject *undefine_singleton_method(Env *, SymbolObject *);
 
     Value main_obj_define_method(Env *, Value, Value, Block *);
+    Value main_obj_inspect(Env *);
 
     virtual Value private_method(Env *, Args &&);
     virtual Value protected_method(Env *, Args &&);

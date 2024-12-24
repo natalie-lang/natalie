@@ -523,10 +523,6 @@ const VoidPObject *Object::as_void_p() const {
     return static_cast<const VoidPObject *>(this);
 }
 
-KernelModule *Object::as_kernel_module_for_method_binding() {
-    return static_cast<KernelModule *>(this);
-}
-
 EnvObject *Object::as_env_object_for_method_binding() {
     return static_cast<EnvObject *>(this);
 }
@@ -908,6 +904,10 @@ SymbolObject *Object::undefine_method(Env *env, SymbolObject *name) {
 
 Value Object::main_obj_define_method(Env *env, Value name, Value proc_or_unbound_method, Block *block) {
     return m_klass->define_method(env, name, proc_or_unbound_method, block);
+}
+
+Value Object::main_obj_inspect(Env *) {
+    return new StringObject { "main" };
 }
 
 void Object::private_method(Env *env, SymbolObject *name) {

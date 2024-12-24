@@ -28,7 +28,7 @@ Value KernelModule::abort_method(Env *env, Value message) {
         if (!message->is_string())
             message = message->to_str(env);
 
-        message->assert_type(env, Type::String, "String");
+        message->assert_type(env, Object::Type::String, "String");
 
         exception = SystemExit.send(env, "new"_s, { Value::integer(1), message })->as_exception();
 
@@ -121,11 +121,10 @@ Value KernelModule::catch_method(Env *env, Value name, Block *block) {
         block_env->set_catch(name);
         return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(block_env, block, { name }, nullptr);
     } catch (ThrowCatchException *e) {
-        if (e->get_name()->equal(name)) {
+        if (e->get_name()->equal(name))
             return e->get_value();
-        } else {
+        else
             throw e;
-        }
     }
 }
 
@@ -160,9 +159,8 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
 
 Value KernelModule::cur_callee(Env *env) {
     auto method = env->caller()->current_method();
-    if (method) {
+    if (method)
         return SymbolObject::intern(method->name());
-    }
 
     return NilObject::the();
 }
@@ -183,40 +181,10 @@ Value KernelModule::cur_dir(Env *env) {
                 last_slash = i;
             }
         }
-        if (found) {
+        if (found)
             absolute->truncate(last_slash);
-        }
         return absolute;
     }
-}
-
-Value KernelModule::define_singleton_method(Env *env, Value name, Block *block) {
-    env->ensure_block_given(block);
-    SymbolObject *name_obj = name->to_symbol(env, Object::Conversion::Strict);
-    Object::define_singleton_method(env, name_obj, block);
-    return name_obj;
-}
-
-Value KernelModule::dup(Env *env) {
-    // The semantics here are wrong. For each class, we need to define `initialize_copy`.
-    // Doing that all at once is a pain, so we'll split off classes here:
-    // classes that have their own `initialize_copy` method get the `dup_better` code path,
-    // while the rest get the old, wrong code path.
-    switch (type()) {
-    case Object::Type::Array:
-    case Object::Type::Hash:
-    case Object::Type::String:
-        return dup_better(env);
-    default:
-        return duplicate(env);
-    }
-}
-
-Value KernelModule::dup_better(Env *env) {
-    auto dup = Object::allocate(env, m_klass, {}, nullptr);
-    dup->copy_instance_variables(this);
-    dup->send(env, "initialize_dup"_s, { this });
-    return dup;
 }
 
 Value KernelModule::exit(Env *env, Value status) {
@@ -351,9 +319,9 @@ Value KernelModule::gets(Env *env) {
 
 Value KernelModule::get_usage(Env *env) {
     struct rusage usage;
-    if (getrusage(RUSAGE_SELF, &usage) != 0) {
+    if (getrusage(RUSAGE_SELF, &usage) != 0)
         return NilObject::the();
-    }
+
     HashObject *hash = new HashObject {};
     hash->put(env, new StringObject { "maxrss" }, Value::integer(usage.ru_maxrss));
     hash->put(env, new StringObject { "ixrss" }, Value::integer(usage.ru_ixrss));
@@ -377,89 +345,13 @@ Value KernelModule::global_variables(Env *env) {
 }
 
 Value KernelModule::Hash(Env *env, Value value) {
-    if (value->is_hash()) {
+    if (value->is_hash())
         return value;
-    }
 
-    if (value->is_nil() || (value->is_array() && value->as_array()->is_empty())) {
+    if (value->is_nil() || (value->is_array() && value->as_array()->is_empty()))
         return new HashObject;
-    }
 
     return value->to_hash(env);
-}
-
-Value KernelModule::hash(Env *env) {
-    switch (type()) {
-    // NOTE: string "foo" and symbol :foo will get the same hash.
-    // That's probably ok, but maybe worth revisiting.
-    case Type::String:
-        return Value::integer(as_string()->string().djb2_hash());
-    case Type::Symbol:
-        return Value::integer(as_symbol()->string().djb2_hash());
-    default: {
-        StringObject *inspected = send(env, "inspect"_s)->as_string();
-        nat_int_t hash_value = inspected->string().djb2_hash();
-        return Value::integer(hash_value);
-    }
-    }
-}
-
-Value KernelModule::initialize_copy(Env *env, Value object) {
-    if (object == this)
-        return this;
-
-    this->assert_not_frozen(env);
-    if (m_klass != object->klass())
-        env->raise("TypeError", "initialize_copy should take same class object");
-
-    return this;
-}
-
-Value KernelModule::inspect(Env *env) {
-    return inspect(env, this);
-}
-
-Value KernelModule::inspect(Env *env, Value value) {
-    if (value->is_module() && value->as_module()->name()) {
-        return new StringObject { value->as_module()->name().value() };
-    } else {
-        return StringObject::format("#<{}:{}>", value->klass()->inspect_str(), value->pointer_id());
-    }
-}
-
-// Note: this method is only defined here in the C++ -- the method is actually attached directly to `main` in Ruby.
-Value KernelModule::main_obj_inspect(Env *env) {
-    return new StringObject { "main" };
-}
-
-bool KernelModule::instance_variable_defined(Env *env, Value name_val) {
-    if (is_nil() || is_boolean() || is_integer() || is_float() || is_symbol()) {
-        return false;
-    }
-    auto name = name_val->to_instance_variable_name(env);
-    return ivar_defined(env, name);
-}
-
-Value KernelModule::instance_variable_get(Env *env, Value name_val) {
-    if (is_integer() || is_float()) {
-        return NilObject::the();
-    }
-    auto name = name_val->to_instance_variable_name(env);
-    return ivar_get(env, name);
-}
-
-Value KernelModule::instance_variable_set(Env *env, Value name_val, Value value) {
-    auto name = name_val->to_instance_variable_name(env);
-    this->assert_not_frozen(env);
-    ivar_set(env, name, value);
-    return value;
-}
-
-bool KernelModule::is_a(Env *env, Value module) {
-    if (!module->is_module()) {
-        env->raise("TypeError", "class or module required");
-    }
-    return Object::is_a(env, module->as_module());
 }
 
 Value KernelModule::lambda(Env *env, Block *block) {
@@ -469,71 +361,6 @@ Value KernelModule::lambda(Env *env, Block *block) {
     } else {
         env->raise("ArgumentError", "tried to create Proc object without a block");
     }
-}
-
-Value KernelModule::loop(Env *env, Block *block) {
-    if (!block) {
-        auto infinity_fn = [](Env *env, Value, Args &&, Block *) -> Value {
-            return FloatObject::positive_infinity(env);
-        };
-        auto size_block = new Block { env, this, infinity_fn, 0 };
-        return send(env, "enum_for"_s, { "loop"_s }, size_block);
-    }
-
-    try {
-        for (;;) {
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
-        }
-        return NilObject::the();
-    } catch (ExceptionObject *exception) {
-        auto StopIteration = find_top_level_const(env, "StopIteration"_s);
-        if (exception->is_a(env, StopIteration)) {
-            GlobalEnv::the()->set_rescued(true);
-            return exception->send(env, "result"_s);
-        } else {
-            throw exception;
-        }
-    }
-}
-
-Value KernelModule::method(Env *env, Value name) {
-    auto name_symbol = name->to_symbol(env, Conversion::Strict);
-    auto singleton = singleton_class();
-    auto module = singleton ? singleton : m_klass;
-    auto method_info = module->find_method(env, name_symbol);
-    if (!method_info.is_defined()) {
-        auto respond_to_missing = module->find_method(env, "respond_to_missing?"_s);
-        if (respond_to_missing.is_defined()) {
-            if (respond_to_missing.method()->call(env, this, { name_symbol, TrueObject::the() }, nullptr)->is_truthy()) {
-                auto method_missing = module->find_method(env, "method_missing"_s);
-                if (method_missing.is_defined()) {
-                    return new MethodObject { this, method_missing.method(), name_symbol };
-                }
-            }
-        }
-        env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
-    }
-    return new MethodObject { this, method_info.method() };
-}
-
-Value KernelModule::methods(Env *env, Value regular_val) {
-    bool regular = regular_val ? regular_val->is_truthy() : true;
-    if (regular) {
-        if (singleton_class()) {
-            return singleton_class()->instance_methods(env, TrueObject::the());
-        } else {
-            return klass()->instance_methods(env, TrueObject::the());
-        }
-    }
-    if (singleton_class()) {
-        return singleton_class()->instance_methods(env, FalseObject::the());
-    } else {
-        return new ArrayObject {};
-    }
-}
-
-bool KernelModule::neqtilde(Env *env, Value other) {
-    return send(env, "=~"_s, { other })->is_falsey();
 }
 
 Value KernelModule::p(Env *env, Args &&args) {
@@ -566,33 +393,11 @@ Value KernelModule::print(Env *env, Args &&args) {
     return _stdout->send(env, "write"_s, std::move(args));
 }
 
-Value KernelModule::private_methods(Env *env, Value recur) {
-    if (singleton_class())
-        return singleton_class()->private_instance_methods(env, TrueObject::the());
-    else
-        return klass()->private_instance_methods(env, recur);
-}
-
-Value KernelModule::protected_methods(Env *env, Value recur) {
-    if (singleton_class())
-        return singleton_class()->protected_instance_methods(env, TrueObject::the());
-    else
-        return klass()->protected_instance_methods(env, recur);
-}
-
-Value KernelModule::public_methods(Env *env, Value recur) {
-    if (singleton_class())
-        return singleton_class()->public_instance_methods(env, TrueObject::the());
-    else
-        return klass()->public_instance_methods(env, recur);
-}
-
 Value KernelModule::proc(Env *env, Block *block) {
-    if (block) {
+    if (block)
         return new ProcObject { block };
-    } else {
+    else
         env->raise("ArgumentError", "tried to create Proc object without a block");
-    }
 }
 
 Value KernelModule::puts(Env *env, Args &&args) {
@@ -611,19 +416,16 @@ Value KernelModule::Rational(Env *env, Value x, Value y, Value exception) {
 
 Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
     if (y) {
-        if (x->is_integer() && y->is_integer()) {
+        if (x->is_integer() && y->is_integer())
             return Rational(env, x->as_integer(), y->as_integer());
-        }
 
         x = Float(env, x, exception);
-        if (!x) {
+        if (!x)
             return nullptr;
-        }
 
         y = Float(env, y, exception);
-        if (!y) {
+        if (!y)
             return nullptr;
-        }
 
         if (y->as_float()->is_zero())
             env->raise("ZeroDivisionError", "divided by 0");
@@ -634,11 +436,11 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
             return new RationalObject { x->as_integer(), new IntegerObject { 1 } };
         }
 
-        if (!exception) return nullptr;
+        if (!exception)
+            return nullptr;
 
-        if (x->is_nil()) {
+        if (x->is_nil())
             env->raise("TypeError", "can't convert {} into Rational", x->klass()->inspect_str());
-        }
 
         if (x->respond_to(env, "to_r"_s)) {
             auto result = x->public_send(env, "to_r"_s);
@@ -647,9 +449,8 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
         }
 
         x = Float(env, x, exception);
-        if (!x) {
+        if (!x)
             return nullptr;
-        }
 
         return Rational(env, x->as_float()->to_double());
     }
@@ -671,19 +472,12 @@ RationalObject *KernelModule::Rational(Env *env, double arg) {
     Value x = significand->mul(env, y)->as_float()->to_i(env);
 
     IntegerObject two { 2 };
-    if (exponent < 0) {
+    if (exponent < 0)
         y = y->as_integer()->mul(env, two.pow(env, Value::integer(-exponent)));
-    } else {
+    else
         x = x->as_integer()->mul(env, two.pow(env, Value::integer(exponent)));
-    }
 
     return Rational(env, x->as_integer(), y->as_integer());
-}
-
-Value KernelModule::remove_instance_variable(Env *env, Value name_val) {
-    auto name = name_val->to_instance_variable_name(env);
-    this->assert_not_frozen(env);
-    return ivar_remove(env, name);
 }
 
 Value KernelModule::sleep(Env *env, Value length) {
@@ -789,23 +583,12 @@ Value KernelModule::String(Env *env, Value value) {
 
     auto to_s = "to_s"_s;
 
-    if (!value->respond_to_method(env, to_s, true) || !value->respond_to(env, to_s)) {
+    if (!value->respond_to_method(env, to_s, true) || !value->respond_to(env, to_s))
         env->raise("TypeError", "can't convert {} into String", value->klass()->inspect_str());
-    }
 
     value = value.send(env, to_s);
     value->assert_type(env, Object::Type::String, "String");
     return value;
-}
-
-Value KernelModule::tap(Env *env, Block *block) {
-    Value self = this;
-    Value args[] = { self };
-    if (!block) {
-        env->raise("LocalJumpError", "no block given (yield)");
-    }
-    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
-    return this;
 }
 
 Value KernelModule::test(Env *env, Value cmd, Value file) {
@@ -840,9 +623,8 @@ Value KernelModule::test(Env *env, Value cmd, Value file) {
 
 Value KernelModule::this_method(Env *env) {
     auto method = env->caller()->current_method();
-    if (method) {
+    if (method)
         return SymbolObject::intern(method->original_name());
-    }
     return NilObject::the();
 }
 
@@ -850,11 +632,214 @@ Value KernelModule::throw_method(Env *env, Value name, Value value) {
     if (!env->has_catch(name)) {
         auto klass = GlobalEnv::the()->Object()->const_fetch("UncaughtThrowError"_s)->as_class();
         auto message = StringObject::format("uncaught throw {}", name->inspect_str(env));
-        auto exception = _new(env, klass, { name, value, message }, nullptr)->as_exception();
+        auto exception = Object::_new(env, klass, { name, value, message }, nullptr)->as_exception();
         env->raise_exception(exception);
     }
 
     throw new ThrowCatchException { name, value };
+}
+
+Value KernelModule::define_singleton_method(Env *env, Value self, Value name, Block *block) {
+    env->ensure_block_given(block);
+    SymbolObject *name_obj = name->to_symbol(env, Object::Conversion::Strict);
+    self->define_singleton_method(env, name_obj, block);
+    return name_obj;
+}
+
+Value KernelModule::dup(Env *env, Value self) {
+    // The semantics here are wrong. For each class, we need to define `initialize_copy`.
+    // Doing that all at once is a pain, so we'll split off classes here:
+    // classes that have their own `initialize_copy` method get the `dup_better` code path,
+    // while the rest get the old, wrong code path.
+    switch (self->type()) {
+    case Object::Type::Array:
+    case Object::Type::Hash:
+    case Object::Type::String:
+        return dup_better(env, self);
+    default:
+        return self->duplicate(env);
+    }
+}
+
+Value KernelModule::dup_better(Env *env, Value self) {
+    auto dup = self->allocate(env, self->klass(), {}, nullptr);
+    dup->copy_instance_variables(self);
+    dup->send(env, "initialize_dup"_s, { self });
+    return dup;
+}
+
+Value KernelModule::hash(Env *env, Value self) {
+    switch (self->type()) {
+    // NOTE: string "foo" and symbol :foo will get the same hash.
+    // That's probably ok, but maybe worth revisiting.
+    case Object::Type::String:
+        return Value::integer(self->as_string()->string().djb2_hash());
+    case Object::Type::Symbol:
+        return Value::integer(self->as_symbol()->string().djb2_hash());
+    default: {
+        StringObject *inspected = self->send(env, "inspect"_s)->as_string();
+        nat_int_t hash_value = inspected->string().djb2_hash();
+        return Value::integer(hash_value);
+    }
+    }
+}
+
+Value KernelModule::initialize_copy(Env *env, Value self, Value object) {
+    if (object == self)
+        return self;
+
+    self->assert_not_frozen(env);
+    if (self->klass() != object->klass())
+        env->raise("TypeError", "initialize_copy should take same class object");
+
+    return self;
+}
+
+Value KernelModule::inspect(Env *env, Value value) {
+    if (value->is_module() && value->as_module()->name())
+        return new StringObject { value->as_module()->name().value() };
+    else
+        return StringObject::format("#<{}:{}>", value->klass()->inspect_str(), value->pointer_id());
+}
+
+bool KernelModule::instance_variable_defined(Env *env, Value self, Value name_val) {
+    switch (self->type()) {
+    case Object::Type::Nil:
+    case Object::Type::True:
+    case Object::Type::False:
+    case Object::Type::Integer:
+    case Object::Type::Float:
+    case Object::Type::Symbol:
+        return false;
+    default:
+        break;
+    }
+    auto name = name_val->to_instance_variable_name(env);
+    return self->ivar_defined(env, name);
+}
+
+Value KernelModule::instance_variable_get(Env *env, Value self, Value name_val) {
+    switch (self->type()) {
+    case Object::Type::Integer:
+    case Object::Type::Float:
+        return NilObject::the();
+    default:
+        break;
+    }
+    auto name = name_val->to_instance_variable_name(env);
+    return self->ivar_get(env, name);
+}
+
+Value KernelModule::instance_variable_set(Env *env, Value self, Value name_val, Value value) {
+    auto name = name_val->to_instance_variable_name(env);
+    self->assert_not_frozen(env);
+    self->ivar_set(env, name, value);
+    return value;
+}
+
+bool KernelModule::is_a(Env *env, Value self, Value module) {
+    if (!module->is_module())
+        env->raise("TypeError", "class or module required");
+    return self->is_a(env, module->as_module());
+}
+
+Value KernelModule::loop(Env *env, Value self, Block *block) {
+    if (!block) {
+        auto infinity_fn = [](Env *env, Value, Args &&, Block *) -> Value {
+            return FloatObject::positive_infinity(env);
+        };
+        auto size_block = new Block { env, self, infinity_fn, 0 };
+        return self->send(env, "enum_for"_s, { "loop"_s }, size_block);
+    }
+
+    try {
+        for (;;) {
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
+        }
+        return NilObject::the();
+    } catch (ExceptionObject *exception) {
+        auto StopIteration = find_top_level_const(env, "StopIteration"_s);
+        if (exception->is_a(env, StopIteration)) {
+            GlobalEnv::the()->set_rescued(true);
+            return exception->send(env, "result"_s);
+        } else {
+            throw exception;
+        }
+    }
+}
+
+Value KernelModule::method(Env *env, Value self, Value name) {
+    auto name_symbol = name->to_symbol(env, Object::Conversion::Strict);
+    auto singleton = self->singleton_class();
+    auto module = singleton ? singleton : self->klass();
+    auto method_info = module->find_method(env, name_symbol);
+    if (!method_info.is_defined()) {
+        auto respond_to_missing = module->find_method(env, "respond_to_missing?"_s);
+        if (respond_to_missing.is_defined()) {
+            if (respond_to_missing.method()->call(env, self, { name_symbol, TrueObject::the() }, nullptr)->is_truthy()) {
+                auto method_missing = module->find_method(env, "method_missing"_s);
+                if (method_missing.is_defined()) {
+                    return new MethodObject { self, method_missing.method(), name_symbol };
+                }
+            }
+        }
+        env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), self->klass()->inspect_str());
+    }
+    return new MethodObject { self, method_info.method() };
+}
+
+Value KernelModule::methods(Env *env, Value self, Value regular_val) {
+    bool regular = regular_val ? regular_val->is_truthy() : true;
+    if (regular) {
+        if (self->singleton_class()) {
+            return self->singleton_class()->instance_methods(env, TrueObject::the());
+        } else {
+            return self->klass()->instance_methods(env, TrueObject::the());
+        }
+    }
+    if (self->singleton_class())
+        return self->singleton_class()->instance_methods(env, FalseObject::the());
+    else
+        return new ArrayObject {};
+}
+
+bool KernelModule::neqtilde(Env *env, Value self, Value other) {
+    return self->send(env, "=~"_s, { other })->is_falsey();
+}
+
+Value KernelModule::private_methods(Env *env, Value self, Value recur) {
+    if (self->singleton_class())
+        return self->singleton_class()->private_instance_methods(env, TrueObject::the());
+    else
+        return self->klass()->private_instance_methods(env, recur);
+}
+
+Value KernelModule::protected_methods(Env *env, Value self, Value recur) {
+    if (self->singleton_class())
+        return self->singleton_class()->protected_instance_methods(env, TrueObject::the());
+    else
+        return self->klass()->protected_instance_methods(env, recur);
+}
+
+Value KernelModule::public_methods(Env *env, Value self, Value recur) {
+    if (self->singleton_class())
+        return self->singleton_class()->public_instance_methods(env, TrueObject::the());
+    else
+        return self->klass()->public_instance_methods(env, recur);
+}
+
+Value KernelModule::remove_instance_variable(Env *env, Value self, Value name_val) {
+    auto name = name_val->to_instance_variable_name(env);
+    self->assert_not_frozen(env);
+    return self->ivar_remove(env, name);
+}
+
+Value KernelModule::tap(Env *env, Value self, Block *block) {
+    Value args[] = { self };
+    if (!block)
+        env->raise("LocalJumpError", "no block given (yield)");
+    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+    return self;
 }
 
 }

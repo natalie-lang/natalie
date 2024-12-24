@@ -13,6 +13,13 @@ class BindingGen
     b.write
   end
 
+  # define a method from a module, e.g. KernelModule
+  # The "methods" are defined as static functions on the C++ object,
+  # but appear as instance methods in Ruby.
+  def module_binding(*args, **kwargs)
+    binding(*args, **kwargs.update(module_method: true))
+  end
+
   # mark a method as undefined on the Ruby class
   def undefine_instance_method(rb_class, method)
     @undefine_methods << [rb_class, method]
@@ -74,6 +81,7 @@ class BindingGen
       pass_env:,
       pass_block:,
       return_type:,
+      module_method: false,
       module_function: false,
       singleton: false,
       static: false,
@@ -88,6 +96,7 @@ class BindingGen
       @cpp_class = cpp_class
       @cpp_method = cpp_method
       @argc = argc
+      @module_method = module_method
       @module_function = module_function
       @pass_env = pass_env
       @pass_block = pass_block
@@ -116,6 +125,10 @@ class BindingGen
                 :optimized,
                 :aliases
 
+    def module_method?
+      @module_method
+    end
+
     def module_function?
       @module_function
     end
@@ -134,7 +147,13 @@ class BindingGen
     end
 
     def write
-      @static ? write_static_function : write_function
+      if @static
+        write_static_function
+      elsif module_method?
+        write_module_method_function
+      else
+        write_function
+      end
     end
 
     def write_function
@@ -151,6 +170,18 @@ auto return_value = self->#{cpp_method}(#{args_to_pass});
       puts "Value #{name}(Env *env, Value self_value, Args &&args, Block *block) {\n#{body}\n}\n\n"
     end
 
+    def write_module_method_function
+      body = <<-FUNC
+#{pop_kwargs}
+#{argc_assertion}
+#{kwargs_assertion}
+auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
+#{return_code}
+      FUNC
+      format_function_body(body)
+      puts "Value #{name}(Env *env, Value self, Args &&args, Block *block) {\n#{body}\n}\n\n"
+    end
+
     def write_static_function
       body = <<-FUNC
 #{pop_kwargs}
@@ -160,7 +191,13 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
 #{return_code}
       FUNC
       format_function_body(body)
-      puts "Value #{name}(Env *env, Value klass, Args &&args, Block *block) {\n#{body}\n}\n\n"
+      parameters = [
+        'Env *env',
+        'Value klass',
+        'Args &&args',
+        'Block *block',
+      ]
+      puts "Value #{name}(#{parameters.join(', ')}) {\n#{body}\n}\n\n"
     end
 
     def format_function_body(body)
@@ -179,7 +216,14 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
       when true
         kwargs = 'kwargs'
       end
-      [env_arg, *args, *kwargs, block_arg, klass_arg].compact.join(', ')
+      [
+        env_arg,
+        self_arg,
+        *args,
+        *kwargs,
+        block_arg,
+        klass_arg
+      ].compact.join(', ')
     end
 
     def define_method_name
@@ -272,6 +316,10 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
       'env' if pass_env
     end
 
+    def self_arg
+      'self' if module_method?
+    end
+
     def args
       if max_argc
         (0...max_argc).map { |i| "args.at(#{i}, nullptr)" }
@@ -288,12 +336,19 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
       'klass->as_class()' if pass_klass
     end
 
-    SPECIAL_CLASSES_WITHOUT_DEDICATED_TYPES = %w[EnvObject KernelModule ParserObject]
+    SPECIAL_CLASSES_WITHOUT_DEDICATED_TYPES = %w[KernelModule]
+
+    def special_case_class?
+      SPECIAL_CLASSES_WITHOUT_DEDICATED_TYPES.include?(cpp_class)
+    end
 
     def as_type(value)
       if cpp_class == 'Object'
         value
-      elsif SPECIAL_CLASSES_WITHOUT_DEDICATED_TYPES.include?(cpp_class)
+      elsif special_case_class?
+        raise 'should not reach here'
+      elsif %w[EnvObject ParserObject].include?(cpp_class)
+        # TODO
         underscored = cpp_class.gsub(/([a-z])([A-Z])/, '\1_\2').downcase
         "#{value}->as_#{underscored}_for_method_binding()"
       else
@@ -976,41 +1031,41 @@ gen.module_function_binding('Kernel', 'srand', 'RandomObject', 'srand', argc: 0.
 gen.module_function_binding('Kernel', 'String', 'KernelModule', 'String', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'test', 'KernelModule', 'test', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'throw', 'KernelModule', 'throw_method', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'class', 'KernelModule', 'klass_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'clone', 'KernelModule', 'clone', argc: 0, kwargs: [:freeze], pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'define_singleton_method', 'KernelModule', 'define_singleton_method', argc: 1, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('Kernel', 'dup', 'KernelModule', 'dup', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', '===', 'KernelModule', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
-gen.binding('Kernel', '!~', 'KernelModule', 'neqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('Kernel', 'eql?', 'KernelModule', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
+gen.module_binding('Kernel', 'class', 'KernelModule', 'klass_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'define_singleton_method', 'KernelModule', 'define_singleton_method', argc: 1, pass_env: true, pass_block: true, return_type: :Object)
+gen.module_binding('Kernel', 'dup', 'KernelModule', 'dup', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', '===', 'KernelModule', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
+gen.module_binding('Kernel', '!~', 'KernelModule', 'neqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.module_binding('Kernel', 'eql?', 'KernelModule', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
+gen.module_binding('Kernel', 'freeze', 'KernelModule', 'freeze_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'hash', 'KernelModule', 'hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'initialize_copy', 'KernelModule', 'initialize_copy', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'inspect', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'instance_variable_defined?', 'KernelModule', 'instance_variable_defined', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.module_binding('Kernel', 'instance_variable_get', 'KernelModule', 'instance_variable_get', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'instance_variable_set', 'KernelModule', 'instance_variable_set', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'is_a?', 'KernelModule', 'is_a', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.module_binding('Kernel', 'kind_of?', 'KernelModule', 'is_a', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.module_binding('Kernel', 'loop', 'KernelModule', 'loop', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.module_binding('Kernel', 'method', 'KernelModule', 'method', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'methods', 'KernelModule', 'methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'private_methods', 'KernelModule', 'private_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'protected_methods', 'KernelModule', 'protected_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'public_methods', 'KernelModule', 'public_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'remove_instance_variable', 'KernelModule', 'remove_instance_variable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'singleton_class', 'KernelModule', 'singleton_class_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_binding('Kernel', 'tap', 'KernelModule', 'tap', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.module_binding('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Kernel', 'clone', 'Object', 'clone', argc: 0, kwargs: [:freeze], pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Kernel', 'extend', 'Object', 'extend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'freeze', 'KernelModule', 'freeze_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'frozen?', 'KernelModule', 'is_frozen', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.binding('Kernel', 'hash', 'KernelModule', 'hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'initialize_copy', 'KernelModule', 'initialize_copy', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'inspect', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'instance_variable_defined?', 'KernelModule', 'instance_variable_defined', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('Kernel', 'instance_variable_get', 'KernelModule', 'instance_variable_get', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'instance_variable_set', 'KernelModule', 'instance_variable_set', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'instance_variables', 'KernelModule', 'instance_variables', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'is_a?', 'KernelModule', 'is_a', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('Kernel', 'kind_of?', 'KernelModule', 'is_a', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('Kernel', 'nil?', 'KernelModule', 'is_nil', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.binding('Kernel', 'loop', 'KernelModule', 'loop', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('Kernel', 'method', 'KernelModule', 'method', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'methods', 'KernelModule', 'methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'private_methods', 'KernelModule', 'private_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'protected_methods', 'KernelModule', 'protected_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'public_methods', 'KernelModule', 'public_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Kernel', 'frozen?', 'Object', 'is_frozen', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Kernel', 'instance_variables', 'Object', 'instance_variables', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Kernel', 'nil?', 'Object', 'is_nil', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Kernel', 'public_send', 'Object', 'public_send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Kernel', 'object_id', 'Object', 'object_id', argc: 0, pass_env: false, pass_block: false, return_type: :int)
-gen.binding('Kernel', 'remove_instance_variable', 'KernelModule', 'remove_instance_variable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'respond_to?', 'KernelModule', 'respond_to_method', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('Kernel', 'respond_to_missing?', 'KernelModule', 'respond_to_missing', argc: 2, pass_env: true, pass_block: false, return_type: :bool, visibility: :private)
+gen.binding('Kernel', 'respond_to?', 'Object', 'respond_to_method', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Kernel', 'respond_to_missing?', 'Object', 'respond_to_missing', argc: 2, pass_env: true, pass_block: false, return_type: :bool, visibility: :private)
 gen.binding('Kernel', 'send', 'Object', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('Kernel', 'singleton_class', 'KernelModule', 'singleton_class_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'tap', 'KernelModule', 'tap', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('MatchData', 'new')
 gen.undefine_singleton_method('MatchData', 'allocate')
@@ -1487,7 +1542,7 @@ gen.binding('UnboundMethod', 'name', 'UnboundMethodObject', 'name', argc: 0, pas
 gen.binding('UnboundMethod', 'owner', 'UnboundMethodObject', 'owner', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
 gen.singleton_binding('main_obj', 'define_method', 'Object', 'main_obj_define_method', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('main_obj', 'to_s', 'KernelModule', 'main_obj_inspect', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Object)
+gen.singleton_binding('main_obj', 'to_s', 'Object', 'main_obj_inspect', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Object)
 
 gen.init
 
