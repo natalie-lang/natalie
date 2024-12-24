@@ -12,6 +12,7 @@ enum class ObjectType {
     Encoding,
     Enumerator,
     EnumeratorArithmeticSequence,
+    Env,
     Exception,
     False,
     Fiber,

@@ -460,7 +460,7 @@ Env *build_top_env() {
     GlobalEnv::the()->global_set_read_hook(env, "$+"_s, true, GlobalVariableAccessHooks::ReadHooks::last_match_last_group);
     GlobalEnv::the()->global_set_read_hook(env, "$&"_s, true, GlobalVariableAccessHooks::ReadHooks::last_match_to_s);
 
-    Value ENV = new Natalie::Object {};
+    Value ENV = new Natalie::EnvObject {};
     Object->const_set("ENV"_s, ENV);
     ENV->extend_once(env, Enumerable);
 

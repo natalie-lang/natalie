@@ -124,6 +124,7 @@ Value Object::create(Env *env, ClassObject *klass) {
 
     case Object::Type::Binding:
     case Object::Type::Encoding:
+    case Object::Type::Env:
     case Object::Type::False:
     case Object::Type::Float:
     case Object::Type::Integer:
@@ -271,6 +272,16 @@ EncodingObject *Object::as_encoding() {
 const EncodingObject *Object::as_encoding() const {
     assert(is_encoding());
     return static_cast<const EncodingObject *>(this);
+}
+
+EnvObject *Object::as_env() {
+    assert(is_env());
+    return static_cast<EnvObject *>(this);
+}
+
+const EnvObject *Object::as_env() const {
+    assert(is_env());
+    return static_cast<const EnvObject *>(this);
 }
 
 ExceptionObject *Object::as_exception() {
@@ -521,10 +532,6 @@ VoidPObject *Object::as_void_p() {
 const VoidPObject *Object::as_void_p() const {
     assert(is_void_p());
     return static_cast<const VoidPObject *>(this);
-}
-
-EnvObject *Object::as_env_object_for_method_binding() {
-    return static_cast<EnvObject *>(this);
 }
 
 ArrayObject *Object::as_array_or_raise(Env *env) {

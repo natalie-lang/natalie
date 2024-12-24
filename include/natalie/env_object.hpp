@@ -11,6 +11,9 @@ namespace Natalie {
 
 class EnvObject : public Object {
 public:
+    EnvObject()
+        : Object { Object::Type::Env, GlobalEnv::the()->Object() } { }
+
     Value assoc(Env *, Value name);
     Value clear(Env *);
     Value clone(Env *);
