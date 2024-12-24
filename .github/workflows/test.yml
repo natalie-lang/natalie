@@ -104,4 +104,5 @@ jobs:
       - name: test with AddressSanitizer
         env:
           SPEC_TIMEOUT: 480
+          SOME_TESTS: true
         run: rake docker_test_asan

@@ -1,8 +1,8 @@
-name: Run all tests with the bootstrapped self-hosted compiler
+name: Run all tests with AddressSanitizer enabled
 
 on:
   schedule:
-    - cron: "40 2 * * *"
+    - cron: "40 4 * * *"
 
 jobs:
   specs:
@@ -11,8 +11,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
+      - name: fix kernel mmap rnd bits for ASan
+        run: sudo sysctl vm.mmap_rnd_bits=28
       - name: get commit count
         run: echo "NEW_COMMIT_COUNT=$(git log --oneline --since '25 hours ago' | wc -l)" >> $GITHUB_ENV
       - name: run tests
         if: ${{ env.NEW_COMMIT_COUNT > 0 }}
-        run: rake docker_test_self_hosted_full
+        env:
+          SPEC_TIMEOUT: 480
+        run: rake docker_test_asan
