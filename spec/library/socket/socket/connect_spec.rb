@@ -60,15 +60,17 @@ describe 'Socket#connect' do
       address = Socket.pack_sockaddr_in(1, "192.0.2.1")
 
       client = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM)
-      client.timeout = 0
+      NATFIXME 'Implement Socket#timeout=', exception: NoMethodError, message: "undefined method 'timeout=' for an instance of Socket" do
+        client.timeout = 0
 
-      -> {
-        begin
-          client.connect(address)
-        rescue Errno::ECONNREFUSED
-          skip "Outgoing packets may be filtered"
-        end
-      }.should raise_error(IO::TimeoutError)
+        -> {
+          begin
+            client.connect(address)
+          rescue Errno::ECONNREFUSED
+            skip "Outgoing packets may be filtered"
+          end
+        }.should raise_error(IO::TimeoutError)
+      end
     end
   end
 end

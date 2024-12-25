@@ -42,11 +42,13 @@ describe "Range#step" do
 
   ruby_version_is "3.4" do
     it "calls #coerce to coerce step to an Integer" do
-      obj = mock("Range#step")
-      obj.should_receive(:coerce).at_least(:once).and_return([1, 2])
+      NATFIXME 'it calls #coerce to coerce step to an Integer', exception: TypeError, message: 'no implicit conversion of MockObject into Integer' do
+        obj = mock("Range#step")
+        obj.should_receive(:coerce).at_least(:once).and_return([1, 2])
 
-      (1..3).step(obj) { |x| ScratchPad << x }
-      ScratchPad.recorded.should eql([1, 3])
+        (1..3).step(obj) { |x| ScratchPad << x }
+        ScratchPad.recorded.should eql([1, 3])
+      end
     end
 
     it "raises a TypeError if step does not respond to #coerce" do
@@ -67,7 +69,9 @@ describe "Range#step" do
   ruby_version_is "3.4" do
     it "does not raise an ArgumentError if step is 0 for non-numeric ranges" do
       t = Time.utc(2023, 2, 24)
-      -> { (t..t+1).step(0) { break } }.should_not raise_error(ArgumentError)
+      NATFIXME 'it does not raise an ArgumentError if step is 0 for non-numeric ranges', exception: SpecFailedException do
+        -> { (t..t+1).step(0) { break } }.should_not raise_error(ArgumentError)
+      end
     end
   end
 
@@ -96,13 +100,17 @@ describe "Range#step" do
 
       ruby_version_is "3.4" do
         it "does not iterate if step is negative for forward range" do
-          (-1..1).step(-1) { |x| ScratchPad << x }
-          ScratchPad.recorded.should eql([])
+          NATFIXME 'it does not iterate if step is negative for forward range', exception: ArgumentError, message: "step can't be negative" do
+            (-1..1).step(-1) { |x| ScratchPad << x }
+            ScratchPad.recorded.should eql([])
+          end
         end
 
         it "iterates backward if step is negative for backward range" do
-          (1..-1).step(-1) { |x| ScratchPad << x }
-          ScratchPad.recorded.should eql([1, 0, -1])
+          NATFIXME 'it iterates backward if step is negative for backward range', exception: ArgumentError, message: "step can't be negative" do
+            (1..-1).step(-1) { |x| ScratchPad << x }
+            ScratchPad.recorded.should eql([1, 0, -1])
+          end
         end
       end
     end
@@ -202,8 +210,10 @@ describe "Range#step" do
 
       ruby_version_is "3.4" do
         it "yields String values adjusted by step and less than or equal to end" do
-          ("A".."AAA").step("A") { |x| ScratchPad << x }
-          ScratchPad.recorded.should == ["A", "AA", "AAA"]
+          NATFIXME 'it yields String values adjusted by step and less than or equal to end', exception: TypeError, message: 'no implicit conversion of String into Integer' do
+            ("A".."AAA").step("A") { |x| ScratchPad << x }
+            ScratchPad.recorded.should == ["A", "AA", "AAA"]
+          end
         end
 
         it "raises a TypeError when passed an incompatible type step" do
@@ -211,73 +221,79 @@ describe "Range#step" do
         end
 
         it "calls #+ on begin and each element returned by #+" do
-          start = mock("Range#step String start")
-          stop = mock("Range#step String stop")
+          NATFIXME 'it calls #+ on begin and each element returned by #+', exception: TypeError, message: 'no implicit conversion of MockObject into Integer' do
+            start = mock("Range#step String start")
+            stop = mock("Range#step String stop")
 
-          mid1 = mock("Range#step String mid1")
-          mid2 = mock("Range#step String mid2")
+            mid1 = mock("Range#step String mid1")
+            mid2 = mock("Range#step String mid2")
 
-          step = mock("Range#step String step")
+            step = mock("Range#step String step")
 
-          # Deciding on the direction of iteration
-          start.should_receive(:<=>).with(stop).at_least(:twice).and_return(-1)
-          # Deciding whether the step moves iteration in the right direction
-          start.should_receive(:<=>).with(mid1).and_return(-1)
-          # Iteration 1
-          start.should_receive(:+).at_least(:once).with(step).and_return(mid1)
-          # Iteration 2
-          mid1.should_receive(:<=>).with(stop).and_return(-1)
-          mid1.should_receive(:+).with(step).and_return(mid2)
-          # Iteration 3
-          mid2.should_receive(:<=>).with(stop).and_return(0)
+            # Deciding on the direction of iteration
+            start.should_receive(:<=>).with(stop).at_least(:twice).and_return(-1)
+            # Deciding whether the step moves iteration in the right direction
+            start.should_receive(:<=>).with(mid1).and_return(-1)
+            # Iteration 1
+            start.should_receive(:+).at_least(:once).with(step).and_return(mid1)
+            # Iteration 2
+            mid1.should_receive(:<=>).with(stop).and_return(-1)
+            mid1.should_receive(:+).with(step).and_return(mid2)
+            # Iteration 3
+            mid2.should_receive(:<=>).with(stop).and_return(0)
 
-          (start..stop).step(step) { |x| ScratchPad << x }
-          ScratchPad.recorded.should == [start, mid1, mid2]
+            (start..stop).step(step) { |x| ScratchPad << x }
+            ScratchPad.recorded.should == [start, mid1, mid2]
+          end
         end
 
         it "iterates backward if the step is decreasing values, and the range is backward" do
-          start = mock("Range#step String start")
-          stop = mock("Range#step String stop")
+          NATFIXME 'it iterates backward if the step is decreasing values, and the range is backward', exception: TypeError, message: 'no implicit conversion of MockObject into Integer' do
+            start = mock("Range#step String start")
+            stop = mock("Range#step String stop")
 
-          mid1 = mock("Range#step String mid1")
-          mid2 = mock("Range#step String mid2")
+            mid1 = mock("Range#step String mid1")
+            mid2 = mock("Range#step String mid2")
 
-          step = mock("Range#step String step")
+            step = mock("Range#step String step")
 
-          # Deciding on the direction of iteration
-          start.should_receive(:<=>).with(stop).at_least(:twice).and_return(1)
-          # Deciding whether the step moves iteration in the right direction
-          start.should_receive(:<=>).with(mid1).and_return(1)
-          # Iteration 1
-          start.should_receive(:+).at_least(:once).with(step).and_return(mid1)
-          # Iteration 2
-          mid1.should_receive(:<=>).with(stop).and_return(1)
-          mid1.should_receive(:+).with(step).and_return(mid2)
-          # Iteration 3
-          mid2.should_receive(:<=>).with(stop).and_return(0)
+            # Deciding on the direction of iteration
+            start.should_receive(:<=>).with(stop).at_least(:twice).and_return(1)
+            # Deciding whether the step moves iteration in the right direction
+            start.should_receive(:<=>).with(mid1).and_return(1)
+            # Iteration 1
+            start.should_receive(:+).at_least(:once).with(step).and_return(mid1)
+            # Iteration 2
+            mid1.should_receive(:<=>).with(stop).and_return(1)
+            mid1.should_receive(:+).with(step).and_return(mid2)
+            # Iteration 3
+            mid2.should_receive(:<=>).with(stop).and_return(0)
 
-          (start..stop).step(step) { |x| ScratchPad << x }
-          ScratchPad.recorded.should == [start, mid1, mid2]
+            (start..stop).step(step) { |x| ScratchPad << x }
+            ScratchPad.recorded.should == [start, mid1, mid2]
+          end
         end
 
         it "does no iteration of the direction of the range and of the step don't match" do
-          start = mock("Range#step String start")
-          stop = mock("Range#step String stop")
+          NATFIXME "it does no iteration of the direction of the range and of the step don't match", exception: TypeError, message: 'no implicit conversion of MockObject into Integer' do
+            start = mock("Range#step String start")
+            stop = mock("Range#step String stop")
 
-          mid1 = mock("Range#step String mid1")
-          mid2 = mock("Range#step String mid2")
+            mid1 = mock("Range#step String mid1")
+            mid2 = mock("Range#step String mid2")
 
-          step = mock("Range#step String step")
+            step = mock("Range#step String step")
 
-          # Deciding on the direction of iteration: stop > start
-          start.should_receive(:<=>).with(stop).at_least(:twice).and_return(1)
-          # Deciding whether the step moves iteration in the right direction
-          # start + step < start, the direction is opposite to the range's
-          start.should_receive(:+).with(step).and_return(mid1)
-          start.should_receive(:<=>).with(mid1).and_return(-1)
+            # Deciding on the direction of iteration: stop > start
+            start.should_receive(:<=>).with(stop).at_least(:twice).and_return(1)
+            # Deciding whether the step moves iteration in the right direction
+            # start + step < start, the direction is opposite to the range's
+            start.should_receive(:+).with(step).and_return(mid1)
+            start.should_receive(:<=>).with(mid1).and_return(-1)
 
-          (start..stop).step(step) { |x| ScratchPad << x }
-          ScratchPad.recorded.should == []
+            (start..stop).step(step) { |x| ScratchPad << x }
+            ScratchPad.recorded.should == []
+          end
         end
       end
     end
@@ -394,8 +410,10 @@ describe "Range#step" do
 
       ruby_version_is "3.4" do
         it "yields String values adjusted by step and less than or equal to end" do
-          ("A"..."AAA").step("A") { |x| ScratchPad << x }
-          ScratchPad.recorded.should == ["A", "AA"]
+          NATFIXME 'it yields String values adjusted by step and less than or equal to end', exception: TypeError, message: 'no implicit conversion of String into Integer' do
+            ("A"..."AAA").step("A") { |x| ScratchPad << x }
+            ScratchPad.recorded.should == ["A", "AA"]
+          end
         end
 
         it "raises a TypeError when passed an incompatible type step" do
@@ -499,12 +517,14 @@ describe "Range#step" do
 
       ruby_version_is "3.4" do
         it "yields String values adjusted by step" do
-          eval("('A'..)").step("A") { |x| break if x > "AAA"; ScratchPad << x }
-          ScratchPad.recorded.should == ["A", "AA", "AAA"]
+          NATFIXME 'it yields String values adjusted by step', exception: TypeError, message: 'no implicit conversion of String into Integer' do
+            eval("('A'..)").step("A") { |x| break if x > "AAA"; ScratchPad << x }
+            ScratchPad.recorded.should == ["A", "AA", "AAA"]
 
-          ScratchPad.record []
-          eval("('A'...)").step("A") { |x| break if x > "AAA"; ScratchPad << x }
-          ScratchPad.recorded.should == ["A", "AA", "AAA"]
+            ScratchPad.record []
+            eval("('A'...)").step("A") { |x| break if x > "AAA"; ScratchPad << x }
+            ScratchPad.recorded.should == ["A", "AA", "AAA"]
+          end
         end
 
         it "raises a TypeError when passed an incompatible type step" do
@@ -538,7 +558,9 @@ describe "Range#step" do
         ruby_version_is "3.4" do
           it "does not raise if step is incompatible" do
             obj = mock("Range#step non-integer")
-            -> { (1..2).step(obj) }.should_not raise_error
+            NATFIXME 'it does not raise if step is incompatible', exception: SpecFailedException do
+              -> { (1..2).step(obj) }.should_not raise_error
+            end
           end
         end
 
@@ -598,16 +620,20 @@ describe "Range#step" do
 
         ruby_version_is "3.4" do
           it "returns nil with begin and end are String" do
-            ("A".."E").step("A").size.should == nil
-            ("A"..."E").step("A").size.should == nil
+            NATFIXME 'it returns nil with begin and end are String', exception: TypeError, message: 'no implicit conversion of String into Integer' do
+              ("A".."E").step("A").size.should == nil
+              ("A"..."E").step("A").size.should == nil
+            end
           end
 
           it "return nil and not raises a TypeError if the first element is not of compatible type" do
             obj = mock("Range#step non-comparable")
-            obj.should_receive(:<=>).with(obj).and_return(1)
-            enum = (obj..obj).step(obj)
-            -> { enum.size }.should_not raise_error
-            enum.size.should == nil
+            NATFIXME 'it return nil and not raises a TypeError if the first element is not of compatible type', exception: TypeError, message: 'no implicit conversion of MockObject into Integer' do
+              obj.should_receive(:<=>).with(obj).and_return(1)
+              enum = (obj..obj).step(obj)
+              -> { enum.size }.should_not raise_error
+              enum.size.should == nil
+            end
           end
         end
       end
@@ -644,8 +670,10 @@ describe "Range#step" do
 
           ruby_version_is "3.4" do
             it "returns an instance of Enumerator when begin is not numeric" do
-              ("a"..).step("a").class.should == Enumerator
-              ("a"..).step("a").take(3).should == %w[a aa aaa]
+              NATFIXME 'it returns an instance of Enumerator when begin is not numeric', exception: TypeError, message: 'no implicit conversion of String into Integer' do
+                ("a"..).step("a").class.should == Enumerator
+                ("a"..).step("a").take(3).should == %w[a aa aaa]
+              end
             end
           end
         end
@@ -659,7 +687,9 @@ describe "Range#step" do
 
           ruby_version_is "3.4" do
             it "raises an ArgumentError" do
-              -> { Range.new(nil, nil).step(1) }.should raise_error(ArgumentError)
+              NATFIXME 'it raises an ArgumentError', exception: SpecFailedException do
+                -> { Range.new(nil, nil).step(1) }.should raise_error(ArgumentError)
+              end
             end
           end
         end
@@ -674,8 +704,10 @@ describe "Range#step" do
 
           ruby_version_is "3.4" do
             it "returns an instance of Enumerator" do
-              ("a".."z").step("a").class.should == Enumerator
-              ("a".."z").step("a").take(4).should == %w[a aa aaa aaaa]
+              NATFIXME 'it returns an instance of Enumerator', exception: TypeError, message: 'no implicit conversion of String into Integer' do
+                ("a".."z").step("a").class.should == Enumerator
+                ("a".."z").step("a").take(4).should == %w[a aa aaa aaaa]
+              end
             end
           end
         end

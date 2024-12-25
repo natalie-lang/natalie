@@ -12,21 +12,26 @@ describe :unboundmethod_dup, shared: true do
       method = Class.instance_method(:instance_method)
       method.instance_variable_set(:@ivar, 1)
       cl = method.send(@method)
-      cl.instance_variables.should == [:@ivar]
+      NATFIXME 'it copies instance variables', exception: SpecFailedException do
+        cl.instance_variables.should == [:@ivar]
+      end
     end
 
     it "copies the finalizer" do
-      code = <<-RUBY
+      code = <<-'RUBY'
         obj = Class.instance_method(:instance_method)
 
-        ObjectSpace.define_finalizer(obj, Proc.new { STDOUT.write "finalized\n" })
+        # NATFIXME: Disable this line, otherwise CI will fail due to stderr output
+        # ObjectSpace.define_finalizer(obj, Proc.new { STDOUT.write "finalized\n" })
 
         obj.clone
 
         exit 0
       RUBY
 
-      ruby_exe(code).lines.sort.should == ["finalized\n", "finalized\n"]
+      NATFIXME 'Implement ObjectSpace.define_finalizer', exception: SpecFailedException do
+        ruby_exe(code).lines.sort.should == ["finalized\n", "finalized\n"]
+      end
     end
   end
 end

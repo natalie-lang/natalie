@@ -29,7 +29,9 @@ describe :stringio_read, shared: true do
       buffer = ''.encode(Encoding::ISO_8859_1)
       @io.send(@method, 7, buffer)
 
-      buffer.encoding.should == Encoding::ISO_8859_1
+      NATFIXME 'it preserves the encoding of the given buffer', exception: SpecFailedException do
+        buffer.encoding.should == Encoding::ISO_8859_1
+      end
     end
   end
 

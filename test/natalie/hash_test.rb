@@ -127,7 +127,8 @@ describe 'hash' do
     { key => 'val' }[key].should == 'val'
   end
 
-  ruby_version_is ''...'3.4' do
+  # NATFIXME: Fix output of Hash#inspect
+  guard -> { ruby_version_is(''...'3.4') || RUBY_ENGINE == 'natalie' } do
     it 'maintains insertion order' do
       hash = { 1 => 1, 2 => 2, 3 => 3, 'four' => 4, :five => 5 }
       hash.inspect.should == '{1=>1, 2=>2, 3=>3, "four"=>4, :five=>5}'
@@ -146,7 +147,8 @@ describe 'hash' do
     end
   end
 
-  ruby_version_is '3.4' do
+  # NATFIXME: Fix output of Hash#inspect
+  guard -> { ruby_version_is('3.4') && RUBY_ENGINE != 'natalie' } do
     it 'maintains insertion order' do
       hash = { 1 => 1, 2 => 2, 3 => 3, 'four' => 4, :five => 5 }
       hash.inspect.should == '{1 => 1, 2 => 2, 3 => 3, "four" => 4, five: 5}'
@@ -165,7 +167,8 @@ describe 'hash' do
     end
   end
 
-  ruby_version_is ''...'3.4' do
+  # NATFIXME: Fix output of Hash#inspect
+  guard -> { ruby_version_is(''...'3.4') || RUBY_ENGINE == 'natalie' } do
     it 'can delete the last key' do
       hash = {}
       hash.inspect.should == '{}'
@@ -179,7 +182,8 @@ describe 'hash' do
     end
   end
 
-  ruby_version_is '3.4' do
+  # NATFIXME: Fix output of Hash#inspect
+  guard -> { ruby_version_is('3.4') && RUBY_ENGINE != 'natalie' } do
     it 'can delete the last key' do
       hash = {}
       hash.inspect.should == '{}'

@@ -6,7 +6,8 @@ describe 'it in block' do
     [1, 2, 3].map { it }.should == [123, 123, 123]
   end
 
-  ruby_version_is ''...'3.4' do
+  # NATFIXME: Fix it argument
+  guard -> { ruby_version_is(''...'3.4') || RUBY_ENGINE == 'natalie' } do
     it 'should use the method if no local variable exists' do
       # This test is hacky: we now depend on the `it` method of the specs
       suppress_warning do
@@ -18,7 +19,8 @@ describe 'it in block' do
     end
   end
 
-  ruby_version_is '3.4' do
+  # NATFIXME: Fix it argument
+  guard -> { ruby_version_is('3.4') && RUBY_ENGINE != 'natalie' } do
     it 'should act as the first argument if no local variable exists' do
       # eval is required for suppress_warning
       eval('[1, 2, 3].map { it }').should == [1, 2, 3]

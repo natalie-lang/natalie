@@ -991,7 +991,8 @@ describe 'array' do
       [1].join(',').should == '1'
     end
 
-    ruby_version_is ''...'3.4' do
+    # NATFIXME: Fix output of Hash#inspect
+    guard -> { ruby_version_is(''...'3.4') || RUBY_ENGINE == 'natalie' } do
       it 'returns the items joined together in a string' do
         %w[foo bar].join('').should == 'foobar'
         %w[foo bar].join(',').should == 'foo,bar'
@@ -999,7 +1000,8 @@ describe 'array' do
       end
     end
 
-    ruby_version_is '3.4' do
+    # NATFIXME: Fix output of Hash#inspect
+    guard -> { ruby_version_is('3.4') && RUBY_ENGINE != 'natalie' } do
       it 'returns the items joined together in a string' do
         %w[foo bar].join('').should == 'foobar'
         %w[foo bar].join(',').should == 'foo,bar'
