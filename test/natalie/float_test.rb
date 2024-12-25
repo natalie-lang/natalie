@@ -29,8 +29,7 @@ describe 'float' do
   end
 
   describe 'Float()' do
-    # NATFIXME: Parse 10.
-    guard -> { ruby_version_is(''...'3.4') || RUBY_ENGINE == 'natalie' } do
+    ruby_version_is ''...'3.4' do
       it 'cannot parse 10.' do
         -> { Float('10.') }.should raise_error(ArgumentError, 'invalid value for Float(): "10."')
       end
@@ -43,8 +42,7 @@ describe 'float' do
       end
     end
 
-    # NATFIXME: Parse 10.
-    guard -> { ruby_version_is('3.4') && RUBY_ENGINE != 'natalie' } do
+    ruby_version_is '3.4' do
       it 'can parse 10.' do
         Float('10.').should == 10.0
       end

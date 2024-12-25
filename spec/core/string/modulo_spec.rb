@@ -758,9 +758,7 @@ describe "String#%" do
       (format % ".5").should == (format % 0.5)
       (format % "-.5").should == (format % -0.5)
       ruby_bug("#20705", ""..."3.4") do
-        NATFIXME 'Parse "10." as float', exception: ArgumentError do
-          (format % "10.").should == (format % 10)
-        end
+        (format % "10.").should == (format % 10)
       end
       # Something's strange with this spec:
       # it works just fine in individual mode, but not when run as part of a group
