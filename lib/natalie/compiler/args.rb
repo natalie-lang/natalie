@@ -43,8 +43,7 @@ module Natalie
         when Prism::LocalVariableTargetNode
           transform_required_arg(@node)
         when Prism::ItParametersNode
-          @instructions << ArrayShiftInstruction.new
-          @instructions << variable_set(:it)
+          transform_it_arg(@node)
         when ::Prism::NumberedParametersNode
           transform_numbered_arg(@node)
         when ::Prism::InstanceVariableTargetNode
@@ -142,6 +141,12 @@ module Natalie
         else
           raise "unhandled node: #{arg.inspect}"
         end
+      end
+
+      def transform_it_arg(arg)
+        @instructions << VariableDeclareInstruction.new(:it)
+        @instructions << ArrayShiftInstruction.new
+        @instructions << variable_set(:it)
       end
 
       def transform_numbered_arg(arg)
@@ -377,6 +382,8 @@ module Natalie
             @node.maximum.times.map do |i|
               Prism::RequiredParameterNode.new(nil, nil, @node.location, 0, :"_#{i + 1}")
             end
+          when Prism::ItParametersNode
+            [Prism::RequiredParameterNode.new(nil, nil, @node.location, 0, :it)]
           else
             [@node]
           end

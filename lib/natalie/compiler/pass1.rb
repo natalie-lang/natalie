@@ -1973,17 +1973,8 @@ module Natalie
       end
 
       def transform_it_local_variable_read_node(node, used:)
-        # Ruby 3.3 behaviour: call the method `it` instead
         instructions = [
-          PushSelfInstruction.new,
-          PushArgcInstruction.new(0),
-          SendInstruction.new(
-            :it,
-            receiver_is_self: true,
-            with_block: false,
-            file: @file.path,
-            line: node.location.start_line,
-          )
+          VariableGetInstruction.new(:it),
         ]
         instructions << PopInstruction.new unless used
         instructions

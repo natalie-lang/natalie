@@ -65,30 +65,6 @@ describe "Defining an 'initialize_clone' method" do
       end
     end
     NATFIXME "it sets the method's visibility to private", exception: SpecFailedException do
-      DefInitializeDupSpec.should have_private_instance_method(:initialize_dup, false)
-    end
-  end
-end
-
-describe "Defining an 'initialize_clone' method" do
-  it "sets the method's visibility to private" do
-    class DefInitializeCloneSpec
-      def initialize_clone
-      end
-    end
-    NATFIXME "it sets the method's visibility to private", exception: SpecFailedException do
-      DefInitializeDupSpec.should have_private_instance_method(:initialize_dup, false)
-    end
-  end
-end
-
-describe "Defining an 'initialize_clone' method" do
-  it "sets the method's visibility to private" do
-    class DefInitializeCloneSpec
-      def initialize_clone
-      end
-    end
-    NATFIXME "it sets the method's visibility to private", exception: SpecFailedException do
       DefInitializeCloneSpec.should have_private_instance_method(:initialize_clone, false)
     end
   end
@@ -237,24 +213,11 @@ describe "An instance method with a default argument" do
 
   ruby_version_is ""..."3.4" do
     it "raises a SyntaxError if using the argument in its default value" do
-      NATFIXME 'We implement the Ruby 3.4 behaviour' do
-        -> {
-          eval "def foo(bar = bar)
-            bar
-          end"
-        }.should raise_error(SyntaxError)
-      end
-
-      NATFIXME "Restore this part of the spec once we've moved to Ruby 3.4 compatibility" do
-        RUBY_VERSION.should.start_with?('3.4.')
-      end
-
       -> {
         eval "def foo(bar = bar)
           bar
-        end
-        foo"
-      }.call.should == nil
+        end"
+      }.should raise_error(SyntaxError)
     end
   end
 
