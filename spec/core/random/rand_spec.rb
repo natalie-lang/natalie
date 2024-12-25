@@ -95,14 +95,14 @@ end
 describe "Random#rand with Bignum" do
   it "typically returns a Bignum" do
     rnd = Random.new(1)
-    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into `long'" do
+    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into 'long'" do
       10.times.map{ rnd.rand(bignum_value*2) }.max.should be_an_instance_of(Integer)
     end
   end
 
   it "returns a Bignum greater than or equal to 0" do
     prng = Random.new
-    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into `long'" do
+    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into 'long'" do
       bigs = 20.times.map { prng.rand(bignum_value) }
       bigs.min.should >= 0
     end
@@ -110,7 +110,7 @@ describe "Random#rand with Bignum" do
 
   it "returns a Bignum less than the argument" do
     prng = Random.new
-    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into `long'" do
+    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into 'long'" do
       bigs = 20.times.map { prng.rand(bignum_value) }
       bigs.max.should < bignum_value
     end
@@ -118,7 +118,7 @@ describe "Random#rand with Bignum" do
 
   it "returns the same sequence for a given seed" do
     prng = Random.new 33
-    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into `long'" do
+    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into 'long'" do
       a = 20.times.map { prng.rand(bignum_value) }
       prng = Random.new 33
       b = 20.times.map { prng.rand(bignum_value) }

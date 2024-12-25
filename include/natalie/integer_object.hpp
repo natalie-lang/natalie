@@ -77,14 +77,14 @@ public:
     static T convert_to_native_type(Env *env, Value arg) {
         auto integer = arg->to_int(env);
         if (integer->is_bignum())
-            env->raise("RangeError", "bignum too big to convert into `{}'", typeinfo<T>().name());
+            env->raise("RangeError", "bignum too big to convert into '{}'", typeinfo<T>().name());
         const auto result = integer->to_nat_int_t();
         if (!std::numeric_limits<T>::is_signed && result < 0)
             env->raise("ArgumentError", "negative length {} given", result);
         if (result < static_cast<nat_int_t>(std::numeric_limits<T>::min()))
-            env->raise("RangeError", "integer {} too small to convert to `{}'", result, typeinfo<T>().name());
+            env->raise("RangeError", "integer {} too small to convert to '{}'", result, typeinfo<T>().name());
         if (((std::numeric_limits<T>::is_signed && result > 0) || !std::numeric_limits<T>::is_signed) && static_cast<unsigned long long>(result) > std::numeric_limits<T>::max())
-            env->raise("RangeError", "integer {} too big to convert to `{}'", result, typeinfo<T>().name());
+            env->raise("RangeError", "integer {} too big to convert to '{}'", result, typeinfo<T>().name());
         return static_cast<T>(result);
     }
 
@@ -143,7 +143,7 @@ public:
 
     void assert_fixnum(Env *env) const {
         if (is_bignum())
-            env->raise("RangeError", "bignum too big to convert into `long'");
+            env->raise("RangeError", "bignum too big to convert into 'long'");
     }
 
     virtual String dbg_inspect() const override { return to_s(); }

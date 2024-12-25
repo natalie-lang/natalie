@@ -11,7 +11,7 @@ describe 'friendly backtrace' do
 Traceback (most recent call last):
         2: from -e:1:in `<main>'
         1: from -e:1:in `foo'
--e:1:in `bar': undefined method `xxx' for main (NoMethodError)
+-e:1:in `bar': undefined method 'xxx' for main (NoMethodError)
     EOF
   end
 
@@ -24,7 +24,7 @@ Traceback (most recent call last):
         3: from test/ruby/fixtures/error.rb:6:in `method2'
         2: from test/ruby/fixtures/error.rb:6:in `each'
         1: from test/ruby/fixtures/error.rb:6:in `block in method2'
-test/ruby/fixtures/error.rb:2:in `method_with_error': undefined method `something_non_existent' for main (NoMethodError)
+test/ruby/fixtures/error.rb:2:in `method_with_error': undefined method 'something_non_existent' for main (NoMethodError)
     EOF
   end
 

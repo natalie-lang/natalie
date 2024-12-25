@@ -762,7 +762,7 @@ module Enumerable
       count = count.to_int if not count.is_a? Integer and count.respond_to? :to_int
       raise TypeError unless count.is_a? Integer
       raise ArgumentError, 'negative array size' unless count >= 0
-      raise RangeError, "bignum too big to convert into `long'" if count >= 2 ** 63
+      raise RangeError, "bignum too big to convert into 'long'" if count >= 2 ** 63
 
       result = []
       return result if count == 0

@@ -499,7 +499,7 @@ Value ThreadObject::priority(Env *env) const {
 Value ThreadObject::set_priority(Env *env, Value priority) {
     auto priority_int = priority->to_int(env);
     if (priority_int->is_bignum())
-        env->raise("RangeError", "bignum too big to convert into `long'");
+        env->raise("RangeError", "bignum too big to convert into 'long'");
 
     m_priority = priority_int->to_nat_int_t();
     if (m_priority > 3) m_priority = 3;

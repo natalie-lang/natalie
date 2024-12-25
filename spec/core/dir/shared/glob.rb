@@ -403,7 +403,7 @@ describe :dir_glob, shared: true do
     it "accepts both relative and absolute paths" do
       require 'pathname'
 
-      NATFIXME 'Pathname#relative_path_from', exception: NoMethodError, message: "undefined method `relative_path_from' for an instance of Pathname" do
+      NATFIXME 'Pathname#relative_path_from', exception: NoMethodError, message: "undefined method 'relative_path_from' for an instance of Pathname" do
         path_abs = File.join(@mock_dir, "a/b/c")
         path_rel = Pathname.new(path_abs).relative_path_from(Pathname.new(Dir.pwd))
 
