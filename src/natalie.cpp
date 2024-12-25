@@ -163,7 +163,7 @@ Env *build_top_env() {
     IO->include_once(env, Enumerable);
     IoObject::build_constants(env, IO);
 
-    ClassObject *File = IO->subclass(env, "File");
+    ClassObject *File = IO->subclass(env, "File", Object::Type::File);
     Object->const_set("File"_s, File);
     File->include_once(env, Enumerable);
 

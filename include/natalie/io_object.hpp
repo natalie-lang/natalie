@@ -23,6 +23,9 @@ public:
     IoObject(ClassObject *klass)
         : Object { Object::Type::Io, klass } { }
 
+    IoObject(Type type, ClassObject *klass)
+        : Object { type, klass } { }
+
     IoObject(int fileno)
         : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s)->as_class() }
         , m_sync { fileno == STDERR_FILENO } {

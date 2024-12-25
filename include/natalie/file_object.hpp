@@ -17,7 +17,10 @@ namespace Natalie {
 class FileObject : public IoObject {
 public:
     FileObject()
-        : IoObject { GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class() } { }
+        : FileObject { GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class() } { }
+
+    FileObject(ClassObject *klass)
+        : IoObject { Object::Type::File, klass } { }
 
     Value initialize(Env *, Args &&, Block *);
 
