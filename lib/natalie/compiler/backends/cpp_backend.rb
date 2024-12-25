@@ -226,7 +226,7 @@ module Natalie
 
       def link_flags
         flags = if @compiler.build == 'asan'
-                  ['-fsanitize=address']
+                  [SANITIZE_FLAG]
                 else
                   []
                 end

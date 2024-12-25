@@ -25,10 +25,12 @@ module Natalie
         -DNAT_GC_GUARD
       ].freeze
 
-      ASAN_FLAGS = DEBUG_FLAGS + %w[
-        -D NAT_GC_DISABLE=true
-        -fsanitize=address
-        -fno-omit-frame-pointer
+      SANITIZE_FLAG = '-fsanitize=address,undefined'.freeze
+
+      ASAN_FLAGS = DEBUG_FLAGS + [
+        '-D NAT_GC_DISABLE=true',
+        SANITIZE_FLAG,
+        '-fno-omit-frame-pointer',
       ]
 
       COVERAGE_FLAGS = DEBUG_FLAGS + %w[
