@@ -1209,7 +1209,7 @@ module Natalie
               Prism::RetryNode, Prism::ReturnNode, Prism::RedoNode, Prism::BreakNode, Prism::WhileNode,
               Prism::UntilNode, Prism::NextNode, Prism::BeginNode, Prism::StringNode, Prism::InterpolatedStringNode,
               Prism::InterpolatedRegularExpressionNode, Prism::IntegerNode, Prism::FloatNode,
-              Prism::HashNode, Prism::SymbolNode, Prism::RegularExpressionNode, Prism::RangeNode
+              Prism::SymbolNode, Prism::RegularExpressionNode, Prism::RangeNode
             return instant_return_type.('expression')
           when Prism::CallNode
             if current_node.block

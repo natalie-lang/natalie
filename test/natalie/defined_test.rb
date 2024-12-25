@@ -85,15 +85,13 @@ describe 'defined?' do
     defined?({}).should == 'expression'
   end
 
-  # NATFIXME: Fix defined expression with undefined ivar
-  guard -> { ruby_version_is(''...'3.4') || RUBY_ENGINE == 'natalie' } do
+  ruby_version_is ''...'3.4' do
     it 'recognizes expressions with undefined ivar' do
       defined?({1=>@baz}).should == 'expression'
     end
   end
 
-  # NATFIXME: Fix defined expression with undefined ivar
-  guard -> { ruby_version_is('3.4') && RUBY_ENGINE != 'natalie' } do
+  ruby_version_is '3.4' do
     it 'does not recognize expressions with undefined ivar' do
       defined?({1=>@baz}).should be_nil
     end
