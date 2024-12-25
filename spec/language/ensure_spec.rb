@@ -357,6 +357,7 @@ describe "An ensure block inside 'do end' block" do
           "#{__FILE__}:#{line+1}:in 'block (3 levels) in <top (required)>'"
         ]
       end
+      foo[0].should == "#{__FILE__}:#{line-3}:in 'foo'"
     end
   end
 end
