@@ -296,9 +296,15 @@ Value HashObject::inspect(Env *env) {
         };
 
         for (HashObject::Key &node : *this) {
-            StringObject *key_repr = to_s(node.key.send(env, "inspect"_s));
-            out->append(key_repr);
-            out->append("=>");
+            if (node.key->is_symbol()) {
+                StringObject *key_repr = node.key->as_symbol()->to_s(env);
+                out->append(key_repr);
+                out->append(": ");
+            } else {
+                StringObject *key_repr = to_s(node.key.send(env, "inspect"_s));
+                out->append(key_repr);
+                out->append(" => ");
+            }
             StringObject *val_repr = to_s(node.val.send(env, "inspect"_s));
             out->append(val_repr);
             if (index < last_index) {
