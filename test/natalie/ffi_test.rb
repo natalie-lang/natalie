@@ -204,6 +204,15 @@ describe 'FFI' do
     TestStubs.test_enum_argument(123).should == 'x'.ord
   end
 
+  it 'supports relative paths' do
+    libm = Module.new do
+      extend FFI::Library
+      ffi_lib "libm.#{SO_EXT}"
+      attach_function :pow, [:double, :double], :double
+    end
+    libm.pow(2.0, 3.0).should == 8.0
+  end
+
   describe 'Pointer' do
     describe '#initialize' do
       it 'sets address and type_size' do
