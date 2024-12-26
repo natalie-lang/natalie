@@ -1,5 +1,7 @@
 #include <dlfcn.h>
 #include <ffi.h>
+#include <fstream>
+#include <iostream>
 
 #include "natalie.hpp"
 #include "natalie/object_type.hpp"
@@ -13,7 +15,50 @@ Value init_ffi(Env *env, Value self) {
 static void *dlopen_wrapper(Env *env, Value name) {
     name->assert_type(env, Object::Type::String, "String");
     const auto &str = name->as_string()->string();
-    return dlopen(str.c_str(), RTLD_LAZY);
+    void *handle = dlopen(str.c_str(), RTLD_LAZY);
+    if (!handle) {
+        auto error = [&str]() {
+            // dlerror() clears the error message, so we need to set it again
+            dlopen(str.c_str(), RTLD_LAZY);
+            return nullptr;
+        };
+        // This might be a GNU ld script. In that case, mirror the behaviour of ruby-ffi and
+        // read the file to find the actual shared object.
+        auto const errmsg = dlerror();
+        auto trail = strstr(errmsg, ": invalid ELF header");
+        if (!trail)
+            return error();
+        *trail = '\0';
+        std::ifstream ldscript { errmsg, std::ios::in | std::ios::ate };
+        if (!ldscript)
+            return error();
+        const auto size = ldscript.tellg();
+        ldscript.seekg(0);
+        char buf[static_cast<size_t>(size) + 1] = { 0 };
+        if (!ldscript.read(buf, size))
+            return error();
+        ldscript.close();
+        // Format: [not relevant] GROUP ( $FILENAME [not_relevant]
+        auto pos = strstr(buf, "GROUP");
+        if (!pos)
+            return error();
+        pos += 5; // skip "GROUP"
+        while (*pos == ' ')
+            pos++;
+        if (*pos != '(')
+            return error();
+        pos++;
+        while (*pos == ' ')
+            pos++;
+        if (*pos != '/')
+            return error();
+        auto endpos = strstr(pos, " ");
+        if (!endpos)
+            return error();
+        *endpos = '\0';
+        handle = dlopen(pos, RTLD_LAZY);
+    }
+    return handle;
 }
 
 Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
