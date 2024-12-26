@@ -62,6 +62,10 @@ Value Object::create(Env *env, ClassObject *klass) {
         obj = new IoObject { klass };
         break;
 
+    case Object::Type::File:
+        obj = new FileObject { klass };
+        break;
+
     case Object::Type::MatchData:
         obj = new MatchDataObject { klass };
         break;
@@ -355,7 +359,7 @@ const IoObject *Object::as_io() const {
 }
 
 FileObject *Object::as_file() {
-    assert(is_io());
+    assert(is_file());
     return static_cast<FileObject *>(this);
 }
 

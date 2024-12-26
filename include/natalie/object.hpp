@@ -130,7 +130,8 @@ public:
     bool is_float() const { return m_type == Type::Float; }
     bool is_hash() const { return m_type == Type::Hash; }
     bool is_integer() const { return m_type == Type::Integer; }
-    bool is_io() const { return m_type == Type::Io; }
+    bool is_io() const { return m_type == Type::Io || m_type == Type::File; }
+    bool is_file() const { return m_type == Type::File; }
     bool is_file_stat() const { return m_type == Type::FileStat; }
     bool is_match_data() const { return m_type == Type::MatchData; }
     bool is_proc() const { return m_type == Type::Proc; }
