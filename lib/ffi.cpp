@@ -34,7 +34,7 @@ static void *dlopen_wrapper(Env *env, Value name) {
             return error();
         const auto size = ldscript.tellg();
         ldscript.seekg(0);
-        char buf[static_cast<size_t>(size) + 1] = { 0 };
+        char buf[static_cast<size_t>(size) + 1];
         if (!ldscript.read(buf, size))
             return error();
         ldscript.close();
