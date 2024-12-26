@@ -1,5 +1,7 @@
 #include <dlfcn.h>
 #include <ffi.h>
+#include <fstream>
+#include <iostream>
 
 #include "natalie.hpp"
 #include "natalie/object_type.hpp"
@@ -10,14 +12,62 @@ Value init_ffi(Env *env, Value self) {
     return NilObject::the();
 }
 
+static void *dlopen_wrapper(Env *env, Value name) {
+    name->assert_type(env, Object::Type::String, "String");
+    const auto &str = name->as_string()->string();
+    void *handle = dlopen(str.c_str(), RTLD_LAZY);
+    if (!handle) {
+        auto error = [&str]() {
+            // dlerror() clears the error message, so we need to set it again
+            dlopen(str.c_str(), RTLD_LAZY);
+            return nullptr;
+        };
+        // This might be a GNU ld script. In that case, mirror the behaviour of ruby-ffi and
+        // read the file to find the actual shared object.
+        auto const errmsg = dlerror();
+        auto trail = strstr(errmsg, ": invalid ELF header");
+        if (!trail)
+            return error();
+        *trail = '\0';
+        std::ifstream ldscript { errmsg, std::ios::in | std::ios::ate };
+        if (!ldscript)
+            return error();
+        const auto size = ldscript.tellg();
+        ldscript.seekg(0);
+        char buf[static_cast<size_t>(size) + 1];
+        if (!ldscript.read(buf, size))
+            return error();
+        ldscript.close();
+        // Format: [not relevant] GROUP ( $FILENAME [not_relevant]
+        auto pos = strstr(buf, "GROUP");
+        if (!pos)
+            return error();
+        pos += 5; // skip "GROUP"
+        while (*pos == ' ')
+            pos++;
+        if (*pos != '(')
+            return error();
+        pos++;
+        while (*pos == ' ')
+            pos++;
+        if (*pos != '/')
+            return error();
+        auto endpos = strstr(pos, " ");
+        if (!endpos)
+            return error();
+        *endpos = '\0';
+        handle = dlopen(pos, RTLD_LAZY);
+    }
+    return handle;
+}
+
 Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto name = args.at(0);
     void *handle = nullptr;
     if (name->is_array()) {
         for (auto name2 : *name->as_array()) {
-            name2->assert_type(env, Object::Type::String, "String");
-            handle = dlopen(name2->as_string()->c_str(), RTLD_LAZY);
+            handle = dlopen_wrapper(env, name2);
             if (handle) {
                 name = name2;
                 break;
@@ -31,8 +81,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
             env->raise("LoadError", error->string());
         }
     } else {
-        name->assert_type(env, Object::Type::String, "String");
-        handle = dlopen(name->as_string()->c_str(), RTLD_LAZY);
+        handle = dlopen_wrapper(env, name);
         if (!handle)
             env->raise("LoadError", "Could not open library '{}': {}.", name->as_string()->c_str(), dlerror());
     }
@@ -53,6 +102,8 @@ static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
         return &ffi_type_ushort;
     } else if (type_sym == "char"_s) {
         return &ffi_type_uchar;
+    } else if (type_sym == "double"_s) {
+        return &ffi_type_double;
     } else if (type_sym == "pointer"_s) {
         return &ffi_type_pointer;
     } else if (type_sym == "size_t"_s) {
@@ -84,6 +135,7 @@ typedef union {
     unsigned char uc;
     int32_t s32;
     uint64_t u64;
+    double double_;
 } FFI_Library_call_arg_slot;
 
 static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block *block) {
@@ -104,6 +156,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
 
     auto bool_sym = "bool"_s;
     auto char_sym = "char"_s;
+    auto double_sym = "double"_s;
     auto pointer_sym = "pointer"_s;
     auto size_t_sym = "size_t"_s;
     auto void_sym = "void"_s;
@@ -146,6 +199,10 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             else
                 arg_values[i].u64 = size;
             arg_pointers[i] = &(arg_values[i].u64);
+        } else if (type == double_sym) {
+            auto double_ = val->as_float_or_raise(env)->to_double();
+            arg_values[i].double_ = double_;
+            arg_pointers[i] = &(arg_values[i].double_);
         } else {
             auto enums = self->ivar_get(env, "@enums"_s);
             if (!enums->is_nil() && enums->as_hash_or_raise(env)->has_key(env, type)) {
@@ -176,6 +233,8 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
         return bool_object((uint64_t)result);
     } else if (return_type == char_sym) {
         return Value::integer(result);
+    } else if (return_type == double_sym) {
+        return Value::floatingpoint(*reinterpret_cast<double *>(&result));
     } else if (return_type == pointer_sym) {
         auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s })->as_class();
         auto pointer = Pointer->send(env, "new"_s, { "pointer"_s, Value::integer((nat_int_t)result) });
