@@ -2,14 +2,14 @@ require_relative './lib/natalie/compiler/flags'
 
 task default: :build
 
-DEFAULT_BUILD_TYPE = 'release'.freeze
+DEFAULT_BUILD_MODE = 'release'.freeze
 DL_EXT = RbConfig::CONFIG['DLEXT']
 SO_EXT = RbConfig::CONFIG['SOEXT']
 SRC_DIRECTORIES = Dir.new('src').children.select { |p| File.directory?(File.join('src', p)) }
 
 desc 'Build Natalie'
 task :build do
-  type = File.exist?('.build') ? File.read('.build') : DEFAULT_BUILD_TYPE
+  type = current_build_mode
   Rake::Task["build_#{type}"].invoke
 end
 
@@ -103,7 +103,7 @@ task test_self_hosted_full: %i[bootstrap build_test_support] do
 end
 
 desc 'Test that some representative code runs with the AddressSanitizer enabled'
-task test_sanitized: [:clean, :build_sanitized, 'bin/nat'] do
+task test_sanitized: [:build_sanitized, 'bin/nat'] do
   sh 'ruby test/sanitized_test.rb'
 end
 
@@ -127,7 +127,7 @@ task test_all_ruby_spec_nightly: :build do
   sh 'bundle exec ruby spec/support/nightly_ruby_spec_runner.rb'
 end
 
-task test_perf: [:clean, :build_release, 'bin/nat'] do
+task test_perf: [:build_release, 'bin/nat'] do
   sh 'ruby spec/support/test_perf.rb'
 end
 
@@ -399,16 +399,19 @@ end
 require 'tempfile'
 
 task(:set_build_debug) do
+  Rake::Task[:clean].invoke if current_build_mode != 'debug'
   ENV['BUILD'] = 'debug'
   File.write('.build', 'debug')
 end
 
 task(:set_build_sanitized) do
+  Rake::Task[:clean].invoke if current_build_mode != 'sanitized'
   ENV['BUILD'] = 'sanitized'
   File.write('.build', 'sanitized')
 end
 
 task(:set_build_release) do
+  Rake::Task[:clean].invoke if current_build_mode != 'release'
   ENV['BUILD'] = 'release'
   File.write('.build', 'release')
 end
@@ -675,4 +678,10 @@ def include_paths
     File.expand_path('build/onigmo/include', __dir__),
     File.expand_path('build/prism/include', __dir__),
   ]
+end
+
+def current_build_mode
+  return DEFAULT_BUILD_MODE unless File.exist?('.build')
+
+  File.read('.build').strip
 end
