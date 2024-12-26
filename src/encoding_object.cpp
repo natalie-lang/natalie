@@ -376,6 +376,8 @@ void EncodingObject::raise_compatibility_error(Env *env, const EncodingObject *o
 Value EncodingObject::inspect(Env *env) const {
     if (is_dummy())
         return StringObject::format("#<Encoding:{} (dummy)>", name());
+    if (m_num == Encoding::ASCII_8BIT)
+        return StringObject::format("#<Encoding:BINARY ({})>", name());
     return StringObject::format("#<Encoding:{}>", name());
 }
 

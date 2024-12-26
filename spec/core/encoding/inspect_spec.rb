@@ -17,9 +17,7 @@ describe "Encoding#inspect" do
     it "returns #<Encoding:name> for a non-dummy encoding named 'name'" do
       Encoding.list.to_a.reject {|e| e.dummy? }.each do |enc|
         if enc.name == "ASCII-8BIT"
-          NATFIXME 'Update encoding name', exception: SpecFailedException do
-            enc.inspect.should == "#<Encoding:BINARY (ASCII-8BIT)>"
-          end
+          enc.inspect.should == "#<Encoding:BINARY (ASCII-8BIT)>"
         else
           enc.inspect.should =~ /#<Encoding:#{enc.name}>/
         end
