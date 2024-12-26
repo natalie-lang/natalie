@@ -136,8 +136,8 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-build_type_path = File.expand_path('../.build', __dir__)
-build_setting = File.exist?(build_type_path) ? File.read(build_type_path).strip : 'debug'
+build_mode_path = File.expand_path('../.build', __dir__)
+build_setting = File.exist?(build_mode_path) ? File.read(build_mode_path).strip : 'release'
 options[:build] = build_setting
 
 class Runner
