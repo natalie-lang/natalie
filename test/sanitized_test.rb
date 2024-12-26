@@ -1,7 +1,7 @@
 # Prior to running this test, you should build Natalie with:
 #
-#     rake clean build_asan
-#     ruby test/asan_test.rb
+#     rake clean build_sanitized
+#     ruby test/sanitized_test.rb
 
 require 'fileutils'
 require 'minitest/spec'
@@ -66,7 +66,7 @@ TESTS_TO_SKIP = [
   'spec/core/process/egid_spec.rb', # not sure why this breaks
 ].freeze
 
-describe 'ASAN tests' do
+describe 'Sanitizers tests' do
   include CompareRubies
 
   parallelize_me!

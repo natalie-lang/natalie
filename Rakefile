@@ -23,9 +23,9 @@ task build_debug: %i[set_build_debug libnatalie prism_c_ext ctags] do
   puts 'Build mode: debug'
 end
 
-desc 'Build Natalie with AddressSanitizer enabled'
-task build_asan: %i[set_build_asan libnatalie prism_c_ext] do
-  puts 'Build mode: asan'
+desc 'Build Natalie with sanitizers enabled'
+task build_sanitized: %i[set_build_sanitized libnatalie prism_c_ext] do
+  puts 'Build mode: sanitized'
 end
 
 desc 'Remove temporary files created during build'
@@ -103,8 +103,8 @@ task test_self_hosted_full: %i[bootstrap build_test_support] do
 end
 
 desc 'Test that some representative code runs with the AddressSanitizer enabled'
-task test_asan: [:clean, :build_asan, 'bin/nat'] do
-  sh 'ruby test/asan_test.rb'
+task test_sanitized: [:clean, :build_sanitized, 'bin/nat'] do
+  sh 'ruby test/sanitized_test.rb'
 end
 
 task test_all_ruby_spec_nightly: :build do
@@ -221,7 +221,7 @@ end
 
 task :docker_build_gcc do
   suffix = ruby_version_string
-  suffix += '_asan' if ENV['NAT_BUILD_MODE'] == 'asan'
+  suffix += '_sanitized' if ENV['NAT_BUILD_MODE'] == 'sanitized'
   sh "docker build -t natalie_gcc_#{suffix} " \
      "#{default_docker_build_args.join(' ')} " \
      '.'
@@ -229,7 +229,7 @@ end
 
 task :docker_build_clang do
   suffix = ruby_version_string
-  suffix += '_asan' if ENV['NAT_BUILD_MODE'] == 'asan'
+  suffix += '_sanitized' if ENV['NAT_BUILD_MODE'] == 'sanitized'
   sh "docker build -t natalie_clang_#{suffix} " \
      "#{default_docker_build_args.join(' ')} " \
      '--build-arg CC=clang ' \
@@ -263,7 +263,7 @@ task docker_bash_gdb: :docker_build_gcc do
      "natalie_gcc_#{ruby_version_string}"
 end
 
-task docker_test: %i[docker_test_gcc docker_test_clang docker_test_self_hosted docker_test_asan]
+task docker_test: %i[docker_test_gcc docker_test_clang docker_test_self_hosted docker_test_sanitized]
 
 task :docker_test_output do
   rm_rf 'output'
@@ -305,10 +305,10 @@ task docker_test_self_hosted_full: :docker_build_clang do
   sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_self_hosted_full"
 end
 
-task :docker_test_asan do
-  ENV['NAT_BUILD_MODE'] = 'asan'
+task :docker_test_sanitized do
+  ENV['NAT_BUILD_MODE'] = 'sanitized'
   Rake::Task['docker_build_gcc'].invoke
-  sh "docker run #{docker_run_flags} --rm --entrypoint rake -e SOME_TESTS='#{ENV['SOME_TESTS']}' natalie_gcc_#{ruby_version_string}_asan test_asan"
+  sh "docker run #{docker_run_flags} --rm --entrypoint rake -e SOME_TESTS='#{ENV['SOME_TESTS']}' natalie_gcc_#{ruby_version_string}_sanitized test_sanitized"
 end
 
 task docker_test_all_ruby_spec_nightly: :docker_build_clang do
@@ -403,9 +403,9 @@ task(:set_build_debug) do
   File.write('.build', 'debug')
 end
 
-task(:set_build_asan) do
-  ENV['BUILD'] = 'asan'
-  File.write('.build', 'asan')
+task(:set_build_sanitized) do
+  ENV['BUILD'] = 'sanitized'
+  File.write('.build', 'sanitized')
 end
 
 task(:set_build_release) do
@@ -647,10 +647,12 @@ def cxx_flags
     case ENV['BUILD']
     when 'release'
       Natalie::Compiler::Flags::RELEASE_FLAGS
-    when 'asan'
-      Natalie::Compiler::Flags::ASAN_FLAGS
-    else
+    when 'sanitized'
+      Natalie::Compiler::Flags::SANITIZED_FLAGS
+    when 'debug', '', nil
       Natalie::Compiler::Flags::DEBUG_FLAGS
+    else
+      raise "unknown build mode: #{ENV['BUILD']}"
     end
   base_flags += ['-fPIC'] # needed for repl
   if RUBY_PLATFORM =~ /darwin/
