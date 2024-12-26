@@ -6,7 +6,17 @@
 require 'fileutils'
 require 'minitest/spec'
 require 'minitest/autorun'
+require 'minitest/reporters'
 require_relative 'support/compare_rubies'
+
+case ENV['REPORTER']
+when 'spec'
+  Minitest::Reporters.use!(Minitest::Reporters::SpecReporter.new)
+when 'progress', nil
+  Minitest::Reporters.use!(Minitest::Reporters::ProgressReporter.new(detailed_skip: false))
+when 'dots'
+  # just use the default reporter
+end
 
 TESTS = if ENV['SOME_TESTS'] == 'true'
           # runs on every PR -- some tests
