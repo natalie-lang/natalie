@@ -10,14 +10,19 @@ Value init_ffi(Env *env, Value self) {
     return NilObject::the();
 }
 
+static void *dlopen_wrapper(Env *env, Value name) {
+    name->assert_type(env, Object::Type::String, "String");
+    const auto &str = name->as_string()->string();
+    return dlopen(str.c_str(), RTLD_LAZY);
+}
+
 Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto name = args.at(0);
     void *handle = nullptr;
     if (name->is_array()) {
         for (auto name2 : *name->as_array()) {
-            name2->assert_type(env, Object::Type::String, "String");
-            handle = dlopen(name2->as_string()->c_str(), RTLD_LAZY);
+            handle = dlopen_wrapper(env, name2);
             if (handle) {
                 name = name2;
                 break;
@@ -31,8 +36,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
             env->raise("LoadError", error->string());
         }
     } else {
-        name->assert_type(env, Object::Type::String, "String");
-        handle = dlopen(name->as_string()->c_str(), RTLD_LAZY);
+        handle = dlopen_wrapper(env, name);
         if (!handle)
             env->raise("LoadError", "Could not open library '{}': {}.", name->as_string()->c_str(), dlerror());
     }
