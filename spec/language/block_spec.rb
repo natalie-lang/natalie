@@ -980,10 +980,10 @@ describe "Post-args" do
     describe "with a circular argument reference" do
       ruby_version_is ""..."3.4" do
         it "raises a SyntaxError if using the argument in its default value" do
-            a = 1
-            -> {
-              eval "proc { |a=a| a }"
-            }.should raise_error(SyntaxError)
+          a = 1
+          -> {
+            eval "proc { |a=a| a }"
+          }.should raise_error(SyntaxError)
         end
       end
 
