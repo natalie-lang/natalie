@@ -43,9 +43,6 @@ TESTS = if ENV['SOME_TESTS'] == 'true'
         end
 
 TESTS_TO_SKIP = [
-   # too slow, times out frequently
-  'test/natalie/libnat_test.rb',
-
   # calls GC.start/GC.enable, but we're not ready for that
   'test/natalie/thread_test.rb',
   'test/natalie/gc_test.rb',
