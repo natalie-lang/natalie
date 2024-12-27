@@ -135,4 +135,17 @@ class Range
     return size.floor if size.is_a?(Float)
     size
   end
+
+  def reverse_each
+    raise TypeError, "can't iterate from #{self.end.class}" if self.end.nil?
+    return super unless self.end.respond_to?(:pred)
+    return enum_for(:reverse_each) { size } unless block_given?
+    item = self.end
+    item = item.pred if exclude_end?
+    while self.begin.nil? || item >= self.begin
+      yield item
+      item = item.pred
+    end
+    self
+  end
 end
