@@ -57,7 +57,9 @@ public:
     bool gc_enabled() const { return m_gc_enabled; }
 
     void gc_enable() {
+#ifndef NAT_GC_DISABLE
         m_gc_enabled = true;
+#endif
     }
 
     void gc_disable() {

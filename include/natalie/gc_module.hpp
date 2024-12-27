@@ -12,7 +12,9 @@ public:
     static bool enable();
 
     static Value start(Env *env) {
+#ifndef NAT_GC_DISABLE
         Heap::the().collect();
+#endif
         return NilObject::the();
     }
 
