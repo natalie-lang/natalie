@@ -23,7 +23,12 @@ TESTS = if ENV['SOME_TESTS'] == 'true'
           Dir[
             'spec/language/*_spec.rb',
             'test/natalie/**/*_test.rb',
+            'spec/core/kernel/Float_spec.rb',
+            'spec/core/process/spawn_spec.rb',
             'spec/core/string/crypt_spec.rb',
+            'spec/library/yaml/dump_spec.rb',
+            'spec/library/yaml/load_spec.rb',
+            'spec/library/yaml/to_yaml_spec.rb',
           ].to_a
         else
           # runs nightly -- all tests
@@ -50,13 +55,8 @@ TESTS_TO_SKIP = [
   'spec/library/socket/udpsocket/write_spec.rb', # getaddrinfo leak*
   'spec/library/socket/ipsocket/recvfrom_spec.rb', # getaddrinfo leak*
   'spec/library/socket/ipsocket/addr_spec.rb', # getaddrinfo leak*
-  'spec/library/yaml/load_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
-  'spec/library/yaml/dump_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
-  'spec/library/yaml/to_yaml_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
-  'spec/core/process/spawn_spec.rb', # leak in KernelModule::spawn
   'spec/core/process/fork_spec.rb', # spec timeout
   'spec/core/kernel/fork_spec.rb', # spec timeout
-  'spec/core/kernel/Float_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
   'spec/core/kernel/srand_spec.rb', # leak in Natalie::RandomObject::srand
   'spec/core/random/new_seed_spec.rb', # leak in Natalie::RandomObject::srand
   'spec/core/random/srand_spec.rb', # leak in Natalie::RandomObject::srand

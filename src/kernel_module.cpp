@@ -516,6 +516,12 @@ Value KernelModule::spawn(Env *env, Args &&args) {
 
     Vector<char *> new_env;
 
+    Defer free_new_env([&]() {
+        for (auto str : new_env) {
+            free(str);
+        }
+    });
+
     if (args.size() >= 1 && (args.at(0)->is_hash() || args.at(0)->respond_to(env, "to_hash"_s))) {
         auto hash = args.shift()->to_hash(env);
         for (auto ep = environ; *ep; ep++)
@@ -531,12 +537,6 @@ Value KernelModule::spawn(Env *env, Args &&args) {
     }
 
     args.ensure_argc_at_least(env, 1);
-
-    Defer free_new_env([&]() {
-        for (auto str : new_env) {
-            free(str);
-        }
-    });
 
     if (args.size() == 1) {
         auto arg = args.at(0)->to_str(env);
