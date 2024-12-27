@@ -37,20 +37,19 @@ TESTS_TO_SKIP = [
   'test/natalie/libnat_test.rb', # too slow, times out frequently
   'test/natalie/thread_test.rb', # calls GC.start, but we're not ready for that
   'test/natalie/gc_test.rb', # calls GC.enable, but we're not ready for that
-  'spec/library/socket/basicsocket/do_not_reverse_lookup_spec.rb', # getaddrinfo leak
-  'spec/library/socket/ipsocket/getaddress_spec.rb', # getaddrinfo leak
-  'spec/library/socket/socket/getaddrinfo_spec.rb', # getaddrinfo leak
-  'spec/library/socket/tcpsocket/initialize_spec.rb', # getaddrinfo leak
-  'spec/library/socket/tcpserver/new_spec.rb', # getaddrinfo leak
-  'spec/library/socket/tcpserver/sysaccept_spec.rb', # getaddrinfo leak
-  'spec/library/socket/tcpsocket/setsockopt_spec.rb', # getaddrinfo leak
-  'spec/library/socket/ipsocket/peeraddr_spec.rb', # getaddrinfo leak
-  'spec/library/socket/tcpsocket/recv_nonblock_spec.rb', # getaddrinfo leak
-  'spec/library/socket/udpsocket/bind_spec.rb', # getaddrinfo leak
-  'spec/library/socket/tcpsocket/open_spec.rb', # getaddrinfo leak
-  'spec/library/socket/udpsocket/write_spec.rb', # getaddrinfo leak
-  'spec/library/socket/ipsocket/recvfrom_spec.rb', # getaddrinfo leak
-  'spec/library/socket/ipsocket/addr_spec.rb', # getaddrinfo leak
+  'spec/library/socket/ipsocket/getaddress_spec.rb', # getaddrinfo leak*
+  'spec/library/socket/socket/getaddrinfo_spec.rb', # getaddrinfo leak*
+  'spec/library/socket/tcpsocket/initialize_spec.rb', # getaddrinfo leak*
+  'spec/library/socket/tcpserver/new_spec.rb', # getaddrinfo leak*
+  'spec/library/socket/tcpserver/sysaccept_spec.rb', # getaddrinfo leak*
+  'spec/library/socket/tcpsocket/setsockopt_spec.rb', # getaddrinfo leak*
+  'spec/library/socket/ipsocket/peeraddr_spec.rb', # getaddrinfo leak*
+  'spec/library/socket/tcpsocket/recv_nonblock_spec.rb', # getaddrinfo leak*
+  'spec/library/socket/udpsocket/bind_spec.rb', # getaddrinfo leak*
+  'spec/library/socket/tcpsocket/open_spec.rb', # getaddrinfo leak*
+  'spec/library/socket/udpsocket/write_spec.rb', # getaddrinfo leak*
+  'spec/library/socket/ipsocket/recvfrom_spec.rb', # getaddrinfo leak*
+  'spec/library/socket/ipsocket/addr_spec.rb', # getaddrinfo leak*
   'spec/library/yaml/load_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
   'spec/library/yaml/dump_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
   'spec/library/yaml/to_yaml_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
@@ -65,6 +64,11 @@ TESTS_TO_SKIP = [
   'spec/core/process/euid_spec.rb', # not sure why this breaks
   'spec/core/process/egid_spec.rb', # not sure why this breaks
 ].freeze
+
+# *gaddrinfo leak may not be a real leak:
+# https://bugs.kde.org/show_bug.cgi?id=448991
+# https://bugzilla.redhat.com/show_bug.cgi?id=859717
+# My understanding is that it is a single object that is internal to glibc and never freed.
 
 describe 'Sanitizers tests' do
   include CompareRubies
