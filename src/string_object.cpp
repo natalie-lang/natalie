@@ -1739,7 +1739,8 @@ Value StringObject::byteslice(Env *env, Value index_obj, Value length_obj) {
         // that it's not negative. If it is, or the index is too far out of
         // bounds, we'll return nil.
         nat_int_t length = IntegerObject::convert_to_nat_int_t(env, length_obj);
-        if (index + m_length < 0 || length < 0 || index > m_length)
+        nat_int_t ignored;
+        if (length < 0 || __builtin_add_overflow(index, m_length, &ignored) || index + m_length < 0 || index > m_length)
             return NilObject::the();
 
         // Next, we'll add the length of the string to the index if it's
