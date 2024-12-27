@@ -23,8 +23,12 @@ TESTS = if ENV['SOME_TESTS'] == 'true'
           Dir[
             'spec/language/*_spec.rb',
             'test/natalie/**/*_test.rb',
+            # fixed:
             'spec/core/kernel/Float_spec.rb',
+            'spec/core/kernel/srand_spec.rb',
             'spec/core/process/spawn_spec.rb',
+            'spec/core/random/new_seed_spec.rb',
+            'spec/core/random/srand_spec.rb',
             'spec/core/string/crypt_spec.rb',
             'spec/library/yaml/dump_spec.rb',
             'spec/library/yaml/load_spec.rb',
@@ -57,9 +61,6 @@ TESTS_TO_SKIP = [
   'spec/library/socket/ipsocket/addr_spec.rb', # getaddrinfo leak*
   'spec/core/process/fork_spec.rb', # spec timeout
   'spec/core/kernel/fork_spec.rb', # spec timeout
-  'spec/core/kernel/srand_spec.rb', # leak in Natalie::RandomObject::srand
-  'spec/core/random/new_seed_spec.rb', # leak in Natalie::RandomObject::srand
-  'spec/core/random/srand_spec.rb', # leak in Natalie::RandomObject::srand
   'spec/core/process/uid_spec.rb', # not sure why this breaks
   'spec/core/process/euid_spec.rb', # not sure why this breaks
   'spec/core/process/egid_spec.rb', # not sure why this breaks
