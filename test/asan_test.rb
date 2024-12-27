@@ -36,6 +36,7 @@ TESTS = if ENV['SOME_TESTS'] == 'true'
 TESTS_TO_SKIP = [
   'test/natalie/libnat_test.rb', # too slow, times out frequently
   'test/natalie/thread_test.rb', # calls GC.start, but we're not ready for that
+  'test/natalie/gc_test.rb', # calls GC.enable, but we're not ready for that
   'spec/library/socket/basicsocket/do_not_reverse_lookup_spec.rb', # getaddrinfo leak
   'spec/library/socket/ipsocket/getaddress_spec.rb', # getaddrinfo leak
   'spec/library/socket/socket/getaddrinfo_spec.rb', # getaddrinfo leak
@@ -98,14 +99,14 @@ describe 'Sanitizers tests' do
   describe 'examples/fib.rb' do
     it 'it runs without warnings' do
       out = run_nat('examples/fib.rb')
-      expect(out).wont_match(/ASan/)
+      expect(out).wont_match(/ASan|traceback|error/)
     end
   end
 
   describe 'examples/boardslam.rb' do
     it 'it runs without warnings' do
       out = run_nat('examples/boardslam.rb', 3, 5, 1)
-      expect(out).wont_match(/ASan/)
+      expect(out).wont_match(/ASan|traceback|error/)
     end
   end
 
@@ -114,7 +115,7 @@ describe 'Sanitizers tests' do
       out = sh('bin/nat -c /tmp/bs examples/boardslam.rb')
       puts out unless $?.success?
       expect($?).must_be :success?
-      expect(out).wont_match(/ASan/)
+      expect(out).wont_match(/ASan|traceback|error/)
     end
   end
 end
