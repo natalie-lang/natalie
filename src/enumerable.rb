@@ -590,6 +590,8 @@ module Enumerable
     gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
 
     ary.reverse.each { |item| yield gather.(item) }
+
+    self
   end
 
   def partition

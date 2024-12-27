@@ -14,9 +14,7 @@ ruby_version_is "3.3" do
 
     it "returns self" do
       r = (1..3)
-      NATFIXME 'it returns self', exception: SpecFailedException do
-        r.reverse_each { |x| }.should equal(r)
-      end
+      r.reverse_each { |x| }.should equal(r)
     end
 
     it "returns an Enumerator if no block given" do
@@ -25,15 +23,13 @@ ruby_version_is "3.3" do
       enum.to_a.should == [3, 2, 1]
     end
 
-    # NATFIXME: Infinite loop
-    xit "raises a TypeError for endless Ranges of Integers" do
+    it "raises a TypeError for endless Ranges of Integers" do
       -> {
         (1..).reverse_each.take(3)
       }.should raise_error(TypeError, "can't iterate from NilClass")
     end
 
-    # NATFIXME: Infinite loop
-    xit "raises a TypeError for endless Ranges of non-Integers" do
+    it "raises a TypeError for endless Ranges of non-Integers" do
       -> {
         ("a"..).reverse_each.take(3)
       }.should raise_error(TypeError, "can't iterate from NilClass")
@@ -41,9 +37,7 @@ ruby_version_is "3.3" do
 
     context "Integer boundaries" do
       it "supports beginningless Ranges" do
-        NATFIXME 'it supports beginningless Ranges with Integer boundaries', exception: TypeError, message: "can't iterate from NilClass" do
-          (..5).reverse_each.take(3).should == [5, 4, 3]
-        end
+        (..5).reverse_each.take(3).should == [5, 4, 3]
       end
     end
 
