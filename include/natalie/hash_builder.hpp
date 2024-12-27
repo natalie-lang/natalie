@@ -13,7 +13,7 @@ public:
         : m_digest(starting_digest)
         , m_does_order_matter(does_order_matter) { }
 
-    void append(nat_int_t hash) {
+    __attribute__((no_sanitize("undefined"))) void append(nat_int_t hash) {
         if (m_does_order_matter)
             m_digest += (m_digest << 5) ^ hash;
         else
