@@ -14,9 +14,7 @@ ruby_version_is "3.3" do
 
     it "returns self" do
       r = (1..3)
-      NATFIXME 'it returns self', exception: SpecFailedException do
-        r.reverse_each { |x| }.should equal(r)
-      end
+      r.reverse_each { |x| }.should equal(r)
     end
 
     it "returns an Enumerator if no block given" do
