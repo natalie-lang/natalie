@@ -225,8 +225,8 @@ module Natalie
       end
 
       def link_flags
-        flags = if @compiler.build == 'asan'
-                  ['-fsanitize=address']
+        flags = if @compiler.build == 'sanitized'
+                  [SANITIZE_FLAG]
                 else
                   []
                 end
@@ -249,8 +249,8 @@ module Natalie
           RELEASE_FLAGS
         when 'debug', nil
           DEBUG_FLAGS
-        when 'asan'
-          ASAN_FLAGS
+        when 'sanitized'
+          SANITIZED_FLAGS
         when 'coverage'
           COVERAGE_FLAGS
         else

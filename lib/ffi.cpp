@@ -161,8 +161,8 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     auto size_t_sym = "size_t"_s;
     auto void_sym = "void"_s;
 
-    FFI_Library_call_arg_slot arg_values[cif->nargs];
-    void *arg_pointers[cif->nargs];
+    FFI_Library_call_arg_slot *arg_values = static_cast<FFI_Library_call_arg_slot *>(alloca(sizeof(FFI_Library_call_arg_slot) * cif->nargs));
+    void **arg_pointers = static_cast<void **>(alloca(sizeof(void *) * cif->nargs));
 
     for (unsigned i = 0; i < cif->nargs; ++i) {
         auto val = args.at(i);

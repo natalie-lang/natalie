@@ -55,9 +55,11 @@ public:
 
     static Value urandom(Env *env, Value size) {
         auto integer = size->as_integer();
-        if (integer->is_negative()) {
+        if (integer->is_negative())
             env->raise("ArgumentError", "negative string size (or size too big)");
-        }
+        if (integer->is_zero())
+            return new StringObject { "", Encoding::ASCII_8BIT };
+
         size_t length = (size_t)integer->to_nat_int_t();
         char buffer[length];
 #ifdef __linux__

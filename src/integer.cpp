@@ -142,13 +142,8 @@ Integer Integer::operator+(const Integer &other) const {
         return to_bigint() + other.to_bigint();
     }
 
-    auto result = to_nat_int_t() + other.to_nat_int_t();
-    auto overflowed = false;
-    if (to_nat_int_t() < 0 && other.to_nat_int_t() < 0 && result > 0)
-        overflowed = true;
-    if (to_nat_int_t() > 0 && other.to_nat_int_t() > 0 && result < 0)
-        overflowed = true;
-
+    nat_int_t result;
+    auto overflowed = __builtin_add_overflow(to_nat_int_t(), other.to_nat_int_t(), &result);
     if (overflowed)
         return to_bigint() + other.to_bigint();
 
@@ -159,14 +154,8 @@ Integer Integer::operator-(const Integer &other) const {
     if (is_bignum() || other.is_bignum())
         return to_bigint() - other.to_bigint();
 
-    bool overflowed = false;
-    nat_int_t result = to_nat_int_t() - other.to_nat_int_t();
-
-    if (to_nat_int_t() > 0 && other.to_nat_int_t() < 0 && result < 0)
-        overflowed = true;
-    if (to_nat_int_t() < 0 && other.to_nat_int_t() > 0 && result > 0)
-        overflowed = true;
-
+    nat_int_t result;
+    auto overflowed = __builtin_sub_overflow(to_nat_int_t(), other.to_nat_int_t(), &result);
     if (overflowed)
         return to_bigint() - other.to_bigint();
 
@@ -359,6 +348,9 @@ Integer Integer::operator<<(const Integer &other) const {
 
     if (other.to_nat_int_t() < 0)
         return to_nat_int_t() >> ::abs(other.to_nat_int_t());
+
+    if (to_nat_int_t() < 0)
+        return static_cast<nat_int_t>(static_cast<uint64_t>(to_nat_int_t()) << other.to_nat_int_t());
 
     return to_nat_int_t() << other.to_nat_int_t();
 }

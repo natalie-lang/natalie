@@ -154,17 +154,6 @@ void handle_top_level_exception(Env *, ExceptionObject *, bool);
 ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array);
 Value to_ary_for_masgn(Env *env, Value obj);
 
-struct ArgValueByPathOptions {
-    TM::Vector<Value> &value;
-    Value default_value;
-    bool splat;
-    bool has_kwargs;
-    int total_count;
-    int default_count;
-    bool defaults_on_right;
-    int offset_from_end;
-};
-
 void arg_spread(Env *env, const Args &args, const char *arrangement, ...);
 
 enum class CoerceInvalidReturnValueMode {

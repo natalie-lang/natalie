@@ -840,6 +840,10 @@ void Object::singleton_method_alias(Env *env, SymbolObject *new_name, SymbolObje
     klass->method_alias(env, new_name, old_name);
 }
 
+__attribute__((no_sanitize("undefined"))) static nat_int_t left_shift_with_undefined_behavior(nat_int_t x, nat_int_t y) {
+    return x << y;
+}
+
 nat_int_t Object::object_id() const {
     if (is_integer()) {
         const auto i = as_integer();
@@ -853,7 +857,7 @@ nat_int_t Object::object_id() const {
              */
             auto val = i->to_nat_int_t();
             if (val >= (LONG_MIN >> 1) && val <= (LONG_MAX >> 1))
-                return (val << 1) | 1;
+                return left_shift_with_undefined_behavior(val, 1) | 1;
         }
     }
 

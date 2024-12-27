@@ -2,14 +2,14 @@ require_relative './lib/natalie/compiler/flags'
 
 task default: :build
 
-DEFAULT_BUILD_TYPE = 'release'.freeze
+DEFAULT_BUILD_MODE = 'release'.freeze
 DL_EXT = RbConfig::CONFIG['DLEXT']
 SO_EXT = RbConfig::CONFIG['SOEXT']
 SRC_DIRECTORIES = Dir.new('src').children.select { |p| File.directory?(File.join('src', p)) }
 
 desc 'Build Natalie'
 task :build do
-  type = File.exist?('.build') ? File.read('.build') : DEFAULT_BUILD_TYPE
+  type = current_build_mode
   Rake::Task["build_#{type}"].invoke
 end
 
@@ -23,9 +23,9 @@ task build_debug: %i[set_build_debug libnatalie prism_c_ext ctags] do
   puts 'Build mode: debug'
 end
 
-desc 'Build Natalie with AddressSanitizer enabled'
-task build_asan: %i[set_build_asan libnatalie prism_c_ext] do
-  puts 'Build mode: asan'
+desc 'Build Natalie with sanitizers enabled'
+task build_sanitized: %i[set_build_sanitized libnatalie prism_c_ext] do
+  puts 'Build mode: sanitized'
 end
 
 desc 'Remove temporary files created during build'
@@ -103,7 +103,7 @@ task test_self_hosted_full: %i[bootstrap build_test_support] do
 end
 
 desc 'Test that some representative code runs with the AddressSanitizer enabled'
-task test_asan: [:clean, :build_asan, 'bin/nat'] do
+task test_asan: [:build_sanitized, 'bin/nat'] do
   sh 'ruby test/asan_test.rb'
 end
 
@@ -127,7 +127,7 @@ task test_all_ruby_spec_nightly: :build do
   sh 'bundle exec ruby spec/support/nightly_ruby_spec_runner.rb'
 end
 
-task test_perf: [:clean, :build_release, 'bin/nat'] do
+task test_perf: [:build_release, 'bin/nat'] do
   sh 'ruby spec/support/test_perf.rb'
 end
 
@@ -221,7 +221,7 @@ end
 
 task :docker_build_gcc do
   suffix = ruby_version_string
-  suffix += '_asan' if ENV['NAT_BUILD_MODE'] == 'asan'
+  suffix += '_sanitized' if ENV['NAT_BUILD_MODE'] == 'sanitized'
   sh "docker build -t natalie_gcc_#{suffix} " \
      "#{default_docker_build_args.join(' ')} " \
      '.'
@@ -229,7 +229,7 @@ end
 
 task :docker_build_clang do
   suffix = ruby_version_string
-  suffix += '_asan' if ENV['NAT_BUILD_MODE'] == 'asan'
+  suffix += '_sanitized' if ENV['NAT_BUILD_MODE'] == 'sanitized'
   sh "docker build -t natalie_clang_#{suffix} " \
      "#{default_docker_build_args.join(' ')} " \
      '--build-arg CC=clang ' \
@@ -306,9 +306,9 @@ task docker_test_self_hosted_full: :docker_build_clang do
 end
 
 task :docker_test_asan do
-  ENV['NAT_BUILD_MODE'] = 'asan'
+  ENV['NAT_BUILD_MODE'] = 'sanitized'
   Rake::Task['docker_build_gcc'].invoke
-  sh "docker run #{docker_run_flags} --rm --entrypoint rake -e SOME_TESTS='#{ENV['SOME_TESTS']}' natalie_gcc_#{ruby_version_string}_asan test_asan"
+  sh "docker run #{docker_run_flags} --rm --entrypoint rake -e SOME_TESTS='#{ENV['SOME_TESTS']}' natalie_gcc_#{ruby_version_string}_sanitized test_asan"
 end
 
 task docker_test_all_ruby_spec_nightly: :docker_build_clang do
@@ -399,16 +399,19 @@ end
 require 'tempfile'
 
 task(:set_build_debug) do
+  Rake::Task[:clean].invoke if current_build_mode != 'debug'
   ENV['BUILD'] = 'debug'
   File.write('.build', 'debug')
 end
 
-task(:set_build_asan) do
-  ENV['BUILD'] = 'asan'
-  File.write('.build', 'asan')
+task(:set_build_sanitized) do
+  Rake::Task[:clean].invoke if current_build_mode != 'sanitized'
+  ENV['BUILD'] = 'sanitized'
+  File.write('.build', 'sanitized')
 end
 
 task(:set_build_release) do
+  Rake::Task[:clean].invoke if current_build_mode != 'release'
   ENV['BUILD'] = 'release'
   File.write('.build', 'release')
 end
@@ -647,10 +650,12 @@ def cxx_flags
     case ENV['BUILD']
     when 'release'
       Natalie::Compiler::Flags::RELEASE_FLAGS
-    when 'asan'
-      Natalie::Compiler::Flags::ASAN_FLAGS
-    else
+    when 'sanitized'
+      Natalie::Compiler::Flags::SANITIZED_FLAGS
+    when 'debug', '', nil
       Natalie::Compiler::Flags::DEBUG_FLAGS
+    else
+      raise "unknown build mode: #{ENV['BUILD']}"
     end
   base_flags += ['-fPIC'] # needed for repl
   if RUBY_PLATFORM =~ /darwin/
@@ -673,4 +678,10 @@ def include_paths
     File.expand_path('build/onigmo/include', __dir__),
     File.expand_path('build/prism/include', __dir__),
   ]
+end
+
+def current_build_mode
+  return DEFAULT_BUILD_MODE unless File.exist?('.build')
+
+  File.read('.build').strip
 end

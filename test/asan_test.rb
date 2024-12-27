@@ -1,12 +1,22 @@
 # Prior to running this test, you should build Natalie with:
 #
-#     rake clean build_asan
+#     rake clean build_sanitized
 #     ruby test/asan_test.rb
 
 require 'fileutils'
 require 'minitest/spec'
 require 'minitest/autorun'
+require 'minitest/reporters'
 require_relative 'support/compare_rubies'
+
+case ENV['REPORTER']
+when 'spec'
+  Minitest::Reporters.use!(Minitest::Reporters::SpecReporter.new)
+when 'progress', nil
+  Minitest::Reporters.use!(Minitest::Reporters::ProgressReporter.new(detailed_skip: false))
+when 'dots'
+  # just use the default reporter
+end
 
 TESTS = if ENV['SOME_TESTS'] == 'true'
           # runs on every PR -- some tests
@@ -26,6 +36,7 @@ TESTS = if ENV['SOME_TESTS'] == 'true'
 TESTS_TO_SKIP = [
   'test/natalie/libnat_test.rb', # too slow, times out frequently
   'test/natalie/thread_test.rb', # calls GC.start, but we're not ready for that
+  'test/natalie/gc_test.rb', # calls GC.enable, but we're not ready for that
   'spec/library/socket/basicsocket/do_not_reverse_lookup_spec.rb', # getaddrinfo leak
   'spec/library/socket/ipsocket/getaddress_spec.rb', # getaddrinfo leak
   'spec/library/socket/socket/getaddrinfo_spec.rb', # getaddrinfo leak
@@ -56,7 +67,7 @@ TESTS_TO_SKIP = [
   'spec/core/process/egid_spec.rb', # not sure why this breaks
 ].freeze
 
-describe 'ASAN tests' do
+describe 'Sanitizers tests' do
   include CompareRubies
 
   parallelize_me!
@@ -88,14 +99,14 @@ describe 'ASAN tests' do
   describe 'examples/fib.rb' do
     it 'it runs without warnings' do
       out = run_nat('examples/fib.rb')
-      expect(out).wont_match(/ASan/)
+      expect(out).wont_match(/ASan|traceback|error/)
     end
   end
 
   describe 'examples/boardslam.rb' do
     it 'it runs without warnings' do
       out = run_nat('examples/boardslam.rb', 3, 5, 1)
-      expect(out).wont_match(/ASan/)
+      expect(out).wont_match(/ASan|traceback|error/)
     end
   end
 
@@ -104,7 +115,7 @@ describe 'ASAN tests' do
       out = sh('bin/nat -c /tmp/bs examples/boardslam.rb')
       puts out unless $?.success?
       expect($?).must_be :success?
-      expect(out).wont_match(/ASan/)
+      expect(out).wont_match(/ASan|traceback|error/)
     end
   end
 end
