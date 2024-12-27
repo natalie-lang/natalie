@@ -977,7 +977,7 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
     if (!md)
         env->raise("RuntimeError", "Unsupported digest algorithm ({}).: unknown object name", hash->as_string()->string());
     const size_t out_size = length->as_integer()->to_nat_int_t();
-    unsigned char out[out_size];
+    unsigned char *out = static_cast<unsigned char *>(alloca(out_size));
     int result = PKCS5_PBKDF2_HMAC(pass->as_string()->c_str(), pass->as_string()->bytesize(),
         reinterpret_cast<const unsigned char *>(salt->as_string()->c_str()), salt->as_string()->bytesize(),
         iterations->as_integer()->to_nat_int_t(),
@@ -1012,8 +1012,8 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
     auto KDFError = KDF->const_get("KDFError"_s);
     auto pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_SCRYPT, nullptr);
     Defer pctx_free { [&pctx]() { EVP_PKEY_CTX_free(pctx); } };
-    unsigned char out[length->to_nat_int_t()];
-    size_t outlen = sizeof(out);
+    size_t outlen = length->to_nat_int_t();
+    unsigned char *out = static_cast<unsigned char *>(alloca(outlen));
     if (EVP_PKEY_derive_init(pctx) <= 0) {
         OpenSSL_raise_error(env, "EVP_PKEY_derive_init", KDFError->as_class());
     }
@@ -1173,7 +1173,7 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args &&args, Block *) {
     if (num < 0)
         env->raise("ArgumentError", "negative string size (or size too big)");
 
-    unsigned char buf[num];
+    unsigned char *buf = static_cast<unsigned char *>(alloca(num));
     if (RAND_bytes(buf, num) != 1)
         OpenSSL_raise_error(env, "RAND_bytes");
 

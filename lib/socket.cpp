@@ -654,9 +654,9 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args &&args, Block *block) {
     auto family = addr.sa_family;
 
     socklen_t len = data->length();
-    char buf[len];
+    char *buf = static_cast<char *>(alloca(len));
     memcpy(buf, data->c_str(), len);
-    auto result = setsockopt(self->as_io()->fileno(), level, optname, &buf, len);
+    auto result = setsockopt(self->as_io()->fileno(), level, optname, buf, len);
     if (result == -1)
         env->raise_errno();
     return Value::integer(result);
