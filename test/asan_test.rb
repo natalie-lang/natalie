@@ -1,7 +1,7 @@
 # Prior to running this test, you should build Natalie with:
 #
 #     rake clean build_sanitized
-#     ruby test/sanitized_test.rb
+#     ruby test/asan_test.rb
 
 require 'fileutils'
 require 'minitest/spec'

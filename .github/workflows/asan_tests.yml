@@ -1,4 +1,4 @@
-name: Run all tests with sanitizers enabled
+name: Run all tests with AddressSanitizer enabled
 
 on:
   schedule:
@@ -19,4 +19,4 @@ jobs:
         if: ${{ env.NEW_COMMIT_COUNT > 0 }}
         env:
           SPEC_TIMEOUT: 480
-        run: rake docker_test_sanitized
+        run: rake docker_test_asan
