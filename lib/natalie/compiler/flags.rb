@@ -25,11 +25,11 @@ module Natalie
         -DNAT_GC_GUARD
       ].freeze
 
-      SANITIZER_FLAG = '-fsanitize=address,undefined'.freeze
+      SANITIZE_FLAG = "-fsanitize=#{ENV.fetch('NAT_SANITIZE_FLAG_VALUE', 'address')}".freeze
 
       SANITIZED_FLAGS = DEBUG_FLAGS + [
+        SANITIZE_FLAG,
         '-D NAT_GC_DISABLE=true',
-        SANITIZER_FLAG,
         '-fno-omit-frame-pointer',
       ]
 
