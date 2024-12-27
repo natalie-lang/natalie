@@ -349,6 +349,9 @@ Integer Integer::operator<<(const Integer &other) const {
     if (other.to_nat_int_t() < 0)
         return to_nat_int_t() >> ::abs(other.to_nat_int_t());
 
+    if (to_nat_int_t() < 0)
+        return static_cast<nat_int_t>(static_cast<uint64_t>(to_nat_int_t()) << other.to_nat_int_t());
+
     return to_nat_int_t() << other.to_nat_int_t();
 }
 
