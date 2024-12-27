@@ -3731,7 +3731,13 @@ Value StringObject::convert_float() {
         if (p == -1)
             p = m_string.find((char)toupper(delimiter));
 
-        if (p != -1 && (m_string[p - 1] == '_' || m_string[p + 1] == '_'))
+        if (p == -1)
+            return true;
+
+        if (p > 0 && m_string[p - 1] == '_')
+            return false;
+
+        if (p < (ssize_t)m_string.length() && m_string[p + 1] == '_')
             return false;
 
         return true;

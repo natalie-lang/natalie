@@ -51,7 +51,6 @@ TESTS_TO_SKIP = [
   'spec/library/socket/udpsocket/write_spec.rb', # getaddrinfo leak
   'spec/library/socket/ipsocket/recvfrom_spec.rb', # getaddrinfo leak
   'spec/library/socket/ipsocket/addr_spec.rb', # getaddrinfo leak
-  'spec/library/yaml/unsafe_load_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
   'spec/library/yaml/load_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
   'spec/library/yaml/dump_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
   'spec/library/yaml/to_yaml_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
