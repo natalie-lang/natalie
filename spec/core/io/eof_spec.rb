@@ -71,7 +71,7 @@ describe "IO#eof?" do
   end
 
   it "raises IOError on stream closed for reading by close_read" do
-    NATFIXME 'Implement IO#close_read', exception: NoMethodError, message: "undefined method `close_read'" do
+    NATFIXME 'Implement IO#close_read', exception: NoMethodError, message: /undefined method [`']close_read'/ do
       @io.close_read
       -> { @io.eof? }.should raise_error(IOError)
     end

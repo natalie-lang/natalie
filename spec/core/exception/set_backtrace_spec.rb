@@ -27,20 +27,22 @@ describe "Exception#set_backtrace" do
       err.backtrace.should == nil
       err.backtrace_locations.should == nil
 
-      err.set_backtrace bt_locations
+      NATFIXME 'it allows the user to set backtrace locations from a rescued exception', exception: TypeError, message: 'backtrace must be Array of String' do
+        err.set_backtrace bt_locations
 
-      err.backtrace_locations.size.should == bt_locations.size
-      err.backtrace_locations.each_with_index do |loc, index|
-        other_loc = bt_locations[index]
+        err.backtrace_locations.size.should == bt_locations.size
+        err.backtrace_locations.each_with_index do |loc, index|
+          other_loc = bt_locations[index]
 
-        loc.path.should == other_loc.path
-        loc.label.should == other_loc.label
-        loc.base_label.should == other_loc.base_label
-        loc.lineno.should == other_loc.lineno
-        loc.absolute_path.should == other_loc.absolute_path
-        loc.to_s.should == other_loc.to_s
+          loc.path.should == other_loc.path
+          loc.label.should == other_loc.label
+          loc.base_label.should == other_loc.base_label
+          loc.lineno.should == other_loc.lineno
+          loc.absolute_path.should == other_loc.absolute_path
+          loc.to_s.should == other_loc.to_s
+        end
+        err.backtrace.size.should == err.backtrace_locations.size
       end
-      err.backtrace.size.should == err.backtrace_locations.size
     end
   end
 

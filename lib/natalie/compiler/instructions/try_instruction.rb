@@ -3,8 +3,11 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class TryInstruction < BaseInstruction
+      attr_reader :serial
+
       def initialize(discard_catch_result: false)
         @discard_catch_result = discard_catch_result
+        @serial = self.class.serial
       end
 
       def to_s
@@ -90,11 +93,18 @@ module Natalie
         end
       end
 
+      @serial = 0
+
+      def self.serial
+        @serial += 1
+      end
+
       private
 
       def retry_name
-        "should_retry_#{object_id}"
+        "should_retry_#{serial}"
       end
+
     end
   end
 end

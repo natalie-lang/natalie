@@ -49,7 +49,7 @@ describe "Time#+" do
   end
 
   it "preserves time zone" do
-    NATFIXME 'Implement time zones', exception: NoMethodError, message: "undefined method `utc'" do
+    NATFIXME 'Implement time zones', exception: NoMethodError, message: /undefined method [`']utc'/ do
       time_with_zone = Time.now.utc
       time_with_zone.zone.should == (time_with_zone + 1).zone
     end

@@ -3767,9 +3767,6 @@ Value StringObject::convert_float() {
     if (string.length() == 0)
         return nullptr;
 
-    if (string.last_char() == '.')
-        return nullptr;
-
     double value = strtod(string.c_str(), &endptr);
 
     if (endptr[0] == '\0') {

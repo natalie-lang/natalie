@@ -25,17 +25,20 @@ describe :proc_dup, shared: true do
     end
 
     it "copies the finalizer" do
-      code = <<-RUBY
+      code = <<-'RUBY'
         obj = Proc.new { }
 
-        ObjectSpace.define_finalizer(obj, Proc.new { STDOUT.write "finalized\n" })
+        # NATFIXME: Disable this line, otherwise CI will fail due to stderr output
+        # ObjectSpace.define_finalizer(obj, Proc.new { STDOUT.write "finalized\n" })
 
         obj.clone
 
         exit 0
       RUBY
 
-      ruby_exe(code).lines.sort.should == ["finalized\n", "finalized\n"]
+      NATFIXME 'Implement ObjectSpace.define_finalizer', exception: SpecFailedException do
+        ruby_exe(code).lines.sort.should == ["finalized\n", "finalized\n"]
+      end
     end
   end
 end

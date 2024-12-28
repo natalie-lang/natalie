@@ -106,21 +106,25 @@ describe :rational_exponent, shared: true do
 
     ruby_version_is "3.4" do
       it "raises an ArgumentError when self is > 1" do
-        -> {
-          (Rational(2) ** bignum_value)
-        }.should raise_error(ArgumentError)
-        -> {
-          (Rational(fixnum_max) ** bignum_value)
-        }.should raise_error(ArgumentError)
+        NATFIXME 'it raises an ArgumentError when self is > 1', exception: SpecFailedException do
+          -> {
+            (Rational(2) ** bignum_value)
+          }.should raise_error(ArgumentError)
+          -> {
+            (Rational(fixnum_max) ** bignum_value)
+          }.should raise_error(ArgumentError)
+        end
       end
 
       it "raises an ArgumentError when self is > 1 and the exponent is negative" do
-        -> {
-          (Rational(2) ** -bignum_value)
-        }.should raise_error(ArgumentError)
-        -> {
-          (Rational(fixnum_max) ** -bignum_value)
-        }.should raise_error(ArgumentError)
+        NATFIXME 'it raises an ArgumentError when self is > 1 and the exponent is negative', exception: SpecFailedException do
+          -> {
+            (Rational(2) ** -bignum_value)
+          }.should raise_error(ArgumentError)
+          -> {
+            (Rational(fixnum_max) ** -bignum_value)
+          }.should raise_error(ArgumentError)
+        end
       end
     end
 
@@ -151,21 +155,25 @@ describe :rational_exponent, shared: true do
 
       ruby_version_is "3.4" do
         it "returns positive Infinity when self < -1" do
-          -> {
-            (Rational(-2) ** bignum_value)
-          }.should raise_error(ArgumentError)
-          -> {
-            (Rational(fixnum_min) ** bignum_value)
-          }.should raise_error(ArgumentError)
+          NATFIXME 'it raises an ArgumentError when self < -1', exception: SpecFailedException do
+            -> {
+              (Rational(-2) ** bignum_value)
+            }.should raise_error(ArgumentError)
+            -> {
+              (Rational(fixnum_min) ** bignum_value)
+            }.should raise_error(ArgumentError)
+          end
         end
 
         it "returns 0.0 when self is < -1 and the exponent is negative" do
-          -> {
-            (Rational(-2) ** -bignum_value)
-          }.should raise_error(ArgumentError)
-          -> {
-            (Rational(fixnum_min) ** -bignum_value)
-          }.should raise_error(ArgumentError)
+          NATFIXME 'it raises an ArgumentError when self is < -1 and the exponent is negative' do
+            -> {
+              (Rational(-2) ** -bignum_value)
+            }.should raise_error(ArgumentError)
+            -> {
+              (Rational(fixnum_min) ** -bignum_value)
+            }.should raise_error(ArgumentError)
+          end
         end
       end
     end

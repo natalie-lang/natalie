@@ -295,7 +295,7 @@ module Natalie
 
       def transform_begin_node(node, used:)
         try_instruction = TryInstruction.new
-        retry_id = try_instruction.object_id
+        retry_id = try_instruction.serial
 
         statements = node.statements || Prism.nil_node(location: node.location)
         instructions = transform_expression(statements, used: true)
@@ -1209,7 +1209,7 @@ module Natalie
               Prism::RetryNode, Prism::ReturnNode, Prism::RedoNode, Prism::BreakNode, Prism::WhileNode,
               Prism::UntilNode, Prism::NextNode, Prism::BeginNode, Prism::StringNode, Prism::InterpolatedStringNode,
               Prism::InterpolatedRegularExpressionNode, Prism::IntegerNode, Prism::FloatNode,
-              Prism::HashNode, Prism::SymbolNode, Prism::RegularExpressionNode, Prism::RangeNode
+              Prism::SymbolNode, Prism::RegularExpressionNode, Prism::RangeNode
             return instant_return_type.('expression')
           when Prism::CallNode
             if current_node.block
@@ -1973,17 +1973,8 @@ module Natalie
       end
 
       def transform_it_local_variable_read_node(node, used:)
-        # Ruby 3.3 behaviour: call the method `it` instead
         instructions = [
-          PushSelfInstruction.new,
-          PushArgcInstruction.new(0),
-          SendInstruction.new(
-            :it,
-            receiver_is_self: true,
-            with_block: false,
-            file: @file.path,
-            line: node.location.start_line,
-          )
+          VariableGetInstruction.new(:it),
         ]
         instructions << PopInstruction.new unless used
         instructions

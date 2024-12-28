@@ -980,20 +980,10 @@ describe "Post-args" do
     describe "with a circular argument reference" do
       ruby_version_is ""..."3.4" do
         it "raises a SyntaxError if using the argument in its default value" do
-          NATFIXME 'We implement the Ruby 3.4 behaviour' do
-            a = 1
-            -> {
-              eval "proc { |a=a| a }"
-            }.should raise_error(SyntaxError)
-          end
-
-          NATFIXME "Restore this part of the spec once we've moved to Ruby 3.4 compatibility" do
-            RUBY_VERSION.should.start_with?('3.4.')
-          end
-
+          a = 1
           -> {
-            eval "proc { |a=a| a }.call"
-          }.call.should == nil
+            eval "proc { |a=a| a }"
+          }.should raise_error(SyntaxError)
         end
       end
 

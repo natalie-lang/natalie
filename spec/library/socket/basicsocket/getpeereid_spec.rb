@@ -21,7 +21,7 @@ describe 'BasicSocket#getpeereid' do
         # Linux sometimes defines this function in unistd.h, other times you need bsd/unistd.h. This probably needs
         # something similar to a configure script to figure these things out. For now, let's just skip over this
         # method in Natalie.
-        NATFIXME 'Not implemented', exception: NoMethodError, message: "undefined method `getpeereid' for an instance of UNIXSocket" do
+        NATFIXME 'Not implemented', exception: NoMethodError, message: /undefined method [`']getpeereid' for an instance of UNIXSocket/ do
           @client.getpeereid.should == [Process.euid, Process.egid]
         end
       end

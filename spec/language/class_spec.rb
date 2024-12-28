@@ -337,7 +337,7 @@ describe "A class definition extending an object (sclass)" do
   end
 
   it "can use return to cause the enclosing method to return" do
-    NATFIXME 'can use return to cause the enclosing method to return', exception: NoMethodError, message: "undefined method `sclass_with_return' for module ClassSpecs" do
+    NATFIXME 'can use return to cause the enclosing method to return', exception: NoMethodError, message: /undefined method [`']sclass_with_return' for module ClassSpecs/ do
       ClassSpecs.sclass_with_return.should == :inner
     end
   end

@@ -58,7 +58,7 @@ describe 'Bytecode::RoData' do
       # Reading a string will fail
       -> {
         @rodata.get(4)
-      }.should raise_error(NoMethodError, "undefined method `unpack1' for nil")
+      }.should raise_error(NoMethodError, /undefined method [`']unpack1' for nil/)
     end
 
     it 'can convert results to Encoding objects' do

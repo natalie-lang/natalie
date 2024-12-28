@@ -16,7 +16,7 @@ describe "Time#inspect" do
 
   it "uses the correct time zone without microseconds" do
     t = Time.utc(2000, 1, 1)
-    NATFIXME 'Implement Time#localtime', exception: NoMethodError, message: "undefined method `localtime'" do
+    NATFIXME 'Implement Time#localtime', exception: NoMethodError, message: /undefined method [`']localtime'/ do
       t = t.localtime(9*3600)
       t.inspect.should == "2000-01-01 09:00:00 +0900"
     end
@@ -24,7 +24,7 @@ describe "Time#inspect" do
 
   it "uses the correct time zone with microseconds" do
     t = Time.utc(2000, 1, 1, 0, 0, 0, 123456)
-    NATFIXME 'Implement Time#localtime', exception: NoMethodError, message: "undefined method `localtime'" do
+    NATFIXME 'Implement Time#localtime', exception: NoMethodError, message: /undefined method [`']localtime'/ do
       t = t.localtime(9*3600)
       t.inspect.should == "2000-01-01 09:00:00.123456 +0900"
     end

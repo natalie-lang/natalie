@@ -27,7 +27,17 @@ static inline StringObject *string_with_default_encoding(const char *str, size_t
 }
 
 Value EnvObject::inspect(Env *env) {
-    return this->to_hash(env, nullptr)->as_hash()->inspect(env);
+    auto hash = to_hash(env, nullptr)->as_hash();
+    auto out = new StringObject { "{" };
+    for (HashObject::Key &node : *hash) {
+        out->append(node.key->as_string()->inspect_str(env));
+        out->append("=>");
+        out->append(node.val->as_string()->inspect_str(env));
+        out->append(", ");
+    }
+    out->truncate(out->length() - 2);
+    out->append("}");
+    return out;
 }
 
 Value EnvObject::to_hash(Env *env, Block *block) {

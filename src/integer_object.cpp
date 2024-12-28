@@ -772,9 +772,9 @@ int IntegerObject::convert_to_int(Env *env, Value arg) {
     auto result = convert_to_nat_int_t(env, arg);
 
     if (result < std::numeric_limits<int>::min())
-        env->raise("RangeError", "integer {} too small to convert to `int'");
+        env->raise("RangeError", "integer {} too small to convert to 'int'");
     else if (result > std::numeric_limits<int>::max())
-        env->raise("RangeError", "integer {} too big to convert to `int'");
+        env->raise("RangeError", "integer {} too big to convert to 'int'");
 
     return (int)result;
 }
@@ -784,9 +784,9 @@ gid_t IntegerObject::convert_to_gid(Env *env, Value arg) {
     auto result = convert_to_nat_int_t(env, arg);
     // this lower limit may look incorrect but experimentally matches MRI behavior
     if (result < std::numeric_limits<int>::min())
-        env->raise("RangeError", "integer {} too small to convert to `unsigned int'", result);
+        env->raise("RangeError", "integer {} too small to convert to 'unsigned int'", result);
     else if (result > std::numeric_limits<unsigned int>::max())
-        env->raise("RangeError", "integer {} too big to convert to `unsigned int'", result);
+        env->raise("RangeError", "integer {} too big to convert to 'unsigned int'", result);
     return (gid_t)result;
 }
 
@@ -795,9 +795,9 @@ uid_t IntegerObject::convert_to_uid(Env *env, Value arg) {
     auto result = convert_to_nat_int_t(env, arg);
     // this lower limit may look incorrect but experimentally matches MRI behavior
     if (result < std::numeric_limits<int>::min())
-        env->raise("RangeError", "integer {} too small to convert to `unsigned int'", result);
+        env->raise("RangeError", "integer {} too small to convert to 'unsigned int'", result);
     else if (result > std::numeric_limits<unsigned int>::max())
-        env->raise("RangeError", "integer {} too big to convert to `unsigned int'", result);
+        env->raise("RangeError", "integer {} too big to convert to 'unsigned int'", result);
     return (uid_t)result;
 }
 

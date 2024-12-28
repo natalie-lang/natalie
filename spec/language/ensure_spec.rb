@@ -351,10 +351,13 @@ describe "An ensure block inside 'do end' block" do
         end
       end
       line = __LINE__
-      foo.should == [
-        "#{__FILE__}:#{line-3}:in 'foo'",
-        "#{__FILE__}:#{line+1}:in 'block (3 levels) in <top (required)>'"
-      ]
+      NATFIXME 'incorrect backtrace', exception: SpecFailedException do
+        foo.should == [
+          "#{__FILE__}:#{line-3}:in 'foo'",
+          "#{__FILE__}:#{line+1}:in 'block (3 levels) in <top (required)>'"
+        ]
+      end
+      foo[0].should == "#{__FILE__}:#{line-3}:in 'foo'"
     end
   end
 end

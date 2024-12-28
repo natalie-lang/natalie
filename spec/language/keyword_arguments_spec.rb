@@ -235,7 +235,7 @@ describe "Keyword arguments" do
       obj = child.new
 
       empty = {}
-      NATFIXME 'it works with super(*ruby2_keyword_args)', exception: NoMethodError, message: /no superclass method `m'/ do
+      NATFIXME 'it works with super(*ruby2_keyword_args)', exception: NoMethodError, message: /no superclass method [`']m'/ do
         obj.m(**empty).should == [[], {}]
         Hash.ruby2_keywords_hash?(empty).should == false
         obj.m(empty).should == [[{}], {}]
@@ -274,7 +274,7 @@ describe "Keyword arguments" do
       obj = child.new
 
       empty = {}
-      NATFIXME 'it works with zsuper', exception: NoMethodError, message: /no superclass method `m'/ do
+      NATFIXME 'it works with zsuper', exception: NoMethodError, message: /no superclass method [`']m'/ do
         obj.m(**empty).should == [[], {}]
         Hash.ruby2_keywords_hash?(empty).should == false
         obj.m(empty).should == [[{}], {}]
@@ -363,7 +363,7 @@ describe "Keyword arguments" do
           a = 1
           b = 2
 
-          NATFIXME 'binding in eval', exception: NoMethodError, message: "undefined method `a' for main" do
+          NATFIXME 'binding in eval', exception: NoMethodError, message: /undefined method [`']a' for main/ do
             eval('m(a:, b:).should == [1, 2]')
           end
         end

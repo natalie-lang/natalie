@@ -463,7 +463,7 @@ describe "Constant resolution within a singleton class (class << obj)" do
   end
 
   it "allows nested modules to have proper resolution" do
-    NATFIXME 'allows nested modules to have proper resolution', exception: NoMethodError, message: "undefined method `new' for nil" do
+    NATFIXME 'allows nested modules to have proper resolution', exception: NoMethodError, message: /undefined method [`']new' for nil/ do
       a = ConstantSpecs::CS_SINGLETON4_CLASSES[0].new
       b = ConstantSpecs::CS_SINGLETON4_CLASSES[1].new
       [a.foo, b.foo].should == [1, 2]
@@ -774,7 +774,7 @@ describe 'Allowed characters' do
     mod = Module.new
     mod.const_set("BBἍBB", 1)
 
-    NATFIXME 'Eval with string', exception: NoMethodError, message: "undefined method `mod' for main" do
+    NATFIXME 'Eval with string', exception: NoMethodError, message: /undefined method [`']mod' for main/ do
       eval("mod::BBἍBB").should == 1
     end
   end

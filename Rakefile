@@ -207,8 +207,8 @@ def docker_run_flags
   ].compact.join(' ')
 end
 
-DEFAULT_HOST_RUBY_VERSION = 'ruby3.3'.freeze
-SUPPORTED_HOST_RUBY_VERSIONS = %w[ruby3.1 ruby3.2 ruby3.3].freeze
+DEFAULT_HOST_RUBY_VERSION = 'ruby3.4'.freeze
+SUPPORTED_HOST_RUBY_VERSIONS = %w[ruby3.1 ruby3.2 ruby3.3 ruby3.4].freeze
 
 def default_docker_build_args
   [

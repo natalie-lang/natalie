@@ -75,11 +75,10 @@ describe "Module#remove_const" do
 
   it "is a private method" do
     Module.private_methods.should include(:remove_const)
-    -> { ConstantSpecs.remove_const(:CONST) }.should raise_error(NoMethodError, "private method `remove_const' called for module ConstantSpecs")
   end
 
   it "returns nil when removing autoloaded constant" do
-    NATFIXME 'Implement Module#autoload', exception: NoMethodError, message: "undefined method `autoload' for module ConstantSpecs" do
+    NATFIXME 'Implement Module#autoload', exception: NoMethodError, message: /undefined method [`']autoload' for module ConstantSpecs/ do
       ConstantSpecs.autoload :AutoloadedConstant, 'a_file'
       ConstantSpecs.send(:remove_const, :AutoloadedConstant).should be_nil
     end

@@ -65,30 +65,6 @@ describe "Defining an 'initialize_clone' method" do
       end
     end
     NATFIXME "it sets the method's visibility to private", exception: SpecFailedException do
-      DefInitializeDupSpec.should have_private_instance_method(:initialize_dup, false)
-    end
-  end
-end
-
-describe "Defining an 'initialize_clone' method" do
-  it "sets the method's visibility to private" do
-    class DefInitializeCloneSpec
-      def initialize_clone
-      end
-    end
-    NATFIXME "it sets the method's visibility to private", exception: SpecFailedException do
-      DefInitializeDupSpec.should have_private_instance_method(:initialize_dup, false)
-    end
-  end
-end
-
-describe "Defining an 'initialize_clone' method" do
-  it "sets the method's visibility to private" do
-    class DefInitializeCloneSpec
-      def initialize_clone
-      end
-    end
-    NATFIXME "it sets the method's visibility to private", exception: SpecFailedException do
       DefInitializeCloneSpec.should have_private_instance_method(:initialize_clone, false)
     end
   end
@@ -237,24 +213,11 @@ describe "An instance method with a default argument" do
 
   ruby_version_is ""..."3.4" do
     it "raises a SyntaxError if using the argument in its default value" do
-      NATFIXME 'We implement the Ruby 3.4 behaviour' do
-        -> {
-          eval "def foo(bar = bar)
-            bar
-          end"
-        }.should raise_error(SyntaxError)
-      end
-
-      NATFIXME "Restore this part of the spec once we've moved to Ruby 3.4 compatibility" do
-        RUBY_VERSION.should.start_with?('3.4.')
-      end
-
       -> {
         eval "def foo(bar = bar)
           bar
-        end
-        foo"
-      }.call.should == nil
+        end"
+      }.should raise_error(SyntaxError)
     end
   end
 
@@ -541,7 +504,7 @@ describe "A nested method definition" do
     end
 
     -> { DefSpecNested.a_class_method }.should raise_error(NoMethodError)
-    NATFIXME 'it creates a class method when evaluated in a class method', exception: NoMethodError, message: "undefined method `a_class_method' for class DefSpecNested" do
+    NATFIXME 'it creates a class method when evaluated in a class method', exception: NoMethodError, message: "undefined method 'a_class_method' for class DefSpecNested" do
       DefSpecNested.create_class_method.should == DefSpecNested
       DefSpecNested.a_class_method.should == DefSpecNested
     end
@@ -643,7 +606,7 @@ describe "A method definition always resets the visibility to public for nested 
     obj = cls.new
     -> { obj.do_def }.should raise_error(NoMethodError, /private/)
     obj.send :do_def
-    NATFIXME 'a method definition in Class.new resets the visibility to public for nested definitions', exception: NoMethodError, message: "private method `new_def' called for an instance of #{cls}" do
+    NATFIXME 'a method definition in Class.new resets the visibility to public for nested definitions', exception: NoMethodError, message: "private method 'new_def' called for an instance of #{cls}" do
       obj.new_def.should == 1
 
       cls.new.new_def.should == 1
@@ -694,7 +657,7 @@ describe "A method definition inside an instance_eval" do
       def an_instance_eval_class_method;self;end
     end
 
-    NATFIXME 'it creates a class method when the receiver is a class', exception: NoMethodError, message: "undefined method `an_instance_eval_class_method' for class DefSpecNested" do
+    NATFIXME 'it creates a class method when the receiver is a class', exception: NoMethodError, message: "undefined method 'an_instance_eval_class_method' for class DefSpecNested" do
       DefSpecNested.an_instance_eval_class_method.should == DefSpecNested
     end
     -> { Object.an_instance_eval_class_method }.should raise_error(NoMethodError)
@@ -708,7 +671,7 @@ describe "A method definition inside an instance_eval" do
       end
     end
 
-    NATFIXME 'it creates a class method when the receiver is an anonymous class', exception: NoMethodError, message: "undefined method `klass_method' for class #{m}" do
+    NATFIXME 'it creates a class method when the receiver is an anonymous class', exception: NoMethodError, message: "undefined method 'klass_method' for class #{m}" do
       m.klass_method.should == :test
     end
     -> { Object.klass_method }.should raise_error(NoMethodError)
@@ -723,7 +686,7 @@ describe "A method definition inside an instance_eval" do
       end
     end
 
-    NATFIXME 'it creates a class method when instance_eval is within class', exception: NoMethodError, message: "undefined method `klass_method' for class #{m}" do
+    NATFIXME 'it creates a class method when instance_eval is within class', exception: NoMethodError, message: "undefined method 'klass_method' for class #{m}" do
       m.klass_method.should == :test
     end
     -> { Object.klass_method }.should raise_error(NoMethodError)
@@ -738,7 +701,7 @@ describe "A method definition inside an instance_exec" do
       def an_instance_exec_class_method; @stuff; end
     end
 
-    NATFIXME 'it creates a class method when the receiver is a class', exception: NoMethodError, message: "undefined method `an_instance_exec_class_method' for class DefSpecNested" do
+    NATFIXME 'it creates a class method when the receiver is a class', exception: NoMethodError, message: "undefined method 'an_instance_exec_class_method' for class DefSpecNested" do
       DefSpecNested.an_instance_exec_class_method.should == 1
     end
     -> { Object.an_instance_exec_class_method }.should raise_error(NoMethodError)
@@ -754,7 +717,7 @@ describe "A method definition inside an instance_exec" do
       end
     end
 
-    NATFIXME 'it creates a class method when the receiver is an anonymous class', exception: NoMethodError, message: "undefined method `klass_method' for class #{m}" do
+    NATFIXME 'it creates a class method when the receiver is an anonymous class', exception: NoMethodError, message: "undefined method 'klass_method' for class #{m}" do
       m.klass_method.should == 1
     end
     -> { Object.klass_method }.should raise_error(NoMethodError)
@@ -771,7 +734,7 @@ describe "A method definition inside an instance_exec" do
       end
     end
 
-    NATFIXME 'it creates a class method when instance_exec is within class', exception: NoMethodError, message: "undefined method `klass_method' for class #{m}" do
+    NATFIXME 'it creates a class method when instance_exec is within class', exception: NoMethodError, message: "undefined method 'klass_method' for class #{m}" do
       m.klass_method.should == 2
     end
     -> { Object.klass_method }.should raise_error(NoMethodError)
@@ -807,7 +770,7 @@ describe "A method definition in an eval" do
       end
     end
 
-    NATFIXME 'it creates a class method via eval', exception: NoMethodError, message: "undefined method `an_eval_class_method' for class DefSpecNestedB" do
+    NATFIXME 'it creates a class method via eval', exception: NoMethodError, message: "undefined method 'an_eval_class_method' for class DefSpecNestedB" do
       DefSpecNestedB.eval_class_method.should == DefSpecNestedB
       DefSpecNestedB.an_eval_class_method.should == DefSpecNestedB
     end

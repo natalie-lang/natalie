@@ -83,7 +83,18 @@ describe 'defined?' do
     bar = 2
     defined?([@foo, bar]).should == 'expression'
     defined?({}).should == 'expression'
-    defined?({1=>@baz}).should == 'expression' # even though @baz is undefined
+  end
+
+  ruby_version_is ''...'3.4' do
+    it 'recognizes expressions with undefined ivar' do
+      defined?({1=>@baz}).should == 'expression'
+    end
+  end
+
+  ruby_version_is '3.4' do
+    it 'does not recognize expressions with undefined ivar' do
+      defined?({1=>@baz}).should be_nil
+    end
   end
 
   it 'recognizes nil/true/false' do

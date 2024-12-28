@@ -42,7 +42,7 @@ describe "The =~ operator with named captures" do
   describe "on syntax of /regexp/ =~ string_variable" do
     it "sets local variables by the captured pairs" do
       /(?<matched>foo)(?<unmatched>bar)?/ =~ @string
-      NATFIXME 'Implement local_variables', exception: NoMethodError, message: "undefined method `local_variables' for main" do
+      NATFIXME 'Implement local_variables', exception: NoMethodError, message: /undefined method [`']local_variables' for main/ do
         local_variables.should == [:matched, :unmatched]
       end
       matched.should == "foo"
@@ -53,7 +53,7 @@ describe "The =~ operator with named captures" do
   describe "on syntax of 'string_literal' =~ /regexp/" do
     it "does not set local variables" do
       'string literal' =~ /(?<matched>str)(?<unmatched>lit)?/
-      NATFIXME 'Implement local_variables', exception: NoMethodError, message: "undefined method `local_variables' for main" do
+      NATFIXME 'Implement local_variables', exception: NoMethodError, message: /undefined method [`']local_variables' for main/ do
         local_variables.should == []
       end
     end
@@ -62,7 +62,7 @@ describe "The =~ operator with named captures" do
   describe "on syntax of string_variable =~ /regexp/" do
     it "does not set local variables" do
       @string =~ /(?<matched>foo)(?<unmatched>bar)?/
-      NATFIXME 'Implement local_variables', exception: NoMethodError, message: "undefined method `local_variables' for main" do
+      NATFIXME 'Implement local_variables', exception: NoMethodError, message: /undefined method [`']local_variables' for main/ do
         local_variables.should == []
       end
     end
@@ -71,7 +71,7 @@ describe "The =~ operator with named captures" do
   describe "on syntax of regexp_variable =~ string_variable" do
     it "does not set local variables" do
       @regexp =~ @string
-      NATFIXME 'Implement local_variables', exception: NoMethodError, message: "undefined method `local_variables' for main" do
+      NATFIXME 'Implement local_variables', exception: NoMethodError, message: /undefined method [`']local_variables' for main/ do
         local_variables.should == []
       end
     end
@@ -80,7 +80,7 @@ describe "The =~ operator with named captures" do
   describe "on the method calling" do
     it "does not set local variables" do
       @regexp.=~(@string)
-      NATFIXME 'Implement local_variables', exception: NoMethodError, message: "undefined method `local_variables' for main" do
+      NATFIXME 'Implement local_variables', exception: NoMethodError, message: /undefined method [`']local_variables' for main/ do
         local_variables.should == []
 
         @regexp.send :=~, @string

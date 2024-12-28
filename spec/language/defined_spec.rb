@@ -275,8 +275,7 @@ describe "The defined? keyword for an expression" do
 
   # https://bugs.ruby-lang.org/issues/20111
   ruby_version_is ""..."3.4" do
-    # Note: We already implement the 3.4 version
-    xit "returns 'expression' for an assigning a fully qualified constant with '+='" do
+    it "returns 'expression' for an assigning a fully qualified constant with '+='" do
       defined?(Object::A += 1).should == "expression"
     end
   end
@@ -338,8 +337,7 @@ describe "The defined? keyword for an expression" do
 
     # https://bugs.ruby-lang.org/issues/20111
     ruby_version_is ""..."3.4" do
-      # Note: We already implement the 3.4 version
-      xit "returns 'expression' for assigning a fully qualified constant with '||='" do
+      it "returns 'expression' for assigning a fully qualified constant with '||='" do
         defined?(Object::A ||= true).should == "expression"
       end
     end
@@ -382,8 +380,7 @@ describe "The defined? keyword for an expression" do
 
     # https://bugs.ruby-lang.org/issues/20111
     ruby_version_is ""..."3.4" do
-      # Note: We already implement the 3.4 version
-      xit "returns 'expression' for assigning a fully qualified constant with '&&='" do
+      it "returns 'expression' for assigning a fully qualified constant with '&&='" do
         defined?(Object::A &&= true).should == "expression"
       end
     end
@@ -923,6 +920,10 @@ describe "The defined? keyword for a scoped constant" do
 
   it "returns nil when the scoped constant is not defined" do
     defined?(DefinedSpecs::Undefined).should be_nil
+  end
+
+  it "returns nil when the constant is not defined and the outer module implements .const_missing" do
+    defined?(DefinedSpecs::ModuleWithConstMissing::Undefined).should be_nil
   end
 
   it "does not call .const_missing if the constant is not defined" do

@@ -184,8 +184,16 @@ describe 'Enumerator' do
         (1...3).step(0.1).last(2).should == [2.8, 2.9]
       end
 
-      it 'raises if size is bignum and n is bignum' do
-        -> { (1..bignum_value).step.last(bignum_value) }.should raise_error(RangeError, "bignum too big to convert into `long'")
+      ruby_version_is ''...'3.4' do
+        it 'raises if size is bignum and n is bignum' do
+          -> { (1..bignum_value).step.last(bignum_value) }.should raise_error(RangeError, "bignum too big to convert into `long'")
+        end
+      end
+
+      ruby_version_is '3.4' do
+        it 'raises if size is bignum and n is bignum' do
+          -> { (1..bignum_value).step.last(bignum_value) }.should raise_error(RangeError, "bignum too big to convert into 'long'")
+        end
       end
 
       it 'raises ArgumentError if n is negative' do

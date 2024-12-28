@@ -126,7 +126,7 @@ describe "String#slice! with index, length" do
     def obj.to_int() 2 end
     "hello".slice!(obj, obj).should == "ll"
 
-    NATFIXME 'calls to_int on range arguments', exception: NoMethodError, message: "undefined method `to_int' for an instance of MockObject" do
+    NATFIXME 'calls to_int on range arguments', exception: NoMethodError, message: /undefined method [`']to_int' for an instance of MockObject/ do
       obj = mock('2')
       def obj.respond_to?(name, *) name == :to_int; end
       def obj.method_missing(name, *) name == :to_int ? 2 : super; end
@@ -207,7 +207,7 @@ describe "String#slice! Range" do
     def to.respond_to?(name, *) name == :to_int; end
     def to.method_missing(name) name == :to_int ? -2 : super; end
 
-    NATFIXME 'calls to_int on range arguments', exception: NoMethodError, message: "undefined method `to_int' for an instance of MockObject" do
+    NATFIXME 'calls to_int on range arguments', exception: NoMethodError, message: /undefined method [`']to_int' for an instance of MockObject/ do
       "hello there".slice!(from..to).should == "ello ther"
     end
   end

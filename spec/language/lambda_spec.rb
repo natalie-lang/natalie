@@ -265,20 +265,10 @@ describe "A lambda literal -> () { }" do
     describe "with circular optional argument reference" do
       ruby_version_is ""..."3.4" do
         it "raises a SyntaxError if using the argument in its default value" do
-          NATFIXME 'We implement the Ruby 3.4 behaviour' do
-            a = 1
-            -> {
-              eval "-> (a=a) { a }"
-            }.should raise_error(SyntaxError)
-          end
-
-          NATFIXME "Restore this part of the spec once we've moved to Ruby 3.4 compatibility" do
-            RUBY_VERSION.should.start_with?('3.4.')
-          end
-
+          a = 1
           -> {
-            eval "-> (a=a) { a }.call"
-          }.call.should == nil
+            eval "-> (a=a) { a }"
+          }.should raise_error(SyntaxError)
         end
       end
 
@@ -305,7 +295,7 @@ describe "A lambda expression 'lambda { ... }'" do
     NATFIXME 'it calls the #lambda method', exception: SpecFailedException do
       obj = mock("lambda definition")
       obj.should_receive(:lambda).and_return(obj)
-  
+
       def obj.define
         lambda { }
       end

@@ -69,7 +69,7 @@ describe "TCPServer#accept" do
     Thread.pass while t.status and t.status != "sleep"
     # Thread#backtrace uses SIGVTALRM on TruffleRuby and potentially other implementations.
     # Sending a signal to a thread is not possible with Ruby APIs.
-    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `backtrace'" do
+    NATFIXME 'Implement Thread#backtrace', exception: NoMethodError, message: /undefined method [`']backtrace'/ do
       t.backtrace.join("\n").should.include?("in `accept'")
     end
 

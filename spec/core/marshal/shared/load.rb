@@ -404,7 +404,7 @@ describe :marshal_load, shared: true do
         # this string represents: {a: <#UserDefinedImmediate A>, b: <#UserDefinedImmediate A>, c: <#String "string">, d: <#String "string">}
         hash_dump = "\x04\b{\t:\x06aIu:\x19UserDefinedImmediate\x00\x06:\x06ET:\x06b@\x06:\x06cI\"\vstring\x06;\aT:\x06d@\a"
 
-        NATFIXME 'loads any structure with multiple references to the same object, followed by multiple instances of another object', exception: NoMethodError, message: "undefined method `force_encoding' for nil" do
+        NATFIXME 'loads any structure with multiple references to the same object, followed by multiple instances of another object', exception: NoMethodError, message: "undefined method 'force_encoding' for nil" do
           marshaled_obj = Marshal.send(@method, hash_dump)
           marshaled_obj.should == {a: nil, b: nil, c: str, d: str}
 
@@ -422,7 +422,7 @@ describe :marshal_load, shared: true do
         # this string represents: [<#UserDefinedImmediate A>, <#UserDefinedImmediate B>, <#String "string">, <#String "string">]
         array_dump = "\x04\b[\tIu:\x19UserDefinedImmediate\x00\x06:\x06ETIu;\x00\x00\x06;\x06TI\"\vstring\x06;\x06T@\b"
 
-        NATFIXME 'loads an array containing references to multiple instances of the object, followed by multiple instances of another object', exception: NoMethodError, message: "undefined method `force_encoding' for nil" do
+        NATFIXME 'loads an array containing references to multiple instances of the object, followed by multiple instances of another object', exception: NoMethodError, message: "undefined method 'force_encoding' for nil" do
           marshaled_obj = Marshal.send(@method, array_dump)
           marshaled_obj.should == [nil, nil, str, str]
         end
@@ -662,7 +662,7 @@ describe :marshal_load, shared: true do
     it "loads an encoded Symbol" do
       s = "\u2192"
 
-      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: "undefined method `force_encoding' for an instance of Symbol" do
+      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: "undefined method 'force_encoding' for an instance of Symbol" do
         sym = Marshal.send(@method, "\x04\bI:\b\xE2\x86\x92\x06:\x06ET")
         sym.should == s.encode("utf-8").to_sym
         sym.encoding.should == Encoding::UTF_8
@@ -701,7 +701,7 @@ describe :marshal_load, shared: true do
       symbol1 = "I:\t\xE2\x82\xACa\x06:\x06ET"
       symbol2 = "I:\t\xE2\x82\xACb\x06;\x06T"
       dump = "\x04\b[\a#{symbol1}#{symbol2}"
-      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: "undefined method `force_encoding' for an instance of Symbol" do
+      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: "undefined method 'force_encoding' for an instance of Symbol" do
         value = Marshal.send(@method, dump)
         value.map(&:encoding).should == [Encoding::UTF_8, Encoding::UTF_8]
         expected = [
@@ -952,7 +952,7 @@ describe :marshal_load, shared: true do
 
     it "loads an Object with a non-US-ASCII instance variable" do
       ivar = "@é".dup.force_encoding(Encoding::UTF_8).to_sym
-      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: "undefined method `force_encoding' for an instance of Symbol" do
+      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: "undefined method 'force_encoding' for an instance of Symbol" do
         obj = Marshal.send(@method, "\x04\bo:\vObject\x06I:\b@\xC3\xA9\x06:\x06ETi\x06")
         obj.instance_variables.should == [ivar]
         obj.instance_variables[0].encoding.should == Encoding::UTF_8
@@ -1245,7 +1245,7 @@ describe :marshal_load, shared: true do
     end
 
     it "keeps UTC zone" do
-      NATFIXME 'Implement Time#utc', exception: NoMethodError, message: "undefined method `utc' for an instance of Time" do
+      NATFIXME 'Implement Time#utc', exception: NoMethodError, message: "undefined method 'utc' for an instance of Time" do
         t = Time.now.utc
         t2 = Marshal.send(@method, Marshal.dump(t))
         t2.should.utc?

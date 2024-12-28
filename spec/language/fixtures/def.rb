@@ -7,12 +7,12 @@ end
 def some_toplevel_method
 end
 
-NATFIXME 'Implement main#public', exception: NoMethodError, message: "undefined method `public' for main" do
+NATFIXME 'Implement main#public', exception: NoMethodError, message: "undefined method 'public' for main" do
   public
 end
 def public_toplevel_method
 end
 
-NATFIXME 'Implement main#private', exception: NoMethodError, message: "undefined method `private' for main" do
+NATFIXME 'Implement main#private', exception: NoMethodError, message: "undefined method 'private' for main" do
   private
 end

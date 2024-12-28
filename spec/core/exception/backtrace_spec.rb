@@ -28,7 +28,7 @@ describe "Exception#backtrace" do
 
   it "includes the name of the method from where self raised in the first element" do
     NATFIXME 'Different backtrace from MRI', exception: SpecFailedException do
-      @backtrace.first.should =~ /in `backtrace'/
+      @backtrace.first.should =~ /in [`'](?:ExceptionSpecs::Backtrace\.)?backtrace'/
     end
   end
 
@@ -44,12 +44,25 @@ describe "Exception#backtrace" do
     end
   end
 
-  it "contains lines of the same format for each prior position in the stack" do
-    @backtrace[2..-1].each do |line|
-      # This regexp is deliberately imprecise to account for the need to abstract out
-      # the paths of the included mspec files and the desire to avoid specifying in any
-      # detail what the in `...' portion looks like.
-      line.should =~ /^.+:\d+:in `[^`]+'$/
+  ruby_version_is ""..."3.4" do
+    it "contains lines of the same format for each prior position in the stack" do
+      @backtrace[2..-1].each do |line|
+        # This regexp is deliberately imprecise to account for the need to abstract out
+        # the paths of the included mspec files and the desire to avoid specifying in any
+        # detail what the in `...' portion looks like.
+        line.should =~ /^.+:\d+:in `[^`]+'$/
+      end
+    end
+  end
+
+  ruby_version_is "3.4" do
+    it "contains lines of the same format for each prior position in the stack" do
+      @backtrace[2..-1].each do |line|
+        # This regexp is deliberately imprecise to account for the need to abstract out
+        # the paths of the included mspec files and the desire to avoid specifying in any
+        # detail what the in '...' portion looks like.
+        line.should =~ /^.+:\d+:in '[^`]+'$/
+      end
     end
   end
 

@@ -134,19 +134,19 @@ describe 'Assignments' do
       context 'splatted argument' do
         it 'correctly handles it' do
           @b[:m] = 10
-          NATFIXME 'it correctly handles splatted argument', exception: NoMethodError, message: "undefined method `+' for nil" do
+          NATFIXME 'it correctly handles splatted argument', exception: NoMethodError, message: /undefined method [`']\+' for nil/ do
             (@b[*[:m]] += 10).should == 20
             @b[:m].should == 20
           end
 
           @b[:n] = 10
-          NATFIXME 'it correctly handles splatted argument', exception: NoMethodError, message: "undefined method `+' for nil" do
+          NATFIXME 'it correctly handles splatted argument', exception: NoMethodError, message: /undefined method [`']\+' for nil/ do
             (@b[*(1; [:n])] += 10).should == 20
             @b[:n].should == 20
           end
 
           @b[:k] = 10
-          NATFIXME 'it correctly handles splatted argument', exception: NoMethodError, message: "undefined method `+' for nil" do
+          NATFIXME 'it correctly handles splatted argument', exception: NoMethodError, message: /undefined method [`']\+' for nil/ do
             (@b[*begin 1; [:k] end] += 10).should == 20
             @b[:k].should == 20
           end
@@ -161,7 +161,7 @@ describe 'Assignments' do
 
           ScratchPad.record []
           @b[:k] = 10
-          NATFIXME 'it calls #to_a only once', exception: NoMethodError, message: "undefined method `+' for nil" do
+          NATFIXME 'it calls #to_a only once', exception: NoMethodError, message: /undefined method [`']\+' for nil/ do
             (@b[*k] += 10).should == 20
             @b[:k].should == 20
             ScratchPad.recorded.should == [:to_a]
@@ -170,7 +170,7 @@ describe 'Assignments' do
 
         it 'correctly handles a nested splatted argument' do
           @b[:k] = 10
-          NATFIXME 'it correctly handles a nested splatted argument', exception: NoMethodError, message: "undefined method `+' for nil" do
+          NATFIXME 'it correctly handles a nested splatted argument', exception: NoMethodError, message: /undefined method [`']\+' for nil/ do
             (@b[*[*[:k]]] += 10).should == 20
             @b[:k].should == 20
           end
@@ -192,7 +192,7 @@ describe 'Assignments' do
           a = klass_with_multiple_parameters.new
 
           a[:a, :b, :c] = 10
-          NATFIXME 'it correctly handles multiple nested splatted arguments', exception: NoMethodError, message: "undefined method `+' for nil" do
+          NATFIXME 'it correctly handles multiple nested splatted arguments', exception: NoMethodError, message: /undefined method [`']\+' for nil/ do
             (a[*[:a], *[:b], *[:c]] += 10).should == 20
             a[:a, :b, :c].should == 20
           end

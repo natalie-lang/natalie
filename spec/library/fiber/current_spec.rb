@@ -14,7 +14,7 @@ describe "Fiber.current" do
     root.should be_an_instance_of(Fiber)
     # We can always transfer to the root Fiber; it will never die
     5.times do
-      NATFIXME 'Implement Fiber#transfer', exception: NoMethodError, message: "undefined method `transfer'" do
+      NATFIXME 'Implement Fiber#transfer', exception: NoMethodError, message: /undefined method [`']transfer'/ do
         root.transfer.should be_nil
       end
       root.alive?.should be_true
@@ -32,7 +32,7 @@ describe "Fiber.current" do
   end
 
   it "returns the current Fiber when called from a Fiber that transferred to another" do
-    NATFIXME 'Implement Fiber#transfer', exception: NoMethodError, message: "undefined method `transfer'" do
+    NATFIXME 'Implement Fiber#transfer', exception: NoMethodError, message: /undefined method [`']transfer'/ do
       states = []
       fiber = Fiber.new do
         states << :fiber
