@@ -605,7 +605,7 @@ describe "OpenSSL::SSL::SSLContext" do
   describe "#options" do
     it "has a default value" do
       context = OpenSSL::SSL::SSLContext.new
-      context.options.should == OpenSSL::SSL::OP_ALL | OpenSSL::SSL::OP_NO_COMPRESSION | OpenSSL::SSL::OP_ENABLE_MIDDLEBOX_COMPAT
+      context.options.should == OpenSSL::SSL::OP_NO_COMPRESSION | OpenSSL::SSL::OP_ENABLE_MIDDLEBOX_COMPAT
     end
 
     it "can be set with an integer" do
@@ -711,13 +711,22 @@ describe "OpenSSL::SSL::SSLContext" do
   end
 
   describe "#set_params" do
+    it "has a DEFAULT_PARAMS hash" do
+      expect = {
+        verify_mode: 1,
+        verify_hostname: true,
+        options: (OpenSSL::SSL::OP_ALL & ~OpenSSL::SSL::OP_DONT_INSERT_EMPTY_FRAGMENTS) | OpenSSL::SSL::OP_NO_COMPRESSION,
+      }
+      OpenSSL::SSL::SSLContext::DEFAULT_PARAMS.should == expect
+    end
+
     it "sets the values of DEFAULT_PARAMS" do
       context = OpenSSL::SSL::SSLContext.new
+      old_options = context.options
       context.set_params
-      # SSLContext#min_version does not exist
       context.verify_mode.should == OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_mode]
       context.verify_hostname.should be_true
-      context.options.should == OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:options]
+      context.options.should == OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:options] | old_options
     end
 
     it "merges the argument" do
