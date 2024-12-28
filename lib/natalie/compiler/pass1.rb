@@ -295,7 +295,7 @@ module Natalie
 
       def transform_begin_node(node, used:)
         try_instruction = TryInstruction.new
-        retry_id = try_instruction.object_id
+        retry_id = try_instruction.serial
 
         statements = node.statements || Prism.nil_node(location: node.location)
         instructions = transform_expression(statements, used: true)
