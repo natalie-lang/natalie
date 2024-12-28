@@ -570,9 +570,9 @@ bool ThreadObject::has_thread_variable(Env *env, Value key) const {
 }
 
 Value ThreadObject::thread_variable_get(Env *env, Value key) {
+    key = validate_key(env, key);
     if (!m_thread_variables)
         return NilObject::the();
-    key = validate_key(env, key);
     return m_thread_variables->ref(env, key);
 }
 
