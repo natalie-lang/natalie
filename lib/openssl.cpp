@@ -369,7 +369,7 @@ Value OpenSSL_HMAC_digest(Env *env, Value self, Args &&args, Block *) {
 Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0); // NATFIXME: Add deprecated version argument
     SSL_CTX *ctx = SSL_CTX_new(TLS_method());
-    SSL_CTX_set_options(ctx, SSL_OP_ALL | SSL_OP_NO_COMPRESSION | SSL_OP_ENABLE_MIDDLEBOX_COMPAT);
+    SSL_CTX_set_options(ctx, SSL_OP_NO_COMPRESSION | SSL_OP_ENABLE_MIDDLEBOX_COMPAT);
     if (!ctx)
         OpenSSL_SSL_raise_error(env, "SSL_CTX_new");
     self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_SSL_CTX_cleanup });
