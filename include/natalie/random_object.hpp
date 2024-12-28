@@ -49,6 +49,7 @@ public:
         auto old_seed = default_random->seed();
         auto new_seed = IntegerObject::convert_to_native_type<nat_int_t>(env, seed);
         default_random->m_seed = new_seed;
+        delete default_random->m_generator;
         default_random->m_generator = new std::mt19937(new_seed);
         return old_seed;
     }

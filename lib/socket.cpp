@@ -207,7 +207,7 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
     Defer freeinfo { [&res] { freeaddrinfo(res); } };
 
     auto output = new ArrayObject {};
-    for (addrinfo *rp = res; rp != nullptr; rp = rp->ai_next) {
+    for (struct addrinfo *rp = res; rp != nullptr; rp = rp->ai_next) {
         auto entry = self->send(env, "new"_s, { new StringObject { reinterpret_cast<const char *>(rp->ai_addr), rp->ai_addrlen } });
         if (rp->ai_canonname)
             entry->ivar_set(env, "@canonname"_s, new StringObject { rp->ai_canonname });
@@ -290,7 +290,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
             host = new StringObject { "0.0.0.0" };
 
         struct addrinfo hints { };
-        struct addrinfo *getaddrinfo_result;
+        struct addrinfo *getaddrinfo_result = nullptr;
 
         if (afamily)
             hints.ai_family = afamily;
@@ -342,8 +342,11 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
             service_str,
             &hints,
             &getaddrinfo_result);
+
         if (s != 0)
             env->raise("SocketError", "getaddrinfo: {}", gai_strerror(s));
+
+        Defer freeinfo { [&getaddrinfo_result] { freeaddrinfo(getaddrinfo_result); } };
 
         if (self->ivar_get(env, "@pfamily"_s)->is_nil())
             self->ivar_set(env, "@pfamily"_s, Value::integer(getaddrinfo_result->ai_family));
@@ -378,8 +381,6 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         default:
             env->raise("SocketError", "getaddrinfo: unrecognized result");
         }
-
-        freeaddrinfo(getaddrinfo_result);
     }
 
     return self;
@@ -1191,14 +1192,15 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
     else
         service_str = service->to_str(env)->string();
 
-    struct addrinfo *addr;
+    struct addrinfo *addr = nullptr;
     auto result = getaddrinfo(host->as_string_or_raise(env)->c_str(), service_str.c_str(), &hints, &addr);
+
     if (result != 0)
         env->raise("SocketError", "getaddrinfo: {}", gai_strerror(result));
 
-    auto packed = new StringObject { reinterpret_cast<const char *>(addr->ai_addr), addr->ai_addrlen, Encoding::ASCII_8BIT };
+    Defer freeinfo { [&addr] { freeaddrinfo(addr); } };
 
-    freeaddrinfo(addr);
+    auto packed = new StringObject { reinterpret_cast<const char *>(addr->ai_addr), addr->ai_addrlen, Encoding::ASCII_8BIT };
 
     return packed;
 }
@@ -1309,7 +1311,7 @@ static String Socket_family_to_string(int family) {
     }
 }
 
-static int Socket_getaddrinfo_result_port(addrinfo *result) {
+static int Socket_getaddrinfo_result_port(struct addrinfo *result) {
     switch (result->ai_family) {
     case AF_INET: {
         auto sockaddr = reinterpret_cast<sockaddr_in *>(result->ai_addr);
@@ -1384,14 +1386,17 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
     else
         service = servname->as_string_or_raise(env)->string();
 
-    struct addrinfo *result;
+    struct addrinfo *result = nullptr;
     int s = getaddrinfo(
         host.is_empty() ? nullptr : host.c_str(),
         service.c_str(),
         &hints,
         &result);
+
     if (s != 0)
         env->raise("SocketError", "getaddrinfo: {}", gai_strerror(s));
+
+    Defer freeinfo([&result] { freeaddrinfo(result); });
 
     auto ary = new ArrayObject;
 
@@ -1410,8 +1415,6 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
         ary->push(addr);
         result = result->ai_next;
     } while (result);
-
-    freeaddrinfo(result);
 
     return ary;
 }
@@ -1573,7 +1576,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
 
     auto domain = AF_INET;
     if (host->is_string() && !host->as_string()->is_empty()) {
-        addrinfo *info;
+        struct addrinfo *info = nullptr;
         const auto result = getaddrinfo(host->as_string()->c_str(), nullptr, nullptr, &info);
         if (result != 0) {
             if (result == EAI_SYSTEM)
@@ -1629,7 +1632,7 @@ Value TCPServer_initialize(Env *env, Value self, Args &&args, Block *block) {
 
     auto domain = AF_INET;
     if (hostname->is_string() && !hostname->as_string()->is_empty()) {
-        addrinfo *info;
+        struct addrinfo *info = nullptr;
         const auto result = getaddrinfo(hostname->as_string()->c_str(), nullptr, nullptr, &info);
         if (result != 0) {
             if (result == EAI_SYSTEM)

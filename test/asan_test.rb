@@ -23,7 +23,16 @@ TESTS = if ENV['SOME_TESTS'] == 'true'
           Dir[
             'spec/language/*_spec.rb',
             'test/natalie/**/*_test.rb',
+            # fixed:
+            'spec/core/kernel/Float_spec.rb',
+            'spec/core/kernel/srand_spec.rb',
+            'spec/core/process/spawn_spec.rb',
+            'spec/core/random/new_seed_spec.rb',
+            'spec/core/random/srand_spec.rb',
             'spec/core/string/crypt_spec.rb',
+            'spec/library/yaml/dump_spec.rb',
+            'spec/library/yaml/load_spec.rb',
+            'spec/library/yaml/to_yaml_spec.rb',
           ].to_a
         else
           # runs nightly -- all tests
@@ -34,37 +43,36 @@ TESTS = if ENV['SOME_TESTS'] == 'true'
         end
 
 TESTS_TO_SKIP = [
-  'test/natalie/libnat_test.rb', # too slow, times out frequently
-  'test/natalie/thread_test.rb', # calls GC.start, but we're not ready for that
-  'test/natalie/gc_test.rb', # calls GC.enable, but we're not ready for that
-  'spec/library/socket/basicsocket/do_not_reverse_lookup_spec.rb', # getaddrinfo leak
-  'spec/library/socket/ipsocket/getaddress_spec.rb', # getaddrinfo leak
-  'spec/library/socket/socket/getaddrinfo_spec.rb', # getaddrinfo leak
-  'spec/library/socket/tcpsocket/initialize_spec.rb', # getaddrinfo leak
-  'spec/library/socket/tcpserver/new_spec.rb', # getaddrinfo leak
-  'spec/library/socket/tcpserver/sysaccept_spec.rb', # getaddrinfo leak
-  'spec/library/socket/tcpsocket/setsockopt_spec.rb', # getaddrinfo leak
-  'spec/library/socket/ipsocket/peeraddr_spec.rb', # getaddrinfo leak
-  'spec/library/socket/tcpsocket/recv_nonblock_spec.rb', # getaddrinfo leak
-  'spec/library/socket/udpsocket/bind_spec.rb', # getaddrinfo leak
-  'spec/library/socket/tcpsocket/open_spec.rb', # getaddrinfo leak
-  'spec/library/socket/udpsocket/write_spec.rb', # getaddrinfo leak
-  'spec/library/socket/ipsocket/recvfrom_spec.rb', # getaddrinfo leak
-  'spec/library/socket/ipsocket/addr_spec.rb', # getaddrinfo leak
-  'spec/library/yaml/unsafe_load_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
-  'spec/library/yaml/load_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
-  'spec/library/yaml/dump_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
-  'spec/library/yaml/to_yaml_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
-  'spec/core/process/spawn_spec.rb', # leak in KernelModule::spawn
-  'spec/core/process/fork_spec.rb', # spec timeout
-  'spec/core/kernel/fork_spec.rb', # spec timeout
-  'spec/core/kernel/Float_spec.rb', # heap buffer overflow in Natalie::StringObject::convert_float()
-  'spec/core/kernel/srand_spec.rb', # leak in Natalie::RandomObject::srand
-  'spec/core/random/new_seed_spec.rb', # leak in Natalie::RandomObject::srand
-  'spec/core/random/srand_spec.rb', # leak in Natalie::RandomObject::srand
-  'spec/core/process/uid_spec.rb', # not sure why this breaks
-  'spec/core/process/euid_spec.rb', # not sure why this breaks
-  'spec/core/process/egid_spec.rb', # not sure why this breaks
+  # calls GC.start/GC.enable, but we're not ready for that
+  'test/natalie/thread_test.rb',
+  'test/natalie/gc_test.rb',
+
+  # getaddrinfo "leak"
+  # https://bugs.kde.org/show_bug.cgi?id=448991
+  # https://bugzilla.redhat.com/show_bug.cgi?id=859717
+  # My understanding is that it is a single object that is internal to glibc and never freed.
+  'spec/library/socket/ipsocket/getaddress_spec.rb',
+  'spec/library/socket/socket/getaddrinfo_spec.rb',
+  'spec/library/socket/tcpsocket/initialize_spec.rb',
+  'spec/library/socket/tcpserver/new_spec.rb',
+  'spec/library/socket/tcpserver/sysaccept_spec.rb',
+  'spec/library/socket/tcpsocket/setsockopt_spec.rb',
+  'spec/library/socket/ipsocket/peeraddr_spec.rb',
+  'spec/library/socket/tcpsocket/recv_nonblock_spec.rb',
+  'spec/library/socket/udpsocket/bind_spec.rb',
+  'spec/library/socket/tcpsocket/open_spec.rb',
+  'spec/library/socket/udpsocket/write_spec.rb',
+  'spec/library/socket/ipsocket/recvfrom_spec.rb',
+  'spec/library/socket/ipsocket/addr_spec.rb',
+
+  # spec timeout, hangs on waitpid
+  'spec/core/process/fork_spec.rb',
+  'spec/core/kernel/fork_spec.rb',
+
+   # some issue to do with ptrace + Docker privileges
+  'spec/core/process/uid_spec.rb',
+  'spec/core/process/euid_spec.rb',
+  'spec/core/process/egid_spec.rb',
 ].freeze
 
 describe 'Sanitizers tests' do
