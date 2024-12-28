@@ -26,11 +26,9 @@ describe "Dir.home" do
 
     platform_is_not :windows do
       it "works even if HOME is unset" do
-        NATFIXME 'works even if HOME is unset', exception: KeyError, message: 'key not found: "HOME"' do
-          ENV.delete('HOME')
-          Dir.home.should.start_with?('/')
-          Dir.home.encoding.should == Encoding.find("filesystem")
-        end
+        ENV.delete('HOME')
+        Dir.home.should.start_with?('/')
+        Dir.home.encoding.should == Encoding.find("filesystem")
       end
     end
 
@@ -89,9 +87,7 @@ describe "Dir.home" do
 
   describe "when called with a nil user name" do
     it "returns the current user's home directory, reading $HOME first" do
-      NATFIXME "returns the current user's home directory, reading $HOME first", exception: TypeError, message: 'no implicit conversion from nil to string' do
-        Dir.home(nil).should == "/rubyspec_home"
-      end
+      Dir.home(nil).should == "/rubyspec_home"
     end
   end
 end
