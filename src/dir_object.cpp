@@ -273,19 +273,24 @@ Value DirObject::rmdir(Env *env, Value path) {
 }
 
 Value DirObject::home(Env *env, Value username) {
-    if (username) {
+    if (username && !username->is_nil()) {
         username->assert_type(env, Object::Type::String, "String");
         // lookup home-dir for username
         struct passwd *pw;
         pw = getpwnam(username->as_string()->c_str());
         if (!pw)
-            env->raise("ArgumentError", "user {} foobar doesn't exist", username->as_string()->c_str());
+            env->raise("ArgumentError", "user {} doesn't exist", username->as_string()->c_str());
         return new StringObject { pw->pw_dir };
     } else {
         // no argument version
         Value home_str = new StringObject { "HOME" };
-        Value home_dir = GlobalEnv::the()->Object()->const_fetch("ENV"_s).send(env, "fetch"_s, { home_str });
-        return home_dir->duplicate(env);
+        Value home_dir = GlobalEnv::the()->Object()->const_fetch("ENV"_s).send(env, "[]"_s, { home_str });
+        if (!home_dir->is_nil())
+            return home_dir->duplicate(env);
+        struct passwd *pw;
+        pw = getpwuid(getuid());
+        assert(pw);
+        return new StringObject { pw->pw_dir };
     }
 }
 bool DirObject::is_empty(Env *env, Value dirname) {
