@@ -319,7 +319,8 @@ public:
     Value add(Env *, Value) const;
     Value b(Env *) const;
     Value bytes(Env *, Block *);
-    Value byteslice(Env *, Value, Value);
+    Value byteslice(Env *, Value, Value = nullptr);
+    Value bytesplice(Env *, Args &&);
     StringObject *capitalize(Env *, Value, Value);
     Value capitalize_in_place(Env *, Value, Value);
     Value casecmp(Env *, Value);

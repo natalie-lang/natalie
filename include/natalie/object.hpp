@@ -234,6 +234,7 @@ public:
     HashObject *as_hash_or_raise(Env *);
     IntegerObject *as_integer_or_raise(Env *);
     MatchDataObject *as_match_data_or_raise(Env *);
+    RangeObject *as_range_or_raise(Env *);
     StringObject *as_string_or_raise(Env *);
 
     SymbolObject *to_symbol(Env *, Conversion);
