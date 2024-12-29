@@ -51,8 +51,7 @@ void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *> &roots, Cell *poten
 #endif
 
 NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
-    void *dummy;
-    void *end_of_stack = &dummy;
+    void *end_of_stack = __builtin_frame_address(0);
 
     // step over stack, saving potential pointers
     auto start_of_stack = ThreadObject::current()->start_of_stack();
