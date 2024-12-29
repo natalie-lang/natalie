@@ -48,17 +48,13 @@ describe "Thread#thread_variable_get" do
 
   ruby_version_is '3.4' do
     it "raises a TypeError if the key is neither Symbol nor String when no thread variables are set" do
-      NATFIXME 'it raises a TypeError if the key is neither Symbol nor String when no thread variables are set', exception: SpecFailedException do
-        -> { @t.thread_variable_get(123) }.should raise_error(TypeError, /123 is not a symbol/)
-      end
+      -> { @t.thread_variable_get(123) }.should raise_error(TypeError, /123 is not a symbol/)
     end
 
     it "raises a TypeError if the key is neither Symbol nor String without calling #to_sym" do
       key = mock('key')
-      NATFIXME 'it raises a TypeError if the key is neither Symbol nor String without calling #to_sym', exception: SpecFailedException do
-        key.should_not_receive(:to_sym)
-        -> { @t.thread_variable_get(key) }.should raise_error(TypeError, /#{Regexp.escape(key.inspect)} is not a symbol/)
-      end
+      key.should_not_receive(:to_sym)
+      -> { @t.thread_variable_get(key) }.should raise_error(TypeError, /#{Regexp.escape(key.inspect)} is not a symbol/)
     end
   end
 end
