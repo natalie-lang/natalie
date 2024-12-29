@@ -29,7 +29,6 @@ module Natalie
 
       SANITIZED_FLAGS = DEBUG_FLAGS + [
         SANITIZE_FLAG,
-        '-D NAT_GC_DISABLE=true',
         '-fno-omit-frame-pointer',
       ]
 
