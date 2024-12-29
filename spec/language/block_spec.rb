@@ -1095,24 +1095,20 @@ end
 describe "`it` calls without arguments in a block with no ordinary parameters" do
   ruby_version_is "3.3"..."3.4" do
     it "emits a deprecation warning" do
-      NATFIXME 'it emits a deprecation warning', exception: SpecFailedException do
-        -> {
-          eval "proc { it }"
-        }.should complain(/warning: `it` calls without arguments will refer to the first block param in Ruby 3.4; use it\(\) or self.it/)
-      end
+      -> {
+        eval "proc { it }"
+      }.should complain(/warning: `it` calls without arguments will refer to the first block param in Ruby 3.4; use it\(\) or self.it/)
     end
 
     it "does not emit a deprecation warning when a block has parameters" do
-      NATFIXME 'it does not emit a deprecation warning when a block has parameters', exception: SyntaxError do
-        -> { eval "proc { |a, b| it }" }.should_not complain
-        -> { eval "proc { |*rest| it }" }.should_not complain
-        -> { eval "proc { |*| it }" }.should_not complain
-        -> { eval "proc { |a:, b:| it }" }.should_not complain
-        -> { eval "proc { |**kw| it }" }.should_not complain
-        -> { eval "proc { |**| it }" }.should_not complain
-        -> { eval "proc { |&block| it }" }.should_not complain
-        -> { eval "proc { |&| it }" }.should_not complain
-      end
+      -> { eval "proc { |a, b| it }" }.should_not complain
+      -> { eval "proc { |*rest| it }" }.should_not complain
+      -> { eval "proc { |*| it }" }.should_not complain
+      -> { eval "proc { |a:, b:| it }" }.should_not complain
+      -> { eval "proc { |**kw| it }" }.should_not complain
+      -> { eval "proc { |**| it }" }.should_not complain
+      -> { eval "proc { |&block| it }" }.should_not complain
+      -> { eval "proc { |&| it }" }.should_not complain
     end
 
     it "does not emit a deprecation warning when `it` calls with arguments" do
