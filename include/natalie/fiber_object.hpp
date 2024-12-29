@@ -89,12 +89,6 @@ public:
     void *end_of_stack() { return m_end_of_stack; }
     void set_end_of_stack(void *ptr) { m_end_of_stack = ptr; }
 
-    size_t stack_size() const {
-        assert(m_end_of_stack);
-        return (uintptr_t)m_start_of_stack - (uintptr_t)m_end_of_stack;
-    }
-    void set_stack_size(size_t size) { m_end_of_stack = (void *)((uintptr_t)m_start_of_stack - size); }
-
     void set_status(Status status) { m_status = status; }
     SymbolObject *status(Env *env) {
         switch (m_status) {
@@ -140,8 +134,17 @@ public:
     FiberObject *previous_fiber() const { return m_previous_fiber; }
 
 #ifdef __SANITIZE_ADDRESS__
+    void *asan_stack_base() const { return m_asan_stack_base; }
+    void set_asan_stack_base(void *base) { m_asan_stack_base = base; }
+
+    size_t asan_stack_size() const { return m_asan_stack_size; }
+    void set_asan_stack_size(size_t size) { m_asan_stack_size = size; }
+
     void *asan_fake_stack_start() const { return m_asan_fake_stack_start; }
-    void set_asan_fake_stack_start(void *start) { m_asan_fake_stack_start = start; }
+    void set_asan_fake_stack_start(void *start) {
+        assert(start);
+        m_asan_fake_stack_start = start;
+    }
 #endif
 
 private:
@@ -159,7 +162,8 @@ private:
     HashObject *m_thread_storage { nullptr };
 #ifdef __SANITIZE_ADDRESS__
     void *m_asan_fake_stack_start { nullptr };
-    size_t m_asan_fake_stack_size { 0 };
+    void *m_asan_stack_base { nullptr };
+    size_t m_asan_stack_size { 0 };
 #endif
     Status m_status { Status::Created };
     TM::Optional<TM::String> m_file {};

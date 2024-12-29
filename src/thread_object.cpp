@@ -46,10 +46,6 @@ static void *nat_create_thread(void *thread_object) {
 #endif
     thread->set_suspend_status(Natalie::ThreadObject::SuspendStatus::Running);
 
-#ifdef __SANITIZE_ADDRESS__
-    thread->set_asan_fake_stack(__asan_get_current_fake_stack());
-#endif
-
     pthread_cleanup_push(nat_thread_finish, thread);
     set_stack_for_thread(thread);
     thread->build_main_fiber();
@@ -207,6 +203,9 @@ void ThreadObject::build_main_fiber() {
     tl_current_arg_stack = &m_current_fiber->m_args_stack;
     m_main_fiber->m_start_of_stack = m_start_of_stack;
     m_main_fiber->m_thread = this;
+#ifdef __SANITIZE_ADDRESS__
+    m_main_fiber->set_asan_fake_stack_start(__asan_get_current_fake_stack());
+#endif
 }
 
 ThreadObject *ThreadObject::initialize(Env *env, Args &&args, Block *block) {
@@ -863,7 +862,7 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visito
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const {
     void *begin = nullptr;
     void *end = nullptr;
-    void *real_stack = __asan_addr_is_in_fake_stack(m_asan_fake_stack, potential_cell, &begin, &end);
+    void *real_stack = __asan_addr_is_in_fake_stack(m_current_fiber->asan_fake_stack_start(), potential_cell, &begin, &end);
 
     if (!real_stack) return;
 

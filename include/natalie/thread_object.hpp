@@ -86,10 +86,6 @@ public:
     void set_end_of_stack(void *ptr) { m_end_of_stack = ptr; }
     void *end_of_stack() { return m_end_of_stack; }
 
-#ifdef __SANITIZE_ADDRESS__
-    void set_asan_fake_stack(void *ptr) { m_asan_fake_stack = ptr; }
-#endif
-
     void set_status(Status status) { m_status = status; }
     Value status(Env *env);
     String status();
@@ -300,9 +296,6 @@ private:
 
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
-#ifdef __SANITIZE_ADDRESS__
-    void *m_asan_fake_stack { nullptr };
-#endif
     ucontext_t *m_context { nullptr };
 
     std::atomic<SuspendStatus> m_suspend_status { SuspendStatus::Launching };
