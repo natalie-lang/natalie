@@ -167,17 +167,15 @@ describe "Literal (A::X) constant resolution" do
       it "evaluates the right hand side before evaluating a constant path" do
         mod = Module.new
 
-        NATFIXME 'evaluates the right hand side before evaluating a constant path', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
-          mod.module_eval <<-EOC
-            ConstantSpecsRHS::B = begin
-              module ConstantSpecsRHS; end
+        mod.module_eval <<-EOC
+          ConstantSpecsRHS::B = begin
+            module ConstantSpecsRHS; end
 
-              "hello"
-            end
-          EOC
+            "hello"
+          end
+        EOC
 
-          mod::ConstantSpecsRHS::B.should == 'hello'
-        end
+        mod::ConstantSpecsRHS::B.should == 'hello'
       end
     end
   end
