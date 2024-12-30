@@ -122,23 +122,21 @@ class Range
   end
 
   def size
+    raise TypeError, "can't iterate from #{self.begin.class}" unless self.begin.respond_to?(:succ)
     return if self.begin.nil? && !self.end.is_a?(Numeric)
-    return Float::INFINITY if self.begin.nil?
     return unless self.begin.is_a?(Numeric)
     return Float::INFINITY if self.end.nil?
-    return unless self.end.is_a?(Numeric)
     return 0 if self.end < self.begin
-    return Float::INFINITY if self.begin.is_a?(Float) && self.begin.infinite?
     return Float::INFINITY if self.end.is_a?(Float) && self.end.infinite?
     size = self.end - self.begin
     size += 1 unless exclude_end?
-    return size.floor if size.is_a?(Float)
     size
   end
 
   def reverse_each
     raise TypeError, "can't iterate from #{self.end.class}" if self.end.nil?
     return super unless self.end.respond_to?(:pred)
+    size = self.begin.nil? ? Float::INFINITY : self.size
     return enum_for(:reverse_each) { size } unless block_given?
     item = self.end
     item = item.pred if exclude_end?
