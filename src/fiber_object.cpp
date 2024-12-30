@@ -309,13 +309,10 @@ NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_stack(Visitor &visitor
     if (m_thread && this == m_thread->current_fiber())
         return;
 
+    // If the fiber is finished, we don't care about the stack any more.
     if (m_status == Status::Terminated)
         return;
 
-    if (!m_end_of_stack) {
-        assert(m_status == Status::Created);
-        return; // this fiber hasn't been started yet, so the stack shouldn't have anything on it
-    }
     for (char *ptr = reinterpret_cast<char *>(m_end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
         if (Heap::the().is_a_heap_cell_in_use(potential_cell))
@@ -330,7 +327,6 @@ NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_stack(Visitor &visitor
 NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const {
     void *begin = nullptr;
     void *end = nullptr;
-    assert(m_asan_fake_stack_start);
     void *real_stack = __asan_addr_is_in_fake_stack(m_asan_fake_stack_start, potential_cell, &begin, &end);
 
     if (!real_stack) return;
