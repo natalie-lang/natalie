@@ -860,6 +860,9 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visito
 
 #ifdef __SANITIZE_ADDRESS__
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const {
+    if (!m_current_fiber)
+        return;
+
     void *begin = nullptr;
     void *end = nullptr;
     void *real_stack = __asan_addr_is_in_fake_stack(m_current_fiber->asan_fake_stack_start(), potential_cell, &begin, &end);
