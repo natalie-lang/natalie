@@ -1,3 +1,5 @@
+require 'yaml'
+
 class YamlFormatter
   def print_context(*) ; end
 
@@ -10,20 +12,20 @@ class YamlFormatter
   def print_skipped(*); end
 
   def print_finish(test_count, failures, errors, skipped)
-    print "---\n"
+    struct = {
+      'examples' => test_count,
+      'failures' => failures.size,
+      'errors' =>  errors.size,
+    }
     if failures.any? || errors.any?
-      print "exceptions:\n"
-      (errors + failures).each do |failure|
+      outcomes = (errors + failures).map do |failure|
         context, test, error = failure
         outcome = error.is_a?(SpecFailedException) ? 'FAILED' : 'ERROR'
         str = "#{test} #{outcome}\n"
         str << error.message << "\n" << error.backtrace.to_s
-        print '- ', str.inspect, "\n"
       end
+      struct['exception'] = outcomes
     end
-
-    print 'examples: ', test_count, "\n"
-    print 'failures: ', failures.size, "\n"
-    print 'errors: ', errors.size, "\n"
+    print struct.to_yaml
   end
 end
