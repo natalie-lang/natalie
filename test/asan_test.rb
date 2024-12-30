@@ -49,6 +49,9 @@ TESTS_TO_SKIP = [
   'test/natalie/gc_test.rb',
   'test/natalie/thread_test.rb',
 
+  # leak after use of PEM_read_bio_PUBKEY
+  'test/natalie/openssl_test.rb',
+
   # getaddrinfo "leak"
   # https://bugs.kde.org/show_bug.cgi?id=448991
   # https://bugzilla.redhat.com/show_bug.cgi?id=859717
