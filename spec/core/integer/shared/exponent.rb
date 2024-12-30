@@ -58,9 +58,7 @@ describe :integer_exponent, shared: true do
 
     ruby_version_is "3.4" do
       it "raises an ArgumentError when the number is too big" do
-        NATFIXME 'it raises an ArgumentError when the number is too big', exception: SpecFailedException do
-          -> { 100000000.send(@method, 1000000000) }.should raise_error(ArgumentError)
-        end
+        -> { 100000000.send(@method, 1000000000) }.should raise_error(ArgumentError)
       end
     end
 
@@ -131,11 +129,9 @@ describe :integer_exponent, shared: true do
 
     ruby_version_is "3.4" do
       it "does not switch to a Float when the values is too big" do
-        NATFIXME 'it does not switch to a Float when the values is too big', exception: SpecFailedException do
-          -> {
-            @bignum.send(@method, @bignum)
-          }.should raise_error(ArgumentError)
-        end
+        -> {
+          @bignum.send(@method, @bignum)
+        }.should raise_error(ArgumentError)
       end
     end
 
