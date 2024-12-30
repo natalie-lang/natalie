@@ -12,25 +12,25 @@ extern "C" void __sanitizer_finish_switch_fiber(void *fake_stack_save, const voi
 namespace Natalie {
 
 #ifdef __SANITIZE_ADDRESS__
-#define START_SWITCH_FIBER(from_fiber, to_fiber)                                                               \
-    {                                                                                                          \
-        void *fake_stack_start = nullptr;                                                                      \
-        __sanitizer_start_switch_fiber(&fake_stack_start, to_fiber->start_of_stack(), to_fiber->stack_size()); \
-        from_fiber->set_asan_fake_stack_start(fake_stack_start);                                               \
+#define START_SWITCH_FIBER(from_fiber, to_fiber)                                                                     \
+    {                                                                                                                \
+        void *fake_stack_start = nullptr;                                                                            \
+        __sanitizer_start_switch_fiber(&fake_stack_start, to_fiber->asan_stack_base(), to_fiber->asan_stack_size()); \
+        from_fiber->set_asan_fake_stack_start(fake_stack_start);                                                     \
     }
 
-#define START_SWITCH_FIBER_FINAL(to_fiber)                                                           \
-    {                                                                                                \
-        __sanitizer_start_switch_fiber(nullptr, to_fiber->start_of_stack(), to_fiber->stack_size()); \
+#define START_SWITCH_FIBER_FINAL(to_fiber)                                                                 \
+    {                                                                                                      \
+        __sanitizer_start_switch_fiber(nullptr, to_fiber->asan_stack_base(), to_fiber->asan_stack_size()); \
     }
 
-#define FINISH_SWITCH_FIBER(from_fiber, to_fiber)                                                                        \
-    {                                                                                                                    \
-        void *start_of_stack = nullptr;                                                                                  \
-        size_t stack_size = 0;                                                                                           \
-        __sanitizer_finish_switch_fiber(to_fiber->asan_fake_stack_start(), (const void **)&start_of_stack, &stack_size); \
-        from_fiber->set_start_of_stack(start_of_stack);                                                                  \
-        from_fiber->set_stack_size(stack_size);                                                                          \
+#define FINISH_SWITCH_FIBER(from_fiber, to_fiber)                                                                    \
+    {                                                                                                                \
+        void *stack_base = nullptr;                                                                                  \
+        size_t stack_size = 0;                                                                                       \
+        __sanitizer_finish_switch_fiber(to_fiber->asan_fake_stack_start(), (const void **)&stack_base, &stack_size); \
+        from_fiber->set_asan_stack_base(stack_base);                                                                 \
+        from_fiber->set_asan_stack_size(stack_size);                                                                 \
     }
 #else
 #define START_SWITCH_FIBER(from_fiber, to_fiber)
@@ -73,6 +73,11 @@ FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Bl
     assert(res == MCO_SUCCESS);
     m_start_of_stack = (void *)((uintptr_t)m_coroutine->stack_base + m_coroutine->stack_size);
     m_end_of_stack = (void *)((uintptr_t)m_start_of_stack - STACK_SIZE);
+
+#ifdef __SANITIZE_ADDRESS__
+    m_asan_stack_base = m_start_of_stack;
+    m_asan_stack_size = STACK_SIZE;
+#endif
 
     return this;
 }
@@ -153,7 +158,7 @@ Value FiberObject::resume(Env *env, Args args) {
         ThreadObject::current()->m_current_fiber = this;
         tl_current_arg_stack = &m_args_stack;
         ThreadObject::current()->set_start_of_stack(m_start_of_stack);
-        suspending_fiber->m_end_of_stack = &args;
+        suspending_fiber->m_end_of_stack = __builtin_frame_address(0);
     }
 
     auto res = mco_resume(m_coroutine);
@@ -245,7 +250,7 @@ Value FiberObject::yield(Env *env, Args args) {
     {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         current_fiber->set_status(Status::Suspended);
-        current_fiber->m_end_of_stack = &args;
+        current_fiber->m_end_of_stack = __builtin_frame_address(0);
         current_fiber->swap_to_previous(env, args.size(), args.data());
     }
 
@@ -304,10 +309,10 @@ NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_stack(Visitor &visitor
     if (m_thread && this == m_thread->current_fiber())
         return;
 
-    if (!m_end_of_stack) {
-        assert(m_status == Status::Created);
-        return; // this fiber hasn't been started yet, so the stack shouldn't have anything on it
-    }
+    // If the fiber is finished, we don't care about the stack any more.
+    if (m_status == Status::Terminated)
+        return;
+
     for (char *ptr = reinterpret_cast<char *>(m_end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
         if (Heap::the().is_a_heap_cell_in_use(potential_cell))
@@ -366,6 +371,9 @@ void fiber_wrapper_func(mco_coro *co) {
     {
         std::lock_guard<std::recursive_mutex> lock(Natalie::g_gc_recursive_mutex);
         Natalie::ThreadObject::current()->set_start_of_stack(fiber->start_of_stack());
+#ifdef __SANITIZE_ADDRESS__
+        fiber->set_asan_fake_stack_start(__asan_get_current_fake_stack());
+#endif
         fiber->set_status(Natalie::FiberObject::Status::Resumed);
     }
 

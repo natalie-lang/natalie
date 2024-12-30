@@ -48,8 +48,7 @@
         Object *ptr;                                                                          \
         if ((ptr = val.object_or_null()) && Heap::the().gc_enabled()) {                       \
             std::lock_guard<std::recursive_mutex> gc_lock(Natalie::g_gc_recursive_mutex);     \
-            void *dummy;                                                                      \
-            auto end_of_stack = (uintptr_t)(&dummy);                                          \
+            auto end_of_stack = (uintptr_t)__builtin_frame_address(0);                        \
             auto start_of_stack = (uintptr_t)(ThreadObject::current()->start_of_stack());     \
             assert(start_of_stack > end_of_stack);                                            \
             if ((uintptr_t)ptr > end_of_stack && (uintptr_t)ptr < start_of_stack) {           \

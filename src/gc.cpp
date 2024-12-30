@@ -30,7 +30,7 @@ void Cell::Visitor::visit(Value val) {
 }
 
 #ifdef __SANITIZE_ADDRESS__
-NO_SANITIZE_ADDRESS void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *> roots, Cell *potential_cell) {
+NO_SANITIZE_ADDRESS void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *> &roots, Cell *potential_cell) {
     void *begin_fake_frame = nullptr;
     void *end_fake_frame = nullptr;
     auto fake_stack = __asan_get_current_fake_stack();
@@ -47,12 +47,11 @@ NO_SANITIZE_ADDRESS void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *>
     }
 }
 #else
-void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *> roots, Cell *potential_cell) { }
+void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *> &roots, Cell *potential_cell) { }
 #endif
 
 NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
-    void *dummy;
-    void *end_of_stack = &dummy;
+    void *end_of_stack = __builtin_frame_address(0);
 
     // step over stack, saving potential pointers
     auto start_of_stack = ThreadObject::current()->start_of_stack();
