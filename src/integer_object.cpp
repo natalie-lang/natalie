@@ -212,10 +212,8 @@ Value IntegerObject::pow(Env *env, Value arg) {
     // The calculation that we do is pretty much guessed to be in the direction of ruby. However, we should do more research about this limit...
     size_t length = m_integer.to_string().length();
     constexpr const size_t BIGINT_LIMIT = 8 * 1024 * 1024;
-    if (length > BIGINT_LIMIT || length * arg_int > (nat_int_t)BIGINT_LIMIT) {
-        env->warn("in a**b, b may be too big");
-        return Value::floatingpoint(m_integer.to_double())->as_float()->pow(env, arg);
-    }
+    if (length > BIGINT_LIMIT || length * arg_int > (nat_int_t)BIGINT_LIMIT)
+        env->raise("ArgumentError", "exponent is too large");
 
     return create(Natalie::pow(m_integer, arg_int));
 }
