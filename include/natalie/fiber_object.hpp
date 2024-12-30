@@ -141,10 +141,7 @@ public:
     void set_asan_stack_size(size_t size) { m_asan_stack_size = size; }
 
     void *asan_fake_stack_start() const { return m_asan_fake_stack_start; }
-    void set_asan_fake_stack_start(void *start) {
-        assert(start);
-        m_asan_fake_stack_start = start;
-    }
+    void set_asan_fake_stack_start(void *start) { m_asan_fake_stack_start = start; }
 #endif
 
 private:
