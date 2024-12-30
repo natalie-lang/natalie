@@ -69,4 +69,27 @@ describe "Enumerator#with_index" do
     @enum.with_index(-1) { |*x| res << x}
     res.should == [[1,-1], [2,0], [3,1], [4,2]]
   end
+
+  it "passes on the given block's return value" do
+    NATFIXME "it passes on the given block's return value", exception: SpecFailedException do
+      arr = [1,2,3]
+      arr.delete_if.with_index { |a,b| false }
+      arr.should == [1,2,3]
+
+      arr.delete_if.with_index { |a,b| true }
+      arr.should == []
+    end
+  end
+
+  it "returns the iterator's return value" do
+    NATFIXME "it returns the iterator's return value", exception: SpecFailedException do
+      @enum.select.with_index { |a,b| false }.should == []
+    end
+  end
+
+  it "returns the correct value if chained with itself" do
+    NATFIXME 'it returns the correct value if chained with itself', exception: SpecFailedException do
+      [:a].each.with_index.with_index.to_a.should == [[[:a,0],0]]
+    end
+  end
 end
