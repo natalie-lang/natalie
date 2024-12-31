@@ -304,4 +304,59 @@ describe 'File' do
       f2.inspect.should.include?('(closed)')
     end
   end
+
+  describe '.lutime' do
+    it 'raises an ArgumentError for 1 argument' do
+      -> { File.lutime(Time.now) }.should raise_error(ArgumentError, 'wrong number of arguments (given 1, expected 2+)')
+    end
+
+    it 'does work with 2 arguments, even though it cannot do anything' do
+      File.lutime(Time.now, Time.now).should == 0
+    end
+
+    it 'raises a TypeError if any of the first two arguments is not a Time' do
+      -> { File.lutime(Time.now, :b) }.should raise_error(TypeError, "can't convert Symbol into time")
+      -> { File.lutime(false, Time.now) }.should raise_error(TypeError, "can't convert FalseClass into time")
+    end
+
+    it 'does accept nil arguments as time' do
+      -> { File.lutime(nil, nil) }.should_not raise_error
+    end
+
+    it 'raises an ENOENT if file does not exist' do
+      filename = tmp('specs_lutime_file')
+      rm_r(filename)
+      -> { File.lutime(nil, nil, filename) }.should raise_error(Errno::ENOENT)
+    end
+
+    it 'raises a TypeError if the filename is not a String' do
+      -> { File.lutime(nil, nil, :foo) }.should raise_error(TypeError, 'no implicit conversion of Symbol into String')
+    end
+
+    it 'tries to call #to_str on the filename' do
+      filename = tmp('specs_lutime_file')
+      touch(filename)
+      to_str = mock(:to_str)
+      to_str.should_receive(:to_str).and_return(filename)
+      File.lutime(nil, nil, to_str)
+    ensure
+      rm_r(filename)
+    end
+
+    it 'raises a TypeError if the result of #to_str is not a String' do
+      to_str = mock(:to_str)
+      to_str.should_receive(:to_str).and_return(:not_a_string)
+      -> { File.lutime(nil, nil, to_str) }.should raise_error(TypeError, "can't convert MockObject to String (MockObject#to_str gives Symbol)")
+    end
+
+    it 'supports multiple file arguments' do
+      filename1 = tmp('specs_lutime_file')
+      filename2 = tmp('specs_lutime_file2')
+      touch(filename1)
+      touch(filename2)
+      File.lutime(nil, nil, filename1, filename2).should == 2
+    ensure
+      rm_r(filename1, filename2)
+    end
+  end
 end
