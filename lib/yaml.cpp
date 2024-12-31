@@ -9,7 +9,7 @@ Value init_yaml(Env *env, Value self) {
 
 static void emit(Env *env, yaml_emitter_t &emitter, yaml_event_t &event) {
     if (!yaml_emitter_emit(&emitter, &event))
-        env->raise("RuntimeError", "Error in yaml_emitter_emit");
+        env->raise("RuntimeError", "Error in yaml_emitter_emit: {}", emitter.problem);
 }
 
 static void emit_value(Env *, Value, yaml_emitter_t &, yaml_event_t &);
