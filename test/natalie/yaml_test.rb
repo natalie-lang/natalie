@@ -16,4 +16,8 @@ describe 'YAML.dump' do
   it 'can load floats' do
     YAML.load('90.0').should be_kind_of(Float)
   end
+
+  it 'can output more than 16 KiB' do
+    -> { ('x' * 17_000).to_yaml }.should_not raise_error
+  end
 end

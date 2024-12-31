@@ -255,13 +255,19 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
     }
 }
 
+static int write_handler(void *buf, unsigned char *buffer, size_t size) {
+    auto out = static_cast<String *>(buf);
+    out->append((char *)buffer, size);
+    return 1;
+}
+
 Value YAML_dump(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto value = args.at(0);
 
     yaml_emitter_t emitter;
     yaml_event_t event;
-    unsigned char buf[16384];
+    String buf;
     size_t written = 0;
     FILE *file = nullptr;
 
@@ -272,7 +278,7 @@ Value YAML_dump(Env *env, Value self, Args &&args, Block *) {
         file = fdopen(io->fileno(env), "wb");
         yaml_emitter_set_output_file(&emitter, file);
     } else {
-        yaml_emitter_set_output_string(&emitter, buf, sizeof(buf), &written);
+        yaml_emitter_set_output(&emitter, write_handler, &buf);
     }
 
     yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
@@ -294,7 +300,7 @@ Value YAML_dump(Env *env, Value self, Args &&args, Block *) {
         return args.at(1);
     }
 
-    return new StringObject { reinterpret_cast<char *>(buf), written };
+    return new StringObject { buf };
 }
 
 static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token);
