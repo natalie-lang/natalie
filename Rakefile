@@ -104,6 +104,7 @@ end
 
 desc 'Test that some representative code runs with the AddressSanitizer enabled'
 task test_asan: [:build_sanitized, :build_test_support, 'bin/nat'] do
+  ENV['ASAN_OPTIONS'] ||= 'detect_stack_use_after_return=1'
   sh 'ruby test/asan_test.rb'
 end
 
