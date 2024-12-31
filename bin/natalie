@@ -29,7 +29,7 @@ OptionParser.new do |opts|
       'cpp'           => 'print generated C++',
       'transform'     => 'only transform the code to C++ without outputting it (can be used for profiling the compiler)',
       'cc-cmd'        => 'show the gcc/clang compiler command that will be run',
-      'kcachegrind'   => 'run the resulting binary with valgrind (callgrind) and open the profile in kcachegrind',
+      'callgrind'     => 'run the resulting binary with valgrind (callgrind) and create a profile (set CALLGRIND_RUN to open)',
       'strace'        => 'run the resulting binary with strace',
       '{gdb,lldb}'    => 'run the resulting binary with gdb or lldb',
     },
@@ -37,7 +37,7 @@ OptionParser.new do |opts|
     case type
     when true, 'c', 'cpp', 'c++'
       options[:debug] = 'cpp'
-    when /^p\d/, 'S', 'edit', 'cc-cmd', 'kcachegrind', 'strace'
+    when /^p\d/, 'S', 'edit', 'cc-cmd', 'callgrind', 'strace'
       options[:debug] = type
     when 'gdb', 'lldb'
       options[:debug] = type
@@ -209,12 +209,16 @@ class Runner
     when 'gdb', 'lldb', 'strace'
       compiler.compile
       exec(options[:debug], out.path)
-    when 'kcachegrind'
+    when 'callgrind'
       callgrind_out = Tempfile.create('callgrind.out')
       callgrind_out.close
       compiler.compile
       system('valgrind', '--tool=callgrind', "--callgrind-out-file=#{callgrind_out.path}", out.path, *ARGV)
-      exec('kcachegrind', callgrind_out.path)
+      puts 'Callgrind output written to:', callgrind_out.path
+      if (binary = ENV['CALLGRIND_RUN'])
+        # examples: kcachegrind, callgrind_annotate
+        exec(binary, callgrind_out.path)
+      end
     else
       if options[:profile] == :compiler
         profile_compiler
