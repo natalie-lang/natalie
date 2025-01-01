@@ -117,9 +117,9 @@ Value KernelModule::catch_method(Env *env, Value name, Block *block) {
     if (!name) name = new Object {};
 
     try {
-        auto block_env = new Env { env };
-        block_env->set_catch(name);
-        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(block_env, block, { name }, nullptr);
+        Env block_env { env };
+        block_env.set_catch(name);
+        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(&block_env, block, { name }, nullptr);
     } catch (ThrowCatchException *e) {
         if (e->get_name()->equal(name))
             return e->get_value();
