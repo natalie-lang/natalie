@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <assert.h>
 #include <mutex>
 #include <setjmp.h>
 #include <stdlib.h>
