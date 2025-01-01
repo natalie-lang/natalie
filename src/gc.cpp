@@ -12,9 +12,7 @@ namespace Natalie {
 std::recursive_mutex g_gc_recursive_mutex;
 
 void *Cell::operator new(size_t size) {
-    auto *cell = Heap::the().allocate(size);
-    assert(cell);
-    return cell;
+    return Heap::the().allocate(size);
 }
 
 void Cell::operator delete(void *) {
@@ -55,8 +53,6 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
 
     // step over stack, saving potential pointers
     auto start_of_stack = ThreadObject::current()->start_of_stack();
-    assert(start_of_stack);
-    assert(end_of_stack);
     assert(start_of_stack > end_of_stack);
 
     Hashmap<Cell *> roots;
@@ -204,7 +200,6 @@ void *Heap::allocate(size_t size) {
 
 void Heap::return_cell_to_free_list(Cell *cell) {
     auto *block = HeapBlock::from_cell(cell);
-    assert(is_a_heap_block(block));
     block->return_cell_to_free_list(cell);
 }
 
@@ -237,9 +232,7 @@ Cell *HeapBlock::find_next_free_cell() {
     assert(has_free());
     --m_free_count;
     auto node = m_free_list;
-    assert(node);
     m_free_list = node->next;
-    assert(m_free_list || m_free_count == 0);
     auto cell = reinterpret_cast<Cell *>(node);
     m_used_map[node->index] = true;
     // printf("Cell %p allocated from block %p (size %zu) at index %zu\n", cell, this, m_cell_size, node->index);
@@ -250,7 +243,6 @@ Cell *HeapBlock::find_next_free_cell() {
 void HeapBlock::return_cell_to_free_list(const Cell *cell) {
     // printf("returning %p to free list\n", cell);
     auto index = index_from_cell(cell);
-    assert(index > -1);
     m_used_map[index] = false;
     cell->~Cell();
     memset(&m_memory[index * m_cell_size], 0, m_cell_size);
