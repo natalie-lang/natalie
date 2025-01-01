@@ -77,7 +77,9 @@ module Natalie
     end
 
     def encoding
-      result.source.source.encoding
+      encoding = result.magic_comments.find { |e| e.key == 'encoding' }
+      return result.encoding if encoding.nil?
+      Encoding.find(encoding.value)
     end
   end
 end

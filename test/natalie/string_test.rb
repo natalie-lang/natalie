@@ -745,6 +745,15 @@ describe 'string' do
     end
   end
 
+  describe 'magic comments' do
+    it 'returns ASCII-8BIT for binary magic comment with UTF-8 in source' do
+      ruby_exe(<<~'RUBY').should == "ASCII-8BIT\n"
+        # -*- encoding: binary -*-
+
+        puts "😊".encoding
+      RUBY
+    end
+  end
 
   describe "Shift_JIS" do
     # NATFIXME : Possible issue in escaped_char or String#inspect
