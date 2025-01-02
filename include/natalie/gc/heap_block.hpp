@@ -1,6 +1,5 @@
 #pragma once
 
-#include <assert.h>
 #include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +12,7 @@ namespace Natalie {
 
 constexpr const size_t HEAP_BLOCK_SIZE = 32 * 1024;
 constexpr const size_t HEAP_BLOCK_MASK = ~(HEAP_BLOCK_SIZE - 1);
-constexpr const size_t HEAP_CELL_COUNT_MAX = HEAP_BLOCK_SIZE / 16; // 16 bytes is the smallest cell we will allocate
+constexpr const size_t HEAP_CELL_COUNT_MAX = HEAP_BLOCK_SIZE / 64; // 64 bytes is the smallest cell we will allocate
 
 class HeapBlock {
 public:

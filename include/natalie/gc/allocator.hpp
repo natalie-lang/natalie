@@ -1,15 +1,14 @@
 #pragma once
 
-#include <assert.h>
 #include <memory>
 #include <setjmp.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
 
 #include "natalie/gc/heap_block.hpp"
 #include "natalie/macros.hpp"
 #include "tm/hashmap.hpp"
-#include "tm/vector.hpp"
 
 namespace Natalie {
 
@@ -52,20 +51,22 @@ public:
     }
 
     void *allocate() {
-        if (m_free_blocks.size() > 0) {
-            auto *block = m_free_blocks.last();
-            --m_free_cells;
-            auto *cell = block->find_next_free_cell();
+        Cell *cell = nullptr;
+        if (m_free_blocks.empty()) {
+            auto *block = add_heap_block();
+            cell = block->find_next_free_cell();
+        } else {
+            auto *block = m_free_blocks.back();
+            cell = block->find_next_free_cell();
             if (!block->has_free())
-                m_free_blocks.pop();
-            return cell;
+                m_free_blocks.pop_back();
         }
-        auto *block = add_heap_block();
-        return block->find_next_free_cell();
+        --m_free_cells;
+        return cell;
     }
 
     void add_free_block(HeapBlock *block) {
-        m_free_blocks.push(block);
+        m_free_blocks.push_back(block);
     }
 
     bool is_my_block(HeapBlock *candidate_block) {
@@ -109,7 +110,7 @@ private:
     size_t m_cell_size;
     size_t m_free_cells { 0 };
     Hashmap<HeapBlock *> m_blocks {};
-    Vector<HeapBlock *> m_free_blocks {};
+    std::vector<HeapBlock *> m_free_blocks {};
 };
 
 }
