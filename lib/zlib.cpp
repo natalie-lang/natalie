@@ -8,9 +8,15 @@ Value init_zlib(Env *env, Value self) {
     return NilObject::the();
 }
 
-void Zlib_stream_cleanup(VoidPObject *self) {
+void Zlib_deflate_stream_cleanup(VoidPObject *self) {
     auto stream = (z_stream *)self->void_ptr();
     deflateEnd(stream);
+    delete stream;
+}
+
+void Zlib_inflate_stream_cleanup(VoidPObject *self) {
+    auto stream = (z_stream *)self->void_ptr();
+    inflateEnd(stream);
     delete stream;
 }
 
@@ -54,7 +60,7 @@ Value Zlib_deflate_initialize(Env *env, Value self, Args &&args, Block *) {
     auto strategy = args.at(3, Zlib->const_get("DEFAULT_STRATEGY"_s))->as_integer_or_raise(env);
 
     auto stream = new z_stream {};
-    self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_stream_cleanup));
+    self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_deflate_stream_cleanup));
     self->ivar_set(env, "@result"_s, new StringObject("", Encoding::ASCII_8BIT));
     auto in = new unsigned char[ZLIB_BUF_SIZE];
     self->ivar_set(env, "@in"_s, new VoidPObject(in, Zlib_buffer_cleanup));
@@ -187,7 +193,7 @@ Value Zlib_inflate_initialize(Env *env, Value self, Args &&args, Block *) {
     auto window_bits = args.at(0, fetch_nested_const({ "Zlib"_s, "MAX_WBITS"_s }))->as_integer_or_raise(env);
 
     auto stream = new z_stream {};
-    self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_stream_cleanup));
+    self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_inflate_stream_cleanup));
     self->ivar_set(env, "@result"_s, new StringObject("", Encoding::ASCII_8BIT));
     auto in = new unsigned char[ZLIB_BUF_SIZE];
     self->ivar_set(env, "@in"_s, new VoidPObject(in, Zlib_buffer_cleanup));
