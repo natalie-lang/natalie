@@ -764,7 +764,7 @@ describe 'string' do
     end
 
     # Test ShiftJisEncoding::prev_char method
-    xit "chops the last char of an empty string" do
+    it "chops the last char of an empty string" do
       # empty string case
       s = ''.encode('Shift_JIS')
       s.chop!
