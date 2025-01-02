@@ -300,7 +300,7 @@ Value YAML_dump(Env *env, Value self, Args &&args, Block *) {
         return args.at(1);
     }
 
-    return new StringObject { buf };
+    return new StringObject { std::move(buf) };
 }
 
 static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token);
