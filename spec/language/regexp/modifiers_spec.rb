@@ -16,10 +16,8 @@ describe "Regexps with modifiers" do
   end
 
   it "supports /o (once)" do
-    NATFIXME 'it supports /o (once)', exception: SpecFailedException do
-      2.times do |i|
-        /#{i}/o.should == /0/
-      end
+    2.times do |i|
+      /#{i}/o.should == /0/
     end
   end
 
