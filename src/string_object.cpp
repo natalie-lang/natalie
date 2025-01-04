@@ -1972,6 +1972,13 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
         replacement = substr(replacement, str_index, str_length);
     }
 
+    if (str) {
+        auto compatible_encoding = negotiate_compatible_encoding(str);
+        if (!compatible_encoding)
+            m_encoding->raise_compatibility_error(env, str->encoding());
+        m_encoding = compatible_encoding;
+    }
+
     auto before = substr(m_string, 0, index);
     auto after = substr(m_string, index + length, m_length - index - length);
     m_string = String::format("{}{}{}", before, replacement, after);

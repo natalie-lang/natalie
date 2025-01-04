@@ -207,9 +207,7 @@ describe "String#bytesplice with multibyte characters" do
 
       result = s.bytesplice(0, 3, sub)
       result.should == "こんにちはxxx"
-      NATFIXME 'handle encoding', exception: SpecFailedException do
-        result.encoding.should == Encoding::UTF_8
-      end
+      result.encoding.should == Encoding::UTF_8
     end
   end
 
@@ -286,9 +284,7 @@ describe "String#bytesplice with multibyte characters" do
 
       result = s.bytesplice(1, 2, sub, 3, 3)
       result.should == "hんlo"
-      NATFIXME 'handle encoding', exception: SpecFailedException do
-        result.encoding.should == Encoding::UTF_8
-      end
+      result.encoding.should == Encoding::UTF_8
     end
 
     it "deals with a different encoded argument with str range" do
@@ -308,9 +304,7 @@ describe "String#bytesplice with multibyte characters" do
 
       result = s.bytesplice(1..2, sub, 3..5)
       result.should == "hんlo"
-      NATFIXME 'handle encoding', exception: SpecFailedException do
-        result.encoding.should == Encoding::UTF_8
-      end
+      result.encoding.should == Encoding::UTF_8
     end
   end
 end
