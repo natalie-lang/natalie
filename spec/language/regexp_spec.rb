@@ -3,17 +3,15 @@ require_relative 'fixtures/classes'
 
 describe "Literal Regexps" do
   it "matches against $_ (last input) in a conditional if no explicit matchee provided" do
-    NATFIXME 'Warn for regexp literal in condtion', exception: SpecFailedException, message: /should have printed a warning/ do
-      -> {
-        eval <<-EOR
-        $_ = nil
-        (true if /foo/).should_not == true
+    -> {
+      eval <<-EOR
+      $_ = nil
+      (true if /foo/).should_not == true
 
-        $_ = "foo"
-        (true if /foo/).should == true
-        EOR
-      }.should complain(/regex literal in condition/)
-    end
+      $_ = "foo"
+      (true if /foo/).should == true
+      EOR
+    }.should complain(/regex literal in condition/)
   end
 
   it "yields a Regexp" do
