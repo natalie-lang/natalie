@@ -1507,6 +1507,26 @@ module Natalie
       def transform_hash_node(node, used:)
         instructions = []
 
+        static_literal_keys = node.elements
+          .select { |element| element.type == :assoc_node }
+          .map { |element| element.key }
+          .select(&:static_literal?)
+          .map { |key| [key.type, key.slice, key] }
+        duplicate_keys = static_literal_keys
+          .map do |key|
+            other_keys = *static_literal_keys.select { |key2| key != key2 && key[0] == key2[0] && key[1] == key2[1] && key[2].start_offset < key2[2].start_offset }
+            [key, *other_keys]
+          end.select { |keys| keys.size > 1 }
+        duplicate_keys.each do |original, duplicate|
+          slice = case original[2].type
+                  when :symbol_node then ":#{original[2].unescaped}"
+                  when :string_node then original[2].unescaped.inspect
+                  else original[2].slice
+                  end
+          warning = "key #{slice} is duplicated and overwritten on line #{duplicate[2].start_line}"
+          instructions += compile_time_warning(original[2], warning, used: false)
+        end
+
         # create hash from elements before a splat
         prior_to_splat_count = 0
         node.elements.each do |element|
