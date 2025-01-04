@@ -2078,6 +2078,7 @@ module Natalie
       def transform_match_last_line_node(node, used:)
         regexp = Regexp.new(node.unescaped, node.options)
         instructions = [
+          *compile_time_warning(node, 'regex literal in condition', used: false),
           PushRegexpInstruction.new(regexp),
           GlobalVariableGetInstruction.new(:$_),
           PushArgcInstruction.new(1),
