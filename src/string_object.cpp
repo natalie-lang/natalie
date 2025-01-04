@@ -708,13 +708,8 @@ static Value byteindex_string_needle(Env *env, const StringObject *haystack, Str
             return NilObject::the();
     }
 
-    if ((size_t)offset < haystack->bytesize()) {
-        auto character_check = new StringObject { haystack->string().substring(offset, std::min(haystack->bytesize() - offset, (size_t)4)) };
-        size_t ignored = 0;
-        auto [valid, _char] = character_check->next_char_result(&ignored);
-        if (!valid)
-            env->raise("IndexError", "offset {} does not land on character boundary", offset);
-    }
+    if ((size_t)offset < haystack->bytesize() && !haystack->encoding()->is_valid_codepoint_boundary(haystack->string(), offset))
+        env->raise("IndexError", "offset {} does not land on character boundary", offset);
 
     if (needle.is_empty())
         return Value::integer(offset);
