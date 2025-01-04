@@ -2830,9 +2830,8 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-          PopInstruction.new,
         ]
-        instructions << PushNilInstruction.new if used
+        instructions << PopInstruction.new unless used
         instructions
       end
 
