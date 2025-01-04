@@ -2818,7 +2818,7 @@ module Natalie
       def compile_time_warning(node, warning, used:)
         instructions = [
           PushSelfInstruction.new,
-          PushStringInstruction.new("warning: #{warning}"),
+          PushStringInstruction.new("#{@file.path}:#{node.location.start_line}: warning: #{warning}"),
           PushArgcInstruction.new(1),
           SendInstruction.new(
             :warn,
