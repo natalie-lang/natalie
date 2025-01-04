@@ -1940,11 +1940,11 @@ std::pair<bool, StringView> EucJpEncodingObject::next_char(const String &string,
 }
 
 String EucJpEncodingObject::escaped_char(const nat_int_t c) const {
-    char buf[7];
+    char buf[21];
     if (c >= 0 && c <= 0xFF) {
-        snprintf(buf, 5, "\\x%02llX", c);
+        snprintf(buf, sizeof(buf), "\\x%02llX", c);
     } else {
-        snprintf(buf, 7, "\\u%04llX", c);
+        snprintf(buf, sizeof(buf), "\\x{%llX}", c);
     }
     return String(buf);
 }

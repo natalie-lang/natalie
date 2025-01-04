@@ -580,7 +580,7 @@ static StringObject *inspect_internal(const StringObject *str, Env *env, bool fo
             out->append("\\a");
         } else if (c == '\b') {
             out->append("\\b");
-        } else if (c == 27) { // FIXME: change to '\033' ??
+        } else if (c == 27) {
             out->append("\\e");
         } else if (c == '\f') {
             out->append("\\f");
@@ -593,8 +593,10 @@ static StringObject *inspect_internal(const StringObject *str, Env *env, bool fo
         } else if (c == '\v') {
             out->append("\\v");
         } else if (encoding->is_printable_char(c) && (!for_dump || c <= 0xFFFF)) {
-            auto u = utf8_encoding->encode_codepoint(c);
-            out->append(u);
+            if (encoding == utf8_encoding || c <= 255)
+                out->append(utf8_encoding->encode_codepoint(c));
+            else
+                out->append(encoding->escaped_char(c));
         } else {
             if (for_dump && c < 128)
                 out->append_sprintf("\\x%02X", c);
