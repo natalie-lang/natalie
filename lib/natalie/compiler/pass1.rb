@@ -2815,6 +2815,9 @@ module Natalie
       # instructions are placed inside a loop this will print n times.
       # Maybe we can fix this when implementing BEGIN which also needs a way
       # to move instructions to the top.
+      # This would need some extra care in an eval block, where the warning
+      # should be printed at the beginning of the eval, not at the global
+      # beginning.
       def compile_time_warning(node, warning, used:)
         instructions = [
           PushSelfInstruction.new,
