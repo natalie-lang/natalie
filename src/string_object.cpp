@@ -2,6 +2,7 @@
 #include "ctype.h"
 #include "natalie.hpp"
 #include "natalie/crypt.h"
+#include "natalie/nil_object.hpp"
 #include "natalie/string_unpacker.hpp"
 #include "string.h"
 
@@ -707,13 +708,8 @@ static Value byteindex_string_needle(Env *env, const StringObject *haystack, Str
             return NilObject::the();
     }
 
-    if ((size_t)offset < haystack->bytesize()) {
-        auto character_check = new StringObject { haystack->string().substring(offset, std::min(haystack->bytesize() - offset, (size_t)4)) };
-        size_t ignored = 0;
-        auto [valid, _char] = character_check->next_char_result(&ignored);
-        if (!valid)
-            env->raise("IndexError", "offset {} does not land on character boundary", offset);
-    }
+    if ((size_t)offset < haystack->bytesize() && !haystack->encoding()->is_valid_codepoint_boundary(haystack->string(), offset))
+        env->raise("IndexError", "offset {} does not land on character boundary", offset);
 
     if (needle.is_empty())
         return Value::integer(offset);
@@ -1840,6 +1836,160 @@ Value StringObject::byteslice(Env *env, Value index_obj, Value length_obj) {
 
     // Finally, access the index in the string.
     return new StringObject { m_string.at(index), m_encoding };
+}
+
+/**
+ * String#bytesplice
+ *
+ * bytesplice(index, length, str) → string
+ * bytesplice(index, length, str, str_index, str_length) → string
+ * bytesplice(range, str) → string
+ * bytesplice(range, str, str_range) → string
+ */
+Value StringObject::bytesplice(Env *env, Args &&args) {
+    assert_not_frozen(env);
+
+    nat_int_t m_length = static_cast<nat_int_t>(length());
+    assert(m_length < NAT_INT_MAX); // not sure how we'd handle a string that big anyway
+
+    auto index_and_length_from_range = [&](String &str, RangeObject *range) {
+        auto str_length = static_cast<nat_int_t>(str.length());
+
+        auto index = range->begin()->as_integer()->to_nat_int_t();
+
+        // Handle negative start index.
+        if (index < -str_length)
+            env->raise("RangeError", "{} out of range", range->inspect_str(env));
+        if (index < 0)
+            index = str_length + index;
+
+        // Handle index past end of string.
+        if (index > str_length)
+            env->raise("RangeError", "{} out of range", range->inspect_str(env));
+
+        // Handle negative end index.
+        auto end = range->end()->as_integer()->to_nat_int_t();
+        if (end < 0)
+            end = str_length + end;
+
+        // Calculate the length.
+        nat_int_t length;
+        if (range->exclude_end())
+            length = end - index;
+        else
+            length = end - index + 1;
+
+        // Don't let the length be negative.
+        if (length < 0)
+            length = 0;
+
+        // If the length is longer than the string, truncate it.
+        if (length - index > str_length)
+            length = str_length - index;
+
+        return std::pair<nat_int_t, nat_int_t> { index, length };
+    };
+
+    nat_int_t index;
+    nat_int_t length;
+    StringObject *str = nullptr;
+    RangeObject *str_range = nullptr;
+
+    if (args.size() == 2 || (args.size() == 3 && args[0]->is_range())) {
+        // bytesplice(range, str)
+        // bytesplice(range, str, str_range)
+
+        if (!args[0]->is_range())
+            env->raise("TypeError", "wrong argument type {} (expected Range)", args[0]->klass()->inspect_str());
+
+        auto range = args[0]->as_range();
+        std::tie(index, length) = index_and_length_from_range(m_string, range);
+
+        str = args[1]->as_string_or_raise(env);
+
+        if (args.size() == 3) {
+            // bytesplice(range, str, str_range)
+
+            auto str_actual_length = static_cast<nat_int_t>(str->length());
+            str_range = args[2]->as_range_or_raise(env);
+            if (str_range->begin()->as_integer()->to_nat_int_t() < -str_actual_length)
+                env->raise("RangeError", "{} out of range", str_range->inspect_str(env));
+        }
+
+    } else if (args.size() == 3 || args.size() == 5) {
+        // bytesplice(index, length, str)
+        // bytesplice(index, length, str, str_index, str_length)
+
+        index = args[0]->as_integer_or_raise(env)->to_nat_int_t();
+        if (index < -m_length || index > m_length)
+            env->raise("IndexError", "index {} out of string", index);
+
+        if (index < 0)
+            index = m_length + index;
+
+        length = args[1]->as_integer_or_raise(env)->to_nat_int_t();
+        if (length < 0)
+            env->raise("IndexError", "negative length {}", length);
+
+        str = args[2]->as_string_or_raise(env);
+
+        if (args.size() == 5) {
+            // bytesplice(index, length, str, str_index, str_length)
+
+            auto str_actual_length = static_cast<nat_int_t>(str->length());
+
+            auto str_index = args[3]->as_integer_or_raise(env)->to_nat_int_t();
+            if (str_index < -str_actual_length || str_index > str_actual_length)
+                env->raise("IndexError", "index {} out of string", str_index);
+            if (str_index < 0)
+                str_index = str_actual_length + str_index;
+
+            auto str_length = args[4]->as_integer_or_raise(env)->to_nat_int_t();
+            if (str_length < 0)
+                env->raise("IndexError", "negative length {}", str_length);
+
+            str_range = RangeObject::create(env, Value::integer(str_index), Value::integer(str_index + str_length), true);
+        }
+
+    } else {
+        env->raise("ArgumentError", "wrong number of arguments (given {}, expected 2, 3, or 5)", args.size());
+    }
+
+    auto substr = [&](String &string, EncodingObject *encoding, nat_int_t begin, nat_int_t length) {
+        auto string_length = (nat_int_t)string.length();
+
+        if (begin <= string_length) {
+            if (!encoding->is_valid_codepoint_boundary(string, begin))
+                env->raise("IndexError", "offset {} does not land on character boundary", begin);
+
+            if (length > 0 && !encoding->is_valid_codepoint_boundary(string, begin + length))
+                env->raise("IndexError", "offset {} does not land on character boundary", begin + length);
+        }
+
+        if (length == 0 || begin >= string_length)
+            return String {};
+
+        return string.substring(begin, length);
+    };
+
+    auto replacement = str->as_string_or_raise(env)->string();
+    if (str_range) {
+        auto [str_index, str_length] = index_and_length_from_range(replacement, str_range);
+        replacement = substr(replacement, str->encoding(), str_index, str_length);
+    }
+
+    if (str) {
+        auto compatible_encoding = negotiate_compatible_encoding(str);
+        if (!compatible_encoding)
+            m_encoding->raise_compatibility_error(env, str->encoding());
+        m_encoding = compatible_encoding;
+    }
+
+    auto before = substr(m_string, m_encoding.ptr(), 0, index);
+    auto after = substr(m_string, m_encoding.ptr(), index + length, m_length - index - length);
+    m_string = String::format("{}{}{}", before, replacement, after);
+
+    return this;
 }
 
 Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) {

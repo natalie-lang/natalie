@@ -586,6 +586,12 @@ MatchDataObject *Object::as_match_data_or_raise(Env *env) {
     return static_cast<MatchDataObject *>(this);
 }
 
+RangeObject *Object::as_range_or_raise(Env *env) {
+    if (!is_range())
+        env->raise("TypeError", "{} can't be coerced into Range", m_klass->inspect_str());
+    return static_cast<RangeObject *>(this);
+}
+
 StringObject *Object::as_string_or_raise(Env *env) {
     if (!is_string())
         env->raise("TypeError", "{} can't be coerced into String", m_klass->inspect_str());

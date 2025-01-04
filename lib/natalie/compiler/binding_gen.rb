@@ -1299,6 +1299,7 @@ gen.binding('String', 'bytes', 'StringObject', 'bytes', argc: 0, pass_env: true,
 gen.binding('String', 'byteindex', 'StringObject', 'byteindex', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'byterindex', 'StringObject', 'byterindex', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'byteslice', 'StringObject', 'byteslice', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'bytesplice', 'StringObject', 'bytesplice', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'bytesize', 'StringObject', 'bytesize', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.binding('String', 'capitalize', 'StringObject', 'capitalize', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'capitalize!', 'StringObject', 'capitalize_in_place', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
