@@ -551,25 +551,25 @@ Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value) {
     return this;
 }
 
-static StringObject *inspect_internal(const StringObject *str, Env *env, bool for_dump = false) {
+StringObject *StringObject::inspect(Env *env) const {
     StringObject *out = new StringObject { "\"" };
-    auto encoding = str->encoding();
+    auto encoding = m_encoding.ptr();
 
     auto utf8_encoding = EncodingObject::get(Encoding::UTF_8);
 
     size_t index = 0;
-    auto [valid, ch] = str->next_char_result(&index);
+    auto [valid, ch] = next_char_result(&index);
     while (!ch.is_empty()) {
         if (!valid) {
             for (size_t i = 0; i < ch.size(); i++)
                 out->append_sprintf("\\x%02X", static_cast<uint8_t>(ch[i]));
-            auto pair = str->next_char_result(&index);
+            auto pair = next_char_result(&index);
             valid = pair.first;
             ch = pair.second;
             continue;
         }
         const auto c = encoding->decode_codepoint(ch);
-        auto pair = str->next_char_result(&index);
+        auto pair = next_char_result(&index);
         valid = pair.first;
         const auto c2 = !valid || ch.is_empty() ? 0 : encoding->decode_codepoint(pair.second);
 
@@ -592,26 +592,20 @@ static StringObject *inspect_internal(const StringObject *str, Env *env, bool fo
             out->append("\\t");
         } else if (c == '\v') {
             out->append("\\v");
-        } else if (encoding->is_printable_char(c) && (!for_dump || c <= 0xFFFF)) {
+        } else if (encoding->is_printable_char(c)) {
             if (encoding == utf8_encoding || c <= 255)
                 out->append(utf8_encoding->encode_codepoint(c));
             else
                 out->append(encoding->escaped_char(c));
         } else {
-            if (for_dump && c < 128)
-                out->append_sprintf("\\x%02X", c);
-            else
-                out->append(encoding->escaped_char(c));
+            out->append(encoding->escaped_char(c));
         }
         ch = pair.second;
     }
 
     out->append_char('"');
-    return out;
-}
 
-StringObject *StringObject::inspect(Env *env) const {
-    return inspect_internal(this, env);
+    return out;
 }
 
 String StringObject::dbg_inspect() const {
@@ -3465,12 +3459,66 @@ Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
 }
 
 Value StringObject::dump(Env *env) {
-    auto result = new StringObject { m_encoding };
-    result->append(inspect_internal(this, env, true));
-    if (!m_encoding->is_ascii_compatible()) {
-        result->append_sprintf(".force_encoding(\"%s\")", m_encoding->name()->c_str());
+    StringObject *out = new StringObject { "\"", m_encoding };
+    auto encoding = m_encoding.ptr();
+
+    auto utf8_encoding = EncodingObject::get(Encoding::UTF_8);
+
+    size_t index = 0;
+    auto [valid, ch] = next_char_result(&index);
+    while (!ch.is_empty()) {
+        if (!valid) {
+            for (size_t i = 0; i < ch.size(); i++)
+                out->append_sprintf("\\x%02X", static_cast<uint8_t>(ch[i]));
+            auto pair = next_char_result(&index);
+            valid = pair.first;
+            ch = pair.second;
+            continue;
+        }
+        const auto c = encoding->decode_codepoint(ch);
+        auto pair = next_char_result(&index);
+        valid = pair.first;
+        const auto c2 = !valid || ch.is_empty() ? 0 : encoding->decode_codepoint(pair.second);
+
+        if (c == '"' || c == '\\' || (c == '#' && (c2 == '{' || c2 == '$' || c2 == '@'))) {
+            out->append_char('\\');
+            out->append_char(c);
+        } else if (c == '\a') {
+            out->append("\\a");
+        } else if (c == '\b') {
+            out->append("\\b");
+        } else if (c == 27) {
+            out->append("\\e");
+        } else if (c == '\f') {
+            out->append("\\f");
+        } else if (c == '\n') {
+            out->append("\\n");
+        } else if (c == '\r') {
+            out->append("\\r");
+        } else if (c == '\t') {
+            out->append("\\t");
+        } else if (c == '\v') {
+            out->append("\\v");
+        } else if (encoding->is_printable_char(c) && c <= 0xFFFF) {
+            if (encoding == utf8_encoding || c <= 255)
+                out->append(utf8_encoding->encode_codepoint(c));
+            else
+                out->append(encoding->escaped_char(c));
+        } else {
+            if (c < 128)
+                out->append_sprintf("\\x%02X", c);
+            else
+                out->append(encoding->escaped_char(c));
+        }
+        ch = pair.second;
     }
-    return result;
+
+    out->append_char('"');
+
+    if (!m_encoding->is_ascii_compatible())
+        out->append_sprintf(".force_encoding(\"%s\")", m_encoding->name()->c_str());
+
+    return out;
 }
 
 StringObject *StringObject::upcase(Env *env, Value arg1, Value arg2) {
