@@ -1960,16 +1960,27 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
         env->raise("ArgumentError", "wrong number of arguments (given {}, expected 2, 3, or 5)", args.size());
     }
 
-    auto substr = [&](String &string, nat_int_t begin, nat_int_t length) {
-        if (length == 0 || begin >= (nat_int_t)string.length())
+    auto substr = [&](String &string, EncodingObject *encoding, nat_int_t begin, nat_int_t length) {
+        auto string_length = (nat_int_t)string.length();
+
+        if (begin <= string_length) {
+            if (!encoding->is_valid_codepoint_boundary(string, begin))
+                env->raise("IndexError", "offset {} does not land on character boundary", begin);
+
+            if (length > 0 && !encoding->is_valid_codepoint_boundary(string, begin + length))
+                env->raise("IndexError", "offset {} does not land on character boundary", begin + length);
+        }
+
+        if (length == 0 || begin >= string_length)
             return String {};
+
         return string.substring(begin, length);
     };
 
     auto replacement = str->as_string_or_raise(env)->string();
     if (str_range) {
         auto [str_index, str_length] = index_and_length_from_range(replacement, str_range);
-        replacement = substr(replacement, str_index, str_length);
+        replacement = substr(replacement, str->encoding(), str_index, str_length);
     }
 
     if (str) {
@@ -1979,8 +1990,8 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
         m_encoding = compatible_encoding;
     }
 
-    auto before = substr(m_string, 0, index);
-    auto after = substr(m_string, index + length, m_length - index - length);
+    auto before = substr(m_string, m_encoding.ptr(), 0, index);
+    auto after = substr(m_string, m_encoding.ptr(), index + length, m_length - index - length);
     m_string = String::format("{}{}{}", before, replacement, after);
 
     return this;

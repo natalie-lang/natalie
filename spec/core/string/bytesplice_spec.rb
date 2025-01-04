@@ -140,16 +140,12 @@ describe "String#bytesplice with multibyte characters" do
     end
 
     it "raises IndexError when index is not on a codepoint boundary" do
-      NATFIXME 'handle codepoint boundaries', exception: SpecFailedException do
-        -> { "こんにちは".bytesplice(1, 0, "xxx") }.should raise_error(IndexError, "offset 1 does not land on character boundary")
-      end
+      -> { "こんにちは".bytesplice(1, 0, "xxx") }.should raise_error(IndexError, "offset 1 does not land on character boundary")
     end
 
     it "raises IndexError when length is not matching the codepoint boundary" do
-      NATFIXME 'handle codepoint boundaries', exception: SpecFailedException do
-        -> { "こんにちは".bytesplice(0, 1, "xxx") }.should raise_error(IndexError, "offset 1 does not land on character boundary")
-        -> { "こんにちは".bytesplice(0, 2, "xxx") }.should raise_error(IndexError, "offset 2 does not land on character boundary")
-      end
+      -> { "こんにちは".bytesplice(0, 1, "xxx") }.should raise_error(IndexError, "offset 1 does not land on character boundary")
+      -> { "こんにちは".bytesplice(0, 2, "xxx") }.should raise_error(IndexError, "offset 2 does not land on character boundary")
     end
 
     it "replaces with integer indices" do
@@ -178,16 +174,14 @@ describe "String#bytesplice with multibyte characters" do
     end
 
     it "raises when ranges not match codepoint boundaries" do
-      NATFIXME 'handle codepoint boundaries', exception: SpecFailedException do
-        -> { "こんにちは".bytesplice(0..0, "x") }.should raise_error(IndexError, "offset 1 does not land on character boundary")
-        -> { "こんにちは".bytesplice(0..1, "x") }.should raise_error(IndexError, "offset 2 does not land on character boundary")
-        # Begin is incorrect
-        -> { "こんにちは".bytesplice(-4..-1, "x") }.should raise_error(IndexError, "offset 11 does not land on character boundary")
-        -> { "こんにちは".bytesplice(-5..-1, "x") }.should raise_error(IndexError, "offset 10 does not land on character boundary")
-        # End is incorrect
-        -> { "こんにちは".bytesplice(-3..-2, "x") }.should raise_error(IndexError, "offset 14 does not land on character boundary")
-        -> { "こんにちは".bytesplice(-3..-3, "x") }.should raise_error(IndexError, "offset 13 does not land on character boundary")
-      end
+      -> { "こんにちは".bytesplice(0..0, "x") }.should raise_error(IndexError, "offset 1 does not land on character boundary")
+      -> { "こんにちは".bytesplice(0..1, "x") }.should raise_error(IndexError, "offset 2 does not land on character boundary")
+      # Begin is incorrect
+      -> { "こんにちは".bytesplice(-4..-1, "x") }.should raise_error(IndexError, "offset 11 does not land on character boundary")
+      -> { "こんにちは".bytesplice(-5..-1, "x") }.should raise_error(IndexError, "offset 10 does not land on character boundary")
+      # End is incorrect
+      -> { "こんにちは".bytesplice(-3..-2, "x") }.should raise_error(IndexError, "offset 14 does not land on character boundary")
+      -> { "こんにちは".bytesplice(-3..-3, "x") }.should raise_error(IndexError, "offset 13 does not land on character boundary")
     end
 
     it "deals with a different encoded argument" do
@@ -217,16 +211,12 @@ describe "String#bytesplice with multibyte characters" do
     end
 
     it "raises IndexError when str_index is not on a codepoint boundary" do
-      NATFIXME 'handle codepoint boundaries', exception: SpecFailedException do
-        -> { "こんにちは".bytesplice(3, 3, "こんにちは", 1, 0) }.should raise_error(IndexError, "offset 1 does not land on character boundary")
-      end
+      -> { "こんにちは".bytesplice(3, 3, "こんにちは", 1, 0) }.should raise_error(IndexError, "offset 1 does not land on character boundary")
     end
 
     it "raises IndexError when str_length is not matching the codepoint boundary" do
-      NATFIXME 'handle codepoint boundaries', exception: SpecFailedException do
-        -> { "こんにちは".bytesplice(3, 3, "こんにちは", 0, 1) }.should raise_error(IndexError, "offset 1 does not land on character boundary")
-        -> { "こんにちは".bytesplice(3, 3, "こんにちは", 0, 2) }.should raise_error(IndexError, "offset 2 does not land on character boundary")
-      end
+      -> { "こんにちは".bytesplice(3, 3, "こんにちは", 0, 1) }.should raise_error(IndexError, "offset 1 does not land on character boundary")
+      -> { "こんにちは".bytesplice(3, 3, "こんにちは", 0, 2) }.should raise_error(IndexError, "offset 2 does not land on character boundary")
     end
 
     it "replaces with integer str indices" do
@@ -255,16 +245,14 @@ describe "String#bytesplice with multibyte characters" do
     end
 
     it "raises when ranges not match codepoint boundaries in str" do
-      NATFIXME 'handle codepoint boundaries', exception: SpecFailedException do
-        -> { "こんにちは".bytesplice(3...3, "こ", 0..0) }.should raise_error(IndexError, "offset 1 does not land on character boundary")
-        -> { "こんにちは".bytesplice(3...3, "こ", 0..1) }.should raise_error(IndexError, "offset 2 does not land on character boundary")
-        # Begin is incorrect
-        -> { "こんにちは".bytesplice(3...3, "こんにちは", -4..-1) }.should raise_error(IndexError, "offset 11 does not land on character boundary")
-        -> { "こんにちは".bytesplice(3...3, "こんにちは", -5..-1) }.should raise_error(IndexError, "offset 10 does not land on character boundary")
-        # End is incorrect
-        -> { "こんにちは".bytesplice(3...3, "こんにちは", -3..-2) }.should raise_error(IndexError, "offset 14 does not land on character boundary")
-        -> { "こんにちは".bytesplice(3...3, "こんにちは", -3..-3) }.should raise_error(IndexError, "offset 13 does not land on character boundary")
-      end
+      -> { "こんにちは".bytesplice(3...3, "こ", 0..0) }.should raise_error(IndexError, "offset 1 does not land on character boundary")
+      -> { "こんにちは".bytesplice(3...3, "こ", 0..1) }.should raise_error(IndexError, "offset 2 does not land on character boundary")
+      # Begin is incorrect
+      -> { "こんにちは".bytesplice(3...3, "こんにちは", -4..-1) }.should raise_error(IndexError, "offset 11 does not land on character boundary")
+      -> { "こんにちは".bytesplice(3...3, "こんにちは", -5..-1) }.should raise_error(IndexError, "offset 10 does not land on character boundary")
+      # End is incorrect
+      -> { "こんにちは".bytesplice(3...3, "こんにちは", -3..-2) }.should raise_error(IndexError, "offset 14 does not land on character boundary")
+      -> { "こんにちは".bytesplice(3...3, "こんにちは", -3..-3) }.should raise_error(IndexError, "offset 13 does not land on character boundary")
     end
 
     it "deals with a different encoded argument with str index/length" do

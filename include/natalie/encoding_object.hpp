@@ -74,6 +74,10 @@ public:
     virtual std::pair<bool, StringView> prev_char(const String &, size_t *) const = 0;
     virtual std::pair<bool, StringView> next_char(const String &, size_t *) const = 0;
 
+    bool is_valid_codepoint_boundary(const String &string, size_t index) const {
+        return next_char(string, &index).first;
+    }
+
     virtual StringView next_grapheme_cluster(const String &str, size_t *index) const {
         auto [_valid, view] = next_char(str, index);
         return view;
