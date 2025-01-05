@@ -33,7 +33,7 @@ body = Gtk3::Label.new(<<-END)
 Compiled Ruby Implementation
 targeting Ruby 3.4 (WIP)
 
-Copyright © 2019-2022, Tim Morgan and contributors
+Copyright © 2019-2025, Tim Morgan and contributors
 
 
 

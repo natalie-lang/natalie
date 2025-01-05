@@ -468,7 +468,7 @@ Env *build_top_env() {
     RUBY_VERSION->freeze();
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
 
-    Value RUBY_COPYRIGHT = new StringObject { "natalie - Copyright (c) 2023 Tim Morgan and contributors" };
+    Value RUBY_COPYRIGHT = new StringObject { "natalie - Copyright (c) 2025 Tim Morgan and contributors" };
     RUBY_COPYRIGHT->freeze();
     Object->const_set("RUBY_COPYRIGHT"_s, RUBY_COPYRIGHT);
 
