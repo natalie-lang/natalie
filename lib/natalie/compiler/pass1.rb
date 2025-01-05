@@ -2353,7 +2353,7 @@ module Natalie
       def transform_regular_expression_node(node, used:)
         regexp = Regexp.new(node.unescaped, node.options)
         return [] unless used
-        PushRegexpInstruction.new(regexp)
+        PushRegexpInstruction.new(regexp, euc_jp: node.euc_jp?)
       rescue RegexpError => e
         [
           PushSelfInstruction.new,

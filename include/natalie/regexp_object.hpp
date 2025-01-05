@@ -40,14 +40,14 @@ public:
     RegexpObject(ClassObject *klass)
         : Object { Object::Type::Regexp, klass } { }
 
-    RegexpObject(Env *env, const StringObject *pattern, int options = 0)
+    RegexpObject(Env *env, const StringObject *pattern, int options = 0, EncodingObject *encoding = nullptr)
         : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
-        initialize_internal(env, pattern, options);
+        initialize_internal(env, pattern, options, encoding);
     }
 
-    RegexpObject(Env *env, const String pattern, int options = 0)
+    RegexpObject(Env *env, const String pattern, int options = 0, EncodingObject *encoding = nullptr)
         : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
-        initialize_internal(env, new StringObject(pattern), options);
+        initialize_internal(env, new StringObject(pattern), options, encoding);
     }
 
     virtual ~RegexpObject() {
@@ -69,8 +69,9 @@ public:
     static Value try_convert(Env *, Value);
     static Value regexp_union(Env *, Args &&);
 
-    static Value literal(Env *env, const char *pattern, int options = 0) {
-        auto regex = new RegexpObject(env, pattern, options);
+    static Value literal(Env *env, const char *pattern, int options = 0, bool euc_jp = false) {
+        EncodingObject *encoding = euc_jp ? EncodingObject::get(Encoding::EUC_JP) : nullptr;
+        auto regex = new RegexpObject(env, pattern, options, encoding);
         regex->freeze();
         return regex;
     }
@@ -81,7 +82,7 @@ public:
         return Value::integer(hash);
     }
 
-    void initialize_internal(Env *, const StringObject *, int = 0);
+    void initialize_internal(Env *, const StringObject *, int = 0, EncodingObject * = nullptr);
 
     bool is_initialized() const { return m_options > -1; }
 

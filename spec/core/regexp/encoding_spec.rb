@@ -39,9 +39,7 @@ describe "Regexp#encoding" do
   end
 
   it "returns EUC_JP if the 'e' modifier is supplied" do
-    NATFIXME 'Encoding', exception: SpecFailedException do
-      /ASCII/e.encoding.should == Encoding::EUC_JP
-    end
+    /ASCII/e.encoding.should == Encoding::EUC_JP
   end
 
   it "upgrades the encoding to that of an embedded String" do

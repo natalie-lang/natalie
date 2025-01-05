@@ -19,9 +19,7 @@ describe "Regexps with encoding modifiers" do
   end
 
   it 'uses EUC-JP as /e encoding' do
-    NATFIXME 'it uses EUC-JP as /e encoding', exception: SpecFailedException do
-      /./e.encoding.should == Encoding::EUC_JP
-    end
+    /./e.encoding.should == Encoding::EUC_JP
   end
 
   it 'preserves EUC-JP as /e encoding through interpolation' do

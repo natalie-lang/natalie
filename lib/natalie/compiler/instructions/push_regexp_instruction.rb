@@ -5,16 +5,19 @@ module Natalie
     class PushRegexpInstruction < BaseInstruction
       include StringToCpp
 
-      def initialize(regexp)
+      def initialize(regexp, euc_jp: false)
         @regexp = regexp
+        @euc_jp = euc_jp
       end
 
       def to_s
-        "push_regexp #{@regexp.inspect}"
+        str = "push_regexp #{@regexp.inspect}"
+        str += ' (euc-jp)' if @euc_jp
+        str
       end
 
       def generate(transform)
-        transform.exec_and_push(:regexp, "Value(RegexpObject::literal(env, #{string_to_cpp(@regexp.source)}, #{@regexp.options}))")
+        transform.exec_and_push(:regexp, "Value(RegexpObject::literal(env, #{string_to_cpp(@regexp.source)}, #{@regexp.options}, #{@euc_jp ? 'true' : 'false'}))")
       end
 
       def execute(vm)

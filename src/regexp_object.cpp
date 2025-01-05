@@ -385,7 +385,7 @@ static String prepare_pattern_for_onigmo(Env *env, const StringObject *pattern, 
     return new_pattern;
 }
 
-void RegexpObject::initialize_internal(Env *env, const StringObject *pattern, int options) {
+void RegexpObject::initialize_internal(Env *env, const StringObject *pattern, int options, EncodingObject *encoding) {
     regex_t *regex;
     OnigErrorInfo einfo;
 
@@ -403,7 +403,8 @@ void RegexpObject::initialize_internal(Env *env, const StringObject *pattern, in
     options &= ~RegexOpts::NoEncoding;
 
     UChar *pat = (UChar *)tweaked_pattern.c_str();
-    OnigEncoding enc = fixed_encoding && !no_encoding ? ruby_encoding_to_onig_encoding(pattern->encoding()) : ONIG_ENCODING_ASCII;
+    const auto enc = encoding ? ruby_encoding_to_onig_encoding(encoding) : fixed_encoding && !no_encoding ? ruby_encoding_to_onig_encoding(pattern->encoding())
+                                                                                                          : ONIG_ENCODING_ASCII;
     int result = onig_new(&regex, pat, pat + tweaked_pattern.length(), options, enc, ONIG_SYNTAX_DEFAULT, &einfo);
 
     if (result != ONIG_NORMAL) {
