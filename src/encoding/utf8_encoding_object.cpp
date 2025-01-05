@@ -235,13 +235,11 @@ bool Utf8EncodingObject::is_printable_char(const nat_int_t c) const {
     return (c >= 32 && c < 127) || (c >= 160 && c < 65520) || (c >= 65529 && c < 65534) || c >= 65536;
 }
 
-String Utf8EncodingObject::escaped_char(const nat_int_t c) const {
-    char buf[21];
-    if (c > 0xFFFF)
-        snprintf(buf, sizeof(buf), "\\u{%llX}", c);
+void Utf8EncodingObject::append_escaped_char(String &str, nat_int_t c) const {
+    if (c <= 0xFFFF)
+        str.append_sprintf("\\u%04llX", c);
     else
-        snprintf(buf, sizeof(buf), "\\u%04llX", c);
-    return String(buf);
+        str.append_sprintf("\\u{%llX}", c);
 }
 
 nat_int_t Utf8EncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {

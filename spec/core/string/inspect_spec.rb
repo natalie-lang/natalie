@@ -507,17 +507,13 @@ describe "String#inspect" do
   describe "when the string's encoding is different than the result's encoding" do
     describe "and the string's encoding is ASCII-compatible but the characters are non-ASCII" do
       it "returns a string with the non-ASCII characters replaced by \\x notation" do
-        NATFIXME 'returns a string with the non-ASCII characters replaced by \\x notation', exception: SpecFailedException do
-          "\u{3042}".encode("EUC-JP").inspect.should == '"\\x{A4A2}"'
-        end
+        "\u{3042}".encode("EUC-JP").inspect.should == '"\\x{A4A2}"'
       end
     end
 
     describe "and the string has both ASCII-compatible and ASCII-incompatible chars" do
       it "returns a string with the non-ASCII characters replaced by \\u notation" do
-        NATFIXME 'returns a string with the non-ASCII characters replaced by \\u notation', exception: SpecFailedException do
-          "hello привет".encode("utf-16le").inspect.should == '"hello \\u043F\\u0440\\u0438\\u0432\\u0435\\u0442"'
-        end
+        "hello привет".encode("utf-16le").inspect.should == '"hello \\u043F\\u0440\\u0438\\u0432\\u0435\\u0442"'
       end
     end
   end

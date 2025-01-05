@@ -48,10 +48,8 @@ std::pair<bool, StringView> Utf32LeEncodingObject::next_char(const String &strin
     return { true, character };
 }
 
-String Utf32LeEncodingObject::escaped_char(const nat_int_t c) const {
-    char buf[7];
-    snprintf(buf, 7, "\\u%04llX", c);
-    return String(buf);
+void Utf32LeEncodingObject::append_escaped_char(String &str, nat_int_t c) const {
+    str.append_sprintf("\\u%04llX", c);
 }
 
 nat_int_t Utf32LeEncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {
