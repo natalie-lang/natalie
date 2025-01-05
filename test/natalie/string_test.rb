@@ -756,9 +756,9 @@ describe 'string' do
   end
 
   describe "Shift_JIS" do
-    # NATFIXME : Possible issue in escaped_char or String#inspect
+    # NATFIXME : Possible issue in append_escaped_char or String#inspect
     xit "returns a code representation of a string" do
-      # tests EncodingObject::escaped_char
+      # tests EncodingObject::append_escaped_char
       # ascii, single-byte halfwid-katakana, and two-byte
       "foo\xA1\xc4\xDF\x81\x77\xe9\xF0".force_encoding("shift_jis").inspect.should == '"foo\xA1\xC4\xDF\x{8177}\x{E9F0}"'
     end
@@ -786,9 +786,9 @@ describe 'string' do
   end
 
   describe "EUC_JP" do
-    # NATFIXME : Possible issue in escaped_char or String#inspect
+    # NATFIXME : Possible issue in append_escaped_char or String#inspect
     xit "returns a code representation of a string" do
-      # tests EncodingObject::escaped_char
+      # tests EncodingObject::append_escaped_char
       "foo\xAa\xBb\xA1\xA1\xFE\xfe".force_encoding("eucjp").inspect.should == '"foo\x{AABB}\x{A1A1}\x{FEFE}"'
       # two byte
       "\x8E\xA1\x8E\xFE".force_encoding("eucjp").inspect.should == '"\x{8EA1}\x{8EFE}"'

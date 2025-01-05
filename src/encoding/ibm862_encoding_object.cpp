@@ -17,10 +17,8 @@ std::pair<bool, StringView> Ibm862EncodingObject::next_char(const String &string
     return { true, StringView(&string, i, 1) };
 }
 
-String Ibm862EncodingObject::escaped_char(const nat_int_t c) const {
-    char buf[5];
-    snprintf(buf, 5, "\\x%02llX", c);
-    return String(buf);
+void Ibm862EncodingObject::append_escaped_char(String &str, nat_int_t c) const {
+    str.append_sprintf("\\x%02llX", c);
 }
 
 nat_int_t Ibm862EncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {

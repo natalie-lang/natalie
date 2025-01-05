@@ -39,14 +39,12 @@ std::pair<bool, StringView> ShiftJisEncodingObject::next_char(const String &stri
     }
 }
 
-String ShiftJisEncodingObject::escaped_char(const nat_int_t c) const {
-    char buf[7];
+void ShiftJisEncodingObject::append_escaped_char(String &str, nat_int_t c) const {
     if (c >= 0 && c <= 0xFF) {
-        snprintf(buf, 5, "\\x%02llX", c);
+        str.append_sprintf("\\x%02llX", c);
     } else {
-        snprintf(buf, 7, "\\u%04llX", c);
+        str.append_sprintf("\\u%04llX", c);
     }
-    return String(buf);
 }
 
 nat_int_t ShiftJisEncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {

@@ -20,10 +20,8 @@ std::pair<bool, StringView> Ibm037EncodingObject::next_char(const String &string
     return { true, StringView(&string, i, 1) };
 }
 
-String Ibm037EncodingObject::escaped_char(nat_int_t c) const {
-    char buf[5];
-    snprintf(buf, 5, "\\x%02llX", c);
-    return String(buf);
+void Ibm037EncodingObject::append_escaped_char(String &str, nat_int_t c) const {
+    str.append_sprintf("\\x%02llX", c);
 }
 
 nat_int_t Ibm037EncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {
