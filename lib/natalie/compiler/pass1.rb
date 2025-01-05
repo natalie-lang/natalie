@@ -1903,7 +1903,7 @@ module Natalie
 
       def transform_interpolated_regular_expression_node(node, used:)
         instructions = transform_interpolated_stringish_node(node, used: true, unescaped: false)
-        instructions << StringToRegexpInstruction.new(options: node.options, once: node.once?)
+        instructions << StringToRegexpInstruction.new(options: node.options, once: node.once?, euc_jp: node.euc_jp?)
         instructions << PopInstruction.new unless used
         instructions
       end
