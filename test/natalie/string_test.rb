@@ -786,8 +786,7 @@ describe 'string' do
   end
 
   describe "EUC_JP" do
-    # NATFIXME : Possible issue in append_escaped_char or String#inspect
-    xit "returns a code representation of a string" do
+    it "returns a code representation of a string" do
       # tests EncodingObject::append_escaped_char
       "foo\xAa\xBb\xA1\xA1\xFE\xfe".force_encoding("eucjp").inspect.should == '"foo\x{AABB}\x{A1A1}\x{FEFE}"'
       # two byte
