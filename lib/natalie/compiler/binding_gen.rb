@@ -643,6 +643,7 @@ gen.static_binding('File', 'grpowned?', 'FileObject', 'is_grpowned', argc: 1, pa
 gen.static_binding('File', 'identical?', 'FileObject', 'is_identical', argc: 2, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('File', 'link', 'FileObject', 'link', argc: 2, pass_env: true, pass_block: false, return_type: :int)
 gen.static_binding('File', 'lstat', 'FileObject', 'lstat', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('File', 'lutime', 'FileObject', 'lutime', argc: 2.., pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'mkfifo', 'FileObject', 'mkfifo', argc: 1..2, pass_env: true, pass_block: false, return_type: :int)
 gen.static_binding('File', 'mtime', 'FileObject', 'mtime', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'owned?', 'FileObject', 'is_owned', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

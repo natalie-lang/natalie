@@ -633,6 +633,45 @@ Value FileObject::lstat(Env *env) const {
     return new FileStatObject { sb };
 }
 
+Value FileObject::lutime(Env *env, Args &&args) {
+    args.ensure_argc_at_least(env, 2);
+    timeval tv[2];
+    timeval now;
+    if (gettimeofday(&now, nullptr) < 0)
+        env->raise_errno();
+    auto time_convert = [&](Value v, timeval &t) {
+        if (v->is_nil()) {
+            t = now;
+        } else if (v->is_time()) {
+            t.tv_sec = static_cast<time_t>(v->as_time()->to_i(env)->as_integer()->to_nat_int_t());
+            t.tv_usec = static_cast<suseconds_t>(v->as_time()->usec(env)->as_integer()->to_nat_int_t());
+        } else if (v->is_integer()) {
+            t.tv_sec = IntegerObject::convert_to_native_type<time_t>(env, v);
+            t.tv_usec = 0;
+        } else if (v->is_float()) {
+            const auto tmp = v->to_f(env)->to_double();
+            t.tv_sec = static_cast<time_t>(tmp);
+            t.tv_usec = (tmp - t.tv_sec) * 1000000;
+        } else {
+            env->raise("TypeError", "can't convert {} into time", v->klass()->inspect_str());
+        }
+    };
+    time_convert(args.at(0), tv[0]);
+    time_convert(args.at(1), tv[1]);
+    for (size_t i = 2; i < args.size(); i++) {
+        auto filename = args.at(i);
+        static const auto to_path = "to_path"_s;
+        if (filename->respond_to(env, to_path)) {
+            filename = filename->send(env, to_path);
+        } else {
+            filename = filename->to_str(env);
+        }
+        if (lutimes(filename->as_string()->c_str(), tv) < 0)
+            env->raise_errno();
+    }
+    return Value::integer(args.size() - 2);
+}
+
 int FileObject::truncate(Env *env, Value path, Value size) {
     path = ioutil::convert_using_to_path(env, path);
     off_t len = IntegerObject::convert_to_int(env, size);
