@@ -14,8 +14,7 @@ describe :string_length, shared: true do
     utf8_str = 'こにちわ' * 100
     utf8_str.send(@method).should == 400
     utf8_str.encode(Encoding::UTF_32BE).send(@method).should == 400
-    # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
-    # utf8_str.encode(Encoding::SHIFT_JIS).send(@method).should == 400
+    utf8_str.encode(Encoding::SHIFT_JIS).send(@method).should == 400
   end
 
   it "returns the length of the new self after encoding is changed" do
