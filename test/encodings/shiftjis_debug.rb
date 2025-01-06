@@ -21,9 +21,14 @@ to_encoding = Encoding::UTF_8
     rescue ArgumentError
       puts "utf8: 0x#{codepoint.to_s(16)} => ArgumentError"
     else
-      # string = unicode_string.encode(from_encoding)
-      # codepoint = string.ord
-      # puts "back: 0x#{unicode_codepoint.to_s(16)} => 0x#{codepoint.to_s(16)}"
+      begin
+        string = unicode_string.encode(from_encoding)
+      rescue Encoding::UndefinedConversionError
+        puts "back: 0x#{unicode_codepoint.to_s(16)} => UndefinedConversionError"
+      else
+        codepoint = string.ord
+        puts "back: 0x#{unicode_codepoint.to_s(16)} => 0x#{codepoint.to_s(16)}"
+      end
     end
   end
 end

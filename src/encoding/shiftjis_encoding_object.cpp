@@ -149,10 +149,91 @@ nat_int_t ShiftJisEncodingObject::to_unicode_codepoint(nat_int_t codepoint) cons
     return -1;
 }
 
+// https://encoding.spec.whatwg.org/#shift_jis-encoder
 nat_int_t ShiftJisEncodingObject::from_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 0x00 && codepoint <= 0x7F)
+    // 1. If code point is end-of-queue, return finished.
+
+    // 2. If code point is an ASCII code point or U+0080, return a byte whose value is code point.
+    if ((codepoint >= 0x00 && codepoint <= 0x7F) || codepoint == 0x80)
         return codepoint;
-    NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
+
+    // Special cases to match CRuby (not in WHATWG spec):
+    switch (codepoint) {
+    case 0xa2:
+        return 0x8191;
+    case 0xa3:
+        return 0x8192;
+    case 0xac:
+        return 0x81ca;
+    case 0x2014:
+        return 0x815c;
+    case 0x2016:
+        return 0x8161;
+    case 0x221a:
+        return 0x81e3;
+    case 0x2220:
+        return 0x81da;
+    case 0x2229:
+        return 0x81bf;
+    case 0x222a:
+        return 0x81be;
+    case 0x222b:
+        return 0x81e7;
+    case 0x2235:
+        return 0x81e6;
+    case 0x2252:
+        return 0x81e0;
+    case 0x2261:
+        return 0x81df;
+    case 0x22a5:
+        return 0x81db;
+    case 0x301c:
+        return 0x8160;
+    }
+
+    // 3. If code point is U+00A5, return byte 0x5C.
+    if (codepoint == 0x00A5)
+        return 0x5C;
+
+    // 4. If code point is U+203E, return byte 0x7E.
+    if (codepoint == 0x203E)
+        return 0x7E;
+
+    // 5. If code point is in the range U+FF61 to U+FF9F, inclusive, return a byte whose value is code point − 0xFF61 + 0xA1.
+    if (codepoint >= 0xFF61 && codepoint <= 0xFF9F)
+        return codepoint - 0xFF61 + 0xA1;
+
+    // 6. If code point is U+2212, set it to U+FF0D.
+    if (codepoint == 0x2212)
+        codepoint = 0xFF0D;
+
+    // 7. Let pointer be the index Shift_JIS pointer for code point.
+    int pointer = -1;
+    for (long i = 0; i <= JIS0208_max; i++) {
+        if (JIS0208[i] == codepoint)
+            pointer = i;
+    }
+
+    // 8. If pointer is null, return error with code point.
+    if (pointer == -1)
+        return -1;
+
+    // 9. Let lead be pointer / 188.
+    int lead = pointer / 188;
+
+    // 10. Let lead offset be 0x81 if lead is less than 0x1F, otherwise 0xC1.
+    int lead_offset = lead < 0x1F ? 0x81 : 0xC1;
+
+    // 11. Let trail be pointer % 188.
+    int trail = pointer % 188;
+
+    // 12. Let offset be 0x40 if trail is less than 0x3F, otherwise 0x41.
+    int offset = trail < 0x3F ? 0x40 : 0x41;
+
+    // 13. Return two bytes whose values are lead + lead offset and trail + offset.
+    auto b1 = lead + lead_offset;
+    auto b2 = trail + offset;
+    return (b1 << 8) + b2;
 }
 
 String ShiftJisEncodingObject::encode_codepoint(nat_int_t codepoint) const {
