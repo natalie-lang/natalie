@@ -659,13 +659,7 @@ Value FileObject::lutime(Env *env, Args &&args) {
     time_convert(args.at(0), tv[0]);
     time_convert(args.at(1), tv[1]);
     for (size_t i = 2; i < args.size(); i++) {
-        auto filename = args.at(i);
-        static const auto to_path = "to_path"_s;
-        if (filename->respond_to(env, to_path)) {
-            filename = filename->send(env, to_path);
-        } else {
-            filename = filename->to_str(env);
-        }
+        auto filename = ioutil::convert_using_to_path(env, args.at(i));
         if (lutimes(filename->as_string()->c_str(), tv) < 0)
             env->raise_errno();
     }
