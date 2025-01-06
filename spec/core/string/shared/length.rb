@@ -39,11 +39,9 @@ describe :string_length, shared: true do
   end
 
   it "adds 1 for every invalid byte in UTF-8" do
-    NATFIXME 'adds 1 for every invalid byte in UTF-8', exception: SpecFailedException do
-      "\xF4\x90\x80\x80".send(@method).should == 4
-      "a\xF4\x90\x80\x80b".send(@method).should == 6
-      "é\xF4\x90\x80\x80è".send(@method).should == 6
-    end
+    "\xF4\x90\x80\x80".send(@method).should == 4
+    "a\xF4\x90\x80\x80b".send(@method).should == 6
+    "é\xF4\x90\x80\x80è".send(@method).should == 6
   end
 
   it "adds 1 (and not 2) for a incomplete surrogate in UTF-16" do
