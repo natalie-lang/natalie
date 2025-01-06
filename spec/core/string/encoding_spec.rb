@@ -114,8 +114,7 @@ describe "String#encoding for Strings with \\u escapes" do
 
   it "returns the given encoding if #encode!has been called" do
     "\u{20}".dup.encode!(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
-    # NATFIXME: NOT YET IMPLEMENTED in src/encoding/shiftjis_encoding_object.cpp#61: Conversion above Unicode Basic Latin (0x00..0x7F) not implemented
-    # "\u{2020}".dup.encode!(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+    "\u{2020}".dup.encode!(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
   end
 end
 

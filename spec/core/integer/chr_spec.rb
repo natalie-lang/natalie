@@ -116,11 +116,9 @@ describe "Integer#chr without argument" do
         0x0100.chr.encoding.should == Encoding::UTF_8
         0x3000.chr.encoding.should == Encoding::UTF_8
 
-        NATFIXME 'Range check for SHIFT_JIS', exception: RangeError, message: 'out of char range' do
-          Encoding.default_internal = Encoding::SHIFT_JIS
-          0x8140.chr.encoding.should == Encoding::SHIFT_JIS
-          0xFC4B.chr.encoding.should == Encoding::SHIFT_JIS
-        end
+        Encoding.default_internal = Encoding::SHIFT_JIS
+        0x8140.chr.encoding.should == Encoding::SHIFT_JIS
+        0xFC4B.chr.encoding.should == Encoding::SHIFT_JIS
       end
 
       it "returns a String encoding self interpreted as a codepoint in the default internal encoding" do
@@ -128,11 +126,9 @@ describe "Integer#chr without argument" do
         0x0100.chr.bytes.to_a.should == [0xC4, 0x80]
         0x3000.chr.bytes.to_a.should == [0xE3, 0x80, 0x80]
 
-        NATFIXME 'Range check for SHIFT_JIS', exception: RangeError, message: 'out of char range' do
-          Encoding.default_internal = Encoding::SHIFT_JIS
-          0x8140.chr.bytes.to_a.should == [0x81, 0x40] # Smallest assigned CP932 codepoint greater than 255
-          0xFC4B.chr.bytes.to_a.should == [0xFC, 0x4B] # Largest assigned CP932 codepoint
-        end
+        Encoding.default_internal = Encoding::SHIFT_JIS
+        0x8140.chr.bytes.to_a.should == [0x81, 0x40] # Smallest assigned CP932 codepoint greater than 255
+        0xFC4B.chr.bytes.to_a.should == [0xFC, 0x4B] # Largest assigned CP932 codepoint
       end
 
       # #5864
@@ -206,10 +202,8 @@ describe "Integer#chr with an encoding argument" do
     0x007F.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
     0x00A1.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
     0x00DF.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
-    NATFIXME 'Range check for SHIFT_JIS', exception: RangeError, message: 'out of char range' do
-      0x8140.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
-      0xFC4B.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
-    end
+    0x8140.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+    0xFC4B.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
   end
 
   it "returns a String encoding self interpreted as a codepoint in the specified encoding" do
@@ -232,10 +226,8 @@ describe "Integer#chr with an encoding argument" do
     0x007F.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0x7F]
     0x00A1.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0xA1]
     0x00DF.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0xDF]
-    NATFIXME 'Range check for SHIFT_JIS', exception: RangeError, message: 'out of char range' do
-      0x8140.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0x81, 0x40] # Smallest assigned CP932 codepoint greater than 255
-      0xFC4B.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0xFC, 0x4B] # Largest assigned CP932 codepoint
-    end
+    0x8140.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0x81, 0x40] # Smallest assigned CP932 codepoint greater than 255
+    0xFC4B.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0xFC, 0x4B] # Largest assigned CP932 codepoint
   end
 
   # #5864
@@ -246,9 +238,7 @@ describe "Integer#chr with an encoding argument" do
     -> { 0xA1A0.chr("EUC-JP") }.should raise_error(RangeError)
     -> { 0xA1.chr("EUC-JP") }.should raise_error(RangeError)
     -> { 0x80.chr("SHIFT_JIS") }.should raise_error(RangeError)
-    NATFIXME 'Range check for SHIFT_JIS', exception: SpecFailedException do
-      -> { 0xE0.chr("SHIFT_JIS") }.should raise_error(RangeError)
-    end
+    -> { 0xE0.chr("SHIFT_JIS") }.should raise_error(RangeError)
     -> { 0x0100.chr("ISO-8859-9") }.should raise_error(RangeError)
     NATFIXME 'Implement TIS-620', exception: SpecFailedException do
       -> { 620.chr("TIS-620") }.should raise_error(RangeError)

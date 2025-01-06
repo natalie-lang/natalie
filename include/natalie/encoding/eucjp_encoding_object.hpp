@@ -36,4 +36,10 @@ public:
     virtual bool is_single_byte_encoding() const override final { return false; }
 };
 
+extern const long JIS0208[];
+extern const long JIS0208_max;
+
+extern const long JIS0212[];
+extern const long JIS0212_max;
+
 }
