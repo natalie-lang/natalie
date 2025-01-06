@@ -14,7 +14,7 @@ bool ShiftJisEncodingObject::valid_codepoint(nat_int_t codepoint) const {
         return true;
 
     auto b1 = (codepoint & 0xFF00) >> 8;
-    if (!((b1 >= 0x81 && b1 <= 0x9F) || (b1 >= 0xE0 && b1 <= 0xEF)))
+    if (!((b1 >= 0x81 && b1 <= 0x9F) || (b1 >= 0xE0 && b1 <= 0xFD)))
         return false;
 
     auto b2 = (codepoint & 0x00FF);
@@ -90,6 +90,8 @@ nat_int_t ShiftJisEncodingObject::to_unicode_codepoint(nat_int_t codepoint) cons
         return 0xac;
     }
     if (codepoint >= 0x8740 && codepoint <= 0x879c)
+        return -1;
+    if (codepoint >= 0xED40)
         return -1;
 
     // 5. If byte is in the range 0xA1 to 0xDF, inclusive,

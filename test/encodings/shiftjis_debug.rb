@@ -4,7 +4,7 @@
 from_encoding = Encoding::SHIFT_JIS
 to_encoding = Encoding::UTF_8
 
-(0..0xEAA4).each do |codepoint|
+(0..0xFFFF).each do |codepoint|
   begin
     str = codepoint.chr(from_encoding)
   rescue RangeError
