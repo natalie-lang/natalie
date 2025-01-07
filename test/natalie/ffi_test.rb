@@ -213,6 +213,15 @@ describe 'FFI' do
     libm.pow(2.0, 3.0).should == 8.0
   end
 
+  it 'can omit the file extension' do
+    libm = Module.new do
+      extend FFI::Library
+      ffi_lib "libm"
+      attach_function :pow, [:double, :double], :double
+    end
+    libm.pow(2.0, 3.0).should == 8.0
+  end
+
   describe 'Pointer' do
     describe '#initialize' do
       it 'sets address and type_size' do

@@ -26,8 +26,15 @@ static void *dlopen_wrapper(Env *env, Value name) {
         // read the file to find the actual shared object.
         auto const errmsg = dlerror();
         auto trail = strstr(errmsg, ": invalid ELF header");
-        if (!trail)
+        if (!trail) {
+            auto so_ext = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s)->const_fetch("CONFIG"_s)->as_hash_or_raise(env)->fetch(env, new StringObject { "SOEXT" }, nullptr, nullptr)->as_string_or_raise(env);
+            if (str.length() > so_ext->length() && str[0] != '/' && (!str.ends_with(so_ext->string()) || str[str.length() - so_ext->length() - 1] != '.')) {
+                auto new_name = new StringObject { str };
+                new_name->append_sprintf(".%s", so_ext->c_str());
+                return dlopen_wrapper(env, new_name);
+            }
             return error();
+        }
         *trail = '\0';
         std::ifstream ldscript { errmsg, std::ios::in | std::ios::ate };
         if (!ldscript)
