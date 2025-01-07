@@ -32,6 +32,10 @@ static void *dlopen_wrapper(Env *env, Value name) {
                 auto new_name = new StringObject { str };
                 new_name->append_sprintf(".%s", so_ext->c_str());
                 return dlopen_wrapper(env, new_name);
+            } else if (str.length() <= 3 || (str[0] != '/' && str.find("lib") != 0)) {
+                auto new_name = new StringObject { str };
+                new_name->prepend(env, { new StringObject { "lib" } });
+                return dlopen_wrapper(env, new_name);
             }
             return error();
         }
