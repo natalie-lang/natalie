@@ -137,11 +137,9 @@ describe "String#match" do
   end
 
   it "calls match on the regular expression" do
-    NATFIXME 'need to use send internally', exception: SpecFailedException, message: '#<MatchData "h"> should be == to :foo' do
-      regexp = /./.dup
-      regexp.should_receive(:match).and_return(:foo)
-      'hello'.match(regexp).should == :foo
-    end
+    regexp = /./.dup
+    regexp.should_receive(:match).and_return(:foo)
+    'hello'.match(regexp).should == :foo
   end
 end
 
