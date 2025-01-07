@@ -756,8 +756,7 @@ describe 'string' do
   end
 
   describe "Shift_JIS" do
-    # NATFIXME : Possible issue in append_escaped_char or String#inspect
-    xit "returns a code representation of a string" do
+    it "returns a code representation of a string" do
       # tests EncodingObject::append_escaped_char
       # ascii, single-byte halfwid-katakana, and two-byte
       "foo\xA1\xc4\xDF\x81\x77\xe9\xF0".force_encoding("shift_jis").inspect.should == '"foo\xA1\xC4\xDF\x{8177}\x{E9F0}"'
