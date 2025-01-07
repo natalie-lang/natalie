@@ -69,8 +69,7 @@ public:
     static Value try_convert(Env *, Value);
     static Value regexp_union(Env *, Args &&);
 
-    static Value literal(Env *env, const char *pattern, int options = 0, bool euc_jp = false) {
-        EncodingObject *encoding = euc_jp ? EncodingObject::get(Encoding::EUC_JP) : nullptr;
+    static Value literal(Env *env, const char *pattern, int options = 0, EncodingObject *encoding = nullptr) {
         auto regex = new RegexpObject(env, pattern, options, encoding);
         regex->freeze();
         return regex;
