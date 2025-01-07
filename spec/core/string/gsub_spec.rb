@@ -417,10 +417,8 @@ describe "String#gsub with pattern and block" do
         "x"
       end
 
-      NATFIXME 'restores $~ after leaving the block', exception: SpecFailedException do
-        $~[0].should == old_md[0]
-        $~.string.should == "hello"
-      end
+      $~[0].should == old_md[0]
+      $~.string.should == "hello"
     end
   end
 
