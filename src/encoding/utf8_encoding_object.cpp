@@ -73,8 +73,6 @@ std::tuple<bool, int, nat_int_t> Utf8EncodingObject::next_codepoint(const String
         bytes = len - *index;
         *index = len;
         return { false, bytes, codepoint };
-    } else {
-        *index += bytes;
     }
 
     bool valid = true;
@@ -140,6 +138,8 @@ std::tuple<bool, int, nat_int_t> Utf8EncodingObject::next_codepoint(const String
     default:
         NAT_UNREACHABLE();
     }
+
+    *index += bytes;
 
     return { valid, bytes, codepoint };
 }
