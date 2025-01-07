@@ -840,6 +840,12 @@ describe 'string' do
     end
   end
 
+  describe '#append_as_bytes' do
+    it 'only uses the least significant byte of integers' do
+      ''.append_as_bytes(0x131, 0x232, 0x333).should == '123'
+    end
+  end
+
   describe 'line continuation' do
     s = 'foo' \
         'bar'

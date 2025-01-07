@@ -954,6 +954,24 @@ Value StringObject::add(Env *env, Value arg) const {
     return new_string;
 }
 
+Value StringObject::append_as_bytes(Env *env, Args &&args) {
+    assert_not_frozen(env);
+    String buf;
+    for (size_t i = 0; i < args.size(); i++) {
+        auto arg = args[i];
+        if (arg->is_string()) {
+            buf.append(arg->as_string()->string());
+        } else if (arg->is_integer()) {
+            const char c = IntegerObject::convert_to_native_type<nat_int_t>(env, arg) & 0xff;
+            buf.append_char(c);
+        } else {
+            env->raise("TypeError", "wrong argument type {} (expected String or Integer)", arg->klass()->inspect_str());
+        }
+    }
+    m_string.append(buf);
+    return this;
+}
+
 Value StringObject::mul(Env *env, Value arg) const {
     auto int_arg = arg->to_int(env);
     if (int_arg->is_negative())
