@@ -62,7 +62,7 @@ void ShiftJisEncodingObject::append_escaped_char(String &str, nat_int_t c) const
     if (c >= 0 && c <= 0xFF) {
         str.append_sprintf("\\x%02llX", c);
     } else {
-        str.append_sprintf("\\u%04llX", c);
+        str.append_sprintf("\\x{%04llX}", c);
     }
 }
 
