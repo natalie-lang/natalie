@@ -317,6 +317,7 @@ public:
     Value sub_in_place(Env *, Value, Value = nullptr, Block *block = nullptr);
 
     Value add(Env *, Value) const;
+    Value append_as_bytes(Env *, Args &&);
     Value b(Env *) const;
     Value bytes(Env *, Block *);
     Value byteslice(Env *, Value, Value = nullptr);

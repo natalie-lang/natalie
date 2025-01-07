@@ -1295,6 +1295,7 @@ gen.binding('String', '=~', 'StringObject', 'eqtilde', argc: 1, pass_env: true, 
 gen.binding('String', '[]', 'StringObject', 'ref', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', '[]=', 'StringObject', 'refeq', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'ascii_only?', 'StringObject', 'is_ascii_only', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('String', 'append_as_bytes', 'StringObject', 'append_as_bytes', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'b', 'StringObject', 'b', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'bytes', 'StringObject', 'bytes', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'byteindex', 'StringObject', 'byteindex', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
