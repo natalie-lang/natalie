@@ -22,7 +22,9 @@ module Natalie
       end
 
       def execute(vm)
-        vm.push(@regexp.dup)
+        regexp = @regexp.dup
+        regexp = Regexp.compile(regexp.source.dup.force_encoding(Encoding::EUC_JP), Regexp::FIXEDENCODING) if @euc_jp
+        vm.push(regexp)
       end
 
       def serialize(rodata)

@@ -27,7 +27,12 @@ module Natalie
 
       def execute(vm)
         string = vm.pop
-        vm.push(Regexp.new(string, @options))
+        options = @options
+        if @euc_jp
+          string = string.dup.force_encoding(Encoding::EUC_JP)
+          options |= Regexp::FIXEDENCODING
+        end
+        vm.push(Regexp.new(string, options))
       end
 
       def serialize(_)
