@@ -1140,6 +1140,12 @@ bool StringObject::eq(Env *env, Value arg) {
 }
 
 Value StringObject::eqtilde(Env *env, Value other) {
+    if (other->is_string())
+        env->raise("TypeError", "type mismatch: String given");
+
+    if (!other->is_regexp() && other->respond_to(env, "=~"_s))
+        return other->send(env, "=~"_s, { this });
+
     other->assert_type(env, Object::Type::Regexp, "Regexp");
     return other->as_regexp()->eqtilde(env, this);
 }

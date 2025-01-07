@@ -24,17 +24,15 @@ describe "String#=~" do
   end
 
   it "invokes obj.=~ with self if obj is neither a string nor regexp" do
-    NATFIXME 'coercion', exception: TypeError, message: 'no implicit conversion of MockObject into Regexp' do
-      str = "w00t"
-      obj = mock('x')
+    str = "w00t"
+    obj = mock('x')
 
-      obj.should_receive(:=~).with(str).any_number_of_times.and_return(true)
-      str.should =~ obj
+    obj.should_receive(:=~).with(str).any_number_of_times.and_return(true)
+    str.should =~ obj
 
-      obj = mock('y')
-      obj.should_receive(:=~).with(str).any_number_of_times.and_return(false)
-      str.should_not =~ obj
-    end
+    obj = mock('y')
+    obj.should_receive(:=~).with(str).any_number_of_times.and_return(false)
+    str.should_not =~ obj
   end
 
   it "sets $~ to MatchData when there is a match and nil when there's none" do
