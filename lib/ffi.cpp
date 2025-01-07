@@ -12,14 +12,12 @@ Value init_ffi(Env *env, Value self) {
     return NilObject::the();
 }
 
-static void *dlopen_wrapper(Env *env, Value name) {
-    name->assert_type(env, Object::Type::String, "String");
-    const auto &str = name->as_string()->string();
-    void *handle = dlopen(str.c_str(), RTLD_LAZY);
+static void *dlopen_wrapper(Env *env, const String &name) {
+    void *handle = dlopen(name.c_str(), RTLD_LAZY);
     if (!handle) {
-        auto error = [&str]() {
+        auto error = [&name]() {
             // dlerror() clears the error message, so we need to set it again
-            dlopen(str.c_str(), RTLD_LAZY);
+            dlopen(name.c_str(), RTLD_LAZY);
             return nullptr;
         };
         // This might be a GNU ld script. In that case, mirror the behaviour of ruby-ffi and
@@ -28,13 +26,11 @@ static void *dlopen_wrapper(Env *env, Value name) {
         auto trail = strstr(errmsg, ": invalid ELF header");
         if (!trail) {
             auto so_ext = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s)->const_fetch("CONFIG"_s)->as_hash_or_raise(env)->fetch(env, new StringObject { "SOEXT" }, nullptr, nullptr)->as_string_or_raise(env);
-            if (str.length() > so_ext->length() && str[0] != '/' && (!str.ends_with(so_ext->string()) || str[str.length() - so_ext->length() - 1] != '.')) {
-                auto new_name = new StringObject { str };
-                new_name->append_sprintf(".%s", so_ext->c_str());
+            if (name.length() > so_ext->length() && name[0] != '/' && (!name.ends_with(so_ext->string()) || name[name.length() - so_ext->length() - 1] != '.')) {
+                const auto new_name = String::format("{}.{}", name, so_ext->string());
                 return dlopen_wrapper(env, new_name);
-            } else if (str.length() <= 3 || (str[0] != '/' && str.find("lib") != 0)) {
-                auto new_name = new StringObject { str };
-                new_name->prepend(env, { new StringObject { "lib" } });
+            } else if (name.length() <= 3 || (name[0] != '/' && name.find("lib") != 0)) {
+                const auto new_name = String::format("lib{}", name);
                 return dlopen_wrapper(env, new_name);
             }
             return error();
@@ -70,6 +66,11 @@ static void *dlopen_wrapper(Env *env, Value name) {
         handle = dlopen(pos, RTLD_LAZY);
     }
     return handle;
+}
+
+static void *dlopen_wrapper(Env *env, Value name) {
+    name->assert_type(env, Object::Type::String, "String");
+    return dlopen_wrapper(env, name->as_string()->string());
 }
 
 Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
