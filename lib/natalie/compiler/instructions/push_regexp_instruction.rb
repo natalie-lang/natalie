@@ -17,7 +17,8 @@ module Natalie
       end
 
       def generate(transform)
-        transform.exec_and_push(:regexp, "Value(RegexpObject::literal(env, #{string_to_cpp(@regexp.source)}, #{@regexp.options}, #{@euc_jp ? 'true' : 'false'}))")
+        encoding = @euc_jp ? 'EncodingObject::get(Encoding::EUC_JP)' : 'nullptr';
+        transform.exec_and_push(:regexp, "Value(RegexpObject::literal(env, #{string_to_cpp(@regexp.source)}, #{@regexp.options}, #{encoding}))")
       end
 
       def execute(vm)
