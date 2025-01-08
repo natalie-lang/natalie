@@ -1161,8 +1161,7 @@ Value StringObject::match(Env *env, Value other, Value index, Block *block) {
         }
     }
     other->assert_type(env, Object::Type::Regexp, "Regexp");
-    Value regexp = other->as_regexp();
-    auto result = regexp->send(env, "match"_s, { this, index }, block);
+    auto result = other->send(env, "match"_s, { this, index }, block);
     env->caller()->set_match(env->match());
     return result;
 }
