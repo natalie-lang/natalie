@@ -12,22 +12,34 @@ Value init_ffi(Env *env, Value self) {
     return NilObject::the();
 }
 
-static void *dlopen_wrapper(Env *env, Value name) {
-    name->assert_type(env, Object::Type::String, "String");
-    const auto &str = name->as_string()->string();
-    void *handle = dlopen(str.c_str(), RTLD_LAZY);
+static void *dlopen_wrapper(Env *env, const String &name) {
+    void *handle = dlopen(name.c_str(), RTLD_LAZY);
     if (!handle) {
-        auto error = [&str]() {
+        auto error = [&name]() {
             // dlerror() clears the error message, so we need to set it again
-            dlopen(str.c_str(), RTLD_LAZY);
+            dlopen(name.c_str(), RTLD_LAZY);
             return nullptr;
         };
         // This might be a GNU ld script. In that case, mirror the behaviour of ruby-ffi and
         // read the file to find the actual shared object.
         auto const errmsg = dlerror();
         auto trail = strstr(errmsg, ": invalid ELF header");
-        if (!trail)
+        if (!trail) {
+            static const auto so_ext = [&] {
+                auto RbConfig = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s);
+                auto CONFIG = RbConfig->const_fetch("CONFIG"_s)->as_hash_or_raise(env);
+                auto SO_EXT = CONFIG->fetch(env, new StringObject { "SOEXT" }, nullptr, nullptr)->as_string_or_raise(env);
+                return String::format(".{}", SO_EXT->string());
+            }();
+            if (name.find('/') != 0 && !name.ends_with(so_ext)) {
+                const auto new_name = String::format("{}{}", name, so_ext);
+                return dlopen_wrapper(env, new_name);
+            } else if (name.length() <= 3 || (name[0] != '/' && name.find("lib") != 0)) {
+                const auto new_name = String::format("lib{}", name);
+                return dlopen_wrapper(env, new_name);
+            }
             return error();
+        }
         *trail = '\0';
         std::ifstream ldscript { errmsg, std::ios::in | std::ios::ate };
         if (!ldscript)
@@ -59,6 +71,11 @@ static void *dlopen_wrapper(Env *env, Value name) {
         handle = dlopen(pos, RTLD_LAZY);
     }
     return handle;
+}
+
+static void *dlopen_wrapper(Env *env, Value name) {
+    name->assert_type(env, Object::Type::String, "String");
+    return dlopen_wrapper(env, name->as_string()->string());
 }
 
 Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
