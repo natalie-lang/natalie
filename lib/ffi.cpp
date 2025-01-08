@@ -25,9 +25,14 @@ static void *dlopen_wrapper(Env *env, const String &name) {
         auto const errmsg = dlerror();
         auto trail = strstr(errmsg, ": invalid ELF header");
         if (!trail) {
-            auto so_ext = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s)->const_fetch("CONFIG"_s)->as_hash_or_raise(env)->fetch(env, new StringObject { "SOEXT" }, nullptr, nullptr)->as_string_or_raise(env);
-            if (name.length() <= so_ext->length() || (name.find('/') != 0 && (!name.ends_with(so_ext->string()) || name[name.length() - so_ext->length() - 1] != '.'))) {
-                const auto new_name = String::format("{}.{}", name, so_ext->string());
+            static const auto so_ext = [&] {
+                auto RbConfig = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s);
+                auto CONFIG = RbConfig->const_fetch("CONFIG"_s)->as_hash_or_raise(env);
+                auto SO_EXT = CONFIG->fetch(env, new StringObject { "SOEXT" }, nullptr, nullptr)->as_string_or_raise(env);
+                return String::format(".{}", SO_EXT->string());
+            }();
+            if (name.find('/') != 0 && !name.ends_with(so_ext)) {
+                const auto new_name = String::format("{}{}", name, so_ext);
                 return dlopen_wrapper(env, new_name);
             } else if (name.length() <= 3 || (name[0] != '/' && name.find("lib") != 0)) {
                 const auto new_name = String::format("lib{}", name);
