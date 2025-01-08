@@ -26,7 +26,7 @@ static void *dlopen_wrapper(Env *env, const String &name) {
         auto trail = strstr(errmsg, ": invalid ELF header");
         if (!trail) {
             auto so_ext = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s)->const_fetch("CONFIG"_s)->as_hash_or_raise(env)->fetch(env, new StringObject { "SOEXT" }, nullptr, nullptr)->as_string_or_raise(env);
-            if (name.length() > so_ext->length() && name[0] != '/' && (!name.ends_with(so_ext->string()) || name[name.length() - so_ext->length() - 1] != '.')) {
+            if (name.length() <= so_ext->length() || (name.find('/') != 0 && (!name.ends_with(so_ext->string()) || name[name.length() - so_ext->length() - 1] != '.'))) {
                 const auto new_name = String::format("{}.{}", name, so_ext->string());
                 return dlopen_wrapper(env, new_name);
             } else if (name.length() <= 3 || (name[0] != '/' && name.find("lib") != 0)) {
