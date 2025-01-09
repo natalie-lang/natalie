@@ -962,7 +962,7 @@ Value StringObject::append_as_bytes(Env *env, Args &&args) {
         if (arg->is_string()) {
             buf.append(arg->as_string()->string());
         } else if (arg->is_integer()) {
-            const char c = IntegerObject::convert_to_native_type<nat_int_t>(env, arg) & 0xff;
+            const auto c = static_cast<uint8_t>(arg->send(env, "&"_s, { Value::integer(0xFF) })->as_integer()->to_nat_int_t());
             buf.append_char(c);
         } else {
             env->raise("TypeError", "wrong argument type {} (expected String or Integer)", arg->klass()->inspect_str());
