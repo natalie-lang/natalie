@@ -770,8 +770,7 @@ describe 'string' do
       s.should == ''.encode('Shift_JIS')
     end
 
-    # NATFIXME: Pending prev_char implementation
-    xit "chops the last char of a string" do
+    it "chops the last char of a string" do
       # single-byte char
       s = "foo\xA1".force_encoding('Shift_JIS')
       s.chop!
