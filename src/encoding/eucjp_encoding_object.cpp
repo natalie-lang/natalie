@@ -1874,7 +1874,6 @@ bool EucJpEncodingObject::valid_codepoint(nat_int_t codepoint) const {
 std::pair<bool, StringView> EucJpEncodingObject::prev_char(const String &string, size_t *index) const {
     if (*index == 0)
         return { true, StringView() };
-    size_t length = 1;
     (*index)--;
     unsigned char c = string[*index];
 

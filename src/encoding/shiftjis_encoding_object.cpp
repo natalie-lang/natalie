@@ -22,7 +22,30 @@ bool ShiftJisEncodingObject::valid_codepoint(nat_int_t codepoint) const {
 }
 
 std::pair<bool, StringView> ShiftJisEncodingObject::prev_char(const String &string, size_t *index) const {
-    NAT_NOT_YET_IMPLEMENTED();
+    if (*index == 0)
+        return { true, StringView() };
+
+    (*index)--;
+
+    unsigned char c = string[*index];
+
+    if (c >= 0x40 && c <= 0xFC && c != 0x7F && *index > 0) {
+        // this *could* be the second byte
+        unsigned char c_prev = string[*index - 1];
+        if ((c_prev >= 0x81 && c_prev <= 0x9F) || (c_prev >= 0xE0 && c_prev <= 0xFC)) {
+            // yep, two-byte sequence
+            (*index)--;
+            return { true, StringView(&string, *index, 2) };
+        }
+    }
+
+    if ((c >= 0x81 && c <= 0x9F) || (c >= 0xE0 && c <= 0xFC)) {
+        // this is a single-byte char
+        return { true, StringView(&string, *index, 1) };
+    }
+
+    // looks to be invalid
+    return { false, StringView(&string, *index, 1) };
 }
 
 std::pair<bool, StringView> ShiftJisEncodingObject::next_char(const String &string, size_t *index) const {
@@ -30,7 +53,6 @@ std::pair<bool, StringView> ShiftJisEncodingObject::next_char(const String &stri
     if (*index >= len)
         return { true, StringView() };
     size_t i = *index;
-    int length = 0;
     unsigned char c = string[i];
     // Check the first byte and determine length.
     // Note that the lead byte can go up to 0xFC per JIS X 2013 extensions
