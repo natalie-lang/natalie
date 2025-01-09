@@ -445,7 +445,7 @@ bool ArrayObject::eql(Env *env, Value other) {
 
 Value ArrayObject::each(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
 
@@ -458,7 +458,7 @@ Value ArrayObject::each(Env *env, Block *block) {
 
 Value ArrayObject::each_index(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "each_index"_s }, size_block);
     }
 
@@ -472,7 +472,7 @@ Value ArrayObject::each_index(Env *env, Block *block) {
 
 Value ArrayObject::map(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "map"_s }, size_block);
     }
 
@@ -483,7 +483,7 @@ Value ArrayObject::map(Env *env, Block *block) {
 
 Value ArrayObject::map_in_place(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "map!"_s }, size_block);
     }
 
@@ -691,7 +691,7 @@ Value ArrayObject::delete_at(Env *env, Value n) {
 
 Value ArrayObject::delete_if(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "delete_if"_s }, size_block);
     }
 
@@ -893,7 +893,7 @@ Value ArrayObject::sort(Env *env, Block *block) {
 
 Value ArrayObject::keep_if(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "keep_if"_s }, size_block);
     }
 
@@ -1108,7 +1108,7 @@ bool array_sort_by_compare(Env *env, Value a, Value b, Block *block) {
 
 Value ArrayObject::sort_by_in_place(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "sort_by!"_s }, size_block);
     }
 
@@ -1123,7 +1123,7 @@ Value ArrayObject::sort_by_in_place(Env *env, Block *block) {
 
 Value ArrayObject::select(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "select"_s }, size_block);
     }
 
@@ -1134,7 +1134,7 @@ Value ArrayObject::select(Env *env, Block *block) {
 
 Value ArrayObject::select_in_place(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "select!"_s }, size_block);
     }
 
@@ -1170,7 +1170,7 @@ bool ArrayObject::select_in_place(std::function<bool(Value &)> predicate) {
 
 Value ArrayObject::reject(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "reject"_s }, size_block);
     }
 
@@ -1181,7 +1181,7 @@ Value ArrayObject::reject(Env *env, Block *block) {
 
 Value ArrayObject::reject_in_place(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "reject!"_s }, size_block);
     }
 
@@ -1689,7 +1689,7 @@ Value ArrayObject::reverse(Env *env) {
 
 Value ArrayObject::reverse_each(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "reverse_each"_s }, size_block);
     }
 

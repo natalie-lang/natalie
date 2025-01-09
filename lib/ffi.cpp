@@ -329,12 +329,12 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     if (status != FFI_OK)
         env->raise("LoadError", "There was an error preparing the FFI call data structure: {}", (int)status);
 
-    auto block_env = new Env {};
-    block_env->var_set("cif", 0, true, new VoidPObject { cif, [](auto p) { delete (ffi_cif *)p->void_ptr(); } });
-    block_env->var_set("arg_types", 1, true, arg_types_array);
-    block_env->var_set("return_type", 2, true, return_type);
-    block_env->var_set("ffi_args", 3, true, ffi_args_obj);
-    block_env->var_set("fn", 4, true, new VoidPObject { fn });
+    Env block_env;
+    block_env.var_set("cif", 0, true, new VoidPObject { cif, [](auto p) { delete (ffi_cif *)p->void_ptr(); } });
+    block_env.var_set("arg_types", 1, true, arg_types_array);
+    block_env.var_set("return_type", 2, true, return_type);
+    block_env.var_set("ffi_args", 3, true, ffi_args_obj);
+    block_env.var_set("fn", 4, true, new VoidPObject { fn });
     Block *block = new Block { block_env, self, FFI_Library_fn_call_block, 0 };
     self->define_singleton_method(env, name, block);
 
