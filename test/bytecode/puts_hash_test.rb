@@ -13,6 +13,6 @@ describe 'puts a hash' do
     code = 'puts({foo: "foo", bar: "baz"})'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should =~ /\A(?:{foo: "foo", bar: "baz"}|{:foo=>"foo", :bar=>"baz"})\n\z/
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 end

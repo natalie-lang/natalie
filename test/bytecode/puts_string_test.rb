@@ -15,7 +15,7 @@ describe 'puts a string' do
     code = 'puts "foo"'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "foo\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 
   it 'saves the original encoding' do
@@ -26,7 +26,7 @@ describe 'puts a string' do
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "UTF-8\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 
   it 'saves the original encoding (2)' do
@@ -37,13 +37,13 @@ describe 'puts a string' do
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "ASCII-8BIT\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 
   it 'supports string interpolation' do
     code = 'puts "foo #{120 + 3}"'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "foo 123\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 end

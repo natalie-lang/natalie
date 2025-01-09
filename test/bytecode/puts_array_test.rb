@@ -13,13 +13,13 @@ describe 'puts an array' do
     code = 'puts ["foo", "bar"]'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "foo\nbar\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 
   it 'can run a puts with a string representation of an array with static strings' do
     code = 'puts ["foo", "bar"].to_s'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "[\"foo\", \"bar\"]\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 end

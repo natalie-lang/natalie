@@ -13,6 +13,6 @@ describe 'puts a rational number' do
     code = 'puts 2.5r'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "5/2\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 end
