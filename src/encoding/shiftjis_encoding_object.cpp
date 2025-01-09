@@ -25,7 +25,6 @@ std::pair<bool, StringView> ShiftJisEncodingObject::prev_char(const String &stri
     if (*index == 0)
         return { true, StringView() };
 
-    size_t length = 1;
     (*index)--;
 
     unsigned char c = string[*index];
@@ -54,7 +53,6 @@ std::pair<bool, StringView> ShiftJisEncodingObject::next_char(const String &stri
     if (*index >= len)
         return { true, StringView() };
     size_t i = *index;
-    int length = 0;
     unsigned char c = string[i];
     // Check the first byte and determine length.
     // Note that the lead byte can go up to 0xFC per JIS X 2013 extensions
