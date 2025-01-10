@@ -18,7 +18,7 @@ describe 'it can run some code with if instructions' do
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "Foo\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 
   it 'can run some code with an if and an else' do
@@ -31,7 +31,7 @@ describe 'it can run some code with if instructions' do
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "Foo\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 
   it 'can run some code with an elsif' do
@@ -46,13 +46,13 @@ describe 'it can run some code with if instructions' do
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "Bar\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 
   it 'can use a ternary operator' do
     code = 'puts :foo ? "Foo" : "Bar"'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "Foo\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 end

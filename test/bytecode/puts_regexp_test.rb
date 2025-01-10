@@ -15,7 +15,7 @@ describe 'puts a regexp match result' do
     code = 'puts /(foo)/.match("foobar")'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "foo\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 
   it 'preserves the regexp options' do
@@ -25,7 +25,7 @@ describe 'puts a regexp match result' do
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "#{Regexp::IGNORECASE}\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 
   it 'can use an interpolated regexp' do
@@ -34,7 +34,7 @@ describe 'puts a regexp match result' do
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "foo\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 
   it 'preserves the regexp options of an interpolated regexp' do
@@ -44,7 +44,7 @@ describe 'puts a regexp match result' do
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "#{Regexp::IGNORECASE}\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 
   it 'updates the $~ variable' do
@@ -54,7 +54,7 @@ describe 'puts a regexp match result' do
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "foo\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 
   it 'can use $1 to access the first match' do
@@ -64,7 +64,7 @@ describe 'puts a regexp match result' do
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "foo\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 
   it 'can store matches in local variables' do
@@ -74,6 +74,6 @@ describe 'puts a regexp match result' do
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "bar\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
   end
 end
