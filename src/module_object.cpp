@@ -11,8 +11,7 @@ ModuleObject::ModuleObject(const char *name)
 }
 
 ModuleObject::ModuleObject(Type type, ClassObject *klass)
-    : Object { type, klass }
-    , m_env { new Env() } { }
+    : Object { type, klass } { }
 
 Value ModuleObject::initialize(Env *env, Block *block) {
     if (block) {
@@ -354,7 +353,7 @@ void ModuleObject::method_alias(Env *env, SymbolObject *new_name, SymbolObject *
 }
 
 Value ModuleObject::eval_body(Env *env, Value (*fn)(Env *, Value)) {
-    Env body_env { m_env };
+    Env body_env {};
     body_env.set_caller(env);
     body_env.set_module(this);
     Value result = fn(&body_env, this);
@@ -1133,7 +1132,6 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
 
 void ModuleObject::visit_children(Visitor &visitor) const {
     Object::visit_children(visitor);
-    visitor.visit(m_env);
     visitor.visit(m_superclass);
     for (auto pair : m_constants) {
         visitor.visit(pair.first);

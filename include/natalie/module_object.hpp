@@ -165,9 +165,6 @@ public:
         return other->is_a(env, this);
     }
 
-    bool has_env() { return !!m_env; }
-    Env *env() { return m_env; }
-
     virtual void visit_children(Visitor &) const override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -183,7 +180,6 @@ private:
 protected:
     Constant *find_constant(Env *, SymbolObject *, ModuleObject **, ConstLookupSearchMode = ConstLookupSearchMode::Strict);
 
-    Env *m_env { nullptr };
     TM::Hashmap<SymbolObject *, Constant *> m_constants {};
     Optional<String> m_name {};
     ClassObject *m_superclass { nullptr };
