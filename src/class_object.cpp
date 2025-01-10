@@ -31,7 +31,6 @@ void ClassObject::initialize_subclass(ClassObject *subclass, Env *env, String na
 }
 
 void ClassObject::initialize_subclass_without_checks(ClassObject *subclass, Env *env, const String name, Optional<Type> object_type) {
-    subclass->m_env = new Env {};
     if (singleton_class()) {
         String singleton_name;
         if (!name.is_empty())

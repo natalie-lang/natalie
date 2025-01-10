@@ -5,12 +5,9 @@ namespace Natalie {
 Value Method::call(Env *env, Value self, Args &&args, Block *block) const {
     assert(m_fn);
 
-    Env *closure_env;
-    if (has_env()) {
+    Env *closure_env = nullptr;
+    if (has_env())
         closure_env = m_env;
-    } else {
-        closure_env = m_owner->env();
-    }
     Env e { closure_env };
     e.set_caller(env);
     e.set_method(this);
