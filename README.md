@@ -151,6 +151,7 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 
 | file(s)          | copyright                         | license           |
 | ---------------- | --------------------------------- | ----------------- |
+| `abbrev.rb`      | Akinori Musha                     | BSD               |
 | `benchmark.rb`   | Gotoken                           | BSD               |
 | `bigint.{h,c}`   | 983                               | Unlicense         |
 | `cgi.rb`/`cgi/*` | Wakou Aoyama                      | BSD               |
