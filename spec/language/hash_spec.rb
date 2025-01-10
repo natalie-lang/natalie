@@ -289,19 +289,17 @@ describe "The ** operator" do
 
       it "works with methods and local vars" do
         a = Class.new
-        NATFIXME 'class_eval with string', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
-          a.class_eval(<<-RUBY)
-            def bar
-              "baz"
-            end
+        a.class_eval(<<-RUBY)
+          def bar
+            "baz"
+          end
 
-            def foo(val)
-              {bar:, val:}
-            end
-          RUBY
+          def foo(val)
+            {bar:, val:}
+          end
+        RUBY
 
-          a.new.foo(1).should == {bar: "baz", val: 1}
-        end
+        a.new.foo(1).should == {bar: "baz", val: 1}
       end
 
       it "raises a SyntaxError when the hash key ends with `!`" do
