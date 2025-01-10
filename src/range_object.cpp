@@ -126,7 +126,7 @@ Value RangeObject::to_a(Env *env) {
 
 Value RangeObject::each(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { env, this, RangeObject::size_fn, 0 };
+        Block *size_block = new Block { *env, this, RangeObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
 

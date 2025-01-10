@@ -748,7 +748,7 @@ Value KernelModule::loop(Env *env, Value self, Block *block) {
         auto infinity_fn = [](Env *env, Value, Args &&, Block *) -> Value {
             return FloatObject::positive_infinity(env);
         };
-        auto size_block = new Block { env, self, infinity_fn, 0 };
+        auto size_block = new Block { *env, self, infinity_fn, 0 };
         return self->send(env, "enum_for"_s, { "loop"_s }, size_block);
     }
 

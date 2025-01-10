@@ -12,7 +12,7 @@ ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, cons
     , m_exclude_end { exclude_end } {
     auto Enumerator = GlobalEnv::the()->Object()->const_fetch("Enumerator"_s)->as_module();
     auto method_info = Enumerator->find_method(env, "initialize"_s);
-    method_info.method()->call(env, this, {}, new Block { env, this, enum_block, 1 });
+    method_info.method()->call(env, this, {}, new Block { *env, this, enum_block, 1 });
 }
 
 ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, Value begin, Value end, Value step, bool exclude_end)

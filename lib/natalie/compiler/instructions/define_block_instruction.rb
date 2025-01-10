@@ -27,7 +27,7 @@ module Natalie
           body << '}'
           transform.top(body)
         end
-        transform.push("(new Block(env, self, #{fn}, #{@arity}))")
+        transform.push("(new Block(*env, self, #{fn}, #{@arity}))")
       end
 
       def execute(vm)

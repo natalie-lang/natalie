@@ -17,16 +17,15 @@ public:
         Method
     };
 
-    Block(Env *env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc)
+    Block(Env &env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc)
         : m_fn { fn }
         , m_arity { arity }
-        , m_env { new Env(*env) }
+        , m_env { new Env(env) }
         , m_self { self }
         , m_type { type } { }
 
     // NOTE: This should only be called from one of the RUN_BLOCK_* macros!
     Value _run(Env *env, Args &&args = {}, Block *block = nullptr) {
-        assert(has_env());
         Env e { m_env };
         e.set_caller(env);
         e.set_this_block(this);
@@ -37,7 +36,6 @@ public:
 
     int arity() const { return m_arity; }
 
-    bool has_env() { return !!m_env; }
     Env *env() { return m_env; }
 
     void set_type(BlockType type) { m_type = type; }
