@@ -21,13 +21,11 @@ describe :struct_inspect, shared: true do
 
   it "returns a string representation without the class name for structs nested in anonymous modules" do
     m = Module.new
-    NATFIXME 'Support module_eval with string', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
-      m.module_eval <<~DOC
-        class Foo < Struct.new(:a); end
-      DOC
+    m.module_eval <<~DOC
+      class Foo < Struct.new(:a); end
+    DOC
 
-      m::Foo.new("").send(@method).should == '#<struct a="">'
-    end
+    m::Foo.new("").send(@method).should == '#<struct a="">'
   end
 
   it "does not call #name method" do

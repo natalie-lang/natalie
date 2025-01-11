@@ -151,7 +151,7 @@ describe "Literal (A::X) constant resolution" do
       it "evaluates left-to-right" do
         mod = Module.new
 
-        NATFIXME 'Implement argument for Module#module_eval', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+        NATFIXME 'it evaluates left-to-right', exception: SpecFailedException do
           mod.module_eval <<-EOC
             order = []
             ConstantSpecsRHS = Module.new

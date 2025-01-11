@@ -21,6 +21,7 @@ module Natalie
       EVALISH_STRING_TO_BLOCK = %i[
         class_eval
         instance_eval
+        module_eval
       ].freeze
 
       MACROS = %i[
