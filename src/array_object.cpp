@@ -1713,15 +1713,17 @@ Value ArrayObject::reverse_in_place(Env *env) {
 Value ArrayObject::concat(Env *env, Args &&args) {
     assert_not_frozen(env);
 
-    ArrayObject *original = new ArrayObject(*this);
+    const auto original_size = size();
 
     for (size_t i = 0; i < args.size(); i++) {
         auto arg = args[i];
 
-        if (arg == this)
-            arg = original;
-
-        concat(*arg->to_ary(env));
+        if (arg == this) {
+            auto original = m_vector.slice(0, original_size);
+            m_vector.concat(original);
+        } else {
+            concat(*arg->to_ary(env));
+        }
     }
 
     return this;
