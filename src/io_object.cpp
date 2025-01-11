@@ -1040,7 +1040,19 @@ Value IoObject::sysseek(Env *env, Value amount, Value whence) {
 }
 
 Value IoObject::syswrite(Env *env, Value obj) {
-    return write(env, Args { obj });
+    raise_if_closed(env);
+
+    auto str = obj->to_s(env);
+    if (str->is_empty())
+        return 0;
+
+    auto result = ::write(m_fileno, str->c_str(), str->bytesize());
+    if (result == -1)
+        throw_unless_writable(env, this);
+
+    if (m_sync) ::fsync(m_fileno);
+
+    return Value::integer(result);
 }
 
 static bool any_closed(ArrayObject *ios) {
