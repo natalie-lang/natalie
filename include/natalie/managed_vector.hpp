@@ -12,8 +12,7 @@ public:
 
     ManagedVector(const Vector<T> &other)
         : ManagedVector {} {
-        for (auto item : other)
-            this->push(item);
+        concat(other);
     }
 
     virtual ~ManagedVector() { }
