@@ -85,9 +85,7 @@ public:
     }
 
     void concat(ArrayObject &other) {
-        for (Value v : other) {
-            push(v);
-        }
+        m_vector.concat(other.m_vector);
     }
 
     void truncate(size_t new_size) {
