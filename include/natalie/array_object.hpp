@@ -99,9 +99,7 @@ public:
 
     void overwrite(ArrayObject &other) {
         m_vector.set_size(0);
-        for (Value v : other) {
-            push(v);
-        }
+        m_vector.concat(other.m_vector);
     }
 
     Value *data() {

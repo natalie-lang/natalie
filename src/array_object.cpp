@@ -335,9 +335,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
 
     // the new entry/entries
     if (val->is_array() || val->respond_to(env, "to_ary"_s)) {
-        for (auto &v : *val->to_ary(env)) {
-            new_ary->push(v);
-        }
+        concat(*val->to_ary(env));
     } else {
         new_ary->push(val);
     }
