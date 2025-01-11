@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "tm/owned_ptr.hpp"
 
 namespace Natalie {
 
@@ -71,9 +72,9 @@ Value ProcObject::ruby2_keywords(Env *env) {
         return old_block->call(env, std::move(new_args), block);
     };
 
-    Env inner_env { *env };
-    inner_env.var_set("old_block", 1, true, new ProcObject { m_block });
-    m_block = new Block { inner_env, this, block_wrapper, -1 };
+    OwnedPtr<Env> inner_env { new Env { *env } };
+    inner_env->var_set("old_block", 1, true, new ProcObject { m_block });
+    m_block = new Block { std::move(inner_env), this, block_wrapper, -1 };
 
     return this;
 }
