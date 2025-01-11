@@ -97,11 +97,6 @@ public:
 
     void expand_with_nil(Env *, size_t);
 
-    void overwrite(ArrayObject &other) {
-        m_vector.set_size(0);
-        m_vector.concat(other.m_vector);
-    }
-
     Value *data() {
         return m_vector.data();
     }
