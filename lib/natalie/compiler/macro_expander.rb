@@ -17,18 +17,22 @@ module Natalie
 
       attr_reader :node, :load_path, :depth
 
+      # Eval-like calls that can take a static string or a block
+      EVALISH_STRING_TO_BLOCK = %i[
+        class_eval
+        instance_eval
+      ].freeze
+
       MACROS = %i[
         autoload
-        class_eval
         eval
         include_str!
-        instance_eval
         load
         nat_ignore_require
         nat_ignore_require_relative
         require
         require_relative
-      ].freeze
+      ].concat(EVALISH_STRING_TO_BLOCK).freeze
 
       def expand(call_node, locals:, depth:, file:)
         if (macro_name = get_macro_name(call_node))
@@ -42,7 +46,9 @@ module Natalie
 
       def get_macro_name(node)
         if node.type == :call_node && node.receiver.nil?
-          if MACROS.include?(node.name)
+          if EVALISH_STRING_TO_BLOCK.include?(node.name)
+            :evalish_string_to_block
+          elsif MACROS.include?(node.name)
             node.name
           elsif @macros_enabled
             if node.name == :macro!
@@ -61,10 +67,8 @@ module Natalie
       def get_hidden_macro_name(node)
         if node.type == :call_node && node.receiver&.type == :global_variable_read_node && %i[$LOAD_PATH $:].include?(node.receiver.name) && %i[<< unshift].include?(node.name)
           :update_load_path
-        elsif node.type == :call_node && node.name == :instance_eval && node.block.nil? && node.arguments&.arguments&.size == 1 && compile_time_string?(node.arguments.arguments.first)
-          :instance_eval
-        elsif node.type == :call_node && node.name == :class_eval && node.block.nil? && node.arguments&.arguments&.size == 1 && compile_time_string?(node.arguments.arguments.first)
-          :class_eval
+        elsif node.type == :call_node && EVALISH_STRING_TO_BLOCK.include?(node.name) && node.block.nil? && node.arguments&.arguments&.size == 1 && compile_time_string?(node.arguments.arguments.first)
+          :evalish_string_to_block
         end
       end
 
@@ -223,17 +227,7 @@ module Natalie
         Prism.nil_node(location: expr.location)
       end
 
-      def macro_instance_eval(expr:, current_path:, depth:, locals:, **)
-        return expr unless compile_time_string?(expr.arguments&.child_nodes&.first)
-
-        ast = Natalie::Parser.new(string_node_to_string(expr.arguments.child_nodes.first), current_path, locals:).ast
-        block = Prism::BlockNode.new(ast.child_nodes.first, nil, expr.arguments.location, 0, nil, nil, ast.statements, expr.arguments.child_nodes.first.opening_loc, expr.arguments.child_nodes.first.closing_loc)
-        expr.copy(arguments: nil, block:)
-      rescue Parser::ParseError => e
-        drop_error(:SyntaxError, e.message, location: expr.location)
-      end
-
-      def macro_class_eval(expr:, current_path:, depth:, locals:, **)
+      def macro_evalish_string_to_block(expr:, current_path:, depth:, locals:, **)
         return expr unless compile_time_string?(expr.arguments&.child_nodes&.first)
 
         ast = Natalie::Parser.new(string_node_to_string(expr.arguments.child_nodes.first), current_path, locals:).ast
