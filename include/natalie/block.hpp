@@ -4,6 +4,7 @@
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
+#include "tm/owned_ptr.hpp"
 
 namespace Natalie {
 
@@ -21,6 +22,14 @@ public:
         : m_fn { fn }
         , m_arity { arity }
         , m_env { new Env(env) }
+        , m_self { self }
+        , m_type { type } { }
+
+    // Keep the TM:: namespace, ffi-clang (used in gc_lint) gets confused otherwise
+    Block(TM::OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc)
+        : m_fn { fn }
+        , m_arity { arity }
+        , m_env { env.release() }
         , m_self { self }
         , m_type { type } { }
 
