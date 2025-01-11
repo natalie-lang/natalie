@@ -109,9 +109,17 @@ static Value Server_sysaccept(Env *env, Value self, sockaddr_storage &addr, sock
 
     int fd;
     if (is_blocking) {
-        fd = blocking_accept(env, self->as_io(), reinterpret_cast<sockaddr *>(&addr), &len);
-        if (fd == -1)
-            env->raise_errno();
+        bool retry = false;
+        do {
+            retry = false;
+            fd = blocking_accept(env, self->as_io(), reinterpret_cast<sockaddr *>(&addr), &len);
+            if (fd == -1) {
+                if (errno == EAGAIN)
+                    retry = true;
+                else
+                    env->raise_errno();
+            }
+        } while (retry);
     } else {
         const auto fileno = self->as_io()->fileno();
         self->as_io()->set_nonblock(env, true);

@@ -78,23 +78,35 @@ describe 'Socket' do
   it 'reads from buffer even if other end of socket has stopped writing' do
     server = TCPServer.new(0)
     port = server.addr[1]
-    t = Thread.new do
-      conn = server.accept
-      conn.gets.should == "GET / HTTP/1.1\r\n"
-      line = conn.gets until line == "\r\n"
-      conn.write "HTTP/1.1 200\r\n"
-      conn.write "\r\n"
-      conn.write "hello world\r\n"
-      conn.close
+    threads = (1..2).map do |i|
+      Thread.new do
+        conn = server.accept
+        conn.gets.should == "GET / HTTP/1.1\r\n"
+        line = conn.gets until line == "\r\n"
+        conn.write "HTTP/1.1 200\r\n"
+        conn.write "\r\n"
+        conn.write "hello from thread #{i}\r\n"
+        conn.close
+      end
     end
 
-    client = TCPSocket.new('127.0.0.1', port)
-    client.write "GET / HTTP/1.1\r\n" \
-                 "Host: localhost:#{port}\r\n" \
-                 "User-Agent: ruby\r\n" \
-                 "\r\n"
+    responses = []
+    2.times do 
+      client = TCPSocket.new('127.0.0.1', port)
+      client.write "GET / HTTP/1.1\r\n" \
+                  "Host: localhost:#{port}\r\n" \
+                  "User-Agent: ruby\r\n" \
+                  "\r\n"
+      responses << client.read
+      client.close
+    end
 
-    t.join
+    threads.each(&:join)
+
+    responses.sort.should == [
+      "HTTP/1.1 200\r\n\r\nhello from thread 1\r\n",
+      "HTTP/1.1 200\r\n\r\nhello from thread 2\r\n",
+    ]
   end
 
   describe 'Socket.unpack_sockaddr_un' do
