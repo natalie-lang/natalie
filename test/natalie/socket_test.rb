@@ -109,6 +109,22 @@ describe 'Socket' do
     ]
   end
 
+  it 'does not truncate large writes to the socket' do
+    server = TCPServer.new(0)
+    port = server.addr[1]
+
+    t = Thread.new do
+      conn = server.accept
+      conn.write('a' * 10_000_000).should == 10_000_000
+      conn.close
+    end
+
+    client = TCPSocket.new('127.0.0.1', port)
+    client.read.size.should == 10_000_000
+
+    t.join
+  end
+
   describe 'Socket.unpack_sockaddr_un' do
     before :each do
       @path = SocketSpecs.socket_path
