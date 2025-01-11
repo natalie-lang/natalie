@@ -30,6 +30,10 @@ class Foo1Child < Foo1
 end
 require 'require/simple' # rubocop:disable Lint/DuplicateRequire
 
+# having this top-level variable named the same as the one in simple.rb
+# should not cause a compilation error
+top_level_var = 2
+
 # circular requires do not cause stack overflow
 require 'require/circular1'
 

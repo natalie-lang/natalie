@@ -5,3 +5,5 @@ end
 def simple
   'simple'
 end
+
+top_level_var = 1
