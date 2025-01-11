@@ -420,13 +420,8 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
     return str;
 }
 
-Value IoObject::append(Env *env, Value obj) {
-    raise_if_closed(env);
-    obj = obj->to_s(env);
-    obj->assert_type(env, Object::Type::String, "String");
-    auto result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->bytesize());
-    if (result == -1) env->raise_errno();
-    if (m_sync) ::fsync(m_fileno);
+Value IoObject::ltlt(Env *env, Value obj) {
+    write(env, obj);
     return this;
 }
 
@@ -474,14 +469,32 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
 
 int IoObject::write(Env *env, Value obj) {
     raise_if_closed(env);
-    obj = obj->to_s(env);
-    obj->assert_type(env, Object::Type::String, "String");
-    if (obj->as_string()->is_empty())
+
+    auto str = obj->to_s(env);
+    if (str->is_empty())
         return 0;
-    int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->bytesize());
-    if (result == -1) throw_unless_writable(env, this);
+
+    size_t total_written = 0;
+    const char *buf = str->c_str();
+    auto size = str->bytesize();
+
+    while (total_written < size) {
+        ssize_t written = ::write(m_fileno, buf + total_written, size - total_written);
+        if (written == -1) {
+            switch (errno) {
+            case EINTR:
+            case EAGAIN:
+                continue;
+            default:
+                throw_unless_writable(env, this);
+            }
+        }
+        total_written += written;
+    }
+
     if (m_sync) ::fsync(m_fileno);
-    return result;
+
+    return total_written;
 }
 
 Value IoObject::write(Env *env, Args &&args) {
@@ -1022,7 +1035,19 @@ Value IoObject::sysseek(Env *env, Value amount, Value whence) {
 }
 
 Value IoObject::syswrite(Env *env, Value obj) {
-    return write(env, Args { obj });
+    raise_if_closed(env);
+
+    auto str = obj->to_s(env);
+    if (str->is_empty())
+        return 0;
+
+    auto result = ::write(m_fileno, str->c_str(), str->bytesize());
+    if (result == -1)
+        throw_unless_writable(env, this);
+
+    if (m_sync) ::fsync(m_fileno);
+
+    return Value::integer(result);
 }
 
 static bool any_closed(ArrayObject *ios) {

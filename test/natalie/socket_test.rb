@@ -75,7 +75,7 @@ describe 'Socket' do
     @socket.read.should =~ /this page left intentionally blank/
   end
 
-  it 'reads from buffer even if other end of socket has stopped writing' do
+  it 'accepts connections from multiple threads without error' do
     server = TCPServer.new(0)
     port = server.addr[1]
     threads = (1..2).map do |i|
@@ -91,7 +91,7 @@ describe 'Socket' do
     end
 
     responses = []
-    2.times do 
+    2.times do
       client = TCPSocket.new('127.0.0.1', port)
       client.write "GET / HTTP/1.1\r\n" \
                   "Host: localhost:#{port}\r\n" \
@@ -107,6 +107,22 @@ describe 'Socket' do
       "HTTP/1.1 200\r\n\r\nhello from thread 1\r\n",
       "HTTP/1.1 200\r\n\r\nhello from thread 2\r\n",
     ]
+  end
+
+  it 'does not truncate large writes to the socket' do
+    server = TCPServer.new(0)
+    port = server.addr[1]
+
+    t = Thread.new do
+      conn = server.accept
+      conn.write('a' * 10_000_000).should == 10_000_000
+      conn.close
+    end
+
+    client = TCPSocket.new('127.0.0.1', port)
+    client.read.size.should == 10_000_000
+
+    t.join
   end
 
   describe 'Socket.unpack_sockaddr_un' do
