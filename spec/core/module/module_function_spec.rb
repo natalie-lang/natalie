@@ -226,9 +226,7 @@ describe "Module#module_function as a toggle (no arguments) in a Module body" do
     m = Module.new {
       module_function
       module_eval { def test1() end }
-      NATFIXME 'String eval', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
-        module_eval " def test2() end "
-      end
+      module_eval " def test2() end "
     }
 
     NATFIXME 'Make Module#module_eval spec-compliant', exception: SpecFailedException do
