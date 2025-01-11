@@ -9,7 +9,6 @@
 #include "natalie/local_jump_error_type.hpp"
 #include "natalie/managed_vector.hpp"
 #include "natalie/value.hpp"
-#include "tm/shared_ptr.hpp"
 
 namespace Natalie {
 
