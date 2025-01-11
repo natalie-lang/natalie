@@ -50,7 +50,6 @@ public:
     }
 
     Value advise(Env *, Value, Value, Value);
-    Value append(Env *, Value);
     Value autoclose(Env *, Value);
     static Value binread(Env *, Value, Value = nullptr, Value = nullptr);
     static Value binwrite(Env *, Args &&);
@@ -79,6 +78,7 @@ public:
     bool is_nonblock(Env *) const;
     bool isatty(Env *) const;
     int lineno(Env *) const;
+    Value ltlt(Env *, Value);
     Value pid(Env *) const;
     static Value pipe(Env *, Value, Value, Block *, ClassObject *);
     static Value popen(Env *, Args &&, Block *, ClassObject *);
