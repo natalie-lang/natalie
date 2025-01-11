@@ -839,30 +839,34 @@ describe 'string' do
   end
 
   describe 'line continuation' do
-    s = 'foo' \
-        'bar'
-    s.should == 'foobar'
+    it 'works' do
+      s = 'foo' \
+          'bar'
+      s.should == 'foobar'
 
-    s = 'foo' \
-        "bar#{1 + 1}"
-    s.should == 'foobar2'
+      s = 'foo' \
+          "bar#{1 + 1}"
+      s.should == 'foobar2'
 
-    s = "foo#{1 + 1}" \
-        "bar#{1 + 1}"
-    s.should == 'foo2bar2'
+      s = "foo#{1 + 1}" \
+          "bar#{1 + 1}"
+      s.should == 'foo2bar2'
 
-    s = "foo#{1 + 1}" \
-        'bar'
-    s.should == 'foo2bar'
+      s = "foo#{1 + 1}" \
+          'bar'
+      s.should == 'foo2bar'
 
-    s = 'foo' \
-        'bar' \
-        'baz'
-    s.should == 'foobarbaz'
+      s = 'foo' \
+          'bar' \
+          'baz'
+      s.should == 'foobarbaz'
+    end
   end
 
   describe 'trigraph' do
-    s = '??!'
-    s.size.should == 3
+    it 'does not produce a compiler error' do
+      s = '??!'
+      s.size.should == 3
+    end
   end
 end
