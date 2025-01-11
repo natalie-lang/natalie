@@ -166,25 +166,35 @@ module Natalie
       end
 
       main_file.instructions = instructions
-      files = [main_file] + @context[:required_ruby_files].values
-      files.each do |file_info|
-        {
-          'p2' => Pass2,
-          'p3' => Pass3,
-          'p4' => Pass4,
-        }.each do |short_name, klass|
-          file_info.instructions = klass.new(
-            file_info.instructions,
-            compiler_context: @context,
-          ).transform
-          if debug == short_name
-            klass.debug_instructions(instructions)
-            exit
-          end
-        end
+      transform_file(main_file, @context)
+
+      @context[:required_ruby_files].each_value do |file_info|
+        context = @context.update(
+          # Each required file gets its own top-level variables,
+          # so give a fresh vars hash for each file.
+          vars: {}
+        )
+        transform_file(file_info, context)
       end
 
       main_file.instructions
+    end
+
+    def transform_file(file_info, compiler_context)
+      {
+        'p2' => Pass2,
+        'p3' => Pass3,
+        'p4' => Pass4,
+      }.each do |short_name, klass|
+        file_info.instructions = klass.new(
+          file_info.instructions,
+          compiler_context:,
+        ).transform
+        if debug == short_name
+          klass.debug_instructions(instructions)
+          exit
+        end
+      end
     end
 
     def macro_expander
