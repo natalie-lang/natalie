@@ -348,10 +348,10 @@ class SimpleDelegator < Delegator
 end
 
 def Delegator.delegating_block(mid) # :nodoc:
-  lambda do |*args, **kwargs, &block|
+  lambda do |*args, &block|
     target = self.__getobj__
-    target.__send__(mid, *args, **kwargs, &block)
-  end
+    target.__send__(mid, *args, &block)
+  end.ruby2_keywords
 end
 
 #

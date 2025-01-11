@@ -68,6 +68,7 @@ Value ProcObject::ruby2_keywords(Env *env) {
         if (!kwargs->is_empty())
             new_args->push(HashObject::ruby2_keywords_hash(env, kwargs));
         auto old_block = env->outer()->var_get("old_block", 1)->as_proc();
+        old_block->block()->set_self(self);
         return old_block->call(env, std::move(new_args), block);
     };
 
