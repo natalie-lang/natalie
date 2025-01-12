@@ -1,4 +1,6 @@
 module RbConfig
+  ruby_version_parts = RUBY_VERSION.split('.')
+
   CONFIG = {
     "bindir" => File.expand_path('../bin', __dir__),
     "ruby_install_name" => 'natalie',
@@ -11,6 +13,10 @@ module RbConfig
     "host_os" => RUBY_PLATFORM.split('-')[1],
     "AR" => "ar",
     "STRIP" => "strip",
+    "MAJOR" => ruby_version_parts[0],
+    "MINOR" => ruby_version_parts[1],
+    "TEENY" => ruby_version_parts[2],
+    "PATCHLEVEL" => RUBY_PATCHLEVEL.to_s,
   }.freeze
   TOPDIR = nil
 end
