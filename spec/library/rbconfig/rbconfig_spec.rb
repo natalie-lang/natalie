@@ -153,9 +153,7 @@ end
 describe "RUBY_DESCRIPTION" do
   guard_not -> { RUBY_ENGINE == "ruby" && !RbConfig::TOPDIR } do
     it "contains version" do
-      NATFIXME 'Update RUBY_DESCRIPTION', exception: SpecFailedException do
-        RUBY_DESCRIPTION.should.include? RUBY_VERSION
-      end
+      RUBY_DESCRIPTION.should.include? RUBY_VERSION
     end
 
     it "contains RUBY_PLATFORM" do
