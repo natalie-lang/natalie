@@ -97,13 +97,6 @@ public:
 
     void expand_with_nil(Env *, size_t);
 
-    void overwrite(ArrayObject &other) {
-        m_vector.set_size(0);
-        for (Value v : other) {
-            push(v);
-        }
-    }
-
     Value *data() {
         return m_vector.data();
     }

@@ -322,32 +322,32 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
     }
 
     // PERF: inefficient for large arrays where changes are being made to only the right side
-    ArrayObject *new_ary = new ArrayObject {};
+    Vector<Value> new_ary {};
 
     // stuff before the new entry/entries
     for (size_t i = 0; i < (size_t)start; i++) {
         if (i >= this->size()) break;
-        new_ary->push((*this)[i]);
+        new_ary.push((*this)[i]);
     }
 
     // extra nils if needed
-    new_ary->expand_with_nil(env, start);
+    for (size_t i = this->size(); i < (size_t)start; i++) {
+        new_ary.push(NilObject::the());
+    }
 
     // the new entry/entries
     if (val->is_array() || val->respond_to(env, "to_ary"_s)) {
-        for (auto &v : *val->to_ary(env)) {
-            new_ary->push(v);
-        }
+        new_ary.concat(val->to_ary(env)->m_vector);
     } else {
-        new_ary->push(val);
+        new_ary.push(val);
     }
 
     // stuff after the new entry/entries
     for (size_t i = start + width; i < this->size(); ++i) {
-        new_ary->push((*this)[i]);
+        new_ary.push((*this)[i]);
     }
 
-    overwrite(*new_ary);
+    m_vector = std::move(new_ary);
 
     return val;
 }
