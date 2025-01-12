@@ -567,6 +567,20 @@ class BeKindOfExpectation
   end
 end
 
+class BeInstanceOfExpectation
+  def initialize(klass)
+    @klass = klass
+  end
+
+  def match(subject)
+    raise SpecFailedException, subject.inspect + ' should be an instance of ' + @klass.inspect if !subject.instance_of?(@klass)
+  end
+
+  def inverted_match(subject)
+    raise SpecFailedException, subject.inspect + ' should not be an instance of ' + @klass.inspect if subject.instance_of?(@klass)
+  end
+end
+
 class BeAncestorOfExpectation
   def initialize(klass)
     @klass = klass
@@ -1486,7 +1500,7 @@ class Object
   end
 
   def be_an_instance_of(klass)
-    BeKindOfExpectation.new(klass)
+    BeInstanceOfExpectation.new(klass)
   end
 
   def be_ancestor_of(klass)
