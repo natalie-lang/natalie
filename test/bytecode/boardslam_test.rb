@@ -11,12 +11,14 @@ describe 'run the boardslam example' do
 
   it 'can run the boardslam example' do
     code = <<~RUBY
-      #{File.read(File.join(__dir__, '../../examples/boardslam.rb'))}
       board = BoardSlam.new(3, 5, 1)
       puts board.missing.sort.join(', ')
     RUBY
-    ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
+    filename = File.join(__dir__, '../../examples/boardslam.rb')
+    code_bytecode = "#{File.read(filename)}\n#{code}"
+    code_ruby = "load '#{filename}'\n#{code}"
+    ruby_exe(code_bytecode, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == "19, 30\n"
+    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code_ruby)
   end
 end
