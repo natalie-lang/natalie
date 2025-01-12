@@ -160,7 +160,7 @@ module Natalie
 
         def interned_string(str, encoding)
           index = @interned_strings[[str, encoding]] ||= @interned_strings.size
-          "#{interned_strings_var_name}[#{index}]/*#{str.inspect.gsub(%r{\*/|\\}, '?')}*/"
+          "#{interned_strings_var_name}[#{index}]/*#{str.inspect.gsub(%r{/\*|\*/|\\}, '?')}*/"
         end
 
         def set_file(file)
