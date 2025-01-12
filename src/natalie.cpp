@@ -642,8 +642,13 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
 }
 
 Value to_ary_for_masgn(Env *env, Value obj) {
-    if (obj->is_array())
-        return obj->duplicate(env);
+    if (obj->is_array()) {
+        if (obj->klass() == GlobalEnv::the()->Array()) {
+            return obj->duplicate(env);
+        } else {
+            return obj->as_array()->to_a();
+        }
+    }
 
     if (obj->respond_to(env, "to_ary"_s)) {
         auto array = obj.send(env, "to_ary"_s);

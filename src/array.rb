@@ -158,7 +158,7 @@ class Array
   end
 
   def shuffle(random: Random::DEFAULT)
-    dup.shuffle!(random: random)
+    to_a.dup.shuffle!(random: random)
   end
 
   def shuffle!(random: Random::DEFAULT)

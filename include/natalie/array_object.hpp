@@ -51,6 +51,14 @@ public:
         }
     }
 
+    ArrayObject(const Vector<Value> &other)
+        : Object { Object::Type::Array, GlobalEnv::the()->Array() }
+        , m_vector { other } { }
+
+    ArrayObject(Vector<Value> &&other)
+        : Object { Object::Type::Array, GlobalEnv::the()->Array() }
+        , m_vector { std::move(other) } { }
+
     // Array[]
     static Value square_new(Env *env, Args &&args, ClassObject *klass) {
         return new ArrayObject { args.size(), args.data(), klass };
@@ -60,7 +68,8 @@ public:
         return Value::integer(self->as_array()->size());
     }
 
-    Value to_ary_method() { return this; }
+    ArrayObject *to_a();
+    ArrayObject *to_ary() { return this; }
 
     size_t size() const { return m_vector.size(); }
 
@@ -213,10 +222,6 @@ public:
     }
 
 private:
-    ArrayObject(Vector<Value> &&vector)
-        : Object { Object::Type::Array, GlobalEnv::the()->Array() }
-        , m_vector { std::move(vector) } { }
-
     Vector<Value> m_vector {};
 
     nat_int_t _resolve_index(nat_int_t) const;
