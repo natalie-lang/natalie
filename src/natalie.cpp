@@ -464,7 +464,7 @@ Env *build_top_env() {
     Object->const_set("ENV"_s, ENV);
     ENV->extend_once(env, Enumerable);
 
-    Value RUBY_VERSION = new StringObject { "3.4.0" };
+    auto RUBY_VERSION = new StringObject { "3.4.0" };
     RUBY_VERSION->freeze();
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
 
@@ -473,7 +473,7 @@ Env *build_top_env() {
     Object->const_set("RUBY_COPYRIGHT"_s, RUBY_COPYRIGHT);
 
     auto ruby_revision_short = TM::String(ruby_revision, 10);
-    StringObject *RUBY_DESCRIPTION = StringObject::format("natalie ({} revision {}) [{}]", ruby_release_date, ruby_revision_short, ruby_platform);
+    StringObject *RUBY_DESCRIPTION = StringObject::format("natalie (like ruby {}) ({} revision {}) [{}]", RUBY_VERSION->string(), ruby_release_date, ruby_revision_short, ruby_platform);
     RUBY_DESCRIPTION->freeze();
     Object->const_set("RUBY_DESCRIPTION"_s, RUBY_DESCRIPTION);
 
