@@ -79,9 +79,7 @@ Value ArrayObject::initialize_copy(Env *env, Value other) {
         return this;
 
     clear(env);
-    for (auto &item : *other_array) {
-        m_vector.push(item);
-    }
+    m_vector.concat(other_array->m_vector);
     return this;
 }
 
@@ -333,15 +331,11 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
     Vector<Value> new_ary {};
 
     // stuff before the new entry/entries
-    for (size_t i = 0; i < (size_t)start; i++) {
-        if (i >= this->size()) break;
-        new_ary.push((*this)[i]);
-    }
+    new_ary.concat_slice(m_vector, 0, std::min(this->size(), static_cast<size_t>(start)));
 
     // extra nils if needed
-    for (size_t i = this->size(); i < (size_t)start; i++) {
-        new_ary.push(NilObject::the());
-    }
+    if (start > static_cast<nat_int_t>(this->size()))
+        new_ary.set_size(start, NilObject::the());
 
     // the new entry/entries
     if (val->is_array() || val->respond_to(env, "to_ary"_s)) {
@@ -351,9 +345,8 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
     }
 
     // stuff after the new entry/entries
-    for (size_t i = start + width; i < this->size(); ++i) {
-        new_ary.push((*this)[i]);
-    }
+    if (start + width < static_cast<nat_int_t>(this->size()))
+        new_ary.concat_slice(m_vector, start + width, this->size());
 
     m_vector = std::move(new_ary);
 
@@ -599,13 +592,10 @@ Value ArrayObject::first(Env *env, Value n) {
     }
 
     size_t end = std::min(size(), (size_t)n_value);
-    ArrayObject *array = new ArrayObject { end };
-
-    for (size_t k = 0; k < end; ++k) {
-        array->push((*this)[k]);
-    }
-
-    return array;
+    if (end == 0)
+        return new ArrayObject {};
+    auto array = m_vector.slice(0, end);
+    return new ArrayObject { std::move(array) };
 }
 
 Value ArrayObject::flatten(Env *env, Value depth) {
@@ -781,19 +771,13 @@ Value ArrayObject::drop(Env *env, Value n) {
         return nullptr;
     }
 
-    ArrayObject *array = new ArrayObject { (size_t)std::max((nat_int_t)size() - n_value, (nat_int_t)0) };
-    for (size_t k = n_value; k < size(); ++k) {
-        array->push((*this)[k]);
-    }
-
-    return array;
+    auto array = m_vector.slice(n_value, 0);
+    return new ArrayObject { std::move(array) };
 }
 
 Value ArrayObject::drop_while(Env *env, Block *block) {
     if (!block)
         return send(env, "enum_for"_s, { "drop_while"_s });
-
-    ArrayObject *array = new ArrayObject {};
 
     size_t i = 0;
     while (i < m_vector.size()) {
@@ -805,13 +789,9 @@ Value ArrayObject::drop_while(Env *env, Block *block) {
 
         ++i;
     }
-    while (i < m_vector.size()) {
-        array->push(m_vector.at(i));
 
-        ++i;
-    }
-
-    return array;
+    auto array = m_vector.slice(i, 0);
+    return new ArrayObject { std::move(array) };
 }
 
 Value ArrayObject::last(Env *env, Value n) {
@@ -834,13 +814,9 @@ Value ArrayObject::last(Env *env, Value n) {
     assert(size() <= NAT_INT_MAX);
     nat_int_t signed_size = static_cast<nat_int_t>(size());
     size_t start = std::max(static_cast<nat_int_t>(0), signed_size - n_value);
-    ArrayObject *array = new ArrayObject(size() - start);
 
-    for (size_t k = start; k < size(); ++k) {
-        array->push((*this)[k]);
-    }
-
-    return array;
+    auto array = m_vector.slice(start, 0);
+    return new ArrayObject { std::move(array) };
 }
 
 bool ArrayObject::include(Env *env, Value item) {
@@ -1028,10 +1004,7 @@ void ArrayObject::push_splat(Env *env, Value val) {
         val = val.send(env, "to_a"_s);
     }
     if (val->is_array()) {
-        m_vector.set_capacity(m_vector.size() + val->as_array()->size());
-        for (Value v : *val->as_array()) {
-            push(v);
-        }
+        m_vector.concat(val->as_array()->m_vector);
     } else {
         push(val);
     }
@@ -1439,10 +1412,7 @@ Value ArrayObject::uniq_in_place(Env *env, Block *block) {
     if (m_vector.size() == values->size())
         return NilObject::the();
 
-    m_vector.clear();
-    for (auto item : *values) {
-        m_vector.push(item);
-    }
+    *this = std::move(*values);
 
     return this;
 }
@@ -2049,10 +2019,7 @@ Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_
         length = this->size() - start;
     }
 
-    newArr->m_vector.set_capacity(length);
-    for (nat_int_t i = start; i < start + length; i++) {
-        newArr->push((*this)[i]);
-    }
+    newArr->m_vector.concat_slice(m_vector, start, length);
 
     for (nat_int_t i = start + length; i < (nat_int_t)this->size(); i++) {
         (*this)[i - length] = (*this)[i];
