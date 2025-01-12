@@ -855,7 +855,7 @@ gen.binding('Hash', 'fetch', 'HashObject', 'fetch', argc: 1..2, pass_env: true, 
 gen.binding('Hash', 'fetch_values', 'HashObject', 'fetch_values', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Hash', 'hash', 'HashObject', 'hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Hash', 'has_value?', 'HashObject', 'has_value', argc: 1, pass_env: true, pass_block: false, aliases: ['value?'], return_type: :bool)
-gen.binding('Hash', 'initialize', 'HashObject', 'initialize', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object, visibility: :private)
+gen.binding('Hash', 'initialize', 'HashObject', 'initialize', argc: 0..1, kwargs: [:capacity], pass_env: true, pass_block: true, return_type: :Object, visibility: :private)
 gen.binding('Hash', 'initialize_copy', 'HashObject', 'replace', argc: 1, pass_env: true, pass_block: false, aliases: ['replace'], return_type: :Object)
 gen.binding('Hash', 'inspect', 'HashObject', 'inspect', argc: 0, pass_env: true, pass_block: false, aliases: ['to_s'], return_type: :Object)
 gen.binding('Hash', 'include?', 'HashObject', 'has_key', argc: 1, pass_env: true, pass_block: false, aliases: ['member?', 'has_key?', 'key?'], return_type: :bool)

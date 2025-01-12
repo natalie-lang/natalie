@@ -60,6 +60,18 @@ describe 'hash' do
       h[:foo][3] = 4
       h[:foo].should == { 1 => 2, 3 => 4 }
     end
+
+    it 'has an optional capacity keyword' do
+      Hash.new(capacity: 0).should be_kind_of(Hash)
+      Hash.new(capacity: -1).should be_kind_of(Hash)
+      Hash.new(capacity: 3.14).should be_kind_of(Hash)
+      -> { Hash.new(capacity: nil) }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { Hash.new(capacity: 2 ** 64) }.should raise_error(RangeError, /bignum too big to convert/)
+
+      to_int = mock('to_int')
+      to_int.should_receive(:to_int).and_return(10)
+      Hash.new(capacity: to_int).should be_kind_of(Hash)
+    end
   end
 
   describe '.[]' do
