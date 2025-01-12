@@ -208,8 +208,14 @@ void HashObject::key_list_remove_node(Key *node) {
     next->prev = prev;
 }
 
-Value HashObject::initialize(Env *env, Value default_value, Block *block) {
+Value HashObject::initialize(Env *env, Value default_value, Value capacity, Block *block) {
     assert_not_frozen(env);
+
+    if (capacity) {
+        const auto capacity_int = IntegerObject::convert_to_native_type<ssize_t>(env, capacity);
+        if (capacity_int > 0)
+            m_hashmap = TM::Hashmap<Key *, Value> { hash, compare, static_cast<size_t>(capacity_int) };
+    }
 
     if (block) {
         if (default_value) {

@@ -189,7 +189,7 @@ public:
     Value hash(Env *);
     bool has_key(Env *, Value);
     bool has_value(Env *, Value);
-    Value initialize(Env *, Value, Block *);
+    Value initialize(Env *, Value, Value = nullptr, Block * = nullptr);
     Value inspect(Env *);
     Value keep_if(Env *, Block *);
     Value keys(Env *);

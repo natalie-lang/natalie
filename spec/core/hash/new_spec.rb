@@ -49,11 +49,9 @@ describe "Hash.new" do
 
   ruby_version_is "3.4" do
     it "accepts a capacity: argument" do
-      NATFIXME 'it accepts a capacity: argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-        Hash.new(5, capacity: 42).default.should == 5
-        Hash.new(capacity: 42).default.should == nil
-        (Hash.new(capacity: 42) { 1 }).default_proc.should_not == nil
-      end
+      Hash.new(5, capacity: 42).default.should == 5
+      Hash.new(capacity: 42).default.should == nil
+      (Hash.new(capacity: 42) { 1 }).default_proc.should_not == nil
     end
 
     it "ignores negative capacity" do
@@ -61,11 +59,9 @@ describe "Hash.new" do
     end
 
     it "raises an error if unknown keyword arguments are passed" do
-      NATFIXME 'it accepts a capacity: argument', exception: SpecFailedException do
-        -> { Hash.new(unknown: true) }.should raise_error(ArgumentError)
-        -> { Hash.new(1, unknown: true) }.should raise_error(ArgumentError)
-        -> { Hash.new(unknown: true) { 0 } }.should raise_error(ArgumentError)
-      end
+      -> { Hash.new(unknown: true) }.should raise_error(ArgumentError)
+      -> { Hash.new(1, unknown: true) }.should raise_error(ArgumentError)
+      -> { Hash.new(unknown: true) { 0 } }.should raise_error(ArgumentError)
     end
   end
 end
