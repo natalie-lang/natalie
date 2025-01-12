@@ -31,7 +31,7 @@ public:
     ArrayObject(std::initializer_list<Value> list);
 
     ArrayObject(const ArrayObject &other)
-        : Object { other }
+        : Object { Object::Type::Array, GlobalEnv::the()->Array() }
         , m_vector { other.m_vector } { }
 
     ArrayObject &operator=(ArrayObject &&other) {

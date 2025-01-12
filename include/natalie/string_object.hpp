@@ -86,7 +86,7 @@ public:
     }
 
     StringObject(const StringObject &other)
-        : Object { other }
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { other.m_encoding } {
         set_str(other.c_str(), other.length());
     }
