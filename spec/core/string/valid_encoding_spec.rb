@@ -83,9 +83,7 @@ describe "String#valid_encoding?" do
     str.force_encoding('IBM865').valid_encoding?.should be_true
     str.force_encoding('IBM866').valid_encoding?.should be_true
     str.force_encoding('IBM869').valid_encoding?.should be_true
-    NATFIXME 'Implement Windows-1258 encoding', exception: ArgumentError do
-      str.force_encoding('Windows-1258').valid_encoding?.should be_true
-    end
+    str.force_encoding('Windows-1258').valid_encoding?.should be_true
     NATFIXME 'Implement GB1988 encoding', exception: ArgumentError do
       str.force_encoding('GB1988').valid_encoding?.should be_true
     end
