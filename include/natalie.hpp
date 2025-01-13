@@ -69,6 +69,7 @@
 #include "natalie/encoding/windows1251_encoding_object.hpp"
 #include "natalie/encoding/windows1252_encoding_object.hpp"
 #include "natalie/encoding/windows1253_encoding_object.hpp"
+#include "natalie/encoding/windows1254_encoding_object.hpp"
 #include "natalie/encoding/windows1258_encoding_object.hpp"
 
 #include "natalie/encoding_object.hpp"
