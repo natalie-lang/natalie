@@ -587,8 +587,15 @@ Value HashObject::keep_if(Env *env, Block *block) {
 }
 
 Value HashObject::to_h(Env *env, Block *block) {
-    if (!block)
-        return this;
+    if (!block) {
+        if (m_klass == GlobalEnv::the()->Hash()) {
+            return this;
+        } else {
+            auto res = duplicate(env)->as_hash();
+            res->m_klass = GlobalEnv::the()->Hash();
+            return res;
+        }
+    }
 
     auto copy = new HashObject {};
     Value block_args[2];

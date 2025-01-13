@@ -332,6 +332,23 @@ describe 'string' do
         s[2..-1].should == nil
       end
     end
+
+    context 'given a string' do
+      it 'should return a copy of the index if it matches' do
+        idx = 'lo'
+        hello = 'hello'
+        match = hello[idx]
+        match << 'x'
+        idx.should == 'lo'
+
+        idx = 'lo'
+        cls = Class.new(String)
+        hello = cls.new('hello')
+        match = hello[idx]
+        match << 'x'
+        idx.should == 'lo'
+      end
+    end
   end
 
   describe '#[]=' do

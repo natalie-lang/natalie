@@ -273,13 +273,17 @@ describe :numeric_step, :shared => true do
     describe "when step is a String" do
       describe "with self and stop as Integers" do
         it "returns an Enumerator" do
-          @step.call(1, 5, "foo").should be_an_instance_of(Enumerator)
+          NATFIXME 'Fix step argument for Ruby 3.4, and this will probably no longer be numeric', exception: SpecFailedException do
+            @step.call(1, 5, "foo").should be_an_instance_of(Enumerator)
+          end
         end
       end
 
       describe "with self and stop as Floats" do
         it "returns an Enumerator" do
-          @step.call(1.1, 5.1, "foo").should be_an_instance_of(Enumerator)
+          NATFIXME 'Fix step argument for Ruby 3.4, and this will probably no longer be numeric', exception: SpecFailedException do
+            @step.call(1.1, 5.1, "foo").should be_an_instance_of(Enumerator)
+          end
         end
       end
     end

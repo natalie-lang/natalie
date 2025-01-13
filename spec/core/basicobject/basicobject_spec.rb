@@ -65,7 +65,9 @@ describe "BasicObject instance metaclass" do
   end
 
   it "is an instance of Class" do
-    @meta.should be_an_instance_of(Class)
+    NATFIXME 'it is an instance of Class', exception: SpecFailedException do
+      @meta.should be_an_instance_of(Class)
+    end
   end
 
   it "has BasicObject as superclass" do

@@ -226,8 +226,6 @@ public:
     SymbolObject *to_symbol(Env *) const;
     Value to_sym(Env *) const;
 
-    StringObject *to_str() { return this; }
-
     StringObject *inspect(Env *) const;
 
     StringObject &operator=(StringObject other) {
@@ -300,9 +298,7 @@ public:
         return *this == *arg;
     }
 
-    Value to_s() {
-        return this;
-    }
+    StringObject *to_s();
 
     bool internal_start_with(Env *, Value);
     bool start_with(Env *, Args &&);

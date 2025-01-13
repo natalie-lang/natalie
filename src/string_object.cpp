@@ -292,7 +292,7 @@ Value StringObject::center(Env *env, Value length, Value padstr) {
 }
 
 Value StringObject::chomp(Env *env, Value record_separator) const {
-    auto new_str = new StringObject { *this };
+    auto new_str = new StringObject { m_string, m_encoding };
     new_str->chomp_in_place(env, record_separator);
     return new_str;
 }
@@ -446,7 +446,7 @@ Value StringObject::to_sym(Env *env) const {
 }
 
 Value StringObject::tr(Env *env, Value from_value, Value to_value) const {
-    auto copy = duplicate(env)->as_string();
+    auto copy = new StringObject { m_string, m_encoding };
     copy->tr_in_place(env, from_value, to_value);
     return copy;
 }
@@ -621,6 +621,14 @@ StringObject *StringObject::successive_in_place(Env *env) {
     assert_not_frozen(env);
     m_string = m_string.successive();
     return this;
+}
+
+StringObject *StringObject::to_s() {
+    if (m_klass == GlobalEnv::the()->String()) {
+        return this;
+    } else {
+        return new StringObject { m_string, m_encoding };
+    }
 }
 
 bool StringObject::internal_start_with(Env *env, Value needle) {
@@ -1108,7 +1116,7 @@ Value StringObject::crypt(Env *env, Value salt) {
 }
 
 Value StringObject::delete_str(Env *env, Args &&selectors) {
-    auto dup = this->duplicate(env)->as_string();
+    auto dup = new StringObject { m_string, m_encoding };
     auto result = dup->delete_in_place(env, std::move(selectors));
     if (result->is_nil())
         return dup;
@@ -1601,7 +1609,7 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
             // Shortcut here before doing anything else to return an empty
             // string if the index is right at the end of the string.
             if (index == count)
-                return new StringObject;
+                return new StringObject { "", m_encoding };
 
             // If the index is negative, then we know at this point that it's
             // only negative within one length of the string. So just make it
@@ -1688,7 +1696,7 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
         // If the index object is a string, then we return the string if it is
         // found as a substring of this string.
         if (m_string.find(index_obj->as_string()->m_string) != -1)
-            return index_obj;
+            return new StringObject { index_obj->as_string()->m_string, index_obj->as_string()->m_encoding };
 
         // Otherwise we return nil.
         return NilObject::the();
@@ -2145,7 +2153,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
         memmove(&m_string[start_byte_index], &m_string[end_byte_index], byte_length - end_byte_index);
         m_string.truncate(byte_length - end_byte_index + start_byte_index);
 
-        return index_obj;
+        return new StringObject { index_obj->as_string()->m_string, index_obj->as_string()->m_encoding };
     } else {
         // First, attempt to convert the index object into an integer, and
         // make sure it fits into a fixnum.
@@ -2901,7 +2909,7 @@ Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
     OnigRegion *region = onig_region_new();
     int result = splitter->as_regexp()->search(env, this, 0, region, ONIG_OPTION_NONE);
     if (result == ONIG_MISMATCH) {
-        ary->push(duplicate(env));
+        ary->push(new StringObject { m_string, m_encoding });
     } else {
         do {
             index = region->beg[0];
@@ -2928,7 +2936,7 @@ Value StringObject::split(Env *env, StringObject *splitstr, int max_count) {
     assert(splitlen > 0);
     nat_int_t index = index_int(env, splitstr, 0);
     if (index == -1) {
-        ary->push(duplicate(env));
+        ary->push(new StringObject { m_string, m_encoding });
     } else {
         do {
             size_t u_index = static_cast<size_t>(index);
@@ -2971,7 +2979,7 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
     if (length() == 0) {
         return ary;
     } else if (max_count == 1 || splitter->is_nil()) {
-        ary->push(duplicate(env));
+        ary->push(new StringObject { m_string, m_encoding });
     } else if (splitter->is_regexp()) {
         // special empty-split-regexp case, just return characters
         if (splitter->as_regexp()->pattern()->is_empty()) {
@@ -3173,7 +3181,7 @@ Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) const {
     if (padstr->string().is_empty())
         env->raise("ArgumentError", "zero width padding");
 
-    StringObject *copy = duplicate(env)->as_string();
+    StringObject *copy = new StringObject { m_string, m_encoding };
     while (copy->length() < length) {
         bool truncate = copy->length() + padstr->length() > length;
         copy->append(padstr);
@@ -4058,7 +4066,7 @@ Value StringObject::chop(Env *env) const {
         return new StringObject { "", m_encoding };
     }
 
-    auto new_str = new StringObject { *this };
+    auto new_str = new StringObject { m_string, m_encoding };
     new_str->chop_in_place(env);
     return new_str;
 }
@@ -4118,7 +4126,7 @@ Value StringObject::partition(Env *env, Value val) {
         auto query_idx = m_string.find(query);
 
         if (query_idx == -1) {
-            return new ArrayObject { new StringObject(*this), new StringObject("", m_encoding), new StringObject("", m_encoding) };
+            return new ArrayObject { new StringObject { m_string, m_encoding }, new StringObject("", m_encoding), new StringObject("", m_encoding) };
         } else {
             ary->push(new StringObject(m_string.substring(0, query_idx), m_encoding));
         }

@@ -85,6 +85,14 @@ Value ArrayObject::initialize_copy(Env *env, Value other) {
     return this;
 }
 
+ArrayObject *ArrayObject::to_a() {
+    if (klass() == GlobalEnv::the()->Array()) {
+        return this;
+    } else {
+        return new ArrayObject { m_vector };
+    }
+}
+
 void ArrayObject::push(Value val) {
     NAT_GC_GUARD_VALUE(val);
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
@@ -201,7 +209,7 @@ Value ArrayObject::ltlt(Env *env, Value arg) {
 Value ArrayObject::add(Env *env, Value other) {
     ArrayObject *other_array = other->to_ary(env);
 
-    ArrayObject *new_array = new ArrayObject { *this };
+    ArrayObject *new_array = new ArrayObject { m_vector };
     new_array->concat(*other_array);
     return new_array;
 }
@@ -476,7 +484,7 @@ Value ArrayObject::map(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "map"_s }, size_block);
     }
 
-    ArrayObject *copy = new ArrayObject { *this };
+    ArrayObject *copy = new ArrayObject { m_vector };
     copy->map_in_place(env, block);
     return copy;
 }
@@ -601,7 +609,7 @@ Value ArrayObject::first(Env *env, Value n) {
 }
 
 Value ArrayObject::flatten(Env *env, Value depth) {
-    ArrayObject *copy = new ArrayObject { *this };
+    ArrayObject *copy = new ArrayObject { m_vector };
     copy->flatten_in_place(env, depth);
     return copy;
 }
@@ -739,7 +747,7 @@ Value ArrayObject::delete_item(Env *env, Value target, Block *block) {
 }
 
 Value ArrayObject::difference(Env *env, Args &&args) {
-    Value last = new ArrayObject { *this };
+    Value last = new ArrayObject { m_vector };
 
     for (size_t i = 0; i < args.size(); i++) {
         last = last->as_array()->sub(env, args[i]);
@@ -774,7 +782,6 @@ Value ArrayObject::drop(Env *env, Value n) {
     }
 
     ArrayObject *array = new ArrayObject { (size_t)std::max((nat_int_t)size() - n_value, (nat_int_t)0) };
-    array->m_klass = klass();
     for (size_t k = n_value; k < size(); ++k) {
         array->push((*this)[k]);
     }
@@ -787,7 +794,6 @@ Value ArrayObject::drop_while(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "drop_while"_s });
 
     ArrayObject *array = new ArrayObject {};
-    array->m_klass = klass();
 
     size_t i = 0;
     while (i < m_vector.size()) {
@@ -886,7 +892,7 @@ Value ArrayObject::shift(Env *env, Value count) {
 }
 
 Value ArrayObject::sort(Env *env, Block *block) {
-    ArrayObject *copy = new ArrayObject { *this };
+    ArrayObject *copy = new ArrayObject { m_vector };
     copy->sort_in_place(env, block);
     return copy;
 }
@@ -1127,7 +1133,7 @@ Value ArrayObject::select(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "select"_s }, size_block);
     }
 
-    ArrayObject *copy = new ArrayObject(*this);
+    ArrayObject *copy = new ArrayObject { m_vector };
     copy->select_in_place(env, block);
     return copy;
 }
@@ -1174,7 +1180,7 @@ Value ArrayObject::reject(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "reject"_s }, size_block);
     }
 
-    ArrayObject *copy = new ArrayObject(*this);
+    ArrayObject *copy = new ArrayObject { m_vector };
     copy->reject_in_place(env, block);
     return copy;
 }
@@ -1364,7 +1370,6 @@ Value ArrayObject::multiply(Env *env, Value factor) {
         env->raise("ArgumentError", "negative argument");
 
     auto accumulator = new ArrayObject { times * size() };
-    accumulator->m_klass = klass();
 
     for (nat_int_t i = 0; i < times; ++i)
         accumulator->push_splat(env, this);
@@ -1409,7 +1414,7 @@ Value ArrayObject::cycle(Env *env, Value count, Block *block) {
 }
 
 Value ArrayObject::uniq(Env *env, Block *block) {
-    ArrayObject *copy = new ArrayObject(*this);
+    ArrayObject *copy = new ArrayObject { m_vector };
     copy->uniq_in_place(env, block);
     return copy;
 }
@@ -1593,7 +1598,7 @@ bool ArrayObject::include_eql(Env *env, Value arg) {
 }
 
 Value ArrayObject::intersection(Env *env, Args &&args) {
-    auto *result = new ArrayObject { *this };
+    auto *result = new ArrayObject { m_vector };
     result->uniq_in_place(env, nullptr);
 
     TM::Vector<ArrayObject *> arrays;
@@ -1662,7 +1667,7 @@ Value ArrayObject::union_of(Env *env, Value arg) {
 }
 
 Value ArrayObject::union_of(Env *env, Args &&args) {
-    auto *result = new ArrayObject(*this);
+    auto *result = new ArrayObject { m_vector };
 
     // TODO: we probably want to make | call this instead of this way for optimization
     for (size_t i = 0; i < args.size(); i++) {
@@ -1682,7 +1687,7 @@ Value ArrayObject::unshift(Env *env, Args &&args) {
 }
 
 Value ArrayObject::reverse(Env *env) {
-    ArrayObject *copy = new ArrayObject(*this);
+    ArrayObject *copy = new ArrayObject { m_vector };
     copy->reverse_in_place(env);
     return copy;
 }
@@ -1859,7 +1864,7 @@ Value ArrayObject::product(Env *env, Args &&args, Block *block) {
 }
 
 Value ArrayObject::rotate(Env *env, Value val) {
-    ArrayObject *copy = new ArrayObject(*this);
+    ArrayObject *copy = new ArrayObject { m_vector };
     copy->rotate_in_place(env, val);
     return copy;
 }
