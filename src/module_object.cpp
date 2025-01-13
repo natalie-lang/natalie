@@ -267,9 +267,11 @@ Value ModuleObject::const_set(SymbolObject *name, Value val) {
 
     m_constants.put(name, new Constant { name, val.object() });
     if (val->is_module()) {
-        if (!val->owner()) {
-            val->set_owner(this);
-            if (val->singleton_class()) val->singleton_class()->set_owner(this);
+        auto module = val->as_module();
+        if (!module->owner()) {
+            module->m_owner = this;
+            if (module->singleton_class())
+                module->singleton_class()->m_owner = this;
         }
 
         if (!val->as_module()->name()) {
@@ -1134,6 +1136,7 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
 void ModuleObject::visit_children(Visitor &visitor) const {
     Object::visit_children(visitor);
     visitor.visit(m_superclass);
+    visitor.visit(m_owner);
     for (auto pair : m_constants) {
         visitor.visit(pair.first);
         visitor.visit(pair.second);

@@ -80,14 +80,12 @@ public:
     Object &operator=(Object &&other) {
         m_type = other.m_type;
         m_singleton_class = other.m_singleton_class;
-        m_owner = other.m_owner;
         m_flags = other.m_flags;
         if (m_ivars)
             delete m_ivars;
         m_ivars = other.m_ivars;
         other.m_type = Type::Nil;
         other.m_singleton_class = nullptr;
-        other.m_owner = nullptr;
         other.m_flags = 0;
         other.m_ivars = nullptr;
         return *this;
@@ -104,9 +102,6 @@ public:
 
     Type type() const { return m_type; }
     ClassObject *klass() const { return m_klass; }
-
-    ModuleObject *owner() const { return m_owner; }
-    void set_owner(ModuleObject *owner) { m_owner = owner; }
 
     int flags() const { return m_flags; }
 
@@ -400,7 +395,6 @@ private:
 
     ClassObject *m_singleton_class { nullptr };
 
-    ModuleObject *m_owner { nullptr };
     int m_flags { 0 };
 
     TM::Hashmap<SymbolObject *, Value> *m_ivars { nullptr };

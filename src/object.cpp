@@ -8,8 +8,7 @@ namespace Natalie {
 Object::Object(const Object &other)
     : m_klass { other.m_klass }
     , m_type { other.m_type }
-    , m_singleton_class { nullptr }
-    , m_owner { other.m_owner } {
+    , m_singleton_class { nullptr } {
     if (other.m_ivars)
         m_ivars = new TM::Hashmap<SymbolObject *, Value> { *other.m_ivars };
 }
@@ -1360,7 +1359,6 @@ Value Object::enum_for(Env *env, const char *method, Args &&args) {
 void Object::visit_children(Visitor &visitor) const {
     visitor.visit(m_klass);
     visitor.visit(m_singleton_class);
-    visitor.visit(m_owner);
     if (m_ivars) {
         for (auto pair : *m_ivars) {
             visitor.visit(pair.first);
