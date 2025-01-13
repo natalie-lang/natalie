@@ -32,10 +32,10 @@ static void *dlopen_wrapper(Env *env, const String &name) {
                 auto SO_EXT = CONFIG->fetch(env, new StringObject { "SOEXT" }, nullptr, nullptr)->as_string_or_raise(env);
                 return String::format(".{}", SO_EXT->string());
             }();
-            if (name.find('/') != 0 && !name.ends_with(so_ext)) {
+            if (!name.begins_with('/') && !name.ends_with(so_ext)) {
                 const auto new_name = String::format("{}{}", name, so_ext);
                 return dlopen_wrapper(env, new_name);
-            } else if (name.length() <= 3 || (name[0] != '/' && name.find("lib") != 0)) {
+            } else if (!name.begins_with('/') && !name.begins_with("lib")) {
                 const auto new_name = String::format("lib{}", name);
                 return dlopen_wrapper(env, new_name);
             }
