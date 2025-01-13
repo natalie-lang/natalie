@@ -150,9 +150,7 @@ describe "String#valid_encoding?" do
     NATFIXME 'Implement Windows-1255 encoding', exception: ArgumentError do
       str.force_encoding('Windows-1255').valid_encoding?.should be_true
     end
-    NATFIXME 'Implement Windows-1254 encoding', exception: ArgumentError do
-      str.force_encoding('Windows-1254').valid_encoding?.should be_true
-    end
+    str.force_encoding('Windows-1254').valid_encoding?.should be_true
     NATFIXME 'Implement TIS-620 encoding', exception: ArgumentError do
       str.force_encoding('TIS-620').valid_encoding?.should be_true
     end
