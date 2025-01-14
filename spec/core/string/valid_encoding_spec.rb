@@ -143,9 +143,7 @@ describe "String#valid_encoding?" do
     end
     str.force_encoding('Windows-1252').valid_encoding?.should be_true
     str.force_encoding('Windows-1250').valid_encoding?.should be_true
-    NATFIXME 'Implement Windows-1256 encoding', exception: ArgumentError do
-      str.force_encoding('Windows-1256').valid_encoding?.should be_true
-    end
+    str.force_encoding('Windows-1256').valid_encoding?.should be_true
     str.force_encoding('Windows-1253').valid_encoding?.should be_true
     str.force_encoding('Windows-1255').valid_encoding?.should be_true
     str.force_encoding('Windows-1254').valid_encoding?.should be_true
