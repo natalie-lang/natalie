@@ -143,13 +143,9 @@ describe "String#valid_encoding?" do
     end
     str.force_encoding('Windows-1252').valid_encoding?.should be_true
     str.force_encoding('Windows-1250').valid_encoding?.should be_true
-    NATFIXME 'Implement Windows-1256 encoding', exception: ArgumentError do
-      str.force_encoding('Windows-1256').valid_encoding?.should be_true
-    end
+    str.force_encoding('Windows-1256').valid_encoding?.should be_true
     str.force_encoding('Windows-1253').valid_encoding?.should be_true
-    NATFIXME 'Implement Windows-1255 encoding', exception: ArgumentError do
-      str.force_encoding('Windows-1255').valid_encoding?.should be_true
-    end
+    str.force_encoding('Windows-1255').valid_encoding?.should be_true
     str.force_encoding('Windows-1254').valid_encoding?.should be_true
     NATFIXME 'Implement TIS-620 encoding', exception: ArgumentError do
       str.force_encoding('TIS-620').valid_encoding?.should be_true
@@ -157,9 +153,7 @@ describe "String#valid_encoding?" do
     NATFIXME 'Implement Windows-874 encoding', exception: ArgumentError do
       str.force_encoding('Windows-874').valid_encoding?.should be_true
     end
-    NATFIXME 'Implement Windows-1257 encoding', exception: ArgumentError do
-      str.force_encoding('Windows-1257').valid_encoding?.should be_true
-    end
+    str.force_encoding('Windows-1257').valid_encoding?.should be_true
     NATFIXME 'Implement Windows-31J encoding', exception: ArgumentError do
       str.force_encoding('Windows-31J').valid_encoding?.should be_false
     end

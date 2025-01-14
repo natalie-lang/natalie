@@ -72,7 +72,7 @@ static const auto ruby_encoding_lookup = []() {
     map.put(ONIG_ENCODING_WINDOWS_1252, Encoding::Windows_1252);
     map.put(ONIG_ENCODING_WINDOWS_1253, Encoding::Windows_1253);
     map.put(ONIG_ENCODING_WINDOWS_1254, Encoding::Windows_1254);
-    // ONIG_ENCODING_WINDOWS_1257 has no local encoding
+    map.put(ONIG_ENCODING_WINDOWS_1257, Encoding::Windows_1257);
     // ONIG_ENCODING_BIG5 has no local encoding
     // ONIG_ENCODING_GB18030 has no local encoding
 
