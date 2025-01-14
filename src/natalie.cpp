@@ -353,6 +353,9 @@ Env *build_top_env() {
     Value EncodingWindows1254 = new Windows1254EncodingObject {};
     Encoding->const_set("Windows_1254"_s, EncodingWindows1254);
     Encoding->const_set("CP1254"_s, EncodingWindows1254);
+    Value EncodingWindows1255 = new Windows1255EncodingObject {};
+    Encoding->const_set("Windows_1255"_s, EncodingWindows1255);
+    Encoding->const_set("CP1255"_s, EncodingWindows1255);
     Value EncodingWindows1258 = new Windows1258EncodingObject {};
     Encoding->const_set("Windows_1258"_s, EncodingWindows1258);
     Encoding->const_set("CP1258"_s, EncodingWindows1258);
