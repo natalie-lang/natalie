@@ -340,30 +340,39 @@ Env *build_top_env() {
 
     Value EncodingWindows1250 = new Windows1250EncodingObject {};
     Encoding->const_set("Windows_1250"_s, EncodingWindows1250);
+    Encoding->const_set("WINDOWS_1250"_s, EncodingWindows1250);
     Encoding->const_set("CP1250"_s, EncodingWindows1250);
     Value EncodingWindows1251 = new Windows1251EncodingObject {};
     Encoding->const_set("Windows_1251"_s, EncodingWindows1251);
+    Encoding->const_set("WINDOWS_1251"_s, EncodingWindows1251);
     Encoding->const_set("CP1251"_s, EncodingWindows1251);
     Value EncodingWindows1252 = new Windows1252EncodingObject {};
     Encoding->const_set("Windows_1252"_s, EncodingWindows1252);
+    Encoding->const_set("WINDOWS_1252"_s, EncodingWindows1252);
     Encoding->const_set("CP1252"_s, EncodingWindows1252);
     Value EncodingWindows1253 = new Windows1253EncodingObject {};
     Encoding->const_set("Windows_1253"_s, EncodingWindows1253);
+    Encoding->const_set("WINDOWS_1253"_s, EncodingWindows1253);
     Encoding->const_set("CP1253"_s, EncodingWindows1253);
     Value EncodingWindows1254 = new Windows1254EncodingObject {};
     Encoding->const_set("Windows_1254"_s, EncodingWindows1254);
+    Encoding->const_set("WINDOWS_1254"_s, EncodingWindows1254);
     Encoding->const_set("CP1254"_s, EncodingWindows1254);
     Value EncodingWindows1255 = new Windows1255EncodingObject {};
     Encoding->const_set("Windows_1255"_s, EncodingWindows1255);
+    Encoding->const_set("WINDOWS_1255"_s, EncodingWindows1255);
     Encoding->const_set("CP1255"_s, EncodingWindows1255);
     Value EncodingWindows1256 = new Windows1256EncodingObject {};
     Encoding->const_set("Windows_1256"_s, EncodingWindows1256);
+    Encoding->const_set("WINDOWS_1256"_s, EncodingWindows1256);
     Encoding->const_set("CP1256"_s, EncodingWindows1256);
     Value EncodingWindows1257 = new Windows1257EncodingObject {};
     Encoding->const_set("Windows_1257"_s, EncodingWindows1257);
+    Encoding->const_set("WINDOWS_1257"_s, EncodingWindows1257);
     Encoding->const_set("CP1257"_s, EncodingWindows1257);
     Value EncodingWindows1258 = new Windows1258EncodingObject {};
     Encoding->const_set("Windows_1258"_s, EncodingWindows1258);
+    Encoding->const_set("WINDOWS_1258"_s, EncodingWindows1258);
     Encoding->const_set("CP1258"_s, EncodingWindows1258);
 
     // Must set defaults after the encodings are defined above.
