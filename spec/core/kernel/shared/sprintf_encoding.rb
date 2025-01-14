@@ -14,11 +14,9 @@ describe :kernel_sprintf_encoding, shared: true do
   end
 
   it "returns a String in the same encoding as the format String if compatible" do
-    NATFIXME 'KOI8_U encoding not implemented', exception: NameError do
-      string = "%s".dup.force_encoding(Encoding::KOI8_U)
-      result = @method.call(string, "dogs")
-      result.encoding.should equal(Encoding::KOI8_U)
-    end
+    string = "%s".dup.force_encoding(Encoding::KOI8_U)
+    result = @method.call(string, "dogs")
+    result.encoding.should equal(Encoding::KOI8_U)
   end
 
   it "returns a String in the argument's encoding if format encoding is more restrictive" do

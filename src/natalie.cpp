@@ -341,6 +341,8 @@ Env *build_top_env() {
     Value EncodingKoi8R = new Koi8REncodingObject {};
     Encoding->const_set("KOI8_R"_s, EncodingKoi8R);
     Encoding->const_set("CP878"_s, EncodingKoi8R);
+    Value EncodingKoi8U = new Koi8UEncodingObject {};
+    Encoding->const_set("KOI8_U"_s, EncodingKoi8U);
 
     Value EncodingWindows1250 = new Windows1250EncodingObject {};
     Encoding->const_set("Windows_1250"_s, EncodingWindows1250);
