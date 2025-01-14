@@ -54,6 +54,7 @@ enum class Encoding : size_t {
     Windows_1254,
     Windows_1255,
     Windows_1256,
+    Windows_1257,
     Windows_1258,
     TERMINATOR, // Keep this as the last entry
 };
