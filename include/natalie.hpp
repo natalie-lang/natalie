@@ -58,6 +58,7 @@
 #include "natalie/encoding/iso88597_encoding_object.hpp"
 #include "natalie/encoding/iso88598_encoding_object.hpp"
 #include "natalie/encoding/iso88599_encoding_object.hpp"
+#include "natalie/encoding/koi8r_encoding_object.hpp"
 #include "natalie/encoding/shiftjis_encoding_object.hpp"
 #include "natalie/encoding/us_ascii_encoding_object.hpp"
 #include "natalie/encoding/utf16be_encoding_object.hpp"

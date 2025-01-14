@@ -338,6 +338,10 @@ Env *build_top_env() {
     Encoding->const_set("ISO_8859_16"_s, EncodingIso885916);
     Encoding->const_set("ISO8859_16"_s, EncodingIso885916);
 
+    Value EncodingKoi8R = new Koi8REncodingObject {};
+    Encoding->const_set("KOI8_R"_s, EncodingKoi8R);
+    Encoding->const_set("CP878"_s, EncodingKoi8R);
+
     Value EncodingWindows1250 = new Windows1250EncodingObject {};
     Encoding->const_set("Windows_1250"_s, EncodingWindows1250);
     Encoding->const_set("WINDOWS_1250"_s, EncodingWindows1250);
