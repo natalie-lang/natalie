@@ -1,9 +1,11 @@
 require_relative './base_instruction'
+require_relative '../regexp_encoding'
 
 module Natalie
   class Compiler
     class PushRegexpInstruction < BaseInstruction
       include StringToCpp
+      include RegexpEncoding
 
       def initialize(regexp, encoding: nil)
         @regexp = regexp
@@ -41,17 +43,6 @@ module Natalie
         regexp = rodata.get(position)
         options = io.read_ber_integer
         new(Regexp.new(regexp, options))
-      end
-
-      private
-
-      def encoding
-        case @encoding
-        when Encoding::EUC_JP
-          'EncodingObject::get(Encoding::EUC_JP)'
-        else
-          'nullptr';
-        end
       end
     end
   end

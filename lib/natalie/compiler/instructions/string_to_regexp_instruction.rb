@@ -1,8 +1,11 @@
 require_relative './base_instruction'
+require_relative '../regexp_encoding'
 
 module Natalie
   class Compiler
     class StringToRegexpInstruction < BaseInstruction
+      include RegexpEncoding
+
       def initialize(options:, once: false, encoding: nil)
         @options = options || 0
         @once = once
@@ -44,17 +47,6 @@ module Natalie
       def self.deserialize(io, _)
         options = io.read_ber_integer
         new(options:)
-      end
-
-      private
-
-      def encoding
-        case @encoding
-        when Encoding::EUC_JP
-          'EncodingObject::get(Encoding::EUC_JP)'
-        else
-          'nullptr';
-        end
       end
     end
   end
