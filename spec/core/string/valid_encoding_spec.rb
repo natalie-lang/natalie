@@ -54,12 +54,8 @@ describe "String#valid_encoding?" do
     str.force_encoding('ISO-8859-14').valid_encoding?.should be_true
     str.force_encoding('ISO-8859-15').valid_encoding?.should be_true
     str.force_encoding('ISO-8859-16').valid_encoding?.should be_true
-    NATFIXME 'Implement KOI8-R encoding', exception: ArgumentError do
-      str.force_encoding('KOI8-R').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement KOI8-U encoding', exception: ArgumentError do
-      str.force_encoding('KOI8-U').valid_encoding?.should be_true
-    end
+    str.force_encoding('KOI8-R').valid_encoding?.should be_true
+    str.force_encoding('KOI8-U').valid_encoding?.should be_true
     str.force_encoding('Shift_JIS').valid_encoding?.should be_false
     "\xD8\x00".dup.force_encoding('UTF-16BE').valid_encoding?.should be_false
     "\x00\xD8".dup.force_encoding('UTF-16LE').valid_encoding?.should be_false

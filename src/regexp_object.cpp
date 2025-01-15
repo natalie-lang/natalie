@@ -65,8 +65,8 @@ static const auto ruby_encoding_lookup = []() {
     // ONIG_ENCODING_EUC_CN has no local encoding
     map.put(ONIG_ENCODING_SHIFT_JIS, Encoding::SHIFT_JIS);
     // ONIG_ENCODING_WINDOWS_31J has no local encoding
-    // ONIG_ENCODING_KOI8_R has no local encoding
-    // ONIG_ENCODING_KOI8_U has no local encoding
+    map.put(ONIG_ENCODING_KOI8_R, Encoding::KOI8_R);
+    map.put(ONIG_ENCODING_KOI8_U, Encoding::KOI8_U);
     map.put(ONIG_ENCODING_WINDOWS_1250, Encoding::Windows_1250);
     map.put(ONIG_ENCODING_WINDOWS_1251, Encoding::Windows_1251);
     map.put(ONIG_ENCODING_WINDOWS_1252, Encoding::Windows_1252);

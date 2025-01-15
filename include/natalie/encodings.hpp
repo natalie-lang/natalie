@@ -47,6 +47,8 @@ enum class Encoding : size_t {
     ISO_8859_14,
     ISO_8859_15,
     ISO_8859_16,
+    KOI8_R,
+    KOI8_U,
     Windows_1250,
     Windows_1251,
     Windows_1252,

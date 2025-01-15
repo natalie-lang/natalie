@@ -770,6 +770,22 @@ describe 'encodings' do
     end
   end
 
+  describe 'KOI8-R' do
+    it 'can be used to draw a table' do
+      "\xA4\x80\xA7".dup.force_encoding('KOI8-R').encode('UTF-8').should == '╓─╖'
+    end
+  end
+
+  describe 'KOI8-U' do
+    it 'can be used to draw a flipped double table with just 2 legs' do
+      "\xA9\xA0\xAC".dup.force_encoding('KOI8-U').encode('UTF-8').should == '╘═╛'
+    end
+
+    it 'cannot be used to draw a regular table' do
+      "\xA4\x80\xA7".dup.force_encoding('KOI8-U').encode('UTF-8').should == 'є─ї'
+    end
+  end
+
   describe 'Windows-1250' do
     it 'can convert codepoints' do
       [
