@@ -1903,7 +1903,7 @@ module Natalie
 
       def transform_interpolated_regular_expression_node(node, used:)
         instructions = transform_interpolated_stringish_node(node, used: true, unescaped: false)
-        instructions << StringToRegexpInstruction.new(options: node.options, once: node.once?, euc_jp: node.euc_jp?)
+        instructions << StringToRegexpInstruction.new(options: node.options, once: node.once?, **encoding_for_regexp_node(node))
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -2353,7 +2353,7 @@ module Natalie
       def transform_regular_expression_node(node, used:)
         regexp = Regexp.new(node.unescaped, node.options)
         return [] unless used
-        PushRegexpInstruction.new(regexp, euc_jp: node.euc_jp?)
+        PushRegexpInstruction.new(regexp, **encoding_for_regexp_node(node))
       rescue RegexpError => e
         [
           PushSelfInstruction.new,
@@ -2773,6 +2773,14 @@ module Natalie
           Encoding::ASCII_8BIT
         else
           @file.encoding
+        end
+      end
+
+      def encoding_for_regexp_node(node)
+        if node.euc_jp?
+          { euc_jp: true }
+        else
+          {}
         end
       end
 
