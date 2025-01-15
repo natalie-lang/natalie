@@ -267,9 +267,11 @@ Value ModuleObject::const_set(SymbolObject *name, Value val) {
 
     m_constants.put(name, new Constant { name, val.object() });
     if (val->is_module()) {
-        if (!val->owner()) {
-            val->set_owner(this);
-            if (val->singleton_class()) val->singleton_class()->set_owner(this);
+        auto module = val->as_module();
+        if (!module->owner()) {
+            module->m_owner = this;
+            if (module->singleton_class())
+                module->singleton_class()->m_owner = this;
         }
 
         if (!val->as_module()->name()) {
@@ -487,8 +489,7 @@ Value ModuleObject::remove_class_variable(Env *env, Value name) {
 
 SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
     assert_not_frozen(env, this);
-    Method *method = env->file() ? new Method { name->string(), this, fn, arity, env->file(), env->line() }
-                                 : new Method { name->string(), this, fn, arity };
+    Method *method = new Method { name->string(), this, fn, arity, env->file(), env->line() };
     if (optimized)
         method->set_optimized(true);
     auto visibility = m_method_visibility;
@@ -1134,6 +1135,7 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
 void ModuleObject::visit_children(Visitor &visitor) const {
     Object::visit_children(visitor);
     visitor.visit(m_superclass);
+    visitor.visit(m_owner);
     for (auto pair : m_constants) {
         visitor.visit(pair.first);
         visitor.visit(pair.second);

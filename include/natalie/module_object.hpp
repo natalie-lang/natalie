@@ -31,12 +31,15 @@ public:
         : Object { other.type(), other.klass() }
         , m_constants { other.m_constants }
         , m_superclass { other.m_superclass }
+        , m_owner { other.m_owner }
         , m_methods { other.m_methods }
         , m_class_vars { other.m_class_vars } {
         for (ModuleObject *module : const_cast<ModuleObject &>(other).m_included_modules) {
             m_included_modules.push(module);
         }
     }
+
+    Object &operator=(Object &&other) = delete;
 
     Value initialize(Env *, Block *);
 
@@ -82,6 +85,8 @@ public:
 
     virtual ClassObject *superclass(Env *) { return m_superclass; }
     void set_superclass_DANGEROUSLY(ClassObject *superclass) { m_superclass = superclass; }
+
+    ModuleObject *owner() const { return m_owner; }
 
     void included_modules(Env *, ArrayObject *);
     Value included_modules(Env *);
@@ -183,6 +188,7 @@ protected:
     TM::Hashmap<SymbolObject *, Constant *> m_constants {};
     Optional<String> m_name {};
     ClassObject *m_superclass { nullptr };
+    ModuleObject *m_owner { nullptr };
     TM::Hashmap<SymbolObject *, MethodInfo> m_methods {};
     TM::Hashmap<SymbolObject *, Value> m_class_vars {};
     Vector<ModuleObject *> m_included_modules {};

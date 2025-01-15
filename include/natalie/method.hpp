@@ -11,21 +11,13 @@ namespace Natalie {
 
 class Method : public Cell {
 public:
-    Method(TM::String &&name, ModuleObject *owner, MethodFnPtr fn, int arity)
-        : m_name { std::move(name) }
-        , m_owner { owner }
-        , m_fn { fn }
-        , m_arity { arity } {
-        assert(fn);
-    }
-
-    Method(TM::String &&name, ModuleObject *owner, MethodFnPtr fn, int arity, const String &file, const size_t line)
+    Method(TM::String &&name, ModuleObject *owner, MethodFnPtr fn, int arity, const char *file = nullptr, size_t line = 0)
         : m_name { std::move(name) }
         , m_owner { owner }
         , m_fn { fn }
         , m_arity { arity }
-        , m_file { file }
-        , m_line { line } {
+        , m_file { file ? Optional<String>(file) : Optional<String>() }
+        , m_line { line ? Optional<size_t>(line) : Optional<size_t>() } {
         assert(fn);
     }
 
@@ -46,10 +38,9 @@ public:
         }
     }
 
-    Method(const TM::String &name, ModuleObject *owner, MethodFnPtr fn, int arity)
-        : Method(TM::String(name), owner, fn, arity) { }
-    Method(const TM::String &name, ModuleObject *owner, MethodFnPtr fn, int arity, const String &file, const size_t line)
+    Method(const TM::String &name, ModuleObject *owner, MethodFnPtr fn, int arity, const char *file = nullptr, size_t line = 0)
         : Method(TM::String(name), owner, fn, arity, file, line) { }
+
     Method(const TM::String &name, ModuleObject *owner, Block *block)
         : Method(TM::String(name), owner, block) { }
 
