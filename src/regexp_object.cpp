@@ -403,8 +403,14 @@ void RegexpObject::initialize_internal(Env *env, const StringObject *pattern, in
     options &= ~RegexOpts::NoEncoding;
 
     UChar *pat = (UChar *)tweaked_pattern.c_str();
-    const auto enc = encoding ? ruby_encoding_to_onig_encoding(encoding) : fixed_encoding && !no_encoding ? ruby_encoding_to_onig_encoding(pattern->encoding())
-                                                                                                          : ONIG_ENCODING_ASCII;
+    OnigEncoding enc;
+    if (encoding) {
+        enc = ruby_encoding_to_onig_encoding(encoding);
+    } else if (fixed_encoding && !no_encoding) {
+        enc = ruby_encoding_to_onig_encoding(pattern->encoding());
+    } else {
+        enc = ONIG_ENCODING_ASCII;
+    }
     int result = onig_new(&regex, pat, pat + tweaked_pattern.length(), options, enc, ONIG_SYNTAX_DEFAULT, &einfo);
 
     if (result != ONIG_NORMAL) {
