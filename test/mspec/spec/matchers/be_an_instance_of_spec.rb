@@ -1,23 +1,6 @@
 require 'spec_helper'
 #require 'mspec/expectations/expectations'
 #require 'mspec/matchers'
-class BeAnInstanceOfMatcher
-  attr_reader :failure_message, :negative_failure_message
-
-  def initialize(klass)
-    @wrapped = BeInstanceOfExpectation.new(klass)
-    @klass = klass
-  end
-
-  def matches?(subject)
-    @wrapped.match(subject)
-    true
-  rescue SpecFailedException => e
-    @failure_message = ["Expected #{subject.inspect} (#{subject.class})", "to be an instance of #{@klass}"]
-    @negative_failure_message = ["Expected #{subject.inspect} (#{subject.class})", "not to be an instance of #{@klass}"]
-    nil
-  end
-end
 
 module BeAnInOfSpecs
   class A
