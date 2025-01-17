@@ -283,21 +283,13 @@ class BindingGen
     def return_code
       case return_type
       when :bool
-        "if (!return_value) return FalseObject::the();\n" + 'return TrueObject::the();'
+        'return bool_object(return_value);'
       when :int
         'return Value::integer(return_value);'
       when :size_t
         'return IntegerObject::from_size_t(env, return_value);'
-      when :c_str
-        "if (!return_value) return NilObject::the();\nreturn new StringObject { return_value };"
       when :Object
         "if (!return_value) return NilObject::the();\nreturn return_value;"
-      when :NullableValue
-        "if (!return_value) return NilObject::the();\nreturn return_value;"
-      when :StringObject
-        "if (!return_value) return NilObject::the();\nreturn return_value;"
-      when :String
-        'return new StringObject { return_value };'
       else
         raise "Unknown return type: #{return_type.inspect}"
       end
@@ -443,7 +435,7 @@ gen.binding('Binding', 'source_location', 'BindingObject', 'source_location', ar
 
 gen.undefine_instance_method('Class', 'module_function')
 gen.binding('Class', 'initialize', 'ClassObject', 'initialize', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object, visibility: :private)
-gen.binding('Class', 'superclass', 'ClassObject', 'superclass', argc: 0, pass_env: true, pass_block: false, return_type: :NullableValue)
+gen.binding('Class', 'superclass', 'ClassObject', 'superclass', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Class', 'singleton_class?', 'ClassObject', 'is_singleton', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
 gen.undefine_instance_method('Complex', 'new')
@@ -1008,7 +1000,7 @@ gen.binding('MatchData', 'post_match', 'MatchDataObject', 'post_match', argc: 0,
 gen.binding('MatchData', 'pre_match', 'MatchDataObject', 'pre_match', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'regexp', 'MatchDataObject', 'regexp', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'size', 'MatchDataObject', 'size', argc: 0, pass_env: false, pass_block: false, aliases: ['length'], return_type: :size_t)
-gen.binding('MatchData', 'string', 'MatchDataObject', 'string', argc: 0, pass_env: false, pass_block: false, return_type: :StringObject)
+gen.binding('MatchData', 'string', 'MatchDataObject', 'string', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'to_a', 'MatchDataObject', 'to_a', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'to_s', 'MatchDataObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'values_at', 'MatchDataObject', 'values_at', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
