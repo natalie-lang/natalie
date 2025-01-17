@@ -111,3 +111,13 @@ jobs:
           SPEC_TIMEOUT: 480
           SOME_TESTS: true
         run: rake docker_test_asan
+  mspec:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: install ruby
+        run: sudo apt-get install -y ruby ruby-bundler
+      - name: install rspec
+        run: cd test/mspec && sudo bundle install
+      - name: run very limited hacked mspec test
+        run: cd test/mspec && bundle exec rspec -I.
