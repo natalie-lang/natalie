@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/integer_object.hpp"
 #include "natalie/thread_object.hpp"
 #include "natalie/throw_catch_exception.hpp"
 
@@ -457,15 +458,15 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
 }
 
 RationalObject *KernelModule::Rational(Env *env, IntegerObject *x, IntegerObject *y) {
-    Value gcd = x->gcd(env, y);
-    Value numerator = x->div(env, gcd);
-    Value denominator = y->div(env, gcd);
+    Value gcd = IntegerObject::gcd(env, x, y);
+    Value numerator = IntegerObject::div(env, x, gcd);
+    Value denominator = IntegerObject::div(env, y, gcd);
     return RationalObject::create(env, numerator->as_integer(), denominator->as_integer());
 }
 
 RationalObject *KernelModule::Rational(Env *env, double arg) {
     IntegerObject radix { FLT_RADIX };
-    Value y = radix.pow(env, Value::integer(DBL_MANT_DIG));
+    Value y = IntegerObject::pow(env, &radix, Value::integer(DBL_MANT_DIG));
 
     int exponent;
     FloatObject *significand = new FloatObject { std::frexp(arg, &exponent) };
@@ -473,9 +474,9 @@ RationalObject *KernelModule::Rational(Env *env, double arg) {
 
     IntegerObject two { 2 };
     if (exponent < 0)
-        y = y->as_integer()->mul(env, two.pow(env, Value::integer(-exponent)));
+        y = IntegerObject::mul(env, y->as_integer(), IntegerObject::pow(env, &two, Value::integer(-exponent)));
     else
-        x = x->as_integer()->mul(env, two.pow(env, Value::integer(exponent)));
+        x = IntegerObject::mul(env, x->as_integer(), IntegerObject::pow(env, &two, Value::integer(exponent)));
 
     return Rational(env, x->as_integer(), y->as_integer());
 }

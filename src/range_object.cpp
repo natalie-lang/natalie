@@ -279,11 +279,10 @@ bool RangeObject::include(Env *env, Value arg) {
     } else if ((m_begin->is_nil() || m_begin->is_numeric()) && (m_end->is_nil() || m_end->is_numeric())) {
         return send(env, "cover?"_s, { arg })->is_truthy();
     } else if (m_begin->is_time() || m_end->is_time()) {
-        if (m_begin->is_nil() || m_begin->as_time()->cmp(env, arg)->as_integer()->lte(env, Value::integer(0))) {
+        if (m_begin->is_nil() || IntegerObject::lte(env, m_begin->as_time()->cmp(env, arg)->as_integer(), Value::integer(0))) {
             Value integer = Value::integer(m_exclude_end ? -1 : 0);
-            if (m_end->is_nil() || arg->as_time()->cmp(env, m_end)->as_integer()->lte(env, integer)) {
+            if (m_end->is_nil() || IntegerObject::lte(env, arg->as_time()->cmp(env, m_end)->as_integer(), integer))
                 return true;
-            }
         }
         return false;
     }

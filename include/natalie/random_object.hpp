@@ -58,7 +58,7 @@ public:
         auto integer = size->as_integer();
         if (integer->is_negative())
             env->raise("ArgumentError", "negative string size (or size too big)");
-        if (integer->is_zero())
+        if (IntegerObject::is_zero(integer))
             return new StringObject { "", Encoding::ASCII_8BIT };
 
         size_t length = (size_t)integer->to_nat_int_t();

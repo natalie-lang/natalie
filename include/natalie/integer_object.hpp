@@ -46,16 +46,16 @@ public:
         return m_integer.is_negative();
     }
 
-    bool is_zero() const {
-        return m_integer == 0;
+    static bool is_zero(IntegerObject *self) {
+        return self->m_integer == 0;
     }
 
-    bool is_odd() const {
-        return m_integer % 2 != 0;
+    static bool is_odd(IntegerObject *self) {
+        return self->m_integer % 2 != 0;
     }
 
-    bool is_even() const {
-        return !is_odd();
+    static bool is_even(IntegerObject *self) {
+        return !is_odd(self);
     }
 
     static Value from_size_t(Env *env, size_t number) {
@@ -90,51 +90,52 @@ public:
 
     static Value sqrt(Env *, Value);
 
-    Value inspect(Env *env) const { return to_s(env); }
+    static Value inspect(Env *env, IntegerObject *self) { return to_s(env, self); }
 
     String to_s() const { return m_integer.to_string(); }
 
-    Value to_s(Env *, Value = nullptr) const;
-    Value to_i() const;
-    Value to_f() const;
-    Value add(Env *, Value);
-    Value sub(Env *, Value);
-    Value mul(Env *, Value);
-    Value div(Env *, Value);
-    Value mod(Env *, Value);
-    Value pow(Env *, Value);
-    Value powmod(Env *, Value, Value);
-    Value cmp(Env *, Value);
-    Value times(Env *, Block *);
-    Value bitwise_and(Env *, Value);
-    Value bitwise_or(Env *, Value);
-    Value bitwise_xor(Env *, Value);
-    Value bit_length(Env *);
-    Value left_shift(Env *, Value);
-    Value right_shift(Env *, Value);
-    Value pred(Env *);
-    Value size(Env *) const;
-    Value succ(Env *);
-    Value ceil(Env *, Value);
-    Value coerce(Env *, Value);
-    Value floor(Env *, Value);
-    Value gcd(Env *, Value);
-    Value abs(Env *);
-    Value chr(Env *, Value) const;
-    Value negate(Env *);
-    Value numerator();
-    Value complement(Env *) const;
-    Value ord() { return IntegerObject::create(m_integer); }
-    Value denominator() { return Value::integer(1); }
-    Value round(Env *, Value, Value);
-    Value truncate(Env *, Value);
-    Value ref(Env *, Value, Value);
+    static Value to_s(Env *, IntegerObject *, Value = nullptr);
+    static Value to_i(IntegerObject *);
+    static Value to_f(IntegerObject *);
+    static Value add(Env *, IntegerObject *, Value);
+    static Value sub(Env *, IntegerObject *, Value);
+    static Value mul(Env *, IntegerObject *, Value);
+    static Value div(Env *, IntegerObject *, Value);
+    static Value mod(Env *, IntegerObject *, Value);
+    static Value pow(Env *, IntegerObject *, Value);
+    static Value powmod(Env *, IntegerObject *, Value, Value);
+    static Value cmp(Env *, IntegerObject *, Value);
+    static Value times(Env *, IntegerObject *, Block *);
+    static Value bitwise_and(Env *, IntegerObject *, Value);
+    static Value bitwise_or(Env *, IntegerObject *, Value);
+    static Value bitwise_xor(Env *, IntegerObject *, Value);
+    static Value bit_length(Env *, IntegerObject *);
+    static Value left_shift(Env *, IntegerObject *, Value);
+    static Value right_shift(Env *, IntegerObject *, Value);
+    static Value pred(Env *, IntegerObject *);
+    static Value size(Env *, IntegerObject *);
+    static Value succ(Env *, IntegerObject *);
+    static Value ceil(Env *, IntegerObject *, Value);
+    static Value coerce(Env *, IntegerObject *, Value);
+    static Value floor(Env *, IntegerObject *, Value);
+    static Value gcd(Env *, IntegerObject *, Value);
+    static Value abs(Env *, IntegerObject *);
+    static Value chr(Env *, IntegerObject *, Value);
+    static Value negate(Env *, IntegerObject *);
+    static Value numerator(IntegerObject *self) { return IntegerObject::create(self->m_integer); }
+    static Value complement(Env *, IntegerObject *);
+    static Value ord(IntegerObject *self) { return IntegerObject::create(self->m_integer); }
+    static Value denominator() { return Value::integer(1); }
+    static Value round(Env *, IntegerObject *, Value, Value);
+    static Value truncate(Env *, IntegerObject *, Value);
+    static Value ref(Env *, IntegerObject *, Value, Value);
 
-    bool eq(Env *, Value);
-    bool lt(Env *, Value);
-    bool lte(Env *, Value);
-    bool gt(Env *, Value);
-    bool gte(Env *, Value);
+    static bool neq(Env *, IntegerObject *, Value);
+    static bool eq(Env *, IntegerObject *, Value);
+    static bool lt(Env *, IntegerObject *, Value);
+    static bool lte(Env *, IntegerObject *, Value);
+    static bool gt(Env *, IntegerObject *, Value);
+    static bool gte(Env *, IntegerObject *, Value);
     bool is_bignum() const { return m_integer.is_bignum(); }
     bool is_fixnum() const { return !is_bignum(); }
 

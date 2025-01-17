@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/integer_object.hpp"
 #include <string.h>
 
 namespace Natalie {
@@ -91,9 +92,8 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
     if (subsec) {
         if (subsec->is_integer()) {
             IntegerObject *integer = subsec->as_integer();
-            if (integer->lt(env, new IntegerObject { 0 }) || integer->gte(env, new IntegerObject { 1000000 })) {
+            if (IntegerObject::lt(env, integer, new IntegerObject { 0 }) || IntegerObject::gte(env, integer, new IntegerObject { 1000000 }))
                 env->raise("ArgumentError", "subsecx out of range");
-            }
             result->m_subsec = RationalObject::create(env, integer, new IntegerObject { 1000000 });
         } else if (subsec->is_rational()) {
             result->m_subsec = subsec->as_rational()->div(env, new IntegerObject { 1000000 });
@@ -127,9 +127,9 @@ Value TimeObject::cmp(Env *env, Value other) {
     if (other->is_time()) {
         auto time = other->as_time();
         auto integer = m_integer->as_integer();
-        if (integer->gt(env, time->m_integer)) {
+        if (IntegerObject::gt(env, integer, time->m_integer)) {
             return Value::integer(1);
-        } else if (integer->lt(env, time->m_integer)) {
+        } else if (IntegerObject::lt(env, integer, time->m_integer)) {
             return Value::integer(-1);
         } else {
             return subsec(env)->send(env, "to_r"_s)->as_rational()->cmp(env, time->subsec(env)->send(env, "to_r"_s));
@@ -153,7 +153,7 @@ Value TimeObject::cmp(Env *env, Value other) {
 bool TimeObject::eql(Env *env, Value other) {
     if (other->is_time()) {
         auto time = other->as_time();
-        if (m_integer->as_integer()->eq(env, time->m_integer->as_integer())) {
+        if (IntegerObject::eq(env, m_integer->as_integer(), time->m_integer->as_integer())) {
             if (m_subsec && time->m_subsec && m_subsec->as_rational()->eq(env, time->m_subsec)) {
                 return true;
             } else if (!m_subsec && !time->m_subsec) {
@@ -252,7 +252,7 @@ Value TimeObject::to_a(Env *env) const {
 }
 
 Value TimeObject::to_f(Env *env) {
-    Value result = m_integer->as_integer()->to_f();
+    Value result = IntegerObject::to_f(m_integer->as_integer());
     if (m_subsec) {
         result = result->as_float()->add(env, m_subsec->as_rational());
     }
@@ -521,10 +521,10 @@ void TimeObject::set_subsec(Env *env, long nsec) {
 }
 
 void TimeObject::set_subsec(Env *env, IntegerObject *usec) {
-    if (usec->lt(env, new IntegerObject { 0 }) || usec->gte(env, new IntegerObject { 1000000 })) {
+    if (IntegerObject::lt(env, usec, new IntegerObject { 0 }) || IntegerObject::gte(env, usec, new IntegerObject { 1000000 })) {
         env->raise("ArgumentError", "subsecx out of range");
     }
-    if (!usec->is_zero()) {
+    if (!IntegerObject::is_zero(usec)) {
         m_subsec = RationalObject::create(env, usec, new IntegerObject { 1000000 });
     }
 }

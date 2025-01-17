@@ -318,7 +318,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         if (socktype_hack && hints.ai_socktype == 0)
             hints.ai_socktype = SOCK_DGRAM;
 
-        const char *service_str = port->to_s(env)->as_string()->c_str();
+        const char *service_str = IntegerObject::to_s(env, port)->as_string()->c_str();
 
         switch (hints.ai_socktype) {
         case SOCK_RAW:

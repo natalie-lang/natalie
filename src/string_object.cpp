@@ -2,6 +2,7 @@
 #include "ctype.h"
 #include "natalie.hpp"
 #include "natalie/crypt.h"
+#include "natalie/integer_object.hpp"
 #include "natalie/nil_object.hpp"
 #include "natalie/string_unpacker.hpp"
 #include "string.h"
@@ -1016,7 +1017,7 @@ Value StringObject::cmp(Env *env, Value other) {
         if (negative_cmp->is_nil()) {
             return negative_cmp;
         }
-        return negative_cmp->to_int(env)->negate(env);
+        return IntegerObject::negate(env, negative_cmp->to_int(env));
     } else {
         return NilObject::the();
     }
@@ -1053,7 +1054,7 @@ Value StringObject::concat(Env *env, Args &&args) {
         if (arg->is_string()) {
             str_obj = arg->as_string();
         } else if (arg->is_integer() && arg->as_integer()->is_negative()) {
-            env->raise("RangeError", "{} out of char range", arg->as_integer()->to_s(env)->as_string()->string());
+            env->raise("RangeError", "{} out of char range", IntegerObject::to_s(env, arg->as_integer())->as_string()->string());
         } else if (arg->is_integer()) {
             // Special case: US-ASCII << (128..255) will change the string to binary
             if (m_encoding == EncodingObject::get(Encoding::US_ASCII) && arg->as_integer()->is_fixnum()) {
@@ -1204,7 +1205,7 @@ Value StringObject::prepend(Env *env, Args &&args) {
         if (arg->is_string()) {
             str_obj = arg->as_string();
         } else if (arg->is_integer() && arg->as_integer()->to_nat_int_t() < 0) {
-            env->raise("RangeError", "{} out of char range", arg->as_integer()->to_s(env)->as_string()->string());
+            env->raise("RangeError", "{} out of char range", IntegerObject::to_s(env, arg->as_integer())->as_string()->string());
         } else if (arg->is_integer()) {
             str_obj = arg.send(env, "chr"_s, { m_encoding.ptr() })->as_string();
         } else {

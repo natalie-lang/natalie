@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/integer_object.hpp"
 #include "natalie/ioutil.hpp"
 #include "tm/defer.hpp"
 
@@ -638,7 +639,7 @@ Value IoObject::putc(Env *env, Value val) {
     } else {
         ord = Value::integer(IntegerObject::convert_to_nat_int_t(env, val) & 0xff);
     }
-    send(env, "write"_s, { ord->as_integer()->chr(env, nullptr) });
+    send(env, "write"_s, { IntegerObject::chr(env, ord->as_integer(), nullptr) });
     return val;
 }
 
@@ -1014,7 +1015,7 @@ bool IoObject::sync(Env *env) const {
 }
 
 Value IoObject::sysread(Env *env, Value amount, Value buffer) {
-    if (amount->to_int(env)->is_zero() && buffer && !buffer->is_nil())
+    if (IntegerObject::is_zero(amount->to_int(env)) && buffer && !buffer->is_nil())
         return buffer;
     if (!m_read_buffer.is_empty())
         env->raise("IOError", "sysread for buffered IO");
