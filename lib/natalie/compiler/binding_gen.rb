@@ -13,31 +13,29 @@ class BindingGen
     b.write
   end
 
-  # define a method from a module, e.g. KernelModule
-  # The "methods" are defined as static functions on the C++ object,
-  # but appear as instance methods in Ruby.
-  def module_binding(*args, **kwargs)
-    binding(*args, **kwargs.update(module_method: true))
+  # define a method on the Ruby *SINGLETON* class and link it to a member function on the C++ class
+  def member_binding_as_class_method(*args, **kwargs)
+    binding(*args, **kwargs.update(ruby_method_type: :class))
+  end
+
+  # define a method on the Ruby *SINGLETON* class and link it to a *STATIC* function on the C++ class
+  def static_binding_as_class_method(*args, **kwargs)
+    binding(*args, **kwargs.update(cpp_function_type: :static, ruby_method_type: :class))
+  end
+
+  # define a method on the Ruby class and link it to a *STATIC* function on the C++ class
+  def static_binding_as_instance_method(*args, **kwargs)
+    binding(*args, **kwargs.update(cpp_function_type: :static, ruby_method_type: :instance, pass_self: true))
+  end
+
+  # define a private method on the Ruby class and a public method on the Ruby *SINGLETON* class
+  def module_function_binding(*args, **kwargs)
+    binding(*args, **kwargs.update(module_function: true, cpp_function_type: :static, ruby_method_type: :class, visibility: :private))
   end
 
   # mark a method as undefined on the Ruby class
   def undefine_instance_method(rb_class, method)
     @undefine_methods << [rb_class, method]
-  end
-
-  # define a method on the Ruby *SINGLETON* class and link it to a method on the C++ class
-  def singleton_binding(*args, **kwargs)
-    binding(*args, **kwargs.update(singleton: true))
-  end
-
-  # define a method on the Ruby *SINGLETON* class and link it to a *STATIC* method on the C++ class
-  def static_binding(*args, **kwargs)
-    binding(*args, **kwargs.update(static: true))
-  end
-
-  # define a private method on the Ruby class and a public method on the Ruby *SINGLETON* class
-  def module_function_binding(*args, **kwargs)
-    binding(*args, **{ module_function: true, static: true, visibility: :private }.update(kwargs))
   end
 
   # mark a method as undefined on the Ruby singleton class
@@ -81,10 +79,10 @@ class BindingGen
       pass_env:,
       pass_block:,
       return_type:,
-      module_method: false,
+      cpp_function_type: :member,  # :static or :member
+      ruby_method_type: :instance, # :class or :instance
+      pass_self: false, # only relevant when cpp_function_type: :static
       module_function: false,
-      singleton: false,
-      static: false,
       pass_klass: false,
       kwargs: nil,
       visibility: :public,
@@ -96,15 +94,15 @@ class BindingGen
       @cpp_class = cpp_class
       @cpp_method = cpp_method
       @argc = argc
-      @module_method = module_method
-      @module_function = module_function
       @pass_env = pass_env
       @pass_block = pass_block
+      @return_type = return_type
+      @cpp_function_type = cpp_function_type
+      @ruby_method_type = ruby_method_type
+      @pass_self = pass_self
+      @module_function = module_function
       @pass_klass = pass_klass
       @kwargs = kwargs
-      @return_type = return_type
-      @singleton = singleton
-      @static = static
       @visibility = visibility
       @optimized = optimized
       @aliases = aliases
@@ -116,22 +114,19 @@ class BindingGen
                 :cpp_class,
                 :cpp_method,
                 :argc,
-                :pass_env,
-                :pass_block,
-                :pass_klass,
                 :return_type,
+                :cpp_function_type,
+                :ruby_method_type,
                 :name,
                 :visibility,
                 :optimized,
                 :aliases
 
-    def module_method?
-      @module_method
-    end
-
-    def module_function?
-      @module_function
-    end
+    def pass_env? = !!@pass_env
+    def pass_self? = !!@pass_self
+    def pass_klass? = !!@pass_klass
+    def pass_block? = !!@pass_block
+    def module_function? = !!@module_function
 
     def arity
       case argc
@@ -147,57 +142,22 @@ class BindingGen
     end
 
     def write
-      if @static
-        write_static_function
-      elsif module_method?
-        write_module_method_function
+      if cpp_function_type == :static
+        call = "auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});"
       else
-        write_function
+        call = "auto return_value = static_cast<#{cpp_class}*>(self.object())->#{cpp_method}(#{args_to_pass});"
       end
-    end
 
-    def write_function
-      type = cpp_class == 'Object' ? 'Value ' : "#{cpp_class} *"
-      body = <<-FUNC
-#{pop_kwargs}
-#{argc_assertion}
-#{kwargs_assertion}
-#{type}self = #{as_type 'self_value'};
-auto return_value = self->#{cpp_method}(#{args_to_pass});
-#{return_code}
+      body = <<~FUNC
+        #{pop_kwargs}
+        #{argc_assertion}
+        #{kwargs_assertion}
+        #{call}
+        #{return_code}
       FUNC
       format_function_body(body)
-      puts "Value #{name}(Env *env, Value self_value, Args &&args, Block *block) {\n#{body}\n}\n\n"
-    end
 
-    def write_module_method_function
-      body = <<-FUNC
-#{pop_kwargs}
-#{argc_assertion}
-#{kwargs_assertion}
-auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
-#{return_code}
-      FUNC
-      format_function_body(body)
       puts "Value #{name}(Env *env, Value self, Args &&args, Block *block) {\n#{body}\n}\n\n"
-    end
-
-    def write_static_function
-      body = <<-FUNC
-#{pop_kwargs}
-#{argc_assertion}
-#{kwargs_assertion}
-auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
-#{return_code}
-      FUNC
-      format_function_body(body)
-      parameters = [
-        'Env *env',
-        'Value klass',
-        'Args &&args',
-        'Block *block',
-      ]
-      puts "Value #{name}(#{parameters.join(', ')}) {\n#{body}\n}\n\n"
     end
 
     def format_function_body(body)
@@ -217,19 +177,19 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
         kwargs = 'kwargs'
       end
       [
-        env_arg,
-        self_arg,
+        pass_env? ? 'env' : nil,
+        pass_self? ? 'self' : nil,
         *args,
         *kwargs,
-        block_arg,
-        klass_arg
+        pass_block? ? 'block' : nil,
+        pass_klass? ? 'self->as_class()' : nil,
       ].compact.join(', ')
     end
 
     def define_method_name
-      if @module_function
+      if module_function?
         'define_method'
-      elsif @singleton || @static
+      elsif ruby_method_type == :class
         'define_singleton_method'
       else
         'define_method'
@@ -237,9 +197,9 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
     end
 
     def alias_name
-      if @module_function
+      if module_function?
         'method_alias'
-      elsif @singleton || @static
+      elsif ruby_method_type == :class
         'singleton_method_alias'
       else
         'method_alias'
@@ -312,14 +272,6 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
       'env->ensure_no_extra_keywords(kwargs);' if @kwargs.is_a?(Array)
     end
 
-    def env_arg
-      'env' if pass_env
-    end
-
-    def self_arg
-      'self' if module_method?
-    end
-
     def args
       if max_argc
         (0...max_argc).map { |i| "args.at(#{i}, nullptr)" }
@@ -328,41 +280,16 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
       end
     end
 
-    def block_arg
-      'block' if pass_block
-    end
-
-    def klass_arg
-      'klass->as_class()' if pass_klass
-    end
-
-    def as_type(value)
-      if cpp_class == 'Object'
-        value
-      else
-        underscored = cpp_class.sub(/Object/, '').gsub(/([a-z])([A-Z])/, '\1_\2').gsub('::', '_').downcase
-        "#{value}->as_#{underscored}()"
-      end
-    end
-
     def return_code
       case return_type
       when :bool
-        "if (!return_value) return FalseObject::the();\n" + 'return TrueObject::the();'
+        'return bool_object(return_value);'
       when :int
         'return Value::integer(return_value);'
       when :size_t
         'return IntegerObject::from_size_t(env, return_value);'
-      when :c_str
-        "if (!return_value) return NilObject::the();\n" + 'return new StringObject { return_value };'
       when :Object
-        "if (!return_value) return NilObject::the();\n" + 'return return_value;'
-      when :NullableValue
-        "if (!return_value) return NilObject::the();\n" + 'return return_value;'
-      when :StringObject
-        "if (!return_value) return NilObject::the();\n" + 'return return_value;'
-      when :String
-        'return new StringObject { return_value };'
+        "if (!return_value) return NilObject::the();\nreturn return_value;"
       else
         raise "Unknown return type: #{return_type.inspect}"
       end
@@ -384,8 +311,7 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
       if @module_function
         @name << '_module_function'
       else
-        @name << '_singleton' if @singleton
-        @name << '_static' if @static
+        @name << '_static' if cpp_function_type == :static
         @name << "_#{@visibility}"
       end
       @name << '_binding'
@@ -403,8 +329,8 @@ puts
 
 gen = BindingGen.new
 
-gen.static_binding('Array', '[]', 'ArrayObject', 'square_new', argc: :any, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
-gen.static_binding('Array', 'try_convert', 'ArrayObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Array', '[]', 'ArrayObject', 'square_new', argc: :any, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
+gen.static_binding_as_class_method('Array', 'try_convert', 'ArrayObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Array', '+', 'ArrayObject', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Array', '-', 'ArrayObject', 'sub', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Array', '*', 'ArrayObject', 'multiply', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
@@ -509,23 +435,23 @@ gen.binding('Binding', 'source_location', 'BindingObject', 'source_location', ar
 
 gen.undefine_instance_method('Class', 'module_function')
 gen.binding('Class', 'initialize', 'ClassObject', 'initialize', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object, visibility: :private)
-gen.binding('Class', 'superclass', 'ClassObject', 'superclass', argc: 0, pass_env: true, pass_block: false, return_type: :NullableValue)
+gen.binding('Class', 'superclass', 'ClassObject', 'superclass', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Class', 'singleton_class?', 'ClassObject', 'is_singleton', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
 gen.undefine_instance_method('Complex', 'new')
 gen.binding('Complex', 'imaginary', 'ComplexObject', 'imaginary', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Complex', 'real', 'ComplexObject', 'real', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
-gen.static_binding('Encoding', 'aliases', 'EncodingObject', 'aliases', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Encoding', 'default_external', 'EncodingObject', 'default_external', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding('Encoding', 'default_external=', 'EncodingObject', 'set_default_external', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Encoding', 'default_internal', 'EncodingObject', 'default_internal', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding('Encoding', 'default_internal=', 'EncodingObject', 'set_default_internal', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Encoding', 'locale_charmap', 'EncodingObject', 'locale_charmap', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Encoding', 'aliases', 'EncodingObject', 'aliases', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Encoding', 'default_external', 'EncodingObject', 'default_external', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Encoding', 'default_external=', 'EncodingObject', 'set_default_external', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Encoding', 'default_internal', 'EncodingObject', 'default_internal', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Encoding', 'default_internal=', 'EncodingObject', 'set_default_internal', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Encoding', 'locale_charmap', 'EncodingObject', 'locale_charmap', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
-gen.static_binding('Encoding', 'find', 'EncodingObject', 'find', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Encoding', 'list', 'EncodingObject', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Encoding', 'name_list', 'EncodingObject', 'name_list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Encoding', 'find', 'EncodingObject', 'find', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Encoding', 'list', 'EncodingObject', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Encoding', 'name_list', 'EncodingObject', 'name_list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Encoding', 'ascii_compatible?', 'EncodingObject', 'is_ascii_compatible', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Encoding', 'dummy?', 'EncodingObject', 'is_dummy', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Encoding', 'inspect', 'EncodingObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -544,48 +470,48 @@ gen.binding('Enumerator::ArithmeticSequence', 'last', 'Enumerator::ArithmeticSeq
 gen.binding('Enumerator::ArithmeticSequence', 'size', 'Enumerator::ArithmeticSequenceObject', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Enumerator::ArithmeticSequence', 'step', 'Enumerator::ArithmeticSequenceObject', 'step', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
-gen.singleton_binding('ENV', '[]', 'EnvObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', '[]=', 'EnvObject', 'refeq', argc: 2, pass_env: true, pass_block: false, aliases: ['store'], return_type: :Object)
-gen.singleton_binding('ENV', 'assoc', 'EnvObject', 'assoc', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'clear', 'EnvObject', 'clear', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'clone', 'EnvObject', 'clone', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'delete', 'EnvObject', 'delete_key', argc: 1, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('ENV', 'delete_if', 'EnvObject', 'delete_if', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('ENV', 'dup', 'EnvObject', 'dup', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'each', 'EnvObject', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('ENV', 'each_key', 'EnvObject', 'each_key', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('ENV', 'each_pair', 'EnvObject', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('ENV', 'each_value', 'EnvObject', 'each_value', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('ENV', 'empty?', 'EnvObject', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.singleton_binding('ENV', 'except', 'EnvObject', 'except', argc: 0.., pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'fetch', 'EnvObject', 'fetch', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('ENV', 'has_value?', 'EnvObject', 'has_value', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'include?', 'EnvObject', 'has_key', argc: 1, pass_env: true, pass_block: false, aliases: ['has_key?', 'member?', 'key?'], return_type: :bool)
-gen.singleton_binding('ENV', 'inspect', 'EnvObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'invert', 'EnvObject', 'invert', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'keep_if', 'EnvObject', 'keep_if', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('ENV', 'key', 'EnvObject', 'key', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'keys', 'EnvObject', 'keys', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'length', 'EnvObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
-gen.singleton_binding('ENV', 'merge!', 'EnvObject', 'update', argc: :any, pass_env: true, pass_block: true, aliases: ['update'], return_type: :Object)
-gen.singleton_binding('ENV', 'rassoc', 'EnvObject', 'rassoc', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'rehash', 'EnvObject', 'rehash', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'reject', 'EnvObject', 'reject', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('ENV', 'reject!', 'EnvObject', 'reject_in_place', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('ENV', 'replace', 'EnvObject', 'replace', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'select', 'EnvObject', 'select', argc: 0, pass_env: true, pass_block: true, aliases: ['filter'], return_type: :Object)
-gen.singleton_binding('ENV', 'select!', 'EnvObject', 'select_in_place', argc: 0, pass_env: true, pass_block: true, aliases: ['filter!'], return_type: :Object)
-gen.singleton_binding('ENV', 'shift', 'EnvObject', 'shift', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'size', 'EnvObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
-gen.singleton_binding('ENV', 'slice', 'EnvObject', 'slice', argc: 0.., pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'to_h', 'EnvObject', 'to_hash', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('ENV', 'to_hash', 'EnvObject', 'to_hash', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('ENV', 'to_s', 'EnvObject', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'value?', 'EnvObject', 'has_value', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'values', 'EnvObject', 'values', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'values_at', 'EnvObject', 'values_at', argc: 0.., pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', '[]', 'EnvObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', '[]=', 'EnvObject', 'refeq', argc: 2, pass_env: true, pass_block: false, aliases: ['store'], return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'assoc', 'EnvObject', 'assoc', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'clear', 'EnvObject', 'clear', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'clone', 'EnvObject', 'clone', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'delete', 'EnvObject', 'delete_key', argc: 1, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'delete_if', 'EnvObject', 'delete_if', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'dup', 'EnvObject', 'dup', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'each', 'EnvObject', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'each_key', 'EnvObject', 'each_key', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'each_pair', 'EnvObject', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'each_value', 'EnvObject', 'each_value', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'empty?', 'EnvObject', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.member_binding_as_class_method('ENV', 'except', 'EnvObject', 'except', argc: 0.., pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'fetch', 'EnvObject', 'fetch', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'has_value?', 'EnvObject', 'has_value', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'include?', 'EnvObject', 'has_key', argc: 1, pass_env: true, pass_block: false, aliases: ['has_key?', 'member?', 'key?'], return_type: :bool)
+gen.member_binding_as_class_method('ENV', 'inspect', 'EnvObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'invert', 'EnvObject', 'invert', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'keep_if', 'EnvObject', 'keep_if', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'key', 'EnvObject', 'key', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'keys', 'EnvObject', 'keys', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'length', 'EnvObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
+gen.member_binding_as_class_method('ENV', 'merge!', 'EnvObject', 'update', argc: :any, pass_env: true, pass_block: true, aliases: ['update'], return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'rassoc', 'EnvObject', 'rassoc', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'rehash', 'EnvObject', 'rehash', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'reject', 'EnvObject', 'reject', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'reject!', 'EnvObject', 'reject_in_place', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'replace', 'EnvObject', 'replace', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'select', 'EnvObject', 'select', argc: 0, pass_env: true, pass_block: true, aliases: ['filter'], return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'select!', 'EnvObject', 'select_in_place', argc: 0, pass_env: true, pass_block: true, aliases: ['filter!'], return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'shift', 'EnvObject', 'shift', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'size', 'EnvObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
+gen.member_binding_as_class_method('ENV', 'slice', 'EnvObject', 'slice', argc: 0.., pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'to_h', 'EnvObject', 'to_hash', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'to_hash', 'EnvObject', 'to_hash', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'to_s', 'EnvObject', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'value?', 'EnvObject', 'has_value', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'values', 'EnvObject', 'values', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'values_at', 'EnvObject', 'values_at', argc: 0.., pass_env: true, pass_block: false, return_type: :Object)
 
-gen.static_binding('Exception', 'exception', 'ExceptionObject', 'exception', argc: 0..1, pass_env: true, pass_klass: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Exception', 'exception', 'ExceptionObject', 'exception', argc: 0..1, pass_env: true, pass_klass: true, pass_block: false, return_type: :Object)
 gen.binding('Exception', '==', 'ExceptionObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Exception', 'exception', 'ExceptionObject', 'exception', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Exception', 'backtrace', 'ExceptionObject', 'backtrace', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -604,14 +530,14 @@ gen.binding('FalseClass', '|', 'FalseObject', 'or_method', argc: 1, pass_env: tr
 gen.binding('FalseClass', '^', 'FalseObject', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('FalseClass', 'to_s', 'FalseObject', 'to_s', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Object)
 
-gen.static_binding('Fiber', '[]', 'FiberObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Fiber', '[]=', 'FiberObject', 'refeq', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Fiber', 'blocking', 'FiberObject', 'blocking', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.static_binding('Fiber', 'blocking?', 'FiberObject', 'is_blocking_current', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding('Fiber', 'current', 'FiberObject', 'current', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding('Fiber', 'scheduler', 'FiberObject', 'scheduler', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding('Fiber', 'set_scheduler', 'FiberObject', 'set_scheduler', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Fiber', 'yield', 'FiberObject', 'yield', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Fiber', '[]', 'FiberObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Fiber', '[]=', 'FiberObject', 'refeq', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Fiber', 'blocking', 'FiberObject', 'blocking', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_class_method('Fiber', 'blocking?', 'FiberObject', 'is_blocking_current', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Fiber', 'current', 'FiberObject', 'current', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Fiber', 'scheduler', 'FiberObject', 'scheduler', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Fiber', 'set_scheduler', 'FiberObject', 'set_scheduler', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Fiber', 'yield', 'FiberObject', 'yield', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Fiber', 'alive?', 'FiberObject', 'is_alive', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Fiber', 'blocking?', 'FiberObject', 'is_blocking', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Fiber', 'hash', 'FiberObject', 'hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -622,58 +548,58 @@ gen.binding('Fiber', 'storage', 'FiberObject', 'storage', argc: 0, pass_env: tru
 gen.binding('Fiber', 'storage=', 'FiberObject', 'set_storage', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Fiber', 'to_s', 'FiberObject', 'inspect', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Object)
 
-gen.static_binding('File', 'absolute_path', 'FileObject', 'absolute_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'absolute_path?', 'FileObject', 'is_absolute_path', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'atime', 'FileObject', 'atime', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'blockdev?', 'FileObject', 'is_blockdev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'chardev?', 'FileObject', 'is_chardev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'chmod', 'FileObject', 'chmod', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'chown', 'FileObject', 'chown', argc: 2.., pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'ctime', 'FileObject', 'ctime', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'delete', 'FileObject', 'unlink', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'directory?', 'FileObject', 'is_directory', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'empty?', 'FileObject', 'is_zero', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'executable?', 'FileObject', 'is_executable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'executable_real?', 'FileObject', 'is_executable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'exist?', 'FileObject', 'exist', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'expand_path', 'FileObject', 'expand_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'file?', 'FileObject', 'is_file', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'ftype', 'FileObject', 'ftype', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'grpowned?', 'FileObject', 'is_grpowned', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'identical?', 'FileObject', 'is_identical', argc: 2, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'link', 'FileObject', 'link', argc: 2, pass_env: true, pass_block: false, return_type: :int)
-gen.static_binding('File', 'lstat', 'FileObject', 'lstat', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'lutime', 'FileObject', 'lutime', argc: 2.., pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'mkfifo', 'FileObject', 'mkfifo', argc: 1..2, pass_env: true, pass_block: false, return_type: :int)
-gen.static_binding('File', 'mtime', 'FileObject', 'mtime', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'owned?', 'FileObject', 'is_owned', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'path', 'FileObject', 'path', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'pipe?', 'FileObject', 'is_pipe', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'readable?', 'FileObject', 'is_readable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'readable_real?', 'FileObject', 'is_readable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'readlink', 'FileObject', 'readlink', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'absolute_path', 'FileObject', 'absolute_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'absolute_path?', 'FileObject', 'is_absolute_path', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'atime', 'FileObject', 'atime', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'blockdev?', 'FileObject', 'is_blockdev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'chardev?', 'FileObject', 'is_chardev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'chmod', 'FileObject', 'chmod', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'chown', 'FileObject', 'chown', argc: 2.., pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'ctime', 'FileObject', 'ctime', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'delete', 'FileObject', 'unlink', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'directory?', 'FileObject', 'is_directory', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'empty?', 'FileObject', 'is_zero', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'executable?', 'FileObject', 'is_executable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'executable_real?', 'FileObject', 'is_executable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'exist?', 'FileObject', 'exist', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'expand_path', 'FileObject', 'expand_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'file?', 'FileObject', 'is_file', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'ftype', 'FileObject', 'ftype', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'grpowned?', 'FileObject', 'is_grpowned', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'identical?', 'FileObject', 'is_identical', argc: 2, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'link', 'FileObject', 'link', argc: 2, pass_env: true, pass_block: false, return_type: :int)
+gen.static_binding_as_class_method('File', 'lstat', 'FileObject', 'lstat', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'lutime', 'FileObject', 'lutime', argc: 2.., pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'mkfifo', 'FileObject', 'mkfifo', argc: 1..2, pass_env: true, pass_block: false, return_type: :int)
+gen.static_binding_as_class_method('File', 'mtime', 'FileObject', 'mtime', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'owned?', 'FileObject', 'is_owned', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'path', 'FileObject', 'path', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'pipe?', 'FileObject', 'is_pipe', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'readable?', 'FileObject', 'is_readable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'readable_real?', 'FileObject', 'is_readable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'readlink', 'FileObject', 'readlink', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 # NATFIXME: realdirpath is subtly different from realpath and should bind to a unique function
-gen.static_binding('File', 'realdirpath', 'FileObject', 'realpath', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'realpath', 'FileObject', 'realpath', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'rename', 'FileObject', 'rename', argc: 2, pass_env: true, pass_block: false, return_type: :int)
-gen.static_binding('File', 'setgid?', 'FileObject', 'is_setgid', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'setuid?', 'FileObject', 'is_setuid', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'size', 'FileObject', 'size', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'size?', 'FileObject', 'is_size', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'socket?', 'FileObject', 'is_socket', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'stat', 'FileObject', 'stat', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'sticky?', 'FileObject', 'is_sticky', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'symlink', 'FileObject', 'symlink', argc: 2, pass_env: true, pass_block: false, return_type: :int)
-gen.static_binding('File', 'symlink?', 'FileObject', 'is_symlink', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'truncate', 'FileObject', 'truncate', argc: 2, pass_env: true, pass_block: false, return_type: :int)
-gen.static_binding('File', 'umask', 'FileObject', 'umask', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'unlink', 'FileObject', 'unlink', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'utime', 'FileObject', 'utime', argc: 2.., pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'world_readable?', 'FileObject', 'world_readable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'world_writable?', 'FileObject', 'world_writable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'writable?', 'FileObject', 'is_writable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'writable_real?', 'FileObject', 'is_writable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('File', 'zero?', 'FileObject', 'is_zero', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'realdirpath', 'FileObject', 'realpath', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'realpath', 'FileObject', 'realpath', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'rename', 'FileObject', 'rename', argc: 2, pass_env: true, pass_block: false, return_type: :int)
+gen.static_binding_as_class_method('File', 'setgid?', 'FileObject', 'is_setgid', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'setuid?', 'FileObject', 'is_setuid', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'size', 'FileObject', 'size', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'size?', 'FileObject', 'is_size', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'socket?', 'FileObject', 'is_socket', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'stat', 'FileObject', 'stat', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'sticky?', 'FileObject', 'is_sticky', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'symlink', 'FileObject', 'symlink', argc: 2, pass_env: true, pass_block: false, return_type: :int)
+gen.static_binding_as_class_method('File', 'symlink?', 'FileObject', 'is_symlink', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'truncate', 'FileObject', 'truncate', argc: 2, pass_env: true, pass_block: false, return_type: :int)
+gen.static_binding_as_class_method('File', 'umask', 'FileObject', 'umask', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'unlink', 'FileObject', 'unlink', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'utime', 'FileObject', 'utime', argc: 2.., pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'world_readable?', 'FileObject', 'world_readable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'world_writable?', 'FileObject', 'world_writable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('File', 'writable?', 'FileObject', 'is_writable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'writable_real?', 'FileObject', 'is_writable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('File', 'zero?', 'FileObject', 'is_zero', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 
 gen.binding('File', 'atime', 'FileObject', 'atime', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'chmod', 'FileObject', 'chmod', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
@@ -686,31 +612,31 @@ gen.binding('File', 'mtime', 'FileObject', 'mtime', argc: 0, pass_env: true, pas
 gen.binding('File', 'size', 'FileObject', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'truncate', 'FileObject', 'truncate', argc: 1, pass_env: true, pass_block: false, return_type: :int)
 
-gen.static_binding('FileTest', 'blockdev?', 'FileObject', 'is_blockdev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'chardev?', 'FileObject', 'is_chardev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'directory?', 'FileObject', 'is_directory', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'executable?', 'FileObject', 'is_executable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'executable_real?', 'FileObject', 'is_executable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'exist?', 'FileObject', 'exist', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'file?', 'FileObject', 'is_file', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'grpowned?', 'FileObject', 'is_grpowned', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'identical?', 'FileObject', 'is_identical', argc: 2, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'owned?', 'FileObject', 'is_owned', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'pipe?', 'FileObject', 'is_pipe', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'readable?', 'FileObject', 'is_readable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'readable_real?', 'FileObject', 'is_readable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'setgid?', 'FileObject', 'is_setgid', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'setuid?', 'FileObject', 'is_setuid', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'size', 'FileObject', 'size', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('FileTest', 'size?', 'FileObject', 'is_size', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('FileTest', 'socket?', 'FileObject', 'is_socket', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'sticky?', 'FileObject', 'is_sticky', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'symlink?', 'FileObject', 'is_symlink', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'world_readable?', 'FileObject', 'world_readable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'world_writable?', 'FileObject', 'world_writable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'writable?', 'FileObject', 'is_writable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'writable_real?', 'FileObject', 'is_writable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'zero?', 'FileObject', 'is_zero', argc: 1, pass_env: true, pass_block: false, aliases: ['empty?'], return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'blockdev?', 'FileObject', 'is_blockdev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'chardev?', 'FileObject', 'is_chardev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'directory?', 'FileObject', 'is_directory', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'executable?', 'FileObject', 'is_executable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'executable_real?', 'FileObject', 'is_executable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'exist?', 'FileObject', 'exist', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'file?', 'FileObject', 'is_file', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'grpowned?', 'FileObject', 'is_grpowned', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'identical?', 'FileObject', 'is_identical', argc: 2, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'owned?', 'FileObject', 'is_owned', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'pipe?', 'FileObject', 'is_pipe', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'readable?', 'FileObject', 'is_readable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'readable_real?', 'FileObject', 'is_readable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'setgid?', 'FileObject', 'is_setgid', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'setuid?', 'FileObject', 'is_setuid', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'size', 'FileObject', 'size', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('FileTest', 'size?', 'FileObject', 'is_size', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('FileTest', 'socket?', 'FileObject', 'is_socket', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'sticky?', 'FileObject', 'is_sticky', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'symlink?', 'FileObject', 'is_symlink', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'world_readable?', 'FileObject', 'world_readable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'world_writable?', 'FileObject', 'world_writable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'writable?', 'FileObject', 'is_writable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'writable_real?', 'FileObject', 'is_writable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('FileTest', 'zero?', 'FileObject', 'is_zero', argc: 1, pass_env: true, pass_block: false, aliases: ['empty?'], return_type: :bool)
 gen.binding('File::Stat', '<=>', 'FileStatObject', 'comparison', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File::Stat', 'atime', 'FileStatObject', 'atime', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File::Stat', 'birthtime', 'FileStatObject', 'birthtime', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -748,23 +674,23 @@ gen.binding('File::Stat', 'world_readable?', 'FileStatObject', 'world_readable',
 gen.binding('File::Stat', 'world_writable?', 'FileStatObject', 'world_writable', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('File::Stat', 'zero?', 'FileStatObject', 'is_zero', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
-gen.static_binding('Dir', 'chdir', 'DirObject', 'chdir', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object)
-gen.static_binding('Dir', 'children', 'DirObject', 'children', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Dir', 'chroot', 'DirObject', 'chroot', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Dir', 'delete', 'DirObject', 'rmdir', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Dir', 'each_child', 'DirObject', 'each_child', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: true, return_type: :Object)
-gen.static_binding('Dir', 'empty?', 'DirObject', 'is_empty', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('Dir', 'entries', 'DirObject', 'entries', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Dir', 'exist?', 'FileObject', 'is_directory', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('Dir', 'foreach', 'DirObject', 'foreach', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: true, return_type: :Object)
-gen.static_binding('Dir', 'getwd', 'DirObject', 'pwd', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'chdir', 'DirObject', 'chdir', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'children', 'DirObject', 'children', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'chroot', 'DirObject', 'chroot', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'delete', 'DirObject', 'rmdir', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'each_child', 'DirObject', 'each_child', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'empty?', 'DirObject', 'is_empty', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('Dir', 'entries', 'DirObject', 'entries', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'exist?', 'FileObject', 'is_directory', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('Dir', 'foreach', 'DirObject', 'foreach', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'getwd', 'DirObject', 'pwd', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 # TODO: Dir.glob
-gen.static_binding('Dir', 'home', 'DirObject', 'home', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Dir', 'mkdir', 'DirObject', 'mkdir', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Dir', 'open', 'DirObject', 'open', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: true, return_type: :Object)
-gen.static_binding('Dir', 'pwd', 'DirObject', 'pwd', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Dir', 'rmdir', 'DirObject', 'rmdir', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Dir', 'unlink', 'DirObject', 'rmdir', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'home', 'DirObject', 'home', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'mkdir', 'DirObject', 'mkdir', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'open', 'DirObject', 'open', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'pwd', 'DirObject', 'pwd', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'rmdir', 'DirObject', 'rmdir', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'unlink', 'DirObject', 'rmdir', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.binding('Dir', 'children', 'DirObject', 'children', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Dir', 'close', 'DirObject', 'close', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -820,14 +746,14 @@ gen.binding('Float', 'to_s', 'FloatObject', 'to_s', argc: 0, pass_env: false, pa
 gen.binding('Float', 'truncate', 'FloatObject', 'truncate', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Float', 'zero?', 'FloatObject', 'is_zero', argc: 0, pass_env: false, pass_block: false, return_type: :bool, optimized: true)
 
-gen.static_binding('GC', 'enable', 'GCModule', 'enable', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.static_binding('GC', 'disable', 'GCModule', 'disable', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.static_binding('GC', 'print_stats', 'GCModule', 'print_stats', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('GC', 'start', 'GCModule', 'start', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('GC', 'enable', 'GCModule', 'enable', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('GC', 'disable', 'GCModule', 'disable', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('GC', 'print_stats', 'GCModule', 'print_stats', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('GC', 'start', 'GCModule', 'start', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
-gen.static_binding('Hash', '[]', 'HashObject', 'square_new', argc: :any, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
-gen.static_binding('Hash', 'ruby2_keywords_hash?', 'HashObject', 'is_ruby2_keywords_hash', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('Hash', 'ruby2_keywords_hash', 'HashObject', 'ruby2_keywords_hash', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Hash', '[]', 'HashObject', 'square_new', argc: :any, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
+gen.static_binding_as_class_method('Hash', 'ruby2_keywords_hash?', 'HashObject', 'is_ruby2_keywords_hash', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('Hash', 'ruby2_keywords_hash', 'HashObject', 'ruby2_keywords_hash', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Hash', '==', 'HashObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Hash', '>=', 'HashObject', 'gte', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Hash', '>', 'HashObject', 'gt', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
@@ -871,7 +797,7 @@ gen.binding('Hash', 'update', 'HashObject', 'merge_in_place', argc: :any, pass_e
 gen.binding('Hash', 'values', 'HashObject', 'values', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('Integer', 'new')
-gen.static_binding('Integer', 'sqrt', 'IntegerObject', 'sqrt', argc: 1, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
+gen.static_binding_as_class_method('Integer', 'sqrt', 'IntegerObject', 'sqrt', argc: 1, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Integer', '%', 'IntegerObject', 'mod', argc: 1, pass_env: true, pass_block: false, aliases: ['modulo'], return_type: :Object, optimized: true)
 gen.binding('Integer', '&', 'IntegerObject', 'bitwise_and', argc: 1, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Integer', '*', 'IntegerObject', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
@@ -918,16 +844,16 @@ gen.binding('Integer', 'truncate', 'IntegerObject', 'truncate', argc: 0..1, pass
 gen.binding('Integer', '|', 'IntegerObject', 'bitwise_or', argc: 1, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Integer', 'zero?', 'IntegerObject', 'is_zero', argc: 0, pass_env: false, pass_block: false, return_type: :bool, optimized: true)
 
-gen.static_binding('IO', 'binread', 'IoObject', 'binread', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('IO', 'binwrite', 'IoObject', 'binwrite', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('IO', 'copy_stream', 'IoObject', 'copy_stream', argc: 2..4, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('IO', 'pipe', 'IoObject', 'pipe', argc: 0..2, pass_env: true, pass_block: true, pass_klass: true, return_type: :Object)
-gen.static_binding('IO', 'popen', 'IoObject', 'popen', argc: :any, pass_env: true, pass_block: true, pass_klass: true, return_type: :Object)
-gen.static_binding('IO', 'read', 'IoObject', 'read_file', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('IO', 'select', 'IoObject', 'select', argc: 1..4, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('IO', 'sysopen', 'IoObject', 'sysopen', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('IO', 'try_convert', 'IoObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('IO', 'write', 'IoObject', 'write_file', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('IO', 'binread', 'IoObject', 'binread', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('IO', 'binwrite', 'IoObject', 'binwrite', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('IO', 'copy_stream', 'IoObject', 'copy_stream', argc: 2..4, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('IO', 'pipe', 'IoObject', 'pipe', argc: 0..2, pass_env: true, pass_block: true, pass_klass: true, return_type: :Object)
+gen.static_binding_as_class_method('IO', 'popen', 'IoObject', 'popen', argc: :any, pass_env: true, pass_block: true, pass_klass: true, return_type: :Object)
+gen.static_binding_as_class_method('IO', 'read', 'IoObject', 'read_file', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('IO', 'select', 'IoObject', 'select', argc: 1..4, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('IO', 'sysopen', 'IoObject', 'sysopen', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('IO', 'try_convert', 'IoObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('IO', 'write', 'IoObject', 'write_file', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', '<<', 'IoObject', 'ltlt', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'advise', 'IoObject', 'advise', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'autoclose?', 'IoObject', 'is_autoclose', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
@@ -1020,31 +946,31 @@ gen.module_function_binding('Kernel', 'srand', 'RandomObject', 'srand', argc: 0.
 gen.module_function_binding('Kernel', 'String', 'KernelModule', 'String', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'test', 'KernelModule', 'test', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'throw', 'KernelModule', 'throw_method', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'class', 'KernelModule', 'klass_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'define_singleton_method', 'KernelModule', 'define_singleton_method', argc: 1, pass_env: true, pass_block: true, return_type: :Object)
-gen.module_binding('Kernel', 'dup', 'KernelModule', 'dup', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', '===', 'KernelModule', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
-gen.module_binding('Kernel', '!~', 'KernelModule', 'neqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.module_binding('Kernel', 'eql?', 'KernelModule', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
-gen.module_binding('Kernel', 'freeze', 'KernelModule', 'freeze_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'hash', 'KernelModule', 'hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'initialize_copy', 'KernelModule', 'initialize_copy', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'inspect', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'instance_variable_defined?', 'KernelModule', 'instance_variable_defined', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.module_binding('Kernel', 'instance_variable_get', 'KernelModule', 'instance_variable_get', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'instance_variable_set', 'KernelModule', 'instance_variable_set', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'is_a?', 'KernelModule', 'is_a', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.module_binding('Kernel', 'kind_of?', 'KernelModule', 'is_a', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.module_binding('Kernel', 'loop', 'KernelModule', 'loop', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.module_binding('Kernel', 'method', 'KernelModule', 'method', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'methods', 'KernelModule', 'methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'private_methods', 'KernelModule', 'private_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'protected_methods', 'KernelModule', 'protected_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'public_methods', 'KernelModule', 'public_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'remove_instance_variable', 'KernelModule', 'remove_instance_variable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'singleton_class', 'KernelModule', 'singleton_class_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_binding('Kernel', 'tap', 'KernelModule', 'tap', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.module_binding('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'class', 'KernelModule', 'klass_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'define_singleton_method', 'KernelModule', 'define_singleton_method', argc: 1, pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'dup', 'KernelModule', 'dup', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', '===', 'KernelModule', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('Kernel', '!~', 'KernelModule', 'neqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('Kernel', 'eql?', 'KernelModule', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('Kernel', 'freeze', 'KernelModule', 'freeze_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'hash', 'KernelModule', 'hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'initialize_copy', 'KernelModule', 'initialize_copy', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'inspect', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'instance_variable_defined?', 'KernelModule', 'instance_variable_defined', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('Kernel', 'instance_variable_get', 'KernelModule', 'instance_variable_get', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'instance_variable_set', 'KernelModule', 'instance_variable_set', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'is_a?', 'KernelModule', 'is_a', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('Kernel', 'kind_of?', 'KernelModule', 'is_a', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('Kernel', 'loop', 'KernelModule', 'loop', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'method', 'KernelModule', 'method', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'methods', 'KernelModule', 'methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'private_methods', 'KernelModule', 'private_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'protected_methods', 'KernelModule', 'protected_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'public_methods', 'KernelModule', 'public_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'remove_instance_variable', 'KernelModule', 'remove_instance_variable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'singleton_class', 'KernelModule', 'singleton_class_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'tap', 'KernelModule', 'tap', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Kernel', 'clone', 'Object', 'clone', argc: 0, kwargs: [:freeze], pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Kernel', 'extend', 'Object', 'extend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Kernel', 'frozen?', 'Object', 'is_frozen', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
@@ -1074,7 +1000,7 @@ gen.binding('MatchData', 'post_match', 'MatchDataObject', 'post_match', argc: 0,
 gen.binding('MatchData', 'pre_match', 'MatchDataObject', 'pre_match', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'regexp', 'MatchDataObject', 'regexp', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'size', 'MatchDataObject', 'size', argc: 0, pass_env: false, pass_block: false, aliases: ['length'], return_type: :size_t)
-gen.binding('MatchData', 'string', 'MatchDataObject', 'string', argc: 0, pass_env: false, pass_block: false, return_type: :StringObject)
+gen.binding('MatchData', 'string', 'MatchDataObject', 'string', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'to_a', 'MatchDataObject', 'to_a', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'to_s', 'MatchDataObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'values_at', 'MatchDataObject', 'values_at', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
@@ -1211,9 +1137,9 @@ gen.module_function_binding('Process::Sys', 'getuid', 'ProcessModule', 'uid', ar
 gen.module_function_binding('Process::UID', 'eid', 'ProcessModule', 'euid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process::UID', 'rid', 'ProcessModule', 'uid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
-gen.static_binding('Random', 'new_seed', 'RandomObject', 'new_seed', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Random', 'srand', 'RandomObject', 'srand', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Random', 'urandom', 'RandomObject', 'urandom', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Random', 'new_seed', 'RandomObject', 'new_seed', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Random', 'srand', 'RandomObject', 'srand', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Random', 'urandom', 'RandomObject', 'urandom', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Random', 'initialize', 'RandomObject', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, visibility: :private)
 gen.binding('Random', 'bytes', 'RandomObject', 'bytes', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Random', 'rand', 'RandomObject', 'rand', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
@@ -1258,11 +1184,11 @@ gen.binding('Rational', 'to_s', 'RationalObject', 'to_s', argc: 0, pass_env: tru
 gen.binding('Rational', 'truncate', 'RationalObject', 'truncate', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', 'zero?', 'RationalObject', 'is_zero', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
-gen.static_binding('Regexp', 'compile', 'RegexpObject', 'compile', argc: 1..2, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
-gen.static_binding('Regexp', 'escape', 'RegexpObject', 'quote', argc: 1, pass_env: true, pass_block: false, pass_klass: false, aliases: ['quote'], return_type: :Object)
-gen.static_binding('Regexp', 'last_match', 'RegexpObject', 'last_match', argc: 0..1, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
-gen.static_binding('Regexp', 'try_convert', 'RegexpObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
-gen.static_binding('Regexp', 'union', 'RegexpObject', 'regexp_union', argc: :any, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
+gen.static_binding_as_class_method('Regexp', 'compile', 'RegexpObject', 'compile', argc: 1..2, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
+gen.static_binding_as_class_method('Regexp', 'escape', 'RegexpObject', 'quote', argc: 1, pass_env: true, pass_block: false, pass_klass: false, aliases: ['quote'], return_type: :Object)
+gen.static_binding_as_class_method('Regexp', 'last_match', 'RegexpObject', 'last_match', argc: 0..1, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
+gen.static_binding_as_class_method('Regexp', 'try_convert', 'RegexpObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
+gen.static_binding_as_class_method('Regexp', 'union', 'RegexpObject', 'regexp_union', argc: :any, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
 gen.binding('Regexp', '===', 'RegexpObject', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Regexp', '=~', 'RegexpObject', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Regexp', '~', 'RegexpObject', 'tilde', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -1389,7 +1315,7 @@ gen.binding('String', 'to_s', 'StringObject', 'to_s', argc: 0, pass_env: false, 
 gen.binding('String', 'to_str', 'StringObject', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('String', 'tr', 'StringObject', 'tr', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'tr!', 'StringObject', 'tr_in_place', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('String', 'try_convert', 'StringObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('String', 'try_convert', 'StringObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'unpack', 'StringObject', 'unpack', argc: 1, kwargs: [:offset], pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'unpack1', 'StringObject', 'unpack1', argc: 1, kwargs: [:offset], pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'upcase', 'StringObject', 'upcase', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
@@ -1398,7 +1324,7 @@ gen.binding('String', 'upto', 'StringObject', 'upto', argc: 1..2, pass_env: true
 gen.binding('String', 'valid_encoding?', 'StringObject', 'valid_encoding', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
 gen.undefine_singleton_method('Symbol', 'new')
-gen.static_binding('Symbol', 'all_symbols', 'SymbolObject', 'all_symbols', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Symbol', 'all_symbols', 'SymbolObject', 'all_symbols', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', '<=>', 'SymbolObject', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', '=~', 'SymbolObject', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', '[]', 'SymbolObject', 'ref', argc: 1..2, pass_env: true, pass_block: false, aliases: ['slice'], return_type: :Object)
@@ -1422,17 +1348,17 @@ gen.binding('Symbol', 'to_s', 'SymbolObject', 'to_s', argc: 0, pass_env: true, p
 gen.binding('Symbol', 'to_sym', 'SymbolObject', 'to_sym', argc: 0, pass_env: true, pass_block: false, aliases: ['intern'], return_type: :Object)
 gen.binding('Symbol', 'upcase', 'SymbolObject', 'upcase', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
-gen.static_binding('Thread', 'abort_on_exception', 'ThreadObject', 'global_abort_on_exception', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.static_binding('Thread', 'abort_on_exception=', 'ThreadObject', 'set_global_abort_on_exception', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
-gen.static_binding('Thread', 'current', 'ThreadObject', 'current', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding('Thread', 'kill', 'ThreadObject', 'thread_kill', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Thread', 'exit', 'ThreadObject', 'exit', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Thread', 'list', 'ThreadObject', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Thread', 'main', 'ThreadObject', 'main', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding('Thread', 'pass', 'ThreadObject', 'pass', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Thread', 'report_on_exception', 'ThreadObject', 'default_report_on_exception', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.static_binding('Thread', 'report_on_exception=', 'ThreadObject', 'set_default_report_on_exception', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
-gen.static_binding('Thread', 'stop', 'ThreadObject', 'stop', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Thread', 'abort_on_exception', 'ThreadObject', 'global_abort_on_exception', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('Thread', 'abort_on_exception=', 'ThreadObject', 'set_global_abort_on_exception', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('Thread', 'current', 'ThreadObject', 'current', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Thread', 'kill', 'ThreadObject', 'thread_kill', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Thread', 'exit', 'ThreadObject', 'exit', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Thread', 'list', 'ThreadObject', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Thread', 'main', 'ThreadObject', 'main', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Thread', 'pass', 'ThreadObject', 'pass', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Thread', 'report_on_exception', 'ThreadObject', 'default_report_on_exception', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('Thread', 'report_on_exception=', 'ThreadObject', 'set_default_report_on_exception', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('Thread', 'stop', 'ThreadObject', 'stop', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', '[]', 'ThreadObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', '[]=', 'ThreadObject', 'refeq', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'abort_on_exception', 'ThreadObject', 'abort_on_exception', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
@@ -1483,11 +1409,11 @@ gen.binding('Thread::Mutex', 'synchronize', 'Thread::MutexObject', 'synchronize'
 gen.binding('Thread::Mutex', 'try_lock', 'Thread::MutexObject', 'try_lock', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Thread::Mutex', 'unlock', 'Thread::MutexObject', 'unlock', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
-gen.static_binding('Time', 'at', 'TimeObject', 'at', argc: 1..3, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Time', 'local', 'TimeObject', 'local', argc: 1..7, pass_env: true, pass_block: false, aliases: ['mktime'], return_type: :Object)
-gen.static_binding('Time', 'new', 'TimeObject', 'initialize', argc: 0..7, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Time', 'now', 'TimeObject', 'now', argc: 0, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Time', 'utc', 'TimeObject', 'utc', argc: 1..7, pass_env: true, pass_block: false, aliases: ['gm'], return_type: :Object)
+gen.static_binding_as_class_method('Time', 'at', 'TimeObject', 'at', argc: 1..3, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Time', 'local', 'TimeObject', 'local', argc: 1..7, pass_env: true, pass_block: false, aliases: ['mktime'], return_type: :Object)
+gen.static_binding_as_class_method('Time', 'new', 'TimeObject', 'initialize', argc: 0..7, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Time', 'now', 'TimeObject', 'now', argc: 0, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Time', 'utc', 'TimeObject', 'utc', argc: 1..7, pass_env: true, pass_block: false, aliases: ['gm'], return_type: :Object)
 gen.binding('Time', '+', 'TimeObject', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', '-', 'TimeObject', 'minus', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', '<=>', 'TimeObject', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
@@ -1532,8 +1458,8 @@ gen.binding('UnboundMethod', 'inspect', 'UnboundMethodObject', 'inspect', argc: 
 gen.binding('UnboundMethod', 'name', 'UnboundMethodObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('UnboundMethod', 'owner', 'UnboundMethodObject', 'owner', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
-gen.singleton_binding('main_obj', 'define_method', 'Object', 'main_obj_define_method', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
-gen.singleton_binding('main_obj', 'to_s', 'Object', 'main_obj_inspect', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Object)
+gen.member_binding_as_class_method('main_obj', 'define_method', 'Object', 'main_obj_define_method', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('main_obj', 'to_s', 'Object', 'main_obj_inspect', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Object)
 
 gen.init
 
