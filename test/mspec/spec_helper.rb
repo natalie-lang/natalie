@@ -3,7 +3,7 @@ RSpec.configure do |config|
   config.raise_errors_for_deprecations!
 end
 
-require 'mspec'
+require_relative '../spec_helper'
 
 # Remove this when MRI has intelligent warnings
 $VERBOSE = nil unless $VERBOSE
@@ -63,7 +63,7 @@ def ensure_mspec_method(method)
 end
 
 PublicMSpecMatchers = Class.new {
-  include MSpecMatchers
+  # include MSpecMatchers
   public :raise_error
 }.new
 
