@@ -1,29 +1,30 @@
 require_relative './base_instruction'
+require_relative '../regexp_encoding'
 
 module Natalie
   class Compiler
     class PushRegexpInstruction < BaseInstruction
       include StringToCpp
+      include RegexpEncoding
 
-      def initialize(regexp, euc_jp: false)
+      def initialize(regexp, encoding: nil)
         @regexp = regexp
-        @euc_jp = euc_jp
+        @encoding = encoding
       end
 
       def to_s
         str = "push_regexp #{@regexp.inspect}"
-        str += ' (euc-jp)' if @euc_jp
+        str += " (#{@encoding.name})" if @encoding
         str
       end
 
       def generate(transform)
-        encoding = @euc_jp ? 'EncodingObject::get(Encoding::EUC_JP)' : 'nullptr';
         transform.exec_and_push(:regexp, "Value(RegexpObject::literal(env, #{string_to_cpp(@regexp.source)}, #{@regexp.options}, #{encoding}))")
       end
 
       def execute(vm)
         regexp = @regexp.dup
-        regexp = Regexp.compile(regexp.source.dup.force_encoding(Encoding::EUC_JP), Regexp::FIXEDENCODING) if @euc_jp
+        regexp = Regexp.compile(regexp.source.dup.force_encoding(@encoding), Regexp::FIXEDENCODING) if @encoding
         vm.push(regexp)
       end
 
