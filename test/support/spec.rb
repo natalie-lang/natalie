@@ -560,21 +560,36 @@ class BeKindOfExpectation
   end
 end
 
-class BeInstanceOfExpectation
+class BeAnInstanceOfMatcher
   def initialize(klass)
     @klass = klass
   end
 
+  def matches?(subject)
+    @message_prelude = "Expected #{subject.inspect} (#{subject.class})"
+    subject.instance_of?(@klass)
+  end
+
+  def failure_message
+    [@message_prelude, "to be an instance of #{@klass}"]
+  end
+
+  def negative_failure_message
+    [@message_prelude, "not to be an instance of #{@klass}"]
+  end
+end
+
+class BeInstanceOfExpectation
+  def initialize(klass)
+    @matcher = BeAnInstanceOfMatcher.new(klass)
+  end
+
   def match(subject)
-    if !subject.instance_of?(@klass)
-      raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should be an instance of #{@klass}"
-    end
+    raise SpecFailedException, @matcher.failure_message.join(' ') unless @matcher.matches?(subject)
   end
 
   def inverted_match(subject)
-    if subject.instance_of?(@klass)
-      raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should not be an instance of #{@klass}"
-    end
+    raise SpecFailedException, @matcher.negative_failure_message.join(' ') if @matcher.matches?(subject)
   end
 end
 
