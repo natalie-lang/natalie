@@ -559,18 +559,6 @@ class Expectation
   end
 end
 
-class BeEmptyExpectation
-  def match(subject)
-    if (subject.length > 0)
-      raise SpecFailedException, subject.inspect + ' should be empty but has size ' + subject.length
-    end
-  end
-
-  def inverted_match(subject)
-    raise SpecFailedException, subject.inspect + ' should not be empty' if (subject.length == 0)
-  end
-end
-
 class EqualExpectation
   def initialize(other)
     @other = other
@@ -1419,7 +1407,7 @@ class Object
   end
 
   def be_empty()
-    BeEmptyExpectation.new
+    Expectation.new(BeEmptyMatcher.new)
   end
 
   def equal(other)
