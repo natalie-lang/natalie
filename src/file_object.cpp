@@ -486,7 +486,7 @@ nat_int_t FileObject::mkfifo(Env *env, Value path, Value mode) {
     mode_t octmode = 0666;
     if (mode) {
         mode->assert_type(env, Object::Type::Integer, "Integer");
-        octmode = (mode_t)(mode->as_integer()->to_nat_int_t());
+        octmode = (mode_t)IntegerObject::to_nat_int_t(mode->as_integer());
     }
     path = ioutil::convert_using_to_path(env, path);
     int result = ::mkfifo(path->as_string()->c_str(), octmode);
@@ -643,8 +643,8 @@ Value FileObject::lutime(Env *env, Args &&args) {
         if (v->is_nil()) {
             t = now;
         } else if (v->is_time()) {
-            t.tv_sec = static_cast<time_t>(v->as_time()->to_i(env)->as_integer()->to_nat_int_t());
-            t.tv_usec = static_cast<suseconds_t>(v->as_time()->usec(env)->as_integer()->to_nat_int_t());
+            t.tv_sec = static_cast<time_t>(IntegerObject::to_nat_int_t(v->as_time()->to_i(env)->as_integer()));
+            t.tv_usec = static_cast<suseconds_t>(IntegerObject::to_nat_int_t(v->as_time()->usec(env)->as_integer()));
         } else if (v->is_integer()) {
             t.tv_sec = IntegerObject::convert_to_native_type<time_t>(env, v);
             t.tv_usec = 0;
@@ -745,10 +745,10 @@ Value FileObject::utime(Env *env, Args &&args) {
     }
 
     struct timeval ubuf[2], *ubufp = nullptr;
-    ubuf[0].tv_sec = atime->to_r(env)->as_rational()->to_i(env)->as_integer()->to_nat_int_t();
-    ubuf[0].tv_usec = atime->usec(env)->as_integer()->to_nat_int_t();
-    ubuf[1].tv_sec = mtime->to_r(env)->as_rational()->to_i(env)->as_integer()->to_nat_int_t();
-    ubuf[1].tv_usec = mtime->usec(env)->as_integer()->to_nat_int_t();
+    ubuf[0].tv_sec = IntegerObject::to_nat_int_t(atime->to_r(env)->as_rational()->to_i(env)->as_integer());
+    ubuf[0].tv_usec = IntegerObject::to_nat_int_t(atime->usec(env)->as_integer());
+    ubuf[1].tv_sec = IntegerObject::to_nat_int_t(mtime->to_r(env)->as_rational()->to_i(env)->as_integer());
+    ubuf[1].tv_usec = IntegerObject::to_nat_int_t(mtime->usec(env)->as_integer());
     ubufp = ubuf;
 
     for (size_t i = 2; i < args.size(); ++i) {

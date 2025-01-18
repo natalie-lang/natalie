@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/integer_object.hpp"
 #include "natalie/ioutil.hpp"
 #include "natalie/macros.hpp"
 
@@ -82,7 +83,7 @@ Value DirObject::seek(Env *env, Value position) {
 
 nat_int_t DirObject::set_pos(Env *env, Value position) {
     if (!m_dir) env->raise("IOError", "closed directory");
-    nat_int_t pos = position->as_integer()->to_nat_int_t();
+    nat_int_t pos = IntegerObject::to_nat_int_t(position->as_integer());
     ::seekdir(m_dir, pos);
     return pos;
 }

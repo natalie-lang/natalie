@@ -140,7 +140,7 @@ private:
             uid = pass->pw_uid;
         } else {
             idval->assert_type(env, Object::Type::Integer, "Integer");
-            uid = idval->as_integer()->to_nat_int_t();
+            uid = IntegerObject::to_nat_int_t(idval->as_integer());
         }
         return uid;
     }
@@ -154,7 +154,7 @@ private:
             gid = grp->gr_gid;
         } else {
             idval->assert_type(env, Object::Type::Integer, "Integer");
-            gid = idval->as_integer()->to_nat_int_t();
+            gid = IntegerObject::to_nat_int_t(idval->as_integer());
         }
         return gid;
     }

@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/integer_object.hpp"
 
 namespace Natalie {
 
@@ -111,7 +112,7 @@ nat_int_t Value::as_fast_integer() const {
     assert(m_type == Type::Integer || (m_type == Type::Pointer && m_object->is_integer()));
     if (m_type == Type::Integer)
         return m_integer;
-    return m_object->as_integer()->to_nat_int_t();
+    return IntegerObject::to_nat_int_t(m_object->as_integer());
 }
 
 bool Value::operator==(Value other) const {
@@ -125,8 +126,8 @@ bool Value::operator==(Value other) const {
         default: {
             if (other && other->is_integer()) {
                 auto i = other->as_integer();
-                if (i->is_fixnum())
-                    return m_integer == i->to_nat_int_t();
+                if (IntegerObject::is_fixnum(i))
+                    return m_integer == IntegerObject::to_nat_int_t(i);
             }
             return false;
         }

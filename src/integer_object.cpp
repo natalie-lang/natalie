@@ -219,7 +219,7 @@ Value IntegerObject::pow(Env *env, IntegerObject *self, Value arg) {
 }
 
 Value IntegerObject::powmod(Env *env, IntegerObject *self, Value exponent, Value mod) {
-    if (exponent->is_integer() && exponent->as_integer()->is_negative() && mod)
+    if (exponent->is_integer() && IntegerObject::is_negative(exponent->as_integer()) && mod)
         env->raise("RangeError", "2nd argument not allowed when first argument is negative");
 
     auto powd = pow(env, self, exponent);
@@ -231,18 +231,18 @@ Value IntegerObject::powmod(Env *env, IntegerObject *self, Value exponent, Value
         env->raise("TypeError", "2nd argument not allowed unless all arguments are integers");
 
     auto modi = mod->as_integer();
-    if (modi->to_nat_int_t() == 0)
+    if (to_nat_int_t(modi) == 0)
         env->raise("ZeroDivisionError", "cannot divide by zero");
 
     auto powi = powd->as_integer();
 
-    if (powi->is_bignum())
-        return new IntegerObject { powi->to_bigint() % modi->to_bigint() };
+    if (is_bignum(powi))
+        return new IntegerObject { to_bigint(powi) % to_bigint(modi) };
 
-    if (powi->to_nat_int_t() < 0 || modi->to_nat_int_t() < 0)
+    if (to_nat_int_t(powi) < 0 || to_nat_int_t(modi) < 0)
         return IntegerObject::mod(env, powi, mod);
 
-    return Value::integer(powi->to_nat_int_t() % modi->to_nat_int_t());
+    return Value::integer(to_nat_int_t(powi) % to_nat_int_t(modi));
 }
 
 Value IntegerObject::cmp(Env *env, IntegerObject *self, Value arg) {
@@ -459,8 +459,8 @@ Value IntegerObject::bit_length(Env *env, IntegerObject *self) {
 
 Value IntegerObject::left_shift(Env *env, IntegerObject *self, Value arg) {
     auto integer = arg->to_int(env);
-    if (integer->is_bignum()) {
-        if (self->is_negative())
+    if (is_bignum(integer)) {
+        if (IntegerObject::is_negative(self))
             return Value::integer(-1);
         else
             return Value::integer(0);
@@ -476,8 +476,8 @@ Value IntegerObject::left_shift(Env *env, IntegerObject *self, Value arg) {
 
 Value IntegerObject::right_shift(Env *env, IntegerObject *self, Value arg) {
     auto integer = arg->to_int(env);
-    if (integer->is_bignum()) {
-        if (self->is_negative())
+    if (is_bignum(integer)) {
+        if (IntegerObject::is_negative(self))
             return Value::integer(-1);
         else
             return Value::integer(0);
@@ -496,7 +496,7 @@ Value IntegerObject::pred(Env *env, IntegerObject *self) {
 }
 
 Value IntegerObject::size(Env *env, IntegerObject *self) {
-    if (self->is_bignum()) {
+    if (is_bignum(self)) {
         const nat_int_t bitstring_size = IntegerObject::to_s(env, self, Value::integer(2))->as_string()->bytesize();
         return Value::integer((bitstring_size + 7) / 8);
     }
@@ -580,7 +580,7 @@ Value IntegerObject::abs(Env *env, IntegerObject *self) {
 Value IntegerObject::chr(Env *env, IntegerObject *self, Value encoding) {
     if (self->m_integer < 0 || self->m_integer > (nat_int_t)UINT_MAX)
         env->raise("RangeError", "{} out of char range", self->m_integer.to_string());
-    else if (self->is_bignum())
+    else if (is_bignum(self))
         env->raise("RangeError", "bignum out of char range");
 
     if (encoding) {
@@ -742,7 +742,7 @@ Value IntegerObject::ref(Env *env, IntegerObject *self, Value offset_obj, Value 
         return from_offset_and_size(begin, size);
     } else {
         auto *offset_integer = offset_obj->to_int(env);
-        if (offset_integer->is_bignum())
+        if (is_bignum(offset_integer))
             return Value::integer(0);
 
         auto offset = offset_integer->m_integer.to_nat_int_t();
@@ -750,7 +750,7 @@ Value IntegerObject::ref(Env *env, IntegerObject *self, Value offset_obj, Value 
         Optional<nat_int_t> size;
         if (size_obj) {
             IntegerObject *size_integer = size_obj->to_int(env);
-            if (size_integer->is_bignum())
+            if (is_bignum(size_integer))
                 env->raise("RangeError", "shift width too big");
 
             size = size_integer->m_integer.to_nat_int_t();
@@ -762,7 +762,7 @@ Value IntegerObject::ref(Env *env, IntegerObject *self, Value offset_obj, Value 
 
 nat_int_t IntegerObject::convert_to_nat_int_t(Env *env, Value arg) {
     auto integer = arg->to_int(env);
-    integer->assert_fixnum(env);
+    assert_fixnum(env, integer);
     return integer->m_integer.to_nat_int_t();
 }
 

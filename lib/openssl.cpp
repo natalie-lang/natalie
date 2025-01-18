@@ -11,6 +11,7 @@
 #include <openssl/x509.h>
 
 #include "natalie.hpp"
+#include "natalie/integer_object.hpp"
 
 using namespace Natalie;
 
@@ -451,7 +452,7 @@ Value OpenSSL_SSL_SSLContext_security_level(Env *env, Value self, Args &&args, B
 
 Value OpenSSL_SSL_SSLContext_set_security_level(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto security_level = args[0]->to_int(env)->to_nat_int_t();
+    auto security_level = IntegerObject::to_nat_int_t(args[0]->to_int(env));
 
     if (self->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
@@ -642,7 +643,7 @@ Value OpenSSL_PKey_RSA_initialize(Env *env, Value self, Args &&args, Block *) {
             env->raise("ArgumentError", "Invalid key type");
         }
     } else {
-        const unsigned int bits = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
+        const unsigned int bits = IntegerObject::to_nat_int_t(args.at(0)->as_integer_or_raise(env));
         pkey = EVP_RSA_gen(bits);
         if (!pkey)
             OpenSSL_raise_error(env, "EVP_PKEY_new");
@@ -774,7 +775,7 @@ Value OpenSSL_X509_Certificate_set_not_after(Env *env, Value self, Args &&args, 
         time = KernelModule::Integer(env, time, 0, true);
         time = Time->send(env, "at"_s, { time });
     }
-    ASN1_TIME *asn1 = ASN1_UTCTIME_set(nullptr, time->as_time()->to_i(env)->as_integer()->to_nat_int_t());
+    ASN1_TIME *asn1 = ASN1_UTCTIME_set(nullptr, IntegerObject::to_nat_int_t(time->as_time()->to_i(env)->as_integer()));
     if (!asn1)
         OpenSSL_raise_error(env, "ASN1_TIME_set");
     Defer asn1_time_free { [asn1]() { ASN1_TIME_free(asn1); } };
@@ -812,7 +813,7 @@ Value OpenSSL_X509_Certificate_set_not_before(Env *env, Value self, Args &&args,
         time = KernelModule::Integer(env, time, 0, true);
         time = Time->send(env, "at"_s, { time });
     }
-    ASN1_TIME *asn1 = ASN1_UTCTIME_set(nullptr, time->as_time()->to_i(env)->as_integer()->to_nat_int_t());
+    ASN1_TIME *asn1 = ASN1_UTCTIME_set(nullptr, IntegerObject::to_nat_int_t(time->as_time()->to_i(env)->as_integer()));
     if (!asn1)
         OpenSSL_raise_error(env, "ASN1_TIME_set");
     Defer asn1_time_free { [asn1]() { ASN1_TIME_free(asn1); } };
@@ -944,7 +945,7 @@ Value OpenSSL_X509_Certificate_version(Env *env, Value self, Args &&args, Block 
 Value OpenSSL_X509_Certificate_set_version(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
 
-    const auto version = args[0]->to_int(env)->to_nat_int_t();
+    const auto version = IntegerObject::to_nat_int_t(args[0]->to_int(env));
     if (version < 0) {
         auto CertificateError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "CertificateError"_s })->as_class();
         env->raise(CertificateError, "version must be >= 0!");
@@ -976,11 +977,11 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
     const EVP_MD *md = EVP_get_digestbyname(hash->as_string()->c_str());
     if (!md)
         env->raise("RuntimeError", "Unsupported digest algorithm ({}).: unknown object name", hash->as_string()->string());
-    const size_t out_size = length->as_integer()->to_nat_int_t();
+    const size_t out_size = IntegerObject::to_nat_int_t(length->as_integer());
     unsigned char *out = static_cast<unsigned char *>(alloca(out_size));
     int result = PKCS5_PBKDF2_HMAC(pass->as_string()->c_str(), pass->as_string()->bytesize(),
         reinterpret_cast<const unsigned char *>(salt->as_string()->c_str()), salt->as_string()->bytesize(),
-        iterations->as_integer()->to_nat_int_t(),
+        IntegerObject::to_nat_int_t(iterations->as_integer()),
         md,
         out_size, out);
     if (!result) {
@@ -1003,7 +1004,7 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
     auto r = kwargs->remove(env, "r"_s)->to_int(env);
     auto p = kwargs->remove(env, "p"_s)->to_int(env);
     auto length = kwargs->remove(env, "length"_s)->to_int(env);
-    if (length->is_negative() || length->is_bignum())
+    if (IntegerObject::is_negative(length) || IntegerObject::is_bignum(length))
         env->raise("ArgumentError", "negative string size (or size too big)");
     env->ensure_no_extra_keywords(kwargs);
 
@@ -1012,7 +1013,7 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
     auto KDFError = KDF->const_get("KDFError"_s);
     auto pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_SCRYPT, nullptr);
     Defer pctx_free { [&pctx]() { EVP_PKEY_CTX_free(pctx); } };
-    size_t outlen = length->to_nat_int_t();
+    size_t outlen = IntegerObject::to_nat_int_t(length);
     unsigned char *out = static_cast<unsigned char *>(alloca(outlen));
     if (EVP_PKEY_derive_init(pctx) <= 0) {
         OpenSSL_raise_error(env, "EVP_PKEY_derive_init", KDFError->as_class());
@@ -1023,13 +1024,13 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
     if (EVP_PKEY_CTX_set1_scrypt_salt(pctx, reinterpret_cast<const unsigned char *>(salt->c_str()), salt->bytesize()) <= 0) {
         OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
     }
-    if (EVP_PKEY_CTX_set_scrypt_N(pctx, N->to_nat_int_t()) <= 0) {
+    if (EVP_PKEY_CTX_set_scrypt_N(pctx, IntegerObject::to_nat_int_t(N)) <= 0) {
         OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
     }
-    if (EVP_PKEY_CTX_set_scrypt_r(pctx, r->to_nat_int_t()) <= 0) {
+    if (EVP_PKEY_CTX_set_scrypt_r(pctx, IntegerObject::to_nat_int_t(r)) <= 0) {
         OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
     }
-    if (EVP_PKEY_CTX_set_scrypt_p(pctx, p->to_nat_int_t()) <= 0) {
+    if (EVP_PKEY_CTX_set_scrypt_p(pctx, IntegerObject::to_nat_int_t(p)) <= 0) {
         OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
     }
     if (EVP_PKEY_derive(pctx, out, &outlen) <= 0) {
@@ -1123,7 +1124,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
             OpenSSL_raise_error(env, "BN_copy");
     } else if (arg->is_integer()) {
         args.ensure_argc_is(env, 1);
-        const auto str = arg->as_integer()->to_s();
+        const auto str = IntegerObject::to_s(arg->as_integer());
         if (!BN_dec2bn(&bn, str.c_str()))
             OpenSSL_raise_error(env, "BN_dec2bn");
     } else if (arg->is_string()) {
@@ -1134,7 +1135,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
         } else {
             // No support in OpenSSL libs to add a base argument, so convert string to int with base, and convert int back to string
             arg = KernelModule::Integer(env, arg, args[1], (Value)TrueObject::the());
-            const auto str = arg->as_integer()->to_s();
+            const auto str = IntegerObject::to_s(arg->as_integer());
             if (!BN_dec2bn(&bn, str.c_str()))
                 OpenSSL_raise_error(env, "BN_dec2bn");
         }
@@ -1169,7 +1170,7 @@ Value OpenSSL_BN_to_i(Env *env, Value self, Args &&args, Block *) {
 Value OpenSSL_Random_random_bytes(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     Value length = args[0]->to_int(env);
-    const auto num = static_cast<int>(length->as_integer()->to_nat_int_t());
+    const auto num = static_cast<int>(IntegerObject::to_nat_int_t(length->as_integer()));
     if (num < 0)
         env->raise("ArgumentError", "negative string size (or size too big)");
 

@@ -7,7 +7,7 @@ RationalObject *RationalObject::create(Env *env, IntegerObject *numerator, Integ
     if (IntegerObject::is_zero(denominator))
         env->raise("ZeroDivisionError", "divided by 0");
 
-    if (denominator->is_negative()) {
+    if (IntegerObject::is_negative(denominator)) {
         numerator = IntegerObject::negate(env, numerator)->as_integer();
         denominator = IntegerObject::negate(env, denominator)->as_integer();
     }
@@ -115,7 +115,7 @@ Value RationalObject::div(Env *env, Value other) {
 
 bool RationalObject::eq(Env *env, Value other) {
     if (other->is_integer())
-        return m_denominator->to_nat_int_t() == 1 && IntegerObject::eq(env, m_numerator, other);
+        return IntegerObject::to_nat_int_t(m_denominator) == 1 && IntegerObject::eq(env, m_numerator, other);
 
     if (other->is_float())
         return to_f(env)->as_float()->eq(env, other);
@@ -204,7 +204,7 @@ Value RationalObject::pow(Env *env, Value other) {
         if (IntegerObject::is_zero(numerator))
             return create(env, new IntegerObject { 1 }, new IntegerObject { 1 });
 
-        if (IntegerObject::is_zero(m_numerator) && numerator->is_negative())
+        if (IntegerObject::is_zero(m_numerator) && IntegerObject::is_negative(numerator))
             env->raise("ZeroDivisionError", "divided by 0");
 
         if (IntegerObject::integer(denominator) == 1) {
@@ -255,7 +255,7 @@ Value RationalObject::to_f(Env *env) {
 }
 
 Value RationalObject::to_i(Env *env) {
-    if (m_numerator->is_negative()) {
+    if (IntegerObject::is_negative(m_numerator)) {
         auto a = IntegerObject::negate(env, m_numerator)->as_integer();
         auto b = IntegerObject::div(env, a, m_denominator)->as_integer();
         return IntegerObject::negate(env, b);
@@ -272,14 +272,14 @@ Value RationalObject::rationalize(Env *env) {
 }
 
 Value RationalObject::truncate(Env *env, Value ndigits) {
-    auto numerator = m_numerator->to_nat_int_t();
-    auto denominator = m_denominator->to_nat_int_t();
+    auto numerator = IntegerObject::to_nat_int_t(m_numerator);
+    auto denominator = IntegerObject::to_nat_int_t(m_denominator);
     nat_int_t digits = 0;
 
     if (ndigits) {
         if (!ndigits->is_integer())
             env->raise("TypeError", "not an integer");
-        digits = ndigits->as_integer()->to_nat_int_t();
+        digits = IntegerObject::to_nat_int_t(ndigits->as_integer());
     }
 
     if (digits == 0)

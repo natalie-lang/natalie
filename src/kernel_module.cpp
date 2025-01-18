@@ -211,7 +211,7 @@ Value KernelModule::exit_bang(Env *env, Value status) {
 Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) {
     nat_int_t base_int = 0; // default to zero if unset
     if (base)
-        base_int = base->to_int(env)->to_nat_int_t();
+        base_int = IntegerObject::to_nat_int_t(base->to_int(env));
     return Integer(env, value, base_int, exception ? exception->is_true() : true);
 }
 
@@ -492,7 +492,7 @@ Value KernelModule::sleep(Env *env, Value length) {
 
     float secs;
     if (length->is_integer()) {
-        secs = length->as_integer()->to_nat_int_t();
+        secs = IntegerObject::to_nat_int_t(length->as_integer());
     } else if (length->is_float()) {
         secs = length->as_float()->to_double();
     } else if (length->is_rational()) {

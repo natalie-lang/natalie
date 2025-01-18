@@ -42,8 +42,8 @@ public:
         return self->m_integer;
     }
 
-    bool is_negative() const {
-        return m_integer.is_negative();
+    static bool is_negative(const IntegerObject *self) {
+        return self->m_integer.is_negative();
     }
 
     static bool is_zero(IntegerObject *self) {
@@ -76,9 +76,9 @@ public:
     template <class T>
     static T convert_to_native_type(Env *env, Value arg) {
         auto integer = arg->to_int(env);
-        if (integer->is_bignum())
+        if (is_bignum(integer))
             env->raise("RangeError", "bignum too big to convert into '{}'", typeinfo<T>().name());
-        const auto result = integer->to_nat_int_t();
+        const auto result = to_nat_int_t(integer);
         if (!std::numeric_limits<T>::is_signed && result < 0)
             env->raise("ArgumentError", "negative length {} given", result);
         if (result < static_cast<nat_int_t>(std::numeric_limits<T>::min()))
@@ -92,7 +92,7 @@ public:
 
     static Value inspect(Env *env, IntegerObject *self) { return to_s(env, self); }
 
-    String to_s() const { return m_integer.to_string(); }
+    static String to_s(const IntegerObject *self) { return self->m_integer.to_string(); }
 
     static Value to_s(Env *, IntegerObject *, Value = nullptr);
     static Value to_i(IntegerObject *);
@@ -136,18 +136,18 @@ public:
     static bool lte(Env *, IntegerObject *, Value);
     static bool gt(Env *, IntegerObject *, Value);
     static bool gte(Env *, IntegerObject *, Value);
-    bool is_bignum() const { return m_integer.is_bignum(); }
-    bool is_fixnum() const { return !is_bignum(); }
+    static bool is_bignum(const IntegerObject *self) { return self->m_integer.is_bignum(); }
+    static bool is_fixnum(const IntegerObject *self) { return !is_bignum(self); }
 
-    nat_int_t to_nat_int_t() const { return m_integer.to_nat_int_t(); }
-    BigInt to_bigint() const { return m_integer.to_bigint(); }
+    static nat_int_t to_nat_int_t(const IntegerObject *self) { return self->m_integer.to_nat_int_t(); }
+    static BigInt to_bigint(const IntegerObject *self) { return self->m_integer.to_bigint(); }
 
-    void assert_fixnum(Env *env) const {
-        if (is_bignum())
+    static void assert_fixnum(Env *env, const IntegerObject *self) {
+        if (is_bignum(self))
             env->raise("RangeError", "bignum too big to convert into 'long'");
     }
 
-    virtual String dbg_inspect() const override { return to_s(); }
+    virtual String dbg_inspect() const override { return to_s(this); }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<IntegerObject %p value=%s is_fixnum=%s>", this, m_integer.to_string().c_str(), m_integer.is_fixnum() ? "true" : "false");

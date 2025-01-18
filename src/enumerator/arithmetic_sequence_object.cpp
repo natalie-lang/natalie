@@ -219,7 +219,7 @@ Value ArithmeticSequenceObject::last(Env *env, Value n) {
         if (IntegerObject::integer(n_as_int) > steps)
             count = steps;
 
-        n_as_int->assert_fixnum(env);
+        IntegerObject::assert_fixnum(env, n_as_int);
 
         auto array = new ArrayObject { (size_t)count.to_nat_int_t() };
 

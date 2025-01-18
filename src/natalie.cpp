@@ -611,7 +611,7 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
         Value status_obj = exception->ivar_get(env, "@status"_s);
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (status_obj->type() == Object::Type::Integer) {
-            nat_int_t val = status_obj->as_integer()->to_nat_int_t();
+            nat_int_t val = IntegerObject::to_nat_int_t(status_obj->as_integer());
             if (val >= 0 && val <= 255) {
                 clean_up_and_exit(val);
             } else {
@@ -623,7 +623,7 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
     } else if (exception->is_a(env, find_top_level_const(env, "SignalException"_s)->as_class())) {
         Value signo = exception->ivar_get(env, "@signo"_s);
         if (signo->type() == Object::Type::Integer) {
-            nat_int_t val = signo->as_integer()->to_nat_int_t();
+            nat_int_t val = IntegerObject::to_nat_int_t(signo->as_integer());
             if (val >= 0 && val <= 255) {
                 clean_up_and_exit(val + 128);
             } else {
@@ -719,7 +719,7 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
             if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
             obj->assert_type(env, Object::Type::Integer, "Integer");
-            *int_ptr = obj->as_integer()->to_nat_int_t();
+            *int_ptr = IntegerObject::to_nat_int_t(obj->as_integer());
             break;
         }
         case 's': {

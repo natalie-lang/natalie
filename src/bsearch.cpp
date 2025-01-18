@@ -8,7 +8,7 @@ BSearchCheckResult binary_search_check(Env *env, Value block_result) {
             auto i = block_result->as_integer();
             if (IntegerObject::is_zero(i))
                 return BSearchCheckResult::EQUAL;
-            else if (i->is_negative())
+            else if (IntegerObject::is_negative(i))
                 return BSearchCheckResult::SMALLER;
         } else {
             auto f = block_result->as_float();

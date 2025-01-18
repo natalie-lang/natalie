@@ -263,7 +263,7 @@ String create_padding(String &padding, size_t length) {
 }
 
 Value StringObject::center(Env *env, Value length, Value padstr) {
-    nat_int_t length_i = length->to_int(env)->to_nat_int_t();
+    nat_int_t length_i = IntegerObject::to_nat_int_t(length->to_int(env));
 
     String pad;
 
@@ -971,7 +971,7 @@ Value StringObject::append_as_bytes(Env *env, Args &&args) {
         if (arg->is_string()) {
             buf.append(arg->as_string()->string());
         } else if (arg->is_integer()) {
-            const auto c = static_cast<uint8_t>(arg->send(env, "&"_s, { Value::integer(0xFF) })->as_integer()->to_nat_int_t());
+            const auto c = static_cast<uint8_t>(IntegerObject::to_nat_int_t(arg->send(env, "&"_s, { Value::integer(0xFF) })->as_integer()));
             buf.append_char(c);
         } else {
             env->raise("TypeError", "wrong argument type {} (expected String or Integer)", arg->klass()->inspect_str());
@@ -983,7 +983,7 @@ Value StringObject::append_as_bytes(Env *env, Args &&args) {
 
 Value StringObject::mul(Env *env, Value arg) const {
     auto int_arg = arg->to_int(env);
-    if (int_arg->is_negative())
+    if (IntegerObject::is_negative(int_arg))
         env->raise("ArgumentError", "negative argument");
 
     auto nat_int = IntegerObject::convert_to_nat_int_t(env, int_arg);
@@ -1053,12 +1053,12 @@ Value StringObject::concat(Env *env, Args &&args) {
         StringObject *str_obj;
         if (arg->is_string()) {
             str_obj = arg->as_string();
-        } else if (arg->is_integer() && arg->as_integer()->is_negative()) {
+        } else if (arg->is_integer() && IntegerObject::is_negative(arg->as_integer())) {
             env->raise("RangeError", "{} out of char range", IntegerObject::to_s(env, arg->as_integer())->as_string()->string());
         } else if (arg->is_integer()) {
             // Special case: US-ASCII << (128..255) will change the string to binary
-            if (m_encoding == EncodingObject::get(Encoding::US_ASCII) && arg->as_integer()->is_fixnum()) {
-                const auto nat_int = arg->as_integer()->to_nat_int_t();
+            if (m_encoding == EncodingObject::get(Encoding::US_ASCII) && IntegerObject::is_fixnum(arg->as_integer())) {
+                const auto nat_int = IntegerObject::to_nat_int_t(arg->as_integer());
                 if (nat_int >= 128 && nat_int <= 255)
                     m_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
             }
@@ -1204,7 +1204,7 @@ Value StringObject::prepend(Env *env, Args &&args) {
         StringObject *str_obj;
         if (arg->is_string()) {
             str_obj = arg->as_string();
-        } else if (arg->is_integer() && arg->as_integer()->to_nat_int_t() < 0) {
+        } else if (arg->is_integer() && IntegerObject::to_nat_int_t(arg->as_integer()) < 0) {
             env->raise("RangeError", "{} out of char range", IntegerObject::to_s(env, arg->as_integer())->as_string()->string());
         } else if (arg->is_integer()) {
             str_obj = arg.send(env, "chr"_s, { m_encoding.ptr() })->as_string();
@@ -1886,7 +1886,7 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
     auto index_and_length_from_range = [&](String &str, RangeObject *range) {
         auto str_length = static_cast<nat_int_t>(str.length());
 
-        auto index = range->begin()->as_integer()->to_nat_int_t();
+        auto index = IntegerObject::to_nat_int_t(range->begin()->as_integer());
 
         // Handle negative start index.
         if (index < -str_length)
@@ -1899,7 +1899,7 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
             env->raise("RangeError", "{} out of range", range->inspect_str(env));
 
         // Handle negative end index.
-        auto end = range->end()->as_integer()->to_nat_int_t();
+        auto end = IntegerObject::to_nat_int_t(range->end()->as_integer());
         if (end < 0)
             end = str_length + end;
 
@@ -1943,7 +1943,7 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
 
             auto str_actual_length = static_cast<nat_int_t>(str->length());
             str_range = args[2]->as_range_or_raise(env);
-            if (str_range->begin()->as_integer()->to_nat_int_t() < -str_actual_length)
+            if (IntegerObject::to_nat_int_t(str_range->begin()->as_integer()) < -str_actual_length)
                 env->raise("RangeError", "{} out of range", str_range->inspect_str(env));
         }
 
@@ -1951,14 +1951,14 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
         // bytesplice(index, length, str)
         // bytesplice(index, length, str, str_index, str_length)
 
-        index = args[0]->as_integer_or_raise(env)->to_nat_int_t();
+        index = IntegerObject::to_nat_int_t(args[0]->as_integer_or_raise(env));
         if (index < -m_length || index > m_length)
             env->raise("IndexError", "index {} out of string", index);
 
         if (index < 0)
             index = m_length + index;
 
-        length = args[1]->as_integer_or_raise(env)->to_nat_int_t();
+        length = IntegerObject::to_nat_int_t(args[1]->as_integer_or_raise(env));
         if (length < 0)
             env->raise("IndexError", "negative length {}", length);
 
@@ -1969,13 +1969,13 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
 
             auto str_actual_length = static_cast<nat_int_t>(str->length());
 
-            auto str_index = args[3]->as_integer_or_raise(env)->to_nat_int_t();
+            auto str_index = IntegerObject::to_nat_int_t(args[3]->as_integer_or_raise(env));
             if (str_index < -str_actual_length || str_index > str_actual_length)
                 env->raise("IndexError", "index {} out of string", str_index);
             if (str_index < 0)
                 str_index = str_actual_length + str_index;
 
-            auto str_length = args[4]->as_integer_or_raise(env)->to_nat_int_t();
+            auto str_length = IntegerObject::to_nat_int_t(args[4]->as_integer_or_raise(env));
             if (str_length < 0)
                 env->raise("IndexError", "negative length {}", str_length);
 
@@ -2748,7 +2748,7 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
 
     int base = 10;
     if (base_obj) {
-        base = base_obj->to_int(env)->to_nat_int_t();
+        base = IntegerObject::to_nat_int_t(base_obj->to_int(env));
 
         if (base < 0 || base == 1 || base > 36) {
             env->raise("ArgumentError", "invalid radix {}", base);
@@ -2876,7 +2876,7 @@ Value StringObject::to_r(Env *env) const {
 nat_int_t StringObject::unpack_offset(Env *env, Value offset_value) const {
     nat_int_t offset = -1;
     if (offset_value) {
-        offset = offset_value->to_int(env)->to_nat_int_t();
+        offset = IntegerObject::to_nat_int_t(offset_value->to_int(env));
         if (offset < 0)
             env->raise("ArgumentError", "offset can't be negative");
         else if (offset > (nat_int_t)bytesize())
@@ -3169,7 +3169,7 @@ Value StringObject::lines(Env *env, Value separator, Value chomp, Block *block) 
 }
 
 Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) const {
-    nat_int_t length_i = length_obj->to_int(env)->to_nat_int_t();
+    nat_int_t length_i = IntegerObject::to_nat_int_t(length_obj->to_int(env));
     size_t length = length_i < 0 ? 0 : length_i;
 
     StringObject *padstr;
@@ -3267,7 +3267,7 @@ Value StringObject::lstrip_in_place(Env *env) {
 }
 
 Value StringObject::rjust(Env *env, Value length_obj, Value pad_obj) const {
-    nat_int_t length_i = length_obj->to_int(env)->to_nat_int_t();
+    nat_int_t length_i = IntegerObject::to_nat_int_t(length_obj->to_int(env));
     size_t length = length_i < 0 ? 0 : length_i;
 
     StringObject *padstr;
@@ -3466,10 +3466,10 @@ StringObject *StringObject::downcase(Env *env, Value arg1, Value arg2) {
             auto result = EncodingObject::casefold_full(codepoint);
             if (result->is_array()) {
                 for (auto item : *result->as_array()) {
-                    str->append(m_encoding->encode_codepoint(item->as_integer()->to_nat_int_t()));
+                    str->append(m_encoding->encode_codepoint(IntegerObject::to_nat_int_t(item->as_integer())));
                 }
             } else if (result->is_integer()) {
-                str->append(m_encoding->encode_codepoint(result->as_integer()->to_nat_int_t()));
+                str->append(m_encoding->encode_codepoint(IntegerObject::to_nat_int_t(result->as_integer())));
             } else {
                 str->append(m_encoding->encode_codepoint(codepoint));
             }
@@ -3807,7 +3807,7 @@ void StringObject::append(const FloatObject *f) {
 }
 
 void StringObject::append(const IntegerObject *i) {
-    m_string.append(i->to_s());
+    m_string.append(IntegerObject::to_s(i));
 }
 
 void StringObject::append(const String &str) {
@@ -4151,7 +4151,7 @@ Value StringObject::sum(Env *env, Value val) {
     int sum = 0;
 
     if (val)
-        base = val->to_int(env)->to_nat_int_t();
+        base = IntegerObject::to_nat_int_t(val->to_int(env));
 
     for (size_t i = 0; i < length(); ++i) {
         sum += m_string[i];

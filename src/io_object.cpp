@@ -52,7 +52,7 @@ Value IoObject::initialize(Env *env, Args &&args, Block *block) {
     Value file_number = args.at(0);
     Value flags_obj = args.at(1, nullptr);
     const ioutil::flags_struct wanted_flags { env, flags_obj, kwargs };
-    nat_int_t fileno = file_number->to_int(env)->to_nat_int_t();
+    nat_int_t fileno = IntegerObject::to_nat_int_t(file_number->to_int(env));
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
     const auto actual_flags = ::fcntl(fileno, F_GETFL);
     if (actual_flags < 0)
@@ -290,7 +290,7 @@ Value IoObject::read_file(Env *env, Args &&args) {
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     file->set_encoding(env, flags.external_encoding(), flags.internal_encoding());
     if (offset && !offset->is_nil()) {
-        if (offset->is_integer() && offset->as_integer()->is_negative())
+        if (offset->is_integer() && IntegerObject::is_negative(offset->as_integer()))
             env->raise("ArgumentError", "negative offset {} given", offset->inspect_str(env));
         file->set_pos(env, offset);
     }
@@ -609,10 +609,10 @@ Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
     raise_if_closed(env);
     if (!is_readable(m_fileno))
         env->raise("IOError", "not opened for reading");
-    const auto count_int = count->to_int(env)->to_nat_int_t();
+    const auto count_int = IntegerObject::to_nat_int_t(count->to_int(env));
     if (count_int < 0)
         env->raise("ArgumentError", "negative string size (or size too big)");
-    const auto offset_int = offset->to_int(env)->to_nat_int_t();
+    const auto offset_int = IntegerObject::to_nat_int_t(offset->to_int(env));
     TM::String buf(count_int, '\0');
     const auto bytes_read = ::pread(m_fileno, &buf[0], count_int, offset_int);
     if (bytes_read < 0)
@@ -749,7 +749,7 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
     if (whence_value) {
         switch (whence_value->type()) {
         case Object::Type::Integer:
-            whence = whence_value->as_integer()->to_nat_int_t();
+            whence = IntegerObject::to_nat_int_t(whence_value->as_integer());
             break;
         case Object::Type::Symbol: {
             SymbolObject *whence_sym = whence_value->as_symbol();
@@ -899,7 +899,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
         return NilObject::the();
     if (byte->is_integer()) {
         nat_int_t value = 0xff;
-        if (!byte->as_integer()->is_bignum()) {
+        if (!IntegerObject::is_bignum(byte->as_integer())) {
             value = IntegerObject::convert_to_nat_int_t(env, byte);
             if (value > 0xff) value = 0xff;
         }
@@ -925,7 +925,7 @@ Value IoObject::wait(Env *env, Args &&args) {
     bool return_self = false;
 
     if (args.size() == 2 && args.at(0, NilObject::the())->is_integer() && args.at(1, NilObject::the())->is_numeric()) {
-        events = args[0]->to_int(env)->to_nat_int_t();
+        events = IntegerObject::to_nat_int_t(args[0]->to_int(env));
         timeout = args[1];
 
         if (events <= 0)

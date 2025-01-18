@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/bsearch.hpp"
+#include "natalie/integer_object.hpp"
 #include <algorithm>
 #include <math.h>
 #include <natalie/array_object.hpp>
@@ -42,10 +43,10 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
     }
 
     auto size_integer = size->to_int(env);
-    if (size_integer->is_bignum())
+    if (IntegerObject::is_bignum(size_integer))
         env->raise("ArgumentError", "array size too big");
 
-    auto s = size_integer->to_nat_int_t();
+    auto s = IntegerObject::to_nat_int_t(size_integer);
 
     if (s < 0)
         env->raise("ArgumentError", "negative argument");
@@ -245,9 +246,9 @@ Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
             index_obj = index_obj->send(env, "to_int"_s);
 
         if (index_obj->is_integer()) {
-            index_obj->as_integer()->assert_fixnum(env);
+            IntegerObject::assert_fixnum(env, index_obj->as_integer());
 
-            auto index = _resolve_index(index_obj->as_integer()->to_nat_int_t());
+            auto index = _resolve_index(IntegerObject::to_nat_int_t(index_obj->as_integer()));
             if (index < 0 || index >= (nat_int_t)m_vector.size())
                 return NilObject::the();
             return m_vector[index];
@@ -961,7 +962,7 @@ Value ArrayObject::cmp(Env *env, Value other) {
                 return cmp_obj;
             }
 
-            nat_int_t cmp = cmp_obj->as_integer()->to_nat_int_t();
+            nat_int_t cmp = IntegerObject::to_nat_int_t(cmp_obj->as_integer());
             if (cmp < 0) return Value::integer(-1);
             if (cmp > 0) return Value::integer(1);
         }
@@ -1053,7 +1054,7 @@ bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
     } else {
         Value compare = a.send(env, "<=>"_s, { b });
         if (compare->is_integer()) {
-            return compare->as_integer()->to_nat_int_t() < 0;
+            return IntegerObject::to_nat_int_t(compare->as_integer()) < 0;
         }
         // TODO: Ruby sometimes prints b as the value (for example for integers) and sometimes as class
         env->raise("ArgumentError", "comparison of {} with {} failed", a->klass()->inspect_str(), b->klass()->inspect_str());
@@ -1080,7 +1081,7 @@ bool array_sort_by_compare(Env *env, Value a, Value b, Block *block) {
 
     Value compare = a_res.send(env, "<=>"_s, { b_res });
     if (compare->is_integer()) {
-        return compare->as_integer()->to_nat_int_t() < 0;
+        return IntegerObject::to_nat_int_t(compare->as_integer()) < 0;
     }
     env->raise("ArgumentError", "comparison of {} with {} failed", a_res->klass()->inspect_str(), b_res->klass()->inspect_str());
 }
@@ -1452,7 +1453,7 @@ Value ArrayObject::bsearch(Env *env, Block *block) {
     if (index->is_nil())
         return index;
 
-    return (*this)[index->as_integer()->to_nat_int_t()];
+    return (*this)[IntegerObject::to_nat_int_t(index->as_integer())];
 }
 
 Value ArrayObject::bsearch_index(Env *env, Block *block) {
@@ -1887,13 +1888,13 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         index_obj = index_obj->to_int(env);
         size = size->to_int(env);
 
-        size->as_integer()->assert_fixnum(env);
+        IntegerObject::assert_fixnum(env, size->as_integer());
     }
 
     if (index_obj->is_integer()) {
-        index_obj->as_integer()->assert_fixnum(env);
+        IntegerObject::assert_fixnum(env, index_obj->as_integer());
 
-        auto start = index_obj->as_integer()->to_nat_int_t();
+        auto start = IntegerObject::to_nat_int_t(index_obj->as_integer());
 
         if (!size) {
             start = _resolve_index(start);
@@ -1910,7 +1911,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
 
         size->assert_type(env, ObjectType::Integer, "Integer");
 
-        nat_int_t length = size->as_integer()->to_nat_int_t();
+        nat_int_t length = IntegerObject::to_nat_int_t(size->as_integer());
 
         if (length < 0)
             return NilObject::the();

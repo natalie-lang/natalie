@@ -46,7 +46,7 @@ namespace ioutil {
 
         switch (flags_obj->type()) {
         case Object::Type::Integer:
-            m_flags = flags_obj->as_integer()->to_nat_int_t();
+            m_flags = IntegerObject::to_nat_int_t(flags_obj->as_integer());
             break;
         case Object::Type::String: {
             auto colon = new StringObject { ":" };
@@ -112,7 +112,7 @@ namespace ioutil {
         if (!m_kwargs) return;
         auto flags = m_kwargs->remove(env, "flags"_s);
         if (!flags || flags->is_nil()) return;
-        m_flags |= static_cast<int>(flags->to_int(env)->to_nat_int_t());
+        m_flags |= static_cast<int>(IntegerObject::to_nat_int_t(flags->to_int(env)));
     }
 
     void flags_struct::parse_encoding(Env *env) {

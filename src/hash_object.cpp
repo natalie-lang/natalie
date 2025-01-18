@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/integer_object.hpp"
 #include "tm/recursion_guard.hpp"
 #include "tm/vector.hpp"
 
@@ -58,7 +59,7 @@ nat_int_t HashObject::generate_key_hash(Env *env, Value key) const {
         auto obj = key.object();
         return TM::HashmapUtils::hashmap_hash_ptr((uintptr_t)obj);
     } else {
-        return key.send(env, "hash"_s)->as_integer()->to_nat_int_t();
+        return IntegerObject::to_nat_int_t(key.send(env, "hash"_s)->as_integer());
     }
 }
 

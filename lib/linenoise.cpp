@@ -111,7 +111,7 @@ static char *hints_callback(const char *buf, int *color, int *bold) {
         env->raise("ArgumentError", "hints callback must return an array of 2 or 3 elements");
 
     auto hint = ary->at(0)->as_string_or_raise(env)->c_str();
-    *color = ary->at(1)->as_integer_or_raise(env)->to_nat_int_t();
+    *color = IntegerObject::to_nat_int_t(ary->at(1)->as_integer_or_raise(env));
     *bold = ary->size() == 3 && ary->at(2)->is_truthy() ? 1 : 0;
 
     return strdup(hint);
@@ -166,7 +166,7 @@ Value Linenoise_set_history(Env *env, Value self, Args &&args, Block *) {
 
 Value Linenoise_set_history_max_len(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto length = args[0]->as_integer_or_raise(env)->to_nat_int_t();
+    auto length = IntegerObject::to_nat_int_t(args[0]->as_integer_or_raise(env));
     linenoiseHistorySetMaxLen(length);
     return Value::integer(length);
 }
