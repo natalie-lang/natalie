@@ -15,22 +15,36 @@ class BindingGen
 
   # define a method on the Ruby *SINGLETON* class and link it to a member function on the C++ class
   def member_binding_as_class_method(*args, **kwargs)
-    binding(*args, **kwargs.update(ruby_method_type: :class))
+    binding(*args, **{
+      ruby_method_type: :class
+    }.update(kwargs))
   end
 
   # define a method on the Ruby *SINGLETON* class and link it to a *STATIC* function on the C++ class
   def static_binding_as_class_method(*args, **kwargs)
-    binding(*args, **kwargs.update(cpp_function_type: :static, ruby_method_type: :class))
+    binding(*args, **{
+      cpp_function_type: :static,
+      ruby_method_type: :class
+    }.update(kwargs))
   end
 
   # define a method on the Ruby class and link it to a *STATIC* function on the C++ class
   def static_binding_as_instance_method(*args, **kwargs)
-    binding(*args, **kwargs.update(cpp_function_type: :static, ruby_method_type: :instance, pass_self: true))
+    binding(*args, **{
+      cpp_function_type: :static,
+      ruby_method_type: :instance,
+      pass_self: true
+    }.update(kwargs))
   end
 
   # define a private method on the Ruby class and a public method on the Ruby *SINGLETON* class
   def module_function_binding(*args, **kwargs)
-    binding(*args, **kwargs.update(module_function: true, cpp_function_type: :static, ruby_method_type: :class, visibility: :private))
+    binding(*args, **{
+      module_function: true,
+      cpp_function_type: :static,
+      ruby_method_type: :class,
+      visibility: :private
+    }.update(kwargs))
   end
 
   # mark a method as undefined on the Ruby class
