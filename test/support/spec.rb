@@ -22,9 +22,6 @@ end
 class UnknownFormatterException < StandardError
 end
 
-TOLERANCE = 0.00003
-TIME_TOLERANCE = 20.0
-
 FORMATTERS = %w[default yaml spec]
 
 @formatter_name = ARGV[ARGV.index('-f') + 1] if ARGV.include?('-f')
@@ -545,25 +542,6 @@ class Expectation
 
   def inverted_match(subject)
     raise SpecFailedException, @matcher.negative_failure_message.join(' ') if @matcher.matches?(subject)
-  end
-end
-
-class BeCloseExpectation
-  def initialize(target, tolerance = TOLERANCE)
-    @target = target
-    @tolerance = tolerance
-  end
-
-  def match(subject)
-    if (subject - @target).abs > @tolerance
-      raise SpecFailedException, "#{subject.inspect} should be within #{@tolerance} of #{@target}"
-    end
-  end
-
-  def inverted_match(subject)
-    if (subject - @target).abs <= @tolerance
-      raise SpecFailedException, "#{subject.inspect} should not be within #{@tolerance} of #{@target}"
-    end
   end
 end
 
@@ -1263,7 +1241,7 @@ class Object
   end
 
   def be_close(target, tolerance)
-    BeCloseExpectation.new(target, tolerance)
+    Expectation.new(BeCloseMatcher.new(target, tolerance))
   end
 
   def be_computed_by(method, *args)
