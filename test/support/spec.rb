@@ -545,16 +545,6 @@ class Expectation
   end
 end
 
-class BeNanExpectation
-  def match(subject)
-    raise SpecFailedException, "#{subject.inspect} should be NaN" if !subject.nan?
-  end
-
-  def inverted_match(subject)
-    raise SpecFailedException, "#{subject.inspect} should not be NaN" if subject.nan?
-  end
-end
-
 class BeInfinityExpectation
   def initialize(sign_of_infinity)
     @sign_of_infinity = sign_of_infinity
@@ -1165,7 +1155,7 @@ class Object
   end
 
   def be_nan
-    BeNanExpectation.new
+    Expectation.new(BeNaNMatcher.new)
   end
 
   def be_negative_zero
