@@ -533,16 +533,6 @@ class Matcher
   undef_method :equal?
 end
 
-class BeNilExpectation
-  def match(subject)
-    raise SpecFailedException, subject.inspect + ' should be nil' if subject != nil
-  end
-
-  def inverted_match(subject)
-    raise SpecFailedException, subject.inspect + ' should not be nil' if subject == nil
-  end
-end
-
 class Expectation
   def initialize(matcher)
     @matcher = matcher
@@ -1422,7 +1412,7 @@ class Object
   end
 
   def be_nil
-    BeNilExpectation.new
+    Expectation.new(BeNilMatcher.new)
   end
 
   def be_nan
