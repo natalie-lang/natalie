@@ -1,4 +1,4 @@
-class MSpec
+module MSpec
   def self.features
     @features || {}
   end

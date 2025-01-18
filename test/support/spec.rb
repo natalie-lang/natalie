@@ -10,6 +10,7 @@ require_relative 'spec_helpers/io'
 require_relative 'spec_helpers/matchers'
 require_relative 'spec_helpers/mock_to_path'
 require_relative 'spec_helpers/tmp'
+require_relative 'spec_utils/format'
 require_relative 'spec_utils/warnings'
 require_relative 'nat_binary'
 require 'tempfile'
@@ -544,24 +545,6 @@ class Expectation
 
   def inverted_match(subject)
     raise SpecFailedException, @matcher.negative_failure_message.join(' ') if @matcher.matches?(subject)
-  end
-end
-
-class EqlExpectation
-  def initialize(other)
-    @other = other
-  end
-
-  def match(subject)
-    if !subject.eql?(@other)
-      raise SpecFailedException, subject.inspect + ' should be eql (same type) to ' + @other.inspect
-    end
-  end
-
-  def inverted_match(subject)
-    if subject.eql?(@other)
-      raise SpecFailedException, subject.inspect + ' should not be eql (same type) to ' + @other.inspect
-    end
   end
 end
 
@@ -1367,11 +1350,11 @@ class Object
   end
 
   def be_negative_zero
-    EqlExpectation.new(-0.0)
+    Expectation.new(EqlMatcher.new(-0.0))
   end
 
   def be_positive_zero
-    EqlExpectation.new(0.0)
+    Expectation.new(EqlMatcher.new(0.0))
   end
 
   def be_positive_infinity
@@ -1419,7 +1402,7 @@ class Object
   end
 
   def eql(other)
-    EqlExpectation.new(other)
+    Expectation.new(EqlMatcher.new(other))
   end
 
   def be_empty()
