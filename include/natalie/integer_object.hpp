@@ -38,8 +38,8 @@ public:
     static Value create(const TM::String &);
     static Value create(TM::String &&);
 
-    Integer integer() const {
-        return m_integer;
+    static Integer integer(IntegerObject *self) {
+        return self->m_integer;
     }
 
     bool is_negative() const {
@@ -139,7 +139,7 @@ public:
     bool is_bignum() const { return m_integer.is_bignum(); }
     bool is_fixnum() const { return !is_bignum(); }
 
-    nat_int_t to_nat_int_t() const { return integer().to_nat_int_t(); }
+    nat_int_t to_nat_int_t() const { return m_integer.to_nat_int_t(); }
     BigInt to_bigint() const { return m_integer.to_bigint(); }
 
     void assert_fixnum(Env *env) const {

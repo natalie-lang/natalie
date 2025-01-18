@@ -99,7 +99,7 @@ Value RationalObject::div(Env *env, Value other) {
             arg = create(env, denominator, numerator);
         }
 
-        if (arg->m_denominator->integer() == 0)
+        if (IntegerObject::integer(arg->m_denominator) == 0)
             env->raise("ZeroDivisionError", "divided by 0");
 
         return mul(env, arg);
@@ -137,7 +137,7 @@ Value RationalObject::floor(Env *env, Value precision_value) {
     if (precision_value)
         precision = IntegerObject::convert_to_nat_int_t(env, precision_value);
 
-    if (m_denominator->integer() == 1)
+    if (IntegerObject::integer(m_denominator) == 1)
         return IntegerObject::floor(env, m_numerator, precision_value);
 
     if (precision < 0)
@@ -201,16 +201,16 @@ Value RationalObject::pow(Env *env, Value other) {
     }
 
     if (numerator && denominator) {
-        if (numerator->integer() == 0)
+        if (IntegerObject::is_zero(numerator))
             return create(env, new IntegerObject { 1 }, new IntegerObject { 1 });
 
-        if (m_numerator->integer() == 0 && numerator->is_negative())
+        if (IntegerObject::is_zero(m_numerator) && numerator->is_negative())
             env->raise("ZeroDivisionError", "divided by 0");
 
-        if (denominator->integer() == 1) {
+        if (IntegerObject::integer(denominator) == 1) {
             Value new_numerator, new_denominator;
-            if (numerator->integer().is_negative()) {
-                if (m_numerator->integer() == 0)
+            if (IntegerObject::integer(numerator).is_negative()) {
+                if (IntegerObject::is_zero(m_numerator))
                     env->raise("ZeroDivisionError", "divided by 0");
                 auto negated = IntegerObject::negate(env, numerator);
                 new_numerator = IntegerObject::pow(env, m_denominator, negated);

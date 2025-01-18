@@ -26,7 +26,7 @@ bool FloatObject::eq(Env *env, Value other) {
         return false;
     if (other->is_integer()) {
         auto integer = other->as_integer();
-        return integer->integer() == m_double;
+        return IntegerObject::integer(integer) == m_double;
     }
     if (other->is_float()) {
         auto *f = other->as_float();
@@ -189,7 +189,7 @@ Value FloatObject::coerce(Env *env, Value arg) {
         ary->push(arg);
         break;
     case Object::Type::Integer:
-        ary->push(Value::floatingpoint(arg->as_integer()->integer().to_double()));
+        ary->push(Value::floatingpoint(IntegerObject::integer(arg->as_integer()).to_double()));
         break;
     default:
         ary->push(KernelModule::Float(env, arg, true));

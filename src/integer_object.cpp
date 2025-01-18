@@ -89,7 +89,7 @@ Value IntegerObject::add(Env *env, IntegerObject *self, Value arg) {
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    return create(self->m_integer + arg->as_integer()->integer());
+    return create(self->m_integer + arg->as_integer()->m_integer);
 }
 
 Value IntegerObject::sub(Env *env, IntegerObject *self, Value arg) {
@@ -104,7 +104,7 @@ Value IntegerObject::sub(Env *env, IntegerObject *self, Value arg) {
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    return create(self->m_integer - arg->as_integer()->integer());
+    return create(self->m_integer - arg->as_integer()->m_integer);
 }
 
 Value IntegerObject::mul(Env *env, IntegerObject *self, Value arg) {
@@ -120,10 +120,10 @@ Value IntegerObject::mul(Env *env, IntegerObject *self, Value arg) {
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    if (self->m_integer == 0 || arg->as_integer()->integer() == 0)
+    if (self->m_integer == 0 || arg->as_integer()->m_integer == 0)
         return Value::integer(0);
 
-    return create(self->m_integer * arg->as_integer()->integer());
+    return create(self->m_integer * arg->as_integer()->m_integer);
 }
 
 Value IntegerObject::div(Env *env, IntegerObject *self, Value arg) {
@@ -140,7 +140,7 @@ Value IntegerObject::div(Env *env, IntegerObject *self, Value arg) {
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto other = arg->as_integer()->integer();
+    auto other = arg->as_integer()->m_integer;
     if (other == 0)
         env->raise("ZeroDivisionError", "divided by 0");
 
@@ -159,7 +159,7 @@ Value IntegerObject::mod(Env *env, IntegerObject *self, Value arg) {
     }
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
-    argument = arg->as_integer()->integer();
+    argument = arg->as_integer()->m_integer;
 
     if (argument == 0)
         env->raise("ZeroDivisionError", "divided by 0");
@@ -185,7 +185,7 @@ Value IntegerObject::pow(Env *env, IntegerObject *self, Value arg) {
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto arg_int = arg->as_integer()->integer();
+    auto arg_int = arg->as_integer()->m_integer;
 
     if (self->m_integer == 0 && arg_int < 0)
         env->raise("ZeroDivisionError", "divided by 0");
@@ -289,7 +289,7 @@ bool IntegerObject::eq(Env *env, IntegerObject *self, Value other) {
     }
 
     if (other->is_integer())
-        return self->m_integer == other->as_integer()->integer();
+        return self->m_integer == other->as_integer()->m_integer;
 
     return other->send(env, "=="_s, { self })->is_truthy();
 }
@@ -309,7 +309,7 @@ bool IntegerObject::lt(Env *env, IntegerObject *self, Value other) {
     }
 
     if (other->is_integer())
-        return self->m_integer < other->as_integer()->integer();
+        return self->m_integer < other->as_integer()->m_integer;
 
     if (other->respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
@@ -334,7 +334,7 @@ bool IntegerObject::lte(Env *env, IntegerObject *self, Value other) {
     }
 
     if (other->is_integer())
-        return self->m_integer <= other->as_integer()->integer();
+        return self->m_integer <= other->as_integer()->m_integer;
 
     if (other->respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
@@ -359,7 +359,7 @@ bool IntegerObject::gt(Env *env, IntegerObject *self, Value other) {
     }
 
     if (other->is_integer())
-        return self->m_integer > other->as_integer()->integer();
+        return self->m_integer > other->as_integer()->m_integer;
 
     if (other->respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
@@ -384,7 +384,7 @@ bool IntegerObject::gte(Env *env, IntegerObject *self, Value other) {
     }
 
     if (other->is_integer())
-        return self->m_integer >= other->as_integer()->integer();
+        return self->m_integer >= other->as_integer()->m_integer;
 
     if (other->respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
@@ -422,7 +422,7 @@ Value IntegerObject::bitwise_and(Env *env, IntegerObject *self, Value arg) {
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    return create(self->m_integer & arg->as_integer()->integer());
+    return create(self->m_integer & arg->as_integer()->m_integer);
 }
 
 Value IntegerObject::bitwise_or(Env *env, IntegerObject *self, Value arg) {
@@ -436,7 +436,7 @@ Value IntegerObject::bitwise_or(Env *env, IntegerObject *self, Value arg) {
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    return create(self->m_integer | arg->as_integer()->integer());
+    return create(self->m_integer | arg->as_integer()->m_integer);
 }
 
 Value IntegerObject::bitwise_xor(Env *env, IntegerObject *self, Value arg) {
@@ -450,7 +450,7 @@ Value IntegerObject::bitwise_xor(Env *env, IntegerObject *self, Value arg) {
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    return create(self->m_integer ^ arg->as_integer()->integer());
+    return create(self->m_integer ^ arg->as_integer()->m_integer);
 }
 
 Value IntegerObject::bit_length(Env *env, IntegerObject *self) {
@@ -466,7 +466,7 @@ Value IntegerObject::left_shift(Env *env, IntegerObject *self, Value arg) {
             return Value::integer(0);
     }
 
-    auto nat_int = integer->integer().to_nat_int_t();
+    auto nat_int = integer->m_integer.to_nat_int_t();
 
     if (nat_int < 0)
         return IntegerObject::right_shift(env, self, Value::integer(-nat_int));
@@ -483,7 +483,7 @@ Value IntegerObject::right_shift(Env *env, IntegerObject *self, Value arg) {
             return Value::integer(0);
     }
 
-    auto nat_int = integer->integer().to_nat_int_t();
+    auto nat_int = integer->m_integer.to_nat_int_t();
 
     if (nat_int < 0)
         return left_shift(env, self, Value::integer(-nat_int));
@@ -540,7 +540,7 @@ Value IntegerObject::ceil(Env *env, IntegerObject *self, Value arg) {
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto precision = arg->as_integer()->integer().to_nat_int_t();
+    auto precision = arg->as_integer()->m_integer.to_nat_int_t();
     if (precision >= 0)
         return IntegerObject::create(self->m_integer);
 
@@ -556,7 +556,7 @@ Value IntegerObject::floor(Env *env, IntegerObject *self, Value arg) {
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto precision = arg->as_integer()->integer().to_nat_int_t();
+    auto precision = arg->as_integer()->m_integer.to_nat_int_t();
     if (precision >= 0)
         return IntegerObject::create(self->m_integer);
 
@@ -568,7 +568,7 @@ Value IntegerObject::floor(Env *env, IntegerObject *self, Value arg) {
 
 Value IntegerObject::gcd(Env *env, IntegerObject *self, Value divisor) {
     divisor->assert_type(env, Object::Type::Integer, "Integer");
-    return create(Natalie::gcd(self->m_integer, divisor->as_integer()->integer()));
+    return create(Natalie::gcd(self->m_integer, divisor->as_integer()->m_integer));
 }
 
 Value IntegerObject::abs(Env *env, IntegerObject *self) {
@@ -623,7 +623,7 @@ Value IntegerObject::complement(Env *env, IntegerObject *self) {
 }
 
 Value IntegerObject::sqrt(Env *env, Value arg) {
-    auto argument = arg->to_int(env)->integer();
+    auto argument = arg->to_int(env)->m_integer;
 
     if (argument < 0) {
         auto domain_error = fetch_nested_const({ "Math"_s, "DomainError"_s });
@@ -724,13 +724,13 @@ Value IntegerObject::ref(Env *env, IntegerObject *self, Value offset_obj, Value 
         Optional<nat_int_t> begin;
         if (!range->begin()->is_nil()) {
             auto begin_obj = range->begin()->to_int(env);
-            begin = begin_obj->integer().to_nat_int_t();
+            begin = begin_obj->m_integer.to_nat_int_t();
         }
 
         Optional<nat_int_t> end;
         if (!range->end()->is_nil()) {
             auto end_obj = range->end()->to_int(env);
-            end = end_obj->integer().to_nat_int_t();
+            end = end_obj->m_integer.to_nat_int_t();
         }
 
         Optional<nat_int_t> size;
@@ -745,7 +745,7 @@ Value IntegerObject::ref(Env *env, IntegerObject *self, Value offset_obj, Value 
         if (offset_integer->is_bignum())
             return Value::integer(0);
 
-        auto offset = offset_integer->integer().to_nat_int_t();
+        auto offset = offset_integer->m_integer.to_nat_int_t();
 
         Optional<nat_int_t> size;
         if (size_obj) {
@@ -753,7 +753,7 @@ Value IntegerObject::ref(Env *env, IntegerObject *self, Value offset_obj, Value 
             if (size_integer->is_bignum())
                 env->raise("RangeError", "shift width too big");
 
-            size = size_integer->integer().to_nat_int_t();
+            size = size_integer->m_integer.to_nat_int_t();
         }
 
         return from_offset_and_size(offset, size);
@@ -763,7 +763,7 @@ Value IntegerObject::ref(Env *env, IntegerObject *self, Value offset_obj, Value 
 nat_int_t IntegerObject::convert_to_nat_int_t(Env *env, Value arg) {
     auto integer = arg->to_int(env);
     integer->assert_fixnum(env);
-    return integer->integer().to_nat_int_t();
+    return integer->m_integer.to_nat_int_t();
 }
 
 int IntegerObject::convert_to_int(Env *env, Value arg) {

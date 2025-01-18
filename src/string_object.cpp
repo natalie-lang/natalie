@@ -3648,7 +3648,7 @@ Value StringObject::upto(Env *env, Value other, Value exclusive, Block *block) {
         if (string->length() < length())
             return this;
 
-        if (cmp(env, string)->as_integer()->integer() == 1)
+        if (IntegerObject::integer(cmp(env, string)->as_integer()) == 1)
             return this;
     }
 
