@@ -23,6 +23,14 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 =end
 
+unless Object.new.respond_to?(:pretty_inspect)
+  module Kernel
+    def pretty_inspect
+      inspect
+    end
+  end
+end
+
 module MSpec
   def self.format(obj)
     if String === obj and obj.include?("\n")
