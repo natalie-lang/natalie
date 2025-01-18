@@ -548,16 +548,6 @@ class Expectation
   end
 end
 
-class TrueFalseExpectation
-  def match(subject)
-    raise SpecFailedException, subject.inspect + ' should be true or false' unless subject == true || subject == false
-  end
-
-  def inverted_match(subject)
-    raise SpecFailedException, subject.inspect + ' should not be true or false' if subject == true || subject == false
-  end
-end
-
 class BeCloseExpectation
   def initialize(target, tolerance = TOLERANCE)
     @target = target
@@ -1269,7 +1259,7 @@ class Object
   end
 
   def be_true_or_false
-    TrueFalseExpectation.new()
+    Expectation.new(BeTrueOrFalseMatcher.new)
   end
 
   def be_close(target, tolerance)
