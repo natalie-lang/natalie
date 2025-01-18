@@ -548,20 +548,6 @@ class Expectation
   end
 end
 
-class EqualExpectation
-  def initialize(other)
-    @other = other
-  end
-
-  def match(subject)
-    raise SpecFailedException, subject.inspect + ' should be equal to ' + @other.inspect if !subject.equal?(@other)
-  end
-
-  def inverted_match(subject)
-    raise SpecFailedException, subject.inspect + ' should not be equal to ' + @other.inspect if subject.equal?(@other)
-  end
-end
-
 # Largely taken from
 # https://github.com/ruby/ruby/blob/master/spec/mspec/lib/mspec/matchers/equal_element.rb#L76
 class EqualElementExpectation
@@ -1400,7 +1386,7 @@ class Object
   end
 
   def equal(other)
-    EqualExpectation.new(other)
+    Expectation.new(EqualMatcher.new(other))
   end
 
   def equal_element(*args)
