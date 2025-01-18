@@ -548,87 +548,6 @@ class Expectation
   end
 end
 
-# Largely taken from
-# https://github.com/ruby/ruby/blob/master/spec/mspec/lib/mspec/matchers/equal_element.rb#L76
-class EqualElementExpectation
-  def initialize(element, attributes = nil, content = nil, options = {})
-    @element = element
-    @attributes = attributes
-    @content = content
-    @options = options
-  end
-
-  def match(subject)
-    @actual = subject
-    unless matches?
-      raise SpecFailedException,
-            "Expected #{@actual} to be a '#{@element}' element with #{attributes_for_failure_message} and #{content_for_failure_message}"
-    end
-  end
-
-  def inverted_match(subject)
-    @actual = subject
-    if matches?
-      raise SpecFailedException "Expected #{@actual} not to be a '#{@element}' element with #{attributes_for_failure_message} and #{content_for_failure_message}"
-    end
-  end
-
-  private
-
-  def matches?
-    actual = @actual
-    matched = true
-
-    if @options[:not_closed]
-      matched &&= actual =~ /^#{Regexp.quote('<' + @element)}.*#{Regexp.quote('>' + (@content || ''))}$/
-    else
-      matched &&= actual =~ /^#{Regexp.quote('<' + @element)}/
-      matched &&= actual =~ /#{Regexp.quote('</' + @element + '>')}$/
-      matched &&= actual =~ /#{Regexp.quote('>' + @content + '</')}/ if @content
-    end
-
-    if @attributes
-      if @attributes.empty?
-        matched &&= actual.scan(/\w+\=\"(.*)\"/).size == 0
-      else
-        @attributes.each do |key, value|
-          if value == true
-            matched &&= (actual.scan(/#{Regexp.quote(key)}(\s|>)/).size == 1)
-          else
-            matched &&= (actual.scan(%Q{ #{key}="#{value}"}).size == 1)
-          end
-        end
-      end
-    end
-
-    !!matched
-  end
-
-  def attributes_for_failure_message
-    if @attributes
-      if @attributes.empty?
-        'no attributes'
-      else
-        @attributes.inject([]) { |memo, n| memo << %Q{#{n[0]}="#{n[1]}"} }.join(' ')
-      end
-    else
-      'any attributes'
-    end
-  end
-
-  def content_for_failure_message
-    if @content
-      if @content.empty?
-        'no content'
-      else
-        "#{@content.inspect} as content"
-      end
-    else
-      'any content'
-    end
-  end
-end
-
 class TrueFalseExpectation
   def match(subject)
     raise SpecFailedException, subject.inspect + ' should be true or false' unless subject == true || subject == false
@@ -1390,7 +1309,7 @@ class Object
   end
 
   def equal_element(*args)
-    EqualElementExpectation.new(*args)
+    Expectation.new(EqualElementMatcher.new(*args))
   end
 
   def output(expected_stdout = nil, expected_stderr = nil)
