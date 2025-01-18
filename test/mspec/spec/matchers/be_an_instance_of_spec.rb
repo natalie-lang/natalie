@@ -1,6 +1,6 @@
 require 'spec_helper'
-#require 'mspec/expectations/expectations'
-#require 'mspec/matchers'
+require 'mspec/expectations/expectations'
+require 'mspec/matchers'
 
 module BeAnInOfSpecs
   class A
