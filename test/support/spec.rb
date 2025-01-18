@@ -558,24 +558,6 @@ class Expectation
   end
 end
 
-class BeAncestorOfExpectation
-  def initialize(klass)
-    @klass = klass
-  end
-
-  def match(subject)
-    unless @klass.ancestors.include?(subject)
-      raise SpecFailedException, subject.inspect + ' should be an ancestor of ' + @klass.inspect
-    end
-  end
-
-  def inverted_match(subject)
-    if @klass.ancestors.include?(subject)
-      raise SpecFailedException, subject.inspect + ' should not to be an ancestor of ' + @klass.inspect
-    end
-  end
-end
-
 class BlockCallerExpectation
   def match(subject)
     unless check(subject)
@@ -1481,7 +1463,7 @@ class Object
   end
 
   def be_ancestor_of(klass)
-    BeAncestorOfExpectation.new(klass)
+    Expectation.new(BeAncestorOfMatcher.new(klass))
   end
 
   def block_caller
