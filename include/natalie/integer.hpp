@@ -110,8 +110,8 @@ public:
 
     // Other
     explicit operator bool() const { return *this == 0; }
-    bool is_fixnum() const { return m_is_fixnum; }
-    bool is_bignum() const { return !m_is_fixnum; }
+    bool is_fixnum() const { return !m_is_bignum; }
+    bool is_bignum() const { return m_is_bignum; }
     bool is_negative() const;
     BigInt to_bigint() const {
         if (is_bignum())
@@ -142,7 +142,7 @@ private:
         BigInt *m_bignum;
     };
 
-    bool m_is_fixnum { true };
+    bool m_is_bignum { false };
 };
 
 Integer operator+(const long long &, const Integer &);
