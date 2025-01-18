@@ -7,6 +7,7 @@ require_relative 'platform_guard'
 require_relative 'version'
 require_relative 'spec_helpers/fs'
 require_relative 'spec_helpers/io'
+require_relative 'spec_helpers/matchers'
 require_relative 'spec_helpers/mock_to_path'
 require_relative 'spec_helpers/tmp'
 require_relative 'spec_utils/warnings'
@@ -564,25 +565,6 @@ class BeKindOfExpectation
 
   def inverted_match(subject)
     raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should not be a kind of #{@klass}" if @klass === subject
-  end
-end
-
-class BeAnInstanceOfMatcher
-  def initialize(klass)
-    @klass = klass
-  end
-
-  def matches?(subject)
-    @message_prelude = "Expected #{subject.inspect} (#{subject.class})"
-    subject.instance_of?(@klass)
-  end
-
-  def failure_message
-    [@message_prelude, "to be an instance of #{@klass}"]
-  end
-
-  def negative_failure_message
-    [@message_prelude, "not to be an instance of #{@klass}"]
   end
 end
 
