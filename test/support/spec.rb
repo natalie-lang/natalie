@@ -561,9 +561,9 @@ class BeKindOfExpectation
   end
 end
 
-class BeInstanceOfExpectation
-  def initialize(klass)
-    @matcher = BeAnInstanceOfMatcher.new(klass)
+class Expectation
+  def initialize(matcher)
+    @matcher = matcher
   end
 
   def match(subject)
@@ -1488,7 +1488,7 @@ class Object
   end
 
   def be_an_instance_of(klass)
-    BeInstanceOfExpectation.new(klass)
+    Expectation.new(BeAnInstanceOfMatcher.new(klass))
   end
 
   def be_ancestor_of(klass)
