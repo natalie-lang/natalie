@@ -111,7 +111,7 @@ double Value::as_double() const {
 nat_int_t Value::as_fast_integer() const {
     assert(m_type == Type::Integer || (m_type == Type::Pointer && m_object->is_integer()));
     if (m_type == Type::Integer)
-        return m_integer;
+        return m_integer.to_nat_int_t();
     return IntegerObject::to_nat_int_t(m_object->as_integer());
 }
 

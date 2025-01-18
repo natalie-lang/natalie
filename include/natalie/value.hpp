@@ -7,6 +7,7 @@
 #include "natalie/args.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/gc/heap.hpp"
+#include "natalie/integer.hpp"
 #include "natalie/object_type.hpp"
 #include "natalie/types.hpp"
 
@@ -29,6 +30,80 @@ public:
     explicit Value(nat_int_t integer)
         : m_type { Type::Integer }
         , m_integer { integer } { }
+
+    explicit Value(Integer &integer)
+        : m_type { Type::Integer }
+        , m_integer { integer } { }
+
+    Value(const Value &other)
+        : m_type { other.m_type } {
+        switch (m_type) {
+        case Type::Integer:
+            m_object = nullptr;
+            m_integer = other.m_integer;
+            break;
+        case Type::Double:
+            m_double = other.m_double;
+            break;
+        case Type::Pointer:
+            m_object = other.m_object;
+            break;
+        }
+    }
+
+    Value(Value &&other)
+        : m_type { other.m_type } {
+        switch (m_type) {
+        case Type::Integer:
+            m_object = nullptr;
+            m_integer = std::move(other.m_integer);
+            break;
+        case Type::Double:
+            m_double = other.m_double;
+            break;
+        case Type::Pointer:
+            m_object = other.m_object;
+            break;
+        }
+        other.m_type = Type::Pointer;
+        other.m_object = nullptr;
+    }
+
+    ~Value() { }
+
+    Value &operator=(const Value &other) {
+        m_type = other.m_type;
+        switch (m_type) {
+        case Type::Integer:
+            m_object = nullptr;
+            m_integer = other.m_integer;
+            break;
+        case Type::Double:
+            m_double = other.m_double;
+            break;
+        case Type::Pointer:
+            m_object = other.m_object;
+            break;
+        }
+        return *this;
+    }
+
+    Value &operator=(const Value &&other) {
+        m_type = other.m_type;
+        switch (m_type) {
+        case Type::Integer:
+            m_object = nullptr;
+            m_integer = std::move(other.m_integer);
+            break;
+        case Type::Double:
+            m_double = other.m_double;
+            break;
+        case Type::Pointer:
+            m_object = other.m_object;
+            break;
+        }
+        return *this;
+    }
 
     static Value integer(nat_int_t integer) {
         // This is required, because initialization by a literal is often ambiguous.
@@ -95,7 +170,7 @@ public:
 
     nat_int_t get_fast_integer() const {
         assert(m_type == Type::Integer);
-        return m_integer;
+        return m_integer.to_nat_int_t();
     }
 
     double get_fast_double() const {
@@ -127,7 +202,7 @@ private:
     Type m_type { Type::Pointer };
 
     union {
-        nat_int_t m_integer { 0 };
+        Integer m_integer { 0 };
         double m_double;
         Object *m_object;
     };
