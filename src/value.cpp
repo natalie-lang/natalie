@@ -153,6 +153,19 @@ bool Value::operator==(Value other) const {
     }
 }
 
+Integer Value::integer() const {
+    switch (m_type) {
+    case Type::Integer:
+        return m_integer;
+    case Type::Pointer:
+        assert(m_object->is_integer());
+        return IntegerObject::integer(m_object->as_integer());
+        break;
+    default:
+        NAT_UNREACHABLE();
+    }
+}
+
 #undef PROFILED_SEND
 
 }

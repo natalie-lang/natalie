@@ -196,7 +196,19 @@ class BindingGen
 
       if pass_self?
         if cast_self?
-          self_arg = "static_cast<#{cpp_class}*>(self.object())"
+          if %w[
+            add
+            cmp
+            eq
+            mod
+            pow
+            powmod
+            sub
+          ].include?(cpp_method) && cpp_class == 'IntegerObject'
+            self_arg = "self.integer()"
+          else
+            self_arg = "static_cast<#{cpp_class}*>(self.object())"
+          end
         else
           self_arg = 'self'
         end
@@ -824,16 +836,16 @@ gen.binding('Hash', 'values', 'HashObject', 'values', argc: 0, pass_env: true, p
 
 gen.undefine_singleton_method('Integer', 'new')
 gen.static_binding_as_class_method('Integer', 'sqrt', 'IntegerObject', 'sqrt', argc: 1, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
-gen.static_binding_as_instance_method('Integer', '%', 'IntegerObject', 'mod', argc: 1, pass_env: true, cast_self: true, pass_block: false, aliases: ['modulo'], return_type: :Object, optimized: true)
+gen.static_binding_as_instance_method('Integer', '%', 'IntegerObject', 'mod', argc: 1, pass_env: true, cast_self: true, pass_block: false, aliases: ['modulo'], return_type: :Object)
 gen.static_binding_as_instance_method('Integer', '&', 'IntegerObject', 'bitwise_and', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
 gen.static_binding_as_instance_method('Integer', '*', 'IntegerObject', 'mul', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
-gen.static_binding_as_instance_method('Integer', '**', 'IntegerObject', 'pow', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
-gen.static_binding_as_instance_method('Integer', '+', 'IntegerObject', 'add', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
-gen.static_binding_as_instance_method('Integer', '-', 'IntegerObject', 'sub', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
+gen.static_binding_as_instance_method('Integer', '**', 'IntegerObject', 'pow', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Integer', '+', 'IntegerObject', 'add', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Integer', '-', 'IntegerObject', 'sub', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Integer', '-@', 'IntegerObject', 'negate', argc: 0, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
 gen.static_binding_as_instance_method('Integer', '~', 'IntegerObject', 'complement', argc: 0, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
 gen.static_binding_as_instance_method('Integer', '/', 'IntegerObject', 'div', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
-gen.static_binding_as_instance_method('Integer', '<=>', 'IntegerObject', 'cmp', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
+gen.static_binding_as_instance_method('Integer', '<=>', 'IntegerObject', 'cmp', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Integer', '!=', 'IntegerObject', 'neq', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :bool, optimized: true)
 gen.static_binding_as_instance_method('Integer', '<', 'IntegerObject', 'lt', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :bool, optimized: true)
 gen.static_binding_as_instance_method('Integer', '<<', 'IntegerObject', 'left_shift', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
@@ -842,7 +854,7 @@ gen.static_binding_as_instance_method('Integer', '>', 'IntegerObject', 'gt', arg
 gen.static_binding_as_instance_method('Integer', '>>', 'IntegerObject', 'right_shift', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
 gen.static_binding_as_instance_method('Integer', '[]', 'IntegerObject', 'ref', argc: 1..2, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
 gen.static_binding_as_instance_method('Integer', '>=', 'IntegerObject', 'gte', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :bool, optimized: true)
-gen.static_binding_as_instance_method('Integer', '===', 'IntegerObject', 'eq', argc: 1, pass_env: true, cast_self: true, pass_block: false, aliases: ['=='], return_type: :bool, optimized: true)
+gen.static_binding_as_instance_method('Integer', '===', 'IntegerObject', 'eq', argc: 1, pass_env: true, cast_self: true, pass_block: false, aliases: ['=='], return_type: :bool)
 gen.static_binding_as_instance_method('Integer', '^', 'IntegerObject', 'bitwise_xor', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
 gen.static_binding_as_instance_method('Integer', 'abs', 'IntegerObject', 'abs', argc: 0, pass_env: true, cast_self: true, pass_block: false, aliases: ['magnitude'], return_type: :Object, optimized: true)
 gen.static_binding_as_instance_method('Integer', 'bit_length', 'IntegerObject', 'bit_length', argc: 0, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
@@ -860,7 +872,7 @@ gen.static_binding_as_instance_method('Integer', 'ord', 'IntegerObject', 'ord', 
 gen.static_binding_as_instance_method('Integer', 'round', 'IntegerObject', 'round', argc: 0..1, pass_env: true, cast_self: true, kwargs: [:half], pass_block: false, return_type: :Object, optimized: true)
 gen.static_binding_as_instance_method('Integer', 'size', 'IntegerObject', 'size', argc: 0, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
 gen.static_binding_as_instance_method('Integer', 'succ', 'IntegerObject', 'succ', argc: 0, pass_env: true, cast_self: true, pass_block: false, aliases: ['next'], return_type: :Object, optimized: true)
-gen.static_binding_as_instance_method('Integer', 'pow', 'IntegerObject', 'powmod', argc: 1..2, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
+gen.static_binding_as_instance_method('Integer', 'pow', 'IntegerObject', 'powmod', argc: 1..2, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Integer', 'pred', 'IntegerObject', 'pred', argc: 0, pass_env: true, cast_self: true, pass_block: false, return_type: :Object, optimized: true)
 gen.static_binding_as_instance_method('Integer', 'times', 'IntegerObject', 'times', argc: 0, pass_env: true, cast_self: true, pass_block: true, return_type: :Object, optimized: false)
 gen.static_binding_as_instance_method('Integer', 'to_f', 'IntegerObject', 'to_f', argc: 0, pass_env: false, cast_self: true, pass_block: false, return_type: :Object, optimized: true)

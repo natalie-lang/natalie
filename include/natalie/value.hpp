@@ -31,7 +31,7 @@ public:
         : m_type { Type::Integer }
         , m_integer { integer } { }
 
-    explicit Value(Integer &integer)
+    Value(Integer &integer)
         : m_type { Type::Integer }
         , m_integer { integer } { }
 
@@ -177,6 +177,8 @@ public:
         assert(m_type == Type::Double);
         return m_double;
     }
+
+    Integer integer() const;
 
 private:
     explicit Value(double value)

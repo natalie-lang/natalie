@@ -153,7 +153,7 @@ Value TimeObject::cmp(Env *env, Value other) {
 bool TimeObject::eql(Env *env, Value other) {
     if (other->is_time()) {
         auto time = other->as_time();
-        if (IntegerObject::eq(env, m_integer->as_integer(), time->m_integer->as_integer())) {
+        if (IntegerObject::eq(env, IntegerObject::integer(m_integer->as_integer()), time->m_integer->as_integer())) {
             if (m_subsec && time->m_subsec && m_subsec->as_rational()->eq(env, time->m_subsec)) {
                 return true;
             } else if (!m_subsec && !time->m_subsec) {
