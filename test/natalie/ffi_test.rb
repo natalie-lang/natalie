@@ -19,6 +19,7 @@ module TestStubs
   attach_function :test_bool, [:bool], :bool
   attach_function :test_char, [:char], :char
   attach_function :test_char_pointer, [:pointer], :pointer
+  attach_function :test_int, [:int], :int
   attach_function :test_size_t, [:size_t], :size_t
   attach_function :test_enum_call, [:char], :test_enum
   attach_function :test_enum_argument, [:test_enum], :char
@@ -176,7 +177,12 @@ describe 'FFI' do
     result.should == nil
   end
 
-  it 'can pass and return integers' do
+  it 'can pass and return int' do
+    TestStubs.test_int(3).should == 3
+    TestStubs.test_int(-3).should == -3
+  end
+
+  it 'can pass and return size_t' do
     TestStubs.test_size_t(3).should == 3
   end
 

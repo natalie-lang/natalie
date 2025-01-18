@@ -122,6 +122,8 @@ static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
         return &ffi_type_uchar;
     } else if (type_sym == "double"_s) {
         return &ffi_type_double;
+    } else if (type_sym == "int"_s) {
+        return &ffi_type_sint;
     } else if (type_sym == "pointer"_s) {
         return &ffi_type_pointer;
     } else if (type_sym == "size_t"_s) {
@@ -152,6 +154,7 @@ typedef union {
     unsigned short us;
     unsigned char uc;
     int32_t s32;
+    int sint;
     uint64_t u64;
     double double_;
 } FFI_Library_call_arg_slot;
@@ -175,6 +178,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     auto bool_sym = "bool"_s;
     auto char_sym = "char"_s;
     auto double_sym = "double"_s;
+    auto int_sym = "int"_s;
     auto pointer_sym = "pointer"_s;
     auto size_t_sym = "size_t"_s;
     auto void_sym = "void"_s;
@@ -221,6 +225,10 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             auto double_ = val->as_float_or_raise(env)->to_double();
             arg_values[i].double_ = double_;
             arg_pointers[i] = &(arg_values[i].double_);
+        } else if (type == int_sym) {
+            auto sint = IntegerObject::convert_to_native_type<int>(env, val);
+            arg_values[i].sint = sint;
+            arg_pointers[i] = &(arg_values[i].sint);
         } else {
             auto enums = self->ivar_get(env, "@enums"_s);
             if (!enums->is_nil() && enums->as_hash_or_raise(env)->has_key(env, type)) {
@@ -253,6 +261,8 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
         return Value::integer(result);
     } else if (return_type == double_sym) {
         return Value::floatingpoint(*reinterpret_cast<double *>(&result));
+    } else if (return_type == int_sym) {
+        return Value::integer(result);
     } else if (return_type == pointer_sym) {
         auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s })->as_class();
         auto pointer = Pointer->send(env, "new"_s, { "pointer"_s, Value::integer((nat_int_t)result) });

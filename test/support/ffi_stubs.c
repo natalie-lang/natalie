@@ -17,6 +17,10 @@ const void *get_null() {
     return NULL;
 }
 
+int test_int(int arg) {
+    return arg;
+}
+
 size_t test_size_t(size_t arg) {
     return arg;
 }
