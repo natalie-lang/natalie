@@ -556,27 +556,6 @@ class Expectation
   end
 end
 
-class BeInfinityExpectation
-  def initialize(sign_of_infinity)
-    @sign_of_infinity = sign_of_infinity
-  end
-
-  def match(subject)
-    raise SpecFailedException, "#{subject.inspect} should be #{"-" if negative?}Infinity" unless expected_infinity?(subject)
-  end
-
-  private
-
-  def expected_infinity?(subject)
-    subject.kind_of?(Float) && subject.infinite? == @sign_of_infinity
-  end
-
-  def negative?
-    @sign_of_infinity == -1
-  end
-end
-
-
 class OutputExpectation
   def initialize(expected_out, expected_err)
     @expected_out = expected_out
@@ -1175,11 +1154,11 @@ class Object
   end
 
   def be_positive_infinity
-    BeInfinityExpectation.new(1)
+    Expectation.new(InfinityMatcher.new(1))
   end
 
   def be_negative_infinity
-    BeInfinityExpectation.new(-1)
+    Expectation.new(InfinityMatcher.new(-1))
   end
 
   def be_true
