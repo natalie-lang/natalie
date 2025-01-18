@@ -547,41 +547,6 @@ class Expectation
   end
 end
 
-class BlockCallerExpectation
-  def match(subject)
-    raise SpecFailedException, subject.inspect + ' should have blocked, but it did not' unless check(subject)
-  end
-
-  def inverted_match(subject)
-    raise SpecFailedException, subject.inspect + ' should have not have blocked, but it did' if check(subject)
-  end
-
-  private
-
-  # I borrowed this from https://github.com/ruby/mspec/blob/master/lib/mspec/matchers/block_caller.rb
-  # Copyright (c) 2008 Engine Yard, Inc. All rights reserved.
-  # Licensed Under the MIT license.
-  def check(subject)
-    t = Thread.new { subject.call }
-
-    loop do
-      case t.status
-      when 'sleep' # blocked
-        t.kill
-        t.join
-        return true
-      when false # terminated normally, so never blocked
-        t.join
-        return false
-      when nil # terminated exceptionally
-        t.value
-      else
-        Thread.pass
-      end
-    end
-  end
-end
-
 class EqlExpectation
   def initialize(other)
     @other = other
@@ -1450,7 +1415,7 @@ class Object
   end
 
   def block_caller
-    BlockCallerExpectation.new
+    Expectation.new(BlockingMatcher.new)
   end
 
   def eql(other)
