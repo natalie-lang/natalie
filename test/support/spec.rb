@@ -554,20 +554,6 @@ class BeNilExpectation
   end
 end
 
-class BeKindOfExpectation
-  def initialize(klass)
-    @klass = klass
-  end
-
-  def match(subject)
-    raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should be a kind of #{@klass}" if !(@klass === subject)
-  end
-
-  def inverted_match(subject)
-    raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should not be a kind of #{@klass}" if @klass === subject
-  end
-end
-
 class Expectation
   def initialize(matcher)
     @matcher = matcher
@@ -1497,7 +1483,7 @@ class Object
   end
 
   def be_kind_of(klass)
-    BeKindOfExpectation.new(klass)
+    Expectation.new(BeKindOfMatcher.new(klass))
   end
 
   def be_an_instance_of(klass)
