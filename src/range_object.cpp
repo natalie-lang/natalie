@@ -357,10 +357,10 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
         n = n->send(env, coerce_sym, { Value::integer(0) })->as_array_or_raise(env)->last();
     }
 
-    if (n.send(env, "=="_s, { Value::integer(0) })->is_true())
-        env->raise("ArgumentError", "step can't be 0");
-
     if (m_begin->is_numeric() || m_end->is_numeric()) {
+        if (n.send(env, "=="_s, { Value::integer(0) })->is_true())
+            env->raise("ArgumentError", "step can't be 0");
+
         auto begin = m_begin;
         auto end = m_end;
         auto enumerator = Enumerator::ArithmeticSequenceObject::from_range(env, env->current_method()->name(), m_begin, m_end, n, m_exclude_end);
