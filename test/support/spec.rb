@@ -1367,7 +1367,7 @@ class Object
   end
 
   def be_true
-    EqualExpectation.new(true)
+    Expectation.new(BeTrueMatcher.new)
   end
 
   def be_false
