@@ -42,13 +42,11 @@ describe "Range#step" do
 
   ruby_version_is "3.4" do
     it "calls #coerce to coerce step to an Integer" do
-      NATFIXME 'it calls #coerce to coerce step to an Integer', exception: TypeError, message: 'no implicit conversion of MockObject into Integer' do
-        obj = mock("Range#step")
-        obj.should_receive(:coerce).at_least(:once).and_return([1, 2])
+      obj = mock("Range#step")
+      obj.should_receive(:coerce).at_least(:once).and_return([1, 2])
 
-        (1..3).step(obj) { |x| ScratchPad << x }
-        ScratchPad.recorded.should eql([1, 3])
-      end
+      (1..3).step(obj) { |x| ScratchPad << x }
+      ScratchPad.recorded.should eql([1, 3])
     end
 
     it "raises a TypeError if step does not respond to #coerce" do

@@ -350,8 +350,12 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
     if (!n)
         n = NilObject::the();
 
-    if (!n->is_numeric() && !n->is_nil())
-        n = n->to_int(env);
+    if (!n->is_numeric() && !n->is_nil()) {
+        static const auto coerce_sym = "coerce"_s;
+        if (!n->respond_to(env, coerce_sym))
+            env->raise("TypeError", "no implicit conversion of {} into Integer", n->klass()->inspect_str());
+        n = n->send(env, coerce_sym, { Value::integer(0) })->as_array_or_raise(env)->last();
+    }
 
     if (n.send(env, "=="_s, { Value::integer(0) })->is_true())
         env->raise("ArgumentError", "step can't be 0");
