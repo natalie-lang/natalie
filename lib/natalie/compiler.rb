@@ -191,7 +191,7 @@ module Natalie
           compiler_context:,
         ).transform
         if debug == short_name
-          klass.debug_instructions(instructions)
+          klass.debug_instructions(file_info.instructions)
           exit
         end
       end
