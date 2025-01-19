@@ -198,6 +198,12 @@ public:
         snprintf(buf, len, "<IntegerObject %p value=%s is_fixnum=%s>", this, m_integer.to_string().c_str(), m_integer.is_fixnum() ? "true" : "false");
     }
 
+    virtual void visit_children(Visitor &visitor) const override {
+        Object::visit_children(visitor);
+        if (m_integer.is_bignum())
+            visitor.visit(m_integer.bigint_pointer());
+    }
+
 private:
     Integer m_integer;
 };

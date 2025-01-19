@@ -3,6 +3,7 @@
 // https://github.com/983/bigint
 
 #include "bigint.h"
+#include "natalie/gc/cell.hpp"
 #include "tm/string.hpp"
 
 #include <algorithm>
@@ -14,7 +15,8 @@
 
 namespace Natalie {
 
-struct BigInt {
+struct BigInt : public Cell {
+public:
     bigint data[1];
 
     BigInt() {
@@ -240,6 +242,10 @@ struct BigInt {
         BigInt b;
         bigint_rand_exclusive(b.data, n.data, rand_func);
         return b;
+    }
+
+    virtual void gc_inspect(char *buf, size_t len) const override {
+        snprintf(buf, len, "<BigInt %p value=%s>", this, to_string().c_str());
     }
 };
 

@@ -18,14 +18,9 @@ public:
     Integer(const BigInt &);
     Integer(BigInt &&);
     Integer(const TM::String &);
-    Integer(const Integer &);
-    Integer(Integer &&);
 
     static bool will_multiplication_overflow(nat_int_t, nat_int_t);
 
-    // Assignment operators
-    Integer &operator=(const Integer &);
-    Integer &operator=(Integer &&);
     Integer &operator+=(const Integer &);
     Integer &operator-=(const Integer &);
     Integer &operator*=(const Integer &);
@@ -131,9 +126,10 @@ public:
     Integer bit_length() const;
     // TM::String to_binary() const;
 
-    ~Integer() {
-        if (is_bignum())
-            delete m_bignum;
+    BigInt *bigint_pointer() const {
+        if (!m_is_bignum)
+            return nullptr;
+        return m_bignum;
     }
 
 private:

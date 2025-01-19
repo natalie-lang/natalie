@@ -23,8 +23,18 @@ void Cell::operator delete(void *) {
     // object creation. We can just ignore that and let sweep() clean up the cell later.
 }
 
-void Cell::Visitor::visit(Value val) {
-    visit(val.object_or_null());
+void MarkingVisitor::visit(const Value val) {
+    switch (val.type()) {
+    case Value::Type::Integer:
+        if (val.integer().is_bignum())
+            visit(val.integer().bigint_pointer());
+        break;
+    case Value::Type::Pointer:
+        visit(val.object_pointer());
+        break;
+    default:
+        break;
+    }
 }
 
 #ifdef __SANITIZE_ADDRESS__

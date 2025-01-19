@@ -55,57 +55,6 @@ Integer::Integer(BigInt &&other) {
     }
 }
 
-Integer::Integer(const Integer &other) {
-    if (other.is_fixnum()) {
-        m_fixnum = other.m_fixnum;
-        m_is_bignum = false;
-    } else {
-        m_bignum = new BigInt { *other.m_bignum };
-        m_is_bignum = true;
-    }
-}
-
-Integer::Integer(Integer &&other) {
-    if (other.is_fixnum()) {
-        m_fixnum = other.m_fixnum;
-        m_is_bignum = false;
-    } else {
-        m_bignum = other.m_bignum;
-        m_is_bignum = true;
-        other.m_fixnum = 0;
-        other.m_is_bignum = false;
-    }
-}
-
-Integer &Integer::operator=(const Integer &other) {
-    if (is_bignum() && m_bignum != other.m_bignum)
-        delete m_bignum;
-    if (other.is_fixnum()) {
-        m_fixnum = other.m_fixnum;
-        m_is_bignum = false;
-    } else {
-        m_bignum = new BigInt { *other.m_bignum };
-        m_is_bignum = true;
-    }
-    return *this;
-}
-
-Integer &Integer::operator=(Integer &&other) {
-    if (&other == this) return *this;
-    if (is_bignum() && m_bignum != other.m_bignum)
-        delete m_bignum;
-    if (other.is_fixnum()) {
-        m_fixnum = other.m_fixnum;
-        m_is_bignum = false;
-    } else {
-        m_bignum = other.m_bignum;
-        m_is_bignum = true;
-        other.m_fixnum = 0;
-        other.m_is_bignum = false;
-    }
-    return *this;
-}
-
 Integer &Integer::operator+=(const Integer &other) {
     *this = *this + other;
     return *this;
