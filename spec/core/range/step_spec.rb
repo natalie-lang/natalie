@@ -67,7 +67,7 @@ describe "Range#step" do
   ruby_version_is "3.4" do
     it "does not raise an ArgumentError if step is 0 for non-numeric ranges" do
       t = Time.utc(2023, 2, 24)
-      NATFIXME 'it does not raise an ArgumentError if step is 0 for non-numeric ranges', exception: SpecFailedException do
+      NATFIXME 'Fix Range#step for non-numeric ranges', exception: TypeError, message: "can't iterate from Time" do
         -> { (t..t+1).step(0) { break } }.should_not raise_error(ArgumentError)
       end
     end
