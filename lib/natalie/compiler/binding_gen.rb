@@ -158,24 +158,14 @@ class BindingGen
       end
     end
 
-    PASS_INTEGER_METHODS = %w[
-      add
-      cmp
-      eq
-      mod
-      pow
-      powmod
-      sub
-    ].freeze
-
-    def method_accepts_integer?
-      cpp_class == 'IntegerObject' && PASS_INTEGER_METHODS.include?(cpp_method)
+    def method_accepts_integer_as_self?
+      cpp_class == 'IntegerObject' && ruby_method_type == :instance
     end
 
     def write
       if cpp_function_type == :static
         lines = []
-        if method_accepts_integer?
+        if method_accepts_integer_as_self?
           lines << 'auto integer = self.integer();'
         end
         lines << "auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});"
@@ -215,7 +205,7 @@ class BindingGen
 
       if pass_self?
         if cast_self?
-          if method_accepts_integer?
+          if method_accepts_integer_as_self?
             self_arg = 'integer'
           else
             self_arg = "static_cast<#{cpp_class}*>(self.object())"
