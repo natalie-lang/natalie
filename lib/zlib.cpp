@@ -69,11 +69,11 @@ Value Zlib_deflate_initialize(Env *env, Value self, Args &&args, Block *) {
     self->ivar_set(env, "@closed"_s, FalseObject::the());
 
     int ret = deflateInit2(stream,
-        (int)level->to_nat_int_t(),
+        (int)IntegerObject::to_nat_int_t(level),
         Z_DEFLATED,
-        (int)window_bits->to_nat_int_t(),
-        (int)mem_level->to_nat_int_t(),
-        (int)strategy->to_nat_int_t());
+        (int)IntegerObject::to_nat_int_t(window_bits),
+        (int)IntegerObject::to_nat_int_t(mem_level),
+        (int)IntegerObject::to_nat_int_t(strategy));
     if (ret != Z_OK)
         self->klass()->send(env, "_error"_s, { Value::integer(ret) });
 
@@ -123,7 +123,7 @@ Value Zlib_deflate_deflate(Env *env, Value self, Args &&args, Block *) {
     auto string = args[0]->as_string_or_raise(env);
     auto flush = Z_NO_FLUSH;
     if (auto flush_obj = args.at(1, nullptr); flush_obj)
-        flush = flush_obj->as_integer_or_raise(env)->to_nat_int_t();
+        flush = IntegerObject::to_nat_int_t(flush_obj->as_integer_or_raise(env));
 
     Zlib_do_deflate(env, self, string->string(), flush);
 
@@ -163,8 +163,8 @@ Value Zlib_deflate_params(Env *env, Value self, Args &&args, Block *) {
 
     const auto ret = deflateParams(
         strm,
-        (int)level->to_nat_int_t(),
-        (int)strategy->to_nat_int_t());
+        (int)IntegerObject::to_nat_int_t(level),
+        (int)IntegerObject::to_nat_int_t(strategy));
     if (ret != Z_OK)
         self->klass()->send(env, "_error"_s, { Value::integer(ret) });
 
@@ -201,7 +201,7 @@ Value Zlib_inflate_initialize(Env *env, Value self, Args &&args, Block *) {
     self->ivar_set(env, "@out"_s, new VoidPObject(out, Zlib_buffer_cleanup));
     self->ivar_set(env, "@closed"_s, FalseObject::the());
 
-    int ret = inflateInit2(stream, (int)window_bits->to_nat_int_t());
+    int ret = inflateInit2(stream, (int)IntegerObject::to_nat_int_t(window_bits));
     if (ret != Z_OK)
         self->klass()->send(env, "_error"_s, { Value::integer(ret) });
 
@@ -267,7 +267,7 @@ Value Zlib_inflate_inflate(Env *env, Value self, Args &&args, Block *) {
     auto string = args[0]->as_string_or_raise(env);
     auto flush = Z_NO_FLUSH;
     if (auto flush_obj = args.at(1, nullptr); flush_obj)
-        flush = flush_obj->as_integer_or_raise(env)->to_nat_int_t();
+        flush = IntegerObject::to_nat_int_t(flush_obj->as_integer_or_raise(env));
 
     Zlib_do_inflate(env, self, string->string(), flush);
 
@@ -289,8 +289,8 @@ Value Zlib_adler32(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 2);
     auto string = args.at(0, new StringObject { "", Encoding::ASCII_8BIT })->to_str(env);
     auto checksum = args.at(1, Value::integer(1))->to_int(env);
-    checksum->assert_fixnum(env);
-    const nat_int_t result = adler32_z(checksum->to_nat_int_t(), reinterpret_cast<const Bytef *>(string->c_str()), string->bytesize());
+    IntegerObject::assert_fixnum(env, checksum);
+    const nat_int_t result = adler32_z(IntegerObject::to_nat_int_t(checksum), reinterpret_cast<const Bytef *>(string->c_str()), string->bytesize());
     return Value::integer(result);
 }
 

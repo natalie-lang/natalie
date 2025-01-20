@@ -56,12 +56,12 @@ public:
 
     static Value urandom(Env *env, Value size) {
         auto integer = size->as_integer();
-        if (integer->is_negative())
+        if (IntegerObject::is_negative(integer))
             env->raise("ArgumentError", "negative string size (or size too big)");
-        if (integer->is_zero())
+        if (IntegerObject::is_zero(integer))
             return new StringObject { "", Encoding::ASCII_8BIT };
 
-        size_t length = (size_t)integer->to_nat_int_t();
+        size_t length = (size_t)IntegerObject::to_nat_int_t(integer);
         char buffer[length];
 #ifdef __linux__
         auto result = getrandom(buffer, length, 0);

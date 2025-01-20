@@ -22,8 +22,8 @@ public:
 
     class Visitor {
     public:
-        virtual void visit(const Cell *cell) = 0;
-        void visit(Value);
+        virtual void visit(Value) = 0;
+        virtual void visit(const Cell *) = 0;
     };
 
     virtual void visit_children(Visitor &) const {

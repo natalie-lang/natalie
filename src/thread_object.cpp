@@ -3,6 +3,7 @@
 #include <signal.h>
 
 #include "natalie.hpp"
+#include "natalie/integer_object.hpp"
 #include "natalie/thread/mutex_object.hpp"
 #include "natalie/thread_object.hpp"
 
@@ -497,10 +498,10 @@ Value ThreadObject::priority(Env *env) const {
 // Example code: https://en.cppreference.com/w/cpp/thread/thread/native_handle
 Value ThreadObject::set_priority(Env *env, Value priority) {
     auto priority_int = priority->to_int(env);
-    if (priority_int->is_bignum())
+    if (IntegerObject::is_bignum(priority_int))
         env->raise("RangeError", "bignum too big to convert into 'long'");
 
-    m_priority = priority_int->to_nat_int_t();
+    m_priority = IntegerObject::to_nat_int_t(priority_int);
     if (m_priority > 3) m_priority = 3;
     if (m_priority < -3) m_priority = -3;
 

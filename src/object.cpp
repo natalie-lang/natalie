@@ -852,7 +852,7 @@ __attribute__((no_sanitize("undefined"))) static nat_int_t left_shift_with_undef
 nat_int_t Object::object_id() const {
     if (is_integer()) {
         const auto i = as_integer();
-        if (i->is_fixnum()) {
+        if (IntegerObject::is_fixnum(i)) {
             /* Recreate the logic from Ruby: Use a long as tagged pointer, where
              * the rightmost bit is 1, and the remaining bits are the number shifted
              * one right.
@@ -860,7 +860,7 @@ nat_int_t Object::object_id() const {
              * least 8 bit aligned, so the rightmost bit will never be set. This
              * means we don't risk duplicate object ids for different objects.
              */
-            auto val = i->to_nat_int_t();
+            auto val = IntegerObject::to_nat_int_t(i);
             if (val >= (LONG_MIN >> 1) && val <= (LONG_MAX >> 1))
                 return left_shift_with_undefined_behavior(val, 1) | 1;
         }
@@ -1073,9 +1073,9 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Hash:
         return new HashObject { env, *as_hash() };
     case Object::Type::Integer:
-        if (as_integer()->is_bignum())
+        if (IntegerObject::is_bignum(as_integer()))
             return new IntegerObject { *as_integer() };
-        return Value::integer(as_integer()->to_nat_int_t());
+        return Value::integer(IntegerObject::to_nat_int_t(as_integer()));
     case Object::Type::Module:
         return new ModuleObject { *as_module() };
     case Object::Type::Nil:
@@ -1317,8 +1317,8 @@ void Object::assert_not_frozen(Env *env, Value receiver) {
 }
 
 bool Object::equal(Value other) {
-    if (is_integer() && as_integer()->is_fixnum() && other->is_integer() && other->as_integer()->is_fixnum())
-        return as_integer()->to_nat_int_t() == other->as_integer()->to_nat_int_t();
+    if (is_integer() && IntegerObject::is_fixnum(as_integer()) && other->is_integer() && IntegerObject::is_fixnum(other->as_integer()))
+        return IntegerObject::to_nat_int_t(as_integer()) == IntegerObject::to_nat_int_t(other->as_integer());
     // We still need the pointer compare for the identical NaN equality
     if (is_float() && other->is_float())
         return this == other.object() || as_float()->to_double() == other->as_float()->to_double();

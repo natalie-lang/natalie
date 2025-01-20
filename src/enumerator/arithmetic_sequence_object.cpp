@@ -1,5 +1,6 @@
 #include "natalie/enumerator/arithmetic_sequence_object.hpp"
 #include "natalie.hpp"
+#include "natalie/integer_object.hpp"
 
 namespace Natalie::Enumerator {
 ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, const TM::String &range_origin_method, Value begin, Value end, Value step, bool exclude_end)
@@ -59,12 +60,13 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
 
     Integer step_count;
     if (n->is_integer()) {
-        step_count = n->as_integer()->integer();
+        step_count = IntegerObject::integer(n->as_integer());
 
         if (!exclude_end())
             step_count += 1;
     } else {
-        step_count = n.send(env, "+"_s, { n.send(env, "*"_s, { new FloatObject { std::numeric_limits<double>::epsilon() } }) }).send(env, "floor"_s)->as_integer()->integer() + 1;
+        auto a = n.send(env, "+"_s, { n.send(env, "*"_s, { new FloatObject { std::numeric_limits<double>::epsilon() } }) }).send(env, "floor"_s)->as_integer();
+        step_count = IntegerObject::integer(a) + 1;
     }
 
     return step_count;
@@ -209,15 +211,15 @@ Value ArithmeticSequenceObject::last(Env *env, Value n) {
 
     if (n) {
         auto n_as_int = n->to_int(env);
-        Integer count = n_as_int->integer();
+        Integer count = IntegerObject::integer(n_as_int);
 
         if (count < 0)
             env->raise("ArgumentError", "negative array size");
 
-        if (n_as_int->integer() > steps)
+        if (IntegerObject::integer(n_as_int) > steps)
             count = steps;
 
-        n_as_int->assert_fixnum(env);
+        IntegerObject::assert_fixnum(env, n_as_int);
 
         auto array = new ArrayObject { (size_t)count.to_nat_int_t() };
 

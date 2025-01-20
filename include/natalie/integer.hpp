@@ -18,14 +18,9 @@ public:
     Integer(const BigInt &);
     Integer(BigInt &&);
     Integer(const TM::String &);
-    Integer(const Integer &);
-    Integer(Integer &&);
 
     static bool will_multiplication_overflow(nat_int_t, nat_int_t);
 
-    // Assignment operators
-    Integer &operator=(const Integer &);
-    Integer &operator=(Integer &&);
     Integer &operator+=(const Integer &);
     Integer &operator-=(const Integer &);
     Integer &operator*=(const Integer &);
@@ -110,8 +105,8 @@ public:
 
     // Other
     explicit operator bool() const { return *this == 0; }
-    bool is_fixnum() const { return m_is_fixnum; }
-    bool is_bignum() const { return !m_is_fixnum; }
+    bool is_fixnum() const { return !m_is_bignum; }
+    bool is_bignum() const { return m_is_bignum; }
     bool is_negative() const;
     BigInt to_bigint() const {
         if (is_bignum())
@@ -131,9 +126,10 @@ public:
     Integer bit_length() const;
     // TM::String to_binary() const;
 
-    ~Integer() {
-        if (is_bignum())
-            delete m_bignum;
+    BigInt *bigint_pointer() const {
+        if (!m_is_bignum)
+            return nullptr;
+        return m_bignum;
     }
 
 private:
@@ -142,7 +138,7 @@ private:
         BigInt *m_bignum;
     };
 
-    bool m_is_fixnum { true };
+    bool m_is_bignum { false };
 };
 
 Integer operator+(const long long &, const Integer &);

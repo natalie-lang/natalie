@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/integer_object.hpp"
 #include "natalie/thread_object.hpp"
 #include "natalie/throw_catch_exception.hpp"
 
@@ -210,7 +211,7 @@ Value KernelModule::exit_bang(Env *env, Value status) {
 Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) {
     nat_int_t base_int = 0; // default to zero if unset
     if (base)
-        base_int = base->to_int(env)->to_nat_int_t();
+        base_int = IntegerObject::to_nat_int_t(base->to_int(env));
     return Integer(env, value, base_int, exception ? exception->is_true() : true);
 }
 
@@ -457,25 +458,26 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
 }
 
 RationalObject *KernelModule::Rational(Env *env, IntegerObject *x, IntegerObject *y) {
-    Value gcd = x->gcd(env, y);
-    Value numerator = x->div(env, gcd);
-    Value denominator = y->div(env, gcd);
+    Value gcd = IntegerObject::gcd(env, x, y);
+    Value numerator = IntegerObject::div(env, x, gcd);
+    Value denominator = IntegerObject::div(env, y, gcd);
     return RationalObject::create(env, numerator->as_integer(), denominator->as_integer());
 }
 
 RationalObject *KernelModule::Rational(Env *env, double arg) {
-    IntegerObject radix { FLT_RADIX };
-    Value y = radix.pow(env, Value::integer(DBL_MANT_DIG));
+    class Integer radix(FLT_RADIX);
+    auto power = Value::integer(DBL_MANT_DIG);
+    Value y = IntegerObject::pow(env, radix, power);
 
     int exponent;
     FloatObject *significand = new FloatObject { std::frexp(arg, &exponent) };
     Value x = significand->mul(env, y)->as_float()->to_i(env);
 
-    IntegerObject two { 2 };
+    class Integer two(2);
     if (exponent < 0)
-        y = y->as_integer()->mul(env, two.pow(env, Value::integer(-exponent)));
+        y = IntegerObject::mul(env, y->as_integer(), IntegerObject::pow(env, two, Value::integer(-exponent)));
     else
-        x = x->as_integer()->mul(env, two.pow(env, Value::integer(exponent)));
+        x = IntegerObject::mul(env, x->as_integer(), IntegerObject::pow(env, two, Value::integer(exponent)));
 
     return Rational(env, x->as_integer(), y->as_integer());
 }
@@ -491,7 +493,7 @@ Value KernelModule::sleep(Env *env, Value length) {
 
     float secs;
     if (length->is_integer()) {
-        secs = length->as_integer()->to_nat_int_t();
+        secs = IntegerObject::to_nat_int_t(length->as_integer());
     } else if (length->is_float()) {
         secs = length->as_float()->to_double();
     } else if (length->is_rational()) {

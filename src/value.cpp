@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/integer_object.hpp"
 
 namespace Natalie {
 
@@ -44,11 +45,7 @@ Value Value::on_object_value(Callback &&callback) {
     if (m_type == Type::Pointer)
         return callback(*object());
 
-    if (m_type == Type::Integer) {
-        auto synthesized_receiver = IntegerObject { m_integer };
-        synthesized_receiver.add_synthesized_flag();
-        return callback(synthesized_receiver);
-    }
+    assert(m_type != Type::Integer);
 
     assert(m_type == Type::Double);
     auto synthesized_receiver = FloatObject { m_double };
@@ -56,8 +53,27 @@ Value Value::on_object_value(Callback &&callback) {
     return callback(synthesized_receiver);
 }
 
+// FIXME: this doesn't check method visibility, but no tests are failing yet :-)
+Value Value::integer_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility) {
+    auto method_info = GlobalEnv::the()->Integer()->find_method(env, name);
+    if (!method_info.is_defined()) {
+        // FIXME: store missing reason on current thread
+        GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Undefined);
+        auto obj = object();
+        if (obj->respond_to(env, "method_missing"_s))
+            return obj->method_missing_send(env, name, std::move(args), block);
+        else
+            env->raise_no_method_error(obj, name, GlobalEnv::the()->method_missing_reason());
+    }
+
+    return method_info.method()->call(env, *this, std::move(args), block);
+}
+
 Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
+
+    if (m_type == Type::Integer)
+        return integer_send(env, name, std::move(args), block, sent_from, MethodVisibility::Public);
 
     return on_object_value([&](Object &object) {
         return object.public_send(env, name, std::move(args), block, sent_from);
@@ -66,6 +82,9 @@ Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block
 
 Value Value::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::SEND);
+
+    if (m_type == Type::Integer)
+        return integer_send(env, name, std::move(args), block, sent_from, MethodVisibility::Private);
 
     return on_object_value([&](Object &object) {
         return object.send(env, name, std::move(args), block, sent_from);
@@ -110,8 +129,8 @@ double Value::as_double() const {
 nat_int_t Value::as_fast_integer() const {
     assert(m_type == Type::Integer || (m_type == Type::Pointer && m_object->is_integer()));
     if (m_type == Type::Integer)
-        return m_integer;
-    return m_object->as_integer()->to_nat_int_t();
+        return m_integer.to_nat_int_t();
+    return IntegerObject::to_nat_int_t(m_object->as_integer());
 }
 
 bool Value::operator==(Value other) const {
@@ -125,8 +144,8 @@ bool Value::operator==(Value other) const {
         default: {
             if (other && other->is_integer()) {
                 auto i = other->as_integer();
-                if (i->is_fixnum())
-                    return m_integer == i->to_nat_int_t();
+                if (IntegerObject::is_fixnum(i))
+                    return m_integer == IntegerObject::to_nat_int_t(i);
             }
             return false;
         }
@@ -149,6 +168,32 @@ bool Value::operator==(Value other) const {
     }
     default:
         return m_object == other.m_object;
+    }
+}
+
+const Integer &Value::integer() const {
+    switch (m_type) {
+    case Type::Integer:
+        return m_integer;
+    case Type::Pointer:
+        assert(m_object->is_integer());
+        return IntegerObject::integer(m_object->as_integer());
+        break;
+    default:
+        NAT_UNREACHABLE();
+    }
+}
+
+Integer &Value::integer() {
+    switch (m_type) {
+    case Type::Integer:
+        return m_integer;
+    case Type::Pointer:
+        assert(m_object->is_integer());
+        return IntegerObject::integer(m_object->as_integer());
+        break;
+    default:
+        NAT_UNREACHABLE();
     }
 }
 

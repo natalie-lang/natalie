@@ -46,7 +46,7 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
     bool done = m_exclude_end ? item.send(env, "=="_s, { m_end })->is_truthy() : false;
     while (!done) {
         if (!m_end->is_nil()) {
-            auto compare_result = item.send(env, cmp, { m_end })->to_int(env)->integer();
+            auto compare_result = IntegerObject::integer(item.send(env, cmp, { m_end })->to_int(env));
             // We are done if we reached the end element.
             done = compare_result == 0;
             // If we exclude the end we break instantly, otherwise we yield the item once again. We also break if item is bigger than end.
@@ -279,11 +279,10 @@ bool RangeObject::include(Env *env, Value arg) {
     } else if ((m_begin->is_nil() || m_begin->is_numeric()) && (m_end->is_nil() || m_end->is_numeric())) {
         return send(env, "cover?"_s, { arg })->is_truthy();
     } else if (m_begin->is_time() || m_end->is_time()) {
-        if (m_begin->is_nil() || m_begin->as_time()->cmp(env, arg)->as_integer()->lte(env, Value::integer(0))) {
+        if (m_begin->is_nil() || IntegerObject::lte(env, m_begin->as_time()->cmp(env, arg)->as_integer(), Value::integer(0))) {
             Value integer = Value::integer(m_exclude_end ? -1 : 0);
-            if (m_end->is_nil() || arg->as_time()->cmp(env, m_end)->as_integer()->lte(env, integer)) {
+            if (m_end->is_nil() || IntegerObject::lte(env, arg->as_time()->cmp(env, m_end)->as_integer(), integer))
                 return true;
-            }
         }
         return false;
     }
@@ -313,12 +312,12 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         return enum_for(env, "bsearch");
 
     if (m_begin->is_integer() && m_end->is_integer()) {
-        nat_int_t left = m_begin->as_integer()->integer().to_nat_int_t();
-        nat_int_t right = m_end->as_integer()->integer().to_nat_int_t();
+        nat_int_t left = IntegerObject::integer(m_begin->as_integer()).to_nat_int_t();
+        nat_int_t right = IntegerObject::integer(m_end->as_integer()).to_nat_int_t();
 
         return binary_search_integer(env, left, right, block, m_exclude_end);
     } else if (m_begin->is_integer() && m_end->is_nil()) {
-        nat_int_t left = m_begin->as_integer()->integer().to_nat_int_t();
+        nat_int_t left = IntegerObject::integer(m_begin->as_integer()).to_nat_int_t();
         nat_int_t right = left + 1;
 
         // Find a right border in which we can perform the binary search.
@@ -328,7 +327,7 @@ Value RangeObject::bsearch(Env *env, Block *block) {
 
         return binary_search_integer(env, left, right, block, false);
     } else if (m_begin->is_nil() && m_end->is_integer()) {
-        nat_int_t right = m_end->as_integer()->integer().to_nat_int_t();
+        nat_int_t right = IntegerObject::integer(m_end->as_integer()).to_nat_int_t();
         nat_int_t left = right - 1;
 
         // Find a left border in which we can perform the binary search.
@@ -389,7 +388,7 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
         if (n->is_float())
             env->raise("TypeError", "no implicit conversion to float from {}", m_begin->klass()->inspect_str().lowercase());
 
-        auto step = n->to_int(env)->integer();
+        auto step = IntegerObject::integer(n->to_int(env));
 
         Integer index = 0;
         iterate_over_range(env, [env, block, &index, step](Value item) -> Value {

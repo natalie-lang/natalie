@@ -7,6 +7,8 @@
 #include "natalie/args.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/gc/heap.hpp"
+#include "natalie/integer.hpp"
+#include "natalie/method_visibility.hpp"
 #include "natalie/object_type.hpp"
 #include "natalie/types.hpp"
 
@@ -30,11 +32,17 @@ public:
         : m_type { Type::Integer }
         , m_integer { integer } { }
 
+    Value(Integer &integer)
+        : m_type { Type::Integer }
+        , m_integer { integer } { }
+
     static Value integer(nat_int_t integer) {
         // This is required, because initialization by a literal is often ambiguous.
         return Value { integer };
     }
     static Value floatingpoint(double value);
+
+    Type type() const { return m_type; }
 
     Object &operator*() {
         auto_hydrate();
@@ -56,6 +64,11 @@ public:
             return m_object;
         else
             return nullptr;
+    }
+
+    const Object *object_pointer() const {
+        assert(m_type == Type::Pointer);
+        return m_object;
     }
 
     bool operator==(Value other) const;
@@ -82,6 +95,8 @@ public:
         return send(env, name, Args(args), block, sent_from);
     }
 
+    Value integer_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility);
+
     bool is_fast_integer() const {
         return m_type == Type::Integer;
     }
@@ -95,13 +110,16 @@ public:
 
     nat_int_t get_fast_integer() const {
         assert(m_type == Type::Integer);
-        return m_integer;
+        return m_integer.to_nat_int_t();
     }
 
     double get_fast_double() const {
         assert(m_type == Type::Double);
         return m_double;
     }
+
+    const Integer &integer() const;
+    Integer &integer();
 
 private:
     explicit Value(double value)
@@ -127,7 +145,7 @@ private:
     Type m_type { Type::Pointer };
 
     union {
-        nat_int_t m_integer { 0 };
+        Integer m_integer { 0 };
         double m_double;
         Object *m_object;
     };

@@ -46,7 +46,7 @@ Value Method::call(Env *env, Value self, Args &&args, Block *block) const {
             synthesized_arg.add_synthesized_flag();
             return call_fn({ &synthesized_arg });
         }
-    } else if (self->is_synthesized()) {
+    } else if (!self.is_fast_integer() && self->is_synthesized()) {
         // Turn this object into a heap-allocated one.
         self = self->duplicate(env);
     }

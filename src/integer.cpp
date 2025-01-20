@@ -5,32 +5,32 @@
 namespace Natalie {
 Integer::Integer(nat_int_t other)
     : m_fixnum(other)
-    , m_is_fixnum(true) {
+    , m_is_bignum(false) {
 }
 
 Integer::Integer(int other)
     : m_fixnum(other)
-    , m_is_fixnum(true) {
+    , m_is_bignum(false) {
 }
 
 Integer::Integer(double other) {
     assert(other == ::floor(other));
     if (other <= (double)NAT_MIN_FIXNUM || other >= (double)NAT_MAX_FIXNUM) {
         m_bignum = new BigInt(other);
-        m_is_fixnum = false;
+        m_is_bignum = true;
     } else {
         m_fixnum = static_cast<nat_int_t>(other);
-        m_is_fixnum = true;
+        m_is_bignum = false;
     }
 }
 
 Integer::Integer(const TM::String &other) {
     auto bigint = BigInt(other);
     if (bigint >= NAT_MIN_FIXNUM && bigint <= NAT_MAX_FIXNUM) {
-        m_is_fixnum = true;
+        m_is_bignum = false;
         m_fixnum = bigint.to_long_long();
     } else {
-        m_is_fixnum = false;
+        m_is_bignum = true;
         m_bignum = new BigInt(bigint);
     }
 }
@@ -38,72 +38,21 @@ Integer::Integer(const TM::String &other) {
 Integer::Integer(const BigInt &other) {
     if (other <= NAT_MAX_FIXNUM && other >= NAT_MIN_FIXNUM) {
         m_fixnum = other.to_long_long();
-        m_is_fixnum = true;
+        m_is_bignum = false;
     } else {
         m_bignum = new BigInt(other);
-        m_is_fixnum = false;
+        m_is_bignum = true;
     }
 }
 
 Integer::Integer(BigInt &&other) {
     if (other <= NAT_MAX_FIXNUM && other >= NAT_MIN_FIXNUM) {
         m_fixnum = other.to_long_long();
-        m_is_fixnum = true;
+        m_is_bignum = false;
     } else {
         m_bignum = new BigInt(std::move(other));
-        m_is_fixnum = false;
+        m_is_bignum = true;
     }
-}
-
-Integer::Integer(const Integer &other) {
-    if (other.is_fixnum()) {
-        m_fixnum = other.m_fixnum;
-        m_is_fixnum = true;
-    } else {
-        m_bignum = new BigInt { *other.m_bignum };
-        m_is_fixnum = false;
-    }
-}
-
-Integer::Integer(Integer &&other) {
-    if (other.is_fixnum()) {
-        m_fixnum = other.m_fixnum;
-        m_is_fixnum = true;
-    } else {
-        m_bignum = other.m_bignum;
-        m_is_fixnum = false;
-        other.m_fixnum = 0;
-        other.m_is_fixnum = true;
-    }
-}
-
-Integer &Integer::operator=(const Integer &other) {
-    if (is_bignum() && m_bignum != other.m_bignum)
-        delete m_bignum;
-    if (other.is_fixnum()) {
-        m_fixnum = other.m_fixnum;
-        m_is_fixnum = true;
-    } else {
-        m_bignum = new BigInt { *other.m_bignum };
-        m_is_fixnum = false;
-    }
-    return *this;
-}
-
-Integer &Integer::operator=(Integer &&other) {
-    if (&other == this) return *this;
-    if (is_bignum() && m_bignum != other.m_bignum)
-        delete m_bignum;
-    if (other.is_fixnum()) {
-        m_fixnum = other.m_fixnum;
-        m_is_fixnum = true;
-    } else {
-        m_bignum = other.m_bignum;
-        m_is_fixnum = false;
-        other.m_fixnum = 0;
-        other.m_is_fixnum = true;
-    }
-    return *this;
 }
 
 Integer &Integer::operator+=(const Integer &other) {

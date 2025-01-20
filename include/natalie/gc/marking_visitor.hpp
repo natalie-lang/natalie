@@ -4,15 +4,12 @@
 #include "tm/vector.hpp"
 #include <stack>
 
-// time boardslam.rb 3 5 1
-// 1.656 using C stack
-// 1.692 using std::stack
-// 2.847 using std::queue
-
 namespace Natalie {
 
 class MarkingVisitor : public Cell::Visitor {
 public:
+    virtual void visit(Value val) override final;
+
     virtual void visit(const Cell *cell) override final {
         if (!cell || cell->is_marked()) return;
         m_stack.push(cell);

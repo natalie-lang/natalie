@@ -221,7 +221,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
         if (opts.is_fast_integer()) {
             options = opts.get_fast_integer();
         } else if (opts->is_integer()) {
-            options = opts->as_integer()->to_nat_int_t();
+            options = IntegerObject::to_nat_int_t(opts->as_integer());
         } else if (opts->is_string()) {
             for (auto c : *opts->as_string()) {
                 if (c == "i") {
@@ -521,7 +521,7 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
         if (start.is_fast_integer()) {
             start_index = start.get_fast_integer();
         } else if (start->is_integer()) {
-            start_index = start->as_integer()->to_nat_int_t();
+            start_index = IntegerObject::to_nat_int_t(start->as_integer());
         }
     }
     if (start_index < 0) {

@@ -25,7 +25,7 @@ public:
     static RationalObject *create(Env *env, IntegerObject *numerator, IntegerObject *denominator);
 
     bool is_zero() const {
-        return m_numerator->is_zero();
+        return IntegerObject::is_zero(m_numerator);
     }
 
     Value add(Env *, Value);

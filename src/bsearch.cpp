@@ -1,13 +1,14 @@
 #include "natalie/bsearch.hpp"
+#include "natalie/integer_object.hpp"
 
 namespace Natalie {
 BSearchCheckResult binary_search_check(Env *env, Value block_result) {
     if (block_result->is_numeric()) {
         if (block_result->is_integer()) {
             auto i = block_result->as_integer();
-            if (i->is_zero())
+            if (IntegerObject::is_zero(i))
                 return BSearchCheckResult::EQUAL;
-            else if (i->is_negative())
+            else if (IntegerObject::is_negative(i))
                 return BSearchCheckResult::SMALLER;
         } else {
             auto f = block_result->as_float();
