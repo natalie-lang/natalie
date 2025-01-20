@@ -8,6 +8,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/gc/heap.hpp"
 #include "natalie/integer.hpp"
+#include "natalie/method_visibility.hpp"
 #include "natalie/object_type.hpp"
 #include "natalie/types.hpp"
 
@@ -93,6 +94,8 @@ public:
     Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Value sent_from = nullptr) {
         return send(env, name, Args(args), block, sent_from);
     }
+
+    Value integer_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility);
 
     bool is_fast_integer() const {
         return m_type == Type::Integer;

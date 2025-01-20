@@ -45,11 +45,7 @@ Value Value::on_object_value(Callback &&callback) {
     if (m_type == Type::Pointer)
         return callback(*object());
 
-    if (m_type == Type::Integer) {
-        auto synthesized_receiver = IntegerObject { m_integer };
-        synthesized_receiver.add_synthesized_flag();
-        return callback(synthesized_receiver);
-    }
+    assert(m_type != Type::Integer);
 
     assert(m_type == Type::Double);
     auto synthesized_receiver = FloatObject { m_double };
@@ -57,8 +53,27 @@ Value Value::on_object_value(Callback &&callback) {
     return callback(synthesized_receiver);
 }
 
+// FIXME: this doesn't check method visibility, but no tests are failing yet :-)
+Value Value::integer_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility) {
+    auto method_info = GlobalEnv::the()->Integer()->find_method(env, name);
+    if (!method_info.is_defined()) {
+        // FIXME: store missing reason on current thread
+        GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Undefined);
+        auto obj = object();
+        if (obj->respond_to(env, "method_missing"_s))
+            return obj->method_missing_send(env, name, std::move(args), block);
+        else
+            env->raise_no_method_error(obj, name, GlobalEnv::the()->method_missing_reason());
+    }
+
+    return method_info.method()->call(env, *this, std::move(args), block);
+}
+
 Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
+
+    if (m_type == Type::Integer)
+        return integer_send(env, name, std::move(args), block, sent_from, MethodVisibility::Public);
 
     return on_object_value([&](Object &object) {
         return object.public_send(env, name, std::move(args), block, sent_from);
@@ -67,6 +82,9 @@ Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block
 
 Value Value::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::SEND);
+
+    if (m_type == Type::Integer)
+        return integer_send(env, name, std::move(args), block, sent_from, MethodVisibility::Private);
 
     return on_object_value([&](Object &object) {
         return object.send(env, name, std::move(args), block, sent_from);
