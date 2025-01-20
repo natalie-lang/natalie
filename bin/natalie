@@ -129,6 +129,10 @@ OptionParser.new do |opts|
     options[:warnings] = true
   end
 
+  opts.on('--enable-frozen-string-literal', 'freeze all string literals (default: disabled)') do
+    options[:frozen_string_literal] = true
+  end
+
   opts.on_path do |path|
     ARGV.unshift(path)
     opts.stop_parsing!

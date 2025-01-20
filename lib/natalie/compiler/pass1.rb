@@ -11,7 +11,7 @@ module Natalie
     # Representation, which we implement using Instructions.
     # You can debug this pass with the `-d p1` CLI flag.
     class Pass1 < BasePass
-      def initialize(ast, compiler_context:, macro_expander:, loaded_file:)
+      def initialize(ast, compiler_context:, macro_expander:, loaded_file:, frozen_string_literal: false)
         super()
         @ast = ast
         @compiler_context = compiler_context
@@ -39,6 +39,9 @@ module Natalie
 
         # This points to the current LoadedFile being compiled.
         @file = loaded_file
+
+        # Default to frozen string literals
+        @frozen_string_literal = frozen_string_literal
       end
 
       attr_reader :file
@@ -2591,7 +2594,8 @@ module Natalie
         return [] unless used
 
         encoding = encoding_for_string_node(node)
-        PushStringInstruction.new(node.unescaped, encoding: encoding, frozen: node.frozen?)
+        frozen = @frozen_string_literal || node.frozen?
+        PushStringInstruction.new(node.unescaped, encoding: encoding, frozen:)
       end
 
       def transform_super_node(node, used:)
