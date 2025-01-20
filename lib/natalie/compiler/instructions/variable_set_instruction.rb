@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative './base_instruction'
 
 module Natalie
@@ -22,7 +24,7 @@ module Natalie
         depth, var = transform.find_var(name, local_only: @local_only)
         index = var.fetch(:index)
 
-        env = 'env'
+        env = +'env'
         depth.times { env << '->outer()' }
 
         value = transform.pop
