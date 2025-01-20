@@ -145,6 +145,10 @@ module Natalie
       !!repl
     end
 
+    def frozen_string_literal?
+      !!options[:frozen_string_literal]
+    end
+
     private
 
     def transform
@@ -154,9 +158,10 @@ module Natalie
 
       instructions = Pass1.new(
         ast,
-        compiler_context: @context,
-        macro_expander:   macro_expander,
-        loaded_file:      main_file,
+        compiler_context:      @context,
+        macro_expander:        macro_expander,
+        loaded_file:           main_file,
+        frozen_string_literal: frozen_string_literal?
       ).transform(
         used: true
       )
