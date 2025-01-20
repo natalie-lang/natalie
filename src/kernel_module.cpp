@@ -465,18 +465,19 @@ RationalObject *KernelModule::Rational(Env *env, IntegerObject *x, IntegerObject
 }
 
 RationalObject *KernelModule::Rational(Env *env, double arg) {
-    IntegerObject radix { FLT_RADIX };
-    Value y = IntegerObject::pow(env, &radix, Value::integer(DBL_MANT_DIG));
+    class Integer radix(FLT_RADIX);
+    auto power = Value::integer(DBL_MANT_DIG);
+    Value y = IntegerObject::pow(env, radix, power);
 
     int exponent;
     FloatObject *significand = new FloatObject { std::frexp(arg, &exponent) };
     Value x = significand->mul(env, y)->as_float()->to_i(env);
 
-    IntegerObject two { 2 };
+    class Integer two(2);
     if (exponent < 0)
-        y = IntegerObject::mul(env, y->as_integer(), IntegerObject::pow(env, &two, Value::integer(-exponent)));
+        y = IntegerObject::mul(env, y->as_integer(), IntegerObject::pow(env, two, Value::integer(-exponent)));
     else
-        x = IntegerObject::mul(env, x->as_integer(), IntegerObject::pow(env, &two, Value::integer(exponent)));
+        x = IntegerObject::mul(env, x->as_integer(), IntegerObject::pow(env, two, Value::integer(exponent)));
 
     return Rational(env, x->as_integer(), y->as_integer());
 }

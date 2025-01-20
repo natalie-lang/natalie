@@ -38,7 +38,7 @@ public:
     static Value create(const TM::String &);
     static Value create(TM::String &&);
 
-    static Integer integer(IntegerObject *self) {
+    static Integer &integer(IntegerObject *self) {
         return self->m_integer;
     }
 
@@ -103,16 +103,18 @@ public:
     static Value to_i(Integer self) { return to_i(new IntegerObject(self)); }
     static Value to_f(IntegerObject *);
     static Value to_f(Integer self) { return to_f(new IntegerObject(self)); }
-    static Value add(Env *, Integer, Value);
-    static Value sub(Env *, Integer, Value);
+    static Value add(Env *, Integer &, Value);
+    static Value sub(Env *, Integer &, Value);
     static Value mul(Env *, IntegerObject *, Value);
     static Value mul(Env *env, Integer self, Value other) { return mul(env, new IntegerObject(self), other); }
     static Value div(Env *, IntegerObject *, Value);
     static Value div(Env *env, Integer self, Value other) { return div(env, new IntegerObject(self), other); }
-    static Value mod(Env *, Integer self, Value);
-    static Value pow(Env *, Integer, Value);
-    static Value powmod(Env *, Integer, Value, Value);
-    static Value cmp(Env *, Integer, Value);
+    static Value mod(Env *, Integer &, Value);
+    static Value pow(Env *, Integer &, Integer &);
+    static Value pow(Env *, Integer &, Value);
+    static Value powmod(Env *, Integer &, Integer &, Integer &);
+    static Value powmod(Env *, Integer &, Value, Value);
+    static Value cmp(Env *, Integer &, Value);
     static Value times(Env *, IntegerObject *, Block *);
     static Value times(Env *env, Integer self, Block *block) { return times(env, new IntegerObject(self), block); }
     static Value bitwise_and(Env *, IntegerObject *, Value);
@@ -163,7 +165,7 @@ public:
 
     static bool neq(Env *, IntegerObject *, Value);
     static bool neq(Env *env, Integer self, Value other) { return neq(env, new IntegerObject(self), other); }
-    static bool eq(Env *, Integer, Value);
+    static bool eq(Env *, Integer &, Value);
     static bool lt(Env *, IntegerObject *, Value);
     static bool lt(Env *env, Integer self, Value other) { return lt(env, new IntegerObject(self), other); }
     static bool lte(Env *, IntegerObject *, Value);
