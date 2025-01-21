@@ -127,6 +127,8 @@ public:
 
     bool is_integer() const;
 
+    nat_int_t object_id() const;
+
 private:
     explicit Value(double value)
         : m_type { Type::Double }

@@ -1562,7 +1562,7 @@ Value ArrayObject::intersection(Env *env, Value arg) {
 bool ArrayObject::include_eql(Env *env, Value arg) {
     auto eql = "eql?"_s;
     for (auto &val : *this) {
-        if (arg->object_id() == val->object_id() || arg->send(env, eql, { val })->is_truthy())
+        if (object_id(arg) == object_id(val) || arg->send(env, eql, { val })->is_truthy())
             return true;
     }
     return false;

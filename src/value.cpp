@@ -208,6 +208,30 @@ bool Value::is_integer() const {
     }
 }
 
+__attribute__((no_sanitize("undefined"))) static nat_int_t left_shift_with_undefined_behavior(nat_int_t x, nat_int_t y) {
+    return x << y;
+}
+
+nat_int_t Value::object_id() const {
+    if (m_type == Type::Integer && m_integer.is_fixnum()) {
+        /* Recreate the logic from Ruby: Use a long as tagged pointer, where
+         * the rightmost bit is 1, and the remaining bits are the number shifted
+         * one right.
+         * The regular object ids are the actual memory addresses, these are at
+         * least 8 bit aligned, so the rightmost bit will never be set. This
+         * means we don't risk duplicate object ids for different objects.
+         */
+        auto val = m_integer.to_nat_int_t();
+        if (val >= (LONG_MIN >> 1) && val <= (LONG_MAX >> 1))
+            return left_shift_with_undefined_behavior(val, 1) | 1;
+    }
+
+    assert(m_type == Type::Pointer);
+    assert(m_object);
+
+    return reinterpret_cast<nat_int_t>(m_object);
+}
+
 #undef PROFILED_SEND
 
 }

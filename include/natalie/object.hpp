@@ -286,7 +286,7 @@ public:
     virtual void method_alias(Env *, SymbolObject *, SymbolObject *);
     virtual void singleton_method_alias(Env *, SymbolObject *, SymbolObject *);
 
-    nat_int_t object_id() const;
+    static nat_int_t object_id(const Value self) { return self.object_id(); }
 
     Value itself() { return this; }
 

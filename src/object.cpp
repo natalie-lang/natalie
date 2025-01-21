@@ -849,30 +849,6 @@ void Object::singleton_method_alias(Env *env, SymbolObject *new_name, SymbolObje
     klass->method_alias(env, new_name, old_name);
 }
 
-__attribute__((no_sanitize("undefined"))) static nat_int_t left_shift_with_undefined_behavior(nat_int_t x, nat_int_t y) {
-    return x << y;
-}
-
-nat_int_t Object::object_id() const {
-    if (m_type == Type::Integer) {
-        const auto i = as_integer();
-        if (IntegerObject::is_fixnum(i)) {
-            /* Recreate the logic from Ruby: Use a long as tagged pointer, where
-             * the rightmost bit is 1, and the remaining bits are the number shifted
-             * one right.
-             * The regular object ids are the actual memory addresses, these are at
-             * least 8 bit aligned, so the rightmost bit will never be set. This
-             * means we don't risk duplicate object ids for different objects.
-             */
-            auto val = IntegerObject::to_nat_int_t(i);
-            if (val >= (LONG_MIN >> 1) && val <= (LONG_MAX >> 1))
-                return left_shift_with_undefined_behavior(val, 1) | 1;
-        }
-    }
-
-    return reinterpret_cast<nat_int_t>(this);
-}
-
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
@@ -1339,12 +1315,12 @@ String Object::dbg_inspect() const {
     return String::format(
         "#<{}:{}>",
         klass ? *klass : "Object",
-        String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));
+        String::hex(reinterpret_cast<nat_int_t>(this), String::HexFormat::LowercaseAndPrefixed));
 }
 
 String Object::inspect_str(Env *env) {
     if (!respond_to(env, "inspect"_s))
-        return String::format("#<{}:{}>", m_klass->inspect_str(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));
+        return String::format("#<{}:{}>", m_klass->inspect_str(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed));
     auto inspected = send(env, "inspect"_s);
     if (!inspected->is_string())
         return ""; // TODO: what to do here?

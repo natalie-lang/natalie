@@ -266,7 +266,7 @@ Value ThreadObject::to_s(Env *env) {
     auto formatted = String::format(
         "#<{}:{}{} {}>",
         m_klass->inspect_str(),
-        String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed),
+        String::hex(Object::object_id(this), String::HexFormat::LowercaseAndPrefixed),
         location,
         status());
 
