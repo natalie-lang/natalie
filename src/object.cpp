@@ -776,12 +776,12 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
 }
 
 Value Object::instance_variables(Env *env) {
-    if (m_type == Object::Type::Integer || m_type == Object::Type::Float || !m_ivars) {
+    assert(m_type != Type::Integer);
+
+    if (m_type == Type::Float || !m_ivars)
         return new ArrayObject;
-    }
 
     ArrayObject *ary = new ArrayObject { m_ivars->size() };
-
     for (auto pair : *m_ivars)
         ary->push(pair.first);
     return ary;
@@ -826,9 +826,11 @@ void Object::method_alias(Env *env, Value new_name, Value old_name) {
 }
 
 void Object::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
-    if (m_type == Type::Integer || is_symbol()) {
+    assert(m_type != Type::Integer);
+
+    if (is_symbol())
         env->raise("TypeError", "no klass to make alias");
-    }
+
     if (is_main_object()) {
         m_klass->make_method_alias(env, new_name, old_name);
     } else if (is_module()) {

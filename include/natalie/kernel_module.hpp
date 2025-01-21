@@ -90,6 +90,7 @@ public:
     static bool instance_variable_defined(Env *env, Value self, Value name_val);
     static Value instance_variable_get(Env *env, Value self, Value name_val);
     static Value instance_variable_set(Env *env, Value self, Value name_val, Value value);
+    static Value instance_variables(Env *env, Value self);
     static Value loop(Env *env, Value self, Block *block);
     static Value method(Env *env, Value self, Value name);
     static Value methods(Env *env, Value self, Value regular_val);

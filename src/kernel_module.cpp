@@ -739,6 +739,13 @@ Value KernelModule::instance_variable_set(Env *env, Value self, Value name_val, 
     return value;
 }
 
+Value KernelModule::instance_variables(Env *env, Value self) {
+    if (self.is_integer())
+        return new ArrayObject;
+
+    return self->instance_variables(env);
+}
+
 bool KernelModule::is_a(Env *env, Value self, Value module) {
     if (!module->is_module())
         env->raise("TypeError", "class or module required");
