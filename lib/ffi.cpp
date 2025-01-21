@@ -234,7 +234,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             if (!enums->is_nil() && enums->as_hash_or_raise(env)->has_key(env, type)) {
                 auto enum_values = enums->as_hash()->ref(env, type);
                 auto mapped_value = enum_values->send(env, "key"_s, { val });
-                if (mapped_value->is_nil() && val->is_integer())
+                if (mapped_value->is_nil() && val.is_integer())
                     mapped_value = val;
                 if (mapped_value->is_nil()) {
                     env->raise("ArgumentError", "invalid enum value, {}", val->inspect_str(env));

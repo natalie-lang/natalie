@@ -50,7 +50,7 @@ Value ProcessModule::kill(Env *env, Args &&args) {
 
     if (signal->is_symbol())
         signal = signal->to_s(env);
-    if (signal->is_integer()) {
+    if (signal.is_integer()) {
         signo = IntegerObject::convert_to_nat_int_t(env, signal);
     } else if (signal->is_string() || signal->respond_to(env, "to_str"_s)) {
         auto signame = signal->to_str(env)->delete_prefix(env, new StringObject { "SIG" });

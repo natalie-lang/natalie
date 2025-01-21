@@ -242,10 +242,10 @@ Value ArrayObject::sum(Env *env, Args &&args, Block *block) {
 
 Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
     if (!size) {
-        if (!index_obj->is_integer() && index_obj->respond_to(env, "to_int"_s))
+        if (!index_obj.is_integer() && index_obj->respond_to(env, "to_int"_s))
             index_obj = index_obj->send(env, "to_int"_s);
 
-        if (index_obj->is_integer()) {
+        if (index_obj.is_integer()) {
             IntegerObject::assert_fixnum(env, index_obj->as_integer());
 
             auto index = _resolve_index(IntegerObject::to_nat_int_t(index_obj->as_integer()));
@@ -958,7 +958,7 @@ Value ArrayObject::cmp(Env *env, Value other) {
             Value item = (*other_array)[i];
             Value cmp_obj = (*this)[i].send(env, "<=>"_s, { item });
 
-            if (!cmp_obj->is_integer()) {
+            if (!cmp_obj.is_integer()) {
                 return cmp_obj;
             }
 
@@ -1053,7 +1053,7 @@ bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
         }
     } else {
         Value compare = a.send(env, "<=>"_s, { b });
-        if (compare->is_integer()) {
+        if (compare.is_integer()) {
             return IntegerObject::to_nat_int_t(compare->as_integer()) < 0;
         }
         // TODO: Ruby sometimes prints b as the value (for example for integers) and sometimes as class
@@ -1080,7 +1080,7 @@ bool array_sort_by_compare(Env *env, Value a, Value b, Block *block) {
     Value b_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
 
     Value compare = a_res.send(env, "<=>"_s, { b_res });
-    if (compare->is_integer()) {
+    if (compare.is_integer()) {
         return IntegerObject::to_nat_int_t(compare->as_integer()) < 0;
     }
     env->raise("ArgumentError", "comparison of {} with {} failed", a_res->klass()->inspect_str(), b_res->klass()->inspect_str());
@@ -1891,7 +1891,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         IntegerObject::assert_fixnum(env, size->as_integer());
     }
 
-    if (index_obj->is_integer()) {
+    if (index_obj.is_integer()) {
         IntegerObject::assert_fixnum(env, index_obj->as_integer());
 
         auto start = IntegerObject::to_nat_int_t(index_obj->as_integer());

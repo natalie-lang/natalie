@@ -45,7 +45,7 @@ Value FileObject::initialize(Env *env, Args &&args, Block *block) {
     const ioutil::flags_struct flags { env, flags_obj, kwargs };
     const auto modenum = ioutil::perm_to_mode(env, perm);
 
-    if (filename->is_integer()) { // passing in a number uses fd number
+    if (filename.is_integer()) { // passing in a number uses fd number
         int fileno = IntegerObject::convert_to_int(env, filename);
         String flags_str = String('r');
         if (flags_obj) {
@@ -645,7 +645,7 @@ Value FileObject::lutime(Env *env, Args &&args) {
         } else if (v->is_time()) {
             t.tv_sec = static_cast<time_t>(IntegerObject::to_nat_int_t(v->as_time()->to_i(env)->as_integer()));
             t.tv_usec = static_cast<suseconds_t>(IntegerObject::to_nat_int_t(v->as_time()->usec(env)->as_integer()));
-        } else if (v->is_integer()) {
+        } else if (v.is_integer()) {
             t.tv_sec = IntegerObject::convert_to_native_type<time_t>(env, v);
             t.tv_usec = 0;
         } else if (v->is_float()) {

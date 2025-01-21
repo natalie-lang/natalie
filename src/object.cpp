@@ -338,12 +338,12 @@ const HashObject *Object::as_hash() const {
 }
 
 IntegerObject *Object::as_integer() {
-    assert(is_integer());
+    assert(m_type == Type::Integer);
     return static_cast<IntegerObject *>(this);
 }
 
 const IntegerObject *Object::as_integer() const {
-    assert(is_integer());
+    assert(m_type == Type::Integer);
     return static_cast<const IntegerObject *>(this);
 }
 
@@ -574,7 +574,7 @@ HashObject *Object::as_hash_or_raise(Env *env) {
 }
 
 IntegerObject *Object::as_integer_or_raise(Env *env) {
-    if (!is_integer())
+    if (m_type != Type::Integer)
         env->raise("TypeError", "{} can't be coerced into Integer", m_klass->inspect_str());
     return static_cast<IntegerObject *>(this);
 }
@@ -633,7 +633,7 @@ ClassObject *Object::singleton_class(Env *env) {
         return m_singleton_class;
     }
 
-    if (is_integer() || is_float() || is_symbol()) {
+    if (m_type == Type::Integer || is_float() || is_symbol()) {
         env->raise("TypeError", "can't define singleton");
     }
 
@@ -824,7 +824,7 @@ void Object::method_alias(Env *env, Value new_name, Value old_name) {
 }
 
 void Object::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
-    if (is_integer() || is_symbol()) {
+    if (m_type == Type::Integer || is_symbol()) {
         env->raise("TypeError", "no klass to make alias");
     }
     if (is_main_object()) {
@@ -850,7 +850,7 @@ __attribute__((no_sanitize("undefined"))) static nat_int_t left_shift_with_undef
 }
 
 nat_int_t Object::object_id() const {
-    if (is_integer()) {
+    if (m_type == Type::Integer) {
         const auto i = as_integer();
         if (IntegerObject::is_fixnum(i)) {
             /* Recreate the logic from Ruby: Use a long as tagged pointer, where
@@ -1317,7 +1317,7 @@ void Object::assert_not_frozen(Env *env, Value receiver) {
 }
 
 bool Object::equal(Value other) {
-    if (is_integer() && IntegerObject::is_fixnum(as_integer()) && other->is_integer() && IntegerObject::is_fixnum(other->as_integer()))
+    if (m_type == Type::Integer && IntegerObject::is_fixnum(as_integer()) && other.is_integer() && IntegerObject::is_fixnum(other->as_integer()))
         return IntegerObject::to_nat_int_t(as_integer()) == IntegerObject::to_nat_int_t(other->as_integer());
     // We still need the pointer compare for the identical NaN equality
     if (is_float() && other->is_float())
@@ -1421,7 +1421,7 @@ IoObject *Object::to_io(Env *env) {
 }
 
 IntegerObject *Object::to_int(Env *env) {
-    if (is_integer()) return as_integer();
+    if (m_type == Type::Integer) return as_integer();
 
     auto to_int = "to_int"_s;
     if (!respond_to(env, to_int)) {
@@ -1430,7 +1430,7 @@ IntegerObject *Object::to_int(Env *env) {
 
     auto result = send(env, to_int);
 
-    if (result->is_integer())
+    if (result.is_integer())
         return result->as_integer();
 
     env->raise(

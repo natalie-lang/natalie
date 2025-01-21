@@ -121,6 +121,8 @@ public:
     const Integer &integer() const;
     Integer &integer();
 
+    bool is_integer() const;
+
 private:
     explicit Value(double value)
         : m_type { Type::Double }

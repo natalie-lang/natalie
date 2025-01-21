@@ -36,7 +36,7 @@ namespace ioutil {
 
         m_has_mode = true;
 
-        if (!flags_obj->is_integer() && !flags_obj->is_string()) {
+        if (!flags_obj.is_integer() && !flags_obj->is_string()) {
             if (flags_obj->respond_to(env, "to_str"_s)) {
                 flags_obj = flags_obj->to_str(env);
             } else if (flags_obj->respond_to(env, "to_int"_s)) {

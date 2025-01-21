@@ -1122,7 +1122,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
         auto from = static_cast<BIGNUM *>(args[0]->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
         if (!BN_copy(bn, from))
             OpenSSL_raise_error(env, "BN_copy");
-    } else if (arg->is_integer()) {
+    } else if (arg.is_integer()) {
         args.ensure_argc_is(env, 1);
         const auto str = IntegerObject::to_s(arg->as_integer());
         if (!BN_dec2bn(&bn, str.c_str()))

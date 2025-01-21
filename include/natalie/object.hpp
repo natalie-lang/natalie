@@ -124,7 +124,6 @@ public:
     bool is_exception() const { return m_type == Type::Exception; }
     bool is_float() const { return m_type == Type::Float; }
     bool is_hash() const { return m_type == Type::Hash; }
-    bool is_integer() const { return m_type == Type::Integer; }
     bool is_io() const { return m_type == Type::Io || m_type == Type::File; }
     bool is_file() const { return m_type == Type::File; }
     bool is_file_stat() const { return m_type == Type::FileStat; }
@@ -146,7 +145,7 @@ public:
 
     bool is_truthy() const { return !is_false() && !is_nil(); }
     bool is_falsey() const { return !is_truthy(); }
-    bool is_numeric() const { return is_integer() || is_float(); }
+    bool is_numeric() const { return m_type == Type::Integer || is_float(); }
     bool is_boolean() const { return is_true() || is_false(); }
 
     Enumerator::ArithmeticSequenceObject *as_enumerator_arithmetic_sequence();
@@ -333,7 +332,7 @@ public:
     bool is_main_object() const { return this == GlobalEnv::the()->main_obj(); }
 
     void freeze();
-    bool is_frozen() const { return is_integer() || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
+    bool is_frozen() const { return m_type == Type::Integer || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
 
     void add_synthesized_flag() { m_flags = m_flags | Flag::Synthesized; }
     bool is_synthesized() const { return (m_flags & Flag::Synthesized) == Flag::Synthesized; }

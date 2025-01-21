@@ -20,7 +20,7 @@ RationalObject *RationalObject::create(Env *env, IntegerObject *numerator, Integ
 }
 
 Value RationalObject::add(Env *env, Value other) {
-    if (other->is_integer()) {
+    if (other.is_integer()) {
         auto numerator = IntegerObject::add(env, IntegerObject::integer(m_numerator), IntegerObject::mul(env, m_denominator, other))->as_integer();
         return new RationalObject { numerator, m_denominator };
     } else if (other->is_float()) {
@@ -42,7 +42,7 @@ Value RationalObject::add(Env *env, Value other) {
 }
 
 Value RationalObject::cmp(Env *env, Value other) {
-    if (other->is_integer()) {
+    if (other.is_integer()) {
         if (IntegerObject::eq(env, IntegerObject::integer(m_denominator), Value::integer(1))) {
             return IntegerObject::cmp(env, IntegerObject::integer(m_numerator), other->as_integer());
         }
@@ -66,7 +66,7 @@ Value RationalObject::cmp(Env *env, Value other) {
 }
 
 Value RationalObject::coerce(Env *env, Value other) {
-    if (other->is_integer()) {
+    if (other.is_integer()) {
         return new ArrayObject { new RationalObject(other->as_integer(), new IntegerObject { 1 }), this };
     } else if (other->is_float()) {
         return new ArrayObject { other, this->to_f(env) };
@@ -89,9 +89,9 @@ Value RationalObject::denominator(Env *env) {
 }
 
 Value RationalObject::div(Env *env, Value other) {
-    if (other->is_integer() || other->is_rational()) {
+    if (other.is_integer() || other->is_rational()) {
         RationalObject *arg;
-        if (other->is_integer()) {
+        if (other.is_integer()) {
             arg = create(env, new IntegerObject { 1 }, other->as_integer());
         } else {
             auto numerator = other->as_rational()->numerator(env)->as_integer();
@@ -114,7 +114,7 @@ Value RationalObject::div(Env *env, Value other) {
 }
 
 bool RationalObject::eq(Env *env, Value other) {
-    if (other->is_integer())
+    if (other.is_integer())
         return IntegerObject::to_nat_int_t(m_denominator) == 1 && IntegerObject::eq(env, IntegerObject::integer(m_numerator), other);
 
     if (other->is_float())
@@ -160,7 +160,7 @@ Value RationalObject::marshal_dump(Env *env) {
 }
 
 Value RationalObject::mul(Env *env, Value other) {
-    if (other->is_integer()) {
+    if (other.is_integer()) {
         other = new RationalObject { other->as_integer(), new IntegerObject { 1 } };
     }
     if (other->is_rational()) {
@@ -185,7 +185,7 @@ Value RationalObject::numerator(Env *env) {
 
 Value RationalObject::pow(Env *env, Value other) {
     IntegerObject *numerator = nullptr, *denominator = nullptr;
-    if (other->is_integer()) {
+    if (other.is_integer()) {
         numerator = other->as_integer();
         denominator = new IntegerObject { 1 };
     } else if (other->is_rational()) {
@@ -220,7 +220,7 @@ Value RationalObject::pow(Env *env, Value other) {
                 new_denominator = IntegerObject::pow(env, IntegerObject::integer(m_denominator), numerator);
             }
 
-            if (new_numerator->is_integer() && new_denominator->is_integer())
+            if (new_numerator.is_integer() && new_denominator.is_integer())
                 return create(env, new_numerator->as_integer(), new_denominator->as_integer());
         }
     }
@@ -229,7 +229,7 @@ Value RationalObject::pow(Env *env, Value other) {
 }
 
 Value RationalObject::sub(Env *env, Value other) {
-    if (other->is_integer()) {
+    if (other.is_integer()) {
         auto numerator = IntegerObject::sub(env, IntegerObject::integer(m_numerator), IntegerObject::mul(env, m_denominator, other))->as_integer();
         return new RationalObject { numerator, m_denominator };
     } else if (other->is_float()) {
@@ -277,7 +277,7 @@ Value RationalObject::truncate(Env *env, Value ndigits) {
     nat_int_t digits = 0;
 
     if (ndigits) {
-        if (!ndigits->is_integer())
+        if (!ndigits.is_integer())
             env->raise("TypeError", "not an integer");
         digits = IntegerObject::to_nat_int_t(ndigits->as_integer());
     }

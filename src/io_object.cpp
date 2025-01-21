@@ -290,7 +290,7 @@ Value IoObject::read_file(Env *env, Args &&args) {
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     file->set_encoding(env, flags.external_encoding(), flags.internal_encoding());
     if (offset && !offset->is_nil()) {
-        if (offset->is_integer() && IntegerObject::is_negative(offset->as_integer()))
+        if (offset.is_integer() && IntegerObject::is_negative(offset->as_integer()))
             env->raise("ArgumentError", "negative offset {} given", offset->inspect_str(env));
         file->set_pos(env, offset);
     }
@@ -532,7 +532,7 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     auto line = new StringObject {};
     bool has_limit = false;
     if (sep && !sep->is_nil()) {
-        if (sep->is_integer() || sep->respond_to(env, "to_int"_s)) {
+        if (sep.is_integer() || sep->respond_to(env, "to_int"_s)) {
             limit = sep;
             sep = nullptr;
         } else {
@@ -897,7 +897,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
         env->raise("IOError", "not opened for reading");
     if (!byte || byte->is_nil())
         return NilObject::the();
-    if (byte->is_integer()) {
+    if (byte.is_integer()) {
         nat_int_t value = 0xff;
         if (!IntegerObject::is_bignum(byte->as_integer())) {
             value = IntegerObject::convert_to_nat_int_t(env, byte);
@@ -912,7 +912,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
 }
 
 Value IoObject::ungetc(Env *env, Value c) {
-    if (c->is_integer())
+    if (c.is_integer())
         return ungetbyte(env, c);
     return ungetbyte(env, c->to_str(env));
 }
@@ -924,7 +924,7 @@ Value IoObject::wait(Env *env, Args &&args) {
     Value timeout = NilObject::the();
     bool return_self = false;
 
-    if (args.size() == 2 && args.at(0, NilObject::the())->is_integer() && args.at(1, NilObject::the())->is_numeric()) {
+    if (args.size() == 2 && args.at(0, NilObject::the()).is_integer() && args.at(1, NilObject::the())->is_numeric()) {
         events = IntegerObject::to_nat_int_t(args[0]->to_int(env));
         timeout = args[1];
 

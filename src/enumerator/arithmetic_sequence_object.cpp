@@ -59,7 +59,7 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
         n = n->to_int(env);
 
     Integer step_count;
-    if (n->is_integer()) {
+    if (n.is_integer()) {
         step_count = IntegerObject::integer(n->as_integer());
 
         if (!exclude_end())

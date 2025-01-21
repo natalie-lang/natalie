@@ -970,7 +970,7 @@ Value StringObject::append_as_bytes(Env *env, Args &&args) {
         auto arg = args[i];
         if (arg->is_string()) {
             buf.append(arg->as_string()->string());
-        } else if (arg->is_integer()) {
+        } else if (arg.is_integer()) {
             const auto c = static_cast<uint8_t>(IntegerObject::to_nat_int_t(arg->send(env, "&"_s, { Value::integer(0xFF) })->as_integer()));
             buf.append_char(c);
         } else {
@@ -1053,9 +1053,9 @@ Value StringObject::concat(Env *env, Args &&args) {
         StringObject *str_obj;
         if (arg->is_string()) {
             str_obj = arg->as_string();
-        } else if (arg->is_integer() && IntegerObject::is_negative(arg->as_integer())) {
+        } else if (arg.is_integer() && IntegerObject::is_negative(arg->as_integer())) {
             env->raise("RangeError", "{} out of char range", IntegerObject::to_s(env, arg->as_integer())->as_string()->string());
-        } else if (arg->is_integer()) {
+        } else if (arg.is_integer()) {
             // Special case: US-ASCII << (128..255) will change the string to binary
             if (m_encoding == EncodingObject::get(Encoding::US_ASCII) && IntegerObject::is_fixnum(arg->as_integer())) {
                 const auto nat_int = IntegerObject::to_nat_int_t(arg->as_integer());
@@ -1204,9 +1204,9 @@ Value StringObject::prepend(Env *env, Args &&args) {
         StringObject *str_obj;
         if (arg->is_string()) {
             str_obj = arg->as_string();
-        } else if (arg->is_integer() && IntegerObject::to_nat_int_t(arg->as_integer()) < 0) {
+        } else if (arg.is_integer() && IntegerObject::to_nat_int_t(arg->as_integer()) < 0) {
             env->raise("RangeError", "{} out of char range", IntegerObject::to_s(env, arg->as_integer())->as_string()->string());
-        } else if (arg->is_integer()) {
+        } else if (arg.is_integer()) {
             str_obj = arg.send(env, "chr"_s, { m_encoding.ptr() })->as_string();
         } else {
             str_obj = arg->to_str(env);
@@ -3468,7 +3468,7 @@ StringObject *StringObject::downcase(Env *env, Value arg1, Value arg2) {
                 for (auto item : *result->as_array()) {
                     str->append(m_encoding->encode_codepoint(IntegerObject::to_nat_int_t(item->as_integer())));
                 }
-            } else if (result->is_integer()) {
+            } else if (result.is_integer()) {
                 str->append(m_encoding->encode_codepoint(IntegerObject::to_nat_int_t(result->as_integer())));
             } else {
                 str->append(m_encoding->encode_codepoint(codepoint));

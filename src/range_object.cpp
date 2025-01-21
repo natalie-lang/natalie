@@ -311,12 +311,12 @@ Value RangeObject::bsearch(Env *env, Block *block) {
     if (!block)
         return enum_for(env, "bsearch");
 
-    if (m_begin->is_integer() && m_end->is_integer()) {
+    if (m_begin.is_integer() && m_end.is_integer()) {
         nat_int_t left = IntegerObject::integer(m_begin->as_integer()).to_nat_int_t();
         nat_int_t right = IntegerObject::integer(m_end->as_integer()).to_nat_int_t();
 
         return binary_search_integer(env, left, right, block, m_exclude_end);
-    } else if (m_begin->is_integer() && m_end->is_nil()) {
+    } else if (m_begin.is_integer() && m_end->is_nil()) {
         nat_int_t left = IntegerObject::integer(m_begin->as_integer()).to_nat_int_t();
         nat_int_t right = left + 1;
 
@@ -326,7 +326,7 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         }
 
         return binary_search_integer(env, left, right, block, false);
-    } else if (m_begin->is_nil() && m_end->is_integer()) {
+    } else if (m_begin->is_nil() && m_end.is_integer()) {
         nat_int_t right = IntegerObject::integer(m_end->as_integer()).to_nat_int_t();
         nat_int_t left = right - 1;
 
