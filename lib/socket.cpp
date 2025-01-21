@@ -275,7 +275,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
             break;
         case AF_INET:
         case AF_INET6:
-            port = ary->ref(env, Value::integer(1))->to_int(env);
+            port = new IntegerObject(Object::to_int(env, ary->ref(env, Value::integer(1))));
             host = ary->ref(env, Value::integer(2))->to_str(env);
             if (ary->ref(env, Value::integer(3))->is_string())
                 host = ary->at(3)->to_str(env);
@@ -1549,7 +1549,7 @@ Value Socket_Option_s_linger(Env *env, Value self, Args &&args, Block *) {
 
     args.ensure_argc_is(env, 2);
     auto on_off = args.at(0)->is_truthy();
-    int linger = IntegerObject::to_nat_int_t(args.at(1)->to_int(env));
+    int linger = Object::to_int(env, args.at(1)).to_nat_int_t();
 
     struct linger data {
         on_off, linger

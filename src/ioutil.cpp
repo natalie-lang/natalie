@@ -40,7 +40,7 @@ namespace ioutil {
             if (flags_obj->respond_to(env, "to_str"_s)) {
                 flags_obj = flags_obj->to_str(env);
             } else if (flags_obj->respond_to(env, "to_int"_s)) {
-                flags_obj = flags_obj->to_int(env);
+                flags_obj = Object::to_int(env, flags_obj);
             }
         }
 
@@ -112,7 +112,7 @@ namespace ioutil {
         if (!m_kwargs) return;
         auto flags = m_kwargs->remove(env, "flags"_s);
         if (!flags || flags->is_nil()) return;
-        m_flags |= static_cast<int>(IntegerObject::to_nat_int_t(flags->to_int(env)));
+        m_flags |= static_cast<int>(Object::to_int(env, flags).to_nat_int_t());
     }
 
     void flags_struct::parse_encoding(Env *env) {

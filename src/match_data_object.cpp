@@ -35,7 +35,7 @@ Value MatchDataObject::byteoffset(Env *env, Value n) {
         if (index < 0)
             env->raise("IndexError", "undefined group name reference: {}", str);
     } else {
-        index = IntegerObject::to_nat_int_t(n->to_int(env));
+        index = Object::to_int(env, n).to_nat_int_t();
         if (index < 0 || index >= static_cast<nat_int_t>(size()))
             env->raise("IndexError", "index {} out of matches", index);
     }
@@ -136,7 +136,7 @@ Value MatchDataObject::begin(Env *env, Value start) const {
         if (index < 0 || index >= m_region->num_regs)
             env->raise("IndexError", "undefined group name reference: {}", start->to_s(env)->c_str());
     } else {
-        index = IntegerObject::to_nat_int_t(start->to_int(env));
+        index = Object::to_int(env, start).to_nat_int_t();
         if (index < 0 || index >= m_region->num_regs)
             env->raise("IndexError", "index {} out of matches", index);
     }
@@ -155,7 +155,7 @@ Value MatchDataObject::end(Env *env, Value end) const {
         const auto &str = end->type() == Object::Type::String ? end->as_string()->string() : end->as_symbol()->string();
         index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
     } else {
-        index = IntegerObject::to_nat_int_t(end->to_int(env));
+        index = Object::to_int(env, end).to_nat_int_t();
     }
     if (index < 0)
         env->raise("IndexError", "bad index");

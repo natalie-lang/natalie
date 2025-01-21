@@ -198,7 +198,7 @@ Value KernelModule::exit(Env *env, Value status) {
     }
 
     ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s)->as_class(), new StringObject { "exit" } };
-    exception->ivar_set(env, "@status"_s, status->to_int(env));
+    exception->ivar_set(env, "@status"_s, Object::to_int(env, status));
     env->raise_exception(exception);
     return NilObject::the();
 }
@@ -211,7 +211,7 @@ Value KernelModule::exit_bang(Env *env, Value status) {
 Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) {
     nat_int_t base_int = 0; // default to zero if unset
     if (base)
-        base_int = IntegerObject::to_nat_int_t(base->to_int(env));
+        base_int = Object::to_int(env, base).to_nat_int_t();
     return Integer(env, value, base_int, exception ? exception->is_true() : true);
 }
 

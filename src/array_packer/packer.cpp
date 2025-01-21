@@ -86,8 +86,8 @@ namespace ArrayPacker {
             case 'v':
             case 'w': {
                 pack_with_loop(env, token, [&]() {
-                    auto integer = m_source->at(m_index)->to_int(env);
-                    auto packer = IntegerHandler { integer, token };
+                    auto integer = Object::to_int(env, m_source->at(m_index));
+                    auto packer = IntegerHandler { new IntegerObject(integer), token };
                     auto result = packer.pack(env);
                     m_packed.append(result);
                 });

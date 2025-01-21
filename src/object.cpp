@@ -1420,23 +1420,24 @@ IoObject *Object::to_io(Env *env) {
         result->klass()->inspect_str());
 }
 
-IntegerObject *Object::to_int(Env *env) {
-    if (m_type == Type::Integer) return as_integer();
+Integer Object::to_int(Env *env, Value self) {
+    if (self.is_integer())
+        return self.integer();
 
     auto to_int = "to_int"_s;
-    if (!respond_to(env, to_int)) {
-        assert_type(env, Type::Integer, "Integer");
-    }
+    if (!self->respond_to(env, to_int))
+        self->assert_type(env, Type::Integer, "Integer");
 
-    auto result = send(env, to_int);
+    auto result = self->send(env, to_int);
 
     if (result.is_integer())
-        return result->as_integer();
+        return result.integer();
 
+    auto klass = self->klass();
     env->raise(
         "TypeError", "can't convert {} to Integer ({}#to_int gives {})",
-        klass()->inspect_str(),
-        klass()->inspect_str(),
+        klass->inspect_str(),
+        klass->inspect_str(),
         result->klass()->inspect_str());
 }
 

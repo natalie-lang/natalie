@@ -42,11 +42,11 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
         }
     }
 
-    auto size_integer = size->to_int(env);
+    auto size_integer = Object::to_int(env, size);
     if (IntegerObject::is_bignum(size_integer))
         env->raise("ArgumentError", "array size too big");
 
-    auto s = IntegerObject::to_nat_int_t(size_integer);
+    auto s = size_integer.to_nat_int_t();
 
     if (s < 0)
         env->raise("ArgumentError", "negative argument");
@@ -1885,8 +1885,8 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
     this->assert_not_frozen(env);
 
     if (size) {
-        index_obj = index_obj->to_int(env);
-        size = size->to_int(env);
+        index_obj = Object::to_int(env, index_obj);
+        size = Object::to_int(env, size);
 
         IntegerObject::assert_fixnum(env, size->as_integer());
     }
@@ -1982,7 +1982,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         return this;
     }
 
-    return slice_in_place(env, index_obj->to_int(env), size);
+    return slice_in_place(env, Object::to_int(env, index_obj), size);
 }
 
 Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end) {

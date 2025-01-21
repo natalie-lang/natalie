@@ -71,10 +71,10 @@ public:
 
     template <class T>
     static T convert_to_native_type(Env *env, Value arg) {
-        auto integer = arg->to_int(env);
+        auto integer = Object::to_int(env, arg);
         if (is_bignum(integer))
             env->raise("RangeError", "bignum too big to convert into '{}'", typeinfo<T>().name());
-        const auto result = to_nat_int_t(integer);
+        const auto result = integer.to_nat_int_t();
         if (!std::numeric_limits<T>::is_signed && result < 0)
             env->raise("ArgumentError", "negative length {} given", result);
         if (result < static_cast<nat_int_t>(std::numeric_limits<T>::min()))
@@ -175,7 +175,6 @@ public:
     static bool is_fixnum(const Integer &self) { return self.is_fixnum(); }
 
     static nat_int_t to_nat_int_t(const IntegerObject *self) { return self->m_integer.to_nat_int_t(); }
-    static nat_int_t to_nat_int_t(const Integer &self) { return self.to_nat_int_t(); }
     static BigInt to_bigint(const IntegerObject *self) { return self->m_integer.to_bigint(); }
     static BigInt to_bigint(const Integer &self) { return self.to_bigint(); }
 

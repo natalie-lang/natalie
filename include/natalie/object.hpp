@@ -373,7 +373,7 @@ public:
     FloatObject *to_f(Env *env);
     HashObject *to_hash(Env *env);
     IoObject *to_io(Env *env);
-    IntegerObject *to_int(Env *env);
+    static Integer to_int(Env *env, Value self);
     StringObject *to_s(Env *env);
 
     // Old error message style, e.g.:

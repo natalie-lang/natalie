@@ -263,7 +263,7 @@ String create_padding(String &padding, size_t length) {
 }
 
 Value StringObject::center(Env *env, Value length, Value padstr) {
-    nat_int_t length_i = IntegerObject::to_nat_int_t(length->to_int(env));
+    nat_int_t length_i = Object::to_int(env, length).to_nat_int_t();
 
     String pad;
 
@@ -982,7 +982,7 @@ Value StringObject::append_as_bytes(Env *env, Args &&args) {
 }
 
 Value StringObject::mul(Env *env, Value arg) const {
-    auto int_arg = arg->to_int(env);
+    auto int_arg = Object::to_int(env, arg);
     if (IntegerObject::is_negative(int_arg))
         env->raise("ArgumentError", "negative argument");
 
@@ -1017,7 +1017,8 @@ Value StringObject::cmp(Env *env, Value other) {
         if (negative_cmp->is_nil()) {
             return negative_cmp;
         }
-        return IntegerObject::negate(env, negative_cmp->to_int(env));
+        auto i = Object::to_int(env, negative_cmp);
+        return IntegerObject::negate(env, i);
     } else {
         return NilObject::the();
     }
@@ -2748,7 +2749,7 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
 
     int base = 10;
     if (base_obj) {
-        base = IntegerObject::to_nat_int_t(base_obj->to_int(env));
+        base = Object::to_int(env, base_obj).to_nat_int_t();
 
         if (base < 0 || base == 1 || base > 36) {
             env->raise("ArgumentError", "invalid radix {}", base);
@@ -2876,7 +2877,7 @@ Value StringObject::to_r(Env *env) const {
 nat_int_t StringObject::unpack_offset(Env *env, Value offset_value) const {
     nat_int_t offset = -1;
     if (offset_value) {
-        offset = IntegerObject::to_nat_int_t(offset_value->to_int(env));
+        offset = Object::to_int(env, offset_value).to_nat_int_t();
         if (offset < 0)
             env->raise("ArgumentError", "offset can't be negative");
         else if (offset > (nat_int_t)bytesize())
@@ -3035,7 +3036,7 @@ bool StringObject::include(const char *arg) const {
 Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
     assert_not_frozen(env);
 
-    auto char_index = IntegerObject::convert_to_native_type<ssize_t>(env, index_obj->to_int(env));
+    auto char_index = IntegerObject::convert_to_native_type<ssize_t>(env, Object::to_int(env, index_obj));
     StringObject *string = other_str->to_str(env);
 
     if (char_index == -1) {
@@ -3169,7 +3170,7 @@ Value StringObject::lines(Env *env, Value separator, Value chomp, Block *block) 
 }
 
 Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) const {
-    nat_int_t length_i = IntegerObject::to_nat_int_t(length_obj->to_int(env));
+    nat_int_t length_i = Object::to_int(env, length_obj).to_nat_int_t();
     size_t length = length_i < 0 ? 0 : length_i;
 
     StringObject *padstr;
@@ -3267,7 +3268,7 @@ Value StringObject::lstrip_in_place(Env *env) {
 }
 
 Value StringObject::rjust(Env *env, Value length_obj, Value pad_obj) const {
-    nat_int_t length_i = IntegerObject::to_nat_int_t(length_obj->to_int(env));
+    nat_int_t length_i = Object::to_int(env, length_obj).to_nat_int_t();
     size_t length = length_i < 0 ? 0 : length_i;
 
     StringObject *padstr;
@@ -4151,7 +4152,7 @@ Value StringObject::sum(Env *env, Value val) {
     int sum = 0;
 
     if (val)
-        base = IntegerObject::to_nat_int_t(val->to_int(env));
+        base = Object::to_int(env, val).to_nat_int_t();
 
     for (size_t i = 0; i < length(); ++i) {
         sum += m_string[i];
