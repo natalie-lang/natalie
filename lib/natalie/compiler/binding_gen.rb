@@ -460,10 +460,10 @@ gen.binding('Array', 'values_at', 'ArrayObject', 'values_at', argc: 0.., pass_en
 gen.binding('Array', '|', 'ArrayObject', 'union_of', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.static_binding_as_instance_method('BasicObject', '__id__', 'Object', 'object_id', argc: 0, pass_env: false, pass_block: false, return_type: :int)
+gen.static_binding_as_instance_method('BasicObject', 'equal?', 'Object', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('BasicObject', '__send__', 'Object', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('BasicObject', '!', 'Object', 'is_falsey', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('BasicObject', '==', 'Object', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('BasicObject', 'equal?', 'Object', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('BasicObject', '!=', 'Object', 'neq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('BasicObject', 'initialize', 'Object', 'initialize', argc: 0, pass_env: true, pass_block: false, return_type: :Object, visibility: :private)
 gen.binding('BasicObject', 'instance_eval', 'Object', 'instance_eval', argc: :any, pass_env: true, pass_block: true, return_type: :Object)

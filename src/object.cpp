@@ -1296,14 +1296,17 @@ void Object::assert_not_frozen(Env *env, Value receiver) {
     }
 }
 
-bool Object::equal(Value other) {
-    if (m_type == Type::Integer && IntegerObject::is_fixnum(as_integer()) && other.is_integer() && IntegerObject::is_fixnum(other->as_integer()))
-        return IntegerObject::to_nat_int_t(as_integer()) == IntegerObject::to_nat_int_t(other->as_integer());
-    // We still need the pointer compare for the identical NaN equality
-    if (is_float() && other->is_float())
-        return this == other.object() || as_float()->to_double() == other->as_float()->to_double();
+bool Object::equal(Value self, Value other) {
+    if (self.is_integer() && other.is_integer())
+        return self.integer() == other.integer();
+    else if (self.is_integer() || other.is_integer())
+        return false;
 
-    return other == this;
+    // We still need the pointer compare for the identical NaN equality
+    if (self->is_float() && other->is_float())
+        return self == other.object() || self->as_float()->to_double() == other->as_float()->to_double();
+
+    return other == self;
 }
 
 bool Object::neq(Env *env, Value other) {

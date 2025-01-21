@@ -345,10 +345,8 @@ public:
     void remove_redo_flag() { m_flags = m_flags & ~Flag::Redo; }
     bool has_redo_flag() const { return (m_flags & Flag::Redo) == Flag::Redo; }
 
-    bool eq(Env *, Value other) {
-        return other == this;
-    }
-    bool equal(Value);
+    bool eq(Env *, Value other) { return other == this; }
+    static bool equal(Value, Value);
 
     bool neq(Env *env, Value other);
 

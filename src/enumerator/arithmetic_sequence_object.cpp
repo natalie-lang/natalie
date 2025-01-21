@@ -144,7 +144,7 @@ bool ArithmeticSequenceObject::eq(Env *env, Value other) {
         return false;
 
     ArithmeticSequenceObject *other_sequence = other->as_enumerator_arithmetic_sequence();
-    return hash(env)->equal(other_sequence->hash(env));
+    return Object::equal(hash(env), other_sequence->hash(env));
 }
 
 Value ArithmeticSequenceObject::hash(Env *env) {

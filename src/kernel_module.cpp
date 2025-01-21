@@ -122,7 +122,7 @@ Value KernelModule::catch_method(Env *env, Value name, Block *block) {
         block_env.set_catch(name);
         return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(&block_env, block, { name }, nullptr);
     } catch (ThrowCatchException *e) {
-        if (e->get_name()->equal(name))
+        if (Object::equal(e->get_name(), name))
             return e->get_value();
         else
             throw e;

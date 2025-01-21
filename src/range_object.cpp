@@ -73,7 +73,7 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
 
 template <typename Function>
 Value RangeObject::iterate_over_string_range(Env *env, Function &&func) {
-    if (m_begin.send(env, "<=>"_s, { m_end })->equal(Value::integer(1)))
+    if (Object::equal(m_begin.send(env, "<=>"_s, { m_end }), Value::integer(1)))
         return nullptr;
 
     TM::Optional<TM::String> current;
@@ -94,7 +94,7 @@ Value RangeObject::iterate_over_string_range(Env *env, Function &&func) {
 
 template <typename Function>
 Value RangeObject::iterate_over_symbol_range(Env *env, Function &&func) {
-    if (m_begin.send(env, "<=>"_s, { m_end })->equal(Value::integer(1)))
+    if (Object::equal(m_begin.send(env, "<=>"_s, { m_end }), Value::integer(1)))
         return nullptr;
 
     TM::Optional<TM::String> current;
@@ -288,7 +288,7 @@ bool RangeObject::include(Env *env, Value arg) {
     }
 
     auto compare_result = arg.send(env, "<=>"_s, { m_begin });
-    if (compare_result->equal(Value::integer(-1)))
+    if (Object::equal(compare_result, Value::integer(-1)))
         return false;
 
     auto eqeq = "=="_s;
