@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative './base_instruction'
 
 module Natalie
@@ -23,7 +25,7 @@ module Natalie
 
         raise "unknown variable #{@name}" if var.nil?
 
-        env = 'env'
+        env = +'env'
         depth.times { env << '->outer()' }
         index = var[:index]
 
