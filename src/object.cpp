@@ -633,7 +633,9 @@ ClassObject *Object::singleton_class(Env *env) {
         return m_singleton_class;
     }
 
-    if (m_type == Type::Integer || is_float() || is_symbol()) {
+    assert(m_type != Type::Integer);
+
+    if (is_float() || is_symbol()) {
         env->raise("TypeError", "can't define singleton");
     }
 

@@ -70,6 +70,9 @@ public:
     }
 
     static Value singleton_class_obj(Env *env, Value self) {
+        if (self.is_integer())
+            env->raise("TypeError", "can't define singleton");
+
         return self->singleton_class(env);
     }
 
