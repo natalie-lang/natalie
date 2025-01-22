@@ -826,7 +826,8 @@ void Object::method_alias(Env *env, Value new_name, Value old_name) {
 }
 
 void Object::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
-    assert(m_type != Type::Integer);
+    if (m_type == Type::Integer)
+        env->raise("TypeError", "no klass to make alias");
 
     if (is_symbol())
         env->raise("TypeError", "no klass to make alias");
