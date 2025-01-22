@@ -213,17 +213,20 @@ __attribute__((no_sanitize("undefined"))) static nat_int_t left_shift_with_undef
 }
 
 nat_int_t Value::object_id() const {
-    if (m_type == Type::Integer && m_integer.is_fixnum()) {
-        /* Recreate the logic from Ruby: Use a long as tagged pointer, where
-         * the rightmost bit is 1, and the remaining bits are the number shifted
-         * one right.
-         * The regular object ids are the actual memory addresses, these are at
-         * least 8 bit aligned, so the rightmost bit will never be set. This
-         * means we don't risk duplicate object ids for different objects.
-         */
-        auto val = m_integer.to_nat_int_t();
-        if (val >= (LONG_MIN >> 1) && val <= (LONG_MAX >> 1))
-            return left_shift_with_undefined_behavior(val, 1) | 1;
+    if (is_integer()) {
+        auto i = integer();
+        if (i.is_fixnum()) {
+            /* Recreate the logic from Ruby: Use a long as tagged pointer, where
+             * the rightmost bit is 1, and the remaining bits are the number shifted
+             * one right.
+             * The regular object ids are the actual memory addresses, these are at
+             * least 8 bit aligned, so the rightmost bit will never be set. This
+             * means we don't risk duplicate object ids for different objects.
+             */
+            auto val = i.to_nat_int_t();
+            if (val >= (LONG_MIN >> 1) && val <= (LONG_MAX >> 1))
+                return left_shift_with_undefined_behavior(val, 1) | 1;
+        }
     }
 
     assert(m_type == Type::Pointer);
