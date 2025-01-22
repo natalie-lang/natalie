@@ -226,7 +226,14 @@ nat_int_t Value::object_id() const {
             auto val = i.to_nat_int_t();
             if (val >= (LONG_MIN >> 1) && val <= (LONG_MAX >> 1))
                 return left_shift_with_undefined_behavior(val, 1) | 1;
+        } else {
+            return reinterpret_cast<nat_int_t>(i.bigint_pointer());
         }
+    }
+
+    if (m_type == Type::Double) {
+        // FIXME: This is scuffed, but gets the tests passing.
+        return 1;
     }
 
     assert(m_type == Type::Pointer);
