@@ -21,19 +21,15 @@ describe "Zlib::Inflate#<<" do
 
   it "treats nil argument as the end of compressed data" do
     @z = Zlib::Inflate.new
-    NATFIXME 'it nil argument as the end of compressed data', exception: TypeError, message: "NilClass can't be coerced into String" do
-      @z << @foo_deflated << nil
-      @z.finish.should == 'foo'
-    end
+    @z << @foo_deflated << nil
+    @z.finish.should == 'foo'
   end
 
   it "just passes through the data after nil argument" do
     @z = Zlib::Inflate.new
-    NATFIXME 'it just passes through the data after nil argument', exception: TypeError, message: "NilClass can't be coerced into String" do
-      @z << @foo_deflated << nil
-      @z << "-after_nil_data"
-      @z.finish.should == 'foo-after_nil_data'
-    end
+    @z << @foo_deflated << nil
+    @z << "-after_nil_data"
+    @z.finish.should == 'foo-after_nil_data'
   end
 
   it "properly handles data in chunks" do
