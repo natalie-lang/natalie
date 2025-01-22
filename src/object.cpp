@@ -853,7 +853,7 @@ void Object::singleton_method_alias(Env *env, SymbolObject *new_name, SymbolObje
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = singleton_class(env);
+    ClassObject *klass = KernelModule::singleton_class_obj(env, this)->as_class();
     if (klass->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
     klass->define_method(env, name, fn, arity, optimized);
