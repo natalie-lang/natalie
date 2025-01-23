@@ -309,7 +309,7 @@ end
 task :docker_test_asan do
   ENV['NAT_BUILD_MODE'] = 'sanitized'
   Rake::Task['docker_build_gcc'].invoke
-  sh "docker run #{docker_run_flags} --rm --entrypoint rake -e SOME_TESTS='#{ENV['SOME_TESTS']}' natalie_gcc_#{ruby_version_string}_sanitized test_asan"
+  sh "docker run #{docker_run_flags} --rm --entrypoint rake -e SOME_TESTS='#{ENV['SOME_TESTS']}' -e SPEC_TIMEOUT=480 natalie_gcc_#{ruby_version_string}_sanitized test_asan"
 end
 
 task docker_test_all_ruby_spec_nightly: :docker_build_clang do
