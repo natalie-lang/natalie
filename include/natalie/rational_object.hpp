@@ -8,10 +8,10 @@ namespace Natalie {
 
 class RationalObject : public Object {
 public:
-    RationalObject(IntegerObject *numerator, IntegerObject *denominator)
+    RationalObject(Value numerator, Value denominator)
         : Object { Object::Type::Rational, GlobalEnv::the()->Object()->const_fetch("Rational"_s)->as_class() }
-        , m_numerator { numerator }
-        , m_denominator { denominator } {
+        , m_numerator { numerator.integer() }
+        , m_denominator { denominator.integer() } {
         freeze();
     }
 
@@ -22,10 +22,10 @@ public:
         freeze();
     }
 
-    static RationalObject *create(Env *env, IntegerObject *numerator, IntegerObject *denominator);
+    static RationalObject *create(Env *env, Integer numerator, Integer denominator);
 
     bool is_zero() const {
-        return IntegerObject::is_zero(m_numerator);
+        return m_numerator.is_zero();
     }
 
     Value add(Env *, Value);
@@ -50,8 +50,8 @@ public:
 
     virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);
-        visitor.visit(m_numerator);
-        visitor.visit(m_denominator);
+        visitor.visit(m_numerator.bigint_pointer());
+        visitor.visit(m_denominator.bigint_pointer());
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -59,8 +59,8 @@ public:
     }
 
 private:
-    IntegerObject *m_numerator;
-    IntegerObject *m_denominator;
+    Integer m_numerator;
+    Integer m_denominator;
 };
 
 }

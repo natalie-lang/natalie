@@ -461,7 +461,7 @@ RationalObject *KernelModule::Rational(Env *env, IntegerObject *x, IntegerObject
     Value gcd = IntegerObject::gcd(env, x, y);
     Value numerator = IntegerObject::div(env, x, gcd);
     Value denominator = IntegerObject::div(env, y, gcd);
-    return RationalObject::create(env, numerator->as_integer(), denominator->as_integer());
+    return RationalObject::create(env, numerator.integer(), denominator.integer());
 }
 
 RationalObject *KernelModule::Rational(Env *env, double arg) {

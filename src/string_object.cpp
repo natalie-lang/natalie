@@ -2871,7 +2871,7 @@ Value StringObject::to_r(Env *env) const {
     if (!denominator_digits.is_empty()) {
         denominator = denominator * strtoll(denominator_digits.c_str(), nullptr, 10);
     }
-    return RationalObject::create(env, new IntegerObject { numerator }, new IntegerObject { denominator });
+    return RationalObject::create(env, numerator, denominator);
 }
 
 nat_int_t StringObject::unpack_offset(Env *env, Value offset_value) const {
