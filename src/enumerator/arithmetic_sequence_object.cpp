@@ -56,10 +56,10 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
         n = n.send(env, "+"_s, { Value::integer(1) });
 
     if (n.send(env, "=="_s, { n.send(env, "floor"_s) })->is_truthy())
-        n = n->to_int(env);
+        n = Object::to_int(env, n);
 
     Integer step_count;
-    if (n->is_integer()) {
+    if (n.is_integer()) {
         step_count = IntegerObject::integer(n->as_integer());
 
         if (!exclude_end())
@@ -144,7 +144,7 @@ bool ArithmeticSequenceObject::eq(Env *env, Value other) {
         return false;
 
     ArithmeticSequenceObject *other_sequence = other->as_enumerator_arithmetic_sequence();
-    return hash(env)->equal(other_sequence->hash(env));
+    return Object::equal(hash(env), other_sequence->hash(env));
 }
 
 Value ArithmeticSequenceObject::hash(Env *env) {
@@ -210,13 +210,13 @@ Value ArithmeticSequenceObject::last(Env *env, Value n) {
     auto steps = step_count(env);
 
     if (n) {
-        auto n_as_int = n->to_int(env);
-        Integer count = IntegerObject::integer(n_as_int);
+        auto n_as_int = Object::to_int(env, n);
+        Integer count = n_as_int;
 
         if (count < 0)
             env->raise("ArgumentError", "negative array size");
 
-        if (IntegerObject::integer(n_as_int) > steps)
+        if (n_as_int > steps)
             count = steps;
 
         IntegerObject::assert_fixnum(env, n_as_int);

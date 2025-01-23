@@ -122,7 +122,7 @@ Value KernelModule::catch_method(Env *env, Value name, Block *block) {
         block_env.set_catch(name);
         return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(&block_env, block, { name }, nullptr);
     } catch (ThrowCatchException *e) {
-        if (e->get_name()->equal(name))
+        if (Object::equal(e->get_name(), name))
             return e->get_value();
         else
             throw e;
@@ -193,12 +193,12 @@ Value KernelModule::exit(Env *env, Value status) {
         status = Value::integer(0);
     } else if (status->is_false()) {
         status = Value::integer(1);
-    } else if (status->is_integer()) {
+    } else if (status.is_integer()) {
         // use status passed in
     }
 
     ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s)->as_class(), new StringObject { "exit" } };
-    exception->ivar_set(env, "@status"_s, status->to_int(env));
+    exception->ivar_set(env, "@status"_s, Object::to_int(env, status));
     env->raise_exception(exception);
     return NilObject::the();
 }
@@ -211,7 +211,7 @@ Value KernelModule::exit_bang(Env *env, Value status) {
 Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) {
     nat_int_t base_int = 0; // default to zero if unset
     if (base)
-        base_int = IntegerObject::to_nat_int_t(base->to_int(env));
+        base_int = Object::to_int(env, base).to_nat_int_t();
     return Integer(env, value, base_int, exception ? exception->is_true() : true);
 }
 
@@ -228,7 +228,7 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
         env->raise("ArgumentError", "Cannot give base for non-string value");
 
     // return Integer as-is
-    if (value->is_integer())
+    if (value.is_integer())
         return Value(value);
 
     // Infinity/NaN cannot be converted to Integer
@@ -246,12 +246,12 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
         // Try using to_int to coerce to an Integer
         if (value->respond_to(env, "to_int"_s)) {
             auto result = value.send(env, "to_int"_s);
-            if (result->is_integer()) return result;
+            if (result.is_integer()) return result;
         }
         // If to_int doesn't exist or doesn't return an Integer, try to_i instead.
         if (value->respond_to(env, "to_i"_s)) {
             auto result = value.send(env, "to_i"_s);
-            if (result->is_integer()) return result;
+            if (result.is_integer()) return result;
         }
     }
     if (exception)
@@ -417,7 +417,7 @@ Value KernelModule::Rational(Env *env, Value x, Value y, Value exception) {
 
 Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
     if (y) {
-        if (x->is_integer() && y->is_integer())
+        if (x.is_integer() && y.is_integer())
             return Rational(env, x->as_integer(), y->as_integer());
 
         x = Float(env, x, exception);
@@ -433,7 +433,7 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
 
         return Rational(env, x->as_float()->to_double() / y->as_float()->to_double());
     } else {
-        if (x->is_integer()) {
+        if (x.is_integer()) {
             return new RationalObject { x->as_integer(), new IntegerObject { 1 } };
         }
 
@@ -492,7 +492,7 @@ Value KernelModule::sleep(Env *env, Value length) {
         return ThreadObject::current()->sleep(env, -1.0);
 
     float secs;
-    if (length->is_integer()) {
+    if (length.is_integer()) {
         secs = IntegerObject::to_nat_int_t(length->as_integer());
     } else if (length->is_float()) {
         secs = length->as_float()->to_double();
@@ -737,6 +737,13 @@ Value KernelModule::instance_variable_set(Env *env, Value self, Value name_val, 
     self->assert_not_frozen(env);
     self->ivar_set(env, name, value);
     return value;
+}
+
+Value KernelModule::instance_variables(Env *env, Value self) {
+    if (self.is_integer())
+        return new ArrayObject;
+
+    return self->instance_variables(env);
 }
 
 bool KernelModule::is_a(Env *env, Value self, Value module) {

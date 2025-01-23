@@ -46,7 +46,7 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
     bool done = m_exclude_end ? item.send(env, "=="_s, { m_end })->is_truthy() : false;
     while (!done) {
         if (!m_end->is_nil()) {
-            auto compare_result = IntegerObject::integer(item.send(env, cmp, { m_end })->to_int(env));
+            auto compare_result = Object::to_int(env, item.send(env, cmp, { m_end }));
             // We are done if we reached the end element.
             done = compare_result == 0;
             // If we exclude the end we break instantly, otherwise we yield the item once again. We also break if item is bigger than end.
@@ -73,7 +73,7 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
 
 template <typename Function>
 Value RangeObject::iterate_over_string_range(Env *env, Function &&func) {
-    if (m_begin.send(env, "<=>"_s, { m_end })->equal(Value::integer(1)))
+    if (Object::equal(m_begin.send(env, "<=>"_s, { m_end }), Value::integer(1)))
         return nullptr;
 
     TM::Optional<TM::String> current;
@@ -94,7 +94,7 @@ Value RangeObject::iterate_over_string_range(Env *env, Function &&func) {
 
 template <typename Function>
 Value RangeObject::iterate_over_symbol_range(Env *env, Function &&func) {
-    if (m_begin.send(env, "<=>"_s, { m_end })->equal(Value::integer(1)))
+    if (Object::equal(m_begin.send(env, "<=>"_s, { m_end }), Value::integer(1)))
         return nullptr;
 
     TM::Optional<TM::String> current;
@@ -288,7 +288,7 @@ bool RangeObject::include(Env *env, Value arg) {
     }
 
     auto compare_result = arg.send(env, "<=>"_s, { m_begin });
-    if (compare_result->equal(Value::integer(-1)))
+    if (Object::equal(compare_result, Value::integer(-1)))
         return false;
 
     auto eqeq = "=="_s;
@@ -311,12 +311,12 @@ Value RangeObject::bsearch(Env *env, Block *block) {
     if (!block)
         return enum_for(env, "bsearch");
 
-    if (m_begin->is_integer() && m_end->is_integer()) {
+    if (m_begin.is_integer() && m_end.is_integer()) {
         nat_int_t left = IntegerObject::integer(m_begin->as_integer()).to_nat_int_t();
         nat_int_t right = IntegerObject::integer(m_end->as_integer()).to_nat_int_t();
 
         return binary_search_integer(env, left, right, block, m_exclude_end);
-    } else if (m_begin->is_integer() && m_end->is_nil()) {
+    } else if (m_begin.is_integer() && m_end->is_nil()) {
         nat_int_t left = IntegerObject::integer(m_begin->as_integer()).to_nat_int_t();
         nat_int_t right = left + 1;
 
@@ -326,7 +326,7 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         }
 
         return binary_search_integer(env, left, right, block, false);
-    } else if (m_begin->is_nil() && m_end->is_integer()) {
+    } else if (m_begin->is_nil() && m_end.is_integer()) {
         nat_int_t right = IntegerObject::integer(m_end->as_integer()).to_nat_int_t();
         nat_int_t left = right - 1;
 
@@ -388,7 +388,7 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
         if (n->is_float())
             env->raise("TypeError", "no implicit conversion to float from {}", m_begin->klass()->inspect_str().lowercase());
 
-        auto step = IntegerObject::integer(n->to_int(env));
+        auto step = Object::to_int(env, n);
 
         Integer index = 0;
         iterate_over_range(env, [env, block, &index, step](Value item) -> Value {

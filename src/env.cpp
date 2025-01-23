@@ -205,7 +205,7 @@ void Env::raise_name_error(StringObject *name, String message) {
 void Env::raise_not_comparable_error(Value lhs, Value rhs) {
     String lhs_class = lhs->klass()->inspect_str();
     String rhs_inspect;
-    if (rhs->is_integer() || rhs->is_float() || rhs->is_falsey()) {
+    if (rhs.is_integer() || rhs->is_float() || rhs->is_falsey()) {
         rhs_inspect = rhs->inspect_str(this);
     } else {
         rhs_inspect = rhs->klass()->inspect_str();
@@ -241,7 +241,7 @@ void Env::raise_type_error2(const Object *obj, const char *expected) {
 }
 
 bool Env::has_catch(Value value) const {
-    return (m_catch && value->equal(m_catch)) || (m_caller && m_caller->has_catch(value)) || (m_outer && m_outer->has_catch(value));
+    return (m_catch && Object::equal(value, m_catch)) || (m_caller && m_caller->has_catch(value)) || (m_outer && m_outer->has_catch(value));
 }
 
 void Env::warn(String message) {

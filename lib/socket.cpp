@@ -32,7 +32,7 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
     if (args.size() == 2 && args.at(1)->is_truthy())
         default_zero = true;
 
-    if (!name->is_integer() && !name->is_string() && !name->is_symbol() && name->respond_to(env, "to_str"_s))
+    if (!name.is_integer() && !name->is_string() && !name->is_symbol() && name->respond_to(env, "to_str"_s))
         name = name->to_str(env);
 
     switch (name->type()) {
@@ -149,7 +149,7 @@ static Value Server_sysaccept(Env *env, Value self, sockaddr_storage &addr, sock
 
 static Value Server_accept(Env *env, Value self, SymbolObject *klass, sockaddr_storage &addr, socklen_t &len, bool is_blocking = true, bool exception = true) {
     auto fd = Server_sysaccept(env, self, addr, len, is_blocking, exception);
-    if (!fd->is_integer())
+    if (!fd.is_integer())
         return fd;
 
     auto Socket = find_top_level_const(env, klass)->as_class_or_raise(env);
@@ -184,7 +184,7 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
     if (!nodename->is_nil())
         node = nodename->to_str(env)->c_str();
     StringObject *service_as_string = nullptr;
-    if (servicename->is_integer()) {
+    if (servicename.is_integer()) {
         service_as_string = servicename->to_s(env);
         service = service_as_string->c_str();
     } else if (!servicename->is_nil()) {
@@ -275,7 +275,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
             break;
         case AF_INET:
         case AF_INET6:
-            port = ary->ref(env, Value::integer(1))->to_int(env);
+            port = new IntegerObject(Object::to_int(env, ary->ref(env, Value::integer(1))));
             host = ary->ref(env, Value::integer(2))->to_str(env);
             if (ary->ref(env, Value::integer(3))->is_string())
                 host = ary->at(3)->to_str(env);
@@ -306,7 +306,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         else
             hints.ai_family = PF_UNSPEC;
 
-        if (protocol->is_integer())
+        if (protocol.is_integer())
             hints.ai_protocol = (unsigned short)IntegerObject::to_nat_int_t(protocol->as_integer());
         else
             hints.ai_protocol = 0;
@@ -678,7 +678,7 @@ Value BasicSocket_shutdown(Env *env, Value self, Args &&args, Block *) {
     int how = SHUT_RDWR;
     if (args.size() > 0) {
         auto arg = args.at(0);
-        if (arg->is_integer()) {
+        if (arg.is_integer()) {
             how = IntegerObject::to_nat_int_t(arg->as_integer());
             switch (how) {
             case SHUT_RD:
@@ -1183,7 +1183,7 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
     auto host = args.at(1);
     if (host->is_nil())
         host = new StringObject { "127.0.0.1" };
-    if (host->is_integer() && IntegerObject::is_fixnum(host->as_integer()) && IntegerObject::to_nat_int_t(host->as_integer()) == INADDR_ANY)
+    if (host.is_integer() && IntegerObject::is_fixnum(host->as_integer()) && IntegerObject::to_nat_int_t(host->as_integer()) == INADDR_ANY)
         host = new StringObject { "0.0.0.0" };
     if (host->is_string() && host->as_string()->is_empty())
         host = new StringObject { "0.0.0.0" };
@@ -1196,7 +1196,7 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
         service_str = "";
     else if (service->is_string())
         service_str = service->as_string()->string();
-    else if (service->is_integer())
+    else if (service.is_integer())
         service_str = service->to_s(env)->string();
     else
         service_str = service->to_str(env)->string();
@@ -1390,7 +1390,7 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
 
     if (servname->is_nil() || (servname->is_string() && servname->as_string()->is_empty()))
         service = "0";
-    else if (servname->is_integer())
+    else if (servname.is_integer())
         service = IntegerObject::to_s(servname->as_integer());
     else
         service = servname->as_string_or_raise(env)->string();
@@ -1549,7 +1549,7 @@ Value Socket_Option_s_linger(Env *env, Value self, Args &&args, Block *) {
 
     args.ensure_argc_is(env, 2);
     auto on_off = args.at(0)->is_truthy();
-    int linger = IntegerObject::to_nat_int_t(args.at(1)->to_int(env));
+    int linger = Object::to_int(env, args.at(1)).to_nat_int_t();
 
     struct linger data {
         on_off, linger

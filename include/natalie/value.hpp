@@ -36,6 +36,10 @@ public:
         : m_type { Type::Integer }
         , m_integer { integer } { }
 
+    Value(Integer &&integer)
+        : m_type { Type::Integer }
+        , m_integer { std::move(integer) } { }
+
     static Value integer(nat_int_t integer) {
         // This is required, because initialization by a literal is often ambiguous.
         return Value { integer };
@@ -120,6 +124,10 @@ public:
 
     const Integer &integer() const;
     Integer &integer();
+
+    bool is_integer() const;
+
+    nat_int_t object_id() const;
 
 private:
     explicit Value(double value)

@@ -227,7 +227,7 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
         emit_value(env, value->as_float(), emitter, event);
     } else if (value->is_hash()) {
         emit_value(env, value->as_hash(), emitter, event);
-    } else if (value->is_integer()) {
+    } else if (value.is_integer()) {
         emit_value(env, value->as_integer(), emitter, event);
     } else if (value->is_module()) {
         emit_value(env, value->as_module(), emitter, event);

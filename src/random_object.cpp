@@ -22,7 +22,7 @@ Value RandomObject::initialize(Env *env, Value seed) {
 Value RandomObject::bytes(Env *env, Value size) {
     assert(m_generator);
 
-    const auto isize = IntegerObject::to_nat_int_t(size->to_int(env));
+    const auto isize = Object::to_int(env, size).to_nat_int_t();
     if (isize < 0)
         env->raise("ArgumentError", "negative string size (or size too big)");
 

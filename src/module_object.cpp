@@ -349,7 +349,7 @@ void ModuleObject::make_method_alias(Env *env, SymbolObject *new_name, SymbolObj
 
 void ModuleObject::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     if (GlobalEnv::the()->instance_evaling()) {
-        singleton_class(env)->make_method_alias(env, new_name, old_name);
+        singleton_class(env, this)->make_method_alias(env, new_name, old_name);
         return;
     }
     make_method_alias(env, new_name, old_name);
@@ -970,12 +970,12 @@ Value ModuleObject::public_method(Env *env, Args &&args) {
 }
 
 Value ModuleObject::private_class_method(Env *env, Args &&args) {
-    singleton_class(env)->set_method_visibility(env, std::move(args), MethodVisibility::Private);
+    singleton_class(env, this)->set_method_visibility(env, std::move(args), MethodVisibility::Private);
     return this;
 }
 
 Value ModuleObject::public_class_method(Env *env, Args &&args) {
-    singleton_class(env)->set_method_visibility(env, std::move(args), MethodVisibility::Public);
+    singleton_class(env, this)->set_method_visibility(env, std::move(args), MethodVisibility::Public);
     return this;
 }
 

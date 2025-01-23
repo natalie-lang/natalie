@@ -42,11 +42,11 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
         }
     }
 
-    auto size_integer = size->to_int(env);
+    auto size_integer = Object::to_int(env, size);
     if (IntegerObject::is_bignum(size_integer))
         env->raise("ArgumentError", "array size too big");
 
-    auto s = IntegerObject::to_nat_int_t(size_integer);
+    auto s = size_integer.to_nat_int_t();
 
     if (s < 0)
         env->raise("ArgumentError", "negative argument");
@@ -242,10 +242,10 @@ Value ArrayObject::sum(Env *env, Args &&args, Block *block) {
 
 Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
     if (!size) {
-        if (!index_obj->is_integer() && index_obj->respond_to(env, "to_int"_s))
+        if (!index_obj.is_integer() && index_obj->respond_to(env, "to_int"_s))
             index_obj = index_obj->send(env, "to_int"_s);
 
-        if (index_obj->is_integer()) {
+        if (index_obj.is_integer()) {
             IntegerObject::assert_fixnum(env, index_obj->as_integer());
 
             auto index = _resolve_index(IntegerObject::to_nat_int_t(index_obj->as_integer()));
@@ -958,7 +958,7 @@ Value ArrayObject::cmp(Env *env, Value other) {
             Value item = (*other_array)[i];
             Value cmp_obj = (*this)[i].send(env, "<=>"_s, { item });
 
-            if (!cmp_obj->is_integer()) {
+            if (!cmp_obj.is_integer()) {
                 return cmp_obj;
             }
 
@@ -1053,7 +1053,7 @@ bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
         }
     } else {
         Value compare = a.send(env, "<=>"_s, { b });
-        if (compare->is_integer()) {
+        if (compare.is_integer()) {
             return IntegerObject::to_nat_int_t(compare->as_integer()) < 0;
         }
         // TODO: Ruby sometimes prints b as the value (for example for integers) and sometimes as class
@@ -1080,7 +1080,7 @@ bool array_sort_by_compare(Env *env, Value a, Value b, Block *block) {
     Value b_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
 
     Value compare = a_res.send(env, "<=>"_s, { b_res });
-    if (compare->is_integer()) {
+    if (compare.is_integer()) {
         return IntegerObject::to_nat_int_t(compare->as_integer()) < 0;
     }
     env->raise("ArgumentError", "comparison of {} with {} failed", a_res->klass()->inspect_str(), b_res->klass()->inspect_str());
@@ -1562,7 +1562,7 @@ Value ArrayObject::intersection(Env *env, Value arg) {
 bool ArrayObject::include_eql(Env *env, Value arg) {
     auto eql = "eql?"_s;
     for (auto &val : *this) {
-        if (arg->object_id() == val->object_id() || arg->send(env, eql, { val })->is_truthy())
+        if (object_id(arg) == object_id(val) || arg->send(env, eql, { val })->is_truthy())
             return true;
     }
     return false;
@@ -1885,13 +1885,13 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
     this->assert_not_frozen(env);
 
     if (size) {
-        index_obj = index_obj->to_int(env);
-        size = size->to_int(env);
+        index_obj = Object::to_int(env, index_obj);
+        size = Object::to_int(env, size);
 
         IntegerObject::assert_fixnum(env, size->as_integer());
     }
 
-    if (index_obj->is_integer()) {
+    if (index_obj.is_integer()) {
         IntegerObject::assert_fixnum(env, index_obj->as_integer());
 
         auto start = IntegerObject::to_nat_int_t(index_obj->as_integer());
@@ -1982,7 +1982,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         return this;
     }
 
-    return slice_in_place(env, index_obj->to_int(env), size);
+    return slice_in_place(env, Object::to_int(env, index_obj), size);
 }
 
 Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end) {

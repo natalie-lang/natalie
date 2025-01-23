@@ -14,7 +14,7 @@ size_t HashObject::hash(Key *&key) {
 bool HashObject::compare(Key *&a, Key *&b, void *env) {
     assert(env);
 
-    if (a->key->object_id() == b->key->object_id() && a->hash == b->hash)
+    if (object_id(a->key) == object_id(b->key) && a->hash == b->hash)
         return true;
 
     return a->key.send((Env *)env, "eql?"_s, { b->key })->is_truthy();
@@ -298,7 +298,7 @@ Value HashObject::inspect(Env *env) {
             else
                 obj = new StringObject("?");
             if (!obj->is_string())
-                obj = StringObject::format("#<{}:{}>", obj->klass()->inspect_str(), String::hex(obj->object_id(), String::HexFormat::LowercaseAndPrefixed));
+                obj = StringObject::format("#<{}:{}>", obj->klass()->inspect_str(), String::hex(object_id(obj), String::HexFormat::LowercaseAndPrefixed));
             return obj->as_string();
         };
 

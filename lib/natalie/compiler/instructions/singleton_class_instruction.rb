@@ -9,7 +9,7 @@ module Natalie
 
       def generate(transform)
         obj = transform.pop
-        transform.push("#{obj}->singleton_class(env)")
+        transform.push("Object::singleton_class(env, #{obj})")
       end
 
       def execute(vm)

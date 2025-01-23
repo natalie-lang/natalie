@@ -52,7 +52,7 @@ Value IoObject::initialize(Env *env, Args &&args, Block *block) {
     Value file_number = args.at(0);
     Value flags_obj = args.at(1, nullptr);
     const ioutil::flags_struct wanted_flags { env, flags_obj, kwargs };
-    nat_int_t fileno = IntegerObject::to_nat_int_t(file_number->to_int(env));
+    nat_int_t fileno = Object::to_int(env, file_number).to_nat_int_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
     const auto actual_flags = ::fcntl(fileno, F_GETFL);
     if (actual_flags < 0)
@@ -290,7 +290,7 @@ Value IoObject::read_file(Env *env, Args &&args) {
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     file->set_encoding(env, flags.external_encoding(), flags.internal_encoding());
     if (offset && !offset->is_nil()) {
-        if (offset->is_integer() && IntegerObject::is_negative(offset->as_integer()))
+        if (offset.is_integer() && IntegerObject::is_negative(offset->as_integer()))
             env->raise("ArgumentError", "negative offset {} given", offset->inspect_str(env));
         file->set_pos(env, offset);
     }
@@ -532,7 +532,7 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     auto line = new StringObject {};
     bool has_limit = false;
     if (sep && !sep->is_nil()) {
-        if (sep->is_integer() || sep->respond_to(env, "to_int"_s)) {
+        if (sep.is_integer() || sep->respond_to(env, "to_int"_s)) {
             limit = sep;
             sep = nullptr;
         } else {
@@ -546,7 +546,7 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
         sep = env->global_get("$/"_s);
 
     if (limit) {
-        limit = limit->to_int(env);
+        limit = Object::to_int(env, limit);
         has_limit = true;
     } else {
         limit = Value::integer(NAT_READ_BYTES);
@@ -609,10 +609,10 @@ Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
     raise_if_closed(env);
     if (!is_readable(m_fileno))
         env->raise("IOError", "not opened for reading");
-    const auto count_int = IntegerObject::to_nat_int_t(count->to_int(env));
+    const auto count_int = Object::to_int(env, count).to_nat_int_t();
     if (count_int < 0)
         env->raise("ArgumentError", "negative string size (or size too big)");
-    const auto offset_int = IntegerObject::to_nat_int_t(offset->to_int(env));
+    const auto offset_int = Object::to_int(env, offset).to_nat_int_t();
     TM::String buf(count_int, '\0');
     const auto bytes_read = ::pread(m_fileno, &buf[0], count_int, offset_int);
     if (bytes_read < 0)
@@ -897,7 +897,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
         env->raise("IOError", "not opened for reading");
     if (!byte || byte->is_nil())
         return NilObject::the();
-    if (byte->is_integer()) {
+    if (byte.is_integer()) {
         nat_int_t value = 0xff;
         if (!IntegerObject::is_bignum(byte->as_integer())) {
             value = IntegerObject::convert_to_nat_int_t(env, byte);
@@ -912,7 +912,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
 }
 
 Value IoObject::ungetc(Env *env, Value c) {
-    if (c->is_integer())
+    if (c.is_integer())
         return ungetbyte(env, c);
     return ungetbyte(env, c->to_str(env));
 }
@@ -924,8 +924,8 @@ Value IoObject::wait(Env *env, Args &&args) {
     Value timeout = NilObject::the();
     bool return_self = false;
 
-    if (args.size() == 2 && args.at(0, NilObject::the())->is_integer() && args.at(1, NilObject::the())->is_numeric()) {
-        events = IntegerObject::to_nat_int_t(args[0]->to_int(env));
+    if (args.size() == 2 && args.at(0, NilObject::the()).is_integer() && args.at(1, NilObject::the())->is_numeric()) {
+        events = Object::to_int(env, args[0]).to_nat_int_t();
         timeout = args[1];
 
         if (events <= 0)
@@ -1015,7 +1015,7 @@ bool IoObject::sync(Env *env) const {
 }
 
 Value IoObject::sysread(Env *env, Value amount, Value buffer) {
-    if (IntegerObject::is_zero(amount->to_int(env)) && buffer && !buffer->is_nil())
+    if (IntegerObject::is_zero(Object::to_int(env, amount)) && buffer && !buffer->is_nil())
         return buffer;
     if (!m_read_buffer.is_empty())
         env->raise("IOError", "sysread for buffered IO");

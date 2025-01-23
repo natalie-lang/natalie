@@ -452,7 +452,7 @@ Value OpenSSL_SSL_SSLContext_security_level(Env *env, Value self, Args &&args, B
 
 Value OpenSSL_SSL_SSLContext_set_security_level(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto security_level = IntegerObject::to_nat_int_t(args[0]->to_int(env));
+    auto security_level = Object::to_int(env, args[0]).to_nat_int_t();
 
     if (self->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
@@ -945,7 +945,7 @@ Value OpenSSL_X509_Certificate_version(Env *env, Value self, Args &&args, Block 
 Value OpenSSL_X509_Certificate_set_version(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
 
-    const auto version = IntegerObject::to_nat_int_t(args[0]->to_int(env));
+    const auto version = Object::to_int(env, args[0]).to_nat_int_t();
     if (version < 0) {
         auto CertificateError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "CertificateError"_s })->as_class();
         env->raise(CertificateError, "version must be >= 0!");
@@ -965,8 +965,8 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
     if (!kwargs) kwargs = new HashObject {};
     env->ensure_no_missing_keywords(kwargs, { "salt", "iterations", "length", "hash" });
     auto salt = kwargs->remove(env, "salt"_s)->to_str(env);
-    auto iterations = kwargs->remove(env, "iterations"_s)->to_int(env);
-    auto length = kwargs->remove(env, "length"_s)->to_int(env);
+    auto iterations = Object::to_int(env, kwargs->remove(env, "iterations"_s));
+    auto length = Object::to_int(env, kwargs->remove(env, "length"_s));
     auto hash = kwargs->remove(env, "hash"_s);
     auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
     if (!hash->is_a(env, digest_klass))
@@ -977,11 +977,11 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
     const EVP_MD *md = EVP_get_digestbyname(hash->as_string()->c_str());
     if (!md)
         env->raise("RuntimeError", "Unsupported digest algorithm ({}).: unknown object name", hash->as_string()->string());
-    const size_t out_size = IntegerObject::to_nat_int_t(length->as_integer());
+    const size_t out_size = length.to_nat_int_t();
     unsigned char *out = static_cast<unsigned char *>(alloca(out_size));
     int result = PKCS5_PBKDF2_HMAC(pass->as_string()->c_str(), pass->as_string()->bytesize(),
         reinterpret_cast<const unsigned char *>(salt->as_string()->c_str()), salt->as_string()->bytesize(),
-        IntegerObject::to_nat_int_t(iterations->as_integer()),
+        iterations.to_nat_int_t(),
         md,
         out_size, out);
     if (!result) {
@@ -1000,10 +1000,10 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
     auto pass = args.at(0)->to_str(env);
     env->ensure_no_missing_keywords(kwargs, { "salt", "N", "r", "p", "length" });
     auto salt = kwargs->remove(env, "salt"_s)->to_str(env);
-    auto N = kwargs->remove(env, "N"_s)->to_int(env);
-    auto r = kwargs->remove(env, "r"_s)->to_int(env);
-    auto p = kwargs->remove(env, "p"_s)->to_int(env);
-    auto length = kwargs->remove(env, "length"_s)->to_int(env);
+    auto N = Object::to_int(env, kwargs->remove(env, "N"_s));
+    auto r = Object::to_int(env, kwargs->remove(env, "r"_s));
+    auto p = Object::to_int(env, kwargs->remove(env, "p"_s));
+    auto length = Object::to_int(env, kwargs->remove(env, "length"_s));
     if (IntegerObject::is_negative(length) || IntegerObject::is_bignum(length))
         env->raise("ArgumentError", "negative string size (or size too big)");
     env->ensure_no_extra_keywords(kwargs);
@@ -1013,7 +1013,7 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
     auto KDFError = KDF->const_get("KDFError"_s);
     auto pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_SCRYPT, nullptr);
     Defer pctx_free { [&pctx]() { EVP_PKEY_CTX_free(pctx); } };
-    size_t outlen = IntegerObject::to_nat_int_t(length);
+    size_t outlen = length.to_nat_int_t();
     unsigned char *out = static_cast<unsigned char *>(alloca(outlen));
     if (EVP_PKEY_derive_init(pctx) <= 0) {
         OpenSSL_raise_error(env, "EVP_PKEY_derive_init", KDFError->as_class());
@@ -1024,13 +1024,13 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
     if (EVP_PKEY_CTX_set1_scrypt_salt(pctx, reinterpret_cast<const unsigned char *>(salt->c_str()), salt->bytesize()) <= 0) {
         OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
     }
-    if (EVP_PKEY_CTX_set_scrypt_N(pctx, IntegerObject::to_nat_int_t(N)) <= 0) {
+    if (EVP_PKEY_CTX_set_scrypt_N(pctx, N.to_nat_int_t()) <= 0) {
         OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
     }
-    if (EVP_PKEY_CTX_set_scrypt_r(pctx, IntegerObject::to_nat_int_t(r)) <= 0) {
+    if (EVP_PKEY_CTX_set_scrypt_r(pctx, r.to_nat_int_t()) <= 0) {
         OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
     }
-    if (EVP_PKEY_CTX_set_scrypt_p(pctx, IntegerObject::to_nat_int_t(p)) <= 0) {
+    if (EVP_PKEY_CTX_set_scrypt_p(pctx, p.to_nat_int_t()) <= 0) {
         OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
     }
     if (EVP_PKEY_derive(pctx, out, &outlen) <= 0) {
@@ -1122,7 +1122,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
         auto from = static_cast<BIGNUM *>(args[0]->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
         if (!BN_copy(bn, from))
             OpenSSL_raise_error(env, "BN_copy");
-    } else if (arg->is_integer()) {
+    } else if (arg.is_integer()) {
         args.ensure_argc_is(env, 1);
         const auto str = IntegerObject::to_s(arg->as_integer());
         if (!BN_dec2bn(&bn, str.c_str()))
@@ -1169,7 +1169,7 @@ Value OpenSSL_BN_to_i(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_Random_random_bytes(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    Value length = args[0]->to_int(env);
+    Value length = Object::to_int(env, args[0]);
     const auto num = static_cast<int>(IntegerObject::to_nat_int_t(length->as_integer()));
     if (num < 0)
         env->raise("ArgumentError", "negative string size (or size too big)");
@@ -1191,7 +1191,7 @@ Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args &&args, Block *) {
     auto value = args.at(1)->to_str(env);
     auto type = args.at(2, nullptr);
     if (type && !type->is_nil()) {
-        type = type->to_int(env);
+        type = Object::to_int(env, type);
     } else {
         auto OBJECT_TYPE_TEMPLATE = self->klass()->const_get("OBJECT_TYPE_TEMPLATE"_s)->as_hash();
         type = OBJECT_TYPE_TEMPLATE->ref(env, oid);

@@ -181,7 +181,7 @@ private:
             rlimit_symbol = rlimit_str->as_string()->to_symbol(env);
             auto ProcessMod = GlobalEnv::the()->Object()->const_fetch("Process"_s)->as_module();
             Value rlimval = ProcessMod->const_get(rlimit_symbol);
-            if (!rlimval || !rlimval->is_integer()) {
+            if (!rlimval || !rlimval.is_integer()) {
                 env->raise("ArgumentError", "invalid resource {}", rlimit_symbol->string());
             }
             val = rlimval->as_integer();

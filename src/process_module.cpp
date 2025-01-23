@@ -50,7 +50,7 @@ Value ProcessModule::kill(Env *env, Args &&args) {
 
     if (signal->is_symbol())
         signal = signal->to_s(env);
-    if (signal->is_integer()) {
+    if (signal.is_integer()) {
         signo = IntegerObject::convert_to_nat_int_t(env, signal);
     } else if (signal->is_string() || signal->respond_to(env, "to_str"_s)) {
         auto signame = signal->to_str(env)->delete_prefix(env, new StringObject { "SIG" });
@@ -86,8 +86,8 @@ long ProcessModule::maxgroups() {
 }
 
 Value ProcessModule::setmaxgroups(Env *env, Value val) {
-    auto int_val = val->to_int(env);
-    if (int_val->send(env, "positive?"_s)->is_falsey())
+    Value int_val = Object::to_int(env, val);
+    if (int_val.send(env, "positive?"_s)->is_falsey())
         env->raise("ArgumentError", "maxgroups {} should be positive", int_val->inspect_str(env));
     const long actual_maxgroups = sysconf(_SC_NGROUPS_MAX);
     globals::maxgroups = std::min(IntegerObject::convert_to_native_type<long>(env, int_val), actual_maxgroups);

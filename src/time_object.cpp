@@ -29,7 +29,7 @@ TimeObject *TimeObject::local(Env *env, Value year, Value month, Value mday, Val
     int seconds = mktime(&result->m_time);
     result->m_mode = Mode::Localtime;
     result->m_integer = Value::integer(seconds);
-    if (usec && usec->is_integer()) {
+    if (usec && usec.is_integer()) {
         result->set_subsec(env, usec->as_integer());
     }
     return result;
@@ -90,7 +90,7 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
     result->m_mode = Mode::UTC;
     result->m_integer = Value::integer(seconds);
     if (subsec) {
-        if (subsec->is_integer()) {
+        if (subsec.is_integer()) {
             IntegerObject *integer = subsec->as_integer();
             if (IntegerObject::lt(env, integer, new IntegerObject { 0 }) || IntegerObject::gte(env, integer, new IntegerObject { 1000000 }))
                 env->raise("ArgumentError", "subsecx out of range");
@@ -347,8 +347,8 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
         // any fall-through of the above ugly logic
         env->raise("ArgumentError", "\"+HH:MM\", \"-HH:MM\", \"UTC\" or \"A\"..\"I\",\"K\"..\"Z\" expected for utc_offset: {}", str);
     }
-    if (val->is_integer() || val->respond_to(env, "to_int"_s)) {
-        auto seconds = IntegerObject::to_nat_int_t(val->to_int(env));
+    if (val.is_integer() || val->respond_to(env, "to_int"_s)) {
+        auto seconds = Object::to_int(env, val).to_nat_int_t();
         if (seconds > hoursec * -24 && seconds < hoursec * 24) {
             return seconds;
         }
@@ -359,9 +359,9 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
 }
 
 nat_int_t TimeObject::normalize_field(Env *env, Value val) {
-    if (!val->is_integer() && val->respond_to(env, "to_i"_s))
+    if (!val.is_integer() && val->respond_to(env, "to_i"_s))
         val = val->send(env, "to_i"_s);
-    return IntegerObject::to_nat_int_t(val->to_int(env));
+    return Object::to_int(env, val).to_nat_int_t();
 }
 
 nat_int_t TimeObject::normalize_field(Env *env, Value val, nat_int_t minval, nat_int_t maxval) {
@@ -375,7 +375,7 @@ nat_int_t TimeObject::normalize_field(Env *env, Value val, nat_int_t minval, nat
 
 nat_int_t TimeObject::normalize_month(Env *env, Value val) {
     if (val->is_nil()) return 0;
-    if (!val->is_integer()) {
+    if (!val.is_integer()) {
         if (val->is_string() || val->respond_to(env, "to_str"_s)) {
             val = val->to_str(env);
             auto monstr = val->as_string()->downcase(env, nullptr, nullptr)->as_string()->string();
@@ -411,7 +411,7 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
             env->raise("ArgumentError", "mon out of range");
         }
         if (val->respond_to(env, "to_int"_s)) {
-            val = val->to_int(env);
+            val = Object::to_int(env, val);
         }
     }
     val->assert_type(env, Object::Type::Integer, "Integer");
@@ -423,14 +423,14 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
 }
 
 RationalObject *TimeObject::convert_rational(Env *env, Value value) {
-    if (value->is_integer()) {
+    if (value.is_integer()) {
         return RationalObject::create(env, value->as_integer(), new IntegerObject { 1 });
     } else if (value->is_rational()) {
         return value->as_rational();
     } else if (value->respond_to(env, "to_r"_s) && value->respond_to(env, "to_int"_s)) {
         return value->send(env, "to_r"_s)->as_rational();
     } else if (value->respond_to(env, "to_int"_s)) {
-        return RationalObject::create(env, value->to_int(env), new IntegerObject { 1 });
+        return RationalObject::create(env, new IntegerObject(Object::to_int(env, value)), new IntegerObject { 1 });
     } else {
         env->raise("TypeError", "can't convert {} into an exact number", value->klass()->inspect_str());
     }
@@ -499,7 +499,7 @@ void TimeObject::build_time(Env *env, Value year, Value month, Value mday, Value
             // ensure base10 conversion for case of "01" input
             sec = KernelModule::Integer(env, sec, 10, true)->as_integer();
         }
-        if (sec->is_integer()) {
+        if (sec.is_integer()) {
             auto sec_i = IntegerObject::to_nat_int_t(sec->as_integer());
             if (sec_i < 0 || sec_i > 59) {
                 env->raise("ArgumentError", "argument out of range");

@@ -266,7 +266,7 @@ Value ThreadObject::to_s(Env *env) {
     auto formatted = String::format(
         "#<{}:{}{} {}>",
         m_klass->inspect_str(),
-        String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed),
+        String::hex(Object::object_id(this), String::HexFormat::LowercaseAndPrefixed),
         location,
         status());
 
@@ -497,11 +497,11 @@ Value ThreadObject::priority(Env *env) const {
 
 // Example code: https://en.cppreference.com/w/cpp/thread/thread/native_handle
 Value ThreadObject::set_priority(Env *env, Value priority) {
-    auto priority_int = priority->to_int(env);
+    auto priority_int = Object::to_int(env, priority);
     if (IntegerObject::is_bignum(priority_int))
         env->raise("RangeError", "bignum too big to convert into 'long'");
 
-    m_priority = IntegerObject::to_nat_int_t(priority_int);
+    m_priority = priority_int.to_nat_int_t();
     if (m_priority > 3) m_priority = 3;
     if (m_priority < -3) m_priority = -3;
 

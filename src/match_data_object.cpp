@@ -35,7 +35,7 @@ Value MatchDataObject::byteoffset(Env *env, Value n) {
         if (index < 0)
             env->raise("IndexError", "undefined group name reference: {}", str);
     } else {
-        index = IntegerObject::to_nat_int_t(n->to_int(env));
+        index = Object::to_int(env, n).to_nat_int_t();
         if (index < 0 || index >= static_cast<nat_int_t>(size()))
             env->raise("IndexError", "index {} out of matches", index);
     }
@@ -136,7 +136,7 @@ Value MatchDataObject::begin(Env *env, Value start) const {
         if (index < 0 || index >= m_region->num_regs)
             env->raise("IndexError", "undefined group name reference: {}", start->to_s(env)->c_str());
     } else {
-        index = IntegerObject::to_nat_int_t(start->to_int(env));
+        index = Object::to_int(env, start).to_nat_int_t();
         if (index < 0 || index >= m_region->num_regs)
             env->raise("IndexError", "index {} out of matches", index);
     }
@@ -155,7 +155,7 @@ Value MatchDataObject::end(Env *env, Value end) const {
         const auto &str = end->type() == Object::Type::String ? end->as_string()->string() : end->as_symbol()->string();
         index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
     } else {
-        index = IntegerObject::to_nat_int_t(end->to_int(env));
+        index = Object::to_int(env, end).to_nat_int_t();
     }
     if (index < 0)
         env->raise("IndexError", "bad index");
@@ -233,7 +233,7 @@ Value MatchDataObject::inspect(Env *env) {
 }
 
 Value MatchDataObject::match(Env *env, Value index) {
-    if (!index->is_integer()) {
+    if (!index.is_integer()) {
         if (index->is_symbol())
             index = index->to_s(env);
 
@@ -340,13 +340,13 @@ ArrayObject *MatchDataObject::values_at(Env *env, Args &&args) {
         auto key = args[i];
         if (key->is_range()) {
             auto range = key->as_range();
-            if (range->begin()->is_integer() && IntegerObject::to_nat_int_t(range->begin()->as_integer()) < -static_cast<nat_int_t>(size()))
+            if (range->begin().is_integer() && IntegerObject::to_nat_int_t(range->begin()->as_integer()) < -static_cast<nat_int_t>(size()))
                 env->raise("RangeError", "{} out of range", range->inspect_str(env));
             auto append = ref(env, range);
             result->concat(env, { append });
-            if (range->begin()->is_integer()) {
+            if (range->begin().is_integer()) {
                 auto size = range->send(env, "size"_s);
-                if (append->is_array() && size->is_integer() && IntegerObject::to_nat_int_t(size->as_integer()) > static_cast<nat_int_t>(append->as_array()->size())) {
+                if (append->is_array() && size.is_integer() && IntegerObject::to_nat_int_t(size->as_integer()) > static_cast<nat_int_t>(append->as_array()->size())) {
                     for (nat_int_t i = append->as_array()->size(); i < IntegerObject::to_nat_int_t(size->as_integer()); i++)
                         result->push(NilObject::the());
                 }

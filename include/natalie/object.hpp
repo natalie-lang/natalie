@@ -124,7 +124,6 @@ public:
     bool is_exception() const { return m_type == Type::Exception; }
     bool is_float() const { return m_type == Type::Float; }
     bool is_hash() const { return m_type == Type::Hash; }
-    bool is_integer() const { return m_type == Type::Integer; }
     bool is_io() const { return m_type == Type::Io || m_type == Type::File; }
     bool is_file() const { return m_type == Type::File; }
     bool is_file_stat() const { return m_type == Type::FileStat; }
@@ -146,7 +145,7 @@ public:
 
     bool is_truthy() const { return !is_false() && !is_nil(); }
     bool is_falsey() const { return !is_truthy(); }
-    bool is_numeric() const { return is_integer() || is_float(); }
+    bool is_numeric() const { return m_type == Type::Integer || is_float(); }
     bool is_boolean() const { return is_true() || is_false(); }
 
     Enumerator::ArithmeticSequenceObject *as_enumerator_arithmetic_sequence();
@@ -236,7 +235,7 @@ public:
     SymbolObject *to_instance_variable_name(Env *);
 
     ClassObject *singleton_class() const { return m_singleton_class; }
-    ClassObject *singleton_class(Env *);
+    static ClassObject *singleton_class(Env *, Value);
 
     ClassObject *subclass(Env *env, const char *name);
 
@@ -287,7 +286,7 @@ public:
     virtual void method_alias(Env *, SymbolObject *, SymbolObject *);
     virtual void singleton_method_alias(Env *, SymbolObject *, SymbolObject *);
 
-    nat_int_t object_id() const;
+    static nat_int_t object_id(const Value self) { return self.object_id(); }
 
     Value itself() { return this; }
 
@@ -333,7 +332,7 @@ public:
     bool is_main_object() const { return this == GlobalEnv::the()->main_obj(); }
 
     void freeze();
-    bool is_frozen() const { return is_integer() || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
+    bool is_frozen() const { return m_type == Type::Integer || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
 
     void add_synthesized_flag() { m_flags = m_flags | Flag::Synthesized; }
     bool is_synthesized() const { return (m_flags & Flag::Synthesized) == Flag::Synthesized; }
@@ -346,10 +345,8 @@ public:
     void remove_redo_flag() { m_flags = m_flags & ~Flag::Redo; }
     bool has_redo_flag() const { return (m_flags & Flag::Redo) == Flag::Redo; }
 
-    bool eq(Env *, Value other) {
-        return other == this;
-    }
-    bool equal(Value);
+    bool eq(Env *, Value other) { return other == this; }
+    static bool equal(Value, Value);
 
     bool neq(Env *env, Value other);
 
@@ -374,7 +371,7 @@ public:
     FloatObject *to_f(Env *env);
     HashObject *to_hash(Env *env);
     IoObject *to_io(Env *env);
-    IntegerObject *to_int(Env *env);
+    static Integer to_int(Env *env, Value self);
     StringObject *to_s(Env *env);
 
     // Old error message style, e.g.:

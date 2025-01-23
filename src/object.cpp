@@ -338,12 +338,12 @@ const HashObject *Object::as_hash() const {
 }
 
 IntegerObject *Object::as_integer() {
-    assert(is_integer());
+    assert(m_type == Type::Integer);
     return static_cast<IntegerObject *>(this);
 }
 
 const IntegerObject *Object::as_integer() const {
-    assert(is_integer());
+    assert(m_type == Type::Integer);
     return static_cast<const IntegerObject *>(this);
 }
 
@@ -574,7 +574,7 @@ HashObject *Object::as_hash_or_raise(Env *env) {
 }
 
 IntegerObject *Object::as_integer_or_raise(Env *env) {
-    if (!is_integer())
+    if (m_type != Type::Integer)
         env->raise("TypeError", "{} can't be coerced into Integer", m_klass->inspect_str());
     return static_cast<IntegerObject *>(this);
 }
@@ -628,34 +628,32 @@ void Object::set_singleton_class(ClassObject *klass) {
     m_singleton_class = klass;
 }
 
-ClassObject *Object::singleton_class(Env *env) {
-    if (m_singleton_class) {
-        return m_singleton_class;
-    }
-
-    if (is_integer() || is_float() || is_symbol()) {
+ClassObject *Object::singleton_class(Env *env, Value self) {
+    if (self.is_integer() || self->is_float() || self->is_symbol())
         env->raise("TypeError", "can't define singleton");
-    }
+
+    if (self->m_singleton_class)
+        return self->m_singleton_class;
 
     String name;
-    if (is_module()) {
-        name = String::format("#<Class:{}>", as_module()->inspect_str());
-    } else if (respond_to(env, "inspect"_s)) {
-        name = String::format("#<Class:{}>", inspect_str(env));
+    if (self->is_module()) {
+        name = String::format("#<Class:{}>", self->as_module()->inspect_str());
+    } else if (self->respond_to(env, "inspect"_s)) {
+        name = String::format("#<Class:{}>", self->inspect_str(env));
     }
 
     ClassObject *singleton_superclass;
-    if (is_class()) {
-        singleton_superclass = as_class()->superclass(env)->singleton_class(env);
+    if (self->is_class()) {
+        singleton_superclass = singleton_class(env, self->as_class()->superclass(env));
     } else {
-        singleton_superclass = m_klass;
+        singleton_superclass = self->m_klass;
     }
     auto new_singleton_class = new ClassObject { singleton_superclass };
-    if (is_frozen()) new_singleton_class->freeze();
+    if (self->is_frozen()) new_singleton_class->freeze();
     singleton_superclass->initialize_subclass_without_checks(new_singleton_class, env, name);
-    set_singleton_class(new_singleton_class);
-    if (is_frozen()) m_singleton_class->freeze();
-    return m_singleton_class;
+    self->set_singleton_class(new_singleton_class);
+    if (self->is_frozen()) self->m_singleton_class->freeze();
+    return self->m_singleton_class;
 }
 
 ClassObject *Object::subclass(Env *env, const char *name) {
@@ -677,7 +675,7 @@ Value Object::extend(Env *env, Args &&args) {
 }
 
 void Object::extend_once(Env *env, ModuleObject *module) {
-    singleton_class(env)->include_once(env, module);
+    singleton_class(env, this)->include_once(env, module);
 }
 
 Value Object::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
@@ -774,12 +772,12 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
 }
 
 Value Object::instance_variables(Env *env) {
-    if (m_type == Object::Type::Integer || m_type == Object::Type::Float || !m_ivars) {
+    assert(m_type != Type::Integer);
+
+    if (m_type == Type::Float || !m_ivars)
         return new ArrayObject;
-    }
 
     ArrayObject *ary = new ArrayObject { m_ivars->size() };
-
     for (auto pair : *m_ivars)
         ary->push(pair.first);
     return ary;
@@ -824,55 +822,34 @@ void Object::method_alias(Env *env, Value new_name, Value old_name) {
 }
 
 void Object::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
-    if (is_integer() || is_symbol()) {
+    if (m_type == Type::Integer)
         env->raise("TypeError", "no klass to make alias");
-    }
+
+    if (is_symbol())
+        env->raise("TypeError", "no klass to make alias");
+
     if (is_main_object()) {
         m_klass->make_method_alias(env, new_name, old_name);
     } else if (is_module()) {
         as_module()->method_alias(env, new_name, old_name);
     } else {
-        singleton_class(env)->make_method_alias(env, new_name, old_name);
+        singleton_class(env, this)->make_method_alias(env, new_name, old_name);
     }
 }
 
 void Object::singleton_method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = singleton_class(env);
+    ClassObject *klass = singleton_class(env, this);
     if (klass->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
     klass->method_alias(env, new_name, old_name);
 }
 
-__attribute__((no_sanitize("undefined"))) static nat_int_t left_shift_with_undefined_behavior(nat_int_t x, nat_int_t y) {
-    return x << y;
-}
-
-nat_int_t Object::object_id() const {
-    if (is_integer()) {
-        const auto i = as_integer();
-        if (IntegerObject::is_fixnum(i)) {
-            /* Recreate the logic from Ruby: Use a long as tagged pointer, where
-             * the rightmost bit is 1, and the remaining bits are the number shifted
-             * one right.
-             * The regular object ids are the actual memory addresses, these are at
-             * least 8 bit aligned, so the rightmost bit will never be set. This
-             * means we don't risk duplicate object ids for different objects.
-             */
-            auto val = IntegerObject::to_nat_int_t(i);
-            if (val >= (LONG_MIN >> 1) && val <= (LONG_MAX >> 1))
-                return left_shift_with_undefined_behavior(val, 1) | 1;
-        }
-    }
-
-    return reinterpret_cast<nat_int_t>(this);
-}
-
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = singleton_class(env);
+    ClassObject *klass = singleton_class(env, this)->as_class();
     if (klass->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
     klass->define_method(env, name, fn, arity, optimized);
@@ -882,7 +859,7 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Meth
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Block *block) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = singleton_class(env);
+    ClassObject *klass = singleton_class(env, this);
     if (klass->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
     klass->define_method(env, name, block);
@@ -892,7 +869,7 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Bloc
 SymbolObject *Object::undefine_singleton_method(Env *env, SymbolObject *name) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = singleton_class(env);
+    ClassObject *klass = singleton_class(env, this);
     klass->undefine_method(env, name);
     return name;
 }
@@ -1316,14 +1293,17 @@ void Object::assert_not_frozen(Env *env, Value receiver) {
     }
 }
 
-bool Object::equal(Value other) {
-    if (is_integer() && IntegerObject::is_fixnum(as_integer()) && other->is_integer() && IntegerObject::is_fixnum(other->as_integer()))
-        return IntegerObject::to_nat_int_t(as_integer()) == IntegerObject::to_nat_int_t(other->as_integer());
-    // We still need the pointer compare for the identical NaN equality
-    if (is_float() && other->is_float())
-        return this == other.object() || as_float()->to_double() == other->as_float()->to_double();
+bool Object::equal(Value self, Value other) {
+    if (self.is_integer() && other.is_integer())
+        return self.integer() == other.integer();
+    else if (self.is_integer() || other.is_integer())
+        return false;
 
-    return other == this;
+    // We still need the pointer compare for the identical NaN equality
+    if (self->is_float() && other->is_float())
+        return self == other.object() || self->as_float()->to_double() == other->as_float()->to_double();
+
+    return other == self;
 }
 
 bool Object::neq(Env *env, Value other) {
@@ -1335,12 +1315,12 @@ String Object::dbg_inspect() const {
     return String::format(
         "#<{}:{}>",
         klass ? *klass : "Object",
-        String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));
+        String::hex(reinterpret_cast<nat_int_t>(this), String::HexFormat::LowercaseAndPrefixed));
 }
 
 String Object::inspect_str(Env *env) {
     if (!respond_to(env, "inspect"_s))
-        return String::format("#<{}:{}>", m_klass->inspect_str(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));
+        return String::format("#<{}:{}>", m_klass->inspect_str(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed));
     auto inspected = send(env, "inspect"_s);
     if (!inspected->is_string())
         return ""; // TODO: what to do here?
@@ -1420,23 +1400,24 @@ IoObject *Object::to_io(Env *env) {
         result->klass()->inspect_str());
 }
 
-IntegerObject *Object::to_int(Env *env) {
-    if (is_integer()) return as_integer();
+Integer Object::to_int(Env *env, Value self) {
+    if (self.is_integer())
+        return self.integer();
 
     auto to_int = "to_int"_s;
-    if (!respond_to(env, to_int)) {
-        assert_type(env, Type::Integer, "Integer");
-    }
+    if (!self->respond_to(env, to_int))
+        self->assert_type(env, Type::Integer, "Integer");
 
-    auto result = send(env, to_int);
+    auto result = self->send(env, to_int);
 
-    if (result->is_integer())
-        return result->as_integer();
+    if (result.is_integer())
+        return result.integer();
 
+    auto klass = self->klass();
     env->raise(
         "TypeError", "can't convert {} to Integer ({}#to_int gives {})",
-        klass()->inspect_str(),
-        klass()->inspect_str(),
+        klass->inspect_str(),
+        klass->inspect_str(),
         result->klass()->inspect_str());
 }
 
