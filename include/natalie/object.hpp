@@ -92,7 +92,7 @@ public:
     }
 
     virtual ~Object() override {
-        m_type = ObjectType::Nil;
+        m_type = ObjectType::Collected;
         delete m_ivars;
     }
 

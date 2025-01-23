@@ -139,6 +139,9 @@ Value Object::create(Env *env, ClassObject *klass) {
     case Object::Type::UnboundMethod:
         obj = nullptr;
         break;
+
+    case Object::Type::Collected:
+        NAT_UNREACHABLE();
     }
 
     return obj;
