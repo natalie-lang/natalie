@@ -94,7 +94,7 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
             IntegerObject *integer = subsec->as_integer();
             if (IntegerObject::lt(env, integer, Value::integer(0)) || IntegerObject::gte(env, integer, Value::integer(1000000)))
                 env->raise("ArgumentError", "subsecx out of range");
-            result->m_subsec = RationalObject::create(env, integer, new IntegerObject { 1000000 });
+            result->m_subsec = RationalObject::create(env, IntegerObject::integer(integer), Integer(1000000));
         } else if (subsec->is_rational()) {
             result->m_subsec = subsec->as_rational()->div(env, new IntegerObject { 1000000 });
         } else {
@@ -260,7 +260,7 @@ Value TimeObject::to_f(Env *env) {
 }
 
 Value TimeObject::to_r(Env *env) {
-    Value result = RationalObject::create(env, m_integer->as_integer(), new IntegerObject { 1 });
+    Value result = RationalObject::create(env, m_integer.integer(), Integer(1));
     if (m_subsec) {
         result = result->as_rational()->add(env, m_subsec->as_rational());
     }
@@ -424,13 +424,13 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
 
 RationalObject *TimeObject::convert_rational(Env *env, Value value) {
     if (value.is_integer()) {
-        return RationalObject::create(env, value->as_integer(), new IntegerObject { 1 });
+        return RationalObject::create(env, value.integer(), Integer(1));
     } else if (value->is_rational()) {
         return value->as_rational();
     } else if (value->respond_to(env, "to_r"_s) && value->respond_to(env, "to_int"_s)) {
         return value->send(env, "to_r"_s)->as_rational();
     } else if (value->respond_to(env, "to_int"_s)) {
-        return RationalObject::create(env, new IntegerObject(Object::to_int(env, value)), new IntegerObject { 1 });
+        return RationalObject::create(env, Object::to_int(env, value), Integer(1));
     } else {
         env->raise("TypeError", "can't convert {} into an exact number", value->klass()->inspect_str());
     }
@@ -516,7 +516,7 @@ void TimeObject::build_time(Env *env, Value year, Value month, Value mday, Value
 
 void TimeObject::set_subsec(Env *env, long nsec) {
     if (nsec > 0) {
-        m_subsec = RationalObject::create(env, new IntegerObject { nsec }, new IntegerObject { 1000000000 });
+        m_subsec = RationalObject::create(env, Integer(nsec), Integer(1000000000));
     }
 }
 
@@ -525,7 +525,7 @@ void TimeObject::set_subsec(Env *env, IntegerObject *usec) {
         env->raise("ArgumentError", "subsecx out of range");
     }
     if (!IntegerObject::is_zero(usec)) {
-        m_subsec = RationalObject::create(env, usec, new IntegerObject { 1000000 });
+        m_subsec = RationalObject::create(env, IntegerObject::integer(usec), Integer(1000000));
     }
 }
 

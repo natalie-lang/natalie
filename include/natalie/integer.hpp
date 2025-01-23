@@ -14,6 +14,7 @@ public:
     Integer() { }
     Integer(nat_int_t);
     Integer(int);
+    Integer(long);
     Integer(double);
     Integer(const BigInt &);
     Integer(BigInt &&);
@@ -105,6 +106,7 @@ public:
 
     // Other
     explicit operator bool() const { return *this == 0; }
+    bool is_zero() const { return *this == 0; }
     bool is_fixnum() const { return !m_is_bignum; }
     bool is_bignum() const { return m_is_bignum; }
     bool is_negative() const;

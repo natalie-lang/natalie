@@ -10,7 +10,7 @@ module Natalie
       def generate(transform)
         denominator = transform.pop
         numerator = transform.pop
-        transform.exec_and_push(:rational, "Value(RationalObject::create(env, new IntegerObject(Object::to_int(env, #{numerator})), new IntegerObject(Object::to_int(env, #{denominator}))))")
+        transform.exec_and_push(:rational, "Value(RationalObject::create(env, Object::to_int(env, #{numerator}), Object::to_int(env, #{denominator})))")
       end
 
       def execute(vm)

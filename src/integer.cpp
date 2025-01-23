@@ -13,6 +13,11 @@ Integer::Integer(int other)
     , m_is_bignum(false) {
 }
 
+Integer::Integer(long other)
+    : m_fixnum(other)
+    , m_is_bignum(false) {
+}
+
 Integer::Integer(double other) {
     assert(other == ::floor(other));
     if (other <= (double)NAT_MIN_FIXNUM || other >= (double)NAT_MAX_FIXNUM) {
