@@ -628,36 +628,32 @@ void Object::set_singleton_class(ClassObject *klass) {
     m_singleton_class = klass;
 }
 
-ClassObject *Object::singleton_class(Env *env) {
-    if (m_singleton_class) {
-        return m_singleton_class;
-    }
-
-    assert(m_type != Type::Integer);
-
-    if (is_float() || is_symbol()) {
+ClassObject *Object::singleton_class(Env *env, Value self) {
+    if (self.is_integer() || self->is_float() || self->is_symbol())
         env->raise("TypeError", "can't define singleton");
-    }
+
+    if (self->m_singleton_class)
+        return self->m_singleton_class;
 
     String name;
-    if (is_module()) {
-        name = String::format("#<Class:{}>", as_module()->inspect_str());
-    } else if (respond_to(env, "inspect"_s)) {
-        name = String::format("#<Class:{}>", inspect_str(env));
+    if (self->is_module()) {
+        name = String::format("#<Class:{}>", self->as_module()->inspect_str());
+    } else if (self->respond_to(env, "inspect"_s)) {
+        name = String::format("#<Class:{}>", self->inspect_str(env));
     }
 
     ClassObject *singleton_superclass;
-    if (is_class()) {
-        singleton_superclass = as_class()->superclass(env)->singleton_class(env);
+    if (self->is_class()) {
+        singleton_superclass = singleton_class(env, self->as_class()->superclass(env));
     } else {
-        singleton_superclass = m_klass;
+        singleton_superclass = self->m_klass;
     }
     auto new_singleton_class = new ClassObject { singleton_superclass };
-    if (is_frozen()) new_singleton_class->freeze();
+    if (self->is_frozen()) new_singleton_class->freeze();
     singleton_superclass->initialize_subclass_without_checks(new_singleton_class, env, name);
-    set_singleton_class(new_singleton_class);
-    if (is_frozen()) m_singleton_class->freeze();
-    return m_singleton_class;
+    self->set_singleton_class(new_singleton_class);
+    if (self->is_frozen()) self->m_singleton_class->freeze();
+    return self->m_singleton_class;
 }
 
 ClassObject *Object::subclass(Env *env, const char *name) {
@@ -679,7 +675,7 @@ Value Object::extend(Env *env, Args &&args) {
 }
 
 void Object::extend_once(Env *env, ModuleObject *module) {
-    singleton_class(env)->include_once(env, module);
+    singleton_class(env, this)->include_once(env, module);
 }
 
 Value Object::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
@@ -837,14 +833,14 @@ void Object::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_na
     } else if (is_module()) {
         as_module()->method_alias(env, new_name, old_name);
     } else {
-        singleton_class(env)->make_method_alias(env, new_name, old_name);
+        singleton_class(env, this)->make_method_alias(env, new_name, old_name);
     }
 }
 
 void Object::singleton_method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = singleton_class(env);
+    ClassObject *klass = singleton_class(env, this);
     if (klass->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
     klass->method_alias(env, new_name, old_name);
@@ -853,7 +849,7 @@ void Object::singleton_method_alias(Env *env, SymbolObject *new_name, SymbolObje
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = KernelModule::singleton_class_obj(env, this)->as_class();
+    ClassObject *klass = singleton_class(env, this)->as_class();
     if (klass->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
     klass->define_method(env, name, fn, arity, optimized);
@@ -863,7 +859,7 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Meth
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Block *block) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = singleton_class(env);
+    ClassObject *klass = singleton_class(env, this);
     if (klass->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
     klass->define_method(env, name, block);
@@ -873,7 +869,7 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Bloc
 SymbolObject *Object::undefine_singleton_method(Env *env, SymbolObject *name) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = singleton_class(env);
+    ClassObject *klass = singleton_class(env, this);
     klass->undefine_method(env, name);
     return name;
 }

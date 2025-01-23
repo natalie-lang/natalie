@@ -235,7 +235,7 @@ public:
     SymbolObject *to_instance_variable_name(Env *);
 
     ClassObject *singleton_class() const { return m_singleton_class; }
-    ClassObject *singleton_class(Env *);
+    static ClassObject *singleton_class(Env *, Value);
 
     ClassObject *subclass(Env *env, const char *name);
 

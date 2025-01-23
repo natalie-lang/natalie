@@ -24,7 +24,7 @@ module Natalie
         obj = transform.pop
         transform.exec_and_push(
           :result_of_with_singleton,
-          "KernelModule::singleton_class_obj(env, #{obj})->as_module()->eval_body(env, #{fn})"
+          "Object::singleton_class(env, #{obj})->as_module()->eval_body(env, #{fn})"
         )
       end
 

@@ -1009,7 +1009,7 @@ gen.static_binding_as_instance_method('Kernel', 'private_methods', 'KernelModule
 gen.static_binding_as_instance_method('Kernel', 'protected_methods', 'KernelModule', 'protected_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'public_methods', 'KernelModule', 'public_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'remove_instance_variable', 'KernelModule', 'remove_instance_variable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('Kernel', 'singleton_class', 'KernelModule', 'singleton_class_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'singleton_class', 'Object', 'singleton_class', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'tap', 'KernelModule', 'tap', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Kernel', 'clone', 'Object', 'clone', argc: 0, kwargs: [:freeze], pass_env: true, pass_block: false, return_type: :Object)
