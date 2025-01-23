@@ -92,7 +92,7 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
     if (subsec) {
         if (subsec.is_integer()) {
             IntegerObject *integer = subsec->as_integer();
-            if (IntegerObject::lt(env, integer, new IntegerObject { 0 }) || IntegerObject::gte(env, integer, new IntegerObject { 1000000 }))
+            if (IntegerObject::lt(env, integer, Value::integer(0)) || IntegerObject::gte(env, integer, Value::integer(1000000)))
                 env->raise("ArgumentError", "subsecx out of range");
             result->m_subsec = RationalObject::create(env, integer, new IntegerObject { 1000000 });
         } else if (subsec->is_rational()) {
@@ -521,7 +521,7 @@ void TimeObject::set_subsec(Env *env, long nsec) {
 }
 
 void TimeObject::set_subsec(Env *env, IntegerObject *usec) {
-    if (IntegerObject::lt(env, usec, new IntegerObject { 0 }) || IntegerObject::gte(env, usec, new IntegerObject { 1000000 })) {
+    if (IntegerObject::lt(env, usec, Value::integer(0)) || IntegerObject::gte(env, usec, Value::integer(1000000))) {
         env->raise("ArgumentError", "subsecx out of range");
     }
     if (!IntegerObject::is_zero(usec)) {
