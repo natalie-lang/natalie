@@ -3,6 +3,7 @@
 namespace Natalie {
 
 enum class ObjectType {
+    Collected,
     Nil,
     Array,
     Binding,
