@@ -3816,7 +3816,7 @@ void StringObject::append(const String &str) {
 }
 
 void StringObject::append(const StringView &view) {
-    m_string.append(view.to_string());
+    m_string += view;
 }
 
 void StringObject::append(const StringObject *str) {
