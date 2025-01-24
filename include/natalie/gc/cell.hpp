@@ -24,6 +24,8 @@ public:
     public:
         virtual void visit(Value) = 0;
         virtual void visit(const Cell *) = 0;
+
+        void visit(const Integer &integer);
     };
 
     virtual void visit_children(Visitor &) const {
