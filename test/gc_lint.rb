@@ -14,6 +14,13 @@ SKIP_CLASS_MEMBERS = {
   'Natalie::StringObject::iterator' => '*',
 }
 
+GARBAGE_COLLECTED_BASE_CLASSES = %w[
+  Natalie::Cell
+  Natalie::Integer
+  Natalie::Object
+  Natalie::Value
+]
+
 KNOWN_UNCOLLECTABLE_TYPES = [
   'bool',
   'char',
@@ -31,7 +38,6 @@ KNOWN_UNCOLLECTABLE_TYPES = [
   'Natalie::FiberObject::Status',
   'Natalie::HeapBlock',
   'Natalie::HeapBlock::FreeCellNode',
-  'Natalie::Integer',
   'Natalie::LocalJumpErrorType',
   'Natalie::MethodInfo',
   'Natalie::MethodMissingReason',
@@ -135,10 +141,10 @@ end
 
 def garbage_collected?(type)
   type = lookup_type(type)
-  if %w[Natalie::Cell Natalie::Object Natalie::Value].include?(type)
+  if GARBAGE_COLLECTED_BASE_CLASSES.include?(type)
     true
   elsif (klass = @classes[type])
-    if %w[Natalie::Cell Natalie::Object Natalie::Value].include?(klass[:superclass])
+    if GARBAGE_COLLECTED_BASE_CLASSES.include?(klass[:superclass])
       true
     elsif (superclass = @classes[klass[:superclass]])
       garbage_collected?(superclass[:name])
