@@ -50,8 +50,8 @@ public:
 
     virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);
-        visitor.visit(m_numerator.bigint_pointer());
-        visitor.visit(m_denominator.bigint_pointer());
+        visitor.visit(m_numerator);
+        visitor.visit(m_denominator);
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {

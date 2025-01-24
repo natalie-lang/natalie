@@ -64,6 +64,8 @@ class Value;
 
 class Args;
 
+class Integer;
+
 using MethodFnPtr = Value (*)(Env *, Value, Args &&, Block *);
 
 }
