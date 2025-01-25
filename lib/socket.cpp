@@ -240,7 +240,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
     bool socktype_hack = false;
 
     StringObject *unix_path = nullptr;
-    IntegerObject *port = nullptr;
+    Value port = nullptr;
     StringObject *host = nullptr;
 
     if (!afamily)
@@ -275,7 +275,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
             break;
         case AF_INET:
         case AF_INET6:
-            port = new IntegerObject(Object::to_int(env, ary->ref(env, Value::integer(1))));
+            port = Value(Object::to_int(env, ary->ref(env, Value::integer(1))));
             host = ary->ref(env, Value::integer(2))->to_str(env);
             if (ary->ref(env, Value::integer(3))->is_string())
                 host = ary->at(3)->to_str(env);
@@ -319,7 +319,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         if (socktype_hack && hints.ai_socktype == 0)
             hints.ai_socktype = SOCK_DGRAM;
 
-        const char *service_str = IntegerObject::to_s(env, port)->as_string()->c_str();
+        const char *service_str = IntegerObject::to_s(env, port.integer())->as_string()->c_str();
 
         switch (hints.ai_socktype) {
         case SOCK_RAW:
@@ -1412,7 +1412,7 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
     do {
         auto addr = new ArrayObject;
         addr->push(new StringObject(Socket_family_to_string(result->ai_family)));
-        addr->push(new IntegerObject(Socket_getaddrinfo_result_port(result)));
+        addr->push(Value::integer(Socket_getaddrinfo_result_port(result)));
         if (reverse_lookup->is_truthy())
             addr->push(new StringObject(Socket_reverse_lookup_address(env, result->ai_addr)));
         else

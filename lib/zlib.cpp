@@ -325,7 +325,7 @@ Value Zlib_crc32(Env *env, Value self, Args &&args, Block *) {
         string->assert_type(env, Object::Type::String, "String");
         crc = ::crc32(crc, (Bytef *)(string->as_string()->c_str()), string->as_string()->string().size());
     }
-    return new IntegerObject { (nat_int_t)crc };
+    return Value::integer((nat_int_t)crc);
 }
 
 Value Zlib_crc_table(Env *env, Value self, Args &&args, Block *) {

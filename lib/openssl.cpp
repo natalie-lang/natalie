@@ -1059,7 +1059,7 @@ Value init_openssl(Env *env, Value self) {
     OpenSSL->const_set("VERSION"_s, VERSION);
 
     OpenSSL->const_set("OPENSSL_VERSION"_s, new StringObject { OPENSSL_VERSION_TEXT });
-    OpenSSL->const_set("OPENSSL_VERSION_NUMBER"_s, new IntegerObject { OPENSSL_VERSION_NUMBER });
+    OpenSSL->const_set("OPENSSL_VERSION_NUMBER"_s, Value::integer(OPENSSL_VERSION_NUMBER));
     OpenSSL->define_singleton_method(env, "fixed_length_secure_compare"_s, OpenSSL_fixed_length_secure_compare, 2);
 
     auto Cipher = OpenSSL->const_get("Cipher"_s);

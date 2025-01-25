@@ -59,7 +59,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
         *this = std::move(new_array);
 
         for (nat_int_t i = 0; i < s; i++) {
-            Value args[] = { new IntegerObject { i } };
+            Value args[] = { Value::integer(i) };
             push(NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr));
         }
 
@@ -466,7 +466,7 @@ Value ArrayObject::each_index(Env *env, Block *block) {
 
     nat_int_t size_nat_int_t = static_cast<nat_int_t>(size());
     for (nat_int_t i = 0; i < size_nat_int_t; i++) {
-        Value args[] = { new IntegerObject { i } };
+        Value args[] = { Value::integer(i) };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
     }
     return this;

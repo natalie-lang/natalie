@@ -32,7 +32,7 @@ public:
         : m_type { Type::Integer }
         , m_integer { integer } { }
 
-    Value(Integer &integer)
+    Value(const Integer &integer)
         : m_type { Type::Integer }
         , m_integer { integer } { }
 

@@ -96,7 +96,7 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
                 env->raise("ArgumentError", "subsecx out of range");
             result->m_subsec = RationalObject::create(env, IntegerObject::integer(integer), Integer(1000000));
         } else if (subsec->is_rational()) {
-            result->m_subsec = subsec->as_rational()->div(env, new IntegerObject { 1000000 });
+            result->m_subsec = subsec->as_rational()->div(env, Value::integer(1000000));
         } else {
             env->raise("TypeError", "can't convert {} into an exact number", subsec->klass()->inspect_str());
         }
@@ -171,7 +171,7 @@ Value TimeObject::hour(Env *) const {
 Value TimeObject::inspect(Env *env) {
     StringObject *result = build_string(env, "%Y-%m-%d %H:%M:%S")->as_string();
     if (m_subsec) {
-        auto integer = m_subsec->as_rational()->mul(env, new IntegerObject { 1000000000 })->as_rational()->to_i(env);
+        auto integer = m_subsec->as_rational()->mul(env, Value::integer(1000000000))->as_rational()->to_i(env);
         auto string = integer->to_s(env);
         auto length = string->length();
         if (length > 9) {
@@ -224,7 +224,7 @@ Value TimeObject::month(Env *) const {
 
 Value TimeObject::nsec(Env *env) {
     if (m_subsec) {
-        return m_subsec->as_rational()->mul(env, new IntegerObject { 1000000000 })->as_rational()->to_i(env);
+        return m_subsec->as_rational()->mul(env, Value::integer(1000000000))->as_rational()->to_i(env);
     } else {
         return Value::integer(0);
     }
@@ -281,7 +281,7 @@ Value TimeObject::to_utc(Env *env) {
 
 Value TimeObject::usec(Env *env) {
     if (m_subsec) {
-        return m_subsec->as_rational()->mul(env, new IntegerObject { 1000000 })->as_rational()->to_i(env);
+        return m_subsec->as_rational()->mul(env, Value::integer(1000000))->as_rational()->to_i(env);
     } else {
         return Value::integer(0);
     }

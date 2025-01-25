@@ -29,7 +29,7 @@ Value NilObject::to_a(const Env *env) const {
 }
 
 Value NilObject::to_c(const Env *env) const {
-    return new ComplexObject { new IntegerObject { 0 } };
+    return new ComplexObject { Value::integer(0) };
 }
 
 Value NilObject::to_h(const Env *env) const {
@@ -45,7 +45,7 @@ Value NilObject::to_i(const Env *env) const {
 }
 
 Value NilObject::to_r(const Env *env) const {
-    return new RationalObject { new IntegerObject { 0 }, new IntegerObject { 1 } };
+    return new RationalObject { Value::integer(0), Value::integer(1) };
 }
 
 Value NilObject::inspect(const Env *env) const {

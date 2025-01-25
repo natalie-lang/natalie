@@ -31,7 +31,7 @@ class Fiddle
       auto handle = self->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
       name->assert_type(env, Object::Type::String, "String");
       auto symbol = dlsym(handle, name->as_string()->c_str());
-      return new IntegerObject { (long long)symbol };
+      return Value::integer((long long)symbol);
     END
   end
 

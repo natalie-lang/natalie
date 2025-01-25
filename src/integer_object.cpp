@@ -9,27 +9,24 @@ Value IntegerObject::create(const nat_int_t integer) {
 }
 
 Value IntegerObject::create(const Integer &integer) {
-    if (integer.is_bignum())
-        return new IntegerObject { integer };
-    return Value::integer(integer.to_nat_int_t());
+    return Value { integer };
 }
 
 Value IntegerObject::create(Integer &&integer) {
-    if (integer.is_bignum())
-        return new IntegerObject { std::move(integer) };
-    return Value::integer(integer.to_nat_int_t());
+    return Value { std::move(integer) };
 }
 
 Value IntegerObject::create(const char *string) {
-    return new IntegerObject { BigInt(string) };
+    String str { string };
+    return create(str);
 };
 
 Value IntegerObject::create(const TM::String &string) {
-    return new IntegerObject { BigInt(string) };
+    return Value { Integer(string) };
 };
 
 Value IntegerObject::create(TM::String &&string) {
-    return new IntegerObject { BigInt(std::move(string)) };
+    return Value { Integer(std::move(string)) };
 };
 
 Value IntegerObject::to_s(Env *env, IntegerObject *self, Value base_value) {
@@ -156,7 +153,7 @@ Value IntegerObject::mod(Env *env, Integer &self, Value arg) {
     if (arg->is_float()) {
         return Value::floatingpoint(self.to_double())->as_float()->mod(env, arg);
     } else if (!arg.is_integer()) {
-        auto [lhs, rhs] = Natalie::coerce(env, arg, new IntegerObject(self));
+        auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         if (!lhs.is_integer())
             return lhs.send(env, "%"_s, { rhs });
         arg = rhs;
@@ -178,7 +175,7 @@ Value IntegerObject::pow(Env *env, Integer &self, Integer &arg) {
     // NATFIXME: If a negative number is passed we want to return a Rational
     if (arg < 0) {
         auto denominator = Natalie::pow(self, -arg);
-        return new RationalObject { new IntegerObject { 1 }, new IntegerObject { denominator } };
+        return new RationalObject { Value::integer(1), denominator };
     }
 
     if (arg == 0)
@@ -208,7 +205,7 @@ Value IntegerObject::pow(Env *env, Integer &self, Value arg) {
         return pow(env, self, arg.integer());
 
     if ((arg->is_float() || arg->is_rational()) && self < 0) {
-        auto comp = new ComplexObject { new IntegerObject(self) };
+        auto comp = new ComplexObject { self };
         return comp->send(env, "**"_s, { arg });
     }
 
@@ -246,7 +243,7 @@ Value IntegerObject::powmod(Env *env, Integer &self, Value exponent, Value mod) 
     auto powi = powd->as_integer();
 
     if (is_bignum(powi))
-        return new IntegerObject { to_bigint(powi) % to_bigint(modi) };
+        return Integer(to_bigint(powi) % to_bigint(modi));
 
     if (to_nat_int_t(powi) < 0 || to_nat_int_t(modi) < 0)
         return IntegerObject::mod(env, IntegerObject::integer(powi), mod);

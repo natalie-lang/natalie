@@ -563,7 +563,7 @@ void StringUnpacker::unpack_w(Env *env, Token &token) {
         if (shift > 0) {
             result = (result << shift) | temp_result;
         }
-        append(new IntegerObject(std::move(result)));
+        append(result);
 
         return !at_end();
     });
