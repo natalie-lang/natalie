@@ -511,7 +511,7 @@ Env *build_top_env() {
     RUBY_ENGINE->freeze();
     Object->const_set("RUBY_ENGINE"_s, RUBY_ENGINE);
 
-    Value RUBY_PATCHLEVEL = new IntegerObject { -1 };
+    Value RUBY_PATCHLEVEL = Value::integer(-1);
     RUBY_PATCHLEVEL->freeze();
     Object->const_set("RUBY_PATCHLEVEL"_s, RUBY_PATCHLEVEL);
 

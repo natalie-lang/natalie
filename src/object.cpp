@@ -1053,9 +1053,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Hash:
         return new HashObject { env, *as_hash() };
     case Object::Type::Integer:
-        if (IntegerObject::is_bignum(as_integer()))
-            return new IntegerObject { *as_integer() };
-        return Value::integer(IntegerObject::to_nat_int_t(as_integer()));
+        return IntegerObject::integer(as_integer());
     case Object::Type::Module:
         return new ModuleObject { *as_module() };
     case Object::Type::Nil:

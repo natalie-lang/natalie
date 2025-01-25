@@ -19,11 +19,11 @@ public:
         : Object { Object::Type::ThreadBacktraceLocation, GlobalEnv::the()->Object()->const_fetch("Thread"_s)->const_fetch("Backtrace"_s)->const_fetch("Location"_s)->as_class() }
         , m_source_location { new StringObject { source_location } }
         , m_file { new StringObject { file } }
-        , m_line { new IntegerObject { static_cast<nat_int_t>(line) } } { }
+        , m_line { Value::integer(line) } { }
 
     Value absolute_path(Env *) const;
     StringObject *inspect(Env *) const;
-    IntegerObject *lineno() const { return m_line; }
+    Value lineno() const { return m_line; }
     Value path() const { return m_file; }
     StringObject *to_s() const;
 
@@ -32,7 +32,7 @@ public:
 private:
     StringObject *m_source_location { nullptr };
     StringObject *m_file { nullptr };
-    IntegerObject *m_line { nullptr };
+    Value m_line { nullptr };
 };
 
 }

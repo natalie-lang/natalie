@@ -556,7 +556,7 @@ Value RegexpObject::named_captures(Env *env) const {
             auto key = new StringObject { reinterpret_cast<const char *>(name), length, onig_encoding_to_ruby_encoding(regex->enc) };
             auto values = new ArrayObject { static_cast<size_t>(groups_size) };
             for (size_t i = 0; i < static_cast<size_t>(groups_size); i++)
-                values->push(new IntegerObject { groups[i] });
+                values->push(Value::integer(groups[i]));
             named_captures->put(env, key, values);
             return 0;
         },

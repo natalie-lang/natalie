@@ -45,7 +45,7 @@ Value RationalObject::cmp(Env *env, Value other) {
     if (other.is_integer()) {
         if (m_denominator == 1)
             return IntegerObject::cmp(env, m_numerator, other->as_integer());
-        other = new RationalObject { other->as_integer(), new IntegerObject { 1 } };
+        other = new RationalObject { other.integer(), Value::integer(1) };
     }
     if (other->is_rational()) {
         auto rational = other->as_rational();
@@ -66,7 +66,7 @@ Value RationalObject::cmp(Env *env, Value other) {
 
 Value RationalObject::coerce(Env *env, Value other) {
     if (other.is_integer()) {
-        return new ArrayObject { new RationalObject(other->as_integer(), new IntegerObject { 1 }), this };
+        return new ArrayObject { new RationalObject(other.integer(), Value::integer(1)), this };
     } else if (other->is_float()) {
         return new ArrayObject { other, this->to_f(env) };
     } else if (other->is_rational()) {
@@ -162,7 +162,7 @@ Value RationalObject::marshal_dump(Env *env) {
 
 Value RationalObject::mul(Env *env, Value other) {
     if (other.is_integer())
-        other = new RationalObject { other->as_integer(), new IntegerObject { 1 } };
+        other = new RationalObject { other.integer(), Value::integer(1) };
 
     if (other->is_rational()) {
         auto num1 = other->as_rational()->numerator(env).integer();
@@ -185,14 +185,17 @@ Value RationalObject::numerator(Env *env) {
 }
 
 Value RationalObject::pow(Env *env, Value other) {
-    IntegerObject *numerator = nullptr, *denominator = nullptr;
+    Integer numerator, denominator;
+
     if (other.is_integer()) {
-        numerator = other->as_integer();
-        denominator = new IntegerObject { 1 };
+        numerator = other.integer();
+        denominator = 1;
     } else if (other->is_rational()) {
-        numerator = other->as_rational()->numerator(env)->as_integer();
-        denominator = other->as_rational()->denominator(env)->as_integer();
-    } else if (!other->is_float()) {
+        numerator = other->as_rational()->numerator(env).integer();
+        denominator = other->as_rational()->denominator(env).integer();
+    } else if (other->is_float()) {
+        return this->to_f(env)->as_float()->pow(env, other);
+    } else {
         if (other->respond_to(env, "coerce"_s)) {
             auto result = Natalie::coerce(env, other, this);
             return result.first->send(env, "**"_s, { result.second });
@@ -201,29 +204,27 @@ Value RationalObject::pow(Env *env, Value other) {
         }
     }
 
-    if (numerator && denominator) {
-        if (IntegerObject::is_zero(numerator))
-            return create(env, Integer(1), Integer(1));
+    if (numerator.is_zero())
+        return create(env, Integer(1), Integer(1));
 
-        if (IntegerObject::is_zero(m_numerator) && IntegerObject::is_negative(numerator))
-            env->raise("ZeroDivisionError", "divided by 0");
+    if (m_numerator.is_zero() && numerator.is_negative())
+        env->raise("ZeroDivisionError", "divided by 0");
 
-        if (IntegerObject::integer(denominator) == 1) {
-            Value new_numerator, new_denominator;
-            if (IntegerObject::integer(numerator).is_negative()) {
-                if (IntegerObject::is_zero(m_numerator))
-                    env->raise("ZeroDivisionError", "divided by 0");
-                auto negated = IntegerObject::negate(env, numerator);
-                new_numerator = IntegerObject::pow(env, m_denominator, negated);
-                new_denominator = IntegerObject::pow(env, m_numerator, negated);
-            } else {
-                new_numerator = IntegerObject::pow(env, m_numerator, numerator);
-                new_denominator = IntegerObject::pow(env, m_denominator, numerator);
-            }
-
-            if (new_numerator.is_integer() && new_denominator.is_integer())
-                return create(env, new_numerator.integer(), new_denominator.integer());
+    if (denominator == 1) {
+        Value new_numerator, new_denominator;
+        if (numerator.is_negative()) {
+            if (m_numerator.is_zero())
+                env->raise("ZeroDivisionError", "divided by 0");
+            auto negated = -numerator;
+            new_numerator = IntegerObject::pow(env, m_denominator, negated);
+            new_denominator = IntegerObject::pow(env, m_numerator, negated);
+        } else {
+            new_numerator = IntegerObject::pow(env, m_numerator, numerator);
+            new_denominator = IntegerObject::pow(env, m_denominator, numerator);
         }
+
+        if (new_numerator.is_integer() && new_denominator.is_integer())
+            return create(env, new_numerator.integer(), new_denominator.integer());
     }
 
     return this->to_f(env)->as_float()->pow(env, other);

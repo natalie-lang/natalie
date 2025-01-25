@@ -1506,7 +1506,7 @@ Value StringObject::hex(Env *env) const {
                 value = char_value;
                 state = number;
             } else {
-                return new IntegerObject { 0 };
+                return Value::integer(0);
             }
             break;
         case sign:
@@ -1517,7 +1517,7 @@ Value StringObject::hex(Env *env) const {
                 value = char_value;
                 state = number;
             } else {
-                return new IntegerObject { 0 };
+                return Value::integer(0);
             }
             break;
         case prefix:
@@ -1525,7 +1525,7 @@ Value StringObject::hex(Env *env) const {
                 value = char_value;
                 state = number;
             } else {
-                return new IntegerObject { 0 };
+                return Value::integer(0);
             }
             break;
         case number:
@@ -1534,7 +1534,7 @@ Value StringObject::hex(Env *env) const {
             } else if (c == '_') {
                 state = underscore;
             } else {
-                return new IntegerObject { (negative ? -value : value) };
+                return Value::integer((negative ? -value : value));
             }
             break;
         case underscore:
@@ -1542,13 +1542,13 @@ Value StringObject::hex(Env *env) const {
                 value = (value * 16) + char_value;
                 state = number;
             } else {
-                return new IntegerObject { (negative ? -value : value) };
+                return Value::integer((negative ? -value : value));
             }
             break;
         }
     }
 
-    return new IntegerObject { (negative ? -value : value) };
+    return Value::integer((negative ? -value : value));
 }
 
 /**

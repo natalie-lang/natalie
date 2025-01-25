@@ -13,7 +13,7 @@ Value group_to_struct(Env *env, Value self, struct group *grp) {
     // are the ones required by POSIX
     grpstruct->send(env, "name="_s, { new StringObject { grp->gr_name } });
     grpstruct->send(env, "passwd="_s, { new StringObject { grp->gr_passwd } });
-    grpstruct->send(env, "gid="_s, { new IntegerObject { grp->gr_gid } });
+    grpstruct->send(env, "gid="_s, { Value::integer(grp->gr_gid) });
     auto mem_ary = new ArrayObject {};
     char **memptr = grp->gr_mem;
     for (char *member_name = *memptr; member_name; member_name = *++memptr) {
@@ -31,8 +31,8 @@ Value passwd_to_struct(Env *env, Value self, struct passwd *pwd) {
     // It is possible more fields could be set, but these
     // are the ones required by POSIX
     pwdstruct->send(env, "name="_s, { new StringObject { pwd->pw_name } });
-    pwdstruct->send(env, "uid="_s, { new IntegerObject { pwd->pw_uid } });
-    pwdstruct->send(env, "gid="_s, { new IntegerObject { pwd->pw_gid } });
+    pwdstruct->send(env, "uid="_s, { Value::integer(pwd->pw_uid) });
+    pwdstruct->send(env, "gid="_s, { Value::integer(pwd->pw_gid) });
     pwdstruct->send(env, "dir="_s, { new StringObject { pwd->pw_dir } });
     pwdstruct->send(env, "gecos="_s, { new StringObject { pwd->pw_gecos } });
     pwdstruct->send(env, "passwd="_s, { new StringObject { pwd->pw_passwd } });
@@ -169,7 +169,7 @@ Value Etc_sysconf(Env *env, Value self, Args &&args, Block *_block) {
         if (errno) env->raise_errno();
         return NilObject::the();
     }
-    return new IntegerObject { status };
+    return Value::integer(status);
 }
 
 Value Etc_uname(Env *env, Value, Args &&args, Block *) {

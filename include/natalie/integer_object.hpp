@@ -38,6 +38,10 @@ public:
     static Value create(const TM::String &);
     static Value create(TM::String &&);
 
+    static Integer integer(const IntegerObject *self) {
+        return self->m_integer;
+    }
+
     static Integer &integer(IntegerObject *self) {
         return self->m_integer;
     }
