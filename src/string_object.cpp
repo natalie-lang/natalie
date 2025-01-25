@@ -61,10 +61,10 @@ static auto character_class_handler(Env *env, Args &&args) {
 
                 auto next_value = result.second;
                 if (!result.first)
-                    env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character.to_string(), next_value.to_string());
+                    env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character, next_value);
 
                 if (last_character.to_string().cmp(next_value.to_string()) == 1)
-                    env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character.to_string(), next_value.to_string());
+                    env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character, next_value);
 
                 auto range = RangeObject::create(env, new StringObject { last_character.to_string() }, new StringObject { next_value.to_string() }, false);
                 auto all_chars = range->to_a(env)->as_array();
@@ -3816,7 +3816,7 @@ void StringObject::append(const String &str) {
 }
 
 void StringObject::append(const StringView &view) {
-    m_string.append(view.to_string());
+    m_string += view;
 }
 
 void StringObject::append(const StringObject *str) {
