@@ -1,0 +1,36 @@
+name: TM
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  DOCKER_FLAGS: ""
+  CI: 1
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: test with gcc
+        run: cd ext/tm && rake docker_test
+
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: install dependencies
+        run: sudo apt-get install -y -q ruby clang-format
+      - name: format
+        run: cd ext/tm && rake format
+      - uses: EndBug/add-and-commit@v9
+        with:
+          author_name: Tim Morgan
+          author_email: tim@timmorgan.org
+          message: "Format code with clang-format (automated)"
