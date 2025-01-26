@@ -129,8 +129,7 @@ public:
     static Value numerator(IntegerObject *self) { return IntegerObject::create(self->m_integer); }
     static Value numerator(Integer &self) { return IntegerObject::create(self); }
     static Value complement(Env *, Integer &self) { return ~self; }
-    static Value ord(IntegerObject *self) { return IntegerObject::create(self->m_integer); }
-    static Value ord(Integer &self) { return IntegerObject::create(self); }
+    static Value ord(Integer &self) { return self; }
     static Value denominator() { return Value::integer(1); }
     static Value round(Env *, IntegerObject *, Value, Value);
     static Value round(Env *env, Integer &self, Value ndigits, Value half) { return round(env, new IntegerObject(self), ndigits, half); }
