@@ -118,8 +118,7 @@ public:
     static Value right_shift(Env *, Integer &, Value);
     static Value pred(Env *env, Integer &self) { return self - 1; }
     static Value size(Env *, Integer &);
-    static Value succ(Env *, IntegerObject *);
-    static Value succ(Env *env, Integer &self) { return succ(env, new IntegerObject(self)); }
+    static Value succ(Env *, Integer &self) { return self + 1; }
     static Value ceil(Env *, IntegerObject *, Value);
     static Value ceil(Env *env, Integer &self, Value arg) { return ceil(env, new IntegerObject(self), arg); }
     static Value coerce(Env *, IntegerObject *, Value);

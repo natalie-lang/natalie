@@ -496,10 +496,6 @@ Value IntegerObject::size(Env *env, Integer &self) {
     return Value::integer(sizeof(nat_int_t));
 }
 
-Value IntegerObject::succ(Env *env, IntegerObject *self) {
-    return add(env, IntegerObject::integer(self), Value::integer(1));
-}
-
 Value IntegerObject::coerce(Env *env, IntegerObject *self, Value arg) {
     ArrayObject *ary = new ArrayObject {};
     switch (arg->type()) {
