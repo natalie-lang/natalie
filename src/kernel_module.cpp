@@ -529,10 +529,18 @@ Value KernelModule::spawn(Env *env, Args &&args) {
         for (auto ep = environ; *ep; ep++)
             new_env.push(strdup(*ep));
         for (auto pair : *hash) {
+            auto key = pair.key->to_str(env);
+            if (key->include(env, '='))
+                env->raise("ArgumentError", "environment name contains a equal : {}", key->string());
+            if (key->include(env, '\0'))
+                env->raise("ArgumentError", "string contains null byte");
+            auto val = pair.val->to_str(env);
+            if (val->include(env, '\0'))
+                env->raise("ArgumentError", "string contains null byte");
             auto combined = String::format(
                 "{}={}",
-                pair.key->to_str(env)->string(),
-                pair.val->to_str(env)->string());
+                key->string(),
+                val->string());
             new_env.push(strdup(combined.c_str()));
         }
         new_env.push(nullptr);
