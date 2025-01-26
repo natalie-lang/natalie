@@ -306,27 +306,21 @@ describe "Process.spawn" do
   end
 
   it "raises an ArgumentError if an environment key includes an equals sign" do
-    NATFIXME 'it raises an ArgumentError if an environment key includes an equals sign', exception: SpecFailedException do
-      -> do
-        Process.spawn({"FOO=" => "BAR"}, "echo #{@var}>#{@name}")
-      end.should raise_error(ArgumentError)
-    end
+    -> do
+      Process.spawn({"FOO=" => "BAR"}, "echo #{@var}>#{@name}")
+    end.should raise_error(ArgumentError)
   end
 
   it "raises an ArgumentError if an environment key includes a null byte" do
-    NATFIXME 'it raises an ArgumentError if an environment key includes a null byte', exception: SpecFailedException do
-      -> do
-        Process.spawn({"\000" => "BAR"}, "echo #{@var}>#{@name}")
-      end.should raise_error(ArgumentError)
-    end
+    -> do
+      Process.spawn({"\000" => "BAR"}, "echo #{@var}>#{@name}")
+    end.should raise_error(ArgumentError)
   end
 
   it "raises an ArgumentError if an environment value includes a null byte" do
-    NATFIXME 'it raises an ArgumentError if an environment value includes a null byte', exception: SpecFailedException do
-      -> do
-        Process.spawn({"FOO" => "\000"}, "echo #{@var}>#{@name}")
-      end.should raise_error(ArgumentError)
-    end
+    -> do
+      Process.spawn({"FOO" => "\000"}, "echo #{@var}>#{@name}")
+    end.should raise_error(ArgumentError)
   end
 
   # :unsetenv_others
