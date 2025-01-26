@@ -82,7 +82,7 @@ Value DirObject::seek(Env *env, Value position) {
 
 nat_int_t DirObject::set_pos(Env *env, Value position) {
     if (!m_dir) env->raise("IOError", "closed directory");
-    nat_int_t pos = IntegerObject::to_nat_int_t(position->as_integer());
+    nat_int_t pos = position.integer().to_nat_int_t();
     ::seekdir(m_dir, pos);
     return pos;
 }
