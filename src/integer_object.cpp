@@ -555,9 +555,9 @@ Value IntegerObject::floor(Env *env, Integer &self, Value arg) {
     return Value::integer(result);
 }
 
-Value IntegerObject::gcd(Env *env, IntegerObject *self, Value divisor) {
+Value IntegerObject::gcd(Env *env, Integer &self, Value divisor) {
     divisor->assert_type(env, Object::Type::Integer, "Integer");
-    return create(Natalie::gcd(self->m_integer, divisor->as_integer()->m_integer));
+    return Natalie::gcd(self, divisor.integer());
 }
 
 Value IntegerObject::abs(Env *env, IntegerObject *self) {
