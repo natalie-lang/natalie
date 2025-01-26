@@ -130,8 +130,7 @@ public:
     static Value complement(Env *, Integer &self) { return ~self; }
     static Value ord(Integer &self) { return self; }
     static Value denominator() { return Value::integer(1); }
-    static Value round(Env *, IntegerObject *, Value, Value);
-    static Value round(Env *env, Integer &self, Value ndigits, Value half) { return round(env, new IntegerObject(self), ndigits, half); }
+    static Value round(Env *, Integer &, Value, Value);
     static Value truncate(Env *, IntegerObject *, Value);
     static Value truncate(Env *env, Integer &self, Value ndigits) { return truncate(env, new IntegerObject(self), ndigits); }
     static Value ref(Env *, IntegerObject *, Value, Value);

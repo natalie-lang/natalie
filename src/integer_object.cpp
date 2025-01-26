@@ -610,17 +610,17 @@ Value IntegerObject::sqrt(Env *env, Value arg) {
     return create(Natalie::sqrt(argument));
 }
 
-Value IntegerObject::round(Env *env, IntegerObject *self, Value ndigits, Value half) {
+Value IntegerObject::round(Env *env, Integer &self, Value ndigits, Value half) {
     if (!ndigits)
-        return IntegerObject::create(self->m_integer);
+        return self;
 
     int digits = IntegerObject::convert_to_int(env, ndigits);
     RoundingMode rounding_mode = rounding_mode_from_value(env, half);
 
     if (digits >= 0)
-        return IntegerObject::create(self->m_integer);
+        return self;
 
-    auto result = self->m_integer;
+    auto result = self;
     auto dividend = Natalie::pow(Integer(10), -digits);
 
     auto dividend_half = dividend / 2;
