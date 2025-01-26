@@ -79,6 +79,17 @@ module Zlib
     end
   end
 
+  def self.gzip(src, level: nil, strategy: nil)
+    # windowBits can also be greater than 15 for optional gzip encoding. Add
+    # 16 to windowBits to write a simple gzip header and trailer around the
+    # compressed data instead of a zlib wrapper.
+    zstream = Zlib::Deflate.new(level || DEFAULT_COMPRESSION, MAX_WBITS | 16, DEF_MEM_LEVEL, strategy || DEFAULT_STRATEGY)
+    zstream << src
+    zstream.finish.tap do
+      zstream.close
+    end
+  end
+
   class ZStream
     __bind_method__ :adler, :Zlib_ZStream_adler, 0
     __bind_method__ :avail_in, :Zlib_ZStream_avail_in, 0
