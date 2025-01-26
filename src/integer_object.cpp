@@ -68,7 +68,7 @@ Value IntegerObject::to_s(Env *env, Integer &self, Value base_value) {
 }
 
 Value IntegerObject::add(Env *env, Integer &self, Value arg) {
-    if (arg.is_fast_integer()) {
+    if (arg.is_integer()) {
         return create(self + arg.integer());
     } else if (arg->is_float()) {
         return Value::floatingpoint(self + arg->as_float()->to_double());
@@ -80,11 +80,11 @@ Value IntegerObject::add(Env *env, Integer &self, Value arg) {
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    return create(self + arg->as_integer()->m_integer);
+    return create(self + arg.integer());
 }
 
 Value IntegerObject::sub(Env *env, Integer &self, Value arg) {
-    if (arg.is_fast_integer()) {
+    if (arg.is_integer()) {
         return create(self - arg.integer());
     } else if (arg->is_float()) {
         double result = self.to_double() - arg->as_float()->to_double();
@@ -97,12 +97,12 @@ Value IntegerObject::sub(Env *env, Integer &self, Value arg) {
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    return create(self - arg->as_integer()->m_integer);
+    return create(self - arg.integer());
 }
 
-Value IntegerObject::mul(Env *env, IntegerObject *self, Value arg) {
+Value IntegerObject::mul(Env *env, Integer &self, Value arg) {
     if (arg->is_float()) {
-        double result = self->m_integer.to_double() * arg->as_float()->to_double();
+        double result = self.to_double() * arg->as_float()->to_double();
         return new FloatObject { result };
     } else if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
@@ -113,15 +113,15 @@ Value IntegerObject::mul(Env *env, IntegerObject *self, Value arg) {
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    if (self->m_integer == 0 || arg->as_integer()->m_integer == 0)
+    if (self == 0 || arg.integer() == 0)
         return Value::integer(0);
 
-    return create(self->m_integer * arg->as_integer()->m_integer);
+    return create(self * arg.integer());
 }
 
-Value IntegerObject::div(Env *env, IntegerObject *self, Value arg) {
+Value IntegerObject::div(Env *env, Integer &self, Value arg) {
     if (arg->is_float()) {
-        double result = self->m_integer / arg->as_float()->to_double();
+        double result = self / arg->as_float()->to_double();
         if (isnan(result))
             return FloatObject::nan();
         return Value::floatingpoint(result);
@@ -133,11 +133,11 @@ Value IntegerObject::div(Env *env, IntegerObject *self, Value arg) {
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto other = arg->as_integer()->m_integer;
+    auto other = arg.integer();
     if (other == 0)
         env->raise("ZeroDivisionError", "divided by 0");
 
-    return create(self->m_integer / other);
+    return create(self / other);
 }
 
 Value IntegerObject::mod(Env *env, Integer &self, Value arg) {

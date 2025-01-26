@@ -101,10 +101,8 @@ public:
     static Value to_f(Integer &self) { return Value::floatingpoint(self.to_double()); }
     static Value add(Env *, Integer &, Value);
     static Value sub(Env *, Integer &, Value);
-    static Value mul(Env *, IntegerObject *, Value);
-    static Value mul(Env *env, Integer &self, Value other) { return mul(env, new IntegerObject(self), other); }
-    static Value div(Env *, IntegerObject *, Value);
-    static Value div(Env *env, Integer &self, Value other) { return div(env, new IntegerObject(self), other); }
+    static Value mul(Env *, Integer &, Value);
+    static Value div(Env *, Integer &, Value);
     static Value mod(Env *, Integer &, Value);
     static Value pow(Env *, Integer &, Integer &);
     static Value pow(Env *, Integer &, Value);

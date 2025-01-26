@@ -459,9 +459,9 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
 
 RationalObject *KernelModule::Rational(Env *env, IntegerObject *x, IntegerObject *y) {
     Value gcd = IntegerObject::gcd(env, x, y);
-    Value numerator = IntegerObject::div(env, x, gcd);
-    Value denominator = IntegerObject::div(env, y, gcd);
-    return RationalObject::create(env, numerator.integer(), denominator.integer());
+    class Integer numerator = Value(x).integer() / gcd.integer();
+    class Integer denominator = Value(y).integer() / gcd.integer();
+    return RationalObject::create(env, numerator, denominator);
 }
 
 RationalObject *KernelModule::Rational(Env *env, double arg) {
@@ -475,9 +475,9 @@ RationalObject *KernelModule::Rational(Env *env, double arg) {
 
     class Integer two(2);
     if (exponent < 0)
-        y = IntegerObject::mul(env, y->as_integer(), IntegerObject::pow(env, two, Value::integer(-exponent)));
+        y = y.integer() * IntegerObject::pow(env, two, Value::integer(-exponent)).integer();
     else
-        x = IntegerObject::mul(env, x->as_integer(), IntegerObject::pow(env, two, Value::integer(exponent)));
+        x = x.integer() * IntegerObject::pow(env, two, Value::integer(exponent)).integer();
 
     return Rational(env, x->as_integer(), y->as_integer());
 }

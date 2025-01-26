@@ -258,9 +258,9 @@ Value RationalObject::to_f(Env *env) {
 
 Value RationalObject::to_i(Env *env) {
     if (IntegerObject::is_negative(m_numerator)) {
-        auto a = IntegerObject::negate(env, m_numerator)->as_integer();
-        auto b = IntegerObject::div(env, a, m_denominator)->as_integer();
-        return IntegerObject::negate(env, b);
+        auto a = -m_numerator;
+        auto b = a / m_denominator;
+        return -b;
     }
     return IntegerObject::div(env, m_numerator, m_denominator);
 }
