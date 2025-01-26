@@ -130,7 +130,7 @@ nat_int_t Value::as_fast_integer() const {
     assert(m_type == Type::Integer || (m_type == Type::Pointer && m_object->type() == Object::Type::Integer));
     if (m_type == Type::Integer)
         return m_integer.to_nat_int_t();
-    return IntegerObject::to_nat_int_t(m_object->as_integer());
+    return IntegerObject::to_nat_int_t(static_cast<IntegerObject *>(m_object));
 }
 
 bool Value::operator==(Value other) const {
@@ -143,9 +143,9 @@ bool Value::operator==(Value other) const {
             return false;
         default: {
             if (other && other->type() == Object::Type::Integer) {
-                auto i = other->as_integer();
-                if (IntegerObject::is_fixnum(IntegerObject::integer(i)))
-                    return m_integer == IntegerObject::to_nat_int_t(i);
+                auto i = other.integer();
+                if (i.is_fixnum())
+                    return m_integer == i.to_nat_int_t();
             }
             return false;
         }
@@ -177,7 +177,7 @@ const Integer &Value::integer() const {
         return m_integer;
     case Type::Pointer:
         assert(m_object->type() == Object::Type::Integer);
-        return IntegerObject::integer(m_object->as_integer());
+        return IntegerObject::integer(static_cast<IntegerObject *>(m_object));
         break;
     default:
         NAT_UNREACHABLE();
@@ -190,7 +190,7 @@ Integer &Value::integer() {
         return m_integer;
     case Type::Pointer:
         assert(m_object->type() == Object::Type::Integer);
-        return IntegerObject::integer(m_object->as_integer());
+        return IntegerObject::integer(static_cast<IntegerObject *>(m_object));
         break;
     default:
         NAT_UNREACHABLE();
