@@ -340,16 +340,6 @@ const HashObject *Object::as_hash() const {
     return static_cast<const HashObject *>(this);
 }
 
-IntegerObject *Object::as_integer() {
-    assert(m_type == Type::Integer);
-    return static_cast<IntegerObject *>(this);
-}
-
-const IntegerObject *Object::as_integer() const {
-    assert(m_type == Type::Integer);
-    return static_cast<const IntegerObject *>(this);
-}
-
 IoObject *Object::as_io() {
     assert(is_io());
     return static_cast<IoObject *>(this);

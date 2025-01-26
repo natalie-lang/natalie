@@ -177,8 +177,6 @@ public:
     const FloatObject *as_float() const;
     HashObject *as_hash();
     const HashObject *as_hash() const;
-    IntegerObject *as_integer();
-    const IntegerObject *as_integer() const;
     IoObject *as_io();
     const IoObject *as_io() const;
     MatchDataObject *as_match_data();
