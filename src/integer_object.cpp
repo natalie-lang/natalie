@@ -454,7 +454,7 @@ Value IntegerObject::bitwise_xor(Env *env, Integer &self, Value arg) {
     return create(self ^ arg.integer());
 }
 
-Value IntegerObject::left_shift(Env *env, IntegerObject *self, Value arg) {
+Value IntegerObject::left_shift(Env *env, Integer &self, Value arg) {
     auto integer = Object::to_int(env, arg);
     if (is_bignum(integer)) {
         if (IntegerObject::is_negative(self))
@@ -468,10 +468,10 @@ Value IntegerObject::left_shift(Env *env, IntegerObject *self, Value arg) {
     if (nat_int < 0)
         return IntegerObject::right_shift(env, self, Value::integer(-nat_int));
 
-    return create(self->m_integer << nat_int);
+    return create(self << nat_int);
 }
 
-Value IntegerObject::right_shift(Env *env, IntegerObject *self, Value arg) {
+Value IntegerObject::right_shift(Env *env, Integer &self, Value arg) {
     auto integer = Object::to_int(env, arg);
     if (is_bignum(integer)) {
         if (IntegerObject::is_negative(self))
@@ -485,7 +485,7 @@ Value IntegerObject::right_shift(Env *env, IntegerObject *self, Value arg) {
     if (nat_int < 0)
         return left_shift(env, self, Value::integer(-nat_int));
 
-    return create(self->m_integer >> nat_int);
+    return create(self >> nat_int);
 }
 
 Value IntegerObject::pred(Env *env, IntegerObject *self) {
