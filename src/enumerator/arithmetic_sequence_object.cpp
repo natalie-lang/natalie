@@ -60,13 +60,14 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
 
     Integer step_count;
     if (n.is_integer()) {
-        step_count = IntegerObject::integer(n->as_integer());
+        step_count = n.integer();
 
         if (!exclude_end())
             step_count += 1;
     } else {
-        auto a = n.send(env, "+"_s, { n.send(env, "*"_s, { new FloatObject { std::numeric_limits<double>::epsilon() } }) }).send(env, "floor"_s)->as_integer();
-        step_count = IntegerObject::integer(a) + 1;
+        auto a = n.send(env, "+"_s, { n.send(env, "*"_s, { new FloatObject { std::numeric_limits<double>::epsilon() } }) });
+        auto b = a.send(env, "floor"_s).integer();
+        step_count = b + 1;
     }
 
     return step_count;
