@@ -91,4 +91,13 @@ describe 'Zlib' do
       -> { zstream << 'hello' }.should raise_error(Zlib::Error, 'stream is not ready')
     end
   end
+
+  describe 'Zlib.crc32' do
+    it 'converts initial value with #to_int' do
+    test_string = "This is a test string! How exciting!%?"
+    to_int = mock('to_int')
+    to_int.should_receive(:to_int).and_return(1)
+    Zlib.crc32(test_string, to_int).should == Zlib.crc32(test_string, 1)
+    end
+  end
 end
