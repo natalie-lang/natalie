@@ -57,7 +57,6 @@ module Zlib
   __bind_static_method__ :adler32, :Zlib_adler32
   __bind_static_method__ :crc32, :Zlib_crc32
   __bind_static_method__ :crc_table, :Zlib_crc_table, 0
-  __bind_static_method__ :gunzip, :Zlib_gunzip, 1
   __bind_static_method__ :zlib_version, :Zlib_zlib_version, 0
   #end
 
@@ -67,6 +66,17 @@ module Zlib
 
   def self.inflate(...)
     Inflate.inflate(...)
+  end
+
+  def self.gunzip(input)
+    # windowBits can also be greater than 15 for optional gzip encoding. Add
+    # 16 to windowBits to write a simple gzip header and trailer around the
+    # compressed data instead of a zlib wrapper.
+    zstream = Zlib::Inflate.new(MAX_WBITS | 16)
+    zstream << input
+    zstream.finish.tap do
+      zstream.close
+    end
   end
 
   class ZStream
