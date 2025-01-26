@@ -112,8 +112,7 @@ public:
     static Value times(Env *, Integer &, Block *);
     static Value bitwise_and(Env *, Integer &, Value);
     static Value bitwise_or(Env *, Integer &, Value);
-    static Value bitwise_xor(Env *, IntegerObject *, Value);
-    static Value bitwise_xor(Env *env, Integer &self, Value other) { return bitwise_xor(env, new IntegerObject(self), other); }
+    static Value bitwise_xor(Env *, Integer &, Value);
     static Value bit_length(Env *, IntegerObject *);
     static Value bit_length(Env *env, Integer &self) { return bit_length(env, new IntegerObject(self)); }
     static Value left_shift(Env *, IntegerObject *, Value);
