@@ -123,8 +123,7 @@ public:
     static Value coerce(Env *, Value, Value);
     static Value floor(Env *, Integer &, Value);
     static Value gcd(Env *, Integer &, Value);
-    static Value abs(Env *, IntegerObject *);
-    static Value abs(Env *env, Integer &self) { return abs(env, new IntegerObject(self)); }
+    static Value abs(Env *, Integer &self) { return self.is_negative() ? -self : self; }
     static Value chr(Env *, IntegerObject *, Value);
     static Value chr(Env *env, Integer &self, Value encoding) { return chr(env, new IntegerObject(self), encoding); }
     static Value negate(Env *, IntegerObject *);

@@ -560,12 +560,6 @@ Value IntegerObject::gcd(Env *env, Integer &self, Value divisor) {
     return Natalie::gcd(self, divisor.integer());
 }
 
-Value IntegerObject::abs(Env *env, IntegerObject *self) {
-    if (self->m_integer.is_negative())
-        return create(-self->m_integer);
-    return IntegerObject::create(self->m_integer);
-}
-
 Value IntegerObject::chr(Env *env, IntegerObject *self, Value encoding) {
     if (self->m_integer < 0 || self->m_integer > (nat_int_t)UINT_MAX)
         env->raise("RangeError", "{} out of char range", self->m_integer.to_string());
