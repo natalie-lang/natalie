@@ -46,7 +46,7 @@ public:
     static Value raise(Env *env, Args &&args);
     static Value Rational(Env *env, Value x, Value y, Value exception);
     static Value Rational(Env *env, Value x, Value y = nullptr, bool exception = true);
-    static RationalObject *Rational(Env *env, IntegerObject *x, IntegerObject *y);
+    static RationalObject *Rational(Env *env, class Integer &x, class Integer &y);
     static RationalObject *Rational(Env *env, double arg);
     static Value sleep(Env *env, Value length);
     static Value spawn(Env *, Args &&);
