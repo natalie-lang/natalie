@@ -137,8 +137,7 @@ public:
     static bool neq(Env *env, Value self, Value other) { return self.send(env, "=="_s, { other })->is_falsey(); }
     static bool eq(Env *, Integer &, Value);
     static bool lt(Env *, Integer &, Value);
-    static bool lte(Env *, IntegerObject *, Value);
-    static bool lte(Env *env, Integer &self, Value other) { return lte(env, new IntegerObject(self), other); }
+    static bool lte(Env *, Integer &, Value);
     static bool gt(Env *, IntegerObject *, Value);
     static bool gt(Env *env, Integer &self, Value other) { return gt(env, new IntegerObject(self), other); }
     static bool gte(Env *, IntegerObject *, Value);

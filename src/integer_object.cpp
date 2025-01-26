@@ -316,11 +316,11 @@ bool IntegerObject::lt(Env *env, Integer &self, Value other) {
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
-bool IntegerObject::lte(Env *env, IntegerObject *self, Value other) {
+bool IntegerObject::lte(Env *env, Integer &self, Value other) {
     if (other->is_float()) {
         if (other->as_float()->is_nan())
             return false;
-        return self->m_integer <= other->as_float()->to_double();
+        return self <= other->as_float()->to_double();
     }
 
     if (!other.is_integer()) {
@@ -331,7 +331,7 @@ bool IntegerObject::lte(Env *env, IntegerObject *self, Value other) {
     }
 
     if (other.is_integer())
-        return self->m_integer <= other->as_integer()->m_integer;
+        return self <= other.integer();
 
     if (other->respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
