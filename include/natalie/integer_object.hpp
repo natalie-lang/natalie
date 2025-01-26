@@ -131,8 +131,7 @@ public:
     static Value ord(Integer &self) { return self; }
     static Value denominator() { return Value::integer(1); }
     static Value round(Env *, Integer &, Value, Value);
-    static Value truncate(Env *, IntegerObject *, Value);
-    static Value truncate(Env *env, Integer &self, Value ndigits) { return truncate(env, new IntegerObject(self), ndigits); }
+    static Value truncate(Env *, Integer &, Value);
     static Value ref(Env *, IntegerObject *, Value, Value);
     static Value ref(Env *env, Integer &self, Value offset_obj, Value size_obj) { return ref(env, new IntegerObject(self), offset_obj, size_obj); }
 

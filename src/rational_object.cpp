@@ -288,11 +288,11 @@ Value RationalObject::truncate(Env *env, Value ndigits) {
     }
 
     if (digits == 0)
-        return IntegerObject::create(numerator / denominator);
+        return Value::integer(numerator / denominator);
 
     if (digits < 0) {
-        auto quotient = IntegerObject(numerator / denominator);
-        return IntegerObject::truncate(env, &quotient, ndigits);
+        auto quotient = Value::integer(numerator / denominator);
+        return IntegerObject::truncate(env, quotient.integer(), ndigits);
     }
 
     const auto power = static_cast<nat_int_t>(std::pow(10, digits));

@@ -653,16 +653,16 @@ Value IntegerObject::round(Env *env, Integer &self, Value ndigits, Value half) {
     return create(result);
 }
 
-Value IntegerObject::truncate(Env *env, IntegerObject *self, Value ndigits) {
+Value IntegerObject::truncate(Env *env, Integer &self, Value ndigits) {
     if (!ndigits)
-        return IntegerObject::create(self->m_integer);
+        return self;
 
     int digits = IntegerObject::convert_to_int(env, ndigits);
 
     if (digits >= 0)
-        return IntegerObject::create(self->m_integer);
+        return self;
 
-    auto result = self->m_integer;
+    auto result = self;
     auto dividend = Natalie::pow(Integer(10), -digits);
     auto remainder = result.modulo_c(dividend);
 
