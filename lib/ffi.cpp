@@ -518,11 +518,11 @@ Value FFI_MemoryPointer_inspect(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
     auto ptr = (void *)IntegerObject::to_nat_int_t(self.send(env, "address"_s)->as_integer_or_raise(env));
-    auto size = self->ivar_get(env, "@size"_s)->as_integer();
+    auto size = self->ivar_get(env, "@size"_s).integer();
     return StringObject::format(
         "#<FFI::MemoryPointer address={} size={}>",
         TM::String::hex((uintptr_t)ptr, TM::String::HexFormat::LowercaseAndPrefixed),
-        IntegerObject::to_nat_int_t(size));
+        size.to_nat_int_t());
 }
 
 Value FFI_Pointer_is_autorelease(Env *env, Value self, Args &&args, Block *) {
