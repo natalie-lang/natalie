@@ -90,14 +90,13 @@ public:
 
     static Value sqrt(Env *, Value);
 
-    static Value inspect(Env *env, IntegerObject *self) { return to_s(env, self); }
+    static Value inspect(Env *env, IntegerObject *self) { return to_s(env, self->m_integer); }
     static Value inspect(Env *env, Integer &self) { return to_s(env, self); }
 
     static String to_s(const IntegerObject *self) { return self->m_integer.to_string(); }
     static String to_s(const Integer &self) { return self.to_string(); }
 
-    static Value to_s(Env *, IntegerObject *, Value = nullptr);
-    static Value to_s(Env *env, Integer &self, Value base = nullptr) { return to_s(env, new IntegerObject(self), base); }
+    static Value to_s(Env *, Integer &self, Value = nullptr);
     static Value to_i(IntegerObject *);
     static Value to_i(Integer &self) { return to_i(new IntegerObject(self)); }
     static Value to_f(IntegerObject *);

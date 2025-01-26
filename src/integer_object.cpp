@@ -29,8 +29,8 @@ Value IntegerObject::create(TM::String &&string) {
     return Value { Integer(std::move(string)) };
 };
 
-Value IntegerObject::to_s(Env *env, IntegerObject *self, Value base_value) {
-    if (self->m_integer == 0)
+Value IntegerObject::to_s(Env *env, Integer &self, Value base_value) {
+    if (self == 0)
         return new StringObject { "0" };
 
     nat_int_t base = 10;
@@ -43,10 +43,10 @@ Value IntegerObject::to_s(Env *env, IntegerObject *self, Value base_value) {
     }
 
     if (base == 10)
-        return new StringObject { self->m_integer.to_string(), Encoding::US_ASCII };
+        return new StringObject { self.to_string(), Encoding::US_ASCII };
 
     auto str = new StringObject { "", Encoding::US_ASCII };
-    auto num = self->m_integer;
+    auto num = self;
     bool negative = false;
     if (num < 0) {
         negative = true;
@@ -506,7 +506,7 @@ Value IntegerObject::pred(Env *env, IntegerObject *self) {
 
 Value IntegerObject::size(Env *env, IntegerObject *self) {
     if (is_bignum(self)) {
-        const nat_int_t bitstring_size = IntegerObject::to_s(env, self, Value::integer(2))->as_string()->bytesize();
+        const nat_int_t bitstring_size = IntegerObject::to_s(env, self->m_integer, Value::integer(2))->as_string()->bytesize();
         return Value::integer((bitstring_size + 7) / 8);
     }
     return Value::integer(sizeof(nat_int_t));
