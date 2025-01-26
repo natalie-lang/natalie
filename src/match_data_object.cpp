@@ -340,14 +340,14 @@ ArrayObject *MatchDataObject::values_at(Env *env, Args &&args) {
         auto key = args[i];
         if (key->is_range()) {
             auto range = key->as_range();
-            if (range->begin().is_integer() && IntegerObject::to_nat_int_t(range->begin()->as_integer()) < -static_cast<nat_int_t>(size()))
+            if (range->begin().is_integer() && range->begin().integer() < -static_cast<nat_int_t>(size()))
                 env->raise("RangeError", "{} out of range", range->inspect_str(env));
             auto append = ref(env, range);
             result->concat(env, { append });
             if (range->begin().is_integer()) {
                 auto size = range->send(env, "size"_s);
-                if (append->is_array() && size.is_integer() && IntegerObject::to_nat_int_t(size->as_integer()) > static_cast<nat_int_t>(append->as_array()->size())) {
-                    for (nat_int_t i = append->as_array()->size(); i < IntegerObject::to_nat_int_t(size->as_integer()); i++)
+                if (append->is_array() && size.is_integer() && size.integer() > static_cast<nat_int_t>(append->as_array()->size())) {
+                    for (nat_int_t i = append->as_array()->size(); i < size.integer().to_nat_int_t(); i++)
                         result->push(NilObject::the());
                 }
             }
