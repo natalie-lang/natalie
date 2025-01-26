@@ -16,11 +16,11 @@ namespace GlobalVariableAccessHooks::ReadHooks {
 }
 
 namespace GlobalVariableAccessHooks::WriteHooks {
-    Object *as_string_or_raise(Env *, Value, GlobalVariableInfo &);
-    Object *to_int(Env *, Value, GlobalVariableInfo &);
-    Object *last_match(Env *, Value, GlobalVariableInfo &);
-    Object *set_stdout(Env *, Value, GlobalVariableInfo &);
-    Object *set_verbose(Env *, Value, GlobalVariableInfo &);
+    Value as_string_or_raise(Env *, Value, GlobalVariableInfo &);
+    Value to_int(Env *, Value, GlobalVariableInfo &);
+    Value last_match(Env *, Value, GlobalVariableInfo &);
+    Value set_stdout(Env *, Value, GlobalVariableInfo &);
+    Value set_verbose(Env *, Value, GlobalVariableInfo &);
 }
 
 }

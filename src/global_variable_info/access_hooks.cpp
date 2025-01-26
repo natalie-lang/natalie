@@ -6,7 +6,7 @@ namespace Natalie {
 namespace GlobalVariableAccessHooks::ReadHooks {
 
     Value getpid(Env *env, GlobalVariableInfo &info) {
-        Object *pid = new IntegerObject { ::getpid() };
+        auto pid = Value::integer(::getpid());
         info.set_object(env, pid);
         info.set_read_hook(nullptr);
         return pid;
@@ -58,17 +58,17 @@ namespace GlobalVariableAccessHooks::ReadHooks {
 
 namespace GlobalVariableAccessHooks::WriteHooks {
 
-    Object *as_string_or_raise(Env *env, Value v, GlobalVariableInfo &) {
+    Value as_string_or_raise(Env *env, Value v, GlobalVariableInfo &) {
         if (v->is_nil())
             return NilObject::the();
         return v->as_string_or_raise(env);
     }
 
-    Object *to_int(Env *env, Value v, GlobalVariableInfo &) {
-        return new IntegerObject { Object::to_int(env, v) };
+    Value to_int(Env *env, Value v, GlobalVariableInfo &) {
+        return Object::to_int(env, v);
     }
 
-    Object *last_match(Env *env, Value v, GlobalVariableInfo &) {
+    Value last_match(Env *env, Value v, GlobalVariableInfo &) {
         if (!v || v->is_nil())
             return NilObject::the();
         auto match = v->as_match_data_or_raise(env);
@@ -76,13 +76,13 @@ namespace GlobalVariableAccessHooks::WriteHooks {
         return match;
     }
 
-    Object *set_stdout(Env *env, Value v, GlobalVariableInfo &) {
+    Value set_stdout(Env *env, Value v, GlobalVariableInfo &) {
         if (!v->respond_to(env, "write"_s))
             env->raise("TypeError", "$stdout must have write method, {} given", v->klass()->inspect_str());
         return v.object();
     }
 
-    Object *set_verbose(Env *env, Value v, GlobalVariableInfo &) {
+    Value set_verbose(Env *env, Value v, GlobalVariableInfo &) {
         GlobalEnv::the()->set_verbose(v->is_truthy());
         if (v->is_nil())
             return NilObject::the();
