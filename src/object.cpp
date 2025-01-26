@@ -566,12 +566,6 @@ HashObject *Object::as_hash_or_raise(Env *env) {
     return static_cast<HashObject *>(this);
 }
 
-IntegerObject *Object::as_integer_or_raise(Env *env) {
-    if (m_type != Type::Integer)
-        env->raise("TypeError", "{} can't be coerced into Integer", m_klass->inspect_str());
-    return static_cast<IntegerObject *>(this);
-}
-
 MatchDataObject *Object::as_match_data_or_raise(Env *env) {
     if (!is_match_data())
         env->raise("TypeError", "{} can't be coerced into MatchData", m_klass->inspect_str());

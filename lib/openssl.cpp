@@ -643,7 +643,7 @@ Value OpenSSL_PKey_RSA_initialize(Env *env, Value self, Args &&args, Block *) {
             env->raise("ArgumentError", "Invalid key type");
         }
     } else {
-        const unsigned int bits = IntegerObject::to_nat_int_t(args.at(0)->as_integer_or_raise(env));
+        const unsigned int bits = args.at(0).integer_or_raise(env).to_nat_int_t();
         pkey = EVP_RSA_gen(bits);
         if (!pkey)
             OpenSSL_raise_error(env, "EVP_PKEY_new");

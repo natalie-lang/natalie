@@ -197,6 +197,35 @@ Integer &Value::integer() {
     }
 }
 
+const Integer &Value::integer_or_raise(Env *env) const {
+    switch (m_type) {
+    case Type::Integer:
+        return m_integer;
+    case Type::Pointer:
+        assert(m_object->type() == Object::Type::Integer);
+        return IntegerObject::integer(static_cast<IntegerObject *>(m_object));
+        break;
+    case Type::Double:
+        env->raise("TypeError", "Float can't be coerced into Integer");
+    default:
+        env->raise("TypeError", "{} can't be coerced into Integer", m_object->klass()->inspect_str());
+    }
+}
+
+Integer &Value::integer_or_raise(Env *env) {
+    switch (m_type) {
+    case Type::Integer:
+        return m_integer;
+    case Type::Pointer:
+        if (m_object->type() == Object::Type::Integer)
+            return IntegerObject::integer(static_cast<IntegerObject *>(m_object));
+        env->raise("TypeError", "{} can't be coerced into Integer", m_object->klass()->inspect_str());
+    case Type::Double:
+        env->raise("TypeError", "Float can't be coerced into Integer");
+    }
+    NAT_UNREACHABLE();
+}
+
 bool Value::is_integer() const {
     switch (m_type) {
     case Type::Integer:

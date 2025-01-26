@@ -1952,14 +1952,14 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
         // bytesplice(index, length, str)
         // bytesplice(index, length, str, str_index, str_length)
 
-        index = IntegerObject::to_nat_int_t(args[0]->as_integer_or_raise(env));
+        index = args[0].integer_or_raise(env).to_nat_int_t();
         if (index < -m_length || index > m_length)
             env->raise("IndexError", "index {} out of string", index);
 
         if (index < 0)
             index = m_length + index;
 
-        length = IntegerObject::to_nat_int_t(args[1]->as_integer_or_raise(env));
+        length = args[1].integer_or_raise(env).to_nat_int_t();
         if (length < 0)
             env->raise("IndexError", "negative length {}", length);
 
@@ -1970,13 +1970,13 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
 
             auto str_actual_length = static_cast<nat_int_t>(str->length());
 
-            auto str_index = IntegerObject::to_nat_int_t(args[3]->as_integer_or_raise(env));
+            auto str_index = args[3].integer_or_raise(env).to_nat_int_t();
             if (str_index < -str_actual_length || str_index > str_actual_length)
                 env->raise("IndexError", "index {} out of string", str_index);
             if (str_index < 0)
                 str_index = str_actual_length + str_index;
 
-            auto str_length = IntegerObject::to_nat_int_t(args[4]->as_integer_or_raise(env));
+            auto str_length = args[4].integer_or_raise(env).to_nat_int_t();
             if (str_length < 0)
                 env->raise("IndexError", "negative length {}", str_length);
 
