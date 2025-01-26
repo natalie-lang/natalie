@@ -152,7 +152,7 @@ Value IntegerObject::mod(Env *env, Integer &self, Value arg) {
     }
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
-    argument = arg->as_integer()->m_integer;
+    argument = arg.integer();
 
     if (argument == 0)
         env->raise("ZeroDivisionError", "divided by 0");
@@ -213,7 +213,7 @@ Value IntegerObject::pow(Env *env, Integer &self, Value arg) {
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    return pow(env, self, arg->as_integer()->m_integer);
+    return pow(env, self, arg.integer());
 }
 
 Value IntegerObject::powmod(Env *env, Integer &self, Value exponent, Value mod) {
@@ -228,8 +228,8 @@ Value IntegerObject::powmod(Env *env, Integer &self, Value exponent, Value mod) 
     if (!mod.is_integer())
         env->raise("TypeError", "2nd argument not allowed unless all arguments are integers");
 
-    auto modi = mod->as_integer();
-    if (to_nat_int_t(modi) == 0)
+    auto modi = mod.integer();
+    if (modi.is_zero())
         env->raise("ZeroDivisionError", "cannot divide by zero");
 
     auto powi = powd.integer();
@@ -237,10 +237,10 @@ Value IntegerObject::powmod(Env *env, Integer &self, Value exponent, Value mod) 
     if (is_bignum(powi))
         return Integer(to_bigint(powi) % to_bigint(modi));
 
-    if (powi.to_nat_int_t() < 0 || to_nat_int_t(modi) < 0)
+    if (powi < 0 || modi < 0)
         return IntegerObject::mod(env, powi, mod);
 
-    return Value::integer(powi.to_nat_int_t() % to_nat_int_t(modi));
+    return powi % modi;
 }
 
 Value IntegerObject::cmp(Env *env, Integer &self, Value arg) {
@@ -286,7 +286,7 @@ bool IntegerObject::eq(Env *env, Integer &self, Value other) {
     }
 
     if (other.is_integer())
-        return self == other->as_integer()->m_integer;
+        return self == other.integer();
 
     return other->send(env, "=="_s, { self })->is_truthy();
 }
@@ -541,7 +541,7 @@ Value IntegerObject::floor(Env *env, Integer &self, Value arg) {
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto precision = arg->as_integer()->m_integer.to_nat_int_t();
+    auto precision = arg.integer().to_nat_int_t();
     if (precision >= 0)
         return self;
 
