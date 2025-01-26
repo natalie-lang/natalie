@@ -117,8 +117,7 @@ public:
     static Value left_shift(Env *, Integer &, Value);
     static Value right_shift(Env *, Integer &, Value);
     static Value pred(Env *env, Integer &self) { return self - 1; }
-    static Value size(Env *, IntegerObject *);
-    static Value size(Env *env, Integer &self) { return size(env, new IntegerObject(self)); }
+    static Value size(Env *, Integer &);
     static Value succ(Env *, IntegerObject *);
     static Value succ(Env *env, Integer &self) { return succ(env, new IntegerObject(self)); }
     static Value ceil(Env *, IntegerObject *, Value);
