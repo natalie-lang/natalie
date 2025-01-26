@@ -496,7 +496,7 @@ Value IntegerObject::size(Env *env, Integer &self) {
     return Value::integer(sizeof(nat_int_t));
 }
 
-Value IntegerObject::coerce(Env *env, IntegerObject *self, Value arg) {
+Value IntegerObject::coerce(Env *env, Value self, Value arg) {
     ArrayObject *ary = new ArrayObject {};
     switch (arg->type()) {
     case Object::Type::Integer:
@@ -504,8 +504,8 @@ Value IntegerObject::coerce(Env *env, IntegerObject *self, Value arg) {
         ary->push(self);
         break;
     case Object::Type::String:
-        ary->push(self->send(env, "Float"_s, { arg }));
-        ary->push(self->send(env, "to_f"_s));
+        ary->push(self.send(env, "Float"_s, { arg }));
+        ary->push(self.send(env, "to_f"_s));
         break;
     default:
         if (!arg->is_nil() && !arg->is_float() && arg->respond_to(env, "to_f"_s)) {

@@ -120,8 +120,7 @@ public:
     static Value size(Env *, Integer &);
     static Value succ(Env *, Integer &self) { return self + 1; }
     static Value ceil(Env *, Integer &, Value);
-    static Value coerce(Env *, IntegerObject *, Value);
-    static Value coerce(Env *env, Integer &self, Value other) { return coerce(env, new IntegerObject(self), other); }
+    static Value coerce(Env *, Value, Value);
     static Value floor(Env *, IntegerObject *, Value);
     static Value floor(Env *env, Integer &self, Value arg) { return floor(env, new IntegerObject(self), arg); }
     static Value gcd(Env *, IntegerObject *, Value);

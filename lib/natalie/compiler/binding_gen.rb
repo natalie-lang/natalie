@@ -861,7 +861,7 @@ gen.static_binding_as_instance_method('Integer', 'abs', 'IntegerObject', 'abs', 
 gen.static_binding_as_instance_method('Integer', 'bit_length', 'IntegerObject', 'bit_length', argc: 0, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Integer', 'chr', 'IntegerObject', 'chr', argc: 0..1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Integer', 'ceil', 'IntegerObject', 'ceil', argc: 0..1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('Integer', 'coerce', 'IntegerObject', 'coerce', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Integer', 'coerce', 'IntegerObject', 'coerce', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Integer', 'denominator', 'IntegerObject', 'denominator', argc: 0, pass_env: false, pass_self: false, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Integer', 'even?', 'IntegerObject', 'is_even', argc: 0, pass_env: false, cast_self: true, pass_block: false, return_type: :bool)
 gen.static_binding_as_instance_method('Integer', 'floor', 'IntegerObject', 'floor', argc: 0..1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
