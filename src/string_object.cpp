@@ -1054,7 +1054,7 @@ Value StringObject::concat(Env *env, Args &&args) {
         StringObject *str_obj;
         if (arg->is_string()) {
             str_obj = arg->as_string();
-        } else if (arg.is_integer() && IntegerObject::is_negative(arg->as_integer())) {
+        } else if (arg.is_integer() && IntegerObject::is_negative(arg.integer())) {
             env->raise("RangeError", "{} out of char range", IntegerObject::to_s(env, arg.integer())->as_string()->string());
         } else if (arg.is_integer()) {
             // Special case: US-ASCII << (128..255) will change the string to binary

@@ -1183,7 +1183,7 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
     auto host = args.at(1);
     if (host->is_nil())
         host = new StringObject { "127.0.0.1" };
-    if (host.is_integer() && IntegerObject::is_fixnum(host->as_integer()) && IntegerObject::to_nat_int_t(host->as_integer()) == INADDR_ANY)
+    if (host.is_integer() && IntegerObject::is_fixnum(host.integer()) && IntegerObject::to_nat_int_t(host->as_integer()) == INADDR_ANY)
         host = new StringObject { "0.0.0.0" };
     if (host->is_string() && host->as_string()->is_empty())
         host = new StringObject { "0.0.0.0" };

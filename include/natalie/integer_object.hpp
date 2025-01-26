@@ -46,16 +46,9 @@ public:
         return self->m_integer;
     }
 
-    static bool is_negative(const IntegerObject *self) { return self->m_integer.is_negative(); }
     static bool is_negative(const Integer self) { return self.is_negative(); }
-
-    static bool is_zero(const IntegerObject *self) { return is_zero(self->m_integer); }
-    static bool is_zero(const Integer self) { return self == 0; }
-
-    static bool is_odd(const IntegerObject *self) { return is_odd(self->m_integer); }
+    static bool is_zero(const Integer self) { return self.is_zero(); }
     static bool is_odd(const Integer self) { return self % 2 != 0; }
-
-    static bool is_even(const IntegerObject *self) { return !is_odd(self); }
     static bool is_even(const Integer self) { return !is_odd(self); }
 
     static Value from_size_t(Env *env, size_t number) {

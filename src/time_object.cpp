@@ -524,7 +524,7 @@ void TimeObject::set_subsec(Env *env, IntegerObject *usec) {
     if (IntegerObject::lt(env, IntegerObject::integer(usec), Value::integer(0)) || IntegerObject::gte(env, IntegerObject::integer(usec), Value::integer(1000000))) {
         env->raise("ArgumentError", "subsecx out of range");
     }
-    if (!IntegerObject::is_zero(usec)) {
+    if (!IntegerObject::is_zero(IntegerObject::integer(usec))) {
         m_subsec = RationalObject::create(env, IntegerObject::integer(usec), Integer(1000000));
     }
 }

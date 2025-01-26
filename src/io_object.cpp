@@ -290,7 +290,7 @@ Value IoObject::read_file(Env *env, Args &&args) {
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     file->set_encoding(env, flags.external_encoding(), flags.internal_encoding());
     if (offset && !offset->is_nil()) {
-        if (offset.is_integer() && IntegerObject::is_negative(offset->as_integer()))
+        if (offset.is_integer() && IntegerObject::is_negative(offset.integer()))
             env->raise("ArgumentError", "negative offset {} given", offset->inspect_str(env));
         file->set_pos(env, offset);
     }
