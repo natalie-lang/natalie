@@ -899,7 +899,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
         return NilObject::the();
     if (byte.is_integer()) {
         nat_int_t value = 0xff;
-        if (!IntegerObject::is_bignum(byte->as_integer())) {
+        if (!IntegerObject::is_bignum(byte.integer())) {
             value = IntegerObject::convert_to_nat_int_t(env, byte);
             if (value > 0xff) value = 0xff;
         }

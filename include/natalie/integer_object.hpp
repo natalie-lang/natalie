@@ -140,9 +140,7 @@ public:
     static bool lte(Env *, Integer &, Value);
     static bool gt(Env *, Integer &, Value);
     static bool gte(Env *, Integer &, Value);
-    static bool is_bignum(const IntegerObject *self) { return self->m_integer.is_bignum(); }
     static bool is_bignum(const Integer &self) { return self.is_bignum(); }
-    static bool is_fixnum(const IntegerObject *self) { return !is_bignum(self); }
     static bool is_fixnum(const Integer &self) { return self.is_fixnum(); }
 
     static nat_int_t to_nat_int_t(const IntegerObject *self) { return self->m_integer.to_nat_int_t(); }
@@ -150,7 +148,7 @@ public:
     static BigInt to_bigint(const Integer &self) { return self.to_bigint(); }
 
     static void assert_fixnum(Env *env, const IntegerObject *self) {
-        if (is_bignum(self))
+        if (is_bignum(IntegerObject::integer(self)))
             env->raise("RangeError", "bignum too big to convert into 'long'");
     }
 

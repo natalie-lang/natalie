@@ -232,15 +232,15 @@ Value IntegerObject::powmod(Env *env, Integer &self, Value exponent, Value mod) 
     if (to_nat_int_t(modi) == 0)
         env->raise("ZeroDivisionError", "cannot divide by zero");
 
-    auto powi = powd->as_integer();
+    auto powi = powd.integer();
 
     if (is_bignum(powi))
         return Integer(to_bigint(powi) % to_bigint(modi));
 
-    if (to_nat_int_t(powi) < 0 || to_nat_int_t(modi) < 0)
-        return IntegerObject::mod(env, IntegerObject::integer(powi), mod);
+    if (powi.to_nat_int_t() < 0 || to_nat_int_t(modi) < 0)
+        return IntegerObject::mod(env, powi, mod);
 
-    return Value::integer(to_nat_int_t(powi) % to_nat_int_t(modi));
+    return Value::integer(powi.to_nat_int_t() % to_nat_int_t(modi));
 }
 
 Value IntegerObject::cmp(Env *env, Integer &self, Value arg) {
