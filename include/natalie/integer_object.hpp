@@ -138,8 +138,7 @@ public:
     static bool eq(Env *, Integer &, Value);
     static bool lt(Env *, Integer &, Value);
     static bool lte(Env *, Integer &, Value);
-    static bool gt(Env *, IntegerObject *, Value);
-    static bool gt(Env *env, Integer &self, Value other) { return gt(env, new IntegerObject(self), other); }
+    static bool gt(Env *, Integer &, Value);
     static bool gte(Env *, IntegerObject *, Value);
     static bool gte(Env *env, Integer &self, Value other) { return gte(env, new IntegerObject(self), other); }
     static bool is_bignum(const IntegerObject *self) { return self->m_integer.is_bignum(); }
