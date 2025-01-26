@@ -21,7 +21,7 @@ RationalObject *RationalObject::create(Env *env, Integer numerator, Integer deno
 
 Value RationalObject::add(Env *env, Value other) {
     if (other.is_integer()) {
-        auto numerator = IntegerObject::add(env, m_numerator, IntegerObject::mul(env, m_denominator, other))->as_integer();
+        auto numerator = m_numerator + (m_denominator * other.integer());
         return new RationalObject { numerator, m_denominator };
     } else if (other->is_float()) {
         return this->to_f(env)->as_float()->add(env, other);
@@ -44,7 +44,7 @@ Value RationalObject::add(Env *env, Value other) {
 Value RationalObject::cmp(Env *env, Value other) {
     if (other.is_integer()) {
         if (m_denominator == 1)
-            return IntegerObject::cmp(env, m_numerator, other->as_integer());
+            return IntegerObject::cmp(env, m_numerator, other.integer());
         other = new RationalObject { other.integer(), Value::integer(1) };
     }
     if (other->is_rational()) {
@@ -284,7 +284,7 @@ Value RationalObject::truncate(Env *env, Value ndigits) {
     if (ndigits) {
         if (!ndigits.is_integer())
             env->raise("TypeError", "not an integer");
-        digits = IntegerObject::to_nat_int_t(ndigits->as_integer());
+        digits = ndigits.integer().to_nat_int_t();
     }
 
     if (digits == 0)
