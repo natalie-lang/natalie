@@ -3033,6 +3033,19 @@ bool StringObject::include(const char *arg) const {
     return m_string.find(arg) != -1;
 }
 
+bool StringObject::include(Env *env, const nat_int_t codepoint) const {
+    size_t index = 0;
+    for (;;) {
+        auto [valid, length, cp] = m_encoding->next_codepoint(m_string, &index);
+        if (!valid)
+            env->raise_invalid_byte_sequence_error(m_encoding.ptr());
+        if (length == 0)
+            return false;
+        if (codepoint == cp)
+            return true;
+    }
+}
+
 Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
     assert_not_frozen(env);
 

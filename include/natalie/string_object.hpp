@@ -352,6 +352,7 @@ public:
     Value hex(Env *) const;
     bool include(Env *, Value);
     bool include(const char *) const;
+    bool include(Env *, nat_int_t) const;
     Value insert(Env *, Value, Value);
     Value ljust(Env *, Value, Value) const;
     Value lstrip(Env *) const;
