@@ -337,6 +337,27 @@ Value Zlib_crc_table(Env *env, Value self, Args &&args, Block *) {
     return res;
 }
 
+Value Zlib_gunzip(Env *env, Value self, Args &&args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto input = args[0]->as_string_or_raise(env);
+    char buf[1024]; // TODO: Grow dynamically
+
+    z_stream zs {};
+    zs.avail_in = input->bytesize();
+    zs.next_in = (Bytef *)input->c_str();
+    zs.avail_out = sizeof(buf);
+    zs.next_out = (Bytef *)buf;
+
+    // windowBits can also be greater than 15 for optional gzip encoding. Add
+    // 16 to windowBits to write a simple gzip header and trailer around the
+    // compressed data instead of a zlib wrapper.
+    inflateInit2(&zs, 15 | 16);
+    inflate(&zs, Z_FINISH);
+    inflateEnd(&zs);
+
+    return new StringObject { buf, zs.total_out, Encoding::ASCII_8BIT };
+}
+
 Value Zlib_zlib_version(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     return new StringObject { ZLIB_VERSION, Encoding::ASCII_8BIT };
