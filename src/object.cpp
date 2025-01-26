@@ -1053,7 +1053,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Hash:
         return new HashObject { env, *as_hash() };
     case Object::Type::Integer:
-        return IntegerObject::integer(as_integer());
+        return IntegerObject::integer(static_cast<const IntegerObject *>(this));
     case Object::Type::Module:
         return new ModuleObject { *as_module() };
     case Object::Type::Nil:
