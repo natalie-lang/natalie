@@ -113,8 +113,7 @@ public:
     static Value bitwise_and(Env *, Integer &, Value);
     static Value bitwise_or(Env *, Integer &, Value);
     static Value bitwise_xor(Env *, Integer &, Value);
-    static Value bit_length(Env *, IntegerObject *);
-    static Value bit_length(Env *env, Integer &self) { return bit_length(env, new IntegerObject(self)); }
+    static Value bit_length(Env *, Integer &self) { return self.bit_length(); }
     static Value left_shift(Env *, IntegerObject *, Value);
     static Value left_shift(Env *env, Integer &self, Value other) { return left_shift(env, new IntegerObject(self), other); }
     static Value right_shift(Env *, IntegerObject *, Value);

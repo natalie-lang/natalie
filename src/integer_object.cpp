@@ -454,10 +454,6 @@ Value IntegerObject::bitwise_xor(Env *env, Integer &self, Value arg) {
     return create(self ^ arg.integer());
 }
 
-Value IntegerObject::bit_length(Env *env, IntegerObject *self) {
-    return create(self->m_integer.bit_length());
-}
-
 Value IntegerObject::left_shift(Env *env, IntegerObject *self, Value arg) {
     auto integer = Object::to_int(env, arg);
     if (is_bignum(integer)) {
