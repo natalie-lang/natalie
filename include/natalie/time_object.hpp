@@ -85,7 +85,7 @@ private:
     Value build_string(Env *, const char *);
     void build_time(Env *, Value, Value, Value, Value, Value, Value);
     void set_subsec(Env *, long);
-    void set_subsec(Env *, IntegerObject *);
+    void set_subsec(Env *, Integer &);
     void set_subsec(Env *, RationalObject *);
     Value strip_zeroes(StringObject *);
 

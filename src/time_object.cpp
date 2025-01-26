@@ -30,7 +30,7 @@ TimeObject *TimeObject::local(Env *env, Value year, Value month, Value mday, Val
     result->m_mode = Mode::Localtime;
     result->m_integer = Value::integer(seconds);
     if (usec && usec.is_integer()) {
-        result->set_subsec(env, usec->as_integer());
+        result->set_subsec(env, usec.integer());
     }
     return result;
 }
@@ -520,13 +520,12 @@ void TimeObject::set_subsec(Env *env, long nsec) {
     }
 }
 
-void TimeObject::set_subsec(Env *env, IntegerObject *usec) {
-    if (IntegerObject::lt(env, IntegerObject::integer(usec), Value::integer(0)) || IntegerObject::gte(env, IntegerObject::integer(usec), Value::integer(1000000))) {
+void TimeObject::set_subsec(Env *env, Integer &usec) {
+    if (usec < 0 || usec >= 1000000)
         env->raise("ArgumentError", "subsecx out of range");
-    }
-    if (!IntegerObject::is_zero(IntegerObject::integer(usec))) {
-        m_subsec = RationalObject::create(env, IntegerObject::integer(usec), Integer(1000000));
-    }
+
+    if (!usec.is_zero())
+        m_subsec = RationalObject::create(env, usec, Integer(1000000));
 }
 
 void TimeObject::set_subsec(Env *, RationalObject *subsec) {
