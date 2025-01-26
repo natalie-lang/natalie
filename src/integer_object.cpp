@@ -269,10 +269,6 @@ Value IntegerObject::cmp(Env *env, Integer &self, Value arg) {
     }
 }
 
-bool IntegerObject::neq(Env *env, IntegerObject *self, Value other) {
-    return self->send(env, "=="_s, { other })->is_falsey();
-}
-
 bool IntegerObject::eq(Env *env, Integer &self, Value other) {
     if (other.is_fast_integer())
         return self == other.integer();

@@ -134,8 +134,7 @@ public:
     static Value truncate(Env *, Integer &, Value);
     static Value ref(Env *, Integer &, Value, Value);
 
-    static bool neq(Env *, IntegerObject *, Value);
-    static bool neq(Env *env, Integer &self, Value other) { return neq(env, new IntegerObject(self), other); }
+    static bool neq(Env *env, Value self, Value other) { return self.send(env, "=="_s, { other })->is_falsey(); }
     static bool eq(Env *, Integer &, Value);
     static bool lt(Env *, IntegerObject *, Value);
     static bool lt(Env *env, Integer &self, Value other) { return lt(env, new IntegerObject(self), other); }

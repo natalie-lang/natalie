@@ -847,7 +847,7 @@ gen.static_binding_as_instance_method('Integer', '-@', 'IntegerObject', 'negate'
 gen.static_binding_as_instance_method('Integer', '~', 'IntegerObject', 'complement', argc: 0, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Integer', '/', 'IntegerObject', 'div', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Integer', '<=>', 'IntegerObject', 'cmp', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('Integer', '!=', 'IntegerObject', 'neq', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('Integer', '!=', 'IntegerObject', 'neq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding_as_instance_method('Integer', '<', 'IntegerObject', 'lt', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :bool)
 gen.static_binding_as_instance_method('Integer', '<<', 'IntegerObject', 'left_shift', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Integer', '<=', 'IntegerObject', 'lte', argc: 1, pass_env: true, cast_self: true, pass_block: false, return_type: :bool)
