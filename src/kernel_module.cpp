@@ -551,20 +551,43 @@ Value KernelModule::spawn(Env *env, Args &&args) {
 
     if (args.size() == 1) {
         auto arg = args.at(0)->to_str(env);
-        auto splitter = new RegexpObject { env, "\\s+" };
-        auto split = arg->as_string()->split(env, splitter, 0)->as_array();
-        const char *cmd[split->size() + 1];
-        for (size_t i = 0; i < split->size(); i++) {
-            cmd[i] = split->at(i)->as_string()->c_str();
+        bool needs_escaping = false;
+        for (auto c : *arg) {
+            if (c == '"' || c == '\'' || c == '$' || c == '<' || c == '>') {
+                needs_escaping = true;
+                break;
+            }
         }
-        cmd[split->size()] = nullptr;
-        result = posix_spawnp(
-            &pid,
-            cmd[0],
-            NULL,
-            NULL,
-            const_cast<char *const *>(cmd),
-            new_env.is_empty() ? environ : new_env.data());
+        if (needs_escaping) {
+            const char *cmd[] = {
+                "sh",
+                "-c",
+                arg->c_str(),
+                nullptr
+            };
+            result = posix_spawnp(
+                &pid,
+                "/bin/sh",
+                NULL,
+                NULL,
+                const_cast<char *const *>(cmd),
+                new_env.is_empty() ? environ : new_env.data());
+        } else {
+            auto splitter = new RegexpObject { env, "\\s+" };
+            auto split = arg->split(env, splitter, 0)->as_array();
+            const char *cmd[split->size() + 1];
+            for (size_t i = 0; i < split->size(); i++) {
+                cmd[i] = split->at(i)->as_string()->c_str();
+            }
+            cmd[split->size()] = nullptr;
+            result = posix_spawnp(
+                &pid,
+                cmd[0],
+                NULL,
+                NULL,
+                const_cast<char *const *>(cmd),
+                new_env.is_empty() ? environ : new_env.data());
+        }
     } else {
         const char *cmd[args.size() + 1];
         for (size_t i = 0; i < args.size(); i++) {

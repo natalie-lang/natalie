@@ -241,10 +241,8 @@ describe "Process.spawn" do
   end
 
   it "sets environment variables in the child environment" do
-    NATFIXME 'Support env', exception: Errno::ENOENT, message: 'No such file or directory' do
-      Process.wait Process.spawn({"FOO" => "BAR"}, "echo #{@var}>#{@name}")
-      File.read(@name).should == "BAR\n"
-    end
+    Process.wait Process.spawn({"FOO" => "BAR"}, "echo #{@var}>#{@name}")
+    File.read(@name).should == "BAR\n"
   end
 
   it "unsets environment variables whose value is nil" do
@@ -279,30 +277,24 @@ describe "Process.spawn" do
   end
 
   it "calls #to_hash to convert the environment" do
-    NATFIXME 'Support env', exception: Errno::ENOENT do
-      o = mock("to_hash")
-      o.should_receive(:to_hash).and_return({"FOO" => "BAR"})
-      Process.wait Process.spawn(o, "echo #{@var}>#{@name}")
-      File.read(@name).should == "BAR\n"
-    end
+    o = mock("to_hash")
+    o.should_receive(:to_hash).and_return({"FOO" => "BAR"})
+    Process.wait Process.spawn(o, "echo #{@var}>#{@name}")
+    File.read(@name).should == "BAR\n"
   end
 
   it "calls #to_str to convert the environment keys" do
-    NATFIXME 'Support env', exception: Errno::ENOENT do
-      o = mock("to_str")
-      o.should_receive(:to_str).and_return("FOO")
-      Process.wait Process.spawn({o => "BAR"}, "echo #{@var}>#{@name}")
-      File.read(@name).should == "BAR\n"
-    end
+    o = mock("to_str")
+    o.should_receive(:to_str).and_return("FOO")
+    Process.wait Process.spawn({o => "BAR"}, "echo #{@var}>#{@name}")
+    File.read(@name).should == "BAR\n"
   end
 
   it "calls #to_str to convert the environment values" do
-    NATFIXME 'Support env', exception: Errno::ENOENT do
-      o = mock("to_str")
-      o.should_receive(:to_str).and_return("BAR")
-      Process.wait Process.spawn({"FOO" => o}, "echo #{@var}>#{@name}")
-      File.read(@name).should == "BAR\n"
-    end
+    o = mock("to_str")
+    o.should_receive(:to_str).and_return("BAR")
+    Process.wait Process.spawn({"FOO" => o}, "echo #{@var}>#{@name}")
+    File.read(@name).should == "BAR\n"
   end
 
   it "raises an ArgumentError if an environment key includes an equals sign" do
@@ -455,8 +447,7 @@ describe "Process.spawn" do
 
   # :chdir
 
-  # NATFIXME: Prints /traceback|error/, causes spec runner to fail
-  xit "uses the current working directory as its working directory" do
+  it "uses the current working directory as its working directory" do
     NATFIXME 'it uses the current working directory as its working directory', exception: SpecFailedException do
       -> do
         Process.wait Process.spawn(ruby_cmd("print Dir.pwd"))
@@ -502,7 +493,6 @@ describe "Process.spawn" do
         `pgrep -P #{pid}`.lines.map { |child| Integer(child) }
       end
 
-      # NATFIXME: Prints /traceback|error/, causes spec runner to fail
       it "does not create extra process without chdir" do
         pid = Process.spawn("sleep 10")
         begin
@@ -529,10 +519,12 @@ describe "Process.spawn" do
           # wait a bit for children to die
           sleep(1)
 
-          children.each do |child|
-            -> do
-              Process.kill("TERM", child)
-            end.should raise_error(Errno::ESRCH)
+          NATFIXME 'it kills extra chdir processes', exception: SpecFailedException do
+            children.each do |child|
+              -> do
+                Process.kill("TERM", child)
+              end.should raise_error(Errno::ESRCH)
+            end
           end
         end
       end
@@ -541,8 +533,7 @@ describe "Process.spawn" do
 
   # :umask
 
-  # NATFIXME: Prints /traceback|error/, causes spec runner to fail
-  xit "uses the current umask by default" do
+  it "uses the current umask by default" do
     NATFIXME 'it uses the current umask by default', exception: SpecFailedException do
       -> do
         Process.wait Process.spawn(ruby_cmd("print File.umask"))
@@ -714,17 +705,14 @@ describe "Process.spawn" do
 
   platform_is_not :windows do
     context "defaults :close_others to" do
-      # NATFIXME: Prints /traceback|error/, causes spec runner to fail
-      xit "false" do
+      it "false" do
         IO.pipe do |r, w|
           w.close_on_exec = false
-          NATFIXME "it defaults :close_others to false", exception: SpecFailedException do
-            code = "io = IO.new(#{w.fileno}); io.puts('inherited'); io.close"
-            pid = Process.spawn(ruby_cmd(code))
-            w.close
-            Process.wait(pid)
-            r.read.should == "inherited\n"
-          end
+          code = "io = IO.new(#{w.fileno}); io.puts('inherited'); io.close"
+          pid = Process.spawn(ruby_cmd(code))
+          w.close
+          Process.wait(pid)
+          r.read.should == "inherited\n"
         end
       end
     end
