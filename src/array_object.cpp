@@ -246,7 +246,7 @@ Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
             index_obj = index_obj->send(env, "to_int"_s);
 
         if (index_obj.is_integer()) {
-            IntegerObject::assert_fixnum(env, index_obj->as_integer());
+            IntegerObject::assert_fixnum(env, index_obj.integer());
 
             auto index = _resolve_index(IntegerObject::to_nat_int_t(index_obj->as_integer()));
             if (index < 0 || index >= (nat_int_t)m_vector.size())
@@ -1888,11 +1888,11 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         index_obj = Object::to_int(env, index_obj);
         size = Object::to_int(env, size);
 
-        IntegerObject::assert_fixnum(env, size->as_integer());
+        IntegerObject::assert_fixnum(env, size.integer());
     }
 
     if (index_obj.is_integer()) {
-        IntegerObject::assert_fixnum(env, index_obj->as_integer());
+        IntegerObject::assert_fixnum(env, index_obj.integer());
 
         auto start = IntegerObject::to_nat_int_t(index_obj->as_integer());
 

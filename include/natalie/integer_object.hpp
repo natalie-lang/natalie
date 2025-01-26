@@ -147,11 +147,6 @@ public:
     static BigInt to_bigint(const IntegerObject *self) { return self->m_integer.to_bigint(); }
     static BigInt to_bigint(const Integer &self) { return self.to_bigint(); }
 
-    static void assert_fixnum(Env *env, const IntegerObject *self) {
-        if (is_bignum(IntegerObject::integer(self)))
-            env->raise("RangeError", "bignum too big to convert into 'long'");
-    }
-
     static void assert_fixnum(Env *env, const Integer &self) {
         if (self.is_bignum())
             env->raise("RangeError", "bignum too big to convert into 'long'");
