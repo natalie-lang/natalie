@@ -116,8 +116,7 @@ public:
     static Value bit_length(Env *, Integer &self) { return self.bit_length(); }
     static Value left_shift(Env *, Integer &, Value);
     static Value right_shift(Env *, Integer &, Value);
-    static Value pred(Env *, IntegerObject *);
-    static Value pred(Env *env, Integer &self) { return pred(env, new IntegerObject(self)); }
+    static Value pred(Env *env, Integer &self) { return self - 1; }
     static Value size(Env *, IntegerObject *);
     static Value size(Env *env, Integer &self) { return size(env, new IntegerObject(self)); }
     static Value succ(Env *, IntegerObject *);

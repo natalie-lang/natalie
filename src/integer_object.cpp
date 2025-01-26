@@ -488,10 +488,6 @@ Value IntegerObject::right_shift(Env *env, Integer &self, Value arg) {
     return create(self >> nat_int);
 }
 
-Value IntegerObject::pred(Env *env, IntegerObject *self) {
-    return IntegerObject::sub(env, IntegerObject::integer(self), Value::integer(1));
-}
-
 Value IntegerObject::size(Env *env, IntegerObject *self) {
     if (is_bignum(self)) {
         const nat_int_t bitstring_size = IntegerObject::to_s(env, self->m_integer, Value::integer(2))->as_string()->bytesize();
