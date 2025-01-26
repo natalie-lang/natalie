@@ -252,7 +252,7 @@ Value TimeObject::to_a(Env *env) const {
 }
 
 Value TimeObject::to_f(Env *env) {
-    Value result = IntegerObject::to_f(m_integer->as_integer());
+    Value result = IntegerObject::to_f(m_integer.integer());
     if (m_subsec) {
         result = result->as_float()->add(env, m_subsec->as_rational());
     }

@@ -110,7 +110,7 @@ namespace ArrayPacker {
                 pack_with_loop(env, token, [&]() {
                     auto value = m_source->at(m_index);
                     if (value.is_integer()) {
-                        value = IntegerObject::to_f(value->as_integer());
+                        value = IntegerObject::to_f(value.integer());
                     } else if (value->is_rational()) {
                         value = value->as_rational()->to_f(env);
                     }

@@ -98,8 +98,7 @@ public:
 
     static Value to_s(Env *, Integer &self, Value = nullptr);
     static Value to_i(Integer &self) { return self; }
-    static Value to_f(IntegerObject *);
-    static Value to_f(Integer &self) { return to_f(new IntegerObject(self)); }
+    static Value to_f(Integer &self) { return Value::floatingpoint(self.to_double()); }
     static Value add(Env *, Integer &, Value);
     static Value sub(Env *, Integer &, Value);
     static Value mul(Env *, IntegerObject *, Value);
