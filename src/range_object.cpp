@@ -312,13 +312,13 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         return enum_for(env, "bsearch");
 
     if (m_begin.is_integer() && m_end.is_integer()) {
-        nat_int_t left = IntegerObject::integer(m_begin->as_integer()).to_nat_int_t();
-        nat_int_t right = IntegerObject::integer(m_end->as_integer()).to_nat_int_t();
+        auto left = m_begin.integer().to_nat_int_t();
+        auto right = m_end.integer().to_nat_int_t();
 
         return binary_search_integer(env, left, right, block, m_exclude_end);
     } else if (m_begin.is_integer() && m_end->is_nil()) {
-        nat_int_t left = IntegerObject::integer(m_begin->as_integer()).to_nat_int_t();
-        nat_int_t right = left + 1;
+        auto left = m_begin.integer().to_nat_int_t();
+        auto right = left + 1;
 
         // Find a right border in which we can perform the binary search.
         while (binary_search_check(env, NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { IntegerObject::create(right) }, nullptr)) != BSearchCheckResult::SMALLER) {
@@ -327,8 +327,8 @@ Value RangeObject::bsearch(Env *env, Block *block) {
 
         return binary_search_integer(env, left, right, block, false);
     } else if (m_begin->is_nil() && m_end.is_integer()) {
-        nat_int_t right = IntegerObject::integer(m_end->as_integer()).to_nat_int_t();
-        nat_int_t left = right - 1;
+        auto right = m_end.integer().to_nat_int_t();
+        auto left = right - 1;
 
         // Find a left border in which we can perform the binary search.
         while (binary_search_check(env, NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { IntegerObject::create(left) }, nullptr)) != BSearchCheckResult::BIGGER) {
