@@ -413,7 +413,7 @@ Value IntegerObject::times(Env *env, Integer &self, Block *block) {
     return self;
 }
 
-Value IntegerObject::bitwise_and(Env *env, IntegerObject *self, Value arg) {
+Value IntegerObject::bitwise_and(Env *env, Integer &self, Value arg) {
     if (!arg.is_integer() && arg->respond_to(env, "coerce"_s)) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         auto and_symbol = "&"_s;
@@ -423,7 +423,7 @@ Value IntegerObject::bitwise_and(Env *env, IntegerObject *self, Value arg) {
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    return create(self->m_integer & arg->as_integer()->m_integer);
+    return create(self & arg.integer());
 }
 
 Value IntegerObject::bitwise_or(Env *env, IntegerObject *self, Value arg) {
