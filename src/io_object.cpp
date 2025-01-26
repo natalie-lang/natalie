@@ -290,7 +290,7 @@ Value IoObject::read_file(Env *env, Args &&args) {
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     file->set_encoding(env, flags.external_encoding(), flags.internal_encoding());
     if (offset && !offset->is_nil()) {
-        if (offset.is_integer() && IntegerObject::is_negative(offset->as_integer()))
+        if (offset.is_integer() && IntegerObject::is_negative(offset.integer()))
             env->raise("ArgumentError", "negative offset {} given", offset->inspect_str(env));
         file->set_pos(env, offset);
     }
@@ -633,13 +633,13 @@ Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
 
 Value IoObject::putc(Env *env, Value val) {
     raise_if_closed(env);
-    Value ord;
+    Integer ord;
     if (val->is_string()) {
-        ord = val->as_string()->ord(env);
+        ord = val->as_string()->ord(env).integer();
     } else {
-        ord = Value::integer(IntegerObject::convert_to_nat_int_t(env, val) & 0xff);
+        ord = IntegerObject::convert_to_nat_int_t(env, val) & 0xff;
     }
-    send(env, "write"_s, { IntegerObject::chr(env, ord->as_integer(), nullptr) });
+    send(env, "write"_s, { IntegerObject::chr(env, ord, nullptr) });
     return val;
 }
 
@@ -899,7 +899,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
         return NilObject::the();
     if (byte.is_integer()) {
         nat_int_t value = 0xff;
-        if (!IntegerObject::is_bignum(byte->as_integer())) {
+        if (!IntegerObject::is_bignum(byte.integer())) {
             value = IntegerObject::convert_to_nat_int_t(env, byte);
             if (value > 0xff) value = 0xff;
         }

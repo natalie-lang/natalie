@@ -144,7 +144,7 @@ bool Value::operator==(Value other) const {
         default: {
             if (other && other->type() == Object::Type::Integer) {
                 auto i = other->as_integer();
-                if (IntegerObject::is_fixnum(i))
+                if (IntegerObject::is_fixnum(IntegerObject::integer(i)))
                     return m_integer == IntegerObject::to_nat_int_t(i);
             }
             return false;

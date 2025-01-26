@@ -141,8 +141,11 @@ Value RationalObject::floor(Env *env, Value precision_value) {
     if (m_denominator == 1)
         return IntegerObject::floor(env, m_numerator, precision_value);
 
-    if (precision < 0)
-        return IntegerObject::floor(env, to_i(env)->as_integer(), precision_value);
+    if (precision < 0) {
+        auto i = to_i(env).integer();
+        return IntegerObject::floor(env, i, precision_value);
+    }
+
     if (precision == 0)
         return to_f(env)->as_float()->floor(env, precision_value);
 
@@ -258,9 +261,9 @@ Value RationalObject::to_f(Env *env) {
 
 Value RationalObject::to_i(Env *env) {
     if (IntegerObject::is_negative(m_numerator)) {
-        auto a = IntegerObject::negate(env, m_numerator)->as_integer();
-        auto b = IntegerObject::div(env, a, m_denominator)->as_integer();
-        return IntegerObject::negate(env, b);
+        auto a = -m_numerator;
+        auto b = a / m_denominator;
+        return -b;
     }
     return IntegerObject::div(env, m_numerator, m_denominator);
 }
@@ -285,11 +288,11 @@ Value RationalObject::truncate(Env *env, Value ndigits) {
     }
 
     if (digits == 0)
-        return IntegerObject::create(numerator / denominator);
+        return Value::integer(numerator / denominator);
 
     if (digits < 0) {
-        auto quotient = IntegerObject(numerator / denominator);
-        return IntegerObject::truncate(env, &quotient, ndigits);
+        auto quotient = Value::integer(numerator / denominator);
+        return IntegerObject::truncate(env, quotient.integer(), ndigits);
     }
 
     const auto power = static_cast<nat_int_t>(std::pow(10, digits));

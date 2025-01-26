@@ -34,7 +34,7 @@ Value MutexObject::sleep(Env *env, Value timeout) {
         return this;
     }
 
-    if ((timeout->is_float() && timeout->as_float()->is_negative()) || (timeout.is_integer() && IntegerObject::is_negative(timeout->as_integer())))
+    if ((timeout->is_float() && timeout->as_float()->is_negative()) || (timeout.is_integer() && IntegerObject::is_negative(timeout.integer())))
         env->raise("ArgumentError", "time interval must not be negative");
 
     auto timeout_int = IntegerObject::convert_to_nat_int_t(env, timeout);

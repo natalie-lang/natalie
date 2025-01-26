@@ -91,10 +91,10 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
     result->m_integer = Value::integer(seconds);
     if (subsec) {
         if (subsec.is_integer()) {
-            IntegerObject *integer = subsec->as_integer();
-            if (IntegerObject::lt(env, integer, Value::integer(0)) || IntegerObject::gte(env, integer, Value::integer(1000000)))
+            auto integer = subsec.integer();
+            if (integer < 0 || integer >= 1000000)
                 env->raise("ArgumentError", "subsecx out of range");
-            result->m_subsec = RationalObject::create(env, IntegerObject::integer(integer), Integer(1000000));
+            result->m_subsec = RationalObject::create(env, integer, Integer(1000000));
         } else if (subsec->is_rational()) {
             result->m_subsec = subsec->as_rational()->div(env, Value::integer(1000000));
         } else {
@@ -126,7 +126,7 @@ Value TimeObject::asctime(Env *env) {
 Value TimeObject::cmp(Env *env, Value other) {
     if (other->is_time()) {
         auto time = other->as_time();
-        auto integer = m_integer->as_integer();
+        auto integer = m_integer.integer();
         if (IntegerObject::gt(env, integer, time->m_integer)) {
             return Value::integer(1);
         } else if (IntegerObject::lt(env, integer, time->m_integer)) {
@@ -252,7 +252,7 @@ Value TimeObject::to_a(Env *env) const {
 }
 
 Value TimeObject::to_f(Env *env) {
-    Value result = IntegerObject::to_f(m_integer->as_integer());
+    Value result = IntegerObject::to_f(m_integer.integer());
     if (m_subsec) {
         result = result->as_float()->add(env, m_subsec->as_rational());
     }
@@ -521,10 +521,10 @@ void TimeObject::set_subsec(Env *env, long nsec) {
 }
 
 void TimeObject::set_subsec(Env *env, IntegerObject *usec) {
-    if (IntegerObject::lt(env, usec, Value::integer(0)) || IntegerObject::gte(env, usec, Value::integer(1000000))) {
+    if (IntegerObject::lt(env, IntegerObject::integer(usec), Value::integer(0)) || IntegerObject::gte(env, IntegerObject::integer(usec), Value::integer(1000000))) {
         env->raise("ArgumentError", "subsecx out of range");
     }
-    if (!IntegerObject::is_zero(usec)) {
+    if (!IntegerObject::is_zero(IntegerObject::integer(usec))) {
         m_subsec = RationalObject::create(env, IntegerObject::integer(usec), Integer(1000000));
     }
 }
