@@ -523,18 +523,18 @@ Value IntegerObject::coerce(Env *env, IntegerObject *self, Value arg) {
     return ary;
 }
 
-Value IntegerObject::ceil(Env *env, IntegerObject *self, Value arg) {
+Value IntegerObject::ceil(Env *env, Integer &self, Value arg) {
     if (arg == nullptr)
-        return IntegerObject::create(self->m_integer);
+        return self;
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto precision = arg->as_integer()->m_integer.to_nat_int_t();
+    auto precision = arg.integer().to_nat_int_t();
     if (precision >= 0)
-        return IntegerObject::create(self->m_integer);
+        return self;
 
     double f = ::pow(10, precision);
-    auto result = ::ceil(self->m_integer.to_nat_int_t() * f) / f;
+    auto result = ::ceil(self.to_nat_int_t() * f) / f;
 
     return Value::integer(result);
 }
