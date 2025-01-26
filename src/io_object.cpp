@@ -749,7 +749,7 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
     if (whence_value) {
         switch (whence_value->type()) {
         case Object::Type::Integer:
-            whence = IntegerObject::to_nat_int_t(whence_value->as_integer());
+            whence = whence_value.integer().to_nat_int_t();
             break;
         case Object::Type::Symbol: {
             SymbolObject *whence_sym = whence_value->as_symbol();
