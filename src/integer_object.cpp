@@ -67,10 +67,6 @@ Value IntegerObject::to_s(Env *env, Integer &self, Value base_value) {
     return str;
 }
 
-Value IntegerObject::to_i(IntegerObject *self) {
-    return IntegerObject::create(self->m_integer);
-}
-
 Value IntegerObject::to_f(IntegerObject *self) {
     return Value::floatingpoint(self->m_integer.to_double());
 }

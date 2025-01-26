@@ -97,8 +97,7 @@ public:
     static String to_s(const Integer &self) { return self.to_string(); }
 
     static Value to_s(Env *, Integer &self, Value = nullptr);
-    static Value to_i(IntegerObject *);
-    static Value to_i(Integer &self) { return to_i(new IntegerObject(self)); }
+    static Value to_i(Integer &self) { return self; }
     static Value to_f(IntegerObject *);
     static Value to_f(Integer &self) { return to_f(new IntegerObject(self)); }
     static Value add(Env *, Integer &, Value);
