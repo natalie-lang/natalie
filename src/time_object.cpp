@@ -521,7 +521,7 @@ void TimeObject::set_subsec(Env *env, long nsec) {
 }
 
 void TimeObject::set_subsec(Env *env, IntegerObject *usec) {
-    if (IntegerObject::lt(env, IntegerObject::integer(usec), Value::integer(0)) || IntegerObject::gte(env, usec, Value::integer(1000000))) {
+    if (IntegerObject::lt(env, IntegerObject::integer(usec), Value::integer(0)) || IntegerObject::gte(env, IntegerObject::integer(usec), Value::integer(1000000))) {
         env->raise("ArgumentError", "subsecx out of range");
     }
     if (!IntegerObject::is_zero(usec)) {
