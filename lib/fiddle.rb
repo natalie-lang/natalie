@@ -44,7 +44,7 @@ class Fiddle
       ptr_obj->assert_type(env, Object::Type::VoidP, "VoidP");
       auto ptr = (const char *)ptr_obj->as_void_p()->void_ptr();
       if (len)
-        return new StringObject { ptr, (size_t)IntegerObject::to_nat_int_t(len->as_integer()) };
+        return new StringObject { ptr, (size_t)len.integer().to_nat_int_t() };
       return new StringObject { ptr };
     END
   end
@@ -80,14 +80,14 @@ class Fiddle
     # In the future, Natalie will have macros that will allow this to be generated at compile time.
 
     __define_method__ :void_no_args, [], <<-END
-      auto symbol = IntegerObject::to_nat_int_t(self->ivar_get(env, "@symbol"_s)->as_integer());
+      auto symbol = self->ivar_get(env, "@symbol"_s).integer().to_nat_int_t();
       auto fn = (void* (*)())symbol;
       fn();
       return NilObject::the();
     END
 
     __define_method__ :voidp_no_args, [], <<-END
-      auto symbol = IntegerObject::to_nat_int_t(self->ivar_get(env, "@symbol"_s)->as_integer());
+      auto symbol = self->ivar_get(env, "@symbol"_s).integer().to_nat_int_t();
       auto fn = (void* (*)())symbol;
       auto result = fn();
       auto pointer_class = self->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict)->as_class();
@@ -98,7 +98,7 @@ class Fiddle
     END
 
     __define_method__ :voidp_args_voidp, [:p1], <<-END
-      auto symbol = IntegerObject::to_nat_int_t(self->ivar_get(env, "@symbol"_s)->as_integer());
+      auto symbol = self->ivar_get(env, "@symbol"_s).integer().to_nat_int_t();
       auto fn = (void* (*)(void*))symbol;
       void *p1_ptr;
       auto pointer_class = self->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict)->as_class();
