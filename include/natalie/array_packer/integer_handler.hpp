@@ -10,7 +10,7 @@ namespace ArrayPacker {
 
     class IntegerHandler : public Cell {
     public:
-        IntegerHandler(IntegerObject *source, Token token)
+        IntegerHandler(Integer &source, Token token)
             : m_source { source }
             , m_token { token } { }
 
@@ -42,7 +42,7 @@ namespace ArrayPacker {
         void append_bytes(const char *bytes, int size);
         void append_8_ascii_bits_as_a_byte(String &digits, size_t offset);
 
-        IntegerObject *m_source;
+        Integer m_source;
         Token m_token;
         String m_packed {};
     };
