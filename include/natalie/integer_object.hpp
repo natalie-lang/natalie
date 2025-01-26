@@ -126,8 +126,7 @@ public:
     static Value abs(Env *, Integer &self) { return self.is_negative() ? -self : self; }
     static Value chr(Env *, Integer &, Value);
     static Value negate(Env *, Integer &self) { return -self; }
-    static Value numerator(IntegerObject *self) { return IntegerObject::create(self->m_integer); }
-    static Value numerator(Integer &self) { return IntegerObject::create(self); }
+    static Value numerator(Integer &self) { return self; }
     static Value complement(Env *, Integer &self) { return ~self; }
     static Value ord(Integer &self) { return self; }
     static Value denominator() { return Value::integer(1); }
