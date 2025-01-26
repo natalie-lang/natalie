@@ -560,9 +560,9 @@ Value IntegerObject::gcd(Env *env, Integer &self, Value divisor) {
     return Natalie::gcd(self, divisor.integer());
 }
 
-Value IntegerObject::chr(Env *env, IntegerObject *self, Value encoding) {
-    if (self->m_integer < 0 || self->m_integer > (nat_int_t)UINT_MAX)
-        env->raise("RangeError", "{} out of char range", self->m_integer.to_string());
+Value IntegerObject::chr(Env *env, Integer &self, Value encoding) {
+    if (self < 0 || self > (nat_int_t)UINT_MAX)
+        env->raise("RangeError", "{} out of char range", self.to_string());
     else if (is_bignum(self))
         env->raise("RangeError", "bignum out of char range");
 
@@ -571,29 +571,29 @@ Value IntegerObject::chr(Env *env, IntegerObject *self, Value encoding) {
             encoding->assert_type(env, Type::String, "String");
             encoding = EncodingObject::find(env, encoding);
         }
-    } else if (self->m_integer <= 127) {
+    } else if (self <= 127) {
         encoding = EncodingObject::get(Encoding::US_ASCII);
-    } else if (self->m_integer < 256) {
+    } else if (self < 256) {
         encoding = EncodingObject::get(Encoding::ASCII_8BIT);
     } else if (EncodingObject::default_internal()) {
         encoding = EncodingObject::default_internal();
     } else {
-        env->raise("RangeError", "{} out of char range", self->m_integer.to_string());
+        env->raise("RangeError", "{} out of char range", self.to_string());
     }
 
     auto encoding_obj = encoding->as_encoding();
-    if (!encoding_obj->in_encoding_codepoint_range(self->m_integer.to_nat_int_t()))
-        env->raise("RangeError", "{} out of char range", self->m_integer.to_string());
+    if (!encoding_obj->in_encoding_codepoint_range(self.to_nat_int_t()))
+        env->raise("RangeError", "{} out of char range", self.to_string());
 
-    if (!encoding_obj->valid_codepoint(self->m_integer.to_nat_int_t())) {
+    if (!encoding_obj->valid_codepoint(self.to_nat_int_t())) {
         auto hex = String();
-        hex.append_sprintf("0x%X", self->m_integer.to_nat_int_t());
+        hex.append_sprintf("0x%X", self.to_nat_int_t());
 
         auto encoding_name = encoding_obj->name()->as_string()->string();
         env->raise("RangeError", "invalid codepoint {} in {}", hex, encoding_name);
     }
 
-    auto encoded = encoding_obj->encode_codepoint(self->m_integer.to_nat_int_t());
+    auto encoded = encoding_obj->encode_codepoint(self.to_nat_int_t());
     return new StringObject { encoded, encoding_obj };
 }
 

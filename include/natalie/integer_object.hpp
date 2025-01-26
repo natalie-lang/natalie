@@ -124,8 +124,7 @@ public:
     static Value floor(Env *, Integer &, Value);
     static Value gcd(Env *, Integer &, Value);
     static Value abs(Env *, Integer &self) { return self.is_negative() ? -self : self; }
-    static Value chr(Env *, IntegerObject *, Value);
-    static Value chr(Env *env, Integer &self, Value encoding) { return chr(env, new IntegerObject(self), encoding); }
+    static Value chr(Env *, Integer &, Value);
     static Value negate(Env *, IntegerObject *);
     static Value negate(Env *env, Integer &self) { return negate(env, new IntegerObject(self)); }
     static Value numerator(IntegerObject *self) { return IntegerObject::create(self->m_integer); }

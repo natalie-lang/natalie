@@ -633,13 +633,13 @@ Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
 
 Value IoObject::putc(Env *env, Value val) {
     raise_if_closed(env);
-    Value ord;
+    Integer ord;
     if (val->is_string()) {
-        ord = val->as_string()->ord(env);
+        ord = val->as_string()->ord(env).integer();
     } else {
-        ord = Value::integer(IntegerObject::convert_to_nat_int_t(env, val) & 0xff);
+        ord = IntegerObject::convert_to_nat_int_t(env, val) & 0xff;
     }
-    send(env, "write"_s, { IntegerObject::chr(env, ord->as_integer(), nullptr) });
+    send(env, "write"_s, { IntegerObject::chr(env, ord, nullptr) });
     return val;
 }
 
