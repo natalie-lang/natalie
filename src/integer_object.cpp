@@ -539,18 +539,18 @@ Value IntegerObject::ceil(Env *env, Integer &self, Value arg) {
     return Value::integer(result);
 }
 
-Value IntegerObject::floor(Env *env, IntegerObject *self, Value arg) {
+Value IntegerObject::floor(Env *env, Integer &self, Value arg) {
     if (arg == nullptr)
-        return IntegerObject::create(self->m_integer);
+        return self;
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
     auto precision = arg->as_integer()->m_integer.to_nat_int_t();
     if (precision >= 0)
-        return IntegerObject::create(self->m_integer);
+        return self;
 
     double f = ::pow(10, precision);
-    auto result = ::floor(self->m_integer.to_nat_int_t() * f) / f;
+    auto result = ::floor(self.to_nat_int_t() * f) / f;
 
     return Value::integer(result);
 }

@@ -121,8 +121,7 @@ public:
     static Value succ(Env *, Integer &self) { return self + 1; }
     static Value ceil(Env *, Integer &, Value);
     static Value coerce(Env *, Value, Value);
-    static Value floor(Env *, IntegerObject *, Value);
-    static Value floor(Env *env, Integer &self, Value arg) { return floor(env, new IntegerObject(self), arg); }
+    static Value floor(Env *, Integer &, Value);
     static Value gcd(Env *, IntegerObject *, Value);
     static Value gcd(Env *env, Integer &self, Value other) { return gcd(env, new IntegerObject(self), other); }
     static Value abs(Env *, IntegerObject *);

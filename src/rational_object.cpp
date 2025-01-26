@@ -141,8 +141,11 @@ Value RationalObject::floor(Env *env, Value precision_value) {
     if (m_denominator == 1)
         return IntegerObject::floor(env, m_numerator, precision_value);
 
-    if (precision < 0)
-        return IntegerObject::floor(env, to_i(env)->as_integer(), precision_value);
+    if (precision < 0) {
+        auto i = to_i(env).integer();
+        return IntegerObject::floor(env, i, precision_value);
+    }
+
     if (precision == 0)
         return to_f(env)->as_float()->floor(env, precision_value);
 
