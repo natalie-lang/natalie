@@ -248,7 +248,7 @@ Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
         if (index_obj.is_integer()) {
             IntegerObject::assert_fixnum(env, index_obj.integer());
 
-            auto index = _resolve_index(IntegerObject::to_nat_int_t(index_obj->as_integer()));
+            auto index = _resolve_index(index_obj.integer().to_nat_int_t());
             if (index < 0 || index >= (nat_int_t)m_vector.size())
                 return NilObject::the();
             return m_vector[index];
@@ -962,7 +962,7 @@ Value ArrayObject::cmp(Env *env, Value other) {
                 return cmp_obj;
             }
 
-            nat_int_t cmp = IntegerObject::to_nat_int_t(cmp_obj->as_integer());
+            auto cmp = cmp_obj.integer();
             if (cmp < 0) return Value::integer(-1);
             if (cmp > 0) return Value::integer(1);
         }
@@ -1054,7 +1054,7 @@ bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
     } else {
         Value compare = a.send(env, "<=>"_s, { b });
         if (compare.is_integer()) {
-            return IntegerObject::to_nat_int_t(compare->as_integer()) < 0;
+            return compare.integer() < 0;
         }
         // TODO: Ruby sometimes prints b as the value (for example for integers) and sometimes as class
         env->raise("ArgumentError", "comparison of {} with {} failed", a->klass()->inspect_str(), b->klass()->inspect_str());
@@ -1081,7 +1081,7 @@ bool array_sort_by_compare(Env *env, Value a, Value b, Block *block) {
 
     Value compare = a_res.send(env, "<=>"_s, { b_res });
     if (compare.is_integer()) {
-        return IntegerObject::to_nat_int_t(compare->as_integer()) < 0;
+        return compare.integer() < 0;
     }
     env->raise("ArgumentError", "comparison of {} with {} failed", a_res->klass()->inspect_str(), b_res->klass()->inspect_str());
 }
@@ -1453,7 +1453,7 @@ Value ArrayObject::bsearch(Env *env, Block *block) {
     if (index->is_nil())
         return index;
 
-    return (*this)[IntegerObject::to_nat_int_t(index->as_integer())];
+    return (*this)[index.integer().to_nat_int_t()];
 }
 
 Value ArrayObject::bsearch_index(Env *env, Block *block) {
@@ -1894,7 +1894,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
     if (index_obj.is_integer()) {
         IntegerObject::assert_fixnum(env, index_obj.integer());
 
-        auto start = IntegerObject::to_nat_int_t(index_obj->as_integer());
+        auto start = index_obj.integer().to_nat_int_t();
 
         if (!size) {
             start = _resolve_index(start);
@@ -1911,7 +1911,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
 
         size->assert_type(env, ObjectType::Integer, "Integer");
 
-        nat_int_t length = IntegerObject::to_nat_int_t(size->as_integer());
+        auto length = size.integer().to_nat_int_t();
 
         if (length < 0)
             return NilObject::the();
