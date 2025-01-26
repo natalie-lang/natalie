@@ -307,7 +307,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
             hints.ai_family = PF_UNSPEC;
 
         if (protocol.is_integer())
-            hints.ai_protocol = (unsigned short)IntegerObject::to_nat_int_t(protocol->as_integer());
+            hints.ai_protocol = (unsigned short)protocol.integer().to_nat_int_t();
         else
             hints.ai_protocol = 0;
 
@@ -636,7 +636,7 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args &&args, Block *block) {
             break;
         }
         case Object::Type::Integer: {
-            int val = IntegerObject::to_nat_int_t(data_obj->as_integer());
+            int val = data_obj.integer().to_nat_int_t();
             data = new StringObject { (const char *)(&val), sizeof(int) };
             break;
         }
@@ -679,7 +679,7 @@ Value BasicSocket_shutdown(Env *env, Value self, Args &&args, Block *) {
     if (args.size() > 0) {
         auto arg = args.at(0);
         if (arg.is_integer()) {
-            how = IntegerObject::to_nat_int_t(arg->as_integer());
+            how = arg.integer().to_nat_int_t();
             switch (how) {
             case SHUT_RD:
             case SHUT_WR:
@@ -1183,7 +1183,7 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
     auto host = args.at(1);
     if (host->is_nil())
         host = new StringObject { "127.0.0.1" };
-    if (host.is_integer() && IntegerObject::is_fixnum(host.integer()) && IntegerObject::to_nat_int_t(host->as_integer()) == INADDR_ANY)
+    if (host.is_integer() && host.integer().is_fixnum() && host.integer().to_nat_int_t() == INADDR_ANY)
         host = new StringObject { "0.0.0.0" };
     if (host->is_string() && host->as_string()->is_empty())
         host = new StringObject { "0.0.0.0" };
@@ -1236,7 +1236,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args &&args, Block *block)
     auto sockaddr = args.at(0);
 
     if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict))) {
-        auto afamily = IntegerObject::to_nat_int_t(sockaddr.send(env, "afamily"_s).send(env, "to_i"_s)->as_integer());
+        auto afamily = sockaddr.send(env, "afamily"_s).send(env, "to_i"_s).integer().to_nat_int_t();
         if (afamily != AF_INET && afamily != AF_INET6)
             env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
         auto host = sockaddr.send(env, "ip_address"_s);
@@ -1290,7 +1290,7 @@ Value Socket_unpack_sockaddr_un(Env *env, Value self, Args &&args, Block *block)
     auto sockaddr = args.at(0);
 
     if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict))) {
-        auto afamily = IntegerObject::to_nat_int_t(sockaddr.send(env, "afamily"_s).send(env, "to_i"_s)->as_integer());
+        auto afamily = sockaddr.send(env, "afamily"_s).send(env, "to_i"_s).integer().to_nat_int_t();
         if (afamily != AF_UNIX)
             env->raise("ArgumentError", "not an AF_UNIX sockaddr");
         return sockaddr.send(env, "unix_path"_s);
@@ -1391,7 +1391,7 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
     if (servname->is_nil() || (servname->is_string() && servname->as_string()->is_empty()))
         service = "0";
     else if (servname.is_integer())
-        service = IntegerObject::to_s(servname->as_integer());
+        service = IntegerObject::to_s(servname.integer());
     else
         service = servname->as_string_or_raise(env)->string();
 
