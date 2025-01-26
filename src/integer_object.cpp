@@ -426,7 +426,7 @@ Value IntegerObject::bitwise_and(Env *env, Integer &self, Value arg) {
     return create(self & arg.integer());
 }
 
-Value IntegerObject::bitwise_or(Env *env, IntegerObject *self, Value arg) {
+Value IntegerObject::bitwise_or(Env *env, Integer &self, Value arg) {
     Integer argument;
     if (!arg.is_integer() && arg->respond_to(env, "coerce"_s)) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
@@ -437,7 +437,7 @@ Value IntegerObject::bitwise_or(Env *env, IntegerObject *self, Value arg) {
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    return create(self->m_integer | arg->as_integer()->m_integer);
+    return create(self | arg.integer());
 }
 
 Value IntegerObject::bitwise_xor(Env *env, IntegerObject *self, Value arg) {

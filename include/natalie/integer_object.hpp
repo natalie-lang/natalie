@@ -111,8 +111,7 @@ public:
     static Value cmp(Env *, Integer &, Value);
     static Value times(Env *, Integer &, Block *);
     static Value bitwise_and(Env *, Integer &, Value);
-    static Value bitwise_or(Env *, IntegerObject *, Value);
-    static Value bitwise_or(Env *env, Integer &self, Value other) { return bitwise_or(env, new IntegerObject(self), other); }
+    static Value bitwise_or(Env *, Integer &, Value);
     static Value bitwise_xor(Env *, IntegerObject *, Value);
     static Value bitwise_xor(Env *env, Integer &self, Value other) { return bitwise_xor(env, new IntegerObject(self), other); }
     static Value bit_length(Env *, IntegerObject *);
