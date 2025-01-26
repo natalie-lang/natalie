@@ -132,8 +132,7 @@ public:
     static Value denominator() { return Value::integer(1); }
     static Value round(Env *, Integer &, Value, Value);
     static Value truncate(Env *, Integer &, Value);
-    static Value ref(Env *, IntegerObject *, Value, Value);
-    static Value ref(Env *env, Integer &self, Value offset_obj, Value size_obj) { return ref(env, new IntegerObject(self), offset_obj, size_obj); }
+    static Value ref(Env *, Integer &, Value, Value);
 
     static bool neq(Env *, IntegerObject *, Value);
     static bool neq(Env *env, Integer &self, Value other) { return neq(env, new IntegerObject(self), other); }

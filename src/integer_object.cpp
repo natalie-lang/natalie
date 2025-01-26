@@ -669,7 +669,7 @@ Value IntegerObject::truncate(Env *env, Integer &self, Value ndigits) {
     return create(result - remainder);
 }
 
-Value IntegerObject::ref(Env *env, IntegerObject *self, Value offset_obj, Value size_obj) {
+Value IntegerObject::ref(Env *env, Integer &self, Value offset_obj, Value size_obj) {
     auto from_offset_and_size = [self, env](Optional<nat_int_t> offset_or_empty, Optional<nat_int_t> size_or_empty = {}) -> Value {
         auto offset = offset_or_empty.value_or(0);
 
@@ -680,9 +680,9 @@ Value IntegerObject::ref(Env *env, IntegerObject *self, Value offset_obj, Value 
 
         Integer result;
         if (offset < 0)
-            result = self->m_integer << -offset;
+            result = self << -offset;
         else
-            result = self->m_integer >> offset;
+            result = self >> offset;
 
         if (size >= 0)
             result = result & ((1 << size) - 1);
