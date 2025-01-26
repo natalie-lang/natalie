@@ -597,14 +597,6 @@ Value IntegerObject::chr(Env *env, Integer &self, Value encoding) {
     return new StringObject { encoded, encoding_obj };
 }
 
-Value IntegerObject::negate(Env *env, IntegerObject *self) {
-    return create(-self->m_integer);
-}
-
-Value IntegerObject::complement(Env *env, IntegerObject *self) {
-    return create(~self->m_integer);
-}
-
 Value IntegerObject::sqrt(Env *env, Value arg) {
     auto argument = Object::to_int(env, arg);
 

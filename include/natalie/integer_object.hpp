@@ -125,12 +125,10 @@ public:
     static Value gcd(Env *, Integer &, Value);
     static Value abs(Env *, Integer &self) { return self.is_negative() ? -self : self; }
     static Value chr(Env *, Integer &, Value);
-    static Value negate(Env *, IntegerObject *);
-    static Value negate(Env *env, Integer &self) { return negate(env, new IntegerObject(self)); }
+    static Value negate(Env *, Integer &self) { return -self; }
     static Value numerator(IntegerObject *self) { return IntegerObject::create(self->m_integer); }
     static Value numerator(Integer &self) { return IntegerObject::create(self); }
-    static Value complement(Env *, IntegerObject *);
-    static Value complement(Env *env, Integer &self) { return complement(env, new IntegerObject(self)); }
+    static Value complement(Env *, Integer &self) { return ~self; }
     static Value ord(IntegerObject *self) { return IntegerObject::create(self->m_integer); }
     static Value ord(Integer &self) { return IntegerObject::create(self); }
     static Value denominator() { return Value::integer(1); }
