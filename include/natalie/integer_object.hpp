@@ -109,8 +109,7 @@ public:
     static Value powmod(Env *, Integer &, Integer &, Integer &);
     static Value powmod(Env *, Integer &, Value, Value);
     static Value cmp(Env *, Integer &, Value);
-    static Value times(Env *, IntegerObject *, Block *);
-    static Value times(Env *env, Integer &self, Block *block) { return times(env, new IntegerObject(self), block); }
+    static Value times(Env *, Integer &, Block *);
     static Value bitwise_and(Env *, IntegerObject *, Value);
     static Value bitwise_and(Env *env, Integer &self, Value other) { return bitwise_and(env, new IntegerObject(self), other); }
     static Value bitwise_or(Env *, IntegerObject *, Value);

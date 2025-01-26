@@ -395,22 +395,22 @@ bool IntegerObject::gte(Env *env, IntegerObject *self, Value other) {
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
-Value IntegerObject::times(Env *env, IntegerObject *self, Block *block) {
+Value IntegerObject::times(Env *env, Integer &self, Block *block) {
     if (!block) {
-        auto enumerator = self->send(env, "enum_for"_s, { "times"_s });
-        enumerator->ivar_set(env, "@size"_s, self->m_integer < 0 ? Value::integer(0) : self);
+        auto enumerator = Value(self).send(env, "enum_for"_s, { "times"_s });
+        enumerator->ivar_set(env, "@size"_s, self < 0 ? Value::integer(0) : self);
         return enumerator;
     }
 
-    if (self->m_integer <= 0)
-        return IntegerObject::create(self->m_integer);
+    if (self <= 0)
+        return self;
 
-    for (Integer i = 0; i < self->m_integer; ++i) {
+    for (Integer i = 0; i < self; ++i) {
         Value num = create(i);
         Value args[] = { num };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
     }
-    return IntegerObject::create(self->m_integer);
+    return self;
 }
 
 Value IntegerObject::bitwise_and(Env *env, IntegerObject *self, Value arg) {
