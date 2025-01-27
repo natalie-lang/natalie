@@ -41,10 +41,6 @@ Value Method::call(Env *env, Value self, Args &&args, Block *block) const {
             auto synthesized_arg = IntegerObject { args[0].get_fast_integer() };
             synthesized_arg.add_synthesized_flag();
             return call_fn({ &synthesized_arg });
-        } else if (args.size() == 1 && args[0].holds_raw_double()) {
-            auto synthesized_arg = FloatObject { args[0].as_double() };
-            synthesized_arg.add_synthesized_flag();
-            return call_fn({ &synthesized_arg });
         }
     } else if (!self.is_fast_integer() && self->is_synthesized()) {
         // Turn this object into a heap-allocated one.

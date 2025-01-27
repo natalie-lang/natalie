@@ -2722,7 +2722,7 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
 
 Value StringObject::to_f(Env *env) const {
     auto result = strtod(c_str(), nullptr);
-    return Value::floatingpoint(result);
+    return new FloatObject { result };
 }
 
 Value StringObject::to_i(Env *env, Value base_obj) const {

@@ -18,7 +18,6 @@ class Value {
 public:
     enum class Type {
         Integer,
-        Double,
         Pointer,
     };
 
@@ -44,8 +43,6 @@ public:
         // This is required, because initialization by a literal is often ambiguous.
         return Value { integer };
     }
-    static Value floatingpoint(double value);
-
     Type type() const { return m_type; }
 
     Object &operator*() {
@@ -105,21 +102,11 @@ public:
         return m_type == Type::Integer;
     }
 
-    bool is_fast_double() const {
-        return m_type == Type::Double;
-    }
-
-    double as_double() const;
     nat_int_t as_fast_integer() const;
 
     nat_int_t get_fast_integer() const {
         assert(m_type == Type::Integer);
         return m_integer.to_nat_int_t();
-    }
-
-    double get_fast_double() const {
-        assert(m_type == Type::Double);
-        return m_double;
     }
 
     const Integer &integer() const;
@@ -135,10 +122,6 @@ public:
     void assert_type(Env *, ObjectType, const char *) const;
 
 private:
-    explicit Value(double value)
-        : m_type { Type::Double }
-        , m_double { value } { }
-
     void auto_hydrate() {
         if (m_type != Type::Pointer)
             hydrate();
@@ -149,17 +132,10 @@ private:
 
     void hydrate();
 
-    // Method can use a synthesized value if we are a fast double
-    friend Method;
-    bool holds_raw_double() const {
-        return m_type == Type::Double;
-    }
-
     Type m_type { Type::Pointer };
 
     union {
         Integer m_integer { 0 };
-        double m_double;
         Object *m_object;
     };
 };

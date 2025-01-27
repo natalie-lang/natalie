@@ -101,7 +101,7 @@ Value ProcessModule::times(Env *env) {
     if (getrusage(RUSAGE_CHILDREN, &rusage_children) == -1)
         env->raise_errno();
     auto tv_to_float = [](const timeval tv) {
-        return Value::floatingpoint(static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) / 1e6);
+        return new FloatObject { static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) / 1e6 };
     };
     auto utime = tv_to_float(rusage_self.ru_utime);
     auto stime = tv_to_float(rusage_self.ru_stime);

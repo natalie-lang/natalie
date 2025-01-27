@@ -67,11 +67,15 @@ Value IntegerObject::to_s(Env *env, Integer &self, Value base_value) {
     return str;
 }
 
+Value IntegerObject::to_f(Integer &self) {
+    return new FloatObject { self.to_double() };
+}
+
 Value IntegerObject::add(Env *env, Integer &self, Value arg) {
     if (arg.is_integer()) {
         return create(self + arg.integer());
     } else if (arg->is_float()) {
-        return Value::floatingpoint(self + arg->as_float()->to_double());
+        return new FloatObject { self + arg->as_float()->to_double() };
     } else if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         if (!lhs.is_integer())
@@ -88,7 +92,7 @@ Value IntegerObject::sub(Env *env, Integer &self, Value arg) {
         return create(self - arg.integer());
     } else if (arg->is_float()) {
         double result = self.to_double() - arg->as_float()->to_double();
-        return Value::floatingpoint(result);
+        return new FloatObject { result };
     } else if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         if (!lhs.is_integer())
@@ -124,7 +128,7 @@ Value IntegerObject::div(Env *env, Integer &self, Value arg) {
         double result = self / arg->as_float()->to_double();
         if (isnan(result))
             return FloatObject::nan();
-        return Value::floatingpoint(result);
+        return new FloatObject { result };
     } else if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         if (!lhs.is_integer())
@@ -143,7 +147,8 @@ Value IntegerObject::div(Env *env, Integer &self, Value arg) {
 Value IntegerObject::mod(Env *env, Integer &self, Value arg) {
     Integer argument;
     if (arg->is_float()) {
-        return Value::floatingpoint(self.to_double())->as_float()->mod(env, arg);
+        auto f = new FloatObject { self.to_double() };
+        return f->mod(env, arg);
     } else if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         if (!lhs.is_integer())
@@ -201,8 +206,10 @@ Value IntegerObject::pow(Env *env, Integer &self, Value arg) {
         return comp->send(env, "**"_s, { arg });
     }
 
-    if (arg->is_float())
-        return Value::floatingpoint(self.to_double())->as_float()->pow(env, arg);
+    if (arg->is_float()) {
+        auto f = new FloatObject { self.to_double() };
+        return f->pow(env, arg);
+    }
 
     if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);

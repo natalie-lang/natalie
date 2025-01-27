@@ -129,7 +129,7 @@ public:
     Value prev_float(Env *) const;
     Value round(Env *, Value);
     Value sub(Env *, Value);
-    Value to_f() const { return Value::floatingpoint(m_double); }
+    Value to_f() const { return new FloatObject { *this }; }
     Value to_i(Env *) const;
     Value to_r(Env *) const;
     Value to_s() const;
@@ -141,11 +141,11 @@ public:
     bool gte(Env *, Value);
 
     Value uminus() const {
-        return Value::floatingpoint(-m_double);
+        return new FloatObject { -m_double };
     }
 
     Value uplus() const {
-        return Value::floatingpoint(m_double);
+        return new FloatObject { m_double };
     }
 
     static void build_constants(Env *env, ClassObject *klass) {

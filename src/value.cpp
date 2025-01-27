@@ -3,12 +3,6 @@
 
 namespace Natalie {
 
-Value Value::floatingpoint(double value) {
-    if (isnan(value))
-        return FloatObject::nan();
-    return Value { value };
-}
-
 #define PROFILED_SEND(type)                                                             \
     static auto is_profiled = NativeProfiler::the()->enabled();                         \
     NativeProfilerEvent *event = nullptr;                                               \
@@ -16,8 +10,6 @@ Value Value::floatingpoint(double value) {
         auto classnameOf = [](Value val) -> String {                                    \
             if (val.m_type == Type::Integer)                                            \
                 return String("FastInteger");                                           \
-            if (val.m_type == Type::Double)                                             \
-                return String("FastDouble");                                            \
             auto maybe_classname = val->klass()->name();                                \
             if (maybe_classname.present())                                              \
                 return maybe_classname.value();                                         \
@@ -39,19 +31,6 @@ Value Value::floatingpoint(double value) {
         if (is_profiled)                                                                \
             NativeProfiler::the()->push(event->end_now());                              \
     });
-
-template <typename Callback>
-Value Value::on_object_value(Callback &&callback) {
-    if (m_type == Type::Pointer)
-        return callback(*object());
-
-    assert(m_type != Type::Integer);
-
-    assert(m_type == Type::Double);
-    auto synthesized_receiver = FloatObject { m_double };
-    synthesized_receiver.add_synthesized_flag();
-    return callback(synthesized_receiver);
-}
 
 // FIXME: this doesn't check method visibility, but no tests are failing yet :-)
 Value Value::integer_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility) {
@@ -75,9 +54,7 @@ Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block
     if (m_type == Type::Integer)
         return integer_send(env, name, std::move(args), block, sent_from, MethodVisibility::Public);
 
-    return on_object_value([&](Object &object) {
-        return object.public_send(env, name, std::move(args), block, sent_from);
-    });
+    return m_object->public_send(env, name, std::move(args), block, sent_from);
 }
 
 Value Value::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
@@ -86,9 +63,7 @@ Value Value::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value
     if (m_type == Type::Integer)
         return integer_send(env, name, std::move(args), block, sent_from, MethodVisibility::Private);
 
-    return on_object_value([&](Object &object) {
-        return object.send(env, name, std::move(args), block, sent_from);
-    });
+    return m_object->send(env, name, std::move(args), block, sent_from);
 }
 
 void Value::hydrate() {
@@ -105,25 +80,12 @@ void Value::hydrate() {
         m_type = Type::Pointer;
         break;
     }
-    case Type::Double: {
-        auto d = m_double;
-        m_object = new FloatObject { d };
-        m_type = Type::Pointer;
-        break;
-    }
     case Type::Pointer:
         break;
     }
 
     if (garbage_collection_enabled)
         Heap::the().gc_enable();
-}
-
-double Value::as_double() const {
-    assert(m_type == Type::Double || (m_type == Type::Pointer && m_object->is_float()));
-    if (m_type == Type::Double)
-        return m_double;
-    return m_object->as_float()->to_double();
 }
 
 nat_int_t Value::as_fast_integer() const {
@@ -139,28 +101,11 @@ bool Value::operator==(Value other) const {
         switch (other.m_type) {
         case Type::Integer:
             return m_integer == other.m_integer;
-        case Type::Double:
-            return false;
         default: {
             if (other && other->type() == Object::Type::Integer) {
                 auto i = other.integer();
                 if (i.is_fixnum())
                     return m_integer == i.to_nat_int_t();
-            }
-            return false;
-        }
-        }
-    }
-    case Type::Double: {
-        switch (other.m_type) {
-        case Type::Integer:
-            return false;
-        case Type::Double:
-            return m_double == other.m_double;
-        default: {
-            if (other && other->is_float()) {
-                auto f = other->as_float();
-                return m_double == f->to_double();
             }
             return false;
         }
@@ -205,8 +150,6 @@ const Integer &Value::integer_or_raise(Env *env) const {
         assert(m_object->type() == Object::Type::Integer);
         return IntegerObject::integer(static_cast<IntegerObject *>(m_object));
         break;
-    case Type::Double:
-        env->raise("TypeError", "Float can't be coerced into Integer");
     default:
         env->raise("TypeError", "{} can't be coerced into Integer", m_object->klass()->inspect_str());
     }
@@ -220,8 +163,6 @@ Integer &Value::integer_or_raise(Env *env) {
         if (m_object->type() == Object::Type::Integer)
             return IntegerObject::integer(static_cast<IntegerObject *>(m_object));
         env->raise("TypeError", "{} can't be coerced into Integer", m_object->klass()->inspect_str());
-    case Type::Double:
-        env->raise("TypeError", "Float can't be coerced into Integer");
     }
     NAT_UNREACHABLE();
 }
@@ -260,11 +201,6 @@ nat_int_t Value::object_id() const {
         }
     }
 
-    if (m_type == Type::Double) {
-        // FIXME: This is scuffed, but gets the tests passing.
-        return 1;
-    }
-
     assert(m_type == Type::Pointer);
     assert(m_object);
 
@@ -276,10 +212,6 @@ void Value::assert_type(Env *env, ObjectType expected_type, const char *expected
     case Type::Integer:
         if (expected_type != Object::Type::Integer)
             env->raise("TypeError", "no implicit conversion of Integer into {}", expected_class_name);
-        break;
-    case Type::Double:
-        if (expected_type != Object::Type::Float)
-            env->raise("TypeError", "no implicit conversion of Float into {}", expected_class_name);
         break;
     case Type::Pointer:
         if (m_object->type() != expected_type)
