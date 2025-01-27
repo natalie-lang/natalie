@@ -27,7 +27,7 @@ Value Tempfile_initialize(Env *env, Value self, Args &&args, Block *) {
         env->raise("ArgumentError", "unexpected prefix: {}", basename->inspect_str(env));
     }
     if (tmpdir && !tmpdir->is_nil()) {
-        tmpdir->assert_type(env, Object::Type::String, "String");
+        tmpdir.assert_type(env, Object::Type::String, "String");
     } else {
         tmpdir = GlobalEnv::the()->Object()->const_fetch("Dir"_s).send(env, "tmpdir"_s);
     }

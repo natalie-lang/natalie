@@ -39,36 +39,36 @@ bool FloatObject::eql(Value other) const {
     return f->m_double == m_double;
 }
 
-#define ROUNDING_OPERATION(name, libm_name)                                      \
-    Value FloatObject::name(Env *env, Value precision_value) {                   \
-        nat_int_t precision = 0;                                                 \
-        if (precision_value) {                                                   \
-            if (precision_value->is_float()) {                                   \
-                precision_value = precision_value->as_float()->to_i(env);        \
-            }                                                                    \
-            precision_value->assert_type(env, Object::Type::Integer, "Integer"); \
-            precision = precision_value.integer().to_nat_int_t();                \
-        }                                                                        \
-        if (precision <= 0 && (is_nan() || is_infinity()))                       \
-            env->raise("FloatDomainError", this->inspect_str(env));              \
-                                                                                 \
-        if (is_infinity())                                                       \
-            return Value::floatingpoint(m_double);                               \
-                                                                                 \
-        FloatObject *result;                                                     \
-        if (precision == 0)                                                      \
-            return f_to_i_or_bigint(::libm_name(m_double));                      \
-                                                                                 \
-        double f = ::pow(10, precision);                                         \
-        double rounded = ::libm_name(m_double * f) / f;                          \
-        if (isinf(f) || isinf(rounded)) {                                        \
-            return Value::floatingpoint(m_double);                               \
-        }                                                                        \
-        if (precision < 0)                                                       \
-            return f_to_i_or_bigint(rounded);                                    \
-                                                                                 \
-        /* precision > 0 */                                                      \
-        return new FloatObject { rounded };                                      \
+#define ROUNDING_OPERATION(name, libm_name)                                     \
+    Value FloatObject::name(Env *env, Value precision_value) {                  \
+        nat_int_t precision = 0;                                                \
+        if (precision_value) {                                                  \
+            if (precision_value->is_float()) {                                  \
+                precision_value = precision_value->as_float()->to_i(env);       \
+            }                                                                   \
+            precision_value.assert_type(env, Object::Type::Integer, "Integer"); \
+            precision = precision_value.integer().to_nat_int_t();               \
+        }                                                                       \
+        if (precision <= 0 && (is_nan() || is_infinity()))                      \
+            env->raise("FloatDomainError", this->inspect_str(env));             \
+                                                                                \
+        if (is_infinity())                                                      \
+            return Value::floatingpoint(m_double);                              \
+                                                                                \
+        FloatObject *result;                                                    \
+        if (precision == 0)                                                     \
+            return f_to_i_or_bigint(::libm_name(m_double));                     \
+                                                                                \
+        double f = ::pow(10, precision);                                        \
+        double rounded = ::libm_name(m_double * f) / f;                         \
+        if (isinf(f) || isinf(rounded)) {                                       \
+            return Value::floatingpoint(m_double);                              \
+        }                                                                       \
+        if (precision < 0)                                                      \
+            return f_to_i_or_bigint(rounded);                                   \
+                                                                                \
+        /* precision > 0 */                                                     \
+        return new FloatObject { rounded };                                     \
     }
 
 ROUNDING_OPERATION(floor, floor)
@@ -239,7 +239,7 @@ Value FloatObject::add(Env *env, Value rhs) {
     }
 
     if (!lhs->is_float()) return lhs.send(env, "+"_s, { rhs });
-    if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
+    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double addend1 = to_double();
     double addend2 = rhs->as_float()->to_double();
@@ -256,7 +256,7 @@ Value FloatObject::sub(Env *env, Value rhs) {
     }
 
     if (!lhs->is_float()) return lhs.send(env, "-"_s, { rhs });
-    if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
+    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double minuend = to_double();
     double subtrahend = rhs->as_float()->to_double();
@@ -273,7 +273,7 @@ Value FloatObject::mul(Env *env, Value rhs) {
     }
 
     if (!lhs->is_float()) return lhs.send(env, "*"_s, { rhs });
-    if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
+    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double multiplicand = to_double();
     double multiplier = rhs->as_float()->to_double();
@@ -290,7 +290,7 @@ Value FloatObject::div(Env *env, Value rhs) {
     }
 
     if (!lhs->is_float()) return lhs.send(env, "/"_s, { rhs });
-    if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
+    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
@@ -313,7 +313,7 @@ Value FloatObject::mod(Env *env, Value rhs) {
     }
 
     if (!lhs->is_float()) return lhs.send(env, "%"_s, { rhs });
-    if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
+    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
@@ -361,7 +361,7 @@ Value FloatObject::pow(Env *env, Value rhs) {
     }
 
     if (!lhs->is_float()) return lhs.send(env, "**"_s, { rhs });
-    if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
+    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double base = to_double();
     double exponent = rhs->as_float()->to_double();

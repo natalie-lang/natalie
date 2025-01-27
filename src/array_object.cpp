@@ -1909,7 +1909,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
             return item;
         }
 
-        size->assert_type(env, ObjectType::Integer, "Integer");
+        size.assert_type(env, ObjectType::Integer, "Integer");
 
         auto length = size.integer().to_nat_int_t();
 

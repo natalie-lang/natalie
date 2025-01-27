@@ -149,7 +149,7 @@ Value HashObject::set_default_proc(Env *env, Value value) {
     auto to_proc_value = value;
     if (value->respond_to(env, to_proc))
         to_proc_value = value.send(env, to_proc);
-    to_proc_value->assert_type(env, Type::Proc, "Proc");
+    to_proc_value.assert_type(env, Type::Proc, "Proc");
     auto proc = to_proc_value->as_proc();
     auto arity = proc->arity();
     if (proc->is_lambda() && arity != 2)

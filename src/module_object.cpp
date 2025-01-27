@@ -885,7 +885,7 @@ Value ModuleObject::included_modules(Env *env) {
 bool ModuleObject::does_include_module(Env *env, Value module) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    module->assert_type(env, Object::Type::Module, "Module");
+    module.assert_type(env, Object::Type::Module, "Module");
     for (ModuleObject *m : included_modules()) {
         if (this == m)
             continue;

@@ -16,7 +16,7 @@ class Fiddle
 
   class Handle
     __define_method__ :initialize, [:path], <<-END
-      path->assert_type(env, Object::Type::String, "String");
+      path.assert_type(env, Object::Type::String, "String");
       auto handle = dlopen(path->as_string()->c_str(), RTLD_LAZY);
       if (!handle) {
           auto dl_error = self->const_find(env, "DLError"_s, Object::ConstLookupSearchMode::NotStrict)->as_class();
@@ -29,7 +29,7 @@ class Fiddle
 
     __define_method__ :[], [:name], <<-END
       auto handle = self->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
-      name->assert_type(env, Object::Type::String, "String");
+      name.assert_type(env, Object::Type::String, "String");
       auto symbol = dlsym(handle, name->as_string()->c_str());
       return Value::integer((long long)symbol);
     END
@@ -39,9 +39,9 @@ class Fiddle
     __define_method__ :to_s, <<-END
       auto len = args.size() > 0 ? args[0] : nullptr;
       if (len)
-        len->assert_type(env, Object::Type::Integer, "Integer");
+        len.assert_type(env, Object::Type::Integer, "Integer");
       auto ptr_obj = self->ivar_get(env, "@ptr"_s);
-      ptr_obj->assert_type(env, Object::Type::VoidP, "VoidP");
+      ptr_obj.assert_type(env, Object::Type::VoidP, "VoidP");
       auto ptr = (const char *)ptr_obj->as_void_p()->void_ptr();
       if (len)
         return new StringObject { ptr, (size_t)len.integer().to_nat_int_t() };

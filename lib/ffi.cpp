@@ -75,7 +75,7 @@ static void *dlopen_wrapper(Env *env, const String &name) {
 }
 
 static void *dlopen_wrapper(Env *env, Value name) {
-    name->assert_type(env, Object::Type::String, "String");
+    name.assert_type(env, Object::Type::String, "String");
     return dlopen_wrapper(env, name->as_string()->string());
 }
 
@@ -114,7 +114,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
 }
 
 static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
-    type->assert_type(env, Object::Type::Symbol, "Symbol");
+    type.assert_type(env, Object::Type::Symbol, "Symbol");
     auto type_sym = type->as_symbol();
     if (type_sym == "bool"_s) {
         return &ffi_type_ushort;
@@ -290,7 +290,7 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 3);
     auto name = args.at(0)->to_symbol(env, Object::Conversion::Strict);
     auto arg_types = args.at(1);
-    arg_types->assert_type(env, Object::Type::Array, "Array");
+    arg_types.assert_type(env, Object::Type::Array, "Array");
     auto return_type = args.at(2)->to_symbol(env, Object::Conversion::Strict);
     // dbg("attach_function {v} {v} {v}", name, arg_types, return_type);
 

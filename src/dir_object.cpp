@@ -274,7 +274,7 @@ Value DirObject::rmdir(Env *env, Value path) {
 
 Value DirObject::home(Env *env, Value username) {
     if (username && !username->is_nil()) {
-        username->assert_type(env, Object::Type::String, "String");
+        username.assert_type(env, Object::Type::String, "String");
         // lookup home-dir for username
         struct passwd *pw;
         pw = getpwnam(username->as_string()->c_str());
@@ -294,7 +294,7 @@ Value DirObject::home(Env *env, Value username) {
     }
 }
 bool DirObject::is_empty(Env *env, Value dirname) {
-    dirname->assert_type(env, Object::Type::String, "String");
+    dirname.assert_type(env, Object::Type::String, "String");
     auto dir_cstr = dirname->as_string()->c_str();
     std::error_code ec;
     auto st = std::filesystem::symlink_status(dir_cstr, ec);

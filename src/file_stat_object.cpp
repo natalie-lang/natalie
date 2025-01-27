@@ -6,7 +6,7 @@ Value FileStatObject::initialize(Env *env, Value path) {
     if (!path->is_string() && path->respond_to(env, "to_path"_s))
         path = path->send(env, "to_path"_s, { path });
 
-    path->assert_type(env, Object::Type::String, "String");
+    path.assert_type(env, Object::Type::String, "String");
     if (::stat(path->as_string()->c_str(), &fstatus) != 0)
         env->raise_errno();
     return this;

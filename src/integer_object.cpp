@@ -78,7 +78,7 @@ Value IntegerObject::add(Env *env, Integer &self, Value arg) {
             return lhs.send(env, "+"_s, { rhs });
         arg = rhs;
     }
-    arg->assert_type(env, Object::Type::Integer, "Integer");
+    arg.assert_type(env, Object::Type::Integer, "Integer");
 
     return create(self + arg.integer());
 }
@@ -95,7 +95,7 @@ Value IntegerObject::sub(Env *env, Integer &self, Value arg) {
             return lhs.send(env, "-"_s, { rhs });
         arg = rhs;
     }
-    arg->assert_type(env, Object::Type::Integer, "Integer");
+    arg.assert_type(env, Object::Type::Integer, "Integer");
 
     return create(self - arg.integer());
 }
@@ -111,7 +111,7 @@ Value IntegerObject::mul(Env *env, Integer &self, Value arg) {
         arg = rhs;
     }
 
-    arg->assert_type(env, Object::Type::Integer, "Integer");
+    arg.assert_type(env, Object::Type::Integer, "Integer");
 
     if (self == 0 || arg.integer() == 0)
         return Value::integer(0);
@@ -131,7 +131,7 @@ Value IntegerObject::div(Env *env, Integer &self, Value arg) {
             return lhs.send(env, "/"_s, { rhs });
         arg = rhs;
     }
-    arg->assert_type(env, Object::Type::Integer, "Integer");
+    arg.assert_type(env, Object::Type::Integer, "Integer");
 
     auto other = arg.integer();
     if (other == 0)
@@ -151,7 +151,7 @@ Value IntegerObject::mod(Env *env, Integer &self, Value arg) {
         arg = rhs;
     }
 
-    arg->assert_type(env, Object::Type::Integer, "Integer");
+    arg.assert_type(env, Object::Type::Integer, "Integer");
     argument = arg.integer();
 
     if (argument == 0)
@@ -211,7 +211,7 @@ Value IntegerObject::pow(Env *env, Integer &self, Value arg) {
         arg = rhs;
     }
 
-    arg->assert_type(env, Object::Type::Integer, "Integer");
+    arg.assert_type(env, Object::Type::Integer, "Integer");
 
     return pow(env, self, arg.integer());
 }
@@ -417,7 +417,7 @@ Value IntegerObject::bitwise_and(Env *env, Integer &self, Value arg) {
             return lhs.send(env, and_symbol, { rhs });
         arg = rhs;
     }
-    arg->assert_type(env, Object::Type::Integer, "Integer");
+    arg.assert_type(env, Object::Type::Integer, "Integer");
 
     return create(self & arg.integer());
 }
@@ -431,7 +431,7 @@ Value IntegerObject::bitwise_or(Env *env, Integer &self, Value arg) {
             return lhs.send(env, or_symbol, { rhs });
         arg = rhs;
     }
-    arg->assert_type(env, Object::Type::Integer, "Integer");
+    arg.assert_type(env, Object::Type::Integer, "Integer");
 
     return create(self | arg.integer());
 }
@@ -445,7 +445,7 @@ Value IntegerObject::bitwise_xor(Env *env, Integer &self, Value arg) {
             return lhs.send(env, xor_symbol, { rhs });
         arg = rhs;
     }
-    arg->assert_type(env, Object::Type::Integer, "Integer");
+    arg.assert_type(env, Object::Type::Integer, "Integer");
 
     return create(self ^ arg.integer());
 }
@@ -523,7 +523,7 @@ Value IntegerObject::ceil(Env *env, Integer &self, Value arg) {
     if (arg == nullptr)
         return self;
 
-    arg->assert_type(env, Object::Type::Integer, "Integer");
+    arg.assert_type(env, Object::Type::Integer, "Integer");
 
     auto precision = arg.integer().to_nat_int_t();
     if (precision >= 0)
@@ -539,7 +539,7 @@ Value IntegerObject::floor(Env *env, Integer &self, Value arg) {
     if (arg == nullptr)
         return self;
 
-    arg->assert_type(env, Object::Type::Integer, "Integer");
+    arg.assert_type(env, Object::Type::Integer, "Integer");
 
     auto precision = arg.integer().to_nat_int_t();
     if (precision >= 0)
@@ -552,7 +552,7 @@ Value IntegerObject::floor(Env *env, Integer &self, Value arg) {
 }
 
 Value IntegerObject::gcd(Env *env, Integer &self, Value divisor) {
-    divisor->assert_type(env, Object::Type::Integer, "Integer");
+    divisor.assert_type(env, Object::Type::Integer, "Integer");
     return Natalie::gcd(self, divisor.integer());
 }
 
@@ -564,7 +564,7 @@ Value IntegerObject::chr(Env *env, Integer &self, Value encoding) {
 
     if (encoding) {
         if (!encoding->is_encoding()) {
-            encoding->assert_type(env, Type::String, "String");
+            encoding.assert_type(env, Type::String, "String");
             encoding = EncodingObject::find(env, encoding);
         }
     } else if (self <= 127) {

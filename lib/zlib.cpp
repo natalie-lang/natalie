@@ -314,7 +314,7 @@ Value Zlib_crc32(Env *env, Value self, Args &&args, Block *) {
     }
     if (args.size() > 0) {
         Value string = args.at(0);
-        string->assert_type(env, Object::Type::String, "String");
+        string.assert_type(env, Object::Type::String, "String");
         crc = ::crc32(crc, (Bytef *)(string->as_string()->c_str()), string->as_string()->string().size());
     }
     return Value::integer((nat_int_t)crc);

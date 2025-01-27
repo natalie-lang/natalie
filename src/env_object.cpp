@@ -186,7 +186,7 @@ Value EnvObject::except(Env *env, Args &&args) {
 }
 
 Value EnvObject::fetch(Env *env, Value name, Value default_value, Block *block) {
-    name->assert_type(env, Object::Type::String, "String");
+    name.assert_type(env, Object::Type::String, "String");
     char *value = getenv(name->as_string()->c_str());
     if (value) {
         return new StringObject { value };
@@ -314,10 +314,10 @@ Value EnvObject::reject_in_place(Env *env, Block *block) {
 }
 
 Value EnvObject::replace(Env *env, Value hash) {
-    hash->assert_type(env, Object::Type::Hash, "Hash");
+    hash.assert_type(env, Object::Type::Hash, "Hash");
     for (HashObject::Key &node : *hash->as_hash()) {
-        node.key->assert_type(env, Object::Type::String, "String");
-        node.val->assert_type(env, Object::Type::String, "String");
+        node.key.assert_type(env, Object::Type::String, "String");
+        node.val.assert_type(env, Object::Type::String, "String");
     }
     clear(env);
     for (HashObject::Key &node : *hash->as_hash()) {
@@ -408,7 +408,7 @@ Value EnvObject::update(Env *env, Args &&args, Block *block) {
         if (!h->is_hash() && h->respond_to(env, "to_hash"_s))
             h = h->send(env, "to_hash"_s);
 
-        h->assert_type(env, Object::Type::Hash, "Hash");
+        h.assert_type(env, Object::Type::Hash, "Hash");
 
         for (auto node : *h->as_hash()) {
             auto old_value = ref(env, node.key);

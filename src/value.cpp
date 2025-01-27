@@ -271,6 +271,22 @@ nat_int_t Value::object_id() const {
     return reinterpret_cast<nat_int_t>(m_object);
 }
 
+void Value::assert_type(Env *env, ObjectType expected_type, const char *expected_class_name) const {
+    switch (m_type) {
+    case Type::Integer:
+        if (expected_type != Object::Type::Integer)
+            env->raise("TypeError", "no implicit conversion of Integer into {}", expected_class_name);
+        break;
+    case Type::Double:
+        if (expected_type != Object::Type::Float)
+            env->raise("TypeError", "no implicit conversion of Float into {}", expected_class_name);
+        break;
+    case Type::Pointer:
+        if (m_object->type() != expected_type)
+            env->raise_type_error(m_object, expected_class_name);
+    }
+}
+
 #undef PROFILED_SEND
 
 }

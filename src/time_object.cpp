@@ -414,7 +414,7 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
             val = Object::to_int(env, val);
         }
     }
-    val->assert_type(env, Object::Type::Integer, "Integer");
+    val.assert_type(env, Object::Type::Integer, "Integer");
     auto month_i = val.integer() - 1;
     if (month_i < 0 || month_i > 11) {
         env->raise("ArgumentError", "mon out of range");
