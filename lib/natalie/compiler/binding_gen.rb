@@ -65,7 +65,7 @@ class BindingGen
         puts '    ' + binding.get_object
         @consts[binding.rb_class] = true
       end
-      puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, #{binding.rb_method.inspect}_s, #{binding.name}, #{binding.arity}, #{binding.optimized ? 'true' : 'false'});"
+      puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, #{binding.rb_method.inspect}_s, #{binding.name}, #{binding.arity});"
       if binding.module_function?
         puts "    #{binding.rb_class_as_c_variable}->module_function(env, #{binding.rb_method.inspect}_s);"
       end
@@ -101,7 +101,6 @@ class BindingGen
       pass_klass: false,
       kwargs: nil,
       visibility: :public,
-      optimized: false,
       aliases: []
     )
       @rb_class = rb_class
@@ -120,7 +119,6 @@ class BindingGen
       @pass_klass = pass_klass
       @kwargs = kwargs
       @visibility = visibility
-      @optimized = optimized
       @aliases = aliases
       generate_name
     end
@@ -135,7 +133,6 @@ class BindingGen
                 :ruby_method_type,
                 :name,
                 :visibility,
-                :optimized,
                 :aliases
 
     def pass_env? = !!@pass_env
@@ -763,7 +760,7 @@ gen.binding('Float', '>=', 'FloatObject', 'gte', argc: 1, pass_env: true, pass_b
 gen.binding('Float', 'abs', 'FloatObject', 'abs', argc: 0, pass_env: true, pass_block: false, aliases: ['magnitude'], return_type: :Object)
 gen.binding('Float', 'arg', 'FloatObject', 'arg', argc: 0, pass_env: true, pass_block: false, aliases: %w[phase angle], return_type: :Object)
 gen.binding('Float', 'ceil', 'FloatObject', 'ceil', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Float', 'coerce', 'FloatObject', 'coerce', argc: 1, pass_env: true, pass_block: false, return_type: :Object, optimized: false)
+gen.binding('Float', 'coerce', 'FloatObject', 'coerce', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Float', 'denominator', 'FloatObject', 'denominator', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Float', 'divmod', 'FloatObject', 'divmod', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Float', 'eql?', 'FloatObject', 'eql', argc: 1, pass_env: false, pass_block: false, return_type: :bool)

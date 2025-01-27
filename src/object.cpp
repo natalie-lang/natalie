@@ -833,13 +833,13 @@ void Object::singleton_method_alias(Env *env, SymbolObject *new_name, SymbolObje
     klass->method_alias(env, new_name, old_name);
 }
 
-SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
+SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     ClassObject *klass = singleton_class(env, this)->as_class();
     if (klass->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
-    klass->define_method(env, name, fn, arity, optimized);
+    klass->define_method(env, name, fn, arity);
     return name;
 }
 
@@ -861,11 +861,11 @@ SymbolObject *Object::undefine_singleton_method(Env *env, SymbolObject *name) {
     return name;
 }
 
-SymbolObject *Object::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
+SymbolObject *Object::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
     if (GlobalEnv::the()->instance_evaling()) {
-        return define_singleton_method(env, name, fn, arity, optimized);
+        return define_singleton_method(env, name, fn, arity);
     }
-    m_klass->define_method(env, name, fn, arity, optimized);
+    m_klass->define_method(env, name, fn, arity);
     return name;
 }
 

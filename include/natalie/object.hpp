@@ -255,11 +255,11 @@ public:
     virtual Value cvar_get_or_null(Env *, SymbolObject *);
     virtual Value cvar_set(Env *, SymbolObject *, Value);
 
-    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, bool = false);
+    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int);
     virtual SymbolObject *define_method(Env *, SymbolObject *, Block *);
     virtual SymbolObject *undefine_method(Env *, SymbolObject *);
 
-    SymbolObject *define_singleton_method(Env *, SymbolObject *, MethodFnPtr, int, bool = false);
+    SymbolObject *define_singleton_method(Env *, SymbolObject *, MethodFnPtr, int);
     SymbolObject *define_singleton_method(Env *, SymbolObject *, Block *);
     SymbolObject *undefine_singleton_method(Env *, SymbolObject *);
 
