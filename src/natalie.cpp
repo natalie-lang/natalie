@@ -761,10 +761,6 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
 std::pair<Value, Value> coerce(Env *env, Value lhs, Value rhs, CoerceInvalidReturnValueMode invalid_return_value_mode) {
     auto coerce_symbol = "coerce"_s;
     if (lhs->respond_to(env, coerce_symbol)) {
-        if (lhs->is_synthesized())
-            lhs = lhs->duplicate(env);
-        if (rhs->is_synthesized())
-            rhs = rhs->duplicate(env);
         Value coerced = lhs.send(env, coerce_symbol, { rhs });
         if (!coerced->is_array()) {
             if (invalid_return_value_mode == CoerceInvalidReturnValueMode::Raise)

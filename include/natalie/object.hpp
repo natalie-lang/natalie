@@ -35,11 +35,6 @@ public:
         // set on an object returned from a block to signal
         // that `redo` was called
         Redo = 4,
-
-        // set on an object to signal it only lives for a short time
-        // on the stack, and not to capture it anywhere
-        // (don't store in variables, arrays, hashes)
-        Synthesized = 8,
     };
 
     enum class Conversion {
@@ -330,9 +325,6 @@ public:
 
     void freeze();
     bool is_frozen() const { return m_type == Type::Integer || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
-
-    void add_synthesized_flag() { m_flags = m_flags | Flag::Synthesized; }
-    bool is_synthesized() const { return (m_flags & Flag::Synthesized) == Flag::Synthesized; }
 
     void add_break_flag() { m_flags = m_flags | Flag::Break; }
     void remove_break_flag() { m_flags = m_flags & ~Flag::Break; }
