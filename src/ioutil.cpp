@@ -46,7 +46,7 @@ namespace ioutil {
 
         switch (flags_obj->type()) {
         case Object::Type::Integer:
-            m_flags = IntegerObject::to_nat_int_t(flags_obj->as_integer());
+            m_flags = flags_obj.integer().to_nat_int_t();
             break;
         case Object::Type::String: {
             auto colon = new StringObject { ":" };

@@ -125,6 +125,9 @@ public:
     const Integer &integer() const;
     Integer &integer();
 
+    const Integer &integer_or_raise(Env *) const;
+    Integer &integer_or_raise(Env *);
+
     bool is_integer() const;
 
     nat_int_t object_id() const;

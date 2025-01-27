@@ -418,7 +418,7 @@ Value KernelModule::Rational(Env *env, Value x, Value y, Value exception) {
 Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
     if (y) {
         if (x.is_integer() && y.is_integer())
-            return Rational(env, x->as_integer(), y->as_integer());
+            return Rational(env, x.integer(), y.integer());
 
         x = Float(env, x, exception);
         if (!x)
@@ -457,29 +457,30 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
     }
 }
 
-RationalObject *KernelModule::Rational(Env *env, IntegerObject *x, IntegerObject *y) {
-    Value gcd = IntegerObject::gcd(env, IntegerObject::integer(x), y);
-    class Integer numerator = Value(x).integer() / gcd.integer();
-    class Integer denominator = Value(y).integer() / gcd.integer();
+RationalObject *KernelModule::Rational(Env *env, class Integer &x, class Integer &y) {
+    Value gcd = IntegerObject::gcd(env, x, y).integer();
+    class Integer numerator = x / gcd;
+    class Integer denominator = y / gcd;
     return RationalObject::create(env, numerator, denominator);
 }
 
 RationalObject *KernelModule::Rational(Env *env, double arg) {
     class Integer radix(FLT_RADIX);
     auto power = Value::integer(DBL_MANT_DIG);
-    Value y = IntegerObject::pow(env, radix, power);
+    auto y = IntegerObject::pow(env, radix, power).integer();
 
     int exponent;
     FloatObject *significand = new FloatObject { std::frexp(arg, &exponent) };
-    Value x = significand->mul(env, y)->as_float()->to_i(env);
+    auto x = significand->mul(env, y)->as_float()->to_i(env).integer();
 
     class Integer two(2);
-    if (exponent < 0)
-        y = y.integer() * IntegerObject::pow(env, two, Value::integer(-exponent)).integer();
+    class Integer exp = exponent;
+    if (exp < 0)
+        y = y * IntegerObject::pow(env, two, -exp).integer();
     else
-        x = x.integer() * IntegerObject::pow(env, two, Value::integer(exponent)).integer();
+        x = x * IntegerObject::pow(env, two, exp).integer();
 
-    return Rational(env, x->as_integer(), y->as_integer());
+    return Rational(env, x, y);
 }
 
 Value KernelModule::sleep(Env *env, Value length) {
@@ -493,7 +494,7 @@ Value KernelModule::sleep(Env *env, Value length) {
 
     float secs;
     if (length.is_integer()) {
-        secs = IntegerObject::to_nat_int_t(length->as_integer());
+        secs = length.integer().to_nat_int_t();
     } else if (length->is_float()) {
         secs = length->as_float()->to_double();
     } else if (length->is_rational()) {

@@ -24,10 +24,8 @@ Value FloatObject::is_infinite(Env *env) const {
 bool FloatObject::eq(Env *env, Value other) {
     if (is_nan())
         return false;
-    if (other.is_integer()) {
-        auto integer = other->as_integer();
-        return IntegerObject::integer(integer) == m_double;
-    }
+    if (other.is_integer())
+        return other.integer() == m_double;
     if (other->is_float()) {
         auto *f = other->as_float();
         return f->m_double == m_double;
@@ -41,36 +39,36 @@ bool FloatObject::eql(Value other) const {
     return f->m_double == m_double;
 }
 
-#define ROUNDING_OPERATION(name, libm_name)                                         \
-    Value FloatObject::name(Env *env, Value precision_value) {                      \
-        nat_int_t precision = 0;                                                    \
-        if (precision_value) {                                                      \
-            if (precision_value->is_float()) {                                      \
-                precision_value = precision_value->as_float()->to_i(env);           \
-            }                                                                       \
-            precision_value->assert_type(env, Object::Type::Integer, "Integer");    \
-            precision = IntegerObject::to_nat_int_t(precision_value->as_integer()); \
-        }                                                                           \
-        if (precision <= 0 && (is_nan() || is_infinity()))                          \
-            env->raise("FloatDomainError", this->inspect_str(env));                 \
-                                                                                    \
-        if (is_infinity())                                                          \
-            return Value::floatingpoint(m_double);                                  \
-                                                                                    \
-        FloatObject *result;                                                        \
-        if (precision == 0)                                                         \
-            return f_to_i_or_bigint(::libm_name(m_double));                         \
-                                                                                    \
-        double f = ::pow(10, precision);                                            \
-        double rounded = ::libm_name(m_double * f) / f;                             \
-        if (isinf(f) || isinf(rounded)) {                                           \
-            return Value::floatingpoint(m_double);                                  \
-        }                                                                           \
-        if (precision < 0)                                                          \
-            return f_to_i_or_bigint(rounded);                                       \
-                                                                                    \
-        /* precision > 0 */                                                         \
-        return new FloatObject { rounded };                                         \
+#define ROUNDING_OPERATION(name, libm_name)                                      \
+    Value FloatObject::name(Env *env, Value precision_value) {                   \
+        nat_int_t precision = 0;                                                 \
+        if (precision_value) {                                                   \
+            if (precision_value->is_float()) {                                   \
+                precision_value = precision_value->as_float()->to_i(env);        \
+            }                                                                    \
+            precision_value->assert_type(env, Object::Type::Integer, "Integer"); \
+            precision = precision_value.integer().to_nat_int_t();                \
+        }                                                                        \
+        if (precision <= 0 && (is_nan() || is_infinity()))                       \
+            env->raise("FloatDomainError", this->inspect_str(env));              \
+                                                                                 \
+        if (is_infinity())                                                       \
+            return Value::floatingpoint(m_double);                               \
+                                                                                 \
+        FloatObject *result;                                                     \
+        if (precision == 0)                                                      \
+            return f_to_i_or_bigint(::libm_name(m_double));                      \
+                                                                                 \
+        double f = ::pow(10, precision);                                         \
+        double rounded = ::libm_name(m_double * f) / f;                          \
+        if (isinf(f) || isinf(rounded)) {                                        \
+            return Value::floatingpoint(m_double);                               \
+        }                                                                        \
+        if (precision < 0)                                                       \
+            return f_to_i_or_bigint(rounded);                                    \
+                                                                                 \
+        /* precision > 0 */                                                      \
+        return new FloatObject { rounded };                                      \
     }
 
 ROUNDING_OPERATION(floor, floor)
@@ -189,7 +187,7 @@ Value FloatObject::coerce(Env *env, Value arg) {
         ary->push(arg);
         break;
     case Object::Type::Integer:
-        ary->push(Value::floatingpoint(IntegerObject::integer(arg->as_integer()).to_double()));
+        ary->push(Value::floatingpoint(arg.integer().to_double()));
         break;
     default:
         ary->push(KernelModule::Float(env, arg, true));

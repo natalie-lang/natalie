@@ -59,7 +59,7 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
 static unsigned short Socket_const_get(Env *env, Value name, bool default_zero = false) {
     auto Socket = find_top_level_const(env, "Socket"_s);
     auto value = Socket_const_name_to_i(env, Socket, Args({ name, bool_object(default_zero) }), nullptr);
-    return IntegerObject::to_nat_int_t(value->as_integer_or_raise(env));
+    return value.integer_or_raise(env).to_nat_int_t();
 }
 
 static String Socket_reverse_lookup_address(Env *env, struct sockaddr *addr) {
@@ -256,7 +256,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         case AF_INET:
         case AF_INET6:
             auto ary = GlobalEnv::the()->Object()->const_fetch("Socket"_s).send(env, "unpack_sockaddr_in"_s, { sockaddr })->as_array_or_raise(env);
-            port = ary->at(0)->as_integer_or_raise(env);
+            port = ary->at(0).integer_or_raise(env);
             host = ary->at(1)->as_string_or_raise(env);
             break;
         }
@@ -307,7 +307,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
             hints.ai_family = PF_UNSPEC;
 
         if (protocol.is_integer())
-            hints.ai_protocol = (unsigned short)IntegerObject::to_nat_int_t(protocol->as_integer());
+            hints.ai_protocol = (unsigned short)protocol.integer().to_nat_int_t();
         else
             hints.ai_protocol = 0;
 
@@ -415,7 +415,7 @@ Value Addrinfo_getnameinfo(Env *env, Value self, Args &&args, Block *) {
 Value Addrinfo_to_sockaddr(Env *env, Value self, Args &&args, Block *block) {
     auto Socket = self->const_find(env, "Socket"_s, Object::ConstLookupSearchMode::NotStrict);
 
-    auto afamily = IntegerObject::to_nat_int_t(self->ivar_get(env, "@afamily"_s)->as_integer_or_raise(env));
+    auto afamily = self->ivar_get(env, "@afamily"_s).integer_or_raise(env).to_nat_int_t();
     switch (afamily) {
     case AF_UNIX: {
         auto unix_path = self->ivar_get(env, "@unix_path"_s);
@@ -522,8 +522,8 @@ static ssize_t blocking_recv(Env *env, IoObject *io, char *buf, size_t len, int 
 
 Value BasicSocket_recv(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 3);
-    auto maxlen = IntegerObject::to_nat_int_t(args.at(0)->as_integer_or_raise(env));
-    auto flags = IntegerObject::to_nat_int_t(args.at(1, Value::integer(0))->as_integer_or_raise(env));
+    auto maxlen = args.at(0).integer_or_raise(env).to_nat_int_t();
+    auto flags = args.at(1, Value::integer(0)).integer_or_raise(env).to_nat_int_t();
     auto outbuf = args.at(2, NilObject::the());
 
     if (!outbuf->is_nil())
@@ -590,7 +590,7 @@ Value BasicSocket_send(Env *env, Value self, Args &&args, Block *) {
     // send(mesg, flags [, dest_sockaddr]) => numbytes_sent
     args.ensure_argc_between(env, 2, 3);
     auto mesg = args.at(0)->to_str(env)->as_string();
-    auto flags = IntegerObject::to_nat_int_t(args.at(1, Value::integer(0))->as_integer_or_raise(env));
+    auto flags = args.at(1, Value::integer(0)).integer_or_raise(env).to_nat_int_t();
     auto dest_sockaddr = args.at(2, NilObject::the());
     ssize_t bytes;
 
@@ -636,7 +636,7 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args &&args, Block *block) {
             break;
         }
         case Object::Type::Integer: {
-            int val = IntegerObject::to_nat_int_t(data_obj->as_integer());
+            int val = data_obj.integer().to_nat_int_t();
             data = new StringObject { (const char *)(&val), sizeof(int) };
             break;
         }
@@ -646,8 +646,8 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args &&args, Block *block) {
     } else {
         args.ensure_argc_is(env, 1);
         auto option = args.at(0);
-        level = IntegerObject::to_nat_int_t(option.send(env, "level"_s)->as_integer_or_raise(env));
-        optname = IntegerObject::to_nat_int_t(option.send(env, "optname"_s)->as_integer_or_raise(env));
+        level = option.send(env, "level"_s).integer_or_raise(env).to_nat_int_t();
+        optname = option.send(env, "optname"_s).integer_or_raise(env).to_nat_int_t();
         data = option.send(env, "data"_s)->as_string_or_raise(env);
     }
 
@@ -679,7 +679,7 @@ Value BasicSocket_shutdown(Env *env, Value self, Args &&args, Block *) {
     if (args.size() > 0) {
         auto arg = args.at(0);
         if (arg.is_integer()) {
-            how = IntegerObject::to_nat_int_t(arg->as_integer());
+            how = arg.integer().to_nat_int_t();
             switch (how) {
             case SHUT_RD:
             case SHUT_WR:
@@ -961,7 +961,7 @@ Value Socket_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 2, 3);
     auto afamily = Socket_const_get(env, args.at(0), true);
     auto socktype = Socket_const_get(env, args.at(1), true);
-    auto protocol = IntegerObject::to_nat_int_t(args.at(2, Value::integer(0))->as_integer_or_raise(env));
+    auto protocol = args.at(2, Value::integer(0)).integer_or_raise(env).to_nat_int_t();
 
     auto fd = socket(afamily, socktype, protocol);
     if (fd == -1)
@@ -1026,7 +1026,7 @@ Value Socket_bind(Env *env, Value self, Args &&args, Block *block) {
 
     auto Socket = find_top_level_const(env, "Socket"_s);
 
-    auto afamily = IntegerObject::to_nat_int_t(sockaddr.send(env, "afamily"_s)->as_integer_or_raise(env));
+    auto afamily = sockaddr.send(env, "afamily"_s).integer_or_raise(env).to_nat_int_t();
     switch (afamily) {
     case AF_INET: {
         struct sockaddr_in addr { };
@@ -1109,7 +1109,7 @@ Value Socket_connect(Env *env, Value self, Args &&args, Block *block) {
 
 Value Socket_listen(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
-    auto backlog = IntegerObject::to_nat_int_t(args.at(0)->as_integer_or_raise(env));
+    auto backlog = args.at(0).integer_or_raise(env).to_nat_int_t();
 
     auto result = listen(self->as_io()->fileno(), backlog);
     if (result == -1)
@@ -1183,7 +1183,7 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
     auto host = args.at(1);
     if (host->is_nil())
         host = new StringObject { "127.0.0.1" };
-    if (host.is_integer() && IntegerObject::is_fixnum(host.integer()) && IntegerObject::to_nat_int_t(host->as_integer()) == INADDR_ANY)
+    if (host.is_integer() && host.integer().is_fixnum() && host.integer().to_nat_int_t() == INADDR_ANY)
         host = new StringObject { "0.0.0.0" };
     if (host->is_string() && host->as_string()->is_empty())
         host = new StringObject { "0.0.0.0" };
@@ -1236,7 +1236,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args &&args, Block *block)
     auto sockaddr = args.at(0);
 
     if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict))) {
-        auto afamily = IntegerObject::to_nat_int_t(sockaddr.send(env, "afamily"_s).send(env, "to_i"_s)->as_integer());
+        auto afamily = sockaddr.send(env, "afamily"_s).send(env, "to_i"_s).integer().to_nat_int_t();
         if (afamily != AF_INET && afamily != AF_INET6)
             env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
         auto host = sockaddr.send(env, "ip_address"_s);
@@ -1290,7 +1290,7 @@ Value Socket_unpack_sockaddr_un(Env *env, Value self, Args &&args, Block *block)
     auto sockaddr = args.at(0);
 
     if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict))) {
-        auto afamily = IntegerObject::to_nat_int_t(sockaddr.send(env, "afamily"_s).send(env, "to_i"_s)->as_integer());
+        auto afamily = sockaddr.send(env, "afamily"_s).send(env, "to_i"_s).integer().to_nat_int_t();
         if (afamily != AF_UNIX)
             env->raise("ArgumentError", "not an AF_UNIX sockaddr");
         return sockaddr.send(env, "unix_path"_s);
@@ -1373,10 +1373,10 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
     }
 
     struct addrinfo hints { };
-    hints.ai_family = IntegerObject::to_nat_int_t(Socket_const_name_to_i(env, self, { family, TrueObject::the() }, nullptr)->as_integer_or_raise(env));
-    hints.ai_socktype = IntegerObject::to_nat_int_t(Socket_const_name_to_i(env, self, { socktype, TrueObject::the() }, nullptr)->as_integer_or_raise(env));
-    hints.ai_protocol = IntegerObject::to_nat_int_t(Socket_const_name_to_i(env, self, { protocol, TrueObject::the() }, nullptr)->as_integer_or_raise(env));
-    hints.ai_flags = IntegerObject::to_nat_int_t(Socket_const_name_to_i(env, self, { flags, TrueObject::the() }, nullptr)->as_integer_or_raise(env));
+    hints.ai_family = Socket_const_name_to_i(env, self, { family, TrueObject::the() }, nullptr).integer_or_raise(env).to_nat_int_t();
+    hints.ai_socktype = Socket_const_name_to_i(env, self, { socktype, TrueObject::the() }, nullptr).integer_or_raise(env).to_nat_int_t();
+    hints.ai_protocol = Socket_const_name_to_i(env, self, { protocol, TrueObject::the() }, nullptr).integer_or_raise(env).to_nat_int_t();
+    hints.ai_flags = Socket_const_name_to_i(env, self, { flags, TrueObject::the() }, nullptr).integer_or_raise(env).to_nat_int_t();
 
     String host;
     String service;
@@ -1391,7 +1391,7 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
     if (servname->is_nil() || (servname->is_string() && servname->as_string()->is_empty()))
         service = "0";
     else if (servname.is_integer())
-        service = IntegerObject::to_s(servname->as_integer());
+        service = IntegerObject::to_s(servname.integer());
     else
         service = servname->as_string_or_raise(env)->string();
 
@@ -1712,7 +1712,7 @@ Value UDPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 0, 1);
     auto family = Socket_const_name_to_i(env, self, { args.at(0, Value::integer(AF_INET)) }, nullptr);
 
-    auto fd = socket(IntegerObject::to_nat_int_t(family->as_integer_or_raise(env)), SOCK_DGRAM, 0);
+    auto fd = socket(family.integer_or_raise(env).to_nat_int_t(), SOCK_DGRAM, 0);
     if (fd == -1)
         env->raise_errno();
 

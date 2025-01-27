@@ -340,16 +340,6 @@ const HashObject *Object::as_hash() const {
     return static_cast<const HashObject *>(this);
 }
 
-IntegerObject *Object::as_integer() {
-    assert(m_type == Type::Integer);
-    return static_cast<IntegerObject *>(this);
-}
-
-const IntegerObject *Object::as_integer() const {
-    assert(m_type == Type::Integer);
-    return static_cast<const IntegerObject *>(this);
-}
-
 IoObject *Object::as_io() {
     assert(is_io());
     return static_cast<IoObject *>(this);
@@ -574,12 +564,6 @@ HashObject *Object::as_hash_or_raise(Env *env) {
     if (!is_hash())
         env->raise("TypeError", "{} can't be coerced into Hash", m_klass->inspect_str());
     return static_cast<HashObject *>(this);
-}
-
-IntegerObject *Object::as_integer_or_raise(Env *env) {
-    if (m_type != Type::Integer)
-        env->raise("TypeError", "{} can't be coerced into Integer", m_klass->inspect_str());
-    return static_cast<IntegerObject *>(this);
 }
 
 MatchDataObject *Object::as_match_data_or_raise(Env *env) {
@@ -1053,7 +1037,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Hash:
         return new HashObject { env, *as_hash() };
     case Object::Type::Integer:
-        return IntegerObject::integer(as_integer());
+        return IntegerObject::integer(static_cast<const IntegerObject *>(this));
     case Object::Type::Module:
         return new ModuleObject { *as_module() };
     case Object::Type::Nil:

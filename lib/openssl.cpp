@@ -643,7 +643,7 @@ Value OpenSSL_PKey_RSA_initialize(Env *env, Value self, Args &&args, Block *) {
             env->raise("ArgumentError", "Invalid key type");
         }
     } else {
-        const unsigned int bits = IntegerObject::to_nat_int_t(args.at(0)->as_integer_or_raise(env));
+        const unsigned int bits = args.at(0).integer_or_raise(env).to_nat_int_t();
         pkey = EVP_RSA_gen(bits);
         if (!pkey)
             OpenSSL_raise_error(env, "EVP_PKEY_new");
@@ -775,7 +775,7 @@ Value OpenSSL_X509_Certificate_set_not_after(Env *env, Value self, Args &&args, 
         time = KernelModule::Integer(env, time, 0, true);
         time = Time->send(env, "at"_s, { time });
     }
-    ASN1_TIME *asn1 = ASN1_UTCTIME_set(nullptr, IntegerObject::to_nat_int_t(time->as_time()->to_i(env)->as_integer()));
+    ASN1_TIME *asn1 = ASN1_UTCTIME_set(nullptr, time->as_time()->to_i(env).integer().to_nat_int_t());
     if (!asn1)
         OpenSSL_raise_error(env, "ASN1_TIME_set");
     Defer asn1_time_free { [asn1]() { ASN1_TIME_free(asn1); } };
@@ -813,7 +813,7 @@ Value OpenSSL_X509_Certificate_set_not_before(Env *env, Value self, Args &&args,
         time = KernelModule::Integer(env, time, 0, true);
         time = Time->send(env, "at"_s, { time });
     }
-    ASN1_TIME *asn1 = ASN1_UTCTIME_set(nullptr, IntegerObject::to_nat_int_t(time->as_time()->to_i(env)->as_integer()));
+    ASN1_TIME *asn1 = ASN1_UTCTIME_set(nullptr, time->as_time()->to_i(env).integer().to_nat_int_t());
     if (!asn1)
         OpenSSL_raise_error(env, "ASN1_TIME_set");
     Defer asn1_time_free { [asn1]() { ASN1_TIME_free(asn1); } };
@@ -1124,7 +1124,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
             OpenSSL_raise_error(env, "BN_copy");
     } else if (arg.is_integer()) {
         args.ensure_argc_is(env, 1);
-        const auto str = IntegerObject::to_s(arg->as_integer());
+        const auto str = arg.integer().to_string();
         if (!BN_dec2bn(&bn, str.c_str()))
             OpenSSL_raise_error(env, "BN_dec2bn");
     } else if (arg->is_string()) {
@@ -1135,7 +1135,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
         } else {
             // No support in OpenSSL libs to add a base argument, so convert string to int with base, and convert int back to string
             arg = KernelModule::Integer(env, arg, args[1], (Value)TrueObject::the());
-            const auto str = IntegerObject::to_s(arg->as_integer());
+            const auto str = arg.integer().to_string();
             if (!BN_dec2bn(&bn, str.c_str()))
                 OpenSSL_raise_error(env, "BN_dec2bn");
         }
@@ -1170,7 +1170,7 @@ Value OpenSSL_BN_to_i(Env *env, Value self, Args &&args, Block *) {
 Value OpenSSL_Random_random_bytes(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     Value length = Object::to_int(env, args[0]);
-    const auto num = static_cast<int>(IntegerObject::to_nat_int_t(length->as_integer()));
+    const auto num = static_cast<int>(length.integer().to_nat_int_t());
     if (num < 0)
         env->raise("ArgumentError", "negative string size (or size too big)");
 

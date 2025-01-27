@@ -191,7 +191,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
         auto type = arg_types->at(i);
         if (type == pointer_sym) {
             if (val->is_a(env, Pointer))
-                arg_values[i].vp = (void *)IntegerObject::to_nat_int_t(val.send(env, "address"_s)->as_integer_or_raise(env));
+                arg_values[i].vp = (void *)val.send(env, "address"_s).integer_or_raise(env).to_nat_int_t();
             else if (val->is_string())
                 arg_values[i].vp = (void *)val->as_string()->c_str();
             else if (val->is_nil())
@@ -208,14 +208,14 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
                 env->raise("TypeError", "wrong argument type (expected a boolean parameter)");
             arg_pointers[i] = &(arg_values[i].us);
         } else if (type == char_sym) {
-            auto integer = IntegerObject::to_nat_int_t(val->as_integer_or_raise(env));
+            auto integer = val.integer_or_raise(env).to_nat_int_t();
             if (integer < 0 || integer > 256)
                 arg_values[i].uc = 0;
             else
                 arg_values[i].uc = integer;
             arg_pointers[i] = &(arg_values[i].uc);
         } else if (type == size_t_sym) {
-            auto size = IntegerObject::to_nat_int_t(val->as_integer_or_raise(env));
+            auto size = val.integer_or_raise(env).to_nat_int_t();
             if (size < 0 || (uint64_t)size > std::numeric_limits<uint64_t>::max())
                 arg_values[i].u64 = 0;
             else
@@ -239,7 +239,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
                 if (mapped_value->is_nil()) {
                     env->raise("ArgumentError", "invalid enum value, {}", val->inspect_str(env));
                 } else {
-                    const auto int_val = IntegerObject::to_nat_int_t(mapped_value->as_integer_or_raise(env));
+                    const auto int_val = mapped_value.integer_or_raise(env).to_nat_int_t();
                     if (int_val < std::numeric_limits<int32_t>::min() || int_val > std::numeric_limits<int32_t>::max())
                         arg_values[i].s32 = 0;
                     else
@@ -374,10 +374,10 @@ Value FFI_Pointer_address(Env *env, Value self, Args &&args, Block *) {
 Value FFI_Pointer_read_string(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
 
-    auto address = (void *)IntegerObject::to_nat_int_t(self.send(env, "address"_s)->as_integer_or_raise(env));
+    auto address = (void *)self.send(env, "address"_s).integer_or_raise(env).to_nat_int_t();
 
     if (args.size() >= 1) {
-        auto length = IntegerObject::to_nat_int_t(args.at(0)->as_integer_or_raise(env));
+        auto length = args.at(0).integer_or_raise(env).to_nat_int_t();
         if (length < 0 || (size_t)length > std::numeric_limits<size_t>::max())
             env->raise("ArgumentError", "length out of range");
         return new StringObject { (char *)address, (size_t)length, Encoding::ASCII_8BIT };
@@ -388,7 +388,7 @@ Value FFI_Pointer_read_string(Env *env, Value self, Args &&args, Block *) {
 
 Value FFI_Pointer_to_obj(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
-    return (Object *)IntegerObject::to_nat_int_t(self.send(env, "address"_s)->as_integer_or_raise(env));
+    return (Object *)self.send(env, "address"_s).integer_or_raise(env).to_nat_int_t();
 }
 
 Value FFI_Pointer_write_string(Env *env, Value self, Args &&args, Block *) {
@@ -397,7 +397,7 @@ Value FFI_Pointer_write_string(Env *env, Value self, Args &&args, Block *) {
     auto str = args.at(0)->as_string_or_raise(env);
     auto length = args.size() > 1 ? IntegerObject::convert_to_native_type<size_t>(env, args.at(0)) : str->bytesize();
 
-    auto address = (void *)IntegerObject::to_nat_int_t(self.send(env, "address"_s)->as_integer_or_raise(env));
+    auto address = (void *)self.send(env, "address"_s).integer_or_raise(env).to_nat_int_t();
     memcpy(address, str->c_str(), length);
 
     return self;
@@ -485,7 +485,7 @@ Value FFI_Pointer_initialize(Env *env, Value self, Args &&args, Block *) {
     }
 
     auto ptr_obj = new VoidPObject {
-        (void *)IntegerObject::to_nat_int_t(address->as_integer_or_raise(env)),
+        (void *)address.integer_or_raise(env).to_nat_int_t(),
         [](auto p) {
             Env e;
             if (p->void_ptr() && p->ivar_get(&e, "@autorelease"_s)->is_truthy()) {
@@ -517,12 +517,12 @@ Value FFI_Pointer_free(Env *env, Value self, Args &&args, Block *) {
 Value FFI_MemoryPointer_inspect(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
-    auto ptr = (void *)IntegerObject::to_nat_int_t(self.send(env, "address"_s)->as_integer_or_raise(env));
-    auto size = self->ivar_get(env, "@size"_s)->as_integer();
+    auto ptr = (void *)self.send(env, "address"_s).integer_or_raise(env).to_nat_int_t();
+    auto size = self->ivar_get(env, "@size"_s).integer();
     return StringObject::format(
         "#<FFI::MemoryPointer address={} size={}>",
         TM::String::hex((uintptr_t)ptr, TM::String::HexFormat::LowercaseAndPrefixed),
-        IntegerObject::to_nat_int_t(size));
+        size.to_nat_int_t());
 }
 
 Value FFI_Pointer_is_autorelease(Env *env, Value self, Args &&args, Block *) {

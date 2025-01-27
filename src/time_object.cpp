@@ -30,7 +30,7 @@ TimeObject *TimeObject::local(Env *env, Value year, Value month, Value mday, Val
     result->m_mode = Mode::Localtime;
     result->m_integer = Value::integer(seconds);
     if (usec && usec.is_integer()) {
-        result->set_subsec(env, usec->as_integer());
+        result->set_subsec(env, usec.integer());
     }
     return result;
 }
@@ -114,7 +114,7 @@ Value TimeObject::add(Env *env, Value other) {
     rational = rational->add(env, other->send(env, "to_r"_s)->as_rational())->as_rational();
     auto result = TimeObject::create(env, rational, m_mode);
     if (is_utc(env)) { // preserve utc-offset for result if a utc-time
-        result->m_time.tm_gmtoff = IntegerObject::to_nat_int_t(utc_offset(env)->as_integer());
+        result->m_time.tm_gmtoff = utc_offset(env).integer().to_nat_int_t();
     }
     return result;
 }
@@ -153,7 +153,7 @@ Value TimeObject::cmp(Env *env, Value other) {
 bool TimeObject::eql(Env *env, Value other) {
     if (other->is_time()) {
         auto time = other->as_time();
-        if (IntegerObject::eq(env, IntegerObject::integer(m_integer->as_integer()), time->m_integer->as_integer())) {
+        if (m_integer.integer() == time->m_integer.integer()) {
             if (m_subsec && time->m_subsec && m_subsec->as_rational()->eq(env, time->m_subsec)) {
                 return true;
             } else if (!m_subsec && !time->m_subsec) {
@@ -213,7 +213,7 @@ Value TimeObject::minus(Env *env, Value other) {
     RationalObject *rational = to_r(env)->as_rational()->sub(env, other->send(env, "to_r"_s))->as_rational();
     auto result = TimeObject::create(env, rational, m_mode);
     if (is_utc(env)) { // preserve utc-offset for result if a utc-time
-        result->m_time.tm_gmtoff = IntegerObject::to_nat_int_t(utc_offset(env)->as_integer());
+        result->m_time.tm_gmtoff = utc_offset(env).integer().to_nat_int_t();
     }
     return result;
 }
@@ -404,7 +404,7 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
             } else if (monstr == "dec") {
                 return 11;
             }
-            auto monint = IntegerObject::to_nat_int_t(KernelModule::Integer(env, val, 10, true)->as_integer());
+            auto monint = KernelModule::Integer(env, val, 10, true).integer().to_nat_int_t();
             if (monint >= 1 && monint <= 12) {
                 return monint - 1;
             }
@@ -415,11 +415,11 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
         }
     }
     val->assert_type(env, Object::Type::Integer, "Integer");
-    auto month_i = IntegerObject::to_nat_int_t(val->as_integer()) - 1;
+    auto month_i = val.integer() - 1;
     if (month_i < 0 || month_i > 11) {
         env->raise("ArgumentError", "mon out of range");
     }
-    return month_i;
+    return month_i.to_nat_int_t();
 }
 
 RationalObject *TimeObject::convert_rational(Env *env, Value value) {
@@ -449,18 +449,18 @@ Value TimeObject::convert_unit(Env *env, Value value) {
 }
 
 TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode) {
-    IntegerObject *integer;
+    Integer integer;
     RationalObject *subseconds;
     TimeObject *result = new TimeObject {};
     if (rational->send(env, "<"_s, { Value::integer(0) })->is_true()) {
         auto floor = rational->floor(env, nullptr);
-        integer = floor->send(env, "to_i"_s)->as_integer();
+        integer = floor->send(env, "to_i"_s).integer();
         subseconds = rational->sub(env, floor)->as_rational();
     } else {
-        integer = rational->to_i(env)->as_integer();
+        integer = rational->to_i(env).integer();
         subseconds = rational->sub(env, integer)->as_rational();
     }
-    time_t seconds = (time_t)IntegerObject::to_nat_int_t(integer);
+    time_t seconds = (time_t)integer.to_nat_int_t();
     if (mode == Mode::UTC) {
         result->m_time = *gmtime(&seconds);
     } else {
@@ -497,10 +497,10 @@ void TimeObject::build_time(Env *env, Value year, Value month, Value mday, Value
     if (sec && !sec->is_nil()) {
         if (sec->is_string()) {
             // ensure base10 conversion for case of "01" input
-            sec = KernelModule::Integer(env, sec, 10, true)->as_integer();
+            sec = KernelModule::Integer(env, sec, 10, true);
         }
         if (sec.is_integer()) {
-            auto sec_i = IntegerObject::to_nat_int_t(sec->as_integer());
+            auto sec_i = sec.integer().to_nat_int_t();
             if (sec_i < 0 || sec_i > 59) {
                 env->raise("ArgumentError", "argument out of range");
             }
@@ -508,7 +508,7 @@ void TimeObject::build_time(Env *env, Value year, Value month, Value mday, Value
         } else {
             RationalObject *rational = convert_rational(env, sec);
             auto divmod = rational->send(env, "divmod"_s, { Value::integer(1) })->as_array();
-            m_time.tm_sec = IntegerObject::to_nat_int_t(divmod->first()->as_integer());
+            m_time.tm_sec = divmod->first().integer().to_nat_int_t();
             set_subsec(env, divmod->last()->as_rational());
         }
     }
@@ -520,13 +520,12 @@ void TimeObject::set_subsec(Env *env, long nsec) {
     }
 }
 
-void TimeObject::set_subsec(Env *env, IntegerObject *usec) {
-    if (IntegerObject::lt(env, IntegerObject::integer(usec), Value::integer(0)) || IntegerObject::gte(env, IntegerObject::integer(usec), Value::integer(1000000))) {
+void TimeObject::set_subsec(Env *env, Integer &usec) {
+    if (usec < 0 || usec >= 1000000)
         env->raise("ArgumentError", "subsecx out of range");
-    }
-    if (!IntegerObject::is_zero(IntegerObject::integer(usec))) {
-        m_subsec = RationalObject::create(env, IntegerObject::integer(usec), Integer(1000000));
-    }
+
+    if (!usec.is_zero())
+        m_subsec = RationalObject::create(env, usec, Integer(1000000));
 }
 
 void TimeObject::set_subsec(Env *, RationalObject *subsec) {

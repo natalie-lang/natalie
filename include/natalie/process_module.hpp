@@ -140,7 +140,7 @@ private:
             uid = pass->pw_uid;
         } else {
             idval->assert_type(env, Object::Type::Integer, "Integer");
-            uid = IntegerObject::to_nat_int_t(idval->as_integer());
+            uid = idval.integer().to_nat_int_t();
         }
         return uid;
     }
@@ -154,7 +154,7 @@ private:
             gid = grp->gr_gid;
         } else {
             idval->assert_type(env, Object::Type::Integer, "Integer");
-            gid = IntegerObject::to_nat_int_t(idval->as_integer());
+            gid = idval.integer().to_nat_int_t();
         }
         return gid;
     }
@@ -184,7 +184,7 @@ private:
             if (!rlimval || !rlimval.is_integer()) {
                 env->raise("ArgumentError", "invalid resource {}", rlimit_symbol->string());
             }
-            val = rlimval->as_integer();
+            val = rlimval;
         }
 
         resource = IntegerObject::convert_to_nat_int_t(env, val);

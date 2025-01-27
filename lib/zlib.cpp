@@ -54,10 +54,10 @@ static constexpr size_t ZLIB_BUF_SIZE = 16384;
 Value Zlib_deflate_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 4);
     auto Zlib = GlobalEnv::the()->Object()->const_get("Zlib"_s);
-    auto level = args.at(0, Zlib->const_get("DEFAULT_COMPRESSION"_s))->as_integer_or_raise(env);
-    auto window_bits = args.at(1, Zlib->const_get("MAX_WBITS"_s))->as_integer_or_raise(env);
-    auto mem_level = args.at(2, Zlib->const_get("DEF_MEM_LEVEL"_s))->as_integer_or_raise(env);
-    auto strategy = args.at(3, Zlib->const_get("DEFAULT_STRATEGY"_s))->as_integer_or_raise(env);
+    auto level = args.at(0, Zlib->const_get("DEFAULT_COMPRESSION"_s)).integer_or_raise(env);
+    auto window_bits = args.at(1, Zlib->const_get("MAX_WBITS"_s)).integer_or_raise(env);
+    auto mem_level = args.at(2, Zlib->const_get("DEF_MEM_LEVEL"_s)).integer_or_raise(env);
+    auto strategy = args.at(3, Zlib->const_get("DEFAULT_STRATEGY"_s)).integer_or_raise(env);
 
     auto stream = new z_stream {};
     self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_deflate_stream_cleanup));
@@ -69,11 +69,11 @@ Value Zlib_deflate_initialize(Env *env, Value self, Args &&args, Block *) {
     self->ivar_set(env, "@closed"_s, FalseObject::the());
 
     int ret = deflateInit2(stream,
-        (int)IntegerObject::to_nat_int_t(level),
+        (int)level.to_nat_int_t(),
         Z_DEFLATED,
-        (int)IntegerObject::to_nat_int_t(window_bits),
-        (int)IntegerObject::to_nat_int_t(mem_level),
-        (int)IntegerObject::to_nat_int_t(strategy));
+        (int)window_bits.to_nat_int_t(),
+        (int)mem_level.to_nat_int_t(),
+        (int)strategy.to_nat_int_t());
     if (ret != Z_OK)
         self->klass()->send(env, "_error"_s, { Value::integer(ret) });
 
@@ -123,7 +123,7 @@ Value Zlib_deflate_deflate(Env *env, Value self, Args &&args, Block *) {
     auto string = args[0]->as_string_or_raise(env);
     auto flush = Z_NO_FLUSH;
     if (auto flush_obj = args.at(1, nullptr); flush_obj)
-        flush = IntegerObject::to_nat_int_t(flush_obj->as_integer_or_raise(env));
+        flush = flush_obj.integer_or_raise(env).to_nat_int_t();
 
     Zlib_do_deflate(env, self, string->string(), flush);
 
@@ -141,8 +141,8 @@ Value Zlib_deflate_set_dictionary(Env *env, Value self, Args &&args, Block *) {
 
 Value Zlib_deflate_params(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 2);
-    auto level = args.at(0)->as_integer_or_raise(env);
-    auto strategy = args.at(1)->as_integer_or_raise(env);
+    auto level = args.at(0).integer_or_raise(env);
+    auto strategy = args.at(1).integer_or_raise(env);
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
 
     // Ruby supports changing the params for a stream with content, zlib does not. So instead of simply changing the
@@ -163,8 +163,8 @@ Value Zlib_deflate_params(Env *env, Value self, Args &&args, Block *) {
 
     const auto ret = deflateParams(
         strm,
-        (int)IntegerObject::to_nat_int_t(level),
-        (int)IntegerObject::to_nat_int_t(strategy));
+        (int)level.to_nat_int_t(),
+        (int)strategy.to_nat_int_t());
     if (ret != Z_OK)
         self->klass()->send(env, "_error"_s, { Value::integer(ret) });
 
@@ -190,7 +190,7 @@ Value Zlib_deflate_finish(Env *env, Value self, Args &&args, Block *) {
 
 Value Zlib_inflate_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
-    auto window_bits = args.at(0, fetch_nested_const({ "Zlib"_s, "MAX_WBITS"_s }))->as_integer_or_raise(env);
+    auto window_bits = args.at(0, fetch_nested_const({ "Zlib"_s, "MAX_WBITS"_s })).integer_or_raise(env);
 
     auto stream = new z_stream {};
     self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_inflate_stream_cleanup));
@@ -201,7 +201,7 @@ Value Zlib_inflate_initialize(Env *env, Value self, Args &&args, Block *) {
     self->ivar_set(env, "@out"_s, new VoidPObject(out, Zlib_buffer_cleanup));
     self->ivar_set(env, "@closed"_s, FalseObject::the());
 
-    int ret = inflateInit2(stream, (int)IntegerObject::to_nat_int_t(window_bits));
+    int ret = inflateInit2(stream, (int)window_bits.to_nat_int_t());
     if (ret != Z_OK)
         self->klass()->send(env, "_error"_s, { Value::integer(ret) });
 
@@ -277,7 +277,7 @@ Value Zlib_inflate_inflate(Env *env, Value self, Args &&args, Block *) {
     auto string = args[0]->as_string_or_raise(env);
     auto flush = Z_NO_FLUSH;
     if (auto flush_obj = args.at(1, nullptr); flush_obj)
-        flush = IntegerObject::to_nat_int_t(flush_obj->as_integer_or_raise(env));
+        flush = flush_obj.integer_or_raise(env).to_nat_int_t();
 
     Zlib_do_inflate(env, self, string->string(), flush);
 
