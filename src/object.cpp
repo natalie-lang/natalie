@@ -1033,7 +1033,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::False:
         return FalseObject::the();
     case Object::Type::Float:
-        return Value::floatingpoint(as_float()->to_double());
+        return new FloatObject { *as_float() };
     case Object::Type::Hash:
         return new HashObject { env, *as_hash() };
     case Object::Type::Integer:

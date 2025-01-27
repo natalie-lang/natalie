@@ -53,7 +53,7 @@ bool FloatObject::eql(Value other) const {
             env->raise("FloatDomainError", this->inspect_str(env));             \
                                                                                 \
         if (is_infinity())                                                      \
-            return Value::floatingpoint(m_double);                              \
+            return new FloatObject { m_double };                                \
                                                                                 \
         FloatObject *result;                                                    \
         if (precision == 0)                                                     \
@@ -62,7 +62,7 @@ bool FloatObject::eql(Value other) const {
         double f = ::pow(10, precision);                                        \
         double rounded = ::libm_name(m_double * f) / f;                         \
         if (isinf(f) || isinf(rounded)) {                                       \
-            return Value::floatingpoint(m_double);                              \
+            return new FloatObject { m_double };                                \
         }                                                                       \
         if (precision < 0)                                                      \
             return f_to_i_or_bigint(rounded);                                   \
@@ -187,7 +187,7 @@ Value FloatObject::coerce(Env *env, Value arg) {
         ary->push(arg);
         break;
     case Object::Type::Integer:
-        ary->push(Value::floatingpoint(arg.integer().to_double()));
+        ary->push(new FloatObject { arg.integer().to_double() });
         break;
     default:
         ary->push(KernelModule::Float(env, arg, true));
@@ -243,7 +243,7 @@ Value FloatObject::add(Env *env, Value rhs) {
 
     double addend1 = to_double();
     double addend2 = rhs->as_float()->to_double();
-    return Value::floatingpoint(addend1 + addend2);
+    return new FloatObject { addend1 + addend2 };
 }
 
 Value FloatObject::sub(Env *env, Value rhs) {
@@ -260,7 +260,7 @@ Value FloatObject::sub(Env *env, Value rhs) {
 
     double minuend = to_double();
     double subtrahend = rhs->as_float()->to_double();
-    return Value::floatingpoint(minuend - subtrahend);
+    return new FloatObject { minuend - subtrahend };
 }
 
 Value FloatObject::mul(Env *env, Value rhs) {
@@ -277,7 +277,7 @@ Value FloatObject::mul(Env *env, Value rhs) {
 
     double multiplicand = to_double();
     double multiplier = rhs->as_float()->to_double();
-    return Value::floatingpoint(multiplicand * multiplier);
+    return new FloatObject { multiplicand * multiplier };
 }
 
 Value FloatObject::div(Env *env, Value rhs) {
@@ -295,7 +295,7 @@ Value FloatObject::div(Env *env, Value rhs) {
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
 
-    return Value::floatingpoint(dividend / divisor);
+    return new FloatObject { dividend / divisor };
 }
 
 Value FloatObject::mod(Env *env, Value rhs) {
@@ -303,8 +303,8 @@ Value FloatObject::mod(Env *env, Value rhs) {
 
     bool rhs_is_non_zero = (rhs->is_float() && !rhs->as_float()->is_zero()) || (rhs.is_integer() && !IntegerObject::is_zero(rhs.integer()));
 
-    if (rhs->is_float() && rhs->as_float()->is_negative_infinity()) return Value::floatingpoint(rhs->as_float()->to_double());
-    if (is_negative_zero() && rhs_is_non_zero) return Value::floatingpoint(m_double);
+    if (rhs->is_float() && rhs->as_float()->is_negative_infinity()) return new FloatObject { rhs->as_float()->to_double() };
+    if (is_negative_zero() && rhs_is_non_zero) return new FloatObject { m_double };
 
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
@@ -325,7 +325,7 @@ Value FloatObject::mod(Env *env, Value rhs) {
     if (result != 0.0 && signbit(dividend) != signbit(divisor))
         result += divisor;
 
-    return Value::floatingpoint(result);
+    return new FloatObject { result };
 }
 
 Value FloatObject::divmod(Env *env, Value arg) {
@@ -369,19 +369,19 @@ Value FloatObject::pow(Env *env, Value rhs) {
     if (base < 0 && ::floor(exponent) != exponent)
         env->raise("ArgumentError", "Not yet implemented: negative raised to a fractional power");
 
-    return Value::floatingpoint(::pow(base, exponent));
+    return new FloatObject { ::pow(base, exponent) };
 }
 
 Value FloatObject::abs(Env *env) const {
-    return Value::floatingpoint(fabs(m_double));
+    return new FloatObject { fabs(m_double) };
 }
 
 Value FloatObject::next_float(Env *env) const {
-    return Value::floatingpoint(::nextafter(to_double(), HUGE_VAL));
+    return new FloatObject { ::nextafter(to_double(), HUGE_VAL) };
 }
 
 Value FloatObject::prev_float(Env *env) const {
-    return Value::floatingpoint(::nextafter(to_double(), -HUGE_VAL));
+    return new FloatObject { ::nextafter(to_double(), -HUGE_VAL) };
 }
 
 Value FloatObject::arg(Env *env) {

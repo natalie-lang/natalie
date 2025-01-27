@@ -69,7 +69,7 @@ module Natalie
           value = transform.pop # Pass1 already did the work to push the value onto the stack
           case type
           when 'double'
-            "#{value}.as_double()"
+            "#{value}->as_float()->to_double()"
           when 'int'
             "#{value}.as_fast_integer()"
           when 'bool'
@@ -84,7 +84,7 @@ module Natalie
         cast_value_from_cpp = lambda do |value, type|
           case type
           when 'double'
-            "Value::floatingpoint(#{value})"
+            "Value(new FloatObject { #{value} })"
           when 'Value'
             value
           else

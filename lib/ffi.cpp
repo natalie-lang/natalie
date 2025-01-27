@@ -260,7 +260,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     } else if (return_type == char_sym) {
         return Value::integer(result);
     } else if (return_type == double_sym) {
-        return Value::floatingpoint(*reinterpret_cast<double *>(&result));
+        return new FloatObject { *reinterpret_cast<double *>(&result) };
     } else if (return_type == int_sym) {
         return Value::integer(result);
     } else if (return_type == pointer_sym) {

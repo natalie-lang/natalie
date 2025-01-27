@@ -215,9 +215,6 @@ String RangeObject::dbg_inspect() const {
     auto append = [&](Value v) {
         if (v.is_fast_integer()) {
             str.append(v.get_fast_integer());
-        } else if (v.is_fast_double()) {
-            auto f = FloatObject(v.get_fast_double());
-            str.append(f.to_s());
         } else {
             auto obj = v.object_or_null();
             assert(obj);
