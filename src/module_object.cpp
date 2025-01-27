@@ -265,7 +265,7 @@ Value ModuleObject::handle_missing_constant(Env *env, Value name, ConstLookupFai
 Value ModuleObject::const_set(SymbolObject *name, Value val) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    m_constants.put(name, new Constant { name, val.object() });
+    m_constants.put(name, new Constant { name, val });
     if (val.is_module()) {
         auto module = val->as_module();
         if (!module->owner()) {
@@ -408,12 +408,12 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
         while (current) {
             exists = current->m_class_vars.get(name, env);
             if (exists) {
-                current->m_class_vars.put(name, val.object(), env);
+                current->m_class_vars.put(name, val, env);
                 return val;
             }
             current = current->m_superclass;
         }
-        module->m_class_vars.put(name, val.object(), env);
+        module->m_class_vars.put(name, val, env);
         return val;
     };
 
