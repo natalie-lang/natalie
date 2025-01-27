@@ -512,7 +512,6 @@ Env *build_top_env() {
     Object->const_set("RUBY_ENGINE"_s, RUBY_ENGINE);
 
     Value RUBY_PATCHLEVEL = Value::integer(-1);
-    RUBY_PATCHLEVEL->freeze();
     Object->const_set("RUBY_PATCHLEVEL"_s, RUBY_PATCHLEVEL);
 
     StringObject *RUBY_PLATFORM = new StringObject { ruby_platform };
