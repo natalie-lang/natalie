@@ -139,7 +139,7 @@ private:
                 env->raise("ArgumentError", "can't find user {}", idval->as_string()->c_str());
             uid = pass->pw_uid;
         } else {
-            idval->assert_type(env, Object::Type::Integer, "Integer");
+            idval.assert_type(env, Object::Type::Integer, "Integer");
             uid = idval.integer().to_nat_int_t();
         }
         return uid;
@@ -153,7 +153,7 @@ private:
                 env->raise("ArgumentError", "can't find group {}", idval->as_string()->c_str());
             gid = grp->gr_gid;
         } else {
-            idval->assert_type(env, Object::Type::Integer, "Integer");
+            idval.assert_type(env, Object::Type::Integer, "Integer");
             gid = idval.integer().to_nat_int_t();
         }
         return gid;
@@ -175,7 +175,7 @@ private:
             }
         }
         if (rlimit_symbol) {
-            rlimit_symbol->assert_type(env, Object::Type::Symbol, "Symbol");
+            Value(rlimit_symbol).assert_type(env, Object::Type::Symbol, "Symbol");
             StringObject *rlimit_str = new StringObject { "RLIMIT_" };
             rlimit_str->append(rlimit_symbol->string());
             rlimit_symbol = rlimit_str->as_string()->to_symbol(env);

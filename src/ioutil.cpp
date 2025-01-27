@@ -14,7 +14,7 @@ namespace ioutil {
             path = path->send(env, "to_path"_s);
         if (!path->is_string() && path->respond_to(env, "to_str"_s))
             path = path->to_str(env);
-        path->assert_type(env, Object::Type::String, "String");
+        path.assert_type(env, Object::Type::String, "String");
         return path->as_string();
     }
 

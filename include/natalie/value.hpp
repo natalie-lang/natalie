@@ -132,6 +132,8 @@ public:
 
     nat_int_t object_id() const;
 
+    void assert_type(Env *, ObjectType, const char *) const;
+
 private:
     explicit Value(double value)
         : m_type { Type::Double }

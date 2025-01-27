@@ -99,7 +99,7 @@ Value ExceptionObject::inspect(Env *env) {
     auto klassname = m_klass->inspect_str();
     auto msgstr = this->send(env, "to_s"_s);
     assert(msgstr);
-    msgstr->assert_type(env, Object::Type::String, "String");
+    msgstr.assert_type(env, Object::Type::String, "String");
     if (msgstr->as_string()->is_empty())
         return new StringObject { klassname };
     if (msgstr->as_string()->include(env, new StringObject { "\n" }))
@@ -114,7 +114,7 @@ StringObject *ExceptionObject::to_s(Env *env) {
         return m_message->as_string();
     }
     auto msgstr = m_message->send(env, "to_s"_s);
-    msgstr->assert_type(env, Object::Type::String, "String");
+    msgstr.assert_type(env, Object::Type::String, "String");
     return msgstr->as_string();
 }
 

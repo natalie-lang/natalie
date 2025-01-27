@@ -370,7 +370,7 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
         }
     }
 
-    record_separator->assert_type(env, Object::Type::String, "String");
+    record_separator.assert_type(env, Object::Type::String, "String");
 
     const String rs = record_separator->as_string()->m_string;
     size_t rs_len = rs.length();
@@ -658,7 +658,7 @@ bool StringObject::start_with(Env *env, Args &&args) {
 // NATFIXME : broken for searching the middle of a multibyte char
 bool StringObject::end_with(Env *env, Value needle) const {
     needle = needle->to_str(env);
-    needle->assert_type(env, Object::Type::String, "String");
+    needle.assert_type(env, Object::Type::String, "String");
     if (length() < needle->as_string()->length())
         return false;
     auto from_end = new StringObject { c_str() + length() - needle->as_string()->length() };
@@ -1068,7 +1068,7 @@ Value StringObject::concat(Env *env, Args &&args) {
             str_obj = arg->to_str(env);
         }
 
-        str_obj->assert_type(env, Object::Type::String, "String");
+        Value(str_obj).assert_type(env, Object::Type::String, "String");
 
         // If the other string is empty, there's nothing to do.
         if (str_obj->is_empty()) continue;
@@ -1156,7 +1156,7 @@ Value StringObject::eqtilde(Env *env, Value other) {
     if (!other->is_regexp() && other->respond_to(env, "=~"_s))
         return other->send(env, "=~"_s, { this });
 
-    other->assert_type(env, Object::Type::Regexp, "Regexp");
+    other.assert_type(env, Object::Type::Regexp, "Regexp");
     return other->as_regexp()->eqtilde(env, this);
 }
 
@@ -1170,7 +1170,7 @@ Value StringObject::match(Env *env, Value other, Value index, Block *block) {
             return other->send(env, "=~"_s, { this });
         }
     }
-    other->assert_type(env, Object::Type::Regexp, "Regexp");
+    other.assert_type(env, Object::Type::Regexp, "Regexp");
     auto result = other->send(env, "match"_s, { this, index }, block);
     env->caller()->set_match(env->match());
     return result;
@@ -1213,7 +1213,7 @@ Value StringObject::prepend(Env *env, Args &&args) {
             str_obj = arg->to_str(env);
         }
 
-        str_obj->assert_type(env, Object::Type::String, "String");
+        Value(str_obj).assert_type(env, Object::Type::String, "String");
         appendable.append(&str_obj->m_string);
     }
     m_string.prepend(&appendable);
@@ -1268,7 +1268,7 @@ size_t StringObject::char_count(Env *env) const {
 Value StringObject::scan(Env *env, Value pattern, Block *block) {
     if (!pattern->is_regexp())
         pattern = RegexpObject::compile(env, RegexpObject::quote(env, pattern->to_str(env)));
-    pattern->assert_type(env, Type::Regexp, "Regexp");
+    pattern.assert_type(env, Type::Regexp, "Regexp");
 
     auto regexp = pattern->as_regexp();
     auto ary = new ArrayObject {};
@@ -1440,7 +1440,7 @@ Value StringObject::force_encoding(Env *env, Value encoding) {
 }
 
 bool StringObject::has_match(Env *env, Value other, Value start) {
-    other->assert_type(env, Object::Type::Regexp, "Regexp");
+    other.assert_type(env, Object::Type::Regexp, "Regexp");
     return other->as_regexp()->has_match(env, this, start);
 }
 

@@ -68,7 +68,7 @@ String SymbolObject::dbg_inspect() const {
 }
 
 Value SymbolObject::eqtilde(Env *env, Value other) {
-    other->assert_type(env, Object::Type::Regexp, "Regexp");
+    other.assert_type(env, Object::Type::Regexp, "Regexp");
     return other->as_regexp()->eqtilde(env, this);
 }
 
@@ -112,7 +112,7 @@ Value SymbolObject::casecmp(Env *env, Value other) {
 
 Value SymbolObject::is_casecmp(Env *env, Value other) {
     if (!other->is_symbol()) return NilObject::the();
-    // other->assert_type(env, Object::Type::Symbol, "Symbol");
+    // other.assert_type(env, Object::Type::Symbol, "Symbol");
     auto str1 = to_s(env);
     auto str2 = other->to_s(env);
     str1 = str1->send(env, "downcase"_s, { "ascii"_s })->as_string();
@@ -156,12 +156,12 @@ Value SymbolObject::length(Env *env) {
 }
 
 Value SymbolObject::match(Env *env, Value other, Block *block) const {
-    other->assert_type(env, Object::Type::Regexp, "Regexp");
+    other.assert_type(env, Object::Type::Regexp, "Regexp");
     return other->as_regexp()->match(env, name(env), nullptr, block);
 }
 
 bool SymbolObject::has_match(Env *env, Value other, Value start) const {
-    other->assert_type(env, Object::Type::Regexp, "Regexp");
+    other.assert_type(env, Object::Type::Regexp, "Regexp");
     return other->as_regexp()->has_match(env, name(env), start);
 }
 

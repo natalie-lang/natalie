@@ -49,7 +49,7 @@ Value FileObject::initialize(Env *env, Args &&args, Block *block) {
         int fileno = IntegerObject::convert_to_int(env, filename);
         String flags_str = String('r');
         if (flags_obj) {
-            flags_obj->assert_type(env, Object::Type::String, "String");
+            flags_obj.assert_type(env, Object::Type::String, "String");
             flags_str = flags_obj->as_string()->string();
         }
         FILE *fptr = ::fdopen(fileno, flags_str.c_str());
@@ -325,7 +325,7 @@ bool FileObject::is_chardev(Env *env, Value path) {
 
 bool FileObject::is_pipe(Env *env, Value path) {
     struct stat sb;
-    path->assert_type(env, Object::Type::String, "String");
+    path.assert_type(env, Object::Type::String, "String");
     if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISFIFO(sb.st_mode);
@@ -333,7 +333,7 @@ bool FileObject::is_pipe(Env *env, Value path) {
 
 bool FileObject::is_socket(Env *env, Value path) {
     struct stat sb;
-    path->assert_type(env, Object::Type::String, "String");
+    path.assert_type(env, Object::Type::String, "String");
     if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISSOCK(sb.st_mode);
@@ -485,7 +485,7 @@ nat_int_t FileObject::link(Env *env, Value from, Value to) {
 nat_int_t FileObject::mkfifo(Env *env, Value path, Value mode) {
     mode_t octmode = 0666;
     if (mode) {
-        mode->assert_type(env, Object::Type::Integer, "Integer");
+        mode.assert_type(env, Object::Type::Integer, "Integer");
         octmode = (mode_t)mode.integer().to_nat_int_t();
     }
     path = ioutil::convert_using_to_path(env, path);

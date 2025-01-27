@@ -29,7 +29,7 @@ Value KernelModule::abort_method(Env *env, Value message) {
         if (!message->is_string())
             message = message->to_str(env);
 
-        message->assert_type(env, Object::Type::String, "String");
+        message.assert_type(env, Object::Type::String, "String");
 
         exception = SystemExit.send(env, "new"_s, { Value::integer(1), message })->as_exception();
 
@@ -445,7 +445,7 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
 
         if (x->respond_to(env, "to_r"_s)) {
             auto result = x->public_send(env, "to_r"_s);
-            result->assert_type(env, Object::Type::Rational, "Rational");
+            result.assert_type(env, Object::Type::Rational, "Rational");
             return result;
         }
 
@@ -598,7 +598,7 @@ Value KernelModule::String(Env *env, Value value) {
         env->raise("TypeError", "can't convert {} into String", value->klass()->inspect_str());
 
     value = value.send(env, to_s);
-    value->assert_type(env, Object::Type::String, "String");
+    value.assert_type(env, Object::Type::String, "String");
     return value;
 }
 

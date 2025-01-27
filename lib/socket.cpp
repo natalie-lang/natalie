@@ -527,7 +527,7 @@ Value BasicSocket_recv(Env *env, Value self, Args &&args, Block *) {
     auto outbuf = args.at(2, NilObject::the());
 
     if (!outbuf->is_nil())
-        outbuf->assert_type(env, Object::Type::String, "String");
+        outbuf.assert_type(env, Object::Type::String, "String");
 
     if (maxlen <= 0)
         env->raise("ArgumentError", "maxlen must be positive");
@@ -1217,7 +1217,7 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
 Value Socket_pack_sockaddr_un(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto path = args.at(0);
-    path->assert_type(env, Object::Type::String, "String");
+    path.assert_type(env, Object::Type::String, "String");
     auto path_string = path->as_string();
 
     struct sockaddr_un un { };
@@ -1244,7 +1244,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args &&args, Block *block)
         return new ArrayObject { port, host };
     }
 
-    sockaddr->assert_type(env, Object::Type::String, "String");
+    sockaddr.assert_type(env, Object::Type::String, "String");
 
     auto family = reinterpret_cast<const struct sockaddr *>(sockaddr->as_string()->c_str())->sa_family;
 
@@ -1296,7 +1296,7 @@ Value Socket_unpack_sockaddr_un(Env *env, Value self, Args &&args, Block *block)
         return sockaddr.send(env, "unix_path"_s);
     }
 
-    sockaddr->assert_type(env, Object::Type::String, "String");
+    sockaddr.assert_type(env, Object::Type::String, "String");
 
     if (sockaddr->as_string()->bytesize() > sizeof(struct sockaddr_un))
         env->raise("ArgumentError", "not an AF_UNIX sockaddr");

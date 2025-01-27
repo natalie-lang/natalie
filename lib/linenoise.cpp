@@ -82,7 +82,7 @@ static void completion_callback(const char *edit_buffer, linenoiseCompletions *c
 
 Value Linenoise_set_completion_callback(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    args[0]->assert_type(env, Object::Type::Proc, "Proc");
+    args[0].assert_type(env, Object::Type::Proc, "Proc");
     auto proc = args[0]->as_proc();
 
     self->ivar_set(env, "@completion_callback"_s, proc);
@@ -119,7 +119,7 @@ static char *hints_callback(const char *buf, int *color, int *bold) {
 
 Value Linenoise_set_hints_callback(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    args[0]->assert_type(env, Object::Type::Proc, "Proc");
+    args[0].assert_type(env, Object::Type::Proc, "Proc");
     auto proc = args[0]->as_proc();
 
     self->ivar_set(env, "@hints_callback"_s, proc);
@@ -142,7 +142,7 @@ static const char *highlight_callback(const char *edit_buffer, int *length) {
 
 Value Linenoise_set_highlight_callback(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    args[0]->assert_type(env, Object::Type::Proc, "Proc");
+    args[0].assert_type(env, Object::Type::Proc, "Proc");
     auto proc = args[0]->as_proc();
 
     self->ivar_set(env, "@highlight_callback"_s, proc);

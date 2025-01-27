@@ -458,7 +458,7 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
 
     if (other->is_symbol())
         other = other->as_symbol()->to_s(env);
-    other->assert_type(env, Object::Type::String, "String");
+    other.assert_type(env, Object::Type::String, "String");
     StringObject *str_obj = other->as_string();
 
     if (!str_obj->valid_encoding())
@@ -513,7 +513,7 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
     if (other->is_symbol())
         other = other->as_symbol()->to_s(env);
 
-    other->assert_type(env, Object::Type::String, "String");
+    other.assert_type(env, Object::Type::String, "String");
     StringObject *str_obj = other->as_string();
 
     nat_int_t start_index = 0;

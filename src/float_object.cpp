@@ -46,7 +46,7 @@ bool FloatObject::eql(Value other) const {
             if (precision_value->is_float()) {                                   \
                 precision_value = precision_value->as_float()->to_i(env);        \
             }                                                                    \
-            precision_value->assert_type(env, Object::Type::Integer, "Integer"); \
+            precision_value.assert_type(env, Object::Type::Integer, "Integer"); \
             precision = precision_value.integer().to_nat_int_t();                \
         }                                                                        \
         if (precision <= 0 && (is_nan() || is_infinity()))                       \
@@ -239,7 +239,7 @@ Value FloatObject::add(Env *env, Value rhs) {
     }
 
     if (!lhs->is_float()) return lhs.send(env, "+"_s, { rhs });
-    if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
+    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double addend1 = to_double();
     double addend2 = rhs->as_float()->to_double();
@@ -256,7 +256,7 @@ Value FloatObject::sub(Env *env, Value rhs) {
     }
 
     if (!lhs->is_float()) return lhs.send(env, "-"_s, { rhs });
-    if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
+    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double minuend = to_double();
     double subtrahend = rhs->as_float()->to_double();
@@ -273,7 +273,7 @@ Value FloatObject::mul(Env *env, Value rhs) {
     }
 
     if (!lhs->is_float()) return lhs.send(env, "*"_s, { rhs });
-    if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
+    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double multiplicand = to_double();
     double multiplier = rhs->as_float()->to_double();
@@ -290,7 +290,7 @@ Value FloatObject::div(Env *env, Value rhs) {
     }
 
     if (!lhs->is_float()) return lhs.send(env, "/"_s, { rhs });
-    if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
+    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
@@ -313,7 +313,7 @@ Value FloatObject::mod(Env *env, Value rhs) {
     }
 
     if (!lhs->is_float()) return lhs.send(env, "%"_s, { rhs });
-    if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
+    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
@@ -361,7 +361,7 @@ Value FloatObject::pow(Env *env, Value rhs) {
     }
 
     if (!lhs->is_float()) return lhs.send(env, "**"_s, { rhs });
-    if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
+    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double base = to_double();
     double exponent = rhs->as_float()->to_double();

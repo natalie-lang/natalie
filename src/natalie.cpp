@@ -718,7 +718,7 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
             int *int_ptr = va_arg(va_args, int *); // NOLINT(clang-analyzer-valist.Uninitialized) bug in clang-tidy?
             if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
-            obj->assert_type(env, Object::Type::Integer, "Integer");
+            obj.assert_type(env, Object::Type::Integer, "Integer");
             *int_ptr = obj.integer().to_nat_int_t();
             break;
         }
@@ -729,7 +729,7 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
             if (obj == NilObject::the()) {
                 *str_ptr = nullptr;
             } else {
-                obj->assert_type(env, Object::Type::String, "String");
+                obj.assert_type(env, Object::Type::String, "String");
             }
             *str_ptr = obj->as_string()->c_str();
             break;

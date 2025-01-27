@@ -78,7 +78,7 @@ void IoObject::raise_if_closed(Env *env) const {
 
 Value IoObject::advise(Env *env, Value advice, Value offset, Value len) {
     raise_if_closed(env);
-    advice->assert_type(env, Object::Type::Symbol, "Symbol");
+    advice.assert_type(env, Object::Type::Symbol, "Symbol");
     nat_int_t offset_i = (offset == nullptr) ? 0 : IntegerObject::convert_to_nat_int_t(env, offset);
     nat_int_t len_i = (len == nullptr) ? 0 : IntegerObject::convert_to_nat_int_t(env, len);
     int advice_i = 0;
@@ -510,7 +510,7 @@ Value IoObject::write_nonblock(Env *env, Value obj, Value exception) {
     raise_if_closed(env);
     obj = obj->to_s(env);
     set_nonblock(env, true);
-    obj->assert_type(env, Object::Type::String, "String");
+    obj.assert_type(env, Object::Type::String, "String");
     const auto result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->bytesize());
     if (result == -1) {
         if (errno == EWOULDBLOCK || errno == EAGAIN) {

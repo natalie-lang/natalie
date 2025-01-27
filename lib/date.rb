@@ -338,7 +338,7 @@ class Date
 
   def strftime(format = '%F') # rubocop:disable Lint/UnusedMethodArgument
     __inline__ <<-END
-      format_var->assert_type(env, Object::Type::String, "String");
+      format_var.assert_type(env, Object::Type::String, "String");
       struct tm time = { 0 };
       time.tm_year = IntegerObject::convert_to_int(env, self->ivar_get(env, "@year"_s)) - 1900;
       time.tm_mon = IntegerObject::convert_to_int(env, self->ivar_get(env, "@month"_s)) - 1;

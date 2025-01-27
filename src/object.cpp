@@ -803,8 +803,8 @@ Value Object::cvar_set(Env *env, SymbolObject *name, Value val) {
 }
 
 void Object::method_alias(Env *env, Value new_name, Value old_name) {
-    new_name->assert_type(env, Type::Symbol, "Symbol");
-    old_name->assert_type(env, Type::Symbol, "Symbol");
+    new_name.assert_type(env, Type::Symbol, "Symbol");
+    old_name.assert_type(env, Type::Symbol, "Symbol");
     method_alias(env, new_name->as_symbol(), old_name->as_symbol());
 }
 
@@ -1256,11 +1256,6 @@ Value Object::instance_exec(Env *env, Args &&args, Block *block) {
     return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, std::move(args), nullptr);
 }
 
-void Object::assert_type(Env *env, Object::Type expected_type, const char *expected_class_name) const {
-    if ((type()) != expected_type)
-        env->raise_type_error(this, expected_class_name);
-}
-
 void Object::assert_not_frozen(Env *env) {
     if (is_frozen()) {
         env->raise("FrozenError", "can't modify frozen {}: {}", klass()->inspect_str(), inspect_str(env));
@@ -1369,9 +1364,8 @@ IoObject *Object::to_io(Env *env) {
     if (is_io()) return as_io();
 
     auto to_io = "to_io"_s;
-    if (!respond_to(env, to_io)) {
-        assert_type(env, Type::Io, "IO");
-    }
+    if (!respond_to(env, to_io))
+        Value(this).assert_type(env, Type::Io, "IO");
 
     auto result = send(env, to_io);
 
@@ -1391,7 +1385,7 @@ Integer Object::to_int(Env *env, Value self) {
 
     auto to_int = "to_int"_s;
     if (!self->respond_to(env, to_int))
-        self->assert_type(env, Type::Integer, "Integer");
+        self.assert_type(env, Type::Integer, "Integer");
 
     auto result = self->send(env, to_int);
 
@@ -1411,10 +1405,10 @@ FloatObject *Object::to_f(Env *env) {
 
     auto to_f = "to_f"_s;
     if (!respond_to(env, to_f))
-        assert_type(env, Type::Float, "Float");
+        Value(this).assert_type(env, Type::Float, "Float");
 
     auto result = send(env, to_f);
-    result->assert_type(env, Type::Float, "Float");
+    result.assert_type(env, Type::Float, "Float");
     return result->as_float();
 }
 
