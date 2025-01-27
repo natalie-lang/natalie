@@ -127,7 +127,7 @@ public:
     static Value truncate(Env *, Integer &, Value);
     static Value ref(Env *, Integer &, Value, Value);
 
-    static bool neq(Env *env, Value self, Value other) { return self.send(env, "=="_s, { other })->is_falsey(); }
+    static bool neq(Env *env, Value self, Value other) { return self.send(env, "=="_s, { other }).is_falsey(); }
     static bool eq(Env *, Integer &, Value);
     static bool lt(Env *, Integer &, Value);
     static bool lte(Env *, Integer &, Value);

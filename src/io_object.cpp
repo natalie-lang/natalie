@@ -110,10 +110,10 @@ Value IoObject::advise(Env *env, Value advice, Value offset, Value len) {
 
 Value IoObject::binread(Env *env, Value filename, Value length, Value offset) {
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
-    if (filename->is_string() && filename->as_string()->string()[0] == '|')
+    if (filename.is_string() && filename->as_string()->string()[0] == '|')
         env->raise("NotImplementedError", "no support for pipe in IO.binread");
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
-    if (offset && !offset->is_nil())
+    if (offset && !offset.is_nil())
         file->set_pos(env, offset);
     file->set_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
     auto data = file->read(env, length, nullptr);
@@ -146,7 +146,7 @@ Value IoObject::each_byte(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "each_byte"_s });
 
     Value byte;
-    while (!(byte = getbyte(env))->is_nil())
+    while (!(byte = getbyte(env)).is_nil())
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { byte }, nullptr);
 
     return this;
@@ -165,9 +165,9 @@ Value IoObject::fcntl(Env *env, Value cmd_value, Value arg_value) {
     raise_if_closed(env);
     const auto cmd = IntegerObject::convert_to_int(env, cmd_value);
     int result;
-    if (arg_value == nullptr || arg_value->is_nil()) {
+    if (arg_value == nullptr || arg_value.is_nil()) {
         result = ::fcntl(m_fileno, cmd);
-    } else if (arg_value->is_string()) {
+    } else if (arg_value.is_string()) {
         const auto arg = arg_value->as_string()->c_str();
         result = ::fcntl(m_fileno, cmd, arg);
     } else {
@@ -195,7 +195,7 @@ int IoObject::fsync(Env *env) {
 Value IoObject::getbyte(Env *env) {
     raise_if_closed(env);
     auto result = read(env, Value::integer(1), nullptr);
-    if (result->is_string())
+    if (result.is_string())
         result = result->as_string()->ord(env);
     return result;
 }
@@ -203,7 +203,7 @@ Value IoObject::getbyte(Env *env) {
 Value IoObject::getc(Env *env) {
     raise_if_closed(env);
     auto line = gets(env);
-    if (line->is_nil())
+    if (line.is_nil())
         return line;
     auto line_str = line->as_string();
     auto result = line_str->chr(env);
@@ -284,12 +284,12 @@ Value IoObject::read_file(Env *env, Args &&args) {
     const ioutil::flags_struct flags { env, nullptr, kwargs };
     if (!flags_is_readable(flags.flags()))
         env->raise("IOError", "not opened for reading");
-    if (filename->is_string() && filename->as_string()->string()[0] == '|')
+    if (filename.is_string() && filename->as_string()->string()[0] == '|')
         env->raise("NotImplementedError", "no support for pipe in IO.read");
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     file->set_encoding(env, flags.external_encoding(), flags.internal_encoding());
-    if (offset && !offset->is_nil()) {
+    if (offset && !offset.is_nil()) {
         if (offset.is_integer() && IntegerObject::is_negative(offset.integer()))
             env->raise("ArgumentError", "negative offset {} given", offset->inspect_str(env));
         file->set_pos(env, offset);
@@ -309,13 +309,13 @@ Value IoObject::write_file(Env *env, Args &&args) {
     auto mode = Value::integer(O_WRONLY | O_CREAT | O_CLOEXEC);
     Value perm = nullptr;
 
-    if (!offset || offset->is_nil())
+    if (!offset || offset.is_nil())
         mode = Value::integer(IntegerObject::convert_to_nat_int_t(env, mode) | O_TRUNC);
     if (kwargs && kwargs->has_key(env, "mode"_s))
         mode = kwargs->delete_key(env, "mode"_s, nullptr);
     if (kwargs && kwargs->has_key(env, "perm"_s))
         perm = kwargs->delete_key(env, "perm"_s, nullptr);
-    if (filename->is_string() && filename->as_string()->string()[0] == '|')
+    if (filename.is_string() && filename->as_string()->string()[0] == '|')
         env->raise("NotImplementedError", "no support for pipe in IO.write");
 
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
@@ -324,7 +324,7 @@ Value IoObject::write_file(Env *env, Args &&args) {
     if (kwargs && kwargs->has_key(env, "open_args"_s)) {
         auto next_args = new ArrayObject { filename };
         next_args->concat(*kwargs->fetch(env, "open_args"_s, nullptr, nullptr)->to_ary(env));
-        auto open_args_has_kw = next_args->last()->is_hash();
+        auto open_args_has_kw = next_args->last().is_hash();
         file = _new(env, File, Args(next_args, open_args_has_kw), nullptr)->as_file();
     } else {
         auto next_args = new ArrayObject { filename, mode };
@@ -334,7 +334,7 @@ Value IoObject::write_file(Env *env, Args &&args) {
             next_args->push(kwargs);
         file = _new(env, File, Args(next_args, kwargs != nullptr), nullptr)->as_file();
     }
-    if (offset && !offset->is_nil())
+    if (offset && !offset.is_nil())
         file->set_pos(env, offset);
     Defer close { [&file, &env]() { file->close(env); } };
     int bytes_written = file->write(env, string);
@@ -353,13 +353,13 @@ ssize_t IoObject::blocking_read(Env *env, void *buf, int count) const {
 
 Value IoObject::read(Env *env, Value count_value, Value buffer) {
     raise_if_closed(env);
-    if (buffer != nullptr && !buffer->is_nil()) {
+    if (buffer != nullptr && !buffer.is_nil()) {
         buffer = buffer->to_str(env);
     } else {
         buffer = nullptr;
     }
     ssize_t bytes_read;
-    if (count_value && !count_value->is_nil()) {
+    if (count_value && !count_value.is_nil()) {
         const auto count = IntegerObject::convert_to_native_type<size_t>(env, count_value);
         if (m_read_buffer.size() >= count) {
             auto result = new StringObject { m_read_buffer.c_str(), static_cast<size_t>(count), Encoding::ASCII_8BIT };
@@ -428,7 +428,7 @@ Value IoObject::ltlt(Env *env, Value obj) {
 
 Value IoObject::autoclose(Env *env, Value value) {
     raise_if_closed(env);
-    m_autoclose = value->is_truthy();
+    m_autoclose = value.is_truthy();
     return value;
 }
 
@@ -441,11 +441,11 @@ Value IoObject::binmode(Env *env) {
 
 Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Value src_offset) {
     Value data = new StringObject {};
-    if (src->is_io() || src->respond_to(env, "to_io"_s)) {
+    if (src.is_io() || src->respond_to(env, "to_io"_s)) {
         auto src_io = src->to_io(env);
         if (!is_readable(src_io->fileno(env)))
             env->raise("IOError", "not opened for reading");
-        if (src_offset && !src_offset->is_nil()) {
+        if (src_offset && !src_offset.is_nil()) {
             src_io->pread(env, src_length, src_offset, data);
         } else {
             src_io->read(env, src_length, data);
@@ -458,7 +458,7 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
         data = read_file(env, { src, src_length, src_offset });
     }
 
-    if (dst->is_io() || dst->respond_to(env, "to_io"_s)) {
+    if (dst.is_io() || dst->respond_to(env, "to_io"_s)) {
         auto dst_io = dst->to_io(env);
         return Value::integer(dst_io->write(env, data));
     } else if (dst->respond_to(env, "write"_s)) {
@@ -514,7 +514,7 @@ Value IoObject::write_nonblock(Env *env, Value obj, Value exception) {
     const auto result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->bytesize());
     if (result == -1) {
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
-            if (exception && exception->is_false())
+            if (exception && exception.is_false())
                 return "wait_writable"_s;
             auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
             ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
@@ -531,7 +531,7 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     raise_if_closed(env);
     auto line = new StringObject {};
     bool has_limit = false;
-    if (sep && !sep->is_nil()) {
+    if (sep && !sep.is_nil()) {
         if (sep.is_integer() || sep->respond_to(env, "to_int"_s)) {
             limit = sep;
             sep = nullptr;
@@ -552,7 +552,7 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
         limit = Value::integer(NAT_READ_BYTES);
     }
 
-    if (sep->is_nil())
+    if (sep.is_nil())
         return read(env, has_limit ? limit : nullptr, nullptr);
 
     auto sep_string = sep->as_string_or_raise(env)->string();
@@ -564,7 +564,7 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
             chunk = new StringObject { m_read_buffer };
         } else {
             chunk = read(env, limit, nullptr);
-            if (chunk->is_nil()) {
+            if (chunk.is_nil()) {
                 if (line->is_empty()) {
                     env->set_last_line(NilObject::the());
                     return NilObject::the();
@@ -581,7 +581,7 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     auto split = line->split(env, sep, Value::integer(2))->as_array();
     if (split->size() == 2) {
         line = split->at(0)->as_string();
-        if (!chomp || chomp->is_falsey())
+        if (!chomp || chomp.is_falsey())
             line->append(sep);
         m_read_buffer = split->at(1)->as_string()->string();
     }
@@ -623,7 +623,7 @@ Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
         env->raise("EOFError", "end of file reached");
     }
     buf.truncate(bytes_read);
-    if (out_string != nullptr && !out_string->is_nil()) {
+    if (out_string != nullptr && !out_string.is_nil()) {
         out_string = out_string->to_str(env);
         out_string->as_string()->set_str(buf.c_str(), buf.size());
         return out_string;
@@ -634,7 +634,7 @@ Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
 Value IoObject::putc(Env *env, Value val) {
     raise_if_closed(env);
     Integer ord;
-    if (val->is_string()) {
+    if (val.is_string()) {
         ord = val->as_string()->ord(env).integer();
     } else {
         ord = IntegerObject::convert_to_nat_int_t(env, val) & 0xff;
@@ -658,13 +658,13 @@ void IoObject::putary(Env *env, ArrayObject *ary) {
 }
 
 void IoObject::puts(Env *env, Value val) {
-    if (val->is_string()) {
+    if (val.is_string()) {
         this->putstr(env, val->as_string());
-    } else if (val->is_array() || val->respond_to(env, "to_ary"_s)) {
+    } else if (val.is_array() || val->respond_to(env, "to_ary"_s)) {
         this->putary(env, val->to_ary(env));
     } else {
         Value str = val->send(env, "to_s"_s);
-        if (str->is_string()) {
+        if (str.is_string()) {
             this->putstr(env, str->as_string());
         } else { // to_s did not return a string to inspect val instead.
             this->putstr(env, new StringObject { val->inspect_str(env) });
@@ -686,7 +686,7 @@ Value IoObject::puts(Env *env, Args &&args) {
 Value IoObject::print(Env *env, Args &&args) {
     if (args.size() > 0) {
         auto fsep = env->output_file_separator();
-        auto valid_fsep = !fsep->is_nil();
+        auto valid_fsep = !fsep.is_nil();
         for (size_t i = 0; i < args.size(); i++) {
             if (i > 0 && valid_fsep)
                 write(env, fsep);
@@ -697,7 +697,7 @@ Value IoObject::print(Env *env, Args &&args) {
         write(env, lastline);
     }
     auto rsep = env->output_record_separator();
-    if (!rsep->is_nil()) write(env, rsep);
+    if (!rsep.is_nil()) write(env, rsep);
     return NilObject::the();
 }
 
@@ -782,7 +782,7 @@ Value IoObject::set_close_on_exec(Env *env, Value value) {
     int flags = ::fcntl(m_fileno, F_GETFD);
     if (flags < 0)
         env->raise_errno();
-    if (value->is_truthy()) {
+    if (value.is_truthy()) {
         flags |= FD_CLOEXEC;
     } else {
         flags &= ~FD_CLOEXEC;
@@ -793,7 +793,7 @@ Value IoObject::set_close_on_exec(Env *env, Value value) {
 }
 
 Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
-    if ((int_enc == nullptr || int_enc->is_nil()) && ext_enc != nullptr && (ext_enc->is_string() || ext_enc->respond_to(env, "to_str"_s))) {
+    if ((int_enc == nullptr || int_enc.is_nil()) && ext_enc != nullptr && (ext_enc.is_string() || ext_enc->respond_to(env, "to_str"_s))) {
         ext_enc = ext_enc->to_str(env);
         if (ext_enc->as_string()->include(":")) {
             auto colon = new StringObject { ":" };
@@ -803,15 +803,15 @@ Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
         }
     }
 
-    if (ext_enc != nullptr && !ext_enc->is_nil()) {
-        if (ext_enc->is_encoding()) {
+    if (ext_enc != nullptr && !ext_enc.is_nil()) {
+        if (ext_enc.is_encoding()) {
             m_external_encoding = ext_enc->as_encoding();
         } else {
             m_external_encoding = EncodingObject::find_encoding(env, ext_enc->to_str(env));
         }
     }
-    if (int_enc != nullptr && !int_enc->is_nil()) {
-        if (int_enc->is_encoding()) {
+    if (int_enc != nullptr && !int_enc.is_nil()) {
+        if (int_enc.is_encoding()) {
             m_internal_encoding = int_enc->as_encoding();
         } else {
             m_internal_encoding = EncodingObject::find_encoding(env, int_enc->to_str(env));
@@ -831,7 +831,7 @@ Value IoObject::set_lineno(Env *env, Value lineno) {
 
 Value IoObject::set_sync(Env *env, Value value) {
     raise_if_closed(env);
-    m_sync = value->is_truthy();
+    m_sync = value.is_truthy();
     return value;
 }
 
@@ -876,11 +876,11 @@ IoObject *IoObject::to_io(Env *env) {
 }
 
 Value IoObject::try_convert(Env *env, Value val) {
-    if (val->is_io()) {
+    if (val.is_io()) {
         return val;
     } else if (val->respond_to(env, "to_io"_s)) {
         auto io = val->send(env, "to_io"_s);
-        if (!io->is_io())
+        if (!io.is_io())
             env->raise(
                 "TypeError", "can't convert {} to IO ({}#to_io gives {})",
                 val->klass()->inspect_str(),
@@ -895,7 +895,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
     raise_if_closed(env);
     if (!is_readable(m_fileno))
         env->raise("IOError", "not opened for reading");
-    if (!byte || byte->is_nil())
+    if (!byte || byte.is_nil())
         return NilObject::the();
     if (byte.is_integer()) {
         nat_int_t value = 0xff;
@@ -924,7 +924,7 @@ Value IoObject::wait(Env *env, Args &&args) {
     Value timeout = NilObject::the();
     bool return_self = false;
 
-    if (args.size() == 2 && args.at(0, NilObject::the()).is_integer() && args.at(1, NilObject::the())->is_numeric()) {
+    if (args.size() == 2 && args.at(0, NilObject::the()).is_integer() && args.at(1, NilObject::the()).is_numeric()) {
         events = Object::to_int(env, args[0]).to_nat_int_t();
         timeout = args[1];
 
@@ -935,11 +935,11 @@ Value IoObject::wait(Env *env, Args &&args) {
         for (size_t i = 0; i < args.size(); i++) {
             if (!args[i]) {
                 continue;
-            } else if (args[i]->is_numeric()) {
-                if (!timeout->is_nil())
+            } else if (args[i].is_numeric()) {
+                if (!timeout.is_nil())
                     env->raise("ArgumentError", "timeout given more than once");
                 timeout = args[i];
-            } else if (args[i]->is_symbol()) {
+            } else if (args[i].is_symbol()) {
                 const auto &str = args[i]->as_symbol()->string();
                 if (str == "r" || str == "read" || str == "readable") {
                     events |= WAIT_READABLE;
@@ -966,7 +966,7 @@ Value IoObject::wait(Env *env, Args &&args) {
         write_ios->push(this);
     auto select_result = IoObject::select(env, read_ios, write_ios, nullptr, timeout);
     nat_int_t result = 0;
-    if (select_result->is_array()) {
+    if (select_result.is_array()) {
         auto select_array = select_result->as_array();
         if (!select_array->at(0)->as_array()->is_empty())
             result |= WAIT_READABLE;
@@ -1015,13 +1015,13 @@ bool IoObject::sync(Env *env) const {
 }
 
 Value IoObject::sysread(Env *env, Value amount, Value buffer) {
-    if (IntegerObject::is_zero(Object::to_int(env, amount)) && buffer && !buffer->is_nil())
+    if (IntegerObject::is_zero(Object::to_int(env, amount)) && buffer && !buffer.is_nil())
         return buffer;
     if (!m_read_buffer.is_empty())
         env->raise("IOError", "sysread for buffered IO");
     auto result = read(env, amount, buffer);
-    if (result->is_nil()) {
-        if (buffer && !buffer->is_nil())
+    if (result.is_nil()) {
+        if (buffer && !buffer.is_nil())
             buffer->to_str(env)->clear(env);
         env->raise("EOFError", "end of file reached");
     }
@@ -1053,7 +1053,7 @@ Value IoObject::syswrite(Env *env, Value obj) {
 
 static bool any_closed(ArrayObject *ios) {
     for (auto io : *ios) {
-        if (io->is_io() && io->as_io()->is_closed())
+        if (io.is_io() && io->as_io()->is_closed())
             return true;
     }
     return false;
@@ -1091,7 +1091,7 @@ static ArrayObject *create_output_fds(Env *env, fd_set *fds, ArrayObject *ios) {
 Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_ios, Value timeout) {
     timeval timeout_tv = { 0, 0 }, *timeout_ptr = nullptr;
 
-    if (timeout && !timeout->is_nil()) {
+    if (timeout && !timeout.is_nil()) {
         const auto timeout_f = timeout->to_f(env)->to_double();
         if (timeout_f < 0)
             env->raise("ArgumentError", "time interval must not be negative");
@@ -1100,9 +1100,9 @@ Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_io
         timeout_ptr = &timeout_tv;
     }
 
-    auto read_ios_ary = read_ios && !read_ios->is_nil() ? read_ios->to_ary(env) : new ArrayObject {};
-    auto write_ios_ary = write_ios && !write_ios->is_nil() ? write_ios->to_ary(env) : new ArrayObject {};
-    auto error_ios_ary = error_ios && !error_ios->is_nil() ? error_ios->to_ary(env) : new ArrayObject {};
+    auto read_ios_ary = read_ios && !read_ios.is_nil() ? read_ios->to_ary(env) : new ArrayObject {};
+    auto write_ios_ary = write_ios && !write_ios.is_nil() ? write_ios->to_ary(env) : new ArrayObject {};
+    auto error_ios_ary = error_ios && !error_ios.is_nil() ? error_ios->to_ary(env) : new ArrayObject {};
 
     auto wake_pipe_fileno = ThreadObject::wake_pipe_read_fileno();
 
@@ -1267,7 +1267,7 @@ int IoObject::pos(Env *env) {
 // This is a variant of getbyte that raises EOFError
 Value IoObject::readbyte(Env *env) {
     auto result = getbyte(env);
-    if (result->is_nil())
+    if (result.is_nil())
         env->raise("EOFError", "end of file reached");
     return result;
 }
@@ -1277,7 +1277,7 @@ Value IoObject::readbyte(Env *env) {
 //  added to IOObject::gets()
 Value IoObject::readline(Env *env, Value sep, Value limit, Value chomp) {
     auto result = gets(env, sep, limit, chomp);
-    if (result->is_nil())
+    if (result.is_nil())
         env->raise("EOFError", "end of file reached");
     return result;
 }

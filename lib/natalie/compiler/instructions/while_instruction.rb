@@ -53,13 +53,13 @@ module Natalie
 
         transform.with_same_scope(body) do |t|
           if @pre
-            code << "while (#{condition_name}()->is_truthy()) {"
+            code << "while (#{condition_name}().is_truthy()) {"
             code << t.transform
             code << '}'
           else
             code << 'do {'
             code << t.transform
-            code << "} while (#{condition_name}()->is_truthy())"
+            code << "} while (#{condition_name}().is_truthy())"
           end
         end
 

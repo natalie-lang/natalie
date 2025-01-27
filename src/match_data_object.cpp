@@ -29,7 +29,7 @@ size_t MatchDataObject::bytesize() const {
 
 Value MatchDataObject::byteoffset(Env *env, Value n) {
     nat_int_t index;
-    if (n->is_string() || n->is_symbol()) {
+    if (n.is_string() || n.is_symbol()) {
         const auto &str = n->type() == Object::Type::String ? n->as_string()->string() : n->as_symbol()->string();
         index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
         if (index < 0)
@@ -130,7 +130,7 @@ Value MatchDataObject::offset(Env *env, Value n) {
 
 Value MatchDataObject::begin(Env *env, Value start) const {
     nat_int_t index;
-    if (start->is_string() || start->is_symbol()) {
+    if (start.is_string() || start.is_symbol()) {
         const auto &str = start->type() == Object::Type::String ? start->as_string()->string() : start->as_symbol()->string();
         index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
         if (index < 0 || index >= m_region->num_regs)
@@ -140,7 +140,7 @@ Value MatchDataObject::begin(Env *env, Value start) const {
         if (index < 0 || index >= m_region->num_regs)
             env->raise("IndexError", "index {} out of matches", index);
     }
-    if (group(index)->is_nil())
+    if (group(index).is_nil())
         return NilObject::the();
     return IntegerObject::from_ssize_t(env, beg_char_index(env, (size_t)index));
 }
@@ -151,7 +151,7 @@ Value MatchDataObject::captures(Env *env) {
 
 Value MatchDataObject::end(Env *env, Value end) const {
     nat_int_t index;
-    if (end->is_string() || end->is_symbol()) {
+    if (end.is_string() || end.is_symbol()) {
         const auto &str = end->type() == Object::Type::String ? end->as_string()->string() : end->as_symbol()->string();
         index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
     } else {
@@ -159,13 +159,13 @@ Value MatchDataObject::end(Env *env, Value end) const {
     }
     if (index < 0)
         env->raise("IndexError", "bad index");
-    if (group(index)->is_nil())
+    if (group(index).is_nil())
         return NilObject::the();
     return IntegerObject::from_ssize_t(env, end_char_index(env, (size_t)index));
 }
 
 Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
-    if (!keys || keys->is_nil()) {
+    if (!keys || keys.is_nil()) {
         auto result = new HashObject {};
         for (auto name : *names()->as_array()) {
             auto value = ref(env, name);
@@ -174,7 +174,7 @@ Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
         return result;
     }
 
-    if (!keys->is_array())
+    if (!keys.is_array())
         env->raise("TypeError", "wrong argument type {} (expected Array)", keys->klass()->inspect_str());
 
     auto result = new HashObject {};
@@ -182,7 +182,7 @@ Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
         return result;
 
     for (auto name : *keys->as_array()) {
-        if (!name->is_symbol())
+        if (!name.is_symbol())
             env->raise("TypeError", "wrong argument type {} (expected Symbol)", name->klass()->inspect_str());
         const auto &str = name->as_symbol()->string();
         auto index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
@@ -194,7 +194,7 @@ Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
 }
 
 bool MatchDataObject::eq(Env *env, Value other) const {
-    if (!other->is_match_data()) return false;
+    if (!other.is_match_data()) return false;
     const auto other_md = other->as_match_data();
     return m_string->eq(env, other_md->m_string) && m_regexp->eq(env, other_md->m_regexp);
 }
@@ -234,7 +234,7 @@ Value MatchDataObject::inspect(Env *env) {
 
 Value MatchDataObject::match(Env *env, Value index) {
     if (!index.is_integer()) {
-        if (index->is_symbol())
+        if (index.is_symbol())
             index = index->to_s(env);
 
         auto name = reinterpret_cast<const UChar *>(index->to_str(env)->c_str());
@@ -243,7 +243,7 @@ Value MatchDataObject::match(Env *env, Value index) {
         return group(backref_number);
     }
     auto match = this->group(IntegerObject::convert_to_int(env, index));
-    if (match->is_nil()) {
+    if (match.is_nil()) {
         return NilObject::the();
     }
     return match;
@@ -251,7 +251,7 @@ Value MatchDataObject::match(Env *env, Value index) {
 
 Value MatchDataObject::match_length(Env *env, Value index) {
     auto match = this->match(env, index);
-    if (match->is_nil()) {
+    if (match.is_nil()) {
         return match;
     }
     return match->as_string()->size(env);
@@ -262,7 +262,7 @@ Value MatchDataObject::named_captures(Env *env, Value symbolize_names) const {
         return new HashObject {};
 
     auto named_captures = new HashObject {};
-    named_captures_data data { this, env, named_captures, symbolize_names && symbolize_names->is_truthy() };
+    named_captures_data data { this, env, named_captures, symbolize_names && symbolize_names.is_truthy() };
     onig_foreach_name(
         m_regexp->m_regex,
         [](const UChar *name, const UChar *name_end, int groups_size, int *groups, regex_t *regex, void *data) -> int {
@@ -279,7 +279,7 @@ Value MatchDataObject::named_captures(Env *env, Value symbolize_names) const {
             Value value = NilObject::the();
             for (int i = groups_size - 1; i >= 0; i--) {
                 auto v = match_data_object->group(groups[i]);
-                if (!v->is_nil()) {
+                if (!v.is_nil()) {
                     value = v;
                     break;
                 }
@@ -338,7 +338,7 @@ ArrayObject *MatchDataObject::values_at(Env *env, Args &&args) {
     auto result = new ArrayObject {};
     for (size_t i = 0; i < args.size(); i++) {
         auto key = args[i];
-        if (key->is_range()) {
+        if (key.is_range()) {
             auto range = key->as_range();
             if (range->begin().is_integer() && range->begin().integer() < -static_cast<nat_int_t>(size()))
                 env->raise("RangeError", "{} out of range", range->inspect_str(env));
@@ -346,7 +346,7 @@ ArrayObject *MatchDataObject::values_at(Env *env, Args &&args) {
             result->concat(env, { append });
             if (range->begin().is_integer()) {
                 auto size = range->send(env, "size"_s);
-                if (append->is_array() && size.is_integer() && size.integer() > static_cast<nat_int_t>(append->as_array()->size())) {
+                if (append.is_array() && size.is_integer() && size.integer() > static_cast<nat_int_t>(append->as_array()->size())) {
                     for (nat_int_t i = append->as_array()->size(); i < size.integer().to_nat_int_t(); i++)
                         result->push(NilObject::the());
                 }
@@ -370,8 +370,8 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
     }
     if (index_value->type() == Object::Type::Range) {
         auto range = index_value->as_range();
-        const nat_int_t first = range->begin()->is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, range->begin());
-        nat_int_t last = range->end()->is_nil() ? size() - 1 : IntegerObject::convert_to_nat_int_t(env, range->end());
+        const nat_int_t first = range->begin().is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, range->begin());
+        nat_int_t last = range->end().is_nil() ? size() - 1 : IntegerObject::convert_to_nat_int_t(env, range->end());
         if (last < 0)
             last += size();
         if (range->exclude_end())
@@ -394,7 +394,7 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
     } else {
         index = IntegerObject::convert_to_nat_int_t(env, index_value);
     }
-    if (size_value && !size_value->is_nil()) {
+    if (size_value && !size_value.is_nil()) {
         nat_int_t size;
         if (size_value.is_fast_integer()) {
             size = size_value.get_fast_integer();
@@ -408,13 +408,13 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
             return new ArrayObject {};
 
         auto first_result = group(index);
-        if (first_result->is_nil())
+        if (first_result.is_nil())
             return NilObject::the();
 
         auto result = new ArrayObject { first_result };
         for (auto i = index + 1; i < index + size; i++) {
             auto next_result = group(i);
-            if (next_result->is_nil()) break;
+            if (next_result.is_nil()) break;
             result->push(next_result);
         }
         return result;
@@ -424,7 +424,7 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
 
 String MatchDataObject::dbg_inspect() const {
     auto str = group(0);
-    assert(!str->is_nil());
+    assert(!str.is_nil());
     return String::format("#<MatchData \"{}\">", str->as_string()->c_str());
 }
 

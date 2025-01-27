@@ -48,14 +48,14 @@ Value ProcessModule::kill(Env *env, Args &&args) {
     nat_int_t signo;
     bool pid_contains_self = false;
 
-    if (signal->is_symbol())
+    if (signal.is_symbol())
         signal = signal->to_s(env);
     if (signal.is_integer()) {
         signo = IntegerObject::convert_to_nat_int_t(env, signal);
-    } else if (signal->is_string() || signal->respond_to(env, "to_str"_s)) {
+    } else if (signal.is_string() || signal->respond_to(env, "to_str"_s)) {
         auto signame = signal->to_str(env)->delete_prefix(env, new StringObject { "SIG" });
         auto signo_val = SignalModule::list(env)->as_hash()->ref(env, signame);
-        if (signo_val->is_nil())
+        if (signo_val.is_nil())
             env->raise("ArgumentError", "unsupported signal `SIG{}'", signame->to_s(env)->string());
         signo = IntegerObject::convert_to_nat_int_t(env, signo_val);
     } else {
@@ -87,7 +87,7 @@ long ProcessModule::maxgroups() {
 
 Value ProcessModule::setmaxgroups(Env *env, Value val) {
     Value int_val = Object::to_int(env, val);
-    if (int_val.send(env, "positive?"_s)->is_falsey())
+    if (int_val.send(env, "positive?"_s).is_falsey())
         env->raise("ArgumentError", "maxgroups {} should be positive", int_val->inspect_str(env));
     const long actual_maxgroups = sysconf(_SC_NGROUPS_MAX);
     globals::maxgroups = std::min(IntegerObject::convert_to_native_type<long>(env, int_val), actual_maxgroups);
@@ -113,7 +113,7 @@ Value ProcessModule::times(Env *env) {
 
 Value ProcessModule::wait(Env *env, Value pidval, Value flagsval) {
     const pid_t pid = pidval ? IntegerObject::convert_to_native_type<pid_t>(env, pidval) : -1;
-    const int flags = (flagsval && !flagsval->is_nil()) ? IntegerObject::convert_to_native_type<int>(env, flagsval) : 0;
+    const int flags = (flagsval && !flagsval.is_nil()) ? IntegerObject::convert_to_native_type<int>(env, flagsval) : 0;
     int status;
     const auto result = waitpid(pid, &status, flags);
     if (result == -1)

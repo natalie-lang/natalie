@@ -32,7 +32,7 @@ module Natalie
           transform.with_same_scope(switch_off_body) do |t|
             code << t.transform("Value #{switch_off_result} =")
           end
-          code << "  if (#{switch_off_result}->is_truthy()) {"
+          code << "  if (#{switch_off_result}.is_truthy()) {"
           code << "    #{state} = FlipFlopState::Transitioning"
           code << '  }'
           code << '} else {'
@@ -40,15 +40,15 @@ module Natalie
             code << t.transform("Value #{switch_on_result} =")
           end
           code << "  if (#{state} == FlipFlopState::Transitioning) {"
-          code << "    #{state} = #{switch_on_result}->is_truthy() ? FlipFlopState::On : FlipFlopState::Off"
-          code << "  } else if (#{switch_on_result}->is_truthy()) {"
+          code << "    #{state} = #{switch_on_result}.is_truthy() ? FlipFlopState::On : FlipFlopState::Off"
+          code << "  } else if (#{switch_on_result}.is_truthy()) {"
           if @exclude_end
             code << "    #{state} = FlipFlopState::On"
           else
             transform.with_same_scope(switch_off_body) do |t|
               code << t.transform("Value #{switch_off_result} =")
             end
-            code << "    #{state} = #{switch_off_result}->is_truthy() ? FlipFlopState::Transitioning : FlipFlopState::On"
+            code << "    #{state} = #{switch_off_result}.is_truthy() ? FlipFlopState::Transitioning : FlipFlopState::On"
           end
           code << '  }'
           code << '}'

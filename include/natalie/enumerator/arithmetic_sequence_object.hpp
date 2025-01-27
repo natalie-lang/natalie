@@ -29,7 +29,7 @@ public:
     bool eq(Env *, Value);
     bool exclude_end() const { return m_exclude_end; }
     Value hash(Env *);
-    bool has_step() { return m_step && !m_step->is_nil(); }
+    bool has_step() { return m_step && !m_step.is_nil(); }
     Value inspect(Env *);
     Value last(Env *, Value);
     Value size(Env *);

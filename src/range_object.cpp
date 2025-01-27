@@ -11,7 +11,7 @@ RangeObject *RangeObject::create(Env *env, Value begin, Value end, bool exclude_
 }
 
 void RangeObject::assert_no_bad_value(Env *env, Value begin, Value end) {
-    if (!begin->is_nil() && !end->is_nil() && begin->send(env, "<=>"_s, { end })->is_nil())
+    if (!begin.is_nil() && !end.is_nil() && begin->send(env, "<=>"_s, { end }).is_nil())
         env->raise("ArgumentError", "bad value for range");
 }
 
@@ -22,7 +22,7 @@ Value RangeObject::initialize(Env *env, Value begin, Value end, Value exclude_en
 
     m_begin = begin;
     m_end = end;
-    m_exclude_end = exclude_end_value && exclude_end_value->is_truthy();
+    m_exclude_end = exclude_end_value && exclude_end_value.is_truthy();
     freeze();
 
     return this;
@@ -36,16 +36,16 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
     if (!m_begin->respond_to(env, succ))
         env->raise("TypeError", "can't iterate from {}", m_begin->klass()->inspect_str());
 
-    if (m_begin->is_string() && m_end->is_string())
+    if (m_begin.is_string() && m_end.is_string())
         return iterate_over_string_range(env, func);
-    else if (m_begin->is_symbol() && m_end->is_symbol())
+    else if (m_begin.is_symbol() && m_end.is_symbol())
         return iterate_over_symbol_range(env, func);
 
     auto cmp = "<=>"_s;
     // If we exclude the end, the loop should not be entered if m_begin (item) == m_end.
-    bool done = m_exclude_end ? item.send(env, "=="_s, { m_end })->is_truthy() : false;
+    bool done = m_exclude_end ? item.send(env, "=="_s, { m_end }).is_truthy() : false;
     while (!done) {
-        if (!m_end->is_nil()) {
+        if (!m_end.is_nil()) {
             auto compare_result = Object::to_int(env, item.send(env, cmp, { m_end }));
             // We are done if we reached the end element.
             done = compare_result == 0;
@@ -114,7 +114,7 @@ Value RangeObject::iterate_over_symbol_range(Env *env, Function &&func) {
 }
 
 Value RangeObject::to_a(Env *env) {
-    if (m_end->is_nil())
+    if (m_end.is_nil())
         env->raise("RangeError", "cannot convert endless range to an array");
 
     ArrayObject *ary = new ArrayObject {};
@@ -143,7 +143,7 @@ Value RangeObject::each(Env *env, Block *block) {
 }
 
 Value RangeObject::first(Env *env, Value n) {
-    if (m_begin->is_nil()) {
+    if (m_begin.is_nil()) {
         env->raise("RangeError", "cannot get the first element of beginless range");
     }
     if (n) {
@@ -170,28 +170,28 @@ Value RangeObject::first(Env *env, Value n) {
 
 Value RangeObject::inspect(Env *env) {
     if (m_exclude_end) {
-        if (m_end->is_nil()) {
-            if (m_begin->is_nil()) {
+        if (m_end.is_nil()) {
+            if (m_begin.is_nil()) {
                 return new StringObject { "nil...nil" };
             } else {
                 return StringObject::format("{}...", m_begin->inspect_str(env));
             }
         } else {
-            if (m_begin->is_nil()) {
+            if (m_begin.is_nil()) {
                 return StringObject::format("...{}", m_end->inspect_str(env));
             } else {
                 return StringObject::format("{}...{}", m_begin->inspect_str(env), m_end->inspect_str(env));
             }
         }
     } else {
-        if (m_end->is_nil()) {
-            if (m_begin->is_nil()) {
+        if (m_end.is_nil()) {
+            if (m_begin.is_nil()) {
                 return new StringObject { "nil..nil" };
             } else {
                 return StringObject::format("{}..", m_begin->inspect_str(env));
             }
         } else {
-            if (m_begin->is_nil()) {
+            if (m_begin.is_nil()) {
                 return StringObject::format("..{}", m_end->inspect_str(env));
             } else {
                 return StringObject::format("{}..{}", m_begin->inspect_str(env), m_end->inspect_str(env));
@@ -201,7 +201,7 @@ Value RangeObject::inspect(Env *env) {
 }
 
 Value RangeObject::last(Env *env, Value n) {
-    if (m_end->is_nil())
+    if (m_end.is_nil())
         env->raise("RangeError", "cannot get the last element of endless range");
 
     if (!n)
@@ -218,7 +218,7 @@ String RangeObject::dbg_inspect() const {
         } else {
             auto obj = v.object_or_null();
             assert(obj);
-            if (!obj->is_nil())
+            if (type() != Type::Nil)
                 str.append(obj->dbg_inspect());
         }
     };
@@ -235,12 +235,12 @@ Value RangeObject::to_s(Env *env) {
 }
 
 bool RangeObject::eq(Env *env, Value other_value) {
-    if (other_value->is_range()) {
+    if (other_value.is_range()) {
         RangeObject *other = other_value->as_range();
         Value begin = other->begin();
         Value end = other->end();
-        bool begin_equal = m_begin.send(env, "=="_s, { begin })->is_truthy();
-        bool end_equal = m_end.send(env, "=="_s, { end })->is_truthy();
+        bool begin_equal = m_begin.send(env, "=="_s, { begin }).is_truthy();
+        bool end_equal = m_end.send(env, "=="_s, { end }).is_truthy();
         if (begin_equal && end_equal && m_exclude_end == other->m_exclude_end) {
             return true;
         }
@@ -249,12 +249,12 @@ bool RangeObject::eq(Env *env, Value other_value) {
 }
 
 bool RangeObject::eql(Env *env, Value other_value) {
-    if (other_value->is_range()) {
+    if (other_value.is_range()) {
         RangeObject *other = other_value->as_range();
         Value begin = other->begin();
         Value end = other->end();
-        bool begin_equal = m_begin.send(env, "eql?"_s, { begin })->is_truthy();
-        bool end_equal = m_end.send(env, "eql?"_s, { end })->is_truthy();
+        bool begin_equal = m_begin.send(env, "eql?"_s, { begin }).is_truthy();
+        bool end_equal = m_end.send(env, "eql?"_s, { end }).is_truthy();
         if (begin_equal && end_equal && m_exclude_end == other->m_exclude_end) {
             return true;
         }
@@ -273,12 +273,12 @@ bool RangeObject::include(Env *env, Value arg) {
         if (larger_than_begin && smaller_than_end)
             return true;
         return false;
-    } else if ((m_begin->is_nil() || m_begin->is_numeric()) && (m_end->is_nil() || m_end->is_numeric())) {
-        return send(env, "cover?"_s, { arg })->is_truthy();
-    } else if (m_begin->is_time() || m_end->is_time()) {
-        if (m_begin->is_nil() || IntegerObject::lte(env, m_begin->as_time()->cmp(env, arg).integer(), Value::integer(0))) {
+    } else if ((m_begin.is_nil() || m_begin.is_numeric()) && (m_end.is_nil() || m_end.is_numeric())) {
+        return send(env, "cover?"_s, { arg }).is_truthy();
+    } else if (m_begin.is_time() || m_end.is_time()) {
+        if (m_begin.is_nil() || IntegerObject::lte(env, m_begin->as_time()->cmp(env, arg).integer(), Value::integer(0))) {
             Value integer = Value::integer(m_exclude_end ? -1 : 0);
-            if (m_end->is_nil() || IntegerObject::lte(env, arg->as_time()->cmp(env, m_end).integer(), integer))
+            if (m_end.is_nil() || IntegerObject::lte(env, arg->as_time()->cmp(env, m_end).integer(), integer))
                 return true;
         }
         return false;
@@ -292,7 +292,7 @@ bool RangeObject::include(Env *env, Value arg) {
     // NATFIXME: Break out of iteration if current arg is smaller than item.
     // This means we have to implement a way to break out of `iterate_over_range`
     Value found_item = iterate_over_range(env, [&](Value item) -> Value {
-        if (arg.send(env, eqeq, { item })->is_truthy())
+        if (arg.send(env, eqeq, { item }).is_truthy())
             return item;
 
         return nullptr;
@@ -302,7 +302,7 @@ bool RangeObject::include(Env *env, Value arg) {
 }
 
 Value RangeObject::bsearch(Env *env, Block *block) {
-    if ((!m_begin->is_numeric() && !m_begin->is_nil()) || (!m_end->is_numeric() && !m_end->is_nil()))
+    if ((!m_begin.is_numeric() && !m_begin.is_nil()) || (!m_end.is_numeric() && !m_end.is_nil()))
         env->raise("TypeError", "can't do binary search for {}", m_begin->klass()->inspect_str());
 
     if (!block)
@@ -313,7 +313,7 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         auto right = m_end.integer().to_nat_int_t();
 
         return binary_search_integer(env, left, right, block, m_exclude_end);
-    } else if (m_begin.is_integer() && m_end->is_nil()) {
+    } else if (m_begin.is_integer() && m_end.is_nil()) {
         auto left = m_begin.integer().to_nat_int_t();
         auto right = left + 1;
 
@@ -323,7 +323,7 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         }
 
         return binary_search_integer(env, left, right, block, false);
-    } else if (m_begin->is_nil() && m_end.is_integer()) {
+    } else if (m_begin.is_nil() && m_end.is_integer()) {
         auto right = m_end.integer().to_nat_int_t();
         auto left = right - 1;
 
@@ -333,9 +333,9 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         }
 
         return binary_search_integer(env, left, right, block, false);
-    } else if (m_begin->is_numeric() || m_end->is_numeric()) {
-        double left = m_begin->is_nil() ? -std::numeric_limits<double>::infinity() : m_begin->to_f(env)->to_double();
-        double right = m_end->is_nil() ? std::numeric_limits<double>::infinity() : m_end->to_f(env)->to_double();
+    } else if (m_begin.is_numeric() || m_end.is_numeric()) {
+        double left = m_begin.is_nil() ? -std::numeric_limits<double>::infinity() : m_begin->to_f(env)->to_double();
+        double right = m_end.is_nil() ? std::numeric_limits<double>::infinity() : m_end->to_f(env)->to_double();
 
         return binary_search_float(env, left, right, block, m_exclude_end);
     }
@@ -346,15 +346,15 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
     if (!n)
         n = NilObject::the();
 
-    if (!n->is_numeric() && !n->is_nil()) {
+    if (!n.is_numeric() && !n.is_nil()) {
         static const auto coerce_sym = "coerce"_s;
         if (!n->respond_to(env, coerce_sym))
             env->raise("TypeError", "no implicit conversion of {} into Integer", n->klass()->inspect_str());
         n = n->send(env, coerce_sym, { Value::integer(0) })->as_array_or_raise(env)->last();
     }
 
-    if (m_begin->is_numeric() || m_end->is_numeric()) {
-        if (n.send(env, "=="_s, { Value::integer(0) })->is_true())
+    if (m_begin.is_numeric() || m_end.is_numeric()) {
+        if (n.send(env, "=="_s, { Value::integer(0) }).is_true())
             env->raise("ArgumentError", "step can't be 0");
 
         auto begin = m_begin;
@@ -362,7 +362,7 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
         auto enumerator = Enumerator::ArithmeticSequenceObject::from_range(env, env->current_method()->name(), m_begin, m_end, n, m_exclude_end);
 
         if (block) {
-            if (enumerator->step().send(env, "<"_s, { Value::integer(0) })->is_true())
+            if (enumerator->step().send(env, "<"_s, { Value::integer(0) }).is_true())
                 env->raise("ArgumentError", "step can't be negative");
 
             enumerator->send(env, "each"_s, {}, block);
@@ -370,19 +370,19 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
             return enumerator;
         }
     } else {
-        if (n->is_nil())
+        if (n.is_nil())
             n = Value::integer(1);
 
         if (!block)
             return enum_for(env, "step", { n });
 
-        if (n.send(env, "<"_s, { Value::integer(0) })->is_true())
+        if (n.send(env, "<"_s, { Value::integer(0) }).is_true())
             env->raise("ArgumentError", "step can't be negative");
 
         // This error is weird...
         //   - It only appears for floats (not for rational for example)
         //   - Class names are written in lower case?
-        if (n->is_float())
+        if (n.is_float())
             env->raise("TypeError", "no implicit conversion to float from {}", m_begin->klass()->inspect_str().lowercase());
 
         auto step = Object::to_int(env, n);

@@ -73,7 +73,7 @@ module Natalie
           when 'int'
             "#{value}.as_fast_integer()"
           when 'bool'
-            "#{value}->is_truthy()"
+            "#{value}.is_truthy()"
           when 'Value'
             value
           else

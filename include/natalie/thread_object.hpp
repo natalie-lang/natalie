@@ -169,7 +169,7 @@ public:
         return abrt;
     }
     bool set_abort_on_exception(Value abrt) {
-        m_abort_on_exception = abrt->is_truthy();
+        m_abort_on_exception = abrt.is_truthy();
         return abrt;
     }
 
@@ -179,7 +179,7 @@ public:
         return report;
     }
     bool set_report_on_exception(Value report) {
-        m_report_on_exception = report->is_truthy();
+        m_report_on_exception = report.is_truthy();
         return report;
     }
 
@@ -232,7 +232,7 @@ public:
         return report;
     }
     static bool set_default_report_on_exception(Value report) {
-        s_report_on_exception = report->is_truthy();
+        s_report_on_exception = report.is_truthy();
         return report;
     }
 
@@ -242,7 +242,7 @@ public:
         return abrt;
     }
     static bool set_global_abort_on_exception(Value abrt) {
-        s_abort_on_exception = abrt->is_truthy();
+        s_abort_on_exception = abrt.is_truthy();
         return abrt;
     }
 

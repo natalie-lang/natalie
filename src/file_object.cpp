@@ -72,12 +72,12 @@ Value FileObject::absolute_path(Env *env, Value path, Value dir) {
     path = ioutil::convert_using_to_path(env, path);
     if (path->as_string()->start_with(env, { new StringObject { "/" } }))
         return path;
-    if ((!dir || dir->is_nil()) && path->as_string()->eq(env, new StringObject { "~" }))
+    if ((!dir || dir.is_nil()) && path->as_string()->eq(env, new StringObject { "~" }))
         return path;
 
     auto File = GlobalEnv::the()->Object()->const_get("File"_s);
     assert(File);
-    if (!dir || dir->is_nil())
+    if (!dir || dir.is_nil())
         dir = DirObject::pwd(env);
     return File->send(env, "join"_s, { dir, path });
 }
@@ -135,7 +135,7 @@ Value FileObject::expand_path(Env *env, Value path, Value root) {
     path_string = expand_tilde(std::move(path_string));
 
     auto fs_path = std::filesystem::path(path_string.c_str());
-    if (fs_path.is_relative() && root && !root->is_nil()) {
+    if (fs_path.is_relative() && root && !root.is_nil()) {
         root = ioutil::convert_using_to_path(env, root);
         path_string = expand_tilde(String::format("{}/{}", root->as_string()->string(), path_string));
         fs_path = std::filesystem::path(path_string.c_str());
@@ -640,15 +640,15 @@ Value FileObject::lutime(Env *env, Args &&args) {
     if (gettimeofday(&now, nullptr) < 0)
         env->raise_errno();
     auto time_convert = [&](Value v, timeval &t) {
-        if (v->is_nil()) {
+        if (v.is_nil()) {
             t = now;
-        } else if (v->is_time()) {
+        } else if (v.is_time()) {
             t.tv_sec = static_cast<time_t>(v->as_time()->to_i(env).integer().to_nat_int_t());
             t.tv_usec = static_cast<suseconds_t>(v->as_time()->usec(env).integer().to_nat_int_t());
         } else if (v.is_integer()) {
             t.tv_sec = IntegerObject::convert_to_native_type<time_t>(env, v);
             t.tv_usec = 0;
-        } else if (v->is_float()) {
+        } else if (v.is_float()) {
             const auto tmp = v->to_f(env)->to_double();
             t.tv_sec = static_cast<time_t>(tmp);
             t.tv_usec = (tmp - t.tv_sec) * 1000000;
@@ -694,7 +694,7 @@ Value FileObject::stat(Env *env, Value path) {
 // class methods
 Value FileObject::atime(Env *env, Value path) {
     FileStatObject *statobj;
-    if (path->is_io()) { // using file-descriptor
+    if (path.is_io()) { // using file-descriptor
         statobj = path->as_io()->stat(env)->as_file_stat();
     } else {
         path = ioutil::convert_using_to_path(env, path);
@@ -704,7 +704,7 @@ Value FileObject::atime(Env *env, Value path) {
 }
 Value FileObject::ctime(Env *env, Value path) {
     FileStatObject *statobj;
-    if (path->is_io()) { // using file-descriptor
+    if (path.is_io()) { // using file-descriptor
         statobj = path->as_io()->stat(env)->as_file_stat();
     } else {
         path = ioutil::convert_using_to_path(env, path);
@@ -715,7 +715,7 @@ Value FileObject::ctime(Env *env, Value path) {
 
 Value FileObject::mtime(Env *env, Value path) {
     FileStatObject *statobj;
-    if (path->is_io()) { // using file-descriptor
+    if (path.is_io()) { // using file-descriptor
         statobj = path->as_io()->stat(env)->as_file_stat();
     } else {
         path = ioutil::convert_using_to_path(env, path);
@@ -729,16 +729,16 @@ Value FileObject::utime(Env *env, Args &&args) {
 
     TimeObject *atime, *mtime;
 
-    if (args[0]->is_nil()) {
+    if (args[0].is_nil()) {
         atime = TimeObject::create(env);
-    } else if (args[0]->is_time()) {
+    } else if (args[0].is_time()) {
         atime = args[0]->as_time();
     } else {
         atime = TimeObject::at(env, args[0], nullptr, nullptr);
     }
-    if (args[1]->is_nil()) {
+    if (args[1].is_nil()) {
         mtime = TimeObject::create(env);
-    } else if (args[1]->is_time()) {
+    } else if (args[1].is_time()) {
         mtime = args[1]->as_time();
     } else {
         mtime = TimeObject::at(env, args[1], nullptr, nullptr);

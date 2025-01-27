@@ -436,8 +436,8 @@ module Kernel
     end
 
     __define_method__ :sprintf, [:format, :val], <<-END
-      assert(format->is_string());
-      assert(val->is_float());
+      assert(format.is_string());
+      assert(val.is_float());
       char buf[100];
       auto fmt = format->as_string()->c_str();
       auto dbl = val->as_float()->to_double();

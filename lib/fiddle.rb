@@ -104,7 +104,7 @@ class Fiddle
       auto pointer_class = self->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict)->as_class();
       if (p1->is_a(env, pointer_class))
           p1_ptr = p1->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
-      else if (p1->is_void_p())
+      else if (p1.is_void_p())
           p1_ptr = p1->as_void_p()->void_ptr();
       else
           p1_ptr = (void*)(p1.object());

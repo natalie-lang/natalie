@@ -29,10 +29,10 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto name = args.at(0);
     bool default_zero = false;
-    if (args.size() == 2 && args.at(1)->is_truthy())
+    if (args.size() == 2 && args.at(1).is_truthy())
         default_zero = true;
 
-    if (!name.is_integer() && !name->is_string() && !name->is_symbol() && name->respond_to(env, "to_str"_s))
+    if (!name.is_integer() && !name.is_string() && !name.is_symbol() && name->respond_to(env, "to_str"_s))
         name = name->to_str(env);
 
     switch (name->type()) {
@@ -181,28 +181,28 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
     addrinfo hints, *res = nullptr;
     memset(&hints, 0, sizeof(hints));
 
-    if (!nodename->is_nil())
+    if (!nodename.is_nil())
         node = nodename->to_str(env)->c_str();
     StringObject *service_as_string = nullptr;
     if (servicename.is_integer()) {
         service_as_string = servicename->to_s(env);
         service = service_as_string->c_str();
-    } else if (!servicename->is_nil()) {
+    } else if (!servicename.is_nil()) {
         service = servicename->to_str(env)->c_str();
     }
-    if (family && !family->is_nil()) {
+    if (family && !family.is_nil()) {
         family = Socket_const_name_to_i(env, self, { family }, nullptr);
         hints.ai_family = IntegerObject::convert_to_native_type<decltype(hints.ai_family)>(env, family);
     }
-    if (socktype && !socktype->is_nil()) {
+    if (socktype && !socktype.is_nil()) {
         socktype = Socket_const_name_to_i(env, self, { socktype }, nullptr);
         hints.ai_socktype = IntegerObject::convert_to_native_type<decltype(hints.ai_socktype)>(env, socktype);
     }
-    if (protocol && !protocol->is_nil()) {
+    if (protocol && !protocol.is_nil()) {
         protocol = Socket_const_name_to_i(env, self, { protocol }, nullptr);
         hints.ai_protocol = IntegerObject::convert_to_native_type<decltype(hints.ai_protocol)>(env, protocol);
     }
-    if (flags && !flags->is_nil()) {
+    if (flags && !flags.is_nil()) {
         flags = Socket_const_name_to_i(env, self, { flags }, nullptr);
         hints.ai_flags = IntegerObject::convert_to_native_type<decltype(hints.ai_flags)>(env, flags);
     }
@@ -246,7 +246,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
     if (!afamily)
         self->ivar_set(env, "@pfamily"_s, Value::integer(PF_UNSPEC));
 
-    if (sockaddr->is_string()) {
+    if (sockaddr.is_string()) {
         afamily = Addrinfo_sockaddr_family(env, sockaddr->as_string());
 
         switch (afamily) {
@@ -262,7 +262,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         }
     }
 
-    if (sockaddr->is_array()) {
+    if (sockaddr.is_array()) {
         // initialized with array like ["AF_INET", 49429, "hal", "192.168.0.128"]
         //                          or ["AF_UNIX", "/tmp/sock"]
         auto ary = sockaddr->as_array();
@@ -277,7 +277,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         case AF_INET6:
             port = Value(Object::to_int(env, ary->ref(env, Value::integer(1))));
             host = ary->ref(env, Value::integer(2))->to_str(env);
-            if (ary->ref(env, Value::integer(3))->is_string())
+            if (ary->ref(env, Value::integer(3)).is_string())
                 host = ary->at(3)->to_str(env);
             break;
         default:
@@ -357,10 +357,10 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
 
         Defer freeinfo { [&getaddrinfo_result] { freeaddrinfo(getaddrinfo_result); } };
 
-        if (self->ivar_get(env, "@pfamily"_s)->is_nil())
+        if (self->ivar_get(env, "@pfamily"_s).is_nil())
             self->ivar_set(env, "@pfamily"_s, Value::integer(getaddrinfo_result->ai_family));
 
-        if (self->ivar_get(env, "@socktype"_s)->is_nil())
+        if (self->ivar_get(env, "@socktype"_s).is_nil())
             self->ivar_set(env, "@socktype"_s, Value::integer(getaddrinfo_result->ai_socktype));
 
         if (getaddrinfo_result->ai_family != afamily)
@@ -479,7 +479,7 @@ Value BasicSocket_getsockopt(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 2);
     auto level = Socket_const_get(env, args.at(0));
     auto optname_val = args.at(1);
-    if (optname_val == "CORK"_s || (optname_val->is_string() && *optname_val->as_string() == "CORK"))
+    if (optname_val == "CORK"_s || (optname_val.is_string() && *optname_val->as_string() == "CORK"))
         optname_val = level == IPPROTO_UDP ? "UDP_CORK"_s : "TCP_CORK"_s;
     auto optname = Socket_const_get(env, optname_val);
 
@@ -526,7 +526,7 @@ Value BasicSocket_recv(Env *env, Value self, Args &&args, Block *) {
     auto flags = args.at(1, Value::integer(0)).integer_or_raise(env).to_nat_int_t();
     auto outbuf = args.at(2, NilObject::the());
 
-    if (!outbuf->is_nil())
+    if (!outbuf.is_nil())
         outbuf.assert_type(env, Object::Type::String, "String");
 
     if (maxlen <= 0)
@@ -543,7 +543,7 @@ Value BasicSocket_recv(Env *env, Value self, Args &&args, Block *) {
     if (bytes == -1)
         env->raise_errno();
 
-    if (outbuf->is_string())
+    if (outbuf.is_string())
         outbuf->as_string()->set_str(buf, bytes);
 
     return new StringObject { buf, static_cast<size_t>(bytes) };
@@ -570,7 +570,7 @@ Value BasicSocket_recv_nonblock(Env *env, Value self, Args &&args, Block *) {
         nullptr, nullptr);
     if (recvfrom_result < 0) {
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
-            if (exception->is_falsey())
+            if (exception.is_falsey())
                 return "wait_readable"_s;
             auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
             ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
@@ -594,7 +594,7 @@ Value BasicSocket_send(Env *env, Value self, Args &&args, Block *) {
     auto dest_sockaddr = args.at(2, NilObject::the());
     ssize_t bytes;
 
-    if (dest_sockaddr->is_nil()) {
+    if (dest_sockaddr.is_nil()) {
         bytes = send(self->as_io()->fileno(), mesg->c_str(), mesg->bytesize(), flags);
     } else {
         auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
@@ -727,11 +727,11 @@ Value IPSocket_addr(Env *env, Value self, Args &&args, Block *) {
     StringObject *host;
     Value port;
 
-    if (reverse_lookup->is_nil())
+    if (reverse_lookup.is_nil())
         reverse_lookup = self.send(env, "do_not_reverse_lookup"_s).send(env, "!"_s);
     else if (reverse_lookup == "numeric"_s)
         reverse_lookup = FalseObject::the();
-    else if (!reverse_lookup->is_true() && !reverse_lookup->is_false() && reverse_lookup != "hostname"_s)
+    else if (!reverse_lookup.is_true() && !reverse_lookup.is_false() && reverse_lookup != "hostname"_s)
         env->raise("ArgumentError", "invalid reverse_lookup flag: {}", reverse_lookup->inspect_str(env));
 
     switch (addr.ss_family) {
@@ -744,7 +744,7 @@ Value IPSocket_addr(Env *env, Value self, Args &&args, Block *) {
             env->raise_errno();
         host = ip = new StringObject { host_buf };
         port = Value::integer(ntohs(in->sin_port));
-        if (reverse_lookup->is_truthy())
+        if (reverse_lookup.is_truthy())
             host = new StringObject(Socket_reverse_lookup_address(env, reinterpret_cast<sockaddr *>(&addr)));
         break;
     }
@@ -757,7 +757,7 @@ Value IPSocket_addr(Env *env, Value self, Args &&args, Block *) {
             env->raise_errno();
         host = ip = new StringObject { host_buf };
         port = Value::integer(ntohs(in6->sin6_port));
-        if (reverse_lookup->is_truthy())
+        if (reverse_lookup.is_truthy())
             host = new StringObject(Socket_reverse_lookup_address(env, reinterpret_cast<sockaddr *>(&addr)));
         break;
     }
@@ -775,11 +775,11 @@ Value IPSocket_peeraddr(Env *env, Value self, Args &&args, Block *) {
     sockaddr_storage addr;
     socklen_t addr_len = sizeof(addr);
 
-    if (reverse_lookup->is_nil()) {
+    if (reverse_lookup.is_nil()) {
         reverse_lookup = self.send(env, "do_not_reverse_lookup"_s).send(env, "!"_s);
     } else if (reverse_lookup == "numeric"_s) {
         reverse_lookup = FalseObject::the();
-    } else if (!reverse_lookup->is_true() && !reverse_lookup->is_false() && reverse_lookup != "hostname"_s) {
+    } else if (!reverse_lookup.is_true() && !reverse_lookup.is_false() && reverse_lookup != "hostname"_s) {
         env->raise("ArgumentError", "invalid reverse_lookup flag: {}", reverse_lookup->inspect_str(env));
     }
 
@@ -804,7 +804,7 @@ Value IPSocket_peeraddr(Env *env, Value self, Args &&args, Block *) {
             env->raise_errno();
         host = ip = new StringObject { host_buf };
         port = Value::integer(ntohs(in->sin_port));
-        if (reverse_lookup->is_truthy())
+        if (reverse_lookup.is_truthy())
             host = new StringObject(Socket_reverse_lookup_address(env, reinterpret_cast<sockaddr *>(&addr)));
         break;
     }
@@ -817,7 +817,7 @@ Value IPSocket_peeraddr(Env *env, Value self, Args &&args, Block *) {
             env->raise_errno();
         host = ip = new StringObject { host_buf };
         port = Value::integer(ntohs(in6->sin6_port));
-        if (reverse_lookup->is_truthy())
+        if (reverse_lookup.is_truthy())
             host = new StringObject(Socket_reverse_lookup_address(env, reinterpret_cast<sockaddr *>(&addr)));
         break;
     }
@@ -994,7 +994,7 @@ Value Socket_accept(Env *env, Value self, bool blocking = true, bool exception =
     sockaddr_storage addr {};
     socklen_t len = sizeof(addr);
     auto socket = Server_accept(env, self, "Socket"_s, addr, len, blocking, exception);
-    if (socket->is_symbol())
+    if (socket.is_symbol())
         return socket;
     return Socket_accept(env, socket, addr, len);
 }
@@ -1009,7 +1009,7 @@ Value Socket_accept_nonblock(Env *env, Value self, Args &&args, Block *block) {
     auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
     env->ensure_no_extra_keywords(kwargs);
     args.ensure_argc_is(env, 0);
-    return Socket_accept(env, self, false, exception->is_truthy());
+    return Socket_accept(env, self, false, exception.is_truthy());
 }
 
 Value Socket_bind(Env *env, Value self, Args &&args, Block *block) {
@@ -1018,7 +1018,7 @@ Value Socket_bind(Env *env, Value self, Args &&args, Block *block) {
 
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
     if (!sockaddr->is_a(env, Addrinfo)) {
-        if (sockaddr->is_string())
+        if (sockaddr.is_string())
             sockaddr = Addrinfo.send(env, "new"_s, { sockaddr });
         else
             env->raise("TypeError", "expected string or Addrinfo");
@@ -1122,7 +1122,7 @@ Value Socket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     const auto maxlen = IntegerObject::convert_to_native_type<size_t>(env, args.at(0));
     auto flags = 0;
-    if (!args.at(1, NilObject::the())->is_nil())
+    if (!args.at(1, NilObject::the()).is_nil())
         flags = IntegerObject::convert_to_native_type<int>(env, args.at(1));
 
     char buf[maxlen];
@@ -1181,20 +1181,20 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 2);
     auto service = args.at(0);
     auto host = args.at(1);
-    if (host->is_nil())
+    if (host.is_nil())
         host = new StringObject { "127.0.0.1" };
     if (host.is_integer() && host.integer().is_fixnum() && host.integer().to_nat_int_t() == INADDR_ANY)
         host = new StringObject { "0.0.0.0" };
-    if (host->is_string() && host->as_string()->is_empty())
+    if (host.is_string() && host->as_string()->is_empty())
         host = new StringObject { "0.0.0.0" };
 
     struct addrinfo hints { };
     hints.ai_family = PF_UNSPEC;
 
     String service_str;
-    if (service->is_nil())
+    if (service.is_nil())
         service_str = "";
-    else if (service->is_string())
+    else if (service.is_string())
         service_str = service->as_string()->string();
     else if (service.is_integer())
         service_str = service->to_s(env)->string();
@@ -1365,7 +1365,7 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
     auto flags = args.at(5, NilObject::the());
     auto reverse_lookup = args.at(6, NilObject::the());
 
-    if (reverse_lookup->is_nil()) {
+    if (reverse_lookup.is_nil()) {
         auto BasicSocket = find_top_level_const(env, "BasicSocket"_s);
         reverse_lookup = BasicSocket.send(env, "do_not_reverse_lookup"_s).send(env, "!"_s);
     } else if (reverse_lookup == "numeric"_s) {
@@ -1381,14 +1381,14 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
     String host;
     String service;
 
-    if (nodename->is_nil() || (nodename->is_string() && nodename->as_string()->is_empty()))
+    if (nodename.is_nil() || (nodename.is_string() && nodename->as_string()->is_empty()))
         host = "";
-    else if (nodename->is_string())
+    else if (nodename.is_string())
         host = nodename->as_string_or_raise(env)->string();
     else if (nodename->respond_to(env, "to_str"_s))
         host = nodename->to_str(env)->string();
 
-    if (servname->is_nil() || (servname->is_string() && servname->as_string()->is_empty()))
+    if (servname.is_nil() || (servname.is_string() && servname->as_string()->is_empty()))
         service = "0";
     else if (servname.is_integer())
         service = IntegerObject::to_s(servname.integer());
@@ -1413,7 +1413,7 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
         auto addr = new ArrayObject;
         addr->push(new StringObject(Socket_family_to_string(result->ai_family)));
         addr->push(Value::integer(Socket_getaddrinfo_result_port(result)));
-        if (reverse_lookup->is_truthy())
+        if (reverse_lookup.is_truthy())
             addr->push(new StringObject(Socket_reverse_lookup_address(env, result->ai_addr)));
         else
             addr->push(new StringObject(Socket_getaddrinfo_result_host(result)));
@@ -1495,7 +1495,7 @@ Value Socket_s_getservbyname(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto name = args[0]->to_str(env);
     const char *proto = "tcp";
-    if (auto proto_val = args.at(1, NilObject::the()); !proto_val->is_nil())
+    if (auto proto_val = args.at(1, NilObject::the()); !proto_val.is_nil())
         proto = proto_val->to_str(env)->c_str();
 
     auto result = getservbyname(name->c_str(), proto);
@@ -1508,7 +1508,7 @@ Value Socket_s_getservbyport(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto port = IntegerObject::convert_to_native_type<int>(env, args[0]);
     const char *proto = "tcp";
-    if (auto proto_val = args.at(1, NilObject::the()); !proto_val->is_nil())
+    if (auto proto_val = args.at(1, NilObject::the()); !proto_val.is_nil())
         proto = proto_val->to_str(env)->c_str();
 
     auto result = getservbyport(port, proto);
@@ -1548,7 +1548,7 @@ Value Socket_Option_s_linger(Env *env, Value self, Args &&args, Block *) {
     unsigned short optname = SO_LINGER;
 
     args.ensure_argc_is(env, 2);
-    auto on_off = args.at(0)->is_truthy();
+    auto on_off = args.at(0).is_truthy();
     int linger = Object::to_int(env, args.at(1)).to_nat_int_t();
 
     struct linger data {
@@ -1584,7 +1584,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
     env->ensure_no_extra_keywords(kwargs);
 
     auto domain = AF_INET;
-    if (host->is_string() && !host->as_string()->is_empty()) {
+    if (host.is_string() && !host->as_string()->is_empty()) {
         struct addrinfo *info = nullptr;
         const auto result = getaddrinfo(host->as_string()->c_str(), nullptr, nullptr, &info);
         if (result != 0) {
@@ -1606,7 +1606,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
 
     auto Socket = find_top_level_const(env, "Socket"_s);
 
-    if (local_host->is_truthy() || local_port->is_truthy()) {
+    if (local_host.is_truthy() || local_port.is_truthy()) {
         auto local_sockaddr = Socket.send(env, "pack_sockaddr_in"_s, { local_port, local_host });
         Socket_bind(env, self, { local_sockaddr }, nullptr);
     }
@@ -1640,7 +1640,7 @@ Value TCPServer_initialize(Env *env, Value self, Args &&args, Block *block) {
     }
 
     auto domain = AF_INET;
-    if (hostname->is_string() && !hostname->as_string()->is_empty()) {
+    if (hostname.is_string() && !hostname->as_string()->is_empty()) {
         struct addrinfo *info = nullptr;
         const auto result = getaddrinfo(hostname->as_string()->c_str(), nullptr, nullptr, &info);
         if (result != 0) {
@@ -1693,7 +1693,7 @@ Value TCPServer_accept_nonblock(Env *env, Value self, Args &&args, Block *) {
 
     sockaddr_storage addr;
     socklen_t len = sizeof(addr);
-    return Server_accept(env, self, "TCPSocket"_s, addr, len, false, exception->is_truthy());
+    return Server_accept(env, self, "TCPSocket"_s, addr, len, false, exception.is_truthy());
 }
 
 Value TCPServer_listen(Env *env, Value self, Args &&args, Block *) {
@@ -1761,7 +1761,7 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args &&args, Block *) {
         reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
     if (recvfrom_result < 0) {
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
-            if (exception->is_falsey())
+            if (exception.is_falsey())
                 return "wait_readable"_s;
             auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
             ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
@@ -1884,7 +1884,7 @@ Value UNIXServer_accept_nonblock(Env *env, Value self, Args &&args, Block *) {
     env->ensure_no_extra_keywords(kwargs);
     sockaddr_storage addr;
     socklen_t len = sizeof(addr);
-    return Server_accept(env, self, "UNIXSocket"_s, addr, len, false, exception->is_truthy());
+    return Server_accept(env, self, "UNIXSocket"_s, addr, len, false, exception.is_truthy());
 }
 
 Value UNIXServer_listen(Env *env, Value self, Args &&args, Block *) {

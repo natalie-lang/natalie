@@ -25,7 +25,7 @@ public:
     Value inspect(Env *env) {
         auto the_owner = owner();
         auto name = m_method_missing_name ? m_method_missing_name->string() : m_method->name();
-        if (the_owner->is_class() && the_owner->as_class()->is_singleton())
+        if (the_owner->type() == Type::Class && the_owner->as_class()->is_singleton())
             return StringObject::format("#<Method: {}.{}(*)>", m_object->inspect_str(env), name);
         else
             return StringObject::format("#<Method: {}#{}(*)>", owner()->inspect_str(), name);

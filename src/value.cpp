@@ -167,17 +167,6 @@ Integer &Value::integer_or_raise(Env *env) {
     NAT_UNREACHABLE();
 }
 
-bool Value::is_integer() const {
-    switch (m_type) {
-    case Type::Integer:
-        return true;
-    case Type::Pointer:
-        return m_object && m_object->type() == Object::Type::Integer;
-    default:
-        return false;
-    }
-}
-
 __attribute__((no_sanitize("undefined"))) static nat_int_t left_shift_with_undefined_behavior(nat_int_t x, nat_int_t y) {
     return x << y;
 }
@@ -218,6 +207,58 @@ void Value::assert_type(Env *env, ObjectType expected_type, const char *expected
             env->raise_type_error(m_object, expected_class_name);
     }
 }
+
+bool Value::is_integer() const {
+    switch (m_type) {
+    case Type::Integer:
+        return true;
+    case Type::Pointer:
+        return m_object && m_object->type() == Object::Type::Integer;
+    default:
+        return false;
+    }
+}
+
+bool Value::is_nil() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Nil; }
+bool Value::is_true() const { return m_type == Type::Pointer && m_object->type() == ObjectType::True; }
+bool Value::is_false() const { return m_type == Type::Pointer && m_object->type() == ObjectType::False; }
+bool Value::is_fiber() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Fiber; }
+bool Value::is_enumerator_arithmetic_sequence() const { return m_type == Type::Pointer && m_object->type() == ObjectType::EnumeratorArithmeticSequence; }
+bool Value::is_array() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Array; }
+bool Value::is_binding() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Binding; }
+bool Value::is_method() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Method; }
+bool Value::is_module() const { return m_type == Type::Pointer && (m_object->type() == ObjectType::Module || m_object->type() == ObjectType::Class); }
+bool Value::is_class() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Class; }
+bool Value::is_complex() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Complex; }
+bool Value::is_dir() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Dir; }
+bool Value::is_encoding() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Encoding; }
+bool Value::is_env() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Env; }
+bool Value::is_exception() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Exception; }
+bool Value::is_float() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Float; }
+bool Value::is_hash() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Hash; }
+bool Value::is_io() const { return m_type == Type::Pointer && (m_object->type() == ObjectType::Io || m_object->type() == ObjectType::File); }
+bool Value::is_file() const { return m_type == Type::Pointer && m_object->type() == ObjectType::File; }
+bool Value::is_file_stat() const { return m_type == Type::Pointer && m_object->type() == ObjectType::FileStat; }
+bool Value::is_match_data() const { return m_type == Type::Pointer && m_object->type() == ObjectType::MatchData; }
+bool Value::is_proc() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Proc; }
+bool Value::is_random() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Random; }
+bool Value::is_range() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Range; }
+bool Value::is_rational() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Rational; }
+bool Value::is_regexp() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Regexp; }
+bool Value::is_symbol() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Symbol; }
+bool Value::is_string() const { return m_type == Type::Pointer && m_object->type() == ObjectType::String; }
+bool Value::is_thread() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Thread; }
+bool Value::is_thread_backtrace_location() const { return m_type == Type::Pointer && m_object->type() == ObjectType::ThreadBacktraceLocation; }
+bool Value::is_thread_group() const { return m_type == Type::Pointer && m_object->type() == ObjectType::ThreadGroup; }
+bool Value::is_thread_mutex() const { return m_type == Type::Pointer && m_object->type() == ObjectType::ThreadMutex; }
+bool Value::is_time() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Time; }
+bool Value::is_unbound_method() const { return m_type == Type::Pointer && m_object->type() == ObjectType::UnboundMethod; }
+bool Value::is_void_p() const { return m_type == Type::Pointer && m_object->type() == ObjectType::VoidP; }
+
+bool Value::is_truthy() const { return !is_false() && !is_nil(); }
+bool Value::is_falsey() const { return !is_truthy(); }
+bool Value::is_numeric() const { return is_integer() || is_float(); }
+bool Value::is_boolean() const { return is_true() || is_false(); }
 
 #undef PROFILED_SEND
 

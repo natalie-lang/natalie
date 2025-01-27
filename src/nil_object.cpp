@@ -7,7 +7,7 @@ bool NilObject::and_method(const Env *env, const Value) const {
 }
 
 bool NilObject::or_method(const Env *env, Value other) const {
-    return other->is_truthy();
+    return other.is_truthy();
 }
 
 Value NilObject::eqtilde(const Env *env, const Value) const {

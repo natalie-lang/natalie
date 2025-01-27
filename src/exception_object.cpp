@@ -18,10 +18,10 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
     if (!klass && !message && cause)
         env->raise("ArgumentError", "only cause is given with no arguments");
 
-    if (klass && klass->is_class() && !message)
+    if (klass && klass.is_class() && !message)
         return _new(env, klass->as_class(), {}, nullptr)->as_exception_or_raise(env);
 
-    if (klass && !klass->is_class() && klass->respond_to(env, "exception"_s)) {
+    if (klass && !klass.is_class() && klass->respond_to(env, "exception"_s)) {
         Vector<Value> args;
         if (message) args.push(message);
         klass = klass->send(env, "exception"_s, std::move(args));
@@ -37,12 +37,12 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
 
     if (!message) {
         Value arg = klass;
-        if (arg->is_string()) {
+        if (arg.is_string()) {
             klass = find_top_level_const(env, "RuntimeError"_s)->as_class();
             message = arg;
-        } else if (arg->is_exception()) {
+        } else if (arg.is_exception()) {
             return arg->as_exception();
-        } else if (!arg->is_class()) {
+        } else if (!arg.is_class()) {
             env->raise("TypeError", "exception klass/object expected");
         }
     }
@@ -52,14 +52,14 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
         exception_args.push(message);
 
     ExceptionObject *exception;
-    if (klass->is_class())
+    if (klass.is_class())
         exception = _new(env, klass->as_class(), { std::move(exception_args), false }, nullptr)->as_exception();
-    else if (klass->is_exception())
+    else if (klass.is_exception())
         exception = klass->as_exception();
     else
         env->raise("TypeError", "exception klass/object expected");
 
-    if (accept_cause && cause && cause->is_exception()) {
+    if (accept_cause && cause && cause.is_exception()) {
         exception->set_cause(cause->as_exception());
     }
 
@@ -90,9 +90,9 @@ Value ExceptionObject::exception(Env *env, Value val) {
 }
 
 bool ExceptionObject::eq(Env *env, Value other) {
-    if (!other->is_exception()) return false;
+    if (!other.is_exception()) return false;
     auto exc = other->as_exception();
-    return m_klass == exc->m_klass && message(env)->send(env, "=="_s, { exc->message(env) })->is_truthy() && backtrace(env)->send(env, "=="_s, { exc->backtrace(env) })->is_truthy();
+    return m_klass == exc->m_klass && message(env)->send(env, "=="_s, { exc->message(env) }).is_truthy() && backtrace(env)->send(env, "=="_s, { exc->backtrace(env) }).is_truthy();
 }
 
 Value ExceptionObject::inspect(Env *env) {
@@ -108,9 +108,9 @@ Value ExceptionObject::inspect(Env *env) {
 }
 
 StringObject *ExceptionObject::to_s(Env *env) {
-    if (m_message == nullptr || m_message->is_nil()) {
+    if (m_message == nullptr || m_message.is_nil()) {
         return new StringObject { m_klass->inspect_str() };
-    } else if (m_message->is_string()) {
+    } else if (m_message.is_string()) {
         return m_message->as_string();
     }
     auto msgstr = m_message->send(env, "to_s"_s);
@@ -124,7 +124,7 @@ Value ExceptionObject::message(Env *env) {
 
 Value ExceptionObject::detailed_message(Env *env, Args &&args) {
     auto kwargs = args.pop_keyword_hash();
-    const auto highlight = kwargs ? kwargs->delete_key(env, "highlight"_s, nullptr)->is_truthy() : false;
+    const auto highlight = kwargs ? kwargs->delete_key(env, "highlight"_s, nullptr).is_truthy() : false;
     args.ensure_argc_is(env, 0);
 
     auto message = send(env, "message"_s)->as_string();
@@ -163,15 +163,15 @@ Value ExceptionObject::backtrace_locations() {
 }
 
 Value ExceptionObject::set_backtrace(Env *env, Value backtrace) {
-    if (backtrace->is_array()) {
+    if (backtrace.is_array()) {
         for (auto element : *backtrace->as_array()) {
-            if (!element->is_string())
+            if (!element.is_string())
                 env->raise("TypeError", "backtrace must be Array of String");
         }
         m_backtrace_value = backtrace;
-    } else if (backtrace->is_string()) {
+    } else if (backtrace.is_string()) {
         m_backtrace_value = new ArrayObject { backtrace };
-    } else if (backtrace->is_nil()) {
+    } else if (backtrace.is_nil()) {
         m_backtrace_value = nullptr;
     } else {
         env->raise("TypeError", "backtrace must be Array of String");
@@ -185,7 +185,7 @@ Value ExceptionObject::match_rescue_array(Env *env, Value ary) {
     // since it's special and controls how `break` works.
     bool match_local_jump_error = false;
     for (auto klass : *ary->as_array()) {
-        if (klass->is_class()) {
+        if (klass.is_class()) {
             auto name = klass->as_class()->name();
             if (name && name.value() == "LocalJumpError")
                 match_local_jump_error = true;
@@ -195,7 +195,7 @@ Value ExceptionObject::match_rescue_array(Env *env, Value ary) {
         return FalseObject::the();
 
     for (auto klass : *ary->as_array()) {
-        if (klass->send(env, "==="_s, { this })->is_truthy())
+        if (klass->send(env, "==="_s, { this }).is_truthy())
             return TrueObject::the();
     }
     return FalseObject::the();

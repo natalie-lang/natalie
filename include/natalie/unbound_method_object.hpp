@@ -16,7 +16,7 @@ public:
         , m_module_or_class { other.m_module_or_class } { }
 
     Value bind(Env *env, Value obj) {
-        if (!owner()->is_class() || obj->is_a(env, owner())) {
+        if (owner()->type() != Type::Class || obj->is_a(env, owner())) {
             return new MethodObject { obj, m_method };
         } else {
             env->raise("TypeError", "bind argument must be an instance of {}", owner()->inspect_str());
@@ -34,7 +34,7 @@ public:
     }
 
     bool eq(Env *env, Value other_value) {
-        if (other_value->is_unbound_method()) {
+        if (other_value.is_unbound_method()) {
             auto other = other_value->as_unbound_method();
             return m_module_or_class == other->m_module_or_class && m_method == other->m_method;
         } else {

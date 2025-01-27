@@ -86,7 +86,7 @@ Value ModuleObject::const_get(Env *env, Value name, Value inherited) {
     auto symbol = name->to_symbol(env, Object::Conversion::Strict);
     auto constant = const_get(symbol);
     if (!constant) {
-        if (inherited && inherited->is_falsey())
+        if (inherited && inherited.is_falsey())
             env->raise("NameError", "uninitialized constant {}", symbol->string());
         return send(env, "const_missing"_s, { name });
     }
@@ -121,7 +121,7 @@ Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject
                       env->raise_name_error(name, "private constant ::{} referenced", name->string());
               }
               if (constant->is_deprecated()) {
-                  const auto warn_deprecated = GlobalEnv::the()->Object()->const_get("Warning"_s)->send(env, "[]"_s, { "deprecated"_s })->is_truthy();
+                  const auto warn_deprecated = GlobalEnv::the()->Object()->const_get("Warning"_s)->send(env, "[]"_s, { "deprecated"_s }).is_truthy();
                   if (!warn_deprecated) return;
                   if (search_parent && search_parent != GlobalEnv::the()->Object())
                       env->warn("constant {}::{} is deprecated", search_parent->inspect_str(), name->string());
@@ -266,7 +266,7 @@ Value ModuleObject::const_set(SymbolObject *name, Value val) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     m_constants.put(name, new Constant { name, val.object() });
-    if (val->is_module()) {
+    if (val.is_module()) {
         auto module = val->as_module();
         if (!module->owner()) {
             module->m_owner = this;
@@ -324,7 +324,7 @@ Value ModuleObject::constants(Env *env, Value inherit) const {
     auto ary = new ArrayObject;
     for (auto pair : m_constants)
         ary->push(pair.first);
-    if (inherit == nullptr || inherit->is_truthy()) {
+    if (inherit == nullptr || inherit.is_truthy()) {
         for (ModuleObject *module : m_included_modules) {
             if (module != this) {
                 ary->concat(*module->constants(env, inherit)->as_array());
@@ -421,7 +421,7 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
         // Set class variable in block definition scope
         auto context = GlobalEnv::the()->current_instance_eval_context();
         if (context.block_original_self) {
-            if (context.block_original_self->is_module()) {
+            if (context.block_original_self.is_module()) {
                 return set_cvar_in(context.block_original_self->as_module());
             } else {
                 return set_cvar_in(context.block_original_self->klass());
@@ -464,7 +464,7 @@ ArrayObject *ModuleObject::class_variables(Value inherit) const {
         for (auto [cvar, _] : singleton_class()->m_class_vars)
             result->push(cvar);
     }
-    if (inherit && inherit->is_truthy() && m_superclass)
+    if (inherit && inherit.is_truthy() && m_superclass)
         result->concat(*m_superclass->class_variables(inherit));
     return result;
 }
@@ -593,11 +593,10 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, const 
 
 void ModuleObject::assert_method_defined(Env *env, SymbolObject *name, MethodInfo method_info) {
     if (!method_info.is_defined()) {
-        if (is_class()) {
+        if (type() == Type::Class)
             env->raise_name_error(name, "undefined method `{}' for class `{}'", name->string(), inspect_str());
-        } else {
+        else
             env->raise_name_error(name, "undefined method `{}' for module `{}'", name->string(), inspect_str());
-        }
     }
 }
 
@@ -617,12 +616,12 @@ Value ModuleObject::public_instance_method(Env *env, Value name_value) {
     case MethodVisibility::Public:
         return new UnboundMethodObject { this, method_info.method() };
     case MethodVisibility::Protected:
-        if (is_class())
+        if (type() == Type::Class)
             env->raise_name_error(name, "method `{}' for class `{}' is protected", name->string(), inspect_str());
         else
             env->raise_name_error(name, "method `{}' for module `{}' is protected", name->string(), inspect_str());
     case MethodVisibility::Private:
-        if (is_class())
+        if (type() == Type::Class)
             env->raise_name_error(name, "method `{}' for class `{}' is private", name->string(), inspect_str());
         else
             env->raise_name_error(name, "method `{}' for module `{}' is private", name->string(), inspect_str());
@@ -632,7 +631,7 @@ Value ModuleObject::public_instance_method(Env *env, Value name_value) {
 }
 
 Value ModuleObject::instance_methods(Env *env, Value include_super_value, std::function<bool(MethodVisibility)> predicate) {
-    bool include_super = !include_super_value || include_super_value->is_truthy();
+    bool include_super = !include_super_value || include_super_value.is_truthy();
     ArrayObject *array = new ArrayObject {};
     methods(env, array, include_super);
     array->select_in_place([this, env, predicate](Value &name_value) -> bool {
@@ -739,9 +738,9 @@ String ModuleObject::inspect_str() const {
         } else {
             return String(m_name.value());
         }
-    } else if (is_class()) {
+    } else if (type() == Type::Class) {
         return String::format("#<Class:{}>", pointer_id());
-    } else if (is_module() && m_name) {
+    } else if (type() == Type::Module && m_name) {
         return String(m_name.value());
     } else {
         return String::format("#<{}:{}>", klass()->inspect_str(), pointer_id());
@@ -784,9 +783,9 @@ String ModuleObject::backtrace_name() const {
 ArrayObject *ModuleObject::attr(Env *env, Args &&args) {
     bool accessor = false;
     auto size = args.size();
-    if (args.size() > 1 && args[size - 1]->is_boolean()) {
+    if (args.size() > 1 && args[size - 1].is_boolean()) {
         env->verbose_warn("optional boolean argument is obsoleted");
-        accessor = args[size - 1]->is_truthy();
+        accessor = args[size - 1].is_truthy();
         args.pop();
     }
     if (accessor) {
@@ -817,7 +816,7 @@ SymbolObject *ModuleObject::attr_reader(Env *env, Value obj) {
 Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args &&args, Block *block) {
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
-    assert(name_obj->is_symbol());
+    assert(name_obj.is_symbol());
     SymbolObject *ivar_name = SymbolObject::intern(TM::String::format("@{}", name_obj->as_symbol()->string()));
     return self->ivar_get(env, ivar_name);
 }
@@ -845,7 +844,7 @@ Value ModuleObject::attr_writer_block_fn(Env *env, Value self, Args &&args, Bloc
     Value val = args[0];
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
-    assert(name_obj->is_symbol());
+    assert(name_obj.is_symbol());
     SymbolObject *ivar_name = SymbolObject::intern(TM::String::format("@{}", name_obj->as_symbol()->string()));
     self->ivar_set(env, ivar_name, val);
     return val;
@@ -900,24 +899,23 @@ bool ModuleObject::does_include_module(Env *env, Value module) {
 Value ModuleObject::define_method(Env *env, Value name_value, Value method_value, Block *block) {
     auto name = name_value->to_symbol(env, Object::Conversion::Strict);
     if (method_value) {
-        if (method_value->is_proc()) {
+        if (method_value.is_proc()) {
             define_method(env, name, method_value->as_proc()->block());
         } else {
             Method *method;
-            if (method_value->is_method()) {
+            if (method_value.is_method()) {
                 method = method_value->as_method()->method();
-            } else if (method_value->is_unbound_method()) {
+            } else if (method_value.is_unbound_method()) {
                 method = method_value->as_unbound_method()->method();
             } else {
                 env->raise("TypeError", "wrong argument type {} (expected Proc/Method/UnboundMethod)", method_value->klass()->inspect_str());
             }
             ModuleObject *owner = method->owner();
-            if (owner != this && owner->is_class() && !owner->is_subclass_of(this)) {
-                if (owner->as_class()->is_singleton()) {
+            if (owner != this && owner->type() == Type::Class && !owner->is_subclass_of(this)) {
+                if (owner->as_class()->is_singleton())
                     env->raise("TypeError", "can't bind singleton method to a different class");
-                } else {
+                else
                     env->raise("TypeError", "bind argument must be a subclass of {}", owner->inspect_str());
-                }
             }
             define_method(env, name, method->fn(), method->arity());
         }
@@ -985,7 +983,7 @@ void ModuleObject::set_method_visibility(Env *env, Args &&args, MethodVisibility
     }
 
     // private [:foo, :bar]
-    if (args.size() == 1 && args[0]->is_array()) {
+    if (args.size() == 1 && args[0].is_array()) {
         auto array = args[0]->as_array();
         for (auto &value : *array) {
             auto name = value->to_symbol(env, Conversion::Strict);
@@ -1009,9 +1007,9 @@ void ModuleObject::set_method_visibility(Env *env, SymbolObject *name, MethodVis
 }
 
 Value ModuleObject::module_function(Env *env, Args &&args) {
-    if (is_class()) {
+    if (type() == Type::Class)
         env->raise("TypeError", "module_function must be called for modules");
-    }
+
     if (args.size() > 0) {
         for (size_t i = 0; i < args.size(); ++i) {
             auto name = args[i]->to_symbol(env, Conversion::Strict);
@@ -1066,7 +1064,7 @@ bool ModuleObject::const_defined(Env *env, Value name_value, Value inherited) {
     if (!name) {
         env->raise("TypeError", "no implicit conversion of {} to String", name_value->inspect_str(env));
     }
-    if (inherited && inherited->is_falsey()) {
+    if (inherited && inherited.is_falsey()) {
         return !!m_constants.get(name);
     }
     return !!const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
@@ -1107,9 +1105,9 @@ Value ModuleObject::undef_method(Env *env, Args &&args) {
 }
 
 Value ModuleObject::ruby2_keywords(Env *env, Value name) {
-    if (name->is_string()) {
+    if (name.is_string()) {
         name = name->as_string()->to_sym(env);
-    } else if (!name->is_symbol()) {
+    } else if (!name.is_symbol()) {
         env->raise("TypeError", "{} is not a symbol nor a string", name->inspect_str(env));
     }
 

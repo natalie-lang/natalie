@@ -23,7 +23,7 @@ Value ProcObject::call(Env *env, Args &&args, Block *block) {
 }
 
 bool ProcObject::equal_value(Value other) const {
-    return other->is_proc() && other->as_proc()->m_block == m_block;
+    return other.is_proc() && other->as_proc()->m_block == m_block;
 }
 
 static Value compose_ltlt(Env *env, Value self, Args &&args, Block *block) {
@@ -46,7 +46,7 @@ Value ProcObject::ltlt(Env *env, Value other) {
 
     env->var_set("other", 0, true, other);
     auto block = new Block { *env, this, compose_ltlt, -1 };
-    if (other->is_proc() && other->as_proc()->is_lambda())
+    if (other.is_proc() && other->as_proc()->is_lambda())
         block->set_type(Block::BlockType::Lambda);
     return new ProcObject { block };
 }
@@ -94,7 +94,7 @@ StringObject *ProcObject::to_s(Env *env) {
         suffix.append(String::format(" {}:{}", m_block->env()->file(), m_block->env()->line()));
     if (is_lambda() || m_block->is_from_method())
         suffix.append(" (lambda)");
-    if (m_block->self()->is_symbol())
+    if (m_block->self().is_symbol())
         suffix.append(String::format(" (&:{})", m_block->self()->as_symbol()->string()));
     auto str = String::format("#<{}:{}{}>", m_klass->inspect_str(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed), suffix);
     return new StringObject { std::move(str), Encoding::ASCII_8BIT };

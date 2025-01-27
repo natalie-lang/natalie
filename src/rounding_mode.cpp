@@ -4,8 +4,8 @@ namespace Natalie {
 
 RoundingMode rounding_mode_from_value(Env *env, Value value, RoundingMode default_rounding_mode) {
     if (!value) return default_rounding_mode;
-    if (value->is_nil()) return default_rounding_mode;
-    if (!value->is_symbol()) {
+    if (value.is_nil()) return default_rounding_mode;
+    if (!value.is_symbol()) {
         env->raise("ArgumentError", "invalid rounding mode: {}", value->inspect_str(env));
     }
 

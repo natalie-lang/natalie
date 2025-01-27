@@ -255,13 +255,13 @@ void Zlib_do_inflate(Env *env, Value self, const String &string, int flush) {
 
 Value Zlib_inflate_append(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    if (args[0]->is_nil()) {
+    if (args[0].is_nil()) {
         auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
         inflateEnd(strm);
         self->ivar_set(env, "@inflate_end"_s, TrueObject::the());
     } else {
         auto string = args[0]->as_string_or_raise(env);
-        if (self->ivar_get(env, "@inflate_end"_s)->is_truthy()) {
+        if (self->ivar_get(env, "@inflate_end"_s).is_truthy()) {
             auto result = self->ivar_get(env, "@result"_s)->as_string_or_raise(env);
             result->append(string);
         } else {

@@ -26,7 +26,7 @@ Value KernelModule::abort_method(Env *env, Value message) {
     ExceptionObject *exception;
 
     if (message) {
-        if (!message->is_string())
+        if (!message.is_string())
             message = message->to_str(env);
 
         message.assert_type(env, Object::Type::String, "String");
@@ -86,7 +86,7 @@ Value KernelModule::caller(Env *env, Value start, Value length) {
     auto backtrace = env->backtrace();
     auto ary = backtrace->to_ruby_array();
     ary->shift(); // remove the frame for Kernel#caller itself
-    if (start && start->is_range()) {
+    if (start && start.is_range()) {
         ary = ary->ref(env, start)->as_array();
     } else {
         ary->shift(env, start);
@@ -102,7 +102,7 @@ Value KernelModule::caller_locations(Env *env, Value start, Value length) {
     auto backtrace = env->backtrace();
     auto ary = backtrace->to_ruby_backtrace_locations_array();
     ary->shift(); // remove the frame for Kernel#caller_locations itself
-    if (start && start->is_range()) {
+    if (start && start.is_range()) {
         ary = ary->ref(env, start)->as_array();
     } else {
         ary->shift(env, start);
@@ -130,23 +130,23 @@ Value KernelModule::catch_method(Env *env, Value name, Block *block) {
 }
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value exception) {
-    return Complex(env, real, imaginary, exception ? exception->is_true() : true);
+    return Complex(env, real, imaginary, exception ? exception.is_true() : true);
 }
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
-    if (real->is_string()) {
-        if (auto real_int = Integer(env, real, 10, false); real_int && !real_int->is_nil()) {
+    if (real.is_string()) {
+        if (auto real_int = Integer(env, real, 10, false); real_int && !real_int.is_nil()) {
             real = real_int;
-        } else if (auto real_float = Float(env, real, false); real_float && !real_float->is_nil()) {
+        } else if (auto real_float = Float(env, real, false); real_float && !real_float.is_nil()) {
             real = real_float;
         }
     }
 
-    if (real->is_complex() && imaginary == nullptr) {
+    if (real.is_complex() && imaginary == nullptr) {
         return real;
     } else if (imaginary == nullptr) {
         return new ComplexObject { real };
-    } else if (real->is_string()) {
+    } else if (real.is_string()) {
         // NATFIXME: Add support for strings too.
     } else {
         return new ComplexObject { real, imaginary };
@@ -189,9 +189,9 @@ Value KernelModule::cur_dir(Env *env) {
 }
 
 Value KernelModule::exit(Env *env, Value status) {
-    if (!status || status->is_true()) {
+    if (!status || status.is_true()) {
         status = Value::integer(0);
-    } else if (status->is_false()) {
+    } else if (status.is_false()) {
         status = Value::integer(1);
     } else if (status.is_integer()) {
         // use status passed in
@@ -212,11 +212,11 @@ Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) 
     nat_int_t base_int = 0; // default to zero if unset
     if (base)
         base_int = Object::to_int(env, base).to_nat_int_t();
-    return Integer(env, value, base_int, exception ? exception->is_true() : true);
+    return Integer(env, value, base_int, exception ? exception.is_true() : true);
 }
 
 Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exception) {
-    if (value->is_string()) {
+    if (value.is_string()) {
         auto result = value->as_string()->convert_integer(env, base);
         if (!result && exception) {
             env->raise("ArgumentError", "invalid value for Integer(): {}", value->inspect_str(env));
@@ -232,7 +232,7 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
         return Value(value);
 
     // Infinity/NaN cannot be converted to Integer
-    if (value->is_float()) {
+    if (value.is_float()) {
         auto float_obj = value->as_float();
         if (float_obj->is_nan() || float_obj->is_infinity()) {
             if (exception)
@@ -242,7 +242,7 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
         }
     }
 
-    if (!value->is_nil()) {
+    if (!value.is_nil()) {
         // Try using to_int to coerce to an Integer
         if (value->respond_to(env, "to_int"_s)) {
             auto result = value.send(env, "to_int"_s);
@@ -261,21 +261,21 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
 }
 
 Value KernelModule::Float(Env *env, Value value, Value exception) {
-    return Float(env, value, exception ? exception->is_true() : true);
+    return Float(env, value, exception ? exception.is_true() : true);
 }
 
 Value KernelModule::Float(Env *env, Value value, bool exception) {
-    if (value->is_float()) {
+    if (value.is_float()) {
         return value;
-    } else if (value->is_string()) {
+    } else if (value.is_string()) {
         auto result = value->as_string()->convert_float();
         if (!result && exception) {
             env->raise("ArgumentError", "invalid value for Float(): {}", value->inspect_str(env));
         }
         return result;
-    } else if (!value->is_nil() && value->respond_to(env, "to_f"_s)) {
+    } else if (!value.is_nil() && value->respond_to(env, "to_f"_s)) {
         auto result = value.send(env, "to_f"_s);
-        if (result->is_float()) {
+        if (result.is_float()) {
             return result;
         }
     }
@@ -346,10 +346,10 @@ Value KernelModule::global_variables(Env *env) {
 }
 
 Value KernelModule::Hash(Env *env, Value value) {
-    if (value->is_hash())
+    if (value.is_hash())
         return value;
 
-    if (value->is_nil() || (value->is_array() && value->as_array()->is_empty()))
+    if (value.is_nil() || (value.is_array() && value->as_array()->is_empty()))
         return new HashObject;
 
     return value->to_hash(env);
@@ -412,7 +412,7 @@ Value KernelModule::raise(Env *env, Args &&args) {
 }
 
 Value KernelModule::Rational(Env *env, Value x, Value y, Value exception) {
-    return Rational(env, x, y, exception ? exception->is_true() : true);
+    return Rational(env, x, y, exception ? exception.is_true() : true);
 }
 
 Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
@@ -440,7 +440,7 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
         if (!exception)
             return nullptr;
 
-        if (x->is_nil())
+        if (x.is_nil())
             env->raise("TypeError", "can't convert {} into Rational", x->klass()->inspect_str());
 
         if (x->respond_to(env, "to_r"_s)) {
@@ -489,15 +489,15 @@ Value KernelModule::sleep(Env *env, Value length) {
         return FiberObject::scheduler()->send(env, "kernel_sleep"_s, { length });
     }
 
-    if (!length || length->is_nil())
+    if (!length || length.is_nil())
         return ThreadObject::current()->sleep(env, -1.0);
 
     float secs;
     if (length.is_integer()) {
         secs = length.integer().to_nat_int_t();
-    } else if (length->is_float()) {
+    } else if (length.is_float()) {
         secs = length->as_float()->to_double();
-    } else if (length->is_rational()) {
+    } else if (length.is_rational()) {
         secs = length->as_rational()->to_f(env)->as_float()->to_double();
     } else if (length->respond_to(env, "divmod"_s)) {
         auto divmod = length->send(env, "divmod"_s, { IntegerObject::create(1) })->as_array();
@@ -525,7 +525,7 @@ Value KernelModule::spawn(Env *env, Args &&args) {
         }
     });
 
-    if (args.size() >= 1 && (args.at(0)->is_hash() || args.at(0)->respond_to(env, "to_hash"_s))) {
+    if (args.size() >= 1 && (args.at(0).is_hash() || args.at(0)->respond_to(env, "to_hash"_s))) {
         auto hash = args.shift()->to_hash(env);
         for (auto ep = environ; *ep; ep++)
             new_env.push(strdup(*ep));
@@ -588,7 +588,7 @@ Value KernelModule::spawn(Env *env, Args &&args) {
 }
 
 Value KernelModule::String(Env *env, Value value) {
-    if (value->is_string()) {
+    if (value.is_string()) {
         return value;
     }
 
@@ -707,7 +707,7 @@ Value KernelModule::initialize_copy(Env *env, Value self, Value object) {
 }
 
 Value KernelModule::inspect(Env *env, Value value) {
-    if (value->is_module() && value->as_module()->name())
+    if (value.is_module() && value->as_module()->name())
         return new StringObject { value->as_module()->name().value() };
     else
         return StringObject::format("#<{}:{}>", value->klass()->inspect_str(), value->pointer_id());
@@ -756,7 +756,7 @@ Value KernelModule::instance_variables(Env *env, Value self) {
 }
 
 bool KernelModule::is_a(Env *env, Value self, Value module) {
-    if (!module->is_module())
+    if (!module.is_module())
         env->raise("TypeError", "class or module required");
     return self->is_a(env, module->as_module());
 }
@@ -794,7 +794,7 @@ Value KernelModule::method(Env *env, Value self, Value name) {
     if (!method_info.is_defined()) {
         auto respond_to_missing = module->find_method(env, "respond_to_missing?"_s);
         if (respond_to_missing.is_defined()) {
-            if (respond_to_missing.method()->call(env, self, { name_symbol, TrueObject::the() }, nullptr)->is_truthy()) {
+            if (respond_to_missing.method()->call(env, self, { name_symbol, TrueObject::the() }, nullptr).is_truthy()) {
                 auto method_missing = module->find_method(env, "method_missing"_s);
                 if (method_missing.is_defined()) {
                     return new MethodObject { self, method_missing.method(), name_symbol };
@@ -807,7 +807,7 @@ Value KernelModule::method(Env *env, Value self, Value name) {
 }
 
 Value KernelModule::methods(Env *env, Value self, Value regular_val) {
-    bool regular = regular_val ? regular_val->is_truthy() : true;
+    bool regular = regular_val ? regular_val.is_truthy() : true;
     if (regular) {
         if (self->singleton_class()) {
             return self->singleton_class()->instance_methods(env, TrueObject::the());
@@ -822,7 +822,7 @@ Value KernelModule::methods(Env *env, Value self, Value regular_val) {
 }
 
 bool KernelModule::neqtilde(Env *env, Value self, Value other) {
-    return self->send(env, "=~"_s, { other })->is_falsey();
+    return self->send(env, "=~"_s, { other }).is_falsey();
 }
 
 Value KernelModule::private_methods(Env *env, Value self, Value recur) {
