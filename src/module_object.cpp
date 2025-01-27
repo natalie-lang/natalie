@@ -799,7 +799,7 @@ ArrayObject *ModuleObject::attr(Env *env, Args &&args) {
 }
 
 ArrayObject *ModuleObject::attr_reader(Env *env, Args &&args) {
-    auto ary = new ArrayObject {};
+    auto ary = new ArrayObject { args.size() };
     for (size_t i = 0; i < args.size(); i++) {
         auto name = attr_reader(env, args[i]);
         ary->push(name);
@@ -825,7 +825,7 @@ Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args &&args, Bloc
 }
 
 ArrayObject *ModuleObject::attr_writer(Env *env, Args &&args) {
-    auto ary = new ArrayObject {};
+    auto ary = new ArrayObject { args.size() };
     for (size_t i = 0; i < args.size(); i++) {
         auto name = attr_writer(env, args[i]);
         ary->push(name);
@@ -854,7 +854,7 @@ Value ModuleObject::attr_writer_block_fn(Env *env, Value self, Args &&args, Bloc
 }
 
 ArrayObject *ModuleObject::attr_accessor(Env *env, Args &&args) {
-    auto ary = new ArrayObject {};
+    auto ary = new ArrayObject { args.size() * 2 };
     for (size_t i = 0; i < args.size(); i++) {
         ary->push(attr_reader(env, args[i]));
         ary->push(attr_writer(env, args[i]));
