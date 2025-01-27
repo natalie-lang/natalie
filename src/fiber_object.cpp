@@ -47,19 +47,19 @@ FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Bl
     m_block = block;
 
     if (blocking != nullptr)
-        m_blocking = blocking->is_truthy();
+        m_blocking = blocking.is_truthy();
 
     m_file = env->file();
     m_line = env->line();
 
-    if (storage != nullptr && !storage->is_nil()) {
-        if (!storage->is_hash())
+    if (storage != nullptr && !storage.is_nil()) {
+        if (!storage.is_hash())
             env->raise("TypeError", "storage must be a hash");
         if (storage->is_frozen())
             env->raise("FrozenError", "storage must not be frozen");
         auto *hash = storage->as_hash();
         for (auto it = hash->begin(); it != hash->end(); it++) {
-            if (!it->key->is_symbol())
+            if (!it->key.is_symbol())
                 env->raise("TypeError", "wrong argument type Object (expected Symbol)");
         }
         m_storage = hash;
@@ -117,9 +117,9 @@ Value FiberObject::is_blocking_current() {
 
 Value FiberObject::ref(Env *env, Value key) {
     const static auto to_str = "to_str"_s;
-    if (key->is_string() || key->respond_to(env, to_str))
+    if (key.is_string() || key->respond_to(env, to_str))
         key = key->to_str(env)->to_sym(env);
-    if (!key->is_symbol())
+    if (!key.is_symbol())
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
     auto fiber = current();
     while ((fiber->m_storage == nullptr || !fiber->m_storage->has_key(env, key)) && fiber->m_previous_fiber != nullptr)
@@ -131,13 +131,13 @@ Value FiberObject::ref(Env *env, Value key) {
 
 Value FiberObject::refeq(Env *env, Value key, Value value) {
     const static auto to_str = "to_str"_s;
-    if (key->is_string() || key->respond_to(env, to_str))
+    if (key.is_string() || key->respond_to(env, to_str))
         key = key->to_str(env)->to_sym(env);
-    if (!key->is_symbol())
+    if (!key.is_symbol())
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
     if (current()->m_storage == nullptr)
         current()->m_storage = new HashObject {};
-    if (!value || value->is_nil()) {
+    if (!value || value.is_nil()) {
         current()->m_storage->remove(env, key);
     } else {
         current()->m_storage->refeq(env, key, value);
@@ -201,11 +201,11 @@ bool FiberObject::scheduler_is_relevant() {
         return false;
 
     auto scheduler = FiberObject::scheduler();
-    return !scheduler->is_nil();
+    return !scheduler.is_nil();
 }
 
 Value FiberObject::set_scheduler(Env *env, Value scheduler) {
-    if (scheduler->is_nil()) {
+    if (scheduler.is_nil()) {
         ThreadObject::current()->set_fiber_scheduler(nullptr);
     } else {
         TM::Vector<TM::String> required_methods { "block", "unblock", "kernel_sleep", "io_wait" };
@@ -219,16 +219,16 @@ Value FiberObject::set_scheduler(Env *env, Value scheduler) {
 }
 
 Value FiberObject::set_storage(Env *env, Value storage) {
-    if (storage == nullptr || storage->is_nil()) {
+    if (storage == nullptr || storage.is_nil()) {
         m_storage = nullptr;
-    } else if (!storage->is_hash()) {
+    } else if (!storage.is_hash()) {
         env->raise("TypeError", "storage must be a hash");
     } else {
         if (storage->is_frozen())
             env->raise("FrozenError", "storage must not be frozen");
         auto *hash = storage->as_hash();
         for (auto it = hash->begin(); it != hash->end(); it++) {
-            if (!it->key->is_symbol())
+            if (!it->key.is_symbol())
                 env->raise("TypeError", "wrong argument type Object (expected Symbol)");
         }
         m_storage = hash;

@@ -188,7 +188,7 @@ module Gtk3
     __define_method__ :label_new, <<-END
       args.ensure_argc_is(env, 1);
       GtkWidget *gtk_label;
-      if (args[0]->is_nil()) {
+      if (args[0].is_nil()) {
           gtk_label = gtk_label_new(nullptr);
       } else {
           const char *text = args[0]->as_string()->c_str();

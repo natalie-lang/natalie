@@ -235,7 +235,7 @@ public:
     }
 
     bool operator==(const Object &value) const {
-        if (!value.is_string())
+        if (value.type() != Type::String)
             return false;
         return *this == *value.as_string();
     }

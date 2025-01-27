@@ -113,7 +113,7 @@ public:
     bool has_file(SymbolObject *name) const { return m_files.get(name); }
     void add_file(Env *env, SymbolObject *name);
 
-    void set_interned_strings(StringObject **, const size_t);
+    void set_interned_strings(StringObject **, size_t);
 
     friend class SymbolObject;
 

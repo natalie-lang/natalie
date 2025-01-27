@@ -17,7 +17,7 @@ bool HashObject::compare(Key *&a, Key *&b, void *env) {
     if (object_id(a->key) == object_id(b->key) && a->hash == b->hash)
         return true;
 
-    return a->key.send((Env *)env, "eql?"_s, { b->key })->is_truthy();
+    return a->key.send((Env *)env, "eql?"_s, { b->key }).is_truthy();
 }
 
 bool HashObject::is_ruby2_keywords_hash(Env *env, Value hash) {
@@ -87,7 +87,7 @@ void HashObject::put(Env *env, Value key, Value val) {
 
     assert_not_frozen(env);
     Key key_container;
-    if (!m_is_comparing_by_identity && key->is_string() && !key->is_frozen()) {
+    if (!m_is_comparing_by_identity && key.is_string() && !key->is_frozen()) {
         key = key->as_string()->duplicate(env);
     }
     key_container.key = key;
@@ -239,18 +239,18 @@ Value HashObject::square_new(Env *env, Args &&args, ClassObject *klass) {
         return new HashObject { klass };
     } else if (args.size() == 1) {
         Value value = args[0];
-        if (!value->is_hash() && value->respond_to(env, "to_hash"_s))
+        if (!value.is_hash() && value->respond_to(env, "to_hash"_s))
             value = value->to_hash(env);
-        if (value->is_hash()) {
+        if (value.is_hash()) {
             auto hash = new HashObject { env, *value->as_hash() };
             hash->m_default_proc = nullptr;
             hash->m_default_value = NilObject::the();
             hash->m_klass = klass;
             return hash;
         } else {
-            if (!value->is_array() && value->respond_to(env, "to_ary"_s))
+            if (!value.is_array() && value->respond_to(env, "to_ary"_s))
                 value = value->to_ary(env);
-            if (value->is_array()) {
+            if (value.is_array()) {
                 HashObject *hash = new HashObject { klass };
                 for (auto &pair : *value->as_array()) {
                     if (pair->type() != Object::Type::Array) {
@@ -291,19 +291,19 @@ Value HashObject::inspect(Env *env) {
         size_t index = 0;
 
         auto to_s = [env](Value obj) {
-            if (obj->is_string())
+            if (obj.is_string())
                 return obj->as_string();
             if (obj->respond_to(env, "to_s"_s))
                 obj = obj->send(env, "to_s"_s);
             else
                 obj = new StringObject("?");
-            if (!obj->is_string())
+            if (!obj.is_string())
                 obj = StringObject::format("#<{}:{}>", obj->klass()->inspect_str(), String::hex(object_id(obj), String::HexFormat::LowercaseAndPrefixed));
             return obj->as_string();
         };
 
         for (HashObject::Key &node : *this) {
-            if (node.key->is_symbol()) {
+            if (node.key.is_symbol()) {
                 StringObject *key_repr = node.key->as_symbol()->to_s(env);
                 out->append(key_repr);
                 out->append(": ");
@@ -390,7 +390,7 @@ Value HashObject::delete_if(Env *env, Block *block) {
     assert_not_frozen(env);
     for (auto &node : *this) {
         Value args[2] = { node.key, node.val };
-        if (NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(2, args), nullptr)->is_truthy()) {
+        if (NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(2, args), nullptr).is_truthy()) {
             delete_key(env, node.key, nullptr);
         }
     }
@@ -434,7 +434,7 @@ bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
     TM::PairedRecursionGuard guard { this, other_value.object() };
 
     return guard.run([&](bool is_recursive) -> bool {
-        if (!other_value->is_hash())
+        if (!other_value.is_hash())
             return false;
 
         HashObject *other = other_value->as_hash();
@@ -453,7 +453,7 @@ bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
             if (node.val == other_val)
                 continue;
 
-            if (node.val.send(env, method_name, { other_val })->is_falsey())
+            if (node.val.send(env, method_name, { other_val }).is_falsey())
                 return false;
         }
 
@@ -474,7 +474,7 @@ bool HashObject::gte(Env *env, Value other) {
 
     for (auto &node : *other_hash) {
         Value value = get(env, node.key);
-        if (!value || value.send(env, "=="_s, { node.val })->is_false()) {
+        if (!value || value.send(env, "=="_s, { node.val }).is_false()) {
             return false;
         }
     }
@@ -492,7 +492,7 @@ bool HashObject::lte(Env *env, Value other) {
 
     for (auto &node : *this) {
         Value value = other_hash->get(env, node.key);
-        if (!value || value.send(env, "=="_s, { node.val })->is_false()) {
+        if (!value || value.send(env, "=="_s, { node.val }).is_false()) {
             return false;
         }
     }
@@ -579,7 +579,7 @@ Value HashObject::keep_if(Env *env, Block *block) {
     assert_not_frozen(env);
     for (auto &node : *this) {
         Value args[2] = { node.key, node.val };
-        if (!NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(2, args), nullptr)->is_truthy()) {
+        if (!NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(2, args), nullptr).is_truthy()) {
             delete_key(env, node.key, nullptr);
         }
     }
@@ -606,9 +606,9 @@ Value HashObject::to_h(Env *env, Block *block) {
         block_args[0] = node.key;
         block_args[1] = node.val;
         auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(2, block_args), nullptr);
-        if (!result->is_array() && result->respond_to(env, "to_ary"_s))
+        if (!result.is_array() && result->respond_to(env, "to_ary"_s))
             result = result->to_ary(env);
-        if (!result->is_array())
+        if (!result.is_array())
             env->raise("TypeError", "wrong element type {} (expected array)", result->klass()->inspect_str());
         auto result_array = result->as_array();
         if (result_array->size() != 2)
@@ -644,7 +644,7 @@ Value HashObject::hash(Env *env) {
             if (!eql(env, value)) {
                 auto value_hash = value->send(env, hash_method);
 
-                if (!value_hash->is_nil()) {
+                if (!value_hash.is_nil()) {
                     entry_hash.append(IntegerObject::convert_to_nat_int_t(env, value_hash));
                     any_change = true;
                 }
@@ -654,7 +654,7 @@ Value HashObject::hash(Env *env) {
             if (!eql(env, key)) {
                 auto key_hash = key->send(env, hash_method);
 
-                if (!key_hash->is_nil()) {
+                if (!key_hash.is_nil()) {
                     entry_hash.append(IntegerObject::convert_to_nat_int_t(env, key_hash));
                     any_change = true;
                 }
@@ -679,7 +679,7 @@ bool HashObject::has_key(Env *env, Value key) {
 
 bool HashObject::has_value(Env *env, Value value) {
     for (auto &node : *this) {
-        if (node.val.send(env, "=="_s, { value })->is_true()) {
+        if (node.val.send(env, "=="_s, { value }).is_true()) {
             return true;
         }
     }

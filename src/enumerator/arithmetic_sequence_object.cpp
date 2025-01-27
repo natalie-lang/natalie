@@ -20,7 +20,7 @@ ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, Valu
     : ArithmeticSequenceObject(env, origin, {}, begin, end, step, exclude_end) { }
 
 bool ArithmeticSequenceObject::calculate_ascending(Env *env) {
-    return step().send(env, ">"_s, { Value::integer(0) })->is_truthy();
+    return step().send(env, ">"_s, { Value::integer(0) }).is_truthy();
 }
 
 Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
@@ -28,17 +28,17 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
     auto _begin = m_begin;
     auto _end = m_end;
 
-    if (!_end || _end->is_nil() || _end.send(env, "infinite?"_s)->is_truthy())
+    if (!_end || _end.is_nil() || _end.send(env, "infinite?"_s).is_truthy())
         return 0;
 
-    if (_begin.send(env, "infinite?"_s)->is_truthy())
+    if (_begin.send(env, "infinite?"_s).is_truthy())
         return 0;
 
     auto cmp = ascending(env) ? ">"_s : "<"_s;
-    if (_begin.send(env, cmp, { _end })->is_truthy())
+    if (_begin.send(env, cmp, { _end }).is_truthy())
         return 0;
 
-    if (_step->is_float() || _begin->is_float() || _end->is_float()) {
+    if (_step.is_float() || _begin.is_float() || _end.is_float()) {
         _step = _step->to_f(env);
         _begin = _begin->to_f(env);
         _end = _end->to_f(env);
@@ -52,10 +52,10 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
     // Try to fix float incorrections
     // For example: begin: 1, end: 55.6, step: 18.2
     // n = 3.0 but 1 + 3 * 18.2 = 55.599999999999994
-    if (_end.send(env, cmp, { _begin.send(env, "+"_s, { n.send(env, "*"_s, { _step }) }) })->is_truthy())
+    if (_end.send(env, cmp, { _begin.send(env, "+"_s, { n.send(env, "*"_s, { _step }) }) }).is_truthy())
         n = n.send(env, "+"_s, { Value::integer(1) });
 
-    if (n.send(env, "=="_s, { n.send(env, "floor"_s) })->is_truthy())
+    if (n.send(env, "=="_s, { n.send(env, "floor"_s) }).is_truthy())
         n = Object::to_int(env, n);
 
     Integer step_count;
@@ -92,9 +92,9 @@ Value ArithmeticSequenceObject::iterate(Env *env, std::function<Value(Value)> fu
     auto steps = step_count(env);
 
     auto cmp = ascending(env) ? ">"_s : "<"_s;
-    auto infinite = !_end || _end->is_nil() || (_end.send(env, "infinite?"_s)->is_truthy() && _end.send(env, cmp, { Value::integer(0) })->is_truthy());
+    auto infinite = !_end || _end.is_nil() || (_end.send(env, "infinite?"_s).is_truthy() && _end.send(env, cmp, { Value::integer(0) }).is_truthy());
 
-    if (_step->is_float() || _begin->is_float() || _end->is_float()) {
+    if (_step.is_float() || _begin.is_float() || _end.is_float()) {
         _step = _step->to_f(env);
         _begin = _begin->to_f(env);
 
@@ -103,14 +103,14 @@ Value ArithmeticSequenceObject::iterate(Env *env, std::function<Value(Value)> fu
             _end = _end->to_f(env);
     }
 
-    if (_step.send(env, "infinite?"_s)->is_truthy()) {
-        if (_begin.send(env, cmp, { _end })->is_falsey())
+    if (_step.send(env, "infinite?"_s).is_truthy()) {
+        if (_begin.send(env, cmp, { _end }).is_falsey())
             func(_begin);
         return this;
     }
 
-    if (_begin.send(env, "infinite?"_s)->is_truthy()) {
-        if (_begin.send(env, cmp, { Value::integer(0) })->is_truthy() || _begin.send(env, "=="_s, { _end })->is_truthy())
+    if (_begin.send(env, "infinite?"_s).is_truthy()) {
+        if (_begin.send(env, cmp, { Value::integer(0) }).is_truthy() || _begin.send(env, "=="_s, { _end }).is_truthy())
             return this;
         infinite = true;
     }
@@ -119,7 +119,7 @@ Value ArithmeticSequenceObject::iterate(Env *env, std::function<Value(Value)> fu
         auto value = _step.send(env, "*"_s, { IntegerObject::create(i) }).send(env, "+"_s, { _begin });
 
         // Ensure that we do not yield a number that exceeds `_end`
-        if (!infinite && value.send(env, cmp, { _end })->is_truthy())
+        if (!infinite && value.send(env, cmp, { _end }).is_truthy())
             value = _end;
 
         func(value);
@@ -141,7 +141,7 @@ Value ArithmeticSequenceObject::enum_block(Env *env, Value self, Args &&args, Bl
 }
 
 bool ArithmeticSequenceObject::eq(Env *env, Value other) {
-    if (!other->is_enumerator_arithmetic_sequence())
+    if (!other.is_enumerator_arithmetic_sequence())
         return false;
 
     ArithmeticSequenceObject *other_sequence = other->as_enumerator_arithmetic_sequence();
@@ -155,7 +155,7 @@ Value ArithmeticSequenceObject::hash(Env *env) {
     auto add = [&hash_builder, &hash_method, env](Value value) {
         auto hash = value.send(env, hash_method);
 
-        if (hash->is_nil())
+        if (hash.is_nil())
             return;
 
         auto nat_int = IntegerObject::convert_to_nat_int_t(env, hash);
@@ -226,7 +226,7 @@ Value ArithmeticSequenceObject::last(Env *env, Value n) {
 
         auto _begin = maybe_to_f(env, m_begin);
         auto last = _begin.send(env, "+"_s, { step().send(env, "*"_s, { IntegerObject::create(steps) }) });
-        if (last.send(env, ">="_s, { _end })->is_truthy())
+        if (last.send(env, ">="_s, { _end }).is_truthy())
             last = last.send(env, "-"_s, { step() });
 
         auto begin = last.send(env, "-"_s, { step().send(env, "*"_s, { IntegerObject::create(count) }) });
@@ -239,27 +239,27 @@ Value ArithmeticSequenceObject::last(Env *env, Value n) {
         return array;
     } else {
         auto last = m_begin.send(env, "+"_s, { step().send(env, "*"_s, { IntegerObject::create(steps - 1) }) });
-        if (last.send(env, ">"_s, { m_end })->is_truthy())
+        if (last.send(env, ">"_s, { m_end }).is_truthy())
             last = last.send(env, "-"_s, { step() });
         return last;
     }
 }
 
 Value ArithmeticSequenceObject::maybe_to_f(Env *env, Value v) {
-    if (m_begin->is_float() || m_end->is_float())
+    if (m_begin.is_float() || m_end.is_float())
         return v->to_f(env);
     return v;
 }
 
 Value ArithmeticSequenceObject::size(Env *env) {
-    if (!m_end || m_end->is_nil())
+    if (!m_end || m_end.is_nil())
         return FloatObject::positive_infinity(env);
 
-    if (m_end.send(env, "infinite?"_s)->is_truthy()) {
+    if (m_end.send(env, "infinite?"_s).is_truthy()) {
         auto cmp = ascending(env) ? ">"_s : "<"_s;
-        auto same_sign = m_end.send(env, cmp, { Value::integer(0) })->is_truthy();
+        auto same_sign = m_end.send(env, cmp, { Value::integer(0) }).is_truthy();
 
-        if (step().send(env, "infinite?"_s)->is_truthy()) {
+        if (step().send(env, "infinite?"_s).is_truthy()) {
             if (same_sign)
                 return Value::integer(1);
             else

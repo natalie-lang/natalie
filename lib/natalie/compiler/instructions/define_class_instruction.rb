@@ -54,7 +54,7 @@ module Natalie
                 "#{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, " \
                 'Object::ConstLookupFailureMode::Null)'
         code << "if (#{klass}) {"
-        code << "  if (!#{klass}->is_class()) {"
+        code << "  if (!#{klass}.is_class()) {"
         code << "    env->raise(\"TypeError\", \"#{@name} is not a class\");"
         code << '  }'
         code << "} else {"

@@ -3,7 +3,7 @@
 
 namespace Natalie {
 BSearchCheckResult binary_search_check(Env *env, Value block_result) {
-    if (block_result->is_numeric()) {
+    if (block_result.is_numeric()) {
         if (block_result.is_integer()) {
             auto i = block_result.integer();
             if (IntegerObject::is_zero(i))
@@ -19,8 +19,8 @@ BSearchCheckResult binary_search_check(Env *env, Value block_result) {
         }
 
         return BSearchCheckResult::BIGGER;
-    } else if (block_result->is_boolean() || block_result->is_nil()) {
-        if (block_result->is_true())
+    } else if (block_result.is_boolean() || block_result.is_nil()) {
+        if (block_result.is_true())
             return BSearchCheckResult::SMALLER;
 
         return BSearchCheckResult::BIGGER;
@@ -40,7 +40,7 @@ Optional<nat_int_t> binary_search(Env *env, nat_int_t left, nat_int_t right, std
         case BSearchCheckResult::EQUAL:
             return middle;
         case BSearchCheckResult::SMALLER: {
-            if (!block_result->is_numeric())
+            if (!block_result.is_numeric())
                 result = middle;
             right = middle - 1;
             break;

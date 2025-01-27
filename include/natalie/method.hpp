@@ -60,9 +60,6 @@ public:
     bool has_env() const { return !!m_env; }
     Env *env() const { return m_env; }
 
-    bool is_optimized() const { return m_optimized; }
-    void set_optimized(bool optimized) { m_optimized = optimized; }
-
     Value call(Env *env, Value self, Args &&args, Block *block) const;
 
     String name() const { return m_name; }
@@ -102,6 +99,5 @@ private:
     Optional<String> m_file {};
     Optional<size_t> m_line {};
     Env *m_env { nullptr };
-    bool m_optimized { false };
 };
 }

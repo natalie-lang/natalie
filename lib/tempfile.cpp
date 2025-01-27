@@ -15,18 +15,18 @@ Value Tempfile_initialize(Env *env, Value self, Args &&args, Block *) {
 
     if (!basename) {
         basename = new StringObject { "" };
-    } else if (!basename->is_string() && basename->respond_to(env, "to_str"_s)) {
+    } else if (!basename.is_string() && basename->respond_to(env, "to_str"_s)) {
         basename = basename->to_str(env);
-    } else if (basename->is_array()) {
+    } else if (basename.is_array()) {
         auto arr = basename->as_array();
         basename = arr->ref(env, Value::integer(0));
         if (arr->size() >= 2)
             suffix = arr->at(1)->to_str(env);
     }
-    if (!basename->is_string()) {
+    if (!basename.is_string()) {
         env->raise("ArgumentError", "unexpected prefix: {}", basename->inspect_str(env));
     }
-    if (tmpdir && !tmpdir->is_nil()) {
+    if (tmpdir && !tmpdir.is_nil()) {
         tmpdir.assert_type(env, Object::Type::String, "String");
     } else {
         tmpdir = GlobalEnv::the()->Object()->const_fetch("Dir"_s).send(env, "tmpdir"_s);

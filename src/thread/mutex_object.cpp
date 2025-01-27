@@ -28,13 +28,13 @@ Value MutexObject::lock(Env *env) {
 }
 
 Value MutexObject::sleep(Env *env, Value timeout) {
-    if (!timeout || timeout->is_nil()) {
+    if (!timeout || timeout.is_nil()) {
         ThreadObject::current()->sleep(env, -1.0, this);
         lock(env);
         return this;
     }
 
-    if ((timeout->is_float() && timeout->as_float()->is_negative()) || (timeout.is_integer() && IntegerObject::is_negative(timeout.integer())))
+    if ((timeout.is_float() && timeout->as_float()->is_negative()) || (timeout.is_integer() && IntegerObject::is_negative(timeout.integer())))
         env->raise("ArgumentError", "time interval must not be negative");
 
     auto timeout_int = IntegerObject::convert_to_nat_int_t(env, timeout);
@@ -42,7 +42,7 @@ Value MutexObject::sleep(Env *env, Value timeout) {
     if (timeout_int < 0)
         env->raise("ArgumentError", "timeout must be positive");
 
-    const auto timeout_float = timeout->is_float() ? static_cast<float>(timeout->as_float()->to_double()) : static_cast<float>(timeout_int);
+    const auto timeout_float = timeout.is_float() ? static_cast<float>(timeout->as_float()->to_double()) : static_cast<float>(timeout_int);
     ThreadObject::current()->sleep(env, timeout_float, this);
     lock(env);
 
@@ -65,7 +65,7 @@ Value MutexObject::unlock(Env *env) {
     if (!is_locked())
         env->raise("ThreadError", "Attempt to unlock a mutex which is not locked");
 
-    if (m_thread && m_thread->status(env)->is_falsey())
+    if (m_thread && m_thread->status(env).is_falsey())
         env->raise("ThreadError", "Attempt to unlock a mutex which is not locked");
 
     if (m_thread && m_thread != ThreadObject::current())

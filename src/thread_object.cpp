@@ -141,9 +141,9 @@ namespace Natalie {
 thread_local ThreadObject *tl_current_thread = nullptr;
 
 static Value validate_key(Env *env, Value key) {
-    if (key->is_string() || key->respond_to(env, "to_str"_s))
+    if (key.is_string() || key->respond_to(env, "to_str"_s))
         key = key->to_str(env)->to_sym(env);
-    if (!key->is_symbol())
+    if (!key.is_symbol())
         env->raise("TypeError", "{} is not a symbol", key->inspect_str(env));
     return key;
 }
@@ -161,7 +161,7 @@ ThreadObject *ThreadObject::current() {
 }
 
 Value ThreadObject::thread_kill(Env *env, Value thread) {
-    if (!thread->is_thread())
+    if (!thread.is_thread())
         env->raise("TypeError", "wrong argument type {} (expected VM/thread)", thread->klass()->inspect_str());
 
     return thread->as_thread()->kill(env);
@@ -479,7 +479,7 @@ Value ThreadObject::name(Env *env) {
 }
 
 Value ThreadObject::set_name(Env *env, Value name) {
-    if (!name || name->is_nil()) {
+    if (!name || name.is_nil()) {
         m_name.clear();
         return NilObject::the();
     }
@@ -582,7 +582,7 @@ Value ThreadObject::thread_variable_set(Env *env, Value key, Value value) {
     key = validate_key(env, key);
     if (!m_thread_variables)
         m_thread_variables = new HashObject;
-    if (value->is_nil()) {
+    if (value.is_nil()) {
         m_thread_variables->delete_key(env, key, nullptr);
         return value;
     }

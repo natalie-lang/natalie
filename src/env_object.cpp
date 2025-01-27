@@ -43,9 +43,9 @@ Value EnvObject::to_hash(Env *env, Block *block) {
         Value value = string_with_default_encoding(getenv(name->as_string()->c_str()));
         if (block) {
             auto transformed = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ name, value }), nullptr);
-            if (!transformed->is_array() && transformed->respond_to(env, "to_ary"_s))
+            if (!transformed.is_array() && transformed->respond_to(env, "to_ary"_s))
                 transformed = transformed->to_ary(env);
-            if (!transformed->is_array())
+            if (!transformed.is_array())
                 env->raise("TypeError", "wrong element type {} (expected array)", transformed->klass()->inspect_str());
             if (transformed->as_array()->size() != 2)
                 env->raise("ArgumentError", "element has wrong array length (expected 2, was {})", transformed->as_array()->size());
@@ -157,12 +157,12 @@ Value EnvObject::assoc(Env *env, Value name) {
 }
 
 Value EnvObject::rassoc(Env *env, Value value) {
-    if (!value->is_string() && value->respond_to(env, "to_str"_s))
+    if (!value.is_string() && value->respond_to(env, "to_str"_s))
         value = value->to_str(env);
-    if (!value->is_string())
+    if (!value.is_string())
         return NilObject::the();
     auto name = key(env, value);
-    if (name->is_nil())
+    if (name.is_nil())
         return NilObject::the();
     return new ArrayObject { name, value };
 }
@@ -203,7 +203,7 @@ Value EnvObject::fetch(Env *env, Value name, Value default_value, Block *block) 
 
 Value EnvObject::refeq(Env *env, Value name, Value value) {
     auto namestr = name->to_str(env);
-    if (value->is_nil()) {
+    if (value.is_nil()) {
         unsetenv(namestr->c_str());
     } else {
         auto valuestr = value->to_str(env);
@@ -301,7 +301,7 @@ Value EnvObject::reject_in_place(Env *env, Block *block) {
 
     auto hash = to_hash(env, nullptr)->as_hash();
     auto keys = hash->keys(env)->as_array();
-    if (hash->send(env, "reject!"_s, {}, block)->is_nil())
+    if (hash->send(env, "reject!"_s, {}, block).is_nil())
         // No changes
         return NilObject::the();
 
@@ -345,7 +345,7 @@ Value EnvObject::select_in_place(Env *env, Block *block) {
 
     auto hash = to_hash(env, nullptr)->as_hash();
     auto keys = hash->keys(env)->as_array();
-    if (hash->send(env, "select!"_s, {}, block)->is_nil())
+    if (hash->send(env, "select!"_s, {}, block).is_nil())
         // No changes
         return NilObject::the();
 
@@ -405,7 +405,7 @@ Value EnvObject::update(Env *env, Args &&args, Block *block) {
     for (size_t i = 0; i < args.size(); i++) {
         auto h = args[i];
 
-        if (!h->is_hash() && h->respond_to(env, "to_hash"_s))
+        if (!h.is_hash() && h->respond_to(env, "to_hash"_s))
             h = h->send(env, "to_hash"_s);
 
         h.assert_type(env, Object::Type::Hash, "Hash");
@@ -413,7 +413,7 @@ Value EnvObject::update(Env *env, Args &&args, Block *block) {
         for (auto node : *h->as_hash()) {
             auto old_value = ref(env, node.key);
             auto new_value = node.val;
-            if (!old_value->is_nil()) {
+            if (!old_value.is_nil()) {
                 if (block) {
                     Value args[3] = { node.key, old_value, new_value };
                     new_value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(3, args), nullptr);

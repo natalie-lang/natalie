@@ -9,7 +9,7 @@ module Natalie
 
       def generate(transform)
         obj = transform.pop
-        transform.exec_and_push(:is_nil, "bool_object(#{obj}->is_nil())")
+        transform.exec_and_push(:is_nil, "bool_object(#{obj}.is_nil())")
       end
 
       def execute(vm)

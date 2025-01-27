@@ -15,7 +15,7 @@ namespace Natalie {
 
 class SymbolObject : public Object {
 public:
-    static SymbolObject *intern(const char *, const size_t length, EncodingObject *encoding = nullptr);
+    static SymbolObject *intern(const char *, size_t length, EncodingObject *encoding = nullptr);
     static SymbolObject *intern(const String &, EncodingObject *encoding = nullptr);
 
     static ArrayObject *all_symbols(Env *);

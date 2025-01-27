@@ -106,13 +106,13 @@ OnigEncoding RegexpObject::ruby_encoding_to_onig_encoding(NonNullPtr<const Encod
 
 Value RegexpObject::last_match(Env *env, Value ref) {
     auto match = env->caller()->last_match();
-    if (ref && match->is_match_data())
+    if (ref && match.is_match_data())
         return match->as_match_data()->ref(env, ref);
     return match;
 }
 
 Value RegexpObject::quote(Env *env, Value string) {
-    if (string->is_symbol())
+    if (string.is_symbol())
         string = string->to_s(env);
     auto str = string->as_string_or_raise(env);
 
@@ -164,20 +164,20 @@ Value RegexpObject::quote(Env *env, Value string) {
 }
 
 Value RegexpObject::try_convert(Env *env, Value value) {
-    if (!value->is_regexp() && value->respond_to(env, "to_regexp"_s)) {
+    if (!value.is_regexp() && value->respond_to(env, "to_regexp"_s)) {
         auto result = value->send(env, "to_regexp"_s);
-        if (!result->is_regexp()) {
+        if (!result.is_regexp()) {
             auto value_class_name = value->klass()->name().value_or("Object");
             env->raise("TypeError", "can't convert {} to Regexp ({}#to_regexp gives {})", value_class_name, value_class_name, result->klass()->name().value_or("Object"));
         }
         return result;
-    } else if (!value->is_regexp())
+    } else if (!value.is_regexp())
         return NilObject::the();
     return value;
 }
 
 Value RegexpObject::regexp_union(Env *env, Args &&args) {
-    auto patterns = args.size() == 1 && args[0]->is_array() ? args[0]->as_array() : args.to_array();
+    auto patterns = args.size() == 1 && args[0].is_array() ? args[0]->as_array() : args.to_array();
     if (patterns->is_empty())
         return RegexpObject::literal(env, "(?!)");
     String out;
@@ -186,10 +186,10 @@ Value RegexpObject::regexp_union(Env *env, Args &&args) {
             out.append_char('|');
         if (pattern->respond_to(env, "to_regexp"_s)) {
             pattern = pattern->send(env, "to_regexp"_s);
-        } else if (pattern->is_symbol()) {
+        } else if (pattern.is_symbol()) {
             pattern = pattern->to_s(env);
         }
-        if (pattern->is_regexp()) {
+        if (pattern.is_regexp()) {
             if (patterns->size() == 1)
                 return pattern;
             out.append(pattern->as_regexp()->to_s(env)->as_string()->string());
@@ -208,9 +208,9 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
     if (is_initialized())
         env->raise("TypeError", "already initialized regexp");
 
-    if (pattern->is_regexp()) {
+    if (pattern.is_regexp()) {
         auto other = pattern->as_regexp();
-        if (opts && !opts->is_nil())
+        if (opts && !opts.is_nil())
             env->warn("flags ignored");
         initialize_internal(env, other->m_pattern, other->options());
         return this;
@@ -222,7 +222,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
             options = opts.get_fast_integer();
         } else if (opts.is_integer()) {
             options = opts.integer().to_nat_int_t();
-        } else if (opts->is_string()) {
+        } else if (opts.is_string()) {
             for (auto c : *opts->as_string()) {
                 if (c == "i") {
                     options |= RegexOpts::IgnoreCase;
@@ -236,7 +236,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
             }
         } else {
             env->verbose_warn("expected true or false as ignorecase: {}", opts->inspect_str(env));
-            if (opts->is_truthy())
+            if (opts.is_truthy())
                 options = RegexOpts::IgnoreCase;
         }
     }
@@ -438,7 +438,7 @@ Value RegexpObject::inspect(Env *env) {
 
 Value RegexpObject::eqtilde(Env *env, Value other) {
     Value result = match(env, other);
-    if (result->is_nil()) {
+    if (result.is_nil()) {
         return result;
     } else {
         MatchDataObject *matchdata = result->as_match_data();
@@ -451,12 +451,12 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
     assert_initialized(env);
 
     Env *caller_env = env->caller();
-    if (other->is_nil()) {
+    if (other.is_nil()) {
         caller_env->clear_match();
         return NilObject::the();
     }
 
-    if (other->is_symbol())
+    if (other.is_symbol())
         other = other->as_symbol()->to_s(env);
     other.assert_type(env, Object::Type::String, "String");
     StringObject *str_obj = other->as_string();
@@ -472,7 +472,7 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
 
     auto result = match_at_byte_offset(env, str_obj, start_byte_index);
 
-    if (block && !result->is_nil()) {
+    if (block && !result.is_nil()) {
         Value args[] = { result };
         return NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
     }
@@ -508,9 +508,9 @@ Value RegexpObject::match_at_byte_offset(Env *env, StringObject *str, size_t byt
 
 bool RegexpObject::has_match(Env *env, Value other, Value start) {
     assert_initialized(env);
-    if (other->is_nil())
+    if (other.is_nil())
         return false;
-    if (other->is_symbol())
+    if (other.is_symbol())
         other = other->as_symbol()->to_s(env);
 
     other.assert_type(env, Object::Type::String, "String");

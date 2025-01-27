@@ -143,7 +143,7 @@ public:
 
     bool eq(Env *env, Value other) const {
         assert_initialized(env);
-        if (!other->is_regexp()) return false;
+        if (!other.is_regexp()) return false;
         RegexpObject *other_regexp = other->as_regexp();
         other_regexp->assert_initialized(env);
         return *this == *other_regexp;
@@ -151,12 +151,12 @@ public:
 
     bool eqeqeq(Env *env, Value other) {
         assert_initialized(env);
-        if (!other->is_string() && !other->is_symbol()) {
+        if (!other.is_string() && !other.is_symbol()) {
             if (!other->respond_to(env, "to_str"_s))
                 return false;
             other = other->to_str(env);
         }
-        return match(env, other)->is_truthy();
+        return match(env, other).is_truthy();
     }
 
     Value tilde(Env *env) {

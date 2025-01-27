@@ -32,7 +32,7 @@ Value DirObject::initialize(Env *env, Value path, Value encoding) {
     path = ioutil::convert_using_to_path(env, path);
     m_dir = ::opendir(path->as_string()->c_str());
     if (!m_dir) env->raise_errno();
-    if (encoding && !encoding->is_nil()) {
+    if (encoding && !encoding.is_nil()) {
         m_encoding = EncodingObject::find_encoding(env, encoding);
     } else {
         m_encoding = EncodingObject::filesystem();
@@ -273,7 +273,7 @@ Value DirObject::rmdir(Env *env, Value path) {
 }
 
 Value DirObject::home(Env *env, Value username) {
-    if (username && !username->is_nil()) {
+    if (username && !username.is_nil()) {
         username.assert_type(env, Object::Type::String, "String");
         // lookup home-dir for username
         struct passwd *pw;
@@ -285,7 +285,7 @@ Value DirObject::home(Env *env, Value username) {
         // no argument version
         Value home_str = new StringObject { "HOME" };
         Value home_dir = GlobalEnv::the()->Object()->const_fetch("ENV"_s).send(env, "[]"_s, { home_str });
-        if (!home_dir->is_nil())
+        if (!home_dir.is_nil())
             return home_dir->duplicate(env);
         struct passwd *pw;
         pw = getpwuid(getuid());

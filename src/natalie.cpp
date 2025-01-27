@@ -512,7 +512,6 @@ Env *build_top_env() {
     Object->const_set("RUBY_ENGINE"_s, RUBY_ENGINE);
 
     Value RUBY_PATCHLEVEL = Value::integer(-1);
-    RUBY_PATCHLEVEL->freeze();
     Object->const_set("RUBY_PATCHLEVEL"_s, RUBY_PATCHLEVEL);
 
     StringObject *RUBY_PLATFORM = new StringObject { ruby_platform };
@@ -536,7 +535,7 @@ Env *build_top_env() {
 }
 
 Value splat(Env *env, Value obj) {
-    if (obj->is_array()) {
+    if (obj.is_array()) {
         return new ArrayObject { *obj->as_array() };
     } else {
         return to_ary(env, obj, false);
@@ -545,16 +544,16 @@ Value splat(Env *env, Value obj) {
 
 Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat) {
     if (is_splat) {
-        if (!when_value->is_array() && when_value->respond_to(env, "to_a"_s)) {
+        if (!when_value.is_array() && when_value->respond_to(env, "to_a"_s)) {
             auto original_class = when_value->klass();
             when_value = when_value->send(env, "to_a"_s);
-            if (!when_value->is_array()) {
+            if (!when_value.is_array()) {
                 env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", original_class->inspect_str(), original_class->inspect_str(), when_value->klass()->inspect_str());
             }
         }
-        if (when_value->is_array()) {
+        if (when_value.is_array()) {
             for (auto item : *when_value->as_array()) {
-                if (item->send(env, "==="_s, { case_value })->is_truthy()) {
+                if (item->send(env, "==="_s, { case_value }).is_truthy()) {
                     return TrueObject::the();
                 }
             }
@@ -568,8 +567,8 @@ void run_at_exit_handlers(Env *env) {
     ArrayObject *at_exit_handlers = env->global_get("$NAT_at_exit_handlers"_s)->as_array_or_raise(env);
 
     Value proc;
-    while (!(proc = at_exit_handlers->pop())->is_nil()) {
-        if (proc->is_proc())
+    while (!(proc = at_exit_handlers->pop()).is_nil()) {
+        if (proc.is_proc())
             NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->as_proc()->block(), {}, nullptr);
     }
 }
@@ -640,14 +639,14 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
 }
 
 ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
-    if (obj->is_array()) {
+    if (obj.is_array()) {
         return obj->as_array();
     }
 
     if (obj->respond_to(env, "to_ary"_s)) {
         auto array = obj.send(env, "to_ary"_s);
-        if (!array->is_nil()) {
-            if (array->is_array()) {
+        if (!array.is_nil()) {
+            if (array.is_array()) {
                 return array->as_array();
             } else if (raise_for_non_array) {
                 auto class_name = obj->klass()->inspect_str();
@@ -658,8 +657,8 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
 
     if (obj->respond_to(env, "to_a"_s)) {
         auto array = obj.send(env, "to_a"_s);
-        if (!array->is_nil()) {
-            if (array->is_array()) {
+        if (!array.is_nil()) {
+            if (array.is_array()) {
                 return array->as_array();
             } else if (raise_for_non_array) {
                 auto class_name = obj->klass()->inspect_str();
@@ -672,7 +671,7 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
 }
 
 Value to_ary_for_masgn(Env *env, Value obj) {
-    if (obj->is_array()) {
+    if (obj.is_array()) {
         if (obj->klass() == GlobalEnv::the()->Array()) {
             return obj->duplicate(env);
         } else {
@@ -682,9 +681,9 @@ Value to_ary_for_masgn(Env *env, Value obj) {
 
     if (obj->respond_to(env, "to_ary"_s)) {
         auto array = obj.send(env, "to_ary"_s);
-        if (array->is_array()) {
+        if (array.is_array()) {
             return array->duplicate(env);
-        } else if (!array->is_nil()) {
+        } else if (!array.is_nil()) {
             auto class_name = obj->klass()->inspect_str();
             env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array->klass()->inspect_str());
         }
@@ -738,7 +737,7 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
             bool *bool_ptr = va_arg(va_args, bool *); // NOLINT(clang-analyzer-valist.Uninitialized) bug in clang-tidy?
             if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
-            *bool_ptr = obj->is_truthy();
+            *bool_ptr = obj.is_truthy();
             break;
         }
         case 'v': {
@@ -761,12 +760,8 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
 std::pair<Value, Value> coerce(Env *env, Value lhs, Value rhs, CoerceInvalidReturnValueMode invalid_return_value_mode) {
     auto coerce_symbol = "coerce"_s;
     if (lhs->respond_to(env, coerce_symbol)) {
-        if (lhs->is_synthesized())
-            lhs = lhs->duplicate(env);
-        if (rhs->is_synthesized())
-            rhs = rhs->duplicate(env);
         Value coerced = lhs.send(env, coerce_symbol, { rhs });
-        if (!coerced->is_array()) {
+        if (!coerced.is_array()) {
             if (invalid_return_value_mode == CoerceInvalidReturnValueMode::Raise)
                 env->raise("TypeError", "coerce must return [x, y]");
             else
@@ -781,7 +776,7 @@ std::pair<Value, Value> coerce(Env *env, Value lhs, Value rhs, CoerceInvalidRetu
 }
 
 Block *to_block(Env *env, Value proc_or_nil) {
-    if (proc_or_nil->is_nil()) {
+    if (proc_or_nil.is_nil()) {
         return nullptr;
     }
     return proc_or_nil->to_proc(env)->block();
@@ -869,7 +864,7 @@ Value super(Env *env, Value self, Args &&args, Block *block) {
 
     auto super_method = klass->find_method(env, SymbolObject::intern(after_method->name()), after_method);
     if (!super_method.is_defined()) {
-        if (self->is_module()) {
+        if (self.is_module()) {
             env->raise("NoMethodError", "super: no superclass method '{}' for {}:{}", current_method->original_name(), self->as_module()->inspect_str(), self->klass()->inspect_str());
         } else {
             env->raise("NoMethodError", "super: no superclass method '{}' for {}", current_method->original_name(), self->inspect_str(env));

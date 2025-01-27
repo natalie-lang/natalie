@@ -43,7 +43,7 @@ TimeObject *TimeObject::create(Env *env) {
 TimeObject *TimeObject::initialize(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value tmzone, Value in) {
     if (!year) {
         return now(env, nullptr);
-    } else if (year->is_nil()) {
+    } else if (year.is_nil()) {
         env->raise("TypeError", "Year cannot be nil");
     } else {
         auto result = now(env, nullptr);
@@ -95,7 +95,7 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
             if (integer < 0 || integer >= 1000000)
                 env->raise("ArgumentError", "subsecx out of range");
             result->m_subsec = RationalObject::create(env, integer, Integer(1000000));
-        } else if (subsec->is_rational()) {
+        } else if (subsec.is_rational()) {
             result->m_subsec = subsec->as_rational()->div(env, Value::integer(1000000));
         } else {
             env->raise("TypeError", "can't convert {} into an exact number", subsec->klass()->inspect_str());
@@ -105,9 +105,9 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
 }
 
 Value TimeObject::add(Env *env, Value other) {
-    if (other->is_time()) {
+    if (other.is_time()) {
         env->raise("TypeError", "time + time?");
-    } else if (other->is_nil() || other->is_string() || !other->respond_to(env, "to_r"_s)) {
+    } else if (other.is_nil() || other.is_string() || !other->respond_to(env, "to_r"_s)) {
         env->raise("TypeError", "can't convert {} into an exact number", other->klass()->inspect_str());
     }
     RationalObject *rational = to_r(env)->as_rational();
@@ -124,7 +124,7 @@ Value TimeObject::asctime(Env *env) {
 }
 
 Value TimeObject::cmp(Env *env, Value other) {
-    if (other->is_time()) {
+    if (other.is_time()) {
         auto time = other->as_time();
         auto integer = m_integer.integer();
         if (IntegerObject::gt(env, integer, time->m_integer)) {
@@ -136,12 +136,12 @@ Value TimeObject::cmp(Env *env, Value other) {
         }
     } else {
         auto result = other->send(env, "<=>"_s, { this });
-        if (result->is_nil()) {
+        if (result.is_nil()) {
             return result;
         } else {
-            if (result->send(env, ">"_s, { Value::integer(0) })->is_true()) {
+            if (result->send(env, ">"_s, { Value::integer(0) }).is_true()) {
                 return Value::integer(-1);
-            } else if (result->send(env, "<"_s, { Value::integer(0) })->is_true()) {
+            } else if (result->send(env, "<"_s, { Value::integer(0) }).is_true()) {
                 return Value::integer(1);
             } else {
                 return Value::integer(0);
@@ -151,7 +151,7 @@ Value TimeObject::cmp(Env *env, Value other) {
 }
 
 bool TimeObject::eql(Env *env, Value other) {
-    if (other->is_time()) {
+    if (other.is_time()) {
         auto time = other->as_time();
         if (m_integer.integer() == time->m_integer.integer()) {
             if (m_subsec && time->m_subsec && m_subsec->as_rational()->eq(env, time->m_subsec)) {
@@ -204,10 +204,10 @@ Value TimeObject::min(Env *) const {
 }
 
 Value TimeObject::minus(Env *env, Value other) {
-    if (other->is_time()) {
+    if (other.is_time()) {
         return to_r(env)->as_rational()->sub(env, other->as_time()->to_r(env))->as_rational()->to_f(env);
     }
-    if (other->is_nil() || other->is_string() || !other->respond_to(env, "to_r"_s)) {
+    if (other.is_nil() || other.is_string() || !other->respond_to(env, "to_r"_s)) {
         env->raise("TypeError", "can't convert {} into an exact number", other->klass()->inspect_str());
     }
     RationalObject *rational = to_r(env)->as_rational()->sub(env, other->send(env, "to_r"_s))->as_rational();
@@ -308,7 +308,7 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
     nat_int_t minsec = 60; // seconds in an minute
     nat_int_t hoursec = 3600; // seconds in an hour
 
-    if (val->is_string()) {
+    if (val.is_string()) {
         auto str = val->as_string()->string();
         auto ssize = str.size();
         if (str == "UTC") {
@@ -365,7 +365,7 @@ nat_int_t TimeObject::normalize_field(Env *env, Value val) {
 }
 
 nat_int_t TimeObject::normalize_field(Env *env, Value val, nat_int_t minval, nat_int_t maxval) {
-    if (val->is_nil()) return minval;
+    if (val.is_nil()) return minval;
     auto ival = normalize_field(env, val);
     if (ival < minval || ival > maxval) {
         env->raise("ArgumentError", "argument out of range");
@@ -374,9 +374,9 @@ nat_int_t TimeObject::normalize_field(Env *env, Value val, nat_int_t minval, nat
 }
 
 nat_int_t TimeObject::normalize_month(Env *env, Value val) {
-    if (val->is_nil()) return 0;
+    if (val.is_nil()) return 0;
     if (!val.is_integer()) {
-        if (val->is_string() || val->respond_to(env, "to_str"_s)) {
+        if (val.is_string() || val->respond_to(env, "to_str"_s)) {
             val = val->to_str(env);
             auto monstr = val->as_string()->downcase(env, nullptr, nullptr)->as_string()->string();
             if (monstr == "jan") {
@@ -425,7 +425,7 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
 RationalObject *TimeObject::convert_rational(Env *env, Value value) {
     if (value.is_integer()) {
         return RationalObject::create(env, value.integer(), Integer(1));
-    } else if (value->is_rational()) {
+    } else if (value.is_rational()) {
         return value->as_rational();
     } else if (value->respond_to(env, "to_r"_s) && value->respond_to(env, "to_int"_s)) {
         return value->send(env, "to_r"_s)->as_rational();
@@ -452,7 +452,7 @@ TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode) {
     Integer integer;
     RationalObject *subseconds;
     TimeObject *result = new TimeObject {};
-    if (rational->send(env, "<"_s, { Value::integer(0) })->is_true()) {
+    if (rational->send(env, "<"_s, { Value::integer(0) }).is_true()) {
         auto floor = rational->floor(env, nullptr);
         integer = floor->send(env, "to_i"_s).integer();
         subseconds = rational->sub(env, floor)->as_rational();
@@ -494,8 +494,8 @@ void TimeObject::build_time(Env *env, Value year, Value month, Value mday, Value
     if (min) {
         m_time.tm_min = TimeObject::normalize_field(env, min, 0, 59);
     }
-    if (sec && !sec->is_nil()) {
-        if (sec->is_string()) {
+    if (sec && !sec.is_nil()) {
+        if (sec.is_string()) {
             // ensure base10 conversion for case of "01" input
             sec = KernelModule::Integer(env, sec, 10, true);
         }
@@ -529,9 +529,8 @@ void TimeObject::set_subsec(Env *env, Integer &usec) {
 }
 
 void TimeObject::set_subsec(Env *, RationalObject *subsec) {
-    if (!subsec->is_zero()) {
+    if (!subsec->is_zero())
         m_subsec = subsec;
-    }
 }
 
 Value TimeObject::build_string(Env *, const char *format) {

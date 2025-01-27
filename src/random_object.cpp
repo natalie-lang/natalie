@@ -7,7 +7,7 @@ Value RandomObject::initialize(Env *env, Value seed) {
     if (!seed) {
         m_seed = (nat_int_t)std::random_device()();
     } else {
-        if (seed->is_float()) {
+        if (seed.is_float()) {
             seed = seed->as_float()->to_i(env);
         }
 
@@ -37,31 +37,31 @@ Value RandomObject::bytes(Env *env, Value size) {
 
 Value RandomObject::rand(Env *env, Value arg) {
     if (arg) {
-        if (arg->is_float()) {
+        if (arg.is_float()) {
             double max = arg->as_float()->to_double();
             if (max <= 0) {
                 env->raise("ArgumentError", "invalid argument - {}", arg->inspect_str(env));
             }
             return generate_random(0.0, max);
-        } else if (arg->is_range()) {
+        } else if (arg.is_range()) {
             Value min = arg->as_range()->begin();
             Value max = arg->as_range()->end();
             // TODO: There can be different types of objects that respond to + and - (according to the docs)
             // I'm not sure how we should handle those though (coerce via to_int or to_f?)
-            if (min->is_numeric() && max->is_numeric()) {
-                if (min.send(env, ">"_s, { max })->is_true()) {
+            if (min.is_numeric() && max.is_numeric()) {
+                if (min.send(env, ">"_s, { max }).is_true()) {
                     env->raise("ArgumentError", "invalid argument - {}", arg->inspect_str(env));
                 }
 
-                if (min->is_float() || max->is_float()) {
+                if (min.is_float() || max.is_float()) {
                     double min_rand, max_rand;
-                    if (min->is_float()) {
+                    if (min.is_float()) {
                         min_rand = min->as_float()->to_double();
                     } else {
                         min_rand = static_cast<double>(IntegerObject::convert_to_native_type<nat_int_t>(env, min));
                     }
 
-                    if (max->is_float()) {
+                    if (max.is_float()) {
                         max_rand = max->as_float()->to_double();
                     } else {
                         max_rand = static_cast<double>(IntegerObject::convert_to_native_type<nat_int_t>(env, max));
@@ -82,7 +82,7 @@ Value RandomObject::rand(Env *env, Value arg) {
             env->raise("ArgumentError", "bad value for range");
         }
 
-        if (arg->is_nil())
+        if (arg.is_nil())
             env->raise("ArgumentError", "invalid argument - {}", arg->to_s(env)->string());
 
         nat_int_t max = IntegerObject::convert_to_nat_int_t(env, arg);

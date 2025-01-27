@@ -7,7 +7,7 @@ bool FalseObject::and_method(const Env *env, const Value other) const {
 }
 
 bool FalseObject::or_method(const Env *env, Value other) const {
-    return other->is_truthy();
+    return other.is_truthy();
 }
 
 Value FalseObject::to_s(const Env *env) const {

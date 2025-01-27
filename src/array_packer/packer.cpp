@@ -34,10 +34,10 @@ namespace ArrayPacker {
                 String string;
                 StringObject *string_object = nullptr;
                 auto item = m_source->at(m_index);
-                if (m_source->is_string()) {
+                if (m_source->type() == Object::Type::String) {
                     string_object = item->as_string();
                     string = item->as_string()->string();
-                } else if (item->is_nil()) {
+                } else if (item.is_nil()) {
                     if (d == 'u' || d == 'm')
                         env->raise("TypeError", "no implicit conversion of nil into String");
                     string = "";
@@ -46,7 +46,7 @@ namespace ArrayPacker {
                     string = string_object->string();
                 } else if (d == 'M' && (item->respond_to(env, "to_s"_s))) {
                     auto str = item->send(env, "to_s"_s);
-                    if (str->is_string()) {
+                    if (str.is_string()) {
                         string_object = str->as_string();
                         string = str->as_string()->string();
                     } else {
@@ -111,7 +111,7 @@ namespace ArrayPacker {
                     auto value = m_source->at(m_index);
                     if (value.is_integer()) {
                         value = IntegerObject::to_f(value.integer());
-                    } else if (value->is_rational()) {
+                    } else if (value.is_rational()) {
                         value = value->as_rational()->to_f(env);
                     }
                     auto packer = FloatHandler { value->as_float_or_raise(env), token };

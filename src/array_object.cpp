@@ -34,10 +34,10 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
 
     if (!value) {
         auto to_ary = "to_ary"_s;
-        if (!size->is_array() && size->respond_to(env, to_ary))
+        if (!size.is_array() && size->respond_to(env, to_ary))
             size = size->send(env, to_ary);
 
-        if (size->is_array()) {
+        if (size.is_array()) {
             return initialize_copy(env, size);
         }
     }
@@ -166,13 +166,13 @@ Value ArrayObject::inspect(Env *env) {
             auto inspected_repr = obj.send(env, "inspect"_s);
             SymbolObject *to_s = "to_s"_s;
 
-            if (!inspected_repr->is_string()) {
+            if (!inspected_repr.is_string()) {
                 if (inspected_repr->respond_to(env, to_s)) {
                     inspected_repr = obj.send(env, to_s);
                 }
             }
 
-            if (inspected_repr->is_string())
+            if (inspected_repr.is_string())
                 out->append(inspected_repr->as_string());
             else
                 out->append_sprintf("#<%s:%#x>", inspected_repr->klass()->inspect_str().c_str(), static_cast<uintptr_t>(inspected_repr));
@@ -220,8 +220,8 @@ Value ArrayObject::sub(Env *env, Value other) {
     for (auto &item : *this) {
         int found = 0;
         for (auto &compare_item : *other_array) {
-            if ((item.send(env, "eql?"_s, { compare_item })->is_truthy() && item.send(env, "hash"_s).send(env, "eql?"_s, { compare_item.send(env, "hash"_s) }))
-                || item.send(env, "=="_s, { compare_item })->is_truthy()) {
+            if ((item.send(env, "eql?"_s, { compare_item }).is_truthy() && item.send(env, "hash"_s).send(env, "eql?"_s, { compare_item.send(env, "hash"_s) }))
+                || item.send(env, "=="_s, { compare_item }).is_truthy()) {
                 found = 1;
                 break;
             }
@@ -262,7 +262,7 @@ Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
 Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
     this->assert_not_frozen(env);
     nat_int_t start, width;
-    if (index_obj->is_range()) {
+    if (index_obj.is_range()) {
         RangeObject *range = index_obj->as_range();
         Value begin_obj = range->begin();
         Value end_obj = range->end();
@@ -270,7 +270,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
         // Ignore "size"
         val = size;
 
-        if (begin_obj->is_nil()) {
+        if (begin_obj.is_nil()) {
             start = 0;
         } else {
             start = IntegerObject::convert_to_nat_int_t(env, begin_obj);
@@ -284,7 +284,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
         }
 
         nat_int_t end;
-        if (end_obj->is_nil()) {
+        if (end_obj.is_nil()) {
             end = this->size();
         } else {
             end = IntegerObject::convert_to_nat_int_t(env, end_obj);
@@ -339,7 +339,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
         new_ary.set_size(start, NilObject::the());
 
     // the new entry/entries
-    if (val->is_array() || val->respond_to(env, "to_ary"_s)) {
+    if (val.is_array() || val->respond_to(env, "to_ary"_s)) {
         new_ary.concat(val->to_ary(env)->m_vector);
     } else {
         new_ary.push(val);
@@ -370,11 +370,11 @@ bool ArrayObject::eq(Env *env, Value other) {
             return TrueObject::the();
 
         SymbolObject *equality = "=="_s;
-        if (!other->is_array()
-            && other->send(env, "respond_to?"_s, { "to_ary"_s })->is_true())
+        if (!other.is_array()
+            && other->send(env, "respond_to?"_s, { "to_ary"_s }).is_true())
             return other->send(env, equality, { this });
 
-        if (!other->is_array()) {
+        if (!other.is_array()) {
             return FalseObject::the();
         }
 
@@ -397,19 +397,19 @@ bool ArrayObject::eq(Env *env, Value other) {
                                            ->send(env, equality, { item->send(env, object_id) });
 
                 // This allows us to check NAN equality and other potentially similar constants
-                if (same_object_id->is_true())
+                if (same_object_id.is_true())
                     continue;
             }
 
             Value result = this_item.send(env, equality, { item }, nullptr);
-            if (result->is_false())
+            if (result.is_false())
                 return result;
         }
 
         return TrueObject::the();
     });
 
-    return result->is_true();
+    return result.is_true();
 }
 
 bool ArrayObject::eql(Env *env, Value other) {
@@ -418,10 +418,10 @@ bool ArrayObject::eql(Env *env, Value other) {
     Value result = guard.run([&](bool is_recursive) -> Value { // don't return bool in recursion guard
         if (other == this)
             return TrueObject::the();
-        if (!other->is_array())
+        if (!other.is_array())
             return FalseObject::the();
 
-        if (!other->is_array()) {
+        if (!other.is_array()) {
             return FalseObject::the();
         }
 
@@ -435,14 +435,14 @@ bool ArrayObject::eql(Env *env, Value other) {
 
         for (size_t i = 0; i < size(); ++i) {
             Value result = (*this)[i].send(env, "eql?"_s, { (*other_array)[i] }, nullptr);
-            if (result->is_false())
+            if (result.is_false())
                 return result;
         }
 
         return TrueObject::the();
     });
 
-    return result->is_true();
+    return result.is_true();
 }
 
 Value ArrayObject::each(Env *env, Block *block) {
@@ -517,10 +517,10 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
     nat_int_t start = 0;
     nat_int_t max = size();
 
-    if (start_obj && !start_obj->is_nil()) {
-        if (!length_obj && start_obj->is_range()) {
+    if (start_obj && !start_obj.is_nil()) {
+        if (!length_obj && start_obj.is_range()) {
             Value begin = start_obj->as_range()->begin();
-            if (!begin->is_nil()) {
+            if (!begin.is_nil()) {
                 start = IntegerObject::convert_to_nat_int_t(env, begin);
 
                 if (start < 0)
@@ -531,7 +531,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
 
             auto end = start_obj->as_range()->end();
 
-            if (!end->is_nil()) {
+            if (!end.is_nil()) {
                 max = IntegerObject::convert_to_nat_int_t(env, end);
 
                 if (max < 0)
@@ -547,7 +547,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
             if (start < 0)
                 start = 0;
 
-            if (length_obj && !length_obj->is_nil()) {
+            if (length_obj && !length_obj.is_nil()) {
                 auto length = IntegerObject::convert_to_nat_int_t(env, length_obj);
 
                 if (length <= 0)
@@ -637,15 +637,15 @@ bool ArrayObject::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayObje
             continue;
         }
 
-        if (!item->is_array()) {
+        if (!item.is_array()) {
             Value new_item = try_convert(env, item);
 
-            if (!new_item->is_nil()) {
+            if (!new_item.is_nil()) {
                 item = new_item;
             }
         }
 
-        if (item->is_array()) {
+        if (item.is_array()) {
             changed = true;
             m_vector.remove(i - 1);
 
@@ -701,7 +701,7 @@ Value ArrayObject::delete_if(Env *env, Block *block) {
     for (size_t i = 0; i < size(); ++i) {
         Value args[] = { (*this)[i] };
         Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
-        if (result->is_truthy()) {
+        if (result.is_truthy()) {
             marked_indexes.push(i);
         }
     }
@@ -721,7 +721,7 @@ Value ArrayObject::delete_item(Env *env, Value target, Block *block) {
         if (item->neq(env, target))
             continue;
 
-        if (deleted_item->is_nil()) {
+        if (deleted_item.is_nil()) {
             // frozen assertion only happens if any item needs to in fact be deleted
             this->assert_not_frozen(env);
             deleted_item = item;
@@ -730,7 +730,7 @@ Value ArrayObject::delete_item(Env *env, Value target, Block *block) {
         m_vector.remove(i - 1);
     }
 
-    if (deleted_item->is_nil() && block) {
+    if (deleted_item.is_nil() && block) {
         return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
     }
 
@@ -784,7 +784,7 @@ Value ArrayObject::drop_while(Env *env, Block *block) {
     while (i < m_vector.size()) {
         Value args[] = { m_vector.at(i) };
         Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
-        if (result->is_nil() || result->is_false()) {
+        if (result.is_nil() || result.is_false()) {
             break;
         }
 
@@ -825,7 +825,7 @@ bool ArrayObject::include(Env *env, Value item) {
         return false;
     } else {
         for (auto &compare_item : *this) {
-            if (compare_item.send(env, "=="_s, { item })->is_truthy()) {
+            if (compare_item.send(env, "=="_s, { item }).is_truthy()) {
                 return true;
             }
         }
@@ -885,9 +885,9 @@ Value ArrayObject::keep_if(Env *env, Block *block) {
 }
 
 Value ArrayObject::_subjoin(Env *env, Value item, Value joiner) {
-    if (item->is_string()) {
+    if (item.is_string()) {
         return item->as_string();
-    } else if (item->is_array()) {
+    } else if (item.is_array()) {
         return item->as_array()->join(env, joiner)->as_string();
     } else {
         auto to_str = "to_str"_s;
@@ -896,16 +896,16 @@ Value ArrayObject::_subjoin(Env *env, Value item, Value joiner) {
         if (item->respond_to(env, to_str)) {
             // Need to support nil, don't use Object::to_str
             auto rval = item.send(env, to_str);
-            if (!rval->is_nil()) return rval->as_string();
+            if (!rval.is_nil()) return rval->as_string();
         }
         if (item->respond_to(env, to_ary)) {
             // Need to support nil, don't use Object::to_ary
             auto rval = item.send(env, to_ary);
-            if (!rval->is_nil()) return rval->as_array()->join(env, joiner)->as_string();
+            if (!rval.is_nil()) return rval->as_array()->join(env, joiner)->as_string();
         }
         if (item->respond_to(env, to_s))
             item = item.send(env, to_s);
-        if (item->is_string())
+        if (item.is_string())
             return item->as_string();
     }
     env->raise("NoMethodError", "needed to_str, to_ary, or to_s");
@@ -919,11 +919,11 @@ Value ArrayObject::join(Env *env, Value joiner) {
         if (size() == 0) {
             return (Value) new StringObject { "", Encoding::US_ASCII };
         } else {
-            if (!joiner || joiner->is_nil())
+            if (!joiner || joiner.is_nil())
                 joiner = env->global_get("$,"_s);
-            if (!joiner || joiner->is_nil()) joiner = new StringObject { "" };
+            if (!joiner || joiner.is_nil()) joiner = new StringObject { "" };
 
-            if (!joiner->is_string())
+            if (!joiner.is_string())
                 joiner = joiner->to_str(env);
 
             StringObject *out = new StringObject {};
@@ -941,7 +941,7 @@ Value ArrayObject::join(Env *env, Value joiner) {
 Value ArrayObject::cmp(Env *env, Value other) {
     Value other_converted = try_convert(env, other);
 
-    if (other_converted->is_nil()) {
+    if (other_converted.is_nil()) {
         return other_converted;
     }
 
@@ -974,7 +974,7 @@ Value ArrayObject::cmp(Env *env, Value other) {
 }
 
 Value ArrayObject::pack(Env *env, Value directives, Value buffer) {
-    if (!directives->is_string())
+    if (!directives.is_string())
         directives = directives->to_str(env);
 
     auto directives_string = directives->as_string()->string();
@@ -982,7 +982,7 @@ Value ArrayObject::pack(Env *env, Value directives, Value buffer) {
         return new StringObject { "", Encoding::US_ASCII };
 
     if (buffer) {
-        if (!buffer->is_string()) {
+        if (!buffer.is_string()) {
             env->raise("TypeError", "buffer must be String, not {}", buffer->klass()->inspect_str());
         }
         return ArrayPacker::Packer { this, directives_string }.pack(env, buffer->as_string());
@@ -1001,10 +1001,10 @@ Value ArrayObject::push(Env *env, Args &&args) {
 }
 
 void ArrayObject::push_splat(Env *env, Value val) {
-    if (!val->is_array() && val->respond_to(env, "to_a"_s)) {
+    if (!val.is_array() && val->respond_to(env, "to_a"_s)) {
         val = val.send(env, "to_a"_s);
     }
-    if (val->is_array()) {
+    if (val.is_array()) {
         m_vector.concat(val->as_array()->m_vector);
     } else {
         push(val);
@@ -1047,7 +1047,7 @@ bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
 
         if (compare->respond_to(env, "<"_s)) {
             Value zero = Value::integer(0);
-            return compare.send(env, "<"_s, { zero })->is_truthy();
+            return compare.send(env, "<"_s, { zero }).is_truthy();
         } else {
             env->raise("ArgumentError", "comparison of {} with 0 failed", compare->klass()->inspect_str());
         }
@@ -1123,7 +1123,7 @@ Value ArrayObject::select_in_place(Env *env, Block *block) {
     bool changed = select_in_place([env, block](Value &item) -> bool {
         Value args[] = { item };
         Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
-        return result->is_truthy();
+        return result.is_truthy();
     });
 
     if (changed)
@@ -1177,7 +1177,7 @@ Value ArrayObject::reject_in_place(Env *env, Block *block) {
         try {
             Value args[] = { item };
             Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
-            if (result->is_falsey())
+            if (result.is_falsey())
                 new_array.push(item);
             else
                 changed = true;
@@ -1208,7 +1208,7 @@ Value ArrayObject::max(Env *env, Value count, Block *block) {
         Value block_args[] = { item, min };
         Value compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(2, block_args), nullptr) : item.send(env, "<=>"_s, { min });
 
-        if (compare->is_nil())
+        if (compare.is_nil())
             env->raise(
                 "ArgumentError",
                 "comparison of {} with {} failed",
@@ -1219,7 +1219,7 @@ Value ArrayObject::max(Env *env, Value count, Block *block) {
         return nat_int > 0;
     };
 
-    auto has_implicit_count = !count || count->is_nil();
+    auto has_implicit_count = !count || count.is_nil();
     size_t c;
 
     if (has_implicit_count) {
@@ -1258,7 +1258,7 @@ Value ArrayObject::min(Env *env, Value count, Block *block) {
         Value block_args[] = { item, min };
         Value compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(2, block_args), nullptr) : item.send(env, "<=>"_s, { min });
 
-        if (compare->is_nil())
+        if (compare.is_nil())
             env->raise(
                 "ArgumentError",
                 "comparison of {} with {} failed",
@@ -1269,7 +1269,7 @@ Value ArrayObject::min(Env *env, Value count, Block *block) {
         return nat_int < 0;
     };
 
-    auto has_implicit_count = !count || count->is_nil();
+    auto has_implicit_count = !count || count.is_nil();
     size_t c;
 
     if (has_implicit_count) {
@@ -1308,7 +1308,7 @@ Value ArrayObject::minmax(Env *env, Block *block) {
         Value block_args[] = { item, min };
         Value compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(2, block_args), nullptr) : item.send(env, "<=>"_s, { min });
 
-        if (compare->is_nil())
+        if (compare.is_nil())
             env->raise(
                 "ArgumentError",
                 "comparison of {} with {} failed",
@@ -1332,10 +1332,10 @@ Value ArrayObject::minmax(Env *env, Block *block) {
 }
 
 Value ArrayObject::multiply(Env *env, Value factor) {
-    if (!factor->is_string() && factor->respond_to(env, "to_str"_s))
+    if (!factor.is_string() && factor->respond_to(env, "to_str"_s))
         factor = factor->to_str(env);
 
-    if (factor->is_string()) {
+    if (factor.is_string()) {
         return join(env, factor);
     }
 
@@ -1354,7 +1354,7 @@ Value ArrayObject::multiply(Env *env, Value factor) {
 Value ArrayObject::compact(Env *env) {
     auto ary = new ArrayObject {};
     for (auto item : *this) {
-        if (item->is_nil()) continue;
+        if (item.is_nil()) continue;
         ary->push(item);
     }
     return ary;
@@ -1366,7 +1366,7 @@ Value ArrayObject::compact_in_place(Env *env) {
     bool changed { false };
     for (size_t i = size(); i > 0; --i) {
         auto item = (*this)[i - 1];
-        if (item->is_nil()) {
+        if (item.is_nil()) {
             changed = true;
             m_vector.remove(i - 1);
         }
@@ -1431,14 +1431,14 @@ Value ArrayObject::at(Env *env, Value n) {
 Value ArrayObject::assoc(Env *env, Value needle) {
     // TODO use common logic for this (see for example rassoc and index)
     for (auto &item : *this) {
-        if (!item->is_array() && !item->respond_to(env, "to_ary"_s))
+        if (!item.is_array() && !item->respond_to(env, "to_ary"_s))
             continue;
 
         ArrayObject *sub_array = item->to_ary(env);
         if (sub_array->is_empty())
             continue;
 
-        if ((*sub_array)[0].send(env, "=="_s, { needle })->is_truthy())
+        if ((*sub_array)[0].send(env, "=="_s, { needle }).is_truthy())
             return sub_array;
     }
 
@@ -1450,7 +1450,7 @@ Value ArrayObject::bsearch(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "bsearch"_s });
     }
     auto index = bsearch_index(env, block);
-    if (index->is_nil())
+    if (index.is_nil())
         return index;
 
     return (*this)[index.integer().to_nat_int_t()];
@@ -1475,14 +1475,14 @@ Value ArrayObject::bsearch_index(Env *env, Block *block) {
 
 Value ArrayObject::rassoc(Env *env, Value needle) {
     for (auto &item : *this) {
-        if (!item->is_array() && !item->respond_to(env, "to_ary"_s))
+        if (!item.is_array() && !item->respond_to(env, "to_ary"_s))
             continue;
 
         ArrayObject *sub_array = item->to_ary(env);
         if (sub_array->size() < 2)
             continue;
 
-        if (sub_array->at(1)->send(env, "=="_s, { needle })->is_truthy())
+        if (sub_array->at(1)->send(env, "=="_s, { needle }).is_truthy())
             return sub_array;
     }
 
@@ -1502,13 +1502,13 @@ Value ArrayObject::hash(Env *env) {
             auto item = (*this)[i];
             auto item_hash = item->send(env, hash_method);
 
-            if (item_hash->is_nil())
+            if (item_hash.is_nil())
                 continue;
 
             // this allows us to return the same hash for recursive arrays:
             // a = []; a << a; a.hash == [a].hash # => true
             // a = []; a << a << a; a.hash == [a, a].hash # => true
-            if (item->is_array() && size() == item->as_array()->size() && eql(env, item))
+            if (item.is_array() && size() == item->as_array()->size() && eql(env, item))
                 continue;
 
             auto nat_int = IntegerObject::convert_to_nat_int_t(env, item_hash);
@@ -1562,7 +1562,7 @@ Value ArrayObject::intersection(Env *env, Value arg) {
 bool ArrayObject::include_eql(Env *env, Value arg) {
     auto eql = "eql?"_s;
     for (auto &val : *this) {
-        if (object_id(arg) == object_id(val) || arg->send(env, eql, { val })->is_truthy())
+        if (object_id(arg) == object_id(val) || arg->send(env, eql, { val }).is_truthy())
             return true;
     }
     return false;
@@ -1613,7 +1613,7 @@ bool ArrayObject::intersects(Env *env, Value arg) {
 }
 
 Value ArrayObject::union_of(Env *env, Value arg) {
-    if (!arg->is_array()) {
+    if (!arg.is_array()) {
         env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->inspect_str());
         return nullptr;
     }
@@ -1757,13 +1757,13 @@ Value ArrayObject::find_index(Env *env, Value object, Block *block, bool search_
         nat_int_t index = search_reverse ? length - i - 1 : i;
         auto item = m_vector[index];
         if (object) {
-            if (item.send(env, "=="_s, { object })->is_truthy())
+            if (item.send(env, "=="_s, { object }).is_truthy())
                 return Value::integer(index);
         } else {
             Value args[] = { item };
             auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
             length = static_cast<nat_int_t>(size());
-            if (result->is_truthy())
+            if (result.is_truthy())
                 return Value::integer(index);
         }
     }
@@ -1925,12 +1925,12 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         return _slice_in_place(start, _resolve_index(start) + length, true);
     }
 
-    if (index_obj->is_range()) {
+    if (index_obj.is_range()) {
         RangeObject *range = index_obj->as_range();
         Value begin_obj = range->begin();
         nat_int_t start;
 
-        if (begin_obj->is_nil()) {
+        if (begin_obj.is_nil()) {
             start = 0;
         } else {
             start = IntegerObject::convert_to_nat_int_t(env, begin_obj);
@@ -1940,7 +1940,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
 
         nat_int_t end;
 
-        if (end_obj->is_nil()) {
+        if (end_obj.is_nil()) {
             end = this->size();
         } else {
             end = IntegerObject::convert_to_nat_int_t(env, end_obj);
@@ -1949,14 +1949,14 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         return _slice_in_place(start, end, range->exclude_end());
     }
 
-    if (index_obj->is_enumerator_arithmetic_sequence()) {
+    if (index_obj.is_enumerator_arithmetic_sequence()) {
         auto seq = index_obj->as_enumerator_arithmetic_sequence();
         Vector<Value> result {};
         const auto step = IntegerObject::convert_to_nat_int_t(env, seq->step());
         if (step > 0) {
-            nat_int_t idx = seq->begin()->is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->begin());
+            nat_int_t idx = seq->begin().is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->begin());
             if (idx < 0) idx = this->size() + idx;
-            nat_int_t end = seq->end()->is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->end());
+            nat_int_t end = seq->end().is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->end());
             if (end < 0) end = this->size() + end;
             if (seq->exclude_end()) end--;
             while (idx <= end && static_cast<size_t>(idx) < this->size()) {
@@ -1964,8 +1964,8 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
                 idx += step;
             }
         } else {
-            const nat_int_t begin = seq->end()->is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->end());
-            nat_int_t idx = seq->begin()->is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->begin());
+            const nat_int_t begin = seq->end().is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->end());
+            nat_int_t idx = seq->begin().is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->begin());
             if (begin < 0 && idx != 0) {
                 idx = -1; // break early
             } else {
@@ -2043,7 +2043,7 @@ Value ArrayObject::to_h(Env *env, Block *block) {
 Value ArrayObject::try_convert(Env *env, Value val) {
     auto to_ary = "to_ary"_s;
 
-    if (val->is_array()) {
+    if (val.is_array()) {
         return val;
     }
 
@@ -2053,7 +2053,7 @@ Value ArrayObject::try_convert(Env *env, Value val) {
 
     auto conversion = val->send(env, to_ary);
 
-    if (conversion->is_array() || conversion->is_nil()) {
+    if (conversion.is_array() || conversion.is_nil()) {
         return conversion;
     }
 
@@ -2072,12 +2072,12 @@ Value ArrayObject::values_at(Env *env, Args &&args) {
 
     for (size_t i = 0; i < args.size(); ++i) {
         auto arg = args[i];
-        if (arg->is_range()) {
+        if (arg.is_range()) {
             auto begin_value = arg->as_range()->begin();
             auto end_value = arg->as_range()->end();
             nat_int_t begin, end;
 
-            if (begin_value->is_nil()) {
+            if (begin_value.is_nil()) {
                 begin = 0;
             } else {
                 begin = IntegerObject::convert_to_nat_int_t(env, begin_value);
@@ -2088,7 +2088,7 @@ Value ArrayObject::values_at(Env *env, Args &&args) {
                     break;
             }
 
-            if (end_value->is_nil()) {
+            if (end_value.is_nil()) {
                 end = size();
             } else {
                 end = IntegerObject::convert_to_nat_int_t(env, end_value);

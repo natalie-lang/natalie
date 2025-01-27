@@ -103,7 +103,7 @@ static char *hints_callback(const char *buf, int *color, int *bold) {
     auto env = proc->env();
 
     auto ret = proc->send(env, "call"_s, { buf_string });
-    if (ret->is_nil())
+    if (ret.is_nil())
         return nullptr;
 
     auto ary = ret->as_array_or_raise(env);
@@ -112,7 +112,7 @@ static char *hints_callback(const char *buf, int *color, int *bold) {
 
     auto hint = ary->at(0)->as_string_or_raise(env)->c_str();
     *color = ary->at(1).integer_or_raise(env).to_nat_int_t();
-    *bold = ary->size() == 3 && ary->at(2)->is_truthy() ? 1 : 0;
+    *bold = ary->size() == 3 && ary->at(2).is_truthy() ? 1 : 0;
 
     return strdup(hint);
 }
@@ -173,7 +173,7 @@ Value Linenoise_set_history_max_len(Env *env, Value self, Args &&args, Block *) 
 
 Value Linenoise_set_multi_line(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto enabled = args[0]->is_truthy();
+    auto enabled = args[0].is_truthy();
     linenoiseSetMultiLine(enabled);
     return bool_object(enabled);
 }

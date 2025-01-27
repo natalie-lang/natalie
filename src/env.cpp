@@ -107,9 +107,9 @@ void Env::raise_exception(ExceptionObject *exception) {
         // only build a backtrace the first time the exception is raised (not on a re-raise)
         exception->build_backtrace(this);
     }
-    if (!exception->cause() || exception->cause()->is_nil()) {
+    if (!exception->cause() || exception->cause()->type() == Object::Type::Nil) {
         auto cause = exception_object();
-        if (cause && cause->is_exception() && cause != exception)
+        if (cause && cause.is_exception() && cause != exception)
             exception->set_cause(cause->as_exception());
     }
     throw exception;
@@ -156,13 +156,13 @@ void Env::raise_invalid_byte_sequence_error(const EncodingObject *encoding) {
 
 void Env::raise_no_method_error(Object *receiver, SymbolObject *name, MethodMissingReason reason) {
     String inspect_string;
-    if (receiver->is_nil() || receiver->is_true() || receiver->is_false()) {
+    if (receiver->type() == Object::Type::Nil || receiver->type() == Object::Type::True || receiver->type() == Object::Type::False) {
         inspect_string = receiver->inspect_str(this);
     } else if (receiver->is_main_object()) {
         inspect_string = "main";
-    } else if (receiver->is_class()) {
+    } else if (receiver->type() == Object::Type::Class) {
         inspect_string = String::format("class {}", receiver->inspect_str(this));
-    } else if (receiver->is_module()) {
+    } else if (receiver->type() == Object::Type::Module) {
         inspect_string = String::format("module {}", receiver->inspect_str(this));
     } else {
         inspect_string = String::format("an instance of {}", receiver->klass()->inspect_str());
@@ -205,7 +205,7 @@ void Env::raise_name_error(StringObject *name, String message) {
 void Env::raise_not_comparable_error(Value lhs, Value rhs) {
     String lhs_class = lhs->klass()->inspect_str();
     String rhs_inspect;
-    if (rhs.is_integer() || rhs->is_float() || rhs->is_falsey()) {
+    if (rhs.is_integer() || rhs.is_float() || rhs.is_falsey()) {
         rhs_inspect = rhs->inspect_str(this);
     } else {
         rhs_inspect = rhs->klass()->inspect_str();

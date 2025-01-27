@@ -215,35 +215,35 @@ static void emit_object_value(Env *env, Value value, yaml_emitter_t &emitter, ya
 }
 
 static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    if (value->is_array()) {
+    if (value.is_array()) {
         emit_value(env, value->as_array(), emitter, event);
-    } else if (value->is_class()) {
+    } else if (value.is_class()) {
         emit_value(env, value->as_class(), emitter, event);
-    } else if (value->is_exception()) {
+    } else if (value.is_exception()) {
         emit_value(env, value->as_exception(), emitter, event);
-    } else if (value->is_false()) {
+    } else if (value.is_false()) {
         emit_value(env, value->as_false(), emitter, event);
-    } else if (value->is_float()) {
+    } else if (value.is_float()) {
         emit_value(env, value->as_float(), emitter, event);
-    } else if (value->is_hash()) {
+    } else if (value.is_hash()) {
         emit_value(env, value->as_hash(), emitter, event);
     } else if (value.is_integer()) {
         emit_value(env, value.integer(), emitter, event);
-    } else if (value->is_module()) {
+    } else if (value.is_module()) {
         emit_value(env, value->as_module(), emitter, event);
-    } else if (value->is_nil()) {
+    } else if (value.is_nil()) {
         emit_value(env, value->as_nil(), emitter, event);
-    } else if (value->is_range()) {
+    } else if (value.is_range()) {
         emit_value(env, value->as_range(), emitter, event);
-    } else if (value->is_regexp()) {
+    } else if (value.is_regexp()) {
         emit_value(env, value->as_regexp(), emitter, event);
-    } else if (value->is_string()) {
+    } else if (value.is_string()) {
         emit_value(env, value->as_string(), emitter, event);
-    } else if (value->is_symbol()) {
+    } else if (value.is_symbol()) {
         emit_value(env, value->as_symbol(), emitter, event);
-    } else if (value->is_time()) {
+    } else if (value.is_time()) {
         emit_value(env, value->as_time(), emitter, event);
-    } else if (value->is_true()) {
+    } else if (value.is_true()) {
         emit_value(env, value->as_true(), emitter, event);
     } else if (GlobalEnv::the()->Object()->defined(env, "Date"_s, false) && value->is_a(env, GlobalEnv::the()->Object()->const_get("Date"_s)->as_class())) {
         emit_value(env, value->send(env, "to_s"_s)->as_string(), emitter, event);
@@ -320,12 +320,12 @@ static Value load_scalar(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
 
     // If it looks like an Integer, and quaks like an Integer
     auto int_value = KernelModule::Integer(env, result, 10, false);
-    if (int_value && !int_value->is_nil())
+    if (int_value && !int_value.is_nil())
         return int_value;
 
     // If it looks like a Float, and quaks like a Float
     auto float_value = KernelModule::Float(env, result, false);
-    if (float_value && !float_value->is_nil())
+    if (float_value && !float_value.is_nil())
         return float_value;
 
     return result;
@@ -407,7 +407,7 @@ Value YAML_load(Env *env, Value self, Args &&args, Block *) {
     Defer parser_deleter { [&parser]() { yaml_parser_delete(&parser); } };
 
     auto input = args.at(0);
-    if (input->is_io() || input->respond_to(env, "to_io"_s)) {
+    if (input.is_io() || input->respond_to(env, "to_io"_s)) {
         auto io = input->to_io(env);
         auto file = fdopen(io->fileno(env), "r");
         yaml_parser_set_input_file(&parser, file);

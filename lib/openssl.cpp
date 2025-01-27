@@ -278,7 +278,7 @@ Value OpenSSL_Digest_initialize(Env *env, Value self, Args &&args, Block *) {
     auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
     if (name->is_a(env, digest_klass))
         name = name->send(env, "name"_s);
-    if (!name->is_string())
+    if (!name.is_string())
         env->raise("TypeError", "wrong argument type {} (expected OpenSSL/Digest)", name->klass()->inspect_str());
 
     const EVP_MD *md = EVP_get_digestbyname(name->as_string()->c_str());
@@ -386,7 +386,7 @@ Value OpenSSL_SSL_SSLContext_set_max_version(Env *env, Value self, Args &&args, 
     if (self->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
 
-    if (version->is_string() || version->is_symbol()) {
+    if (version.is_string() || version.is_symbol()) {
         version = StringObject::format("{}_VERSION", version->to_s(env)->string());
         const auto SSL = fetch_nested_const({ "OpenSSL"_s, "SSL"_s })->as_module();
         version = SSL->const_get(version->as_string()->to_sym(env)->as_symbol());
@@ -408,7 +408,7 @@ Value OpenSSL_SSL_SSLContext_set_min_version(Env *env, Value self, Args &&args, 
     if (self->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
 
-    if (version->is_string() || version->is_symbol()) {
+    if (version.is_string() || version.is_symbol()) {
         version = StringObject::format("{}_VERSION", version->to_s(env)->string());
         const auto SSL = fetch_nested_const({ "OpenSSL"_s, "SSL"_s })->as_module();
         version = SSL->const_get(version->as_string()->to_sym(env)->as_symbol());
@@ -435,7 +435,7 @@ Value OpenSSL_SSL_SSLContext_set_options(Env *env, Value self, Args &&args, Bloc
     args.ensure_argc_is(env, 1);
 
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
-    const uint64_t options = args[0]->is_nil() ? SSL_OP_ALL : IntegerObject::convert_to_native_type<uint64_t>(env, args[0]);
+    const uint64_t options = args[0].is_nil() ? SSL_OP_ALL : IntegerObject::convert_to_native_type<uint64_t>(env, args[0]);
     const auto result = SSL_CTX_set_options(ctx, options);
     if (result != options)
         SSL_CTX_clear_options(ctx, result & ~options);
@@ -494,14 +494,14 @@ Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args &&args, Block *) {
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
 
     auto verify_mode = self->ivar_get(env, "@verify_mode"_s);
-    if (verify_mode->is_nil()) {
+    if (verify_mode.is_nil()) {
         SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, nullptr);
     } else {
         SSL_CTX_set_verify(ctx, IntegerObject::convert_to_native_type<int>(env, verify_mode), nullptr);
     }
 
     auto cert_store = self->ivar_get(env, "@cert_store"_s);
-    if (!cert_store->is_nil()) {
+    if (!cert_store.is_nil()) {
         auto Store = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Store"_s })->as_class();
         if (!cert_store->is_a(env, Store))
             env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/STORE)", cert_store->klass()->inspect_str());
@@ -515,11 +515,11 @@ Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args &&args, Block *) {
 Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto io = args.at(0);
-    if (!io->is_io())
+    if (!io.is_io())
         env->raise("TypeError", "wrong argument type {} (expected File)", io->klass()->inspect_str());
     auto context = args.at(1, nullptr);
     auto SSLContext = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("SSL"_s)->const_get("SSLContext"_s);
-    if (!context || context->is_nil()) {
+    if (!context || context.is_nil()) {
         context = Object::_new(env, SSLContext, {}, nullptr);
     } else {
         if (!context->is_a(env, SSLContext->as_class()))
@@ -549,7 +549,7 @@ Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args &&args, Block *) 
     auto context = self->ivar_get(env, "@context"_s);
     auto hostname = self->ivar_get(env, "@hostname"_s);
 
-    if (context && context->ivar_get(env, "@verify_hostname"_s)->is_truthy() && !hostname->is_nil()) {
+    if (context && context->ivar_get(env, "@verify_hostname"_s).is_truthy() && !hostname.is_nil()) {
         if (!SSL_set1_host(ssl, hostname->to_str(env)->c_str()))
             OpenSSL_SSL_raise_error(env, "SSL_set1_host");
     }
@@ -575,7 +575,7 @@ Value OpenSSL_SSL_SSLSocket_set_hostname(Env *env, Value self, Args &&args, Bloc
     Value hostname = NilObject::the();
     const char *hostname_cstr = nullptr;
 
-    if (!args[0]->is_nil()) {
+    if (!args[0].is_nil()) {
         hostname = args[0]->to_str(env);
         hostname_cstr = hostname->as_string()->c_str();
     }
@@ -593,13 +593,13 @@ Value OpenSSL_SSL_SSLSocket_read(Env *env, Value self, Args &&args, Block *) {
     auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
     size_t buf_size = 1024;
     bool has_size_arg = false;
-    if (!args.at(0, NilObject::the())->is_nil()) {
+    if (!args.at(0, NilObject::the()).is_nil()) {
         has_size_arg = true;
         buf_size = IntegerObject::convert_to_native_type<size_t>(env, args[0]);
     }
     TM::String buf(buf_size, '\0');
     StringObject *result;
-    if (args.at(1, NilObject::the())->is_nil()) {
+    if (args.at(1, NilObject::the()).is_nil()) {
         result = new StringObject {};
     } else {
         result = args[1]->to_str(env);
@@ -628,7 +628,7 @@ Value OpenSSL_PKey_RSA_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     EVP_PKEY *pkey = nullptr;
 
-    if (args.at(0)->is_string()) {
+    if (args.at(0).is_string()) {
         auto str = args.at(0)->as_string();
         if (str->include("PUBLIC KEY")) {
             auto bio = BIO_new_mem_buf(str->c_str(), str->bytesize());
@@ -664,7 +664,7 @@ Value OpenSSL_PKey_RSA_export(Env *env, Value self, Args &&args, Block *) {
         OpenSSL_raise_error(env, "BIO_new_mem_buf");
     Defer bio_free { [&bio]() { BIO_free(bio); } };
 
-    if (self->send(env, "private?"_s)->is_truthy()) {
+    if (self->send(env, "private?"_s).is_truthy()) {
         PEM_write_bio_PrivateKey(bio, pkey, nullptr, nullptr, 0, nullptr, nullptr);
     } else {
         PEM_write_bio_PUBKEY(bio, pkey);
@@ -890,7 +890,7 @@ Value OpenSSL_X509_Certificate_sign(Env *env, Value self, Args &&args, Block *) 
     auto PKey = fetch_nested_const({ "OpenSSL"_s, "PKey"_s, "PKey"_s })->as_class();
     if (!key->is_a(env, PKey))
         env->raise("TypeError", "wrong argument type {} (expected OpenSSL/EVP_PKEY)", key->klass()->inspect_str());
-    if (key->send(env, "private?"_s)->is_falsey())
+    if (key->send(env, "private?"_s).is_falsey())
         env->raise("ArgumentError", "private key is needed");
     auto Digest = fetch_nested_const({ "OpenSSL"_s, "Digest"_s })->as_class();
     if (!digest->is_a(env, Digest))
@@ -1127,9 +1127,9 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
         const auto str = arg.integer().to_string();
         if (!BN_dec2bn(&bn, str.c_str()))
             OpenSSL_raise_error(env, "BN_dec2bn");
-    } else if (arg->is_string()) {
+    } else if (arg.is_string()) {
         args.ensure_argc_between(env, 1, 2);
-        if (args.size() == 1 || args[1]->is_nil()) {
+        if (args.size() == 1 || args[1].is_nil()) {
             if (!BN_dec2bn(&bn, arg->as_string()->c_str()))
                 OpenSSL_raise_error(env, "BN_dec2bn");
         } else {
@@ -1190,15 +1190,15 @@ Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args &&args, Block *) {
     auto oid = args.at(0)->to_str(env);
     auto value = args.at(1)->to_str(env);
     auto type = args.at(2, nullptr);
-    if (type && !type->is_nil()) {
+    if (type && !type.is_nil()) {
         type = Object::to_int(env, type);
     } else {
         auto OBJECT_TYPE_TEMPLATE = self->klass()->const_get("OBJECT_TYPE_TEMPLATE"_s)->as_hash();
         type = OBJECT_TYPE_TEMPLATE->ref(env, oid);
     }
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
-    int loc = kwarg_loc && !kwarg_loc->is_nil() ? IntegerObject::convert_to_nat_int_t(env, kwarg_loc) : -1;
-    int set = kwarg_set && !kwarg_set->is_nil() ? IntegerObject::convert_to_nat_int_t(env, kwarg_set) : 0;
+    int loc = kwarg_loc && !kwarg_loc.is_nil() ? IntegerObject::convert_to_nat_int_t(env, kwarg_loc) : -1;
+    int set = kwarg_set && !kwarg_set.is_nil() ? IntegerObject::convert_to_nat_int_t(env, kwarg_set) : 0;
     if (!X509_NAME_add_entry_by_txt(name, oid->c_str(), IntegerObject::convert_to_nat_int_t(env, type), reinterpret_cast<const unsigned char *>(value->c_str()), value->bytesize(), loc, set))
         OpenSSL_X509_Name_raise_error(env, "X509_NAME_add_entry_by_txt");
     return self;
@@ -1212,7 +1212,7 @@ Value OpenSSL_X509_Name_initialize(Env *env, Value self, Args &&args, Block *) {
     self->ivar_set(env, "@name"_s, new VoidPObject { name, OpenSSL_X509_NAME_cleanup });
     if (args.size() > 0) {
         HashObject *lookup = self->klass()->const_get("OBJECT_TYPE_TEMPLATE"_s)->as_hash();
-        if (args.size() >= 2 && !args.at(1)->is_nil())
+        if (args.size() >= 2 && !args.at(1).is_nil())
             lookup = args.at(1)->to_hash(env);
         for (auto entry : *args.at(0)->to_ary(env)) {
             ArrayObject *add_entry_args = entry->to_ary(env);
@@ -1262,7 +1262,7 @@ Value OpenSSL_X509_Name_to_s(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
     auto format = args.at(0, nullptr);
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
-    if (!format || format->is_nil()) {
+    if (!format || format.is_nil()) {
         char *str = X509_NAME_oneline(name, nullptr, 0);
         if (!str)
             OpenSSL_X509_Name_raise_error(env, "X509_NAME_oneline");

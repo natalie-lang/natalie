@@ -186,408 +186,408 @@ Value Object::initialize(Env *env) {
 }
 
 NilObject *Object::as_nil() {
-    assert(is_nil());
+    assert(m_type == Type::Nil);
     return static_cast<NilObject *>(this);
 }
 
 const NilObject *Object::as_nil() const {
-    assert(is_nil());
+    assert(m_type == Type::Nil);
     return static_cast<const NilObject *>(this);
 }
 
 Enumerator::ArithmeticSequenceObject *Object::as_enumerator_arithmetic_sequence() {
-    assert(is_enumerator_arithmetic_sequence());
+    assert(m_type == Type::EnumeratorArithmeticSequence);
     return static_cast<Enumerator::ArithmeticSequenceObject *>(this);
 }
 
 ArrayObject *Object::as_array() {
-    assert(is_array());
+    assert(m_type == Type::Array);
     return static_cast<ArrayObject *>(this);
 }
 
 const ArrayObject *Object::as_array() const {
-    assert(is_array());
+    assert(m_type == Type::Array);
     return static_cast<const ArrayObject *>(this);
 }
 
 BindingObject *Object::as_binding() {
-    assert(is_binding());
+    assert(m_type == Type::Binding);
     return static_cast<BindingObject *>(this);
 }
 
 const BindingObject *Object::as_binding() const {
-    assert(is_binding());
+    assert(m_type == Type::Binding);
     return static_cast<const BindingObject *>(this);
 }
 
 MethodObject *Object::as_method() {
-    assert(is_method());
+    assert(m_type == Type::Method);
     return static_cast<MethodObject *>(this);
 }
 
 const MethodObject *Object::as_method() const {
-    assert(is_method());
+    assert(m_type == Type::Method);
     return static_cast<const MethodObject *>(this);
 }
 
 ModuleObject *Object::as_module() {
-    assert(is_module());
+    assert(m_type == Type::Module || m_type == Type::Class);
     return static_cast<ModuleObject *>(this);
 }
 
 const ModuleObject *Object::as_module() const {
-    assert(is_module());
+    assert(m_type == Type::Module);
     return static_cast<const ModuleObject *>(this);
 }
 
 ClassObject *Object::as_class() {
-    assert(is_class());
+    assert(m_type == Type::Class);
     return static_cast<ClassObject *>(this);
 }
 
 const ClassObject *Object::as_class() const {
-    assert(is_class());
+    assert(m_type == Type::Class);
     return static_cast<const ClassObject *>(this);
 }
 
 ComplexObject *Object::as_complex() {
-    assert(is_complex());
+    assert(m_type == Type::Complex);
     return static_cast<ComplexObject *>(this);
 }
 
 const ComplexObject *Object::as_complex() const {
-    assert(is_complex());
+    assert(m_type == Type::Complex);
     return static_cast<const ComplexObject *>(this);
 }
 
 DirObject *Object::as_dir() {
-    assert(is_dir());
+    assert(m_type == Type::Dir);
     return static_cast<DirObject *>(this);
 }
 
 const DirObject *Object::as_dir() const {
-    assert(is_dir());
+    assert(m_type == Type::Dir);
     return static_cast<const DirObject *>(this);
 }
 
 EncodingObject *Object::as_encoding() {
-    assert(is_encoding());
+    assert(m_type == Type::Encoding);
     return static_cast<EncodingObject *>(this);
 }
 
 const EncodingObject *Object::as_encoding() const {
-    assert(is_encoding());
+    assert(m_type == Type::Encoding);
     return static_cast<const EncodingObject *>(this);
 }
 
 EnvObject *Object::as_env() {
-    assert(is_env());
+    assert(m_type == Type::Env);
     return static_cast<EnvObject *>(this);
 }
 
 const EnvObject *Object::as_env() const {
-    assert(is_env());
+    assert(m_type == Type::Env);
     return static_cast<const EnvObject *>(this);
 }
 
 ExceptionObject *Object::as_exception() {
-    assert(is_exception());
+    assert(m_type == Type::Exception);
     return static_cast<ExceptionObject *>(this);
 }
 
 const ExceptionObject *Object::as_exception() const {
-    assert(is_exception());
+    assert(m_type == Type::Exception);
     return static_cast<const ExceptionObject *>(this);
 }
 
 FalseObject *Object::as_false() {
-    assert(is_false());
+    assert(m_type == Type::False);
     return static_cast<FalseObject *>(this);
 }
 
 const FalseObject *Object::as_false() const {
-    assert(is_false());
+    assert(m_type == Type::False);
     return static_cast<const FalseObject *>(this);
 }
 
 FiberObject *Object::as_fiber() {
-    assert(is_fiber());
+    assert(m_type == Type::Fiber);
     return static_cast<FiberObject *>(this);
 }
 
 const FiberObject *Object::as_fiber() const {
-    assert(is_fiber());
+    assert(m_type == Type::Fiber);
     return static_cast<const FiberObject *>(this);
 }
 
 FloatObject *Object::as_float() {
-    assert(is_float());
+    assert(m_type == Type::Float);
     return static_cast<FloatObject *>(this);
 }
 
 const FloatObject *Object::as_float() const {
-    assert(is_float());
+    assert(m_type == Type::Float);
     return static_cast<const FloatObject *>(this);
 }
 
 HashObject *Object::as_hash() {
-    assert(is_hash());
+    assert(m_type == Type::Hash);
     return static_cast<HashObject *>(this);
 }
 
 const HashObject *Object::as_hash() const {
-    assert(is_hash());
+    assert(m_type == Type::Hash);
     return static_cast<const HashObject *>(this);
 }
 
 IoObject *Object::as_io() {
-    assert(is_io());
+    assert(m_type == Type::Io || m_type == Type::File);
     return static_cast<IoObject *>(this);
 }
 
 const IoObject *Object::as_io() const {
-    assert(is_io());
+    assert(m_type == Type::Io);
     return static_cast<const IoObject *>(this);
 }
 
 FileObject *Object::as_file() {
-    assert(is_file());
+    assert(m_type == Type::File);
     return static_cast<FileObject *>(this);
 }
 
 const FileObject *Object::as_file() const {
-    assert(is_io());
+    assert(m_type == Type::File);
     return static_cast<const FileObject *>(this);
 }
 
 FileStatObject *Object::as_file_stat() {
-    assert(is_file_stat());
+    assert(m_type == Type::FileStat);
     return static_cast<FileStatObject *>(this);
 }
 
 const FileStatObject *Object::as_file_stat() const {
-    assert(is_file_stat());
+    assert(m_type == Type::FileStat);
     return static_cast<const FileStatObject *>(this);
 }
 
 MatchDataObject *Object::as_match_data() {
-    assert(is_match_data());
+    assert(m_type == Type::MatchData);
     return static_cast<MatchDataObject *>(this);
 }
 
 const MatchDataObject *Object::as_match_data() const {
-    assert(is_match_data());
+    assert(m_type == Type::MatchData);
     return static_cast<const MatchDataObject *>(this);
 }
 
 ProcObject *Object::as_proc() {
-    assert(is_proc());
+    assert(m_type == Type::Proc);
     return static_cast<ProcObject *>(this);
 }
 
 const ProcObject *Object::as_proc() const {
-    assert(is_proc());
+    assert(m_type == Type::Proc);
     return static_cast<const ProcObject *>(this);
 }
 
 RandomObject *Object::as_random() {
-    assert(is_random());
+    assert(m_type == Type::Random);
     return static_cast<RandomObject *>(this);
 }
 
 const RandomObject *Object::as_random() const {
-    assert(is_random());
+    assert(m_type == Type::Random);
     return static_cast<const RandomObject *>(this);
 }
 
 RangeObject *Object::as_range() {
-    assert(is_range());
+    assert(m_type == Type::Range);
     return static_cast<RangeObject *>(this);
 }
 
 const RangeObject *Object::as_range() const {
-    assert(is_range());
+    assert(m_type == Type::Range);
     return static_cast<const RangeObject *>(this);
 }
 
 RationalObject *Object::as_rational() {
-    assert(is_rational());
+    assert(m_type == Type::Rational);
     return static_cast<RationalObject *>(this);
 }
 
 const RationalObject *Object::as_rational() const {
-    assert(is_rational());
+    assert(m_type == Type::Rational);
     return static_cast<const RationalObject *>(this);
 }
 
 RegexpObject *Object::as_regexp() {
-    assert(is_regexp());
+    assert(m_type == Type::Regexp);
     return static_cast<RegexpObject *>(this);
 }
 
 const RegexpObject *Object::as_regexp() const {
-    assert(is_regexp());
+    assert(m_type == Type::Regexp);
     return static_cast<const RegexpObject *>(this);
 }
 
 StringObject *Object::as_string() {
-    assert(is_string());
+    assert(m_type == Type::String);
     return static_cast<StringObject *>(this);
 }
 
 const StringObject *Object::as_string() const {
-    assert(is_string());
+    assert(m_type == Type::String);
     return static_cast<const StringObject *>(this);
 }
 
 SymbolObject *Object::as_symbol() {
-    assert(is_symbol());
+    assert(m_type == Type::Symbol);
     return static_cast<SymbolObject *>(this);
 }
 
 const SymbolObject *Object::as_symbol() const {
-    assert(is_symbol());
+    assert(m_type == Type::Symbol);
     return static_cast<const SymbolObject *>(this);
 }
 
 ThreadObject *Object::as_thread() {
-    assert(is_thread());
+    assert(m_type == Type::Thread);
     return static_cast<ThreadObject *>(this);
 }
 
 const ThreadObject *Object::as_thread() const {
-    assert(is_thread());
+    assert(m_type == Type::Thread);
     return static_cast<const ThreadObject *>(this);
 }
 
 Thread::Backtrace::LocationObject *Object::as_thread_backtrace_location() {
-    assert(is_thread_backtrace_location());
+    assert(m_type == Type::ThreadBacktraceLocation);
     return static_cast<Thread::Backtrace::LocationObject *>(this);
 }
 
 const Thread::Backtrace::LocationObject *Object::as_thread_backtrace_location() const {
-    assert(is_thread_backtrace_location());
+    assert(m_type == Type::ThreadBacktraceLocation);
     return static_cast<const Thread::Backtrace::LocationObject *>(this);
 }
 
 ThreadGroupObject *Object::as_thread_group() {
-    assert(is_thread_group());
+    assert(m_type == Type::ThreadGroup);
     return static_cast<ThreadGroupObject *>(this);
 }
 
 const ThreadGroupObject *Object::as_thread_group() const {
-    assert(is_thread_group());
+    assert(m_type == Type::ThreadGroup);
     return static_cast<const ThreadGroupObject *>(this);
 }
 
 Thread::MutexObject *Object::as_thread_mutex() {
-    assert(is_thread_mutex());
+    assert(m_type == Type::ThreadMutex);
     return static_cast<Thread::MutexObject *>(this);
 }
 
 const Thread::MutexObject *Object::as_thread_mutex() const {
-    assert(is_thread_mutex());
+    assert(m_type == Type::ThreadMutex);
     return static_cast<const Thread::MutexObject *>(this);
 }
 
 TimeObject *Object::as_time() {
-    assert(is_time());
+    assert(m_type == Type::Time);
     return static_cast<TimeObject *>(this);
 }
 
 const TimeObject *Object::as_time() const {
-    assert(is_time());
+    assert(m_type == Type::Time);
     return static_cast<const TimeObject *>(this);
 }
 
 TrueObject *Object::as_true() {
-    assert(is_true());
+    assert(m_type == Type::True);
     return static_cast<TrueObject *>(this);
 }
 
 const TrueObject *Object::as_true() const {
-    assert(is_true());
+    assert(m_type == Type::True);
     return static_cast<const TrueObject *>(this);
 }
 
 UnboundMethodObject *Object::as_unbound_method() {
-    assert(is_unbound_method());
+    assert(m_type == Type::UnboundMethod);
     return static_cast<UnboundMethodObject *>(this);
 }
 
 const UnboundMethodObject *Object::as_unbound_method() const {
-    assert(is_unbound_method());
+    assert(m_type == Type::UnboundMethod);
     return static_cast<const UnboundMethodObject *>(this);
 }
 
 VoidPObject *Object::as_void_p() {
-    assert(is_void_p());
+    assert(m_type == Type::VoidP);
     return static_cast<VoidPObject *>(this);
 }
 
 const VoidPObject *Object::as_void_p() const {
-    assert(is_void_p());
+    assert(m_type == Type::VoidP);
     return static_cast<const VoidPObject *>(this);
 }
 
 ArrayObject *Object::as_array_or_raise(Env *env) {
-    if (!is_array())
+    if (m_type != Type::Array)
         env->raise("TypeError", "{} can't be coerced into Array", m_klass->inspect_str());
     return static_cast<ArrayObject *>(this);
 }
 
 ClassObject *Object::as_class_or_raise(Env *env) {
-    if (!is_class())
+    if (m_type != Type::Class)
         env->raise("TypeError", "{} can't be coerced into Class", m_klass->inspect_str());
     return static_cast<ClassObject *>(this);
 }
 
 EncodingObject *Object::as_encoding_or_raise(Env *env) {
-    if (!is_encoding())
+    if (m_type != Type::Encoding)
         env->raise("TypeError", "{} can't be coerced into Encoding", m_klass->inspect_str());
     return static_cast<EncodingObject *>(this);
 }
 
 ExceptionObject *Object::as_exception_or_raise(Env *env) {
-    if (!is_exception())
+    if (m_type != Type::Exception)
         env->raise("TypeError", "{} can't be coerced into Exception", m_klass->inspect_str());
     return static_cast<ExceptionObject *>(this);
 }
 
 FloatObject *Object::as_float_or_raise(Env *env) {
-    if (!is_float())
+    if (m_type != Type::Float)
         env->raise("TypeError", "{} can't be coerced into Float", m_klass->inspect_str());
     return static_cast<FloatObject *>(this);
 }
 
 HashObject *Object::as_hash_or_raise(Env *env) {
-    if (!is_hash())
+    if (m_type != Type::Hash)
         env->raise("TypeError", "{} can't be coerced into Hash", m_klass->inspect_str());
     return static_cast<HashObject *>(this);
 }
 
 MatchDataObject *Object::as_match_data_or_raise(Env *env) {
-    if (!is_match_data())
+    if (m_type != Type::MatchData)
         env->raise("TypeError", "{} can't be coerced into MatchData", m_klass->inspect_str());
     return static_cast<MatchDataObject *>(this);
 }
 
 RangeObject *Object::as_range_or_raise(Env *env) {
-    if (!is_range())
+    if (m_type != Type::Range)
         env->raise("TypeError", "{} can't be coerced into Range", m_klass->inspect_str());
     return static_cast<RangeObject *>(this);
 }
 
 StringObject *Object::as_string_or_raise(Env *env) {
-    if (!is_string())
+    if (m_type != Type::String)
         env->raise("TypeError", "{} can't be coerced into String", m_klass->inspect_str());
     return static_cast<StringObject *>(this);
 }
 
 SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
-    if (is_symbol()) {
+    if (m_type == Type::Symbol) {
         return as_symbol();
-    } else if (is_string() || respond_to(env, "to_str"_s)) {
+    } else if (m_type == Type::String || respond_to(env, "to_str"_s)) {
         return to_str(env)->to_symbol(env);
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
@@ -600,7 +600,7 @@ SymbolObject *Object::to_instance_variable_name(Env *env) {
     SymbolObject *symbol = to_symbol(env, Conversion::Strict); // TypeError if not Symbol/String
 
     if (!symbol->is_ivar_name()) {
-        if (is_string()) {
+        if (m_type == Type::String) {
             env->raise_name_error(as_string(), "`{}' is not allowed as an instance variable name", symbol->string());
         } else {
             env->raise_name_error(symbol, "`{}' is not allowed as an instance variable name", symbol->string());
@@ -616,21 +616,21 @@ void Object::set_singleton_class(ClassObject *klass) {
 }
 
 ClassObject *Object::singleton_class(Env *env, Value self) {
-    if (self.is_integer() || self->is_float() || self->is_symbol())
+    if (self.is_integer() || self.is_float() || self.is_symbol())
         env->raise("TypeError", "can't define singleton");
 
     if (self->m_singleton_class)
         return self->m_singleton_class;
 
     String name;
-    if (self->is_module()) {
+    if (self.is_module()) {
         name = String::format("#<Class:{}>", self->as_module()->inspect_str());
     } else if (self->respond_to(env, "inspect"_s)) {
         name = String::format("#<Class:{}>", self->inspect_str(env));
     }
 
     ClassObject *singleton_superclass;
-    if (self->is_class()) {
+    if (self.is_class()) {
         singleton_superclass = singleton_class(env, self->as_class()->superclass(env));
     } else {
         singleton_superclass = self->m_klass;
@@ -644,7 +644,7 @@ ClassObject *Object::singleton_class(Env *env, Value self) {
 }
 
 ClassObject *Object::subclass(Env *env, const char *name) {
-    if (!is_class())
+    if (m_type != Type::Class)
         env->raise("TypeError", "superclass must be an instance of Class (given an instance of {})", klass()->inspect_str());
     return as_class()->subclass(env, name);
 }
@@ -785,11 +785,10 @@ Value Object::cvar_get_or_raise(Env *env, SymbolObject *name) {
         return val;
     } else {
         ModuleObject *module;
-        if (is_module()) {
+        if (m_type == Type::Module || m_type == Type::Class)
             module = as_module();
-        } else {
+        else
             module = m_klass;
-        }
         env->raise_name_error(name, "uninitialized class variable {} in {}", name->string(), module->inspect_str());
     }
 }
@@ -812,12 +811,12 @@ void Object::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_na
     if (m_type == Type::Integer)
         env->raise("TypeError", "no klass to make alias");
 
-    if (is_symbol())
+    if (m_type == Type::Symbol)
         env->raise("TypeError", "no klass to make alias");
 
     if (is_main_object()) {
         m_klass->make_method_alias(env, new_name, old_name);
-    } else if (is_module()) {
+    } else if (m_type == Type::Module || m_type == Type::Class) {
         as_module()->method_alias(env, new_name, old_name);
     } else {
         singleton_class(env, this)->make_method_alias(env, new_name, old_name);
@@ -833,13 +832,13 @@ void Object::singleton_method_alias(Env *env, SymbolObject *new_name, SymbolObje
     klass->method_alias(env, new_name, old_name);
 }
 
-SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
+SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     ClassObject *klass = singleton_class(env, this)->as_class();
     if (klass->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
-    klass->define_method(env, name, fn, arity, optimized);
+    klass->define_method(env, name, fn, arity);
     return name;
 }
 
@@ -861,11 +860,11 @@ SymbolObject *Object::undefine_singleton_method(Env *env, SymbolObject *name) {
     return name;
 }
 
-SymbolObject *Object::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
+SymbolObject *Object::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
     if (GlobalEnv::the()->instance_evaling()) {
-        return define_singleton_method(env, name, fn, arity, optimized);
+        return define_singleton_method(env, name, fn, arity);
     }
-    m_klass->define_method(env, name, fn, arity, optimized);
+    m_klass->define_method(env, name, fn, arity);
     return name;
 }
 
@@ -969,7 +968,7 @@ Value Object::method_missing_send(Env *env, SymbolObject *name, Args &&args, Blo
 Value Object::method_missing(Env *env, Args &&args, Block *block) {
     if (args.size() == 0) {
         env->raise("ArgError", "no method name given");
-    } else if (!args[0]->is_symbol()) {
+    } else if (!args[0].is_symbol()) {
         env->raise("ArgError", "method name must be a Symbol but {} is given", args[0]->klass()->inspect_str());
     } else {
         auto name = args[0]->as_symbol();
@@ -1071,9 +1070,9 @@ Value Object::duplicate(Env *env) const {
 Value Object::clone(Env *env, Value freeze) {
     bool freeze_bool = true;
     if (freeze) {
-        if (freeze->is_false()) {
+        if (freeze.is_false()) {
             freeze_bool = false;
-        } else if (!freeze->is_true() && !freeze->is_nil()) {
+        } else if (!freeze.is_true() && !freeze.is_nil()) {
             env->raise("ArgumentError", "unexpected value for freeze: {}", freeze->klass()->inspect_str());
         }
     }
@@ -1111,7 +1110,7 @@ void Object::copy_instance_variables(const Value other) {
 }
 
 bool Object::is_a(Env *env, Value val) const {
-    if (!val->is_module()) return false;
+    if (!val.is_module()) return false;
     ModuleObject *module = val->as_module();
     if (m_klass == module || singleton_class() == module) {
         return true;
@@ -1131,7 +1130,7 @@ bool Object::respond_to(Env *env, Value name_val, bool include_all) {
         } else {
             include_all_val = FalseObject::the();
         }
-        return send(env, "respond_to?"_s, { name_val, include_all_val })->is_truthy();
+        return send(env, "respond_to?"_s, { name_val, include_all_val }).is_truthy();
     }
 
     // Needed for BaseObject as it does not have an actual respond_to? method
@@ -1148,7 +1147,7 @@ bool Object::respond_to_method(Env *env, Value name_val, bool include_all) {
     auto method_info = klass->find_method(env, name_symbol);
     if (!method_info.is_defined()) {
         if (klass->find_method(env, "respond_to_missing?"_s).is_defined()) {
-            return send(env, "respond_to_missing?"_s, { name_val, bool_object(include_all) })->is_truthy();
+            return send(env, "respond_to_missing?"_s, { name_val, bool_object(include_all) }).is_truthy();
         }
         return false;
     }
@@ -1160,14 +1159,14 @@ bool Object::respond_to_method(Env *env, Value name_val, bool include_all) {
     if (visibility == MethodVisibility::Public) {
         return true;
     } else if (klass->find_method(env, "respond_to_missing?"_s).is_defined()) {
-        return send(env, "respond_to_missing?"_s, { name_val, bool_object(include_all) })->is_truthy();
+        return send(env, "respond_to_missing?"_s, { name_val, bool_object(include_all) }).is_truthy();
     } else {
         return false;
     }
 }
 
 bool Object::respond_to_method(Env *env, Value name_val, Value include_all_val) {
-    bool include_all = include_all_val ? include_all_val->is_truthy() : false;
+    bool include_all = include_all_val ? include_all_val.is_truthy() : false;
     return respond_to_method(env, name_val, include_all);
 }
 
@@ -1179,9 +1178,8 @@ const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
     Value obj = nullptr;
     if (name->is_constant_name()) {
         if (strict) {
-            if (is_module()) {
+            if (m_type == Type::Module || m_type == Type::Class)
                 obj = as_module()->const_get(name);
-            }
         } else {
             obj = const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
         }
@@ -1280,14 +1278,14 @@ bool Object::equal(Value self, Value other) {
         return false;
 
     // We still need the pointer compare for the identical NaN equality
-    if (self->is_float() && other->is_float())
+    if (self.is_float() && other.is_float())
         return self == other.object() || self->as_float()->to_double() == other->as_float()->to_double();
 
     return other == self;
 }
 
 bool Object::neq(Env *env, Value other) {
-    return send(env, "=="_s, { other })->is_falsey();
+    return send(env, "=="_s, { other }).is_falsey();
 }
 
 String Object::dbg_inspect() const {
@@ -1302,7 +1300,7 @@ String Object::inspect_str(Env *env) {
     if (!respond_to(env, "inspect"_s))
         return String::format("#<{}:{}>", m_klass->inspect_str(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed));
     auto inspected = send(env, "inspect"_s);
-    if (!inspected->is_string())
+    if (!inspected.is_string())
         return ""; // TODO: what to do here?
     return inspected->as_string()->string();
 }
@@ -1332,24 +1330,22 @@ void Object::gc_inspect(char *buf, size_t len) const {
 }
 
 ArrayObject *Object::to_ary(Env *env) {
-    if (is_array()) {
+    if (m_type == Type::Array)
         return as_array();
-    }
 
     auto original_class = klass()->inspect_str();
 
     auto to_ary = "to_ary"_s;
 
     if (!respond_to(env, to_ary)) {
-        if (is_nil()) {
+        if (m_type == Type::Nil)
             env->raise("TypeError", "no implicit conversion of nil into Array");
-        }
         env->raise("TypeError", "no implicit conversion of {} into Array", original_class);
     }
 
     Value val = send(env, to_ary);
 
-    if (val->is_array()) {
+    if (val.is_array()) {
         return val->as_array();
     }
 
@@ -1361,7 +1357,7 @@ ArrayObject *Object::to_ary(Env *env) {
 }
 
 IoObject *Object::to_io(Env *env) {
-    if (is_io()) return as_io();
+    if (m_type == Type::Io) return as_io();
 
     auto to_io = "to_io"_s;
     if (!respond_to(env, to_io))
@@ -1369,7 +1365,7 @@ IoObject *Object::to_io(Env *env) {
 
     auto result = send(env, to_io);
 
-    if (result->is_io())
+    if (result.is_io())
         return result->as_io();
 
     env->raise(
@@ -1401,7 +1397,7 @@ Integer Object::to_int(Env *env, Value self) {
 }
 
 FloatObject *Object::to_f(Env *env) {
-    if (is_float()) return as_float();
+    if (m_type == Type::Float) return as_float();
 
     auto to_f = "to_f"_s;
     if (!respond_to(env, to_f))
@@ -1413,7 +1409,7 @@ FloatObject *Object::to_f(Env *env) {
 }
 
 HashObject *Object::to_hash(Env *env) {
-    if (is_hash()) {
+    if (m_type == Type::Hash) {
         return as_hash();
     }
 
@@ -1422,15 +1418,14 @@ HashObject *Object::to_hash(Env *env) {
     auto to_hash = "to_hash"_s;
 
     if (!respond_to(env, to_hash)) {
-        if (is_nil()) {
+        if (m_type == Type::Nil)
             env->raise("TypeError", "no implicit conversion of nil into Hash");
-        }
         env->raise("TypeError", "no implicit conversion of {} into Hash", original_class);
     }
 
     Value val = send(env, to_hash);
 
-    if (val->is_hash()) {
+    if (val.is_hash()) {
         return val->as_hash();
     }
 
@@ -1443,13 +1438,13 @@ HashObject *Object::to_hash(Env *env) {
 
 StringObject *Object::to_s(Env *env) {
     auto str = send(env, "to_s"_s);
-    if (!str->is_string())
+    if (!str.is_string())
         env->raise("TypeError", "no implicit conversion of {} into String", m_klass->name());
     return str->as_string();
 }
 
 StringObject *Object::to_str(Env *env) {
-    if (is_string()) return as_string();
+    if (m_type == Type::String) return as_string();
 
     auto to_str = "to_str"_s;
     if (!respond_to(env, to_str))
@@ -1457,7 +1452,7 @@ StringObject *Object::to_str(Env *env) {
 
     auto result = send(env, to_str);
 
-    if (result->is_string())
+    if (result.is_string())
         return result->as_string();
 
     env->raise(
@@ -1470,7 +1465,7 @@ StringObject *Object::to_str(Env *env) {
 // This is just like Object::to_str, but it raises more consistent error messages.
 // We still need the old error messages because CRuby is inconsistent. :-(
 StringObject *Object::to_str2(Env *env) {
-    if (is_string()) return as_string();
+    if (m_type == Type::String) return as_string();
 
     auto to_str = "to_str"_s;
     if (!respond_to(env, to_str))
@@ -1478,7 +1473,7 @@ StringObject *Object::to_str2(Env *env) {
 
     auto result = send(env, to_str);
 
-    if (result->is_string())
+    if (result.is_string())
         return result->as_string();
 
     env->raise(

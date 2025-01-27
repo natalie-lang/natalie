@@ -97,7 +97,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                 result = options.fallback_option->send(env, "call"_s, { ch });
             }
 
-            if (result->is_nil()) {
+            if (result.is_nil()) {
                 auto message = StringObject::format(
                     "U+{} from {} to {}",
                     String::hex(cpt, String::HexFormat::Uppercase),
@@ -236,9 +236,9 @@ HashObject *EncodingObject::aliases(Env *env) {
 }
 
 EncodingObject *EncodingObject::set_default_external(Env *env, Value arg) {
-    if (arg->is_encoding()) {
+    if (arg.is_encoding()) {
         s_default_external = arg->as_encoding();
-    } else if (arg->is_nil()) {
+    } else if (arg.is_nil()) {
         env->raise("ArgumentError", "default external cannot be nil");
     } else {
         auto name = arg->to_str(env);
@@ -248,9 +248,9 @@ EncodingObject *EncodingObject::set_default_external(Env *env, Value arg) {
     return default_external();
 }
 EncodingObject *EncodingObject::set_default_internal(Env *env, Value arg) {
-    if (arg->is_encoding()) {
+    if (arg.is_encoding()) {
         s_default_internal = arg->as_encoding();
-    } else if (arg->is_nil()) {
+    } else if (arg.is_nil()) {
         s_default_internal = nullptr;
     } else {
         auto name = arg->to_str(env);
@@ -262,7 +262,7 @@ EncodingObject *EncodingObject::set_default_internal(Env *env, Value arg) {
 
 // Typically returns an EncodingObject, but can return nil.
 Value EncodingObject::find(Env *env, Value name) {
-    if (name->is_encoding())
+    if (name.is_encoding())
         return name;
     auto string = name->to_str(env)->string().lowercase();
     if (string == "internal") {
@@ -308,7 +308,7 @@ EncodingObject *EncodingObject::find_encoding_by_name(Env *env, String name) {
 // return the encoding matching the string.  Sets a default if the lookup fails.
 EncodingObject *EncodingObject::find_encoding(Env *env, Value encoding) {
     Value enc_or_nil = EncodingObject::find(env, encoding);
-    if (enc_or_nil->is_encoding())
+    if (enc_or_nil.is_encoding())
         return enc_or_nil->as_encoding();
 
     auto enc = EncodingObject::find_encoding_by_name(env, String("BINARY"));

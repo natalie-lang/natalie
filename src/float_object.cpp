@@ -26,15 +26,15 @@ bool FloatObject::eq(Env *env, Value other) {
         return false;
     if (other.is_integer())
         return other.integer() == m_double;
-    if (other->is_float()) {
+    if (other.is_float()) {
         auto *f = other->as_float();
         return f->m_double == m_double;
     }
-    return other.send(env, "=="_s, { this })->is_truthy();
+    return other.send(env, "=="_s, { this }).is_truthy();
 }
 
 bool FloatObject::eql(Value other) const {
-    if (!other->is_float()) return false;
+    if (!other.is_float()) return false;
     auto *f = other->as_float();
     return f->m_double == m_double;
 }
@@ -43,7 +43,7 @@ bool FloatObject::eql(Value other) const {
     Value FloatObject::name(Env *env, Value precision_value) {                  \
         nat_int_t precision = 0;                                                \
         if (precision_value) {                                                  \
-            if (precision_value->is_float()) {                                  \
+            if (precision_value.is_float()) {                                   \
                 precision_value = precision_value->as_float()->to_i(env);       \
             }                                                                   \
             precision_value.assert_type(env, Object::Type::Integer, "Integer"); \
@@ -155,14 +155,14 @@ Value FloatObject::cmp(Env *env, Value rhs) {
             return Value::integer(-1);
     }
 
-    if (!rhs->is_float()) {
+    if (!rhs.is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
         lhs = coerced.first;
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, "<=>"_s, { rhs });
-    if (!rhs->is_float()) return NilObject::the();
+    if (!lhs.is_float()) return lhs.send(env, "<=>"_s, { rhs });
+    if (!rhs.is_float()) return NilObject::the();
 
     if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {
         return NilObject::the();
@@ -228,18 +228,18 @@ Value FloatObject::to_r(Env *env) const {
 Value FloatObject::add(Env *env, Value rhs) {
     Value lhs = this;
 
-    if (rhs->is_complex()) {
+    if (rhs.is_complex()) {
         return rhs->send(env, "+"_s, { lhs });
     }
 
-    if (!rhs->is_float()) {
+    if (!rhs.is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
         lhs = coerced.first;
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, "+"_s, { rhs });
-    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
+    if (!lhs.is_float()) return lhs.send(env, "+"_s, { rhs });
+    if (!rhs.is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double addend1 = to_double();
     double addend2 = rhs->as_float()->to_double();
@@ -249,14 +249,14 @@ Value FloatObject::add(Env *env, Value rhs) {
 Value FloatObject::sub(Env *env, Value rhs) {
     Value lhs = this;
 
-    if (!rhs->is_float()) {
+    if (!rhs.is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
         lhs = coerced.first;
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, "-"_s, { rhs });
-    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
+    if (!lhs.is_float()) return lhs.send(env, "-"_s, { rhs });
+    if (!rhs.is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double minuend = to_double();
     double subtrahend = rhs->as_float()->to_double();
@@ -266,14 +266,14 @@ Value FloatObject::sub(Env *env, Value rhs) {
 Value FloatObject::mul(Env *env, Value rhs) {
     Value lhs = this;
 
-    if (!rhs->is_float()) {
+    if (!rhs.is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
         lhs = coerced.first;
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, "*"_s, { rhs });
-    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
+    if (!lhs.is_float()) return lhs.send(env, "*"_s, { rhs });
+    if (!rhs.is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double multiplicand = to_double();
     double multiplier = rhs->as_float()->to_double();
@@ -283,14 +283,14 @@ Value FloatObject::mul(Env *env, Value rhs) {
 Value FloatObject::div(Env *env, Value rhs) {
     Value lhs = this;
 
-    if (!rhs->is_float()) {
+    if (!rhs.is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
         lhs = coerced.first;
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, "/"_s, { rhs });
-    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
+    if (!lhs.is_float()) return lhs.send(env, "/"_s, { rhs });
+    if (!rhs.is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
@@ -301,19 +301,19 @@ Value FloatObject::div(Env *env, Value rhs) {
 Value FloatObject::mod(Env *env, Value rhs) {
     Value lhs = this;
 
-    bool rhs_is_non_zero = (rhs->is_float() && !rhs->as_float()->is_zero()) || (rhs.is_integer() && !IntegerObject::is_zero(rhs.integer()));
+    bool rhs_is_non_zero = (rhs.is_float() && !rhs->as_float()->is_zero()) || (rhs.is_integer() && !IntegerObject::is_zero(rhs.integer()));
 
-    if (rhs->is_float() && rhs->as_float()->is_negative_infinity()) return new FloatObject { rhs->as_float()->to_double() };
+    if (rhs.is_float() && rhs->as_float()->is_negative_infinity()) return new FloatObject { rhs->as_float()->to_double() };
     if (is_negative_zero() && rhs_is_non_zero) return new FloatObject { m_double };
 
-    if (!rhs->is_float()) {
+    if (!rhs.is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
         lhs = coerced.first;
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, "%"_s, { rhs });
-    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
+    if (!lhs.is_float()) return lhs.send(env, "%"_s, { rhs });
+    if (!rhs.is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
@@ -332,9 +332,9 @@ Value FloatObject::divmod(Env *env, Value arg) {
     if (is_nan()) env->raise("FloatDomainError", "NaN");
     if (is_infinity()) env->raise("FloatDomainError", "Infinity");
 
-    if (!arg->is_numeric()) env->raise("TypeError", "{} can't be coerced into Float", arg->klass()->inspect_str());
-    if (arg->is_float() && arg->as_float()->is_nan()) env->raise("FloatDomainError", "NaN");
-    if (arg->is_float() && arg->as_float()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
+    if (!arg.is_numeric()) env->raise("TypeError", "{} can't be coerced into Float", arg->klass()->inspect_str());
+    if (arg.is_float() && arg->as_float()->is_nan()) env->raise("FloatDomainError", "NaN");
+    if (arg.is_float() && arg->as_float()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
     if (arg.is_integer() && IntegerObject::is_zero(arg.integer())) env->raise("ZeroDivisionError", "divided by 0");
 
     Value division = div(env, arg);
@@ -349,19 +349,19 @@ Value FloatObject::divmod(Env *env, Value arg) {
 Value FloatObject::pow(Env *env, Value rhs) {
     Value lhs = this;
 
-    if ((rhs->is_float() || rhs->is_rational()) && to_double() < 0) {
+    if ((rhs.is_float() || rhs.is_rational()) && to_double() < 0) {
         auto comp = new ComplexObject { this };
         return comp->send(env, "**"_s, { rhs });
     }
 
-    if (!rhs->is_float()) {
+    if (!rhs.is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
         lhs = coerced.first;
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, "**"_s, { rhs });
-    if (!rhs->is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
+    if (!lhs.is_float()) return lhs.send(env, "**"_s, { rhs });
+    if (!rhs.is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double base = to_double();
     double exponent = rhs->as_float()->to_double();
@@ -397,14 +397,14 @@ Value FloatObject::arg(Env *env) {
     bool FloatObject::name(Env *env, Value rhs) {                                                           \
         Value lhs = this;                                                                                   \
                                                                                                             \
-        if (!rhs->is_float()) {                                                                             \
+        if (!rhs.is_float()) {                                                                              \
             auto coerced = Natalie::coerce(env, rhs, lhs);                                                  \
             lhs = coerced.first;                                                                            \
             rhs = coerced.second;                                                                           \
         }                                                                                                   \
                                                                                                             \
-        if (!lhs->is_float()) return lhs.send(env, SymbolObject::intern(NAT_QUOTE(op)), { rhs });           \
-        if (!rhs->is_float()) {                                                                             \
+        if (!lhs.is_float()) return lhs.send(env, SymbolObject::intern(NAT_QUOTE(op)), { rhs });            \
+        if (!rhs.is_float()) {                                                                              \
             env->raise("ArgumentError", "comparison of Float with {} failed", rhs->klass()->inspect_str()); \
         }                                                                                                   \
                                                                                                             \

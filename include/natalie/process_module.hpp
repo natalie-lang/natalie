@@ -111,7 +111,7 @@ public:
 
     static int getsid(Env *env, Value pid = nullptr) {
         pid_t pidnum;
-        if (!pid || pid->is_nil()) {
+        if (!pid || pid.is_nil()) {
             pidnum = 0;
         } else {
             pidnum = IntegerObject::convert_to_nat_int_t(env, pid);
@@ -132,7 +132,7 @@ public:
 private:
     static uid_t value_to_uid(Env *env, Value idval) {
         uid_t uid;
-        if (idval->is_string()) {
+        if (idval.is_string()) {
             struct passwd *pass;
             pass = getpwnam(idval->as_string()->c_str());
             if (pass == NULL)
@@ -147,7 +147,7 @@ private:
 
     static gid_t value_to_gid(Env *env, Value idval) {
         gid_t gid;
-        if (idval->is_string()) {
+        if (idval.is_string()) {
             auto grp = getgrnam(idval->as_string()->c_str());
             if (grp == NULL)
                 env->raise("ArgumentError", "can't find group {}", idval->as_string()->c_str());
@@ -163,14 +163,14 @@ private:
         int resource;
         auto to_str = "to_str"_s;
         SymbolObject *rlimit_symbol = nullptr;
-        if (val->is_symbol()) {
+        if (val.is_symbol()) {
             rlimit_symbol = val->as_symbol();
-        } else if (val->is_string()) {
+        } else if (val.is_string()) {
             rlimit_symbol = val->as_string()->to_symbol(env);
         } else if (val->respond_to(env, to_str)) {
             // Need to support nil, don't use Object::to_str
             auto tsval = val->send(env, to_str);
-            if (tsval->is_string()) {
+            if (tsval.is_string()) {
                 rlimit_symbol = tsval->as_string()->to_sym(env)->as_symbol();
             }
         }

@@ -121,6 +121,47 @@ public:
 
     void assert_type(Env *, ObjectType, const char *) const;
 
+    bool is_nil() const;
+    bool is_true() const;
+    bool is_false() const;
+    bool is_fiber() const;
+    bool is_enumerator_arithmetic_sequence() const;
+    bool is_array() const;
+    bool is_binding() const;
+    bool is_method() const;
+    bool is_module() const;
+    bool is_class() const;
+    bool is_complex() const;
+    bool is_dir() const;
+    bool is_encoding() const;
+    bool is_env() const;
+    bool is_exception() const;
+    bool is_float() const;
+    bool is_hash() const;
+    bool is_io() const;
+    bool is_file() const;
+    bool is_file_stat() const;
+    bool is_match_data() const;
+    bool is_proc() const;
+    bool is_random() const;
+    bool is_range() const;
+    bool is_rational() const;
+    bool is_regexp() const;
+    bool is_symbol() const;
+    bool is_string() const;
+    bool is_thread() const;
+    bool is_thread_backtrace_location() const;
+    bool is_thread_group() const;
+    bool is_thread_mutex() const;
+    bool is_time() const;
+    bool is_unbound_method() const;
+    bool is_void_p() const;
+
+    bool is_truthy() const;
+    bool is_falsey() const;
+    bool is_numeric() const;
+    bool is_boolean() const;
+
 private:
     void auto_hydrate() {
         if (m_type != Type::Pointer)

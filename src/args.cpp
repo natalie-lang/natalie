@@ -138,7 +138,7 @@ HashObject *Args::keyword_hash() const {
         return nullptr;
 
     auto hash = last().object_or_null();
-    if (!hash || !hash->is_hash())
+    if (!hash || hash->type() != Object::Type::Hash)
         return nullptr;
 
     return hash->as_hash();

@@ -10,9 +10,9 @@ namespace ioutil {
     // before continuing.
     // This is common to many functions in FileObject and DirObject
     StringObject *convert_using_to_path(Env *env, Value path) {
-        if (!path->is_string() && path->respond_to(env, "to_path"_s))
+        if (!path.is_string() && path->respond_to(env, "to_path"_s))
             path = path->send(env, "to_path"_s);
-        if (!path->is_string() && path->respond_to(env, "to_str"_s))
+        if (!path.is_string() && path->respond_to(env, "to_str"_s))
             path = path->to_str(env);
         path.assert_type(env, Object::Type::String, "String");
         return path->as_string();
@@ -21,7 +21,7 @@ namespace ioutil {
     // accepts io or io-like object for fstat
     // accepts path or string like object for stat
     int object_stat(Env *env, Value io, struct stat *sb) {
-        if (io->is_io() || io->respond_to(env, "to_io"_s)) {
+        if (io.is_io() || io->respond_to(env, "to_io"_s)) {
             auto file_desc = io->to_io(env)->fileno();
             return ::fstat(file_desc, sb);
         }
@@ -31,12 +31,12 @@ namespace ioutil {
     }
 
     void flags_struct::parse_flags_obj(Env *env, Value flags_obj) {
-        if (!flags_obj || flags_obj->is_nil())
+        if (!flags_obj || flags_obj.is_nil())
             return;
 
         m_has_mode = true;
 
-        if (!flags_obj.is_integer() && !flags_obj->is_string()) {
+        if (!flags_obj.is_integer() && !flags_obj.is_string()) {
             if (flags_obj->respond_to(env, "to_str"_s)) {
                 flags_obj = flags_obj->to_str(env);
             } else if (flags_obj->respond_to(env, "to_int"_s)) {
@@ -54,8 +54,8 @@ namespace ioutil {
             auto flags_str = flagsplit->fetch(env, IntegerObject::create(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
             auto extenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
             auto intenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(2)), nullptr);
-            if (!extenc->is_nil()) m_external_encoding = EncodingObject::find_encoding(env, extenc);
-            if (!intenc->is_nil()) m_internal_encoding = EncodingObject::find_encoding(env, intenc);
+            if (!extenc.is_nil()) m_external_encoding = EncodingObject::find_encoding(env, extenc);
+            if (!intenc.is_nil()) m_internal_encoding = EncodingObject::find_encoding(env, intenc);
 
             if (flags_str.length() < 1 || flags_str.length() > 3)
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
@@ -102,7 +102,7 @@ namespace ioutil {
     void flags_struct::parse_mode(Env *env) {
         if (!m_kwargs) return;
         auto mode = m_kwargs->remove(env, "mode"_s);
-        if (!mode || mode->is_nil()) return;
+        if (!mode || mode.is_nil()) return;
         if (has_mode())
             env->raise("ArgumentError", "mode specified twice");
         parse_flags_obj(env, mode);
@@ -111,21 +111,21 @@ namespace ioutil {
     void flags_struct::parse_flags(Env *env) {
         if (!m_kwargs) return;
         auto flags = m_kwargs->remove(env, "flags"_s);
-        if (!flags || flags->is_nil()) return;
+        if (!flags || flags.is_nil()) return;
         m_flags |= static_cast<int>(Object::to_int(env, flags).to_nat_int_t());
     }
 
     void flags_struct::parse_encoding(Env *env) {
         if (!m_kwargs) return;
         auto encoding = m_kwargs->remove(env, "encoding"_s);
-        if (!encoding || encoding->is_nil()) return;
+        if (!encoding || encoding.is_nil()) return;
         if (m_external_encoding) {
             env->raise("ArgumentError", "encoding specified twice");
         } else if (m_kwargs->has_key(env, "external_encoding"_s)) {
             env->warn("Ignoring encoding parameter '{}', external_encoding is used", encoding);
         } else if (m_kwargs->has_key(env, "internal_encoding"_s)) {
             env->warn("Ignoring encoding parameter '{}', internal_encoding is used", encoding);
-        } else if (encoding->is_encoding()) {
+        } else if (encoding.is_encoding()) {
             m_external_encoding = encoding->as_encoding();
         } else {
             encoding = encoding->to_str(env);
@@ -143,10 +143,10 @@ namespace ioutil {
     void flags_struct::parse_external_encoding(Env *env) {
         if (!m_kwargs) return;
         auto external_encoding = m_kwargs->remove(env, "external_encoding"_s);
-        if (!external_encoding || external_encoding->is_nil()) return;
+        if (!external_encoding || external_encoding.is_nil()) return;
         if (m_external_encoding)
             env->raise("ArgumentError", "encoding specified twice");
-        if (external_encoding->is_encoding()) {
+        if (external_encoding.is_encoding()) {
             m_external_encoding = external_encoding->as_encoding();
         } else {
             m_external_encoding = EncodingObject::find_encoding(env, external_encoding->to_str(env));
@@ -156,10 +156,10 @@ namespace ioutil {
     void flags_struct::parse_internal_encoding(Env *env) {
         if (!m_kwargs) return;
         auto internal_encoding = m_kwargs->remove(env, "internal_encoding"_s);
-        if (!internal_encoding || internal_encoding->is_nil()) return;
+        if (!internal_encoding || internal_encoding.is_nil()) return;
         if (m_internal_encoding)
             env->raise("ArgumentError", "encoding specified twice");
-        if (internal_encoding->is_encoding()) {
+        if (internal_encoding.is_encoding()) {
             m_internal_encoding = internal_encoding->as_encoding();
         } else {
             internal_encoding = internal_encoding->to_str(env);
@@ -174,26 +174,26 @@ namespace ioutil {
     void flags_struct::parse_textmode(Env *env) {
         if (!m_kwargs) return;
         auto textmode = m_kwargs->remove(env, "textmode"_s);
-        if (!textmode || textmode->is_nil()) return;
+        if (!textmode || textmode.is_nil()) return;
         if (binmode()) {
             env->raise("ArgumentError", "both textmode and binmode specified");
         } else if (this->textmode()) {
             env->raise("ArgumentError", "textmode specified twice");
         }
-        if (textmode->is_truthy())
+        if (textmode.is_truthy())
             m_read_mode = flags_struct::read_mode::text;
     }
 
     void flags_struct::parse_binmode(Env *env) {
         if (!m_kwargs) return;
         auto binmode = m_kwargs->remove(env, "binmode"_s);
-        if (!binmode || binmode->is_nil()) return;
+        if (!binmode || binmode.is_nil()) return;
         if (this->binmode()) {
             env->raise("ArgumentError", "binmode specified twice");
         } else if (textmode()) {
             env->raise("ArgumentError", "both textmode and binmode specified");
         }
-        if (binmode->is_truthy())
+        if (binmode.is_truthy())
             m_read_mode = flags_struct::read_mode::binary;
     }
 
@@ -209,7 +209,7 @@ namespace ioutil {
             return;
         }
 
-        m_autoclose = autoclose->is_truthy();
+        m_autoclose = autoclose.is_truthy();
     }
 
     void flags_struct::parse_path(Env *env) {
@@ -243,7 +243,7 @@ namespace ioutil {
     }
 
     mode_t perm_to_mode(Env *env, Value perm) {
-        if (perm && !perm->is_nil())
+        if (perm && !perm.is_nil())
             return IntegerObject::convert_to_int(env, perm);
         else
             return S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; // 0660 default

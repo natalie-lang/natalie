@@ -31,22 +31,6 @@ Value Method::call(Env *env, Value self, Args &&args, Block *block) const {
         }
     };
 
-    // This code handles the "fast" integer/float optimization, where certain
-    // IntegerObject and FloatObject methods do not allow their `this` or their
-    // arguments to escape outside their call stack, i.e. they only live for a
-    // short period. Thus the objects can be stack-allocated for speed, and the
-    // GC need not allocate or collect them.
-    if (m_optimized) {
-        if (args.size() == 1 && args[0].is_fast_integer()) {
-            auto synthesized_arg = IntegerObject { args[0].get_fast_integer() };
-            synthesized_arg.add_synthesized_flag();
-            return call_fn({ &synthesized_arg });
-        }
-    } else if (!self.is_fast_integer() && self->is_synthesized()) {
-        // Turn this object into a heap-allocated one.
-        self = self->duplicate(env);
-    }
-
     return call_fn(std::move(args));
 }
 }

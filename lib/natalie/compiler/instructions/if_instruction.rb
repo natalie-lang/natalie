@@ -27,7 +27,7 @@ module Natalie
         code << "Value #{result}"
 
         transform.normalize_stack do
-          code << "if (#{condition}->is_truthy()) {"
+          code << "if (#{condition}.is_truthy()) {"
           if_size = transform.with_same_scope(true_body) do |t|
             code << t.transform("#{result} =")
           end

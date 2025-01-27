@@ -35,11 +35,6 @@ public:
         // set on an object returned from a block to signal
         // that `redo` was called
         Redo = 4,
-
-        // set on an object to signal it only lives for a short time
-        // on the stack, and not to capture it anywhere
-        // (don't store in variables, arrays, hashes)
-        Synthesized = 8,
     };
 
     enum class Conversion {
@@ -106,47 +101,6 @@ public:
     int flags() const { return m_flags; }
 
     Value initialize(Env *);
-
-    bool is_nil() const { return m_type == Type::Nil; }
-    bool is_true() const { return m_type == Type::True; }
-    bool is_false() const { return m_type == Type::False; }
-    bool is_fiber() const { return m_type == Type::Fiber; }
-    bool is_enumerator_arithmetic_sequence() const { return m_type == Type::EnumeratorArithmeticSequence; }
-    bool is_array() const { return m_type == Type::Array; }
-    bool is_binding() const { return m_type == Type::Binding; }
-    bool is_method() const { return m_type == Type::Method; }
-    bool is_module() const { return m_type == Type::Module || m_type == Type::Class; }
-    bool is_class() const { return m_type == Type::Class; }
-    bool is_complex() const { return m_type == Type::Complex; }
-    bool is_dir() const { return m_type == Type::Dir; }
-    bool is_encoding() const { return m_type == Type::Encoding; }
-    bool is_env() const { return m_type == Type::Env; }
-    bool is_exception() const { return m_type == Type::Exception; }
-    bool is_float() const { return m_type == Type::Float; }
-    bool is_hash() const { return m_type == Type::Hash; }
-    bool is_io() const { return m_type == Type::Io || m_type == Type::File; }
-    bool is_file() const { return m_type == Type::File; }
-    bool is_file_stat() const { return m_type == Type::FileStat; }
-    bool is_match_data() const { return m_type == Type::MatchData; }
-    bool is_proc() const { return m_type == Type::Proc; }
-    bool is_random() const { return m_type == Type::Random; }
-    bool is_range() const { return m_type == Type::Range; }
-    bool is_rational() const { return m_type == Type::Rational; }
-    bool is_regexp() const { return m_type == Type::Regexp; }
-    bool is_symbol() const { return m_type == Type::Symbol; }
-    bool is_string() const { return m_type == Type::String; }
-    bool is_thread() const { return m_type == Type::Thread; }
-    bool is_thread_backtrace_location() const { return m_type == Type::ThreadBacktraceLocation; }
-    bool is_thread_group() const { return m_type == Type::ThreadGroup; }
-    bool is_thread_mutex() const { return m_type == Type::ThreadMutex; }
-    bool is_time() const { return m_type == Type::Time; }
-    bool is_unbound_method() const { return m_type == Type::UnboundMethod; }
-    bool is_void_p() const { return m_type == Type::VoidP; }
-
-    bool is_truthy() const { return !is_false() && !is_nil(); }
-    bool is_falsey() const { return !is_truthy(); }
-    bool is_numeric() const { return m_type == Type::Integer || is_float(); }
-    bool is_boolean() const { return is_true() || is_false(); }
 
     Enumerator::ArithmeticSequenceObject *as_enumerator_arithmetic_sequence();
     ArrayObject *as_array();
@@ -260,11 +214,11 @@ public:
     virtual Value cvar_get_or_null(Env *, SymbolObject *);
     virtual Value cvar_set(Env *, SymbolObject *, Value);
 
-    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, bool = false);
+    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int);
     virtual SymbolObject *define_method(Env *, SymbolObject *, Block *);
     virtual SymbolObject *undefine_method(Env *, SymbolObject *);
 
-    SymbolObject *define_singleton_method(Env *, SymbolObject *, MethodFnPtr, int, bool = false);
+    SymbolObject *define_singleton_method(Env *, SymbolObject *, MethodFnPtr, int);
     SymbolObject *define_singleton_method(Env *, SymbolObject *, Block *);
     SymbolObject *undefine_singleton_method(Env *, SymbolObject *);
 
@@ -329,10 +283,9 @@ public:
     bool is_main_object() const { return this == GlobalEnv::the()->main_obj(); }
 
     void freeze();
-    bool is_frozen() const { return m_type == Type::Integer || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
+    bool is_frozen() const { return m_type == Type::Integer || m_type == Type::Float || (m_flags & Flag::Frozen) == Flag::Frozen; }
 
-    void add_synthesized_flag() { m_flags = m_flags | Flag::Synthesized; }
-    bool is_synthesized() const { return (m_flags & Flag::Synthesized) == Flag::Synthesized; }
+    bool not_truthy() const { return m_type == Type::Nil || m_type == Type::False; }
 
     void add_break_flag() { m_flags = m_flags | Flag::Break; }
     void remove_break_flag() { m_flags = m_flags & ~Flag::Break; }

@@ -16,6 +16,6 @@ Value IO_is_nonblock(Env *env, Value self, Args &&args, Block *) {
 
 Value IO_set_nonblock(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    self->as_io()->set_nonblock(env, args.at(0)->is_truthy());
+    self->as_io()->set_nonblock(env, args.at(0).is_truthy());
     return args.at(0);
 }

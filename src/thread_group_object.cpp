@@ -3,7 +3,7 @@
 namespace Natalie {
 
 Value ThreadGroupObject::add(Env *env, Value value) {
-    if (!value->is_thread())
+    if (!value.is_thread())
         env->raise("TypeError", "wrong argument type {} (expected VM/thread)", value->klass()->inspect_str());
     auto thread = value->as_thread();
 

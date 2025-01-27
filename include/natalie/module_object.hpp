@@ -102,7 +102,7 @@ public:
     Value remove_class_variable(Env *, Value);
 
     Value define_method(Env *, Value, Value, Block *);
-    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, bool optimized = false) override;
+    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int) override;
     virtual SymbolObject *define_method(Env *, SymbolObject *, Block *) override;
     virtual SymbolObject *undefine_method(Env *, SymbolObject *) override;
 

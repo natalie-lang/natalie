@@ -83,7 +83,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto name = args.at(0);
     void *handle = nullptr;
-    if (name->is_array()) {
+    if (name.is_array()) {
         for (auto name2 : *name->as_array()) {
             handle = dlopen_wrapper(env, name2);
             if (handle) {
@@ -105,7 +105,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
     }
     auto handle_ptr = new VoidPObject { handle, [](auto p) { dlclose(p->void_ptr()); } };
     auto libs = self->ivar_get(env, "@ffi_libs"_s);
-    if (libs->is_nil())
+    if (libs.is_nil())
         libs = self->ivar_set(env, "@ffi_libs"_s, new ArrayObject);
     auto DynamicLibrary = fetch_nested_const({ "FFI"_s, "DynamicLibrary"_s });
     auto lib = DynamicLibrary->send(env, "new"_s, { name, handle_ptr });
@@ -132,14 +132,14 @@ static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
         return &ffi_type_void;
     } else {
         auto typedefs = self->ivar_get(env, "@ffi_typedefs"_s);
-        if (!typedefs->is_nil()) {
+        if (!typedefs.is_nil()) {
             if (typedefs->as_hash_or_raise(env)->has_key(env, type_sym)) {
                 // FIXME: I'm pretty sure this is wrong, but I don't yet know what to return here.
                 return &ffi_type_pointer;
             }
         }
         auto enums = self->ivar_get(env, "@enums"_s);
-        if (!enums->is_nil()) {
+        if (!enums.is_nil()) {
             auto hash = enums->as_hash_or_raise(env);
             if (hash->has_key(env, type_sym)) {
                 return &ffi_type_sint32;
@@ -192,9 +192,9 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
         if (type == pointer_sym) {
             if (val->is_a(env, Pointer))
                 arg_values[i].vp = (void *)val.send(env, "address"_s).integer_or_raise(env).to_nat_int_t();
-            else if (val->is_string())
+            else if (val.is_string())
                 arg_values[i].vp = (void *)val->as_string()->c_str();
-            else if (val->is_nil())
+            else if (val.is_nil())
                 arg_values[i].vp = nullptr;
             else
                 env->raise("ArgumentError", "Expected Pointer but got {} for arg {}", val->inspect_str(env), (int)i);
@@ -231,12 +231,12 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             arg_pointers[i] = &(arg_values[i].sint);
         } else {
             auto enums = self->ivar_get(env, "@enums"_s);
-            if (!enums->is_nil() && enums->as_hash_or_raise(env)->has_key(env, type)) {
+            if (!enums.is_nil() && enums->as_hash_or_raise(env)->has_key(env, type)) {
                 auto enum_values = enums->as_hash()->ref(env, type);
                 auto mapped_value = enum_values->send(env, "key"_s, { val });
-                if (mapped_value->is_nil() && val.is_integer())
+                if (mapped_value.is_nil() && val.is_integer())
                     mapped_value = val;
-                if (mapped_value->is_nil()) {
+                if (mapped_value.is_nil()) {
                     env->raise("ArgumentError", "invalid enum value, {}", val->inspect_str(env));
                 } else {
                     const auto int_val = mapped_value.integer_or_raise(env).to_nat_int_t();
@@ -274,7 +274,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
         return NilObject::the();
     } else {
         auto enums = self->ivar_get(env, "@enums"_s);
-        if (!enums->is_nil()) {
+        if (!enums.is_nil()) {
             auto hash = enums->as_hash_or_raise(env);
             if (hash->has_key(env, return_type)) {
                 hash = hash->ref(env, return_type)->as_hash_or_raise(env);
@@ -444,7 +444,7 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args &&args, Block *blo
 
     self->ivar_set(env, "@size"_s, Value::integer(size * count));
 
-    bool clear = args.size() > 2 && args.at(2)->is_truthy();
+    bool clear = args.size() > 2 && args.at(2).is_truthy();
 
     void *address = nullptr;
     if (clear)
@@ -488,7 +488,7 @@ Value FFI_Pointer_initialize(Env *env, Value self, Args &&args, Block *) {
         (void *)address.integer_or_raise(env).to_nat_int_t(),
         [](auto p) {
             Env e;
-            if (p->void_ptr() && p->ivar_get(&e, "@autorelease"_s)->is_truthy()) {
+            if (p->void_ptr() && p->ivar_get(&e, "@autorelease"_s).is_truthy()) {
                 free(p->void_ptr());
                 p->set_void_ptr(nullptr);
             }
@@ -536,7 +536,7 @@ Value FFI_Pointer_set_autorelease(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
 
     auto ptr_obj = self->ivar_get(env, "@ptr"_s);
-    return ptr_obj->ivar_set(env, "@autorelease"_s, bool_object(args.at(0)->is_truthy()));
+    return ptr_obj->ivar_set(env, "@autorelease"_s, bool_object(args.at(0).is_truthy()));
 }
 
 Value Object_to_ptr(Env *env, Value self, Args &&, Block *) {
