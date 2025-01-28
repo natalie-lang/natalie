@@ -133,31 +133,19 @@ namespace ArrayPacker {
     void StringHandler::pack_b() {
         if (at_end())
             return;
-        size_t bit_index = m_index % 8;
-        unsigned char d = next();
-        unsigned char c = bit_index > 0 ? m_packed.pop_char() : 0;
-        unsigned char b = 0;
-        if (d == '0' || d == '1')
-            b = d - 48;
-        else
-            b = d & 1;
-        auto shift_amount = bit_index++;
-        m_packed.append_char((unsigned char)(c | (b << shift_amount)));
+        const size_t bit_index = m_index % 8;
+        const unsigned char b = next() & 1;
+        const unsigned char c = bit_index > 0 ? m_packed.pop_char() : 0;
+        m_packed.append_char((unsigned char)(c | (b << bit_index)));
     }
 
     void StringHandler::pack_B() {
         if (at_end())
             return;
-        size_t bit_index = m_index % 8;
-        unsigned char d = next();
-        unsigned char c = bit_index > 0 ? m_packed.pop_char() : 0;
-        unsigned char b = 0;
-        if (d == '0' || d == '1')
-            b = d - 48;
-        else
-            b = d & 1;
-        auto shift_amount = 7 - bit_index++;
-        m_packed.append_char((unsigned char)(c | (b << shift_amount)));
+        const size_t bit_index = m_index % 8;
+        const unsigned char b = next() & 1;
+        const unsigned char c = bit_index > 0 ? m_packed.pop_char() : 0;
+        m_packed.append_char((unsigned char)(c | (b << (7 - bit_index))));
     }
 
     void StringHandler::pack_h() {
