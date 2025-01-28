@@ -44,7 +44,7 @@ module Etc
   __bind_static_method__ :setpwent, :Etc_setpwent
   __bind_static_method__ :sysconf, :Etc_sysconf
   #__bind_static_method__ :sysconfdir, :Etc_sysconfdir
-  #__bind_static_method__ :systmpdir, :Etc_systmpdir
+  __bind_static_method__ :systmpdir, :Etc_systmpdir, 0
   __bind_static_method__ :uname, :Etc_uname
 end
 

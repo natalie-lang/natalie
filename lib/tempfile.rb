@@ -1,5 +1,6 @@
 require 'natalie/inline'
 require 'tempfile.cpp'
+require 'tmpdir'
 
 class Tempfile
   class << self
