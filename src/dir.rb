@@ -1,9 +1,5 @@
 class Dir
   class << self
-    def tmpdir
-      '/tmp'
-    end
-
     # FIXME: we accept multiple patterns, but really this breaks if the patterns aren't very similar
     # e.g. combining "/foo/**/*.rb" with "./*.rb" is going to break.
     # We should run through the recurse process for each pattern I think.

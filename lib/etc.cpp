@@ -3,6 +3,10 @@
 #include <sys/utsname.h>
 #include <unistd.h>
 
+#ifdef __APPLE__
+#include <sys/syslimits.h>
+#endif
+
 using namespace Natalie;
 
 Value group_to_struct(Env *env, Value self, struct group *grp) {
@@ -170,6 +174,19 @@ Value Etc_sysconf(Env *env, Value self, Args &&args, Block *_block) {
         return NilObject::the();
     }
     return Value::integer(status);
+}
+
+Value Etc_systmpdir(Env *env, Value, Args &&args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+#ifdef __APPLE__
+    // https://forums.developer.apple.com/forums/thread/71382
+    char buf[PATH_MAX + 1];
+    const auto len = confstr(_CS_DARWIN_USER_TEMP_DIR, buf, PATH_MAX);
+    return new StringObject { buf, len, Encoding::ASCII_8BIT };
+#else
+    return new StringObject { "/tmp", Encoding::ASCII_8BIT };
+#endif
 }
 
 Value Etc_uname(Env *env, Value, Args &&args, Block *) {
