@@ -60,7 +60,7 @@ describe :process_fork, shared: true do
       else
         Process.waitpid(child_id)
       end
-      NATFIXME 'share @file ivar (I guess', exception: SpecFailedException do
+      NATFIXME "Don't run after(:each) in forked process", exception: SpecFailedException do
         File.should.exist?(@file)
       end
     end
@@ -71,7 +71,7 @@ describe :process_fork, shared: true do
         Process.exit!
       }
       Process.waitpid(pid)
-      NATFIXME 'share @file ivar (I guess', exception: SpecFailedException do
+      NATFIXME "Don't run after(:each) in forked process", exception: SpecFailedException do
         File.should.exist?(@file)
       end
     end
@@ -88,7 +88,7 @@ describe :process_fork, shared: true do
       Process.waitpid(pid)
       t.kill
       t.join
-      NATFIXME 'share @file ivar (I guess', exception: Errno::ENOENT do
+      NATFIXME "Don't run after(:each) in forked process", exception: Errno::ENOENT do
         File.read(@file).should == "truefalse"
       end
     end
