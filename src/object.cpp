@@ -1237,7 +1237,7 @@ Value Object::instance_eval(Env *env, Args &&args, Block *block) {
         block->set_self(context.block_original_self);
     });
     Value block_args[] = { self };
-    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, block_args), nullptr);
+    return NAT_RUN_BLOCK(env, block, Args(1, block_args), nullptr);
 }
 
 Value Object::instance_exec(Env *env, Args &&args, Block *block) {
@@ -1251,7 +1251,7 @@ Value Object::instance_exec(Env *env, Args &&args, Block *block) {
         block->set_self(context.block_original_self);
     });
 
-    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, std::move(args), nullptr);
+    return NAT_RUN_BLOCK(env, block, std::move(args), nullptr);
 }
 
 void Object::assert_not_frozen(Env *env) {

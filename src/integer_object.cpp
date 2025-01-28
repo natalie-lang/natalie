@@ -411,7 +411,7 @@ Value IntegerObject::times(Env *env, Integer &self, Block *block) {
     for (Integer i = 0; i < self; ++i) {
         Value num = create(i);
         Value args[] = { num };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+        NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
     }
     return self;
 }

@@ -78,7 +78,7 @@ Value ArithmeticSequenceObject::each(Env *env, Block *block) {
         return this;
 
     iterate(env, [&env, &block](Value value) -> Value {
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { value }, nullptr);
+        NAT_RUN_BLOCK(env, block, { value }, nullptr);
         return nullptr;
     });
 

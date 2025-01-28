@@ -120,7 +120,7 @@ Value KernelModule::catch_method(Env *env, Value name, Block *block) {
     try {
         Env block_env { env };
         block_env.set_catch(name);
-        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(&block_env, block, { name }, nullptr);
+        return NAT_RUN_BLOCK(&block_env, block, { name }, nullptr);
     } catch (ThrowCatchException *e) {
         if (Object::equal(e->get_name(), name))
             return e->get_value();
@@ -294,7 +294,7 @@ Value KernelModule::fork(Env *env, Block *block) {
     if (block) {
         if (pid == 0) {
             // child
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { Value::integer(pid) }, nullptr);
+            NAT_RUN_BLOCK(env, block, { Value::integer(pid) }, nullptr);
             ::exit(0);
         } else {
             // parent
@@ -795,7 +795,7 @@ Value KernelModule::loop(Env *env, Value self, Block *block) {
 
     try {
         for (;;) {
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
+            NAT_RUN_BLOCK(env, block, {}, nullptr);
         }
         return NilObject::the();
     } catch (ExceptionObject *exception) {
@@ -879,7 +879,7 @@ Value KernelModule::tap(Env *env, Value self, Block *block) {
     Value args[] = { self };
     if (!block)
         env->raise("LocalJumpError", "no block given (yield)");
-    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+    NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
     return self;
 }
 
