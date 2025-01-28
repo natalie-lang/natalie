@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'etc'
+require 'natalie/inline'
+require 'etc.cpp' # For Dir.tmp fallback to Etc.systmpdir
+require 'tmpdir.cpp'
 
 class Dir
-  def self.tmpdir
-    ENV.fetch('TMPDIR') { Etc.systmpdir }
-  end
+  __bind_static_method__ :tmpdir, :Dir_tmpdir
 end
