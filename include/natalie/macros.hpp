@@ -12,11 +12,11 @@
 
 #define NAT_RUN_BLOCK(env, the_block, args, block) ({ \
     Natalie::Value _result = nullptr;                 \
+    auto fiber = Natalie::FiberObject::current();     \
     do {                                              \
-        if (_result)                                  \
-            _result->remove_redo_flag();              \
+        fiber->clear_redo_block();                    \
         _result = the_block->_run(env, args, block);  \
-    } while (_result->has_redo_flag());               \
+    } while (fiber->redo_block());                    \
     _result;                                          \
 })
 

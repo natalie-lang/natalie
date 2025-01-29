@@ -8,13 +8,12 @@ module Natalie
       end
 
       def generate(transform)
-        value = transform.memoize(:obj_with_redo_flag, 'Object::_new(env, GlobalEnv::the()->Object(), {}, nullptr)');
-        transform.exec("#{value}->add_redo_flag()")
-        transform.exec("return #{value}")
+        transform.exec('FiberObject::current()->set_redo_block()')
+        transform.exec('return NilObject::the()')
         transform.push_nil
       end
 
-      def execute(vm)
+      def execute(_vm)
         raise 'todo'
       end
     end
