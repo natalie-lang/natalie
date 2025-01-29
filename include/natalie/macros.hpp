@@ -10,16 +10,6 @@
         abort();                                                                                       \
     }
 
-#define NAT_RUN_BLOCK(env, the_block, args, block) ({ \
-    Natalie::Value _result = nullptr;                 \
-    auto fiber = Natalie::FiberObject::current();     \
-    do {                                              \
-        fiber->clear_redo_block();                    \
-        _result = the_block->_run(env, args, block);  \
-    } while (fiber->redo_block());                    \
-    _result;                                          \
-})
-
 #define NAT_QUOTE(val) #val
 
 #define NAT_MAKE_NONCOPYABLE(c) \

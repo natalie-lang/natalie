@@ -55,7 +55,7 @@ Optional<nat_int_t> binary_search(Env *env, nat_int_t left, nat_int_t right, std
 
 Value binary_search_integer(Env *env, nat_int_t left, nat_int_t right, Block *block, bool exclude_end) {
     auto result = binary_search(env, left, right, [env, block](nat_int_t middle) -> Value {
-        return NAT_RUN_BLOCK(env, block, { IntegerObject::create(middle) }, nullptr);
+        return block->run(env, { IntegerObject::create(middle) }, nullptr);
     });
 
     if (!result.present())
@@ -89,7 +89,7 @@ Value binary_search_float(Env *env, double left, double right, Block *block, boo
     nat_int_t right_int = double_to_integer(right);
 
     auto result = binary_search(env, left_int, right_int, [env, block](nat_int_t middle) -> Value {
-        return NAT_RUN_BLOCK(env, block, { new FloatObject(integer_to_double(middle)) }, nullptr);
+        return block->run(env, { new FloatObject(integer_to_double(middle)) }, nullptr);
     });
 
     if (!result.present())

@@ -132,7 +132,7 @@ Value RangeObject::each(Env *env, Block *block) {
 
     Value break_value = iterate_over_range(env, [&](Value item) -> Value {
         Value args[] = { item };
-        NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+        block->run(env, Args(1, args), nullptr);
         return nullptr;
     });
     if (break_value) {
@@ -318,7 +318,7 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         auto right = left + 1;
 
         // Find a right border in which we can perform the binary search.
-        while (binary_search_check(env, NAT_RUN_BLOCK(env, block, { IntegerObject::create(right) }, nullptr)) != BSearchCheckResult::SMALLER) {
+        while (binary_search_check(env, block->run(env, { IntegerObject::create(right) }, nullptr)) != BSearchCheckResult::SMALLER) {
             right = left + (right - left) * 2;
         }
 
@@ -328,7 +328,7 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         auto left = right - 1;
 
         // Find a left border in which we can perform the binary search.
-        while (binary_search_check(env, NAT_RUN_BLOCK(env, block, { IntegerObject::create(left) }, nullptr)) != BSearchCheckResult::BIGGER) {
+        while (binary_search_check(env, block->run(env, { IntegerObject::create(left) }, nullptr)) != BSearchCheckResult::BIGGER) {
             left = right - (right - left) * 2;
         }
 
@@ -390,7 +390,7 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
         Integer index = 0;
         iterate_over_range(env, [env, block, &index, step](Value item) -> Value {
             if (index % step == 0)
-                NAT_RUN_BLOCK(env, block, { item }, nullptr);
+                block->run(env, { item }, nullptr);
 
             index += 1;
             return nullptr;

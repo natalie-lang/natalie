@@ -104,11 +104,11 @@ bool FiberObject::is_blocking() const {
 Value FiberObject::blocking(Env *env, Block *block) {
     auto fiber = current();
     if (fiber->is_blocking()) {
-        return NAT_RUN_BLOCK(env, block, { fiber }, nullptr);
+        return block->run(env, { fiber }, nullptr);
     }
     fiber->m_blocking = true;
     auto unblock = Defer([&fiber] { fiber->m_blocking = false; });
-    return NAT_RUN_BLOCK(env, block, { fiber }, nullptr);
+    return block->run(env, { fiber }, nullptr);
 }
 
 Value FiberObject::is_blocking_current() {
@@ -395,7 +395,7 @@ void fiber_wrapper_func(mco_coro *co) {
         // But that seems to be what Ruby does too.
         Natalie::Env e {};
 
-        return_arg = NAT_RUN_BLOCK((&e), fiber->block(), Natalie::Args(fiber->args()), nullptr);
+        return_arg = fiber->block()->run(&e, Natalie::Args(fiber->args()), nullptr);
     } catch (Natalie::ExceptionObject *exception) {
         fiber->set_error(exception);
         reraise = true;

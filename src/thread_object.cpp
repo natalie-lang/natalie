@@ -63,7 +63,7 @@ static void *nat_create_thread(void *thread_object) {
     try {
         // This is the guts of the thread --
         // the user code that does what we came here to do.
-        auto return_value = NAT_RUN_BLOCK((&e), block, std::move(args), nullptr);
+        auto return_value = block->run((&e), std::move(args), nullptr);
 
         // If we got here and the thread has an exception,
         // this is our last chance to raise it. The catch directly below

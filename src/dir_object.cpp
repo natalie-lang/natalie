@@ -22,7 +22,7 @@ Value DirObject::open(Env *env, Value path, Value encoding, Block *block) {
         Defer close_dir([&]() {
             dir->as_dir()->close(env);
         });
-        Value result = NAT_RUN_BLOCK(env, block, Args({ dir }), nullptr);
+        Value result = block->run(env, Args({ dir }), nullptr);
         return result;
     }
     return dir;
@@ -131,7 +131,7 @@ Value DirObject::chdir(Env *env, Value path, Block *block) {
     Value args[] = { path };
     Value result;
     try {
-        result = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+        result = block->run(env, Args(1, args), nullptr);
     } catch (ExceptionObject *exception) {
         change_current_path(env, old_path);
         throw exception;
@@ -176,7 +176,7 @@ Value DirObject::each(Env *env, Block *block) {
     struct dirent *dirp;
     while ((dirp = ::readdir(m_dir))) {
         Value args[] = { new StringObject { dirp->d_name, m_encoding } };
-        NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+        block->run(env, Args(1, args), nullptr);
     }
     return this;
 }
@@ -192,7 +192,7 @@ Value DirObject::each_child(Env *env, Block *block) {
         auto name = String(dirp->d_name);
         if (name != "." && name != "..") {
             Value args[] = { new StringObject { name, m_encoding } };
-            NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+            block->run(env, Args(1, args), nullptr);
         }
     }
     return this;

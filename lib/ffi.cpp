@@ -461,7 +461,7 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args &&args, Block *blo
     ptr_obj->ivar_set(env, "@autorelease"_s, TrueObject::the());
 
     if (block)
-        NAT_RUN_BLOCK(env, block, Args({ self }), nullptr);
+        block->run(env, Args({ self }), nullptr);
 
     return NilObject::the();
 }

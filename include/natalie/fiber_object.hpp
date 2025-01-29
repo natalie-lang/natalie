@@ -133,9 +133,12 @@ public:
 
     FiberObject *previous_fiber() const { return m_previous_fiber; }
 
-    bool redo_block() const { return m_redo_block; }
     void set_redo_block() { m_redo_block = true; }
-    void clear_redo_block() { m_redo_block = false; }
+    bool check_redo_block_and_clear() {
+        auto value = m_redo_block;
+        m_redo_block = false;
+        return value;
+    }
 
 #ifdef __SANITIZE_ADDRESS__
     void *

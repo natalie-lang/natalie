@@ -28,7 +28,7 @@ module Natalie
           arg_count.times { args.unshift transform.pop }
           args_list = "Args({ #{args.join(', ')} }, #{@has_keyword_hash ? 'true' : 'false'})"
         end
-        transform.exec_and_push :yield, "NAT_RUN_BLOCK(env, env->nearest_block(), #{args_list}, nullptr)"
+        transform.exec_and_push :yield, "env->nearest_block()->run(env, #{args_list}, nullptr)"
       end
 
       def execute(vm)

@@ -60,7 +60,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
 
         for (nat_int_t i = 0; i < s; i++) {
             Value args[] = { Value::integer(i) };
-            push(NAT_RUN_BLOCK(env, block, Args(1, args), nullptr));
+            push(block->run(env, Args(1, args), nullptr));
         }
 
     } else {
@@ -453,7 +453,7 @@ Value ArrayObject::each(Env *env, Block *block) {
 
     for (size_t i = 0; i < size(); ++i) {
         Value args[] = { (*this)[i] };
-        NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+        block->run(env, Args(1, args), nullptr);
     }
     return this;
 }
@@ -467,7 +467,7 @@ Value ArrayObject::each_index(Env *env, Block *block) {
     nat_int_t size_nat_int_t = static_cast<nat_int_t>(size());
     for (nat_int_t i = 0; i < size_nat_int_t; i++) {
         Value args[] = { Value::integer(i) };
-        NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+        block->run(env, Args(1, args), nullptr);
     }
     return this;
 }
@@ -493,7 +493,7 @@ Value ArrayObject::map_in_place(Env *env, Block *block) {
 
     for (size_t i = 0; i < m_vector.size(); ++i) {
         Value args[] = { (*this)[i] };
-        m_vector.at(i) = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+        m_vector.at(i) = block->run(env, Args(1, args), nullptr);
     }
     return this;
 }
@@ -568,7 +568,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
     for (size_t i = start; i < (size_t)max; ++i) {
         if (block) {
             Value args[1] = { Value::integer(i) };
-            m_vector[i] = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+            m_vector[i] = block->run(env, Args(1, args), nullptr);
         } else
             m_vector[i] = obj;
     }
@@ -700,7 +700,7 @@ Value ArrayObject::delete_if(Env *env, Block *block) {
 
     for (size_t i = 0; i < size(); ++i) {
         Value args[] = { (*this)[i] };
-        Value result = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+        Value result = block->run(env, Args(1, args), nullptr);
         if (result.is_truthy()) {
             marked_indexes.push(i);
         }
@@ -731,7 +731,7 @@ Value ArrayObject::delete_item(Env *env, Value target, Block *block) {
     }
 
     if (deleted_item.is_nil() && block) {
-        return NAT_RUN_BLOCK(env, block, {}, nullptr);
+        return block->run(env, {}, nullptr);
     }
 
     return deleted_item;
@@ -783,7 +783,7 @@ Value ArrayObject::drop_while(Env *env, Block *block) {
     size_t i = 0;
     while (i < m_vector.size()) {
         Value args[] = { m_vector.at(i) };
-        Value result = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+        Value result = block->run(env, Args(1, args), nullptr);
         if (result.is_nil() || result.is_false()) {
             break;
         }
@@ -1043,7 +1043,7 @@ void ArrayObject::expand_with_nil(Env *env, size_t total) {
 bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
     if (block) {
         Value args[2] = { a, b };
-        Value compare = NAT_RUN_BLOCK(env, block, Args(2, args), nullptr);
+        Value compare = block->run(env, Args(2, args), nullptr);
 
         if (compare->respond_to(env, "<"_s)) {
             Value zero = Value::integer(0);
@@ -1074,10 +1074,10 @@ Value ArrayObject::sort_in_place(Env *env, Block *block) {
 bool array_sort_by_compare(Env *env, Value a, Value b, Block *block) {
     Value args[1];
     args[0] = a;
-    Value a_res = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+    Value a_res = block->run(env, Args(1, args), nullptr);
 
     args[0] = b;
-    Value b_res = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+    Value b_res = block->run(env, Args(1, args), nullptr);
 
     Value compare = a_res.send(env, "<=>"_s, { b_res });
     if (compare.is_integer()) {
@@ -1122,7 +1122,7 @@ Value ArrayObject::select_in_place(Env *env, Block *block) {
 
     bool changed = select_in_place([env, block](Value &item) -> bool {
         Value args[] = { item };
-        Value result = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+        Value result = block->run(env, Args(1, args), nullptr);
         return result.is_truthy();
     });
 
@@ -1176,7 +1176,7 @@ Value ArrayObject::reject_in_place(Env *env, Block *block) {
 
         try {
             Value args[] = { item };
-            Value result = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+            Value result = block->run(env, Args(1, args), nullptr);
             if (result.is_falsey())
                 new_array.push(item);
             else
@@ -1206,7 +1206,7 @@ Value ArrayObject::max(Env *env, Value count, Block *block) {
 
     auto is_more = [&](Value item, Value min) -> bool {
         Value block_args[] = { item, min };
-        Value compare = (block) ? NAT_RUN_BLOCK(env, block, Args(2, block_args), nullptr) : item.send(env, "<=>"_s, { min });
+        Value compare = (block) ? block->run(env, Args(2, block_args), nullptr) : item.send(env, "<=>"_s, { min });
 
         if (compare.is_nil())
             env->raise(
@@ -1256,7 +1256,7 @@ Value ArrayObject::min(Env *env, Value count, Block *block) {
 
     auto is_less = [&](Value item, Value min) -> bool {
         Value block_args[] = { item, min };
-        Value compare = (block) ? NAT_RUN_BLOCK(env, block, Args(2, block_args), nullptr) : item.send(env, "<=>"_s, { min });
+        Value compare = (block) ? block->run(env, Args(2, block_args), nullptr) : item.send(env, "<=>"_s, { min });
 
         if (compare.is_nil())
             env->raise(
@@ -1306,7 +1306,7 @@ Value ArrayObject::minmax(Env *env, Block *block) {
 
     auto compare = [&](Value item, Value min) -> nat_int_t {
         Value block_args[] = { item, min };
-        Value compare = (block) ? NAT_RUN_BLOCK(env, block, Args(2, block_args), nullptr) : item.send(env, "<=>"_s, { min });
+        Value compare = (block) ? block->run(env, Args(2, block_args), nullptr) : item.send(env, "<=>"_s, { min });
 
         if (compare.is_nil())
             env->raise(
@@ -1401,7 +1401,7 @@ Value ArrayObject::uniq_in_place(Env *env, Block *block) {
         Value key = item;
         if (block) {
             Value args[] = { item };
-            key = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+            key = block->run(env, Args(1, args), nullptr);
         }
         if (!hash->has_key(env, key)) {
             hash->put(env, key, item);
@@ -1464,7 +1464,7 @@ Value ArrayObject::bsearch_index(Env *env, Block *block) {
     nat_int_t right = m_vector.size() - 1;
 
     auto result = binary_search(env, left, right, [this, env, block](nat_int_t middle) -> Value {
-        return NAT_RUN_BLOCK(env, block, { (*this)[middle] }, nullptr);
+        return block->run(env, { (*this)[middle] }, nullptr);
     });
 
     if (!result.present())
@@ -1671,7 +1671,7 @@ Value ArrayObject::reverse_each(Env *env, Block *block) {
 
     for (size_t i = m_vector.size(); i > 0; --i) {
         Value args[] = { (*this)[i - 1] };
-        NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+        block->run(env, Args(1, args), nullptr);
     }
 
     return this;
@@ -1735,7 +1735,7 @@ Value ArrayObject::fetch(Env *env, Value arg_index, Value default_value, Block *
                 env->warn("block supersedes default value argument");
 
             Value args[] = { arg_index };
-            value = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+            value = block->run(env, Args(1, args), nullptr);
         } else if (default_value) {
             value = default_value;
         } else {
@@ -1761,7 +1761,7 @@ Value ArrayObject::find_index(Env *env, Value object, Block *block, bool search_
                 return Value::integer(index);
         } else {
             Value args[] = { item };
-            auto result = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+            auto result = block->run(env, Args(1, args), nullptr);
             length = static_cast<nat_int_t>(size());
             if (result.is_truthy())
                 return Value::integer(index);

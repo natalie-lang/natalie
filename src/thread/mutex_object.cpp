@@ -52,7 +52,7 @@ Value MutexObject::sleep(Env *env, Value timeout) {
 Value MutexObject::synchronize(Env *env, Block *block) {
     lock(env);
     Defer done_with_synchronization([this, &env] { if (is_owned()) unlock(env); });
-    return NAT_RUN_BLOCK(env, block, {}, nullptr);
+    return block->run(env, {}, nullptr);
 }
 
 bool MutexObject::try_lock() {

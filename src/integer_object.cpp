@@ -411,7 +411,7 @@ Value IntegerObject::times(Env *env, Integer &self, Block *block) {
     for (Integer i = 0; i < self; ++i) {
         Value num = create(i);
         Value args[] = { num };
-        NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+        block->run(env, Args(1, args), nullptr);
     }
     return self;
 }

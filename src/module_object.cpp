@@ -19,7 +19,7 @@ Value ModuleObject::initialize(Env *env, Block *block) {
         Value self = this;
         block->set_self(self);
         Value args[] = { self };
-        NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+        block->run(env, Args(1, args), nullptr);
     }
     return this;
 }
@@ -936,7 +936,7 @@ Value ModuleObject::module_eval(Env *env, Block *block) {
     auto old_method_visibility = m_method_visibility;
     auto old_module_function = m_module_function;
     Value args[] = { self };
-    Value result = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+    Value result = block->run(env, Args(1, args), nullptr);
     m_method_visibility = old_method_visibility;
     m_module_function = old_module_function;
     return result;
@@ -947,7 +947,7 @@ Value ModuleObject::module_exec(Env *env, Args &&args, Block *block) {
         env->raise_local_jump_error(NilObject::the(), Natalie::LocalJumpErrorType::None);
     Value self = this;
     block->set_self(self);
-    return NAT_RUN_BLOCK(env, block, std::move(args), nullptr);
+    return block->run(env, std::move(args), nullptr);
 }
 
 Value ModuleObject::private_method(Env *env, Args &&args) {

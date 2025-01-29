@@ -390,7 +390,7 @@ Value HashObject::delete_if(Env *env, Block *block) {
     assert_not_frozen(env);
     for (auto &node : *this) {
         Value args[2] = { node.key, node.val };
-        if (NAT_RUN_BLOCK(env, block, Args(2, args), nullptr).is_truthy()) {
+        if (block->run(env, Args(2, args), nullptr).is_truthy()) {
             delete_key(env, node.key, nullptr);
         }
     }
@@ -404,7 +404,7 @@ Value HashObject::delete_key(Env *env, Value key, Block *block) {
     if (val)
         return val;
     else if (block)
-        return NAT_RUN_BLOCK(env, block, {}, nullptr);
+        return block->run(env, {}, nullptr);
     else
         return NilObject::the();
 }
@@ -517,7 +517,7 @@ Value HashObject::each(Env *env, Block *block) {
     for (HashObject::Key &node : *this) {
         auto ary = new ArrayObject { { node.key, node.val } };
         Value block_args[1] = { ary };
-        NAT_RUN_BLOCK(env, block, Args(1, block_args), nullptr);
+        block->run(env, Args(1, block_args), nullptr);
     }
     return this;
 }
@@ -542,7 +542,7 @@ Value HashObject::fetch(Env *env, Value key, Value default_value, Block *block) 
                 env->warn("block supersedes default value argument");
 
             Value args[] = { key };
-            value = NAT_RUN_BLOCK(env, block, Args(1, args), nullptr);
+            value = block->run(env, Args(1, args), nullptr);
         } else if (default_value) {
             value = default_value;
         } else {
@@ -579,7 +579,7 @@ Value HashObject::keep_if(Env *env, Block *block) {
     assert_not_frozen(env);
     for (auto &node : *this) {
         Value args[2] = { node.key, node.val };
-        if (!NAT_RUN_BLOCK(env, block, Args(2, args), nullptr).is_truthy()) {
+        if (!block->run(env, Args(2, args), nullptr).is_truthy()) {
             delete_key(env, node.key, nullptr);
         }
     }
@@ -605,7 +605,7 @@ Value HashObject::to_h(Env *env, Block *block) {
     for (auto &node : *this) {
         block_args[0] = node.key;
         block_args[1] = node.val;
-        auto result = NAT_RUN_BLOCK(env, block, Args(2, block_args), nullptr);
+        auto result = block->run(env, Args(2, block_args), nullptr);
         if (!result.is_array() && result->respond_to(env, "to_ary"_s))
             result = result->to_ary(env);
         if (!result.is_array())
@@ -700,7 +700,7 @@ Value HashObject::merge_in_place(Env *env, Args &&args, Block *block) {
                 auto old_value = get(env, node.key);
                 if (old_value) {
                     Value args[3] = { node.key, old_value, new_value };
-                    new_value = NAT_RUN_BLOCK(env, block, Args(3, args), nullptr);
+                    new_value = block->run(env, Args(3, args), nullptr);
                 }
             }
             put(env, node.key, new_value);

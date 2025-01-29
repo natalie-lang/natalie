@@ -1618,7 +1618,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
 
     if (block) {
         try {
-            NAT_RUN_BLOCK(env, block, { self }, nullptr);
+            block->run(env, { self }, nullptr);
             Socket_close(env, self, {}, nullptr);
         } catch (ExceptionObject *exception) {
             Socket_close(env, self, {}, nullptr);
@@ -1838,7 +1838,7 @@ Value UNIXSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
 
     if (block) {
         try {
-            NAT_RUN_BLOCK(env, block, { self }, nullptr);
+            block->run(env, { self }, nullptr);
             Socket_close(env, self, {}, nullptr);
         } catch (ExceptionObject *exception) {
             Socket_close(env, self, {}, nullptr);

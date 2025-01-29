@@ -147,7 +147,7 @@ Value IoObject::each_byte(Env *env, Block *block) {
 
     Value byte;
     while (!(byte = getbyte(env)).is_nil())
-        NAT_RUN_BLOCK(env, block, { byte }, nullptr);
+        block->run(env, { byte }, nullptr);
 
     return this;
 }
@@ -1228,7 +1228,7 @@ Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding,
         io_read->public_send(env, "close"_s);
         io_write->public_send(env, "close"_s);
     });
-    return NAT_RUN_BLOCK(env, block, { pipes }, nullptr);
+    return block->run(env, { pipes }, nullptr);
 }
 
 Value IoObject::popen(Env *env, Args &&args, Block *block, ClassObject *klass) {
@@ -1253,7 +1253,7 @@ Value IoObject::popen(Env *env, Args &&args, Block *block, ClassObject *klass) {
         return io;
 
     Defer close_io([&]() { io->public_send(env, "close"_s); });
-    return NAT_RUN_BLOCK(env, block, { io }, nullptr);
+    return block->run(env, { io }, nullptr);
 }
 
 int IoObject::pos(Env *env) {

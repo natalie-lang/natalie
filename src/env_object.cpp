@@ -42,7 +42,7 @@ Value EnvObject::to_hash(Env *env, Block *block) {
         Value name = string_with_default_encoding(pair, index);
         Value value = string_with_default_encoding(getenv(name->as_string()->c_str()));
         if (block) {
-            auto transformed = NAT_RUN_BLOCK(env, block, Args({ name, value }), nullptr);
+            auto transformed = block->run(env, Args({ name, value }), nullptr);
             if (!transformed.is_array() && transformed->respond_to(env, "to_ary"_s))
                 transformed = transformed->to_ary(env);
             if (!transformed.is_array())
@@ -87,7 +87,7 @@ Value EnvObject::delete_key(Env *env, Value name, Block *block) {
         ::unsetenv(namestr->c_str());
         return value_obj;
     } else if (block) {
-        return NAT_RUN_BLOCK(env, block, Args({ name }), nullptr);
+        return block->run(env, Args({ name }), nullptr);
     } else {
         return NilObject::the();
     }
@@ -105,7 +105,7 @@ Value EnvObject::each(Env *env, Block *block) {
         for (HashObject::Key &node : *envhash->as_hash()) {
             auto name = node.key;
             auto value = node.val;
-            NAT_RUN_BLOCK(env, block, Args({ name, value }), nullptr);
+            block->run(env, Args({ name, value }), nullptr);
         }
         return this;
     } else {
@@ -120,7 +120,7 @@ Value EnvObject::each_key(Env *env, Block *block) {
         auto envhash = to_hash(env, nullptr);
         for (HashObject::Key &node : *envhash->as_hash()) {
             auto name = node.key;
-            NAT_RUN_BLOCK(env, block, Args({ name }), nullptr);
+            block->run(env, Args({ name }), nullptr);
         }
         return this;
     } else {
@@ -135,7 +135,7 @@ Value EnvObject::each_value(Env *env, Block *block) {
         auto envhash = to_hash(env, nullptr);
         for (HashObject::Key &node : *envhash->as_hash()) {
             auto value = node.val;
-            NAT_RUN_BLOCK(env, block, Args({ value }), nullptr);
+            block->run(env, Args({ value }), nullptr);
         }
         return this;
     } else {
@@ -193,7 +193,7 @@ Value EnvObject::fetch(Env *env, Value name, Value default_value, Block *block) 
     } else if (block) {
         if (default_value)
             env->warn("block supersedes default value argument");
-        return NAT_RUN_BLOCK(env, block, Args({ name }), nullptr);
+        return block->run(env, Args({ name }), nullptr);
     } else if (default_value) {
         return default_value;
     } else {
@@ -416,7 +416,7 @@ Value EnvObject::update(Env *env, Args &&args, Block *block) {
             if (!old_value.is_nil()) {
                 if (block) {
                     Value args[3] = { node.key, old_value, new_value };
-                    new_value = NAT_RUN_BLOCK(env, block, Args(3, args), nullptr);
+                    new_value = block->run(env, Args(3, args), nullptr);
                 }
             }
             refeq(env, node.key, new_value);
