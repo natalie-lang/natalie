@@ -133,8 +133,18 @@ public:
 
     FiberObject *previous_fiber() const { return m_previous_fiber; }
 
+    void set_redo_block() { m_redo_block = true; }
+    bool check_redo_block_and_clear() {
+        auto value = m_redo_block;
+        m_redo_block = false;
+        return value;
+    }
+
 #ifdef __SANITIZE_ADDRESS__
-    void *asan_stack_base() const { return m_asan_stack_base; }
+    void *
+    asan_stack_base() const {
+        return m_asan_stack_base;
+    }
     void set_asan_stack_base(void *base) { m_asan_stack_base = base; }
 
     size_t asan_stack_size() const { return m_asan_stack_size; }
@@ -168,6 +178,7 @@ private:
     TM::Vector<Value> m_args {};
     FiberObject *m_previous_fiber { nullptr };
     ExceptionObject *m_error { nullptr };
+    bool m_redo_block { false };
 };
 
 }

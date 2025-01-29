@@ -150,7 +150,7 @@ Value StringObject::each_char(Env *env, Block *block) {
 
     for (auto c : *this) {
         Value args[] = { new StringObject { c, m_encoding } };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+        block->run(env, Args(1, args), nullptr);
     }
     return this;
 }
@@ -159,7 +159,7 @@ Value StringObject::chars(Env *env, Block *block) {
     if (block) {
         for (auto c : *this) {
             auto str = new StringObject { c, m_encoding };
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ str }), nullptr);
+            block->run(env, Args({ str }), nullptr);
         }
         return this;
     }
@@ -182,7 +182,7 @@ Value StringObject::each_codepoint(Env *env, Block *block) {
             env->raise_invalid_byte_sequence_error(m_encoding.ptr());
 
         Value args[] = { char_obj.ord(env) };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+        block->run(env, Args(1, args), nullptr);
     }
 
     return this;
@@ -199,7 +199,7 @@ Value StringObject::codepoints(Env *env, Block *block) {
             if (length == 0)
                 break;
             Value args[] = { Value::integer(codepoint) };
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+            block->run(env, Args(1, args), nullptr);
         }
         return this;
     }
@@ -231,7 +231,7 @@ Value StringObject::each_grapheme_cluster(Env *env, Block *block) {
         if (view.is_empty())
             break;
         Value args[] = { new StringObject { view, m_encoding } };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+        block->run(env, Args(1, args), nullptr);
     }
     return this;
 }
@@ -1246,7 +1246,7 @@ Value StringObject::each_byte(Env *env, Block *block) {
     for (size_t i = 0; i < length(); i++) {
         unsigned char c = c_str()[i];
         Value args[] = { Value::integer(c) };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+        block->run(env, Args(1, args), nullptr);
     }
     return this;
 }
@@ -1288,7 +1288,7 @@ Value StringObject::scan(Env *env, Value pattern, Block *block) {
             auto captures = match_obj->captures(env)->as_array_or_raise(env);
             if (block) {
                 Value args[] = { captures };
-                NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+                block->run(env, Args(1, args), nullptr);
             } else {
                 ary->push(captures);
             }
@@ -1296,7 +1296,7 @@ Value StringObject::scan(Env *env, Value pattern, Block *block) {
             auto str = match_obj->as_match_data()->to_s(env);
             if (block) {
                 Value args[] = { str };
-                NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+                block->run(env, Args(1, args), nullptr);
             } else {
                 ary->push(str);
             }
@@ -2637,7 +2637,7 @@ void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_stri
     if (block) {
         auto string = (*match)->to_s(env);
         Value args[1] = { string };
-        Value replacement_from_block = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
+        Value replacement_from_block = block->run(env, Args(1, args), nullptr);
 
         *expanded_replacement = replacement_from_block->to_s(env);
         out.append((*expanded_replacement)->string());
@@ -3164,7 +3164,7 @@ Value StringObject::each_line(Env *env, Value separator, Value chomp, Block *blo
 
     each_line(env, separator, chomp, [&](StringObject *part) -> Value {
         Value args[] = { part };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+        block->run(env, Args(1, args), nullptr);
         return this;
     });
     return this;
@@ -3671,7 +3671,7 @@ Value StringObject::upto(Env *env, Value other, Value exclusive, Block *block) {
         if (current.value().length() > string->length())
             return this;
 
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { new StringObject(current.value(), m_encoding) }, nullptr);
+        block->run(env, { new StringObject(current.value(), m_encoding) }, nullptr);
     }
 
     return this;

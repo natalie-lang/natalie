@@ -27,14 +27,6 @@ public:
         // note that Integer and Float are always frozen,
         // even if this flag is not set
         Frozen = 1,
-
-        // set on an object returned from a block to signal
-        // that `break` was called
-        Break = 2,
-
-        // set on an object returned from a block to signal
-        // that `redo` was called
-        Redo = 4,
     };
 
     enum class Conversion {
@@ -286,14 +278,6 @@ public:
     bool is_frozen() const { return m_type == Type::Integer || m_type == Type::Float || (m_flags & Flag::Frozen) == Flag::Frozen; }
 
     bool not_truthy() const { return m_type == Type::Nil || m_type == Type::False; }
-
-    void add_break_flag() { m_flags = m_flags | Flag::Break; }
-    void remove_break_flag() { m_flags = m_flags & ~Flag::Break; }
-    bool has_break_flag() const { return (m_flags & Flag::Break) == Flag::Break; }
-
-    void add_redo_flag() { m_flags = m_flags | Flag::Redo; }
-    void remove_redo_flag() { m_flags = m_flags & ~Flag::Redo; }
-    bool has_redo_flag() const { return (m_flags & Flag::Redo) == Flag::Redo; }
 
     bool eq(Env *, Value other) { return other == this; }
     static bool equal(Value, Value);

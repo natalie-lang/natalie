@@ -3,7 +3,6 @@
 #include "natalie/args.hpp"
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
-#include "natalie/gc.hpp"
 #include "tm/owned_ptr.hpp"
 
 namespace Natalie {
@@ -33,15 +32,7 @@ public:
         , m_self { self }
         , m_type { type } { }
 
-    // NOTE: This should only be called from one of the RUN_BLOCK_* macros!
-    Value _run(Env *env, Args &&args = {}, Block *block = nullptr) {
-        Env e { m_env };
-        e.set_caller(env);
-        e.set_this_block(this);
-        args.pop_empty_keyword_hash();
-        auto result = m_fn(&e, m_self, std::move(args), block);
-        return result;
-    }
+    Value run(Env *env, Args &&args = {}, Block *block = nullptr);
 
     int arity() const { return m_arity; }
 

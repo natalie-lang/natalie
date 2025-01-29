@@ -12,14 +12,14 @@ Value ProcObject::call(Env *env, Args &&args, Block *block) {
     assert(m_block);
     if (is_lambda() && m_break_point != 0) {
         try {
-            return NAT_RUN_BLOCK_WITHOUT_BREAK(env, m_block, std::move(args), block);
+            return m_block->run(env, std::move(args), block);
         } catch (ExceptionObject *exception) {
             if (exception->is_local_jump_error_with_break_point(m_break_point))
                 return exception->send(env, "exit_value"_s);
             throw exception;
         }
     }
-    return NAT_RUN_BLOCK_WITHOUT_BREAK(env, m_block, std::move(args), block);
+    return m_block->run(env, std::move(args), block);
 }
 
 bool ProcObject::equal_value(Value other) const {

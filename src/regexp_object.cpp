@@ -474,7 +474,7 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
 
     if (block && !result.is_nil()) {
         Value args[] = { result };
-        return NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
+        return block->run(env, Args(1, args), nullptr);
     }
 
     return result;

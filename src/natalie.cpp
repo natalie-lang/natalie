@@ -569,7 +569,7 @@ void run_at_exit_handlers(Env *env) {
     Value proc;
     while (!(proc = at_exit_handlers->pop()).is_nil()) {
         if (proc.is_proc())
-            NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->as_proc()->block(), {}, nullptr);
+            proc->as_proc()->block()->run(env, {}, nullptr);
     }
 }
 

@@ -139,7 +139,7 @@ extern "C" {
 #include "onigmo.h"
 }
 
-enum FlipFlopState {
+enum class FlipFlopState {
     On,
     Transitioning,
     Off,
