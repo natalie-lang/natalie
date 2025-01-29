@@ -328,9 +328,12 @@ ArrayObject *EncodingObject::list(Env *) {
 }
 
 ArrayObject *EncodingObject::name_list(Env *env) {
-    auto ary = new ArrayObject {};
-    for (auto pair : s_encoding_list)
-        ary->concat(*pair.second->names(env));
+    size_t size = 0;
+    for (const auto &[_, encoding] : s_encoding_list)
+        size += encoding->m_names.size();
+    auto ary = new ArrayObject { size };
+    for (const auto &[_, encoding] : s_encoding_list)
+        ary->concat(*encoding->names(env));
     return ary;
 }
 
