@@ -45,11 +45,9 @@ describe "chilled String" do
       describe "mutation" do
         it "emits a warning" do
           input = "chilled"
-          NATFIXME 'complain on mutation', exception: SpecFailedException do
-            -> {
-              input << "-mutated"
-            }.should complain(/literal string will be frozen in the future/)
-          end
+          -> {
+            input << "-mutated"
+          }.should complain(/literal string will be frozen in the future/)
           input.should == "chilled-mutated"
         end
 
@@ -62,11 +60,9 @@ describe "chilled String" do
         end
 
         it "emits a warning on instance variable assignment" do
-          NATFIXME 'complain on mutation', exception: SpecFailedException do
-            -> {
-              "chilled".instance_variable_set(:@ivar, 42)
-            }.should complain(/literal string will be frozen in the future/)
-          end
+          -> {
+            "chilled".instance_variable_set(:@ivar, 42)
+          }.should complain(/literal string will be frozen in the future/)
         end
 
         it "raises FrozenError after the string was explicitly frozen" do

@@ -1257,6 +1257,11 @@ Value Object::instance_exec(Env *env, Args &&args, Block *block) {
 void Object::assert_not_frozen(Env *env) {
     if (is_frozen()) {
         env->raise("FrozenError", "can't modify frozen {}: {}", klass()->inspect_str(), inspect_str(env));
+    } else if (m_type == Type::String && as_string()->is_chilled()) {
+        const auto warn_deprecated = GlobalEnv::the()->Object()->const_get("Warning"_s)->send(env, "[]"_s, { "deprecated"_s }).is_truthy();
+        if (warn_deprecated)
+            env->warn("literal string will be frozen in the future");
+        as_string()->unset_chilled();
     }
 }
 
