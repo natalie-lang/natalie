@@ -24,9 +24,7 @@ describe "chilled String" do
           input = "chilled"
           duped = (+input)
           duped.frozen?.should == false
-          NATFIXME 'returns a different instance', exception: SpecFailedException do
-            duped.object_id.should_not == input.object_id
-          end
+          duped.object_id.should_not == input.object_id
         end
       end
 
