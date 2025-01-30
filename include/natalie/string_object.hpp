@@ -164,6 +164,10 @@ public:
         m_string.set_str(str, length);
     }
 
+    bool is_chilled() const { return m_chilled; }
+    void set_chilled() { m_chilled = true; }
+    void unset_chilled() { m_chilled = false; }
+
     bool valid_encoding() const;
     EncodingObject *encoding() const { return m_encoding.ptr(); }
     void set_encoding(EncodingObject *encoding) { m_encoding = encoding; }
@@ -521,6 +525,7 @@ private:
 
     String m_string {};
     NonNullPtr<EncodingObject> m_encoding;
+    bool m_chilled { false };
 };
 
 }

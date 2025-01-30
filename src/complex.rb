@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Complex
   I = Complex(0, 1)
 
@@ -31,7 +33,7 @@ class Complex
     real = self.real
     imaginary = self.imaginary
 
-    s = ""
+    s = +""
 
     if real.respond_to?(:nan?) && real.nan?
       s << "NaN"

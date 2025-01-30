@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 class StringIO
-  VERSION = '3.1.0'.freeze
+  VERSION = '3.1.0'
 
   include Enumerable
 
@@ -20,7 +22,7 @@ class StringIO
 
   private def initialize(string = nil, arg_mode = nil, mode: nil, binmode: nil, textmode: nil)
     if string.nil?
-      string = ''.force_encoding(Encoding.default_external)
+      string = ''.dup.force_encoding(Encoding.default_external)
     elsif !string.is_a?(String)
       string = string.to_str
     end
@@ -279,12 +281,12 @@ class StringIO
         raise ArgumentError, "negative length #{length} given"
       end
 
-      return '' if length == 0
+      return +'' if length == 0
       return nil if eof?
 
       encoding = Encoding::BINARY
     else
-      return '' if eof?
+      return +'' if eof?
 
       length = @string.length - @index
     end
@@ -586,7 +588,7 @@ class StringIO
 
     if limit == 0
       @lineno += 1
-      return ''
+      return +''
     end
 
     if separator == ''

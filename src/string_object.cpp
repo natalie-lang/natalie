@@ -3630,6 +3630,8 @@ Value StringObject::swapcase_in_place(Env *env, Value arg1, Value arg2) {
 Value StringObject::uplus(Env *env) {
     if (this->is_frozen()) {
         return this->duplicate(env);
+    } else if (is_chilled()) {
+        return new StringObject { *this };
     } else {
         return this;
     }

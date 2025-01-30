@@ -108,6 +108,12 @@ public:
     }
 
     template <typename... Args>
+    void deprecation_warn(const char *format, Args... args) {
+        if (GlobalEnv::the()->show_deprecation_warnings(this))
+            warn(String::format(format, args...));
+    }
+
+    template <typename... Args>
     void verbose_warn(const char *format, Args... args) {
         if (GlobalEnv::the()->is_verbose())
             warn(String::format(format, args...));

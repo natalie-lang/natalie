@@ -1184,7 +1184,7 @@ module Natalie
         end
 
         instant_return_type = ->(type) {
-          [PushStringInstruction.new(type, frozen: true)]
+          [PushStringInstruction.new(type, status: :frozen)]
         }
 
         type =
@@ -1243,7 +1243,7 @@ module Natalie
               return [
                 *body[..send_instruction_index],
                 IfInstruction.new,
-                PushStringInstruction.new('global-variable', frozen: true),
+                PushStringInstruction.new('global-variable', status: :frozen),
                 ElseInstruction.new(:if),
                 PushNilInstruction.new,
                 EndInstruction.new(:if),
@@ -2594,8 +2594,12 @@ module Natalie
         return [] unless used
 
         encoding = encoding_for_string_node(node)
-        frozen = @frozen_string_literal || node.frozen?
-        PushStringInstruction.new(node.unescaped, encoding: encoding, frozen:)
+        status = if @frozen_string_literal || node.frozen?
+                   :frozen
+                 elsif !node.mutable?
+                   :chilled
+                 end
+        PushStringInstruction.new(node.unescaped, encoding: encoding, status:)
       end
 
       def transform_super_node(node, used:)
