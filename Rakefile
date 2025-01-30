@@ -77,8 +77,9 @@ end
 
 desc 'Run the most-recently-modified test when any source files change (requires entr binary)'
 task :watch do
-  files = Rake::FileList['**/*.cpp', '**/*.c', '**/*.hpp', '**/*.rb'].exclude('{build,ext,master}/**/*')
-  sh "ls #{files} | entr -c -s 'rake test_last_modified'"
+  sh 'find . \( -path build -o -path ext -o -path master \) -prune ' \
+     "-o -name '*.cpp' -o -name '*.c' -o -name '*.hpp' -o -name '*.rb' | " \
+     "entr -c -s 'rake test_last_modified'"
 end
 
 # The self-hosted compiler is a bit slow yet, so let's run a core subset
