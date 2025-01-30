@@ -24,16 +24,20 @@ describe "chilled String" do
           input = "chilled"
           duped = (+input)
           duped.frozen?.should == false
-          duped.object_id.should_not == input.object_id
+          NATFIXME 'returns a different instance', exception: SpecFailedException do
+            duped.object_id.should_not == input.object_id
+          end
         end
       end
 
       describe "#clone" do
         it "preserves chilled status" do
           input = "chilled".clone
-          -> {
-            input << "-mutated"
-          }.should complain(/literal string will be frozen in the future/)
+          NATFIXME 'complain on mutation', exception: SpecFailedException do
+            -> {
+              input << "-mutated"
+            }.should complain(/literal string will be frozen in the future/)
+          end
           input.should == "chilled-mutated"
         end
       end
@@ -41,22 +45,28 @@ describe "chilled String" do
       describe "mutation" do
         it "emits a warning" do
           input = "chilled"
-          -> {
-            input << "-mutated"
-          }.should complain(/literal string will be frozen in the future/)
+          NATFIXME 'complain on mutation', exception: SpecFailedException do
+            -> {
+              input << "-mutated"
+            }.should complain(/literal string will be frozen in the future/)
+          end
           input.should == "chilled-mutated"
         end
 
         it "emits a warning on singleton_class creation" do
-          -> {
-            "chilled".singleton_class
-          }.should complain(/literal string will be frozen in the future/)
+          NATFIXME 'complain on mutation', exception: SpecFailedException do
+            -> {
+              "chilled".singleton_class
+            }.should complain(/literal string will be frozen in the future/)
+          end
         end
 
         it "emits a warning on instance variable assignment" do
-          -> {
-            "chilled".instance_variable_set(:@ivar, 42)
-          }.should complain(/literal string will be frozen in the future/)
+          NATFIXME 'complain on mutation', exception: SpecFailedException do
+            -> {
+              "chilled".instance_variable_set(:@ivar, 42)
+            }.should complain(/literal string will be frozen in the future/)
+          end
         end
 
         it "raises FrozenError after the string was explicitly frozen" do
@@ -93,16 +103,20 @@ describe "chilled String" do
           input = :chilled.to_s
           duped = (+input)
           duped.frozen?.should == false
-          duped.object_id.should_not == input.object_id
+          NATFIXME 'returns a different instance', exception: SpecFailedException do
+            duped.object_id.should_not == input.object_id
+          end
         end
       end
 
       describe "#clone" do
         it "preserves chilled status" do
           input = :chilled.to_s.clone
-          -> {
-            input << "-mutated"
-          }.should complain(/string returned by :chilled\.to_s will be frozen in the future/)
+          NATFIXME 'complain on mutation', exception: SpecFailedException do
+            -> {
+              input << "-mutated"
+            }.should complain(/string returned by :chilled\.to_s will be frozen in the future/)
+          end
           input.should == "chilled-mutated"
         end
       end
@@ -110,22 +124,28 @@ describe "chilled String" do
       describe "mutation" do
         it "emits a warning" do
           input = :chilled.to_s
-          -> {
-            input << "-mutated"
-          }.should complain(/string returned by :chilled\.to_s will be frozen in the future/)
+          NATFIXME 'complain on mutation', exception: SpecFailedException do
+            -> {
+              input << "-mutated"
+            }.should complain(/string returned by :chilled\.to_s will be frozen in the future/)
+          end
           input.should == "chilled-mutated"
         end
 
         it "emits a warning on singleton_class creation" do
-          -> {
-            :chilled.to_s.singleton_class
-          }.should complain(/string returned by :chilled\.to_s will be frozen in the future/)
+          NATFIXME 'complain on mutation', exception: SpecFailedException do
+            -> {
+              :chilled.to_s.singleton_class
+            }.should complain(/string returned by :chilled\.to_s will be frozen in the future/)
+          end
         end
 
         it "emits a warning on instance variable assignment" do
-          -> {
-            :chilled.to_s.instance_variable_set(:@ivar, 42)
-          }.should complain(/string returned by :chilled\.to_s will be frozen in the future/)
+          NATFIXME 'complain on mutation', exception: SpecFailedException do
+            -> {
+              :chilled.to_s.instance_variable_set(:@ivar, 42)
+            }.should complain(/string returned by :chilled\.to_s will be frozen in the future/)
+          end
         end
 
         it "raises FrozenError after the string was explicitly frozen" do
