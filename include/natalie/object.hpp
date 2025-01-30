@@ -22,13 +22,6 @@ class Object : public Cell {
 public:
     using Type = ObjectType;
 
-    enum Flag {
-        // set on an object that cannot be modified --
-        // note that Integer and Float are always frozen,
-        // even if this flag is not set
-        Frozen = 1,
-    };
-
     enum class Conversion {
         Strict,
         NullAllowed,
@@ -67,13 +60,13 @@ public:
     Object &operator=(Object &&other) {
         m_type = other.m_type;
         m_singleton_class = other.m_singleton_class;
-        m_flags = other.m_flags;
+        m_frozen = other.m_frozen;
         if (m_ivars)
             delete m_ivars;
         m_ivars = other.m_ivars;
         other.m_type = Type::Nil;
         other.m_singleton_class = nullptr;
-        other.m_flags = 0;
+        other.m_frozen = false;
         other.m_ivars = nullptr;
         return *this;
     }
@@ -89,8 +82,6 @@ public:
 
     Type type() const { return m_type; }
     ClassObject *klass() const { return m_klass; }
-
-    int flags() const { return m_flags; }
 
     Value initialize(Env *);
 
@@ -275,7 +266,7 @@ public:
     bool is_main_object() const { return this == GlobalEnv::the()->main_obj(); }
 
     void freeze();
-    bool is_frozen() const { return m_type == Type::Integer || m_type == Type::Float || (m_flags & Flag::Frozen) == Flag::Frozen; }
+    bool is_frozen() const { return m_type == Type::Integer || m_type == Type::Float || m_frozen; }
 
     bool not_truthy() const { return m_type == Type::Nil || m_type == Type::False; }
 
@@ -322,11 +313,8 @@ protected:
 
 private:
     Type m_type { Type::Object };
-
     ClassObject *m_singleton_class { nullptr };
-
-    int m_flags { 0 };
-
+    bool m_frozen { false };
     TM::Hashmap<SymbolObject *, Value> *m_ivars { nullptr };
 };
 

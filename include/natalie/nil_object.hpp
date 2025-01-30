@@ -15,7 +15,7 @@ class NilObject : public Object {
 public:
     static NilObject *the() {
         if (s_instance) {
-            assert(s_instance->flags() == Flag::Frozen);
+            assert(s_instance->is_frozen());
             return s_instance;
         }
         s_instance = new NilObject();
