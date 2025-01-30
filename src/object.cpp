@@ -1096,6 +1096,8 @@ Value Object::clone(Env *env, Value freeze) {
 
     if (freeze_bool && is_frozen())
         duplicate->freeze();
+    else if (m_type == Type::String && as_string()->is_chilled())
+        duplicate->as_string()->set_chilled();
 
     return duplicate;
 }

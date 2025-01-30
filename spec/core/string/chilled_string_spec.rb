@@ -31,11 +31,9 @@ describe "chilled String" do
       describe "#clone" do
         it "preserves chilled status" do
           input = "chilled".clone
-          NATFIXME 'complain on mutation', exception: SpecFailedException do
-            -> {
-              input << "-mutated"
-            }.should complain(/literal string will be frozen in the future/)
-          end
+          -> {
+            input << "-mutated"
+          }.should complain(/literal string will be frozen in the future/)
           input.should == "chilled-mutated"
         end
       end
