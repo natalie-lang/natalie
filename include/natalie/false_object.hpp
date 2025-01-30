@@ -16,7 +16,7 @@ public:
     static FalseObject *the() {
         if (s_instance) {
             // make sure we aren't accidentally changing flags
-            assert(s_instance->flags() == Flag::Frozen);
+            assert(s_instance->is_frozen());
             return s_instance;
         }
         s_instance = new FalseObject();

@@ -1219,7 +1219,7 @@ ProcObject *Object::to_proc(Env *env) {
 }
 
 void Object::freeze() {
-    m_flags = m_flags | Flag::Frozen;
+    m_frozen = true;
     if (m_singleton_class) m_singleton_class->freeze();
 }
 
