@@ -25,7 +25,7 @@ module Natalie
       end
 
       def to_s
-        "push_string #{@string.inspect}, #{@bytesize}, #{@encoding.name}#{frozen? ? ', frozen' : ''}"
+        "push_string #{@string.inspect}, #{@bytesize}, #{@encoding.name}#{frozen? ? ', frozen' : ''}#{chilled? ? ', chilled' : ''}"
       end
 
       def generate(transform)
@@ -79,6 +79,10 @@ module Natalie
 
       def frozen?
         @status == :frozen
+      end
+
+      def chilled?
+        @status == :chilled
       end
     end
   end

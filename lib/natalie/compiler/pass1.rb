@@ -2594,7 +2594,11 @@ module Natalie
         return [] unless used
 
         encoding = encoding_for_string_node(node)
-        status = :frozen if @frozen_string_literal || node.frozen?
+        status = if @frozen_string_literal || node.frozen?
+                   :frozen
+                 elsif !node.mutable?
+                   :chilled
+                 end
         PushStringInstruction.new(node.unescaped, encoding: encoding, status:)
       end
 
