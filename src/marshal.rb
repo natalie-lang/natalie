@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'natalie/inline'
 
 __inline__ 'extern "C" char *dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve);'
@@ -488,7 +490,7 @@ module Marshal
 
     def read_string
       integer = read_integer
-      return '' if integer.zero?
+      return +'' if integer.zero?
       read_bytes(integer)
     end
 

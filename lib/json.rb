@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module JSON
   class JSONError < StandardError; end
   class ParserError < JSONError; end
@@ -170,7 +172,7 @@ module JSON
           num.to_i
         end
       when '"'
-        str = ''
+        str = +''
         advance
         loop do
           case (c = advance)
@@ -194,7 +196,7 @@ module JSON
             when 't'
               str << "\t"
             when 'u'
-              escaped = ''
+              escaped = +''
               while HEX_DIGITS.include?(current_char) && escaped.size < 4
                 escaped << advance
               end
