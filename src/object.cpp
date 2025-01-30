@@ -640,11 +640,8 @@ ClassObject *Object::singleton_class(Env *env, Value self) {
     singleton_superclass->initialize_subclass_without_checks(new_singleton_class, env, name);
     self->set_singleton_class(new_singleton_class);
     if (self->is_frozen()) self->m_singleton_class->freeze();
-    if (self.is_string() && self->as_string()->is_chilled()) {
-        const auto warn_deprecated = GlobalEnv::the()->Object()->const_get("Warning"_s)->send(env, "[]"_s, { "deprecated"_s }).is_truthy();
-        if (warn_deprecated)
-            env->warn("literal string will be frozen in the future");
-    }
+    if (self.is_string() && self->as_string()->is_chilled())
+        env->deprecation_warn("literal string will be frozen in the future");
     return self->m_singleton_class;
 }
 
@@ -1265,9 +1262,7 @@ void Object::assert_not_frozen(Env *env) {
     if (is_frozen()) {
         env->raise("FrozenError", "can't modify frozen {}: {}", klass()->inspect_str(), inspect_str(env));
     } else if (m_type == Type::String && as_string()->is_chilled()) {
-        const auto warn_deprecated = GlobalEnv::the()->Object()->const_get("Warning"_s)->send(env, "[]"_s, { "deprecated"_s }).is_truthy();
-        if (warn_deprecated)
-            env->warn("literal string will be frozen in the future");
+        env->deprecation_warn("literal string will be frozen in the future");
         as_string()->unset_chilled();
     }
 }

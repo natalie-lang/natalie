@@ -95,6 +95,7 @@ public:
 
     bool is_verbose() const { return m_verbose; }
     void set_verbose(const bool verbose) { m_verbose = verbose; }
+    bool show_deprecation_warnings(Env *);
 
     void set_main_env(Env *main_env) { m_main_env = main_env; }
     Env *main_env() { return m_main_env; }
