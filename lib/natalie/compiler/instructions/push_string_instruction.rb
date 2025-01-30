@@ -6,22 +6,30 @@ module Natalie
     class PushStringInstruction < BaseInstruction
       include StringToCpp
 
-      def initialize(string, bytesize: string.bytesize, encoding: Encoding::UTF_8, frozen: false)
+      def initialize(string, bytesize: string.bytesize, encoding: Encoding::UTF_8, status: nil)
         super()
         @string = string
         @bytesize = bytesize
         @encoding = encoding
-        @frozen = frozen
+        @status = status
       end
 
-      attr_accessor :frozen
+      def frozen=(value)
+        if value
+          @status = :frozen
+        elsif @status == :frozen
+          @status = nil
+        else
+          raise ArgumentError, 'unable to determine desired value of status'
+        end
+      end
 
       def to_s
-        "push_string #{@string.inspect}, #{@bytesize}, #{@encoding.name}#{@frozen ? ', frozen' : ''}"
+        "push_string #{@string.inspect}, #{@bytesize}, #{@encoding.name}#{frozen? ? ', frozen' : ''}"
       end
 
       def generate(transform)
-        if @frozen
+        if frozen?
           str = transform.interned_string(@string, @encoding);
           transform.push("Value(#{str})")
         else
@@ -40,7 +48,7 @@ module Natalie
 
       def execute(vm)
         string = @string.dup.force_encoding(@encoding)
-        string.freeze if @frozen
+        string.freeze if frozen?
         vm.push(string)
       end
 
@@ -52,7 +60,7 @@ module Natalie
           instruction_number,
           position,
           encoding,
-          @frozen ? 1 : 0,
+          frozen? ? 1 : 0,
         ].pack("CwwC")
       end
 
@@ -63,7 +71,14 @@ module Natalie
         string = rodata.get(string_position, convert: :to_s)
         string = string.dup unless frozen
         encoding = rodata.get(encoding_position, convert: :to_encoding)
-        new(string, bytesize: string.bytesize, encoding: encoding, frozen: frozen)
+        status = :frozen if frozen?
+        new(string, bytesize: string.bytesize, encoding: encoding, status:)
+      end
+
+      private
+
+      def frozen?
+        @status == :frozen
       end
     end
   end
