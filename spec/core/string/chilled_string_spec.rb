@@ -48,11 +48,9 @@ describe "chilled String" do
         end
 
         it "emits a warning on singleton_class creation" do
-          NATFIXME 'complain on mutation', exception: SpecFailedException do
-            -> {
-              "chilled".singleton_class
-            }.should complain(/literal string will be frozen in the future/)
-          end
+          -> {
+            "chilled".singleton_class
+          }.should complain(/literal string will be frozen in the future/)
         end
 
         it "emits a warning on instance variable assignment" do
