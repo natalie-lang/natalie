@@ -260,6 +260,21 @@ bool Value::is_falsey() const { return !is_truthy(); }
 bool Value::is_numeric() const { return is_integer() || is_float(); }
 bool Value::is_boolean() const { return is_true() || is_false(); }
 
+void Value::auto_hydrate() {
+    switch (m_type) {
+    case Type::Integer: {
+#ifdef NAT_NO_HYDRATE
+        printf("Fatal: integer hydration is disabled.\n");
+        abort();
+#else
+        hydrate();
+#endif
+    }
+    case Type::Pointer:
+        break;
+    }
+}
+
 #undef PROFILED_SEND
 
 }

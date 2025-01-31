@@ -163,10 +163,7 @@ public:
     bool is_boolean() const;
 
 private:
-    void auto_hydrate() {
-        if (m_type != Type::Pointer)
-            hydrate();
-    }
+    void auto_hydrate();
 
     template <typename Callback>
     Value on_object_value(Callback &&callback);
