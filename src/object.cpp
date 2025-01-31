@@ -756,7 +756,7 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
     if (!m_ivars)
         m_ivars = new TM::Hashmap<SymbolObject *, Value> {};
 
-    m_ivars->put(name, val.object(), env);
+    m_ivars->put(name, val, env);
     return val;
 }
 
@@ -1105,12 +1105,15 @@ Value Object::clone(Env *env, Value freeze) {
 }
 
 void Object::copy_instance_variables(const Value other) {
-    auto other_obj = other.object_or_null();
-    assert(other_obj);
+    assert(other);
     if (m_ivars)
         delete m_ivars;
-    if (other_obj->m_ivars)
-        m_ivars = new TM::Hashmap<SymbolObject *, Value> { *other_obj->m_ivars };
+    if (other.is_integer())
+        return;
+
+    auto ivars = other.object_pointer()->m_ivars;
+    if (ivars)
+        m_ivars = new TM::Hashmap<SymbolObject *, Value> { *ivars };
 }
 
 bool Object::is_a(Env *env, Value val) const {
