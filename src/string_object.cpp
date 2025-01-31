@@ -939,6 +939,10 @@ Value StringObject::initialize(Env *env, Value arg, Value encoding, Value capaci
     if (encoding) {
         force_encoding(env, encoding);
     }
+    if (capacity) {
+        const auto cap = IntegerObject::convert_to_native_type<size_t>(env, capacity);
+        m_string.set_capacity(cap);
+    }
     return this;
 }
 

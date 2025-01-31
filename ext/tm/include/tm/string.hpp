@@ -1453,6 +1453,29 @@ public:
     }
 
     /**
+     * Grow the capacity (allocated memory) of the string.
+     *
+     * ```
+     * auto str = String { "abc" };
+     * str.set_capacity(100);
+     * assert_eq(100, str.capacity());
+     * assert_eq(3, str.size());
+     * ```
+     *
+     * It does not change the capacity if the new capacity is smaller than the current size
+     *
+     * ```
+     * auto str = String { "abc" };
+     * str.set_capacity(1);
+     * assert_eq(3, str.capacity());
+     * assert_eq(3, str.size());
+     * ```
+     */
+    void set_capacity(size_t new_size) {
+        grow_at_least(new_size);
+    }
+
+    /**
      * Retruns true if the String has a length of zero.
      *
      * ```
