@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/bsearch.hpp"
+#include "natalie/integer_object.hpp"
 
 namespace Natalie {
 
@@ -30,7 +31,8 @@ Value RangeObject::initialize(Env *env, Value begin, Value end, Value exclude_en
 
 template <typename Function>
 Value RangeObject::iterate_over_range(Env *env, Function &&func) {
-    Value item = m_begin;
+    if (m_begin.is_integer())
+        return iterate_over_integer_range(env, func);
 
     auto succ = "succ"_s;
     if (!m_begin->respond_to(env, succ))
@@ -40,6 +42,8 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
         return iterate_over_string_range(env, func);
     else if (m_begin.is_symbol() && m_end.is_symbol())
         return iterate_over_symbol_range(env, func);
+
+    Value item = m_begin;
 
     auto cmp = "<=>"_s;
     // If we exclude the end, the loop should not be entered if m_begin (item) == m_end.
@@ -68,6 +72,41 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
         }
     }
 
+    return nullptr;
+}
+
+template <typename Function>
+Value RangeObject::iterate_over_integer_range(Env *env, Function &&func) {
+    auto end = m_end;
+    if (end.is_float()) {
+        if (end->as_float()->is_infinity())
+            end = NilObject::the();
+        else
+            end = Object::to_int(env, end);
+    }
+
+    if (!end.is_nil()) {
+        assert(end.is_integer());
+        if (!m_exclude_end)
+            end = end.integer() + Integer(1);
+        for (auto i = m_begin.integer(); i < end.integer(); ++i) {
+            if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
+                func(i);
+            } else {
+                if (Value ptr = func(i))
+                    return ptr;
+            }
+        }
+    } else {
+        for (auto i = m_begin.integer();; ++i) {
+            if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
+                func(i);
+            } else {
+                if (Value ptr = func(i))
+                    return ptr;
+            }
+        }
+    }
     return nullptr;
 }
 

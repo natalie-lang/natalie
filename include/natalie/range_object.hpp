@@ -72,6 +72,9 @@ private:
     Value iterate_over_range(Env *env, Function &&f);
 
     template <typename Function>
+    Value iterate_over_integer_range(Env *env, Function &&f);
+
+    template <typename Function>
     Value iterate_over_string_range(Env *env, Function &&f);
 
     template <typename Function>
