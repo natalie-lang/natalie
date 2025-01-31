@@ -790,6 +790,10 @@ Value KernelModule::instance_variables(Env *env, Value self) {
 bool KernelModule::is_a(Env *env, Value self, Value module) {
     if (!module.is_module())
         env->raise("TypeError", "class or module required");
+
+    if (self.is_integer())
+        return GlobalEnv::the()->Integer()->ancestors_includes(env, module->as_module());
+
     return self->is_a(env, module->as_module());
 }
 
