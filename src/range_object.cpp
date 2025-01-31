@@ -11,7 +11,7 @@ RangeObject *RangeObject::create(Env *env, Value begin, Value end, bool exclude_
 }
 
 void RangeObject::assert_no_bad_value(Env *env, Value begin, Value end) {
-    if (!begin.is_nil() && !end.is_nil() && begin->send(env, "<=>"_s, { end }).is_nil())
+    if (!begin.is_nil() && !end.is_nil() && begin.send(env, "<=>"_s, { end }).is_nil())
         env->raise("ArgumentError", "bad value for range");
 }
 
