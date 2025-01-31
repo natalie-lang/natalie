@@ -712,6 +712,9 @@ Value KernelModule::dup_better(Env *env, Value self) {
 }
 
 Value KernelModule::hash(Env *env, Value self) {
+    if (self.is_integer())
+        return Value::integer(IntegerObject::to_s(self.integer()).djb2_hash());
+
     switch (self->type()) {
     // NOTE: string "foo" and symbol :foo will get the same hash.
     // That's probably ok, but maybe worth revisiting.
