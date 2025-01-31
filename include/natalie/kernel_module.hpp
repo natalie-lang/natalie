@@ -62,13 +62,7 @@ public:
         return other == self;
     }
 
-    static Value klass_obj(Env *env, Value self) {
-        if (self->klass()) {
-            return self->klass();
-        } else {
-            return NilObject::the();
-        }
-    }
+    static Value klass_obj(Env *env, Value self);
 
     static Value freeze_obj(Env *env, Value self) {
         self->freeze();

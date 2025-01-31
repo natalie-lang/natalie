@@ -673,6 +673,15 @@ Value KernelModule::throw_method(Env *env, Value name, Value value) {
     throw new ThrowCatchException { name, value };
 }
 
+Value KernelModule::klass_obj(Env *env, Value self) {
+    if (self.is_integer())
+        return GlobalEnv::the()->Integer();
+    else if (self->klass())
+        return self->klass();
+    else
+        return NilObject::the();
+}
+
 Value KernelModule::define_singleton_method(Env *env, Value self, Value name, Block *block) {
     env->ensure_block_given(block);
     SymbolObject *name_obj = name->to_symbol(env, Object::Conversion::Strict);
