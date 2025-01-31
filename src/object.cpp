@@ -1,7 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/forward.hpp"
 #include <cctype>
-#include <climits>
 
 namespace Natalie {
 
@@ -928,18 +927,24 @@ Value Object::public_send(Env *env, SymbolObject *name, Args &&args, Block *bloc
     return send(env, name, std::move(args), block, MethodVisibility::Public, sent_from);
 }
 
-Value Object::public_send(Env *env, Args &&args, Block *block) {
+Value Object::public_send(Env *env, Value self, Args &&args, Block *block) {
     auto name = args.shift()->to_symbol(env, Object::Conversion::Strict);
-    return public_send(env->caller(), name, std::move(args), block);
+    if (self.is_integer())
+        return self.integer_send(env, name, std::move(args), block, nullptr, MethodVisibility::Public);
+
+    return self->public_send(env->caller(), name, std::move(args), block);
 }
 
 Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     return send(env, name, std::move(args), block, MethodVisibility::Private, sent_from);
 }
 
-Value Object::send(Env *env, Args &&args, Block *block) {
+Value Object::send(Env *env, Value self, Args &&args, Block *block) {
     auto name = args.shift()->to_symbol(env, Object::Conversion::Strict);
-    return send(env->caller(), name, std::move(args), block);
+    if (self.is_integer())
+        return self.integer_send(env, name, std::move(args), block, nullptr, MethodVisibility::Private);
+
+    return self->send(env->caller(), name, std::move(args), block);
 }
 
 Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility_at_least, Value sent_from) {

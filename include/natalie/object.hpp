@@ -231,10 +231,10 @@ public:
     }
 
     Value public_send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Value sent_from = nullptr);
-    Value public_send(Env *, Args &&, Block *);
+    static Value public_send(Env *, Value, Args &&, Block *);
 
     Value send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Value sent_from = nullptr);
-    Value send(Env *, Args &&, Block *);
+    static Value send(Env *, Value, Args &&, Block *);
 
     Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Value sent_from = nullptr) {
         // NOTE: sent_from is unused, but accepting it makes the SendInstruction codegen simpler. :-)
