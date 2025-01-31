@@ -11,23 +11,23 @@ describe "Method#source_location" do
   end
 
   it "sets the first value to the path of the file in which the method was defined" do
-    file = @method.source_location.first
+    file = @method.source_location[0]
     file.should be_an_instance_of(String)
     file.should == File.realpath('fixtures/classes.rb', __dir__)
   end
 
   it "sets the last value to an Integer representing the line on which the method was defined" do
-    line = @method.source_location.last
+    line = @method.source_location[1]
     line.should be_an_instance_of(Integer)
     line.should == 5
   end
 
   it "returns the last place the method was defined" do
-    MethodSpecs::SourceLocation.method(:redefined).source_location.last.should == 13
+    MethodSpecs::SourceLocation.method(:redefined).source_location[1].should == 13
   end
 
   it "returns the location of the original method even if it was aliased" do
-    MethodSpecs::SourceLocation.new.method(:aka).source_location.last.should == 17
+    MethodSpecs::SourceLocation.new.method(:aka).source_location[1].should == 17
   end
 
   it "works for methods defined with a block" do
@@ -112,8 +112,14 @@ describe "Method#source_location" do
     c = Class.new do
       eval('def self.m; end', nil, "foo", 100)
     end
+    location = c.method(:m).source_location
     NATFIXME 'works for eval with a given line', exception: SpecFailedException do
-      c.method(:m).source_location.should == ["foo", 100]
+      ruby_version_is(""..."3.5") do
+        location.should == ["foo", 100]
+      end
+      ruby_version_is("3.5") do
+        location.should == ["foo", 100, 0, 100, 15]
+      end
     end
   end
 

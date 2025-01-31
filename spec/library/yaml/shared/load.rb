@@ -129,7 +129,11 @@ describe :yaml_load_unsafe, shared: true do
   end
 
   it "loads an OpenStruct" do
-    require "ostruct"
+    begin
+      require "ostruct"
+    rescue LoadError
+      skip "OpenStruct is not available"
+    end
     os = OpenStruct.new("age" => 20, "name" => "John")
     loaded = YAML.send(@method, "--- !ruby/object:OpenStruct\ntable:\n  :age: 20\n  :name: John\n")
     NATFIXME 'Implement YAML.unsafe_load', exception: SpecFailedException do
