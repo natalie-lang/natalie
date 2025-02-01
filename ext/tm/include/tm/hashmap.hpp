@@ -15,7 +15,7 @@ namespace TM {
 
 enum class HashType {
     Pointer,
-    TMString,
+    String,
 };
 
 struct HashmapUtils {
@@ -82,10 +82,10 @@ public:
      * free(key2);
      * ```
      *
-     * To use a TM::String as the key, specify HashType::TMString.
+     * To use a TM::String as the key, specify HashType::String.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * auto key1 = String("foo");
      * auto key2 = String("foo");
      * map.put(key1, Thing(1));
@@ -97,7 +97,7 @@ public:
      * can specify only the key type and use set()/get().
      *
      * ```
-     * auto map = Hashmap<String>(HashType::TMString);
+     * auto map = Hashmap<String>(HashType::String);
      * map.set("foo");
      * assert(map.get("foo"));
      * ```
@@ -109,7 +109,7 @@ public:
             m_hash_fn = &Hashmap::hash_ptr;
             m_compare_fn = &Hashmap::compare_ptr;
             break;
-        case HashType::TMString:
+        case HashType::String:
             m_hash_fn = &Hashmap::hash_tm_str;
             m_compare_fn = &Hashmap::compare_tm_str;
             break;
@@ -213,7 +213,7 @@ public:
      * Copies the given Hashmap.
      *
      * ```
-     * auto map1 = Hashmap<String, Thing>(HashType::TMString);
+     * auto map1 = Hashmap<String, Thing>(HashType::String);
      * map1.put("foo", Thing(1));
      * auto map2 = Hashmap<String, Thing>(map1);
      * assert_eq(Thing(1), map2.get("foo"));
@@ -231,7 +231,7 @@ public:
      * Creates a new Hashmap from another Hashmap, and clear the input
      *
      * ```
-     * auto map1 = Hashmap<String, Thing>(HashType::TMString);
+     * auto map1 = Hashmap<String, Thing>(HashType::String);
      * map1.put("foo", Thing(1));
      * auto map2 = Hashmap<String, Thing>(std::move(map1));
      * assert_eq(Thing(1), map2.get("foo"));
@@ -253,9 +253,9 @@ public:
      * Overwrites this Hashmap with another.
      *
      * ```
-     * auto map1 = Hashmap<String, Thing>(HashType::TMString);
+     * auto map1 = Hashmap<String, Thing>(HashType::String);
      * map1.put("foo", Thing(1));
-     * auto map2 = Hashmap<String, Thing>(HashType::TMString);
+     * auto map2 = Hashmap<String, Thing>(HashType::String);
      * map2.put("foo", Thing(2));
      * map1 = map2;
      * assert_eq(Thing(2), map1.get("foo"));
@@ -278,9 +278,9 @@ public:
      * Moves data from another Hashmap onto this one.
      *
      * ```
-     * auto map1 = Hashmap<String, Thing>(HashType::TMString);
+     * auto map1 = Hashmap<String, Thing>(HashType::String);
      * map1.put("foo", Thing(1));
-     * auto map2 = Hashmap<String, Thing>(HashType::TMString);
+     * auto map2 = Hashmap<String, Thing>(HashType::String);
      * map2.put("foo", Thing(2));
      * map1 = std::move(map2);
      * assert_eq(Thing(2), map1.get("foo"));
@@ -351,7 +351,7 @@ public:
      * use the data pointer.)
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * assert_eq(Thing(1), map.get("foo"));
      * ```
@@ -360,7 +360,7 @@ public:
      * then a default-constructed object is returned.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * assert_eq(Thing(0), map.get("foo"));
      * ```
      *
@@ -369,7 +369,7 @@ public:
      * is returned.
      *
      * ```
-     * auto map = Hashmap<String, const char*>(HashType::TMString);
+     * auto map = Hashmap<String, const char*>(HashType::String);
      * assert_eq(nullptr, map.get("foo"));
      * ```
      */
@@ -395,7 +395,7 @@ public:
      *
      * ```
      * auto key = String("foo");
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put(key, Thing(1));
      * auto hash = Hashmap<String>::hash_tm_str(key);
      * auto item = map.find_item(key, hash);
@@ -406,7 +406,7 @@ public:
      *
      * ```
      * auto key = String("foo");
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * auto hash = Hashmap<String>::hash_tm_str(key);
      * auto item = map.find_item(key, hash);
      * assert_eq(nullptr, item);
@@ -430,7 +430,7 @@ public:
      * Use this if you don't care about storing/retrieving values.
      *
      * ```
-     * auto map = Hashmap<String>(HashType::TMString);
+     * auto map = Hashmap<String>(HashType::String);
      * map.set("foo");
      * assert(map.get("foo"));
      * assert_not(map.get("bar"));
@@ -444,7 +444,7 @@ public:
      * Puts the given value at the given key in the Hashmap.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * assert_eq(Thing(1), map.get("foo"));
      * map.put("foo", Thing(2));
@@ -475,7 +475,7 @@ public:
      * Removes and returns the value at the given key.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * assert_eq(Thing(1), map.remove("foo"));
      * assert_eq(Thing(), map.remove("foo"));
@@ -485,7 +485,7 @@ public:
      * then a default-constructed object is returned.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * assert_eq(Thing(0), map.remove("foo"));
      * ```
      *
@@ -494,7 +494,7 @@ public:
      * is returned.
      *
      * ```
-     * auto map = Hashmap<String, const char*>(HashType::TMString);
+     * auto map = Hashmap<String, const char*>(HashType::String);
      * assert_eq(nullptr, map.remove("foo"));
      * ```
      */
@@ -539,7 +539,7 @@ public:
      * Removes all keys/values from the Hashmap.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * assert_eq(1, map.size());
      * map.clear();
@@ -564,7 +564,7 @@ public:
      * Returns the number of values stored in the Hashmap.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * assert_eq(1, map.size());
      * ```
@@ -575,7 +575,7 @@ public:
      * Returns true if there are zero values stored in the Hashmap.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * assert(map.is_empty());
      * map.put("foo", Thing(1));
      * assert_not(map.is_empty());
@@ -653,7 +653,7 @@ public:
      * value, respectively.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * for (std::pair item : map) {
      *     assert_str_eq("foo", item.first);
@@ -679,7 +679,7 @@ public:
      * Otherwise works the same as a non-const iterator.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * const auto const_map = map;
      * for (std::pair item : const_map) {

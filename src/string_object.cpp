@@ -24,8 +24,8 @@ constexpr bool is_strippable_whitespace(char c) {
 static auto character_class_handler(Env *env, Args &&args) {
     args.ensure_argc_at_least(env, 1);
 
-    auto basic_characters = Hashmap<String>(HashType::TMString);
-    auto negated_characters = Hashmap<String>(HashType::TMString);
+    auto basic_characters = Hashmap<String>(HashType::String);
+    auto negated_characters = Hashmap<String>(HashType::String);
 
     // For each argument
     for (size_t i = 0; i < args.size(); ++i) {
@@ -33,7 +33,7 @@ static auto character_class_handler(Env *env, Args &&args) {
 
         // Try convert to string
         auto selectors = arg->to_str(env);
-        auto new_selectors = Hashmap<String>(HashType::TMString);
+        auto new_selectors = Hashmap<String>(HashType::String);
         StringView last_character = {};
         bool negated = false;
 
@@ -86,7 +86,7 @@ static auto character_class_handler(Env *env, Args &&args) {
                 negated_characters.set(pair.first);
             }
         } else {
-            auto new_basic_characters = Hashmap<String>(HashType::TMString);
+            auto new_basic_characters = Hashmap<String>(HashType::String);
             for (auto pair : new_selectors) {
                 if (basic_characters.is_empty() || basic_characters.get(pair.first) != nullptr) {
                     new_basic_characters.set(pair.first);
