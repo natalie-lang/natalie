@@ -136,14 +136,14 @@ public:
     static Value find(Env *, Value);
     static ArrayObject *list(Env *env);
     static ArrayObject *name_list(Env *env);
-    static const TM::Hashmap<Encoding, EncodingObject *> &encodings() { return EncodingObject::s_encoding_list; }
+    static const TM::Vector<EncodingObject *> &encodings() { return EncodingObject::s_encoding_list; }
     static EncodingObject *default_external() { return s_default_external; }
     static EncodingObject *default_internal() { return s_default_internal; }
     static EncodingObject *locale() { return s_locale; }
     static EncodingObject *filesystem() { return s_filesystem; }
     static EncodingObject *set_default_external(Env *, Value);
     static EncodingObject *set_default_internal(Env *, Value);
-    static EncodingObject *get(Encoding encoding) { return s_encoding_list.get(encoding); }
+    static EncodingObject *get(Encoding encoding) { return s_encoding_list.at(static_cast<size_t>(encoding) - 1); }
     static Value locale_charmap();
     static void initialize_defaults(Env *);
 
@@ -170,7 +170,7 @@ private:
     Vector<String> m_names {};
     Encoding m_num;
 
-    static inline TM::Hashmap<Encoding, EncodingObject *> s_encoding_list {};
+    static inline TM::Vector<EncodingObject *> s_encoding_list { EncodingCount, nullptr };
     static inline EncodingObject *s_default_internal = nullptr;
     // external, locale and filesystem are set by a static initializer function
     static inline EncodingObject *s_default_external = nullptr;
