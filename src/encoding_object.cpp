@@ -320,8 +320,8 @@ EncodingObject *EncodingObject::find_encoding(Env *env, Value encoding) {
 
 ArrayObject *EncodingObject::list(Env *) {
     auto ary = new ArrayObject { EncodingCount };
-    for (auto pair : s_encoding_list)
-        ary->push(pair.second);
+    for (auto encoding : s_encoding_list)
+        ary->push(encoding);
     // dbg("size {} enccnt {}", ary->size(), EncodingCount);
     assert(ary->size() == EncodingCount);
     return ary;
@@ -329,21 +329,22 @@ ArrayObject *EncodingObject::list(Env *) {
 
 ArrayObject *EncodingObject::name_list(Env *env) {
     size_t size = 0;
-    for (const auto &[_, encoding] : s_encoding_list)
+    for (const auto &encoding : s_encoding_list)
         size += encoding->m_names.size();
     auto ary = new ArrayObject { size };
-    for (const auto &[_, encoding] : s_encoding_list)
+    for (const auto encoding : s_encoding_list)
         ary->concat(*encoding->names(env));
     return ary;
 }
 
 EncodingObject::EncodingObject(Encoding num, std::initializer_list<const String> names)
     : EncodingObject {} {
-    assert(s_encoding_list.get(num) == nullptr);
+    const auto index = static_cast<size_t>(num) - 1;
+    assert(s_encoding_list.at(index) == nullptr);
     m_num = num;
     for (const auto &name : names)
         m_names.push(name);
-    s_encoding_list.put(num, this);
+    s_encoding_list[index] = this;
 }
 
 Value EncodingObject::name(Env *env) {
