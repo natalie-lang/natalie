@@ -313,9 +313,7 @@ describe "Marshal.dump" do
     end
 
     it "uses object links for objects repeatedly dumped" do
-      NATFIXME 'it uses object links for objects repeatedly dumped', exception: SpecFailedException do
-        Marshal.dump([0.0, 0.0]).should == "\x04\b[\af\x060@\x06" # @\x06 is a link to the float value
-      end
+      Marshal.dump([0.0, 0.0]).should == "\x04\b[\af\x060@\x06" # @\x06 is a link to the float value
     end
   end
 
@@ -851,7 +849,7 @@ describe "Marshal.dump" do
 
     it "dumps a BasicObject subclass if it defines respond_to?" do
       obj = MarshalSpec::BasicObjectSubWithRespondToFalse.new
-      NATFIXME 'it dumps a BasicObject subclass if it defines respond_to?', exception: NoMethodError, message: /undefined method [`']nil\?' for an instance of MarshalSpec::BasicObjectSubWithRespondToFalse/ do
+      NATFIXME 'it dumps a BasicObject subclass if it defines respond_to?', exception: NoMethodError, message: /undefined method [`']is_a\?' for an instance of MarshalSpec::BasicObjectSubWithRespondToFalse/ do
         Marshal.dump(obj).should == "\x04\bo:2MarshalSpec::BasicObjectSubWithRespondToFalse\x00"
       end
     end
