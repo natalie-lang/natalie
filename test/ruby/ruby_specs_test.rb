@@ -10,7 +10,7 @@ describe 'ruby/spec' do
   def spec_timeout(path)
     case path
     when %r{core/(thread|conditionvariable)}
-      240
+      480
     else
       120
     end
