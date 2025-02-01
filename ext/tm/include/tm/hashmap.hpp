@@ -15,7 +15,6 @@ namespace TM {
 
 enum class HashType {
     Pointer,
-    String,
     TMString,
 };
 
@@ -53,8 +52,8 @@ public:
      * the initial capacity.
      *
      * ```
-     * auto hash_fn = &Hashmap<char*>::hash_str;
-     * auto compare_fn = &Hashmap<char*>::compare_str;
+     * auto hash_fn = &Hashmap<char*>::hash_ptr;
+     * auto compare_fn = &Hashmap<char*>::compare_ptr;
      * auto map = Hashmap<char*, Thing>(hash_fn, compare_fn);
      * auto key = strdup("foo");
      * map.put(key, Thing(1));
@@ -80,35 +79,6 @@ public:
      * map.put(key2, Thing(2));
      * assert_eq(2, map.size()); // two different keys
      * free(key1);
-     * free(key2);
-     * ```
-     *
-     * To hash based on the C string's contents, then specify
-     * HashType::String.
-     *
-     * ```
-     * auto map = Hashmap<char*, Thing>(HashType::String);
-     * auto key1 = strdup("foo");
-     * auto key2 = strdup(key1); // different pointer
-     * map.put(key1, Thing(1));
-     * map.put(key2, Thing(2));
-     * assert_eq(1, map.size()); // same key
-     * free(key1);
-     * free(key2);
-     * ```
-     *
-     * When using a C string (char*) as the key, the char* is
-     * duplicated inside the Hashmap and managed for the lifetime
-     * of that key and/or hashmap. You do not need to keep
-     * the char* available or worry about freeing it.
-     *
-     * ```
-     * auto map = Hashmap<char*, Thing>(HashType::String);
-     * auto key = strdup("foo");
-     * map.put(key, Thing(1));
-     * free(key);
-     * auto key2 = strdup("foo");
-     * assert_eq(Thing(1), map.get(key2));
      * free(key2);
      * ```
      *
@@ -138,10 +108,6 @@ public:
         case HashType::Pointer:
             m_hash_fn = &Hashmap::hash_ptr;
             m_compare_fn = &Hashmap::compare_ptr;
-            break;
-        case HashType::String:
-            m_hash_fn = &Hashmap::hash_str;
-            m_compare_fn = &Hashmap::compare_str;
             break;
         case HashType::TMString:
             m_hash_fn = &Hashmap::hash_tm_str;
@@ -195,57 +161,6 @@ public:
      */
     static bool compare_ptr(KeyT &a, KeyT &b, void *) {
         return a == b;
-    }
-
-    /**
-     * Returns a hash value for the given C string based on its contents.
-     *
-     * ```
-     * auto key1 = strdup("foo");
-     * auto key2 = strdup("foo");
-     * auto key3 = strdup("bar");
-     * assert_eq(
-     *   Hashmap<char*>::hash_str(key1),
-     *   Hashmap<char*>::hash_str(key2)
-     * );
-     * assert_neq(
-     *   Hashmap<char*>::hash_ptr(key1),
-     *   Hashmap<char*>::hash_ptr(key3)
-     * );
-     * free(key1);
-     * free(key2);
-     * free(key3);
-     * ```
-     */
-    static size_t hash_str(KeyT &ptr) {
-        if constexpr (std::is_pointer_v<KeyT>) {
-            auto str = String((const char *)(ptr));
-            return str.djb2_hash();
-        } else {
-            return 0;
-        }
-    }
-
-    /**
-     * Returns true if the two given C strings have the same contents.
-     * Null must be passed as the third argument.
-     *
-     * ```
-     * auto key1 = strdup("foo");
-     * auto key2 = strdup("foo");
-     * auto key3 = strdup("bar");
-     * assert(Hashmap<char*>::compare_str(key1, key2, nullptr));
-     * assert_not(Hashmap<char*>::compare_str(key1, key3, nullptr));
-     * free(key1);
-     * free(key2);
-     * free(key3);
-     * ```
-     */
-    static bool compare_str(KeyT &a, KeyT &b, void *) {
-        if constexpr (std::is_pointer_v<KeyT>)
-            return strcmp((const char *)(a), (const char *)(b)) == 0;
-        else
-            return false;
     }
 
     /**
@@ -551,8 +466,7 @@ public:
             return;
         }
         auto index = index_for_hash(hash);
-        auto new_key = duplicate_key(key);
-        auto new_item = new Item { new_key, value, hash };
+        auto new_item = new Item { key, value, hash };
         insert_item(m_map, index, new_item);
         m_size++;
     }
@@ -639,7 +553,6 @@ public:
             m_map[i] = nullptr;
             while (item) {
                 auto next_item = item->next;
-                free_key(item->key);
                 delete item;
                 item = next_item;
             }
@@ -852,7 +765,6 @@ private:
 
     void delete_item(size_t index, Item *item) {
         m_map[index] = item->next;
-        free_key(item->key);
         delete item;
         m_size--;
         if (load_factor() < HASHMAP_MIN_LOAD_FACTOR)
@@ -861,7 +773,6 @@ private:
 
     void delete_item(Item *item_before, Item *item) {
         item_before->next = item->next;
-        free_key(item->key);
         delete item;
         m_size--;
         if (load_factor() < HASHMAP_MIN_LOAD_FACTOR)
@@ -874,33 +785,17 @@ private:
             auto item = other.m_map[i];
             if (item) {
                 auto my_item = new Item { *item };
-                my_item->key = duplicate_key(item->key);
+                my_item->key = item->key;
                 m_map[i] = my_item;
                 m_size++;
                 while (item->next) {
                     item = item->next;
                     my_item->next = new Item { *item };
-                    my_item->next->key = duplicate_key(item->key);
+                    my_item->next->key = item->key;
                     my_item = my_item->next;
                     m_size++;
                 }
             }
-        }
-    }
-
-    KeyT duplicate_key(KeyT &key) {
-        if constexpr (std::is_same_v<char *, KeyT> || std::is_same_v<const char *, KeyT>) {
-            return strdup(key);
-        } else {
-            return key;
-        }
-    }
-
-    void free_key(KeyT &key) {
-        if constexpr (std::is_same_v<char *, KeyT> || std::is_same_v<const char *, KeyT>) {
-            free(key);
-        } else {
-            (void)key; // don't warn/error about unused parameter
         }
     }
 
