@@ -80,9 +80,11 @@ static const auto ruby_encoding_lookup = []() {
 }();
 
 static const auto onig_encoding_lookup = []() {
-    auto map = Hashmap<Encoding, OnigEncoding>();
+    Vector<OnigEncoding> map { EncodingCount, nullptr };
     for (auto [onig_encoding, ruby_encoding] : ruby_encoding_lookup) {
-        map.put(ruby_encoding, onig_encoding);
+        const auto index = static_cast<size_t>(ruby_encoding) - 1;
+        assert(map.at(index) == nullptr);
+        map[index] = onig_encoding;
     }
     return map;
 }();
@@ -97,7 +99,7 @@ EncodingObject *RegexpObject::onig_encoding_to_ruby_encoding(const OnigEncoding 
 }
 
 OnigEncoding RegexpObject::ruby_encoding_to_onig_encoding(NonNullPtr<const EncodingObject> encoding) {
-    auto result = onig_encoding_lookup.get(encoding->num());
+    auto result = onig_encoding_lookup.at(static_cast<size_t>(encoding->num()) - 1);
     if (result) return result;
 
     // Use US_ASCII as the default
