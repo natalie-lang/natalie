@@ -247,6 +247,8 @@ module Kernel
       s = arg.to_s
       if token.precision && s.size > token.precision
         s = s[0...token.precision]
+      else
+        s = s.dup
       end
       if token.width && s.size < token.width
         s = (' ' * (token.width - s.size)) + s
@@ -746,7 +748,7 @@ module Kernel
             if @value_arg_name
               @value_arg_name << char
             else
-              @value_arg_name = ''
+              @value_arg_name = +''
             end
           when :named_argument_curly_end
             tokens << build_token(nil)
