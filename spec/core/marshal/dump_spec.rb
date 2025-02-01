@@ -334,9 +334,7 @@ describe "Marshal.dump" do
 
     it "uses object links for objects repeatedly dumped" do
       n = 2**64
-      NATFIXME 'it uses object links for objects repeatedly dumped', exception: SpecFailedException do
-        Marshal.dump([n, n]).should == "\x04\b[\al+\n\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00@\x06" # @\x06 is a link to the object
-      end
+      Marshal.dump([n, n]).should == "\x04\b[\al+\n\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00@\x06" # @\x06 is a link to the object
     end
 
     it "increases the object links counter" do

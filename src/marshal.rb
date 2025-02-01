@@ -336,6 +336,9 @@ module Marshal
       if value.respond_to?(:object_id) && !value.is_a?(Integer) && @object_lookup.key?(value.object_id)
         write_object_link(@object_lookup.fetch(value.object_id))
         return @output
+      elsif value.is_a?(Integer) && (value >= 2**62 || value < -(2**62)) && @object_lookup.key?([:integer, value])
+        write_object_link(@object_lookup.fetch([:integer, value]))
+        return @output
       elsif value.is_a?(Float) && @object_lookup.key?(value)
         write_object_link(@object_lookup.fetch(value))
         return @output
