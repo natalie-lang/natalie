@@ -24,7 +24,7 @@ public:
 
     constexpr static int initial_blocks_per_allocator = 10;
     constexpr static int min_percent_free_triggers_collection = 5;
-    constexpr static int min_percent_free_after_collection = 20;
+    constexpr static int check_free_percentage_every = 1000;
 
     static Heap &the() {
         if (s_instance)
@@ -82,6 +82,8 @@ public:
     void set_collect_all_at_exit(bool collect) { m_collect_all_at_exit = collect; }
 
 private:
+    friend Allocator;
+
     inline static Heap *s_instance = nullptr;
 
     Heap() {
@@ -124,6 +126,9 @@ private:
 
     bool m_gc_enabled { false };
     bool m_collect_all_at_exit { false };
+    size_t m_free_cells { 0 };
+    size_t m_total_cells { 0 };
+    size_t m_allocations_without_collection_count { 0 };
 };
 
 }

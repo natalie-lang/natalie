@@ -193,23 +193,52 @@ void *Heap::allocate(size_t size) {
         if (is_profiled)
             NativeProfiler::the()->push(profiler_event->end_now());
     });
+
     auto &allocator = find_allocator_of_size(size);
+    if (allocator.total_cells() == 0)
+        allocator.add_multiple_blocks(initial_blocks_per_allocator);
 
     if (m_gc_enabled) {
 #ifdef NAT_GC_DEBUG_ALWAYS_COLLECT
         collect_dangerously_without_mutex();
 #else
 
-        if (allocator.total_cells() == 0) {
-            allocator.add_multiple_blocks(initial_blocks_per_allocator);
-        } else if (allocator.free_cells_percentage() < min_percent_free_triggers_collection) {
-            collect();
-            allocator.add_blocks_until_percent_free_reached(min_percent_free_after_collection);
+        if (m_allocations_without_collection_count++ >= check_free_percentage_every) {
+            if (m_free_cells * 100 / m_total_cells < min_percent_free_triggers_collection)
+                collect();
+            m_allocations_without_collection_count = 0;
         }
 #endif
     }
 
     return allocator.allocate();
+}
+
+void *Allocator::allocate() {
+    Cell *cell = nullptr;
+    if (m_free_blocks.empty()) {
+        auto *block = add_heap_block();
+        cell = block->find_next_free_cell();
+    } else {
+        auto *block = m_free_blocks.back();
+        cell = block->find_next_free_cell();
+        if (!block->has_free())
+            m_free_blocks.pop_back();
+    }
+    --m_free_cells;
+    --Heap::the().m_free_cells;
+    return cell;
+}
+
+HeapBlock *Allocator::add_heap_block() {
+    auto *block = reinterpret_cast<HeapBlock *>(aligned_alloc(HEAP_BLOCK_SIZE, HEAP_BLOCK_SIZE));
+    new (block) HeapBlock(m_cell_size);
+    m_blocks.set(block);
+    add_free_block(block);
+    m_free_cells += cell_count_per_block();
+    Heap::the().m_free_cells += cell_count_per_block();
+    Heap::the().m_total_cells += cell_count_per_block();
+    return block;
 }
 
 void Heap::return_cell_to_free_list(Cell *cell) {
@@ -266,5 +295,4 @@ void HeapBlock::return_cell_to_free_list(const Cell *cell) {
     m_free_list = node;
     ++m_free_count;
 }
-
 }

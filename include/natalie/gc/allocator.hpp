@@ -50,20 +50,7 @@ public:
         return m_free_cells * 100 / total_cells();
     }
 
-    void *allocate() {
-        Cell *cell = nullptr;
-        if (m_free_blocks.empty()) {
-            auto *block = add_heap_block();
-            cell = block->find_next_free_cell();
-        } else {
-            auto *block = m_free_blocks.back();
-            cell = block->find_next_free_cell();
-            if (!block->has_free())
-                m_free_blocks.pop_back();
-        }
-        --m_free_cells;
-        return cell;
-    }
+    void *allocate();
 
     void add_free_block(HeapBlock *block) {
         m_free_blocks.push_back(block);
@@ -98,14 +85,7 @@ public:
     }
 
 private:
-    HeapBlock *add_heap_block() {
-        auto *block = reinterpret_cast<HeapBlock *>(aligned_alloc(HEAP_BLOCK_SIZE, HEAP_BLOCK_SIZE));
-        new (block) HeapBlock(m_cell_size);
-        m_blocks.set(block);
-        add_free_block(block);
-        m_free_cells += cell_count_per_block();
-        return block;
-    }
+    HeapBlock *add_heap_block();
 
     size_t m_cell_size;
     size_t m_free_cells { 0 };

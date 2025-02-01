@@ -1,3 +1,5 @@
+#include <sys/time.h>
+
 #define NAT_UNREACHABLE()                                                     \
     {                                                                         \
         fprintf(stderr, "panic: unreachable in %s#%d\n", __FILE__, __LINE__); \
@@ -48,3 +50,10 @@
 #else
 #define NAT_THREAD_DEBUG(msg, ...)
 #endif
+
+#define NAT_LOG(msg, ...)                                                               \
+    {                                                                                   \
+        struct timeval tv;                                                              \
+        gettimeofday(&tv, nullptr);                                                     \
+        fprintf(stderr, "[%ld.%06ld] " msg "\n", tv.tv_sec, tv.tv_usec, ##__VA_ARGS__); \
+    }
