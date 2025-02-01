@@ -55,7 +55,7 @@ Value HashObject::get(Env *env, Value key) {
 }
 
 nat_int_t HashObject::generate_key_hash(Env *env, Value key) const {
-    if (m_is_comparing_by_identity) {
+    if (m_is_comparing_by_identity && !key.is_float()) {
         auto obj = key.object();
         return TM::HashmapUtils::hashmap_hash_ptr((uintptr_t)obj);
     } else {

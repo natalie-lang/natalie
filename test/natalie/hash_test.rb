@@ -418,4 +418,15 @@ describe 'hash' do
       h.object_id.should == id_was
     end
   end
+
+  describe '#compare_by_identity' do
+    it 'handles equal floats as if having the same identity' do
+      h = {}
+      h.compare_by_identity
+      h[0.0] = :a
+      h[0.0] = :b
+      h.size.should == 1
+      h[0.0].should == :b
+    end
+  end
 end
