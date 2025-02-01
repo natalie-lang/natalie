@@ -3462,12 +3462,12 @@ StringObject *StringObject::capitalize(Env *env, Value arg1, Value arg2) {
 }
 
 Value StringObject::capitalize_in_place(Env *env, Value arg1, Value arg2) {
+    auto copy = capitalize(env, arg1, arg2)->as_string();
     assert_not_frozen(env);
-    StringObject *copy = duplicate(env)->as_string();
-    *this = *capitalize(env, arg1, arg2)->as_string();
     if (*this == *copy) {
         return Value(NilObject::the());
     }
+    *this = *copy;
     return this;
 }
 
