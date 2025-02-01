@@ -185,9 +185,9 @@ module Marshal
       end
     end
 
-    def write_object_link(value)
+    def write_object_link(index)
       write_char('@')
-      write_integer_bytes(@object_lookup.fetch(value.object_id))
+      write_integer_bytes(index)
     end
 
     def write_array(values, ivars)
@@ -334,7 +334,7 @@ module Marshal
 
     def write(value)
       if value.respond_to?(:object_id) && @object_lookup.key?(value.object_id)
-        write_object_link(value)
+        write_object_link(@object_lookup.fetch(value.object_id))
         return @output
       end
 
