@@ -45,6 +45,7 @@ Value Value::integer_send(Env *env, SymbolObject *name, Args &&args, Block *bloc
             env->raise_no_method_error(obj, name, GlobalEnv::the()->method_missing_reason());
     }
 
+    args.pop_empty_keyword_hash();
     return method_info.method()->call(env, *this, std::move(args), block);
 }
 

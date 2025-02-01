@@ -409,4 +409,14 @@ describe 'integer' do
       (-28 * 10**70).truncate(-71).should eql(-20 * 10**70)
     end
   end
+
+  describe '#send' do
+    def foo(*args, **kwargs)
+      10.times(*args, **kwargs) { |i| i }
+    end
+
+    it 'pops empty keyword hash argument' do
+      -> { foo }.should_not raise_error
+    end
+  end
 end
