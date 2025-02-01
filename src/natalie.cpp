@@ -560,7 +560,7 @@ Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat)
             return FalseObject::the();
         }
     }
-    return when_value->send(env, "==="_s, { case_value });
+    return when_value.send(env, "==="_s, { case_value });
 }
 
 void run_at_exit_handlers(Env *env) {
