@@ -180,7 +180,6 @@ public:
 
     static Value const_find_with_autoload(Env *, Value, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
 
-    virtual Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
     virtual Value const_get(SymbolObject *) const;
     virtual Value const_fetch(SymbolObject *);
     virtual Value const_set(SymbolObject *, Value);

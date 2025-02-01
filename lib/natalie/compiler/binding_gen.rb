@@ -252,7 +252,7 @@ class BindingGen
       if GLOBAL_ENV_ACCESSORS.include?(rb_class)
         "Value #{rb_class} = GlobalEnv::the()->#{rb_class}();"
       else
-        "Value #{rb_class_as_c_variable} = GlobalEnv::the()->Object()->#{rb_class.split('::').map { |c| "const_find(env, #{c.inspect}_s)" }.join('->')};"
+        "Value #{rb_class_as_c_variable} = fetch_nested_const({ #{rb_class.split('::').map { |c| "#{c.inspect}_s" }.join(',')} });"
       end
     end
 

@@ -41,12 +41,12 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
     case Object::Type::String:
     case Object::Type::Symbol: {
         auto sym = name->to_symbol(env, Object::Conversion::Strict);
-        auto Socket = find_top_level_const(env, "Socket"_s);
+        auto Socket = find_top_level_const(env, "Socket"_s)->as_module();
         auto value = Socket->const_find(env, sym, Object::ConstLookupSearchMode::Strict, Object::ConstLookupFailureMode::Null);
         if (!value)
             value = Socket->const_find(env, "SHORT_CONSTANTS"_s)->as_hash_or_raise(env)->get(env, sym);
         if (!value)
-            env->raise_name_error(sym, "uninitialized constant {}::{}", Socket->inspect_str(env), sym->string());
+            env->raise_name_error(sym, "uninitialized constant {}::{}", Socket->inspect_str(), sym->string());
         return value;
     }
     default:
@@ -413,7 +413,7 @@ Value Addrinfo_getnameinfo(Env *env, Value self, Args &&args, Block *) {
 }
 
 Value Addrinfo_to_sockaddr(Env *env, Value self, Args &&args, Block *block) {
-    auto Socket = self->const_find(env, "Socket"_s, Object::ConstLookupSearchMode::NotStrict);
+    auto Socket = find_top_level_const(env, "Socket"_s);
 
     auto afamily = self->ivar_get(env, "@afamily"_s).integer_or_raise(env).to_nat_int_t();
     switch (afamily) {
@@ -1235,7 +1235,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args &&args, Block *block)
     args.ensure_argc_is(env, 1);
     auto sockaddr = args.at(0);
 
-    if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict))) {
+    if (sockaddr->is_a(env, find_top_level_const(env, "Addrinfo"_s))) {
         auto afamily = sockaddr.send(env, "afamily"_s).send(env, "to_i"_s).integer().to_nat_int_t();
         if (afamily != AF_INET && afamily != AF_INET6)
             env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
@@ -1289,7 +1289,7 @@ Value Socket_unpack_sockaddr_un(Env *env, Value self, Args &&args, Block *block)
     args.ensure_argc_is(env, 1);
     auto sockaddr = args.at(0);
 
-    if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict))) {
+    if (sockaddr->is_a(env, find_top_level_const(env, "Addrinfo"_s))) {
         auto afamily = sockaddr.send(env, "afamily"_s).send(env, "to_i"_s).integer().to_nat_int_t();
         if (afamily != AF_UNIX)
             env->raise("ArgumentError", "not an AF_UNIX sockaddr");
