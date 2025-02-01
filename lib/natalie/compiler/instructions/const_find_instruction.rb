@@ -27,15 +27,17 @@ module Natalie
 
         namespace = transform.pop
         search_mode = @strict ? 'Strict' : 'NotStrict'
+        args = [
+          'env',
+          namespace,
+          'self',
+          transform.intern(name),
+          "Object::ConstLookupSearchMode::#{search_mode}",
+          "Object::ConstLookupFailureMode::#{@failure_mode}",
+        ]
         transform.exec_and_push(
           :const,
-          "#{namespace}->const_find_with_autoload(" \
-            'env, ' \
-            'self, ' \
-            "#{transform.intern(name)}, " \
-            "Object::ConstLookupSearchMode::#{search_mode}, " \
-            "Object::ConstLookupFailureMode::#{@failure_mode}" \
-          ')'
+          "Object::const_find_with_autoload(#{args.join(', ')})"
         )
       end
 
