@@ -673,6 +673,15 @@ Value KernelModule::throw_method(Env *env, Value name, Value value) {
     throw new ThrowCatchException { name, value };
 }
 
+Value KernelModule::klass_obj(Env *env, Value self) {
+    if (self.is_integer())
+        return GlobalEnv::the()->Integer();
+    else if (self->klass())
+        return self->klass();
+    else
+        return NilObject::the();
+}
+
 Value KernelModule::define_singleton_method(Env *env, Value self, Value name, Block *block) {
     env->ensure_block_given(block);
     SymbolObject *name_obj = name->to_symbol(env, Object::Conversion::Strict);
@@ -703,6 +712,9 @@ Value KernelModule::dup_better(Env *env, Value self) {
 }
 
 Value KernelModule::hash(Env *env, Value self) {
+    if (self.is_integer())
+        return Value::integer(IntegerObject::to_s(self.integer()).djb2_hash());
+
     switch (self->type()) {
     // NOTE: string "foo" and symbol :foo will get the same hash.
     // That's probably ok, but maybe worth revisiting.
@@ -781,6 +793,10 @@ Value KernelModule::instance_variables(Env *env, Value self) {
 bool KernelModule::is_a(Env *env, Value self, Value module) {
     if (!module.is_module())
         env->raise("TypeError", "class or module required");
+
+    if (self.is_integer())
+        return GlobalEnv::the()->Integer()->ancestors_includes(env, module->as_module());
+
     return self->is_a(env, module->as_module());
 }
 

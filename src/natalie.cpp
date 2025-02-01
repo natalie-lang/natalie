@@ -607,10 +607,10 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception, Thread
 
 void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_exit_handlers) {
     if (exception->is_a(env, find_top_level_const(env, "SystemExit"_s)->as_class())) {
-        Value status_obj = exception->ivar_get(env, "@status"_s);
+        auto status = exception->ivar_get(env, "@status"_s);
         if (run_exit_handlers) run_at_exit_handlers(env);
-        if (status_obj->type() == Object::Type::Integer) {
-            auto val = status_obj.integer().to_nat_int_t();
+        if (status.is_integer()) {
+            auto val = status.integer().to_nat_int_t();
             if (val >= 0 && val <= 255) {
                 clean_up_and_exit(val);
             } else {

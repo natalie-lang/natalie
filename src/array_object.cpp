@@ -893,6 +893,8 @@ Value ArrayObject::_subjoin(Env *env, Value item, Value joiner) {
         auto to_str = "to_str"_s;
         auto to_ary = "to_ary"_s;
         auto to_s = "to_s"_s;
+        if (item.is_integer())
+            return item.send(env, to_s);
         if (item->respond_to(env, to_str)) {
             // Need to support nil, don't use Object::to_str
             auto rval = item.send(env, to_str);
