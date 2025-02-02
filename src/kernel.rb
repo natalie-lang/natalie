@@ -53,6 +53,7 @@ module Kernel
   end
 
   def rand(*args)
+    args.map!(&:abs) if args.size == 1 && args[0].is_a?(Numeric)
     Random::DEFAULT.rand(*args)
   end
   module_function :rand
