@@ -88,6 +88,9 @@ public:
     static Value protected_methods(Env *env, Value self, Value recur = nullptr);
     static Value public_methods(Env *env, Value self, Value recur = nullptr);
     static Value remove_instance_variable(Env *env, Value self, Value name_val);
+    static bool respond_to_missing(Env *, Value, Value, Value) { return false; }
+    static bool respond_to_method(Env *, Value, Value, Value);
+    static bool respond_to_method(Env *, Value, Value, bool);
     static Value tap(Env *env, Value self, Block *block);
     static bool is_a(Env *env, Value self, Value module);
 };

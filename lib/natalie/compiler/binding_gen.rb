@@ -1015,8 +1015,8 @@ gen.static_binding_as_instance_method('Kernel', 'public_send', 'Object', 'public
 gen.static_binding_as_instance_method('Kernel', 'clone', 'Object', 'clone_obj', argc: 0, kwargs: [:freeze], pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'extend', 'KernelModule', 'extend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Kernel', 'frozen?', 'Object', 'is_frozen', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.binding('Kernel', 'respond_to?', 'Object', 'respond_to_method', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('Kernel', 'respond_to_missing?', 'Object', 'respond_to_missing', argc: 2, pass_env: true, pass_block: false, return_type: :bool, visibility: :private)
+gen.static_binding_as_instance_method('Kernel', 'respond_to?', 'KernelModule', 'respond_to_method', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('Kernel', 'respond_to_missing?', 'KernelModule', 'respond_to_missing', argc: 2, pass_env: true, pass_block: false, return_type: :bool, visibility: :private)
 
 gen.undefine_singleton_method('MatchData', 'new')
 gen.undefine_singleton_method('MatchData', 'allocate')
