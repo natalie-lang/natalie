@@ -254,7 +254,7 @@ public:
     void copy_instance_variables(Value);
 
     bool is_a(Env *, Value) const;
-    bool respond_to(Env *, Value, bool = true);
+    bool respond_to(Env *env, SymbolObject *name) { return Value(this).respond_to(env, name); }
 
     const char *defined(Env *, SymbolObject *, bool);
     Value defined_obj(Env *, SymbolObject *, bool = false);

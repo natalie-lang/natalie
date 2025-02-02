@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/integer_object.hpp"
+#include "natalie/object_type.hpp"
 
 namespace Natalie {
 
@@ -251,6 +252,14 @@ bool Value::is_integer() const {
     default:
         return false;
     }
+}
+
+bool Value::respond_to(Env *env, SymbolObject *name_val, bool include_all) {
+    if (KernelModule::respond_to_method(env, *this, "respond_to?"_s, true))
+        return send(env, "respond_to?"_s, { name_val, bool_object(include_all) }).is_truthy();
+
+    // Needed for BasicObject as it does not have an actual respond_to? method
+    return KernelModule::respond_to_method(env, *this, name_val, include_all);
 }
 
 bool Value::is_nil() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Nil; }

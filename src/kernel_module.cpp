@@ -273,7 +273,7 @@ Value KernelModule::Float(Env *env, Value value, bool exception) {
             env->raise("ArgumentError", "invalid value for Float(): {}", value->inspect_str(env));
         }
         return result;
-    } else if (!value.is_nil() && value->respond_to(env, "to_f"_s)) {
+    } else if (!value.is_nil() && value.respond_to(env, "to_f"_s)) {
         auto result = value.send(env, "to_f"_s);
         if (result.is_float()) {
             return result;

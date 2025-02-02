@@ -1138,14 +1138,6 @@ bool Object::is_a(Env *env, Value val) const {
     }
 }
 
-bool Object::respond_to(Env *env, Value name_val, bool include_all) {
-    if (KernelModule::respond_to_method(env, this, "respond_to?"_s, true))
-        return send(env, "respond_to?"_s, { name_val, bool_object(include_all) }).is_truthy();
-
-    // Needed for BaseObject as it does not have an actual respond_to? method
-    return KernelModule::respond_to_method(env, this, name_val, include_all);
-}
-
 const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
     Value obj = nullptr;
     if (name->is_constant_name()) {

@@ -391,7 +391,7 @@ bool ArrayObject::eq(Env *env, Value other) {
             Value this_item = (*this)[i];
             Value item = (*other_array)[i];
 
-            if (this_item->respond_to(env, object_id) && item->respond_to(env, object_id)) {
+            if (this_item.respond_to(env, object_id) && item.respond_to(env, object_id)) {
                 Value same_object_id = this_item
                                            .send(env, object_id)
                                            .send(env, equality, { item.send(env, object_id) });

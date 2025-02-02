@@ -126,6 +126,8 @@ public:
     void assert_type(Env *, ObjectType, const char *) const;
     void assert_not_frozen(Env *) const;
 
+    bool respond_to(Env *, SymbolObject *, bool include_all = true);
+
     bool is_nil() const;
     bool is_true() const;
     bool is_false() const;
