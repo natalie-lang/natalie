@@ -35,7 +35,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
     if (!value) {
         auto to_ary = "to_ary"_s;
         if (!size.is_array() && size->respond_to(env, to_ary))
-            size = size->send(env, to_ary);
+            size = size.send(env, to_ary);
 
         if (size.is_array()) {
             return initialize_copy(env, size);
@@ -243,7 +243,7 @@ Value ArrayObject::sum(Env *env, Args &&args, Block *block) {
 Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
     if (!size) {
         if (!index_obj.is_integer() && index_obj->respond_to(env, "to_int"_s))
-            index_obj = index_obj->send(env, "to_int"_s);
+            index_obj = index_obj.send(env, "to_int"_s);
 
         if (index_obj.is_integer()) {
             IntegerObject::assert_fixnum(env, index_obj.integer());
@@ -371,8 +371,8 @@ bool ArrayObject::eq(Env *env, Value other) {
 
         SymbolObject *equality = "=="_s;
         if (!other.is_array()
-            && other->send(env, "respond_to?"_s, { "to_ary"_s }).is_true())
-            return other->send(env, equality, { this });
+            && other.send(env, "respond_to?"_s, { "to_ary"_s }).is_true())
+            return other.send(env, equality, { this });
 
         if (!other.is_array()) {
             return FalseObject::the();
@@ -393,8 +393,8 @@ bool ArrayObject::eq(Env *env, Value other) {
 
             if (this_item->respond_to(env, object_id) && item->respond_to(env, object_id)) {
                 Value same_object_id = this_item
-                                           ->send(env, object_id)
-                                           ->send(env, equality, { item->send(env, object_id) });
+                                           .send(env, object_id)
+                                           .send(env, equality, { item.send(env, object_id) });
 
                 // This allows us to check NAN equality and other potentially similar constants
                 if (same_object_id.is_true())
@@ -1484,7 +1484,7 @@ Value ArrayObject::rassoc(Env *env, Value needle) {
         if (sub_array->size() < 2)
             continue;
 
-        if (sub_array->at(1)->send(env, "=="_s, { needle }).is_truthy())
+        if (sub_array->at(1).send(env, "=="_s, { needle }).is_truthy())
             return sub_array;
     }
 
@@ -1502,7 +1502,7 @@ Value ArrayObject::hash(Env *env) {
 
         for (size_t i = 0; i < size(); ++i) {
             auto item = (*this)[i];
-            auto item_hash = item->send(env, hash_method);
+            auto item_hash = item.send(env, hash_method);
 
             if (item_hash.is_nil())
                 continue;
@@ -1564,7 +1564,7 @@ Value ArrayObject::intersection(Env *env, Value arg) {
 bool ArrayObject::include_eql(Env *env, Value arg) {
     auto eql = "eql?"_s;
     for (auto &val : *this) {
-        if (object_id(arg) == object_id(val) || arg->send(env, eql, { val }).is_truthy())
+        if (object_id(arg) == object_id(val) || arg.send(env, eql, { val }).is_truthy())
             return true;
     }
     return false;
@@ -2053,7 +2053,7 @@ Value ArrayObject::try_convert(Env *env, Value val) {
         return NilObject::the();
     }
 
-    auto conversion = val->send(env, to_ary);
+    auto conversion = val.send(env, to_ary);
 
     if (conversion.is_array() || conversion.is_nil()) {
         return conversion;
