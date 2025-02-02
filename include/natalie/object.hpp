@@ -249,6 +249,7 @@ public:
 
     Value duplicate(Env *) const;
     Value clone(Env *env, Value freeze = nullptr);
+    static Value clone_obj(Env *env, Value self, Value freeze = nullptr);
 
     void copy_instance_variables(Value);
 

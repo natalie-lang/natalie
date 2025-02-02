@@ -1012,7 +1012,7 @@ gen.static_binding_as_instance_method('Kernel', 'tap', 'KernelModule', 'tap', ar
 gen.static_binding_as_instance_method('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'send', 'Object', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'public_send', 'Object', 'public_send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('Kernel', 'clone', 'Object', 'clone', argc: 0, kwargs: [:freeze], pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'clone', 'Object', 'clone_obj', argc: 0, kwargs: [:freeze], pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Kernel', 'extend', 'Object', 'extend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Kernel', 'frozen?', 'Object', 'is_frozen', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Kernel', 'respond_to?', 'Object', 'respond_to_method', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)

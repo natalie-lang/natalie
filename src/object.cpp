@@ -1112,6 +1112,13 @@ Value Object::clone(Env *env, Value freeze) {
     return duplicate;
 }
 
+Value Object::clone_obj(Env *env, Value self, Value freeze) {
+    if (self.is_integer())
+        return self;
+
+    return self->clone(env, freeze);
+}
+
 void Object::copy_instance_variables(const Value other) {
     assert(other);
     if (m_ivars)
