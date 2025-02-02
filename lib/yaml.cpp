@@ -407,7 +407,7 @@ Value YAML_load(Env *env, Value self, Args &&args, Block *) {
     Defer parser_deleter { [&parser]() { yaml_parser_delete(&parser); } };
 
     auto input = args.at(0);
-    if (input.is_io() || input->respond_to(env, "to_io"_s)) {
+    if (input.is_io() || input.respond_to(env, "to_io"_s)) {
         auto io = input->to_io(env);
         auto file = fdopen(io->fileno(env), "r");
         yaml_parser_set_input_file(&parser, file);

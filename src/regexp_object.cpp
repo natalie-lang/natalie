@@ -164,7 +164,7 @@ Value RegexpObject::quote(Env *env, Value string) {
 }
 
 Value RegexpObject::try_convert(Env *env, Value value) {
-    if (!value.is_regexp() && value->respond_to(env, "to_regexp"_s)) {
+    if (!value.is_regexp() && value.respond_to(env, "to_regexp"_s)) {
         auto result = value->send(env, "to_regexp"_s);
         if (!result.is_regexp()) {
             auto value_class_name = value->klass()->name().value_or("Object");
@@ -184,7 +184,7 @@ Value RegexpObject::regexp_union(Env *env, Args &&args) {
     for (auto pattern : *patterns) {
         if (!out.is_empty())
             out.append_char('|');
-        if (pattern->respond_to(env, "to_regexp"_s)) {
+        if (pattern.respond_to(env, "to_regexp"_s)) {
             pattern = pattern->send(env, "to_regexp"_s);
         } else if (pattern.is_symbol()) {
             pattern = pattern->to_s(env);

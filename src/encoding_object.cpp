@@ -91,9 +91,9 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         auto handle_fallback = [&](nat_int_t cpt) {
             auto ch = new StringObject { orig_encoding->encode_codepoint(cpt) };
             Value result = NilObject::the();
-            if (options.fallback_option->respond_to(env, "[]"_s)) {
+            if (options.fallback_option.respond_to(env, "[]"_s)) {
                 result = options.fallback_option->send(env, "[]"_s, { ch });
-            } else if (options.fallback_option->respond_to(env, "call"_s)) {
+            } else if (options.fallback_option.respond_to(env, "call"_s)) {
                 result = options.fallback_option->send(env, "call"_s, { ch });
             }
 

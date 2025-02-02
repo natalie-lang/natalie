@@ -315,7 +315,7 @@ bool IntegerObject::lt(Env *env, Integer &self, Value other) {
     if (other.is_integer())
         return self < other.integer();
 
-    if (other->respond_to(env, "coerce"_s)) {
+    if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
         return result.first->send(env, "<"_s, { result.second }).is_truthy();
     }
@@ -340,7 +340,7 @@ bool IntegerObject::lte(Env *env, Integer &self, Value other) {
     if (other.is_integer())
         return self <= other.integer();
 
-    if (other->respond_to(env, "coerce"_s)) {
+    if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
         return result.first->send(env, "<="_s, { result.second }).is_truthy();
     }
@@ -365,7 +365,7 @@ bool IntegerObject::gt(Env *env, Integer &self, Value other) {
     if (other.is_integer())
         return self > other.integer();
 
-    if (other->respond_to(env, "coerce"_s)) {
+    if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
         return result.first->send(env, ">"_s, { result.second }).is_truthy();
     }
@@ -390,7 +390,7 @@ bool IntegerObject::gte(Env *env, Integer &self, Value other) {
     if (other.is_integer())
         return self >= other.integer();
 
-    if (other->respond_to(env, "coerce"_s)) {
+    if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
         return result.first->send(env, ">="_s, { result.second }).is_truthy();
     }
@@ -417,10 +417,10 @@ Value IntegerObject::times(Env *env, Integer &self, Block *block) {
 }
 
 Value IntegerObject::bitwise_and(Env *env, Integer &self, Value arg) {
-    if (!arg.is_integer() && arg->respond_to(env, "coerce"_s)) {
+    if (!arg.is_integer() && arg.respond_to(env, "coerce"_s)) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         auto and_symbol = "&"_s;
-        if (!lhs.is_integer() && lhs->respond_to(env, and_symbol))
+        if (!lhs.is_integer() && lhs.respond_to(env, and_symbol))
             return lhs.send(env, and_symbol, { rhs });
         arg = rhs;
     }
@@ -431,10 +431,10 @@ Value IntegerObject::bitwise_and(Env *env, Integer &self, Value arg) {
 
 Value IntegerObject::bitwise_or(Env *env, Integer &self, Value arg) {
     Integer argument;
-    if (!arg.is_integer() && arg->respond_to(env, "coerce"_s)) {
+    if (!arg.is_integer() && arg.respond_to(env, "coerce"_s)) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         auto or_symbol = "|"_s;
-        if (!lhs.is_integer() && lhs->respond_to(env, or_symbol))
+        if (!lhs.is_integer() && lhs.respond_to(env, or_symbol))
             return lhs.send(env, or_symbol, { rhs });
         arg = rhs;
     }
@@ -445,10 +445,10 @@ Value IntegerObject::bitwise_or(Env *env, Integer &self, Value arg) {
 
 Value IntegerObject::bitwise_xor(Env *env, Integer &self, Value arg) {
     Integer argument;
-    if (!arg.is_integer() && arg->respond_to(env, "coerce"_s)) {
+    if (!arg.is_integer() && arg.respond_to(env, "coerce"_s)) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         auto xor_symbol = "^"_s;
-        if (!lhs.is_integer() && lhs->respond_to(env, xor_symbol))
+        if (!lhs.is_integer() && lhs.respond_to(env, xor_symbol))
             return lhs.send(env, xor_symbol, { rhs });
         arg = rhs;
     }
@@ -511,7 +511,7 @@ Value IntegerObject::coerce(Env *env, Value self, Value arg) {
         ary->push(self.send(env, "to_f"_s));
         break;
     default:
-        if (!arg.is_nil() && !arg.is_float() && arg->respond_to(env, "to_f"_s)) {
+        if (!arg.is_nil() && !arg.is_float() && arg.respond_to(env, "to_f"_s)) {
             arg = arg.send(env, "to_f"_s);
         }
 

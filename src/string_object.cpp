@@ -1157,7 +1157,7 @@ Value StringObject::eqtilde(Env *env, Value other) {
     if (other.is_string())
         env->raise("TypeError", "type mismatch: String given");
 
-    if (!other.is_regexp() && other->respond_to(env, "=~"_s))
+    if (!other.is_regexp() && other.respond_to(env, "=~"_s))
         return other->send(env, "=~"_s, { this });
 
     other.assert_type(env, Object::Type::Regexp, "Regexp");
@@ -1168,9 +1168,9 @@ Value StringObject::match(Env *env, Value other, Value index, Block *block) {
     if (!other.is_regexp()) {
         if (other.is_string()) {
             other = new RegexpObject { env, other->as_string()->string() };
-        } else if (other->respond_to(env, "to_str"_s)) {
+        } else if (other.respond_to(env, "to_str"_s)) {
             other = new RegexpObject { env, other.to_str(env)->string() };
-        } else if (other->respond_to(env, "=~"_s)) {
+        } else if (other.respond_to(env, "=~"_s)) {
             return other->send(env, "=~"_s, { this });
         }
     }
@@ -2548,7 +2548,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
     if (!replacement_value && !block)
         env->raise("NotImplementedError", "Enumerator reply in String#gsub");
 
-    if (find.is_string() || find->respond_to(env, "to_str"_s)) {
+    if (find.is_string() || find.respond_to(env, "to_str"_s)) {
         const auto pattern = RegexpObject::quote(env, find.to_str(env))->as_string()->string();
         const int options = 0;
         find = new RegexpObject { env, pattern, options };
@@ -2996,7 +2996,7 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
         }
     } else {
         // string case or object-coercible to string case
-        if (!splitter.is_string() && splitter->respond_to(env, "to_str"_s))
+        if (!splitter.is_string() && splitter.respond_to(env, "to_str"_s))
             splitter = splitter.to_str(env);
         if (!splitter.is_string())
             env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter->klass()->inspect_str());
@@ -4192,7 +4192,7 @@ Value StringObject::try_convert(Env *env, Value val) {
         return val;
     }
 
-    if (!val->respond_to(env, to_str)) {
+    if (!val.respond_to(env, to_str)) {
         return NilObject::the();
     }
 

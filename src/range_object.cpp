@@ -35,7 +35,7 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
         return iterate_over_integer_range(env, func);
 
     auto succ = "succ"_s;
-    if (!m_begin->respond_to(env, succ))
+    if (!m_begin.respond_to(env, succ))
         env->raise("TypeError", "can't iterate from {}", m_begin->klass()->inspect_str());
 
     if (m_begin.is_string() && m_end.is_string())
@@ -66,7 +66,7 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
         }
 
         if (!done) {
-            if (!item->respond_to(env, "succ"_s))
+            if (!item.respond_to(env, "succ"_s))
                 break;
             item = item.send(env, succ);
         }
@@ -387,7 +387,7 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
 
     if (!n.is_numeric() && !n.is_nil()) {
         static const auto coerce_sym = "coerce"_s;
-        if (!n->respond_to(env, coerce_sym))
+        if (!n.respond_to(env, coerce_sym))
             env->raise("TypeError", "no implicit conversion of {} into Integer", n->klass()->inspect_str());
         n = n->send(env, coerce_sym, { Value::integer(0) })->as_array_or_raise(env)->last();
     }

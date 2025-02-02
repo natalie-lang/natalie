@@ -32,7 +32,7 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
     if (args.size() == 2 && args.at(1).is_truthy())
         default_zero = true;
 
-    if (!name.is_integer() && !name.is_string() && !name.is_symbol() && name->respond_to(env, "to_str"_s))
+    if (!name.is_integer() && !name.is_string() && !name.is_symbol() && name.respond_to(env, "to_str"_s))
         name = name.to_str(env);
 
     switch (name->type()) {
@@ -1385,7 +1385,7 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
         host = "";
     else if (nodename.is_string())
         host = nodename->as_string_or_raise(env)->string();
-    else if (nodename->respond_to(env, "to_str"_s))
+    else if (nodename.respond_to(env, "to_str"_s))
         host = nodename.to_str(env)->string();
 
     if (servname.is_nil() || (servname.is_string() && servname->as_string()->is_empty()))

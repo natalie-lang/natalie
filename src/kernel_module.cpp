@@ -244,12 +244,12 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
 
     if (!value.is_nil()) {
         // Try using to_int to coerce to an Integer
-        if (value->respond_to(env, "to_int"_s)) {
+        if (value.respond_to(env, "to_int"_s)) {
             auto result = value.send(env, "to_int"_s);
             if (result.is_integer()) return result;
         }
         // If to_int doesn't exist or doesn't return an Integer, try to_i instead.
-        if (value->respond_to(env, "to_i"_s)) {
+        if (value.respond_to(env, "to_i"_s)) {
             auto result = value.send(env, "to_i"_s);
             if (result.is_integer()) return result;
         }
@@ -443,7 +443,7 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
         if (x.is_nil())
             env->raise("TypeError", "can't convert {} into Rational", x->klass()->inspect_str());
 
-        if (x->respond_to(env, "to_r"_s)) {
+        if (x.respond_to(env, "to_r"_s)) {
             auto result = x->public_send(env, "to_r"_s);
             result.assert_type(env, Object::Type::Rational, "Rational");
             return result;
@@ -499,7 +499,7 @@ Value KernelModule::sleep(Env *env, Value length) {
         secs = length->as_float()->to_double();
     } else if (length.is_rational()) {
         secs = length->as_rational()->to_f(env)->as_float()->to_double();
-    } else if (length->respond_to(env, "divmod"_s)) {
+    } else if (length.respond_to(env, "divmod"_s)) {
         auto divmod = length->send(env, "divmod"_s, { IntegerObject::create(1) })->as_array();
         secs = divmod->at(0)->to_f(env)->as_float()->to_double();
         secs += divmod->at(1)->to_f(env)->as_float()->to_double();
@@ -525,7 +525,7 @@ Value KernelModule::spawn(Env *env, Args &&args) {
         }
     });
 
-    if (args.size() >= 1 && (args.at(0).is_hash() || args.at(0)->respond_to(env, "to_hash"_s))) {
+    if (args.size() >= 1 && (args.at(0).is_hash() || args.at(0).respond_to(env, "to_hash"_s))) {
         auto hash = args.shift()->to_hash(env);
         for (auto ep = environ; *ep; ep++)
             new_env.push(strdup(*ep));
@@ -617,7 +617,7 @@ Value KernelModule::String(Env *env, Value value) {
 
     auto to_s = "to_s"_s;
 
-    if (!respond_to_method(env, value, to_s, true) || !value->respond_to(env, to_s))
+    if (!respond_to_method(env, value, to_s, true) || !value.respond_to(env, to_s))
         env->raise("TypeError", "can't convert {} into String", value->klass()->inspect_str());
 
     value = value.send(env, to_s);

@@ -41,7 +41,7 @@ static Value compose_gtgt(Env *env, Value self, Args &&args, Block *block) {
 }
 
 Value ProcObject::ltlt(Env *env, Value other) {
-    if (!other->respond_to(env, "call"_s))
+    if (!other.respond_to(env, "call"_s))
         env->raise("TypeError", "callable object is expected");
 
     env->var_set("other", 0, true, other);
@@ -52,7 +52,7 @@ Value ProcObject::ltlt(Env *env, Value other) {
 }
 
 Value ProcObject::gtgt(Env *env, Value other) {
-    if (!other->respond_to(env, "call"_s))
+    if (!other.respond_to(env, "call"_s))
         env->raise("TypeError", "callable object is expected");
 
     env->var_set("other", 0, true, other);

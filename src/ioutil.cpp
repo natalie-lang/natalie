@@ -10,9 +10,9 @@ namespace ioutil {
     // before continuing.
     // This is common to many functions in FileObject and DirObject
     StringObject *convert_using_to_path(Env *env, Value path) {
-        if (!path.is_string() && path->respond_to(env, "to_path"_s))
+        if (!path.is_string() && path.respond_to(env, "to_path"_s))
             path = path->send(env, "to_path"_s);
-        if (!path.is_string() && path->respond_to(env, "to_str"_s))
+        if (!path.is_string() && path.respond_to(env, "to_str"_s))
             path = path.to_str(env);
         path.assert_type(env, Object::Type::String, "String");
         return path->as_string();
@@ -21,7 +21,7 @@ namespace ioutil {
     // accepts io or io-like object for fstat
     // accepts path or string like object for stat
     int object_stat(Env *env, Value io, struct stat *sb) {
-        if (io.is_io() || io->respond_to(env, "to_io"_s)) {
+        if (io.is_io() || io.respond_to(env, "to_io"_s)) {
             auto file_desc = io->to_io(env)->fileno();
             return ::fstat(file_desc, sb);
         }
@@ -37,9 +37,9 @@ namespace ioutil {
         m_has_mode = true;
 
         if (!flags_obj.is_integer() && !flags_obj.is_string()) {
-            if (flags_obj->respond_to(env, "to_str"_s)) {
+            if (flags_obj.respond_to(env, "to_str"_s)) {
                 flags_obj = flags_obj.to_str(env);
-            } else if (flags_obj->respond_to(env, "to_int"_s)) {
+            } else if (flags_obj.respond_to(env, "to_int"_s)) {
                 flags_obj = Object::to_int(env, flags_obj);
             }
         }

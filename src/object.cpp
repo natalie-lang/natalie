@@ -630,7 +630,7 @@ ClassObject *Object::singleton_class(Env *env, Value self) {
     String name;
     if (self.is_module()) {
         name = String::format("#<Class:{}>", self->as_module()->inspect_str());
-    } else if (self->respond_to(env, "inspect"_s)) {
+    } else if (self.respond_to(env, "inspect"_s)) {
         name = String::format("#<Class:{}>", self->inspect_str(env));
     }
 
@@ -1346,7 +1346,7 @@ Integer Object::to_int(Env *env, Value self) {
         return self.integer();
 
     auto to_int = "to_int"_s;
-    if (!self->respond_to(env, to_int))
+    if (!self.respond_to(env, to_int))
         self.assert_type(env, Type::Integer, "Integer");
 
     auto result = self->send(env, to_int);

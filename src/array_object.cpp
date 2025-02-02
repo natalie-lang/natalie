@@ -34,7 +34,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
 
     if (!value) {
         auto to_ary = "to_ary"_s;
-        if (!size.is_array() && size->respond_to(env, to_ary))
+        if (!size.is_array() && size.respond_to(env, to_ary))
             size = size.send(env, to_ary);
 
         if (size.is_array()) {
@@ -167,7 +167,7 @@ Value ArrayObject::inspect(Env *env) {
             SymbolObject *to_s = "to_s"_s;
 
             if (!inspected_repr.is_string()) {
-                if (inspected_repr->respond_to(env, to_s)) {
+                if (inspected_repr.respond_to(env, to_s)) {
                     inspected_repr = obj.send(env, to_s);
                 }
             }
@@ -242,7 +242,7 @@ Value ArrayObject::sum(Env *env, Args &&args, Block *block) {
 
 Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
     if (!size) {
-        if (!index_obj.is_integer() && index_obj->respond_to(env, "to_int"_s))
+        if (!index_obj.is_integer() && index_obj.respond_to(env, "to_int"_s))
             index_obj = index_obj.send(env, "to_int"_s);
 
         if (index_obj.is_integer()) {
@@ -339,7 +339,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
         new_ary.set_size(start, NilObject::the());
 
     // the new entry/entries
-    if (val.is_array() || val->respond_to(env, "to_ary"_s)) {
+    if (val.is_array() || val.respond_to(env, "to_ary"_s)) {
         new_ary.concat(val->to_ary(env)->m_vector);
     } else {
         new_ary.push(val);
@@ -758,7 +758,7 @@ Value ArrayObject::dig(Env *env, Args &&args) {
     if (val == NilObject::the())
         return val;
 
-    if (!val->respond_to(env, dig))
+    if (!val.respond_to(env, dig))
         env->raise("TypeError", "{} does not have #dig method", val->klass()->inspect_str());
 
     return val.send(env, dig, std::move(args));
@@ -895,17 +895,17 @@ Value ArrayObject::_subjoin(Env *env, Value item, Value joiner) {
         auto to_s = "to_s"_s;
         if (item.is_integer())
             return item.send(env, to_s);
-        if (item->respond_to(env, to_str)) {
+        if (item.respond_to(env, to_str)) {
             // Need to support nil, don't use Object::to_str
             auto rval = item.send(env, to_str);
             if (!rval.is_nil()) return rval->as_string();
         }
-        if (item->respond_to(env, to_ary)) {
+        if (item.respond_to(env, to_ary)) {
             // Need to support nil, don't use Object::to_ary
             auto rval = item.send(env, to_ary);
             if (!rval.is_nil()) return rval->as_array()->join(env, joiner)->as_string();
         }
-        if (item->respond_to(env, to_s))
+        if (item.respond_to(env, to_s))
             item = item.send(env, to_s);
         if (item.is_string())
             return item->as_string();
@@ -1003,7 +1003,7 @@ Value ArrayObject::push(Env *env, Args &&args) {
 }
 
 void ArrayObject::push_splat(Env *env, Value val) {
-    if (!val.is_array() && val->respond_to(env, "to_a"_s)) {
+    if (!val.is_array() && val.respond_to(env, "to_a"_s)) {
         val = val.send(env, "to_a"_s);
     }
     if (val.is_array()) {
@@ -1047,7 +1047,7 @@ bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
         Value args[2] = { a, b };
         Value compare = block->run(env, Args(2, args), nullptr);
 
-        if (compare->respond_to(env, "<"_s)) {
+        if (compare.respond_to(env, "<"_s)) {
             Value zero = Value::integer(0);
             return compare.send(env, "<"_s, { zero }).is_truthy();
         } else {
@@ -1334,7 +1334,7 @@ Value ArrayObject::minmax(Env *env, Block *block) {
 }
 
 Value ArrayObject::multiply(Env *env, Value factor) {
-    if (!factor.is_string() && factor->respond_to(env, "to_str"_s))
+    if (!factor.is_string() && factor.respond_to(env, "to_str"_s))
         factor = factor.to_str(env);
 
     if (factor.is_string()) {
@@ -1433,7 +1433,7 @@ Value ArrayObject::at(Env *env, Value n) {
 Value ArrayObject::assoc(Env *env, Value needle) {
     // TODO use common logic for this (see for example rassoc and index)
     for (auto &item : *this) {
-        if (!item.is_array() && !item->respond_to(env, "to_ary"_s))
+        if (!item.is_array() && !item.respond_to(env, "to_ary"_s))
             continue;
 
         ArrayObject *sub_array = item->to_ary(env);
@@ -1477,7 +1477,7 @@ Value ArrayObject::bsearch_index(Env *env, Block *block) {
 
 Value ArrayObject::rassoc(Env *env, Value needle) {
     for (auto &item : *this) {
-        if (!item.is_array() && !item->respond_to(env, "to_ary"_s))
+        if (!item.is_array() && !item.respond_to(env, "to_ary"_s))
             continue;
 
         ArrayObject *sub_array = item->to_ary(env);
@@ -2049,7 +2049,7 @@ Value ArrayObject::try_convert(Env *env, Value val) {
         return val;
     }
 
-    if (!val->respond_to(env, to_ary)) {
+    if (!val.respond_to(env, to_ary)) {
         return NilObject::the();
     }
 

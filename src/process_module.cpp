@@ -52,7 +52,7 @@ Value ProcessModule::kill(Env *env, Args &&args) {
         signal = signal->to_s(env);
     if (signal.is_integer()) {
         signo = IntegerObject::convert_to_nat_int_t(env, signal);
-    } else if (signal.is_string() || signal->respond_to(env, "to_str"_s)) {
+    } else if (signal.is_string() || signal.respond_to(env, "to_str"_s)) {
         auto signame = signal.to_str(env)->delete_prefix(env, new StringObject { "SIG" });
         auto signo_val = SignalModule::list(env)->as_hash()->ref(env, signame);
         if (signo_val.is_nil())

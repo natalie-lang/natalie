@@ -33,7 +33,7 @@ Value RationalObject::add(Env *env, Value other) {
         auto c = a + b;
         auto den2 = den1 * m_denominator;
         return create(env, c, den2);
-    } else if (other->respond_to(env, "coerce"_s)) {
+    } else if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, this);
         return result.first.send(env, "+"_s, { result.second });
     } else {
@@ -57,7 +57,7 @@ Value RationalObject::cmp(Env *env, Value other) {
     if (other.is_float()) {
         return to_f(env)->as_float()->cmp(env, other->as_float());
     }
-    if (other->respond_to(env, "coerce"_s)) {
+    if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, this);
         return result.first.send(env, "<=>"_s, { result.second });
     }
@@ -106,7 +106,7 @@ Value RationalObject::div(Env *env, Value other) {
         return mul(env, arg);
     } else if (other.is_float()) {
         return this->to_f(env)->as_float()->div(env, other);
-    } else if (other->respond_to(env, "coerce"_s)) {
+    } else if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, this);
         return result.first.send(env, "/"_s, { result.second });
     } else {
@@ -175,7 +175,7 @@ Value RationalObject::mul(Env *env, Value other) {
         return create(env, num2, den2);
     } else if (other.is_float()) {
         return this->to_f(env)->as_float()->mul(env, other);
-    } else if (other->respond_to(env, "coerce"_s)) {
+    } else if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, this);
         return result.first.send(env, "*"_s, { result.second });
     } else {
@@ -199,7 +199,7 @@ Value RationalObject::pow(Env *env, Value other) {
     } else if (other.is_float()) {
         return this->to_f(env)->as_float()->pow(env, other);
     } else {
-        if (other->respond_to(env, "coerce"_s)) {
+        if (other.respond_to(env, "coerce"_s)) {
             auto result = Natalie::coerce(env, other, this);
             return result.first.send(env, "**"_s, { result.second });
         } else {
@@ -247,7 +247,7 @@ Value RationalObject::sub(Env *env, Value other) {
         auto c = a - b;
         auto den2 = den1 * m_denominator;
         return create(env, c, den2);
-    } else if (other->respond_to(env, "coerce"_s)) {
+    } else if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, this);
         return result.first.send(env, "-"_s, { result.second });
     } else {

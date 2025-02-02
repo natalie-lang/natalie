@@ -147,7 +147,7 @@ Value HashObject::set_default_proc(Env *env, Value value) {
     }
     auto to_proc = "to_proc"_s;
     auto to_proc_value = value;
-    if (value->respond_to(env, to_proc))
+    if (value.respond_to(env, to_proc))
         to_proc_value = value.send(env, to_proc);
     to_proc_value.assert_type(env, Type::Proc, "Proc");
     auto proc = to_proc_value->as_proc();
@@ -239,7 +239,7 @@ Value HashObject::square_new(Env *env, Args &&args, ClassObject *klass) {
         return new HashObject { klass };
     } else if (args.size() == 1) {
         Value value = args[0];
-        if (!value.is_hash() && value->respond_to(env, "to_hash"_s))
+        if (!value.is_hash() && value.respond_to(env, "to_hash"_s))
             value = value->to_hash(env);
         if (value.is_hash()) {
             auto hash = new HashObject { env, *value->as_hash() };
@@ -248,7 +248,7 @@ Value HashObject::square_new(Env *env, Args &&args, ClassObject *klass) {
             hash->m_klass = klass;
             return hash;
         } else {
-            if (!value.is_array() && value->respond_to(env, "to_ary"_s))
+            if (!value.is_array() && value.respond_to(env, "to_ary"_s))
                 value = value->to_ary(env);
             if (value.is_array()) {
                 HashObject *hash = new HashObject { klass };
@@ -293,7 +293,7 @@ Value HashObject::inspect(Env *env) {
         auto to_s = [env](Value obj) {
             if (obj.is_string())
                 return obj->as_string();
-            if (obj->respond_to(env, "to_s"_s))
+            if (obj.respond_to(env, "to_s"_s))
                 obj = obj->send(env, "to_s"_s);
             else
                 obj = new StringObject("?");
@@ -420,7 +420,7 @@ Value HashObject::dig(Env *env, Args &&args) {
     if (val == NilObject::the())
         return val;
 
-    if (!val->respond_to(env, dig))
+    if (!val.respond_to(env, dig))
         env->raise("TypeError", "{} does not have #dig method", val->klass()->inspect_str());
 
     return val.send(env, dig, std::move(args));
@@ -606,7 +606,7 @@ Value HashObject::to_h(Env *env, Block *block) {
         block_args[0] = node.key;
         block_args[1] = node.val;
         auto result = block->run(env, Args(2, block_args), nullptr);
-        if (!result.is_array() && result->respond_to(env, "to_ary"_s))
+        if (!result.is_array() && result.respond_to(env, "to_ary"_s))
             result = result->to_ary(env);
         if (!result.is_array())
             env->raise("TypeError", "wrong element type {} (expected array)", result->klass()->inspect_str());

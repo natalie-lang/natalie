@@ -152,7 +152,7 @@ public:
     bool eqeqeq(Env *env, Value other) {
         assert_initialized(env);
         if (!other.is_string() && !other.is_symbol()) {
-            if (!other->respond_to(env, "to_str"_s))
+            if (!other.respond_to(env, "to_str"_s))
                 return false;
             other = other.to_str(env);
         }

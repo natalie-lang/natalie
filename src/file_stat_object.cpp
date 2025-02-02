@@ -3,7 +3,7 @@
 namespace Natalie {
 
 Value FileStatObject::initialize(Env *env, Value path) {
-    if (!path.is_string() && path->respond_to(env, "to_path"_s))
+    if (!path.is_string() && path.respond_to(env, "to_path"_s))
         path = path->send(env, "to_path"_s, { path });
 
     path.assert_type(env, Object::Type::String, "String");

@@ -43,7 +43,7 @@ Value EnvObject::to_hash(Env *env, Block *block) {
         Value value = string_with_default_encoding(getenv(name->as_string()->c_str()));
         if (block) {
             auto transformed = block->run(env, Args({ name, value }), nullptr);
-            if (!transformed.is_array() && transformed->respond_to(env, "to_ary"_s))
+            if (!transformed.is_array() && transformed.respond_to(env, "to_ary"_s))
                 transformed = transformed->to_ary(env);
             if (!transformed.is_array())
                 env->raise("TypeError", "wrong element type {} (expected array)", transformed->klass()->inspect_str());
@@ -157,7 +157,7 @@ Value EnvObject::assoc(Env *env, Value name) {
 }
 
 Value EnvObject::rassoc(Env *env, Value value) {
-    if (!value.is_string() && value->respond_to(env, "to_str"_s))
+    if (!value.is_string() && value.respond_to(env, "to_str"_s))
         value = value.to_str(env);
     if (!value.is_string())
         return NilObject::the();
@@ -253,7 +253,7 @@ bool EnvObject::has_key(Env *env, Value name) {
 }
 
 Value EnvObject::has_value(Env *env, Value name) {
-    if (!name->respond_to(env, "to_str"_s))
+    if (!name.respond_to(env, "to_str"_s))
         return NilObject::the();
     name = name.to_str(env);
     if (to_hash(env, nullptr)->as_hash()->has_value(env, name))
@@ -405,7 +405,7 @@ Value EnvObject::update(Env *env, Args &&args, Block *block) {
     for (size_t i = 0; i < args.size(); i++) {
         auto h = args[i];
 
-        if (!h.is_hash() && h->respond_to(env, "to_hash"_s))
+        if (!h.is_hash() && h.respond_to(env, "to_hash"_s))
             h = h->send(env, "to_hash"_s);
 
         h.assert_type(env, Object::Type::Hash, "Hash");

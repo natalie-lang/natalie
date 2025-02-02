@@ -107,7 +107,7 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
 Value TimeObject::add(Env *env, Value other) {
     if (other.is_time()) {
         env->raise("TypeError", "time + time?");
-    } else if (other.is_nil() || other.is_string() || !other->respond_to(env, "to_r"_s)) {
+    } else if (other.is_nil() || other.is_string() || !other.respond_to(env, "to_r"_s)) {
         env->raise("TypeError", "can't convert {} into an exact number", other->klass()->inspect_str());
     }
     RationalObject *rational = to_r(env)->as_rational();
@@ -207,7 +207,7 @@ Value TimeObject::minus(Env *env, Value other) {
     if (other.is_time()) {
         return to_r(env)->as_rational()->sub(env, other->as_time()->to_r(env))->as_rational()->to_f(env);
     }
-    if (other.is_nil() || other.is_string() || !other->respond_to(env, "to_r"_s)) {
+    if (other.is_nil() || other.is_string() || !other.respond_to(env, "to_r"_s)) {
         env->raise("TypeError", "can't convert {} into an exact number", other->klass()->inspect_str());
     }
     RationalObject *rational = to_r(env)->as_rational()->sub(env, other->send(env, "to_r"_s))->as_rational();
@@ -347,7 +347,7 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
         // any fall-through of the above ugly logic
         env->raise("ArgumentError", "\"+HH:MM\", \"-HH:MM\", \"UTC\" or \"A\"..\"I\",\"K\"..\"Z\" expected for utc_offset: {}", str);
     }
-    if (val.is_integer() || val->respond_to(env, "to_int"_s)) {
+    if (val.is_integer() || val.respond_to(env, "to_int"_s)) {
         auto seconds = Object::to_int(env, val).to_nat_int_t();
         if (seconds > hoursec * -24 && seconds < hoursec * 24) {
             return seconds;
@@ -359,7 +359,7 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
 }
 
 nat_int_t TimeObject::normalize_field(Env *env, Value val) {
-    if (!val.is_integer() && val->respond_to(env, "to_i"_s))
+    if (!val.is_integer() && val.respond_to(env, "to_i"_s))
         val = val->send(env, "to_i"_s);
     return Object::to_int(env, val).to_nat_int_t();
 }
@@ -376,7 +376,7 @@ nat_int_t TimeObject::normalize_field(Env *env, Value val, nat_int_t minval, nat
 nat_int_t TimeObject::normalize_month(Env *env, Value val) {
     if (val.is_nil()) return 0;
     if (!val.is_integer()) {
-        if (val.is_string() || val->respond_to(env, "to_str"_s)) {
+        if (val.is_string() || val.respond_to(env, "to_str"_s)) {
             val = val.to_str(env);
             auto monstr = val->as_string()->downcase(env, nullptr, nullptr)->as_string()->string();
             if (monstr == "jan") {
@@ -410,7 +410,7 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
             }
             env->raise("ArgumentError", "mon out of range");
         }
-        if (val->respond_to(env, "to_int"_s)) {
+        if (val.respond_to(env, "to_int"_s)) {
             val = Object::to_int(env, val);
         }
     }
@@ -427,9 +427,9 @@ RationalObject *TimeObject::convert_rational(Env *env, Value value) {
         return RationalObject::create(env, value.integer(), Integer(1));
     } else if (value.is_rational()) {
         return value->as_rational();
-    } else if (value->respond_to(env, "to_r"_s) && value->respond_to(env, "to_int"_s)) {
+    } else if (value.respond_to(env, "to_r"_s) && value.respond_to(env, "to_int"_s)) {
         return value->send(env, "to_r"_s)->as_rational();
-    } else if (value->respond_to(env, "to_int"_s)) {
+    } else if (value.respond_to(env, "to_int"_s)) {
         return RationalObject::create(env, Object::to_int(env, value), Integer(1));
     } else {
         env->raise("TypeError", "can't convert {} into an exact number", value->klass()->inspect_str());

@@ -544,7 +544,7 @@ Value splat(Env *env, Value obj) {
 
 Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat) {
     if (is_splat) {
-        if (!when_value.is_array() && when_value->respond_to(env, "to_a"_s)) {
+        if (!when_value.is_array() && when_value.respond_to(env, "to_a"_s)) {
             auto original_class = when_value->klass();
             when_value = when_value->send(env, "to_a"_s);
             if (!when_value.is_array()) {
@@ -643,7 +643,7 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
         return obj->as_array();
     }
 
-    if (obj->respond_to(env, "to_ary"_s)) {
+    if (obj.respond_to(env, "to_ary"_s)) {
         auto array = obj.send(env, "to_ary"_s);
         if (!array.is_nil()) {
             if (array.is_array()) {
@@ -655,7 +655,7 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
         }
     }
 
-    if (obj->respond_to(env, "to_a"_s)) {
+    if (obj.respond_to(env, "to_a"_s)) {
         auto array = obj.send(env, "to_a"_s);
         if (!array.is_nil()) {
             if (array.is_array()) {
@@ -679,7 +679,7 @@ Value to_ary_for_masgn(Env *env, Value obj) {
         }
     }
 
-    if (obj->respond_to(env, "to_ary"_s)) {
+    if (obj.respond_to(env, "to_ary"_s)) {
         auto array = obj.send(env, "to_ary"_s);
         if (array.is_array()) {
             return array->duplicate(env);
@@ -759,7 +759,7 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
 
 std::pair<Value, Value> coerce(Env *env, Value lhs, Value rhs, CoerceInvalidReturnValueMode invalid_return_value_mode) {
     auto coerce_symbol = "coerce"_s;
-    if (lhs->respond_to(env, coerce_symbol)) {
+    if (lhs.respond_to(env, coerce_symbol)) {
         Value coerced = lhs.send(env, coerce_symbol, { rhs });
         if (!coerced.is_array()) {
             if (invalid_return_value_mode == CoerceInvalidReturnValueMode::Raise)

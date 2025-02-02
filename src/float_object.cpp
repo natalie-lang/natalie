@@ -138,7 +138,7 @@ Value FloatObject::cmp(Env *env, Value rhs) {
     auto infinite_sym = "infinite?"_s;
 
     auto call_is_infinite = [&](Value value) -> Value {
-        if (value->respond_to(env, infinite_sym))
+        if (value.respond_to(env, infinite_sym))
             return value->send(env, infinite_sym);
         return NilObject::the();
     };

@@ -441,7 +441,7 @@ Value IoObject::binmode(Env *env) {
 
 Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Value src_offset) {
     Value data = new StringObject {};
-    if (src.is_io() || src->respond_to(env, "to_io"_s)) {
+    if (src.is_io() || src.respond_to(env, "to_io"_s)) {
         auto src_io = src->to_io(env);
         if (!is_readable(src_io->fileno(env)))
             env->raise("IOError", "not opened for reading");
@@ -450,18 +450,18 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
         } else {
             src_io->read(env, src_length, data);
         }
-    } else if (src->respond_to(env, "read"_s)) {
+    } else if (src.respond_to(env, "read"_s)) {
         src->send(env, "read"_s, { src_length, data });
-    } else if (src->respond_to(env, "readpartial"_s)) {
+    } else if (src.respond_to(env, "readpartial"_s)) {
         src->send(env, "readpartial"_s, { src_length, data });
     } else {
         data = read_file(env, { src, src_length, src_offset });
     }
 
-    if (dst.is_io() || dst->respond_to(env, "to_io"_s)) {
+    if (dst.is_io() || dst.respond_to(env, "to_io"_s)) {
         auto dst_io = dst->to_io(env);
         return Value::integer(dst_io->write(env, data));
-    } else if (dst->respond_to(env, "write"_s)) {
+    } else if (dst.respond_to(env, "write"_s)) {
         return dst->send(env, "write"_s, { data });
     } else {
         return write_file(env, { dst, data });
@@ -532,7 +532,7 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     auto line = new StringObject {};
     bool has_limit = false;
     if (sep && !sep.is_nil()) {
-        if (sep.is_integer() || sep->respond_to(env, "to_int"_s)) {
+        if (sep.is_integer() || sep.respond_to(env, "to_int"_s)) {
             limit = sep;
             sep = nullptr;
         } else {
@@ -660,7 +660,7 @@ void IoObject::putary(Env *env, ArrayObject *ary) {
 void IoObject::puts(Env *env, Value val) {
     if (val.is_string()) {
         this->putstr(env, val->as_string());
-    } else if (val.is_array() || val->respond_to(env, "to_ary"_s)) {
+    } else if (val.is_array() || val.respond_to(env, "to_ary"_s)) {
         this->putary(env, val->to_ary(env));
     } else {
         Value str = val->send(env, "to_s"_s);
@@ -793,7 +793,7 @@ Value IoObject::set_close_on_exec(Env *env, Value value) {
 }
 
 Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
-    if ((int_enc == nullptr || int_enc.is_nil()) && ext_enc != nullptr && (ext_enc.is_string() || ext_enc->respond_to(env, "to_str"_s))) {
+    if ((int_enc == nullptr || int_enc.is_nil()) && ext_enc != nullptr && (ext_enc.is_string() || ext_enc.respond_to(env, "to_str"_s))) {
         ext_enc = ext_enc.to_str(env);
         if (ext_enc->as_string()->include(":")) {
             auto colon = new StringObject { ":" };
@@ -878,7 +878,7 @@ IoObject *IoObject::to_io(Env *env) {
 Value IoObject::try_convert(Env *env, Value val) {
     if (val.is_io()) {
         return val;
-    } else if (val->respond_to(env, "to_io"_s)) {
+    } else if (val.respond_to(env, "to_io"_s)) {
         auto io = val->send(env, "to_io"_s);
         if (!io.is_io())
             env->raise(
