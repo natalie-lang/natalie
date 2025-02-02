@@ -16,7 +16,6 @@ namespace TM {
 enum class HashType {
     Pointer,
     String,
-    TMString,
 };
 
 struct HashmapUtils {
@@ -53,8 +52,8 @@ public:
      * the initial capacity.
      *
      * ```
-     * auto hash_fn = &Hashmap<char*>::hash_str;
-     * auto compare_fn = &Hashmap<char*>::compare_str;
+     * auto hash_fn = &Hashmap<char*>::hash_ptr;
+     * auto compare_fn = &Hashmap<char*>::compare_ptr;
      * auto map = Hashmap<char*, Thing>(hash_fn, compare_fn);
      * auto key = strdup("foo");
      * map.put(key, Thing(1));
@@ -83,39 +82,10 @@ public:
      * free(key2);
      * ```
      *
-     * To hash based on the C string's contents, then specify
-     * HashType::String.
+     * To use a TM::String as the key, specify HashType::String.
      *
      * ```
-     * auto map = Hashmap<char*, Thing>(HashType::String);
-     * auto key1 = strdup("foo");
-     * auto key2 = strdup(key1); // different pointer
-     * map.put(key1, Thing(1));
-     * map.put(key2, Thing(2));
-     * assert_eq(1, map.size()); // same key
-     * free(key1);
-     * free(key2);
-     * ```
-     *
-     * When using a C string (char*) as the key, the char* is
-     * duplicated inside the Hashmap and managed for the lifetime
-     * of that key and/or hashmap. You do not need to keep
-     * the char* available or worry about freeing it.
-     *
-     * ```
-     * auto map = Hashmap<char*, Thing>(HashType::String);
-     * auto key = strdup("foo");
-     * map.put(key, Thing(1));
-     * free(key);
-     * auto key2 = strdup("foo");
-     * assert_eq(Thing(1), map.get(key2));
-     * free(key2);
-     * ```
-     *
-     * To use a TM::String as the key, specify HashType::TMString.
-     *
-     * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * auto key1 = String("foo");
      * auto key2 = String("foo");
      * map.put(key1, Thing(1));
@@ -127,7 +97,7 @@ public:
      * can specify only the key type and use set()/get().
      *
      * ```
-     * auto map = Hashmap<String>(HashType::TMString);
+     * auto map = Hashmap<String>(HashType::String);
      * map.set("foo");
      * assert(map.get("foo"));
      * ```
@@ -140,10 +110,6 @@ public:
             m_compare_fn = &Hashmap::compare_ptr;
             break;
         case HashType::String:
-            m_hash_fn = &Hashmap::hash_str;
-            m_compare_fn = &Hashmap::compare_str;
-            break;
-        case HashType::TMString:
             m_hash_fn = &Hashmap::hash_tm_str;
             m_compare_fn = &Hashmap::compare_tm_str;
             break;
@@ -198,57 +164,6 @@ public:
     }
 
     /**
-     * Returns a hash value for the given C string based on its contents.
-     *
-     * ```
-     * auto key1 = strdup("foo");
-     * auto key2 = strdup("foo");
-     * auto key3 = strdup("bar");
-     * assert_eq(
-     *   Hashmap<char*>::hash_str(key1),
-     *   Hashmap<char*>::hash_str(key2)
-     * );
-     * assert_neq(
-     *   Hashmap<char*>::hash_ptr(key1),
-     *   Hashmap<char*>::hash_ptr(key3)
-     * );
-     * free(key1);
-     * free(key2);
-     * free(key3);
-     * ```
-     */
-    static size_t hash_str(KeyT &ptr) {
-        if constexpr (std::is_pointer_v<KeyT>) {
-            auto str = String((const char *)(ptr));
-            return str.djb2_hash();
-        } else {
-            return 0;
-        }
-    }
-
-    /**
-     * Returns true if the two given C strings have the same contents.
-     * Null must be passed as the third argument.
-     *
-     * ```
-     * auto key1 = strdup("foo");
-     * auto key2 = strdup("foo");
-     * auto key3 = strdup("bar");
-     * assert(Hashmap<char*>::compare_str(key1, key2, nullptr));
-     * assert_not(Hashmap<char*>::compare_str(key1, key3, nullptr));
-     * free(key1);
-     * free(key2);
-     * free(key3);
-     * ```
-     */
-    static bool compare_str(KeyT &a, KeyT &b, void *) {
-        if constexpr (std::is_pointer_v<KeyT>)
-            return strcmp((const char *)(a), (const char *)(b)) == 0;
-        else
-            return false;
-    }
-
-    /**
      * Returns a hash value for the given TM::String based on its contents.
      *
      * ```
@@ -298,7 +213,7 @@ public:
      * Copies the given Hashmap.
      *
      * ```
-     * auto map1 = Hashmap<String, Thing>(HashType::TMString);
+     * auto map1 = Hashmap<String, Thing>(HashType::String);
      * map1.put("foo", Thing(1));
      * auto map2 = Hashmap<String, Thing>(map1);
      * assert_eq(Thing(1), map2.get("foo"));
@@ -316,7 +231,7 @@ public:
      * Creates a new Hashmap from another Hashmap, and clear the input
      *
      * ```
-     * auto map1 = Hashmap<String, Thing>(HashType::TMString);
+     * auto map1 = Hashmap<String, Thing>(HashType::String);
      * map1.put("foo", Thing(1));
      * auto map2 = Hashmap<String, Thing>(std::move(map1));
      * assert_eq(Thing(1), map2.get("foo"));
@@ -338,9 +253,9 @@ public:
      * Overwrites this Hashmap with another.
      *
      * ```
-     * auto map1 = Hashmap<String, Thing>(HashType::TMString);
+     * auto map1 = Hashmap<String, Thing>(HashType::String);
      * map1.put("foo", Thing(1));
-     * auto map2 = Hashmap<String, Thing>(HashType::TMString);
+     * auto map2 = Hashmap<String, Thing>(HashType::String);
      * map2.put("foo", Thing(2));
      * map1 = map2;
      * assert_eq(Thing(2), map1.get("foo"));
@@ -363,9 +278,9 @@ public:
      * Moves data from another Hashmap onto this one.
      *
      * ```
-     * auto map1 = Hashmap<String, Thing>(HashType::TMString);
+     * auto map1 = Hashmap<String, Thing>(HashType::String);
      * map1.put("foo", Thing(1));
-     * auto map2 = Hashmap<String, Thing>(HashType::TMString);
+     * auto map2 = Hashmap<String, Thing>(HashType::String);
      * map2.put("foo", Thing(2));
      * map1 = std::move(map2);
      * assert_eq(Thing(2), map1.get("foo"));
@@ -436,7 +351,7 @@ public:
      * use the data pointer.)
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * assert_eq(Thing(1), map.get("foo"));
      * ```
@@ -445,7 +360,7 @@ public:
      * then a default-constructed object is returned.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * assert_eq(Thing(0), map.get("foo"));
      * ```
      *
@@ -454,7 +369,7 @@ public:
      * is returned.
      *
      * ```
-     * auto map = Hashmap<String, const char*>(HashType::TMString);
+     * auto map = Hashmap<String, const char*>(HashType::String);
      * assert_eq(nullptr, map.get("foo"));
      * ```
      */
@@ -480,7 +395,7 @@ public:
      *
      * ```
      * auto key = String("foo");
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put(key, Thing(1));
      * auto hash = Hashmap<String>::hash_tm_str(key);
      * auto item = map.find_item(key, hash);
@@ -491,7 +406,7 @@ public:
      *
      * ```
      * auto key = String("foo");
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * auto hash = Hashmap<String>::hash_tm_str(key);
      * auto item = map.find_item(key, hash);
      * assert_eq(nullptr, item);
@@ -515,7 +430,7 @@ public:
      * Use this if you don't care about storing/retrieving values.
      *
      * ```
-     * auto map = Hashmap<String>(HashType::TMString);
+     * auto map = Hashmap<String>(HashType::String);
      * map.set("foo");
      * assert(map.get("foo"));
      * assert_not(map.get("bar"));
@@ -529,7 +444,7 @@ public:
      * Puts the given value at the given key in the Hashmap.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * assert_eq(Thing(1), map.get("foo"));
      * map.put("foo", Thing(2));
@@ -551,8 +466,7 @@ public:
             return;
         }
         auto index = index_for_hash(hash);
-        auto new_key = duplicate_key(key);
-        auto new_item = new Item { new_key, value, hash };
+        auto new_item = new Item { key, value, hash };
         insert_item(m_map, index, new_item);
         m_size++;
     }
@@ -561,7 +475,7 @@ public:
      * Removes and returns the value at the given key.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * assert_eq(Thing(1), map.remove("foo"));
      * assert_eq(Thing(), map.remove("foo"));
@@ -571,7 +485,7 @@ public:
      * then a default-constructed object is returned.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * assert_eq(Thing(0), map.remove("foo"));
      * ```
      *
@@ -580,7 +494,7 @@ public:
      * is returned.
      *
      * ```
-     * auto map = Hashmap<String, const char*>(HashType::TMString);
+     * auto map = Hashmap<String, const char*>(HashType::String);
      * assert_eq(nullptr, map.remove("foo"));
      * ```
      */
@@ -625,7 +539,7 @@ public:
      * Removes all keys/values from the Hashmap.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * assert_eq(1, map.size());
      * map.clear();
@@ -639,7 +553,6 @@ public:
             m_map[i] = nullptr;
             while (item) {
                 auto next_item = item->next;
-                free_key(item->key);
                 delete item;
                 item = next_item;
             }
@@ -651,7 +564,7 @@ public:
      * Returns the number of values stored in the Hashmap.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * assert_eq(1, map.size());
      * ```
@@ -662,7 +575,7 @@ public:
      * Returns true if there are zero values stored in the Hashmap.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * assert(map.is_empty());
      * map.put("foo", Thing(1));
      * assert_not(map.is_empty());
@@ -740,7 +653,7 @@ public:
      * value, respectively.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * for (std::pair item : map) {
      *     assert_str_eq("foo", item.first);
@@ -766,7 +679,7 @@ public:
      * Otherwise works the same as a non-const iterator.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put("foo", Thing(1));
      * const auto const_map = map;
      * for (std::pair item : const_map) {
@@ -852,7 +765,6 @@ private:
 
     void delete_item(size_t index, Item *item) {
         m_map[index] = item->next;
-        free_key(item->key);
         delete item;
         m_size--;
         if (load_factor() < HASHMAP_MIN_LOAD_FACTOR)
@@ -861,7 +773,6 @@ private:
 
     void delete_item(Item *item_before, Item *item) {
         item_before->next = item->next;
-        free_key(item->key);
         delete item;
         m_size--;
         if (load_factor() < HASHMAP_MIN_LOAD_FACTOR)
@@ -874,33 +785,17 @@ private:
             auto item = other.m_map[i];
             if (item) {
                 auto my_item = new Item { *item };
-                my_item->key = duplicate_key(item->key);
+                my_item->key = item->key;
                 m_map[i] = my_item;
                 m_size++;
                 while (item->next) {
                     item = item->next;
                     my_item->next = new Item { *item };
-                    my_item->next->key = duplicate_key(item->key);
+                    my_item->next->key = item->key;
                     my_item = my_item->next;
                     m_size++;
                 }
             }
-        }
-    }
-
-    KeyT duplicate_key(KeyT &key) {
-        if constexpr (std::is_same_v<char *, KeyT> || std::is_same_v<const char *, KeyT>) {
-            return strdup(key);
-        } else {
-            return key;
-        }
-    }
-
-    void free_key(KeyT &key) {
-        if constexpr (std::is_same_v<char *, KeyT> || std::is_same_v<const char *, KeyT>) {
-            free(key);
-        } else {
-            (void)key; // don't warn/error about unused parameter
         }
     }
 
