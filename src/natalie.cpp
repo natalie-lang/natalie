@@ -560,7 +560,7 @@ Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat)
             return FalseObject::the();
         }
     }
-    return when_value->send(env, "==="_s, { case_value });
+    return when_value.send(env, "==="_s, { case_value });
 }
 
 void run_at_exit_handlers(Env *env) {
@@ -855,9 +855,9 @@ void set_status_object(Env *env, pid_t pid, int status) {
 
 Value super(Env *env, Value self, Args &&args, Block *block) {
     auto current_method = env->current_method();
-    auto klass = self->singleton_class();
+    auto klass = self.singleton_class();
     if (!klass)
-        klass = self->klass();
+        klass = self.klass();
     auto after_method = current_method;
     if (current_method->original_method())
         after_method = current_method->original_method();

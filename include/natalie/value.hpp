@@ -98,6 +98,10 @@ public:
 
     Value integer_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility);
 
+    ClassObject *klass() const;
+    ClassObject *singleton_class() const;
+    ClassObject *singleton_class(Env *);
+
     bool is_fast_integer() const {
         return m_type == Type::Integer;
     }
@@ -120,6 +124,9 @@ public:
     nat_int_t object_id() const;
 
     void assert_type(Env *, ObjectType, const char *) const;
+    void assert_not_frozen(Env *) const;
+
+    bool respond_to(Env *, SymbolObject *, bool include_all = true);
 
     bool is_nil() const;
     bool is_true() const;

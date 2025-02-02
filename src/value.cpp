@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/integer_object.hpp"
+#include "natalie/object_type.hpp"
 
 namespace Natalie {
 
@@ -47,6 +48,32 @@ Value Value::integer_send(Env *env, SymbolObject *name, Args &&args, Block *bloc
 
     args.pop_empty_keyword_hash();
     return method_info.method()->call(env, *this, std::move(args), block);
+}
+
+ClassObject *Value::klass() const {
+    switch (m_type) {
+    case Type::Integer:
+        return GlobalEnv::the()->Integer();
+    case Type::Pointer:
+        if (m_object)
+            return m_object->klass();
+    }
+    return nullptr;
+}
+
+ClassObject *Value::singleton_class() const {
+    switch (m_type) {
+    case Type::Integer:
+        return nullptr;
+    case Type::Pointer:
+        if (m_object)
+            return m_object->singleton_class();
+    }
+    return nullptr;
+}
+
+ClassObject *Value::singleton_class(Env *env) {
+    return Object::singleton_class(env, *this);
 }
 
 Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
@@ -184,8 +211,8 @@ nat_int_t Value::object_id() const {
              * means we don't risk duplicate object ids for different objects.
              */
             auto val = i.to_nat_int_t();
-            if (val >= (LONG_MIN >> 1) && val <= (LONG_MAX >> 1))
-                return left_shift_with_undefined_behavior(val, 1) | 1;
+            // FIXME: This is incorrect for 64-bit integers and will produce duplicate ids.
+            return left_shift_with_undefined_behavior(val, 1) | 1;
         } else {
             return reinterpret_cast<nat_int_t>(i.bigint_pointer());
         }
@@ -209,6 +236,13 @@ void Value::assert_type(Env *env, ObjectType expected_type, const char *expected
     }
 }
 
+void Value::assert_not_frozen(Env *env) const {
+    if (is_integer())
+        env->raise("FrozenError", "can't modify frozen Integer: {}", integer().to_string());
+
+    m_object->assert_not_frozen(env);
+}
+
 bool Value::is_integer() const {
     switch (m_type) {
     case Type::Integer:
@@ -218,6 +252,14 @@ bool Value::is_integer() const {
     default:
         return false;
     }
+}
+
+bool Value::respond_to(Env *env, SymbolObject *name_val, bool include_all) {
+    if (KernelModule::respond_to_method(env, *this, "respond_to?"_s, true))
+        return send(env, "respond_to?"_s, { name_val, bool_object(include_all) }).is_truthy();
+
+    // Needed for BasicObject as it does not have an actual respond_to? method
+    return KernelModule::respond_to_method(env, *this, name_val, include_all);
 }
 
 bool Value::is_nil() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Nil; }

@@ -252,7 +252,7 @@ class BindingGen
       if GLOBAL_ENV_ACCESSORS.include?(rb_class)
         "Value #{rb_class} = GlobalEnv::the()->#{rb_class}();"
       else
-        "Value #{rb_class_as_c_variable} = GlobalEnv::the()->Object()->#{rb_class.split('::').map { |c| "const_find(env, #{c.inspect}_s)" }.join('->')};"
+        "Value #{rb_class_as_c_variable} = fetch_nested_const({ #{rb_class.split('::').map { |c| "#{c.inspect}_s" }.join(',')} });"
       end
     end
 
@@ -459,13 +459,13 @@ gen.binding('Array', '|', 'ArrayObject', 'union_of', argc: 1, pass_env: true, pa
 gen.static_binding_as_instance_method('BasicObject', '__id__', 'Object', 'object_id', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.static_binding_as_instance_method('BasicObject', 'equal?', 'Object', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
 gen.static_binding_as_instance_method('BasicObject', '__send__', 'Object', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('BasicObject', '!', 'Object', 'not_truthy', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.binding('BasicObject', '==', 'Object', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('BasicObject', '!=', 'Object', 'neq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('BasicObject', 'initialize', 'Object', 'initialize', argc: 0, pass_env: true, pass_block: false, return_type: :Object, visibility: :private)
-gen.binding('BasicObject', 'instance_eval', 'Object', 'instance_eval', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('BasicObject', 'instance_exec', 'Object', 'instance_exec', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('BasicObject', 'method_missing', 'Object', 'method_missing', argc: :any, pass_env: true, pass_block: true, return_type: :Object, visibility: :private)
+gen.static_binding_as_instance_method('BasicObject', '!', 'Object', 'not_truthy', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('BasicObject', '==', 'Object', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('BasicObject', '!=', 'Object', 'neq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('BasicObject', 'initialize', 'Object', 'initialize', argc: 0, pass_env: true, pass_block: false, return_type: :Object, visibility: :private)
+gen.static_binding_as_instance_method('BasicObject', 'instance_eval', 'Object', 'instance_eval', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_instance_method('BasicObject', 'instance_exec', 'Object', 'instance_exec', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_instance_method('BasicObject', 'method_missing', 'Object', 'method_missing', argc: :any, pass_env: true, pass_block: true, return_type: :Object, visibility: :private)
 
 gen.binding('Binding', 'source_location', 'BindingObject', 'source_location', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
@@ -1012,11 +1012,11 @@ gen.static_binding_as_instance_method('Kernel', 'tap', 'KernelModule', 'tap', ar
 gen.static_binding_as_instance_method('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'send', 'Object', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'public_send', 'Object', 'public_send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('Kernel', 'clone', 'Object', 'clone', argc: 0, kwargs: [:freeze], pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'extend', 'Object', 'extend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'clone', 'Object', 'clone_obj', argc: 0, kwargs: [:freeze], pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'extend', 'KernelModule', 'extend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Kernel', 'frozen?', 'Object', 'is_frozen', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.binding('Kernel', 'respond_to?', 'Object', 'respond_to_method', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('Kernel', 'respond_to_missing?', 'Object', 'respond_to_missing', argc: 2, pass_env: true, pass_block: false, return_type: :bool, visibility: :private)
+gen.static_binding_as_instance_method('Kernel', 'respond_to?', 'KernelModule', 'respond_to_method', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('Kernel', 'respond_to_missing?', 'KernelModule', 'respond_to_missing', argc: 2, pass_env: true, pass_block: false, return_type: :bool, visibility: :private)
 
 gen.undefine_singleton_method('MatchData', 'new')
 gen.undefine_singleton_method('MatchData', 'allocate')
@@ -1075,7 +1075,7 @@ gen.binding('Module', 'const_set', 'ModuleObject', 'const_set', argc: 2, pass_en
 gen.binding('Module', 'constants', 'ModuleObject', 'constants', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'define_method', 'ModuleObject', 'define_method', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Module', 'deprecate_constant', 'ModuleObject', 'deprecate_constant', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Module', 'extend', 'Object', 'extend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Module', 'extend_object', 'ModuleObject', 'extend_object', argc: 1, pass_env: true, pass_block: false, return_type: :Object, visibility: :private)
 gen.binding('Module', 'include', 'ModuleObject', 'include', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'include?', 'ModuleObject', 'does_include_module', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Module', 'included_modules', 'ModuleObject', 'included_modules', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

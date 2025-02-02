@@ -57,7 +57,7 @@ public:
     [[noreturn]] void raise_errno();
     [[noreturn]] void raise_errno(StringObject *);
     [[noreturn]] void raise_invalid_byte_sequence_error(const EncodingObject *);
-    [[noreturn]] void raise_no_method_error(Object *, SymbolObject *, MethodMissingReason);
+    [[noreturn]] void raise_no_method_error(Value, SymbolObject *, MethodMissingReason);
     [[noreturn]] void raise_name_error(SymbolObject *name, String);
     [[noreturn]] void raise_name_error(StringObject *name, String);
     [[noreturn]] void raise_not_comparable_error(Value lhs, Value rhs);

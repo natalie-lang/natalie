@@ -48,16 +48,16 @@ module Natalie
         search_mode = private? ? 'StrictPrivate' : 'Strict'
 
         code = []
-        code << "auto #{mod} = #{namespace}->const_find_with_autoload(env, self, " \
+        code << "auto #{mod} = Object::const_find_with_autoload(env, #{namespace}, self, " \
                 "#{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, " \
                 'Object::ConstLookupFailureMode::Null)'
         code << "if (!#{mod}) {"
         code << "  #{mod} = new ModuleObject(#{@name.to_s.inspect})"
         code << "  #{namespace}->const_set(#{transform.intern(@name)}, #{mod})"
-        code << "}"
+        code << '}'
         code << "if (!#{mod}.is_module() || #{mod}.is_class()) {"
         code << "  env->raise(\"TypeError\", \"#{@name} is not a module\");"
-        code << "}"
+        code << '}'
         code << "#{mod}->as_module()->eval_body(env, #{fn})"
 
         transform.exec_and_push(:result_of_define_module, code)

@@ -83,7 +83,7 @@ public:
     Type type() const { return m_type; }
     ClassObject *klass() const { return m_klass; }
 
-    Value initialize(Env *);
+    static Value initialize(Env *, Value);
 
     Enumerator::ArithmeticSequenceObject *as_enumerator_arithmetic_sequence();
     ArrayObject *as_array();
@@ -162,6 +162,7 @@ public:
     FloatObject *as_float_or_raise(Env *);
     HashObject *as_hash_or_raise(Env *);
     MatchDataObject *as_match_data_or_raise(Env *);
+    ModuleObject *as_module_or_raise(Env *);
     RangeObject *as_range_or_raise(Env *);
     StringObject *as_string_or_raise(Env *);
 
@@ -175,11 +176,10 @@ public:
 
     void set_singleton_class(ClassObject *);
 
-    Value extend(Env *, Args &&);
     void extend_once(Env *, ModuleObject *);
 
-    virtual Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
-    virtual Value const_find_with_autoload(Env *, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
+    static Value const_find_with_autoload(Env *, Value, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
+
     virtual Value const_get(SymbolObject *) const;
     virtual Value const_fetch(SymbolObject *);
     virtual Value const_set(SymbolObject *, Value);
@@ -243,20 +243,18 @@ public:
 
     Value send(Env *, SymbolObject *, Args &&, Block *, MethodVisibility, Value = nullptr);
     Value method_missing_send(Env *, SymbolObject *, Args &&, Block *);
-    Value method_missing(Env *, Args &&, Block *);
+    static Value method_missing(Env *, Value, Args &&, Block *);
 
     Method *find_method(Env *, SymbolObject *, MethodVisibility, Value) const;
 
     Value duplicate(Env *) const;
     Value clone(Env *env, Value freeze = nullptr);
+    static Value clone_obj(Env *env, Value self, Value freeze = nullptr);
 
     void copy_instance_variables(Value);
 
     bool is_a(Env *, Value) const;
-    bool respond_to(Env *, Value, bool = true);
-    bool respond_to_method(Env *, Value, Value);
-    bool respond_to_method(Env *, Value, bool);
-    bool respond_to_missing(Env *, Value, Value);
+    bool respond_to(Env *env, SymbolObject *name) { return Value(this).respond_to(env, name); }
 
     const char *defined(Env *, SymbolObject *, bool);
     Value defined_obj(Env *, SymbolObject *, bool = false);
@@ -268,15 +266,18 @@ public:
     void freeze();
     bool is_frozen() const { return m_type == Type::Integer || m_type == Type::Float || m_frozen; }
 
-    bool not_truthy() const { return m_type == Type::Nil || m_type == Type::False; }
+    static bool not_truthy(Value self) {
+        if (self.is_integer())
+            return false;
+        return self.is_falsey();
+    }
 
-    bool eq(Env *, Value other) { return other == this; }
+    static bool eq(Env *, Value self, Value other) { return other == self; }
     static bool equal(Value, Value);
+    static bool neq(Env *env, Value self, Value other);
 
-    bool neq(Env *env, Value other);
-
-    Value instance_eval(Env *, Args &&, Block *);
-    Value instance_exec(Env *, Args &&, Block *);
+    static Value instance_eval(Env *, Value, Args &&, Block *);
+    static Value instance_exec(Env *, Value, Args &&, Block *);
 
     void assert_not_frozen(Env *);
     void assert_not_frozen(Env *, Value);

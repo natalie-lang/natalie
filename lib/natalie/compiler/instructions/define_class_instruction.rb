@@ -50,14 +50,14 @@ module Natalie
         search_mode = private? ? 'StrictPrivate' : 'Strict'
 
         code = []
-        code << "auto #{klass} = #{namespace}->const_find_with_autoload(env, self, " \
+        code << "auto #{klass} = Object::const_find_with_autoload(env, #{namespace}, self, " \
                 "#{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, " \
                 'Object::ConstLookupFailureMode::Null)'
         code << "if (#{klass}) {"
         code << "  if (!#{klass}.is_class()) {"
         code << "    env->raise(\"TypeError\", \"#{@name} is not a class\");"
         code << '  }'
-        code << "} else {"
+        code << '} else {'
         code << "  #{klass} = #{superclass}->subclass(env, #{@name.to_s.inspect})"
         code << "  #{namespace}->const_set(#{transform.intern(@name)}, #{klass})"
         code << '}'

@@ -273,7 +273,7 @@ Value KernelModule::Float(Env *env, Value value, bool exception) {
             env->raise("ArgumentError", "invalid value for Float(): {}", value->inspect_str(env));
         }
         return result;
-    } else if (!value.is_nil() && value->respond_to(env, "to_f"_s)) {
+    } else if (!value.is_nil() && value.respond_to(env, "to_f"_s)) {
         auto result = value.send(env, "to_f"_s);
         if (result.is_float()) {
             return result;
@@ -617,7 +617,7 @@ Value KernelModule::String(Env *env, Value value) {
 
     auto to_s = "to_s"_s;
 
-    if (!value->respond_to_method(env, to_s, true) || !value->respond_to(env, to_s))
+    if (!respond_to_method(env, value, to_s, true) || !value->respond_to(env, to_s))
         env->raise("TypeError", "can't convert {} into String", value->klass()->inspect_str());
 
     value = value.send(env, to_s);
@@ -709,6 +709,17 @@ Value KernelModule::dup_better(Env *env, Value self) {
     dup->copy_instance_variables(self);
     dup->send(env, "initialize_dup"_s, { self });
     return dup;
+}
+
+Value KernelModule::extend(Env *env, Value self, Args &&args) {
+    for (size_t i = 0; i < args.size(); i++) {
+        if (args[i]->type() == Object::Type::Module) {
+            args[i]->as_module()->send(env, "extend_object"_s, { self });
+        } else {
+            env->raise("TypeError", "wrong argument type {} (expected Module)", args[i]->klass()->inspect_str());
+        }
+    }
+    return self;
 }
 
 Value KernelModule::hash(Env *env, Value self) {
@@ -889,6 +900,39 @@ Value KernelModule::remove_instance_variable(Env *env, Value self, Value name_va
     auto name = name_val->to_instance_variable_name(env);
     self->assert_not_frozen(env);
     return self->ivar_remove(env, name);
+}
+
+bool KernelModule::respond_to_method(Env *env, Value self, Value name_val, Value include_all_val) {
+    bool include_all = include_all_val ? include_all_val.is_truthy() : false;
+    return respond_to_method(env, self, name_val, include_all);
+}
+
+bool KernelModule::respond_to_method(Env *env, Value self, Value name_val, bool include_all) {
+    auto name_symbol = name_val->to_symbol(env, Object::Conversion::Strict);
+
+    ClassObject *klass = self.singleton_class();
+    if (!klass)
+        klass = self.klass();
+
+    auto method_info = klass->find_method(env, name_symbol);
+    if (!method_info.is_defined()) {
+        if (klass->find_method(env, "respond_to_missing?"_s).is_defined()) {
+            return self.send(env, "respond_to_missing?"_s, { name_val, bool_object(include_all) }).is_truthy();
+        }
+        return false;
+    }
+
+    if (include_all)
+        return true;
+
+    MethodVisibility visibility = method_info.visibility();
+    if (visibility == MethodVisibility::Public) {
+        return true;
+    } else if (klass->find_method(env, "respond_to_missing?"_s).is_defined()) {
+        return self.send(env, "respond_to_missing?"_s, { name_val, bool_object(include_all) }).is_truthy();
+    } else {
+        return false;
+    }
 }
 
 Value KernelModule::tap(Env *env, Value self, Block *block) {

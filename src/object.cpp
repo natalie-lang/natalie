@@ -180,7 +180,7 @@ Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
     return obj;
 }
 
-Value Object::initialize(Env *env) {
+Value Object::initialize(Env *env, Value self) {
     return NilObject::the();
 }
 
@@ -571,6 +571,12 @@ MatchDataObject *Object::as_match_data_or_raise(Env *env) {
     return static_cast<MatchDataObject *>(this);
 }
 
+ModuleObject *Object::as_module_or_raise(Env *env) {
+    if (m_type != Type::Module && m_type != Type::Class)
+        env->raise("TypeError", "{} can't be coerced into Module", m_klass->inspect_str());
+    return static_cast<ModuleObject *>(this);
+}
+
 RangeObject *Object::as_range_or_raise(Env *env) {
     if (m_type != Type::Range)
         env->raise("TypeError", "{} can't be coerced into Range", m_klass->inspect_str());
@@ -650,27 +656,11 @@ ClassObject *Object::subclass(Env *env, const char *name) {
     return as_class()->subclass(env, name);
 }
 
-Value Object::extend(Env *env, Args &&args) {
-    assert_not_frozen(env);
-    for (size_t i = 0; i < args.size(); i++) {
-        if (args[i]->type() == Object::Type::Module) {
-            extend_once(env, args[i]->as_module());
-        } else {
-            env->raise("TypeError", "wrong argument type {} (expected Module)", args[i]->klass()->inspect_str());
-        }
-    }
-    return this;
-}
-
 void Object::extend_once(Env *env, ModuleObject *module) {
     singleton_class(env, this)->include_once(env, module);
 }
 
-Value Object::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
-    return m_klass->const_find(env, name, search_mode, failure_mode);
-}
-
-Value Object::const_find_with_autoload(Env *env, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+Value Object::const_find_with_autoload(Env *env, Value ns, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     if (GlobalEnv::the()->instance_evaling()) {
         auto context = GlobalEnv::the()->current_instance_eval_context();
         if (context.caller_env->module()) {
@@ -678,7 +668,14 @@ Value Object::const_find_with_autoload(Env *env, Value self, SymbolObject *name,
             return context.caller_env->module()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
         }
     }
-    return m_klass->const_find_with_autoload(env, self, name, search_mode, failure_mode);
+
+    if (ns.is_module())
+        return ns->as_module()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
+
+    if (ns.is_integer())
+        return GlobalEnv::the()->Integer()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
+
+    return ns->m_klass->const_find_with_autoload(env, self, name, search_mode, failure_mode);
 }
 
 Value Object::const_get(SymbolObject *name) const {
@@ -972,7 +969,7 @@ Value Object::method_missing_send(Env *env, SymbolObject *name, Args &&args, Blo
     return send(env, "method_missing"_s, Args(new_args, args.has_keyword_hash()), block);
 }
 
-Value Object::method_missing(Env *env, Args &&args, Block *block) {
+Value Object::method_missing(Env *env, Value self, Args &&args, Block *block) {
     if (args.size() == 0) {
         env->raise("ArgError", "no method name given");
     } else if (!args[0].is_symbol()) {
@@ -980,7 +977,7 @@ Value Object::method_missing(Env *env, Args &&args, Block *block) {
     } else {
         auto name = args[0]->as_symbol();
         env = env->caller();
-        env->raise_no_method_error(this, name, GlobalEnv::the()->method_missing_reason());
+        env->raise_no_method_error(self, name, GlobalEnv::the()->method_missing_reason());
     }
 }
 
@@ -1109,6 +1106,13 @@ Value Object::clone(Env *env, Value freeze) {
     return duplicate;
 }
 
+Value Object::clone_obj(Env *env, Value self, Value freeze) {
+    if (self.is_integer())
+        return self;
+
+    return self->clone(env, freeze);
+}
+
 void Object::copy_instance_variables(const Value other) {
     assert(other);
     if (m_ivars)
@@ -1134,58 +1138,6 @@ bool Object::is_a(Env *env, Value val) const {
     }
 }
 
-bool Object::respond_to(Env *env, Value name_val, bool include_all) {
-    if (respond_to_method(env, "respond_to?"_s, true)) {
-        Value include_all_val;
-        if (include_all) {
-            include_all_val = TrueObject::the();
-        } else {
-            include_all_val = FalseObject::the();
-        }
-        return send(env, "respond_to?"_s, { name_val, include_all_val }).is_truthy();
-    }
-
-    // Needed for BaseObject as it does not have an actual respond_to? method
-    return respond_to_method(env, name_val, include_all);
-}
-
-bool Object::respond_to_method(Env *env, Value name_val, bool include_all) {
-    auto name_symbol = name_val->to_symbol(env, Conversion::Strict);
-
-    ClassObject *klass = singleton_class();
-    if (!klass)
-        klass = m_klass;
-
-    auto method_info = klass->find_method(env, name_symbol);
-    if (!method_info.is_defined()) {
-        if (klass->find_method(env, "respond_to_missing?"_s).is_defined()) {
-            return send(env, "respond_to_missing?"_s, { name_val, bool_object(include_all) }).is_truthy();
-        }
-        return false;
-    }
-
-    if (include_all)
-        return true;
-
-    MethodVisibility visibility = method_info.visibility();
-    if (visibility == MethodVisibility::Public) {
-        return true;
-    } else if (klass->find_method(env, "respond_to_missing?"_s).is_defined()) {
-        return send(env, "respond_to_missing?"_s, { name_val, bool_object(include_all) }).is_truthy();
-    } else {
-        return false;
-    }
-}
-
-bool Object::respond_to_method(Env *env, Value name_val, Value include_all_val) {
-    bool include_all = include_all_val ? include_all_val.is_truthy() : false;
-    return respond_to_method(env, name_val, include_all);
-}
-
-bool Object::respond_to_missing(Env *, Value, Value) {
-    return false;
-}
-
 const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
     Value obj = nullptr;
     if (name->is_constant_name()) {
@@ -1193,7 +1145,7 @@ const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
             if (m_type == Type::Module || m_type == Type::Class)
                 obj = as_module()->const_get(name);
         } else {
-            obj = const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
+            obj = m_klass->const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
         }
         if (obj) return "constant";
     } else if (name->is_global_name()) {
@@ -1231,7 +1183,7 @@ void Object::freeze() {
     if (m_singleton_class) m_singleton_class->freeze();
 }
 
-Value Object::instance_eval(Env *env, Args &&args, Block *block) {
+Value Object::instance_eval(Env *env, Value self, Args &&args, Block *block) {
     if (block) {
         args.ensure_argc_is(env, 0);
     }
@@ -1241,7 +1193,6 @@ Value Object::instance_eval(Env *env, Args &&args, Block *block) {
         env->raise("ArgumentError", "Natalie only supports instance_eval with a block");
     }
 
-    Value self = this;
     GlobalEnv::the()->push_instance_eval_context(env->caller(), block->self());
     block->set_self(self);
     Defer done_instance_evaling([block]() {
@@ -1252,12 +1203,12 @@ Value Object::instance_eval(Env *env, Args &&args, Block *block) {
     return block->run(env, Args(1, block_args), nullptr);
 }
 
-Value Object::instance_exec(Env *env, Args &&args, Block *block) {
+Value Object::instance_exec(Env *env, Value self, Args &&args, Block *block) {
     if (!block)
         env->raise("LocalJumpError", "no block given");
 
     GlobalEnv::the()->push_instance_eval_context(env->caller(), block->self());
-    block->set_self(this);
+    block->set_self(self);
     Defer done_instance_evaling([block]() {
         auto context = GlobalEnv::the()->pop_instance_eval_context();
         block->set_self(context.block_original_self);
@@ -1299,8 +1250,8 @@ bool Object::equal(Value self, Value other) {
     return other == self;
 }
 
-bool Object::neq(Env *env, Value other) {
-    return send(env, "=="_s, { other }).is_falsey();
+bool Object::neq(Env *env, Value self, Value other) {
+    return self.send(env, "=="_s, { other }).is_falsey();
 }
 
 String Object::dbg_inspect() const {
