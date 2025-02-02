@@ -571,6 +571,12 @@ MatchDataObject *Object::as_match_data_or_raise(Env *env) {
     return static_cast<MatchDataObject *>(this);
 }
 
+ModuleObject *Object::as_module_or_raise(Env *env) {
+    if (m_type != Type::Module && m_type != Type::Class)
+        env->raise("TypeError", "{} can't be coerced into Module", m_klass->inspect_str());
+    return static_cast<ModuleObject *>(this);
+}
+
 RangeObject *Object::as_range_or_raise(Env *env) {
     if (m_type != Type::Range)
         env->raise("TypeError", "{} can't be coerced into Range", m_klass->inspect_str());

@@ -162,6 +162,7 @@ public:
     FloatObject *as_float_or_raise(Env *);
     HashObject *as_hash_or_raise(Env *);
     MatchDataObject *as_match_data_or_raise(Env *);
+    ModuleObject *as_module_or_raise(Env *);
     RangeObject *as_range_or_raise(Env *);
     StringObject *as_string_or_raise(Env *);
 
