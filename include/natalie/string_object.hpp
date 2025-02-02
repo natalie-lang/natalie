@@ -238,6 +238,12 @@ public:
         return *this;
     }
 
+    bool operator==(Value value) const {
+        if (!value.is_string())
+            return false;
+        return *this == *(value->as_string());
+    }
+
     bool operator==(const Object &value) const {
         if (value.type() != Type::String)
             return false;
@@ -299,7 +305,7 @@ public:
     Value ltlt(Env *, Value);
 
     bool eql(Value arg) const {
-        return *this == *arg;
+        return *this == arg;
     }
 
     StringObject *to_s();
