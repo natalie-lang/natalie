@@ -118,7 +118,7 @@ Value FiberObject::is_blocking_current() {
 Value FiberObject::ref(Env *env, Value key) {
     const static auto to_str = "to_str"_s;
     if (key.is_string() || key->respond_to(env, to_str))
-        key = key->to_str(env)->to_sym(env);
+        key = key.to_str(env)->to_sym(env);
     if (!key.is_symbol())
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
     auto fiber = current();
@@ -132,7 +132,7 @@ Value FiberObject::ref(Env *env, Value key) {
 Value FiberObject::refeq(Env *env, Value key, Value value) {
     const static auto to_str = "to_str"_s;
     if (key.is_string() || key->respond_to(env, to_str))
-        key = key->to_str(env)->to_sym(env);
+        key = key.to_str(env)->to_sym(env);
     if (!key.is_symbol())
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
     if (current()->m_storage == nullptr)

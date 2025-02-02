@@ -132,7 +132,7 @@ Value Zlib_deflate_deflate(Env *env, Value self, Args &&args, Block *) {
 
 Value Zlib_deflate_set_dictionary(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto dictionary = args.at(0)->to_str(env);
+    auto dictionary = args.at(0).to_str(env);
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     if (const auto ret = deflateSetDictionary(strm, reinterpret_cast<const Bytef *>(dictionary->c_str()), dictionary->bytesize()); ret != Z_OK)
         self->klass()->send(env, "_error"_s, { Value::integer(ret) });
@@ -297,7 +297,7 @@ Value Zlib_inflate_close(Env *env, Value self, Args &&args, Block *) {
 
 Value Zlib_adler32(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 2);
-    auto string = args.at(0, new StringObject { "", Encoding::ASCII_8BIT })->to_str(env);
+    auto string = args.at(0, new StringObject { "", Encoding::ASCII_8BIT }).to_str(env);
     auto checksum = Object::to_int(env, args.at(1, Value::integer(1)));
     IntegerObject::assert_fixnum(env, checksum);
     const nat_int_t result = adler32_z(checksum.to_nat_int_t(), reinterpret_cast<const Bytef *>(string->c_str()), string->bytesize());

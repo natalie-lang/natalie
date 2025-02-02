@@ -299,16 +299,6 @@ public:
     static Integer to_int(Env *env, Value self);
     StringObject *to_s(Env *env);
 
-    // Old error message style, e.g.:
-    // - no implicit conversion from nil to string
-    // - no implicit conversion of Integer into String
-    StringObject *to_str(Env *env);
-
-    // New error message style, e.g.:
-    // - no implicit conversion of nil into String
-    // - no implicit conversion of Integer into String
-    StringObject *to_str2(Env *env);
-
 protected:
     ClassObject *m_klass { nullptr };
 

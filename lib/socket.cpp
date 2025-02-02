@@ -33,7 +33,7 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
         default_zero = true;
 
     if (!name.is_integer() && !name.is_string() && !name.is_symbol() && name->respond_to(env, "to_str"_s))
-        name = name->to_str(env);
+        name = name.to_str(env);
 
     switch (name->type()) {
     case Object::Type::Integer:
@@ -182,13 +182,13 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
     memset(&hints, 0, sizeof(hints));
 
     if (!nodename.is_nil())
-        node = nodename->to_str(env)->c_str();
+        node = nodename.to_str(env)->c_str();
     StringObject *service_as_string = nullptr;
     if (servicename.is_integer()) {
         service_as_string = servicename->to_s(env);
         service = service_as_string->c_str();
     } else if (!servicename.is_nil()) {
-        service = servicename->to_str(env)->c_str();
+        service = servicename.to_str(env)->c_str();
     }
     if (family && !family.is_nil()) {
         family = Socket_const_name_to_i(env, self, { family }, nullptr);
@@ -276,9 +276,9 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         case AF_INET:
         case AF_INET6:
             port = Value(Object::to_int(env, ary->ref(env, Value::integer(1))));
-            host = ary->ref(env, Value::integer(2))->to_str(env);
+            host = ary->ref(env, Value::integer(2)).to_str(env);
             if (ary->ref(env, Value::integer(3)).is_string())
-                host = ary->at(3)->to_str(env);
+                host = ary->at(3).to_str(env);
             break;
         default:
             env->raise("ArgumentError", "bad sockaddr");
@@ -555,7 +555,7 @@ Value BasicSocket_recv_nonblock(Env *env, Value self, Args &&args, Block *) {
 
     const auto maxlen = IntegerObject::convert_to_nat_int_t(env, args[0]);
     const auto flags = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
-    auto buffer = args.at(2, new StringObject { "", Encoding::ASCII_8BIT })->to_str(env);
+    auto buffer = args.at(2, new StringObject { "", Encoding::ASCII_8BIT }).to_str(env);
     auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
     env->ensure_no_extra_keywords(kwargs);
 
@@ -589,7 +589,7 @@ Value BasicSocket_recv_nonblock(Env *env, Value self, Args &&args, Block *) {
 Value BasicSocket_send(Env *env, Value self, Args &&args, Block *) {
     // send(mesg, flags [, dest_sockaddr]) => numbytes_sent
     args.ensure_argc_between(env, 2, 3);
-    auto mesg = args.at(0)->to_str(env)->as_string();
+    auto mesg = args.at(0).to_str(env)->as_string();
     auto flags = args.at(1, Value::integer(0)).integer_or_raise(env).to_nat_int_t();
     auto dest_sockaddr = args.at(2, NilObject::the());
     ssize_t bytes;
@@ -600,7 +600,7 @@ Value BasicSocket_send(Env *env, Value self, Args &&args, Block *) {
         auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
         if (dest_sockaddr->is_a(env, Addrinfo))
             dest_sockaddr = dest_sockaddr->to_s(env);
-        dest_sockaddr = dest_sockaddr->to_str(env);
+        dest_sockaddr = dest_sockaddr.to_str(env);
         bytes = sendto(self->as_io()->fileno(), mesg->c_str(), mesg->bytesize(), flags, reinterpret_cast<const sockaddr *>(dest_sockaddr->as_string()->c_str()), dest_sockaddr->as_string()->bytesize());
     }
     if (bytes < 0)
@@ -1094,7 +1094,7 @@ Value Socket_connect(Env *env, Value self, Args &&args, Block *block) {
     if (remote_sockaddr->is_a(env, Addrinfo)) {
         remote_sockaddr = remote_sockaddr->to_s(env);
     } else {
-        remote_sockaddr = remote_sockaddr->to_str(env);
+        remote_sockaddr = remote_sockaddr.to_str(env);
     }
 
     auto addr = reinterpret_cast<const sockaddr *>(remote_sockaddr->as_string()->c_str());
@@ -1199,7 +1199,7 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
     else if (service.is_integer())
         service_str = service->to_s(env)->string();
     else
-        service_str = service->to_str(env)->string();
+        service_str = service.to_str(env)->string();
 
     struct addrinfo *addr = nullptr;
     auto result = getaddrinfo(host->as_string_or_raise(env)->c_str(), service_str.c_str(), &hints, &addr);
@@ -1386,7 +1386,7 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
     else if (nodename.is_string())
         host = nodename->as_string_or_raise(env)->string();
     else if (nodename->respond_to(env, "to_str"_s))
-        host = nodename->to_str(env)->string();
+        host = nodename.to_str(env)->string();
 
     if (servname.is_nil() || (servname.is_string() && servname->as_string()->is_empty()))
         service = "0";
@@ -1493,10 +1493,10 @@ Value Socket_s_getifaddrs(Env *env, Value, Args &&args, Block *) {
 
 Value Socket_s_getservbyname(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
-    auto name = args[0]->to_str(env);
+    auto name = args[0].to_str(env);
     const char *proto = "tcp";
     if (auto proto_val = args.at(1, NilObject::the()); !proto_val.is_nil())
-        proto = proto_val->to_str(env)->c_str();
+        proto = proto_val.to_str(env)->c_str();
 
     auto result = getservbyname(name->c_str(), proto);
     if (!result)
@@ -1509,7 +1509,7 @@ Value Socket_s_getservbyport(Env *env, Value self, Args &&args, Block *) {
     auto port = IntegerObject::convert_to_native_type<int>(env, args[0]);
     const char *proto = "tcp";
     if (auto proto_val = args.at(1, NilObject::the()); !proto_val.is_nil())
-        proto = proto_val->to_str(env)->c_str();
+        proto = proto_val.to_str(env)->c_str();
 
     auto result = getservbyport(port, proto);
     if (!result)
@@ -1749,7 +1749,7 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args &&args, Block *) {
 
     const auto maxlen = IntegerObject::convert_to_nat_int_t(env, args[0]);
     auto flags = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
-    auto buffer = args.at(2, new StringObject { "", Encoding::ASCII_8BIT })->to_str(env);
+    auto buffer = args.at(2, new StringObject { "", Encoding::ASCII_8BIT }).to_str(env);
     char buf[maxlen];
     sockaddr_storage addr {};
     socklen_t addr_len = sizeof(addr);

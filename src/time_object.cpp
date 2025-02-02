@@ -377,7 +377,7 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
     if (val.is_nil()) return 0;
     if (!val.is_integer()) {
         if (val.is_string() || val->respond_to(env, "to_str"_s)) {
-            val = val->to_str(env);
+            val = val.to_str(env);
             auto monstr = val->as_string()->downcase(env, nullptr, nullptr)->as_string()->string();
             if (monstr == "jan") {
                 return 0;

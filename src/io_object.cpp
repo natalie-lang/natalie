@@ -354,7 +354,7 @@ ssize_t IoObject::blocking_read(Env *env, void *buf, int count) const {
 Value IoObject::read(Env *env, Value count_value, Value buffer) {
     raise_if_closed(env);
     if (buffer != nullptr && !buffer.is_nil()) {
-        buffer = buffer->to_str(env);
+        buffer = buffer.to_str(env);
     } else {
         buffer = nullptr;
     }
@@ -536,7 +536,7 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
             limit = sep;
             sep = nullptr;
         } else {
-            sep = sep->to_str(env);
+            sep = sep.to_str(env);
             if (sep->as_string()->is_empty())
                 sep = new StringObject { "\n\n" };
         }
@@ -624,7 +624,7 @@ Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
     }
     buf.truncate(bytes_read);
     if (out_string != nullptr && !out_string.is_nil()) {
-        out_string = out_string->to_str(env);
+        out_string = out_string.to_str(env);
         out_string->as_string()->set_str(buf.c_str(), buf.size());
         return out_string;
     }
@@ -794,10 +794,10 @@ Value IoObject::set_close_on_exec(Env *env, Value value) {
 
 Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
     if ((int_enc == nullptr || int_enc.is_nil()) && ext_enc != nullptr && (ext_enc.is_string() || ext_enc->respond_to(env, "to_str"_s))) {
-        ext_enc = ext_enc->to_str(env);
+        ext_enc = ext_enc.to_str(env);
         if (ext_enc->as_string()->include(":")) {
             auto colon = new StringObject { ":" };
-            auto encsplit = ext_enc->to_str(env)->split(env, colon, nullptr)->as_array();
+            auto encsplit = ext_enc.to_str(env)->split(env, colon, nullptr)->as_array();
             ext_enc = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(0)), nullptr);
             int_enc = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
         }
@@ -807,14 +807,14 @@ Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
         if (ext_enc.is_encoding()) {
             m_external_encoding = ext_enc->as_encoding();
         } else {
-            m_external_encoding = EncodingObject::find_encoding(env, ext_enc->to_str(env));
+            m_external_encoding = EncodingObject::find_encoding(env, ext_enc.to_str(env));
         }
     }
     if (int_enc != nullptr && !int_enc.is_nil()) {
         if (int_enc.is_encoding()) {
             m_internal_encoding = int_enc->as_encoding();
         } else {
-            m_internal_encoding = EncodingObject::find_encoding(env, int_enc->to_str(env));
+            m_internal_encoding = EncodingObject::find_encoding(env, int_enc.to_str(env));
         }
     }
 
@@ -905,7 +905,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
         }
         m_read_buffer.prepend_char(static_cast<char>(value & 0xff));
     } else {
-        const auto &value = byte->to_str(env)->string();
+        const auto &value = byte.to_str(env)->string();
         m_read_buffer.prepend(value);
     }
     return NilObject::the();
@@ -914,7 +914,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
 Value IoObject::ungetc(Env *env, Value c) {
     if (c.is_integer())
         return ungetbyte(env, c);
-    return ungetbyte(env, c->to_str(env));
+    return ungetbyte(env, c.to_str(env));
 }
 
 Value IoObject::wait(Env *env, Args &&args) {
@@ -1022,7 +1022,7 @@ Value IoObject::sysread(Env *env, Value amount, Value buffer) {
     auto result = read(env, amount, buffer);
     if (result.is_nil()) {
         if (buffer && !buffer.is_nil())
-            buffer->to_str(env)->clear(env);
+            buffer.to_str(env)->clear(env);
         env->raise("EOFError", "end of file reached");
     }
     return result;
@@ -1237,10 +1237,10 @@ Value IoObject::popen(Env *env, Args &&args, Block *block, ClassObject *klass) {
     if (args.size() > 2)
         env->raise("NotImplementedError", "IO.popen with env is not yet supported");
     args.ensure_argc_between(env, 1, 3);
-    auto command = args.at(0)->to_str(env);
+    auto command = args.at(0).to_str(env);
     if (*command->c_str() == '-')
         env->raise("NotImplementedError", "IO.popen with \"-\" to fork is not yet supported");
-    auto type = args.at(1, new StringObject { "r" })->to_str(env);
+    auto type = args.at(1, new StringObject { "r" }).to_str(env);
     pid_t pid;
     auto fileptr = popen2(command->c_str(), type->c_str(), pid);
     if (!fileptr)

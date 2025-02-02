@@ -130,8 +130,8 @@ static Value OpenSSL_X509_Name_new(Env *env, const X509_NAME *value) {
 
 Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 2);
-    auto a = args[0]->to_str(env);
-    auto b = args[1]->to_str(env);
+    auto a = args[0].to_str(env);
+    auto b = args[1].to_str(env);
     const auto len = a->bytesize();
     if (b->bytesize() != len)
         env->raise("ArgumentError", "inputs must be of equal length");
@@ -147,7 +147,7 @@ static void OpenSSL_Cipher_ciphers_add_cipher(const OBJ_NAME *cipher_meth, void 
 
 Value OpenSSL_Cipher_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto name = args[0]->to_str(env);
+    auto name = args[0].to_str(env);
     const EVP_CIPHER *cipher = EVP_get_cipherbyname(name->c_str());
     if (!cipher)
         env->raise("RuntimeError", "unsupported cipher algorithm ({})", name->string());
@@ -201,7 +201,7 @@ Value OpenSSL_Cipher_final(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_Cipher_iv_set(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto iv = args[0]->to_str(env);
+    auto iv = args[0].to_str(env);
     auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     const EVP_CIPHER *e = EVP_CIPHER_CTX_cipher(ctx);
     const size_t iv_len = EVP_CIPHER_iv_length(e);
@@ -222,7 +222,7 @@ Value OpenSSL_Cipher_iv_len(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_Cipher_key_set(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto key = args[0]->to_str(env);
+    auto key = args[0].to_str(env);
     auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     const EVP_CIPHER *e = EVP_CIPHER_CTX_cipher(ctx);
     const size_t key_len = EVP_CIPHER_key_length(e);
@@ -243,7 +243,7 @@ Value OpenSSL_Cipher_key_len(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_Cipher_update(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1); // NATFXIME: Support buffer argument
-    auto data = args[0]->to_str(env);
+    auto data = args[0].to_str(env);
     auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     const auto block_size = EVP_CIPHER_CTX_block_size(ctx);
     TM::String buf(data->bytesize() + block_size, '\0'); // Overallocation, so it should always fit
@@ -264,7 +264,7 @@ Value OpenSSL_Digest_update(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
 
-    auto data = args[0]->to_str(env);
+    auto data = args[0].to_str(env);
 
     if (!EVP_DigestUpdate(mdctx, reinterpret_cast<const unsigned char *>(data->c_str()), data->string().size()))
         OpenSSL_raise_error(env, "EVP_DigestUpdate");
@@ -356,8 +356,8 @@ Value OpenSSL_HMAC_digest(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 3);
     auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
     auto digest = Object::_new(env, digest_klass, { args[0] }, nullptr);
-    auto key = args[1]->to_str(env);
-    auto data = args[2]->to_str(env);
+    auto key = args[1].to_str(env);
+    auto data = args[2].to_str(env);
     const EVP_MD *evp_md = EVP_get_digestbyname(digest->send(env, "name"_s)->as_string()->c_str());
     unsigned char md[EVP_MAX_MD_SIZE];
     unsigned int md_len;
@@ -550,7 +550,7 @@ Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args &&args, Block *) 
     auto hostname = self->ivar_get(env, "@hostname"_s);
 
     if (context && context->ivar_get(env, "@verify_hostname"_s).is_truthy() && !hostname.is_nil()) {
-        if (!SSL_set1_host(ssl, hostname->to_str(env)->c_str()))
+        if (!SSL_set1_host(ssl, hostname.to_str(env)->c_str()))
             OpenSSL_SSL_raise_error(env, "SSL_set1_host");
     }
 
@@ -576,7 +576,7 @@ Value OpenSSL_SSL_SSLSocket_set_hostname(Env *env, Value self, Args &&args, Bloc
     const char *hostname_cstr = nullptr;
 
     if (!args[0].is_nil()) {
-        hostname = args[0]->to_str(env);
+        hostname = args[0].to_str(env);
         hostname_cstr = hostname->as_string()->c_str();
     }
 
@@ -602,7 +602,7 @@ Value OpenSSL_SSL_SSLSocket_read(Env *env, Value self, Args &&args, Block *) {
     if (args.at(1, NilObject::the()).is_nil()) {
         result = new StringObject {};
     } else {
-        result = args[1]->to_str(env);
+        result = args[1].to_str(env);
         result->clear(env);
     }
     int bytes_read;
@@ -961,10 +961,10 @@ Value OpenSSL_X509_Certificate_set_version(Env *env, Value self, Args &&args, Bl
 Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_is(env, 1);
-    auto pass = args.at(0)->to_str(env);
+    auto pass = args.at(0).to_str(env);
     if (!kwargs) kwargs = new HashObject {};
     env->ensure_no_missing_keywords(kwargs, { "salt", "iterations", "length", "hash" });
-    auto salt = kwargs->remove(env, "salt"_s)->to_str(env);
+    auto salt = kwargs->remove(env, "salt"_s).to_str(env);
     auto iterations = Object::to_int(env, kwargs->remove(env, "iterations"_s));
     auto length = Object::to_int(env, kwargs->remove(env, "length"_s));
     auto hash = kwargs->remove(env, "hash"_s);
@@ -997,9 +997,9 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
 Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_is(env, 1);
-    auto pass = args.at(0)->to_str(env);
+    auto pass = args.at(0).to_str(env);
     env->ensure_no_missing_keywords(kwargs, { "salt", "N", "r", "p", "length" });
-    auto salt = kwargs->remove(env, "salt"_s)->to_str(env);
+    auto salt = kwargs->remove(env, "salt"_s).to_str(env);
     auto N = Object::to_int(env, kwargs->remove(env, "N"_s));
     auto r = Object::to_int(env, kwargs->remove(env, "r"_s));
     auto p = Object::to_int(env, kwargs->remove(env, "p"_s));
@@ -1187,8 +1187,8 @@ Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args &&args, Block *) {
     auto kwarg_set = kwargs ? kwargs->remove(env, "set"_s) : nullptr;
     env->ensure_no_extra_keywords(kwargs);
     args.ensure_argc_between(env, 2, 3);
-    auto oid = args.at(0)->to_str(env);
-    auto value = args.at(1)->to_str(env);
+    auto oid = args.at(0).to_str(env);
+    auto value = args.at(1).to_str(env);
     auto type = args.at(2, nullptr);
     if (type && !type.is_nil()) {
         type = Object::to_int(env, type);

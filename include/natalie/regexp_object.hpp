@@ -154,7 +154,7 @@ public:
         if (!other.is_string() && !other.is_symbol()) {
             if (!other->respond_to(env, "to_str"_s))
                 return false;
-            other = other->to_str(env);
+            other = other.to_str(env);
         }
         return match(env, other).is_truthy();
     }

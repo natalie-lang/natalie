@@ -142,7 +142,7 @@ thread_local ThreadObject *tl_current_thread = nullptr;
 
 static Value validate_key(Env *env, Value key) {
     if (key.is_string() || key->respond_to(env, "to_str"_s))
-        key = key->to_str(env)->to_sym(env);
+        key = key.to_str(env)->to_sym(env);
     if (!key.is_symbol())
         env->raise("TypeError", "{} is not a symbol", key->inspect_str(env));
     return key;
@@ -484,7 +484,7 @@ Value ThreadObject::set_name(Env *env, Value name) {
         return NilObject::the();
     }
 
-    auto name_str = name->to_str(env);
+    auto name_str = name.to_str(env);
     if (strlen(name_str->c_str()) != name_str->bytesize())
         env->raise("ArgumentError", "string contains null byte");
     m_name = name_str->string();

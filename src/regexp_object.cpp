@@ -194,7 +194,7 @@ Value RegexpObject::regexp_union(Env *env, Args &&args) {
                 return pattern;
             out.append(pattern->as_regexp()->to_s(env)->as_string()->string());
         } else {
-            pattern = pattern->to_str(env);
+            pattern = pattern.to_str(env);
             auto quoted = RegexpObject::quote(env, pattern);
             out.append(quoted->as_string()->string());
         }
@@ -241,7 +241,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
         }
     }
 
-    initialize_internal(env, pattern->to_str(env), static_cast<int>(options));
+    initialize_internal(env, pattern.to_str(env), static_cast<int>(options));
 
     return this;
 }

@@ -45,7 +45,7 @@ module CGI::Util
   #      # => "%27Stop%21%27%20said%20Fred"
   def escapeURIComponent(string)
     # NATALIE ruby converts this in a c extension
-    __inline__ 'string_var = string_var->to_str2(env)'
+    __inline__ 'string_var = string_var.to_str2(env)'
     # END NATALIE
     encoding = string.encoding
     buffer = string.b

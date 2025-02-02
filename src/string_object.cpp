@@ -32,7 +32,7 @@ static auto character_class_handler(Env *env, Args &&args) {
         auto arg = args[i];
 
         // Try convert to string
-        auto selectors = arg->to_str(env);
+        auto selectors = arg.to_str(env);
         auto new_selectors = Hashmap<String>(HashType::String);
         StringView last_character = {};
         bool negated = false;
@@ -272,7 +272,7 @@ Value StringObject::center(Env *env, Value length, Value padstr) {
     } else if (padstr.is_string()) {
         pad = padstr->as_string()->string();
     } else {
-        pad = padstr->to_str(env)->string();
+        pad = padstr.to_str(env)->string();
     }
 
     if (pad.is_empty())
@@ -308,7 +308,7 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
 
     // When passed a non nil object, call to_str();
     if (!record_separator.is_null() && !record_separator.is_string()) {
-        record_separator = record_separator->to_str(env);
+        record_separator = record_separator.to_str(env);
     }
 
     if (is_empty()) { // if this is an empty string, return nil
@@ -455,8 +455,8 @@ Value StringObject::tr(Env *env, Value from_value, Value to_value) const {
 Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value) {
     assert_not_frozen(env);
 
-    auto from_chars = from_value->to_str(env)->chars(env)->as_array_or_raise(env);
-    auto to_chars = to_value->to_str(env)->chars(env)->as_array_or_raise(env);
+    auto from_chars = from_value.to_str(env)->chars(env)->as_array_or_raise(env);
+    auto to_chars = to_value.to_str(env)->chars(env)->as_array_or_raise(env);
 
     // nothing to do
     if (from_chars->is_empty())
@@ -657,7 +657,7 @@ bool StringObject::start_with(Env *env, Args &&args) {
 
 // NATFIXME : broken for searching the middle of a multibyte char
 bool StringObject::end_with(Env *env, Value needle) const {
-    needle = needle->to_str(env);
+    needle = needle.to_str(env);
     needle.assert_type(env, Object::Type::String, "String");
     if (length() < needle->as_string()->length())
         return false;
@@ -755,7 +755,7 @@ Value StringObject::byteindex(Env *env, Value needle_obj, Value offset_obj) cons
     if (needle_obj.is_regexp())
         return byteindex_regexp_needle(env, this, needle_obj->as_regexp(), offset);
 
-    auto needle = needle_obj->to_str2(env);
+    auto needle = needle_obj.to_str2(env);
     return byteindex_string_needle(env, this, needle, offset);
 }
 
@@ -772,7 +772,7 @@ Value StringObject::byterindex(Env *env, Value needle_obj, Value offset_obj) con
     if (needle_obj.is_regexp())
         return byteindex_regexp_needle(env, this, needle_obj->as_regexp(), offset, true);
 
-    auto needle = needle_obj->to_str2(env);
+    auto needle = needle_obj.to_str2(env);
     return byteindex_string_needle(env, this, needle, offset, true);
 }
 
@@ -825,7 +825,7 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
         return region->beg[0];
     }
 
-    auto needle_str = needle->to_str(env)->as_string();
+    auto needle_str = needle.to_str(env)->as_string();
     assert_compatible_string(env, needle_str);
 
     if (needle_str->bytesize() == 0)
@@ -907,7 +907,7 @@ nat_int_t StringObject::rindex_int(Env *env, Value needle, size_t byte_start) co
         return region->beg[0];
     }
 
-    auto needle_str = needle->to_str(env)->as_string();
+    auto needle_str = needle.to_str(env)->as_string();
     assert_compatible_string(env, needle_str);
 
     if (needle_str->bytesize() == 0)
@@ -935,7 +935,7 @@ nat_int_t StringObject::rindex_int(Env *env, Value needle, size_t byte_start) co
 
 Value StringObject::initialize(Env *env, Value arg, Value encoding, Value capacity) {
     if (arg)
-        initialize_copy(env, arg->to_str(env));
+        initialize_copy(env, arg.to_str(env));
     if (encoding) {
         force_encoding(env, encoding);
     }
@@ -948,7 +948,7 @@ Value StringObject::initialize(Env *env, Value arg, Value encoding, Value capaci
 
 Value StringObject::initialize_copy(Env *env, Value arg) {
     assert_not_frozen(env);
-    auto string_obj = arg->to_str(env);
+    auto string_obj = arg.to_str(env);
     m_string = string_obj->string();
     m_encoding = string_obj->encoding();
     return this;
@@ -960,7 +960,7 @@ Value StringObject::ltlt(Env *env, Value arg) {
 }
 
 Value StringObject::add(Env *env, Value arg) const {
-    StringObject *str = arg->to_str(env);
+    StringObject *str = arg.to_str(env);
     StringObject *new_string = new StringObject { m_string, m_encoding };
     Value args[] = { str };
     new_string->concat(env, Args(1, args));
@@ -1015,7 +1015,7 @@ Value StringObject::cmp(Env *env, Value other) {
     if (other.is_string()) {
         other_str = other->as_string();
     } else if (other->find_method(env, "to_str"_s, MethodVisibility::Private, other)) {
-        other_str = other->to_str(env);
+        other_str = other.to_str(env);
     } else if (other->find_method(env, "<=>"_s, MethodVisibility::Private, other)) {
         auto negative_cmp = other->send(env, "<=>"_s, { this });
         if (negative_cmp.is_nil()) {
@@ -1069,7 +1069,7 @@ Value StringObject::concat(Env *env, Args &&args) {
             }
             str_obj = arg.send(env, "chr"_s, { m_encoding.ptr() })->as_string();
         } else {
-            str_obj = arg->to_str(env);
+            str_obj = arg.to_str(env);
         }
 
         Value(str_obj).assert_type(env, Object::Type::String, "String");
@@ -1108,7 +1108,7 @@ Value StringObject::crypt(Env *env, Value salt) {
             env->raise("ArgumentError", "string contains null byte");
     }
 
-    const auto salt_str = salt->to_str(env);
+    const auto salt_str = salt.to_str(env);
 
     // Use the null terminated length of the string
     if (strlen(salt_str->c_str()) < 2)
@@ -1169,7 +1169,7 @@ Value StringObject::match(Env *env, Value other, Value index, Block *block) {
         if (other.is_string()) {
             other = new RegexpObject { env, other->as_string()->string() };
         } else if (other->respond_to(env, "to_str"_s)) {
-            other = new RegexpObject { env, other->to_str(env)->string() };
+            other = new RegexpObject { env, other.to_str(env)->string() };
         } else if (other->respond_to(env, "=~"_s)) {
             return other->send(env, "=~"_s, { this });
         }
@@ -1214,7 +1214,7 @@ Value StringObject::prepend(Env *env, Args &&args) {
         } else if (arg.is_integer()) {
             str_obj = arg.send(env, "chr"_s, { m_encoding.ptr() })->as_string();
         } else {
-            str_obj = arg->to_str(env);
+            str_obj = arg.to_str(env);
         }
 
         Value(str_obj).assert_type(env, Object::Type::String, "String");
@@ -1271,7 +1271,7 @@ size_t StringObject::char_count(Env *env) const {
 
 Value StringObject::scan(Env *env, Value pattern, Block *block) {
     if (!pattern.is_regexp())
-        pattern = RegexpObject::compile(env, RegexpObject::quote(env, pattern->to_str(env)));
+        pattern = RegexpObject::compile(env, RegexpObject::quote(env, pattern.to_str(env)));
     pattern.assert_type(env, Type::Regexp, "Regexp");
 
     auto regexp = pattern->as_regexp();
@@ -1420,7 +1420,7 @@ Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_enco
         if (encoding.is_encoding())
             return encoding->as_encoding();
 
-        auto name = encoding->to_str(env)->string();
+        auto name = encoding.to_str(env)->string();
         return EncodingObject::find_encoding_by_name(env, name);
     };
 
@@ -2488,7 +2488,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
     if (end > (nat_int_t)chars->size())
         chars_to_be_removed = chars->size() - begin;
 
-    auto string = value->to_str(env);
+    auto string = value.to_str(env);
     auto arg_chars = string->chars(env)->as_array();
     size_t new_length = arg_chars->size() + (chars->size() - chars_to_be_removed);
 
@@ -2511,7 +2511,7 @@ Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *bl
         env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
 
     if (find.is_string() || find->respond_to(env, "to_str"_s)) {
-        const auto pattern = RegexpObject::quote(env, find->to_str(env))->as_string()->string();
+        const auto pattern = RegexpObject::quote(env, find.to_str(env))->as_string()->string();
         const int options = 0;
         find = new RegexpObject { env, pattern, options };
     }
@@ -2549,7 +2549,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
         env->raise("NotImplementedError", "Enumerator reply in String#gsub");
 
     if (find.is_string() || find->respond_to(env, "to_str"_s)) {
-        const auto pattern = RegexpObject::quote(env, find->to_str(env))->as_string()->string();
+        const auto pattern = RegexpObject::quote(env, find.to_str(env))->as_string()->string();
         const int options = 0;
         find = new RegexpObject { env, pattern, options };
     }
@@ -2617,7 +2617,7 @@ void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_stri
         if (replacement_value.is_hash()) {
             replacement_hash = replacement_value->as_hash();
         } else {
-            replacement_str = replacement_value->to_str(env);
+            replacement_str = replacement_value.to_str(env);
         }
         block = nullptr;
     }
@@ -2891,7 +2891,7 @@ nat_int_t StringObject::unpack_offset(Env *env, Value offset_value) const {
 }
 
 Value StringObject::unpack(Env *env, Value format, Value offset_value) const {
-    auto format_string = format->to_str(env)->string();
+    auto format_string = format.to_str(env)->string();
     auto offset = unpack_offset(env, offset_value);
     if (offset == (nat_int_t)bytesize())
         return new ArrayObject({ NilObject::the() });
@@ -2900,7 +2900,7 @@ Value StringObject::unpack(Env *env, Value format, Value offset_value) const {
 }
 
 Value StringObject::unpack1(Env *env, Value format, Value offset_value) const {
-    auto format_string = format->to_str(env)->string();
+    auto format_string = format.to_str(env)->string();
     auto offset = unpack_offset(env, offset_value);
     if (offset == (nat_int_t)bytesize())
         return NilObject::the();
@@ -2997,7 +2997,7 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
     } else {
         // string case or object-coercible to string case
         if (!splitter.is_string() && splitter->respond_to(env, "to_str"_s))
-            splitter = splitter->to_str(env);
+            splitter = splitter.to_str(env);
         if (!splitter.is_string())
             env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter->klass()->inspect_str());
 
@@ -3021,7 +3021,7 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
 }
 
 bool StringObject::include(Env *env, Value arg) {
-    arg = arg->to_str(env);
+    arg = arg.to_str(env);
 
     auto arg_str = arg->as_string_or_raise(env);
 
@@ -3054,7 +3054,7 @@ Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
     assert_not_frozen(env);
 
     auto char_index = IntegerObject::convert_to_native_type<ssize_t>(env, Object::to_int(env, index_obj));
-    StringObject *string = other_str->to_str(env);
+    StringObject *string = other_str.to_str(env);
 
     if (char_index == -1) {
         assert_compatible_string_and_update_encoding(env, string);
@@ -3088,13 +3088,13 @@ Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
 void StringObject::each_line(Env *env, Value separator, Value chomp_value, std::function<Value(StringObject *)> callback) const {
     if (separator) {
         if (!separator.is_nil())
-            separator = separator->to_str(env);
+            separator = separator.to_str(env);
     } else {
         auto dollar_slash = env->global_get("$/"_s);
         if (dollar_slash.is_nil())
             separator = NilObject::the();
         else
-            separator = dollar_slash->to_str(env);
+            separator = dollar_slash.to_str(env);
     }
 
     auto self_dup = duplicate(env)->as_string();
@@ -3194,7 +3194,7 @@ Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) const {
     if (!pad_obj) {
         padstr = new StringObject { " " };
     } else {
-        padstr = pad_obj->to_str(env);
+        padstr = pad_obj.to_str(env);
     }
 
     if (padstr->string().is_empty())
@@ -3292,7 +3292,7 @@ Value StringObject::rjust(Env *env, Value length_obj, Value pad_obj) const {
     if (!pad_obj) {
         padstr = new StringObject { " " };
     } else {
-        padstr = pad_obj->to_str(env);
+        padstr = pad_obj.to_str(env);
     }
 
     if (padstr->string().is_empty())
@@ -3657,7 +3657,7 @@ Value StringObject::upto(Env *env, Value other, Value exclusive, Block *block) {
     if (!block)
         return enum_for(env, "upto", { other, exclusive });
 
-    auto *string = other->to_str(env);
+    auto *string = other.to_str(env);
 
     auto iterator = StringUptoIterator(m_string, string->string(), exclusive.is_truthy());
 
@@ -4033,7 +4033,7 @@ Value StringObject::convert_float() {
 
 Value StringObject::delete_prefix(Env *env, Value val) {
     if (!val.is_string())
-        val = val->to_str(env);
+        val = val.to_str(env);
 
     auto arg_len = val->as_string()->length();
 
@@ -4059,7 +4059,7 @@ Value StringObject::delete_prefix_in_place(Env *env, Value val) {
 
 Value StringObject::delete_suffix(Env *env, Value val) {
     if (!val.is_string())
-        val = val->to_str(env);
+        val = val.to_str(env);
 
     auto arg_len = val->as_string()->length();
 
@@ -4140,7 +4140,7 @@ Value StringObject::partition(Env *env, Value val) {
         }
     } else {
         if (!val.is_string()) {
-            val = val->to_str(env);
+            val = val.to_str(env);
         }
 
         auto query = val->as_string()->string();

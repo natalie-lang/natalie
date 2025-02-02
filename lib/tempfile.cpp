@@ -16,12 +16,12 @@ Value Tempfile_initialize(Env *env, Value self, Args &&args, Block *) {
     if (!basename) {
         basename = new StringObject { "" };
     } else if (!basename.is_string() && basename->respond_to(env, "to_str"_s)) {
-        basename = basename->to_str(env);
+        basename = basename.to_str(env);
     } else if (basename.is_array()) {
         auto arr = basename->as_array();
         basename = arr->ref(env, Value::integer(0));
         if (arr->size() >= 2)
-            suffix = arr->at(1)->to_str(env);
+            suffix = arr->at(1).to_str(env);
     }
     if (!basename.is_string()) {
         env->raise("ArgumentError", "unexpected prefix: {}", basename->inspect_str(env));

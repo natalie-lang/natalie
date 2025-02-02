@@ -412,7 +412,7 @@ Value YAML_load(Env *env, Value self, Args &&args, Block *) {
         auto file = fdopen(io->fileno(env), "r");
         yaml_parser_set_input_file(&parser, file);
     } else {
-        auto str = input->to_str(env);
+        auto str = input.to_str(env);
         yaml_parser_set_input_string(&parser, reinterpret_cast<const unsigned char *>(str->c_str()), str->bytesize());
     }
 

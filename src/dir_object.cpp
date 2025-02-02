@@ -122,7 +122,7 @@ Value DirObject::chdir(Env *env, Value path, Block *block) {
     errno = ec.value();
     if (errno) env->raise_errno();
 
-    auto new_path = std::filesystem::path { path->to_str(env)->c_str() };
+    auto new_path = std::filesystem::path { path.to_str(env)->c_str() };
     change_current_path(env, new_path);
 
     if (!block)

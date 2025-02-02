@@ -13,7 +13,7 @@ namespace ioutil {
         if (!path.is_string() && path->respond_to(env, "to_path"_s))
             path = path->send(env, "to_path"_s);
         if (!path.is_string() && path->respond_to(env, "to_str"_s))
-            path = path->to_str(env);
+            path = path.to_str(env);
         path.assert_type(env, Object::Type::String, "String");
         return path->as_string();
     }
@@ -38,7 +38,7 @@ namespace ioutil {
 
         if (!flags_obj.is_integer() && !flags_obj.is_string()) {
             if (flags_obj->respond_to(env, "to_str"_s)) {
-                flags_obj = flags_obj->to_str(env);
+                flags_obj = flags_obj.to_str(env);
             } else if (flags_obj->respond_to(env, "to_int"_s)) {
                 flags_obj = Object::to_int(env, flags_obj);
             }
@@ -128,10 +128,10 @@ namespace ioutil {
         } else if (encoding.is_encoding()) {
             m_external_encoding = encoding->as_encoding();
         } else {
-            encoding = encoding->to_str(env);
+            encoding = encoding.to_str(env);
             if (encoding->as_string()->include(":")) {
                 auto colon = new StringObject { ":" };
-                auto encsplit = encoding->to_str(env)->split(env, colon, nullptr)->as_array();
+                auto encsplit = encoding.to_str(env)->split(env, colon, nullptr)->as_array();
                 encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(0)), nullptr);
                 auto internal_encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
                 m_internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
@@ -149,7 +149,7 @@ namespace ioutil {
         if (external_encoding.is_encoding()) {
             m_external_encoding = external_encoding->as_encoding();
         } else {
-            m_external_encoding = EncodingObject::find_encoding(env, external_encoding->to_str(env));
+            m_external_encoding = EncodingObject::find_encoding(env, external_encoding.to_str(env));
         }
     }
 
@@ -162,7 +162,7 @@ namespace ioutil {
         if (internal_encoding.is_encoding()) {
             m_internal_encoding = internal_encoding->as_encoding();
         } else {
-            internal_encoding = internal_encoding->to_str(env);
+            internal_encoding = internal_encoding.to_str(env);
             if (internal_encoding->as_string()->string() != "-") {
                 m_internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
                 if (m_external_encoding == m_internal_encoding)

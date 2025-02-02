@@ -593,7 +593,7 @@ SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
     if (m_type == Type::Symbol) {
         return as_symbol();
     } else if (m_type == Type::String || respond_to(env, "to_str"_s)) {
-        return to_str(env)->to_symbol(env);
+        return Value(this).to_str(env)->to_symbol(env);
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
@@ -1409,43 +1409,4 @@ StringObject *Object::to_s(Env *env) {
     return str->as_string();
 }
 
-StringObject *Object::to_str(Env *env) {
-    if (m_type == Type::String) return as_string();
-
-    auto to_str = "to_str"_s;
-    if (!respond_to(env, to_str))
-        env->raise_type_error(this, "String");
-
-    auto result = send(env, to_str);
-
-    if (result.is_string())
-        return result->as_string();
-
-    env->raise(
-        "TypeError", "can't convert {} to String ({}#to_str gives {})",
-        klass()->inspect_str(),
-        klass()->inspect_str(),
-        result->klass()->inspect_str());
-}
-
-// This is just like Object::to_str, but it raises more consistent error messages.
-// We still need the old error messages because CRuby is inconsistent. :-(
-StringObject *Object::to_str2(Env *env) {
-    if (m_type == Type::String) return as_string();
-
-    auto to_str = "to_str"_s;
-    if (!respond_to(env, to_str))
-        env->raise_type_error2(this, "String");
-
-    auto result = send(env, to_str);
-
-    if (result.is_string())
-        return result->as_string();
-
-    env->raise(
-        "TypeError", "can't convert {} to String ({}#to_str gives {})",
-        klass()->inspect_str(),
-        klass()->inspect_str(),
-        result->klass()->inspect_str());
-}
 }

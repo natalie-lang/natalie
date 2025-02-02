@@ -926,7 +926,7 @@ Value ArrayObject::join(Env *env, Value joiner) {
             if (!joiner || joiner.is_nil()) joiner = new StringObject { "" };
 
             if (!joiner.is_string())
-                joiner = joiner->to_str(env);
+                joiner = joiner.to_str(env);
 
             StringObject *out = new StringObject {};
             for (size_t i = 0; i < size(); i++) {
@@ -977,7 +977,7 @@ Value ArrayObject::cmp(Env *env, Value other) {
 
 Value ArrayObject::pack(Env *env, Value directives, Value buffer) {
     if (!directives.is_string())
-        directives = directives->to_str(env);
+        directives = directives.to_str(env);
 
     auto directives_string = directives->as_string()->string();
     if (directives_string.is_empty())
@@ -1335,7 +1335,7 @@ Value ArrayObject::minmax(Env *env, Block *block) {
 
 Value ArrayObject::multiply(Env *env, Value factor) {
     if (!factor.is_string() && factor->respond_to(env, "to_str"_s))
-        factor = factor->to_str(env);
+        factor = factor.to_str(env);
 
     if (factor.is_string()) {
         return join(env, factor);

@@ -76,6 +76,60 @@ ClassObject *Value::singleton_class(Env *env) {
     return Object::singleton_class(env, *this);
 }
 
+StringObject *Value::to_str(Env *env) {
+    if (is_integer()) {
+        if (respond_to(env, "to_str"_s))
+            return send(env, "to_str"_s)->as_string_or_raise(env);
+        else
+            env->raise_type_error(*this, "String");
+    }
+
+    if (is_string()) return m_object->as_string();
+
+    auto to_str = "to_str"_s;
+    if (!respond_to(env, to_str))
+        env->raise_type_error(*this, "String");
+
+    auto result = send(env, to_str);
+
+    if (result.is_string())
+        return result->as_string();
+
+    env->raise(
+        "TypeError", "can't convert {} to String ({}#to_str gives {})",
+        klass()->inspect_str(),
+        klass()->inspect_str(),
+        result->klass()->inspect_str());
+}
+
+// This is just like Value::to_str, but it raises more consistent error messages.
+// We still need the old error messages because CRuby is inconsistent. :-(
+StringObject *Value::to_str2(Env *env) {
+    if (is_integer()) {
+        if (respond_to(env, "to_str"_s))
+            return send(env, "to_str"_s)->as_string_or_raise(env);
+        else
+            env->raise_type_error(*this, "String");
+    }
+
+    if (is_string()) return m_object->as_string();
+
+    auto to_str = "to_str"_s;
+    if (!respond_to(env, to_str))
+        env->raise_type_error2(*this, "String");
+
+    auto result = send(env, to_str);
+
+    if (result.is_string())
+        return result->as_string();
+
+    env->raise(
+        "TypeError", "can't convert {} to String ({}#to_str gives {})",
+        klass()->inspect_str(),
+        klass()->inspect_str(),
+        result->klass()->inspect_str());
+}
+
 Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
 

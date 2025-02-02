@@ -27,7 +27,7 @@ Value KernelModule::abort_method(Env *env, Value message) {
 
     if (message) {
         if (!message.is_string())
-            message = message->to_str(env);
+            message = message.to_str(env);
 
         message.assert_type(env, Object::Type::String, "String");
 
@@ -55,7 +55,7 @@ Value KernelModule::at_exit(Env *env, Block *block) {
 Value KernelModule::backtick(Env *env, Value command) {
     constexpr size_t NAT_SHELL_READ_BYTES = 1024;
     pid_t pid;
-    auto process = popen2(command->to_str(env)->c_str(), "r", pid);
+    auto process = popen2(command.to_str(env)->c_str(), "r", pid);
     if (!process)
         env->raise_errno();
     char buf[NAT_SHELL_READ_BYTES];
@@ -530,12 +530,12 @@ Value KernelModule::spawn(Env *env, Args &&args) {
         for (auto ep = environ; *ep; ep++)
             new_env.push(strdup(*ep));
         for (auto pair : *hash) {
-            auto key = pair.key->to_str(env);
+            auto key = pair.key.to_str(env);
             if (key->include(env, '='))
                 env->raise("ArgumentError", "environment name contains a equal : {}", key->string());
             if (key->include(env, '\0'))
                 env->raise("ArgumentError", "string contains null byte");
-            auto val = pair.val->to_str(env);
+            auto val = pair.val.to_str(env);
             if (val->include(env, '\0'))
                 env->raise("ArgumentError", "string contains null byte");
             auto combined = String::format(
@@ -550,7 +550,7 @@ Value KernelModule::spawn(Env *env, Args &&args) {
     args.ensure_argc_at_least(env, 1);
 
     if (args.size() == 1) {
-        auto arg = args.at(0)->to_str(env);
+        auto arg = args.at(0).to_str(env);
         bool needs_escaping = false;
         for (auto c : *arg) {
             if (c == '"' || c == '\'' || c == '$' || c == '<' || c == '>') {
@@ -591,10 +591,10 @@ Value KernelModule::spawn(Env *env, Args &&args) {
     } else {
         const char *cmd[args.size() + 1];
         for (size_t i = 0; i < args.size(); i++) {
-            cmd[i] = args[i]->to_str(env)->c_str();
+            cmd[i] = args[i].to_str(env)->c_str();
         }
         cmd[args.size()] = nullptr;
-        auto program = args[0]->to_str(env);
+        auto program = args[0].to_str(env);
         result = posix_spawnp(
             &pid,
             program->c_str(),
@@ -626,7 +626,7 @@ Value KernelModule::String(Env *env, Value value) {
 }
 
 Value KernelModule::test(Env *env, Value cmd, Value file) {
-    switch (cmd->to_str(env)->string()[0]) {
+    switch (cmd.to_str(env)->string()[0]) {
     case 'A':
         return FileObject::stat(env, file)->as_file_stat()->atime(env);
     case 'C':
@@ -650,7 +650,7 @@ Value KernelModule::test(Env *env, Value cmd, Value file) {
     case 'W':
         return bool_object(FileObject::is_writable_real(env, file));
     default:
-        env->raise("ArgumentError", "unknown command '{}'", cmd->to_str(env)->string()[0]);
+        env->raise("ArgumentError", "unknown command '{}'", cmd.to_str(env)->string()[0]);
     }
     NAT_UNREACHABLE();
 }
