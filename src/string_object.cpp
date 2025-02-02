@@ -2510,13 +2510,13 @@ Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *bl
     if (!block && !replacement_value)
         env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
 
-    if (find.is_string() || find->respond_to(env, "to_str"_s)) {
+    if (find.is_string() || find.respond_to(env, "to_str"_s)) {
         const auto pattern = RegexpObject::quote(env, find.to_str(env))->as_string()->string();
         const int options = 0;
         find = new RegexpObject { env, pattern, options };
     }
     if (!find.is_regexp())
-        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find.klass()->inspect_str());
 
     MatchDataObject *match;
     StringObject *expanded_replacement;
