@@ -49,6 +49,28 @@ Value Value::integer_send(Env *env, SymbolObject *name, Args &&args, Block *bloc
     return method_info.method()->call(env, *this, std::move(args), block);
 }
 
+ClassObject *Value::klass() const {
+    switch (m_type) {
+    case Type::Integer:
+        return GlobalEnv::the()->Integer();
+    case Type::Pointer:
+        if (m_object)
+            return m_object->klass();
+    }
+    return nullptr;
+}
+
+ClassObject *Value::singleton_class() const {
+    switch (m_type) {
+    case Type::Integer:
+        return nullptr;
+    case Type::Pointer:
+        if (m_object)
+            return m_object->singleton_class();
+    }
+    return nullptr;
+}
+
 Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
 

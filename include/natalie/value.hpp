@@ -98,6 +98,9 @@ public:
 
     Value integer_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility);
 
+    ClassObject *klass() const;
+    ClassObject *singleton_class() const;
+
     bool is_fast_integer() const {
         return m_type == Type::Integer;
     }

@@ -855,9 +855,9 @@ void set_status_object(Env *env, pid_t pid, int status) {
 
 Value super(Env *env, Value self, Args &&args, Block *block) {
     auto current_method = env->current_method();
-    auto klass = self->singleton_class();
+    auto klass = self.singleton_class();
     if (!klass)
-        klass = self->klass();
+        klass = self.klass();
     auto after_method = current_method;
     if (current_method->original_method())
         after_method = current_method->original_method();
