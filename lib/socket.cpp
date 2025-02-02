@@ -135,8 +135,8 @@ static Value Server_sysaccept(Env *env, Value self, sockaddr_storage &addr, sock
                     return "wait_readable"_s;
                 auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
                 ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
-                auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s });
-                error->extend(env, { WaitReadable });
+                auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s })->as_module_or_raise(env);
+                error->extend_once(env, WaitReadable);
                 env->raise_exception(error);
             } else {
                 env->raise_errno();
@@ -574,8 +574,8 @@ Value BasicSocket_recv_nonblock(Env *env, Value self, Args &&args, Block *) {
                 return "wait_readable"_s;
             auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
             ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
-            auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s });
-            error->extend(env, { WaitReadable });
+            auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s })->as_module_or_raise(env);
+            error->extend_once(env, WaitReadable);
             env->raise_exception(error);
         } else {
             env->raise_errno();
@@ -1765,8 +1765,8 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args &&args, Block *) {
                 return "wait_readable"_s;
             auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
             ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
-            auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s });
-            error->extend(env, { WaitReadable });
+            auto WaitReadable = fetch_nested_const({ "IO"_s, "WaitReadable"_s })->as_module_or_raise(env);
+            error->extend_once(env, WaitReadable);
             env->raise_exception(error);
         } else {
             env->raise_errno();

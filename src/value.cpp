@@ -71,6 +71,10 @@ ClassObject *Value::singleton_class() const {
     return nullptr;
 }
 
+ClassObject *Value::singleton_class(Env *env) {
+    return Object::singleton_class(env, *this);
+}
+
 Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
 
@@ -229,6 +233,13 @@ void Value::assert_type(Env *env, ObjectType expected_type, const char *expected
         if (m_object->type() != expected_type)
             env->raise_type_error(m_object, expected_class_name);
     }
+}
+
+void Value::assert_not_frozen(Env *env) const {
+    if (is_integer())
+        env->raise("FrozenError", "can't modify frozen Integer: {}", integer().to_string());
+
+    m_object->assert_not_frozen(env);
 }
 
 bool Value::is_integer() const {

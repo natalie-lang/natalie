@@ -49,6 +49,8 @@ public:
     Value prepend(Env *, Args &&args);
     void prepend_once(Env *, ModuleObject *);
 
+    Value extend_object(Env *, Value);
+
     Value is_autoload(Env *, Value) const;
 
     Value const_find_with_autoload(Env *, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);

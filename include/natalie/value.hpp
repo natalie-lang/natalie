@@ -100,6 +100,7 @@ public:
 
     ClassObject *klass() const;
     ClassObject *singleton_class() const;
+    ClassObject *singleton_class(Env *);
 
     bool is_fast_integer() const {
         return m_type == Type::Integer;
@@ -123,6 +124,7 @@ public:
     nat_int_t object_id() const;
 
     void assert_type(Env *, ObjectType, const char *) const;
+    void assert_not_frozen(Env *) const;
 
     bool is_nil() const;
     bool is_true() const;

@@ -30,9 +30,7 @@ describe "Kernel#extend" do
   it "calls extend_object on argument" do
     o = mock('o')
     o.extend KernelSpecs::M
-    NATFIXME 'Implement Module#extend_object', exception: SpecFailedException do
-      ScratchPad.recorded.include?("extend_object").should == true
-    end
+    ScratchPad.recorded.include?("extend_object").should == true
   end
 
   it "does not calls append_features on arguments metaclass" do

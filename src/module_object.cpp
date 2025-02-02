@@ -74,6 +74,12 @@ void ModuleObject::prepend_once(Env *env, ModuleObject *module) {
     }
 }
 
+Value ModuleObject::extend_object(Env *env, Value obj) {
+    obj.assert_not_frozen(env);
+    obj.singleton_class(env)->include_once(env, this);
+    return obj;
+}
+
 Value ModuleObject::const_get(SymbolObject *name) const {
     auto constant = m_constants.get(name);
     if (constant)

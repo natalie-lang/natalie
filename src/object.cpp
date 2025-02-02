@@ -656,16 +656,15 @@ ClassObject *Object::subclass(Env *env, const char *name) {
     return as_class()->subclass(env, name);
 }
 
-Value Object::extend(Env *env, Args &&args) {
-    assert_not_frozen(env);
+Value Object::extend(Env *env, Value self, Args &&args) {
     for (size_t i = 0; i < args.size(); i++) {
         if (args[i]->type() == Object::Type::Module) {
-            extend_once(env, args[i]->as_module());
+            args[i]->as_module()->send(env, "extend_object"_s, { self });
         } else {
             env->raise("TypeError", "wrong argument type {} (expected Module)", args[i]->klass()->inspect_str());
         }
     }
-    return this;
+    return self;
 }
 
 void Object::extend_once(Env *env, ModuleObject *module) {
