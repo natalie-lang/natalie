@@ -678,6 +678,9 @@ Value Object::const_find_with_autoload(Env *env, Value ns, Value self, SymbolObj
     if (ns.is_module())
         return ns->as_module()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
 
+    if (ns.is_integer())
+        return GlobalEnv::the()->Integer()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
+
     return ns->m_klass->const_find_with_autoload(env, self, name, search_mode, failure_mode);
 }
 
