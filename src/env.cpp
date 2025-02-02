@@ -154,18 +154,20 @@ void Env::raise_invalid_byte_sequence_error(const EncodingObject *encoding) {
     raise("ArgumentError", "invalid byte sequence in {}", name);
 }
 
-void Env::raise_no_method_error(Object *receiver, SymbolObject *name, MethodMissingReason reason) {
+void Env::raise_no_method_error(Value receiver, SymbolObject *name, MethodMissingReason reason) {
     String inspect_string;
-    if (receiver->type() == Object::Type::Nil || receiver->type() == Object::Type::True || receiver->type() == Object::Type::False) {
+    if (receiver.is_nil() || receiver.is_true() || receiver.is_false()) {
         inspect_string = receiver->inspect_str(this);
+    } else if (receiver.is_integer()) {
+        inspect_string = String::format("an instance of {}", receiver.klass()->inspect_str());
     } else if (receiver->is_main_object()) {
         inspect_string = "main";
-    } else if (receiver->type() == Object::Type::Class) {
+    } else if (receiver.is_class()) {
         inspect_string = String::format("class {}", receiver->inspect_str(this));
-    } else if (receiver->type() == Object::Type::Module) {
+    } else if (receiver.is_module()) {
         inspect_string = String::format("module {}", receiver->inspect_str(this));
     } else {
-        inspect_string = String::format("an instance of {}", receiver->klass()->inspect_str());
+        inspect_string = String::format("an instance of {}", receiver.klass()->inspect_str());
     }
     String message;
     switch (reason) {
