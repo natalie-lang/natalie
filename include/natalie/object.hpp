@@ -83,7 +83,7 @@ public:
     Type type() const { return m_type; }
     ClassObject *klass() const { return m_klass; }
 
-    Value initialize(Env *);
+    static Value initialize(Env *, Value);
 
     Enumerator::ArithmeticSequenceObject *as_enumerator_arithmetic_sequence();
     ArrayObject *as_array();
@@ -243,7 +243,7 @@ public:
 
     Value send(Env *, SymbolObject *, Args &&, Block *, MethodVisibility, Value = nullptr);
     Value method_missing_send(Env *, SymbolObject *, Args &&, Block *);
-    Value method_missing(Env *, Args &&, Block *);
+    static Value method_missing(Env *, Value, Args &&, Block *);
 
     Method *find_method(Env *, SymbolObject *, MethodVisibility, Value) const;
 
@@ -266,15 +266,18 @@ public:
     void freeze();
     bool is_frozen() const { return m_type == Type::Integer || m_type == Type::Float || m_frozen; }
 
-    bool not_truthy() const { return m_type == Type::Nil || m_type == Type::False; }
+    static bool not_truthy(Value self) {
+        if (self.is_integer())
+            return false;
+        return self.is_falsey();
+    }
 
-    bool eq(Env *, Value other) { return other == this; }
+    static bool eq(Env *, Value self, Value other) { return other == self; }
     static bool equal(Value, Value);
+    static bool neq(Env *env, Value self, Value other);
 
-    bool neq(Env *env, Value other);
-
-    Value instance_eval(Env *, Args &&, Block *);
-    Value instance_exec(Env *, Args &&, Block *);
+    static Value instance_eval(Env *, Value, Args &&, Block *);
+    static Value instance_exec(Env *, Value, Args &&, Block *);
 
     void assert_not_frozen(Env *);
     void assert_not_frozen(Env *, Value);

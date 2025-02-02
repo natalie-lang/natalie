@@ -718,7 +718,7 @@ Value ArrayObject::delete_item(Env *env, Value target, Block *block) {
 
     for (size_t i = size(); i > 0; --i) {
         auto item = (*this)[i - 1];
-        if (item->neq(env, target))
+        if (Object::neq(env, item, target))
             continue;
 
         if (deleted_item.is_nil()) {

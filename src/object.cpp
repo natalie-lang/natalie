@@ -180,7 +180,7 @@ Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
     return obj;
 }
 
-Value Object::initialize(Env *env) {
+Value Object::initialize(Env *env, Value self) {
     return NilObject::the();
 }
 
@@ -969,7 +969,7 @@ Value Object::method_missing_send(Env *env, SymbolObject *name, Args &&args, Blo
     return send(env, "method_missing"_s, Args(new_args, args.has_keyword_hash()), block);
 }
 
-Value Object::method_missing(Env *env, Args &&args, Block *block) {
+Value Object::method_missing(Env *env, Value self, Args &&args, Block *block) {
     if (args.size() == 0) {
         env->raise("ArgError", "no method name given");
     } else if (!args[0].is_symbol()) {
@@ -977,7 +977,7 @@ Value Object::method_missing(Env *env, Args &&args, Block *block) {
     } else {
         auto name = args[0]->as_symbol();
         env = env->caller();
-        env->raise_no_method_error(this, name, GlobalEnv::the()->method_missing_reason());
+        env->raise_no_method_error(self, name, GlobalEnv::the()->method_missing_reason());
     }
 }
 
@@ -1183,7 +1183,7 @@ void Object::freeze() {
     if (m_singleton_class) m_singleton_class->freeze();
 }
 
-Value Object::instance_eval(Env *env, Args &&args, Block *block) {
+Value Object::instance_eval(Env *env, Value self, Args &&args, Block *block) {
     if (block) {
         args.ensure_argc_is(env, 0);
     }
@@ -1193,7 +1193,6 @@ Value Object::instance_eval(Env *env, Args &&args, Block *block) {
         env->raise("ArgumentError", "Natalie only supports instance_eval with a block");
     }
 
-    Value self = this;
     GlobalEnv::the()->push_instance_eval_context(env->caller(), block->self());
     block->set_self(self);
     Defer done_instance_evaling([block]() {
@@ -1204,12 +1203,12 @@ Value Object::instance_eval(Env *env, Args &&args, Block *block) {
     return block->run(env, Args(1, block_args), nullptr);
 }
 
-Value Object::instance_exec(Env *env, Args &&args, Block *block) {
+Value Object::instance_exec(Env *env, Value self, Args &&args, Block *block) {
     if (!block)
         env->raise("LocalJumpError", "no block given");
 
     GlobalEnv::the()->push_instance_eval_context(env->caller(), block->self());
-    block->set_self(this);
+    block->set_self(self);
     Defer done_instance_evaling([block]() {
         auto context = GlobalEnv::the()->pop_instance_eval_context();
         block->set_self(context.block_original_self);
@@ -1251,8 +1250,8 @@ bool Object::equal(Value self, Value other) {
     return other == self;
 }
 
-bool Object::neq(Env *env, Value other) {
-    return send(env, "=="_s, { other }).is_falsey();
+bool Object::neq(Env *env, Value self, Value other) {
+    return self.send(env, "=="_s, { other }).is_falsey();
 }
 
 String Object::dbg_inspect() const {
