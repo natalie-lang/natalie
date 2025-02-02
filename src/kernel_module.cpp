@@ -711,6 +711,17 @@ Value KernelModule::dup_better(Env *env, Value self) {
     return dup;
 }
 
+Value KernelModule::extend(Env *env, Value self, Args &&args) {
+    for (size_t i = 0; i < args.size(); i++) {
+        if (args[i]->type() == Object::Type::Module) {
+            args[i]->as_module()->send(env, "extend_object"_s, { self });
+        } else {
+            env->raise("TypeError", "wrong argument type {} (expected Module)", args[i]->klass()->inspect_str());
+        }
+    }
+    return self;
+}
+
 Value KernelModule::hash(Env *env, Value self) {
     if (self.is_integer())
         return Value::integer(IntegerObject::to_s(self.integer()).djb2_hash());

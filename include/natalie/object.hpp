@@ -176,7 +176,6 @@ public:
 
     void set_singleton_class(ClassObject *);
 
-    static Value extend(Env *, Value, Args &&);
     void extend_once(Env *, ModuleObject *);
 
     static Value const_find_with_autoload(Env *, Value, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);

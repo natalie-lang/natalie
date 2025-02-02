@@ -72,6 +72,7 @@ public:
     static Value define_singleton_method(Env *env, Value self, Value name, Block *block);
     static Value dup(Env *env, Value self);
     static Value dup_better(Env *env, Value self); // This will eventually replace `dup`.
+    static Value extend(Env *, Value, Args &&);
     static Value hash(Env *env, Value self);
     static Value initialize_copy(Env *env, Value self, Value object);
     static Value inspect(Env *env, Value self);
