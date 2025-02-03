@@ -308,6 +308,21 @@ bool Value::is_integer() const {
     }
 }
 
+bool Value::is_a(Env *env, Value val) const {
+    if (!val.is_module())
+        return false;
+
+    ModuleObject *module = val->as_module();
+    if (klass() == module || singleton_class() == module) {
+        return true;
+    } else {
+        ClassObject *the_klass = singleton_class();
+        if (!the_klass)
+            the_klass = klass();
+        return the_klass->ancestors_includes(env, module);
+    }
+}
+
 bool Value::respond_to(Env *env, SymbolObject *name_val, bool include_all) {
     if (KernelModule::respond_to_method(env, *this, "respond_to?"_s, true))
         return send(env, "respond_to?"_s, { name_val, bool_object(include_all) }).is_truthy();

@@ -999,7 +999,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     if (visibility >= visibility_at_least)
         return method_info.method();
 
-    if (visibility == MethodVisibility::Protected && sent_from && sent_from->is_a(env, klass))
+    if (visibility == MethodVisibility::Protected && sent_from && sent_from.is_a(env, klass))
         return method_info.method();
 
     switch (visibility) {
@@ -1123,19 +1123,6 @@ void Object::copy_instance_variables(const Value other) {
     auto ivars = other.object_pointer()->m_ivars;
     if (ivars)
         m_ivars = new TM::Hashmap<SymbolObject *, Value> { *ivars };
-}
-
-bool Object::is_a(Env *env, Value val) const {
-    if (!val.is_module()) return false;
-    ModuleObject *module = val->as_module();
-    if (m_klass == module || singleton_class() == module) {
-        return true;
-    } else {
-        ClassObject *klass = singleton_class();
-        if (!klass)
-            klass = m_klass;
-        return klass->ancestors_includes(env, module);
-    }
 }
 
 const char *Object::defined(Env *env, SymbolObject *name, bool strict) {

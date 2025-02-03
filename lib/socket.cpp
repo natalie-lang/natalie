@@ -596,7 +596,7 @@ Value BasicSocket_send(Env *env, Value self, Args &&args, Block *) {
         bytes = send(self->as_io()->fileno(), mesg->c_str(), mesg->bytesize(), flags);
     } else {
         auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
-        if (dest_sockaddr->is_a(env, Addrinfo))
+        if (dest_sockaddr.is_a(env, Addrinfo))
             dest_sockaddr = dest_sockaddr->to_s(env);
         dest_sockaddr = dest_sockaddr.to_str(env);
         bytes = sendto(self->as_io()->fileno(), mesg->c_str(), mesg->bytesize(), flags, reinterpret_cast<const sockaddr *>(dest_sockaddr->as_string()->c_str()), dest_sockaddr->as_string()->bytesize());
@@ -1007,7 +1007,7 @@ Value Socket_bind(Env *env, Value self, Args &&args, Block *block) {
     auto sockaddr = args.at(0);
 
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
-    if (!sockaddr->is_a(env, Addrinfo)) {
+    if (!sockaddr.is_a(env, Addrinfo)) {
         if (sockaddr.is_string())
             sockaddr = Addrinfo.send(env, "new"_s, { sockaddr });
         else
@@ -1081,7 +1081,7 @@ Value Socket_connect(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto remote_sockaddr = args.at(0);
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
-    if (remote_sockaddr->is_a(env, Addrinfo)) {
+    if (remote_sockaddr.is_a(env, Addrinfo)) {
         remote_sockaddr = remote_sockaddr->to_s(env);
     } else {
         remote_sockaddr = remote_sockaddr.to_str(env);
@@ -1225,7 +1225,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args &&args, Block *block)
     args.ensure_argc_is(env, 1);
     auto sockaddr = args.at(0);
 
-    if (sockaddr->is_a(env, find_top_level_const(env, "Addrinfo"_s))) {
+    if (sockaddr.is_a(env, find_top_level_const(env, "Addrinfo"_s))) {
         auto afamily = sockaddr.send(env, "afamily"_s).send(env, "to_i"_s).integer().to_nat_int_t();
         if (afamily != AF_INET && afamily != AF_INET6)
             env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
@@ -1279,7 +1279,7 @@ Value Socket_unpack_sockaddr_un(Env *env, Value self, Args &&args, Block *block)
     args.ensure_argc_is(env, 1);
     auto sockaddr = args.at(0);
 
-    if (sockaddr->is_a(env, find_top_level_const(env, "Addrinfo"_s))) {
+    if (sockaddr.is_a(env, find_top_level_const(env, "Addrinfo"_s))) {
         auto afamily = sockaddr.send(env, "afamily"_s).send(env, "to_i"_s).integer().to_nat_int_t();
         if (afamily != AF_UNIX)
             env->raise("ArgumentError", "not an AF_UNIX sockaddr");

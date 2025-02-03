@@ -808,7 +808,7 @@ bool KernelModule::is_a(Env *env, Value self, Value module) {
     if (self.is_integer())
         return GlobalEnv::the()->Integer()->ancestors_includes(env, module->as_module());
 
-    return self->is_a(env, module->as_module());
+    return self.is_a(env, module->as_module());
 }
 
 Value KernelModule::loop(Env *env, Value self, Block *block) {
@@ -827,7 +827,7 @@ Value KernelModule::loop(Env *env, Value self, Block *block) {
         return NilObject::the();
     } catch (ExceptionObject *exception) {
         auto StopIteration = find_top_level_const(env, "StopIteration"_s);
-        if (exception->is_a(env, StopIteration)) {
+        if (Value(exception).is_a(env, StopIteration)) {
             GlobalEnv::the()->set_rescued(true);
             return exception->send(env, "result"_s);
         } else {

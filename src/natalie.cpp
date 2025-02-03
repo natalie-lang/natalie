@@ -606,7 +606,8 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception, Thread
 }
 
 void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_exit_handlers) {
-    if (exception->is_a(env, find_top_level_const(env, "SystemExit"_s)->as_class())) {
+    auto exception_value = Value(exception);
+    if (exception_value.is_a(env, find_top_level_const(env, "SystemExit"_s)->as_class())) {
         auto status = exception->ivar_get(env, "@status"_s);
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (status.is_integer()) {
@@ -619,7 +620,7 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
         } else {
             clean_up_and_exit(1);
         }
-    } else if (exception->is_a(env, find_top_level_const(env, "SignalException"_s)->as_class())) {
+    } else if (exception_value.is_a(env, find_top_level_const(env, "SignalException"_s)->as_class())) {
         Value signo = exception->ivar_get(env, "@signo"_s);
         if (signo->type() == Object::Type::Integer) {
             auto val = signo.integer().to_nat_int_t();

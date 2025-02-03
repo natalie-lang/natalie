@@ -276,7 +276,7 @@ Value OpenSSL_Digest_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto name = args.at(0);
     auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
-    if (name->is_a(env, digest_klass))
+    if (name.is_a(env, digest_klass))
         name = name.send(env, "name"_s);
     if (!name.is_string())
         env->raise("TypeError", "wrong argument type {} (expected OpenSSL/Digest)", name.klass()->inspect_str());
@@ -503,7 +503,7 @@ Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args &&args, Block *) {
     auto cert_store = self->ivar_get(env, "@cert_store"_s);
     if (!cert_store.is_nil()) {
         auto Store = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Store"_s })->as_class();
-        if (!cert_store->is_a(env, Store))
+        if (!cert_store.is_a(env, Store))
             env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/STORE)", cert_store.klass()->inspect_str());
         auto store = static_cast<X509_STORE *>(cert_store->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());
         SSL_CTX_set1_cert_store(ctx, store);
@@ -522,7 +522,7 @@ Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args &&args, Block 
     if (!context || context.is_nil()) {
         context = Object::_new(env, SSLContext, {}, nullptr);
     } else {
-        if (!context->is_a(env, SSLContext->as_class()))
+        if (!context.is_a(env, SSLContext->as_class()))
             env->raise("TypeError", "wrong argument type {} (expected OpenSSL/SSL/CTX)", context.klass()->inspect_str());
     }
     context.send(env, "setup"_s);
@@ -738,7 +738,7 @@ Value OpenSSL_X509_Certificate_set_issuer(Env *env, Value self, Args &&args, Blo
     auto issuer = args[0];
 
     auto Name = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Name"_s })->as_class();
-    if (!issuer->is_a(env, Name))
+    if (!issuer.is_a(env, Name))
         env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/NAME)", issuer.klass()->inspect_str());
 
     auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
@@ -771,7 +771,7 @@ Value OpenSSL_X509_Certificate_set_not_after(Env *env, Value self, Args &&args, 
     auto time = args[0];
 
     auto Time = find_top_level_const(env, "Time"_s)->as_class();
-    if (!time->is_a(env, Time)) {
+    if (!time.is_a(env, Time)) {
         time = KernelModule::Integer(env, time, 0, true);
         time = Time->send(env, "at"_s, { time });
     }
@@ -809,7 +809,7 @@ Value OpenSSL_X509_Certificate_set_not_before(Env *env, Value self, Args &&args,
     auto time = args[0];
 
     auto Time = find_top_level_const(env, "Time"_s)->as_class();
-    if (!time->is_a(env, Time)) {
+    if (!time.is_a(env, Time)) {
         time = KernelModule::Integer(env, time, 0, true);
         time = Time->send(env, "at"_s, { time });
     }
@@ -841,7 +841,7 @@ Value OpenSSL_X509_Certificate_set_public_key(Env *env, Value self, Args &&args,
     auto public_key = args[0];
 
     auto PKey = fetch_nested_const({ "OpenSSL"_s, "PKey"_s, "PKey"_s })->as_class();
-    if (!public_key->is_a(env, PKey))
+    if (!public_key.is_a(env, PKey))
         env->raise("TypeError", "wrong argument type {} (expected OpenSSL/EVP_PKEY)", public_key.klass()->inspect_str());
 
     auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
@@ -865,7 +865,7 @@ Value OpenSSL_X509_Certificate_set_serial(Env *env, Value self, Args &&args, Blo
     auto serial = args[0];
 
     auto BN = fetch_nested_const({ "OpenSSL"_s, "BN"_s })->as_class();
-    if (!serial->is_a(env, BN))
+    if (!serial.is_a(env, BN))
         serial = Object::_new(env, BN, { serial }, nullptr);
     auto asn1_serial = ASN1_INTEGER_new();
     if (!asn1_serial)
@@ -888,12 +888,12 @@ Value OpenSSL_X509_Certificate_sign(Env *env, Value self, Args &&args, Block *) 
     auto digest = args[1];
 
     auto PKey = fetch_nested_const({ "OpenSSL"_s, "PKey"_s, "PKey"_s })->as_class();
-    if (!key->is_a(env, PKey))
+    if (!key.is_a(env, PKey))
         env->raise("TypeError", "wrong argument type {} (expected OpenSSL/EVP_PKEY)", key.klass()->inspect_str());
     if (key.send(env, "private?"_s).is_falsey())
         env->raise("ArgumentError", "private key is needed");
     auto Digest = fetch_nested_const({ "OpenSSL"_s, "Digest"_s })->as_class();
-    if (!digest->is_a(env, Digest))
+    if (!digest.is_a(env, Digest))
         digest = Object::_new(env, Digest, { digest }, nullptr);
 
     auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
@@ -923,7 +923,7 @@ Value OpenSSL_X509_Certificate_set_subject(Env *env, Value self, Args &&args, Bl
     auto subject = args[0];
 
     auto Name = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Name"_s })->as_class();
-    if (!subject->is_a(env, Name))
+    if (!subject.is_a(env, Name))
         env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/NAME)", subject.klass()->inspect_str());
 
     auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
@@ -969,7 +969,7 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
     auto length = Object::to_int(env, kwargs->remove(env, "length"_s));
     auto hash = kwargs->remove(env, "hash"_s);
     auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
-    if (!hash->is_a(env, digest_klass))
+    if (!hash.is_a(env, digest_klass))
         hash = Object::_new(env, digest_klass, { hash }, nullptr);
     hash = hash.send(env, "name"_s);
     env->ensure_no_extra_keywords(kwargs);
@@ -1117,7 +1117,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
     self->ivar_set(env, "@bn"_s, new VoidPObject { bn, OpenSSL_BN_cleanup });
 
     auto arg = args.at(0, NilObject::the());
-    if (arg->is_a(env, self.klass())) {
+    if (arg.is_a(env, self.klass())) {
         args.ensure_argc_is(env, 1);
         auto from = static_cast<BIGNUM *>(args[0]->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
         if (!BN_copy(bn, from))
@@ -1150,7 +1150,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
 Value OpenSSL_BN_cmp(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto other = args[0];
-    if (!other->is_a(env, self.klass()))
+    if (!other.is_a(env, self.klass()))
         other = Object::_new(env, self.klass(), std::move(args), nullptr);
     auto bn = static_cast<BIGNUM *>(self->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
     auto other_bn = static_cast<BIGNUM *>(other->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
@@ -1287,7 +1287,7 @@ Value OpenSSL_X509_Name_to_s(Env *env, Value self, Args &&args, Block *) {
 Value OpenSSL_X509_Name_cmp(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto other = args[0];
-    if (!other->is_a(env, self.klass()))
+    if (!other.is_a(env, self.klass()))
         return NilObject::the();
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
     auto other_name = static_cast<X509_NAME *>(other->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
@@ -1308,7 +1308,7 @@ Value OpenSSL_X509_Store_add_cert(Env *env, Value self, Args &&args, Block *) {
     auto cert = args[0];
 
     auto Certificate = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Certificate"_s })->as_class();
-    if (!cert->is_a(env, Certificate))
+    if (!cert.is_a(env, Certificate))
         env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509)", cert.klass()->inspect_str());
 
     auto store = static_cast<X509_STORE *>(self->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());
@@ -1334,7 +1334,7 @@ Value OpenSSL_X509_Store_verify(Env *env, Value self, Args &&args, Block *) {
         env->raise("NotImplementedError", "NATFIXME: Add support for certificate chain argument");
 
     auto Certificate = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Certificate"_s })->as_class();
-    if (!cert->is_a(env, Certificate))
+    if (!cert.is_a(env, Certificate))
         env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509)", cert.klass()->inspect_str());
 
     auto store = static_cast<X509_STORE *>(self->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());

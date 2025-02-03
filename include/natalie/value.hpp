@@ -136,6 +136,7 @@ public:
     void assert_type(Env *, ObjectType, const char *) const;
     void assert_not_frozen(Env *) const;
 
+    bool is_a(Env *, Value) const;
     bool respond_to(Env *, SymbolObject *, bool include_all = true);
 
     bool is_nil() const;

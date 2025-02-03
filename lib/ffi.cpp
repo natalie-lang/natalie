@@ -190,7 +190,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
         auto val = args.at(i);
         auto type = arg_types->at(i);
         if (type == pointer_sym) {
-            if (val->is_a(env, Pointer))
+            if (val.is_a(env, Pointer))
                 arg_values[i].vp = (void *)val.send(env, "address"_s).integer_or_raise(env).to_nat_int_t();
             else if (val.is_string())
                 arg_values[i].vp = (void *)val->as_string()->c_str();
