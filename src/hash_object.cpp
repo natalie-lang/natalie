@@ -294,7 +294,7 @@ Value HashObject::inspect(Env *env) {
             if (obj.is_string())
                 return obj->as_string();
             if (obj.respond_to(env, "to_s"_s))
-                obj = obj->send(env, "to_s"_s);
+                obj = obj.send(env, "to_s"_s);
             else
                 obj = new StringObject("?");
             if (!obj.is_string())
@@ -642,7 +642,7 @@ Value HashObject::hash(Env *env) {
 
             auto value = node.val;
             if (!eql(env, value)) {
-                auto value_hash = value->send(env, hash_method);
+                auto value_hash = value.send(env, hash_method);
 
                 if (!value_hash.is_nil()) {
                     entry_hash.append(IntegerObject::convert_to_nat_int_t(env, value_hash));
@@ -652,7 +652,7 @@ Value HashObject::hash(Env *env) {
 
             auto key = node.key;
             if (!eql(env, key)) {
-                auto key_hash = key->send(env, hash_method);
+                auto key_hash = key.send(env, hash_method);
 
                 if (!key_hash.is_nil()) {
                     entry_hash.append(IntegerObject::convert_to_nat_int_t(env, key_hash));

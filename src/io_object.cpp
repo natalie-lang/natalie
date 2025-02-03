@@ -451,9 +451,9 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
             src_io->read(env, src_length, data);
         }
     } else if (src.respond_to(env, "read"_s)) {
-        src->send(env, "read"_s, { src_length, data });
+        src.send(env, "read"_s, { src_length, data });
     } else if (src.respond_to(env, "readpartial"_s)) {
-        src->send(env, "readpartial"_s, { src_length, data });
+        src.send(env, "readpartial"_s, { src_length, data });
     } else {
         data = read_file(env, { src, src_length, src_offset });
     }
@@ -462,7 +462,7 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
         auto dst_io = dst->to_io(env);
         return Value::integer(dst_io->write(env, data));
     } else if (dst.respond_to(env, "write"_s)) {
-        return dst->send(env, "write"_s, { data });
+        return dst.send(env, "write"_s, { data });
     } else {
         return write_file(env, { dst, data });
     }
@@ -645,9 +645,9 @@ Value IoObject::putc(Env *env, Value val) {
 
 void IoObject::putstr(Env *env, StringObject *str) {
     String sstr = str->string();
-    this->send(env, "write"_s, Args({ str }));
+    send(env, "write"_s, Args({ str }));
     if (sstr.size() == 0 || (sstr.size() > 0 && !sstr.ends_with("\n"))) {
-        this->send(env, "write"_s, Args({ new StringObject { "\n" } }));
+        send(env, "write"_s, Args({ new StringObject { "\n" } }));
     }
 }
 
@@ -663,10 +663,10 @@ void IoObject::puts(Env *env, Value val) {
     } else if (val.is_array() || val.respond_to(env, "to_ary"_s)) {
         this->putary(env, val->to_ary(env));
     } else {
-        Value str = val->send(env, "to_s"_s);
+        Value str = val.send(env, "to_s"_s);
         if (str.is_string()) {
             this->putstr(env, str->as_string());
-        } else { // to_s did not return a string to inspect val instead.
+        } else { // to_s did not return a string, so inspect val instead.
             this->putstr(env, new StringObject { val->inspect_str(env) });
         }
     }
@@ -674,7 +674,7 @@ void IoObject::puts(Env *env, Value val) {
 
 Value IoObject::puts(Env *env, Args &&args) {
     if (args.size() == 0) {
-        this->send(env, "write"_s, Args({ new StringObject { "\n" } }));
+        send(env, "write"_s, Args({ new StringObject { "\n" } }));
     } else {
         for (size_t i = 0; i < args.size(); i++) {
             this->puts(env, args[i]);
@@ -879,7 +879,7 @@ Value IoObject::try_convert(Env *env, Value val) {
     if (val.is_io()) {
         return val;
     } else if (val.respond_to(env, "to_io"_s)) {
-        auto io = val->send(env, "to_io"_s);
+        auto io = val.send(env, "to_io"_s);
         if (!io.is_io())
             env->raise(
                 "TypeError", "can't convert {} to IO ({}#to_io gives {})",

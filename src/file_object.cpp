@@ -79,7 +79,7 @@ Value FileObject::absolute_path(Env *env, Value path, Value dir) {
     assert(File);
     if (!dir || dir.is_nil())
         dir = DirObject::pwd(env);
-    return File->send(env, "join"_s, { dir, path });
+    return File.send(env, "join"_s, { dir, path });
 }
 
 Value FileObject::expand_path(Env *env, Value path, Value root) {

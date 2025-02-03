@@ -139,7 +139,7 @@ Value FloatObject::cmp(Env *env, Value rhs) {
 
     auto call_is_infinite = [&](Value value) -> Value {
         if (value.respond_to(env, infinite_sym))
-            return value->send(env, infinite_sym);
+            return value.send(env, infinite_sym);
         return NilObject::the();
     };
 
@@ -229,7 +229,7 @@ Value FloatObject::add(Env *env, Value rhs) {
     Value lhs = this;
 
     if (rhs.is_complex()) {
-        return rhs->send(env, "+"_s, { lhs });
+        return rhs.send(env, "+"_s, { lhs });
     }
 
     if (!rhs.is_float()) {

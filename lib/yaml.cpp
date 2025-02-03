@@ -165,7 +165,7 @@ static void emit_openstruct_value(Env *env, Value value, yaml_emitter_t &emitter
         0, YAML_BLOCK_MAPPING_STYLE);
     emit(env, emitter, event);
 
-    auto values = value->send(env, "to_h"_s)->as_hash();
+    auto values = value.send(env, "to_h"_s)->as_hash();
     for (auto elem : *values) {
         emit_value(env, elem.key->to_s(env), emitter, event);
         emit_value(env, elem.val, emitter, event);
@@ -185,7 +185,7 @@ static void emit_struct_value(Env *env, Value value, yaml_emitter_t &emitter, ya
         0, YAML_BLOCK_MAPPING_STYLE);
     emit(env, emitter, event);
 
-    auto values = value->send(env, "to_h"_s)->as_hash();
+    auto values = value.send(env, "to_h"_s)->as_hash();
     for (auto elem : *values) {
         emit_value(env, elem.key->to_s(env), emitter, event);
         emit_value(env, elem.val, emitter, event);
@@ -246,7 +246,7 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
     } else if (value.is_true()) {
         emit_value(env, value->as_true(), emitter, event);
     } else if (GlobalEnv::the()->Object()->defined(env, "Date"_s, false) && value->is_a(env, GlobalEnv::the()->Object()->const_get("Date"_s)->as_class())) {
-        emit_value(env, value->send(env, "to_s"_s)->as_string(), emitter, event);
+        emit_value(env, value.send(env, "to_s"_s)->as_string(), emitter, event);
     } else if (GlobalEnv::the()->Object()->defined(env, "OpenStruct"_s, false) && value->is_a(env, GlobalEnv::the()->Object()->const_get("OpenStruct"_s)->as_class())) {
         emit_openstruct_value(env, value, emitter, event);
     } else if (value->is_a(env, GlobalEnv::the()->Object()->const_get("Struct"_s)->as_class())) {

@@ -34,7 +34,7 @@ Value KernelModule::abort_method(Env *env, Value message) {
         exception = SystemExit.send(env, "new"_s, { Value::integer(1), message })->as_exception();
 
         auto out = env->global_get("$stderr"_s);
-        out->send(env, "puts"_s, { message });
+        out.send(env, "puts"_s, { message });
     } else {
         exception = SystemExit.send(env, "new"_s, { Value::integer(1) })->as_exception();
     }
@@ -387,11 +387,11 @@ Value KernelModule::print(Env *env, Args &&args) {
     auto _stdout = env->global_get("$stdout"_s);
     assert(_stdout);
     if (args.size() == 0)
-        return _stdout->send(env, "write"_s, Args { env->global_get("$_"_s) });
+        return _stdout.send(env, "write"_s, Args { env->global_get("$_"_s) });
     // NATFIXME: Kernel.print should actually call IO.print and not
     // IO.write, but for now using IO.print causes crashes.
-    // return _stdout->send(env, "print"_s, args);
-    return _stdout->send(env, "write"_s, std::move(args));
+    // return _stdout.send(env, "print"_s, args);
+    return _stdout.send(env, "write"_s, std::move(args));
 }
 
 Value KernelModule::proc(Env *env, Block *block) {
@@ -403,7 +403,7 @@ Value KernelModule::proc(Env *env, Block *block) {
 
 Value KernelModule::puts(Env *env, Args &&args) {
     auto _stdout = env->global_get("$stdout"_s);
-    return _stdout->send(env, "puts"_s, std::move(args));
+    return _stdout.send(env, "puts"_s, std::move(args));
 }
 
 Value KernelModule::raise(Env *env, Args &&args) {
@@ -486,7 +486,7 @@ RationalObject *KernelModule::Rational(Env *env, double arg) {
 Value KernelModule::sleep(Env *env, Value length) {
     if (FiberObject::scheduler_is_relevant()) {
         if (!length) length = NilObject::the();
-        return FiberObject::scheduler()->send(env, "kernel_sleep"_s, { length });
+        return FiberObject::scheduler().send(env, "kernel_sleep"_s, { length });
     }
 
     if (!length || length.is_nil())
@@ -500,7 +500,7 @@ Value KernelModule::sleep(Env *env, Value length) {
     } else if (length.is_rational()) {
         secs = length->as_rational()->to_f(env)->as_float()->to_double();
     } else if (length.respond_to(env, "divmod"_s)) {
-        auto divmod = length->send(env, "divmod"_s, { IntegerObject::create(1) })->as_array();
+        auto divmod = length.send(env, "divmod"_s, { IntegerObject::create(1) })->as_array();
         secs = divmod->at(0)->to_f(env)->as_float()->to_double();
         secs += divmod->at(1)->to_f(env)->as_float()->to_double();
     } else {
@@ -707,7 +707,7 @@ Value KernelModule::dup(Env *env, Value self) {
 Value KernelModule::dup_better(Env *env, Value self) {
     auto dup = self->allocate(env, self->klass(), {}, nullptr);
     dup->copy_instance_variables(self);
-    dup->send(env, "initialize_dup"_s, { self });
+    dup.send(env, "initialize_dup"_s, { self });
     return dup;
 }
 
@@ -734,7 +734,7 @@ Value KernelModule::hash(Env *env, Value self) {
     case Object::Type::Symbol:
         return Value::integer(self->as_symbol()->string().djb2_hash());
     default: {
-        StringObject *inspected = self->send(env, "inspect"_s)->as_string();
+        StringObject *inspected = self.send(env, "inspect"_s)->as_string();
         nat_int_t hash_value = inspected->string().djb2_hash();
         return Value::integer(hash_value);
     }
@@ -817,7 +817,7 @@ Value KernelModule::loop(Env *env, Value self, Block *block) {
             return FloatObject::positive_infinity(env);
         };
         auto size_block = new Block { *env, self, infinity_fn, 0 };
-        return self->send(env, "enum_for"_s, { "loop"_s }, size_block);
+        return self.send(env, "enum_for"_s, { "loop"_s }, size_block);
     }
 
     try {
@@ -872,7 +872,7 @@ Value KernelModule::methods(Env *env, Value self, Value regular_val) {
 }
 
 bool KernelModule::neqtilde(Env *env, Value self, Value other) {
-    return self->send(env, "=~"_s, { other }).is_falsey();
+    return self.send(env, "=~"_s, { other }).is_falsey();
 }
 
 Value KernelModule::private_methods(Env *env, Value self, Value recur) {

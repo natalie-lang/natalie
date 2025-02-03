@@ -11,7 +11,7 @@ extern char **environ;
 namespace Natalie {
 
 static Value env_size(Env *env, Value self, Args &&, Block *) {
-    return self->send(env, "size"_s);
+    return self.send(env, "size"_s);
 }
 
 static inline StringObject *string_with_default_encoding(const char *str) {
@@ -374,7 +374,7 @@ Value EnvObject::shift() {
 }
 
 Value EnvObject::invert(Env *env) {
-    return to_hash(env, nullptr)->send(env, "invert"_s);
+    return to_hash(env, nullptr).send(env, "invert"_s);
 }
 
 bool EnvObject::is_empty() const {
@@ -406,7 +406,7 @@ Value EnvObject::update(Env *env, Args &&args, Block *block) {
         auto h = args[i];
 
         if (!h.is_hash() && h.respond_to(env, "to_hash"_s))
-            h = h->send(env, "to_hash"_s);
+            h = h.send(env, "to_hash"_s);
 
         h.assert_type(env, Object::Type::Hash, "Hash");
 

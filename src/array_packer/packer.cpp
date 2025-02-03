@@ -45,7 +45,7 @@ namespace ArrayPacker {
                     string_object = item.to_str(env);
                     string = string_object->string();
                 } else if (d == 'M' && (item.respond_to(env, "to_s"_s))) {
-                    auto str = item->send(env, "to_s"_s);
+                    auto str = item.send(env, "to_s"_s);
                     if (str.is_string()) {
                         string_object = str->as_string();
                         string = str->as_string()->string();

@@ -288,14 +288,14 @@ bool IntegerObject::eq(Env *env, Integer &self, Value other) {
     if (!other.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, self);
         if (!lhs.is_integer())
-            return lhs->send(env, "=="_s, { rhs }).is_truthy();
+            return lhs.send(env, "=="_s, { rhs }).is_truthy();
         other = rhs;
     }
 
     if (other.is_integer())
         return self == other.integer();
 
-    return other->send(env, "=="_s, { self }).is_truthy();
+    return other.send(env, "=="_s, { self }).is_truthy();
 }
 
 bool IntegerObject::lt(Env *env, Integer &self, Value other) {
@@ -308,7 +308,7 @@ bool IntegerObject::lt(Env *env, Integer &self, Value other) {
     if (!other.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, self);
         if (!lhs.is_integer())
-            return lhs->send(env, "<"_s, { rhs }).is_truthy();
+            return lhs.send(env, "<"_s, { rhs }).is_truthy();
         other = rhs;
     }
 
@@ -317,7 +317,7 @@ bool IntegerObject::lt(Env *env, Integer &self, Value other) {
 
     if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
-        return result.first->send(env, "<"_s, { result.second }).is_truthy();
+        return result.first.send(env, "<"_s, { result.second }).is_truthy();
     }
 
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
@@ -333,7 +333,7 @@ bool IntegerObject::lte(Env *env, Integer &self, Value other) {
     if (!other.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, self);
         if (!lhs.is_integer())
-            return lhs->send(env, "<="_s, { rhs }).is_truthy();
+            return lhs.send(env, "<="_s, { rhs }).is_truthy();
         other = rhs;
     }
 
@@ -342,7 +342,7 @@ bool IntegerObject::lte(Env *env, Integer &self, Value other) {
 
     if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
-        return result.first->send(env, "<="_s, { result.second }).is_truthy();
+        return result.first.send(env, "<="_s, { result.second }).is_truthy();
     }
 
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
@@ -358,7 +358,7 @@ bool IntegerObject::gt(Env *env, Integer &self, Value other) {
     if (!other.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, self, Natalie::CoerceInvalidReturnValueMode::Raise);
         if (!lhs.is_integer())
-            return lhs->send(env, ">"_s, { rhs }).is_truthy();
+            return lhs.send(env, ">"_s, { rhs }).is_truthy();
         other = rhs;
     }
 
@@ -367,7 +367,7 @@ bool IntegerObject::gt(Env *env, Integer &self, Value other) {
 
     if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
-        return result.first->send(env, ">"_s, { result.second }).is_truthy();
+        return result.first.send(env, ">"_s, { result.second }).is_truthy();
     }
 
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
@@ -383,7 +383,7 @@ bool IntegerObject::gte(Env *env, Integer &self, Value other) {
     if (!other.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, self, Natalie::CoerceInvalidReturnValueMode::Raise);
         if (!lhs.is_integer())
-            return lhs->send(env, ">="_s, { rhs }).is_truthy();
+            return lhs.send(env, ">="_s, { rhs }).is_truthy();
         other = rhs;
     }
 
@@ -392,7 +392,7 @@ bool IntegerObject::gte(Env *env, Integer &self, Value other) {
 
     if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
-        return result.first->send(env, ">="_s, { result.second }).is_truthy();
+        return result.first.send(env, ">="_s, { result.second }).is_truthy();
     }
 
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
@@ -517,7 +517,7 @@ Value IntegerObject::coerce(Env *env, Value self, Value arg) {
 
         if (arg.is_float()) {
             ary->push(arg);
-            ary->push(self->send(env, "to_f"_s));
+            ary->push(self.send(env, "to_f"_s));
             break;
         }
 

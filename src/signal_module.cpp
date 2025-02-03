@@ -147,7 +147,7 @@ Value SignalModule::list(Env *env) {
 
 Value SignalModule::signame(Env *env, Value signal) {
     signal = Object::to_int(env, signal);
-    return list(env)->send(env, "key"_s, { signal });
+    return list(env).send(env, "key"_s, { signal });
 }
 
 }

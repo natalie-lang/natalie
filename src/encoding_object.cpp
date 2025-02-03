@@ -92,9 +92,9 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
             auto ch = new StringObject { orig_encoding->encode_codepoint(cpt) };
             Value result = NilObject::the();
             if (options.fallback_option.respond_to(env, "[]"_s)) {
-                result = options.fallback_option->send(env, "[]"_s, { ch });
+                result = options.fallback_option.send(env, "[]"_s, { ch });
             } else if (options.fallback_option.respond_to(env, "call"_s)) {
-                result = options.fallback_option->send(env, "call"_s, { ch });
+                result = options.fallback_option.send(env, "call"_s, { ch });
             }
 
             if (result.is_nil()) {

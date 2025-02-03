@@ -108,7 +108,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
     if (libs.is_nil())
         libs = self->ivar_set(env, "@ffi_libs"_s, new ArrayObject);
     auto DynamicLibrary = fetch_nested_const({ "FFI"_s, "DynamicLibrary"_s });
-    auto lib = DynamicLibrary->send(env, "new"_s, { name, handle_ptr });
+    auto lib = DynamicLibrary.send(env, "new"_s, { name, handle_ptr });
     libs->as_array()->push(lib);
     return NilObject::the();
 }
@@ -233,7 +233,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             auto enums = self->ivar_get(env, "@enums"_s);
             if (!enums.is_nil() && enums->as_hash_or_raise(env)->has_key(env, type)) {
                 auto enum_values = enums->as_hash()->ref(env, type);
-                auto mapped_value = enum_values->send(env, "key"_s, { val });
+                auto mapped_value = enum_values.send(env, "key"_s, { val });
                 if (mapped_value.is_nil() && val.is_integer())
                     mapped_value = val;
                 if (mapped_value.is_nil()) {
@@ -320,9 +320,9 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
         auto NotFoundError = fetch_nested_const({ "FFI"_s, "NotFoundError"_s })->as_class();
         Value message;
         if (error)
-            message = StringObject::format("Function '{}' not found in [{}]", name->string(), lib->send(env, "name"_s)->as_string());
+            message = StringObject::format("Function '{}' not found in [{}]", name->string(), lib.send(env, "name"_s)->as_string());
         else
-            message = StringObject::format("Function '{}' not found in [{}] (unknown error)", name->string(), lib->send(env, "name"_s)->as_string());
+            message = StringObject::format("Function '{}' not found in [{}] (unknown error)", name->string(), lib.send(env, "name"_s)->as_string());
         auto exception = NotFoundError->send(env, "new"_s, { message })->as_exception();
         env->raise_exception(exception);
     }

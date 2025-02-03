@@ -160,7 +160,7 @@ public:
     }
 
     Value tilde(Env *env) {
-        return this->send(env, "=~"_s, { env->global_get("$_"_s) });
+        return send(env, "=~"_s, { env->global_get("$_"_s) });
     }
 
     bool is_fixed_encoding() const {

@@ -153,10 +153,10 @@ Value Zlib_deflate_params(Env *env, Value self, Args &&args, Block *) {
     // 3. Reset the stream and change the params
     // 4. Deflate the temporary variable to put the original stream back in
 
-    auto original_stream = self->send(env, "finish"_s);
+    auto original_stream = self.send(env, "finish"_s);
 
     auto Zlib = GlobalEnv::the()->Object()->const_get("Zlib"_s);
-    auto inflated = Zlib->send(env, "inflate"_s, { original_stream });
+    auto inflated = Zlib.send(env, "inflate"_s, { original_stream });
 
     if (const auto ret = deflateReset(strm); ret != Z_OK)
         self->klass()->send(env, "_error"_s, { Value::integer(ret) });
@@ -171,7 +171,7 @@ Value Zlib_deflate_params(Env *env, Value self, Args &&args, Block *) {
     auto result = self->ivar_get(env, "@result"_s)->as_string_or_raise(env);
     result->clear(env);
 
-    self->send(env, "<<"_s, { inflated });
+    self.send(env, "<<"_s, { inflated });
 
     return self;
 }

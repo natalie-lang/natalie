@@ -268,8 +268,8 @@ String RangeObject::dbg_inspect() const {
 }
 
 Value RangeObject::to_s(Env *env) {
-    auto begin = m_begin->send(env, "to_s"_s)->as_string();
-    auto end = m_end->send(env, "to_s"_s)->as_string();
+    auto begin = m_begin.send(env, "to_s"_s)->as_string();
+    auto end = m_end.send(env, "to_s"_s)->as_string();
     return StringObject::format(m_exclude_end ? "{}...{}" : "{}..{}", begin, end);
 }
 
@@ -389,7 +389,7 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
         static const auto coerce_sym = "coerce"_s;
         if (!n.respond_to(env, coerce_sym))
             env->raise("TypeError", "no implicit conversion of {} into Integer", n->klass()->inspect_str());
-        n = n->send(env, coerce_sym, { Value::integer(0) })->as_array_or_raise(env)->last();
+        n = n.send(env, coerce_sym, { Value::integer(0) })->as_array_or_raise(env)->last();
     }
 
     if (m_begin.is_numeric() || m_end.is_numeric()) {

@@ -151,7 +151,7 @@ Value Object::_new(Env *env, Value klass_value, Args &&args, Block *block) {
     if (!obj)
         NAT_UNREACHABLE();
 
-    obj->send(env, "initialize"_s, std::move(args), block);
+    obj.send(env, "initialize"_s, std::move(args), block);
     return obj;
 }
 
@@ -941,7 +941,7 @@ Value Object::send(Env *env, Value self, Args &&args, Block *block) {
     if (self.is_integer())
         return self.integer_send(env, name, std::move(args), block, nullptr, MethodVisibility::Private);
 
-    return self->send(env->caller(), name, std::move(args), block);
+    return self.send(env->caller(), name, std::move(args), block);
 }
 
 Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility_at_least, Value sent_from) {
@@ -1093,9 +1093,9 @@ Value Object::clone(Env *env, Value freeze) {
         auto keyword_hash = new HashObject {};
         keyword_hash->put(env, "freeze"_s, freeze);
         auto args = Args({ this, keyword_hash }, true);
-        duplicate->send(env, "initialize_clone"_s, std::move(args));
+        duplicate.send(env, "initialize_clone"_s, std::move(args));
     } else {
-        duplicate->send(env, "initialize_clone"_s, { this });
+        duplicate.send(env, "initialize_clone"_s, { this });
     }
 
     if (freeze_bool && is_frozen())
@@ -1349,7 +1349,7 @@ Integer Object::to_int(Env *env, Value self) {
     if (!self.respond_to(env, to_int))
         self.assert_type(env, Type::Integer, "Integer");
 
-    auto result = self->send(env, to_int);
+    auto result = self.send(env, to_int);
 
     if (result.is_integer())
         return result.integer();

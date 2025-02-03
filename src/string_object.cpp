@@ -1017,7 +1017,7 @@ Value StringObject::cmp(Env *env, Value other) {
     } else if (other->find_method(env, "to_str"_s, MethodVisibility::Private, other)) {
         other_str = other.to_str(env);
     } else if (other->find_method(env, "<=>"_s, MethodVisibility::Private, other)) {
-        auto negative_cmp = other->send(env, "<=>"_s, { this });
+        auto negative_cmp = other.send(env, "<=>"_s, { this });
         if (negative_cmp.is_nil()) {
             return negative_cmp;
         }
@@ -1158,7 +1158,7 @@ Value StringObject::eqtilde(Env *env, Value other) {
         env->raise("TypeError", "type mismatch: String given");
 
     if (!other.is_regexp() && other.respond_to(env, "=~"_s))
-        return other->send(env, "=~"_s, { this });
+        return other.send(env, "=~"_s, { this });
 
     other.assert_type(env, Object::Type::Regexp, "Regexp");
     return other->as_regexp()->eqtilde(env, this);
@@ -1171,11 +1171,11 @@ Value StringObject::match(Env *env, Value other, Value index, Block *block) {
         } else if (other.respond_to(env, "to_str"_s)) {
             other = new RegexpObject { env, other.to_str(env)->string() };
         } else if (other.respond_to(env, "=~"_s)) {
-            return other->send(env, "=~"_s, { this });
+            return other.send(env, "=~"_s, { this });
         }
     }
     other.assert_type(env, Object::Type::Regexp, "Regexp");
-    auto result = other->send(env, "match"_s, { this, index }, block);
+    auto result = other.send(env, "match"_s, { this, index }, block);
     env->caller()->set_match(env->match());
     return result;
 }
@@ -4196,7 +4196,7 @@ Value StringObject::try_convert(Env *env, Value val) {
         return NilObject::the();
     }
 
-    auto result = val->send(env, to_str);
+    auto result = val.send(env, to_str);
 
     if (result.is_string() || result.is_nil())
         return result;
