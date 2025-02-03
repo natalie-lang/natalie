@@ -222,7 +222,7 @@ public:
 
     static nat_int_t object_id(const Value self) { return self.object_id(); }
 
-    Value itself() { return this; }
+    static Value itself(Value self) { return self; }
 
     String pointer_id() const {
         char buf[100]; // ought to be enough for anybody ;-)
