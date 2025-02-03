@@ -501,27 +501,21 @@ Value IntegerObject::size(Env *env, Integer &self) {
 
 Value IntegerObject::coerce(Env *env, Value self, Value arg) {
     ArrayObject *ary = new ArrayObject {};
-    switch (arg->type()) {
-    case Object::Type::Integer:
+    if (arg.is_integer()) {
         ary->push(arg);
         ary->push(self);
-        break;
-    case Object::Type::String:
+    } else if (arg.is_string()) {
         ary->push(self.send(env, "Float"_s, { arg }));
         ary->push(self.send(env, "to_f"_s));
-        break;
-    default:
+    } else {
         if (!arg.is_nil() && !arg.is_float() && arg.respond_to(env, "to_f"_s)) {
             arg = arg.send(env, "to_f"_s);
         }
+        if (!arg.is_float())
+            env->raise("TypeError", "can't convert {} into Float", arg->inspect_str(env));
 
-        if (arg.is_float()) {
-            ary->push(arg);
-            ary->push(self.send(env, "to_f"_s));
-            break;
-        }
-
-        env->raise("TypeError", "can't convert {} into Float", arg->inspect_str(env));
+        ary->push(arg);
+        ary->push(self.send(env, "to_f"_s));
     }
     return ary;
 }
