@@ -187,6 +187,13 @@ public:
     Integer to_int(Env *env);
     StringObject *to_s(Env *env);
 
+    enum class Conversion {
+        Strict,
+        NullAllowed,
+    };
+
+    SymbolObject *to_symbol(Env *, Conversion);
+
     String inspect_str(Env *);
     String dbg_inspect() const;
 

@@ -492,6 +492,23 @@ StringObject *Value::to_s(Env *env) {
     return str->as_string();
 }
 
+SymbolObject *Value::to_symbol(Env *env, Conversion conversion) {
+    if (is_integer()) {
+        if (conversion == Conversion::NullAllowed)
+            return nullptr;
+        env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
+    }
+
+    if (is_symbol())
+        return m_object->as_symbol();
+    else if (is_string() || respond_to(env, "to_str"_s))
+        return to_str(env)->to_symbol(env);
+    else if (conversion == Conversion::NullAllowed)
+        return nullptr;
+    else
+        env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
+}
+
 void Value::auto_hydrate() {
     switch (m_type) {
     case Type::Integer: {

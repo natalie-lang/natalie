@@ -589,20 +589,8 @@ StringObject *Object::as_string_or_raise(Env *env) {
     return static_cast<StringObject *>(this);
 }
 
-SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
-    if (m_type == Type::Symbol) {
-        return as_symbol();
-    } else if (m_type == Type::String || respond_to(env, "to_str"_s)) {
-        return Value(this).to_str(env)->to_symbol(env);
-    } else if (conversion == Conversion::NullAllowed) {
-        return nullptr;
-    } else {
-        env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
-    }
-}
-
 SymbolObject *Object::to_instance_variable_name(Env *env) {
-    SymbolObject *symbol = to_symbol(env, Conversion::Strict); // TypeError if not Symbol/String
+    SymbolObject *symbol = Value(this).to_symbol(env, Value::Conversion::Strict); // TypeError if not Symbol/String
 
     if (!symbol->is_ivar_name()) {
         if (m_type == Type::String) {
@@ -925,7 +913,7 @@ Value Object::public_send(Env *env, SymbolObject *name, Args &&args, Block *bloc
 }
 
 Value Object::public_send(Env *env, Value self, Args &&args, Block *block) {
-    auto name = args.shift()->to_symbol(env, Object::Conversion::Strict);
+    auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
     if (self.is_integer())
         return self.integer_send(env, name, std::move(args), block, nullptr, MethodVisibility::Public);
 
@@ -937,7 +925,7 @@ Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Valu
 }
 
 Value Object::send(Env *env, Value self, Args &&args, Block *block) {
-    auto name = args.shift()->to_symbol(env, Object::Conversion::Strict);
+    auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
     if (self.is_integer())
         return self.integer_send(env, name, std::move(args), block, nullptr, MethodVisibility::Private);
 

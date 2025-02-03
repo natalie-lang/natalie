@@ -684,7 +684,7 @@ Value KernelModule::klass_obj(Env *env, Value self) {
 
 Value KernelModule::define_singleton_method(Env *env, Value self, Value name, Block *block) {
     env->ensure_block_given(block);
-    SymbolObject *name_obj = name->to_symbol(env, Object::Conversion::Strict);
+    SymbolObject *name_obj = name.to_symbol(env, Value::Conversion::Strict);
     self->define_singleton_method(env, name_obj, block);
     return name_obj;
 }
@@ -837,7 +837,7 @@ Value KernelModule::loop(Env *env, Value self, Block *block) {
 }
 
 Value KernelModule::method(Env *env, Value self, Value name) {
-    auto name_symbol = name->to_symbol(env, Object::Conversion::Strict);
+    auto name_symbol = name.to_symbol(env, Value::Conversion::Strict);
     auto singleton = self.singleton_class();
     auto module = singleton ? singleton : self.klass();
     auto method_info = module->find_method(env, name_symbol);
@@ -908,7 +908,7 @@ bool KernelModule::respond_to_method(Env *env, Value self, Value name_val, Value
 }
 
 bool KernelModule::respond_to_method(Env *env, Value self, Value name_val, bool include_all) {
-    auto name_symbol = name_val->to_symbol(env, Object::Conversion::Strict);
+    auto name_symbol = name_val.to_symbol(env, Value::Conversion::Strict);
 
     ClassObject *klass = self.singleton_class();
     if (!klass)

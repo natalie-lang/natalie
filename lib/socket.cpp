@@ -39,7 +39,7 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
         return name;
 
     if (name.is_string() || name.is_symbol()) {
-        auto sym = name->to_symbol(env, Object::Conversion::Strict);
+        auto sym = name.to_symbol(env, Value::Conversion::Strict);
         auto Socket = find_top_level_const(env, "Socket"_s)->as_module();
         auto value = Socket->const_find(env, sym, Object::ConstLookupSearchMode::Strict, Object::ConstLookupFailureMode::Null);
         if (!value)
@@ -679,7 +679,7 @@ Value BasicSocket_shutdown(Env *env, Value self, Args &&args, Block *) {
                 env->raise("ArgumentError", "invalid shutdown mode: {}", how);
             }
         } else {
-            auto how_sym = arg->to_symbol(env, Object::Conversion::Strict);
+            auto how_sym = arg.to_symbol(env, Value::Conversion::Strict);
             if (how_sym == "RD"_s || how_sym == "SHUT_RD"_s)
                 how = SHUT_RD;
             else if (how_sym == "WR"_s || how_sym == "SHUT_WR"_s)

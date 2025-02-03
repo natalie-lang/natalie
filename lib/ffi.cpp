@@ -288,10 +288,10 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
 
 Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 3);
-    auto name = args.at(0)->to_symbol(env, Object::Conversion::Strict);
+    auto name = args.at(0).to_symbol(env, Value::Conversion::Strict);
     auto arg_types = args.at(1);
     arg_types.assert_type(env, Object::Type::Array, "Array");
-    auto return_type = args.at(2)->to_symbol(env, Object::Conversion::Strict);
+    auto return_type = args.at(2).to_symbol(env, Value::Conversion::Strict);
     // dbg("attach_function {v} {v} {v}", name, arg_types, return_type);
 
     auto arg_types_array = arg_types->as_array();

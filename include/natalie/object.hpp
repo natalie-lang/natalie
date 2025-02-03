@@ -22,11 +22,6 @@ class Object : public Cell {
 public:
     using Type = ObjectType;
 
-    enum class Conversion {
-        Strict,
-        NullAllowed,
-    };
-
     enum class ConstLookupSearchMode {
         NotStrict,
         Strict,
@@ -166,7 +161,6 @@ public:
     RangeObject *as_range_or_raise(Env *);
     StringObject *as_string_or_raise(Env *);
 
-    SymbolObject *to_symbol(Env *, Conversion);
     SymbolObject *to_instance_variable_name(Env *);
 
     ClassObject *singleton_class() const { return m_singleton_class; }
