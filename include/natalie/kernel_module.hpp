@@ -80,6 +80,8 @@ public:
     static Value instance_variable_get(Env *env, Value self, Value name_val);
     static Value instance_variable_set(Env *env, Value self, Value name_val, Value value);
     static Value instance_variables(Env *env, Value self);
+    static bool is_a(Env *env, Value self, Value module);
+    static bool is_frozen(Value self) { return self.is_integer() || self.is_float() || self->is_frozen(); }
     static Value loop(Env *env, Value self, Block *block);
     static Value method(Env *env, Value self, Value name);
     static Value methods(Env *env, Value self, Value regular_val);
@@ -92,7 +94,6 @@ public:
     static bool respond_to_method(Env *, Value, Value, Value);
     static bool respond_to_method(Env *, Value, Value, bool);
     static Value tap(Env *env, Value self, Block *block);
-    static bool is_a(Env *env, Value self, Value module);
 };
 
 }
