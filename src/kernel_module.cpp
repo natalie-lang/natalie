@@ -838,7 +838,7 @@ Value KernelModule::loop(Env *env, Value self, Block *block) {
 
 Value KernelModule::method(Env *env, Value self, Value name) {
     auto name_symbol = name->to_symbol(env, Object::Conversion::Strict);
-    auto singleton = self->singleton_class();
+    auto singleton = self.singleton_class();
     auto module = singleton ? singleton : self.klass();
     auto method_info = module->find_method(env, name_symbol);
     if (!method_info.is_defined()) {
