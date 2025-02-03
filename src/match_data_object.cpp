@@ -359,7 +359,7 @@ ArrayObject *MatchDataObject::values_at(Env *env, Args &&args) {
 }
 
 Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
-    if (index_value->type() == Object::Type::String || index_value->type() == Object::Type::Symbol) {
+    if (index_value.is_string() || index_value.is_symbol()) {
         const auto &str = index_value->type() == Object::Type::String ? index_value->as_string()->string() : index_value->as_symbol()->string();
         const nat_int_t index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
 
@@ -368,7 +368,7 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
 
         return group(index);
     }
-    if (index_value->type() == Object::Type::Range) {
+    if (index_value.is_range()) {
         auto range = index_value->as_range();
         const nat_int_t first = range->begin().is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, range->begin());
         nat_int_t last = range->end().is_nil() ? size() - 1 : IntegerObject::convert_to_nat_int_t(env, range->end());
@@ -389,15 +389,15 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
         return result;
     }
     nat_int_t index;
-    if (index_value.is_fast_integer()) {
-        index = index_value.get_fast_integer();
+    if (index_value.is_integer()) {
+        index = index_value.integer().to_nat_int_t();
     } else {
         index = IntegerObject::convert_to_nat_int_t(env, index_value);
     }
     if (size_value && !size_value.is_nil()) {
         nat_int_t size;
-        if (size_value.is_fast_integer()) {
-            size = size_value.get_fast_integer();
+        if (size_value.is_integer()) {
+            size = size_value.integer().to_nat_int_t();
         } else {
             size = IntegerObject::convert_to_nat_int_t(env, size_value);
         }
