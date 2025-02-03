@@ -170,7 +170,7 @@ public:
     Value ruby2_keywords(Env *, Value);
 
     bool eqeqeq(Env *env, Value other) {
-        return other->is_a(env, this);
+        return other.is_a(env, this);
     }
 
     virtual void visit_children(Visitor &) const override final;

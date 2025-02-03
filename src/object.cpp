@@ -151,7 +151,7 @@ Value Object::_new(Env *env, Value klass_value, Args &&args, Block *block) {
     if (!obj)
         NAT_UNREACHABLE();
 
-    obj->send(env, "initialize"_s, std::move(args), block);
+    obj.send(env, "initialize"_s, std::move(args), block);
     return obj;
 }
 
@@ -593,7 +593,7 @@ SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
     if (m_type == Type::Symbol) {
         return as_symbol();
     } else if (m_type == Type::String || respond_to(env, "to_str"_s)) {
-        return to_str(env)->to_symbol(env);
+        return Value(this).to_str(env)->to_symbol(env);
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
@@ -630,7 +630,7 @@ ClassObject *Object::singleton_class(Env *env, Value self) {
     String name;
     if (self.is_module()) {
         name = String::format("#<Class:{}>", self->as_module()->inspect_str());
-    } else if (self->respond_to(env, "inspect"_s)) {
+    } else if (self.respond_to(env, "inspect"_s)) {
         name = String::format("#<Class:{}>", self->inspect_str(env));
     }
 
@@ -826,7 +826,7 @@ void Object::singleton_method_alias(Env *env, SymbolObject *new_name, SymbolObje
 
     ClassObject *klass = singleton_class(env, this);
     if (klass->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", Value(this).to_s(env)->string());
     klass->method_alias(env, new_name, old_name);
 }
 
@@ -835,7 +835,7 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Meth
 
     ClassObject *klass = singleton_class(env, this)->as_class();
     if (klass->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", Value(this).to_s(env)->string());
     klass->define_method(env, name, fn, arity);
     return name;
 }
@@ -845,7 +845,7 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Bloc
 
     ClassObject *klass = singleton_class(env, this);
     if (klass->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", Value(this).to_s(env)->string());
     klass->define_method(env, name, block);
     return name;
 }
@@ -941,7 +941,7 @@ Value Object::send(Env *env, Value self, Args &&args, Block *block) {
     if (self.is_integer())
         return self.integer_send(env, name, std::move(args), block, nullptr, MethodVisibility::Private);
 
-    return self->send(env->caller(), name, std::move(args), block);
+    return self.send(env->caller(), name, std::move(args), block);
 }
 
 Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility_at_least, Value sent_from) {
@@ -973,7 +973,7 @@ Value Object::method_missing(Env *env, Value self, Args &&args, Block *block) {
     if (args.size() == 0) {
         env->raise("ArgError", "no method name given");
     } else if (!args[0].is_symbol()) {
-        env->raise("ArgError", "method name must be a Symbol but {} is given", args[0]->klass()->inspect_str());
+        env->raise("ArgError", "method name must be a Symbol but {} is given", args[0].klass()->inspect_str());
     } else {
         auto name = args[0]->as_symbol();
         env = env->caller();
@@ -999,7 +999,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     if (visibility >= visibility_at_least)
         return method_info.method();
 
-    if (visibility == MethodVisibility::Protected && sent_from && sent_from->is_a(env, klass))
+    if (visibility == MethodVisibility::Protected && sent_from && sent_from.is_a(env, klass))
         return method_info.method();
 
     switch (visibility) {
@@ -1077,7 +1077,7 @@ Value Object::clone(Env *env, Value freeze) {
         if (freeze.is_false()) {
             freeze_bool = false;
         } else if (!freeze.is_true() && !freeze.is_nil()) {
-            env->raise("ArgumentError", "unexpected value for freeze: {}", freeze->klass()->inspect_str());
+            env->raise("ArgumentError", "unexpected value for freeze: {}", freeze.klass()->inspect_str());
         }
     }
 
@@ -1093,9 +1093,9 @@ Value Object::clone(Env *env, Value freeze) {
         auto keyword_hash = new HashObject {};
         keyword_hash->put(env, "freeze"_s, freeze);
         auto args = Args({ this, keyword_hash }, true);
-        duplicate->send(env, "initialize_clone"_s, std::move(args));
+        duplicate.send(env, "initialize_clone"_s, std::move(args));
     } else {
-        duplicate->send(env, "initialize_clone"_s, { this });
+        duplicate.send(env, "initialize_clone"_s, { this });
     }
 
     if (freeze_bool && is_frozen())
@@ -1123,19 +1123,6 @@ void Object::copy_instance_variables(const Value other) {
     auto ivars = other.object_pointer()->m_ivars;
     if (ivars)
         m_ivars = new TM::Hashmap<SymbolObject *, Value> { *ivars };
-}
-
-bool Object::is_a(Env *env, Value val) const {
-    if (!val.is_module()) return false;
-    ModuleObject *module = val->as_module();
-    if (m_klass == module || singleton_class() == module) {
-        return true;
-    } else {
-        ClassObject *klass = singleton_class();
-        if (!klass)
-            klass = m_klass;
-        return klass->ancestors_includes(env, module);
-    }
 }
 
 const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
@@ -1295,157 +1282,4 @@ void Object::gc_inspect(char *buf, size_t len) const {
     snprintf(buf, len, "<Object %p type=%d class=%p>", this, (int)m_type, m_klass);
 }
 
-ArrayObject *Object::to_ary(Env *env) {
-    if (m_type == Type::Array)
-        return as_array();
-
-    auto original_class = klass()->inspect_str();
-
-    auto to_ary = "to_ary"_s;
-
-    if (!respond_to(env, to_ary)) {
-        if (m_type == Type::Nil)
-            env->raise("TypeError", "no implicit conversion of nil into Array");
-        env->raise("TypeError", "no implicit conversion of {} into Array", original_class);
-    }
-
-    Value val = send(env, to_ary);
-
-    if (val.is_array()) {
-        return val->as_array();
-    }
-
-    env->raise(
-        "TypeError", "can't convert {} to Array ({}#to_ary gives {})",
-        original_class,
-        original_class,
-        val->klass()->inspect_str());
-}
-
-IoObject *Object::to_io(Env *env) {
-    if (m_type == Type::Io) return as_io();
-
-    auto to_io = "to_io"_s;
-    if (!respond_to(env, to_io))
-        Value(this).assert_type(env, Type::Io, "IO");
-
-    auto result = send(env, to_io);
-
-    if (result.is_io())
-        return result->as_io();
-
-    env->raise(
-        "TypeError", "can't convert {} to IO ({}#to_io gives {})",
-        klass()->inspect_str(),
-        klass()->inspect_str(),
-        result->klass()->inspect_str());
-}
-
-Integer Object::to_int(Env *env, Value self) {
-    if (self.is_integer())
-        return self.integer();
-
-    auto to_int = "to_int"_s;
-    if (!self->respond_to(env, to_int))
-        self.assert_type(env, Type::Integer, "Integer");
-
-    auto result = self->send(env, to_int);
-
-    if (result.is_integer())
-        return result.integer();
-
-    auto klass = self->klass();
-    env->raise(
-        "TypeError", "can't convert {} to Integer ({}#to_int gives {})",
-        klass->inspect_str(),
-        klass->inspect_str(),
-        result->klass()->inspect_str());
-}
-
-FloatObject *Object::to_f(Env *env) {
-    if (m_type == Type::Float) return as_float();
-
-    auto to_f = "to_f"_s;
-    if (!respond_to(env, to_f))
-        Value(this).assert_type(env, Type::Float, "Float");
-
-    auto result = send(env, to_f);
-    result.assert_type(env, Type::Float, "Float");
-    return result->as_float();
-}
-
-HashObject *Object::to_hash(Env *env) {
-    if (m_type == Type::Hash) {
-        return as_hash();
-    }
-
-    auto original_class = klass()->inspect_str();
-
-    auto to_hash = "to_hash"_s;
-
-    if (!respond_to(env, to_hash)) {
-        if (m_type == Type::Nil)
-            env->raise("TypeError", "no implicit conversion of nil into Hash");
-        env->raise("TypeError", "no implicit conversion of {} into Hash", original_class);
-    }
-
-    Value val = send(env, to_hash);
-
-    if (val.is_hash()) {
-        return val->as_hash();
-    }
-
-    env->raise(
-        "TypeError", "can't convert {} to Hash ({}#to_hash gives {})",
-        original_class,
-        original_class,
-        val->klass()->inspect_str());
-}
-
-StringObject *Object::to_s(Env *env) {
-    auto str = send(env, "to_s"_s);
-    if (!str.is_string())
-        env->raise("TypeError", "no implicit conversion of {} into String", m_klass->name());
-    return str->as_string();
-}
-
-StringObject *Object::to_str(Env *env) {
-    if (m_type == Type::String) return as_string();
-
-    auto to_str = "to_str"_s;
-    if (!respond_to(env, to_str))
-        env->raise_type_error(this, "String");
-
-    auto result = send(env, to_str);
-
-    if (result.is_string())
-        return result->as_string();
-
-    env->raise(
-        "TypeError", "can't convert {} to String ({}#to_str gives {})",
-        klass()->inspect_str(),
-        klass()->inspect_str(),
-        result->klass()->inspect_str());
-}
-
-// This is just like Object::to_str, but it raises more consistent error messages.
-// We still need the old error messages because CRuby is inconsistent. :-(
-StringObject *Object::to_str2(Env *env) {
-    if (m_type == Type::String) return as_string();
-
-    auto to_str = "to_str"_s;
-    if (!respond_to(env, to_str))
-        env->raise_type_error2(this, "String");
-
-    auto result = send(env, to_str);
-
-    if (result.is_string())
-        return result->as_string();
-
-    env->raise(
-        "TypeError", "can't convert {} to String ({}#to_str gives {})",
-        klass()->inspect_str(),
-        klass()->inspect_str(),
-        result->klass()->inspect_str());
-}
 }

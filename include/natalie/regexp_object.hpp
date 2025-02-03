@@ -152,15 +152,15 @@ public:
     bool eqeqeq(Env *env, Value other) {
         assert_initialized(env);
         if (!other.is_string() && !other.is_symbol()) {
-            if (!other->respond_to(env, "to_str"_s))
+            if (!other.respond_to(env, "to_str"_s))
                 return false;
-            other = other->to_str(env);
+            other = other.to_str(env);
         }
         return match(env, other).is_truthy();
     }
 
     Value tilde(Env *env) {
-        return this->send(env, "=~"_s, { env->global_get("$_"_s) });
+        return send(env, "=~"_s, { env->global_get("$_"_s) });
     }
 
     bool is_fixed_encoding() const {

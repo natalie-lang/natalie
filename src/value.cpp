@@ -11,7 +11,7 @@ namespace Natalie {
         auto classnameOf = [](Value val) -> String {                                    \
             if (val.m_type == Type::Integer)                                            \
                 return String("FastInteger");                                           \
-            auto maybe_classname = val->klass()->name();                                \
+            auto maybe_classname = val.klass()->name();                                 \
             if (maybe_classname.present())                                              \
                 return maybe_classname.value();                                         \
             else                                                                        \
@@ -74,6 +74,60 @@ ClassObject *Value::singleton_class() const {
 
 ClassObject *Value::singleton_class(Env *env) {
     return Object::singleton_class(env, *this);
+}
+
+StringObject *Value::to_str(Env *env) {
+    if (is_integer()) {
+        if (respond_to(env, "to_str"_s))
+            return send(env, "to_str"_s)->as_string_or_raise(env);
+        else
+            env->raise_type_error(*this, "String");
+    }
+
+    if (is_string()) return m_object->as_string();
+
+    auto to_str = "to_str"_s;
+    if (!respond_to(env, to_str))
+        env->raise_type_error(*this, "String");
+
+    auto result = send(env, to_str);
+
+    if (result.is_string())
+        return result->as_string();
+
+    env->raise(
+        "TypeError", "can't convert {} to String ({}#to_str gives {})",
+        klass()->inspect_str(),
+        klass()->inspect_str(),
+        result.klass()->inspect_str());
+}
+
+// This is just like Value::to_str, but it raises more consistent error messages.
+// We still need the old error messages because CRuby is inconsistent. :-(
+StringObject *Value::to_str2(Env *env) {
+    if (is_integer()) {
+        if (respond_to(env, "to_str"_s))
+            return send(env, "to_str"_s)->as_string_or_raise(env);
+        else
+            env->raise_type_error(*this, "String");
+    }
+
+    if (is_string()) return m_object->as_string();
+
+    auto to_str = "to_str"_s;
+    if (!respond_to(env, to_str))
+        env->raise_type_error2(*this, "String");
+
+    auto result = send(env, to_str);
+
+    if (result.is_string())
+        return result->as_string();
+
+    env->raise(
+        "TypeError", "can't convert {} to String ({}#to_str gives {})",
+        klass()->inspect_str(),
+        klass()->inspect_str(),
+        result.klass()->inspect_str());
 }
 
 Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
@@ -254,6 +308,21 @@ bool Value::is_integer() const {
     }
 }
 
+bool Value::is_a(Env *env, Value val) const {
+    if (!val.is_module())
+        return false;
+
+    ModuleObject *module = val->as_module();
+    if (klass() == module || singleton_class() == module) {
+        return true;
+    } else {
+        ClassObject *the_klass = singleton_class();
+        if (!the_klass)
+            the_klass = klass();
+        return the_klass->ancestors_includes(env, module);
+    }
+}
+
 bool Value::respond_to(Env *env, SymbolObject *name_val, bool include_all) {
     if (KernelModule::respond_to_method(env, *this, "respond_to?"_s, true))
         return send(env, "respond_to?"_s, { name_val, bool_object(include_all) }).is_truthy();
@@ -302,6 +371,122 @@ bool Value::is_truthy() const { return !is_false() && !is_nil(); }
 bool Value::is_falsey() const { return !is_truthy(); }
 bool Value::is_numeric() const { return is_integer() || is_float(); }
 bool Value::is_boolean() const { return is_true() || is_false(); }
+
+ArrayObject *Value::to_ary(Env *env) {
+    if (is_array())
+        return m_object->as_array();
+
+    auto original_class = klass()->inspect_str();
+
+    auto to_ary = "to_ary"_s;
+
+    if (!respond_to(env, to_ary)) {
+        if (is_nil())
+            env->raise("TypeError", "no implicit conversion of nil into Array");
+        env->raise("TypeError", "no implicit conversion of {} into Array", original_class);
+    }
+
+    Value val = send(env, to_ary);
+
+    if (val.is_array()) {
+        return val->as_array();
+    }
+
+    env->raise(
+        "TypeError", "can't convert {} to Array ({}#to_ary gives {})",
+        original_class,
+        original_class,
+        val.klass()->inspect_str());
+}
+
+IoObject *Value::to_io(Env *env) {
+    if (is_io())
+        return m_object->as_io();
+
+    auto to_io = "to_io"_s;
+    if (!respond_to(env, to_io))
+        assert_type(env, Object::Type::Io, "IO");
+
+    auto result = send(env, to_io);
+
+    if (result.is_io())
+        return result->as_io();
+
+    env->raise(
+        "TypeError", "can't convert {} to IO ({}#to_io gives {})",
+        klass()->inspect_str(),
+        klass()->inspect_str(),
+        result.klass()->inspect_str());
+}
+
+Integer Value::to_int(Env *env) {
+    if (is_integer())
+        return integer();
+
+    auto to_int = "to_int"_s;
+    if (!respond_to(env, to_int))
+        assert_type(env, Object::Type::Integer, "Integer");
+
+    auto result = send(env, to_int);
+
+    if (result.is_integer())
+        return result.integer();
+
+    auto the_klass = klass();
+    env->raise(
+        "TypeError", "can't convert {} to Integer ({}#to_int gives {})",
+        the_klass->inspect_str(),
+        the_klass->inspect_str(),
+        result.klass()->inspect_str());
+}
+
+FloatObject *Value::to_f(Env *env) {
+    if (is_float())
+        return m_object->as_float();
+
+    auto to_f = "to_f"_s;
+    if (!respond_to(env, to_f))
+        assert_type(env, Object::Type::Float, "Float");
+
+    auto result = send(env, to_f);
+    result.assert_type(env, Object::Type::Float, "Float");
+    return result->as_float();
+}
+
+HashObject *Value::to_hash(Env *env) {
+    if (is_hash())
+        return m_object->as_hash();
+
+    auto original_class = klass()->inspect_str();
+
+    auto to_hash = "to_hash"_s;
+
+    if (!respond_to(env, to_hash)) {
+        if (is_nil())
+            env->raise("TypeError", "no implicit conversion of nil into Hash");
+        env->raise("TypeError", "no implicit conversion of {} into Hash", original_class);
+    }
+
+    Value val = send(env, to_hash);
+
+    if (val.is_hash()) {
+        return val->as_hash();
+    }
+
+    env->raise(
+        "TypeError", "can't convert {} to Hash ({}#to_hash gives {})",
+        original_class,
+        original_class,
+        val.klass()->inspect_str());
+}
+
+StringObject *Value::to_s(Env *env) {
+    auto str = send(env, "to_s"_s);
+    if (!str.is_string())
+        env->raise("TypeError", "no implicit conversion of {} into String", klass()->name());
+
+    return str->as_string();
+}
 
 void Value::auto_hydrate() {
     switch (m_type) {

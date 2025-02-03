@@ -167,9 +167,9 @@ private:
             rlimit_symbol = val->as_symbol();
         } else if (val.is_string()) {
             rlimit_symbol = val->as_string()->to_symbol(env);
-        } else if (val->respond_to(env, to_str)) {
+        } else if (val.respond_to(env, to_str)) {
             // Need to support nil, don't use Object::to_str
-            auto tsval = val->send(env, to_str);
+            auto tsval = val.send(env, to_str);
             if (tsval.is_string()) {
                 rlimit_symbol = tsval->as_string()->to_sym(env)->as_symbol();
             }

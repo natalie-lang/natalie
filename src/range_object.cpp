@@ -35,8 +35,8 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
         return iterate_over_integer_range(env, func);
 
     auto succ = "succ"_s;
-    if (!m_begin->respond_to(env, succ))
-        env->raise("TypeError", "can't iterate from {}", m_begin->klass()->inspect_str());
+    if (!m_begin.respond_to(env, succ))
+        env->raise("TypeError", "can't iterate from {}", m_begin.klass()->inspect_str());
 
     if (m_begin.is_string() && m_end.is_string())
         return iterate_over_string_range(env, func);
@@ -50,7 +50,7 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
     bool done = m_exclude_end ? item.send(env, "=="_s, { m_end }).is_truthy() : false;
     while (!done) {
         if (!m_end.is_nil()) {
-            auto compare_result = Object::to_int(env, item.send(env, cmp, { m_end }));
+            auto compare_result = item.send(env, cmp, { m_end }).to_int(env);
             // We are done if we reached the end element.
             done = compare_result == 0;
             // If we exclude the end we break instantly, otherwise we yield the item once again. We also break if item is bigger than end.
@@ -66,7 +66,7 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
         }
 
         if (!done) {
-            if (!item->respond_to(env, "succ"_s))
+            if (!item.respond_to(env, "succ"_s))
                 break;
             item = item.send(env, succ);
         }
@@ -82,7 +82,7 @@ Value RangeObject::iterate_over_integer_range(Env *env, Function &&func) {
         if (end->as_float()->is_infinity())
             end = NilObject::the();
         else
-            end = Object::to_int(env, end);
+            end = end.to_int(env);
     }
 
     if (!end.is_nil()) {
@@ -268,8 +268,8 @@ String RangeObject::dbg_inspect() const {
 }
 
 Value RangeObject::to_s(Env *env) {
-    auto begin = m_begin->send(env, "to_s"_s)->as_string();
-    auto end = m_end->send(env, "to_s"_s)->as_string();
+    auto begin = m_begin.send(env, "to_s"_s)->as_string();
+    auto end = m_end.send(env, "to_s"_s)->as_string();
     return StringObject::format(m_exclude_end ? "{}...{}" : "{}..{}", begin, end);
 }
 
@@ -342,7 +342,7 @@ bool RangeObject::include(Env *env, Value arg) {
 
 Value RangeObject::bsearch(Env *env, Block *block) {
     if ((!m_begin.is_numeric() && !m_begin.is_nil()) || (!m_end.is_numeric() && !m_end.is_nil()))
-        env->raise("TypeError", "can't do binary search for {}", m_begin->klass()->inspect_str());
+        env->raise("TypeError", "can't do binary search for {}", m_begin.klass()->inspect_str());
 
     if (!block)
         return enum_for(env, "bsearch");
@@ -373,8 +373,8 @@ Value RangeObject::bsearch(Env *env, Block *block) {
 
         return binary_search_integer(env, left, right, block, false);
     } else if (m_begin.is_numeric() || m_end.is_numeric()) {
-        double left = m_begin.is_nil() ? -std::numeric_limits<double>::infinity() : m_begin->to_f(env)->to_double();
-        double right = m_end.is_nil() ? std::numeric_limits<double>::infinity() : m_end->to_f(env)->to_double();
+        double left = m_begin.is_nil() ? -std::numeric_limits<double>::infinity() : m_begin.to_f(env)->to_double();
+        double right = m_end.is_nil() ? std::numeric_limits<double>::infinity() : m_end.to_f(env)->to_double();
 
         return binary_search_float(env, left, right, block, m_exclude_end);
     }
@@ -387,9 +387,9 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
 
     if (!n.is_numeric() && !n.is_nil()) {
         static const auto coerce_sym = "coerce"_s;
-        if (!n->respond_to(env, coerce_sym))
-            env->raise("TypeError", "no implicit conversion of {} into Integer", n->klass()->inspect_str());
-        n = n->send(env, coerce_sym, { Value::integer(0) })->as_array_or_raise(env)->last();
+        if (!n.respond_to(env, coerce_sym))
+            env->raise("TypeError", "no implicit conversion of {} into Integer", n.klass()->inspect_str());
+        n = n.send(env, coerce_sym, { Value::integer(0) })->as_array_or_raise(env)->last();
     }
 
     if (m_begin.is_numeric() || m_end.is_numeric()) {
@@ -422,9 +422,9 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
         //   - It only appears for floats (not for rational for example)
         //   - Class names are written in lower case?
         if (n.is_float())
-            env->raise("TypeError", "no implicit conversion to float from {}", m_begin->klass()->inspect_str().lowercase());
+            env->raise("TypeError", "no implicit conversion to float from {}", m_begin.klass()->inspect_str().lowercase());
 
-        auto step = Object::to_int(env, n);
+        auto step = n.to_int(env);
 
         Integer index = 0;
         iterate_over_range(env, [env, block, &index, step](Value item) -> Value {

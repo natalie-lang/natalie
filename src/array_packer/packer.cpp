@@ -41,20 +41,20 @@ namespace ArrayPacker {
                     if (d == 'u' || d == 'm')
                         env->raise("TypeError", "no implicit conversion of nil into String");
                     string = "";
-                } else if (item->respond_to(env, "to_str"_s)) {
-                    string_object = item->to_str(env);
+                } else if (item.respond_to(env, "to_str"_s)) {
+                    string_object = item.to_str(env);
                     string = string_object->string();
-                } else if (d == 'M' && (item->respond_to(env, "to_s"_s))) {
-                    auto str = item->send(env, "to_s"_s);
+                } else if (d == 'M' && (item.respond_to(env, "to_s"_s))) {
+                    auto str = item.send(env, "to_s"_s);
                     if (str.is_string()) {
                         string_object = str->as_string();
                         string = str->as_string()->string();
                     } else {
-                        string_object = str->to_s(env)->as_string();
-                        string = str->to_s(env)->string();
+                        string_object = str.to_s(env)->as_string();
+                        string = str.to_s(env)->string();
                     }
                 } else {
-                    env->raise("TypeError", "no implicit conversion of {} into String", item->klass()->inspect_str());
+                    env->raise("TypeError", "no implicit conversion of {} into String", item.klass()->inspect_str());
                     NAT_UNREACHABLE();
                 }
 
@@ -86,7 +86,7 @@ namespace ArrayPacker {
             case 'v':
             case 'w': {
                 pack_with_loop(env, token, [&]() {
-                    auto integer = Object::to_int(env, m_source->at(m_index));
+                    auto integer = m_source->at(m_index).to_int(env);
                     auto packer = IntegerHandler { integer, token };
                     auto result = packer.pack(env);
                     m_packed.append(result);

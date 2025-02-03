@@ -52,7 +52,7 @@ Value IoObject::initialize(Env *env, Args &&args, Block *block) {
     Value file_number = args.at(0);
     Value flags_obj = args.at(1, nullptr);
     const ioutil::flags_struct wanted_flags { env, flags_obj, kwargs };
-    nat_int_t fileno = Object::to_int(env, file_number).to_nat_int_t();
+    nat_int_t fileno = file_number.to_int(env).to_nat_int_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
     const auto actual_flags = ::fcntl(fileno, F_GETFL);
     if (actual_flags < 0)
@@ -323,7 +323,7 @@ Value IoObject::write_file(Env *env, Args &&args) {
 
     if (kwargs && kwargs->has_key(env, "open_args"_s)) {
         auto next_args = new ArrayObject { filename };
-        next_args->concat(*kwargs->fetch(env, "open_args"_s, nullptr, nullptr)->to_ary(env));
+        next_args->concat(*kwargs->fetch(env, "open_args"_s, nullptr, nullptr).to_ary(env));
         auto open_args_has_kw = next_args->last().is_hash();
         file = _new(env, File, Args(next_args, open_args_has_kw), nullptr)->as_file();
     } else {
@@ -354,7 +354,7 @@ ssize_t IoObject::blocking_read(Env *env, void *buf, int count) const {
 Value IoObject::read(Env *env, Value count_value, Value buffer) {
     raise_if_closed(env);
     if (buffer != nullptr && !buffer.is_nil()) {
-        buffer = buffer->to_str(env);
+        buffer = buffer.to_str(env);
     } else {
         buffer = nullptr;
     }
@@ -441,8 +441,8 @@ Value IoObject::binmode(Env *env) {
 
 Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Value src_offset) {
     Value data = new StringObject {};
-    if (src.is_io() || src->respond_to(env, "to_io"_s)) {
-        auto src_io = src->to_io(env);
+    if (src.is_io() || src.respond_to(env, "to_io"_s)) {
+        auto src_io = src.to_io(env);
         if (!is_readable(src_io->fileno(env)))
             env->raise("IOError", "not opened for reading");
         if (src_offset && !src_offset.is_nil()) {
@@ -450,19 +450,19 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
         } else {
             src_io->read(env, src_length, data);
         }
-    } else if (src->respond_to(env, "read"_s)) {
-        src->send(env, "read"_s, { src_length, data });
-    } else if (src->respond_to(env, "readpartial"_s)) {
-        src->send(env, "readpartial"_s, { src_length, data });
+    } else if (src.respond_to(env, "read"_s)) {
+        src.send(env, "read"_s, { src_length, data });
+    } else if (src.respond_to(env, "readpartial"_s)) {
+        src.send(env, "readpartial"_s, { src_length, data });
     } else {
         data = read_file(env, { src, src_length, src_offset });
     }
 
-    if (dst.is_io() || dst->respond_to(env, "to_io"_s)) {
-        auto dst_io = dst->to_io(env);
+    if (dst.is_io() || dst.respond_to(env, "to_io"_s)) {
+        auto dst_io = dst.to_io(env);
         return Value::integer(dst_io->write(env, data));
-    } else if (dst->respond_to(env, "write"_s)) {
-        return dst->send(env, "write"_s, { data });
+    } else if (dst.respond_to(env, "write"_s)) {
+        return dst.send(env, "write"_s, { data });
     } else {
         return write_file(env, { dst, data });
     }
@@ -471,7 +471,7 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
 int IoObject::write(Env *env, Value obj) {
     raise_if_closed(env);
 
-    auto str = obj->to_s(env);
+    auto str = obj.to_s(env);
     if (str->is_empty())
         return 0;
 
@@ -508,7 +508,7 @@ Value IoObject::write(Env *env, Args &&args) {
 
 Value IoObject::write_nonblock(Env *env, Value obj, Value exception) {
     raise_if_closed(env);
-    obj = obj->to_s(env);
+    obj = obj.to_s(env);
     set_nonblock(env, true);
     obj.assert_type(env, Object::Type::String, "String");
     const auto result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->bytesize());
@@ -532,11 +532,11 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     auto line = new StringObject {};
     bool has_limit = false;
     if (sep && !sep.is_nil()) {
-        if (sep.is_integer() || sep->respond_to(env, "to_int"_s)) {
+        if (sep.is_integer() || sep.respond_to(env, "to_int"_s)) {
             limit = sep;
             sep = nullptr;
         } else {
-            sep = sep->to_str(env);
+            sep = sep.to_str(env);
             if (sep->as_string()->is_empty())
                 sep = new StringObject { "\n\n" };
         }
@@ -546,7 +546,7 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
         sep = env->global_get("$/"_s);
 
     if (limit) {
-        limit = Object::to_int(env, limit);
+        limit = limit.to_int(env);
         has_limit = true;
     } else {
         limit = Value::integer(NAT_READ_BYTES);
@@ -609,10 +609,10 @@ Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
     raise_if_closed(env);
     if (!is_readable(m_fileno))
         env->raise("IOError", "not opened for reading");
-    const auto count_int = Object::to_int(env, count).to_nat_int_t();
+    const auto count_int = count.to_int(env).to_nat_int_t();
     if (count_int < 0)
         env->raise("ArgumentError", "negative string size (or size too big)");
-    const auto offset_int = Object::to_int(env, offset).to_nat_int_t();
+    const auto offset_int = offset.to_int(env).to_nat_int_t();
     TM::String buf(count_int, '\0');
     const auto bytes_read = ::pread(m_fileno, &buf[0], count_int, offset_int);
     if (bytes_read < 0)
@@ -624,7 +624,7 @@ Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
     }
     buf.truncate(bytes_read);
     if (out_string != nullptr && !out_string.is_nil()) {
-        out_string = out_string->to_str(env);
+        out_string = out_string.to_str(env);
         out_string->as_string()->set_str(buf.c_str(), buf.size());
         return out_string;
     }
@@ -645,9 +645,9 @@ Value IoObject::putc(Env *env, Value val) {
 
 void IoObject::putstr(Env *env, StringObject *str) {
     String sstr = str->string();
-    this->send(env, "write"_s, Args({ str }));
+    send(env, "write"_s, Args({ str }));
     if (sstr.size() == 0 || (sstr.size() > 0 && !sstr.ends_with("\n"))) {
-        this->send(env, "write"_s, Args({ new StringObject { "\n" } }));
+        send(env, "write"_s, Args({ new StringObject { "\n" } }));
     }
 }
 
@@ -660,13 +660,13 @@ void IoObject::putary(Env *env, ArrayObject *ary) {
 void IoObject::puts(Env *env, Value val) {
     if (val.is_string()) {
         this->putstr(env, val->as_string());
-    } else if (val.is_array() || val->respond_to(env, "to_ary"_s)) {
-        this->putary(env, val->to_ary(env));
+    } else if (val.is_array() || val.respond_to(env, "to_ary"_s)) {
+        this->putary(env, val.to_ary(env));
     } else {
-        Value str = val->send(env, "to_s"_s);
+        Value str = val.send(env, "to_s"_s);
         if (str.is_string()) {
             this->putstr(env, str->as_string());
-        } else { // to_s did not return a string to inspect val instead.
+        } else { // to_s did not return a string, so inspect val instead.
             this->putstr(env, new StringObject { val->inspect_str(env) });
         }
     }
@@ -674,7 +674,7 @@ void IoObject::puts(Env *env, Value val) {
 
 Value IoObject::puts(Env *env, Args &&args) {
     if (args.size() == 0) {
-        this->send(env, "write"_s, Args({ new StringObject { "\n" } }));
+        send(env, "write"_s, Args({ new StringObject { "\n" } }));
     } else {
         for (size_t i = 0; i < args.size(); i++) {
             this->puts(env, args[i]);
@@ -706,7 +706,7 @@ Value IoObject::pwrite(Env *env, Value data, Value offset) {
     if (!is_writable(m_fileno))
         env->raise("IOError", "not opened for writing");
     auto offset_int = IntegerObject::convert_to_nat_int_t(env, offset);
-    auto str = data->to_s(env);
+    auto str = data.to_s(env);
     auto result = ::pwrite(m_fileno, str->c_str(), str->bytesize(), offset_int);
     if (result < 0)
         env->raise_errno();
@@ -765,7 +765,7 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
             break;
         }
         default:
-            env->raise("TypeError", "no implicit conversion of {} into Integer", whence_value->klass()->inspect_str());
+            env->raise("TypeError", "no implicit conversion of {} into Integer", whence_value.klass()->inspect_str());
         }
     }
     if (whence == SEEK_CUR && !m_read_buffer.is_empty())
@@ -793,11 +793,11 @@ Value IoObject::set_close_on_exec(Env *env, Value value) {
 }
 
 Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
-    if ((int_enc == nullptr || int_enc.is_nil()) && ext_enc != nullptr && (ext_enc.is_string() || ext_enc->respond_to(env, "to_str"_s))) {
-        ext_enc = ext_enc->to_str(env);
+    if ((int_enc == nullptr || int_enc.is_nil()) && ext_enc != nullptr && (ext_enc.is_string() || ext_enc.respond_to(env, "to_str"_s))) {
+        ext_enc = ext_enc.to_str(env);
         if (ext_enc->as_string()->include(":")) {
             auto colon = new StringObject { ":" };
-            auto encsplit = ext_enc->to_str(env)->split(env, colon, nullptr)->as_array();
+            auto encsplit = ext_enc.to_str(env)->split(env, colon, nullptr)->as_array();
             ext_enc = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(0)), nullptr);
             int_enc = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
         }
@@ -807,14 +807,14 @@ Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
         if (ext_enc.is_encoding()) {
             m_external_encoding = ext_enc->as_encoding();
         } else {
-            m_external_encoding = EncodingObject::find_encoding(env, ext_enc->to_str(env));
+            m_external_encoding = EncodingObject::find_encoding(env, ext_enc.to_str(env));
         }
     }
     if (int_enc != nullptr && !int_enc.is_nil()) {
         if (int_enc.is_encoding()) {
             m_internal_encoding = int_enc->as_encoding();
         } else {
-            m_internal_encoding = EncodingObject::find_encoding(env, int_enc->to_str(env));
+            m_internal_encoding = EncodingObject::find_encoding(env, int_enc.to_str(env));
         }
     }
 
@@ -878,14 +878,14 @@ IoObject *IoObject::to_io(Env *env) {
 Value IoObject::try_convert(Env *env, Value val) {
     if (val.is_io()) {
         return val;
-    } else if (val->respond_to(env, "to_io"_s)) {
-        auto io = val->send(env, "to_io"_s);
+    } else if (val.respond_to(env, "to_io"_s)) {
+        auto io = val.send(env, "to_io"_s);
         if (!io.is_io())
             env->raise(
                 "TypeError", "can't convert {} to IO ({}#to_io gives {})",
-                val->klass()->inspect_str(),
-                val->klass()->inspect_str(),
-                io->klass()->inspect_str());
+                val.klass()->inspect_str(),
+                val.klass()->inspect_str(),
+                io.klass()->inspect_str());
         return io;
     }
     return NilObject::the();
@@ -905,7 +905,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
         }
         m_read_buffer.prepend_char(static_cast<char>(value & 0xff));
     } else {
-        const auto &value = byte->to_str(env)->string();
+        const auto &value = byte.to_str(env)->string();
         m_read_buffer.prepend(value);
     }
     return NilObject::the();
@@ -914,7 +914,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
 Value IoObject::ungetc(Env *env, Value c) {
     if (c.is_integer())
         return ungetbyte(env, c);
-    return ungetbyte(env, c->to_str(env));
+    return ungetbyte(env, c.to_str(env));
 }
 
 Value IoObject::wait(Env *env, Args &&args) {
@@ -925,7 +925,7 @@ Value IoObject::wait(Env *env, Args &&args) {
     bool return_self = false;
 
     if (args.size() == 2 && args.at(0, NilObject::the()).is_integer() && args.at(1, NilObject::the()).is_numeric()) {
-        events = Object::to_int(env, args[0]).to_nat_int_t();
+        events = args[0].to_int(env).to_nat_int_t();
         timeout = args[1];
 
         if (events <= 0)
@@ -1015,14 +1015,14 @@ bool IoObject::sync(Env *env) const {
 }
 
 Value IoObject::sysread(Env *env, Value amount, Value buffer) {
-    if (IntegerObject::is_zero(Object::to_int(env, amount)) && buffer && !buffer.is_nil())
+    if (IntegerObject::is_zero(amount.to_int(env)) && buffer && !buffer.is_nil())
         return buffer;
     if (!m_read_buffer.is_empty())
         env->raise("IOError", "sysread for buffered IO");
     auto result = read(env, amount, buffer);
     if (result.is_nil()) {
         if (buffer && !buffer.is_nil())
-            buffer->to_str(env)->clear(env);
+            buffer.to_str(env)->clear(env);
         env->raise("EOFError", "end of file reached");
     }
     return result;
@@ -1038,7 +1038,7 @@ Value IoObject::sysseek(Env *env, Value amount, Value whence) {
 Value IoObject::syswrite(Env *env, Value obj) {
     raise_if_closed(env);
 
-    auto str = obj->to_s(env);
+    auto str = obj.to_s(env);
     if (str->is_empty())
         return 0;
 
@@ -1067,7 +1067,7 @@ static fd_set create_fd_set(Env *env, ArrayObject *ios, int *nfds) {
         return result;
 
     for (auto io : *ios) {
-        const auto fd = io->to_io(env)->fileno();
+        const auto fd = io.to_io(env)->fileno();
         FD_SET(fd, &result);
         *nfds = std::max(*nfds, fd + 1);
     }
@@ -1081,7 +1081,7 @@ static ArrayObject *create_output_fds(Env *env, fd_set *fds, ArrayObject *ios) {
         return result;
 
     for (auto io : *ios) {
-        const auto fd = io->to_io(env)->fileno();
+        const auto fd = io.to_io(env)->fileno();
         if (FD_ISSET(fd, fds))
             result->push(io);
     }
@@ -1092,7 +1092,7 @@ Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_io
     timeval timeout_tv = { 0, 0 }, *timeout_ptr = nullptr;
 
     if (timeout && !timeout.is_nil()) {
-        const auto timeout_f = timeout->to_f(env)->to_double();
+        const auto timeout_f = timeout.to_f(env)->to_double();
         if (timeout_f < 0)
             env->raise("ArgumentError", "time interval must not be negative");
         timeout_tv.tv_sec = static_cast<int>(timeout_f);
@@ -1100,9 +1100,9 @@ Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_io
         timeout_ptr = &timeout_tv;
     }
 
-    auto read_ios_ary = read_ios && !read_ios.is_nil() ? read_ios->to_ary(env) : new ArrayObject {};
-    auto write_ios_ary = write_ios && !write_ios.is_nil() ? write_ios->to_ary(env) : new ArrayObject {};
-    auto error_ios_ary = error_ios && !error_ios.is_nil() ? error_ios->to_ary(env) : new ArrayObject {};
+    auto read_ios_ary = read_ios && !read_ios.is_nil() ? read_ios.to_ary(env) : new ArrayObject {};
+    auto write_ios_ary = write_ios && !write_ios.is_nil() ? write_ios.to_ary(env) : new ArrayObject {};
+    auto error_ios_ary = error_ios && !error_ios.is_nil() ? error_ios.to_ary(env) : new ArrayObject {};
 
     auto wake_pipe_fileno = ThreadObject::wake_pipe_read_fileno();
 
@@ -1237,10 +1237,10 @@ Value IoObject::popen(Env *env, Args &&args, Block *block, ClassObject *klass) {
     if (args.size() > 2)
         env->raise("NotImplementedError", "IO.popen with env is not yet supported");
     args.ensure_argc_between(env, 1, 3);
-    auto command = args.at(0)->to_str(env);
+    auto command = args.at(0).to_str(env);
     if (*command->c_str() == '-')
         env->raise("NotImplementedError", "IO.popen with \"-\" to fork is not yet supported");
-    auto type = args.at(1, new StringObject { "r" })->to_str(env);
+    auto type = args.at(1, new StringObject { "r" }).to_str(env);
     pid_t pid;
     auto fileptr = popen2(command->c_str(), type->c_str(), pid);
     if (!fileptr)

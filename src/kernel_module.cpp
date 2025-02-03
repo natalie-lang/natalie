@@ -27,14 +27,14 @@ Value KernelModule::abort_method(Env *env, Value message) {
 
     if (message) {
         if (!message.is_string())
-            message = message->to_str(env);
+            message = message.to_str(env);
 
         message.assert_type(env, Object::Type::String, "String");
 
         exception = SystemExit.send(env, "new"_s, { Value::integer(1), message })->as_exception();
 
         auto out = env->global_get("$stderr"_s);
-        out->send(env, "puts"_s, { message });
+        out.send(env, "puts"_s, { message });
     } else {
         exception = SystemExit.send(env, "new"_s, { Value::integer(1) })->as_exception();
     }
@@ -55,7 +55,7 @@ Value KernelModule::at_exit(Env *env, Block *block) {
 Value KernelModule::backtick(Env *env, Value command) {
     constexpr size_t NAT_SHELL_READ_BYTES = 1024;
     pid_t pid;
-    auto process = popen2(command->to_str(env)->c_str(), "r", pid);
+    auto process = popen2(command.to_str(env)->c_str(), "r", pid);
     if (!process)
         env->raise_errno();
     char buf[NAT_SHELL_READ_BYTES];
@@ -153,7 +153,7 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
     }
 
     if (exception)
-        env->raise("TypeError", "can't convert {} into Complex", real->klass()->inspect_str());
+        env->raise("TypeError", "can't convert {} into Complex", real.klass()->inspect_str());
     else
         return nullptr;
 }
@@ -198,7 +198,7 @@ Value KernelModule::exit(Env *env, Value status) {
     }
 
     ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s)->as_class(), new StringObject { "exit" } };
-    exception->ivar_set(env, "@status"_s, Object::to_int(env, status));
+    exception->ivar_set(env, "@status"_s, status.to_int(env));
     env->raise_exception(exception);
     return NilObject::the();
 }
@@ -211,7 +211,7 @@ Value KernelModule::exit_bang(Env *env, Value status) {
 Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) {
     nat_int_t base_int = 0; // default to zero if unset
     if (base)
-        base_int = Object::to_int(env, base).to_nat_int_t();
+        base_int = base.to_int(env).to_nat_int_t();
     return Integer(env, value, base_int, exception ? exception.is_true() : true);
 }
 
@@ -244,18 +244,18 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
 
     if (!value.is_nil()) {
         // Try using to_int to coerce to an Integer
-        if (value->respond_to(env, "to_int"_s)) {
+        if (value.respond_to(env, "to_int"_s)) {
             auto result = value.send(env, "to_int"_s);
             if (result.is_integer()) return result;
         }
         // If to_int doesn't exist or doesn't return an Integer, try to_i instead.
-        if (value->respond_to(env, "to_i"_s)) {
+        if (value.respond_to(env, "to_i"_s)) {
             auto result = value.send(env, "to_i"_s);
             if (result.is_integer()) return result;
         }
     }
     if (exception)
-        env->raise("TypeError", "can't convert {} into Integer", value->klass()->inspect_str());
+        env->raise("TypeError", "can't convert {} into Integer", value.klass()->inspect_str());
     else
         return Value(NilObject::the());
 }
@@ -280,7 +280,7 @@ Value KernelModule::Float(Env *env, Value value, bool exception) {
         }
     }
     if (exception)
-        env->raise("TypeError", "can't convert {} into Float", value->klass()->inspect_str());
+        env->raise("TypeError", "can't convert {} into Float", value.klass()->inspect_str());
     else
         return nullptr;
 }
@@ -352,7 +352,7 @@ Value KernelModule::Hash(Env *env, Value value) {
     if (value.is_nil() || (value.is_array() && value->as_array()->is_empty()))
         return new HashObject;
 
-    return value->to_hash(env);
+    return value.to_hash(env);
 }
 
 Value KernelModule::lambda(Env *env, Block *block) {
@@ -387,11 +387,11 @@ Value KernelModule::print(Env *env, Args &&args) {
     auto _stdout = env->global_get("$stdout"_s);
     assert(_stdout);
     if (args.size() == 0)
-        return _stdout->send(env, "write"_s, Args { env->global_get("$_"_s) });
+        return _stdout.send(env, "write"_s, Args { env->global_get("$_"_s) });
     // NATFIXME: Kernel.print should actually call IO.print and not
     // IO.write, but for now using IO.print causes crashes.
-    // return _stdout->send(env, "print"_s, args);
-    return _stdout->send(env, "write"_s, std::move(args));
+    // return _stdout.send(env, "print"_s, args);
+    return _stdout.send(env, "write"_s, std::move(args));
 }
 
 Value KernelModule::proc(Env *env, Block *block) {
@@ -403,7 +403,7 @@ Value KernelModule::proc(Env *env, Block *block) {
 
 Value KernelModule::puts(Env *env, Args &&args) {
     auto _stdout = env->global_get("$stdout"_s);
-    return _stdout->send(env, "puts"_s, std::move(args));
+    return _stdout.send(env, "puts"_s, std::move(args));
 }
 
 Value KernelModule::raise(Env *env, Args &&args) {
@@ -441,9 +441,9 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
             return nullptr;
 
         if (x.is_nil())
-            env->raise("TypeError", "can't convert {} into Rational", x->klass()->inspect_str());
+            env->raise("TypeError", "can't convert {} into Rational", x.klass()->inspect_str());
 
-        if (x->respond_to(env, "to_r"_s)) {
+        if (x.respond_to(env, "to_r"_s)) {
             auto result = x->public_send(env, "to_r"_s);
             result.assert_type(env, Object::Type::Rational, "Rational");
             return result;
@@ -486,7 +486,7 @@ RationalObject *KernelModule::Rational(Env *env, double arg) {
 Value KernelModule::sleep(Env *env, Value length) {
     if (FiberObject::scheduler_is_relevant()) {
         if (!length) length = NilObject::the();
-        return FiberObject::scheduler()->send(env, "kernel_sleep"_s, { length });
+        return FiberObject::scheduler().send(env, "kernel_sleep"_s, { length });
     }
 
     if (!length || length.is_nil())
@@ -499,12 +499,12 @@ Value KernelModule::sleep(Env *env, Value length) {
         secs = length->as_float()->to_double();
     } else if (length.is_rational()) {
         secs = length->as_rational()->to_f(env)->as_float()->to_double();
-    } else if (length->respond_to(env, "divmod"_s)) {
-        auto divmod = length->send(env, "divmod"_s, { IntegerObject::create(1) })->as_array();
-        secs = divmod->at(0)->to_f(env)->as_float()->to_double();
-        secs += divmod->at(1)->to_f(env)->as_float()->to_double();
+    } else if (length.respond_to(env, "divmod"_s)) {
+        auto divmod = length.send(env, "divmod"_s, { IntegerObject::create(1) })->as_array();
+        secs = divmod->at(0).to_f(env)->as_float()->to_double();
+        secs += divmod->at(1).to_f(env)->as_float()->to_double();
     } else {
-        env->raise("TypeError", "can't convert {} into time interval", length->klass()->inspect_str());
+        env->raise("TypeError", "can't convert {} into time interval", length.klass()->inspect_str());
     }
 
     if (secs < 0.0)
@@ -525,17 +525,17 @@ Value KernelModule::spawn(Env *env, Args &&args) {
         }
     });
 
-    if (args.size() >= 1 && (args.at(0).is_hash() || args.at(0)->respond_to(env, "to_hash"_s))) {
-        auto hash = args.shift()->to_hash(env);
+    if (args.size() >= 1 && (args.at(0).is_hash() || args.at(0).respond_to(env, "to_hash"_s))) {
+        auto hash = args.shift().to_hash(env);
         for (auto ep = environ; *ep; ep++)
             new_env.push(strdup(*ep));
         for (auto pair : *hash) {
-            auto key = pair.key->to_str(env);
+            auto key = pair.key.to_str(env);
             if (key->include(env, '='))
                 env->raise("ArgumentError", "environment name contains a equal : {}", key->string());
             if (key->include(env, '\0'))
                 env->raise("ArgumentError", "string contains null byte");
-            auto val = pair.val->to_str(env);
+            auto val = pair.val.to_str(env);
             if (val->include(env, '\0'))
                 env->raise("ArgumentError", "string contains null byte");
             auto combined = String::format(
@@ -550,7 +550,7 @@ Value KernelModule::spawn(Env *env, Args &&args) {
     args.ensure_argc_at_least(env, 1);
 
     if (args.size() == 1) {
-        auto arg = args.at(0)->to_str(env);
+        auto arg = args.at(0).to_str(env);
         bool needs_escaping = false;
         for (auto c : *arg) {
             if (c == '"' || c == '\'' || c == '$' || c == '<' || c == '>') {
@@ -591,10 +591,10 @@ Value KernelModule::spawn(Env *env, Args &&args) {
     } else {
         const char *cmd[args.size() + 1];
         for (size_t i = 0; i < args.size(); i++) {
-            cmd[i] = args[i]->to_str(env)->c_str();
+            cmd[i] = args[i].to_str(env)->c_str();
         }
         cmd[args.size()] = nullptr;
-        auto program = args[0]->to_str(env);
+        auto program = args[0].to_str(env);
         result = posix_spawnp(
             &pid,
             program->c_str(),
@@ -617,8 +617,8 @@ Value KernelModule::String(Env *env, Value value) {
 
     auto to_s = "to_s"_s;
 
-    if (!respond_to_method(env, value, to_s, true) || !value->respond_to(env, to_s))
-        env->raise("TypeError", "can't convert {} into String", value->klass()->inspect_str());
+    if (!respond_to_method(env, value, to_s, true) || !value.respond_to(env, to_s))
+        env->raise("TypeError", "can't convert {} into String", value.klass()->inspect_str());
 
     value = value.send(env, to_s);
     value.assert_type(env, Object::Type::String, "String");
@@ -626,7 +626,7 @@ Value KernelModule::String(Env *env, Value value) {
 }
 
 Value KernelModule::test(Env *env, Value cmd, Value file) {
-    switch (cmd->to_str(env)->string()[0]) {
+    switch (cmd.to_str(env)->string()[0]) {
     case 'A':
         return FileObject::stat(env, file)->as_file_stat()->atime(env);
     case 'C':
@@ -650,7 +650,7 @@ Value KernelModule::test(Env *env, Value cmd, Value file) {
     case 'W':
         return bool_object(FileObject::is_writable_real(env, file));
     default:
-        env->raise("ArgumentError", "unknown command '{}'", cmd->to_str(env)->string()[0]);
+        env->raise("ArgumentError", "unknown command '{}'", cmd.to_str(env)->string()[0]);
     }
     NAT_UNREACHABLE();
 }
@@ -676,8 +676,8 @@ Value KernelModule::throw_method(Env *env, Value name, Value value) {
 Value KernelModule::klass_obj(Env *env, Value self) {
     if (self.is_integer())
         return GlobalEnv::the()->Integer();
-    else if (self->klass())
-        return self->klass();
+    else if (self.klass())
+        return self.klass();
     else
         return NilObject::the();
 }
@@ -705,9 +705,9 @@ Value KernelModule::dup(Env *env, Value self) {
 }
 
 Value KernelModule::dup_better(Env *env, Value self) {
-    auto dup = self->allocate(env, self->klass(), {}, nullptr);
+    auto dup = self->allocate(env, self.klass(), {}, nullptr);
     dup->copy_instance_variables(self);
-    dup->send(env, "initialize_dup"_s, { self });
+    dup.send(env, "initialize_dup"_s, { self });
     return dup;
 }
 
@@ -716,7 +716,7 @@ Value KernelModule::extend(Env *env, Value self, Args &&args) {
         if (args[i]->type() == Object::Type::Module) {
             args[i]->as_module()->send(env, "extend_object"_s, { self });
         } else {
-            env->raise("TypeError", "wrong argument type {} (expected Module)", args[i]->klass()->inspect_str());
+            env->raise("TypeError", "wrong argument type {} (expected Module)", args[i].klass()->inspect_str());
         }
     }
     return self;
@@ -734,7 +734,7 @@ Value KernelModule::hash(Env *env, Value self) {
     case Object::Type::Symbol:
         return Value::integer(self->as_symbol()->string().djb2_hash());
     default: {
-        StringObject *inspected = self->send(env, "inspect"_s)->as_string();
+        StringObject *inspected = self.send(env, "inspect"_s)->as_string();
         nat_int_t hash_value = inspected->string().djb2_hash();
         return Value::integer(hash_value);
     }
@@ -746,7 +746,7 @@ Value KernelModule::initialize_copy(Env *env, Value self, Value object) {
         return self;
 
     self->assert_not_frozen(env);
-    if (self->klass() != object->klass())
+    if (self.klass() != object.klass())
         env->raise("TypeError", "initialize_copy should take same class object");
 
     return self;
@@ -756,7 +756,7 @@ Value KernelModule::inspect(Env *env, Value value) {
     if (value.is_module() && value->as_module()->name())
         return new StringObject { value->as_module()->name().value() };
     else
-        return StringObject::format("#<{}:{}>", value->klass()->inspect_str(), value->pointer_id());
+        return StringObject::format("#<{}:{}>", value.klass()->inspect_str(), value->pointer_id());
 }
 
 bool KernelModule::instance_variable_defined(Env *env, Value self, Value name_val) {
@@ -808,7 +808,7 @@ bool KernelModule::is_a(Env *env, Value self, Value module) {
     if (self.is_integer())
         return GlobalEnv::the()->Integer()->ancestors_includes(env, module->as_module());
 
-    return self->is_a(env, module->as_module());
+    return self.is_a(env, module->as_module());
 }
 
 Value KernelModule::loop(Env *env, Value self, Block *block) {
@@ -817,7 +817,7 @@ Value KernelModule::loop(Env *env, Value self, Block *block) {
             return FloatObject::positive_infinity(env);
         };
         auto size_block = new Block { *env, self, infinity_fn, 0 };
-        return self->send(env, "enum_for"_s, { "loop"_s }, size_block);
+        return self.send(env, "enum_for"_s, { "loop"_s }, size_block);
     }
 
     try {
@@ -827,7 +827,7 @@ Value KernelModule::loop(Env *env, Value self, Block *block) {
         return NilObject::the();
     } catch (ExceptionObject *exception) {
         auto StopIteration = find_top_level_const(env, "StopIteration"_s);
-        if (exception->is_a(env, StopIteration)) {
+        if (Value(exception).is_a(env, StopIteration)) {
             GlobalEnv::the()->set_rescued(true);
             return exception->send(env, "result"_s);
         } else {
@@ -839,7 +839,7 @@ Value KernelModule::loop(Env *env, Value self, Block *block) {
 Value KernelModule::method(Env *env, Value self, Value name) {
     auto name_symbol = name->to_symbol(env, Object::Conversion::Strict);
     auto singleton = self->singleton_class();
-    auto module = singleton ? singleton : self->klass();
+    auto module = singleton ? singleton : self.klass();
     auto method_info = module->find_method(env, name_symbol);
     if (!method_info.is_defined()) {
         auto respond_to_missing = module->find_method(env, "respond_to_missing?"_s);
@@ -851,7 +851,7 @@ Value KernelModule::method(Env *env, Value self, Value name) {
                 }
             }
         }
-        env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), self->klass()->inspect_str());
+        env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), self.klass()->inspect_str());
     }
     return new MethodObject { self, method_info.method() };
 }
@@ -862,7 +862,7 @@ Value KernelModule::methods(Env *env, Value self, Value regular_val) {
         if (self->singleton_class()) {
             return self->singleton_class()->instance_methods(env, TrueObject::the());
         } else {
-            return self->klass()->instance_methods(env, TrueObject::the());
+            return self.klass()->instance_methods(env, TrueObject::the());
         }
     }
     if (self->singleton_class())
@@ -872,28 +872,28 @@ Value KernelModule::methods(Env *env, Value self, Value regular_val) {
 }
 
 bool KernelModule::neqtilde(Env *env, Value self, Value other) {
-    return self->send(env, "=~"_s, { other }).is_falsey();
+    return self.send(env, "=~"_s, { other }).is_falsey();
 }
 
 Value KernelModule::private_methods(Env *env, Value self, Value recur) {
     if (self->singleton_class())
         return self->singleton_class()->private_instance_methods(env, TrueObject::the());
     else
-        return self->klass()->private_instance_methods(env, recur);
+        return self.klass()->private_instance_methods(env, recur);
 }
 
 Value KernelModule::protected_methods(Env *env, Value self, Value recur) {
     if (self->singleton_class())
         return self->singleton_class()->protected_instance_methods(env, TrueObject::the());
     else
-        return self->klass()->protected_instance_methods(env, recur);
+        return self.klass()->protected_instance_methods(env, recur);
 }
 
 Value KernelModule::public_methods(Env *env, Value self, Value recur) {
     if (self->singleton_class())
         return self->singleton_class()->public_instance_methods(env, TrueObject::the());
     else
-        return self->klass()->public_instance_methods(env, recur);
+        return self.klass()->public_instance_methods(env, recur);
 }
 
 Value KernelModule::remove_instance_variable(Env *env, Value self, Value name_val) {

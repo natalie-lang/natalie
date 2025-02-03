@@ -65,7 +65,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
     }
 
     Value to_int(Env *env, Value v, GlobalVariableInfo &) {
-        return Object::to_int(env, v);
+        return v.to_int(env);
     }
 
     Value last_match(Env *env, Value v, GlobalVariableInfo &) {
@@ -77,8 +77,8 @@ namespace GlobalVariableAccessHooks::WriteHooks {
     }
 
     Value set_stdout(Env *env, Value v, GlobalVariableInfo &) {
-        if (!v->respond_to(env, "write"_s))
-            env->raise("TypeError", "$stdout must have write method, {} given", v->klass()->inspect_str());
+        if (!v.respond_to(env, "write"_s))
+            env->raise("TypeError", "$stdout must have write method, {} given", v.klass()->inspect_str());
         return v.object();
     }
 

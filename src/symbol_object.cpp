@@ -104,7 +104,7 @@ SymbolObject *SymbolObject::capitalize(Env *env) {
 Value SymbolObject::casecmp(Env *env, Value other) {
     if (!other.is_symbol()) return NilObject::the();
     auto str1 = to_s(env);
-    auto str2 = other->to_s(env);
+    auto str2 = other.to_s(env);
     str1 = str1->send(env, "downcase"_s, { "ascii"_s })->as_string();
     str2 = str2->send(env, "downcase"_s, { "ascii"_s })->as_string();
     return str1->cmp(env, Value(str2));
@@ -114,7 +114,7 @@ Value SymbolObject::is_casecmp(Env *env, Value other) {
     if (!other.is_symbol()) return NilObject::the();
     // other.assert_type(env, Object::Type::Symbol, "Symbol");
     auto str1 = to_s(env);
-    auto str2 = other->to_s(env);
+    auto str2 = other.to_s(env);
     str1 = str1->send(env, "downcase"_s, { "ascii"_s })->as_string();
     str2 = str2->send(env, "downcase"_s, { "ascii"_s })->as_string();
     if (str1->string() == str2->string())
@@ -175,7 +175,7 @@ Value SymbolObject::name(Env *env) const {
 }
 Value SymbolObject::ref(Env *env, Value index_obj, Value length_obj) {
     // The next line worked in nearly every case, except it did not set `$~`
-    // return to_s(env)->send(env, intern("[]"), { index_obj, length_obj });
+    // return to_s(env).send(env, intern("[]"), { index_obj, length_obj });
     return to_s(env)->ref(env, index_obj, length_obj);
 }
 

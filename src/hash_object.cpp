@@ -147,7 +147,7 @@ Value HashObject::set_default_proc(Env *env, Value value) {
     }
     auto to_proc = "to_proc"_s;
     auto to_proc_value = value;
-    if (value->respond_to(env, to_proc))
+    if (value.respond_to(env, to_proc))
         to_proc_value = value.send(env, to_proc);
     to_proc_value.assert_type(env, Type::Proc, "Proc");
     auto proc = to_proc_value->as_proc();
@@ -239,8 +239,8 @@ Value HashObject::square_new(Env *env, Args &&args, ClassObject *klass) {
         return new HashObject { klass };
     } else if (args.size() == 1) {
         Value value = args[0];
-        if (!value.is_hash() && value->respond_to(env, "to_hash"_s))
-            value = value->to_hash(env);
+        if (!value.is_hash() && value.respond_to(env, "to_hash"_s))
+            value = value.to_hash(env);
         if (value.is_hash()) {
             auto hash = new HashObject { env, *value->as_hash() };
             hash->m_default_proc = nullptr;
@@ -248,8 +248,8 @@ Value HashObject::square_new(Env *env, Args &&args, ClassObject *klass) {
             hash->m_klass = klass;
             return hash;
         } else {
-            if (!value.is_array() && value->respond_to(env, "to_ary"_s))
-                value = value->to_ary(env);
+            if (!value.is_array() && value.respond_to(env, "to_ary"_s))
+                value = value.to_ary(env);
             if (value.is_array()) {
                 HashObject *hash = new HashObject { klass };
                 for (auto &pair : *value->as_array()) {
@@ -293,12 +293,12 @@ Value HashObject::inspect(Env *env) {
         auto to_s = [env](Value obj) {
             if (obj.is_string())
                 return obj->as_string();
-            if (obj->respond_to(env, "to_s"_s))
-                obj = obj->send(env, "to_s"_s);
+            if (obj.respond_to(env, "to_s"_s))
+                obj = obj.send(env, "to_s"_s);
             else
                 obj = new StringObject("?");
             if (!obj.is_string())
-                obj = StringObject::format("#<{}:{}>", obj->klass()->inspect_str(), String::hex(object_id(obj), String::HexFormat::LowercaseAndPrefixed));
+                obj = StringObject::format("#<{}:{}>", obj.klass()->inspect_str(), String::hex(object_id(obj), String::HexFormat::LowercaseAndPrefixed));
             return obj->as_string();
         };
 
@@ -366,7 +366,7 @@ Value HashObject::rehash(Env *env) {
 Value HashObject::replace(Env *env, Value other) {
     assert_not_frozen(env);
 
-    auto other_hash = other->to_hash(env);
+    auto other_hash = other.to_hash(env);
     if (this == other_hash)
         return this;
 
@@ -420,8 +420,8 @@ Value HashObject::dig(Env *env, Args &&args) {
     if (val == NilObject::the())
         return val;
 
-    if (!val->respond_to(env, dig))
-        env->raise("TypeError", "{} does not have #dig method", val->klass()->inspect_str());
+    if (!val.respond_to(env, dig))
+        env->raise("TypeError", "{} does not have #dig method", val.klass()->inspect_str());
 
     return val.send(env, dig, std::move(args));
 }
@@ -470,7 +470,7 @@ bool HashObject::eql(Env *env, Value other_value) {
 }
 
 bool HashObject::gte(Env *env, Value other) {
-    auto other_hash = other->to_hash(env);
+    auto other_hash = other.to_hash(env);
 
     for (auto &node : *other_hash) {
         Value value = get(env, node.key);
@@ -482,13 +482,13 @@ bool HashObject::gte(Env *env, Value other) {
 }
 
 bool HashObject::gt(Env *env, Value other) {
-    auto other_hash = other->to_hash(env);
+    auto other_hash = other.to_hash(env);
 
     return gte(env, other) && other_hash->size() != size();
 }
 
 bool HashObject::lte(Env *env, Value other) {
-    auto other_hash = other->to_hash(env);
+    auto other_hash = other.to_hash(env);
 
     for (auto &node : *this) {
         Value value = other_hash->get(env, node.key);
@@ -500,7 +500,7 @@ bool HashObject::lte(Env *env, Value other) {
 }
 
 bool HashObject::lt(Env *env, Value other) {
-    auto other_hash = other->to_hash(env);
+    auto other_hash = other.to_hash(env);
 
     return lte(env, other) && other_hash->size() != size();
 }
@@ -606,10 +606,10 @@ Value HashObject::to_h(Env *env, Block *block) {
         block_args[0] = node.key;
         block_args[1] = node.val;
         auto result = block->run(env, Args(2, block_args), nullptr);
-        if (!result.is_array() && result->respond_to(env, "to_ary"_s))
-            result = result->to_ary(env);
+        if (!result.is_array() && result.respond_to(env, "to_ary"_s))
+            result = result.to_ary(env);
         if (!result.is_array())
-            env->raise("TypeError", "wrong element type {} (expected array)", result->klass()->inspect_str());
+            env->raise("TypeError", "wrong element type {} (expected array)", result.klass()->inspect_str());
         auto result_array = result->as_array();
         if (result_array->size() != 2)
             env->raise("ArgumentError", "element has wrong array length (expected 2, was {})", result_array->size());
@@ -642,7 +642,7 @@ Value HashObject::hash(Env *env) {
 
             auto value = node.val;
             if (!eql(env, value)) {
-                auto value_hash = value->send(env, hash_method);
+                auto value_hash = value.send(env, hash_method);
 
                 if (!value_hash.is_nil()) {
                     entry_hash.append(IntegerObject::convert_to_nat_int_t(env, value_hash));
@@ -652,7 +652,7 @@ Value HashObject::hash(Env *env) {
 
             auto key = node.key;
             if (!eql(env, key)) {
-                auto key_hash = key->send(env, hash_method);
+                auto key_hash = key.send(env, hash_method);
 
                 if (!key_hash.is_nil()) {
                     entry_hash.append(IntegerObject::convert_to_nat_int_t(env, key_hash));
@@ -694,7 +694,7 @@ Value HashObject::merge_in_place(Env *env, Args &&args, Block *block) {
     this->assert_not_frozen(env);
 
     for (size_t i = 0; i < args.size(); i++) {
-        for (auto node : *args[i]->to_hash(env)) {
+        for (auto node : *args[i].to_hash(env)) {
             auto new_value = node.val;
             if (block) {
                 auto old_value = get(env, node.key);

@@ -102,6 +102,16 @@ public:
     ClassObject *singleton_class() const;
     ClassObject *singleton_class(Env *);
 
+    // Old error message style, e.g.:
+    // - no implicit conversion from nil to string
+    // - no implicit conversion of Integer into String
+    StringObject *to_str(Env *env);
+
+    // New error message style, e.g.:
+    // - no implicit conversion of nil into String
+    // - no implicit conversion of Integer into String
+    StringObject *to_str2(Env *env);
+
     bool is_fast_integer() const {
         return m_type == Type::Integer;
     }
@@ -126,6 +136,7 @@ public:
     void assert_type(Env *, ObjectType, const char *) const;
     void assert_not_frozen(Env *) const;
 
+    bool is_a(Env *, Value) const;
     bool respond_to(Env *, SymbolObject *, bool include_all = true);
 
     bool is_nil() const;
@@ -168,6 +179,13 @@ public:
     bool is_falsey() const;
     bool is_numeric() const;
     bool is_boolean() const;
+
+    ArrayObject *to_ary(Env *env);
+    FloatObject *to_f(Env *env);
+    HashObject *to_hash(Env *env);
+    IoObject *to_io(Env *env);
+    Integer to_int(Env *env);
+    StringObject *to_s(Env *env);
 
 private:
     void auto_hydrate();

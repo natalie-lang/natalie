@@ -39,15 +39,15 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
         return 0;
 
     if (_step.is_float() || _begin.is_float() || _end.is_float()) {
-        _step = _step->to_f(env);
-        _begin = _begin->to_f(env);
-        _end = _end->to_f(env);
+        _step = _step.to_f(env);
+        _begin = _begin.to_f(env);
+        _end = _end.to_f(env);
     }
 
-    if (_step->to_f(env)->is_infinity())
+    if (_step.to_f(env)->is_infinity())
         return 1;
 
-    auto n = _end.send(env, "-"_s, { _begin }).send(env, "/"_s, { _step->to_f(env) });
+    auto n = _end.send(env, "-"_s, { _begin }).send(env, "/"_s, { _step.to_f(env) });
 
     // Try to fix float incorrections
     // For example: begin: 1, end: 55.6, step: 18.2
@@ -56,7 +56,7 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
         n = n.send(env, "+"_s, { Value::integer(1) });
 
     if (n.send(env, "=="_s, { n.send(env, "floor"_s) }).is_truthy())
-        n = Object::to_int(env, n);
+        n = n.to_int(env);
 
     Integer step_count;
     if (n.is_integer()) {
@@ -95,12 +95,12 @@ Value ArithmeticSequenceObject::iterate(Env *env, std::function<Value(Value)> fu
     auto infinite = !_end || _end.is_nil() || (_end.send(env, "infinite?"_s).is_truthy() && _end.send(env, cmp, { Value::integer(0) }).is_truthy());
 
     if (_step.is_float() || _begin.is_float() || _end.is_float()) {
-        _step = _step->to_f(env);
-        _begin = _begin->to_f(env);
+        _step = _step.to_f(env);
+        _begin = _begin.to_f(env);
 
         // If m_end is nil #to_f would return 0.0
         if (!infinite)
-            _end = _end->to_f(env);
+            _end = _end.to_f(env);
     }
 
     if (_step.send(env, "infinite?"_s).is_truthy()) {
@@ -211,7 +211,7 @@ Value ArithmeticSequenceObject::last(Env *env, Value n) {
     auto steps = step_count(env);
 
     if (n) {
-        auto n_as_int = Object::to_int(env, n);
+        auto n_as_int = n.to_int(env);
         Integer count = n_as_int;
 
         if (count < 0)
@@ -247,7 +247,7 @@ Value ArithmeticSequenceObject::last(Env *env, Value n) {
 
 Value ArithmeticSequenceObject::maybe_to_f(Env *env, Value v) {
     if (m_begin.is_float() || m_end.is_float())
-        return v->to_f(env);
+        return v.to_f(env);
     return v;
 }
 

@@ -544,16 +544,16 @@ Value splat(Env *env, Value obj) {
 
 Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat) {
     if (is_splat) {
-        if (!when_value.is_array() && when_value->respond_to(env, "to_a"_s)) {
-            auto original_class = when_value->klass();
-            when_value = when_value->send(env, "to_a"_s);
+        if (!when_value.is_array() && when_value.respond_to(env, "to_a"_s)) {
+            auto original_class = when_value.klass();
+            when_value = when_value.send(env, "to_a"_s);
             if (!when_value.is_array()) {
-                env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", original_class->inspect_str(), original_class->inspect_str(), when_value->klass()->inspect_str());
+                env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", original_class->inspect_str(), original_class->inspect_str(), when_value.klass()->inspect_str());
             }
         }
         if (when_value.is_array()) {
             for (auto item : *when_value->as_array()) {
-                if (item->send(env, "==="_s, { case_value }).is_truthy()) {
+                if (item.send(env, "==="_s, { case_value }).is_truthy()) {
                     return TrueObject::the();
                 }
             }
@@ -606,7 +606,8 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception, Thread
 }
 
 void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_exit_handlers) {
-    if (exception->is_a(env, find_top_level_const(env, "SystemExit"_s)->as_class())) {
+    auto exception_value = Value(exception);
+    if (exception_value.is_a(env, find_top_level_const(env, "SystemExit"_s)->as_class())) {
         auto status = exception->ivar_get(env, "@status"_s);
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (status.is_integer()) {
@@ -619,7 +620,7 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
         } else {
             clean_up_and_exit(1);
         }
-    } else if (exception->is_a(env, find_top_level_const(env, "SignalException"_s)->as_class())) {
+    } else if (exception_value.is_a(env, find_top_level_const(env, "SignalException"_s)->as_class())) {
         Value signo = exception->ivar_get(env, "@signo"_s);
         if (signo->type() == Object::Type::Integer) {
             auto val = signo.integer().to_nat_int_t();
@@ -643,26 +644,26 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
         return obj->as_array();
     }
 
-    if (obj->respond_to(env, "to_ary"_s)) {
+    if (obj.respond_to(env, "to_ary"_s)) {
         auto array = obj.send(env, "to_ary"_s);
         if (!array.is_nil()) {
             if (array.is_array()) {
                 return array->as_array();
             } else if (raise_for_non_array) {
-                auto class_name = obj->klass()->inspect_str();
-                env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, array->klass()->inspect_str());
+                auto class_name = obj.klass()->inspect_str();
+                env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, array.klass()->inspect_str());
             }
         }
     }
 
-    if (obj->respond_to(env, "to_a"_s)) {
+    if (obj.respond_to(env, "to_a"_s)) {
         auto array = obj.send(env, "to_a"_s);
         if (!array.is_nil()) {
             if (array.is_array()) {
                 return array->as_array();
             } else if (raise_for_non_array) {
-                auto class_name = obj->klass()->inspect_str();
-                env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array->klass()->inspect_str());
+                auto class_name = obj.klass()->inspect_str();
+                env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array.klass()->inspect_str());
             }
         }
     }
@@ -672,20 +673,20 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
 
 Value to_ary_for_masgn(Env *env, Value obj) {
     if (obj.is_array()) {
-        if (obj->klass() == GlobalEnv::the()->Array()) {
+        if (obj.klass() == GlobalEnv::the()->Array()) {
             return obj->duplicate(env);
         } else {
             return obj->as_array()->to_a();
         }
     }
 
-    if (obj->respond_to(env, "to_ary"_s)) {
+    if (obj.respond_to(env, "to_ary"_s)) {
         auto array = obj.send(env, "to_ary"_s);
         if (array.is_array()) {
             return array->duplicate(env);
         } else if (!array.is_nil()) {
-            auto class_name = obj->klass()->inspect_str();
-            env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array->klass()->inspect_str());
+            auto class_name = obj.klass()->inspect_str();
+            env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array.klass()->inspect_str());
         }
     }
 
@@ -759,7 +760,7 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
 
 std::pair<Value, Value> coerce(Env *env, Value lhs, Value rhs, CoerceInvalidReturnValueMode invalid_return_value_mode) {
     auto coerce_symbol = "coerce"_s;
-    if (lhs->respond_to(env, coerce_symbol)) {
+    if (lhs.respond_to(env, coerce_symbol)) {
         Value coerced = lhs.send(env, coerce_symbol, { rhs });
         if (!coerced.is_array()) {
             if (invalid_return_value_mode == CoerceInvalidReturnValueMode::Raise)
@@ -865,7 +866,7 @@ Value super(Env *env, Value self, Args &&args, Block *block) {
     auto super_method = klass->find_method(env, SymbolObject::intern(after_method->name()), after_method);
     if (!super_method.is_defined()) {
         if (self.is_module()) {
-            env->raise("NoMethodError", "super: no superclass method '{}' for {}:{}", current_method->original_name(), self->as_module()->inspect_str(), self->klass()->inspect_str());
+            env->raise("NoMethodError", "super: no superclass method '{}' for {}:{}", current_method->original_name(), self->as_module()->inspect_str(), self.klass()->inspect_str());
         } else {
             env->raise("NoMethodError", "super: no superclass method '{}' for {}", current_method->original_name(), self->inspect_str(env));
         }

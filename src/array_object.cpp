@@ -34,7 +34,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
 
     if (!value) {
         auto to_ary = "to_ary"_s;
-        if (!size.is_array() && size->respond_to(env, to_ary))
+        if (!size.is_array() && size.respond_to(env, to_ary))
             size = size.send(env, to_ary);
 
         if (size.is_array()) {
@@ -42,7 +42,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
         }
     }
 
-    auto size_integer = Object::to_int(env, size);
+    auto size_integer = size.to_int(env);
     if (IntegerObject::is_bignum(size_integer))
         env->raise("ArgumentError", "array size too big");
 
@@ -75,7 +75,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
 Value ArrayObject::initialize_copy(Env *env, Value other) {
     assert_not_frozen(env);
 
-    ArrayObject *other_array = other->to_ary(env);
+    ArrayObject *other_array = other.to_ary(env);
     if (this == other_array)
         return this;
 
@@ -167,7 +167,7 @@ Value ArrayObject::inspect(Env *env) {
             SymbolObject *to_s = "to_s"_s;
 
             if (!inspected_repr.is_string()) {
-                if (inspected_repr->respond_to(env, to_s)) {
+                if (inspected_repr.respond_to(env, to_s)) {
                     inspected_repr = obj.send(env, to_s);
                 }
             }
@@ -175,7 +175,7 @@ Value ArrayObject::inspect(Env *env) {
             if (inspected_repr.is_string())
                 out->append(inspected_repr->as_string());
             else
-                out->append_sprintf("#<%s:%#x>", inspected_repr->klass()->inspect_str().c_str(), static_cast<uintptr_t>(inspected_repr));
+                out->append_sprintf("#<%s:%#x>", inspected_repr.klass()->inspect_str().c_str(), static_cast<uintptr_t>(inspected_repr));
 
             if (i < size() - 1) {
                 out->append(", ");
@@ -206,7 +206,7 @@ Value ArrayObject::ltlt(Env *env, Value arg) {
 }
 
 Value ArrayObject::add(Env *env, Value other) {
-    ArrayObject *other_array = other->to_ary(env);
+    ArrayObject *other_array = other.to_ary(env);
 
     ArrayObject *new_array = new ArrayObject { m_vector };
     new_array->concat(*other_array);
@@ -214,7 +214,7 @@ Value ArrayObject::add(Env *env, Value other) {
 }
 
 Value ArrayObject::sub(Env *env, Value other) {
-    ArrayObject *other_array = other->to_ary(env);
+    ArrayObject *other_array = other.to_ary(env);
 
     ArrayObject *new_array = new ArrayObject {};
     for (auto &item : *this) {
@@ -242,7 +242,7 @@ Value ArrayObject::sum(Env *env, Args &&args, Block *block) {
 
 Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
     if (!size) {
-        if (!index_obj.is_integer() && index_obj->respond_to(env, "to_int"_s))
+        if (!index_obj.is_integer() && index_obj.respond_to(env, "to_int"_s))
             index_obj = index_obj.send(env, "to_int"_s);
 
         if (index_obj.is_integer()) {
@@ -339,8 +339,8 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
         new_ary.set_size(start, NilObject::the());
 
     // the new entry/entries
-    if (val.is_array() || val->respond_to(env, "to_ary"_s)) {
-        new_ary.concat(val->to_ary(env)->m_vector);
+    if (val.is_array() || val.respond_to(env, "to_ary"_s)) {
+        new_ary.concat(val.to_ary(env)->m_vector);
     } else {
         new_ary.push(val);
     }
@@ -758,8 +758,8 @@ Value ArrayObject::dig(Env *env, Args &&args) {
     if (val == NilObject::the())
         return val;
 
-    if (!val->respond_to(env, dig))
-        env->raise("TypeError", "{} does not have #dig method", val->klass()->inspect_str());
+    if (!val.respond_to(env, dig))
+        env->raise("TypeError", "{} does not have #dig method", val.klass()->inspect_str());
 
     return val.send(env, dig, std::move(args));
 }
@@ -895,17 +895,17 @@ Value ArrayObject::_subjoin(Env *env, Value item, Value joiner) {
         auto to_s = "to_s"_s;
         if (item.is_integer())
             return item.send(env, to_s);
-        if (item->respond_to(env, to_str)) {
+        if (item.respond_to(env, to_str)) {
             // Need to support nil, don't use Object::to_str
             auto rval = item.send(env, to_str);
             if (!rval.is_nil()) return rval->as_string();
         }
-        if (item->respond_to(env, to_ary)) {
+        if (item.respond_to(env, to_ary)) {
             // Need to support nil, don't use Object::to_ary
             auto rval = item.send(env, to_ary);
             if (!rval.is_nil()) return rval->as_array()->join(env, joiner)->as_string();
         }
-        if (item->respond_to(env, to_s))
+        if (item.respond_to(env, to_s))
             item = item.send(env, to_s);
         if (item.is_string())
             return item->as_string();
@@ -926,7 +926,7 @@ Value ArrayObject::join(Env *env, Value joiner) {
             if (!joiner || joiner.is_nil()) joiner = new StringObject { "" };
 
             if (!joiner.is_string())
-                joiner = joiner->to_str(env);
+                joiner = joiner.to_str(env);
 
             StringObject *out = new StringObject {};
             for (size_t i = 0; i < size(); i++) {
@@ -977,7 +977,7 @@ Value ArrayObject::cmp(Env *env, Value other) {
 
 Value ArrayObject::pack(Env *env, Value directives, Value buffer) {
     if (!directives.is_string())
-        directives = directives->to_str(env);
+        directives = directives.to_str(env);
 
     auto directives_string = directives->as_string()->string();
     if (directives_string.is_empty())
@@ -985,7 +985,7 @@ Value ArrayObject::pack(Env *env, Value directives, Value buffer) {
 
     if (buffer) {
         if (!buffer.is_string()) {
-            env->raise("TypeError", "buffer must be String, not {}", buffer->klass()->inspect_str());
+            env->raise("TypeError", "buffer must be String, not {}", buffer.klass()->inspect_str());
         }
         return ArrayPacker::Packer { this, directives_string }.pack(env, buffer->as_string());
     } else {
@@ -1003,7 +1003,7 @@ Value ArrayObject::push(Env *env, Args &&args) {
 }
 
 void ArrayObject::push_splat(Env *env, Value val) {
-    if (!val.is_array() && val->respond_to(env, "to_a"_s)) {
+    if (!val.is_array() && val.respond_to(env, "to_a"_s)) {
         val = val.send(env, "to_a"_s);
     }
     if (val.is_array()) {
@@ -1047,11 +1047,11 @@ bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
         Value args[2] = { a, b };
         Value compare = block->run(env, Args(2, args), nullptr);
 
-        if (compare->respond_to(env, "<"_s)) {
+        if (compare.respond_to(env, "<"_s)) {
             Value zero = Value::integer(0);
             return compare.send(env, "<"_s, { zero }).is_truthy();
         } else {
-            env->raise("ArgumentError", "comparison of {} with 0 failed", compare->klass()->inspect_str());
+            env->raise("ArgumentError", "comparison of {} with 0 failed", compare.klass()->inspect_str());
         }
     } else {
         Value compare = a.send(env, "<=>"_s, { b });
@@ -1059,7 +1059,7 @@ bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
             return compare.integer() < 0;
         }
         // TODO: Ruby sometimes prints b as the value (for example for integers) and sometimes as class
-        env->raise("ArgumentError", "comparison of {} with {} failed", a->klass()->inspect_str(), b->klass()->inspect_str());
+        env->raise("ArgumentError", "comparison of {} with {} failed", a.klass()->inspect_str(), b.klass()->inspect_str());
     }
 }
 
@@ -1085,7 +1085,7 @@ bool array_sort_by_compare(Env *env, Value a, Value b, Block *block) {
     if (compare.is_integer()) {
         return compare.integer() < 0;
     }
-    env->raise("ArgumentError", "comparison of {} with {} failed", a_res->klass()->inspect_str(), b_res->klass()->inspect_str());
+    env->raise("ArgumentError", "comparison of {} with {} failed", a_res.klass()->inspect_str(), b_res.klass()->inspect_str());
 }
 
 Value ArrayObject::sort_by_in_place(Env *env, Block *block) {
@@ -1214,8 +1214,8 @@ Value ArrayObject::max(Env *env, Value count, Block *block) {
             env->raise(
                 "ArgumentError",
                 "comparison of {} with {} failed",
-                item->klass()->inspect_str(),
-                min->klass()->inspect_str());
+                item.klass()->inspect_str(),
+                min.klass()->inspect_str());
 
         auto nat_int = IntegerObject::convert_to_nat_int_t(env, compare);
         return nat_int > 0;
@@ -1264,8 +1264,8 @@ Value ArrayObject::min(Env *env, Value count, Block *block) {
             env->raise(
                 "ArgumentError",
                 "comparison of {} with {} failed",
-                item->klass()->inspect_str(),
-                min->klass()->inspect_str());
+                item.klass()->inspect_str(),
+                min.klass()->inspect_str());
 
         auto nat_int = IntegerObject::convert_to_nat_int_t(env, compare);
         return nat_int < 0;
@@ -1314,8 +1314,8 @@ Value ArrayObject::minmax(Env *env, Block *block) {
             env->raise(
                 "ArgumentError",
                 "comparison of {} with {} failed",
-                item->klass()->inspect_str(),
-                min->klass()->inspect_str());
+                item.klass()->inspect_str(),
+                min.klass()->inspect_str());
 
         auto nat_int = IntegerObject::convert_to_nat_int_t(env, compare);
         return nat_int;
@@ -1334,8 +1334,8 @@ Value ArrayObject::minmax(Env *env, Block *block) {
 }
 
 Value ArrayObject::multiply(Env *env, Value factor) {
-    if (!factor.is_string() && factor->respond_to(env, "to_str"_s))
-        factor = factor->to_str(env);
+    if (!factor.is_string() && factor.respond_to(env, "to_str"_s))
+        factor = factor.to_str(env);
 
     if (factor.is_string()) {
         return join(env, factor);
@@ -1433,10 +1433,10 @@ Value ArrayObject::at(Env *env, Value n) {
 Value ArrayObject::assoc(Env *env, Value needle) {
     // TODO use common logic for this (see for example rassoc and index)
     for (auto &item : *this) {
-        if (!item.is_array() && !item->respond_to(env, "to_ary"_s))
+        if (!item.is_array() && !item.respond_to(env, "to_ary"_s))
             continue;
 
-        ArrayObject *sub_array = item->to_ary(env);
+        ArrayObject *sub_array = item.to_ary(env);
         if (sub_array->is_empty())
             continue;
 
@@ -1477,10 +1477,10 @@ Value ArrayObject::bsearch_index(Env *env, Block *block) {
 
 Value ArrayObject::rassoc(Env *env, Value needle) {
     for (auto &item : *this) {
-        if (!item.is_array() && !item->respond_to(env, "to_ary"_s))
+        if (!item.is_array() && !item.respond_to(env, "to_ary"_s))
             continue;
 
-        ArrayObject *sub_array = item->to_ary(env);
+        ArrayObject *sub_array = item.to_ary(env);
         if (sub_array->size() < 2)
             continue;
 
@@ -1578,7 +1578,7 @@ Value ArrayObject::intersection(Env *env, Args &&args) {
 
     for (size_t i = 0; i < args.size(); ++i) {
         auto arg = args[i];
-        ArrayObject *other_array = arg->to_ary(env);
+        ArrayObject *other_array = arg.to_ary(env);
 
         if (!other_array->is_empty())
             arrays.push(other_array);
@@ -1603,7 +1603,7 @@ Value ArrayObject::intersection(Env *env, Args &&args) {
 bool ArrayObject::intersects(Env *env, Value arg) {
     if (this->is_empty()) return false;
 
-    ArrayObject *other_array = arg->to_ary(env);
+    ArrayObject *other_array = arg.to_ary(env);
 
     for (auto &item : *this) {
         if (other_array->include_eql(env, item)) {
@@ -1616,7 +1616,7 @@ bool ArrayObject::intersects(Env *env, Value arg) {
 
 Value ArrayObject::union_of(Env *env, Value arg) {
     if (!arg.is_array()) {
-        env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->inspect_str());
+        env->raise("TypeError", "no implicit conversion of {} into Array", arg.klass()->inspect_str());
         return nullptr;
     }
 
@@ -1700,7 +1700,7 @@ Value ArrayObject::concat(Env *env, Args &&args) {
             auto original = m_vector.slice(0, original_size);
             m_vector.concat(original);
         } else {
-            concat(*arg->to_ary(env));
+            concat(*arg.to_ary(env));
         }
     }
 
@@ -1792,7 +1792,7 @@ Value ArrayObject::product(Env *env, Args &&args, Block *block) {
     Vector<ArrayObject *> arrays;
     arrays.push(this);
     for (size_t i = 0; i < args.size(); ++i)
-        arrays.push(args[i]->to_ary(env));
+        arrays.push(args[i].to_ary(env));
 
     constexpr size_t max_size_t = std::numeric_limits<size_t>::max();
     size_t number_of_combinations = 1;
@@ -1887,8 +1887,8 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
     this->assert_not_frozen(env);
 
     if (size) {
-        index_obj = Object::to_int(env, index_obj);
-        size = Object::to_int(env, size);
+        index_obj = index_obj.to_int(env);
+        size = size.to_int(env);
 
         IntegerObject::assert_fixnum(env, size.integer());
     }
@@ -1984,7 +1984,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         return this;
     }
 
-    return slice_in_place(env, Object::to_int(env, index_obj), size);
+    return slice_in_place(env, index_obj.to_int(env), size);
 }
 
 Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end) {
@@ -2049,7 +2049,7 @@ Value ArrayObject::try_convert(Env *env, Value val) {
         return val;
     }
 
-    if (!val->respond_to(env, to_ary)) {
+    if (!val.respond_to(env, to_ary)) {
         return NilObject::the();
     }
 
@@ -2059,8 +2059,8 @@ Value ArrayObject::try_convert(Env *env, Value val) {
         return conversion;
     }
 
-    auto original_item_class_name = val->klass()->inspect_str();
-    auto new_item_class_name = conversion->klass()->inspect_str();
+    auto original_item_class_name = val.klass()->inspect_str();
+    auto new_item_class_name = conversion.klass()->inspect_str();
     env->raise(
         "TypeError",
         "can't convert {} to Array ({}#to_ary gives {})",

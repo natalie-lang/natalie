@@ -130,8 +130,8 @@ static Value OpenSSL_X509_Name_new(Env *env, const X509_NAME *value) {
 
 Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 2);
-    auto a = args[0]->to_str(env);
-    auto b = args[1]->to_str(env);
+    auto a = args[0].to_str(env);
+    auto b = args[1].to_str(env);
     const auto len = a->bytesize();
     if (b->bytesize() != len)
         env->raise("ArgumentError", "inputs must be of equal length");
@@ -147,7 +147,7 @@ static void OpenSSL_Cipher_ciphers_add_cipher(const OBJ_NAME *cipher_meth, void 
 
 Value OpenSSL_Cipher_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto name = args[0]->to_str(env);
+    auto name = args[0].to_str(env);
     const EVP_CIPHER *cipher = EVP_get_cipherbyname(name->c_str());
     if (!cipher)
         env->raise("RuntimeError", "unsupported cipher algorithm ({})", name->string());
@@ -201,7 +201,7 @@ Value OpenSSL_Cipher_final(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_Cipher_iv_set(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto iv = args[0]->to_str(env);
+    auto iv = args[0].to_str(env);
     auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     const EVP_CIPHER *e = EVP_CIPHER_CTX_cipher(ctx);
     const size_t iv_len = EVP_CIPHER_iv_length(e);
@@ -222,7 +222,7 @@ Value OpenSSL_Cipher_iv_len(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_Cipher_key_set(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto key = args[0]->to_str(env);
+    auto key = args[0].to_str(env);
     auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     const EVP_CIPHER *e = EVP_CIPHER_CTX_cipher(ctx);
     const size_t key_len = EVP_CIPHER_key_length(e);
@@ -243,7 +243,7 @@ Value OpenSSL_Cipher_key_len(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_Cipher_update(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1); // NATFXIME: Support buffer argument
-    auto data = args[0]->to_str(env);
+    auto data = args[0].to_str(env);
     auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     const auto block_size = EVP_CIPHER_CTX_block_size(ctx);
     TM::String buf(data->bytesize() + block_size, '\0'); // Overallocation, so it should always fit
@@ -264,7 +264,7 @@ Value OpenSSL_Digest_update(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
 
-    auto data = args[0]->to_str(env);
+    auto data = args[0].to_str(env);
 
     if (!EVP_DigestUpdate(mdctx, reinterpret_cast<const unsigned char *>(data->c_str()), data->string().size()))
         OpenSSL_raise_error(env, "EVP_DigestUpdate");
@@ -276,10 +276,10 @@ Value OpenSSL_Digest_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto name = args.at(0);
     auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
-    if (name->is_a(env, digest_klass))
-        name = name->send(env, "name"_s);
+    if (name.is_a(env, digest_klass))
+        name = name.send(env, "name"_s);
     if (!name.is_string())
-        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/Digest)", name->klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/Digest)", name.klass()->inspect_str());
 
     const EVP_MD *md = EVP_get_digestbyname(name->as_string()->c_str());
     if (!md)
@@ -307,7 +307,7 @@ Value OpenSSL_Digest_block_length(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_Digest_reset(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
-    const EVP_MD *md = EVP_get_digestbyname(self->send(env, "name"_s)->as_string()->c_str());
+    const EVP_MD *md = EVP_get_digestbyname(self.send(env, "name"_s)->as_string()->c_str());
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
 
     if (!EVP_MD_CTX_reset(mdctx))
@@ -356,9 +356,9 @@ Value OpenSSL_HMAC_digest(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 3);
     auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
     auto digest = Object::_new(env, digest_klass, { args[0] }, nullptr);
-    auto key = args[1]->to_str(env);
-    auto data = args[2]->to_str(env);
-    const EVP_MD *evp_md = EVP_get_digestbyname(digest->send(env, "name"_s)->as_string()->c_str());
+    auto key = args[1].to_str(env);
+    auto data = args[2].to_str(env);
+    const EVP_MD *evp_md = EVP_get_digestbyname(digest.send(env, "name"_s)->as_string()->c_str());
     unsigned char md[EVP_MAX_MD_SIZE];
     unsigned int md_len;
     auto res = HMAC(evp_md, key->c_str(), key->bytesize(), reinterpret_cast<const unsigned char *>(data->c_str()), data->bytesize(), md, &md_len);
@@ -384,14 +384,14 @@ Value OpenSSL_SSL_SSLContext_set_max_version(Env *env, Value self, Args &&args, 
     auto version = args[0];
 
     if (self->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", self.to_s(env)->string());
 
     if (version.is_string() || version.is_symbol()) {
-        version = StringObject::format("{}_VERSION", version->to_s(env)->string());
+        version = StringObject::format("{}_VERSION", version.to_s(env)->string());
         const auto SSL = fetch_nested_const({ "OpenSSL"_s, "SSL"_s })->as_module();
         version = SSL->const_get(version->as_string()->to_sym(env)->as_symbol());
         if (!version)
-            env->raise("ArgumentError", "unrecognized version \"{}\"", args[0]->to_s(env)->string());
+            env->raise("ArgumentError", "unrecognized version \"{}\"", args[0].to_s(env)->string());
     }
 
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
@@ -406,14 +406,14 @@ Value OpenSSL_SSL_SSLContext_set_min_version(Env *env, Value self, Args &&args, 
     auto version = args[0];
 
     if (self->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", self.to_s(env)->string());
 
     if (version.is_string() || version.is_symbol()) {
-        version = StringObject::format("{}_VERSION", version->to_s(env)->string());
+        version = StringObject::format("{}_VERSION", version.to_s(env)->string());
         const auto SSL = fetch_nested_const({ "OpenSSL"_s, "SSL"_s })->as_module();
         version = SSL->const_get(version->as_string()->to_sym(env)->as_symbol());
         if (!version)
-            env->raise("ArgumentError", "unrecognized version \"{}\"", args[0]->to_s(env)->string());
+            env->raise("ArgumentError", "unrecognized version \"{}\"", args[0].to_s(env)->string());
     }
 
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
@@ -452,10 +452,10 @@ Value OpenSSL_SSL_SSLContext_security_level(Env *env, Value self, Args &&args, B
 
 Value OpenSSL_SSL_SSLContext_set_security_level(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto security_level = Object::to_int(env, args[0]).to_nat_int_t();
+    auto security_level = args[0].to_int(env).to_nat_int_t();
 
     if (self->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", self.to_s(env)->string());
 
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     SSL_CTX_set_security_level(ctx, security_level);
@@ -476,7 +476,7 @@ Value OpenSSL_SSL_SSLContext_set_session_cache_mode(Env *env, Value self, Args &
     const auto session_cache_mode = IntegerObject::convert_to_native_type<uint64_t>(env, args[0]);
 
     if (self->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", self.to_s(env)->string());
 
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     SSL_CTX_set_session_cache_mode(ctx, session_cache_mode);
@@ -503,8 +503,8 @@ Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args &&args, Block *) {
     auto cert_store = self->ivar_get(env, "@cert_store"_s);
     if (!cert_store.is_nil()) {
         auto Store = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Store"_s })->as_class();
-        if (!cert_store->is_a(env, Store))
-            env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/STORE)", cert_store->klass()->inspect_str());
+        if (!cert_store.is_a(env, Store))
+            env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/STORE)", cert_store.klass()->inspect_str());
         auto store = static_cast<X509_STORE *>(cert_store->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());
         SSL_CTX_set1_cert_store(ctx, store);
     }
@@ -516,16 +516,16 @@ Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args &&args, Block 
     args.ensure_argc_between(env, 1, 2);
     auto io = args.at(0);
     if (!io.is_io())
-        env->raise("TypeError", "wrong argument type {} (expected File)", io->klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected File)", io.klass()->inspect_str());
     auto context = args.at(1, nullptr);
     auto SSLContext = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("SSL"_s)->const_get("SSLContext"_s);
     if (!context || context.is_nil()) {
         context = Object::_new(env, SSLContext, {}, nullptr);
     } else {
-        if (!context->is_a(env, SSLContext->as_class()))
-            env->raise("TypeError", "wrong argument type {} (expected OpenSSL/SSL/CTX)", context->klass()->inspect_str());
+        if (!context.is_a(env, SSLContext->as_class()))
+            env->raise("TypeError", "wrong argument type {} (expected OpenSSL/SSL/CTX)", context.klass()->inspect_str());
     }
-    context->send(env, "setup"_s);
+    context.send(env, "setup"_s);
     auto *ctx = static_cast<SSL_CTX *>(context->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     SSL *ssl = SSL_new(ctx);
     if (!ssl)
@@ -550,7 +550,7 @@ Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args &&args, Block *) 
     auto hostname = self->ivar_get(env, "@hostname"_s);
 
     if (context && context->ivar_get(env, "@verify_hostname"_s).is_truthy() && !hostname.is_nil()) {
-        if (!SSL_set1_host(ssl, hostname->to_str(env)->c_str()))
+        if (!SSL_set1_host(ssl, hostname.to_str(env)->c_str()))
             OpenSSL_SSL_raise_error(env, "SSL_set1_host");
     }
 
@@ -576,7 +576,7 @@ Value OpenSSL_SSL_SSLSocket_set_hostname(Env *env, Value self, Args &&args, Bloc
     const char *hostname_cstr = nullptr;
 
     if (!args[0].is_nil()) {
-        hostname = args[0]->to_str(env);
+        hostname = args[0].to_str(env);
         hostname_cstr = hostname->as_string()->c_str();
     }
 
@@ -602,7 +602,7 @@ Value OpenSSL_SSL_SSLSocket_read(Env *env, Value self, Args &&args, Block *) {
     if (args.at(1, NilObject::the()).is_nil()) {
         result = new StringObject {};
     } else {
-        result = args[1]->to_str(env);
+        result = args[1].to_str(env);
         result->clear(env);
     }
     int bytes_read;
@@ -616,7 +616,7 @@ Value OpenSSL_SSL_SSLSocket_read(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_SSL_SSLSocket_write(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto str = args.at(0)->to_s(env);
+    auto str = args.at(0).to_s(env);
     auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
     const auto size = SSL_write(ssl, str->c_str(), str->bytesize());
     if (size < 0)
@@ -664,7 +664,7 @@ Value OpenSSL_PKey_RSA_export(Env *env, Value self, Args &&args, Block *) {
         OpenSSL_raise_error(env, "BIO_new_mem_buf");
     Defer bio_free { [&bio]() { BIO_free(bio); } };
 
-    if (self->send(env, "private?"_s).is_truthy()) {
+    if (self.send(env, "private?"_s).is_truthy()) {
         PEM_write_bio_PrivateKey(bio, pkey, nullptr, nullptr, 0, nullptr, nullptr);
     } else {
         PEM_write_bio_PUBKEY(bio, pkey);
@@ -706,7 +706,7 @@ Value OpenSSL_PKey_RSA_public_key(Env *env, Value self, Args &&args, Block *) {
     if (size <= 0)
         OpenSSL_raise_error(env, "BIO_get_mem_data");
     auto pem = new StringObject { data, static_cast<size_t>(size) };
-    return Object::_new(env, self->klass(), { pem }, nullptr);
+    return Object::_new(env, self.klass(), { pem }, nullptr);
 }
 
 Value OpenSSL_X509_Certificate_initialize(Env *env, Value self, Args &&args, Block *) {
@@ -718,7 +718,7 @@ Value OpenSSL_X509_Certificate_initialize(Env *env, Value self, Args &&args, Blo
         OpenSSL_raise_error(env, "X509_new");
     self->ivar_set(env, "@x509"_s, new VoidPObject { x509, OpenSSL_X509_cleanup });
 
-    self->send(env, "serial="_s, { Value::integer(0) });
+    self.send(env, "serial="_s, { Value::integer(0) });
 
     return self;
 }
@@ -738,8 +738,8 @@ Value OpenSSL_X509_Certificate_set_issuer(Env *env, Value self, Args &&args, Blo
     auto issuer = args[0];
 
     auto Name = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Name"_s })->as_class();
-    if (!issuer->is_a(env, Name))
-        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/NAME)", issuer->klass()->inspect_str());
+    if (!issuer.is_a(env, Name))
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/NAME)", issuer.klass()->inspect_str());
 
     auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
     auto name = static_cast<X509_NAME *>(issuer->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
@@ -771,7 +771,7 @@ Value OpenSSL_X509_Certificate_set_not_after(Env *env, Value self, Args &&args, 
     auto time = args[0];
 
     auto Time = find_top_level_const(env, "Time"_s)->as_class();
-    if (!time->is_a(env, Time)) {
+    if (!time.is_a(env, Time)) {
         time = KernelModule::Integer(env, time, 0, true);
         time = Time->send(env, "at"_s, { time });
     }
@@ -809,7 +809,7 @@ Value OpenSSL_X509_Certificate_set_not_before(Env *env, Value self, Args &&args,
     auto time = args[0];
 
     auto Time = find_top_level_const(env, "Time"_s)->as_class();
-    if (!time->is_a(env, Time)) {
+    if (!time.is_a(env, Time)) {
         time = KernelModule::Integer(env, time, 0, true);
         time = Time->send(env, "at"_s, { time });
     }
@@ -841,8 +841,8 @@ Value OpenSSL_X509_Certificate_set_public_key(Env *env, Value self, Args &&args,
     auto public_key = args[0];
 
     auto PKey = fetch_nested_const({ "OpenSSL"_s, "PKey"_s, "PKey"_s })->as_class();
-    if (!public_key->is_a(env, PKey))
-        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/EVP_PKEY)", public_key->klass()->inspect_str());
+    if (!public_key.is_a(env, PKey))
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/EVP_PKEY)", public_key.klass()->inspect_str());
 
     auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
     auto pkey = static_cast<EVP_PKEY *>(public_key->ivar_get(env, "@pkey"_s)->as_void_p()->void_ptr());
@@ -865,7 +865,7 @@ Value OpenSSL_X509_Certificate_set_serial(Env *env, Value self, Args &&args, Blo
     auto serial = args[0];
 
     auto BN = fetch_nested_const({ "OpenSSL"_s, "BN"_s })->as_class();
-    if (!serial->is_a(env, BN))
+    if (!serial.is_a(env, BN))
         serial = Object::_new(env, BN, { serial }, nullptr);
     auto asn1_serial = ASN1_INTEGER_new();
     if (!asn1_serial)
@@ -888,17 +888,17 @@ Value OpenSSL_X509_Certificate_sign(Env *env, Value self, Args &&args, Block *) 
     auto digest = args[1];
 
     auto PKey = fetch_nested_const({ "OpenSSL"_s, "PKey"_s, "PKey"_s })->as_class();
-    if (!key->is_a(env, PKey))
-        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/EVP_PKEY)", key->klass()->inspect_str());
-    if (key->send(env, "private?"_s).is_falsey())
+    if (!key.is_a(env, PKey))
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/EVP_PKEY)", key.klass()->inspect_str());
+    if (key.send(env, "private?"_s).is_falsey())
         env->raise("ArgumentError", "private key is needed");
     auto Digest = fetch_nested_const({ "OpenSSL"_s, "Digest"_s })->as_class();
-    if (!digest->is_a(env, Digest))
+    if (!digest.is_a(env, Digest))
         digest = Object::_new(env, Digest, { digest }, nullptr);
 
     auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
     auto pkey = static_cast<EVP_PKEY *>(key->ivar_get(env, "@pkey"_s)->as_void_p()->void_ptr());
-    const auto md = EVP_get_digestbyname(digest->send(env, "name"_s)->as_string()->c_str());
+    const auto md = EVP_get_digestbyname(digest.send(env, "name"_s)->as_string()->c_str());
     if (!X509_sign(x509, pkey, md)) {
         ERR_get_error(); // This error is not disclosed to the user
         auto CertificateError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "CertificateError"_s })->as_class();
@@ -923,8 +923,8 @@ Value OpenSSL_X509_Certificate_set_subject(Env *env, Value self, Args &&args, Bl
     auto subject = args[0];
 
     auto Name = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Name"_s })->as_class();
-    if (!subject->is_a(env, Name))
-        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/NAME)", subject->klass()->inspect_str());
+    if (!subject.is_a(env, Name))
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/NAME)", subject.klass()->inspect_str());
 
     auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
     auto name = static_cast<X509_NAME *>(subject->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
@@ -945,7 +945,7 @@ Value OpenSSL_X509_Certificate_version(Env *env, Value self, Args &&args, Block 
 Value OpenSSL_X509_Certificate_set_version(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
 
-    const auto version = Object::to_int(env, args[0]).to_nat_int_t();
+    const auto version = args[0].to_int(env).to_nat_int_t();
     if (version < 0) {
         auto CertificateError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "CertificateError"_s })->as_class();
         env->raise(CertificateError, "version must be >= 0!");
@@ -961,17 +961,17 @@ Value OpenSSL_X509_Certificate_set_version(Env *env, Value self, Args &&args, Bl
 Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_is(env, 1);
-    auto pass = args.at(0)->to_str(env);
+    auto pass = args.at(0).to_str(env);
     if (!kwargs) kwargs = new HashObject {};
     env->ensure_no_missing_keywords(kwargs, { "salt", "iterations", "length", "hash" });
-    auto salt = kwargs->remove(env, "salt"_s)->to_str(env);
-    auto iterations = Object::to_int(env, kwargs->remove(env, "iterations"_s));
-    auto length = Object::to_int(env, kwargs->remove(env, "length"_s));
+    auto salt = kwargs->remove(env, "salt"_s).to_str(env);
+    auto iterations = kwargs->remove(env, "iterations"_s).to_int(env);
+    auto length = kwargs->remove(env, "length"_s).to_int(env);
     auto hash = kwargs->remove(env, "hash"_s);
     auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
-    if (!hash->is_a(env, digest_klass))
+    if (!hash.is_a(env, digest_klass))
         hash = Object::_new(env, digest_klass, { hash }, nullptr);
-    hash = hash->send(env, "name"_s);
+    hash = hash.send(env, "name"_s);
     env->ensure_no_extra_keywords(kwargs);
 
     const EVP_MD *md = EVP_get_digestbyname(hash->as_string()->c_str());
@@ -997,13 +997,13 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
 Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_is(env, 1);
-    auto pass = args.at(0)->to_str(env);
+    auto pass = args.at(0).to_str(env);
     env->ensure_no_missing_keywords(kwargs, { "salt", "N", "r", "p", "length" });
-    auto salt = kwargs->remove(env, "salt"_s)->to_str(env);
-    auto N = Object::to_int(env, kwargs->remove(env, "N"_s));
-    auto r = Object::to_int(env, kwargs->remove(env, "r"_s));
-    auto p = Object::to_int(env, kwargs->remove(env, "p"_s));
-    auto length = Object::to_int(env, kwargs->remove(env, "length"_s));
+    auto salt = kwargs->remove(env, "salt"_s).to_str(env);
+    auto N = kwargs->remove(env, "N"_s).to_int(env);
+    auto r = kwargs->remove(env, "r"_s).to_int(env);
+    auto p = kwargs->remove(env, "p"_s).to_int(env);
+    auto length = kwargs->remove(env, "length"_s).to_int(env);
     if (IntegerObject::is_negative(length) || IntegerObject::is_bignum(length))
         env->raise("ArgumentError", "negative string size (or size too big)");
     env->ensure_no_extra_keywords(kwargs);
@@ -1117,7 +1117,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
     self->ivar_set(env, "@bn"_s, new VoidPObject { bn, OpenSSL_BN_cleanup });
 
     auto arg = args.at(0, NilObject::the());
-    if (arg->is_a(env, self->klass())) {
+    if (arg.is_a(env, self.klass())) {
         args.ensure_argc_is(env, 1);
         auto from = static_cast<BIGNUM *>(args[0]->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
         if (!BN_copy(bn, from))
@@ -1150,8 +1150,8 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
 Value OpenSSL_BN_cmp(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto other = args[0];
-    if (!other->is_a(env, self->klass()))
-        other = Object::_new(env, self->klass(), std::move(args), nullptr);
+    if (!other.is_a(env, self.klass()))
+        other = Object::_new(env, self.klass(), std::move(args), nullptr);
     auto bn = static_cast<BIGNUM *>(self->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
     auto other_bn = static_cast<BIGNUM *>(other->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
     return Value::integer(BN_cmp(bn, other_bn));
@@ -1169,7 +1169,7 @@ Value OpenSSL_BN_to_i(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_Random_random_bytes(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    Value length = Object::to_int(env, args[0]);
+    Value length = args[0].to_int(env);
     const auto num = static_cast<int>(length.integer().to_nat_int_t());
     if (num < 0)
         env->raise("ArgumentError", "negative string size (or size too big)");
@@ -1187,13 +1187,13 @@ Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args &&args, Block *) {
     auto kwarg_set = kwargs ? kwargs->remove(env, "set"_s) : nullptr;
     env->ensure_no_extra_keywords(kwargs);
     args.ensure_argc_between(env, 2, 3);
-    auto oid = args.at(0)->to_str(env);
-    auto value = args.at(1)->to_str(env);
+    auto oid = args.at(0).to_str(env);
+    auto value = args.at(1).to_str(env);
     auto type = args.at(2, nullptr);
     if (type && !type.is_nil()) {
-        type = Object::to_int(env, type);
+        type = type.to_int(env);
     } else {
-        auto OBJECT_TYPE_TEMPLATE = self->klass()->const_get("OBJECT_TYPE_TEMPLATE"_s)->as_hash();
+        auto OBJECT_TYPE_TEMPLATE = self.klass()->const_get("OBJECT_TYPE_TEMPLATE"_s)->as_hash();
         type = OBJECT_TYPE_TEMPLATE->ref(env, oid);
     }
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
@@ -1211,11 +1211,11 @@ Value OpenSSL_X509_Name_initialize(Env *env, Value self, Args &&args, Block *) {
         OpenSSL_X509_Name_raise_error(env, "X509_NAME_new");
     self->ivar_set(env, "@name"_s, new VoidPObject { name, OpenSSL_X509_NAME_cleanup });
     if (args.size() > 0) {
-        HashObject *lookup = self->klass()->const_get("OBJECT_TYPE_TEMPLATE"_s)->as_hash();
+        HashObject *lookup = self.klass()->const_get("OBJECT_TYPE_TEMPLATE"_s)->as_hash();
         if (args.size() >= 2 && !args.at(1).is_nil())
-            lookup = args.at(1)->to_hash(env);
-        for (auto entry : *args.at(0)->to_ary(env)) {
-            ArrayObject *add_entry_args = entry->to_ary(env);
+            lookup = args.at(1).to_hash(env);
+        for (auto entry : *args.at(0).to_ary(env)) {
+            ArrayObject *add_entry_args = entry.to_ary(env);
             if (args.size() >= 2 && add_entry_args->size() == 2) {
                 add_entry_args = add_entry_args->duplicate(env)->as_array();
                 add_entry_args->push(lookup->ref(env, add_entry_args->at(0)));
@@ -1287,7 +1287,7 @@ Value OpenSSL_X509_Name_to_s(Env *env, Value self, Args &&args, Block *) {
 Value OpenSSL_X509_Name_cmp(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto other = args[0];
-    if (!other->is_a(env, self->klass()))
+    if (!other.is_a(env, self.klass()))
         return NilObject::the();
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
     auto other_name = static_cast<X509_NAME *>(other->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
@@ -1308,8 +1308,8 @@ Value OpenSSL_X509_Store_add_cert(Env *env, Value self, Args &&args, Block *) {
     auto cert = args[0];
 
     auto Certificate = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Certificate"_s })->as_class();
-    if (!cert->is_a(env, Certificate))
-        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509)", cert->klass()->inspect_str());
+    if (!cert.is_a(env, Certificate))
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509)", cert.klass()->inspect_str());
 
     auto store = static_cast<X509_STORE *>(self->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());
     auto x509 = static_cast<X509 *>(cert->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
@@ -1334,8 +1334,8 @@ Value OpenSSL_X509_Store_verify(Env *env, Value self, Args &&args, Block *) {
         env->raise("NotImplementedError", "NATFIXME: Add support for certificate chain argument");
 
     auto Certificate = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Certificate"_s })->as_class();
-    if (!cert->is_a(env, Certificate))
-        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509)", cert->klass()->inspect_str());
+    if (!cert.is_a(env, Certificate))
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509)", cert.klass()->inspect_str());
 
     auto store = static_cast<X509_STORE *>(self->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());
     X509_STORE_CTX *ctx = X509_STORE_CTX_new();

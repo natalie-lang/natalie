@@ -113,7 +113,7 @@ void GlobalEnv::global_set_write_hook(Env *env, SymbolObject *name, GlobalVariab
 }
 
 bool GlobalEnv::show_deprecation_warnings(Env *env) {
-    return Object()->const_get("Warning"_s)->send(env, "[]"_s, { "deprecated"_s }).is_truthy();
+    return Object()->const_get("Warning"_s).send(env, "[]"_s, { "deprecated"_s }).is_truthy();
 }
 
 void GlobalEnv::set_interned_strings(StringObject **interned_strings, const size_t interned_strings_size) {

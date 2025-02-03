@@ -113,7 +113,7 @@ Value RegexpObject::last_match(Env *env, Value ref) {
 
 Value RegexpObject::quote(Env *env, Value string) {
     if (string.is_symbol())
-        string = string->to_s(env);
+        string = string.to_s(env);
     auto str = string->as_string_or_raise(env);
 
     String out;
@@ -164,11 +164,11 @@ Value RegexpObject::quote(Env *env, Value string) {
 }
 
 Value RegexpObject::try_convert(Env *env, Value value) {
-    if (!value.is_regexp() && value->respond_to(env, "to_regexp"_s)) {
-        auto result = value->send(env, "to_regexp"_s);
+    if (!value.is_regexp() && value.respond_to(env, "to_regexp"_s)) {
+        auto result = value.send(env, "to_regexp"_s);
         if (!result.is_regexp()) {
-            auto value_class_name = value->klass()->name().value_or("Object");
-            env->raise("TypeError", "can't convert {} to Regexp ({}#to_regexp gives {})", value_class_name, value_class_name, result->klass()->name().value_or("Object"));
+            auto value_class_name = value.klass()->name().value_or("Object");
+            env->raise("TypeError", "can't convert {} to Regexp ({}#to_regexp gives {})", value_class_name, value_class_name, result.klass()->name().value_or("Object"));
         }
         return result;
     } else if (!value.is_regexp())
@@ -184,17 +184,17 @@ Value RegexpObject::regexp_union(Env *env, Args &&args) {
     for (auto pattern : *patterns) {
         if (!out.is_empty())
             out.append_char('|');
-        if (pattern->respond_to(env, "to_regexp"_s)) {
-            pattern = pattern->send(env, "to_regexp"_s);
+        if (pattern.respond_to(env, "to_regexp"_s)) {
+            pattern = pattern.send(env, "to_regexp"_s);
         } else if (pattern.is_symbol()) {
-            pattern = pattern->to_s(env);
+            pattern = pattern.to_s(env);
         }
         if (pattern.is_regexp()) {
             if (patterns->size() == 1)
                 return pattern;
             out.append(pattern->as_regexp()->to_s(env)->as_string()->string());
         } else {
-            pattern = pattern->to_str(env);
+            pattern = pattern.to_str(env);
             auto quoted = RegexpObject::quote(env, pattern);
             out.append(quoted->as_string()->string());
         }
@@ -241,7 +241,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
         }
     }
 
-    initialize_internal(env, pattern->to_str(env), static_cast<int>(options));
+    initialize_internal(env, pattern.to_str(env), static_cast<int>(options));
 
     return this;
 }

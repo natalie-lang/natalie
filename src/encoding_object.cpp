@@ -91,10 +91,10 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         auto handle_fallback = [&](nat_int_t cpt) {
             auto ch = new StringObject { orig_encoding->encode_codepoint(cpt) };
             Value result = NilObject::the();
-            if (options.fallback_option->respond_to(env, "[]"_s)) {
-                result = options.fallback_option->send(env, "[]"_s, { ch });
-            } else if (options.fallback_option->respond_to(env, "call"_s)) {
-                result = options.fallback_option->send(env, "call"_s, { ch });
+            if (options.fallback_option.respond_to(env, "[]"_s)) {
+                result = options.fallback_option.send(env, "[]"_s, { ch });
+            } else if (options.fallback_option.respond_to(env, "call"_s)) {
+                result = options.fallback_option.send(env, "call"_s, { ch });
             }
 
             if (result.is_nil()) {
@@ -106,10 +106,10 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                 env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
             }
 
-            auto result_str = result->to_str(env);
+            auto result_str = result.to_str(env);
             if (result_str->encoding()->num() != num()) {
                 try {
-                    result_str = result_str->encode(env, EncodingObject::get(num()))->to_str(env);
+                    result_str = result_str->encode(env, EncodingObject::get(num())).to_str(env);
                 } catch (ExceptionObject *e) {
                     // FIXME: I'm not sure how Ruby knows the character is "too big" for the target encoding.
                     // We don't have that kind of information yet.
@@ -241,7 +241,7 @@ EncodingObject *EncodingObject::set_default_external(Env *env, Value arg) {
     } else if (arg.is_nil()) {
         env->raise("ArgumentError", "default external cannot be nil");
     } else {
-        auto name = arg->to_str(env);
+        auto name = arg.to_str(env);
         s_default_external = find(env, name)->as_encoding();
     }
     s_filesystem = s_default_external;
@@ -253,7 +253,7 @@ EncodingObject *EncodingObject::set_default_internal(Env *env, Value arg) {
     } else if (arg.is_nil()) {
         s_default_internal = nullptr;
     } else {
-        auto name = arg->to_str(env);
+        auto name = arg.to_str(env);
         s_default_internal = find(env, name)->as_encoding();
     }
 
@@ -264,7 +264,7 @@ EncodingObject *EncodingObject::set_default_internal(Env *env, Value arg) {
 Value EncodingObject::find(Env *env, Value name) {
     if (name.is_encoding())
         return name;
-    auto string = name->to_str(env)->string().lowercase();
+    auto string = name.to_str(env)->string().lowercase();
     if (string == "internal") {
         auto intenc = EncodingObject::default_internal();
         if (!intenc) return NilObject::the();

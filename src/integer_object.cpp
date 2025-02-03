@@ -288,14 +288,14 @@ bool IntegerObject::eq(Env *env, Integer &self, Value other) {
     if (!other.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, self);
         if (!lhs.is_integer())
-            return lhs->send(env, "=="_s, { rhs }).is_truthy();
+            return lhs.send(env, "=="_s, { rhs }).is_truthy();
         other = rhs;
     }
 
     if (other.is_integer())
         return self == other.integer();
 
-    return other->send(env, "=="_s, { self }).is_truthy();
+    return other.send(env, "=="_s, { self }).is_truthy();
 }
 
 bool IntegerObject::lt(Env *env, Integer &self, Value other) {
@@ -308,16 +308,16 @@ bool IntegerObject::lt(Env *env, Integer &self, Value other) {
     if (!other.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, self);
         if (!lhs.is_integer())
-            return lhs->send(env, "<"_s, { rhs }).is_truthy();
+            return lhs.send(env, "<"_s, { rhs }).is_truthy();
         other = rhs;
     }
 
     if (other.is_integer())
         return self < other.integer();
 
-    if (other->respond_to(env, "coerce"_s)) {
+    if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
-        return result.first->send(env, "<"_s, { result.second }).is_truthy();
+        return result.first.send(env, "<"_s, { result.second }).is_truthy();
     }
 
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
@@ -333,16 +333,16 @@ bool IntegerObject::lte(Env *env, Integer &self, Value other) {
     if (!other.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, self);
         if (!lhs.is_integer())
-            return lhs->send(env, "<="_s, { rhs }).is_truthy();
+            return lhs.send(env, "<="_s, { rhs }).is_truthy();
         other = rhs;
     }
 
     if (other.is_integer())
         return self <= other.integer();
 
-    if (other->respond_to(env, "coerce"_s)) {
+    if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
-        return result.first->send(env, "<="_s, { result.second }).is_truthy();
+        return result.first.send(env, "<="_s, { result.second }).is_truthy();
     }
 
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
@@ -358,16 +358,16 @@ bool IntegerObject::gt(Env *env, Integer &self, Value other) {
     if (!other.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, self, Natalie::CoerceInvalidReturnValueMode::Raise);
         if (!lhs.is_integer())
-            return lhs->send(env, ">"_s, { rhs }).is_truthy();
+            return lhs.send(env, ">"_s, { rhs }).is_truthy();
         other = rhs;
     }
 
     if (other.is_integer())
         return self > other.integer();
 
-    if (other->respond_to(env, "coerce"_s)) {
+    if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
-        return result.first->send(env, ">"_s, { result.second }).is_truthy();
+        return result.first.send(env, ">"_s, { result.second }).is_truthy();
     }
 
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
@@ -383,16 +383,16 @@ bool IntegerObject::gte(Env *env, Integer &self, Value other) {
     if (!other.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, self, Natalie::CoerceInvalidReturnValueMode::Raise);
         if (!lhs.is_integer())
-            return lhs->send(env, ">="_s, { rhs }).is_truthy();
+            return lhs.send(env, ">="_s, { rhs }).is_truthy();
         other = rhs;
     }
 
     if (other.is_integer())
         return self >= other.integer();
 
-    if (other->respond_to(env, "coerce"_s)) {
+    if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, self);
-        return result.first->send(env, ">="_s, { result.second }).is_truthy();
+        return result.first.send(env, ">="_s, { result.second }).is_truthy();
     }
 
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
@@ -417,10 +417,10 @@ Value IntegerObject::times(Env *env, Integer &self, Block *block) {
 }
 
 Value IntegerObject::bitwise_and(Env *env, Integer &self, Value arg) {
-    if (!arg.is_integer() && arg->respond_to(env, "coerce"_s)) {
+    if (!arg.is_integer() && arg.respond_to(env, "coerce"_s)) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         auto and_symbol = "&"_s;
-        if (!lhs.is_integer() && lhs->respond_to(env, and_symbol))
+        if (!lhs.is_integer() && lhs.respond_to(env, and_symbol))
             return lhs.send(env, and_symbol, { rhs });
         arg = rhs;
     }
@@ -431,10 +431,10 @@ Value IntegerObject::bitwise_and(Env *env, Integer &self, Value arg) {
 
 Value IntegerObject::bitwise_or(Env *env, Integer &self, Value arg) {
     Integer argument;
-    if (!arg.is_integer() && arg->respond_to(env, "coerce"_s)) {
+    if (!arg.is_integer() && arg.respond_to(env, "coerce"_s)) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         auto or_symbol = "|"_s;
-        if (!lhs.is_integer() && lhs->respond_to(env, or_symbol))
+        if (!lhs.is_integer() && lhs.respond_to(env, or_symbol))
             return lhs.send(env, or_symbol, { rhs });
         arg = rhs;
     }
@@ -445,10 +445,10 @@ Value IntegerObject::bitwise_or(Env *env, Integer &self, Value arg) {
 
 Value IntegerObject::bitwise_xor(Env *env, Integer &self, Value arg) {
     Integer argument;
-    if (!arg.is_integer() && arg->respond_to(env, "coerce"_s)) {
+    if (!arg.is_integer() && arg.respond_to(env, "coerce"_s)) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         auto xor_symbol = "^"_s;
-        if (!lhs.is_integer() && lhs->respond_to(env, xor_symbol))
+        if (!lhs.is_integer() && lhs.respond_to(env, xor_symbol))
             return lhs.send(env, xor_symbol, { rhs });
         arg = rhs;
     }
@@ -458,7 +458,7 @@ Value IntegerObject::bitwise_xor(Env *env, Integer &self, Value arg) {
 }
 
 Value IntegerObject::left_shift(Env *env, Integer &self, Value arg) {
-    auto integer = Object::to_int(env, arg);
+    auto integer = arg.to_int(env);
     if (is_bignum(integer)) {
         if (IntegerObject::is_negative(self))
             return Value::integer(-1);
@@ -475,7 +475,7 @@ Value IntegerObject::left_shift(Env *env, Integer &self, Value arg) {
 }
 
 Value IntegerObject::right_shift(Env *env, Integer &self, Value arg) {
-    auto integer = Object::to_int(env, arg);
+    auto integer = arg.to_int(env);
     if (is_bignum(integer)) {
         if (IntegerObject::is_negative(self))
             return Value::integer(-1);
@@ -511,13 +511,13 @@ Value IntegerObject::coerce(Env *env, Value self, Value arg) {
         ary->push(self.send(env, "to_f"_s));
         break;
     default:
-        if (!arg.is_nil() && !arg.is_float() && arg->respond_to(env, "to_f"_s)) {
+        if (!arg.is_nil() && !arg.is_float() && arg.respond_to(env, "to_f"_s)) {
             arg = arg.send(env, "to_f"_s);
         }
 
         if (arg.is_float()) {
             ary->push(arg);
-            ary->push(self->send(env, "to_f"_s));
+            ary->push(self.send(env, "to_f"_s));
             break;
         }
 
@@ -601,7 +601,7 @@ Value IntegerObject::chr(Env *env, Integer &self, Value encoding) {
 }
 
 Value IntegerObject::sqrt(Env *env, Value arg) {
-    auto argument = Object::to_int(env, arg);
+    auto argument = arg.to_int(env);
 
     if (argument < 0) {
         auto domain_error = fetch_nested_const({ "Math"_s, "DomainError"_s });
@@ -701,13 +701,13 @@ Value IntegerObject::ref(Env *env, Integer &self, Value offset_obj, Value size_o
 
         Optional<nat_int_t> begin;
         if (!range->begin().is_nil()) {
-            auto begin_obj = Object::to_int(env, range->begin());
+            auto begin_obj = range->begin().to_int(env);
             begin = begin_obj.to_nat_int_t();
         }
 
         Optional<nat_int_t> end;
         if (!range->end().is_nil()) {
-            auto end_obj = Object::to_int(env, range->end());
+            auto end_obj = range->end().to_int(env);
             end = end_obj.to_nat_int_t();
         }
 
@@ -719,7 +719,7 @@ Value IntegerObject::ref(Env *env, Integer &self, Value offset_obj, Value size_o
 
         return from_offset_and_size(begin, size);
     } else {
-        auto offset_integer = Object::to_int(env, offset_obj);
+        auto offset_integer = offset_obj.to_int(env);
         if (is_bignum(offset_integer))
             return Value::integer(0);
 
@@ -727,7 +727,7 @@ Value IntegerObject::ref(Env *env, Integer &self, Value offset_obj, Value size_o
 
         Optional<nat_int_t> size;
         if (size_obj) {
-            auto size_integer = Object::to_int(env, size_obj);
+            auto size_integer = size_obj.to_int(env);
             if (is_bignum(size_integer))
                 env->raise("RangeError", "shift width too big");
 
@@ -739,7 +739,7 @@ Value IntegerObject::ref(Env *env, Integer &self, Value offset_obj, Value size_o
 }
 
 nat_int_t IntegerObject::convert_to_nat_int_t(Env *env, Value arg) {
-    auto integer = Object::to_int(env, arg);
+    auto integer = arg.to_int(env);
     assert_fixnum(env, integer);
     return integer.to_nat_int_t();
 }

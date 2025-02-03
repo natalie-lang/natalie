@@ -117,10 +117,10 @@ Value FiberObject::is_blocking_current() {
 
 Value FiberObject::ref(Env *env, Value key) {
     const static auto to_str = "to_str"_s;
-    if (key.is_string() || key->respond_to(env, to_str))
-        key = key->to_str(env)->to_sym(env);
+    if (key.is_string() || key.respond_to(env, to_str))
+        key = key.to_str(env)->to_sym(env);
     if (!key.is_symbol())
-        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key.klass()->inspect_str());
     auto fiber = current();
     while ((fiber->m_storage == nullptr || !fiber->m_storage->has_key(env, key)) && fiber->m_previous_fiber != nullptr)
         fiber = fiber->m_previous_fiber;
@@ -131,10 +131,10 @@ Value FiberObject::ref(Env *env, Value key) {
 
 Value FiberObject::refeq(Env *env, Value key, Value value) {
     const static auto to_str = "to_str"_s;
-    if (key.is_string() || key->respond_to(env, to_str))
-        key = key->to_str(env)->to_sym(env);
+    if (key.is_string() || key.respond_to(env, to_str))
+        key = key.to_str(env)->to_sym(env);
     if (!key.is_symbol())
-        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key.klass()->inspect_str());
     if (current()->m_storage == nullptr)
         current()->m_storage = new HashObject {};
     if (!value || value.is_nil()) {
@@ -210,7 +210,7 @@ Value FiberObject::set_scheduler(Env *env, Value scheduler) {
     } else {
         TM::Vector<TM::String> required_methods { "block", "unblock", "kernel_sleep", "io_wait" };
         for (const auto &required_method : required_methods) {
-            if (!scheduler->respond_to(env, SymbolObject::intern(required_method)))
+            if (!scheduler.respond_to(env, SymbolObject::intern(required_method)))
                 env->raise("ArgumentError", "Scheduler must implement #{}", required_method);
         }
         ThreadObject::current()->set_fiber_scheduler(scheduler);

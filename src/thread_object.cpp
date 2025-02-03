@@ -76,7 +76,7 @@ static void *nat_create_thread(void *thread_object) {
         // The cleanup handler does some additional housekeeping
         // as this thread is exiting.
         thread->set_value(return_value);
-        pthread_exit(return_value.object());
+        pthread_exit(0);
 
     } catch (Natalie::ExceptionObject *exception) {
         // This code handles exceptions not rescued by user code.
@@ -141,8 +141,8 @@ namespace Natalie {
 thread_local ThreadObject *tl_current_thread = nullptr;
 
 static Value validate_key(Env *env, Value key) {
-    if (key.is_string() || key->respond_to(env, "to_str"_s))
-        key = key->to_str(env)->to_sym(env);
+    if (key.is_string() || key.respond_to(env, "to_str"_s))
+        key = key.to_str(env)->to_sym(env);
     if (!key.is_symbol())
         env->raise("TypeError", "{} is not a symbol", key->inspect_str(env));
     return key;
@@ -162,7 +162,7 @@ ThreadObject *ThreadObject::current() {
 
 Value ThreadObject::thread_kill(Env *env, Value thread) {
     if (!thread.is_thread())
-        env->raise("TypeError", "wrong argument type {} (expected VM/thread)", thread->klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected VM/thread)", thread.klass()->inspect_str());
 
     return thread->as_thread()->kill(env);
 }
@@ -484,7 +484,7 @@ Value ThreadObject::set_name(Env *env, Value name) {
         return NilObject::the();
     }
 
-    auto name_str = name->to_str(env);
+    auto name_str = name.to_str(env);
     if (strlen(name_str->c_str()) != name_str->bytesize())
         env->raise("ArgumentError", "string contains null byte");
     m_name = name_str->string();
@@ -497,7 +497,7 @@ Value ThreadObject::priority(Env *env) const {
 
 // Example code: https://en.cppreference.com/w/cpp/thread/thread/native_handle
 Value ThreadObject::set_priority(Env *env, Value priority) {
-    auto priority_int = Object::to_int(env, priority);
+    auto priority_int = priority.to_int(env);
     if (IntegerObject::is_bignum(priority_int))
         env->raise("RangeError", "bignum too big to convert into 'long'");
 

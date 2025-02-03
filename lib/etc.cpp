@@ -12,35 +12,35 @@ using namespace Natalie;
 Value group_to_struct(Env *env, Value self, struct group *grp) {
     auto etc_group = self->const_get("Group"_s);
     assert(etc_group);
-    auto grpstruct = etc_group->send(env, "new"_s, {});
+    auto grpstruct = etc_group.send(env, "new"_s, {});
     // It is possible more fields could be set, but these
     // are the ones required by POSIX
-    grpstruct->send(env, "name="_s, { new StringObject { grp->gr_name } });
-    grpstruct->send(env, "passwd="_s, { new StringObject { grp->gr_passwd } });
-    grpstruct->send(env, "gid="_s, { Value::integer(grp->gr_gid) });
+    grpstruct.send(env, "name="_s, { new StringObject { grp->gr_name } });
+    grpstruct.send(env, "passwd="_s, { new StringObject { grp->gr_passwd } });
+    grpstruct.send(env, "gid="_s, { Value::integer(grp->gr_gid) });
     auto mem_ary = new ArrayObject {};
     char **memptr = grp->gr_mem;
     for (char *member_name = *memptr; member_name; member_name = *++memptr) {
         auto memstr = new StringObject { member_name };
         mem_ary->push(Value(memstr));
     }
-    grpstruct->send(env, "mem="_s, { mem_ary });
+    grpstruct.send(env, "mem="_s, { mem_ary });
     return grpstruct;
 }
 
 Value passwd_to_struct(Env *env, Value self, struct passwd *pwd) {
     auto etc_passwd = self->const_get("Passwd"_s);
     assert(etc_passwd);
-    auto pwdstruct = etc_passwd->send(env, "new"_s, {});
+    auto pwdstruct = etc_passwd.send(env, "new"_s, {});
     // It is possible more fields could be set, but these
     // are the ones required by POSIX
-    pwdstruct->send(env, "name="_s, { new StringObject { pwd->pw_name } });
-    pwdstruct->send(env, "uid="_s, { Value::integer(pwd->pw_uid) });
-    pwdstruct->send(env, "gid="_s, { Value::integer(pwd->pw_gid) });
-    pwdstruct->send(env, "dir="_s, { new StringObject { pwd->pw_dir } });
-    pwdstruct->send(env, "gecos="_s, { new StringObject { pwd->pw_gecos } });
-    pwdstruct->send(env, "passwd="_s, { new StringObject { pwd->pw_passwd } });
-    pwdstruct->send(env, "shell="_s, { new StringObject { pwd->pw_shell } });
+    pwdstruct.send(env, "name="_s, { new StringObject { pwd->pw_name } });
+    pwdstruct.send(env, "uid="_s, { Value::integer(pwd->pw_uid) });
+    pwdstruct.send(env, "gid="_s, { Value::integer(pwd->pw_gid) });
+    pwdstruct.send(env, "dir="_s, { new StringObject { pwd->pw_dir } });
+    pwdstruct.send(env, "gecos="_s, { new StringObject { pwd->pw_gecos } });
+    pwdstruct.send(env, "passwd="_s, { new StringObject { pwd->pw_passwd } });
+    pwdstruct.send(env, "shell="_s, { new StringObject { pwd->pw_shell } });
     return pwdstruct;
 }
 

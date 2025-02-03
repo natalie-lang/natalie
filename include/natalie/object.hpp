@@ -253,7 +253,6 @@ public:
 
     void copy_instance_variables(Value);
 
-    bool is_a(Env *, Value) const;
     bool respond_to(Env *env, SymbolObject *name) { return Value(this).respond_to(env, name); }
 
     const char *defined(Env *, SymbolObject *, bool);
@@ -291,23 +290,6 @@ public:
     virtual String dbg_inspect() const;
 
     virtual void gc_inspect(char *buf, size_t len) const override;
-
-    ArrayObject *to_ary(Env *env);
-    FloatObject *to_f(Env *env);
-    HashObject *to_hash(Env *env);
-    IoObject *to_io(Env *env);
-    static Integer to_int(Env *env, Value self);
-    StringObject *to_s(Env *env);
-
-    // Old error message style, e.g.:
-    // - no implicit conversion from nil to string
-    // - no implicit conversion of Integer into String
-    StringObject *to_str(Env *env);
-
-    // New error message style, e.g.:
-    // - no implicit conversion of nil into String
-    // - no implicit conversion of Integer into String
-    StringObject *to_str2(Env *env);
 
 protected:
     ClassObject *m_klass { nullptr };

@@ -79,7 +79,7 @@ Value FileObject::absolute_path(Env *env, Value path, Value dir) {
     assert(File);
     if (!dir || dir.is_nil())
         dir = DirObject::pwd(env);
-    return File->send(env, "join"_s, { dir, path });
+    return File.send(env, "join"_s, { dir, path });
 }
 
 Value FileObject::expand_path(Env *env, Value path, Value root) {
@@ -649,11 +649,11 @@ Value FileObject::lutime(Env *env, Args &&args) {
             t.tv_sec = IntegerObject::convert_to_native_type<time_t>(env, v);
             t.tv_usec = 0;
         } else if (v.is_float()) {
-            const auto tmp = v->to_f(env)->to_double();
+            const auto tmp = v.to_f(env)->to_double();
             t.tv_sec = static_cast<time_t>(tmp);
             t.tv_usec = (tmp - t.tv_sec) * 1000000;
         } else {
-            env->raise("TypeError", "can't convert {} into time", v->klass()->inspect_str());
+            env->raise("TypeError", "can't convert {} into time", v.klass()->inspect_str());
         }
     };
     time_convert(args.at(0), tv[0]);

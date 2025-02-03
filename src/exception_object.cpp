@@ -21,10 +21,10 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
     if (klass && klass.is_class() && !message)
         return _new(env, klass->as_class(), {}, nullptr)->as_exception_or_raise(env);
 
-    if (klass && !klass.is_class() && klass->respond_to(env, "exception"_s)) {
+    if (klass && !klass.is_class() && klass.respond_to(env, "exception"_s)) {
         Vector<Value> args;
         if (message) args.push(message);
-        klass = klass->send(env, "exception"_s, std::move(args));
+        klass = klass.send(env, "exception"_s, std::move(args));
     }
 
     if (!klass && current_exception)
@@ -92,12 +92,12 @@ Value ExceptionObject::exception(Env *env, Value val) {
 bool ExceptionObject::eq(Env *env, Value other) {
     if (!other.is_exception()) return false;
     auto exc = other->as_exception();
-    return m_klass == exc->m_klass && message(env)->send(env, "=="_s, { exc->message(env) }).is_truthy() && backtrace(env)->send(env, "=="_s, { exc->backtrace(env) }).is_truthy();
+    return m_klass == exc->m_klass && message(env).send(env, "=="_s, { exc->message(env) }).is_truthy() && backtrace(env).send(env, "=="_s, { exc->backtrace(env) }).is_truthy();
 }
 
 Value ExceptionObject::inspect(Env *env) {
     auto klassname = m_klass->inspect_str();
-    auto msgstr = this->send(env, "to_s"_s);
+    auto msgstr = send(env, "to_s"_s);
     assert(msgstr);
     msgstr.assert_type(env, Object::Type::String, "String");
     if (msgstr->as_string()->is_empty())
@@ -113,13 +113,13 @@ StringObject *ExceptionObject::to_s(Env *env) {
     } else if (m_message.is_string()) {
         return m_message->as_string();
     }
-    auto msgstr = m_message->send(env, "to_s"_s);
+    auto msgstr = m_message.send(env, "to_s"_s);
     msgstr.assert_type(env, Object::Type::String, "String");
     return msgstr->as_string();
 }
 
 Value ExceptionObject::message(Env *env) {
-    return this->send(env, "to_s"_s);
+    return send(env, "to_s"_s);
 }
 
 Value ExceptionObject::detailed_message(Env *env, Args &&args) {
@@ -195,7 +195,7 @@ Value ExceptionObject::match_rescue_array(Env *env, Value ary) {
         return FalseObject::the();
 
     for (auto klass : *ary->as_array()) {
-        if (klass->send(env, "==="_s, { this }).is_truthy())
+        if (klass.send(env, "==="_s, { this }).is_truthy())
             return TrueObject::the();
     }
     return FalseObject::the();

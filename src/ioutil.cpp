@@ -10,10 +10,10 @@ namespace ioutil {
     // before continuing.
     // This is common to many functions in FileObject and DirObject
     StringObject *convert_using_to_path(Env *env, Value path) {
-        if (!path.is_string() && path->respond_to(env, "to_path"_s))
-            path = path->send(env, "to_path"_s);
-        if (!path.is_string() && path->respond_to(env, "to_str"_s))
-            path = path->to_str(env);
+        if (!path.is_string() && path.respond_to(env, "to_path"_s))
+            path = path.send(env, "to_path"_s);
+        if (!path.is_string() && path.respond_to(env, "to_str"_s))
+            path = path.to_str(env);
         path.assert_type(env, Object::Type::String, "String");
         return path->as_string();
     }
@@ -21,8 +21,8 @@ namespace ioutil {
     // accepts io or io-like object for fstat
     // accepts path or string like object for stat
     int object_stat(Env *env, Value io, struct stat *sb) {
-        if (io.is_io() || io->respond_to(env, "to_io"_s)) {
-            auto file_desc = io->to_io(env)->fileno();
+        if (io.is_io() || io.respond_to(env, "to_io"_s)) {
+            auto file_desc = io.to_io(env)->fileno();
             return ::fstat(file_desc, sb);
         }
 
@@ -37,10 +37,10 @@ namespace ioutil {
         m_has_mode = true;
 
         if (!flags_obj.is_integer() && !flags_obj.is_string()) {
-            if (flags_obj->respond_to(env, "to_str"_s)) {
-                flags_obj = flags_obj->to_str(env);
-            } else if (flags_obj->respond_to(env, "to_int"_s)) {
-                flags_obj = Object::to_int(env, flags_obj);
+            if (flags_obj.respond_to(env, "to_str"_s)) {
+                flags_obj = flags_obj.to_str(env);
+            } else if (flags_obj.respond_to(env, "to_int"_s)) {
+                flags_obj = flags_obj.to_int(env);
             }
         }
 
@@ -95,7 +95,7 @@ namespace ioutil {
             break;
         }
         default:
-            env->raise("TypeError", "no implicit conversion of {} into String", flags_obj->klass()->inspect_str());
+            env->raise("TypeError", "no implicit conversion of {} into String", flags_obj.klass()->inspect_str());
         }
     }
 
@@ -112,7 +112,7 @@ namespace ioutil {
         if (!m_kwargs) return;
         auto flags = m_kwargs->remove(env, "flags"_s);
         if (!flags || flags.is_nil()) return;
-        m_flags |= static_cast<int>(Object::to_int(env, flags).to_nat_int_t());
+        m_flags |= static_cast<int>(flags.to_int(env).to_nat_int_t());
     }
 
     void flags_struct::parse_encoding(Env *env) {
@@ -128,10 +128,10 @@ namespace ioutil {
         } else if (encoding.is_encoding()) {
             m_external_encoding = encoding->as_encoding();
         } else {
-            encoding = encoding->to_str(env);
+            encoding = encoding.to_str(env);
             if (encoding->as_string()->include(":")) {
                 auto colon = new StringObject { ":" };
-                auto encsplit = encoding->to_str(env)->split(env, colon, nullptr)->as_array();
+                auto encsplit = encoding.to_str(env)->split(env, colon, nullptr)->as_array();
                 encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(0)), nullptr);
                 auto internal_encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
                 m_internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
@@ -149,7 +149,7 @@ namespace ioutil {
         if (external_encoding.is_encoding()) {
             m_external_encoding = external_encoding->as_encoding();
         } else {
-            m_external_encoding = EncodingObject::find_encoding(env, external_encoding->to_str(env));
+            m_external_encoding = EncodingObject::find_encoding(env, external_encoding.to_str(env));
         }
     }
 
@@ -162,7 +162,7 @@ namespace ioutil {
         if (internal_encoding.is_encoding()) {
             m_internal_encoding = internal_encoding->as_encoding();
         } else {
-            internal_encoding = internal_encoding->to_str(env);
+            internal_encoding = internal_encoding.to_str(env);
             if (internal_encoding->as_string()->string() != "-") {
                 m_internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
                 if (m_external_encoding == m_internal_encoding)
