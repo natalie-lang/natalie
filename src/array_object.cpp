@@ -363,28 +363,25 @@ Value ArrayObject::any(Env *env, Args &&args, Block *block) {
 }
 
 bool ArrayObject::eq(Env *env, Value other) {
-    TM::PairedRecursionGuard guard { this, other.object() };
-
-    Value result = guard.run([&](bool is_recursive) -> Value { // don't return bool in recursion guard
+    auto lambda = [&](bool is_recursive) {
         if (other == this)
-            return TrueObject::the();
+            return true;
 
         SymbolObject *equality = "=="_s;
         if (!other.is_array()
-            && other.send(env, "respond_to?"_s, { "to_ary"_s }).is_true())
-            return other.send(env, equality, { this });
+            && other.send(env, "respond_to?"_s, { "to_ary"_s }).is_truthy())
+            return other.send(env, equality, { this }).is_truthy();
 
-        if (!other.is_array()) {
-            return FalseObject::the();
-        }
+        if (!other.is_array())
+            return false;
 
         auto other_array = other->as_array();
         if (size() != other_array->size())
-            return FalseObject::the();
+            return false;
 
         if (is_recursive)
             // since == is an & of all the == of each value, this will just leave the expression uneffected
-            return TrueObject::the();
+            return true;
 
         SymbolObject *object_id = "object_id"_s;
         for (size_t i = 0; i < size(); ++i) {
@@ -402,47 +399,53 @@ bool ArrayObject::eq(Env *env, Value other) {
             }
 
             Value result = this_item.send(env, equality, { item }, nullptr);
-            if (result.is_false())
-                return result;
+            if (result.is_falsey())
+                return false;
         }
 
-        return TrueObject::the();
-    });
+        return true;
+    };
 
-    return result.is_true();
+    if (other.is_integer())
+        return lambda(false);
+
+    TM::PairedRecursionGuard guard { this, other.object() };
+    return guard.run(lambda);
 }
 
 bool ArrayObject::eql(Env *env, Value other) {
-    TM::PairedRecursionGuard guard { this, other.object() };
-
-    Value result = guard.run([&](bool is_recursive) -> Value { // don't return bool in recursion guard
+    auto lambda = [&](bool is_recursive) {
         if (other == this)
-            return TrueObject::the();
+            return true;
         if (!other.is_array())
-            return FalseObject::the();
+            return false;
 
         if (!other.is_array()) {
-            return FalseObject::the();
+            return false;
         }
 
         auto other_array = other->as_array();
         if (size() != other_array->size())
-            return FalseObject::the();
+            return false;
 
         if (is_recursive)
             // since eql is an & of all the eql of each value, this will just leave the expression uneffected
-            return TrueObject::the();
+            return true;
 
         for (size_t i = 0; i < size(); ++i) {
             Value result = (*this)[i].send(env, "eql?"_s, { (*other_array)[i] }, nullptr);
             if (result.is_false())
-                return result;
+                return false;
         }
 
-        return TrueObject::the();
-    });
+        return true;
+    };
 
-    return result.is_true();
+    if (other.is_integer())
+        return lambda(false);
+
+    TM::PairedRecursionGuard guard { this, other.object() };
+    return guard.run(lambda);
 }
 
 Value ArrayObject::each(Env *env, Block *block) {
