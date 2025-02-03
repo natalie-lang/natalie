@@ -26,11 +26,14 @@ ArrayObject *SymbolObject::all_symbols(Env *env) {
 }
 
 StringObject *SymbolObject::to_s(Env *env) {
+    StringObject *result = nullptr;
     if (m_encoding == nullptr) {
-        return new StringObject { m_name };
+        result = new StringObject { m_name };
     } else {
-        return new StringObject { m_name, m_encoding };
+        result = new StringObject { m_name, m_encoding };
     }
+    result->set_chilled();
+    return result;
 }
 
 StringObject *SymbolObject::inspect(Env *env) {
