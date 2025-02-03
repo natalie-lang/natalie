@@ -198,7 +198,7 @@ Value KernelModule::exit(Env *env, Value status) {
     }
 
     ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s)->as_class(), new StringObject { "exit" } };
-    exception->ivar_set(env, "@status"_s, Object::to_int(env, status));
+    exception->ivar_set(env, "@status"_s, status.to_int(env));
     env->raise_exception(exception);
     return NilObject::the();
 }
@@ -211,7 +211,7 @@ Value KernelModule::exit_bang(Env *env, Value status) {
 Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) {
     nat_int_t base_int = 0; // default to zero if unset
     if (base)
-        base_int = Object::to_int(env, base).to_nat_int_t();
+        base_int = base.to_int(env).to_nat_int_t();
     return Integer(env, value, base_int, exception ? exception.is_true() : true);
 }
 
@@ -352,7 +352,7 @@ Value KernelModule::Hash(Env *env, Value value) {
     if (value.is_nil() || (value.is_array() && value->as_array()->is_empty()))
         return new HashObject;
 
-    return value->to_hash(env);
+    return value.to_hash(env);
 }
 
 Value KernelModule::lambda(Env *env, Block *block) {
@@ -501,8 +501,8 @@ Value KernelModule::sleep(Env *env, Value length) {
         secs = length->as_rational()->to_f(env)->as_float()->to_double();
     } else if (length.respond_to(env, "divmod"_s)) {
         auto divmod = length.send(env, "divmod"_s, { IntegerObject::create(1) })->as_array();
-        secs = divmod->at(0)->to_f(env)->as_float()->to_double();
-        secs += divmod->at(1)->to_f(env)->as_float()->to_double();
+        secs = divmod->at(0).to_f(env)->as_float()->to_double();
+        secs += divmod->at(1).to_f(env)->as_float()->to_double();
     } else {
         env->raise("TypeError", "can't convert {} into time interval", length.klass()->inspect_str());
     }
@@ -526,7 +526,7 @@ Value KernelModule::spawn(Env *env, Args &&args) {
     });
 
     if (args.size() >= 1 && (args.at(0).is_hash() || args.at(0).respond_to(env, "to_hash"_s))) {
-        auto hash = args.shift()->to_hash(env);
+        auto hash = args.shift().to_hash(env);
         for (auto ep = environ; *ep; ep++)
             new_env.push(strdup(*ep));
         for (auto pair : *hash) {

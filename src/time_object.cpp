@@ -172,7 +172,7 @@ Value TimeObject::inspect(Env *env) {
     StringObject *result = build_string(env, "%Y-%m-%d %H:%M:%S")->as_string();
     if (m_subsec) {
         auto integer = m_subsec->as_rational()->mul(env, Value::integer(1000000000))->as_rational()->to_i(env);
-        auto string = integer->to_s(env);
+        auto string = integer.to_s(env);
         auto length = string->length();
         if (length > 9) {
             string->truncate(9);
@@ -348,7 +348,7 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
         env->raise("ArgumentError", "\"+HH:MM\", \"-HH:MM\", \"UTC\" or \"A\"..\"I\",\"K\"..\"Z\" expected for utc_offset: {}", str);
     }
     if (val.is_integer() || val.respond_to(env, "to_int"_s)) {
-        auto seconds = Object::to_int(env, val).to_nat_int_t();
+        auto seconds = val.to_int(env).to_nat_int_t();
         if (seconds > hoursec * -24 && seconds < hoursec * 24) {
             return seconds;
         }
@@ -361,7 +361,7 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
 nat_int_t TimeObject::normalize_field(Env *env, Value val) {
     if (!val.is_integer() && val.respond_to(env, "to_i"_s))
         val = val.send(env, "to_i"_s);
-    return Object::to_int(env, val).to_nat_int_t();
+    return val.to_int(env).to_nat_int_t();
 }
 
 nat_int_t TimeObject::normalize_field(Env *env, Value val, nat_int_t minval, nat_int_t maxval) {
@@ -411,7 +411,7 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
             env->raise("ArgumentError", "mon out of range");
         }
         if (val.respond_to(env, "to_int"_s)) {
-            val = Object::to_int(env, val);
+            val = val.to_int(env);
         }
     }
     val.assert_type(env, Object::Type::Integer, "Integer");
@@ -430,7 +430,7 @@ RationalObject *TimeObject::convert_rational(Env *env, Value value) {
     } else if (value.respond_to(env, "to_r"_s) && value.respond_to(env, "to_int"_s)) {
         return value.send(env, "to_r"_s)->as_rational();
     } else if (value.respond_to(env, "to_int"_s)) {
-        return RationalObject::create(env, Object::to_int(env, value), Integer(1));
+        return RationalObject::create(env, value.to_int(env), Integer(1));
     } else {
         env->raise("TypeError", "can't convert {} into an exact number", value.klass()->inspect_str());
     }

@@ -257,7 +257,7 @@ Value ModuleObject::handle_missing_constant(Env *env, Value name, ConstLookupFai
         return nullptr;
 
     if (failure_mode == ConstLookupFailureMode::Raise) {
-        auto name_str = name->to_s(env);
+        auto name_str = name.to_s(env);
         if (this == GlobalEnv::the()->Object())
             env->raise_name_error(name_str, "uninitialized constant {}", name_str->string());
         env->raise_name_error(name_str, "uninitialized constant {}::{}", inspect_str(), name_str->string());

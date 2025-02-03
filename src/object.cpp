@@ -826,7 +826,7 @@ void Object::singleton_method_alias(Env *env, SymbolObject *new_name, SymbolObje
 
     ClassObject *klass = singleton_class(env, this);
     if (klass->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", Value(this).to_s(env)->string());
     klass->method_alias(env, new_name, old_name);
 }
 
@@ -835,7 +835,7 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Meth
 
     ClassObject *klass = singleton_class(env, this)->as_class();
     if (klass->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", Value(this).to_s(env)->string());
     klass->define_method(env, name, fn, arity);
     return name;
 }
@@ -845,7 +845,7 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Bloc
 
     ClassObject *klass = singleton_class(env, this);
     if (klass->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", Value(this).to_s(env)->string());
     klass->define_method(env, name, block);
     return name;
 }
@@ -1280,120 +1280,6 @@ void Object::visit_children(Visitor &visitor) const {
 
 void Object::gc_inspect(char *buf, size_t len) const {
     snprintf(buf, len, "<Object %p type=%d class=%p>", this, (int)m_type, m_klass);
-}
-
-ArrayObject *Object::to_ary(Env *env) {
-    if (m_type == Type::Array)
-        return as_array();
-
-    auto original_class = klass()->inspect_str();
-
-    auto to_ary = "to_ary"_s;
-
-    if (!respond_to(env, to_ary)) {
-        if (m_type == Type::Nil)
-            env->raise("TypeError", "no implicit conversion of nil into Array");
-        env->raise("TypeError", "no implicit conversion of {} into Array", original_class);
-    }
-
-    Value val = send(env, to_ary);
-
-    if (val.is_array()) {
-        return val->as_array();
-    }
-
-    env->raise(
-        "TypeError", "can't convert {} to Array ({}#to_ary gives {})",
-        original_class,
-        original_class,
-        val.klass()->inspect_str());
-}
-
-IoObject *Object::to_io(Env *env) {
-    if (m_type == Type::Io) return as_io();
-
-    auto to_io = "to_io"_s;
-    if (!respond_to(env, to_io))
-        Value(this).assert_type(env, Type::Io, "IO");
-
-    auto result = send(env, to_io);
-
-    if (result.is_io())
-        return result->as_io();
-
-    env->raise(
-        "TypeError", "can't convert {} to IO ({}#to_io gives {})",
-        klass()->inspect_str(),
-        klass()->inspect_str(),
-        result.klass()->inspect_str());
-}
-
-Integer Object::to_int(Env *env, Value self) {
-    if (self.is_integer())
-        return self.integer();
-
-    auto to_int = "to_int"_s;
-    if (!self.respond_to(env, to_int))
-        self.assert_type(env, Type::Integer, "Integer");
-
-    auto result = self.send(env, to_int);
-
-    if (result.is_integer())
-        return result.integer();
-
-    auto klass = self.klass();
-    env->raise(
-        "TypeError", "can't convert {} to Integer ({}#to_int gives {})",
-        klass->inspect_str(),
-        klass->inspect_str(),
-        result.klass()->inspect_str());
-}
-
-FloatObject *Object::to_f(Env *env) {
-    if (m_type == Type::Float) return as_float();
-
-    auto to_f = "to_f"_s;
-    if (!respond_to(env, to_f))
-        Value(this).assert_type(env, Type::Float, "Float");
-
-    auto result = send(env, to_f);
-    result.assert_type(env, Type::Float, "Float");
-    return result->as_float();
-}
-
-HashObject *Object::to_hash(Env *env) {
-    if (m_type == Type::Hash) {
-        return as_hash();
-    }
-
-    auto original_class = klass()->inspect_str();
-
-    auto to_hash = "to_hash"_s;
-
-    if (!respond_to(env, to_hash)) {
-        if (m_type == Type::Nil)
-            env->raise("TypeError", "no implicit conversion of nil into Hash");
-        env->raise("TypeError", "no implicit conversion of {} into Hash", original_class);
-    }
-
-    Value val = send(env, to_hash);
-
-    if (val.is_hash()) {
-        return val->as_hash();
-    }
-
-    env->raise(
-        "TypeError", "can't convert {} to Hash ({}#to_hash gives {})",
-        original_class,
-        original_class,
-        val.klass()->inspect_str());
-}
-
-StringObject *Object::to_s(Env *env) {
-    auto str = send(env, "to_s"_s);
-    if (!str.is_string())
-        env->raise("TypeError", "no implicit conversion of {} into String", m_klass->name());
-    return str->as_string();
 }
 
 }

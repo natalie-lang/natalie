@@ -183,7 +183,7 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
         node = nodename.to_str(env)->c_str();
     StringObject *service_as_string = nullptr;
     if (servicename.is_integer()) {
-        service_as_string = servicename->to_s(env);
+        service_as_string = servicename.to_s(env);
         service = service_as_string->c_str();
     } else if (!servicename.is_nil()) {
         service = servicename.to_str(env)->c_str();
@@ -273,7 +273,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
             break;
         case AF_INET:
         case AF_INET6:
-            port = Value(Object::to_int(env, ary->ref(env, Value::integer(1))));
+            port = Value(ary->ref(env, Value::integer(1)).to_int(env));
             host = ary->ref(env, Value::integer(2)).to_str(env);
             if (ary->ref(env, Value::integer(3)).is_string())
                 host = ary->at(3).to_str(env);
@@ -597,7 +597,7 @@ Value BasicSocket_send(Env *env, Value self, Args &&args, Block *) {
     } else {
         auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
         if (dest_sockaddr.is_a(env, Addrinfo))
-            dest_sockaddr = dest_sockaddr->to_s(env);
+            dest_sockaddr = dest_sockaddr.to_s(env);
         dest_sockaddr = dest_sockaddr.to_str(env);
         bytes = sendto(self->as_io()->fileno(), mesg->c_str(), mesg->bytesize(), flags, reinterpret_cast<const sockaddr *>(dest_sockaddr->as_string()->c_str()), dest_sockaddr->as_string()->bytesize());
     }
@@ -1082,7 +1082,7 @@ Value Socket_connect(Env *env, Value self, Args &&args, Block *block) {
     auto remote_sockaddr = args.at(0);
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
     if (remote_sockaddr.is_a(env, Addrinfo)) {
-        remote_sockaddr = remote_sockaddr->to_s(env);
+        remote_sockaddr = remote_sockaddr.to_s(env);
     } else {
         remote_sockaddr = remote_sockaddr.to_str(env);
     }
@@ -1539,7 +1539,7 @@ Value Socket_Option_s_linger(Env *env, Value self, Args &&args, Block *) {
 
     args.ensure_argc_is(env, 2);
     auto on_off = args.at(0).is_truthy();
-    int linger = Object::to_int(env, args.at(1)).to_nat_int_t();
+    int linger = args.at(1).to_int(env).to_nat_int_t();
 
     struct linger data {
         on_off, linger

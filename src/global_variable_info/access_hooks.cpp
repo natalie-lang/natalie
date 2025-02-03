@@ -65,7 +65,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
     }
 
     Value to_int(Env *env, Value v, GlobalVariableInfo &) {
-        return Object::to_int(env, v);
+        return v.to_int(env);
     }
 
     Value last_match(Env *env, Value v, GlobalVariableInfo &) {

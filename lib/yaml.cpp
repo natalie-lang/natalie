@@ -167,7 +167,7 @@ static void emit_openstruct_value(Env *env, Value value, yaml_emitter_t &emitter
 
     auto values = value.send(env, "to_h"_s)->as_hash();
     for (auto elem : *values) {
-        emit_value(env, elem.key->to_s(env), emitter, event);
+        emit_value(env, elem.key.to_s(env), emitter, event);
         emit_value(env, elem.val, emitter, event);
     }
 
@@ -187,7 +187,7 @@ static void emit_struct_value(Env *env, Value value, yaml_emitter_t &emitter, ya
 
     auto values = value.send(env, "to_h"_s)->as_hash();
     for (auto elem : *values) {
-        emit_value(env, elem.key->to_s(env), emitter, event);
+        emit_value(env, elem.key.to_s(env), emitter, event);
         emit_value(env, elem.val, emitter, event);
     }
 
@@ -203,7 +203,7 @@ static void emit_object_value(Env *env, Value value, yaml_emitter_t &emitter, ya
 
     auto ivars = value->instance_variables(env)->as_array();
     for (auto ivar : *ivars) {
-        auto name = ivar->to_s(env);
+        auto name = ivar.to_s(env);
         name->delete_prefix_in_place(env, new StringObject { "@" });
         auto val = value->ivar_get(env, ivar->as_symbol());
         emit_value(env, name, emitter, event);
@@ -408,7 +408,7 @@ Value YAML_load(Env *env, Value self, Args &&args, Block *) {
 
     auto input = args.at(0);
     if (input.is_io() || input.respond_to(env, "to_io"_s)) {
-        auto io = input->to_io(env);
+        auto io = input.to_io(env);
         auto file = fdopen(io->fileno(env), "r");
         yaml_parser_set_input_file(&parser, file);
     } else {

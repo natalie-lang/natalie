@@ -35,7 +35,7 @@ Value MatchDataObject::byteoffset(Env *env, Value n) {
         if (index < 0)
             env->raise("IndexError", "undefined group name reference: {}", str);
     } else {
-        index = Object::to_int(env, n).to_nat_int_t();
+        index = n.to_int(env).to_nat_int_t();
         if (index < 0 || index >= static_cast<nat_int_t>(size()))
             env->raise("IndexError", "index {} out of matches", index);
     }
@@ -134,9 +134,9 @@ Value MatchDataObject::begin(Env *env, Value start) const {
         const auto &str = start->type() == Object::Type::String ? start->as_string()->string() : start->as_symbol()->string();
         index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
         if (index < 0 || index >= m_region->num_regs)
-            env->raise("IndexError", "undefined group name reference: {}", start->to_s(env)->c_str());
+            env->raise("IndexError", "undefined group name reference: {}", start.to_s(env)->c_str());
     } else {
-        index = Object::to_int(env, start).to_nat_int_t();
+        index = start.to_int(env).to_nat_int_t();
         if (index < 0 || index >= m_region->num_regs)
             env->raise("IndexError", "index {} out of matches", index);
     }
@@ -155,7 +155,7 @@ Value MatchDataObject::end(Env *env, Value end) const {
         const auto &str = end->type() == Object::Type::String ? end->as_string()->string() : end->as_symbol()->string();
         index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
     } else {
-        index = Object::to_int(env, end).to_nat_int_t();
+        index = end.to_int(env).to_nat_int_t();
     }
     if (index < 0)
         env->raise("IndexError", "bad index");
@@ -235,7 +235,7 @@ Value MatchDataObject::inspect(Env *env) {
 Value MatchDataObject::match(Env *env, Value index) {
     if (!index.is_integer()) {
         if (index.is_symbol())
-            index = index->to_s(env);
+            index = index.to_s(env);
 
         auto name = reinterpret_cast<const UChar *>(index.to_str(env)->c_str());
         const auto backref_number = onig_name_to_backref_number(m_regexp->m_regex, name, name + index->as_string()->bytesize(), m_region);

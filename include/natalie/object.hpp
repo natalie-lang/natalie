@@ -291,13 +291,6 @@ public:
 
     virtual void gc_inspect(char *buf, size_t len) const override;
 
-    ArrayObject *to_ary(Env *env);
-    FloatObject *to_f(Env *env);
-    HashObject *to_hash(Env *env);
-    IoObject *to_io(Env *env);
-    static Integer to_int(Env *env, Value self);
-    StringObject *to_s(Env *env);
-
 protected:
     ClassObject *m_klass { nullptr };
 

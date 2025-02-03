@@ -22,7 +22,7 @@ namespace ioutil {
     // accepts path or string like object for stat
     int object_stat(Env *env, Value io, struct stat *sb) {
         if (io.is_io() || io.respond_to(env, "to_io"_s)) {
-            auto file_desc = io->to_io(env)->fileno();
+            auto file_desc = io.to_io(env)->fileno();
             return ::fstat(file_desc, sb);
         }
 
@@ -40,7 +40,7 @@ namespace ioutil {
             if (flags_obj.respond_to(env, "to_str"_s)) {
                 flags_obj = flags_obj.to_str(env);
             } else if (flags_obj.respond_to(env, "to_int"_s)) {
-                flags_obj = Object::to_int(env, flags_obj);
+                flags_obj = flags_obj.to_int(env);
             }
         }
 
@@ -112,7 +112,7 @@ namespace ioutil {
         if (!m_kwargs) return;
         auto flags = m_kwargs->remove(env, "flags"_s);
         if (!flags || flags.is_nil()) return;
-        m_flags |= static_cast<int>(Object::to_int(env, flags).to_nat_int_t());
+        m_flags |= static_cast<int>(flags.to_int(env).to_nat_int_t());
     }
 
     void flags_struct::parse_encoding(Env *env) {

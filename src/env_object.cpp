@@ -44,7 +44,7 @@ Value EnvObject::to_hash(Env *env, Block *block) {
         if (block) {
             auto transformed = block->run(env, Args({ name, value }), nullptr);
             if (!transformed.is_array() && transformed.respond_to(env, "to_ary"_s))
-                transformed = transformed->to_ary(env);
+                transformed = transformed.to_ary(env);
             if (!transformed.is_array())
                 env->raise("TypeError", "wrong element type {} (expected array)", transformed.klass()->inspect_str());
             if (transformed->as_array()->size() != 2)

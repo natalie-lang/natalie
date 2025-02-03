@@ -42,7 +42,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
         }
     }
 
-    auto size_integer = Object::to_int(env, size);
+    auto size_integer = size.to_int(env);
     if (IntegerObject::is_bignum(size_integer))
         env->raise("ArgumentError", "array size too big");
 
@@ -75,7 +75,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
 Value ArrayObject::initialize_copy(Env *env, Value other) {
     assert_not_frozen(env);
 
-    ArrayObject *other_array = other->to_ary(env);
+    ArrayObject *other_array = other.to_ary(env);
     if (this == other_array)
         return this;
 
@@ -206,7 +206,7 @@ Value ArrayObject::ltlt(Env *env, Value arg) {
 }
 
 Value ArrayObject::add(Env *env, Value other) {
-    ArrayObject *other_array = other->to_ary(env);
+    ArrayObject *other_array = other.to_ary(env);
 
     ArrayObject *new_array = new ArrayObject { m_vector };
     new_array->concat(*other_array);
@@ -214,7 +214,7 @@ Value ArrayObject::add(Env *env, Value other) {
 }
 
 Value ArrayObject::sub(Env *env, Value other) {
-    ArrayObject *other_array = other->to_ary(env);
+    ArrayObject *other_array = other.to_ary(env);
 
     ArrayObject *new_array = new ArrayObject {};
     for (auto &item : *this) {
@@ -340,7 +340,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
 
     // the new entry/entries
     if (val.is_array() || val.respond_to(env, "to_ary"_s)) {
-        new_ary.concat(val->to_ary(env)->m_vector);
+        new_ary.concat(val.to_ary(env)->m_vector);
     } else {
         new_ary.push(val);
     }
@@ -1436,7 +1436,7 @@ Value ArrayObject::assoc(Env *env, Value needle) {
         if (!item.is_array() && !item.respond_to(env, "to_ary"_s))
             continue;
 
-        ArrayObject *sub_array = item->to_ary(env);
+        ArrayObject *sub_array = item.to_ary(env);
         if (sub_array->is_empty())
             continue;
 
@@ -1480,7 +1480,7 @@ Value ArrayObject::rassoc(Env *env, Value needle) {
         if (!item.is_array() && !item.respond_to(env, "to_ary"_s))
             continue;
 
-        ArrayObject *sub_array = item->to_ary(env);
+        ArrayObject *sub_array = item.to_ary(env);
         if (sub_array->size() < 2)
             continue;
 
@@ -1578,7 +1578,7 @@ Value ArrayObject::intersection(Env *env, Args &&args) {
 
     for (size_t i = 0; i < args.size(); ++i) {
         auto arg = args[i];
-        ArrayObject *other_array = arg->to_ary(env);
+        ArrayObject *other_array = arg.to_ary(env);
 
         if (!other_array->is_empty())
             arrays.push(other_array);
@@ -1603,7 +1603,7 @@ Value ArrayObject::intersection(Env *env, Args &&args) {
 bool ArrayObject::intersects(Env *env, Value arg) {
     if (this->is_empty()) return false;
 
-    ArrayObject *other_array = arg->to_ary(env);
+    ArrayObject *other_array = arg.to_ary(env);
 
     for (auto &item : *this) {
         if (other_array->include_eql(env, item)) {
@@ -1700,7 +1700,7 @@ Value ArrayObject::concat(Env *env, Args &&args) {
             auto original = m_vector.slice(0, original_size);
             m_vector.concat(original);
         } else {
-            concat(*arg->to_ary(env));
+            concat(*arg.to_ary(env));
         }
     }
 
@@ -1792,7 +1792,7 @@ Value ArrayObject::product(Env *env, Args &&args, Block *block) {
     Vector<ArrayObject *> arrays;
     arrays.push(this);
     for (size_t i = 0; i < args.size(); ++i)
-        arrays.push(args[i]->to_ary(env));
+        arrays.push(args[i].to_ary(env));
 
     constexpr size_t max_size_t = std::numeric_limits<size_t>::max();
     size_t number_of_combinations = 1;
@@ -1887,8 +1887,8 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
     this->assert_not_frozen(env);
 
     if (size) {
-        index_obj = Object::to_int(env, index_obj);
-        size = Object::to_int(env, size);
+        index_obj = index_obj.to_int(env);
+        size = size.to_int(env);
 
         IntegerObject::assert_fixnum(env, size.integer());
     }
@@ -1984,7 +1984,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         return this;
     }
 
-    return slice_in_place(env, Object::to_int(env, index_obj), size);
+    return slice_in_place(env, index_obj.to_int(env), size);
 }
 
 Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end) {

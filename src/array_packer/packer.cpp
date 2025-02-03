@@ -50,8 +50,8 @@ namespace ArrayPacker {
                         string_object = str->as_string();
                         string = str->as_string()->string();
                     } else {
-                        string_object = str->to_s(env)->as_string();
-                        string = str->to_s(env)->string();
+                        string_object = str.to_s(env)->as_string();
+                        string = str.to_s(env)->string();
                     }
                 } else {
                     env->raise("TypeError", "no implicit conversion of {} into String", item.klass()->inspect_str());
@@ -86,7 +86,7 @@ namespace ArrayPacker {
             case 'v':
             case 'w': {
                 pack_with_loop(env, token, [&]() {
-                    auto integer = Object::to_int(env, m_source->at(m_index));
+                    auto integer = m_source->at(m_index).to_int(env);
                     auto packer = IntegerHandler { integer, token };
                     auto result = packer.pack(env);
                     m_packed.append(result);

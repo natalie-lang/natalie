@@ -49,14 +49,14 @@ Value ProcessModule::kill(Env *env, Args &&args) {
     bool pid_contains_self = false;
 
     if (signal.is_symbol())
-        signal = signal->to_s(env);
+        signal = signal.to_s(env);
     if (signal.is_integer()) {
         signo = IntegerObject::convert_to_nat_int_t(env, signal);
     } else if (signal.is_string() || signal.respond_to(env, "to_str"_s)) {
         auto signame = signal.to_str(env)->delete_prefix(env, new StringObject { "SIG" });
         auto signo_val = SignalModule::list(env)->as_hash()->ref(env, signame);
         if (signo_val.is_nil())
-            env->raise("ArgumentError", "unsupported signal `SIG{}'", signame->to_s(env)->string());
+            env->raise("ArgumentError", "unsupported signal `SIG{}'", signame.to_s(env)->string());
         signo = IntegerObject::convert_to_nat_int_t(env, signo_val);
     } else {
         env->raise("ArgumentError", "bad signal type {}", signal.klass()->inspect_str());
@@ -86,7 +86,7 @@ long ProcessModule::maxgroups() {
 }
 
 Value ProcessModule::setmaxgroups(Env *env, Value val) {
-    Value int_val = Object::to_int(env, val);
+    Value int_val = val.to_int(env);
     if (int_val.send(env, "positive?"_s).is_falsey())
         env->raise("ArgumentError", "maxgroups {} should be positive", int_val->inspect_str(env));
     const long actual_maxgroups = sysconf(_SC_NGROUPS_MAX);

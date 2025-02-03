@@ -458,7 +458,7 @@ Value IntegerObject::bitwise_xor(Env *env, Integer &self, Value arg) {
 }
 
 Value IntegerObject::left_shift(Env *env, Integer &self, Value arg) {
-    auto integer = Object::to_int(env, arg);
+    auto integer = arg.to_int(env);
     if (is_bignum(integer)) {
         if (IntegerObject::is_negative(self))
             return Value::integer(-1);
@@ -475,7 +475,7 @@ Value IntegerObject::left_shift(Env *env, Integer &self, Value arg) {
 }
 
 Value IntegerObject::right_shift(Env *env, Integer &self, Value arg) {
-    auto integer = Object::to_int(env, arg);
+    auto integer = arg.to_int(env);
     if (is_bignum(integer)) {
         if (IntegerObject::is_negative(self))
             return Value::integer(-1);
@@ -601,7 +601,7 @@ Value IntegerObject::chr(Env *env, Integer &self, Value encoding) {
 }
 
 Value IntegerObject::sqrt(Env *env, Value arg) {
-    auto argument = Object::to_int(env, arg);
+    auto argument = arg.to_int(env);
 
     if (argument < 0) {
         auto domain_error = fetch_nested_const({ "Math"_s, "DomainError"_s });
@@ -701,13 +701,13 @@ Value IntegerObject::ref(Env *env, Integer &self, Value offset_obj, Value size_o
 
         Optional<nat_int_t> begin;
         if (!range->begin().is_nil()) {
-            auto begin_obj = Object::to_int(env, range->begin());
+            auto begin_obj = range->begin().to_int(env);
             begin = begin_obj.to_nat_int_t();
         }
 
         Optional<nat_int_t> end;
         if (!range->end().is_nil()) {
-            auto end_obj = Object::to_int(env, range->end());
+            auto end_obj = range->end().to_int(env);
             end = end_obj.to_nat_int_t();
         }
 
@@ -719,7 +719,7 @@ Value IntegerObject::ref(Env *env, Integer &self, Value offset_obj, Value size_o
 
         return from_offset_and_size(begin, size);
     } else {
-        auto offset_integer = Object::to_int(env, offset_obj);
+        auto offset_integer = offset_obj.to_int(env);
         if (is_bignum(offset_integer))
             return Value::integer(0);
 
@@ -727,7 +727,7 @@ Value IntegerObject::ref(Env *env, Integer &self, Value offset_obj, Value size_o
 
         Optional<nat_int_t> size;
         if (size_obj) {
-            auto size_integer = Object::to_int(env, size_obj);
+            auto size_integer = size_obj.to_int(env);
             if (is_bignum(size_integer))
                 env->raise("RangeError", "shift width too big");
 
@@ -739,7 +739,7 @@ Value IntegerObject::ref(Env *env, Integer &self, Value offset_obj, Value size_o
 }
 
 nat_int_t IntegerObject::convert_to_nat_int_t(Env *env, Value arg) {
-    auto integer = Object::to_int(env, arg);
+    auto integer = arg.to_int(env);
     assert_fixnum(env, integer);
     return integer.to_nat_int_t();
 }

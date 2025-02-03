@@ -22,7 +22,7 @@ Value RandomObject::initialize(Env *env, Value seed) {
 Value RandomObject::bytes(Env *env, Value size) {
     assert(m_generator);
 
-    const auto isize = Object::to_int(env, size).to_nat_int_t();
+    const auto isize = size.to_int(env).to_nat_int_t();
     if (isize < 0)
         env->raise("ArgumentError", "negative string size (or size too big)");
 
@@ -83,7 +83,7 @@ Value RandomObject::rand(Env *env, Value arg) {
         }
 
         if (arg.is_nil())
-            env->raise("ArgumentError", "invalid argument - {}", arg->to_s(env)->string());
+            env->raise("ArgumentError", "invalid argument - {}", arg.to_s(env)->string());
 
         nat_int_t max = IntegerObject::convert_to_nat_int_t(env, arg);
         if (max <= 0) {

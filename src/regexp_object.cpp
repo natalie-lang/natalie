@@ -113,7 +113,7 @@ Value RegexpObject::last_match(Env *env, Value ref) {
 
 Value RegexpObject::quote(Env *env, Value string) {
     if (string.is_symbol())
-        string = string->to_s(env);
+        string = string.to_s(env);
     auto str = string->as_string_or_raise(env);
 
     String out;
@@ -187,7 +187,7 @@ Value RegexpObject::regexp_union(Env *env, Args &&args) {
         if (pattern.respond_to(env, "to_regexp"_s)) {
             pattern = pattern.send(env, "to_regexp"_s);
         } else if (pattern.is_symbol()) {
-            pattern = pattern->to_s(env);
+            pattern = pattern.to_s(env);
         }
         if (pattern.is_regexp()) {
             if (patterns->size() == 1)

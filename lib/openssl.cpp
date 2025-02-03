@@ -384,14 +384,14 @@ Value OpenSSL_SSL_SSLContext_set_max_version(Env *env, Value self, Args &&args, 
     auto version = args[0];
 
     if (self->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", self.to_s(env)->string());
 
     if (version.is_string() || version.is_symbol()) {
-        version = StringObject::format("{}_VERSION", version->to_s(env)->string());
+        version = StringObject::format("{}_VERSION", version.to_s(env)->string());
         const auto SSL = fetch_nested_const({ "OpenSSL"_s, "SSL"_s })->as_module();
         version = SSL->const_get(version->as_string()->to_sym(env)->as_symbol());
         if (!version)
-            env->raise("ArgumentError", "unrecognized version \"{}\"", args[0]->to_s(env)->string());
+            env->raise("ArgumentError", "unrecognized version \"{}\"", args[0].to_s(env)->string());
     }
 
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
@@ -406,14 +406,14 @@ Value OpenSSL_SSL_SSLContext_set_min_version(Env *env, Value self, Args &&args, 
     auto version = args[0];
 
     if (self->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", self.to_s(env)->string());
 
     if (version.is_string() || version.is_symbol()) {
-        version = StringObject::format("{}_VERSION", version->to_s(env)->string());
+        version = StringObject::format("{}_VERSION", version.to_s(env)->string());
         const auto SSL = fetch_nested_const({ "OpenSSL"_s, "SSL"_s })->as_module();
         version = SSL->const_get(version->as_string()->to_sym(env)->as_symbol());
         if (!version)
-            env->raise("ArgumentError", "unrecognized version \"{}\"", args[0]->to_s(env)->string());
+            env->raise("ArgumentError", "unrecognized version \"{}\"", args[0].to_s(env)->string());
     }
 
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
@@ -452,10 +452,10 @@ Value OpenSSL_SSL_SSLContext_security_level(Env *env, Value self, Args &&args, B
 
 Value OpenSSL_SSL_SSLContext_set_security_level(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto security_level = Object::to_int(env, args[0]).to_nat_int_t();
+    auto security_level = args[0].to_int(env).to_nat_int_t();
 
     if (self->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", self.to_s(env)->string());
 
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     SSL_CTX_set_security_level(ctx, security_level);
@@ -476,7 +476,7 @@ Value OpenSSL_SSL_SSLContext_set_session_cache_mode(Env *env, Value self, Args &
     const auto session_cache_mode = IntegerObject::convert_to_native_type<uint64_t>(env, args[0]);
 
     if (self->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", self.to_s(env)->string());
 
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     SSL_CTX_set_session_cache_mode(ctx, session_cache_mode);
@@ -616,7 +616,7 @@ Value OpenSSL_SSL_SSLSocket_read(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_SSL_SSLSocket_write(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto str = args.at(0)->to_s(env);
+    auto str = args.at(0).to_s(env);
     auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
     const auto size = SSL_write(ssl, str->c_str(), str->bytesize());
     if (size < 0)
@@ -945,7 +945,7 @@ Value OpenSSL_X509_Certificate_version(Env *env, Value self, Args &&args, Block 
 Value OpenSSL_X509_Certificate_set_version(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
 
-    const auto version = Object::to_int(env, args[0]).to_nat_int_t();
+    const auto version = args[0].to_int(env).to_nat_int_t();
     if (version < 0) {
         auto CertificateError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "CertificateError"_s })->as_class();
         env->raise(CertificateError, "version must be >= 0!");
@@ -965,8 +965,8 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
     if (!kwargs) kwargs = new HashObject {};
     env->ensure_no_missing_keywords(kwargs, { "salt", "iterations", "length", "hash" });
     auto salt = kwargs->remove(env, "salt"_s).to_str(env);
-    auto iterations = Object::to_int(env, kwargs->remove(env, "iterations"_s));
-    auto length = Object::to_int(env, kwargs->remove(env, "length"_s));
+    auto iterations = kwargs->remove(env, "iterations"_s).to_int(env);
+    auto length = kwargs->remove(env, "length"_s).to_int(env);
     auto hash = kwargs->remove(env, "hash"_s);
     auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
     if (!hash.is_a(env, digest_klass))
@@ -1000,10 +1000,10 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
     auto pass = args.at(0).to_str(env);
     env->ensure_no_missing_keywords(kwargs, { "salt", "N", "r", "p", "length" });
     auto salt = kwargs->remove(env, "salt"_s).to_str(env);
-    auto N = Object::to_int(env, kwargs->remove(env, "N"_s));
-    auto r = Object::to_int(env, kwargs->remove(env, "r"_s));
-    auto p = Object::to_int(env, kwargs->remove(env, "p"_s));
-    auto length = Object::to_int(env, kwargs->remove(env, "length"_s));
+    auto N = kwargs->remove(env, "N"_s).to_int(env);
+    auto r = kwargs->remove(env, "r"_s).to_int(env);
+    auto p = kwargs->remove(env, "p"_s).to_int(env);
+    auto length = kwargs->remove(env, "length"_s).to_int(env);
     if (IntegerObject::is_negative(length) || IntegerObject::is_bignum(length))
         env->raise("ArgumentError", "negative string size (or size too big)");
     env->ensure_no_extra_keywords(kwargs);
@@ -1169,7 +1169,7 @@ Value OpenSSL_BN_to_i(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_Random_random_bytes(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    Value length = Object::to_int(env, args[0]);
+    Value length = args[0].to_int(env);
     const auto num = static_cast<int>(length.integer().to_nat_int_t());
     if (num < 0)
         env->raise("ArgumentError", "negative string size (or size too big)");
@@ -1191,7 +1191,7 @@ Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args &&args, Block *) {
     auto value = args.at(1).to_str(env);
     auto type = args.at(2, nullptr);
     if (type && !type.is_nil()) {
-        type = Object::to_int(env, type);
+        type = type.to_int(env);
     } else {
         auto OBJECT_TYPE_TEMPLATE = self.klass()->const_get("OBJECT_TYPE_TEMPLATE"_s)->as_hash();
         type = OBJECT_TYPE_TEMPLATE->ref(env, oid);
@@ -1213,9 +1213,9 @@ Value OpenSSL_X509_Name_initialize(Env *env, Value self, Args &&args, Block *) {
     if (args.size() > 0) {
         HashObject *lookup = self.klass()->const_get("OBJECT_TYPE_TEMPLATE"_s)->as_hash();
         if (args.size() >= 2 && !args.at(1).is_nil())
-            lookup = args.at(1)->to_hash(env);
-        for (auto entry : *args.at(0)->to_ary(env)) {
-            ArrayObject *add_entry_args = entry->to_ary(env);
+            lookup = args.at(1).to_hash(env);
+        for (auto entry : *args.at(0).to_ary(env)) {
+            ArrayObject *add_entry_args = entry.to_ary(env);
             if (args.size() >= 2 && add_entry_args->size() == 2) {
                 add_entry_args = add_entry_args->duplicate(env)->as_array();
                 add_entry_args->push(lookup->ref(env, add_entry_args->at(0)));

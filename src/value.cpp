@@ -372,6 +372,122 @@ bool Value::is_falsey() const { return !is_truthy(); }
 bool Value::is_numeric() const { return is_integer() || is_float(); }
 bool Value::is_boolean() const { return is_true() || is_false(); }
 
+ArrayObject *Value::to_ary(Env *env) {
+    if (is_array())
+        return m_object->as_array();
+
+    auto original_class = klass()->inspect_str();
+
+    auto to_ary = "to_ary"_s;
+
+    if (!respond_to(env, to_ary)) {
+        if (is_nil())
+            env->raise("TypeError", "no implicit conversion of nil into Array");
+        env->raise("TypeError", "no implicit conversion of {} into Array", original_class);
+    }
+
+    Value val = send(env, to_ary);
+
+    if (val.is_array()) {
+        return val->as_array();
+    }
+
+    env->raise(
+        "TypeError", "can't convert {} to Array ({}#to_ary gives {})",
+        original_class,
+        original_class,
+        val.klass()->inspect_str());
+}
+
+IoObject *Value::to_io(Env *env) {
+    if (is_io())
+        return m_object->as_io();
+
+    auto to_io = "to_io"_s;
+    if (!respond_to(env, to_io))
+        assert_type(env, Object::Type::Io, "IO");
+
+    auto result = send(env, to_io);
+
+    if (result.is_io())
+        return result->as_io();
+
+    env->raise(
+        "TypeError", "can't convert {} to IO ({}#to_io gives {})",
+        klass()->inspect_str(),
+        klass()->inspect_str(),
+        result.klass()->inspect_str());
+}
+
+Integer Value::to_int(Env *env) {
+    if (is_integer())
+        return integer();
+
+    auto to_int = "to_int"_s;
+    if (!respond_to(env, to_int))
+        assert_type(env, Object::Type::Integer, "Integer");
+
+    auto result = send(env, to_int);
+
+    if (result.is_integer())
+        return result.integer();
+
+    auto the_klass = klass();
+    env->raise(
+        "TypeError", "can't convert {} to Integer ({}#to_int gives {})",
+        the_klass->inspect_str(),
+        the_klass->inspect_str(),
+        result.klass()->inspect_str());
+}
+
+FloatObject *Value::to_f(Env *env) {
+    if (is_float())
+        return m_object->as_float();
+
+    auto to_f = "to_f"_s;
+    if (!respond_to(env, to_f))
+        assert_type(env, Object::Type::Float, "Float");
+
+    auto result = send(env, to_f);
+    result.assert_type(env, Object::Type::Float, "Float");
+    return result->as_float();
+}
+
+HashObject *Value::to_hash(Env *env) {
+    if (is_hash())
+        return m_object->as_hash();
+
+    auto original_class = klass()->inspect_str();
+
+    auto to_hash = "to_hash"_s;
+
+    if (!respond_to(env, to_hash)) {
+        if (is_nil())
+            env->raise("TypeError", "no implicit conversion of nil into Hash");
+        env->raise("TypeError", "no implicit conversion of {} into Hash", original_class);
+    }
+
+    Value val = send(env, to_hash);
+
+    if (val.is_hash()) {
+        return val->as_hash();
+    }
+
+    env->raise(
+        "TypeError", "can't convert {} to Hash ({}#to_hash gives {})",
+        original_class,
+        original_class,
+        val.klass()->inspect_str());
+}
+
+StringObject *Value::to_s(Env *env) {
+    auto str = send(env, "to_s"_s);
+    if (!str.is_string())
+        env->raise("TypeError", "no implicit conversion of {} into String", klass()->name());
+
+    return str->as_string();
+}
+
 void Value::auto_hydrate() {
     switch (m_type) {
     case Type::Integer: {

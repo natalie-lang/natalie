@@ -50,7 +50,7 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
     bool done = m_exclude_end ? item.send(env, "=="_s, { m_end }).is_truthy() : false;
     while (!done) {
         if (!m_end.is_nil()) {
-            auto compare_result = Object::to_int(env, item.send(env, cmp, { m_end }));
+            auto compare_result = item.send(env, cmp, { m_end }).to_int(env);
             // We are done if we reached the end element.
             done = compare_result == 0;
             // If we exclude the end we break instantly, otherwise we yield the item once again. We also break if item is bigger than end.
@@ -82,7 +82,7 @@ Value RangeObject::iterate_over_integer_range(Env *env, Function &&func) {
         if (end->as_float()->is_infinity())
             end = NilObject::the();
         else
-            end = Object::to_int(env, end);
+            end = end.to_int(env);
     }
 
     if (!end.is_nil()) {
@@ -373,8 +373,8 @@ Value RangeObject::bsearch(Env *env, Block *block) {
 
         return binary_search_integer(env, left, right, block, false);
     } else if (m_begin.is_numeric() || m_end.is_numeric()) {
-        double left = m_begin.is_nil() ? -std::numeric_limits<double>::infinity() : m_begin->to_f(env)->to_double();
-        double right = m_end.is_nil() ? std::numeric_limits<double>::infinity() : m_end->to_f(env)->to_double();
+        double left = m_begin.is_nil() ? -std::numeric_limits<double>::infinity() : m_begin.to_f(env)->to_double();
+        double right = m_end.is_nil() ? std::numeric_limits<double>::infinity() : m_end.to_f(env)->to_double();
 
         return binary_search_float(env, left, right, block, m_exclude_end);
     }
@@ -424,7 +424,7 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
         if (n.is_float())
             env->raise("TypeError", "no implicit conversion to float from {}", m_begin.klass()->inspect_str().lowercase());
 
-        auto step = Object::to_int(env, n);
+        auto step = n.to_int(env);
 
         Integer index = 0;
         iterate_over_range(env, [env, block, &index, step](Value item) -> Value {
