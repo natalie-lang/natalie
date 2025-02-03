@@ -176,7 +176,7 @@ module Math
       } catch (ExceptionObject *exception) {
           ClassObject *klass = exception->klass();
           if (klass->inspect_str() == "ArgumentError") {
-              env->raise("TypeError", "can't convert {} into Float", x->klass()->inspect_str());
+              env->raise("TypeError", "can't convert {} into Float", x.klass()->inspect_str());
           } else {
               env->raise_exception(exception);
           }
@@ -243,7 +243,7 @@ module Math
       } catch (ExceptionObject *exception) {
           ClassObject *klass = exception->klass();
           if (klass->inspect_str() == "ArgumentError") {
-              env->raise("TypeError", "can't convert {} into Float", x->klass()->inspect_str());
+              env->raise("TypeError", "can't convert {} into Float", x.klass()->inspect_str());
           } else {
               env->raise_exception(exception);
           }

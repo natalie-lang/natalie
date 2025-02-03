@@ -205,12 +205,12 @@ void Env::raise_name_error(StringObject *name, String message) {
 }
 
 void Env::raise_not_comparable_error(Value lhs, Value rhs) {
-    String lhs_class = lhs->klass()->inspect_str();
+    String lhs_class = lhs.klass()->inspect_str();
     String rhs_inspect;
     if (rhs.is_integer() || rhs.is_float() || rhs.is_falsey()) {
         rhs_inspect = rhs->inspect_str(this);
     } else {
-        rhs_inspect = rhs->klass()->inspect_str();
+        rhs_inspect = rhs.klass()->inspect_str();
     }
 
     String message = String::format("comparison of {} with {} failed", lhs_class, rhs_inspect);

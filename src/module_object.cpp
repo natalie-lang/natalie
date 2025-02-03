@@ -428,7 +428,7 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
             if (context.block_original_self.is_module()) {
                 return set_cvar_in(context.block_original_self->as_module());
             } else {
-                return set_cvar_in(context.block_original_self->klass());
+                return set_cvar_in(context.block_original_self.klass());
             }
         }
     }
@@ -912,7 +912,7 @@ Value ModuleObject::define_method(Env *env, Value name_value, Value method_value
             } else if (method_value.is_unbound_method()) {
                 method = method_value->as_unbound_method()->method();
             } else {
-                env->raise("TypeError", "wrong argument type {} (expected Proc/Method/UnboundMethod)", method_value->klass()->inspect_str());
+                env->raise("TypeError", "wrong argument type {} (expected Proc/Method/UnboundMethod)", method_value.klass()->inspect_str());
             }
             ModuleObject *owner = method->owner();
             if (owner != this && owner->type() == Type::Class && !owner->is_subclass_of(this)) {

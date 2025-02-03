@@ -765,7 +765,7 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
             break;
         }
         default:
-            env->raise("TypeError", "no implicit conversion of {} into Integer", whence_value->klass()->inspect_str());
+            env->raise("TypeError", "no implicit conversion of {} into Integer", whence_value.klass()->inspect_str());
         }
     }
     if (whence == SEEK_CUR && !m_read_buffer.is_empty())
@@ -883,9 +883,9 @@ Value IoObject::try_convert(Env *env, Value val) {
         if (!io.is_io())
             env->raise(
                 "TypeError", "can't convert {} to IO ({}#to_io gives {})",
-                val->klass()->inspect_str(),
-                val->klass()->inspect_str(),
-                io->klass()->inspect_str());
+                val.klass()->inspect_str(),
+                val.klass()->inspect_str(),
+                io.klass()->inspect_str());
         return io;
     }
     return NilObject::the();

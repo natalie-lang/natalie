@@ -39,7 +39,7 @@ Value MethodObject::unbind(Env *env) {
     if (m_object->singleton_class()) {
         return new UnboundMethodObject { m_object->singleton_class(), m_method };
     } else {
-        return new UnboundMethodObject { m_object->klass(), m_method };
+        return new UnboundMethodObject { m_object.klass(), m_method };
     }
 }
 

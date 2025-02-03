@@ -162,7 +162,7 @@ ThreadObject *ThreadObject::current() {
 
 Value ThreadObject::thread_kill(Env *env, Value thread) {
     if (!thread.is_thread())
-        env->raise("TypeError", "wrong argument type {} (expected VM/thread)", thread->klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected VM/thread)", thread.klass()->inspect_str());
 
     return thread->as_thread()->kill(env);
 }

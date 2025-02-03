@@ -78,7 +78,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
 
     Value set_stdout(Env *env, Value v, GlobalVariableInfo &) {
         if (!v.respond_to(env, "write"_s))
-            env->raise("TypeError", "$stdout must have write method, {} given", v->klass()->inspect_str());
+            env->raise("TypeError", "$stdout must have write method, {} given", v.klass()->inspect_str());
         return v.object();
     }
 

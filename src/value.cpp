@@ -11,7 +11,7 @@ namespace Natalie {
         auto classnameOf = [](Value val) -> String {                                    \
             if (val.m_type == Type::Integer)                                            \
                 return String("FastInteger");                                           \
-            auto maybe_classname = val->klass()->name();                                \
+            auto maybe_classname = val.klass()->name();                                 \
             if (maybe_classname.present())                                              \
                 return maybe_classname.value();                                         \
             else                                                                        \
@@ -99,7 +99,7 @@ StringObject *Value::to_str(Env *env) {
         "TypeError", "can't convert {} to String ({}#to_str gives {})",
         klass()->inspect_str(),
         klass()->inspect_str(),
-        result->klass()->inspect_str());
+        result.klass()->inspect_str());
 }
 
 // This is just like Value::to_str, but it raises more consistent error messages.
@@ -127,7 +127,7 @@ StringObject *Value::to_str2(Env *env) {
         "TypeError", "can't convert {} to String ({}#to_str gives {})",
         klass()->inspect_str(),
         klass()->inspect_str(),
-        result->klass()->inspect_str());
+        result.klass()->inspect_str());
 }
 
 Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {

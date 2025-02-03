@@ -54,7 +54,7 @@ namespace ArrayPacker {
                         string = str->to_s(env)->string();
                     }
                 } else {
-                    env->raise("TypeError", "no implicit conversion of {} into String", item->klass()->inspect_str());
+                    env->raise("TypeError", "no implicit conversion of {} into String", item.klass()->inspect_str());
                     NAT_UNREACHABLE();
                 }
 

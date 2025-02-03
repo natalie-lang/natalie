@@ -973,7 +973,7 @@ Value Object::method_missing(Env *env, Value self, Args &&args, Block *block) {
     if (args.size() == 0) {
         env->raise("ArgError", "no method name given");
     } else if (!args[0].is_symbol()) {
-        env->raise("ArgError", "method name must be a Symbol but {} is given", args[0]->klass()->inspect_str());
+        env->raise("ArgError", "method name must be a Symbol but {} is given", args[0].klass()->inspect_str());
     } else {
         auto name = args[0]->as_symbol();
         env = env->caller();
@@ -1077,7 +1077,7 @@ Value Object::clone(Env *env, Value freeze) {
         if (freeze.is_false()) {
             freeze_bool = false;
         } else if (!freeze.is_true() && !freeze.is_nil()) {
-            env->raise("ArgumentError", "unexpected value for freeze: {}", freeze->klass()->inspect_str());
+            env->raise("ArgumentError", "unexpected value for freeze: {}", freeze.klass()->inspect_str());
         }
     }
 
@@ -1319,7 +1319,7 @@ ArrayObject *Object::to_ary(Env *env) {
         "TypeError", "can't convert {} to Array ({}#to_ary gives {})",
         original_class,
         original_class,
-        val->klass()->inspect_str());
+        val.klass()->inspect_str());
 }
 
 IoObject *Object::to_io(Env *env) {
@@ -1338,7 +1338,7 @@ IoObject *Object::to_io(Env *env) {
         "TypeError", "can't convert {} to IO ({}#to_io gives {})",
         klass()->inspect_str(),
         klass()->inspect_str(),
-        result->klass()->inspect_str());
+        result.klass()->inspect_str());
 }
 
 Integer Object::to_int(Env *env, Value self) {
@@ -1354,12 +1354,12 @@ Integer Object::to_int(Env *env, Value self) {
     if (result.is_integer())
         return result.integer();
 
-    auto klass = self->klass();
+    auto klass = self.klass();
     env->raise(
         "TypeError", "can't convert {} to Integer ({}#to_int gives {})",
         klass->inspect_str(),
         klass->inspect_str(),
-        result->klass()->inspect_str());
+        result.klass()->inspect_str());
 }
 
 FloatObject *Object::to_f(Env *env) {
@@ -1399,7 +1399,7 @@ HashObject *Object::to_hash(Env *env) {
         "TypeError", "can't convert {} to Hash ({}#to_hash gives {})",
         original_class,
         original_class,
-        val->klass()->inspect_str());
+        val.klass()->inspect_str());
 }
 
 StringObject *Object::to_s(Env *env) {

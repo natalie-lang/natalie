@@ -52,7 +52,7 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
     default:
         if (default_zero)
             return Value::integer(0);
-        env->raise("TypeError", "{} can't be coerced into String or Integer", name->klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into String or Integer", name.klass()->inspect_str());
     }
 }
 
@@ -641,7 +641,7 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args &&args, Block *block) {
             break;
         }
         default:
-            env->raise("TypeError", "{} can't be coerced into String", data_obj->klass()->inspect_str());
+            env->raise("TypeError", "{} can't be coerced into String", data_obj.klass()->inspect_str());
         }
     } else {
         args.ensure_argc_is(env, 1);

@@ -978,7 +978,7 @@ Value StringObject::append_as_bytes(Env *env, Args &&args) {
             const auto c = static_cast<uint8_t>(arg.send(env, "&"_s, { Value::integer(0xFF) }).integer().to_nat_int_t());
             buf.append_char(c);
         } else {
-            env->raise("TypeError", "wrong argument type {} (expected String or Integer)", arg->klass()->inspect_str());
+            env->raise("TypeError", "wrong argument type {} (expected String or Integer)", arg.klass()->inspect_str());
         }
     }
     m_string.append(buf);
@@ -1939,7 +1939,7 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
         // bytesplice(range, str, str_range)
 
         if (!args[0].is_range())
-            env->raise("TypeError", "wrong argument type {} (expected Range)", args[0]->klass()->inspect_str());
+            env->raise("TypeError", "wrong argument type {} (expected Range)", args[0].klass()->inspect_str());
 
         auto range = args[0]->as_range();
         std::tie(index, length) = index_and_length_from_range(m_string, range);
@@ -2557,7 +2557,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
         find = new RegexpObject { env, pattern, options };
     }
     if (!find.is_regexp())
-        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find.klass()->inspect_str());
 
     MatchDataObject *match = nullptr;
     StringObject *expanded_replacement = nullptr;
@@ -2974,7 +2974,7 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
     if (!splitter || splitter.is_nil()) {
         auto field_sep = env->global_get("$;"_s);
         if (!field_sep.is_nil()) {
-            env->warn("$; is set to non-nil value, but the output was {}", field_sep->klass()->inspect_str());
+            env->warn("$; is set to non-nil value, but the output was {}", field_sep.klass()->inspect_str());
             splitter = field_sep;
         }
     }
@@ -3002,7 +3002,7 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
         if (!splitter.is_string() && splitter.respond_to(env, "to_str"_s))
             splitter = splitter.to_str(env);
         if (!splitter.is_string())
-            env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter->klass()->inspect_str());
+            env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter.klass()->inspect_str());
 
         StringObject *splitstr = splitter->as_string();
         splitstr->assert_valid_encoding(env);
@@ -4206,8 +4206,8 @@ Value StringObject::try_convert(Env *env, Value val) {
 
     env->raise(
         "TypeError", "can't convert {} to String ({}#to_str gives {})",
-        val->klass()->inspect_str(),
-        val->klass()->inspect_str(),
-        result->klass()->inspect_str());
+        val.klass()->inspect_str(),
+        val.klass()->inspect_str(),
+        result.klass()->inspect_str());
 }
 }

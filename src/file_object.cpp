@@ -653,7 +653,7 @@ Value FileObject::lutime(Env *env, Args &&args) {
             t.tv_sec = static_cast<time_t>(tmp);
             t.tv_usec = (tmp - t.tv_sec) * 1000000;
         } else {
-            env->raise("TypeError", "can't convert {} into time", v->klass()->inspect_str());
+            env->raise("TypeError", "can't convert {} into time", v.klass()->inspect_str());
         }
     };
     time_convert(args.at(0), tv[0]);

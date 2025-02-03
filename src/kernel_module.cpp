@@ -153,7 +153,7 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
     }
 
     if (exception)
-        env->raise("TypeError", "can't convert {} into Complex", real->klass()->inspect_str());
+        env->raise("TypeError", "can't convert {} into Complex", real.klass()->inspect_str());
     else
         return nullptr;
 }
@@ -255,7 +255,7 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
         }
     }
     if (exception)
-        env->raise("TypeError", "can't convert {} into Integer", value->klass()->inspect_str());
+        env->raise("TypeError", "can't convert {} into Integer", value.klass()->inspect_str());
     else
         return Value(NilObject::the());
 }
@@ -280,7 +280,7 @@ Value KernelModule::Float(Env *env, Value value, bool exception) {
         }
     }
     if (exception)
-        env->raise("TypeError", "can't convert {} into Float", value->klass()->inspect_str());
+        env->raise("TypeError", "can't convert {} into Float", value.klass()->inspect_str());
     else
         return nullptr;
 }
@@ -441,7 +441,7 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
             return nullptr;
 
         if (x.is_nil())
-            env->raise("TypeError", "can't convert {} into Rational", x->klass()->inspect_str());
+            env->raise("TypeError", "can't convert {} into Rational", x.klass()->inspect_str());
 
         if (x.respond_to(env, "to_r"_s)) {
             auto result = x->public_send(env, "to_r"_s);
@@ -504,7 +504,7 @@ Value KernelModule::sleep(Env *env, Value length) {
         secs = divmod->at(0)->to_f(env)->as_float()->to_double();
         secs += divmod->at(1)->to_f(env)->as_float()->to_double();
     } else {
-        env->raise("TypeError", "can't convert {} into time interval", length->klass()->inspect_str());
+        env->raise("TypeError", "can't convert {} into time interval", length.klass()->inspect_str());
     }
 
     if (secs < 0.0)
@@ -618,7 +618,7 @@ Value KernelModule::String(Env *env, Value value) {
     auto to_s = "to_s"_s;
 
     if (!respond_to_method(env, value, to_s, true) || !value.respond_to(env, to_s))
-        env->raise("TypeError", "can't convert {} into String", value->klass()->inspect_str());
+        env->raise("TypeError", "can't convert {} into String", value.klass()->inspect_str());
 
     value = value.send(env, to_s);
     value.assert_type(env, Object::Type::String, "String");
@@ -676,8 +676,8 @@ Value KernelModule::throw_method(Env *env, Value name, Value value) {
 Value KernelModule::klass_obj(Env *env, Value self) {
     if (self.is_integer())
         return GlobalEnv::the()->Integer();
-    else if (self->klass())
-        return self->klass();
+    else if (self.klass())
+        return self.klass();
     else
         return NilObject::the();
 }
@@ -705,7 +705,7 @@ Value KernelModule::dup(Env *env, Value self) {
 }
 
 Value KernelModule::dup_better(Env *env, Value self) {
-    auto dup = self->allocate(env, self->klass(), {}, nullptr);
+    auto dup = self->allocate(env, self.klass(), {}, nullptr);
     dup->copy_instance_variables(self);
     dup.send(env, "initialize_dup"_s, { self });
     return dup;
@@ -716,7 +716,7 @@ Value KernelModule::extend(Env *env, Value self, Args &&args) {
         if (args[i]->type() == Object::Type::Module) {
             args[i]->as_module()->send(env, "extend_object"_s, { self });
         } else {
-            env->raise("TypeError", "wrong argument type {} (expected Module)", args[i]->klass()->inspect_str());
+            env->raise("TypeError", "wrong argument type {} (expected Module)", args[i].klass()->inspect_str());
         }
     }
     return self;
@@ -746,7 +746,7 @@ Value KernelModule::initialize_copy(Env *env, Value self, Value object) {
         return self;
 
     self->assert_not_frozen(env);
-    if (self->klass() != object->klass())
+    if (self.klass() != object.klass())
         env->raise("TypeError", "initialize_copy should take same class object");
 
     return self;
@@ -756,7 +756,7 @@ Value KernelModule::inspect(Env *env, Value value) {
     if (value.is_module() && value->as_module()->name())
         return new StringObject { value->as_module()->name().value() };
     else
-        return StringObject::format("#<{}:{}>", value->klass()->inspect_str(), value->pointer_id());
+        return StringObject::format("#<{}:{}>", value.klass()->inspect_str(), value->pointer_id());
 }
 
 bool KernelModule::instance_variable_defined(Env *env, Value self, Value name_val) {
@@ -839,7 +839,7 @@ Value KernelModule::loop(Env *env, Value self, Block *block) {
 Value KernelModule::method(Env *env, Value self, Value name) {
     auto name_symbol = name->to_symbol(env, Object::Conversion::Strict);
     auto singleton = self->singleton_class();
-    auto module = singleton ? singleton : self->klass();
+    auto module = singleton ? singleton : self.klass();
     auto method_info = module->find_method(env, name_symbol);
     if (!method_info.is_defined()) {
         auto respond_to_missing = module->find_method(env, "respond_to_missing?"_s);
@@ -851,7 +851,7 @@ Value KernelModule::method(Env *env, Value self, Value name) {
                 }
             }
         }
-        env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), self->klass()->inspect_str());
+        env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), self.klass()->inspect_str());
     }
     return new MethodObject { self, method_info.method() };
 }
@@ -862,7 +862,7 @@ Value KernelModule::methods(Env *env, Value self, Value regular_val) {
         if (self->singleton_class()) {
             return self->singleton_class()->instance_methods(env, TrueObject::the());
         } else {
-            return self->klass()->instance_methods(env, TrueObject::the());
+            return self.klass()->instance_methods(env, TrueObject::the());
         }
     }
     if (self->singleton_class())
@@ -879,21 +879,21 @@ Value KernelModule::private_methods(Env *env, Value self, Value recur) {
     if (self->singleton_class())
         return self->singleton_class()->private_instance_methods(env, TrueObject::the());
     else
-        return self->klass()->private_instance_methods(env, recur);
+        return self.klass()->private_instance_methods(env, recur);
 }
 
 Value KernelModule::protected_methods(Env *env, Value self, Value recur) {
     if (self->singleton_class())
         return self->singleton_class()->protected_instance_methods(env, TrueObject::the());
     else
-        return self->klass()->protected_instance_methods(env, recur);
+        return self.klass()->protected_instance_methods(env, recur);
 }
 
 Value KernelModule::public_methods(Env *env, Value self, Value recur) {
     if (self->singleton_class())
         return self->singleton_class()->public_instance_methods(env, TrueObject::the());
     else
-        return self->klass()->public_instance_methods(env, recur);
+        return self.klass()->public_instance_methods(env, recur);
 }
 
 Value KernelModule::remove_instance_variable(Env *env, Value self, Value name_val) {

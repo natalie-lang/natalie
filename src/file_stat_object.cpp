@@ -144,7 +144,7 @@ Value FileStatObject::world_writable() const {
 }
 
 Value FileStatObject::comparison(Env *env, Value other) const {
-    if (other->is_a(env, this->klass()))
+    if (other->is_a(env, klass()))
         return mtime(env)->as_time()->cmp(env, other->as_file_stat()->mtime(env)->as_time());
     return NilObject::the();
 }

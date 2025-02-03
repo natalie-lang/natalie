@@ -75,7 +75,7 @@ Value Zlib_deflate_initialize(Env *env, Value self, Args &&args, Block *) {
         (int)mem_level.to_nat_int_t(),
         (int)strategy.to_nat_int_t());
     if (ret != Z_OK)
-        self->klass()->send(env, "_error"_s, { Value::integer(ret) });
+        self.klass()->send(env, "_error"_s, { Value::integer(ret) });
 
     return self;
 }
@@ -135,7 +135,7 @@ Value Zlib_deflate_set_dictionary(Env *env, Value self, Args &&args, Block *) {
     auto dictionary = args.at(0).to_str(env);
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     if (const auto ret = deflateSetDictionary(strm, reinterpret_cast<const Bytef *>(dictionary->c_str()), dictionary->bytesize()); ret != Z_OK)
-        self->klass()->send(env, "_error"_s, { Value::integer(ret) });
+        self.klass()->send(env, "_error"_s, { Value::integer(ret) });
     return self;
 }
 
@@ -159,14 +159,14 @@ Value Zlib_deflate_params(Env *env, Value self, Args &&args, Block *) {
     auto inflated = Zlib.send(env, "inflate"_s, { original_stream });
 
     if (const auto ret = deflateReset(strm); ret != Z_OK)
-        self->klass()->send(env, "_error"_s, { Value::integer(ret) });
+        self.klass()->send(env, "_error"_s, { Value::integer(ret) });
 
     const auto ret = deflateParams(
         strm,
         (int)level.to_nat_int_t(),
         (int)strategy.to_nat_int_t());
     if (ret != Z_OK)
-        self->klass()->send(env, "_error"_s, { Value::integer(ret) });
+        self.klass()->send(env, "_error"_s, { Value::integer(ret) });
 
     auto result = self->ivar_get(env, "@result"_s)->as_string_or_raise(env);
     result->clear(env);
@@ -203,7 +203,7 @@ Value Zlib_inflate_initialize(Env *env, Value self, Args &&args, Block *) {
 
     int ret = inflateInit2(stream, (int)window_bits.to_nat_int_t());
     if (ret != Z_OK)
-        self->klass()->send(env, "_error"_s, { Value::integer(ret) });
+        self.klass()->send(env, "_error"_s, { Value::integer(ret) });
 
     return self;
 }
@@ -238,7 +238,7 @@ void Zlib_do_inflate(Env *env, Value self, const String &string, int flush) {
             case Z_MEM_ERROR:
             case Z_NEED_DICT:
                 inflateEnd(strm);
-                self->klass()->send(env, "_error"_s, { Value::integer(ret) });
+                self.klass()->send(env, "_error"_s, { Value::integer(ret) });
                 break;
             case Z_STREAM_ERROR: {
                 auto Error = fetch_nested_const({ "Zlib"_s, "Error"_s })->as_class_or_raise(env);
