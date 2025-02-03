@@ -760,6 +760,8 @@ Value KernelModule::inspect(Env *env, Value value) {
 }
 
 bool KernelModule::instance_variable_defined(Env *env, Value self, Value name_val) {
+    if (self.is_integer())
+        return false;
     switch (self->type()) {
     case Object::Type::Nil:
     case Object::Type::True:
