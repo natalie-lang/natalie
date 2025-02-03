@@ -35,11 +35,10 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
     if (!name.is_integer() && !name.is_string() && !name.is_symbol() && name.respond_to(env, "to_str"_s))
         name = name.to_str(env);
 
-    switch (name->type()) {
-    case Object::Type::Integer:
+    if (name.is_integer())
         return name;
-    case Object::Type::String:
-    case Object::Type::Symbol: {
+
+    if (name.is_string() || name.is_symbol()) {
         auto sym = name->to_symbol(env, Object::Conversion::Strict);
         auto Socket = find_top_level_const(env, "Socket"_s)->as_module();
         auto value = Socket->const_find(env, sym, Object::ConstLookupSearchMode::Strict, Object::ConstLookupFailureMode::Null);
@@ -48,8 +47,7 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
         if (!value)
             env->raise_name_error(sym, "uninitialized constant {}::{}", Socket->inspect_str(), sym->string());
         return value;
-    }
-    default:
+    } else {
         if (default_zero)
             return Value::integer(0);
         env->raise("TypeError", "{} can't be coerced into String or Integer", name.klass()->inspect_str());
@@ -621,26 +619,18 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args &&args, Block *block) {
         level = Socket_const_get(env, args.at(0));
         optname = Socket_const_get(env, args.at(1));
         auto data_obj = args.at(2);
-        switch (data_obj->type()) {
-        case Object::Type::String:
-            data = data_obj->as_string();
-            break;
-        case Object::Type::True: {
-            int val = 1;
-            data = new StringObject { (const char *)(&val), sizeof(int) };
-            break;
-        }
-        case Object::Type::False: {
-            int val = 0;
-            data = new StringObject { (const char *)(&val), sizeof(int) };
-            break;
-        }
-        case Object::Type::Integer: {
+        if (data_obj.is_integer()) {
             int val = data_obj.integer().to_nat_int_t();
             data = new StringObject { (const char *)(&val), sizeof(int) };
-            break;
-        }
-        default:
+        } else if (data_obj.is_string()) {
+            data = data_obj->as_string();
+        } else if (data_obj.is_true()) {
+            int val = 1;
+            data = new StringObject { (const char *)(&val), sizeof(int) };
+        } else if (data_obj.is_false()) {
+            int val = 0;
+            data = new StringObject { (const char *)(&val), sizeof(int) };
+        } else {
             env->raise("TypeError", "{} can't be coerced into String", data_obj.klass()->inspect_str());
         }
     } else {
@@ -1197,7 +1187,7 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
     else if (service.is_string())
         service_str = service->as_string()->string();
     else if (service.is_integer())
-        service_str = service->to_s(env)->string();
+        service_str = service.integer().to_string();
     else
         service_str = service.to_str(env)->string();
 
