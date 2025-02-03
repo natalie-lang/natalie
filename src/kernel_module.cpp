@@ -219,7 +219,7 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
     if (value.is_string()) {
         auto result = value->as_string()->convert_integer(env, base);
         if (!result && exception) {
-            env->raise("ArgumentError", "invalid value for Integer(): {}", value->inspect_str(env));
+            env->raise("ArgumentError", "invalid value for Integer(): {}", value.inspect_str(env));
         }
         return result;
     }
@@ -270,7 +270,7 @@ Value KernelModule::Float(Env *env, Value value, bool exception) {
     } else if (value.is_string()) {
         auto result = value->as_string()->convert_float();
         if (!result && exception) {
-            env->raise("ArgumentError", "invalid value for Float(): {}", value->inspect_str(env));
+            env->raise("ArgumentError", "invalid value for Float(): {}", value.inspect_str(env));
         }
         return result;
     } else if (!value.is_nil() && value.respond_to(env, "to_f"_s)) {
@@ -665,7 +665,7 @@ Value KernelModule::this_method(Env *env) {
 Value KernelModule::throw_method(Env *env, Value name, Value value) {
     if (!env->has_catch(name)) {
         auto klass = GlobalEnv::the()->Object()->const_fetch("UncaughtThrowError"_s)->as_class();
-        auto message = StringObject::format("uncaught throw {}", name->inspect_str(env));
+        auto message = StringObject::format("uncaught throw {}", name.inspect_str(env));
         auto exception = Object::_new(env, klass, { name, value, message }, nullptr)->as_exception();
         env->raise_exception(exception);
     }

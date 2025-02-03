@@ -283,7 +283,7 @@ Value EncodingObject::find(Env *env, Value name) {
                 return encoding;
         }
     }
-    env->raise("ArgumentError", "unknown encoding name - {}", name->inspect_str(env));
+    env->raise("ArgumentError", "unknown encoding name - {}", name.inspect_str(env));
 }
 
 // Lookup an EncodingObject by its string-name, or return null.

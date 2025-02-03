@@ -529,7 +529,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
                 if (start < 0)
                     start += size();
                 if (start < 0)
-                    env->raise("RangeError", "{} out of range", start_obj->inspect_str(env));
+                    env->raise("RangeError", "{} out of range", start_obj.inspect_str(env));
             }
 
             auto end = start_obj->as_range()->end();

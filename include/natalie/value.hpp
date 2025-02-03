@@ -187,6 +187,8 @@ public:
     Integer to_int(Env *env);
     StringObject *to_s(Env *env);
 
+    String inspect_str(Env *);
+
 private:
     void auto_hydrate();
 

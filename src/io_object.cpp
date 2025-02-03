@@ -291,7 +291,7 @@ Value IoObject::read_file(Env *env, Args &&args) {
     file->set_encoding(env, flags.external_encoding(), flags.internal_encoding());
     if (offset && !offset.is_nil()) {
         if (offset.is_integer() && IntegerObject::is_negative(offset.integer()))
-            env->raise("ArgumentError", "negative offset {} given", offset->inspect_str(env));
+            env->raise("ArgumentError", "negative offset {} given", offset.inspect_str(env));
         file->set_pos(env, offset);
     }
     auto data = file->read(env, length, nullptr);
@@ -667,7 +667,7 @@ void IoObject::puts(Env *env, Value val) {
         if (str.is_string()) {
             this->putstr(env, str->as_string());
         } else { // to_s did not return a string, so inspect val instead.
-            this->putstr(env, new StringObject { val->inspect_str(env) });
+            this->putstr(env, new StringObject { val.inspect_str(env) });
         }
     }
 }

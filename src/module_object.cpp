@@ -1066,7 +1066,7 @@ Value ModuleObject::public_constant(Env *env, Args &&args) {
 bool ModuleObject::const_defined(Env *env, Value name_value, Value inherited) {
     auto name = name_value->to_symbol(env, Object::Conversion::NullAllowed);
     if (!name) {
-        env->raise("TypeError", "no implicit conversion of {} to String", name_value->inspect_str(env));
+        env->raise("TypeError", "no implicit conversion of {} to String", name_value.inspect_str(env));
     }
     if (inherited && inherited.is_falsey()) {
         return !!m_constants.get(name);
@@ -1077,11 +1077,11 @@ bool ModuleObject::const_defined(Env *env, Value name_value, Value inherited) {
 Value ModuleObject::alias_method(Env *env, Value new_name_value, Value old_name_value) {
     auto new_name = new_name_value->to_symbol(env, Object::Conversion::NullAllowed);
     if (!new_name) {
-        env->raise("TypeError", "{} is not a symbol", new_name_value->inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol", new_name_value.inspect_str(env));
     }
     auto old_name = old_name_value->to_symbol(env, Object::Conversion::NullAllowed);
     if (!old_name) {
-        env->raise("TypeError", "{} is not a symbol", old_name_value->inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol", old_name_value.inspect_str(env));
     }
     make_method_alias(env, new_name, old_name);
     return new_name;
@@ -1112,7 +1112,7 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
     if (name.is_string()) {
         name = name->as_string()->to_sym(env);
     } else if (!name.is_symbol()) {
-        env->raise("TypeError", "{} is not a symbol nor a string", name->inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol nor a string", name.inspect_str(env));
     }
 
     auto method_wrapper = [](Env *env, Value self, Args &&args, Block *block) -> Value {

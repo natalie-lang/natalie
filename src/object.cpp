@@ -631,7 +631,7 @@ ClassObject *Object::singleton_class(Env *env, Value self) {
     if (self.is_module()) {
         name = String::format("#<Class:{}>", self->as_module()->inspect_str());
     } else if (self.respond_to(env, "inspect"_s)) {
-        name = String::format("#<Class:{}>", self->inspect_str(env));
+        name = String::format("#<Class:{}>", self.inspect_str(env));
     }
 
     ClassObject *singleton_superclass;
@@ -1247,15 +1247,6 @@ String Object::dbg_inspect() const {
         "#<{}:{}>",
         klass ? *klass : "Object",
         String::hex(reinterpret_cast<nat_int_t>(this), String::HexFormat::LowercaseAndPrefixed));
-}
-
-String Object::inspect_str(Env *env) {
-    if (!respond_to(env, "inspect"_s))
-        return String::format("#<{}:{}>", m_klass->inspect_str(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed));
-    auto inspected = send(env, "inspect"_s);
-    if (!inspected.is_string())
-        return ""; // TODO: what to do here?
-    return inspected->as_string()->string();
 }
 
 Value Object::enum_for(Env *env, const char *method, Args &&args) {

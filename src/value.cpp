@@ -503,6 +503,15 @@ void Value::auto_hydrate() {
     }
 }
 
+String Value::inspect_str(Env *env) {
+    if (!respond_to(env, "inspect"_s))
+        return String::format("#<{}:{}>", klass()->inspect_str(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));
+    auto inspected = send(env, "inspect"_s);
+    if (!inspected.is_string())
+        return ""; // TODO: what to do here?
+    return inspected->as_string()->string();
+}
+
 #undef PROFILED_SEND
 
 }

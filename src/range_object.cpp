@@ -213,13 +213,13 @@ Value RangeObject::inspect(Env *env) {
             if (m_begin.is_nil()) {
                 return new StringObject { "nil...nil" };
             } else {
-                return StringObject::format("{}...", m_begin->inspect_str(env));
+                return StringObject::format("{}...", m_begin.inspect_str(env));
             }
         } else {
             if (m_begin.is_nil()) {
-                return StringObject::format("...{}", m_end->inspect_str(env));
+                return StringObject::format("...{}", m_end.inspect_str(env));
             } else {
-                return StringObject::format("{}...{}", m_begin->inspect_str(env), m_end->inspect_str(env));
+                return StringObject::format("{}...{}", m_begin.inspect_str(env), m_end.inspect_str(env));
             }
         }
     } else {
@@ -227,13 +227,13 @@ Value RangeObject::inspect(Env *env) {
             if (m_begin.is_nil()) {
                 return new StringObject { "nil..nil" };
             } else {
-                return StringObject::format("{}..", m_begin->inspect_str(env));
+                return StringObject::format("{}..", m_begin.inspect_str(env));
             }
         } else {
             if (m_begin.is_nil()) {
-                return StringObject::format("..{}", m_end->inspect_str(env));
+                return StringObject::format("..{}", m_end.inspect_str(env));
             } else {
-                return StringObject::format("{}..{}", m_begin->inspect_str(env), m_end->inspect_str(env));
+                return StringObject::format("{}..{}", m_begin.inspect_str(env), m_end.inspect_str(env));
             }
         }
     }

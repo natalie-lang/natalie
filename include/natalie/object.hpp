@@ -281,7 +281,7 @@ public:
     void assert_not_frozen(Env *);
     void assert_not_frozen(Env *, Value);
 
-    String inspect_str(Env *);
+    String inspect_str(Env *env) { return Value(this).inspect_str(env); }
 
     Value enum_for(Env *env, const char *method, Args &&args = {});
 

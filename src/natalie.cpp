@@ -868,7 +868,7 @@ Value super(Env *env, Value self, Args &&args, Block *block) {
         if (self.is_module()) {
             env->raise("NoMethodError", "super: no superclass method '{}' for {}:{}", current_method->original_name(), self->as_module()->inspect_str(), self.klass()->inspect_str());
         } else {
-            env->raise("NoMethodError", "super: no superclass method '{}' for {}", current_method->original_name(), self->inspect_str(env));
+            env->raise("NoMethodError", "super: no superclass method '{}' for {}", current_method->original_name(), self.inspect_str(env));
         }
     }
     assert(super_method.method() != current_method);
