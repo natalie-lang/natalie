@@ -431,9 +431,7 @@ Value HashObject::size(Env *env) const {
 }
 
 bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
-    TM::PairedRecursionGuard guard { this, other_value.object() };
-
-    return guard.run([&](bool is_recursive) -> bool {
+    auto lambda = [&](bool is_recursive) -> bool {
         if (!other_value.is_hash())
             return false;
 
@@ -458,7 +456,13 @@ bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
         }
 
         return true;
-    });
+    };
+
+    if (other_value.is_integer())
+        return lambda(false);
+
+    TM::PairedRecursionGuard guard { this, other_value.object() };
+    return guard.run(lambda);
 }
 
 bool HashObject::eq(Env *env, Value other_value) {
