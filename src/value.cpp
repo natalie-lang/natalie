@@ -39,11 +39,15 @@ Value Value::integer_send(Env *env, SymbolObject *name, Args &&args, Block *bloc
     if (!method_info.is_defined()) {
         // FIXME: store missing reason on current thread
         GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Undefined);
-        auto obj = object();
-        if (obj->respond_to(env, "method_missing"_s))
-            return obj->method_missing_send(env, name, std::move(args), block);
-        else
-            env->raise_no_method_error(obj, name, GlobalEnv::the()->method_missing_reason());
+        if (respond_to(env, "method_missing"_s)) {
+            Vector<Value> new_args(args.size() + 1);
+            new_args.push(name);
+            for (size_t i = 0; i < args.size(); i++)
+                new_args.push(args[i]);
+            return send(env, "method_missing"_s, Args(new_args, args.has_keyword_hash()), block);
+        } else {
+            env->raise_no_method_error(*this, name, GlobalEnv::the()->method_missing_reason());
+        }
     }
 
     args.pop_empty_keyword_hash();
