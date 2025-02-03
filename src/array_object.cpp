@@ -191,7 +191,7 @@ String ArrayObject::dbg_inspect() const {
     size_t index = 0;
     for (size_t index = 0; index < size(); index++) {
         auto item = (*this)[index];
-        str.append(item->dbg_inspect());
+        str.append(item.dbg_inspect());
         if (index < size() - 1)
             str.append(", ");
     }

@@ -512,6 +512,16 @@ String Value::inspect_str(Env *env) {
     return inspected->as_string()->string();
 }
 
+String Value::dbg_inspect() const {
+    switch (m_type) {
+    case Type::Integer:
+        return m_integer.to_string();
+    case Type::Pointer:
+        return m_object->dbg_inspect();
+    }
+    NAT_UNREACHABLE();
+}
+
 #undef PROFILED_SEND
 
 }

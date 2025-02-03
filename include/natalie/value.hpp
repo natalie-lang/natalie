@@ -188,6 +188,7 @@ public:
     StringObject *to_s(Env *env);
 
     String inspect_str(Env *);
+    String dbg_inspect() const;
 
 private:
     void auto_hydrate();

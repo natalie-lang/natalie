@@ -329,9 +329,9 @@ String HashObject::dbg_inspect() const {
     String str("{");
     size_t index = 0;
     for (auto pair : *this) {
-        str.append(pair.key->dbg_inspect());
+        str.append(pair.key.dbg_inspect());
         str.append(" => ");
-        str.append(pair.val->dbg_inspect());
+        str.append(pair.val.dbg_inspect());
         if (index < size() - 1)
             str.append(", ");
         index++;

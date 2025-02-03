@@ -3850,6 +3850,11 @@ void StringObject::append(const SymbolObject *sym) {
 }
 
 void StringObject::append(Value val) {
+    if (val.is_integer()) {
+        append(val.integer().to_string());
+        return;
+    }
+
     auto obj = val.object();
     switch (obj->type()) {
     case Type::Array:
