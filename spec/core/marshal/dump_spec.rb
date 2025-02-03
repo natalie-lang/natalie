@@ -334,9 +334,7 @@ describe "Marshal.dump" do
 
     it "uses object links for objects repeatedly dumped" do
       n = 2**64
-      NATFIXME 'it uses object links for objects repeatedly dumped', exception: SpecFailedException do
-        Marshal.dump([n, n]).should == "\x04\b[\al+\n\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00@\x06" # @\x06 is a link to the object
-      end
+      Marshal.dump([n, n]).should == "\x04\b[\al+\n\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00@\x06" # @\x06 is a link to the object
     end
 
     it "increases the object links counter" do
@@ -347,12 +345,10 @@ describe "Marshal.dump" do
       # objects: Array, Object, Object
       Marshal.dump([obj, obj]).should == "\x04\b[\ao:\vObject\x00@#{object_1_link}"
 
-      NATFIXME 'increases the object links counter', exception: SpecFailedException do
-        # objects: Array, Bignum, Object, Object
-        Marshal.dump([2**64, obj, obj]).should == "\x04\b[\bl+\n\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00o:\vObject\x00@#{object_2_link}"
-        Marshal.dump([2**48, obj, obj]).should == "\x04\b[\bl+\t\x00\x00\x00\x00\x00\x00\x01\x00o:\vObject\x00@#{object_2_link}"
-        Marshal.dump([2**32, obj, obj]).should == "\x04\b[\bl+\b\x00\x00\x00\x00\x01\x00o:\vObject\x00@#{object_2_link}"
-      end
+      # objects: Array, Bignum, Object, Object
+      Marshal.dump([2**64, obj, obj]).should == "\x04\b[\bl+\n\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00o:\vObject\x00@#{object_2_link}"
+      Marshal.dump([2**48, obj, obj]).should == "\x04\b[\bl+\t\x00\x00\x00\x00\x00\x00\x01\x00o:\vObject\x00@#{object_2_link}"
+      Marshal.dump([2**32, obj, obj]).should == "\x04\b[\bl+\b\x00\x00\x00\x00\x01\x00o:\vObject\x00@#{object_2_link}"
     end
   end
 

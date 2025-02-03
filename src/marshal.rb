@@ -333,8 +333,11 @@ module Marshal
     end
 
     def write(value)
-      if value.respond_to?(:object_id) && @object_lookup.key?(value.object_id)
+      if value.respond_to?(:object_id) && !value.is_a?(Integer) && @object_lookup.key?(value.object_id)
         write_object_link(@object_lookup.fetch(value.object_id))
+        return @output
+      elsif value.is_a?(Integer) && (value >= 2**62 || value < -(2**62)) && @object_lookup.key?([:integer, value])
+        write_object_link(@object_lookup.fetch([:integer, value]))
         return @output
       elsif value.is_a?(Float) && @object_lookup.key?(value)
         write_object_link(@object_lookup.fetch(value))
@@ -343,6 +346,9 @@ module Marshal
 
       if !value.nil? && !value.is_a?(TrueClass) && !value.is_a?(FalseClass) && !value.is_a?(Integer) && !value.is_a?(Float) && !value.is_a?(Symbol)
         @object_lookup[value.object_id] = @object_lookup.size
+      elsif value.is_a?(Integer) && (value >= 2**30 || value < -(2**30))
+        # Integers are special: Object links are only used when 64 bits are used, but the objects are counted when 32 bits are used
+        @object_lookup[[:integer, value]] = @object_lookup.size
       elsif value.is_a?(Float)
         @object_lookup[value] = @object_lookup.size
       end
