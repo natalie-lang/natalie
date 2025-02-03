@@ -76,7 +76,7 @@ static void *nat_create_thread(void *thread_object) {
         // The cleanup handler does some additional housekeeping
         // as this thread is exiting.
         thread->set_value(return_value);
-        pthread_exit(return_value.object());
+        pthread_exit(0);
 
     } catch (Natalie::ExceptionObject *exception) {
         // This code handles exceptions not rescued by user code.
