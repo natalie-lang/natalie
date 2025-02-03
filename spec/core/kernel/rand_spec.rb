@@ -31,9 +31,7 @@ describe "Kernel#rand" do
   end
 
   it "ignores the sign of the argument" do
-    NATFIXME 'it ignores the sign of the argument', exception: ArgumentError, message: 'invalid argument - -4' do
-      [0, 1, 2, 3].should include(rand(-4))
-    end
+    [0, 1, 2, 3].should include(rand(-4))
   end
 
   it "never returns a value greater or equal to 1.0 with no arguments" do
