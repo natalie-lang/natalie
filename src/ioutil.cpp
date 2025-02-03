@@ -44,10 +44,12 @@ namespace ioutil {
             }
         }
 
-        switch (flags_obj->type()) {
-        case Object::Type::Integer:
+        if (flags_obj.is_integer()) {
             m_flags = flags_obj.integer().to_nat_int_t();
-            break;
+            return;
+        }
+
+        switch (flags_obj->type()) {
         case Object::Type::String: {
             auto colon = new StringObject { ":" };
             auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
