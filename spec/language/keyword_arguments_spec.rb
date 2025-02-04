@@ -353,19 +353,17 @@ describe "Keyword arguments" do
       m({a: 1}).should == [[{a: 1}], {}]
     end
 
-    ruby_version_is "3.1" do
-      describe "omitted values" do
-        it "accepts short notation 'key' for 'key: value' syntax" do
-          def m(a:, b:)
-            [a, b]
-          end
+    describe "omitted values" do
+      it "accepts short notation 'key' for 'key: value' syntax" do
+        def m(a:, b:)
+          [a, b]
+        end
 
-          a = 1
-          b = 2
+        a = 1
+        b = 2
 
-          NATFIXME 'binding in eval', exception: NoMethodError, message: /undefined method [`']a' for main/ do
-            eval('m(a:, b:).should == [1, 2]')
-          end
+        NATFIXME "accepts short notation 'key' for 'key: value' syntax", exception: SpecFailedException do
+          m(a:, b:).should == [1, 2]
         end
       end
     end

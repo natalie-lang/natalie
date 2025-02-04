@@ -25,20 +25,10 @@ describe "Date#strftime" do
     end
   end
 
-  # %v is %e-%b-%Y for Date/DateTime
-  version_is date_version, ""..."3.2" do #ruby_version_is ""..."3.1" do
-    it "should be able to show the commercial week" do
-      @date.strftime("%v").should == " 9-Apr-2000"
-      @date.strftime("%v").should == @date.strftime('%e-%b-%Y')
-    end
-  end
-
-  version_is date_version, "3.2" do #ruby_version_is "3.1" do
-    it "should be able to show the commercial week" do
-      NATFIXME 'it should be able to show the commercial week', exception: SpecFailedException do
-        @date.strftime("%v").should == " 9-APR-2000"
-        @date.strftime("%v").should != @date.strftime('%e-%b-%Y')
-      end
+  it "should be able to show the commercial week" do
+    NATFIXME 'it should be able to show the commercial week', exception: SpecFailedException do
+      @date.strftime("%v").should == " 9-APR-2000"
+      @date.strftime("%v").should != @date.strftime('%e-%b-%Y')
     end
   end
 
