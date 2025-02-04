@@ -27,6 +27,12 @@ inline CaseMapType operator^(CaseMapType a, CaseMapType b) {
 
 class StringObject : public Object {
 public:
+    enum class Chilled {
+        None,
+        String,
+        Symbol,
+    };
+
     StringObject(ClassObject *klass)
         : Object { Object::Type::String, klass }
         , m_encoding { EncodingObject::get(Encoding::ASCII_8BIT) } {
@@ -164,9 +170,10 @@ public:
         m_string.set_str(str, length);
     }
 
-    bool is_chilled() const { return m_chilled; }
-    void set_chilled() { m_chilled = true; }
-    void unset_chilled() { m_chilled = false; }
+    bool is_chilled() const { return m_chilled != Chilled::None; }
+    Chilled chilled() const { return m_chilled; }
+    void set_chilled(Chilled chilled) { m_chilled = chilled; }
+    void unset_chilled() { m_chilled = Chilled::None; }
 
     bool valid_encoding() const;
     EncodingObject *encoding() const { return m_encoding.ptr(); }
@@ -531,7 +538,7 @@ private:
 
     String m_string {};
     NonNullPtr<EncodingObject> m_encoding;
-    bool m_chilled { false };
+    Chilled m_chilled { Chilled::None };
 };
 
 }
