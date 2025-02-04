@@ -152,28 +152,6 @@ Value Value::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value
     return m_object->send(env, name, std::move(args), block, sent_from);
 }
 
-void Value::hydrate() {
-    // Running GC while we're in the processes of hydrating this Value makes
-    // debugging VERY confusing. Maybe someday we can remove this GC stuff...
-    bool garbage_collection_enabled = Heap::the().gc_enabled();
-    if (garbage_collection_enabled)
-        Heap::the().gc_disable();
-
-    switch (m_type) {
-    case Type::Integer: {
-        auto i = m_integer;
-        m_object = new IntegerObject { i };
-        m_type = Type::Pointer;
-        break;
-    }
-    case Type::Pointer:
-        break;
-    }
-
-    if (garbage_collection_enabled)
-        Heap::the().gc_enable();
-}
-
 nat_int_t Value::as_fast_integer() const {
     assert(m_type == Type::Integer || (m_type == Type::Pointer && m_object->type() == Object::Type::Integer));
     if (m_type == Type::Integer)
@@ -507,21 +485,6 @@ SymbolObject *Value::to_symbol(Env *env, Conversion conversion) {
         return nullptr;
     else
         env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
-}
-
-void Value::auto_hydrate() {
-    switch (m_type) {
-    case Type::Integer: {
-#ifdef NAT_NO_HYDRATE
-        printf("Fatal: integer hydration is disabled.\n");
-        abort();
-#else
-        hydrate();
-#endif
-    }
-    case Type::Pointer:
-        break;
-    }
 }
 
 String Value::inspect_str(Env *env) {

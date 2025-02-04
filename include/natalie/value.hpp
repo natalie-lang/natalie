@@ -46,17 +46,29 @@ public:
     Type type() const { return m_type; }
 
     Object &operator*() {
-        auto_hydrate();
+        if (m_type == Type::Integer) {
+            fprintf(stderr, "Fatal: cannot dereference Value of type Integer\n");
+            abort();
+        }
+
         return *m_object;
     }
 
     Object *operator->() {
-        auto_hydrate();
+        if (m_type == Type::Integer) {
+            fprintf(stderr, "Fatal: cannot dereference Value of type Integer\n");
+            abort();
+        }
+
         return m_object;
     }
 
     Object *object() {
-        auto_hydrate();
+        if (m_type == Type::Integer) {
+            fprintf(stderr, "Fatal: cannot dereference Value of type Integer\n");
+            abort();
+        }
+
         return m_object;
     }
 
@@ -198,12 +210,8 @@ public:
     String dbg_inspect() const;
 
 private:
-    void auto_hydrate();
-
     template <typename Callback>
     Value on_object_value(Callback &&callback);
-
-    void hydrate();
 
     Type m_type { Type::Pointer };
 
