@@ -666,13 +666,6 @@ Value Object::const_find_with_autoload(Env *env, Value ns, Value self, SymbolObj
     return ns->m_klass->const_find_with_autoload(env, self, name, search_mode, failure_mode);
 }
 
-Value Object::const_get(Value ns, SymbolObject *name) {
-    if (ns.is_module())
-        return ns->as_module()->const_get(name);
-
-    return ns.klass()->const_get(name);
-}
-
 Value Object::const_fetch(Value ns, SymbolObject *name) {
     if (ns.is_module())
         return ns->as_module()->const_fetch(name);
