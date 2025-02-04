@@ -127,7 +127,7 @@ module Natalie
                when 'int', 'unsigned short'
                  "Object::const_set(env, self, \"#{name}\"_s, Value::integer(#{value}))"
                when 'bigint'
-                 "Object::const_set(env, self, \"#{name}\"_s, IntegerObject::create(Integer(BigInt(#{value}))));"
+                 "Object::const_set(env, self, \"#{name}\"_s, Integer(BigInt(#{value})));"
                else
                  raise "I don't yet know how to handle constant of type #{type.inspect}"
                end

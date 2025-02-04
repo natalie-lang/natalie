@@ -43,6 +43,7 @@ public:
         // This is required, because initialization by a literal is often ambiguous.
         return Value { integer };
     }
+
     Type type() const { return m_type; }
 
     Object &operator*() {
@@ -131,6 +132,7 @@ public:
 
     nat_int_t object_id() const;
 
+    void assert_integer(Env *) const;
     void assert_type(Env *, ObjectType, const char *) const;
     void assert_not_frozen(Env *) const;
 

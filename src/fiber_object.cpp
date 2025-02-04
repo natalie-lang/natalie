@@ -112,7 +112,7 @@ Value FiberObject::blocking(Env *env, Block *block) {
 }
 
 Value FiberObject::is_blocking_current() {
-    return current()->is_blocking() ? IntegerObject::create(1) : FalseObject::the();
+    return current()->is_blocking() ? Value::integer(1) : FalseObject::the();
 }
 
 Value FiberObject::ref(Env *env, Value key) {

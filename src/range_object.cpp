@@ -357,7 +357,7 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         auto right = left + 1;
 
         // Find a right border in which we can perform the binary search.
-        while (binary_search_check(env, block->run(env, { IntegerObject::create(right) }, nullptr)) != BSearchCheckResult::SMALLER) {
+        while (binary_search_check(env, block->run(env, { Value::integer(right) }, nullptr)) != BSearchCheckResult::SMALLER) {
             right = left + (right - left) * 2;
         }
 
@@ -367,7 +367,7 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         auto left = right - 1;
 
         // Find a left border in which we can perform the binary search.
-        while (binary_search_check(env, block->run(env, { IntegerObject::create(left) }, nullptr)) != BSearchCheckResult::BIGGER) {
+        while (binary_search_check(env, block->run(env, { Value::integer(left) }, nullptr)) != BSearchCheckResult::BIGGER) {
             left = right - (right - left) * 2;
         }
 

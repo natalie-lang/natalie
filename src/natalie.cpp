@@ -83,7 +83,7 @@ Env *build_top_env() {
     Object->const_set("Numeric"_s, Numeric);
     Numeric->include_once(env, Comparable);
 
-    ClassObject *Integer = Numeric->subclass(env, "Integer", Object::Type::Integer);
+    ClassObject *Integer = Numeric->subclass(env, "Integer", Object::Type::Object);
     global_env->set_Integer(Integer);
     Object->const_set("Integer"_s, Integer);
 
@@ -718,7 +718,7 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
             int *int_ptr = va_arg(va_args, int *); // NOLINT(clang-analyzer-valist.Uninitialized) bug in clang-tidy?
             if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
-            obj.assert_type(env, Object::Type::Integer, "Integer");
+            obj.assert_integer(env);
             *int_ptr = obj.integer().to_nat_int_t();
             break;
         }

@@ -302,7 +302,7 @@ Value OpenSSL_Digest_block_length(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
     const int block_size = EVP_MD_CTX_block_size(mdctx);
-    return IntegerObject::create(block_size);
+    return Value::integer(block_size);
 }
 
 Value OpenSSL_Digest_reset(Env *env, Value self, Args &&args, Block *) {
@@ -349,7 +349,7 @@ Value OpenSSL_Digest_digest_length(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
     const int digest_length = EVP_MD_CTX_size(mdctx);
-    return IntegerObject::create(digest_length);
+    return Value::integer(digest_length);
 }
 
 Value OpenSSL_HMAC_digest(Env *env, Value self, Args &&args, Block *) {
@@ -1251,7 +1251,7 @@ Value OpenSSL_X509_Name_to_a(Env *env, Value self, Args &&args, Block *) {
             OpenSSL_X509_Name_raise_error(env, "X509_NAME_ENTRY_get_data");
         entry_result->push(new StringObject { reinterpret_cast<const char *>(ASN1_STRING_get0_data(data)), static_cast<size_t>(ASN1_STRING_length(data)) });
 
-        entry_result->push(IntegerObject::create(ASN1_STRING_type(data)));
+        entry_result->push(Value::integer(ASN1_STRING_type(data)));
 
         result->push(entry_result);
     }

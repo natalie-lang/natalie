@@ -259,7 +259,7 @@ public:
     bool is_main_object() const { return this == GlobalEnv::the()->main_obj(); }
 
     void freeze();
-    bool is_frozen() const { return m_type == Type::Integer || m_type == Type::Float || m_frozen; }
+    bool is_frozen() const { return m_type == Type::Float || m_frozen; }
 
     static bool not_truthy(Value self) {
         if (self.is_integer())

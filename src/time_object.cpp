@@ -288,7 +288,7 @@ Value TimeObject::usec(Env *env) {
 }
 
 Value TimeObject::utc_offset(Env *env) const {
-    return IntegerObject::create((nat_int_t)m_time.tm_gmtoff);
+    return Value::integer((nat_int_t)m_time.tm_gmtoff);
 }
 
 Value TimeObject::wday(Env *) const {
@@ -414,7 +414,7 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
             val = val.to_int(env);
         }
     }
-    val.assert_type(env, Object::Type::Integer, "Integer");
+    val.assert_integer(env);
     auto month_i = val.integer() - 1;
     if (month_i < 0 || month_i > 11) {
         env->raise("ArgumentError", "mon out of range");

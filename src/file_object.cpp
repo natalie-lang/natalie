@@ -448,14 +448,14 @@ Value FileObject::is_size(Env *env, Value path) {
         return NilObject::the();
     if (sb.st_size == 0) // returns nil when file size is zero.
         return NilObject::the();
-    return IntegerObject::create((nat_int_t)(sb.st_size));
+    return Value::integer((nat_int_t)(sb.st_size));
 }
 
 Value FileObject::size(Env *env, Value path) {
     struct stat sb;
     if (ioutil::object_stat(env, path, &sb) == -1)
         env->raise_errno();
-    return IntegerObject::create((nat_int_t)(sb.st_size));
+    return Value::integer((nat_int_t)(sb.st_size));
 }
 
 nat_int_t FileObject::symlink(Env *env, Value from, Value to) {
@@ -485,7 +485,7 @@ nat_int_t FileObject::link(Env *env, Value from, Value to) {
 nat_int_t FileObject::mkfifo(Env *env, Value path, Value mode) {
     mode_t octmode = 0666;
     if (mode) {
-        mode.assert_type(env, Object::Type::Integer, "Integer");
+        mode.assert_integer(env);
         octmode = (mode_t)mode.integer().to_nat_int_t();
     }
     path = ioutil::convert_using_to_path(env, path);
@@ -758,7 +758,7 @@ Value FileObject::utime(Env *env, Args &&args) {
             env->raise_errno();
         }
     }
-    return IntegerObject::create((nat_int_t)(args.size() - 2));
+    return Value::integer((nat_int_t)(args.size() - 2));
 }
 
 Value FileObject::atime(Env *env) { // inst method

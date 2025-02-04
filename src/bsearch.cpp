@@ -55,7 +55,7 @@ Optional<nat_int_t> binary_search(Env *env, nat_int_t left, nat_int_t right, std
 
 Value binary_search_integer(Env *env, nat_int_t left, nat_int_t right, Block *block, bool exclude_end) {
     auto result = binary_search(env, left, right, [env, block](nat_int_t middle) -> Value {
-        return block->run(env, { IntegerObject::create(middle) }, nullptr);
+        return block->run(env, { Value::integer(middle) }, nullptr);
     });
 
     if (!result.present())
@@ -64,7 +64,7 @@ Value binary_search_integer(Env *env, nat_int_t left, nat_int_t right, Block *bl
     if (exclude_end && result.value() == right)
         return NilObject::the();
 
-    return IntegerObject::create(result.value());
+    return Value::integer(result.value());
 }
 
 union double_as_integer {

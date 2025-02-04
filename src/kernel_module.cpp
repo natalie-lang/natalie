@@ -500,7 +500,7 @@ Value KernelModule::sleep(Env *env, Value length) {
     } else if (length.is_rational()) {
         secs = length->as_rational()->to_f(env)->as_float()->to_double();
     } else if (length.respond_to(env, "divmod"_s)) {
-        auto divmod = length.send(env, "divmod"_s, { IntegerObject::create(1) })->as_array();
+        auto divmod = length.send(env, "divmod"_s, { Value::integer(1) })->as_array();
         secs = divmod->at(0).to_f(env)->as_float()->to_double();
         secs += divmod->at(1).to_f(env)->as_float()->to_double();
     } else {
@@ -766,7 +766,6 @@ bool KernelModule::instance_variable_defined(Env *env, Value self, Value name_va
     case Object::Type::Nil:
     case Object::Type::True:
     case Object::Type::False:
-    case Object::Type::Integer:
     case Object::Type::Float:
     case Object::Type::Symbol:
         return false;

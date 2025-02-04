@@ -129,7 +129,6 @@ Value Object::create(Env *env, ClassObject *klass) {
     case Object::Type::Env:
     case Object::Type::False:
     case Object::Type::Float:
-    case Object::Type::Integer:
     case Object::Type::Method:
     case Object::Type::Nil:
     case Object::Type::Rational:
@@ -776,8 +775,6 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
 }
 
 Value Object::instance_variables(Env *env) {
-    assert(m_type != Type::Integer);
-
     if (m_type == Type::Float || !m_ivars)
         return new ArrayObject;
 
@@ -1067,8 +1064,6 @@ Value Object::duplicate(Env *env) const {
         return new FloatObject { *as_float() };
     case Object::Type::Hash:
         return new HashObject { env, *as_hash() };
-    case Object::Type::Integer:
-        return IntegerObject::integer(static_cast<const IntegerObject *>(this));
     case Object::Type::Module:
         return new ModuleObject { *as_module() };
     case Object::Type::Nil:
