@@ -778,20 +778,16 @@ bool KernelModule::instance_variable_defined(Env *env, Value self, Value name_va
 }
 
 Value KernelModule::instance_variable_get(Env *env, Value self, Value name_val) {
-    switch (self->type()) {
-    case Object::Type::Integer:
-    case Object::Type::Float:
+    if (self.is_integer() || self.is_float())
         return NilObject::the();
-    default:
-        break;
-    }
+
     auto name = Object::to_instance_variable_name(env, name_val);
     return self->ivar_get(env, name);
 }
 
 Value KernelModule::instance_variable_set(Env *env, Value self, Value name_val, Value value) {
     auto name = Object::to_instance_variable_name(env, name_val);
-    self->assert_not_frozen(env);
+    self.assert_not_frozen(env);
     self->ivar_set(env, name, value);
     return value;
 }
