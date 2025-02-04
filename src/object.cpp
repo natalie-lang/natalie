@@ -696,6 +696,23 @@ Value Object::const_set(Env *env, Value ns, SymbolObject *name, MethodFnPtr auto
         env->raise("TypeError", "{} is not a class/module", ns.inspect_str(env));
 }
 
+bool Object::ivar_defined(Env *env, Value self, SymbolObject *name) {
+    if (self.is_integer() || self.is_float())
+        return false;
+    return self->ivar_defined(env, name);
+}
+
+Value Object::ivar_get(Env *env, Value self, SymbolObject *name) {
+    if (self.is_integer() || self.is_float())
+        return NilObject::the();
+    return self->ivar_get(env, name);
+}
+
+Value Object::ivar_set(Env *env, Value self, SymbolObject *name, Value val) {
+    self.assert_not_frozen(env);
+    return self->ivar_set(env, name, val);
+}
+
 bool Object::ivar_defined(Env *env, SymbolObject *name) {
     if (!name->is_ivar_name())
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->string());

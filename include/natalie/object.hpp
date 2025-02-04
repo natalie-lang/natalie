@@ -177,6 +177,10 @@ public:
     static Value const_set(Env *, Value, SymbolObject *, Value);
     static Value const_set(Env *, Value, SymbolObject *, MethodFnPtr, StringObject *);
 
+    static bool ivar_defined(Env *, Value, SymbolObject *);
+    static Value ivar_get(Env *, Value, SymbolObject *);
+    static Value ivar_set(Env *, Value, SymbolObject *, Value);
+
     bool ivar_defined(Env *, SymbolObject *);
     Value ivar_get(Env *, SymbolObject *);
     Value ivar_remove(Env *, SymbolObject *);
