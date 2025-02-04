@@ -252,8 +252,8 @@ Value RangeObject::last(Env *env, Value n) {
 String RangeObject::dbg_inspect() const {
     String str;
     auto append = [&](Value v) {
-        if (v.is_fast_integer()) {
-            str.append(v.get_fast_integer());
+        if (v.is_integer()) {
+            str.append(v.integer().to_nat_int_t());
         } else {
             auto obj = v.object();
             assert(obj);
@@ -302,10 +302,10 @@ bool RangeObject::eql(Env *env, Value other_value) {
 }
 
 bool RangeObject::include(Env *env, Value arg) {
-    if (arg.is_fast_integer() && m_begin.is_fast_integer() && m_end.is_fast_integer()) {
-        const auto begin = m_begin.get_fast_integer();
-        const auto end = m_end.get_fast_integer();
-        const auto i = arg.get_fast_integer();
+    if (arg.is_integer() && m_begin.is_integer() && m_end.is_integer()) {
+        const auto begin = m_begin.integer().to_nat_int_t();
+        const auto end = m_end.integer().to_nat_int_t();
+        const auto i = arg.integer().to_nat_int_t();
 
         const auto larger_than_begin = begin <= i;
         const auto smaller_than_end = m_exclude_end ? i < end : i <= end;

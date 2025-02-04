@@ -71,7 +71,7 @@ module Natalie
           when 'double'
             "#{value}->as_float()->to_double()"
           when 'int'
-            "#{value}.as_fast_integer()"
+            "#{value}.integer().to_nat_int_t()"
           when 'bool'
             "#{value}.is_truthy()"
           when 'Value'

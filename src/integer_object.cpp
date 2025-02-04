@@ -198,7 +198,7 @@ Value IntegerObject::pow(Env *env, Integer &self, Integer &arg) {
 }
 
 Value IntegerObject::pow(Env *env, Integer &self, Value arg) {
-    if (arg.is_fast_integer())
+    if (arg.is_integer())
         return pow(env, self, arg.integer());
 
     if ((arg.is_float() || arg.is_rational()) && self < 0) {
@@ -252,7 +252,7 @@ Value IntegerObject::powmod(Env *env, Integer &self, Value exponent, Value mod) 
 
 Value IntegerObject::cmp(Env *env, Integer &self, Value arg) {
     auto is_comparable_with = [](Value arg) -> bool {
-        return arg.is_fast_integer() || arg.is_integer() || (arg.is_float() && !arg->as_float()->is_nan());
+        return arg.is_integer() || (arg.is_float() && !arg->as_float()->is_nan());
     };
 
     // Check if we might want to coerce the value
@@ -277,7 +277,7 @@ Value IntegerObject::cmp(Env *env, Integer &self, Value arg) {
 }
 
 bool IntegerObject::eq(Env *env, Integer &self, Value other) {
-    if (other.is_fast_integer())
+    if (other.is_integer())
         return self == other.integer();
 
     if (other.is_float()) {

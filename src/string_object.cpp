@@ -2423,8 +2423,8 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
     nat_int_t begin;
     nat_int_t end = -1;
     nat_int_t expand_length = 0;
-    if (arg1.is_fast_integer()) {
-        begin = process_begin(arg1.get_fast_integer());
+    if (arg1.is_integer()) {
+        begin = process_begin(arg1.integer().to_nat_int_t());
         end = get_end_by_length(begin, arg2);
     } else if (arg1.is_range()) {
         assert(arg2 == nullptr);

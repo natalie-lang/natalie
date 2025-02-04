@@ -10,7 +10,7 @@ namespace Natalie {
     if (is_profiled) {                                                                  \
         auto classnameOf = [](Value val) -> String {                                    \
             if (val.m_type == Type::Integer)                                            \
-                return String("FastInteger");                                           \
+                return String("Integer");                                               \
             auto maybe_classname = val.klass()->name();                                 \
             if (maybe_classname.present())                                              \
                 return maybe_classname.value();                                         \
@@ -150,13 +150,6 @@ Value Value::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value
         return integer_send(env, name, std::move(args), block, sent_from, MethodVisibility::Private);
 
     return m_object->send(env, name, std::move(args), block, sent_from);
-}
-
-nat_int_t Value::as_fast_integer() const {
-    assert(m_type == Type::Integer || (m_type == Type::Pointer && m_object->type() == Object::Type::Integer));
-    if (m_type == Type::Integer)
-        return m_integer.to_nat_int_t();
-    return IntegerObject::to_nat_int_t(static_cast<IntegerObject *>(m_object));
 }
 
 bool Value::operator==(Value other) const {

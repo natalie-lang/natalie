@@ -220,9 +220,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
 
     nat_int_t options = 0;
     if (opts != nullptr) {
-        if (opts.is_fast_integer()) {
-            options = opts.get_fast_integer();
-        } else if (opts.is_integer()) {
+        if (opts.is_integer()) {
             options = opts.integer().to_nat_int_t();
         } else if (opts.is_string()) {
             for (auto c : *opts->as_string()) {
@@ -519,16 +517,10 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
     StringObject *str_obj = other->as_string();
 
     nat_int_t start_index = 0;
-    if (start != nullptr) {
-        if (start.is_fast_integer()) {
-            start_index = start.get_fast_integer();
-        } else if (start.is_integer()) {
-            start_index = start.integer().to_nat_int_t();
-        }
-    }
-    if (start_index < 0) {
+    if (start && start.is_integer())
+        start_index = start.integer().to_nat_int_t();
+    if (start_index < 0)
         start_index += str_obj->length();
-    }
 
     int result = search(env, str_obj, start_index, nullptr, ONIG_OPTION_NONE);
 

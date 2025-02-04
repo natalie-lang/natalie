@@ -121,17 +121,6 @@ public:
     // - no implicit conversion of Integer into String
     StringObject *to_str2(Env *env);
 
-    bool is_fast_integer() const {
-        return m_type == Type::Integer;
-    }
-
-    nat_int_t as_fast_integer() const;
-
-    nat_int_t get_fast_integer() const {
-        assert(m_type == Type::Integer);
-        return m_integer.to_nat_int_t();
-    }
-
     const Integer &integer() const;
     Integer &integer();
 
