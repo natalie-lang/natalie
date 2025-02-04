@@ -444,7 +444,7 @@ Value TimeObject::convert_unit(Env *env, Value value) {
     } else if (value == "nanosecond"_s || value == "nsec"_s) {
         return Value::integer(1000000000);
     } else {
-        env->raise("ArgumentError", "unexpected unit: {}", value->inspect_str(env));
+        env->raise("ArgumentError", "unexpected unit: {}", value.inspect_str(env));
     }
 }
 

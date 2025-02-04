@@ -97,7 +97,7 @@ Env *build_top_env() {
     global_env->set_Rational(Rational);
     Object->const_set("Rational"_s, Rational);
 
-    Value Math = new ModuleObject { "Math" };
+    ModuleObject *Math = new ModuleObject { "Math" };
     Object->const_set("Math"_s, Math);
     Math->const_set("E"_s, new FloatObject { M_E });
     Math->const_set("PI"_s, new FloatObject { M_PI });
@@ -847,7 +847,7 @@ int pclose2(FILE *fp, pid_t pid) {
 }
 
 void set_status_object(Env *env, pid_t pid, int status) {
-    auto status_obj = GlobalEnv::the()->Object()->const_fetch("Process"_s)->const_fetch("Status"_s).send(env, "new"_s);
+    auto status_obj = GlobalEnv::the()->Object()->const_fetch("Process"_s)->as_module()->const_fetch("Status"_s).send(env, "new"_s);
     status_obj->ivar_set(env, "@to_i"_s, Value::integer(status));
     status_obj->ivar_set(env, "@exitstatus"_s, Value::integer(WEXITSTATUS(status)));
     status_obj->ivar_set(env, "@pid"_s, Value::integer(pid));
@@ -868,7 +868,7 @@ Value super(Env *env, Value self, Args &&args, Block *block) {
         if (self.is_module()) {
             env->raise("NoMethodError", "super: no superclass method '{}' for {}:{}", current_method->original_name(), self->as_module()->inspect_str(), self.klass()->inspect_str());
         } else {
-            env->raise("NoMethodError", "super: no superclass method '{}' for {}", current_method->original_name(), self->inspect_str(env));
+            env->raise("NoMethodError", "super: no superclass method '{}' for {}", current_method->original_name(), self.inspect_str(env));
         }
     }
     assert(super_method.method() != current_method);

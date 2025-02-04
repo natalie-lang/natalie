@@ -55,7 +55,7 @@ Value HashObject::get(Env *env, Value key) {
 }
 
 nat_int_t HashObject::generate_key_hash(Env *env, Value key) const {
-    if (m_is_comparing_by_identity && !key.is_float()) {
+    if (m_is_comparing_by_identity && !key.is_float() && !key.is_integer()) {
         auto obj = key.object();
         return TM::HashmapUtils::hashmap_hash_ptr((uintptr_t)obj);
     } else {
@@ -329,9 +329,9 @@ String HashObject::dbg_inspect() const {
     String str("{");
     size_t index = 0;
     for (auto pair : *this) {
-        str.append(pair.key->dbg_inspect());
+        str.append(pair.key.dbg_inspect());
         str.append(" => ");
-        str.append(pair.val->dbg_inspect());
+        str.append(pair.val.dbg_inspect());
         if (index < size() - 1)
             str.append(", ");
         index++;
@@ -431,9 +431,7 @@ Value HashObject::size(Env *env) const {
 }
 
 bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
-    TM::PairedRecursionGuard guard { this, other_value.object() };
-
-    return guard.run([&](bool is_recursive) -> bool {
+    auto lambda = [&](bool is_recursive) -> bool {
         if (!other_value.is_hash())
             return false;
 
@@ -458,7 +456,13 @@ bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
         }
 
         return true;
-    });
+    };
+
+    if (other_value.is_integer())
+        return lambda(false);
+
+    TM::PairedRecursionGuard guard { this, other_value.object() };
+    return guard.run(lambda);
 }
 
 bool HashObject::eq(Env *env, Value other_value) {

@@ -39,11 +39,15 @@ Value Value::integer_send(Env *env, SymbolObject *name, Args &&args, Block *bloc
     if (!method_info.is_defined()) {
         // FIXME: store missing reason on current thread
         GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Undefined);
-        auto obj = object();
-        if (obj->respond_to(env, "method_missing"_s))
-            return obj->method_missing_send(env, name, std::move(args), block);
-        else
-            env->raise_no_method_error(obj, name, GlobalEnv::the()->method_missing_reason());
+        if (respond_to(env, "method_missing"_s)) {
+            Vector<Value> new_args(args.size() + 1);
+            new_args.push(name);
+            for (size_t i = 0; i < args.size(); i++)
+                new_args.push(args[i]);
+            return send(env, "method_missing"_s, Args(new_args, args.has_keyword_hash()), block);
+        } else {
+            env->raise_no_method_error(*this, name, GlobalEnv::the()->method_missing_reason());
+        }
     }
 
     args.pop_empty_keyword_hash();
@@ -488,6 +492,23 @@ StringObject *Value::to_s(Env *env) {
     return str->as_string();
 }
 
+SymbolObject *Value::to_symbol(Env *env, Conversion conversion) {
+    if (is_integer()) {
+        if (conversion == Conversion::NullAllowed)
+            return nullptr;
+        env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
+    }
+
+    if (is_symbol())
+        return m_object->as_symbol();
+    else if (is_string() || respond_to(env, "to_str"_s))
+        return to_str(env)->to_symbol(env);
+    else if (conversion == Conversion::NullAllowed)
+        return nullptr;
+    else
+        env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
+}
+
 void Value::auto_hydrate() {
     switch (m_type) {
     case Type::Integer: {
@@ -501,6 +522,25 @@ void Value::auto_hydrate() {
     case Type::Pointer:
         break;
     }
+}
+
+String Value::inspect_str(Env *env) {
+    if (!respond_to(env, "inspect"_s))
+        return String::format("#<{}:{}>", klass()->inspect_str(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));
+    auto inspected = send(env, "inspect"_s);
+    if (!inspected.is_string())
+        return ""; // TODO: what to do here?
+    return inspected->as_string()->string();
+}
+
+String Value::dbg_inspect() const {
+    switch (m_type) {
+    case Type::Integer:
+        return m_integer.to_string();
+    case Type::Pointer:
+        return m_object->dbg_inspect();
+    }
+    NAT_UNREACHABLE();
 }
 
 #undef PROFILED_SEND

@@ -27,7 +27,7 @@ static void *dlopen_wrapper(Env *env, const String &name) {
         auto trail = strstr(errmsg, ": invalid ELF header");
         if (!trail) {
             static const auto so_ext = [&] {
-                auto RbConfig = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s);
+                auto RbConfig = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s)->as_module();
                 auto CONFIG = RbConfig->const_fetch("CONFIG"_s)->as_hash_or_raise(env);
                 auto SO_EXT = CONFIG->fetch(env, new StringObject { "SOEXT" }, nullptr, nullptr)->as_string_or_raise(env);
                 return String::format(".{}", SO_EXT->string());
@@ -197,7 +197,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             else if (val.is_nil())
                 arg_values[i].vp = nullptr;
             else
-                env->raise("ArgumentError", "Expected Pointer but got {} for arg {}", val->inspect_str(env), (int)i);
+                env->raise("ArgumentError", "Expected Pointer but got {} for arg {}", val.inspect_str(env), (int)i);
             arg_pointers[i] = &(arg_values[i].vp);
         } else if (type == bool_sym) {
             if (val == TrueObject::the())
@@ -237,7 +237,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
                 if (mapped_value.is_nil() && val.is_integer())
                     mapped_value = val;
                 if (mapped_value.is_nil()) {
-                    env->raise("ArgumentError", "invalid enum value, {}", val->inspect_str(env));
+                    env->raise("ArgumentError", "invalid enum value, {}", val.inspect_str(env));
                 } else {
                     const auto int_val = mapped_value.integer_or_raise(env).to_nat_int_t();
                     if (int_val < std::numeric_limits<int32_t>::min() || int_val > std::numeric_limits<int32_t>::max())
@@ -247,7 +247,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
                     arg_pointers[i] = &(arg_values[i].s32);
                 }
             } else {
-                env->raise("StandardError", "I don't yet know how to handle argument type {} (arg {})", type->inspect_str(env), (int)i);
+                env->raise("StandardError", "I don't yet know how to handle argument type {} (arg {})", type.inspect_str(env), (int)i);
             }
         }
     }
@@ -288,10 +288,10 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
 
 Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 3);
-    auto name = args.at(0)->to_symbol(env, Object::Conversion::Strict);
+    auto name = args.at(0).to_symbol(env, Value::Conversion::Strict);
     auto arg_types = args.at(1);
     arg_types.assert_type(env, Object::Type::Array, "Array");
-    auto return_type = args.at(2)->to_symbol(env, Object::Conversion::Strict);
+    auto return_type = args.at(2).to_symbol(env, Value::Conversion::Strict);
     // dbg("attach_function {v} {v} {v}", name, arg_types, return_type);
 
     auto arg_types_array = arg_types->as_array();
@@ -429,7 +429,7 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args &&args, Block *blo
         } else if (sym == "pointer"_s) {
             size = sizeof(void *);
         } else {
-            env->raise("TypeError", "unknown size argument for FFI#initialize: {}", args.at(0)->inspect_str(env));
+            env->raise("TypeError", "unknown size argument for FFI#initialize: {}", args.at(0).inspect_str(env));
         }
         break;
     }
@@ -478,7 +478,7 @@ Value FFI_Pointer_initialize(Env *env, Value self, Args &&args, Block *) {
         if (type == "pointer"_s)
             type_size = sizeof(void *);
         else
-            NAT_NOT_YET_IMPLEMENTED("I don't yet know how to handle type %s in FFI::Pointer.new", type->inspect_str(env).c_str());
+            NAT_NOT_YET_IMPLEMENTED("I don't yet know how to handle type %s in FFI::Pointer.new", type.inspect_str(env).c_str());
     } else {
         type = NilObject::the();
         address = args.at(0);

@@ -56,13 +56,13 @@ public:
     Value const_find_with_autoload(Env *, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
     Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
 
-    virtual Value const_get(SymbolObject *) const override;
-    virtual Value const_fetch(SymbolObject *) override;
-    virtual Value const_set(SymbolObject *, Value) override;
-    virtual Value const_set(SymbolObject *, MethodFnPtr, StringObject *) override;
-
+    Value const_get(SymbolObject *) const;
     Value const_get(Env *, Value, Value = nullptr);
+    Value const_fetch(SymbolObject *) const;
+    Value const_set(SymbolObject *, Value);
+    Value const_set(SymbolObject *, MethodFnPtr, StringObject *);
     Value const_set(Env *, Value, Value);
+
     void remove_const(SymbolObject *);
     Value remove_const(Env *, Value);
     Value constants(Env *, Value) const;

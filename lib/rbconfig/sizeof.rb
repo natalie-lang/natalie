@@ -6,7 +6,7 @@ module RbConfig
   LIMITS = {}
 
   __inline__ <<~CPP
-    auto SIZEOF = self->const_get("SIZEOF"_s)->as_hash();
+    auto SIZEOF = self->as_module()->const_get("SIZEOF"_s)->as_hash();
     SIZEOF->put(env, new StringObject { "double" }, Value::integer(sizeof(double)));
     SIZEOF->put(env, new StringObject { "float" }, Value::integer(sizeof(float)));
     SIZEOF->put(env, new StringObject { "int" }, Value::integer(sizeof(int)));
@@ -14,7 +14,7 @@ module RbConfig
     SIZEOF->put(env, new StringObject { "short" }, Value::integer(sizeof(short)));
     SIZEOF->put(env, new StringObject { "void*" }, Value::integer(sizeof(void *)));
 
-    auto LIMITS = self->const_get("LIMITS"_s)->as_hash();
+    auto LIMITS = self->as_module()->const_get("LIMITS"_s)->as_hash();
     LIMITS->put(env, new StringObject { "CHAR_MIN" }, Value::integer(std::numeric_limits<char>::min()));
     LIMITS->put(env, new StringObject { "CHAR_MAX" }, Value::integer(std::numeric_limits<char>::max()));
     LIMITS->put(env, new StringObject { "SHRT_MIN" }, Value::integer(std::numeric_limits<short>::min()));

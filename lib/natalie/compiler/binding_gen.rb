@@ -390,7 +390,7 @@ gen.binding('Array', 'concat', 'ArrayObject', 'concat', argc: :any, pass_env: tr
 gen.binding('Array', 'compact', 'ArrayObject', 'compact', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Array', 'compact!', 'ArrayObject', 'compact_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Array', 'cycle', 'ArrayObject', 'cycle', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('Array', 'deconstruct', 'ArrayObject', 'itself', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Array', 'deconstruct', 'Object', 'itself', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Array', 'delete', 'ArrayObject', 'delete_item', argc: 1, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Array', 'delete_at', 'ArrayObject', 'delete_at', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Array', 'delete_if', 'ArrayObject', 'delete_if', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
@@ -1014,7 +1014,7 @@ gen.static_binding_as_instance_method('Kernel', 'send', 'Object', 'send', argc: 
 gen.static_binding_as_instance_method('Kernel', 'public_send', 'Object', 'public_send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'clone', 'Object', 'clone_obj', argc: 0, kwargs: [:freeze], pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'extend', 'KernelModule', 'extend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'frozen?', 'Object', 'is_frozen', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('Kernel', 'frozen?', 'KernelModule', 'is_frozen', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.static_binding_as_instance_method('Kernel', 'respond_to?', 'KernelModule', 'respond_to_method', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding_as_instance_method('Kernel', 'respond_to_missing?', 'KernelModule', 'respond_to_missing', argc: 2, pass_env: true, pass_block: false, return_type: :bool, visibility: :private)
 
@@ -1121,7 +1121,7 @@ gen.binding('NilClass', 'to_r', 'NilObject', 'to_r', argc: 0, pass_env: true, pa
 gen.binding('NilClass', 'to_s', 'NilObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.static_binding_as_instance_method('Object', 'nil?', 'KernelModule', 'is_nil', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.binding('Object', 'itself', 'Object', 'itself', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('Object', 'itself', 'Object', 'itself', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
 gen.binding('Proc', '==', 'ProcObject', 'equal_value', argc: 1, pass_env: false, pass_block: false, aliases: ['eql?'], return_type: :bool)
 gen.binding('Proc', '<<', 'ProcObject', 'ltlt', argc: 1, pass_env: true, pass_block: false, return_type: :Object)

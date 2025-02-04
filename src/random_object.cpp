@@ -40,7 +40,7 @@ Value RandomObject::rand(Env *env, Value arg) {
         if (arg.is_float()) {
             double max = arg->as_float()->to_double();
             if (max <= 0) {
-                env->raise("ArgumentError", "invalid argument - {}", arg->inspect_str(env));
+                env->raise("ArgumentError", "invalid argument - {}", arg.inspect_str(env));
             }
             return generate_random(0.0, max);
         } else if (arg.is_range()) {
@@ -50,7 +50,7 @@ Value RandomObject::rand(Env *env, Value arg) {
             // I'm not sure how we should handle those though (coerce via to_int or to_f?)
             if (min.is_numeric() && max.is_numeric()) {
                 if (min.send(env, ">"_s, { max }).is_true()) {
-                    env->raise("ArgumentError", "invalid argument - {}", arg->inspect_str(env));
+                    env->raise("ArgumentError", "invalid argument - {}", arg.inspect_str(env));
                 }
 
                 if (min.is_float() || max.is_float()) {
@@ -87,7 +87,7 @@ Value RandomObject::rand(Env *env, Value arg) {
 
         nat_int_t max = IntegerObject::convert_to_nat_int_t(env, arg);
         if (max <= 0) {
-            env->raise("ArgumentError", "invalid argument - {}", arg->inspect_str(env));
+            env->raise("ArgumentError", "invalid argument - {}", arg.inspect_str(env));
         }
         return generate_random(0, max - 1);
     } else {

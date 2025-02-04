@@ -1415,7 +1415,7 @@ Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_enco
             else if (xml == "text"_s)
                 options.xml_option = EncodeXmlOption::Text;
             else
-                env->raise("ArgumentError", "unexpected value for xml option: {}", xml->inspect_str(env));
+                env->raise("ArgumentError", "unexpected value for xml option: {}", xml.inspect_str(env));
         }
     }
 
@@ -2433,7 +2433,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
 
         // raises a RangeError if Range begin is greater than String size
         if (::abs(begin) >= (nat_int_t)chars->size())
-            env->raise("RangeError", "{} out of range", arg1->inspect_str(env));
+            env->raise("RangeError", "{} out of range", arg1.inspect_str(env));
 
         // process the begin later to eventually raise the error above
         begin = process_begin(begin);
@@ -3850,6 +3850,11 @@ void StringObject::append(const SymbolObject *sym) {
 }
 
 void StringObject::append(Value val) {
+    if (val.is_integer()) {
+        append(val.integer().to_string());
+        return;
+    }
+
     auto obj = val.object();
     switch (obj->type()) {
     case Type::Array:

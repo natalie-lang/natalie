@@ -125,9 +125,9 @@ module Natalie
 
         code = case type
                when 'int', 'unsigned short'
-                 "self->const_set(\"#{name}\"_s, Value::integer(#{value}))"
+                 "Object::const_set(env, self, \"#{name}\"_s, Value::integer(#{value}))"
                when 'bigint'
-                 "self->const_set(\"#{name}\"_s, IntegerObject::create(Integer(BigInt(#{value}))));"
+                 "Object::const_set(env, self, \"#{name}\"_s, IntegerObject::create(Integer(BigInt(#{value}))));"
                else
                  raise "I don't yet know how to handle constant of type #{type.inspect}"
                end

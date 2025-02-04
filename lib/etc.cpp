@@ -10,8 +10,7 @@
 using namespace Natalie;
 
 Value group_to_struct(Env *env, Value self, struct group *grp) {
-    auto etc_group = self->const_get("Group"_s);
-    assert(etc_group);
+    auto etc_group = Object::const_fetch(self, "Group"_s);
     auto grpstruct = etc_group.send(env, "new"_s, {});
     // It is possible more fields could be set, but these
     // are the ones required by POSIX
@@ -29,8 +28,7 @@ Value group_to_struct(Env *env, Value self, struct group *grp) {
 }
 
 Value passwd_to_struct(Env *env, Value self, struct passwd *pwd) {
-    auto etc_passwd = self->const_get("Passwd"_s);
-    assert(etc_passwd);
+    auto etc_passwd = Object::const_fetch(self, "Passwd"_s);
     auto pwdstruct = etc_passwd.send(env, "new"_s, {});
     // It is possible more fields could be set, but these
     // are the ones required by POSIX

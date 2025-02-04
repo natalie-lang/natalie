@@ -251,7 +251,7 @@ module Math
       if (value->is_positive_infinity()) {
         return new ArrayObject { {  Value(FloatObject::positive_infinity(env)), Value::integer(1) } };
       } else if (value->is_negative_infinity()) {
-        auto DomainError = self->const_fetch("DomainError"_s)->as_class();
+        auto DomainError = Object::const_fetch(self, "DomainError"_s)->as_class();
         env->raise(DomainError, "Numerical argument is out of domain");
       } else if (value->is_positive_zero()) {
         return new ArrayObject { {  Value(FloatObject::positive_infinity(env)), Value::integer(1) } };

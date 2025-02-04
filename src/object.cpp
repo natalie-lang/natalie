@@ -589,20 +589,8 @@ StringObject *Object::as_string_or_raise(Env *env) {
     return static_cast<StringObject *>(this);
 }
 
-SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
-    if (m_type == Type::Symbol) {
-        return as_symbol();
-    } else if (m_type == Type::String || respond_to(env, "to_str"_s)) {
-        return Value(this).to_str(env)->to_symbol(env);
-    } else if (conversion == Conversion::NullAllowed) {
-        return nullptr;
-    } else {
-        env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
-    }
-}
-
 SymbolObject *Object::to_instance_variable_name(Env *env) {
-    SymbolObject *symbol = to_symbol(env, Conversion::Strict); // TypeError if not Symbol/String
+    SymbolObject *symbol = Value(this).to_symbol(env, Value::Conversion::Strict); // TypeError if not Symbol/String
 
     if (!symbol->is_ivar_name()) {
         if (m_type == Type::String) {
@@ -631,7 +619,7 @@ ClassObject *Object::singleton_class(Env *env, Value self) {
     if (self.is_module()) {
         name = String::format("#<Class:{}>", self->as_module()->inspect_str());
     } else if (self.respond_to(env, "inspect"_s)) {
-        name = String::format("#<Class:{}>", self->inspect_str(env));
+        name = String::format("#<Class:{}>", self.inspect_str(env));
     }
 
     ClassObject *singleton_superclass;
@@ -678,20 +666,29 @@ Value Object::const_find_with_autoload(Env *env, Value ns, Value self, SymbolObj
     return ns->m_klass->const_find_with_autoload(env, self, name, search_mode, failure_mode);
 }
 
-Value Object::const_get(SymbolObject *name) const {
-    return m_klass->const_get(name);
+Value Object::const_fetch(Value ns, SymbolObject *name) {
+    if (ns.is_module())
+        return ns->as_module()->const_fetch(name);
+
+    return ns.klass()->const_fetch(name);
 }
 
-Value Object::const_fetch(SymbolObject *name) {
-    return m_klass->const_fetch(name);
+Value Object::const_set(Env *env, Value ns, SymbolObject *name, Value val) {
+    if (ns.is_module())
+        return ns->as_module()->const_set(name, val);
+    else if (ns == GlobalEnv::the()->main_obj())
+        return GlobalEnv::the()->Object()->const_set(name, val);
+    else
+        env->raise("TypeError", "{} is not a class/module", ns.inspect_str(env));
 }
 
-Value Object::const_set(SymbolObject *name, Value val) {
-    return m_klass->const_set(name, val);
-}
-
-Value Object::const_set(SymbolObject *name, MethodFnPtr autoload_fn, StringObject *autoload_path) {
-    return m_klass->const_set(name, autoload_fn, autoload_path);
+Value Object::const_set(Env *env, Value ns, SymbolObject *name, MethodFnPtr autoload_fn, StringObject *autoload_path) {
+    if (ns.is_module())
+        return ns->as_module()->const_set(name, autoload_fn, autoload_path);
+    else if (ns == GlobalEnv::the()->main_obj())
+        return GlobalEnv::the()->Object()->const_set(name, autoload_fn, autoload_path);
+    else
+        env->raise("TypeError", "{} is not a class/module", ns.inspect_str(env));
 }
 
 bool Object::ivar_defined(Env *env, SymbolObject *name) {
@@ -925,7 +922,7 @@ Value Object::public_send(Env *env, SymbolObject *name, Args &&args, Block *bloc
 }
 
 Value Object::public_send(Env *env, Value self, Args &&args, Block *block) {
-    auto name = args.shift()->to_symbol(env, Object::Conversion::Strict);
+    auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
     if (self.is_integer())
         return self.integer_send(env, name, std::move(args), block, nullptr, MethodVisibility::Public);
 
@@ -937,7 +934,7 @@ Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Valu
 }
 
 Value Object::send(Env *env, Value self, Args &&args, Block *block) {
-    auto name = args.shift()->to_symbol(env, Object::Conversion::Strict);
+    auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
     if (self.is_integer())
         return self.integer_send(env, name, std::move(args), block, nullptr, MethodVisibility::Private);
 
@@ -1247,15 +1244,6 @@ String Object::dbg_inspect() const {
         "#<{}:{}>",
         klass ? *klass : "Object",
         String::hex(reinterpret_cast<nat_int_t>(this), String::HexFormat::LowercaseAndPrefixed));
-}
-
-String Object::inspect_str(Env *env) {
-    if (!respond_to(env, "inspect"_s))
-        return String::format("#<{}:{}>", m_klass->inspect_str(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed));
-    auto inspected = send(env, "inspect"_s);
-    if (!inspected.is_string())
-        return ""; // TODO: what to do here?
-    return inspected->as_string()->string();
 }
 
 Value Object::enum_for(Env *env, const char *method, Args &&args) {

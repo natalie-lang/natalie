@@ -22,11 +22,6 @@ class Object : public Cell {
 public:
     using Type = ObjectType;
 
-    enum class Conversion {
-        Strict,
-        NullAllowed,
-    };
-
     enum class ConstLookupSearchMode {
         NotStrict,
         Strict,
@@ -166,7 +161,6 @@ public:
     RangeObject *as_range_or_raise(Env *);
     StringObject *as_string_or_raise(Env *);
 
-    SymbolObject *to_symbol(Env *, Conversion);
     SymbolObject *to_instance_variable_name(Env *);
 
     ClassObject *singleton_class() const { return m_singleton_class; }
@@ -179,11 +173,9 @@ public:
     void extend_once(Env *, ModuleObject *);
 
     static Value const_find_with_autoload(Env *, Value, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
-
-    virtual Value const_get(SymbolObject *) const;
-    virtual Value const_fetch(SymbolObject *);
-    virtual Value const_set(SymbolObject *, Value);
-    virtual Value const_set(SymbolObject *, MethodFnPtr, StringObject *);
+    static Value const_fetch(Value, SymbolObject *);
+    static Value const_set(Env *, Value, SymbolObject *, Value);
+    static Value const_set(Env *, Value, SymbolObject *, MethodFnPtr, StringObject *);
 
     bool ivar_defined(Env *, SymbolObject *);
     Value ivar_get(Env *, SymbolObject *);
@@ -222,7 +214,7 @@ public:
 
     static nat_int_t object_id(const Value self) { return self.object_id(); }
 
-    Value itself() { return this; }
+    static Value itself(Value self) { return self; }
 
     String pointer_id() const {
         char buf[100]; // ought to be enough for anybody ;-)
@@ -281,7 +273,7 @@ public:
     void assert_not_frozen(Env *);
     void assert_not_frozen(Env *, Value);
 
-    String inspect_str(Env *);
+    String inspect_str(Env *env) { return Value(this).inspect_str(env); }
 
     Value enum_for(Env *env, const char *method, Args &&args = {});
 

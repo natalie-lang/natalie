@@ -89,7 +89,7 @@ Value ModuleObject::const_get(SymbolObject *name) const {
 }
 
 Value ModuleObject::const_get(Env *env, Value name, Value inherited) {
-    auto symbol = name->to_symbol(env, Object::Conversion::Strict);
+    auto symbol = name.to_symbol(env, Value::Conversion::Strict);
     auto constant = const_get(symbol);
     if (!constant) {
         if (inherited && inherited.is_falsey())
@@ -99,7 +99,7 @@ Value ModuleObject::const_get(Env *env, Value name, Value inherited) {
     return constant;
 }
 
-Value ModuleObject::const_fetch(SymbolObject *name) {
+Value ModuleObject::const_fetch(SymbolObject *name) const {
     auto constant = const_get(name);
     if (!constant) {
         TM::String::format("Constant {} is missing!\n", name->string()).print();
@@ -217,7 +217,7 @@ Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject
 }
 
 Value ModuleObject::is_autoload(Env *env, Value name) const {
-    auto name_sym = name->to_symbol(env, Conversion::Strict);
+    auto name_sym = name.to_symbol(env, Value::Conversion::Strict);
     auto constant = m_constants.get(name_sym);
     if (constant && constant->needs_load()) {
         auto path = constant->autoload_path();
@@ -301,7 +301,7 @@ Value ModuleObject::const_set(SymbolObject *name, MethodFnPtr autoload_fn, Strin
 }
 
 Value ModuleObject::const_set(Env *env, Value name, Value val) {
-    auto name_as_sym = name->to_symbol(env, Object::Conversion::Strict);
+    auto name_as_sym = name.to_symbol(env, Value::Conversion::Strict);
     if (!name_as_sym->is_constant_name())
         env->raise_name_error(name_as_sym, "wrong constant name {}", name_as_sym->string());
     return const_set(name_as_sym, val);
@@ -314,7 +314,7 @@ void ModuleObject::remove_const(SymbolObject *name) {
 }
 
 Value ModuleObject::remove_const(Env *env, Value name) {
-    auto name_as_sym = name->to_symbol(env, Object::Conversion::Strict);
+    auto name_as_sym = name.to_symbol(env, Value::Conversion::Strict);
     if (!name_as_sym->is_constant_name())
         env->raise_name_error(name_as_sym, "wrong constant name {}", name_as_sym->string());
     auto constant = m_constants.get(name_as_sym);
@@ -437,13 +437,13 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
 }
 
 bool ModuleObject::class_variable_defined(Env *env, Value name) {
-    auto *name_sym = name->to_symbol(env, Conversion::Strict);
+    auto *name_sym = name.to_symbol(env, Value::Conversion::Strict);
 
     return cvar_get_or_null(env, name_sym);
 }
 
 Value ModuleObject::class_variable_get(Env *env, Value name) {
-    auto *name_sym = name->to_symbol(env, Conversion::Strict);
+    auto *name_sym = name.to_symbol(env, Value::Conversion::Strict);
 
     auto val = cvar_get_or_null(env, name_sym);
     if (!val) {
@@ -455,7 +455,7 @@ Value ModuleObject::class_variable_get(Env *env, Value name) {
 Value ModuleObject::class_variable_set(Env *env, Value name, Value value) {
     assert_not_frozen(env);
 
-    return cvar_set(env, name->to_symbol(env, Conversion::Strict), value);
+    return cvar_set(env, name.to_symbol(env, Value::Conversion::Strict), value);
 }
 
 ArrayObject *ModuleObject::class_variables(Value inherit) const {
@@ -475,7 +475,7 @@ ArrayObject *ModuleObject::class_variables(Value inherit) const {
 
 Value ModuleObject::remove_class_variable(Env *env, Value name) {
     assert_not_frozen(env);
-    auto *name_sym = name->to_symbol(env, Conversion::Strict);
+    auto *name_sym = name.to_symbol(env, Value::Conversion::Strict);
 
     if (!name_sym->is_cvar_name())
         env->raise_name_error(name_sym, "`{}' is not allowed as a class variable name", name_sym->string());
@@ -605,14 +605,14 @@ void ModuleObject::assert_method_defined(Env *env, SymbolObject *name, MethodInf
 }
 
 Value ModuleObject::instance_method(Env *env, Value name_value) {
-    auto name = name_value->to_symbol(env, Object::Conversion::Strict);
+    auto name = name_value.to_symbol(env, Value::Conversion::Strict);
     auto method_info = find_method(env, name);
     assert_method_defined(env, name, method_info);
     return new UnboundMethodObject { this, method_info.method() };
 }
 
 Value ModuleObject::public_instance_method(Env *env, Value name_value) {
-    auto name = name_value->to_symbol(env, Object::Conversion::Strict);
+    auto name = name_value.to_symbol(env, Value::Conversion::Strict);
     auto method_info = find_method(env, name);
     assert_method_defined(env, name, method_info);
 
@@ -731,7 +731,7 @@ bool ModuleObject::is_subclass_of(ModuleObject *other) {
 }
 
 bool ModuleObject::is_method_defined(Env *env, Value name_value) const {
-    auto name = name_value->to_symbol(env, Conversion::Strict);
+    auto name = name_value.to_symbol(env, Value::Conversion::Strict);
     return !!find_method(env, name);
 }
 
@@ -809,7 +809,7 @@ ArrayObject *ModuleObject::attr_reader(Env *env, Args &&args) {
 }
 
 SymbolObject *ModuleObject::attr_reader(Env *env, Value obj) {
-    auto name = obj->to_symbol(env, Conversion::Strict);
+    auto name = obj.to_symbol(env, Value::Conversion::Strict);
     OwnedPtr<Env> block_env { new Env {} };
     block_env->var_set("name", 0, true, name);
     Block *attr_block = new Block { std::move(block_env), this, ModuleObject::attr_reader_block_fn, 0 };
@@ -835,7 +835,7 @@ ArrayObject *ModuleObject::attr_writer(Env *env, Args &&args) {
 }
 
 SymbolObject *ModuleObject::attr_writer(Env *env, Value obj) {
-    auto name = obj->to_symbol(env, Conversion::Strict);
+    auto name = obj.to_symbol(env, Value::Conversion::Strict);
     auto method_name = SymbolObject::intern(TM::String::format("{}=", name->string()));
     OwnedPtr<Env> block_env { new Env {} };
     block_env->var_set("name", 0, true, name);
@@ -901,7 +901,7 @@ bool ModuleObject::does_include_module(Env *env, Value module) {
 }
 
 Value ModuleObject::define_method(Env *env, Value name_value, Value method_value, Block *block) {
-    auto name = name_value->to_symbol(env, Object::Conversion::Strict);
+    auto name = name_value.to_symbol(env, Value::Conversion::Strict);
     if (method_value) {
         if (method_value.is_proc()) {
             define_method(env, name, method_value->as_proc()->block());
@@ -990,7 +990,7 @@ void ModuleObject::set_method_visibility(Env *env, Args &&args, MethodVisibility
     if (args.size() == 1 && args[0].is_array()) {
         auto array = args[0]->as_array();
         for (auto &value : *array) {
-            auto name = value->to_symbol(env, Conversion::Strict);
+            auto name = value.to_symbol(env, Value::Conversion::Strict);
             set_method_visibility(env, name, visibility);
         }
         return;
@@ -998,7 +998,7 @@ void ModuleObject::set_method_visibility(Env *env, Args &&args, MethodVisibility
 
     // private :foo, :bar
     for (size_t i = 0; i < args.size(); ++i) {
-        auto name = args[i]->to_symbol(env, Conversion::Strict);
+        auto name = args[i].to_symbol(env, Value::Conversion::Strict);
         set_method_visibility(env, name, visibility);
     }
 }
@@ -1016,7 +1016,7 @@ Value ModuleObject::module_function(Env *env, Args &&args) {
 
     if (args.size() > 0) {
         for (size_t i = 0; i < args.size(); ++i) {
-            auto name = args[i]->to_symbol(env, Conversion::Strict);
+            auto name = args[i].to_symbol(env, Value::Conversion::Strict);
             auto method_info = find_method(env, name);
             assert_method_defined(env, name, method_info);
             auto method = method_info.method();
@@ -1032,7 +1032,7 @@ Value ModuleObject::module_function(Env *env, Args &&args) {
 
 Value ModuleObject::deprecate_constant(Env *env, Args &&args) {
     for (size_t i = 0; i < args.size(); ++i) {
-        auto name = args[i]->to_symbol(env, Conversion::Strict);
+        auto name = args[i].to_symbol(env, Value::Conversion::Strict);
         auto constant = m_constants.get(name);
         if (!constant)
             env->raise_name_error(name, "constant {}::{} not defined", inspect_str(), name->string());
@@ -1043,7 +1043,7 @@ Value ModuleObject::deprecate_constant(Env *env, Args &&args) {
 
 Value ModuleObject::private_constant(Env *env, Args &&args) {
     for (size_t i = 0; i < args.size(); ++i) {
-        auto name = args[i]->to_symbol(env, Conversion::Strict);
+        auto name = args[i].to_symbol(env, Value::Conversion::Strict);
         auto constant = m_constants.get(name);
         if (!constant)
             env->raise_name_error(name, "constant {}::{} not defined", inspect_str(), name->string());
@@ -1054,7 +1054,7 @@ Value ModuleObject::private_constant(Env *env, Args &&args) {
 
 Value ModuleObject::public_constant(Env *env, Args &&args) {
     for (size_t i = 0; i < args.size(); ++i) {
-        auto name = args[i]->to_symbol(env, Conversion::Strict);
+        auto name = args[i].to_symbol(env, Value::Conversion::Strict);
         auto constant = m_constants.get(name);
         if (!constant)
             env->raise_name_error(name, "constant {}::{} not defined", inspect_str(), name->string());
@@ -1064,9 +1064,9 @@ Value ModuleObject::public_constant(Env *env, Args &&args) {
 }
 
 bool ModuleObject::const_defined(Env *env, Value name_value, Value inherited) {
-    auto name = name_value->to_symbol(env, Object::Conversion::NullAllowed);
+    auto name = name_value.to_symbol(env, Value::Conversion::NullAllowed);
     if (!name) {
-        env->raise("TypeError", "no implicit conversion of {} to String", name_value->inspect_str(env));
+        env->raise("TypeError", "no implicit conversion of {} to String", name_value.inspect_str(env));
     }
     if (inherited && inherited.is_falsey()) {
         return !!m_constants.get(name);
@@ -1075,13 +1075,13 @@ bool ModuleObject::const_defined(Env *env, Value name_value, Value inherited) {
 }
 
 Value ModuleObject::alias_method(Env *env, Value new_name_value, Value old_name_value) {
-    auto new_name = new_name_value->to_symbol(env, Object::Conversion::NullAllowed);
+    auto new_name = new_name_value.to_symbol(env, Value::Conversion::NullAllowed);
     if (!new_name) {
-        env->raise("TypeError", "{} is not a symbol", new_name_value->inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol", new_name_value.inspect_str(env));
     }
-    auto old_name = old_name_value->to_symbol(env, Object::Conversion::NullAllowed);
+    auto old_name = old_name_value.to_symbol(env, Value::Conversion::NullAllowed);
     if (!old_name) {
-        env->raise("TypeError", "{} is not a symbol", old_name_value->inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol", old_name_value.inspect_str(env));
     }
     make_method_alias(env, new_name, old_name);
     return new_name;
@@ -1089,7 +1089,7 @@ Value ModuleObject::alias_method(Env *env, Value new_name_value, Value old_name_
 
 Value ModuleObject::remove_method(Env *env, Args &&args) {
     for (size_t i = 0; i < args.size(); ++i) {
-        auto name = args[i]->to_symbol(env, Conversion::Strict);
+        auto name = args[i].to_symbol(env, Value::Conversion::Strict);
         auto method = m_methods.get(name, env);
         if (!method)
             env->raise_name_error(name, "method `{}' not defined in {}", name->string(), this->inspect_str());
@@ -1100,7 +1100,7 @@ Value ModuleObject::remove_method(Env *env, Args &&args) {
 
 Value ModuleObject::undef_method(Env *env, Args &&args) {
     for (size_t i = 0; i < args.size(); ++i) {
-        auto name = args[i]->to_symbol(env, Conversion::Strict);
+        auto name = args[i].to_symbol(env, Value::Conversion::Strict);
         auto method_info = find_method(env, name);
         assert_method_defined(env, name, method_info);
         undefine_method(env, name);
@@ -1112,7 +1112,7 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
     if (name.is_string()) {
         name = name->as_string()->to_sym(env);
     } else if (!name.is_symbol()) {
-        env->raise("TypeError", "{} is not a symbol nor a string", name->inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol nor a string", name.inspect_str(env));
     }
 
     auto method_wrapper = [](Env *env, Value self, Args &&args, Block *block) -> Value {

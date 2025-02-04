@@ -16,7 +16,7 @@ module Natalie
       def generate(transform)
         namespace = transform.pop
         value = transform.pop
-        transform.exec("#{namespace}->const_set(#{transform.intern(@name)}, #{value})")
+        transform.exec("Object::const_set(env, #{namespace}, #{transform.intern(@name)}, #{value})")
       end
 
       def execute(vm)
