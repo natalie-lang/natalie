@@ -888,8 +888,8 @@ Value KernelModule::protected_methods(Env *env, Value self, Value recur) {
 }
 
 Value KernelModule::public_methods(Env *env, Value self, Value recur) {
-    if (self->singleton_class())
-        return self->singleton_class()->public_instance_methods(env, TrueObject::the());
+    if (self.singleton_class())
+        return self.singleton_class()->public_instance_methods(env, TrueObject::the());
     else
         return self.klass()->public_instance_methods(env, recur);
 }
