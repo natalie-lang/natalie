@@ -166,7 +166,7 @@ public:
     ClassObject *singleton_class() const { return m_singleton_class; }
     static ClassObject *singleton_class(Env *, Value);
 
-    ClassObject *subclass(Env *env, const char *name);
+    static ClassObject *subclass(Env *env, Value superklass, const char *name);
 
     void set_singleton_class(ClassObject *);
 

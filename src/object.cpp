@@ -643,10 +643,10 @@ ClassObject *Object::singleton_class(Env *env, Value self) {
     return self->m_singleton_class;
 }
 
-ClassObject *Object::subclass(Env *env, const char *name) {
-    if (m_type != Type::Class)
-        env->raise("TypeError", "superclass must be an instance of Class (given an instance of {})", klass()->inspect_str());
-    return as_class()->subclass(env, name);
+ClassObject *Object::subclass(Env *env, Value superclass, const char *name) {
+    if (!superclass.is_class())
+        env->raise("TypeError", "superclass must be an instance of Class (given an instance of {})", superclass.klass()->inspect_str());
+    return superclass->as_class()->subclass(env, name);
 }
 
 void Object::extend_once(Env *env, ModuleObject *module) {
