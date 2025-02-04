@@ -15,7 +15,7 @@ extern "C" Env *build_top_env() {
     return env;
 }
 
-extern "C" Object *EVAL(Env *env) {
+extern "C" Value *EVAL(Env *env, Value *result_memory) {
     /*NAT_EVAL_INIT*/
 
     [[maybe_unused]] Value self = GlobalEnv::the()->main_obj();
@@ -25,20 +25,21 @@ extern "C" Object *EVAL(Env *env) {
     Args args;
     Block *block = nullptr;
 
+    Value result = nullptr;
     try {
         // FIXME: top-level `return` in a Ruby script should probably be changed to `exit`.
-        // For now, this lambda lets us return a Value from generated code without breaking the C linkage.
-        auto result = [&]() -> Value {
+        result = [&]() -> Value {
             /*NAT_EVAL_BODY*/
             return NilObject::the();
         }();
         run_exit_handlers = false;
         run_at_exit_handlers(env);
-        return result.object();
     } catch (ExceptionObject *exception) {
         handle_top_level_exception(env, exception, run_exit_handlers);
-        return nullptr;
+        result = nullptr;
     }
+    memcpy(result_memory, &result, sizeof(Value));
+    return result_memory;
 }
 
 int main(int argc, char *argv[]) {
@@ -76,7 +77,8 @@ int main(int argc, char *argv[]) {
         ARGV->push(new StringObject { argv[i] });
     }
 
-    auto result = EVAL(env);
+    Value result = nullptr;
+    EVAL(env, &result);
     auto return_code = result ? 0 : 1;
 
 #ifdef NAT_NATIVE_PROFILER

@@ -90,6 +90,7 @@ Linenoise.completion_callback = lambda do |input|
 end
 
 @env = nil
+@result_memory = FFI::Pointer.new_value
 
 GC.disable
 
@@ -128,11 +129,11 @@ loop do
   library = Module.new do
     extend FFI::Library
     ffi_lib temp.path
-    attach_function :EVAL, [:pointer], :pointer
+    attach_function :EVAL, [:pointer, :pointer], :pointer
   end
 
   @env ||= FFI::Pointer.new_env
-  result_ptr = library.EVAL(@env)
+  result_ptr = library.EVAL(@env, @result_memory)
 
   unless result_ptr.null?
     p result_ptr.to_obj

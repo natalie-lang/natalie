@@ -89,6 +89,13 @@ module FFI
       END
     end
 
+    def self.new_value
+      __inline__ <<~END
+        auto *v = new Value { nullptr };
+        return self.send(env, "new"_s, { Value::integer((uintptr_t)v) });
+      END
+    end
+
     attr_reader :type_size
 
     def null?
