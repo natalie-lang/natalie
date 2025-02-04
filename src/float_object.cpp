@@ -181,17 +181,13 @@ Value FloatObject::cmp(Env *env, Value rhs) {
 }
 
 Value FloatObject::coerce(Env *env, Value arg) {
-    ArrayObject *ary = new ArrayObject {};
-    switch (arg->type()) {
-    case Object::Type::Float:
-        ary->push(arg);
-        break;
-    case Object::Type::Integer:
+    ArrayObject *ary = new ArrayObject { 2 };
+    if (arg.is_integer())
         ary->push(new FloatObject { arg.integer().to_double() });
-        break;
-    default:
+    else if (arg.is_float())
+        ary->push(arg);
+    else
         ary->push(KernelModule::Float(env, arg, true));
-    }
     ary->push(this);
     return ary;
 }
