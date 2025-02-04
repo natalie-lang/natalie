@@ -182,19 +182,19 @@ Value init_linenoise(Env *env, Value self) {
     auto Linenoise = new ModuleObject { "Linenoise" };
     GlobalEnv::the()->Object()->const_set("Linenoise"_s, Linenoise);
 
-    Linenoise->define_singleton_method(env, "add_history"_s, Linenoise_add_history, 1);
-    Linenoise->define_singleton_method(env, "clear_screen"_s, Linenoise_clear_screen, 0);
-    Linenoise->define_singleton_method(env, "completion_callback="_s, Linenoise_set_completion_callback, 1);
-    Linenoise->define_singleton_method(env, "highlight_callback="_s, Linenoise_set_highlight_callback, 1);
-    Linenoise->define_singleton_method(env, "hints_callback="_s, Linenoise_set_hints_callback, 1);
-    Linenoise->define_singleton_method(env, "history"_s, Linenoise_get_history, 0);
-    Linenoise->define_singleton_method(env, "history="_s, Linenoise_set_history, 1);
-    Linenoise->define_singleton_method(env, "history_max_len="_s, Linenoise_set_history_max_len, 1);
-    Linenoise->define_singleton_method(env, "load_history"_s, Linenoise_load_history, 1);
-    Linenoise->define_singleton_method(env, "multi_line"_s, Linenoise_get_multi_line, 0);
-    Linenoise->define_singleton_method(env, "multi_line="_s, Linenoise_set_multi_line, 1);
-    Linenoise->define_singleton_method(env, "readline"_s, Linenoise_readline, 1);
-    Linenoise->define_singleton_method(env, "save_history"_s, Linenoise_save_history, 1);
+    Object::define_singleton_method(env, Linenoise, "add_history"_s, Linenoise_add_history, 1);
+    Object::define_singleton_method(env, Linenoise, "clear_screen"_s, Linenoise_clear_screen, 0);
+    Object::define_singleton_method(env, Linenoise, "completion_callback="_s, Linenoise_set_completion_callback, 1);
+    Object::define_singleton_method(env, Linenoise, "highlight_callback="_s, Linenoise_set_highlight_callback, 1);
+    Object::define_singleton_method(env, Linenoise, "hints_callback="_s, Linenoise_set_hints_callback, 1);
+    Object::define_singleton_method(env, Linenoise, "history"_s, Linenoise_get_history, 0);
+    Object::define_singleton_method(env, Linenoise, "history="_s, Linenoise_set_history, 1);
+    Object::define_singleton_method(env, Linenoise, "history_max_len="_s, Linenoise_set_history_max_len, 1);
+    Object::define_singleton_method(env, Linenoise, "load_history"_s, Linenoise_load_history, 1);
+    Object::define_singleton_method(env, Linenoise, "multi_line"_s, Linenoise_get_multi_line, 0);
+    Object::define_singleton_method(env, Linenoise, "multi_line="_s, Linenoise_set_multi_line, 1);
+    Object::define_singleton_method(env, Linenoise, "readline"_s, Linenoise_readline, 1);
+    Object::define_singleton_method(env, Linenoise, "save_history"_s, Linenoise_save_history, 1);
 
     return NilObject::the();
 }

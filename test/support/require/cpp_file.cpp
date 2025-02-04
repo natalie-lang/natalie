@@ -7,6 +7,6 @@ Value defn_cpp_file(Env *env, Value self, Args &&, Block *block) {
 }
 
 Value init_cpp_file(Env *env, Value self) {
-    self->define_method(env, "cpp_file"_s, defn_cpp_file, 0);
+    Object::define_method(env, self, "cpp_file"_s, defn_cpp_file, 0);
     return NilObject::the();
 }

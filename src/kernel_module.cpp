@@ -685,7 +685,7 @@ Value KernelModule::klass_obj(Env *env, Value self) {
 Value KernelModule::define_singleton_method(Env *env, Value self, Value name, Block *block) {
     env->ensure_block_given(block);
     SymbolObject *name_obj = name.to_symbol(env, Value::Conversion::Strict);
-    self->define_singleton_method(env, name_obj, block);
+    Object::define_singleton_method(env, self, name_obj, block);
     return name_obj;
 }
 

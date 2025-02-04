@@ -499,7 +499,7 @@ SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFn
         visibility = MethodVisibility::Private;
     define_method(env, name, method, visibility);
     if (m_module_function)
-        define_singleton_method(env, name, fn, arity);
+        Object::define_singleton_method(env, this, name, fn, arity);
     return name;
 }
 
@@ -508,7 +508,7 @@ SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, Block *b
     Method *method = new Method { name->string(), this, block };
     define_method(env, name, method, m_method_visibility);
     if (m_module_function)
-        define_singleton_method(env, name, block);
+        Object::define_singleton_method(env, this, name, block);
     return name;
 }
 
@@ -1020,7 +1020,7 @@ Value ModuleObject::module_function(Env *env, Args &&args) {
             auto method_info = find_method(env, name);
             assert_method_defined(env, name, method_info);
             auto method = method_info.method();
-            define_singleton_method(env, name, method->fn(), method->arity());
+            Object::define_singleton_method(env, this, name, method->fn(), method->arity());
             m_methods.put(name, MethodInfo(MethodVisibility::Private, method));
         }
     } else {

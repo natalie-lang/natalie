@@ -41,7 +41,7 @@ module Natalie
         arity = arity.value unless arity.is_a?(Integer)
         transform.exec_and_push(
           :method,
-          "self->define_method(env, #{ruby_name.to_s.inspect}_s, #{cpp_name}, #{arity})",
+          "Object::define_method(env, self, #{ruby_name.to_s.inspect}_s, #{cpp_name}, #{arity})",
         )
       end
 
@@ -51,7 +51,7 @@ module Natalie
         arity = arity.value unless arity.is_a?(Integer)
         transform.exec_and_push(
           :method,
-          "self->klass()->define_method(env, #{ruby_name.to_s.inspect}_s, #{cpp_name}, #{arity})",
+          "Object::define_method(env, self->klass(), #{ruby_name.to_s.inspect}_s, #{cpp_name}, #{arity})",
         )
       end
 
