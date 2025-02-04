@@ -666,20 +666,32 @@ Value Object::const_find_with_autoload(Env *env, Value ns, Value self, SymbolObj
     return ns->m_klass->const_find_with_autoload(env, self, name, search_mode, failure_mode);
 }
 
-Value Object::const_get(SymbolObject *name) const {
-    return m_klass->const_get(name);
+Value Object::const_get(Value ns, SymbolObject *name) {
+    if (ns.is_module())
+        return ns->as_module()->const_get(name);
+
+    return ns.klass()->const_get(name);
 }
 
-Value Object::const_fetch(SymbolObject *name) {
-    return m_klass->const_fetch(name);
+Value Object::const_fetch(Value ns, SymbolObject *name) {
+    if (ns.is_module())
+        return ns->as_module()->const_fetch(name);
+
+    return ns.klass()->const_fetch(name);
 }
 
-Value Object::const_set(SymbolObject *name, Value val) {
-    return m_klass->const_set(name, val);
+Value Object::const_set(Value ns, SymbolObject *name, Value val) {
+    if (ns.is_module())
+        return ns->as_module()->const_set(name, val);
+
+    return ns.klass()->const_set(name, val);
 }
 
-Value Object::const_set(SymbolObject *name, MethodFnPtr autoload_fn, StringObject *autoload_path) {
-    return m_klass->const_set(name, autoload_fn, autoload_path);
+Value Object::const_set(Value ns, SymbolObject *name, MethodFnPtr autoload_fn, StringObject *autoload_path) {
+    if (ns.is_module())
+        return ns->as_module()->const_set(name, autoload_fn, autoload_path);
+
+    return ns.klass()->const_set(name, autoload_fn, autoload_path);
 }
 
 bool Object::ivar_defined(Env *env, SymbolObject *name) {

@@ -275,7 +275,7 @@ Value OpenSSL_Digest_update(Env *env, Value self, Args &&args, Block *) {
 Value OpenSSL_Digest_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto name = args.at(0);
-    auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
+    auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->as_module()->const_get("Digest"_s)->as_module();
     if (name.is_a(env, digest_klass))
         name = name.send(env, "name"_s);
     if (!name.is_string())
@@ -354,7 +354,7 @@ Value OpenSSL_Digest_digest_length(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_HMAC_digest(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 3);
-    auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
+    auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->as_module()->const_get("Digest"_s)->as_module();
     auto digest = Object::_new(env, digest_klass, { args[0] }, nullptr);
     auto key = args[1].to_str(env);
     auto data = args[2].to_str(env);
@@ -518,7 +518,7 @@ Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args &&args, Block 
     if (!io.is_io())
         env->raise("TypeError", "wrong argument type {} (expected File)", io.klass()->inspect_str());
     auto context = args.at(1, nullptr);
-    auto SSLContext = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("SSL"_s)->const_get("SSLContext"_s);
+    auto SSLContext = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->as_module()->const_get("SSL"_s)->as_module()->const_get("SSLContext"_s);
     if (!context || context.is_nil()) {
         context = Object::_new(env, SSLContext, {}, nullptr);
     } else {
@@ -968,7 +968,7 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
     auto iterations = kwargs->remove(env, "iterations"_s).to_int(env);
     auto length = kwargs->remove(env, "length"_s).to_int(env);
     auto hash = kwargs->remove(env, "hash"_s);
-    auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
+    auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->as_module()->const_get("Digest"_s)->as_module();
     if (!hash.is_a(env, digest_klass))
         hash = Object::_new(env, digest_klass, { hash }, nullptr);
     hash = hash.send(env, "name"_s);
@@ -985,8 +985,8 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
         md,
         out_size, out);
     if (!result) {
-        auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
-        auto KDF = OpenSSL->const_get("KDF"_s);
+        auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->as_module();
+        auto KDF = OpenSSL->const_get("KDF"_s)->as_module();
         auto KDFError = KDF->const_get("KDFError"_s);
         OpenSSL_raise_error(env, "PKCS5_PBKDF2_HMAC", KDFError->as_class());
     }
@@ -1008,8 +1008,8 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
         env->raise("ArgumentError", "negative string size (or size too big)");
     env->ensure_no_extra_keywords(kwargs);
 
-    auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
-    auto KDF = OpenSSL->const_get("KDF"_s);
+    auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->as_module();
+    auto KDF = OpenSSL->const_get("KDF"_s)->as_module();
     auto KDFError = KDF->const_get("KDFError"_s);
     auto pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_SCRYPT, nullptr);
     Defer pctx_free { [&pctx]() { EVP_PKEY_CTX_free(pctx); } };
@@ -1043,7 +1043,7 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
 Value init_openssl(Env *env, Value self) {
     OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, nullptr);
 
-    auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+    auto OpenSSL = static_cast<ModuleObject *>(GlobalEnv::the()->Object()->const_get("OpenSSL"_s).object());
     if (!OpenSSL) {
         OpenSSL = new ModuleObject { "OpenSSL" };
         GlobalEnv::the()->Object()->const_set("OpenSSL"_s, OpenSSL);

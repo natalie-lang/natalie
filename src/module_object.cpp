@@ -99,7 +99,7 @@ Value ModuleObject::const_get(Env *env, Value name, Value inherited) {
     return constant;
 }
 
-Value ModuleObject::const_fetch(SymbolObject *name) {
+Value ModuleObject::const_fetch(SymbolObject *name) const {
     auto constant = const_get(name);
     if (!constant) {
         TM::String::format("Constant {} is missing!\n", name->string()).print();

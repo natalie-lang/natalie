@@ -27,7 +27,7 @@ static void *dlopen_wrapper(Env *env, const String &name) {
         auto trail = strstr(errmsg, ": invalid ELF header");
         if (!trail) {
             static const auto so_ext = [&] {
-                auto RbConfig = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s);
+                auto RbConfig = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s)->as_module();
                 auto CONFIG = RbConfig->const_fetch("CONFIG"_s)->as_hash_or_raise(env);
                 auto SO_EXT = CONFIG->fetch(env, new StringObject { "SOEXT" }, nullptr, nullptr)->as_string_or_raise(env);
                 return String::format(".{}", SO_EXT->string());

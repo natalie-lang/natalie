@@ -53,7 +53,7 @@ static constexpr size_t ZLIB_BUF_SIZE = 16384;
 
 Value Zlib_deflate_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 4);
-    auto Zlib = GlobalEnv::the()->Object()->const_get("Zlib"_s);
+    auto Zlib = GlobalEnv::the()->Object()->const_get("Zlib"_s)->as_module();
     auto level = args.at(0, Zlib->const_get("DEFAULT_COMPRESSION"_s)).integer_or_raise(env);
     auto window_bits = args.at(1, Zlib->const_get("MAX_WBITS"_s)).integer_or_raise(env);
     auto mem_level = args.at(2, Zlib->const_get("DEF_MEM_LEVEL"_s)).integer_or_raise(env);
