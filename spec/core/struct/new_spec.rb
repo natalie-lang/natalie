@@ -158,19 +158,6 @@ describe "Struct.new" do
       -> { StructClasses::Ruby.new('2.0', 'i686', true) }.should raise_error(ArgumentError)
     end
 
-    ruby_version_is ''...'3.1' do
-      it "passes a hash as a normal argument" do
-        type = Struct.new(:args)
-
-        obj = suppress_warning {type.new(keyword: :arg)}
-        obj2 = type.new(*[{keyword: :arg}])
-
-        obj.should == obj2
-        obj.args.should == {keyword: :arg}
-        obj2.args.should == {keyword: :arg}
-      end
-    end
-
     ruby_version_is '3.2' do
       it "accepts keyword arguments to initialize" do
         type = Struct.new(:args)

@@ -14,72 +14,37 @@ describe "Evaluation order during assignment" do
   end
 
   context "with multiple assignment" do
-    ruby_version_is ""..."3.1" do
-      it "does not evaluate from left to right" do
-        obj = VariablesSpecs::EvalOrder.new
-
-        obj.instance_eval do
-          foo[0], bar.baz = a, b
-        end
-
-        obj.order.should == ["a", "b", "foo", "foo[]=", "bar", "bar.baz="]
+    it "evaluates from left to right, receivers first then methods" do
+      obj = VariablesSpecs::EvalOrder.new
+      obj.instance_eval do
+        foo[0], bar.baz = a, b
       end
 
-      it "cannot be used to swap variables with nested method calls" do
-        node = VariablesSpecs::EvalOrder.new.node
-
-        original_node = node
-        original_node_left = node.left
-        original_node_left_right = node.left.right
-
-        node.left, node.left.right, node = node.left.right, node, node.left
-        # Should evaluate in the order of:
-        # RHS: node.left.right, node, node.left
-        # LHS:
-        # * node(original_node), original_node.left = original_node_left_right
-        # * node(original_node), node.left(changed in the previous assignment to original_node_left_right),
-        #   original_node_left_right.right = original_node
-        # * node = original_node_left
-
-        node.should == original_node_left
-        node.right.should_not == original_node
-        node.right.left.should_not == original_node_left_right
+      NATFIXME 'it evaluates from left to right, receivers first then methods', exception: SpecFailedException do
+        obj.order.should == ["foo", "bar", "a", "b", "foo[]=", "bar.baz="]
       end
     end
 
-    ruby_version_is "3.1" do
-      it "evaluates from left to right, receivers first then methods" do
-        obj = VariablesSpecs::EvalOrder.new
-        obj.instance_eval do
-          foo[0], bar.baz = a, b
-        end
+    it "can be used to swap variables with nested method calls" do
+      node = VariablesSpecs::EvalOrder.new.node
 
-        NATFIXME 'it evaluates from left to right, receivers first then methods', exception: SpecFailedException do
-          obj.order.should == ["foo", "bar", "a", "b", "foo[]=", "bar.baz="]
-        end
-      end
+      original_node = node
+      original_node_left = node.left
+      original_node_left_right = node.left.right
 
-      it "can be used to swap variables with nested method calls" do
-        node = VariablesSpecs::EvalOrder.new.node
+      node.left, node.left.right, node = node.left.right, node, node.left
+      # Should evaluate in the order of:
+      # LHS: node, node.left(original_node_left)
+      # RHS: original_node_left_right, original_node, original_node_left
+      # Ops:
+      # * node(original_node), original_node.left = original_node_left_right
+      # * original_node_left.right = original_node
+      # * node = original_node_left
 
-        original_node = node
-        original_node_left = node.left
-        original_node_left_right = node.left.right
-
-        node.left, node.left.right, node = node.left.right, node, node.left
-        # Should evaluate in the order of:
-        # LHS: node, node.left(original_node_left)
-        # RHS: original_node_left_right, original_node, original_node_left
-        # Ops:
-        # * node(original_node), original_node.left = original_node_left_right
-        # * original_node_left.right = original_node
-        # * node = original_node_left
-
-        node.should == original_node_left
-        NATFIXME 'it can be used to swap variables with nested method calls', exception: SpecFailedException do
-          node.right.should == original_node
-          node.right.left.should == original_node_left_right
-        end
+      node.should == original_node_left
+      NATFIXME 'it can be used to swap variables with nested method calls', exception: SpecFailedException do
+        node.right.should == original_node
+        node.right.left.should == original_node_left_right
       end
     end
   end

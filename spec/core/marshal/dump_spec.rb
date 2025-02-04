@@ -636,23 +636,21 @@ describe "Marshal.dump" do
       Marshal.dump(Hash.new(1)).should == "\004\b}\000i\006"
     end
 
-    ruby_version_is "3.1" do
-      it "dumps a Hash with compare_by_identity" do
-        h = {}
-        h.compare_by_identity
+    it "dumps a Hash with compare_by_identity" do
+      h = {}
+      h.compare_by_identity
 
-        NATFIXME 'dumps a Hash with compare_by_identity', exception: SpecFailedException do
-          Marshal.dump(h).should == "\004\bC:\tHash{\x00"
-        end
+      NATFIXME 'dumps a Hash with compare_by_identity', exception: SpecFailedException do
+        Marshal.dump(h).should == "\004\bC:\tHash{\x00"
       end
+    end
 
-      it "dumps a Hash subclass with compare_by_identity" do
-        h = UserHash.new
-        h.compare_by_identity
+    it "dumps a Hash subclass with compare_by_identity" do
+      h = UserHash.new
+      h.compare_by_identity
 
-        NATFIXME 'dumps a Hash subclass with compare_by_identity', exception: SpecFailedException do
-          Marshal.dump(h).should == "\x04\bC:\rUserHashC:\tHash{\x00"
-        end
+      NATFIXME 'dumps a Hash subclass with compare_by_identity', exception: SpecFailedException do
+        Marshal.dump(h).should == "\x04\bC:\rUserHashC:\tHash{\x00"
       end
     end
 
@@ -857,8 +855,8 @@ describe "Marshal.dump" do
       end
       NATFIXME 'Implement ObjectSpace', exception: NameError, message: 'uninitialized constant ObjectSpace' do
         ObjectSpace.define_finalizer(obj, finalizer.method(:noop))
-        Marshal.load(Marshal.dump(obj)).class.should == Object
       end
+      Marshal.load(Marshal.dump(obj)).class.should == Object
     end
 
     it "uses object links for objects repeatedly dumped" do

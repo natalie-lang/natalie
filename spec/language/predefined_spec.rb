@@ -71,7 +71,7 @@ describe "Predefined global $~" do
     match2.should_not == nil
     $~.should == match2
 
-    eval 'match3 = /baz/.match("baz")'
+    match3 = /baz/.match("baz")
 
     match3.should_not == nil
     $~.should == match3
@@ -243,6 +243,16 @@ describe "Predefined global $stdout" do
 end
 
 describe "Predefined global $!" do
+  it "is Fiber-local" do
+    Fiber.new do
+      raise "hi"
+    rescue
+      Fiber.yield
+    end.resume
+
+    $!.should == nil
+  end
+
   # See http://jira.codehaus.org/browse/JRUBY-5550
   it "remains nil after a failed core class \"checked\" coercion against a class that defines method_missing" do
     $!.should == nil
@@ -772,7 +782,7 @@ describe "Predefined global $_" do
     match.should == "bar\n"
     $_.should == match
 
-    eval 'match = stdin.gets'
+    match = stdin.gets
 
     match.should == "baz\n"
     $_.should == match
@@ -905,9 +915,9 @@ describe "Execution variable $:" do
   end
 
   it "default $LOAD_PATH entries until sitelibdir included have @gem_prelude_index set" do
-    NATFIXME 'it default $LOAD_PATH entries until sitelibdir included have @gem_prelude_index set', exception: SpecFailedException do
-      skip "no sense in ruby itself" if MSpecScript.instance_variable_defined?(:@testing_ruby)
+    skip "no sense in ruby itself" if MSpecScript.instance_variable_defined?(:@testing_ruby)
 
+    NATFIXME 'it default $LOAD_PATH entries until sitelibdir included have @gem_prelude_index set', exception: SpecFailedException do
       $:.should.include?(RbConfig::CONFIG['sitelibdir'])
       idx = $:.index(RbConfig::CONFIG['sitelibdir'])
 
@@ -1387,17 +1397,9 @@ describe "$LOAD_PATH.resolve_feature_path" do
     end
   end
 
-  ruby_version_is ""..."3.1" do
-    it "raises LoadError if feature cannot be found" do
-      -> { $LOAD_PATH.resolve_feature_path('noop') }.should raise_error(LoadError)
-    end
-  end
-
-  ruby_version_is "3.1" do
-    it "return nil if feature cannot be found" do
-      NATFIXME 'Implement $LOAD_PATH', exception: NoMethodError, message: /undefined method [`']resolve_feature_path' for nil/ do
-        $LOAD_PATH.resolve_feature_path('noop').should be_nil
-      end
+  it "return nil if feature cannot be found" do
+    NATFIXME 'Implement $LOAD_PATH', exception: NoMethodError, message: /undefined method [`']resolve_feature_path' for nil/ do
+      $LOAD_PATH.resolve_feature_path('noop').should be_nil
     end
   end
 end

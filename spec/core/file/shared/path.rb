@@ -1,7 +1,7 @@
 describe :file_path, shared: true do
   before :each do
-    @name = "file_to_path"
-    @path = tmp(@name)
+    @path = tmp("file_to_path")
+    @name = File.basename(@path)
     touch @path
   end
 
@@ -42,28 +42,22 @@ describe :file_path, shared: true do
   it "does not normalise the path it returns" do
     Dir.chdir(tmp("")) do
       unorm = "./#{@name}"
-      NATFIXME 'Open path in File.new', exception: Errno::ENOENT, message: 'No such file or directory' do
-        @file = File.new unorm
-        @file.send(@method).should == unorm
-      end
+      @file = File.new unorm
+      @file.send(@method).should == unorm
     end
   end
 
   it "does not canonicalize the path it returns" do
     dir = File.basename tmp("")
     path = "#{tmp("")}../#{dir}/#{@name}"
-    NATFIXME 'Open path in File.new', exception: Errno::ENOENT, message: 'No such file or directory' do
-      @file = File.new path
-      @file.send(@method).should == path
-    end
+    @file = File.new path
+    @file.send(@method).should == path
   end
 
   it "does not absolute-ise the path it returns" do
     Dir.chdir(tmp("")) do
-      NATFIXME 'Open path in File.new', exception: Errno::ENOENT, message: 'No such file or directory' do
-        @file = File.new @name
-        @file.send(@method).should == @name
-      end
+      @file = File.new @name
+      @file.send(@method).should == @name
     end
   end
 
@@ -82,16 +76,6 @@ describe :file_path, shared: true do
 
       after :each do
         rm_r @dir
-      end
-
-      it "raises IOError if file was opened with File::TMPFILE" do
-        begin
-          File.open(@dir, File::RDWR | File::TMPFILE) do |f|
-            -> { f.send(@method) }.should raise_error(IOError)
-          end
-        rescue Errno::EOPNOTSUPP, Errno::EINVAL, Errno::EISDIR
-          skip "no support from the filesystem"
-        end
       end
     end
   end

@@ -146,22 +146,11 @@ describe "BasicObject#instance_eval" do
       end
     end
 
-    ruby_version_is ""..."3.1" do
-      it "looks in the caller scope next" do
-        receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::ReceiverScope::Receiver.new
-        caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::CallerScope::Caller.new
+    it "looks in the receiver class next" do
+      receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::ReceiverScope::Receiver.new
+      caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::CallerScope::Caller.new
 
-        caller.get_constant_with_string(receiver).should == :Caller
-      end
-    end
-
-    ruby_version_is "3.1" do
-      it "looks in the receiver class next" do
-        receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::ReceiverScope::Receiver.new
-        caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::CallerScope::Caller.new
-
-        caller.get_constant_with_string(receiver).should == :Receiver
-      end
+      caller.get_constant_with_string(receiver).should == :Receiver
     end
 
     it "looks in the caller class next" do
@@ -297,6 +286,7 @@ describe "BasicObject#instance_eval" do
     x = nil
 
     instance_eval "x = :value"
+
     x.should == :value
   end
 
