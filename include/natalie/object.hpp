@@ -161,7 +161,7 @@ public:
     RangeObject *as_range_or_raise(Env *);
     StringObject *as_string_or_raise(Env *);
 
-    SymbolObject *to_instance_variable_name(Env *);
+    static SymbolObject *to_instance_variable_name(Env *, Value);
 
     ClassObject *singleton_class() const { return m_singleton_class; }
     static ClassObject *singleton_class(Env *, Value);

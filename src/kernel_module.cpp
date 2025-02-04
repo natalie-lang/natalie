@@ -773,7 +773,7 @@ bool KernelModule::instance_variable_defined(Env *env, Value self, Value name_va
     default:
         break;
     }
-    auto name = name_val->to_instance_variable_name(env);
+    auto name = Object::to_instance_variable_name(env, name_val);
     return self->ivar_defined(env, name);
 }
 
@@ -785,12 +785,12 @@ Value KernelModule::instance_variable_get(Env *env, Value self, Value name_val) 
     default:
         break;
     }
-    auto name = name_val->to_instance_variable_name(env);
+    auto name = Object::to_instance_variable_name(env, name_val);
     return self->ivar_get(env, name);
 }
 
 Value KernelModule::instance_variable_set(Env *env, Value self, Value name_val, Value value) {
-    auto name = name_val->to_instance_variable_name(env);
+    auto name = Object::to_instance_variable_name(env, name_val);
     self->assert_not_frozen(env);
     self->ivar_set(env, name, value);
     return value;
@@ -899,7 +899,7 @@ Value KernelModule::public_methods(Env *env, Value self, Value recur) {
 }
 
 Value KernelModule::remove_instance_variable(Env *env, Value self, Value name_val) {
-    auto name = name_val->to_instance_variable_name(env);
+    auto name = Object::to_instance_variable_name(env, name_val);
     self->assert_not_frozen(env);
     return self->ivar_remove(env, name);
 }

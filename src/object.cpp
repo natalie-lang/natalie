@@ -589,12 +589,12 @@ StringObject *Object::as_string_or_raise(Env *env) {
     return static_cast<StringObject *>(this);
 }
 
-SymbolObject *Object::to_instance_variable_name(Env *env) {
-    SymbolObject *symbol = Value(this).to_symbol(env, Value::Conversion::Strict); // TypeError if not Symbol/String
+SymbolObject *Object::to_instance_variable_name(Env *env, Value name) {
+    SymbolObject *symbol = name.to_symbol(env, Value::Conversion::Strict); // TypeError if not Symbol/String
 
     if (!symbol->is_ivar_name()) {
-        if (m_type == Type::String) {
-            env->raise_name_error(as_string(), "`{}' is not allowed as an instance variable name", symbol->string());
+        if (name.is_string()) {
+            env->raise_name_error(name->as_string(), "`{}' is not allowed as an instance variable name", symbol->string());
         } else {
             env->raise_name_error(symbol, "`{}' is not allowed as an instance variable name", symbol->string());
         }
