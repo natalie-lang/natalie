@@ -72,15 +72,12 @@ public:
         return m_object;
     }
 
-    Object *object_or_null() const {
-        if (m_type == Type::Pointer)
-            return m_object;
-        else
-            return nullptr;
-    }
+    const Object *object() const {
+        if (m_type == Type::Integer) {
+            fprintf(stderr, "Fatal: cannot dereference Value of type Integer\n");
+            abort();
+        }
 
-    const Object *object_pointer() const {
-        assert(m_type == Type::Pointer);
         return m_object;
     }
 

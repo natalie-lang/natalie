@@ -34,7 +34,7 @@ void MarkingVisitor::visit(const Value val) {
             visit(val.integer().bigint_pointer());
         break;
     case Value::Type::Pointer:
-        visit(val.object_pointer());
+        visit(val.object());
         break;
     default:
         break;

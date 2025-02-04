@@ -255,7 +255,7 @@ String RangeObject::dbg_inspect() const {
         if (v.is_fast_integer()) {
             str.append(v.get_fast_integer());
         } else {
-            auto obj = v.object_or_null();
+            auto obj = v.object();
             assert(obj);
             if (type() != Type::Nil)
                 str.append(obj->dbg_inspect());

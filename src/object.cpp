@@ -1148,7 +1148,7 @@ void Object::copy_instance_variables(const Value other) {
     if (other.is_integer())
         return;
 
-    auto ivars = other.object_pointer()->m_ivars;
+    auto ivars = other.object()->m_ivars;
     if (ivars)
         m_ivars = new TM::Hashmap<SymbolObject *, Value> { *ivars };
 }
