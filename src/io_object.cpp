@@ -747,11 +747,9 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
     nat_int_t amount = IntegerObject::convert_to_nat_int_t(env, amount_value);
     int whence = 0;
     if (whence_value) {
-        switch (whence_value->type()) {
-        case Object::Type::Integer:
+        if (whence_value.is_integer()) {
             whence = whence_value.integer().to_nat_int_t();
-            break;
-        case Object::Type::Symbol: {
+        } else if (whence_value.is_symbol()) {
             SymbolObject *whence_sym = whence_value->as_symbol();
             if (whence_sym->string() == "SET") {
                 whence = SEEK_SET;
@@ -762,9 +760,7 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
             } else {
                 env->raise("TypeError", "no implicit conversion of Symbol into Integer");
             }
-            break;
-        }
-        default:
+        } else {
             env->raise("TypeError", "no implicit conversion of {} into Integer", whence_value.klass()->inspect_str());
         }
     }
