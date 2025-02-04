@@ -822,7 +822,7 @@ Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args &&args, Bloc
     assert(name_obj);
     assert(name_obj.is_symbol());
     SymbolObject *ivar_name = SymbolObject::intern(TM::String::format("@{}", name_obj->as_symbol()->string()));
-    return self->ivar_get(env, ivar_name);
+    return Object::ivar_get(env, self, ivar_name);
 }
 
 ArrayObject *ModuleObject::attr_writer(Env *env, Args &&args) {
@@ -850,7 +850,7 @@ Value ModuleObject::attr_writer_block_fn(Env *env, Value self, Args &&args, Bloc
     assert(name_obj);
     assert(name_obj.is_symbol());
     SymbolObject *ivar_name = SymbolObject::intern(TM::String::format("@{}", name_obj->as_symbol()->string()));
-    self->ivar_set(env, ivar_name, val);
+    Object::ivar_set(env, self, ivar_name, val);
     return val;
 }
 
