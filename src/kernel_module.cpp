@@ -745,7 +745,7 @@ Value KernelModule::initialize_copy(Env *env, Value self, Value object) {
     if (object == self)
         return self;
 
-    self->assert_not_frozen(env);
+    self.assert_not_frozen(env);
     if (self.klass() != object.klass())
         env->raise("TypeError", "initialize_copy should take same class object");
 

@@ -58,10 +58,12 @@ namespace GlobalVariableAccessHooks::ReadHooks {
 
 namespace GlobalVariableAccessHooks::WriteHooks {
 
-    Value as_string_or_raise(Env *env, Value v, GlobalVariableInfo &) {
+    Value as_string_or_raise(Env *env, Value v, GlobalVariableInfo &info) {
         if (v.is_nil())
             return NilObject::the();
-        return v->as_string_or_raise(env);
+        if (!v.is_string())
+            env->raise("TypeError", "value must be String");
+        return v->as_string();
     }
 
     Value to_int(Env *env, Value v, GlobalVariableInfo &) {
@@ -71,7 +73,9 @@ namespace GlobalVariableAccessHooks::WriteHooks {
     Value last_match(Env *env, Value v, GlobalVariableInfo &) {
         if (!v || v.is_nil())
             return NilObject::the();
-        auto match = v->as_match_data_or_raise(env);
+        if (!v.is_match_data())
+            env->raise("TypeError", "wrong argument type {} (expected MatchData)", v.klass()->inspect_str());
+        auto match = v->as_match_data();
         env->set_last_match(match);
         return match;
     }
@@ -79,14 +83,14 @@ namespace GlobalVariableAccessHooks::WriteHooks {
     Value set_stdout(Env *env, Value v, GlobalVariableInfo &) {
         if (!v.respond_to(env, "write"_s))
             env->raise("TypeError", "$stdout must have write method, {} given", v.klass()->inspect_str());
-        return v.object();
+        return v;
     }
 
     Value set_verbose(Env *env, Value v, GlobalVariableInfo &) {
         GlobalEnv::the()->set_verbose(v.is_truthy());
         if (v.is_nil())
             return NilObject::the();
-        return bool_object(v.is_truthy()).object();
+        return bool_object(v.is_truthy());
     }
 }
 
