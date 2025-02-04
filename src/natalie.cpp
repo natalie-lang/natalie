@@ -622,7 +622,7 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
         }
     } else if (exception_value.is_a(env, find_top_level_const(env, "SignalException"_s)->as_class())) {
         Value signo = exception->ivar_get(env, "@signo"_s);
-        if (signo->type() == Object::Type::Integer) {
+        if (signo.is_integer()) {
             auto val = signo.integer().to_nat_int_t();
             if (val >= 0 && val <= 255) {
                 clean_up_and_exit(val + 128);
