@@ -144,6 +144,10 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
 
     if (real.is_complex() && imaginary == nullptr) {
         return real;
+    } else if (real.is_complex() && imaginary.is_complex()) {
+        auto new_real = real->as_complex()->real().send(env, "-"_s, { imaginary->as_complex()->imaginary() });
+        auto new_imaginary = real->as_complex()->imaginary().send(env, "+"_s, { imaginary->as_complex()->real() });
+        return new ComplexObject { new_real, new_imaginary };
     } else if (imaginary == nullptr) {
         return new ComplexObject { real };
     } else if (real.is_string()) {
