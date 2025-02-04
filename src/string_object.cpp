@@ -3902,6 +3902,7 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
     auto signchar = str[0];
     auto sign = (signchar == '-') ? -1 : 1;
     if (signchar == '-' || signchar == '+') {
+        if (m_string.length() < 2) return nullptr;
         str = str.substring(1);
     }
 

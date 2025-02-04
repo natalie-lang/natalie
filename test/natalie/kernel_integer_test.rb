@@ -11,6 +11,11 @@ describe 'Kernel.Integer' do
     -> { Integer("+ 1") }.should raise_error(ArgumentError, 'invalid value for Integer(): "+ 1"')
   end
 
+  it 'does not accept only a sign mark' do
+    -> { Integer('+') }.should raise_error(ArgumentError, 'invalid value for Integer(): "+"')
+    -> { Integer('-') }.should raise_error(ArgumentError, 'invalid value for Integer(): "-"')
+  end
+
   it 'accepts multiple zeroes' do
     Integer('000').should == 0
   end
