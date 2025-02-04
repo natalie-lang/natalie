@@ -126,7 +126,7 @@ describe "BasicObject#instance_eval" do
   end
 
   it "makes the receiver metaclass the scoped class when used with a string" do
-    NATFIXME 'it makes the receiver metaclass the scoped class when used with a string', exception: NameError, message: /uninitialized constant \S+::B/ do
+    NATFIXME 'it makes the receiver metaclass the scoped class when used with a string', exception: TypeError, message: /is not a class\/module/ do
       obj = Object.new
       obj.instance_eval %{
         class B; end

@@ -174,8 +174,8 @@ public:
 
     static Value const_find_with_autoload(Env *, Value, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
     static Value const_fetch(Value, SymbolObject *);
-    static Value const_set(Value, SymbolObject *, Value);
-    static Value const_set(Value, SymbolObject *, MethodFnPtr, StringObject *);
+    static Value const_set(Env *, Value, SymbolObject *, Value);
+    static Value const_set(Env *, Value, SymbolObject *, MethodFnPtr, StringObject *);
 
     bool ivar_defined(Env *, SymbolObject *);
     Value ivar_get(Env *, SymbolObject *);

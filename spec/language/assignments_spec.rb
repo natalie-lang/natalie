@@ -49,11 +49,9 @@ describe 'Assignments' do
       it 'raises TypeError after evaluation of right-hand-side when compounded constant module is not a module' do
         ScratchPad.record []
 
-        NATFIXME 'it raises TypeError after evaluation of right-hand-side when compounded constant module is not a module', exception: SpecFailedException, message: /raised nothing/ do
-          -> {
-            (:not_a_module)::A = (ScratchPad << :rhs; :value)
-          }.should raise_error(TypeError)
-        end
+        -> {
+          (:not_a_module)::A = (ScratchPad << :rhs; :value)
+        }.should raise_error(TypeError)
 
         ScratchPad.recorded.should == [:rhs]
       end

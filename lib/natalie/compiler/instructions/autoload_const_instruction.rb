@@ -26,7 +26,7 @@ module Natalie
           fn_code << '}'
           transform.top(fn_code)
         end
-        transform.exec("Object::const_set(self, #{transform.intern(@name)}, #{fn}, new StringObject(#{@path.inspect}))")
+        transform.exec("Object::const_set(env, self, #{transform.intern(@name)}, #{fn}, new StringObject(#{@path.inspect}))")
         transform.push_nil
       end
 

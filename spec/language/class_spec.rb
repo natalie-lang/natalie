@@ -53,26 +53,22 @@ describe "A class definition" do
 
   # test case known to be detecting bugs (JRuby, MRI)
   it "raises TypeError if the constant qualifying the class is nil" do
-    NATFIXME 'raises TypeError if the constant qualifying the class is nil', exception: SpecFailedException do
-      -> {
-        class nil::Foo
-        end
-      }.should raise_error(TypeError)
-    end
+    -> {
+      class nil::Foo
+      end
+    }.should raise_error(TypeError)
   end
 
   it "raises TypeError if any constant qualifying the class is not a Module" do
-    NATFIXME 'raises TypeError if any constant qualifying the class is not a Module', exception: SpecFailedException do
-      -> {
-        class ClassSpecs::Number::MyClass
-        end
-      }.should raise_error(TypeError)
+    -> {
+      class ClassSpecs::Number::MyClass
+      end
+    }.should raise_error(TypeError)
 
-      -> {
-        class ClassSpecsNumber::MyClass
-        end
-      }.should raise_error(TypeError)
-    end
+    -> {
+      class ClassSpecsNumber::MyClass
+      end
+    }.should raise_error(TypeError)
   end
 
   it "inherits from Object by default" do

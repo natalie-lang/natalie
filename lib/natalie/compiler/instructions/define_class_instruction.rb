@@ -59,7 +59,7 @@ module Natalie
         code << '  }'
         code << '} else {'
         code << "  #{klass} = #{superclass}->subclass(env, #{@name.to_s.inspect})"
-        code << "  Object::const_set(#{namespace}, #{transform.intern(@name)}, #{klass})"
+        code << "  Object::const_set(env, #{namespace}, #{transform.intern(@name)}, #{klass})"
         code << '}'
         code << "#{klass}->as_class()->eval_body(env, #{fn})"
 
