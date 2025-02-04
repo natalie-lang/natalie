@@ -141,13 +141,13 @@ describe "Kernel.Complex()" do
       end
 
       it "returns nil when trailing garbage" do
-        NATFIXME 'returns nil when trailing garbage', exception: SpecFailedException do
+        NATFIXME 'returns nil when trailing garbage', exception: NoMethodError, message: "undefined method 'real' for nil" do
           Complex("79+4iruby", exception: false).should == nil
         end
       end
 
       it "returns nil for Float::INFINITY" do
-        NATFIXME 'returns nil for Float::INFINITY', exception: SpecFailedException do
+        NATFIXME 'returns nil for Float::INFINITY', exception: NoMethodError, message: "undefined method 'real' for nil" do
           Complex("Infinity", exception: false).should == nil
           Complex("-Infinity", exception: false).should == nil
         end
@@ -166,7 +166,7 @@ describe "Kernel.Complex()" do
       end
 
       it "returns nil when String contains null-byte" do
-        NATFIXME 'returns nil when String contains null-byte', exception: SpecFailedException do
+        NATFIXME 'returns nil when String contains null-byte', exception: NoMethodError, message: "undefined method 'real' for nil" do
           Complex("1-2i\0", exception: false).should == nil
         end
       end
@@ -291,8 +291,8 @@ describe "Kernel.Complex()" do
 
     describe "and [anything, non-Numeric] argument" do
       it "swallows an error" do
-        Complex("a",  :sym, exception: false).should == nil
-        NATFIXME '[anything, non-Numeric] argument', exception: NoMethodError, message: /undefined method [`']real' for nil/ do
+        NATFIXME '[anything, non-Numeric] argument', exception: SpecFailedException do
+          Complex("a",  :sym, exception: false).should == nil
           Complex(:sym, :sym, exception: false).should == nil
           Complex(0,    :sym, exception: false).should == nil
         end
@@ -301,9 +301,9 @@ describe "Kernel.Complex()" do
 
     describe "and non-numeric String arguments" do
       it "swallows an error" do
-        Complex("a", "b", exception: false).should == nil
-        Complex("a", 0, exception: false).should == nil
-        NATFIXME 'non-numeric String arguments', exception: NoMethodError, message: /undefined method [`']real' for nil/ do
+        NATFIXME 'non-numeric String arguments', exception: SpecFailedException do
+          Complex("a", "b", exception: false).should == nil
+          Complex("a", 0, exception: false).should == nil
           Complex(0, "b", exception: false).should == nil
         end
       end

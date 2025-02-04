@@ -42,9 +42,7 @@ describe :kernel_complex, shared: true do
   end
 
   it "understands floats (a.b) for the imaginary part" do
-    NATFIXME 'understands floats (a.b) for the imaginary part', exception: SpecFailedException do
-      @object.send(@method, '4+2.3i').should == Complex(4, 2.3)
-    end
+    @object.send(@method, '4+2.3i').should == Complex(4, 2.3)
   end
 
   it "understands negative floats (-a.b) for the real part" do
@@ -52,57 +50,39 @@ describe :kernel_complex, shared: true do
   end
 
   it "understands negative floats (-a.b) for the imaginary part" do
-    NATFIXME 'understands negative floats (-a.b) for the imaginary part', exception: SpecFailedException do
-      @object.send(@method, '7-28.771i').should == Complex(7, -28.771)
-    end
+    @object.send(@method, '7-28.771i').should == Complex(7, -28.771)
   end
 
   it "understands an integer followed by 'i' to mean that integer is the imaginary part" do
-    NATFIXME "understands an integer followed by 'i' to mean that integer is the imaginary part", exception: SpecFailedException do
-      @object.send(@method, '35i').should == Complex(0,35)
-    end
+    @object.send(@method, '35i').should == Complex(0,35)
   end
 
   it "understands a negative integer followed by 'i' to mean that negative integer is the imaginary part" do
-    NATFIXME "understands a negative integer followed by 'i' to mean that negative integer is the imaginary part", exception: SpecFailedException do
-      @object.send(@method, '-29i').should == Complex(0,-29)
-    end
+    @object.send(@method, '-29i').should == Complex(0,-29)
   end
 
   it "understands an 'i' by itself as denoting a complex number with an imaginary part of 1" do
-    NATFIXME "understands an 'i' by itself as denoting a complex number with an imaginary part of 1", exception: SpecFailedException do
-      @object.send(@method, 'i').should == Complex(0,1)
-    end
+    @object.send(@method, 'i').should == Complex(0,1)
   end
 
   it "understands a '-i' by itself as denoting a complex number with an imaginary part of -1" do
-    NATFIXME "understands a '-i' by itself as denoting a complex number with an imaginary part of -1", exception: SpecFailedException do
-      @object.send(@method, '-i').should == Complex(0,-1)
-    end
+    @object.send(@method, '-i').should == Complex(0,-1)
   end
 
   it "understands 'a+bi' to mean a complex number with 'a' as the real part, 'b' as the imaginary" do
-    NATFIXME "understands 'a+bi' to mean a complex number with 'a' as the real part, 'b' as the imaginary", exception: SpecFailedException do
-      @object.send(@method, '79+4i').should == Complex(79,4)
-    end
+    @object.send(@method, '79+4i').should == Complex(79,4)
   end
 
   it "understands 'a-bi' to mean a complex number with 'a' as the real part, '-b' as the imaginary" do
-    NATFIXME "understands 'a-bi' to mean a complex number with 'a' as the real part, '-b' as the imaginary", exception: SpecFailedException do
-      @object.send(@method, '79-4i').should == Complex(79,-4)
-    end
+    @object.send(@method, '79-4i').should == Complex(79,-4)
   end
 
   it "understands 'a+i' to mean a complex number with 'a' as the real part, 1i as the imaginary" do
-    NATFIXME "understands 'a+i' to mean a complex number with 'a' as the real part, 1i as the imaginary", exception: SpecFailedException do
-      @object.send(@method, '79+i').should == Complex(79, 1)
-    end
+    @object.send(@method, '79+i').should == Complex(79, 1)
   end
 
   it "understands 'a-i' to mean a complex number with 'a' as the real part, -1i as the imaginary" do
-    NATFIXME "understands 'a-i' to mean a complex number with 'a' as the real part, -1i as the imaginary", exception: SpecFailedException do
-      @object.send(@method, '79-i').should == Complex(79, -1)
-    end
+    @object.send(@method, '79-i').should == Complex(79, -1)
   end
 
   it "understands i, I, j, and J imaginary units" do
@@ -166,15 +146,11 @@ describe :kernel_complex, shared: true do
   end
 
   it "ignores leading whitespaces" do
-    NATFIXME 'ignores leading whitespaces', exception: SpecFailedException do
-      @object.send(@method, '  79+4i').should == Complex(79, 4)
-    end
+    @object.send(@method, '  79+4i').should == Complex(79, 4)
   end
 
   it "ignores trailing whitespaces" do
-    NATFIXME 'ignores trailing whitespaces', exception: SpecFailedException do
-      @object.send(@method, '79+4i  ').should == Complex(79, 4)
-    end
+    @object.send(@method, '79+4i  ').should == Complex(79, 4)
   end
 
   it "understands _" do

@@ -135,11 +135,8 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value excepti
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
     if (real.is_string()) {
-        if (auto real_int = Integer(env, real, 10, false); real_int && !real_int.is_nil()) {
-            real = real_int;
-        } else if (auto real_float = Float(env, real, false); real_float && !real_float.is_nil()) {
-            real = real_float;
-        }
+        // NATFIXME: This is more restrictive than String#to_c, needs its own parser
+        return real->as_string()->send(env, "to_c"_s);
     }
 
     if (real.is_complex() && imaginary == nullptr) {
@@ -150,8 +147,6 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
         return new ComplexObject { new_real, new_imaginary };
     } else if (imaginary == nullptr) {
         return new ComplexObject { real };
-    } else if (real.is_string()) {
-        // NATFIXME: Add support for strings too.
     } else {
         return new ComplexObject { real, imaginary };
     }

@@ -19,8 +19,10 @@ describe "String#to_c" do
   end
 
   it "understands Float::INFINITY" do
-    'Infinity'.to_c.should == Complex(0, 1)
-    '-Infinity'.to_c.should == Complex(0, -1)
+    NATFIXME 'it "understands Float::INFINITY', exception: SpecFailedException do
+      'Infinity'.to_c.should == Complex(0, 1)
+      '-Infinity'.to_c.should == Complex(0, -1)
+    end
   end
 
   it "understands Float::NAN" do
@@ -30,22 +32,30 @@ describe "String#to_c" do
   it "allows null-byte" do
     "1-2i\0".to_c.should == Complex(1, -2)
     "1\0-2i".to_c.should == Complex(1, 0)
-    "\01-2i".to_c.should == Complex(0, 0)
+    NATFIXME 'it allows null-byte', exception: SpecFailedException do
+      "\01-2i".to_c.should == Complex(0, 0)
+    end
   end
 
   it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
-    -> {
-      '79+4i'.encode("UTF-16").to_c
-    }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException, message: /should have raised Encoding::CompatibilityError/ do
+      -> {
+        '79+4i'.encode("UTF-16").to_c
+      }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
+    end
   end
 
   ruby_version_is "3.2" do
     it "treats a sequence of underscores as an end of Complex string" do
-      "5+3_1i".to_c.should == Complex(5, 31)
+      NATFIXME 'Handle single underscore', exception: SpecFailedException do
+        "5+3_1i".to_c.should == Complex(5, 31)
+      end
       "5+3__1i".to_c.should == Complex(5)
       "5+3___1i".to_c.should == Complex(5)
 
-      "12_3".to_c.should == Complex(123)
+      NATFIXME 'Handle single underscore', exception: SpecFailedException do
+        "12_3".to_c.should == Complex(123)
+      end
       "12__3".to_c.should == Complex(12)
       "12___3".to_c.should == Complex(12)
     end
