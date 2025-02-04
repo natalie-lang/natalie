@@ -69,7 +69,7 @@ public:
     Value const_missing(Env *, Value);
 
     void make_method_alias(Env *, SymbolObject *, SymbolObject *);
-    virtual void method_alias(Env *, SymbolObject *, SymbolObject *) override;
+    void method_alias(Env *, SymbolObject *, SymbolObject *);
 
     Value eval_body(Env *, Value (*)(Env *, Value));
 

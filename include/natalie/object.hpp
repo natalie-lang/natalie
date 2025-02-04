@@ -212,9 +212,9 @@ public:
     void protected_method(Env *, SymbolObject *);
     void module_function(Env *, SymbolObject *);
 
-    void method_alias(Env *env, Value new_name, Value old_name);
-    virtual void method_alias(Env *, SymbolObject *, SymbolObject *);
-    virtual void singleton_method_alias(Env *, SymbolObject *, SymbolObject *);
+    static void method_alias(Env *, Value, Value, Value);
+    static void method_alias(Env *, Value, SymbolObject *, SymbolObject *);
+    static void singleton_method_alias(Env *, Value, SymbolObject *, SymbolObject *);
 
     static nat_int_t object_id(const Value self) { return self.object_id(); }
 

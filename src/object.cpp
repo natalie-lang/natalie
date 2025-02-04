@@ -818,34 +818,34 @@ Value Object::cvar_set(Env *env, SymbolObject *name, Value val) {
     return m_klass->cvar_set(env, name, val);
 }
 
-void Object::method_alias(Env *env, Value new_name, Value old_name) {
+void Object::method_alias(Env *env, Value self, Value new_name, Value old_name) {
     new_name.assert_type(env, Type::Symbol, "Symbol");
     old_name.assert_type(env, Type::Symbol, "Symbol");
-    method_alias(env, new_name->as_symbol(), old_name->as_symbol());
+    method_alias(env, self, new_name->as_symbol(), old_name->as_symbol());
 }
 
-void Object::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
-    if (m_type == Type::Integer)
+void Object::method_alias(Env *env, Value self, SymbolObject *new_name, SymbolObject *old_name) {
+    if (self.is_integer())
         env->raise("TypeError", "no klass to make alias");
 
-    if (m_type == Type::Symbol)
+    if (self.is_symbol())
         env->raise("TypeError", "no klass to make alias");
 
-    if (is_main_object()) {
-        m_klass->make_method_alias(env, new_name, old_name);
-    } else if (m_type == Type::Module || m_type == Type::Class) {
-        as_module()->method_alias(env, new_name, old_name);
+    if (self->is_main_object()) {
+        self.klass()->make_method_alias(env, new_name, old_name);
+    } else if (self.is_module()) {
+        self->as_module()->method_alias(env, new_name, old_name);
     } else {
-        singleton_class(env, this)->make_method_alias(env, new_name, old_name);
+        singleton_class(env, self)->make_method_alias(env, new_name, old_name);
     }
 }
 
-void Object::singleton_method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
+void Object::singleton_method_alias(Env *env, Value self, SymbolObject *new_name, SymbolObject *old_name) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = singleton_class(env, this);
+    ClassObject *klass = singleton_class(env, self);
     if (klass->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", Value(this).to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", self.to_s(env)->string());
     klass->method_alias(env, new_name, old_name);
 }
 

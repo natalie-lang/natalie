@@ -73,7 +73,7 @@ class BindingGen
         puts "    #{binding.rb_class_as_c_variable}->#{binding.set_visibility_method_name}(env, #{binding.rb_method.inspect}_s);"
       end
       binding.aliases.each do |method|
-        puts "    #{binding.rb_class_as_c_variable}->#{binding.alias_name}(env, #{method.inspect}_s, #{binding.rb_method.inspect}_s);"
+        puts "    Object::#{binding.alias_name}(env, #{binding.rb_class_as_c_variable}, #{method.inspect}_s, #{binding.rb_method.inspect}_s);"
       end
     end
     @undefine_methods.each { |rb_class, method| puts "    Object::undefine_method(env, #{rb_class}, #{method.inspect}_s);" }

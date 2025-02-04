@@ -14,7 +14,7 @@ module Natalie
       def generate(transform)
         old_name = transform.pop
         new_name = transform.pop
-        transform.exec("self->method_alias(env, #{new_name}, #{old_name})")
+        transform.exec("Object::method_alias(env, self, #{new_name}, #{old_name})")
       end
 
       def execute(vm)
