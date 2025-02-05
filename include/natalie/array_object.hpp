@@ -65,7 +65,7 @@ public:
     }
 
     static Value size_fn(Env *, Value self, Args &&, Block *) {
-        return Value::integer(self->as_array()->size());
+        return Value::integer(self.as_array()->size());
     }
 
     ArrayObject *to_a();

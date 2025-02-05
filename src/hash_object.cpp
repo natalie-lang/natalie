@@ -21,11 +21,11 @@ bool HashObject::compare(Key *&a, Key *&b, void *env) {
 }
 
 bool HashObject::is_ruby2_keywords_hash(Env *env, Value hash) {
-    return hash->as_hash_or_raise(env)->m_is_ruby2_keywords_hash;
+    return hash.as_hash_or_raise(env)->m_is_ruby2_keywords_hash;
 }
 
 Value HashObject::ruby2_keywords_hash(Env *env, Value hash) {
-    auto result = hash->as_hash_or_raise(env)->duplicate(env)->as_hash();
+    auto result = hash.as_hash_or_raise(env)->duplicate(env).as_hash();
     result->m_is_ruby2_keywords_hash = true;
     return result;
 }
@@ -88,7 +88,7 @@ void HashObject::put(Env *env, Value key, Value val) {
     assert_not_frozen(env);
     Key key_container;
     if (!m_is_comparing_by_identity && key.is_string() && !key->is_frozen()) {
-        key = key->as_string()->duplicate(env);
+        key = key.as_string()->duplicate(env);
     }
     key_container.key = key;
 
@@ -150,7 +150,7 @@ Value HashObject::set_default_proc(Env *env, Value value) {
     if (value.respond_to(env, to_proc))
         to_proc_value = value.send(env, to_proc);
     to_proc_value.assert_type(env, Type::Proc, "Proc");
-    auto proc = to_proc_value->as_proc();
+    auto proc = to_proc_value.as_proc();
     auto arity = proc->arity();
     if (proc->is_lambda() && arity != 2)
         env->raise("TypeError", "default_proc takes two arguments (2 for {})", (long long)arity);
@@ -242,7 +242,7 @@ Value HashObject::square_new(Env *env, Args &&args, ClassObject *klass) {
         if (!value.is_hash() && value.respond_to(env, "to_hash"_s))
             value = value.to_hash(env);
         if (value.is_hash()) {
-            auto hash = new HashObject { env, *value->as_hash() };
+            auto hash = new HashObject { env, *value.as_hash() };
             hash->m_default_proc = nullptr;
             hash->m_default_value = NilObject::the();
             hash->m_klass = klass;
@@ -252,16 +252,16 @@ Value HashObject::square_new(Env *env, Args &&args, ClassObject *klass) {
                 value = value.to_ary(env);
             if (value.is_array()) {
                 HashObject *hash = new HashObject { klass };
-                for (auto &pair : *value->as_array()) {
+                for (auto &pair : *value.as_array()) {
                     if (!pair.is_array()) {
                         env->raise("ArgumentError", "wrong element in array to Hash[]");
                     }
-                    size_t size = pair->as_array()->size();
+                    size_t size = pair.as_array()->size();
                     if (size < 1 || size > 2) {
                         env->raise("ArgumentError", "invalid number of elements ({} for 1..2)", size);
                     }
-                    Value key = (*pair->as_array())[0];
-                    Value value = size == 1 ? NilObject::the() : (*pair->as_array())[1];
+                    Value key = (*pair.as_array())[0];
+                    Value value = size == 1 ? NilObject::the() : (*pair.as_array())[1];
                     hash->put(env, key, value);
                 }
                 return hash;
@@ -292,19 +292,19 @@ Value HashObject::inspect(Env *env) {
 
         auto to_s = [env](Value obj) {
             if (obj.is_string())
-                return obj->as_string();
+                return obj.as_string();
             if (obj.respond_to(env, "to_s"_s))
                 obj = obj.send(env, "to_s"_s);
             else
                 obj = new StringObject("?");
             if (!obj.is_string())
                 obj = StringObject::format("#<{}:{}>", obj.klass()->inspect_str(), String::hex(object_id(obj), String::HexFormat::LowercaseAndPrefixed));
-            return obj->as_string();
+            return obj.as_string();
         };
 
         for (HashObject::Key &node : *this) {
             if (node.key.is_symbol()) {
-                StringObject *key_repr = node.key->as_symbol()->to_s(env);
+                StringObject *key_repr = node.key.as_symbol()->to_s(env);
                 out->append(key_repr);
                 out->append(": ");
             } else {
@@ -435,7 +435,7 @@ bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
         if (!other_value.is_hash())
             return false;
 
-        HashObject *other = other_value->as_hash();
+        HashObject *other = other_value.as_hash();
         if (size() != other->size())
             return false;
 
@@ -596,7 +596,7 @@ Value HashObject::to_h(Env *env, Block *block) {
         if (m_klass == GlobalEnv::the()->Hash()) {
             return this;
         } else {
-            auto res = duplicate(env)->as_hash();
+            auto res = duplicate(env).as_hash();
             res->m_klass = GlobalEnv::the()->Hash();
             return res;
         }
@@ -614,7 +614,7 @@ Value HashObject::to_h(Env *env, Block *block) {
             result = result.to_ary(env);
         if (!result.is_array())
             env->raise("TypeError", "wrong element type {} (expected array)", result.klass()->inspect_str());
-        auto result_array = result->as_array();
+        auto result_array = result.as_array();
         if (result_array->size() != 2)
             env->raise("ArgumentError", "element has wrong array length (expected 2, was {})", result_array->size());
         copy->put(env, (*result_array)[0], (*result_array)[1]);
@@ -691,7 +691,7 @@ bool HashObject::has_value(Env *env, Value value) {
 }
 
 Value HashObject::merge(Env *env, Args &&args, Block *block) {
-    return duplicate(env)->as_hash()->merge_in_place(env, std::move(args), block);
+    return duplicate(env).as_hash()->merge_in_place(env, std::move(args), block);
 }
 
 Value HashObject::merge_in_place(Env *env, Args &&args, Block *block) {

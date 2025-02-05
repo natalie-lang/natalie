@@ -10,7 +10,7 @@ module Natalie
       def generate(transform)
         value = transform.pop
         ary = transform.peek
-        transform.exec("#{ary}->as_array()->push(#{value})")
+        transform.exec("#{ary}.as_array()->push(#{value})")
       end
 
       def execute(vm)

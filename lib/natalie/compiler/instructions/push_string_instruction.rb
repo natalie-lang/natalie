@@ -43,7 +43,7 @@ module Natalie
                      "Value(new StringObject(#{string_to_cpp(@string)}, (size_t)#{@bytesize}, #{encoding_object}))"
                    )
                  end
-          transform.exec("#{name}->as_string()->set_chilled(StringObject::Chilled::String)") if chilled?
+          transform.exec("#{name}.as_string()->set_chilled(StringObject::Chilled::String)") if chilled?
         end
       end
 

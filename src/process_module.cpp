@@ -54,7 +54,7 @@ Value ProcessModule::kill(Env *env, Args &&args) {
         signo = IntegerMethods::convert_to_nat_int_t(env, signal);
     } else if (signal.is_string() || signal.respond_to(env, "to_str"_s)) {
         auto signame = signal.to_str(env)->delete_prefix(env, new StringObject { "SIG" });
-        auto signo_val = SignalModule::list(env)->as_hash()->ref(env, signame);
+        auto signo_val = SignalModule::list(env).as_hash()->ref(env, signame);
         if (signo_val.is_nil())
             env->raise("ArgumentError", "unsupported signal `SIG{}'", signame.to_s(env)->string());
         signo = IntegerMethods::convert_to_nat_int_t(env, signo_val);
@@ -72,8 +72,8 @@ Value ProcessModule::kill(Env *env, Args &&args) {
         }
     }
     if (pid_contains_self) {
-        auto signal_exception = GlobalEnv::the()->Object()->const_get("SignalException"_s)->as_class();
-        auto exception = _new(env, signal_exception, { signal }, nullptr)->as_exception();
+        auto signal_exception = GlobalEnv::the()->Object()->const_get("SignalException"_s).as_class();
+        auto exception = _new(env, signal_exception, { signal }, nullptr).as_exception();
         env->raise_exception(exception);
     }
     return Value::integer(pids->size());
@@ -107,7 +107,7 @@ Value ProcessModule::times(Env *env) {
     auto stime = tv_to_float(rusage_self.ru_stime);
     auto cutime = tv_to_float(rusage_children.ru_utime);
     auto cstime = tv_to_float(rusage_children.ru_stime);
-    auto Tms = fetch_nested_const({ "Process"_s, "Tms"_s })->as_class();
+    auto Tms = fetch_nested_const({ "Process"_s, "Tms"_s }).as_class();
     return _new(env, Tms, { utime, stime, cutime, cstime }, nullptr);
 }
 

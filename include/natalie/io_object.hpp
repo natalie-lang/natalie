@@ -18,7 +18,7 @@ namespace Natalie {
 class IoObject : public Object {
 public:
     IoObject()
-        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s)->as_class() } { }
+        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s).as_class() } { }
 
     IoObject(ClassObject *klass)
         : Object { Object::Type::Io, klass } { }
@@ -27,7 +27,7 @@ public:
         : Object { type, klass } { }
 
     IoObject(int fileno)
-        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s)->as_class() }
+        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s).as_class() }
         , m_sync { fileno == STDERR_FILENO } {
         set_fileno(fileno);
     }

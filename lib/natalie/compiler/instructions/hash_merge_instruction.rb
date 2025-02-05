@@ -10,7 +10,7 @@ module Natalie
       def generate(transform)
         hash2 = transform.pop
         hash = transform.peek
-        transform.exec("#{hash}->as_hash()->merge_in_place(env, Args({ #{hash2} }), nullptr)")
+        transform.exec("#{hash}.as_hash()->merge_in_place(env, Args({ #{hash2} }), nullptr)")
       end
 
       def execute(vm)

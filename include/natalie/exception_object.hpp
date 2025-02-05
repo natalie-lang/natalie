@@ -14,7 +14,7 @@ namespace Natalie {
 class ExceptionObject : public Object {
 public:
     ExceptionObject()
-        : Object { Object::Type::Exception, GlobalEnv::the()->Object()->const_fetch("Exception"_s)->as_class() } { }
+        : Object { Object::Type::Exception, GlobalEnv::the()->Object()->const_fetch("Exception"_s).as_class() } { }
 
     ExceptionObject(ClassObject *klass)
         : Object { Object::Type::Exception, klass } { }
@@ -60,7 +60,7 @@ public:
         if (m_message == nullptr) {
             snprintf(buf, len, "<ExceptionObject %p message=(null)>", this);
             // } else if (m_message->type() == Object::Type::String) {
-            // snprintf(buf, len, "<ExceptionObject %p message='%s'>", this, m_message->as_string()->c_str());
+            // snprintf(buf, len, "<ExceptionObject %p message='%s'>", this, m_message.as_string()->c_str());
         } else {
             snprintf(buf, len, "<ExceptionObject %p message=?>", this);
         }

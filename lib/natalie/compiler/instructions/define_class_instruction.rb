@@ -61,7 +61,7 @@ module Natalie
         code << "  #{klass} = Object::subclass(env, #{superclass}, #{@name.to_s.inspect})"
         code << "  Object::const_set(env, #{namespace}, #{transform.intern(@name)}, #{klass})"
         code << '}'
-        code << "#{klass}->as_class()->eval_body(env, #{fn})"
+        code << "#{klass}.as_class()->eval_body(env, #{fn})"
 
         transform.exec_and_push(:result_of_define_class, code)
       end

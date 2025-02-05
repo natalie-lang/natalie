@@ -83,7 +83,7 @@ ArrayObject *Args::to_array() const {
 
 ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread) const {
     if (m_args_size == 1 && spread) {
-        auto ary = to_ary(env, at(0), true)->duplicate(env)->as_array();
+        auto ary = to_ary(env, at(0), true)->duplicate(env).as_array();
         ssize_t count = ary->size();
         if (max_count != -1 && count > max_count)
             ary->truncate(max_count);
@@ -141,7 +141,7 @@ HashObject *Args::keyword_hash() const {
     if (!hash || !hash.is_hash())
         return nullptr;
 
-    return hash->as_hash();
+    return hash.as_hash();
 }
 
 HashObject *Args::pop_keyword_hash() {

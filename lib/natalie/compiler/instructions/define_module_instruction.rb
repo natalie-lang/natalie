@@ -58,7 +58,7 @@ module Natalie
         code << "if (!#{mod}.is_module() || #{mod}.is_class()) {"
         code << "  env->raise(\"TypeError\", \"#{@name} is not a module\");"
         code << '}'
-        code << "#{mod}->as_module()->eval_body(env, #{fn})"
+        code << "#{mod}.as_module()->eval_body(env, #{fn})"
 
         transform.exec_and_push(:result_of_define_module, code)
       end

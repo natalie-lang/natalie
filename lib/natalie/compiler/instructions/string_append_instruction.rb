@@ -10,7 +10,7 @@ module Natalie
       def generate(transform)
         new_part = transform.pop
         target = transform.peek
-        transform.exec("#{target}->as_string()->append(#{new_part}.send(env, \"to_s\"_s));")
+        transform.exec("#{target}.as_string()->append(#{new_part}.send(env, \"to_s\"_s));")
       end
 
       def execute(vm)

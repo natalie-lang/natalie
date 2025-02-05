@@ -160,7 +160,7 @@ module Marshal
         __inline__ <<-END
             int decpt, sign;
             char *out, *e;
-            out = dtoa(value_var->as_float()->to_double(), 0, 0, &decpt, &sign, &e);
+            out = dtoa(value_var.as_float()->to_double(), 0, 0, &decpt, &sign, &e);
             int digits = strlen(out);
             String string;
             if (decpt < -3 || decpt > digits) {
@@ -629,7 +629,7 @@ module Marshal
         if ivars_hash.key?(:cause)
           exception = object
           cause = ivars_hash.delete(:cause)
-          __inline__ 'exception_var->as_exception_or_raise(env)->set_cause(cause_var->as_exception_or_raise(env));'
+          __inline__ 'exception_var.as_exception_or_raise(env)->set_cause(cause_var.as_exception_or_raise(env));'
         end
       end
       ivars_hash.each do |ivar_name, value|

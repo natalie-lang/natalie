@@ -41,7 +41,7 @@ public:
     };
 
     FiberObject()
-        : Object { Object::Type::Fiber, GlobalEnv::the()->Object()->const_fetch("Fiber"_s)->as_class() } { }
+        : Object { Object::Type::Fiber, GlobalEnv::the()->Object()->const_fetch("Fiber"_s).as_class() } { }
 
     FiberObject(ClassObject *klass)
         : Object { Object::Type::Fiber, klass } { }

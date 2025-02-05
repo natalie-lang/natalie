@@ -13,7 +13,7 @@ namespace Natalie {
 class Thread::MutexObject : public Object {
 public:
     MutexObject()
-        : Object { Object::Type::ThreadMutex, GlobalEnv::the()->Object()->const_fetch("Thread"_s)->as_class()->const_fetch("Mutex"_s)->as_class() } { }
+        : Object { Object::Type::ThreadMutex, GlobalEnv::the()->Object()->const_fetch("Thread"_s).as_class()->const_fetch("Mutex"_s).as_class() } { }
 
     MutexObject(ClassObject *klass)
         : Object { Object::Type::ThreadMutex, klass } { }

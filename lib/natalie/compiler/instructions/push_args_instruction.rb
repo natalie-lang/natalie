@@ -24,7 +24,7 @@ module Natalie
         elsif @to_array
           transform.exec_and_push(:args, 'args.to_array()')
         else
-          transform.exec_and_push(:args, 'args')
+          transform.exec_and_push(:args, 'args', type: 'auto')
         end
       end
 

@@ -26,7 +26,7 @@ Value ModuleObject::initialize(Env *env, Block *block) {
 
 Value ModuleObject::include(Env *env, Args &&args) {
     for (int i = args.size() - 1; i >= 0; i--) {
-        include_once(env, args[i]->as_module());
+        include_once(env, args[i].as_module());
     }
     return this;
 }
@@ -54,7 +54,7 @@ void ModuleObject::include_once(Env *env, ModuleObject *module) {
 
 Value ModuleObject::prepend(Env *env, Args &&args) {
     for (int i = args.size() - 1; i >= 0; i--) {
-        prepend_once(env, args[i]->as_module());
+        prepend_once(env, args[i].as_module());
     }
     return this;
 }
@@ -266,21 +266,23 @@ Value ModuleObject::handle_missing_constant(Env *env, Value name, ConstLookupFai
     return send(env, "const_missing"_s, { name });
 }
 
+ClassObject *ModuleObject::as_class() { return static_cast<ClassObject *>(this); }
+
 Value ModuleObject::const_set(SymbolObject *name, Value val) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     m_constants.put(name, new Constant { name, val });
     if (val.is_module()) {
-        auto module = val->as_module();
+        auto module = val.as_module();
         if (!module->owner()) {
             module->m_owner = this;
             if (module->singleton_class())
                 module->singleton_class()->m_owner = this;
         }
 
-        if (!val->as_module()->name()) {
+        if (!val.as_module()->name()) {
             auto module_name = name->string();
-            val->as_module()->set_name(module_name);
+            val.as_module()->set_name(module_name);
 
             auto singleton_class = val->singleton_class();
             while (singleton_class) {
@@ -331,7 +333,7 @@ Value ModuleObject::constants(Env *env, Value inherit) const {
     if (inherit == nullptr || inherit.is_truthy()) {
         for (ModuleObject *module : m_included_modules) {
             if (module != this) {
-                ary->concat(*module->constants(env, inherit)->as_array());
+                ary->concat(*module->constants(env, inherit).as_array());
             }
         }
     }
@@ -426,7 +428,7 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
         auto context = GlobalEnv::the()->current_instance_eval_context();
         if (context.block_original_self) {
             if (context.block_original_self.is_module()) {
-                return set_cvar_in(context.block_original_self->as_module());
+                return set_cvar_in(context.block_original_self.as_module());
             } else {
                 return set_cvar_in(context.block_original_self.klass());
             }
@@ -639,7 +641,7 @@ Value ModuleObject::instance_methods(Env *env, Value include_super_value, std::f
     ArrayObject *array = new ArrayObject {};
     methods(env, array, include_super);
     array->select_in_place([this, env, predicate](Value &name_value) -> bool {
-        auto name = name_value->as_symbol();
+        auto name = name_value.as_symbol();
         auto method_info = find_method(env, name);
         return method_info.is_defined() && predicate(method_info.visibility());
     });
@@ -813,7 +815,7 @@ SymbolObject *ModuleObject::attr_reader(Env *env, Value obj) {
     OwnedPtr<Env> block_env { new Env {} };
     block_env->var_set("name", 0, true, name);
     Block *attr_block = new Block { std::move(block_env), this, ModuleObject::attr_reader_block_fn, 0 };
-    define_method(env, name->as_symbol(), attr_block);
+    define_method(env, name, attr_block);
     return name;
 }
 
@@ -821,7 +823,7 @@ Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args &&args, Bloc
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
     assert(name_obj.is_symbol());
-    SymbolObject *ivar_name = SymbolObject::intern(TM::String::format("@{}", name_obj->as_symbol()->string()));
+    SymbolObject *ivar_name = SymbolObject::intern(TM::String::format("@{}", name_obj.as_symbol()->string()));
     return Object::ivar_get(env, self, ivar_name);
 }
 
@@ -849,7 +851,7 @@ Value ModuleObject::attr_writer_block_fn(Env *env, Value self, Args &&args, Bloc
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
     assert(name_obj.is_symbol());
-    SymbolObject *ivar_name = SymbolObject::intern(TM::String::format("@{}", name_obj->as_symbol()->string()));
+    SymbolObject *ivar_name = SymbolObject::intern(TM::String::format("@{}", name_obj.as_symbol()->string()));
     Object::ivar_set(env, self, ivar_name, val);
     return val;
 }
@@ -904,13 +906,13 @@ Value ModuleObject::define_method(Env *env, Value name_value, Value method_value
     auto name = name_value.to_symbol(env, Value::Conversion::Strict);
     if (method_value) {
         if (method_value.is_proc()) {
-            define_method(env, name, method_value->as_proc()->block());
+            define_method(env, name, method_value.as_proc()->block());
         } else {
             Method *method;
             if (method_value.is_method()) {
-                method = method_value->as_method()->method();
+                method = method_value.as_method()->method();
             } else if (method_value.is_unbound_method()) {
-                method = method_value->as_unbound_method()->method();
+                method = method_value.as_unbound_method()->method();
             } else {
                 env->raise("TypeError", "wrong argument type {} (expected Proc/Method/UnboundMethod)", method_value.klass()->inspect_str());
             }
@@ -988,7 +990,7 @@ void ModuleObject::set_method_visibility(Env *env, Args &&args, MethodVisibility
 
     // private [:foo, :bar]
     if (args.size() == 1 && args[0].is_array()) {
-        auto array = args[0]->as_array();
+        auto array = args[0].as_array();
         for (auto &value : *array) {
             auto name = value.to_symbol(env, Value::Conversion::Strict);
             set_method_visibility(env, name, visibility);
@@ -1110,7 +1112,7 @@ Value ModuleObject::undef_method(Env *env, Args &&args) {
 
 Value ModuleObject::ruby2_keywords(Env *env, Value name) {
     if (name.is_string()) {
-        name = name->as_string()->to_sym(env);
+        name = name.as_string()->to_sym(env);
     } else if (!name.is_symbol()) {
         env->raise("TypeError", "{} is not a symbol nor a string", name.inspect_str(env));
     }
@@ -1120,14 +1122,14 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
         auto new_args = args.to_array_for_block(env, 0, -1, true);
         if (!kwargs->is_empty())
             new_args->push(HashObject::ruby2_keywords_hash(env, kwargs));
-        auto old_method = env->outer()->var_get("old_method", 1)->as_unbound_method();
+        auto old_method = env->outer()->var_get("old_method", 1).as_unbound_method();
         return old_method->bind_call(env, self, std::move(new_args), block);
     };
 
     OwnedPtr<Env> inner_env { new Env { *env } };
     inner_env->var_set("old_method", 1, true, instance_method(env, name));
     undef_method(env, { name });
-    define_method(env, name->as_symbol(), new Block { std::move(inner_env), this, method_wrapper, -1 });
+    define_method(env, name.as_symbol(), new Block { std::move(inner_env), this, method_wrapper, -1 });
 
     return NilObject::the();
 }

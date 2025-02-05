@@ -65,7 +65,7 @@ static void emit_value(Env *env, FloatObject *value, yaml_emitter_t &emitter, ya
     } else if (value->is_negative_infinity()) {
         str = "-.inf";
     } else {
-        str = value->to_s()->as_string()->string();
+        str = value->to_s().as_string()->string();
     }
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_FLOAT_TAG,
         (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
@@ -147,7 +147,7 @@ static void emit_value(Env *env, SymbolObject *value, yaml_emitter_t &emitter, y
 }
 
 static void emit_value(Env *env, TimeObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    const auto str = value->to_s(env)->as_string();
+    const auto str = value->to_s(env).as_string();
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_TIMESTAMP_TAG,
         (yaml_char_t *)(str->c_str()), str->bytesize(), 0, 0, YAML_PLAIN_SCALAR_STYLE);
     emit(env, emitter, event);
@@ -165,7 +165,7 @@ static void emit_openstruct_value(Env *env, Value value, yaml_emitter_t &emitter
         0, YAML_BLOCK_MAPPING_STYLE);
     emit(env, emitter, event);
 
-    auto values = value.send(env, "to_h"_s)->as_hash();
+    auto values = value.send(env, "to_h"_s).as_hash();
     for (auto elem : *values) {
         emit_value(env, elem.key.to_s(env), emitter, event);
         emit_value(env, elem.val, emitter, event);
@@ -185,7 +185,7 @@ static void emit_struct_value(Env *env, Value value, yaml_emitter_t &emitter, ya
         0, YAML_BLOCK_MAPPING_STYLE);
     emit(env, emitter, event);
 
-    auto values = value.send(env, "to_h"_s)->as_hash();
+    auto values = value.send(env, "to_h"_s).as_hash();
     for (auto elem : *values) {
         emit_value(env, elem.key.to_s(env), emitter, event);
         emit_value(env, elem.val, emitter, event);
@@ -201,10 +201,10 @@ static void emit_object_value(Env *env, Value value, yaml_emitter_t &emitter, ya
         0, YAML_ANY_MAPPING_STYLE);
     emit(env, emitter, event);
 
-    auto ivars = value->instance_variables(env)->as_array();
+    auto ivars = value->instance_variables(env).as_array();
     for (auto ivar : *ivars) {
         auto name = ivar.to_s(env)->delete_prefix(env, new StringObject { "@" });
-        auto val = value->ivar_get(env, ivar->as_symbol());
+        auto val = value->ivar_get(env, ivar.as_symbol());
         emit_value(env, name, emitter, event);
         emit_value(env, val, emitter, event);
     }
@@ -215,40 +215,40 @@ static void emit_object_value(Env *env, Value value, yaml_emitter_t &emitter, ya
 
 static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
     if (value.is_array()) {
-        emit_value(env, value->as_array(), emitter, event);
+        emit_value(env, value.as_array(), emitter, event);
     } else if (value.is_class()) {
-        emit_value(env, value->as_class(), emitter, event);
+        emit_value(env, value.as_class(), emitter, event);
     } else if (value.is_exception()) {
-        emit_value(env, value->as_exception(), emitter, event);
+        emit_value(env, value.as_exception(), emitter, event);
     } else if (value.is_false()) {
-        emit_value(env, value->as_false(), emitter, event);
+        emit_value(env, value.as_false(), emitter, event);
     } else if (value.is_float()) {
-        emit_value(env, value->as_float(), emitter, event);
+        emit_value(env, value.as_float(), emitter, event);
     } else if (value.is_hash()) {
-        emit_value(env, value->as_hash(), emitter, event);
+        emit_value(env, value.as_hash(), emitter, event);
     } else if (value.is_integer()) {
         emit_value(env, value.integer(), emitter, event);
     } else if (value.is_module()) {
-        emit_value(env, value->as_module(), emitter, event);
+        emit_value(env, value.as_module(), emitter, event);
     } else if (value.is_nil()) {
-        emit_value(env, value->as_nil(), emitter, event);
+        emit_value(env, value.as_nil(), emitter, event);
     } else if (value.is_range()) {
-        emit_value(env, value->as_range(), emitter, event);
+        emit_value(env, value.as_range(), emitter, event);
     } else if (value.is_regexp()) {
-        emit_value(env, value->as_regexp(), emitter, event);
+        emit_value(env, value.as_regexp(), emitter, event);
     } else if (value.is_string()) {
-        emit_value(env, value->as_string(), emitter, event);
+        emit_value(env, value.as_string(), emitter, event);
     } else if (value.is_symbol()) {
-        emit_value(env, value->as_symbol(), emitter, event);
+        emit_value(env, value.as_symbol(), emitter, event);
     } else if (value.is_time()) {
-        emit_value(env, value->as_time(), emitter, event);
+        emit_value(env, value.as_time(), emitter, event);
     } else if (value.is_true()) {
-        emit_value(env, value->as_true(), emitter, event);
-    } else if (GlobalEnv::the()->Object()->defined(env, "Date"_s, false) && value.is_a(env, GlobalEnv::the()->Object()->const_get("Date"_s)->as_class())) {
-        emit_value(env, value.send(env, "to_s"_s)->as_string(), emitter, event);
-    } else if (GlobalEnv::the()->Object()->defined(env, "OpenStruct"_s, false) && value.is_a(env, GlobalEnv::the()->Object()->const_get("OpenStruct"_s)->as_class())) {
+        emit_value(env, value.as_true(), emitter, event);
+    } else if (GlobalEnv::the()->Object()->defined(env, "Date"_s, false) && value.is_a(env, GlobalEnv::the()->Object()->const_get("Date"_s).as_class())) {
+        emit_value(env, value.send(env, "to_s"_s).as_string(), emitter, event);
+    } else if (GlobalEnv::the()->Object()->defined(env, "OpenStruct"_s, false) && value.is_a(env, GlobalEnv::the()->Object()->const_get("OpenStruct"_s).as_class())) {
         emit_openstruct_value(env, value, emitter, event);
-    } else if (value.is_a(env, GlobalEnv::the()->Object()->const_get("Struct"_s)->as_class())) {
+    } else if (value.is_a(env, GlobalEnv::the()->Object()->const_get("Struct"_s).as_class())) {
         emit_struct_value(env, value, emitter, event);
     } else {
         emit_object_value(env, value, emitter, event);
@@ -274,7 +274,7 @@ Value YAML_dump(Env *env, Value self, Args &&args, Block *) {
     yaml_emitter_initialize(&emitter);
     Defer emit_deleter { [&emitter]() { yaml_emitter_delete(&emitter); } };
     if (args.size() > 1) {
-        auto io = args.at(1)->as_io();
+        auto io = args.at(1).as_io();
         file = fdopen(io->fileno(env), "wb");
         yaml_emitter_set_output_file(&emitter, file);
     } else {

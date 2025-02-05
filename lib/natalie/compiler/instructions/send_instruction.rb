@@ -60,7 +60,7 @@ module Natalie
           if @forward_args
             args_list = "std::move(#{transform.pop})"
           else
-            args = "#{transform.pop}->as_array()"
+            args = "#{transform.pop}.as_array()"
             args_list = "Args(#{args}, #{@has_keyword_hash ? 'true' : 'false'})"
           end
         else

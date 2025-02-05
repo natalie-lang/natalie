@@ -96,7 +96,7 @@ Value Etc_getgrnam(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 1);
     auto firstarg = args.at(0);
     firstarg.assert_type(env, Object::Type::String, "String");
-    StringObject *groupname = firstarg->as_string();
+    StringObject *groupname = firstarg.as_string();
     struct group *grp = ::getgrnam(groupname->c_str());
     if (!grp)
         env->raise("ArgumentError", "can't find group for {}", groupname->string());
@@ -123,7 +123,7 @@ Value Etc_getpwnam(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 1);
     auto firstarg = args.at(0);
     firstarg.assert_type(env, Object::Type::String, "String");
-    StringObject *user_name = firstarg->as_string();
+    StringObject *user_name = firstarg.as_string();
     struct passwd *pwd = ::getpwnam(user_name->c_str());
     if (!pwd)
         env->raise("ArgumentError", "can't find user for {}", user_name->string());

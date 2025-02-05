@@ -89,12 +89,13 @@ ClassObject *Value::singleton_class(Env *env) {
 StringObject *Value::to_str(Env *env) {
     if (is_integer()) {
         if (respond_to(env, "to_str"_s))
-            return send(env, "to_str"_s)->as_string_or_raise(env);
+            return send(env, "to_str"_s).as_string_or_raise(env);
         else
             env->raise_type_error(*this, "String");
     }
 
-    if (is_string()) return object()->as_string();
+    if (is_string())
+        return as_string();
 
     auto to_str = "to_str"_s;
     if (!respond_to(env, to_str))
@@ -103,7 +104,7 @@ StringObject *Value::to_str(Env *env) {
     auto result = send(env, to_str);
 
     if (result.is_string())
-        return result->as_string();
+        return result.as_string();
 
     env->raise(
         "TypeError", "can't convert {} to String ({}#to_str gives {})",
@@ -117,12 +118,13 @@ StringObject *Value::to_str(Env *env) {
 StringObject *Value::to_str2(Env *env) {
     if (is_integer()) {
         if (respond_to(env, "to_str"_s))
-            return send(env, "to_str"_s)->as_string_or_raise(env);
+            return send(env, "to_str"_s).as_string_or_raise(env);
         else
             env->raise_type_error(*this, "String");
     }
 
-    if (is_string()) return object()->as_string();
+    if (is_string())
+        return as_string();
 
     auto to_str = "to_str"_s;
     if (!respond_to(env, to_str))
@@ -131,7 +133,7 @@ StringObject *Value::to_str2(Env *env) {
     auto result = send(env, to_str);
 
     if (result.is_string())
-        return result->as_string();
+        return result.as_string();
 
     env->raise(
         "TypeError", "can't convert {} to String ({}#to_str gives {})",
@@ -205,7 +207,7 @@ bool Value::is_a(Env *env, Value val) const {
     if (!val.is_module())
         return false;
 
-    ModuleObject *module = val->as_module();
+    ModuleObject *module = val.as_module();
     if (klass() == module || singleton_class() == module) {
         return true;
     } else {
@@ -265,9 +267,244 @@ bool Value::is_falsey() const { return is_false() || is_nil(); }
 bool Value::is_numeric() const { return is_integer() || is_float(); }
 bool Value::is_boolean() const { return is_true() || is_false(); }
 
+NilObject *Value::as_nil() const {
+    assert(is_nil());
+    return reinterpret_cast<NilObject *>(m_value);
+}
+
+Enumerator::ArithmeticSequenceObject *Value::as_enumerator_arithmetic_sequence() const {
+    assert(is_enumerator_arithmetic_sequence());
+    return reinterpret_cast<Enumerator::ArithmeticSequenceObject *>(m_value);
+}
+
+ArrayObject *Value::as_array() const {
+    assert(is_array());
+    return reinterpret_cast<ArrayObject *>(m_value);
+}
+
+BindingObject *Value::as_binding() const {
+    assert(is_binding());
+    return reinterpret_cast<BindingObject *>(m_value);
+}
+
+MethodObject *Value::as_method() const {
+    assert(is_method());
+    return reinterpret_cast<MethodObject *>(m_value);
+}
+
+ModuleObject *Value::as_module() const {
+    assert(is_module());
+    return reinterpret_cast<ModuleObject *>(m_value);
+}
+
+ClassObject *Value::as_class() const {
+    assert(is_class());
+    return reinterpret_cast<ClassObject *>(m_value);
+}
+
+ComplexObject *Value::as_complex() const {
+    assert(is_complex());
+    return reinterpret_cast<ComplexObject *>(m_value);
+}
+
+DirObject *Value::as_dir() const {
+    assert(is_dir());
+    return reinterpret_cast<DirObject *>(m_value);
+}
+
+EncodingObject *Value::as_encoding() const {
+    assert(is_encoding());
+    return reinterpret_cast<EncodingObject *>(m_value);
+}
+
+EnvObject *Value::as_env() const {
+    assert(is_env());
+    return reinterpret_cast<EnvObject *>(m_value);
+}
+
+ExceptionObject *Value::as_exception() const {
+    assert(is_exception());
+    return reinterpret_cast<ExceptionObject *>(m_value);
+}
+
+FalseObject *Value::as_false() const {
+    assert(is_false());
+    return reinterpret_cast<FalseObject *>(m_value);
+}
+
+FiberObject *Value::as_fiber() const {
+    assert(is_fiber());
+    return reinterpret_cast<FiberObject *>(m_value);
+}
+
+FloatObject *Value::as_float() const {
+    assert(is_float());
+    return reinterpret_cast<FloatObject *>(m_value);
+}
+
+HashObject *Value::as_hash() const {
+    assert(is_hash());
+    return reinterpret_cast<HashObject *>(m_value);
+}
+
+IoObject *Value::as_io() const {
+    assert(is_io());
+    return reinterpret_cast<IoObject *>(m_value);
+}
+
+FileObject *Value::as_file() const {
+    assert(is_file());
+    return reinterpret_cast<FileObject *>(m_value);
+}
+
+FileStatObject *Value::as_file_stat() const {
+    assert(is_file_stat());
+    return reinterpret_cast<FileStatObject *>(m_value);
+}
+
+MatchDataObject *Value::as_match_data() const {
+    assert(is_match_data());
+    return reinterpret_cast<MatchDataObject *>(m_value);
+}
+
+ProcObject *Value::as_proc() const {
+    assert(is_proc());
+    return reinterpret_cast<ProcObject *>(m_value);
+}
+
+RandomObject *Value::as_random() const {
+    assert(is_random());
+    return reinterpret_cast<RandomObject *>(m_value);
+}
+
+RangeObject *Value::as_range() const {
+    assert(is_range());
+    return reinterpret_cast<RangeObject *>(m_value);
+}
+
+RationalObject *Value::as_rational() const {
+    assert(is_rational());
+    return reinterpret_cast<RationalObject *>(m_value);
+}
+
+RegexpObject *Value::as_regexp() const {
+    assert(is_regexp());
+    return reinterpret_cast<RegexpObject *>(m_value);
+}
+
+StringObject *Value::as_string() const {
+    assert(is_string());
+    return reinterpret_cast<StringObject *>(m_value);
+}
+
+SymbolObject *Value::as_symbol() const {
+    assert(is_symbol());
+    return reinterpret_cast<SymbolObject *>(m_value);
+}
+
+ThreadObject *Value::as_thread() const {
+    assert(is_thread());
+    return reinterpret_cast<ThreadObject *>(m_value);
+}
+
+Thread::Backtrace::LocationObject *Value::as_thread_backtrace_location() const {
+    assert(is_thread_backtrace_location());
+    return reinterpret_cast<Thread::Backtrace::LocationObject *>(m_value);
+}
+
+ThreadGroupObject *Value::as_thread_group() const {
+    assert(is_thread_group());
+    return reinterpret_cast<ThreadGroupObject *>(m_value);
+}
+
+Thread::MutexObject *Value::as_thread_mutex() const {
+    assert(is_thread_mutex());
+    return reinterpret_cast<Thread::MutexObject *>(m_value);
+}
+
+TimeObject *Value::as_time() const {
+    assert(is_time());
+    return reinterpret_cast<TimeObject *>(m_value);
+}
+
+TrueObject *Value::as_true() const {
+    assert(is_true());
+    return reinterpret_cast<TrueObject *>(m_value);
+}
+
+UnboundMethodObject *Value::as_unbound_method() const {
+    assert(is_unbound_method());
+    return reinterpret_cast<UnboundMethodObject *>(m_value);
+}
+
+VoidPObject *Value::as_void_p() const {
+    assert(is_void_p());
+    return reinterpret_cast<VoidPObject *>(m_value);
+}
+
+ArrayObject *Value::as_array_or_raise(Env *env) const {
+    if (!is_array())
+        env->raise("TypeError", "{} can't be coerced into Array", klass()->inspect_str());
+    return reinterpret_cast<ArrayObject *>(m_value);
+}
+
+ClassObject *Value::as_class_or_raise(Env *env) const {
+    if (!is_class())
+        env->raise("TypeError", "{} can't be coerced into Class", klass()->inspect_str());
+    return reinterpret_cast<ClassObject *>(m_value);
+}
+
+EncodingObject *Value::as_encoding_or_raise(Env *env) const {
+    if (!is_encoding())
+        env->raise("TypeError", "{} can't be coerced into Encoding", klass()->inspect_str());
+    return reinterpret_cast<EncodingObject *>(m_value);
+}
+
+ExceptionObject *Value::as_exception_or_raise(Env *env) const {
+    if (!is_exception())
+        env->raise("TypeError", "{} can't be coerced into Exception", klass()->inspect_str());
+    return reinterpret_cast<ExceptionObject *>(m_value);
+}
+
+FloatObject *Value::as_float_or_raise(Env *env) const {
+    if (!is_float())
+        env->raise("TypeError", "{} can't be coerced into Float", klass()->inspect_str());
+    return reinterpret_cast<FloatObject *>(m_value);
+}
+
+HashObject *Value::as_hash_or_raise(Env *env) const {
+    if (!is_hash())
+        env->raise("TypeError", "{} can't be coerced into Hash", klass()->inspect_str());
+    return reinterpret_cast<HashObject *>(m_value);
+}
+
+MatchDataObject *Value::as_match_data_or_raise(Env *env) const {
+    if (!is_match_data())
+        env->raise("TypeError", "{} can't be coerced into MatchData", klass()->inspect_str());
+    return reinterpret_cast<MatchDataObject *>(m_value);
+}
+
+ModuleObject *Value::as_module_or_raise(Env *env) const {
+    if (!is_module())
+        env->raise("TypeError", "{} can't be coerced into Module", klass()->inspect_str());
+    return reinterpret_cast<ModuleObject *>(m_value);
+}
+
+RangeObject *Value::as_range_or_raise(Env *env) const {
+    if (!is_range())
+        env->raise("TypeError", "{} can't be coerced into Range", klass()->inspect_str());
+    return reinterpret_cast<RangeObject *>(m_value);
+}
+
+StringObject *Value::as_string_or_raise(Env *env) const {
+    if (!is_string())
+        env->raise("TypeError", "{} can't be coerced into String", klass()->inspect_str());
+    return reinterpret_cast<StringObject *>(m_value);
+}
+
 ArrayObject *Value::to_ary(Env *env) {
     if (is_array())
-        return object()->as_array();
+        return as_array();
 
     auto original_class = klass()->inspect_str();
 
@@ -282,7 +519,7 @@ ArrayObject *Value::to_ary(Env *env) {
     Value val = send(env, to_ary);
 
     if (val.is_array()) {
-        return val->as_array();
+        return val.as_array();
     }
 
     env->raise(
@@ -294,7 +531,7 @@ ArrayObject *Value::to_ary(Env *env) {
 
 IoObject *Value::to_io(Env *env) {
     if (is_io())
-        return object()->as_io();
+        return as_io();
 
     auto to_io = "to_io"_s;
     if (!respond_to(env, to_io))
@@ -303,7 +540,7 @@ IoObject *Value::to_io(Env *env) {
     auto result = send(env, to_io);
 
     if (result.is_io())
-        return result->as_io();
+        return result.as_io();
 
     env->raise(
         "TypeError", "can't convert {} to IO ({}#to_io gives {})",
@@ -335,7 +572,7 @@ Integer Value::to_int(Env *env) {
 
 FloatObject *Value::to_f(Env *env) {
     if (is_float())
-        return object()->as_float();
+        return as_float();
 
     auto to_f = "to_f"_s;
     if (!respond_to(env, to_f))
@@ -343,12 +580,12 @@ FloatObject *Value::to_f(Env *env) {
 
     auto result = send(env, to_f);
     result.assert_type(env, Object::Type::Float, "Float");
-    return result->as_float();
+    return result.as_float();
 }
 
 HashObject *Value::to_hash(Env *env) {
     if (is_hash())
-        return object()->as_hash();
+        return as_hash();
 
     auto original_class = klass()->inspect_str();
 
@@ -363,7 +600,7 @@ HashObject *Value::to_hash(Env *env) {
     Value val = send(env, to_hash);
 
     if (val.is_hash()) {
-        return val->as_hash();
+        return val.as_hash();
     }
 
     env->raise(
@@ -378,7 +615,7 @@ StringObject *Value::to_s(Env *env) {
     if (!str.is_string())
         env->raise("TypeError", "no implicit conversion of {} into String", klass()->name());
 
-    return str->as_string();
+    return str.as_string();
 }
 
 SymbolObject *Value::to_symbol(Env *env, Conversion conversion) {
@@ -389,7 +626,7 @@ SymbolObject *Value::to_symbol(Env *env, Conversion conversion) {
     }
 
     if (is_symbol())
-        return object()->as_symbol();
+        return as_symbol();
     else if (is_string() || respond_to(env, "to_str"_s))
         return to_str(env)->to_symbol(env);
     else if (conversion == Conversion::NullAllowed)
@@ -404,7 +641,7 @@ String Value::inspect_str(Env *env) {
     auto inspected = send(env, "inspect"_s);
     if (!inspected.is_string())
         return ""; // TODO: what to do here?
-    return inspected->as_string()->string();
+    return inspected.as_string()->string();
 }
 
 String Value::dbg_inspect() const {

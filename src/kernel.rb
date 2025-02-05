@@ -442,8 +442,8 @@ module Kernel
       assert(format.is_string());
       assert(val.is_float());
       char buf[100];
-      auto fmt = format->as_string()->c_str();
-      auto dbl = val->as_float()->to_double();
+      auto fmt = format.as_string()->c_str();
+      auto dbl = val.as_float()->to_double();
       if (snprintf(buf, 100, fmt, dbl) > 0) {
           if (isnan(dbl) && strcasestr(buf, "-nan")) {
               // dumb hack to fix -NAN on some systems

@@ -11,7 +11,7 @@ module Natalie
         value = transform.pop
         key = transform.pop
         hash = transform.peek
-        transform.exec("#{hash}->as_hash()->put(env, #{key}, #{value})")
+        transform.exec("#{hash}.as_hash()->put(env, #{key}, #{value})")
       end
 
       def execute(vm)

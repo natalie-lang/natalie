@@ -9,7 +9,7 @@ void GlobalEnv::add_file(Env *env, SymbolObject *name) {
     m_files.set(name);
 
     auto loaded_features = global_get(env, "$\""_s);
-    loaded_features->as_array()->push(name->to_s(env));
+    loaded_features.as_array()->push(name->to_s(env));
 }
 
 bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {

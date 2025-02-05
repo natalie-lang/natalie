@@ -189,7 +189,7 @@ inline Value find_top_level_const(Env *env, SymbolObject *name) {
 inline Value fetch_nested_const(std::initializer_list<SymbolObject *> names) {
     Value c = GlobalEnv::the()->Object();
     for (auto name : names)
-        c = c->as_module()->const_fetch(name);
+        c = c.as_module()->const_fetch(name);
     return c;
 }
 

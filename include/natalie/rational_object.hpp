@@ -9,14 +9,14 @@ namespace Natalie {
 class RationalObject : public Object {
 public:
     RationalObject(Value numerator, Value denominator)
-        : Object { Object::Type::Rational, GlobalEnv::the()->Object()->const_fetch("Rational"_s)->as_class() }
+        : Object { Object::Type::Rational, GlobalEnv::the()->Object()->const_fetch("Rational"_s).as_class() }
         , m_numerator { numerator.integer() }
         , m_denominator { denominator.integer() } {
         freeze();
     }
 
     RationalObject(const RationalObject &other)
-        : Object { Object::Type::Rational, GlobalEnv::the()->Object()->const_fetch("Rational"_s)->as_class() }
+        : Object { Object::Type::Rational, GlobalEnv::the()->Object()->const_fetch("Rational"_s).as_class() }
         , m_numerator { other.m_numerator }
         , m_denominator { other.m_denominator } {
         freeze();

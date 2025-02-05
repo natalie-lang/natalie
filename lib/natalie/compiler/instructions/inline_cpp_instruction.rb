@@ -69,7 +69,7 @@ module Natalie
           value = transform.pop # Pass1 already did the work to push the value onto the stack
           case type
           when 'double'
-            "#{value}->as_float()->to_double()"
+            "#{value}.as_float()->to_double()"
           when 'int'
             "#{value}.integer().to_nat_int_t()"
           when 'bool'
@@ -157,7 +157,7 @@ module Natalie
         output << comptime_string(body)
         output << '}'
         transform.top(output)
-        transform.exec("self->as_module()->define_method(env, #{transform.intern(name)}, #{fn}, -1)")
+        transform.exec("self.as_module()->define_method(env, #{transform.intern(name)}, #{fn}, -1)")
         transform.push(transform.intern(name))
       end
 

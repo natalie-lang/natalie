@@ -9,7 +9,7 @@ module Natalie
 
       def generate(transform)
         ary = transform.peek
-        transform.exec_and_push(:is_empty, "bool_object(#{ary}->as_array()->is_empty())")
+        transform.exec_and_push(:is_empty, "bool_object(#{ary}.as_array()->is_empty())")
       end
 
       def execute(vm)

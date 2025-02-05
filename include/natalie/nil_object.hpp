@@ -51,7 +51,7 @@ private:
     inline static StringObject *s_string = nullptr;
 
     NilObject()
-        : Object { Object::Type::Nil, GlobalEnv::the()->Object()->const_fetch("NilClass"_s)->as_class() } { }
+        : Object { Object::Type::Nil, GlobalEnv::the()->Object()->const_fetch("NilClass"_s).as_class() } { }
 };
 
 }

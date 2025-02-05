@@ -13,7 +13,7 @@ namespace Natalie {
 class ThreadGroupObject : public Object {
 public:
     ThreadGroupObject()
-        : Object { Object::Type::ThreadGroup, GlobalEnv::the()->Object()->const_fetch("ThreadGroup"_s)->as_class() } { }
+        : Object { Object::Type::ThreadGroup, GlobalEnv::the()->Object()->const_fetch("ThreadGroup"_s).as_class() } { }
 
     ThreadGroupObject(ClassObject *klass)
         : Object { Object::Type::ThreadGroup, klass } { }

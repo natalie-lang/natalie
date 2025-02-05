@@ -19,7 +19,7 @@ namespace GlobalVariableAccessHooks::ReadHooks {
     Value last_exception_backtrace(Env *env, GlobalVariableInfo &) {
         if (!env->exception_object().is_exception())
             return nullptr;
-        return env->exception_object()->as_exception()->backtrace(env);
+        return env->exception_object().as_exception()->backtrace(env);
     }
 
     Value last_match(Env *env, GlobalVariableInfo &) {
@@ -30,28 +30,28 @@ namespace GlobalVariableAccessHooks::ReadHooks {
         auto last_match = env->last_match();
         if (last_match.is_nil())
             return nullptr;
-        return last_match->as_match_data()->pre_match(env);
+        return last_match.as_match_data()->pre_match(env);
     }
 
     Value last_match_post_match(Env *env, GlobalVariableInfo &) {
         auto last_match = env->last_match();
         if (last_match.is_nil())
             return nullptr;
-        return last_match->as_match_data()->post_match(env);
+        return last_match.as_match_data()->post_match(env);
     }
 
     Value last_match_last_group(Env *env, GlobalVariableInfo &) {
         auto last_match = env->last_match();
         if (last_match.is_nil())
             return nullptr;
-        return last_match->as_match_data()->captures(env)->as_array()->compact(env)->as_array()->last();
+        return last_match.as_match_data()->captures(env).as_array()->compact(env).as_array()->last();
     }
 
     Value last_match_to_s(Env *env, GlobalVariableInfo &) {
         auto last_match = env->last_match();
         if (last_match.is_nil())
             return nullptr;
-        return last_match->as_match_data()->to_s(env);
+        return last_match.as_match_data()->to_s(env);
     }
 
 }
@@ -63,7 +63,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
             return NilObject::the();
         if (!v.is_string())
             env->raise("TypeError", "value must be String");
-        return v->as_string();
+        return v.as_string();
     }
 
     Value to_int(Env *env, Value v, GlobalVariableInfo &) {
@@ -75,7 +75,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
             return NilObject::the();
         if (!v.is_match_data())
             env->raise("TypeError", "wrong argument type {} (expected MatchData)", v.klass()->inspect_str());
-        auto match = v->as_match_data();
+        auto match = v.as_match_data();
         env->set_last_match(match);
         return match;
     }

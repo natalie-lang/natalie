@@ -27,25 +27,25 @@ void Zlib_buffer_cleanup(VoidPObject *self) {
 
 Value Zlib_ZStream_adler(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
-    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s).as_void_p()->void_ptr();
     return Value::integer(strm->adler);
 }
 
 Value Zlib_ZStream_avail_in(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
-    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s).as_void_p()->void_ptr();
     return Value::integer(strm->avail_in);
 }
 
 Value Zlib_ZStream_avail_out(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
-    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s).as_void_p()->void_ptr();
     return Value::integer(strm->avail_out);
 }
 
 Value Zlib_ZStream_data_type(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
-    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s).as_void_p()->void_ptr();
     return Value::integer(strm->data_type);
 }
 
@@ -53,7 +53,7 @@ static constexpr size_t ZLIB_BUF_SIZE = 16384;
 
 Value Zlib_deflate_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 4);
-    auto Zlib = GlobalEnv::the()->Object()->const_get("Zlib"_s)->as_module();
+    auto Zlib = GlobalEnv::the()->Object()->const_get("Zlib"_s).as_module();
     auto level = args.at(0, Zlib->const_get("DEFAULT_COMPRESSION"_s)).integer_or_raise(env);
     auto window_bits = args.at(1, Zlib->const_get("MAX_WBITS"_s)).integer_or_raise(env);
     auto mem_level = args.at(2, Zlib->const_get("DEF_MEM_LEVEL"_s)).integer_or_raise(env);
@@ -81,10 +81,10 @@ Value Zlib_deflate_initialize(Env *env, Value self, Args &&args, Block *) {
 }
 
 void Zlib_do_deflate(Env *env, Value self, const String &string, int flush) {
-    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
-    auto result = self->ivar_get(env, "@result"_s)->as_string_or_raise(env);
-    auto in = (unsigned char *)self->ivar_get(env, "@in"_s)->as_void_p()->void_ptr();
-    auto out = (unsigned char *)self->ivar_get(env, "@out"_s)->as_void_p()->void_ptr();
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s).as_void_p()->void_ptr();
+    auto result = self->ivar_get(env, "@result"_s).as_string_or_raise(env);
+    auto in = (unsigned char *)self->ivar_get(env, "@in"_s).as_void_p()->void_ptr();
+    auto out = (unsigned char *)self->ivar_get(env, "@out"_s).as_void_p()->void_ptr();
 
     size_t index = 0;
     do {
@@ -100,7 +100,7 @@ void Zlib_do_deflate(Env *env, Value self, const String &string, int flush) {
 
             int ret = deflate(strm, flush);
             if (ret == Z_STREAM_ERROR) {
-                auto Error = fetch_nested_const({ "Zlib"_s, "Error"_s })->as_class_or_raise(env);
+                auto Error = fetch_nested_const({ "Zlib"_s, "Error"_s }).as_class_or_raise(env);
                 env->raise(Error, "stream is not ready");
             }
             int have = ZLIB_BUF_SIZE - strm->avail_out;
@@ -111,7 +111,7 @@ void Zlib_do_deflate(Env *env, Value self, const String &string, int flush) {
 
 Value Zlib_deflate_append(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    auto string = args[0]->as_string_or_raise(env);
+    auto string = args[0].as_string_or_raise(env);
 
     Zlib_do_deflate(env, self, string->string(), Z_NO_FLUSH);
 
@@ -120,7 +120,7 @@ Value Zlib_deflate_append(Env *env, Value self, Args &&args, Block *) {
 
 Value Zlib_deflate_deflate(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
-    auto string = args[0]->as_string_or_raise(env);
+    auto string = args[0].as_string_or_raise(env);
     auto flush = Z_NO_FLUSH;
     if (auto flush_obj = args.at(1, nullptr); flush_obj)
         flush = flush_obj.integer_or_raise(env).to_nat_int_t();
@@ -133,7 +133,7 @@ Value Zlib_deflate_deflate(Env *env, Value self, Args &&args, Block *) {
 Value Zlib_deflate_set_dictionary(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto dictionary = args.at(0).to_str(env);
-    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s).as_void_p()->void_ptr();
     if (const auto ret = deflateSetDictionary(strm, reinterpret_cast<const Bytef *>(dictionary->c_str()), dictionary->bytesize()); ret != Z_OK)
         self.klass()->send(env, "_error"_s, { Value::integer(ret) });
     return self;
@@ -143,7 +143,7 @@ Value Zlib_deflate_params(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 2);
     auto level = args.at(0).integer_or_raise(env);
     auto strategy = args.at(1).integer_or_raise(env);
-    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s).as_void_p()->void_ptr();
 
     // Ruby supports changing the params for a stream with content, zlib does not. So instead of simply changing the
     // params, we need a few extra steps.
@@ -168,7 +168,7 @@ Value Zlib_deflate_params(Env *env, Value self, Args &&args, Block *) {
     if (ret != Z_OK)
         self.klass()->send(env, "_error"_s, { Value::integer(ret) });
 
-    auto result = self->ivar_get(env, "@result"_s)->as_string_or_raise(env);
+    auto result = self->ivar_get(env, "@result"_s).as_string_or_raise(env);
     result->clear(env);
 
     self.send(env, "<<"_s, { inflated });
@@ -177,7 +177,7 @@ Value Zlib_deflate_params(Env *env, Value self, Args &&args, Block *) {
 }
 
 Value Zlib_deflate_close(Env *env, Value self, Args &&args, Block *) {
-    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s).as_void_p()->void_ptr();
     deflateEnd(strm);
     self->ivar_set(env, "@closed"_s, TrueObject::the());
     return self;
@@ -209,10 +209,10 @@ Value Zlib_inflate_initialize(Env *env, Value self, Args &&args, Block *) {
 }
 
 void Zlib_do_inflate(Env *env, Value self, const String &string, int flush) {
-    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
-    auto result = self->ivar_get(env, "@result"_s)->as_string_or_raise(env);
-    auto in = (unsigned char *)self->ivar_get(env, "@in"_s)->as_void_p()->void_ptr();
-    auto out = (unsigned char *)self->ivar_get(env, "@out"_s)->as_void_p()->void_ptr();
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s).as_void_p()->void_ptr();
+    auto result = self->ivar_get(env, "@result"_s).as_string_or_raise(env);
+    auto in = (unsigned char *)self->ivar_get(env, "@in"_s).as_void_p()->void_ptr();
+    auto out = (unsigned char *)self->ivar_get(env, "@out"_s).as_void_p()->void_ptr();
 
     int ret;
 
@@ -241,7 +241,7 @@ void Zlib_do_inflate(Env *env, Value self, const String &string, int flush) {
                 self.klass()->send(env, "_error"_s, { Value::integer(ret) });
                 break;
             case Z_STREAM_ERROR: {
-                auto Error = fetch_nested_const({ "Zlib"_s, "Error"_s })->as_class_or_raise(env);
+                auto Error = fetch_nested_const({ "Zlib"_s, "Error"_s }).as_class_or_raise(env);
                 env->raise(Error, "stream is not ready");
             }
             }
@@ -256,13 +256,13 @@ void Zlib_do_inflate(Env *env, Value self, const String &string, int flush) {
 Value Zlib_inflate_append(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     if (args[0].is_nil()) {
-        auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+        auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s).as_void_p()->void_ptr();
         inflateEnd(strm);
         self->ivar_set(env, "@inflate_end"_s, TrueObject::the());
     } else {
-        auto string = args[0]->as_string_or_raise(env);
+        auto string = args[0].as_string_or_raise(env);
         if (self->ivar_get(env, "@inflate_end"_s).is_truthy()) {
-            auto result = self->ivar_get(env, "@result"_s)->as_string_or_raise(env);
+            auto result = self->ivar_get(env, "@result"_s).as_string_or_raise(env);
             result->append(string);
         } else {
             Zlib_do_inflate(env, self, string->string(), Z_NO_FLUSH);
@@ -274,7 +274,7 @@ Value Zlib_inflate_append(Env *env, Value self, Args &&args, Block *) {
 
 Value Zlib_inflate_inflate(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
-    auto string = args[0]->as_string_or_raise(env);
+    auto string = args[0].as_string_or_raise(env);
     auto flush = Z_NO_FLUSH;
     if (auto flush_obj = args.at(1, nullptr); flush_obj)
         flush = flush_obj.integer_or_raise(env).to_nat_int_t();
@@ -289,7 +289,7 @@ Value Zlib_inflate_finish(Env *env, Value self, Args &&args, Block *) {
 }
 
 Value Zlib_inflate_close(Env *env, Value self, Args &&args, Block *) {
-    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s).as_void_p()->void_ptr();
     inflateEnd(strm);
     self->ivar_set(env, "@closed"_s, TrueObject::the());
     return self;
@@ -315,7 +315,7 @@ Value Zlib_crc32(Env *env, Value self, Args &&args, Block *) {
     if (args.size() > 0) {
         Value string = args.at(0);
         string.assert_type(env, Object::Type::String, "String");
-        crc = ::crc32(crc, (Bytef *)(string->as_string()->c_str()), string->as_string()->string().size());
+        crc = ::crc32(crc, (Bytef *)(string.as_string()->c_str()), string.as_string()->string().size());
     }
     return Value::integer((nat_int_t)crc);
 }

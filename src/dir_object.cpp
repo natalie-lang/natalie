@@ -20,7 +20,7 @@ Value DirObject::open(Env *env, Value path, Value encoding, Block *block) {
     dir->initialize(env, path, encoding);
     if (block) {
         Defer close_dir([&]() {
-            dir->as_dir()->close(env);
+            dir->close(env);
         });
         Value result = block->run(env, Args({ dir }), nullptr);
         return result;
@@ -30,14 +30,14 @@ Value DirObject::open(Env *env, Value path, Value encoding, Block *block) {
 
 Value DirObject::initialize(Env *env, Value path, Value encoding) {
     path = ioutil::convert_using_to_path(env, path);
-    m_dir = ::opendir(path->as_string()->c_str());
+    m_dir = ::opendir(path.as_string()->c_str());
     if (!m_dir) env->raise_errno();
     if (encoding && !encoding.is_nil()) {
         m_encoding = EncodingObject::find_encoding(env, encoding);
     } else {
         m_encoding = EncodingObject::filesystem();
     }
-    m_path = path->as_string()->duplicate(env)->as_string();
+    m_path = path.as_string()->duplicate(env).as_string();
     assert(m_path);
     return this;
 }
@@ -91,7 +91,7 @@ StringObject *DirObject::inspect(Env *env) {
     StringObject *out = new StringObject { "#<" };
     out->append(klass()->inspect_str());
     out->append(":");
-    out->append(path(env)->as_string());
+    out->append(path(env));
     out->append(">");
     return out;
 }
@@ -239,7 +239,7 @@ Value DirObject::foreach (Env *env, Value path, Value encoding, Block * block) {
 
 Value DirObject::chroot(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
-    auto result = ::chroot(path->as_string()->c_str());
+    auto result = ::chroot(path.as_string()->c_str());
     if (result < 0) env->raise_errno();
     return Value::integer(0);
 }
@@ -250,7 +250,7 @@ Value DirObject::mkdir(Env *env, Value path, Value mode) {
         octmode = IntegerMethods::convert_to_int(env, mode);
     }
     path = ioutil::convert_using_to_path(env, path);
-    auto result = ::mkdir(path->as_string()->c_str(), octmode);
+    auto result = ::mkdir(path.as_string()->c_str(), octmode);
     if (result < 0) env->raise_errno();
     // need to check dir exists and return nil if mkdir was unsuccessful.
     return Value::integer(0);
@@ -267,7 +267,7 @@ Value DirObject::pwd(Env *env) {
 
 Value DirObject::rmdir(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
-    auto result = ::rmdir(path->as_string()->c_str());
+    auto result = ::rmdir(path.as_string()->c_str());
     if (result < 0) env->raise_errno();
     return Value::integer(0);
 }
@@ -277,9 +277,9 @@ Value DirObject::home(Env *env, Value username) {
         username.assert_type(env, Object::Type::String, "String");
         // lookup home-dir for username
         struct passwd *pw;
-        pw = getpwnam(username->as_string()->c_str());
+        pw = getpwnam(username.as_string()->c_str());
         if (!pw)
-            env->raise("ArgumentError", "user {} doesn't exist", username->as_string()->c_str());
+            env->raise("ArgumentError", "user {} doesn't exist", username.as_string()->c_str());
         return new StringObject { pw->pw_dir };
     } else {
         // no argument version
@@ -295,7 +295,7 @@ Value DirObject::home(Env *env, Value username) {
 }
 bool DirObject::is_empty(Env *env, Value dirname) {
     dirname.assert_type(env, Object::Type::String, "String");
-    auto dir_cstr = dirname->as_string()->c_str();
+    auto dir_cstr = dirname.as_string()->c_str();
     std::error_code ec;
     auto st = std::filesystem::symlink_status(dir_cstr, ec);
     if (ec) {

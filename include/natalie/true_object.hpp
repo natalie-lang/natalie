@@ -44,7 +44,7 @@ private:
     inline static StringObject *s_string = nullptr;
 
     TrueObject()
-        : Object { Object::Type::True, GlobalEnv::the()->Object()->const_fetch("TrueClass"_s)->as_class() } { }
+        : Object { Object::Type::True, GlobalEnv::the()->Object()->const_fetch("TrueClass"_s).as_class() } { }
 };
 
 }

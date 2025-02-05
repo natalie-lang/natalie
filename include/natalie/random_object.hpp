@@ -45,7 +45,7 @@ public:
     static Value srand(Env *env, Value seed) {
         if (!seed)
             seed = new_seed(env);
-        auto default_random = GlobalEnv::the()->Random()->const_fetch("DEFAULT"_s)->as_random();
+        auto default_random = GlobalEnv::the()->Random()->const_fetch("DEFAULT"_s).as_random();
         auto old_seed = default_random->seed();
         auto new_seed = IntegerMethods::convert_to_native_type<nat_int_t>(env, seed);
         default_random->m_seed = new_seed;

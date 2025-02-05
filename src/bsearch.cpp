@@ -11,7 +11,7 @@ BSearchCheckResult binary_search_check(Env *env, Value block_result) {
             else if (i.is_negative())
                 return BSearchCheckResult::SMALLER;
         } else {
-            auto f = block_result->as_float();
+            auto f = block_result.as_float();
             if (f->is_zero())
                 return BSearchCheckResult::EQUAL;
             else if (f->is_negative())

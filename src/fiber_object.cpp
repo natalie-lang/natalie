@@ -57,7 +57,7 @@ FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Bl
             env->raise("TypeError", "storage must be a hash");
         if (storage->is_frozen())
             env->raise("FrozenError", "storage must not be frozen");
-        auto *hash = storage->as_hash();
+        auto *hash = storage.as_hash();
         for (auto it = hash->begin(); it != hash->end(); it++) {
             if (!it->key.is_symbol())
                 env->raise("TypeError", "wrong argument type Object (expected Symbol)");
@@ -228,7 +228,7 @@ Value FiberObject::set_storage(Env *env, Value storage) {
     } else {
         if (storage->is_frozen())
             env->raise("FrozenError", "storage must not be frozen");
-        auto *hash = storage->as_hash();
+        auto *hash = storage.as_hash();
         for (auto it = hash->begin(); it != hash->end(); it++) {
             if (!it->key.is_symbol())
                 env->raise("TypeError", "wrong argument type Object (expected Symbol)");

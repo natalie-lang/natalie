@@ -6,13 +6,13 @@
 namespace Natalie {
 
 EncodingObject::EncodingObject()
-    : Object { Object::Type::Encoding, GlobalEnv::the()->Object()->const_fetch("Encoding"_s)->as_class() } { }
+    : Object { Object::Type::Encoding, GlobalEnv::the()->Object()->const_fetch("Encoding"_s).as_class() } { }
 
 Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str, EncodeOptions options) const {
     if (orig_encoding->num() == Encoding::ASCII_8BIT && num() == Encoding::ASCII_8BIT)
         return str;
 
-    ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s)->as_class();
+    ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s).as_class();
     StringObject temp_string = StringObject("", (EncodingObject *)this);
 
     if (options.xml_option == EncodeXmlOption::Attr)
@@ -103,7 +103,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                     String::hex(cpt, String::HexFormat::Uppercase),
                     orig_encoding->name(),
                     name());
-                env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
+                env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s).as_class(), message);
             }
 
             auto result_str = result.to_str(env);
@@ -155,7 +155,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                     String::hex(source_codepoint, String::HexFormat::Uppercase),
                     orig_encoding->name());
             }
-            env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
+            env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s).as_class(), message);
         }
 
         auto destination_codepoint = from_unicode_codepoint(unicode_codepoint);
@@ -194,7 +194,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                     hex.append_sprintf("%04X", source_codepoint);
                     message = StringObject::format("U+{} from UTF-8 to {}", hex, name());
                 }
-                env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
+                env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s).as_class(), message);
             case EncodeUndefOption::Replace:
                 if (options.replace_option) {
                     temp_string.append(options.replace_option);
@@ -222,7 +222,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
 HashObject *EncodingObject::aliases(Env *env) {
     auto aliases = new HashObject();
     for (auto encoding : *list(env)) {
-        auto enc = encoding->as_encoding();
+        auto enc = encoding.as_encoding();
         const auto names = enc->names(env);
 
         if (names->size() < 2)
@@ -237,24 +237,24 @@ HashObject *EncodingObject::aliases(Env *env) {
 
 EncodingObject *EncodingObject::set_default_external(Env *env, Value arg) {
     if (arg.is_encoding()) {
-        s_default_external = arg->as_encoding();
+        s_default_external = arg.as_encoding();
     } else if (arg.is_nil()) {
         env->raise("ArgumentError", "default external cannot be nil");
     } else {
         auto name = arg.to_str(env);
-        s_default_external = find(env, name)->as_encoding();
+        s_default_external = find(env, name).as_encoding();
     }
     s_filesystem = s_default_external;
     return default_external();
 }
 EncodingObject *EncodingObject::set_default_internal(Env *env, Value arg) {
     if (arg.is_encoding()) {
-        s_default_internal = arg->as_encoding();
+        s_default_internal = arg.as_encoding();
     } else if (arg.is_nil()) {
         s_default_internal = nullptr;
     } else {
         auto name = arg.to_str(env);
-        s_default_internal = find(env, name)->as_encoding();
+        s_default_internal = find(env, name).as_encoding();
     }
 
     return default_internal();
@@ -277,7 +277,7 @@ Value EncodingObject::find(Env *env, Value name) {
         return EncodingObject::filesystem();
     }
     for (auto value : *list(env)) {
-        auto encoding = value->as_encoding();
+        auto encoding = value.as_encoding();
         for (const auto &encodingName : encoding->m_names) {
             if (encodingName.casecmp(string) == 0)
                 return encoding;
@@ -291,10 +291,10 @@ EncodingObject *EncodingObject::find_encoding_by_name(Env *env, String name) {
     auto lcase_name = name.lowercase();
     ArrayObject *list = EncodingObject::list(env);
     for (size_t i = 0; i < list->size(); i++) {
-        EncodingObject *encoding = (*list)[i]->as_encoding();
+        EncodingObject *encoding = (*list)[i].as_encoding();
         ArrayObject *names = encoding->names(env);
         for (size_t n = 0; n < names->size(); n++) {
-            StringObject *name_obj = (*names)[n]->as_string();
+            StringObject *name_obj = (*names)[n].as_string();
             auto name = name_obj->string().lowercase();
             if (name == lcase_name) {
                 return encoding;
@@ -309,7 +309,7 @@ EncodingObject *EncodingObject::find_encoding_by_name(Env *env, String name) {
 EncodingObject *EncodingObject::find_encoding(Env *env, Value encoding) {
     Value enc_or_nil = EncodingObject::find(env, encoding);
     if (enc_or_nil.is_encoding())
-        return enc_or_nil->as_encoding();
+        return enc_or_nil.as_encoding();
 
     auto enc = EncodingObject::find_encoding_by_name(env, String("BINARY"));
     if (!enc)
@@ -368,12 +368,12 @@ ArrayObject *EncodingObject::names(Env *env) const {
 
 void EncodingObject::raise_encoding_invalid_byte_sequence_error(Env *env, const String &string, size_t index) const {
     StringObject *message = StringObject::format("invalid byte sequence at index {} in string of size {} (string not long enough)", index, string.size());
-    ClassObject *InvalidByteSequenceError = fetch_nested_const({ "Encoding"_s, "InvalidByteSequenceError"_s })->as_class();
+    ClassObject *InvalidByteSequenceError = fetch_nested_const({ "Encoding"_s, "InvalidByteSequenceError"_s }).as_class();
     env->raise(InvalidByteSequenceError, message);
 }
 
 void EncodingObject::raise_compatibility_error(Env *env, const EncodingObject *other_encoding) const {
-    auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
+    auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s }).as_class();
     env->raise(exception_class, "incompatible character encodings: {} and {}", name()->string(), other_encoding->name()->string());
 }
 
@@ -402,7 +402,7 @@ Value EncodingObject::locale_charmap() {
 void EncodingObject::initialize_defaults(Env *env) {
     ::setlocale(LC_CTYPE, "");
     auto codestr = EncodingObject::locale_charmap();
-    s_locale = EncodingObject::find(env, codestr)->as_encoding();
+    s_locale = EncodingObject::find(env, codestr).as_encoding();
     // NATFIXME: find a way to get -E option (which forces external encoding)
     // to factor into this default external encoding
     s_default_external = s_locale;

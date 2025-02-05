@@ -9,7 +9,7 @@ module Natalie
 
       def generate(transform)
         ary = transform.peek
-        transform.exec_and_push(:last_item_of_array, "#{ary}->as_array()->pop()")
+        transform.exec_and_push(:last_item_of_array, "#{ary}.as_array()->pop()")
       end
 
       def execute(vm)

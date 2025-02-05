@@ -15,7 +15,7 @@ namespace ioutil {
         if (!path.is_string() && path.respond_to(env, "to_str"_s))
             path = path.to_str(env);
         path.assert_type(env, Object::Type::String, "String");
-        return path->as_string();
+        return path.as_string();
     }
 
     // accepts io or io-like object for fstat
@@ -27,7 +27,7 @@ namespace ioutil {
         }
 
         io = convert_using_to_path(env, io);
-        return ::stat(io->as_string()->c_str(), sb);
+        return ::stat(io.as_string()->c_str(), sb);
     }
 
     void flags_struct::parse_flags_obj(Env *env, Value flags_obj) {
@@ -52,8 +52,8 @@ namespace ioutil {
         switch (flags_obj->type()) {
         case Object::Type::String: {
             auto colon = new StringObject { ":" };
-            auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
-            auto flags_str = flagsplit->fetch(env, Value::integer(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
+            auto flagsplit = flags_obj.as_string()->split(env, colon, nullptr).as_array();
+            auto flags_str = flagsplit->fetch(env, Value::integer(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr).as_string()->string();
             auto extenc = flagsplit->ref(env, Value::integer(static_cast<nat_int_t>(1)), nullptr);
             auto intenc = flagsplit->ref(env, Value::integer(static_cast<nat_int_t>(2)), nullptr);
             if (!extenc.is_nil()) m_external_encoding = EncodingObject::find_encoding(env, extenc);
@@ -128,12 +128,12 @@ namespace ioutil {
         } else if (m_kwargs->has_key(env, "internal_encoding"_s)) {
             env->warn("Ignoring encoding parameter '{}', internal_encoding is used", encoding);
         } else if (encoding.is_encoding()) {
-            m_external_encoding = encoding->as_encoding();
+            m_external_encoding = encoding.as_encoding();
         } else {
             encoding = encoding.to_str(env);
-            if (encoding->as_string()->include(":")) {
+            if (encoding.as_string()->include(":")) {
                 auto colon = new StringObject { ":" };
-                auto encsplit = encoding.to_str(env)->split(env, colon, nullptr)->as_array();
+                auto encsplit = encoding.to_str(env)->split(env, colon, nullptr).as_array();
                 encoding = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(0)), nullptr);
                 auto internal_encoding = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(1)), nullptr);
                 m_internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
@@ -149,7 +149,7 @@ namespace ioutil {
         if (m_external_encoding)
             env->raise("ArgumentError", "encoding specified twice");
         if (external_encoding.is_encoding()) {
-            m_external_encoding = external_encoding->as_encoding();
+            m_external_encoding = external_encoding.as_encoding();
         } else {
             m_external_encoding = EncodingObject::find_encoding(env, external_encoding.to_str(env));
         }
@@ -162,10 +162,10 @@ namespace ioutil {
         if (m_internal_encoding)
             env->raise("ArgumentError", "encoding specified twice");
         if (internal_encoding.is_encoding()) {
-            m_internal_encoding = internal_encoding->as_encoding();
+            m_internal_encoding = internal_encoding.as_encoding();
         } else {
             internal_encoding = internal_encoding.to_str(env);
-            if (internal_encoding->as_string()->string() != "-") {
+            if (internal_encoding.as_string()->string() != "-") {
                 m_internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
                 if (m_external_encoding == m_internal_encoding)
                     m_internal_encoding = nullptr;

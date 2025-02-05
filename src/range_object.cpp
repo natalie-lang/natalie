@@ -79,7 +79,7 @@ template <typename Function>
 Value RangeObject::iterate_over_integer_range(Env *env, Function &&func) {
     auto end = m_end;
     if (end.is_float()) {
-        if (end->as_float()->is_infinity())
+        if (end.as_float()->is_infinity())
             end = NilObject::the();
         else
             end = end.to_int(env);
@@ -116,8 +116,8 @@ Value RangeObject::iterate_over_string_range(Env *env, Function &&func) {
         return nullptr;
 
     TM::Optional<TM::String> current;
-    auto end = m_end->as_string()->string();
-    auto iterator = StringUptoIterator(m_begin->as_string()->string(), end, m_exclude_end);
+    auto end = m_end.as_string()->string();
+    auto iterator = StringUptoIterator(m_begin.as_string()->string(), end, m_exclude_end);
 
     while ((current = iterator.next()).present()) {
         if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
@@ -137,8 +137,8 @@ Value RangeObject::iterate_over_symbol_range(Env *env, Function &&func) {
         return nullptr;
 
     TM::Optional<TM::String> current;
-    auto end = m_end->as_symbol()->string();
-    auto iterator = StringUptoIterator(m_begin->as_symbol()->string(), end, m_exclude_end);
+    auto end = m_end.as_symbol()->string();
+    auto iterator = StringUptoIterator(m_begin.as_symbol()->string(), end, m_exclude_end);
 
     while ((current = iterator.next()).present()) {
         if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
@@ -246,7 +246,7 @@ Value RangeObject::last(Env *env, Value n) {
     if (!n)
         return end();
 
-    return to_a(env)->as_array()->last(env, n);
+    return to_a(env).as_array()->last(env, n);
 }
 
 String RangeObject::dbg_inspect() const {
@@ -268,14 +268,14 @@ String RangeObject::dbg_inspect() const {
 }
 
 Value RangeObject::to_s(Env *env) {
-    auto begin = m_begin.send(env, "to_s"_s)->as_string();
-    auto end = m_end.send(env, "to_s"_s)->as_string();
+    auto begin = m_begin.send(env, "to_s"_s).as_string();
+    auto end = m_end.send(env, "to_s"_s).as_string();
     return StringObject::format(m_exclude_end ? "{}...{}" : "{}..{}", begin, end);
 }
 
 bool RangeObject::eq(Env *env, Value other_value) {
     if (other_value.is_range()) {
-        RangeObject *other = other_value->as_range();
+        RangeObject *other = other_value.as_range();
         Value begin = other->begin();
         Value end = other->end();
         bool begin_equal = m_begin.send(env, "=="_s, { begin }).is_truthy();
@@ -289,7 +289,7 @@ bool RangeObject::eq(Env *env, Value other_value) {
 
 bool RangeObject::eql(Env *env, Value other_value) {
     if (other_value.is_range()) {
-        RangeObject *other = other_value->as_range();
+        RangeObject *other = other_value.as_range();
         Value begin = other->begin();
         Value end = other->end();
         bool begin_equal = m_begin.send(env, "eql?"_s, { begin }).is_truthy();
@@ -315,9 +315,9 @@ bool RangeObject::include(Env *env, Value arg) {
     } else if ((m_begin.is_nil() || m_begin.is_numeric()) && (m_end.is_nil() || m_end.is_numeric())) {
         return send(env, "cover?"_s, { arg }).is_truthy();
     } else if (m_begin.is_time() || m_end.is_time()) {
-        if (m_begin.is_nil() || m_begin->as_time()->cmp(env, arg).integer() <= 0) {
+        if (m_begin.is_nil() || m_begin.as_time()->cmp(env, arg).integer() <= 0) {
             int end = m_exclude_end ? -1 : 0;
-            if (m_end.is_nil() || arg->as_time()->cmp(env, m_end).integer() <= end)
+            if (m_end.is_nil() || arg.as_time()->cmp(env, m_end).integer() <= end)
                 return true;
         }
         return false;
@@ -389,7 +389,7 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
         static const auto coerce_sym = "coerce"_s;
         if (!n.respond_to(env, coerce_sym))
             env->raise("TypeError", "no implicit conversion of {} into Integer", n.klass()->inspect_str());
-        n = n.send(env, coerce_sym, { Value::integer(0) })->as_array_or_raise(env)->last();
+        n = n.send(env, coerce_sym, { Value::integer(0) }).as_array_or_raise(env)->last();
     }
 
     if (m_begin.is_numeric() || m_end.is_numeric()) {

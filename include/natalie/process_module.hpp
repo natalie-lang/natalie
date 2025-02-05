@@ -134,9 +134,9 @@ private:
         uid_t uid;
         if (idval.is_string()) {
             struct passwd *pass;
-            pass = getpwnam(idval->as_string()->c_str());
+            pass = getpwnam(idval.as_string()->c_str());
             if (pass == NULL)
-                env->raise("ArgumentError", "can't find user {}", idval->as_string()->c_str());
+                env->raise("ArgumentError", "can't find user {}", idval.as_string()->c_str());
             uid = pass->pw_uid;
         } else {
             idval.assert_integer(env);
@@ -148,9 +148,9 @@ private:
     static gid_t value_to_gid(Env *env, Value idval) {
         gid_t gid;
         if (idval.is_string()) {
-            auto grp = getgrnam(idval->as_string()->c_str());
+            auto grp = getgrnam(idval.as_string()->c_str());
             if (grp == NULL)
-                env->raise("ArgumentError", "can't find group {}", idval->as_string()->c_str());
+                env->raise("ArgumentError", "can't find group {}", idval.as_string()->c_str());
             gid = grp->gr_gid;
         } else {
             idval.assert_integer(env);
@@ -164,22 +164,22 @@ private:
         auto to_str = "to_str"_s;
         SymbolObject *rlimit_symbol = nullptr;
         if (val.is_symbol()) {
-            rlimit_symbol = val->as_symbol();
+            rlimit_symbol = val.as_symbol();
         } else if (val.is_string()) {
-            rlimit_symbol = val->as_string()->to_symbol(env);
+            rlimit_symbol = val.as_string()->to_symbol(env);
         } else if (val.respond_to(env, to_str)) {
             // Need to support nil, don't use Object::to_str
             auto tsval = val.send(env, to_str);
             if (tsval.is_string()) {
-                rlimit_symbol = tsval->as_string()->to_sym(env)->as_symbol();
+                rlimit_symbol = tsval.as_string()->to_sym(env).as_symbol();
             }
         }
         if (rlimit_symbol) {
             Value(rlimit_symbol).assert_type(env, Object::Type::Symbol, "Symbol");
             StringObject *rlimit_str = new StringObject { "RLIMIT_" };
             rlimit_str->append(rlimit_symbol->string());
-            rlimit_symbol = rlimit_str->as_string()->to_symbol(env);
-            auto ProcessMod = GlobalEnv::the()->Object()->const_fetch("Process"_s)->as_module();
+            rlimit_symbol = rlimit_str->to_symbol(env);
+            auto ProcessMod = GlobalEnv::the()->Object()->const_fetch("Process"_s).as_module();
             Value rlimval = ProcessMod->const_get(rlimit_symbol);
             if (!rlimval || !rlimval.is_integer()) {
                 env->raise("ArgumentError", "invalid resource {}", rlimit_symbol->string());

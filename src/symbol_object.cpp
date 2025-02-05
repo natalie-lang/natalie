@@ -72,44 +72,44 @@ String SymbolObject::dbg_inspect() const {
 
 Value SymbolObject::eqtilde(Env *env, Value other) {
     other.assert_type(env, Object::Type::Regexp, "Regexp");
-    return other->as_regexp()->eqtilde(env, this);
+    return other.as_regexp()->eqtilde(env, this);
 }
 
 SymbolObject *SymbolObject::succ(Env *env) {
     auto string = to_s(env);
-    string = string->send(env, "succ"_s)->as_string();
+    string = string->send(env, "succ"_s).as_string();
     return string->to_symbol(env);
 }
 
 SymbolObject *SymbolObject::upcase(Env *env) {
     auto string = to_s(env);
-    string = string->send(env, "upcase"_s)->as_string();
+    string = string->send(env, "upcase"_s).as_string();
     return string->to_symbol(env);
 }
 
 SymbolObject *SymbolObject::downcase(Env *env) {
     auto string = to_s(env);
-    string = string->send(env, "downcase"_s)->as_string();
+    string = string->send(env, "downcase"_s).as_string();
     return string->to_symbol(env);
 }
 
 SymbolObject *SymbolObject::swapcase(Env *env) {
     auto string = to_s(env);
-    string = string->send(env, "swapcase"_s)->as_string();
+    string = string->send(env, "swapcase"_s).as_string();
     return string->to_symbol(env);
 }
 
 SymbolObject *SymbolObject::capitalize(Env *env) {
     auto string = to_s(env);
-    string = string->send(env, "capitalize"_s)->as_string();
+    string = string->send(env, "capitalize"_s).as_string();
     return string->to_symbol(env);
 }
 Value SymbolObject::casecmp(Env *env, Value other) {
     if (!other.is_symbol()) return NilObject::the();
     auto str1 = to_s(env);
     auto str2 = other.to_s(env);
-    str1 = str1->send(env, "downcase"_s, { "ascii"_s })->as_string();
-    str2 = str2->send(env, "downcase"_s, { "ascii"_s })->as_string();
+    str1 = str1->send(env, "downcase"_s, { "ascii"_s }).as_string();
+    str2 = str2->send(env, "downcase"_s, { "ascii"_s }).as_string();
     return str1->cmp(env, Value(str2));
 }
 
@@ -118,8 +118,8 @@ Value SymbolObject::is_casecmp(Env *env, Value other) {
     // other.assert_type(env, Object::Type::Symbol, "Symbol");
     auto str1 = to_s(env);
     auto str2 = other.to_s(env);
-    str1 = str1->send(env, "downcase"_s, { "ascii"_s })->as_string();
-    str2 = str2->send(env, "downcase"_s, { "ascii"_s })->as_string();
+    str1 = str1->send(env, "downcase"_s, { "ascii"_s }).as_string();
+    str2 = str2->send(env, "downcase"_s, { "ascii"_s }).as_string();
     if (str1->string() == str2->string())
         return TrueObject::the();
     return FalseObject::the();
@@ -134,7 +134,7 @@ ProcObject *SymbolObject::to_proc(Env *env) {
 
 Value SymbolObject::to_proc_block_fn(Env *env, Value self_value, Args &&args, Block *block) {
     args.ensure_argc_at_least(env, 1);
-    SymbolObject *name_obj = env->outer()->var_get("name", 0)->as_symbol();
+    SymbolObject *name_obj = env->outer()->var_get("name", 0).as_symbol();
     assert(name_obj);
     auto receiver = args.shift();
     return receiver.send(env, name_obj, std::move(args));
@@ -142,7 +142,7 @@ Value SymbolObject::to_proc_block_fn(Env *env, Value self_value, Args &&args, Bl
 
 Value SymbolObject::cmp(Env *env, Value other_value) {
     if (!other_value.is_symbol()) return NilObject::the();
-    SymbolObject *other = other_value->as_symbol();
+    SymbolObject *other = other_value.as_symbol();
     return Value::integer(m_name.cmp(other->m_name));
 }
 
@@ -160,12 +160,12 @@ Value SymbolObject::length(Env *env) {
 
 Value SymbolObject::match(Env *env, Value other, Block *block) const {
     other.assert_type(env, Object::Type::Regexp, "Regexp");
-    return other->as_regexp()->match(env, name(env), nullptr, block);
+    return other.as_regexp()->match(env, name(env), nullptr, block);
 }
 
 bool SymbolObject::has_match(Env *env, Value other, Value start) const {
     other.assert_type(env, Object::Type::Regexp, "Regexp");
-    return other->as_regexp()->has_match(env, name(env), start);
+    return other.as_regexp()->has_match(env, name(env), start);
 }
 
 Value SymbolObject::name(Env *env) const {
