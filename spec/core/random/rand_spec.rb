@@ -95,43 +95,33 @@ end
 describe "Random#rand with Bignum" do
   it "typically returns a Bignum" do
     rnd = Random.new(1)
-    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into 'long'" do
-      10.times.map{ rnd.rand(bignum_value*2) }.max.should be_an_instance_of(Integer)
-    end
+    10.times.map{ rnd.rand(bignum_value*2) }.max.should be_an_instance_of(Integer)
   end
 
   it "returns a Bignum greater than or equal to 0" do
     prng = Random.new
-    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into 'long'" do
-      bigs = 20.times.map { prng.rand(bignum_value) }
-      bigs.min.should >= 0
-    end
+    bigs = 20.times.map { prng.rand(bignum_value) }
+    bigs.min.should >= 0
   end
 
   it "returns a Bignum less than the argument" do
     prng = Random.new
-    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into 'long'" do
-      bigs = 20.times.map { prng.rand(bignum_value) }
-      bigs.max.should < bignum_value
-    end
+    bigs = 20.times.map { prng.rand(bignum_value) }
+    bigs.max.should < bignum_value
   end
 
   it "returns the same sequence for a given seed" do
     prng = Random.new 33
-    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into 'long'" do
-      a = 20.times.map { prng.rand(bignum_value) }
-      prng = Random.new 33
-      b = 20.times.map { prng.rand(bignum_value) }
-      a.should == b
-    end
+    a = 20.times.map { prng.rand(bignum_value) }
+    prng = Random.new 33
+    b = 20.times.map { prng.rand(bignum_value) }
+    a.should == b
   end
 
   it "raises an ArgumentError when the argument is negative" do
-    NATFIXME 'Implement Bignums', exception: SpecFailedException do
-      -> do
-        Random.new.rand(-bignum_value)
-      end.should raise_error(ArgumentError)
-    end
+    -> do
+      Random.new.rand(-bignum_value)
+    end.should raise_error(ArgumentError)
   end
 end
 
