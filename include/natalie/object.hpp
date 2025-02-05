@@ -74,7 +74,6 @@ public:
         delete m_ivars;
     }
 
-    static Value create(Env *, ClassObject *);
     static Value _new(Env *, Value, Args &&, Block *);
     static Value allocate(Env *, Value, Args &&, Block *);
 
@@ -294,6 +293,8 @@ protected:
     ClassObject *m_klass { nullptr };
 
 private:
+    static Value create(Env *, ClassObject *);
+
     Type m_type { Type::Object };
     ClassObject *m_singleton_class { nullptr };
     bool m_frozen { false };
