@@ -19,17 +19,7 @@ namespace Natalie {
 
 class IntegerObject : public Object {
 public:
-    IntegerObject(const nat_int_t integer)
-        : Object { Object::Type::Integer, GlobalEnv::the()->Integer() }
-        , m_integer { integer } { }
-
-    IntegerObject(const Integer &integer)
-        : Object { Object::Type::Integer, GlobalEnv::the()->Integer() }
-        , m_integer { integer } { }
-
-    IntegerObject(Integer &&integer)
-        : Object { Object::Type::Integer, GlobalEnv::the()->Integer() }
-        , m_integer { std::move(integer) } { }
+    IntegerObject() = delete;
 
     static Value create(nat_int_t);
     static Value create(const Integer &);
@@ -37,14 +27,6 @@ public:
     static Value create(const char *);
     static Value create(const TM::String &);
     static Value create(TM::String &&);
-
-    static Integer integer(const IntegerObject *self) {
-        return self->m_integer;
-    }
-
-    static Integer &integer(IntegerObject *self) {
-        return self->m_integer;
-    }
 
     static bool is_negative(const Integer self) { return self.is_negative(); }
     static bool is_zero(const Integer self) { return self.is_zero(); }
@@ -83,10 +65,8 @@ public:
 
     static Value sqrt(Env *, Value);
 
-    static Value inspect(Env *env, IntegerObject *self) { return to_s(env, self->m_integer); }
     static Value inspect(Env *env, Integer &self) { return to_s(env, self); }
 
-    static String to_s(const IntegerObject *self) { return self->m_integer.to_string(); }
     static String to_s(const Integer &self) { return self.to_string(); }
 
     static Value to_s(Env *, Integer &self, Value = nullptr);
@@ -136,29 +116,12 @@ public:
     static bool is_bignum(const Integer &self) { return self.is_bignum(); }
     static bool is_fixnum(const Integer &self) { return self.is_fixnum(); }
 
-    static nat_int_t to_nat_int_t(const IntegerObject *self) { return self->m_integer.to_nat_int_t(); }
-    static BigInt to_bigint(const IntegerObject *self) { return self->m_integer.to_bigint(); }
     static BigInt to_bigint(const Integer &self) { return self.to_bigint(); }
 
     static void assert_fixnum(Env *env, const Integer &self) {
         if (self.is_bignum())
             env->raise("RangeError", "bignum too big to convert into 'long'");
     }
-
-    virtual String dbg_inspect() const override { return to_s(this); }
-
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<IntegerObject %p value=%s is_fixnum=%s>", this, m_integer.to_string().c_str(), m_integer.is_fixnum() ? "true" : "false");
-    }
-
-    virtual void visit_children(Visitor &visitor) const override {
-        Object::visit_children(visitor);
-        if (m_integer.is_bignum())
-            visitor.visit(m_integer.bigint_pointer());
-    }
-
-private:
-    Integer m_integer;
 };
 
 }

@@ -65,7 +65,7 @@ class BindingGen
         puts '    ' + binding.get_object
         @consts[binding.rb_class] = true
       end
-      puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, #{binding.rb_method.inspect}_s, #{binding.name}, #{binding.arity});"
+      puts "    Object::#{binding.define_method_name}(env, #{binding.rb_class_as_c_variable}, #{binding.rb_method.inspect}_s, #{binding.name}, #{binding.arity});"
       if binding.module_function?
         puts "    #{binding.rb_class_as_c_variable}->module_function(env, #{binding.rb_method.inspect}_s);"
       end
@@ -73,12 +73,12 @@ class BindingGen
         puts "    #{binding.rb_class_as_c_variable}->#{binding.set_visibility_method_name}(env, #{binding.rb_method.inspect}_s);"
       end
       binding.aliases.each do |method|
-        puts "    #{binding.rb_class_as_c_variable}->#{binding.alias_name}(env, #{method.inspect}_s, #{binding.rb_method.inspect}_s);"
+        puts "    Object::#{binding.alias_name}(env, #{binding.rb_class_as_c_variable}, #{method.inspect}_s, #{binding.rb_method.inspect}_s);"
       end
     end
-    @undefine_methods.each { |rb_class, method| puts "    #{rb_class}->undefine_method(env, #{method.inspect}_s);" }
+    @undefine_methods.each { |rb_class, method| puts "    Object::undefine_method(env, #{rb_class}, #{method.inspect}_s);" }
     @undefine_singleton_methods.each do |rb_class, method|
-      puts "    #{rb_class}->undefine_singleton_method(env, #{method.inspect}_s);"
+      puts "    Object::undefine_singleton_method(env, #{rb_class}, #{method.inspect}_s);"
     end
     puts '}'
   end

@@ -302,7 +302,7 @@ Value OpenSSL_Digest_block_length(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
     const int block_size = EVP_MD_CTX_block_size(mdctx);
-    return IntegerObject::create(block_size);
+    return Value::integer(block_size);
 }
 
 Value OpenSSL_Digest_reset(Env *env, Value self, Args &&args, Block *) {
@@ -349,7 +349,7 @@ Value OpenSSL_Digest_digest_length(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
     const int digest_length = EVP_MD_CTX_size(mdctx);
-    return IntegerObject::create(digest_length);
+    return Value::integer(digest_length);
 }
 
 Value OpenSSL_HMAC_digest(Env *env, Value self, Args &&args, Block *) {
@@ -1060,52 +1060,52 @@ Value init_openssl(Env *env, Value self) {
 
     OpenSSL->const_set("OPENSSL_VERSION"_s, new StringObject { OPENSSL_VERSION_TEXT });
     OpenSSL->const_set("OPENSSL_VERSION_NUMBER"_s, Value::integer(OPENSSL_VERSION_NUMBER));
-    OpenSSL->define_singleton_method(env, "fixed_length_secure_compare"_s, OpenSSL_fixed_length_secure_compare, 2);
+    Object::define_singleton_method(env, OpenSSL, "fixed_length_secure_compare"_s, OpenSSL_fixed_length_secure_compare, 2);
 
     auto Cipher = OpenSSL->const_get("Cipher"_s);
     if (!Cipher) {
         Cipher = GlobalEnv::the()->Object()->subclass(env, "Cipher");
         OpenSSL->const_set("Cipher"_s, Cipher);
     }
-    Cipher->define_method(env, "initialize"_s, OpenSSL_Cipher_initialize, 1);
-    Cipher->define_method(env, "block_size"_s, OpenSSL_Cipher_block_size, 0);
-    Cipher->define_method(env, "decrypt"_s, OpenSSL_Cipher_decrypt, 0);
-    Cipher->define_method(env, "encrypt"_s, OpenSSL_Cipher_encrypt, 0);
-    Cipher->define_method(env, "final"_s, OpenSSL_Cipher_final, 0);
-    Cipher->define_method(env, "iv="_s, OpenSSL_Cipher_iv_set, 1);
-    Cipher->define_method(env, "iv_len"_s, OpenSSL_Cipher_iv_len, 0);
-    Cipher->define_method(env, "key="_s, OpenSSL_Cipher_key_set, 1);
-    Cipher->define_method(env, "key_len"_s, OpenSSL_Cipher_key_len, 0);
-    Cipher->define_method(env, "update"_s, OpenSSL_Cipher_update, 1);
-    Cipher->define_singleton_method(env, "ciphers"_s, OpenSSL_Cipher_ciphers, 0);
+    Object::define_method(env, Cipher, "initialize"_s, OpenSSL_Cipher_initialize, 1);
+    Object::define_method(env, Cipher, "block_size"_s, OpenSSL_Cipher_block_size, 0);
+    Object::define_method(env, Cipher, "decrypt"_s, OpenSSL_Cipher_decrypt, 0);
+    Object::define_method(env, Cipher, "encrypt"_s, OpenSSL_Cipher_encrypt, 0);
+    Object::define_method(env, Cipher, "final"_s, OpenSSL_Cipher_final, 0);
+    Object::define_method(env, Cipher, "iv="_s, OpenSSL_Cipher_iv_set, 1);
+    Object::define_method(env, Cipher, "iv_len"_s, OpenSSL_Cipher_iv_len, 0);
+    Object::define_method(env, Cipher, "key="_s, OpenSSL_Cipher_key_set, 1);
+    Object::define_method(env, Cipher, "key_len"_s, OpenSSL_Cipher_key_len, 0);
+    Object::define_method(env, Cipher, "update"_s, OpenSSL_Cipher_update, 1);
+    Object::define_singleton_method(env, Cipher, "ciphers"_s, OpenSSL_Cipher_ciphers, 0);
 
     auto Digest = OpenSSL->const_get("Digest"_s);
     if (!Digest) {
         Digest = GlobalEnv::the()->Object()->subclass(env, "Digest");
         OpenSSL->const_set("Digest"_s, Digest);
     }
-    Digest->define_method(env, "initialize"_s, OpenSSL_Digest_initialize, -1);
-    Digest->define_method(env, "block_length"_s, OpenSSL_Digest_block_length, 0);
-    Digest->define_method(env, "digest"_s, OpenSSL_Digest_digest, -1);
-    Digest->define_method(env, "digest_length"_s, OpenSSL_Digest_digest_length, 0);
-    Digest->define_method(env, "reset"_s, OpenSSL_Digest_reset, 0);
-    Digest->define_method(env, "update"_s, OpenSSL_Digest_update, 1);
-    Digest->define_method(env, "<<"_s, OpenSSL_Digest_update, 1);
+    Object::define_method(env, Digest, "initialize"_s, OpenSSL_Digest_initialize, -1);
+    Object::define_method(env, Digest, "block_length"_s, OpenSSL_Digest_block_length, 0);
+    Object::define_method(env, Digest, "digest"_s, OpenSSL_Digest_digest, -1);
+    Object::define_method(env, Digest, "digest_length"_s, OpenSSL_Digest_digest_length, 0);
+    Object::define_method(env, Digest, "reset"_s, OpenSSL_Digest_reset, 0);
+    Object::define_method(env, Digest, "update"_s, OpenSSL_Digest_update, 1);
+    Object::define_method(env, Digest, "<<"_s, OpenSSL_Digest_update, 1);
 
     auto HMAC = OpenSSL->const_get("HMAC"_s);
     if (!HMAC) {
         HMAC = GlobalEnv::the()->Object()->subclass(env, "HMAC");
         OpenSSL->const_set("HMAC"_s, HMAC);
     }
-    HMAC->define_singleton_method(env, "digest"_s, OpenSSL_HMAC_digest, 3);
+    Object::define_singleton_method(env, HMAC, "digest"_s, OpenSSL_HMAC_digest, 3);
 
     auto KDF = OpenSSL->const_get("KDF"_s);
     if (!KDF) {
         KDF = new ModuleObject { "KDF" };
         OpenSSL->const_set("KDF"_s, KDF);
     }
-    KDF->define_singleton_method(env, "pbkdf2_hmac"_s, OpenSSL_KDF_pbkdf2_hmac, -1);
-    KDF->define_singleton_method(env, "scrypt"_s, OpenSSL_KDF_scrypt, -1);
+    Object::define_singleton_method(env, KDF, "pbkdf2_hmac"_s, OpenSSL_KDF_pbkdf2_hmac, -1);
+    Object::define_singleton_method(env, KDF, "scrypt"_s, OpenSSL_KDF_scrypt, -1);
 
     return NilObject::the();
 }
@@ -1251,7 +1251,7 @@ Value OpenSSL_X509_Name_to_a(Env *env, Value self, Args &&args, Block *) {
             OpenSSL_X509_Name_raise_error(env, "X509_NAME_ENTRY_get_data");
         entry_result->push(new StringObject { reinterpret_cast<const char *>(ASN1_STRING_get0_data(data)), static_cast<size_t>(ASN1_STRING_length(data)) });
 
-        entry_result->push(IntegerObject::create(ASN1_STRING_type(data)));
+        entry_result->push(Value::integer(ASN1_STRING_type(data)));
 
         result->push(entry_result);
     }

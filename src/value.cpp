@@ -10,7 +10,7 @@ namespace Natalie {
     if (is_profiled) {                                                                  \
         auto classnameOf = [](Value val) -> String {                                    \
             if (val.m_type == Type::Integer)                                            \
-                return String("FastInteger");                                           \
+                return String("Integer");                                               \
             auto maybe_classname = val.klass()->name();                                 \
             if (maybe_classname.present())                                              \
                 return maybe_classname.value();                                         \
@@ -152,53 +152,23 @@ Value Value::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value
     return m_object->send(env, name, std::move(args), block, sent_from);
 }
 
-void Value::hydrate() {
-    // Running GC while we're in the processes of hydrating this Value makes
-    // debugging VERY confusing. Maybe someday we can remove this GC stuff...
-    bool garbage_collection_enabled = Heap::the().gc_enabled();
-    if (garbage_collection_enabled)
-        Heap::the().gc_disable();
-
-    switch (m_type) {
-    case Type::Integer: {
-        auto i = m_integer;
-        m_object = new IntegerObject { i };
-        m_type = Type::Pointer;
-        break;
-    }
-    case Type::Pointer:
-        break;
-    }
-
-    if (garbage_collection_enabled)
-        Heap::the().gc_enable();
-}
-
-nat_int_t Value::as_fast_integer() const {
-    assert(m_type == Type::Integer || (m_type == Type::Pointer && m_object->type() == Object::Type::Integer));
-    if (m_type == Type::Integer)
-        return m_integer.to_nat_int_t();
-    return IntegerObject::to_nat_int_t(static_cast<IntegerObject *>(m_object));
-}
-
 bool Value::operator==(Value other) const {
     switch (m_type) {
     case Type::Integer: {
         switch (other.m_type) {
         case Type::Integer:
             return m_integer == other.m_integer;
-        default: {
-            if (other && other->type() == Object::Type::Integer) {
-                auto i = other.integer();
-                if (i.is_fixnum())
-                    return m_integer == i.to_nat_int_t();
-            }
+        default:
             return false;
-        }
         }
     }
     default:
-        return m_object == other.m_object;
+        switch (other.m_type) {
+        case Type::Integer:
+            return false;
+        default:
+            return m_object == other.m_object;
+        }
     }
 }
 
@@ -207,12 +177,10 @@ const Integer &Value::integer() const {
     case Type::Integer:
         return m_integer;
     case Type::Pointer:
-        assert(m_object->type() == Object::Type::Integer);
-        return IntegerObject::integer(static_cast<IntegerObject *>(m_object));
-        break;
-    default:
-        NAT_UNREACHABLE();
+        fprintf(stderr, "Fatal: cannot convert Value of type Pointer to Integer\n");
+        abort();
     }
+    NAT_UNREACHABLE();
 }
 
 Integer &Value::integer() {
@@ -220,12 +188,10 @@ Integer &Value::integer() {
     case Type::Integer:
         return m_integer;
     case Type::Pointer:
-        assert(m_object->type() == Object::Type::Integer);
-        return IntegerObject::integer(static_cast<IntegerObject *>(m_object));
-        break;
-    default:
-        NAT_UNREACHABLE();
+        fprintf(stderr, "Fatal: cannot convert Value of type Pointer to Integer\n");
+        abort();
     }
+    NAT_UNREACHABLE();
 }
 
 const Integer &Value::integer_or_raise(Env *env) const {
@@ -233,12 +199,9 @@ const Integer &Value::integer_or_raise(Env *env) const {
     case Type::Integer:
         return m_integer;
     case Type::Pointer:
-        assert(m_object->type() == Object::Type::Integer);
-        return IntegerObject::integer(static_cast<IntegerObject *>(m_object));
-        break;
-    default:
-        env->raise("TypeError", "{} can't be coerced into Integer", m_object->klass()->inspect_str());
+        env->raise_type_error(m_object, "Integer");
     }
+    NAT_UNREACHABLE();
 }
 
 Integer &Value::integer_or_raise(Env *env) {
@@ -246,9 +209,7 @@ Integer &Value::integer_or_raise(Env *env) {
     case Type::Integer:
         return m_integer;
     case Type::Pointer:
-        if (m_object->type() == Object::Type::Integer)
-            return IntegerObject::integer(static_cast<IntegerObject *>(m_object));
-        env->raise("TypeError", "{} can't be coerced into Integer", m_object->klass()->inspect_str());
+        env->raise_type_error(m_object, "Integer");
     }
     NAT_UNREACHABLE();
 }
@@ -282,12 +243,19 @@ nat_int_t Value::object_id() const {
     return reinterpret_cast<nat_int_t>(m_object);
 }
 
+void Value::assert_integer(Env *env) const {
+    switch (m_type) {
+    case Type::Integer:
+        break;
+    case Type::Pointer:
+        env->raise_type_error(m_object, "Integer");
+    }
+}
+
 void Value::assert_type(Env *env, ObjectType expected_type, const char *expected_class_name) const {
     switch (m_type) {
     case Type::Integer:
-        if (expected_type != Object::Type::Integer)
-            env->raise("TypeError", "no implicit conversion of Integer into {}", expected_class_name);
-        break;
+        env->raise("TypeError", "no implicit conversion of Integer into {}", expected_class_name);
     case Type::Pointer:
         if (m_object->type() != expected_type)
             env->raise_type_error(m_object, expected_class_name);
@@ -306,10 +274,9 @@ bool Value::is_integer() const {
     case Type::Integer:
         return true;
     case Type::Pointer:
-        return m_object && m_object->type() == Object::Type::Integer;
-    default:
         return false;
     }
+    NAT_UNREACHABLE();
 }
 
 bool Value::is_a(Env *env, Value val) const {
@@ -429,7 +396,7 @@ Integer Value::to_int(Env *env) {
 
     auto to_int = "to_int"_s;
     if (!respond_to(env, to_int))
-        assert_type(env, Object::Type::Integer, "Integer");
+        assert_integer(env);
 
     auto result = send(env, to_int);
 
@@ -507,21 +474,6 @@ SymbolObject *Value::to_symbol(Env *env, Conversion conversion) {
         return nullptr;
     else
         env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
-}
-
-void Value::auto_hydrate() {
-    switch (m_type) {
-    case Type::Integer: {
-#ifdef NAT_NO_HYDRATE
-        printf("Fatal: integer hydration is disabled.\n");
-        abort();
-#else
-        hydrate();
-#endif
-    }
-    case Type::Pointer:
-        break;
-    }
 }
 
 String Value::inspect_str(Env *env) {

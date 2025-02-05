@@ -39,7 +39,7 @@ class Fiddle
     __define_method__ :to_s, <<-END
       auto len = args.size() > 0 ? args[0] : nullptr;
       if (len)
-        len.assert_type(env, Object::Type::Integer, "Integer");
+        len.assert_integer(env);
       auto ptr_obj = self->ivar_get(env, "@ptr"_s);
       ptr_obj.assert_type(env, Object::Type::VoidP, "VoidP");
       auto ptr = (const char *)ptr_obj->as_void_p()->void_ptr();

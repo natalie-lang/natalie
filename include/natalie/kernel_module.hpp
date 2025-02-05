@@ -65,6 +65,9 @@ public:
     static Value klass_obj(Env *env, Value self);
 
     static Value freeze_obj(Env *env, Value self) {
+        if (self.is_integer() || self.is_float())
+            return self;
+
         self->freeze();
         return self;
     }

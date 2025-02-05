@@ -8,7 +8,7 @@ namespace Natalie {
 
 Value f_to_i_or_bigint(double value) {
     assert(value == ::round(value));
-    return IntegerObject::create(Integer(value));
+    return Integer(value);
 }
 
 Value FloatObject::is_infinite(Env *env) const {
@@ -39,36 +39,36 @@ bool FloatObject::eql(Value other) const {
     return f->m_double == m_double;
 }
 
-#define ROUNDING_OPERATION(name, libm_name)                                     \
-    Value FloatObject::name(Env *env, Value precision_value) {                  \
-        nat_int_t precision = 0;                                                \
-        if (precision_value) {                                                  \
-            if (precision_value.is_float()) {                                   \
-                precision_value = precision_value->as_float()->to_i(env);       \
-            }                                                                   \
-            precision_value.assert_type(env, Object::Type::Integer, "Integer"); \
-            precision = precision_value.integer().to_nat_int_t();               \
-        }                                                                       \
-        if (precision <= 0 && (is_nan() || is_infinity()))                      \
-            env->raise("FloatDomainError", this->inspect_str(env));             \
-                                                                                \
-        if (is_infinity())                                                      \
-            return new FloatObject { m_double };                                \
-                                                                                \
-        FloatObject *result;                                                    \
-        if (precision == 0)                                                     \
-            return f_to_i_or_bigint(::libm_name(m_double));                     \
-                                                                                \
-        double f = ::pow(10, precision);                                        \
-        double rounded = ::libm_name(m_double * f) / f;                         \
-        if (isinf(f) || isinf(rounded)) {                                       \
-            return new FloatObject { m_double };                                \
-        }                                                                       \
-        if (precision < 0)                                                      \
-            return f_to_i_or_bigint(rounded);                                   \
-                                                                                \
-        /* precision > 0 */                                                     \
-        return new FloatObject { rounded };                                     \
+#define ROUNDING_OPERATION(name, libm_name)                               \
+    Value FloatObject::name(Env *env, Value precision_value) {            \
+        nat_int_t precision = 0;                                          \
+        if (precision_value) {                                            \
+            if (precision_value.is_float()) {                             \
+                precision_value = precision_value->as_float()->to_i(env); \
+            }                                                             \
+            precision_value.assert_integer(env);                          \
+            precision = precision_value.integer().to_nat_int_t();         \
+        }                                                                 \
+        if (precision <= 0 && (is_nan() || is_infinity()))                \
+            env->raise("FloatDomainError", this->inspect_str(env));       \
+                                                                          \
+        if (is_infinity())                                                \
+            return new FloatObject { m_double };                          \
+                                                                          \
+        FloatObject *result;                                              \
+        if (precision == 0)                                               \
+            return f_to_i_or_bigint(::libm_name(m_double));               \
+                                                                          \
+        double f = ::pow(10, precision);                                  \
+        double rounded = ::libm_name(m_double * f) / f;                   \
+        if (isinf(f) || isinf(rounded)) {                                 \
+            return new FloatObject { m_double };                          \
+        }                                                                 \
+        if (precision < 0)                                                \
+            return f_to_i_or_bigint(rounded);                             \
+                                                                          \
+        /* precision > 0 */                                               \
+        return new FloatObject { rounded };                               \
     }
 
 ROUNDING_OPERATION(floor, floor)
@@ -181,17 +181,13 @@ Value FloatObject::cmp(Env *env, Value rhs) {
 }
 
 Value FloatObject::coerce(Env *env, Value arg) {
-    ArrayObject *ary = new ArrayObject {};
-    switch (arg->type()) {
-    case Object::Type::Float:
-        ary->push(arg);
-        break;
-    case Object::Type::Integer:
+    ArrayObject *ary = new ArrayObject { 2 };
+    if (arg.is_integer())
         ary->push(new FloatObject { arg.integer().to_double() });
-        break;
-    default:
+    else if (arg.is_float())
+        ary->push(arg);
+    else
         ary->push(KernelModule::Float(env, arg, true));
-    }
     ary->push(this);
     return ary;
 }

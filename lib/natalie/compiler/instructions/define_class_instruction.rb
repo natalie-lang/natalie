@@ -58,7 +58,7 @@ module Natalie
         code << "    env->raise(\"TypeError\", \"#{@name} is not a class\");"
         code << '  }'
         code << '} else {'
-        code << "  #{klass} = #{superclass}->subclass(env, #{@name.to_s.inspect})"
+        code << "  #{klass} = Object::subclass(env, #{superclass}, #{@name.to_s.inspect})"
         code << "  Object::const_set(env, #{namespace}, #{transform.intern(@name)}, #{klass})"
         code << '}'
         code << "#{klass}->as_class()->eval_body(env, #{fn})"

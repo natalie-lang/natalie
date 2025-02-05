@@ -53,9 +53,9 @@ namespace ioutil {
         case Object::Type::String: {
             auto colon = new StringObject { ":" };
             auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
-            auto flags_str = flagsplit->fetch(env, IntegerObject::create(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
-            auto extenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
-            auto intenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(2)), nullptr);
+            auto flags_str = flagsplit->fetch(env, Value::integer(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
+            auto extenc = flagsplit->ref(env, Value::integer(static_cast<nat_int_t>(1)), nullptr);
+            auto intenc = flagsplit->ref(env, Value::integer(static_cast<nat_int_t>(2)), nullptr);
             if (!extenc.is_nil()) m_external_encoding = EncodingObject::find_encoding(env, extenc);
             if (!intenc.is_nil()) m_internal_encoding = EncodingObject::find_encoding(env, intenc);
 
@@ -134,8 +134,8 @@ namespace ioutil {
             if (encoding->as_string()->include(":")) {
                 auto colon = new StringObject { ":" };
                 auto encsplit = encoding.to_str(env)->split(env, colon, nullptr)->as_array();
-                encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(0)), nullptr);
-                auto internal_encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
+                encoding = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(0)), nullptr);
+                auto internal_encoding = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(1)), nullptr);
                 m_internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
             }
             m_external_encoding = EncodingObject::find_encoding(env, encoding);

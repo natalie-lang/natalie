@@ -43,32 +43,42 @@ public:
         // This is required, because initialization by a literal is often ambiguous.
         return Value { integer };
     }
+
     Type type() const { return m_type; }
 
     Object &operator*() {
-        auto_hydrate();
+        if (m_type == Type::Integer) {
+            fprintf(stderr, "Fatal: cannot dereference Value of type Integer\n");
+            abort();
+        }
+
         return *m_object;
     }
 
     Object *operator->() {
-        auto_hydrate();
+        if (m_type == Type::Integer) {
+            fprintf(stderr, "Fatal: cannot dereference Value of type Integer\n");
+            abort();
+        }
+
         return m_object;
     }
 
     Object *object() {
-        auto_hydrate();
+        if (m_type == Type::Integer) {
+            fprintf(stderr, "Fatal: cannot dereference Value of type Integer\n");
+            abort();
+        }
+
         return m_object;
     }
 
-    Object *object_or_null() const {
-        if (m_type == Type::Pointer)
-            return m_object;
-        else
-            return nullptr;
-    }
+    const Object *object() const {
+        if (m_type == Type::Integer) {
+            fprintf(stderr, "Fatal: cannot dereference Value of type Integer\n");
+            abort();
+        }
 
-    const Object *object_pointer() const {
-        assert(m_type == Type::Pointer);
         return m_object;
     }
 
@@ -112,17 +122,6 @@ public:
     // - no implicit conversion of Integer into String
     StringObject *to_str2(Env *env);
 
-    bool is_fast_integer() const {
-        return m_type == Type::Integer;
-    }
-
-    nat_int_t as_fast_integer() const;
-
-    nat_int_t get_fast_integer() const {
-        assert(m_type == Type::Integer);
-        return m_integer.to_nat_int_t();
-    }
-
     const Integer &integer() const;
     Integer &integer();
 
@@ -133,6 +132,7 @@ public:
 
     nat_int_t object_id() const;
 
+    void assert_integer(Env *) const;
     void assert_type(Env *, ObjectType, const char *) const;
     void assert_not_frozen(Env *) const;
 
@@ -198,12 +198,8 @@ public:
     String dbg_inspect() const;
 
 private:
-    void auto_hydrate();
-
     template <typename Callback>
     Value on_object_value(Callback &&callback);
-
-    void hydrate();
 
     Type m_type { Type::Pointer };
 

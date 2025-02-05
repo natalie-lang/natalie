@@ -135,7 +135,7 @@ Value IoObject::dup(Env *env) const {
     auto dup_fd = ::dup(fileno(env));
     if (dup_fd < 0)
         env->raise_errno();
-    auto dup_obj = _new(env, m_klass, { IntegerObject::create(dup_fd) }, nullptr)->as_io();
+    auto dup_obj = _new(env, m_klass, { Value::integer(dup_fd) }, nullptr)->as_io();
     dup_obj->set_close_on_exec(env, TrueObject::the());
     dup_obj->autoclose(env, TrueObject::the());
     return dup_obj;
@@ -175,7 +175,7 @@ Value IoObject::fcntl(Env *env, Value cmd_value, Value arg_value) {
         result = ::fcntl(m_fileno, cmd, arg);
     }
     if (result < 0) env->raise_errno();
-    return IntegerObject::create(result);
+    return Value::integer(result);
 }
 
 int IoObject::fdatasync(Env *env) {
@@ -588,7 +588,7 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
 
     m_lineno++;
     env->set_last_line(line);
-    env->set_last_lineno(IntegerObject::create(m_lineno));
+    env->set_last_lineno(Value::integer(m_lineno));
     return line;
 }
 
@@ -710,7 +710,7 @@ Value IoObject::pwrite(Env *env, Value data, Value offset) {
     auto result = ::pwrite(m_fileno, str->c_str(), str->bytesize(), offset_int);
     if (result < 0)
         env->raise_errno();
-    return IntegerObject::create(result);
+    return Value::integer(result);
 }
 
 Value IoObject::close(Env *env) {
@@ -747,11 +747,9 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
     nat_int_t amount = IntegerObject::convert_to_nat_int_t(env, amount_value);
     int whence = 0;
     if (whence_value) {
-        switch (whence_value->type()) {
-        case Object::Type::Integer:
+        if (whence_value.is_integer()) {
             whence = whence_value.integer().to_nat_int_t();
-            break;
-        case Object::Type::Symbol: {
+        } else if (whence_value.is_symbol()) {
             SymbolObject *whence_sym = whence_value->as_symbol();
             if (whence_sym->string() == "SET") {
                 whence = SEEK_SET;
@@ -762,9 +760,7 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
             } else {
                 env->raise("TypeError", "no implicit conversion of Symbol into Integer");
             }
-            break;
-        }
-        default:
+        } else {
             env->raise("TypeError", "no implicit conversion of {} into Integer", whence_value.klass()->inspect_str());
         }
     }
@@ -798,8 +794,8 @@ Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
         if (ext_enc->as_string()->include(":")) {
             auto colon = new StringObject { ":" };
             auto encsplit = ext_enc.to_str(env)->split(env, colon, nullptr)->as_array();
-            ext_enc = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(0)), nullptr);
-            int_enc = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
+            ext_enc = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(0)), nullptr);
+            int_enc = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(1)), nullptr);
         }
     }
 
@@ -868,7 +864,7 @@ Value IoObject::sysopen(Env *env, Value path, Value flags_obj, Value perm) {
 
     path = ioutil::convert_using_to_path(env, path);
     const auto fd = ::open(path->as_string()->c_str(), flags.flags(), modenum);
-    return IntegerObject::create(fd);
+    return Value::integer(fd);
 }
 
 IoObject *IoObject::to_io(Env *env) {
@@ -1032,7 +1028,7 @@ Value IoObject::sysseek(Env *env, Value amount, Value whence) {
     if (!m_read_buffer.is_empty())
         env->raise("IOError", "sysseek for buffered IO");
     seek(env, amount, whence);
-    return IntegerObject::create(pos(env));
+    return Value::integer(pos(env));
 }
 
 Value IoObject::syswrite(Env *env, Value obj) {
@@ -1216,8 +1212,8 @@ Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding,
     if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
         env->raise_errno();
 
-    auto io_read = _new(env, klass, { IntegerObject::create(pipefd[0]) }, nullptr);
-    auto io_write = _new(env, klass, { IntegerObject::create(pipefd[1]) }, nullptr);
+    auto io_read = _new(env, klass, { Value::integer(pipefd[0]) }, nullptr);
+    auto io_write = _new(env, klass, { Value::integer(pipefd[1]) }, nullptr);
     io_read->as_io()->set_encoding(env, external_encoding, internal_encoding);
     auto pipes = new ArrayObject { io_read, io_write };
 
@@ -1245,7 +1241,7 @@ Value IoObject::popen(Env *env, Args &&args, Block *block, ClassObject *klass) {
     auto fileptr = popen2(command->c_str(), type->c_str(), pid);
     if (!fileptr)
         env->raise_errno();
-    auto io = _new(env, klass, { IntegerObject::create(::fileno(fileptr)) }, nullptr);
+    auto io = _new(env, klass, { Value::integer(::fileno(fileptr)) }, nullptr);
     io->as_io()->m_fileptr = fileptr;
     io->as_io()->m_pid = pid;
 

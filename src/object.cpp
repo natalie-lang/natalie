@@ -129,7 +129,6 @@ Value Object::create(Env *env, ClassObject *klass) {
     case Object::Type::Env:
     case Object::Type::False:
     case Object::Type::Float:
-    case Object::Type::Integer:
     case Object::Type::Method:
     case Object::Type::Nil:
     case Object::Type::Rational:
@@ -589,12 +588,12 @@ StringObject *Object::as_string_or_raise(Env *env) {
     return static_cast<StringObject *>(this);
 }
 
-SymbolObject *Object::to_instance_variable_name(Env *env) {
-    SymbolObject *symbol = Value(this).to_symbol(env, Value::Conversion::Strict); // TypeError if not Symbol/String
+SymbolObject *Object::to_instance_variable_name(Env *env, Value name) {
+    SymbolObject *symbol = name.to_symbol(env, Value::Conversion::Strict); // TypeError if not Symbol/String
 
     if (!symbol->is_ivar_name()) {
-        if (m_type == Type::String) {
-            env->raise_name_error(as_string(), "`{}' is not allowed as an instance variable name", symbol->string());
+        if (name.is_string()) {
+            env->raise_name_error(name->as_string(), "`{}' is not allowed as an instance variable name", symbol->string());
         } else {
             env->raise_name_error(symbol, "`{}' is not allowed as an instance variable name", symbol->string());
         }
@@ -643,10 +642,10 @@ ClassObject *Object::singleton_class(Env *env, Value self) {
     return self->m_singleton_class;
 }
 
-ClassObject *Object::subclass(Env *env, const char *name) {
-    if (m_type != Type::Class)
-        env->raise("TypeError", "superclass must be an instance of Class (given an instance of {})", klass()->inspect_str());
-    return as_class()->subclass(env, name);
+ClassObject *Object::subclass(Env *env, Value superclass, const char *name) {
+    if (!superclass.is_class())
+        env->raise("TypeError", "superclass must be an instance of Class (given an instance of {})", superclass.klass()->inspect_str());
+    return superclass->as_class()->subclass(env, name);
 }
 
 void Object::extend_once(Env *env, ModuleObject *module) {
@@ -694,6 +693,23 @@ Value Object::const_set(Env *env, Value ns, SymbolObject *name, MethodFnPtr auto
         return GlobalEnv::the()->Object()->const_set(name, autoload_fn, autoload_path);
     else
         env->raise("TypeError", "{} is not a class/module", ns.inspect_str(env));
+}
+
+bool Object::ivar_defined(Env *env, Value self, SymbolObject *name) {
+    if (self.is_integer() || self.is_float())
+        return false;
+    return self->ivar_defined(env, name);
+}
+
+Value Object::ivar_get(Env *env, Value self, SymbolObject *name) {
+    if (self.is_integer() || self.is_float())
+        return NilObject::the();
+    return self->ivar_get(env, name);
+}
+
+Value Object::ivar_set(Env *env, Value self, SymbolObject *name, Value val) {
+    self.assert_not_frozen(env);
+    return self->ivar_set(env, name, val);
 }
 
 bool Object::ivar_defined(Env *env, SymbolObject *name) {
@@ -759,8 +775,6 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
 }
 
 Value Object::instance_variables(Env *env) {
-    assert(m_type != Type::Integer);
-
     if (m_type == Type::Float || !m_ivars)
         return new ArrayObject;
 
@@ -801,83 +815,92 @@ Value Object::cvar_set(Env *env, SymbolObject *name, Value val) {
     return m_klass->cvar_set(env, name, val);
 }
 
-void Object::method_alias(Env *env, Value new_name, Value old_name) {
+void Object::method_alias(Env *env, Value self, Value new_name, Value old_name) {
     new_name.assert_type(env, Type::Symbol, "Symbol");
     old_name.assert_type(env, Type::Symbol, "Symbol");
-    method_alias(env, new_name->as_symbol(), old_name->as_symbol());
+    method_alias(env, self, new_name->as_symbol(), old_name->as_symbol());
 }
 
-void Object::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
-    if (m_type == Type::Integer)
+void Object::method_alias(Env *env, Value self, SymbolObject *new_name, SymbolObject *old_name) {
+    if (self.is_integer())
         env->raise("TypeError", "no klass to make alias");
 
-    if (m_type == Type::Symbol)
+    if (self.is_symbol())
         env->raise("TypeError", "no klass to make alias");
 
-    if (is_main_object()) {
-        m_klass->make_method_alias(env, new_name, old_name);
-    } else if (m_type == Type::Module || m_type == Type::Class) {
-        as_module()->method_alias(env, new_name, old_name);
+    if (self->is_main_object()) {
+        self.klass()->make_method_alias(env, new_name, old_name);
+    } else if (self.is_module()) {
+        self->as_module()->method_alias(env, new_name, old_name);
     } else {
-        singleton_class(env, this)->make_method_alias(env, new_name, old_name);
+        singleton_class(env, self)->make_method_alias(env, new_name, old_name);
     }
 }
 
-void Object::singleton_method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
+void Object::singleton_method_alias(Env *env, Value self, SymbolObject *new_name, SymbolObject *old_name) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = singleton_class(env, this);
+    ClassObject *klass = singleton_class(env, self);
     if (klass->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", Value(this).to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", self.to_s(env)->string());
     klass->method_alias(env, new_name, old_name);
 }
 
-SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
+SymbolObject *Object::define_singleton_method(Env *env, Value self, SymbolObject *name, MethodFnPtr fn, int arity) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = singleton_class(env, this)->as_class();
+    ClassObject *klass = singleton_class(env, self)->as_class();
     if (klass->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", Value(this).to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", self.to_s(env)->string());
     klass->define_method(env, name, fn, arity);
     return name;
 }
 
-SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Block *block) {
+SymbolObject *Object::define_singleton_method(Env *env, Value self, SymbolObject *name, Block *block) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = singleton_class(env, this);
+    ClassObject *klass = singleton_class(env, self);
     if (klass->is_frozen())
-        env->raise("FrozenError", "can't modify frozen object: {}", Value(this).to_s(env)->string());
+        env->raise("FrozenError", "can't modify frozen object: {}", self.to_s(env)->string());
     klass->define_method(env, name, block);
     return name;
 }
 
-SymbolObject *Object::undefine_singleton_method(Env *env, SymbolObject *name) {
+SymbolObject *Object::undefine_singleton_method(Env *env, Value self, SymbolObject *name) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *klass = singleton_class(env, this);
+    ClassObject *klass = singleton_class(env, self);
     klass->undefine_method(env, name);
     return name;
 }
 
-SymbolObject *Object::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
-    if (GlobalEnv::the()->instance_evaling()) {
-        return define_singleton_method(env, name, fn, arity);
-    }
-    m_klass->define_method(env, name, fn, arity);
+SymbolObject *Object::define_method(Env *env, Value self, SymbolObject *name, MethodFnPtr fn, int arity) {
+    if (self.is_module())
+        return self->as_module()->define_method(env, name, fn, arity);
+
+    if (GlobalEnv::the()->instance_evaling())
+        return define_singleton_method(env, self, name, fn, arity);
+
+    self.klass()->define_method(env, name, fn, arity);
     return name;
 }
 
-SymbolObject *Object::define_method(Env *env, SymbolObject *name, Block *block) {
-    if (GlobalEnv::the()->instance_evaling()) {
-        return define_singleton_method(env, name, block);
-    }
-    m_klass->define_method(env, name, block);
+SymbolObject *Object::define_method(Env *env, Value self, SymbolObject *name, Block *block) {
+    if (self.is_module())
+        return self->as_module()->define_method(env, name, block);
+
+    if (GlobalEnv::the()->instance_evaling())
+        return define_singleton_method(env, self, name, block);
+
+    self.klass()->define_method(env, name, block);
     return name;
 }
 
-SymbolObject *Object::undefine_method(Env *env, SymbolObject *name) {
-    m_klass->undefine_method(env, name);
+SymbolObject *Object::undefine_method(Env *env, Value self, SymbolObject *name) {
+    if (self.is_module())
+        return self->as_module()->undefine_method(env, name);
+
+    self.klass()->undefine_method(env, name);
     return name;
 }
 
@@ -1041,8 +1064,6 @@ Value Object::duplicate(Env *env) const {
         return new FloatObject { *as_float() };
     case Object::Type::Hash:
         return new HashObject { env, *as_hash() };
-    case Object::Type::Integer:
-        return IntegerObject::integer(static_cast<const IntegerObject *>(this));
     case Object::Type::Module:
         return new ModuleObject { *as_module() };
     case Object::Type::Nil:
@@ -1122,7 +1143,7 @@ void Object::copy_instance_variables(const Value other) {
     if (other.is_integer())
         return;
 
-    auto ivars = other.object_pointer()->m_ivars;
+    auto ivars = other.object()->m_ivars;
     if (ivars)
         m_ivars = new TM::Hashmap<SymbolObject *, Value> { *ivars };
 }

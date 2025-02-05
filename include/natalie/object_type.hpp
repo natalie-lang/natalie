@@ -21,7 +21,6 @@ enum class ObjectType {
     FileStat,
     Float,
     Hash,
-    Integer,
     Io,
     MatchData,
     Method,

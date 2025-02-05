@@ -161,12 +161,12 @@ public:
     RangeObject *as_range_or_raise(Env *);
     StringObject *as_string_or_raise(Env *);
 
-    SymbolObject *to_instance_variable_name(Env *);
+    static SymbolObject *to_instance_variable_name(Env *, Value);
 
     ClassObject *singleton_class() const { return m_singleton_class; }
     static ClassObject *singleton_class(Env *, Value);
 
-    ClassObject *subclass(Env *env, const char *name);
+    static ClassObject *subclass(Env *env, Value superklass, const char *name);
 
     void set_singleton_class(ClassObject *);
 
@@ -176,6 +176,10 @@ public:
     static Value const_fetch(Value, SymbolObject *);
     static Value const_set(Env *, Value, SymbolObject *, Value);
     static Value const_set(Env *, Value, SymbolObject *, MethodFnPtr, StringObject *);
+
+    static bool ivar_defined(Env *, Value, SymbolObject *);
+    static Value ivar_get(Env *, Value, SymbolObject *);
+    static Value ivar_set(Env *, Value, SymbolObject *, Value);
 
     bool ivar_defined(Env *, SymbolObject *);
     Value ivar_get(Env *, SymbolObject *);
@@ -189,13 +193,13 @@ public:
     virtual Value cvar_get_or_null(Env *, SymbolObject *);
     virtual Value cvar_set(Env *, SymbolObject *, Value);
 
-    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int);
-    virtual SymbolObject *define_method(Env *, SymbolObject *, Block *);
-    virtual SymbolObject *undefine_method(Env *, SymbolObject *);
+    static SymbolObject *define_method(Env *, Value, SymbolObject *, MethodFnPtr, int);
+    static SymbolObject *define_method(Env *, Value, SymbolObject *, Block *);
+    static SymbolObject *undefine_method(Env *, Value, SymbolObject *);
 
-    SymbolObject *define_singleton_method(Env *, SymbolObject *, MethodFnPtr, int);
-    SymbolObject *define_singleton_method(Env *, SymbolObject *, Block *);
-    SymbolObject *undefine_singleton_method(Env *, SymbolObject *);
+    static SymbolObject *define_singleton_method(Env *, Value, SymbolObject *, MethodFnPtr, int);
+    static SymbolObject *define_singleton_method(Env *, Value, SymbolObject *, Block *);
+    static SymbolObject *undefine_singleton_method(Env *, Value, SymbolObject *);
 
     Value main_obj_define_method(Env *, Value, Value, Block *);
     Value main_obj_inspect(Env *);
@@ -208,9 +212,9 @@ public:
     void protected_method(Env *, SymbolObject *);
     void module_function(Env *, SymbolObject *);
 
-    void method_alias(Env *env, Value new_name, Value old_name);
-    virtual void method_alias(Env *, SymbolObject *, SymbolObject *);
-    virtual void singleton_method_alias(Env *, SymbolObject *, SymbolObject *);
+    static void method_alias(Env *, Value, Value, Value);
+    static void method_alias(Env *, Value, SymbolObject *, SymbolObject *);
+    static void singleton_method_alias(Env *, Value, SymbolObject *, SymbolObject *);
 
     static nat_int_t object_id(const Value self) { return self.object_id(); }
 
@@ -255,7 +259,7 @@ public:
     bool is_main_object() const { return this == GlobalEnv::the()->main_obj(); }
 
     void freeze();
-    bool is_frozen() const { return m_type == Type::Integer || m_type == Type::Float || m_frozen; }
+    bool is_frozen() const { return m_type == Type::Float || m_frozen; }
 
     static bool not_truthy(Value self) {
         if (self.is_integer())

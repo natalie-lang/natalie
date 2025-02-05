@@ -1475,7 +1475,7 @@ Value ArrayObject::bsearch_index(Env *env, Block *block) {
     if (!result.present())
         return NilObject::the();
 
-    return IntegerObject::create(result.value());
+    return Value::integer(result.value());
 }
 
 Value ArrayObject::rassoc(Env *env, Value needle) {
@@ -1914,7 +1914,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
             return item;
         }
 
-        size.assert_type(env, ObjectType::Integer, "Integer");
+        size.assert_integer(env);
 
         auto length = size.integer().to_nat_int_t();
 

@@ -116,7 +116,7 @@ Value ArithmeticSequenceObject::iterate(Env *env, std::function<Value(Value)> fu
     }
 
     for (Integer i = 0; infinite || i < steps; ++i) {
-        auto value = _step.send(env, "*"_s, { IntegerObject::create(i) }).send(env, "+"_s, { _begin });
+        auto value = _step.send(env, "*"_s, { i }).send(env, "+"_s, { _begin });
 
         // Ensure that we do not yield a number that exceeds `_end`
         if (!infinite && value.send(env, cmp, { _end }).is_truthy())
@@ -171,7 +171,7 @@ Value ArithmeticSequenceObject::hash(Env *env) {
     else
         add(FalseObject::the());
 
-    return IntegerObject::create(hash_builder.digest());
+    return Value::integer(hash_builder.digest());
 }
 
 Value ArithmeticSequenceObject::inspect(Env *env) {
@@ -225,11 +225,11 @@ Value ArithmeticSequenceObject::last(Env *env, Value n) {
         auto array = new ArrayObject { (size_t)count.to_nat_int_t() };
 
         auto _begin = maybe_to_f(env, m_begin);
-        auto last = _begin.send(env, "+"_s, { step().send(env, "*"_s, { IntegerObject::create(steps) }) });
+        auto last = _begin.send(env, "+"_s, { step().send(env, "*"_s, { steps }) });
         if (last.send(env, ">="_s, { _end }).is_truthy())
             last = last.send(env, "-"_s, { step() });
 
-        auto begin = last.send(env, "-"_s, { step().send(env, "*"_s, { IntegerObject::create(count) }) });
+        auto begin = last.send(env, "-"_s, { step().send(env, "*"_s, { count }) });
 
         for (; count > 0; --count) {
             begin = begin.send(env, "+"_s, { step() });
@@ -238,7 +238,7 @@ Value ArithmeticSequenceObject::last(Env *env, Value n) {
 
         return array;
     } else {
-        auto last = m_begin.send(env, "+"_s, { step().send(env, "*"_s, { IntegerObject::create(steps - 1) }) });
+        auto last = m_begin.send(env, "+"_s, { step().send(env, "*"_s, { steps - 1 }) });
         if (last.send(env, ">"_s, { m_end }).is_truthy())
             last = last.send(env, "-"_s, { step() });
         return last;
@@ -272,6 +272,6 @@ Value ArithmeticSequenceObject::size(Env *env) {
             return Value::integer(0);
     }
 
-    return IntegerObject::create(step_count(env));
+    return step_count(env);
 }
 };

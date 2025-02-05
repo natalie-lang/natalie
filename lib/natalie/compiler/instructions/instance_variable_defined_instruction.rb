@@ -14,7 +14,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.exec("if (!self->ivar_defined(env, #{transform.intern(@name)})) throw new ExceptionObject")
+        transform.exec("if (!Object::ivar_defined(env, self, #{transform.intern(@name)})) throw new ExceptionObject")
       end
 
       def execute(vm)

@@ -347,7 +347,7 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     block_env->var_set("ffi_args", 3, true, ffi_args_obj);
     block_env->var_set("fn", 4, true, new VoidPObject { fn });
     Block *block = new Block { std::move(block_env), self, FFI_Library_fn_call_block, 0 };
-    self->define_singleton_method(env, name, block);
+    Object::define_singleton_method(env, self, name, block);
 
     return NilObject::the();
 }
@@ -388,7 +388,7 @@ Value FFI_Pointer_read_string(Env *env, Value self, Args &&args, Block *) {
 
 Value FFI_Pointer_to_obj(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
-    return (Object *)self.send(env, "address"_s).integer_or_raise(env).to_nat_int_t();
+    return *(Value *)self.send(env, "address"_s).integer_or_raise(env).to_nat_int_t();
 }
 
 Value FFI_Pointer_write_string(Env *env, Value self, Args &&args, Block *) {
@@ -407,8 +407,7 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args &&args, Block *blo
     args.ensure_argc_between(env, 1, 3);
 
     size_t size = 0;
-    switch (args.at(0)->type()) {
-    case Object::Type::Symbol: {
+    if (args.at(0).is_symbol()) {
         auto sym = args.at(0)->as_symbol();
         if (sym == "char"_s || sym == "uchar"_s || sym == "int8"_s || sym == "uint8"_s) {
             size = 1;
@@ -431,11 +430,8 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args &&args, Block *blo
         } else {
             env->raise("TypeError", "unknown size argument for FFI#initialize: {}", args.at(0).inspect_str(env));
         }
-        break;
-    }
-    default:
+    } else {
         size = IntegerObject::convert_to_native_type<size_t>(env, args.at(0));
-        break;
     }
 
     size_t count = 1;

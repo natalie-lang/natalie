@@ -69,7 +69,7 @@ public:
     Value const_missing(Env *, Value);
 
     void make_method_alias(Env *, SymbolObject *, SymbolObject *);
-    virtual void method_alias(Env *, SymbolObject *, SymbolObject *) override;
+    void method_alias(Env *, SymbolObject *, SymbolObject *);
 
     Value eval_body(Env *, Value (*)(Env *, Value));
 
@@ -105,9 +105,9 @@ public:
     Value remove_class_variable(Env *, Value);
 
     Value define_method(Env *, Value, Value, Block *);
-    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int) override;
-    virtual SymbolObject *define_method(Env *, SymbolObject *, Block *) override;
-    virtual SymbolObject *undefine_method(Env *, SymbolObject *) override;
+    SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int);
+    SymbolObject *define_method(Env *, SymbolObject *, Block *);
+    SymbolObject *undefine_method(Env *, SymbolObject *);
 
     void methods(Env *, ArrayObject *, bool = true);
     void define_method(Env *, SymbolObject *, Method *, MethodVisibility);

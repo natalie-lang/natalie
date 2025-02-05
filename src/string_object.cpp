@@ -1102,7 +1102,7 @@ Value StringObject::count(Env *env, Args &&args) {
         if (handler(character))
             total_count++;
     }
-    return IntegerObject::create(total_count);
+    return Value::integer(total_count);
 }
 
 Value StringObject::crypt(Env *env, Value salt) {
@@ -2423,8 +2423,8 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
     nat_int_t begin;
     nat_int_t end = -1;
     nat_int_t expand_length = 0;
-    if (arg1.is_fast_integer()) {
-        begin = process_begin(arg1.get_fast_integer());
+    if (arg1.is_integer()) {
+        begin = process_begin(arg1.integer().to_nat_int_t());
         end = get_end_by_length(begin, arg2);
     } else if (arg1.is_range()) {
         assert(arg2 == nullptr);
@@ -2610,7 +2610,7 @@ Value StringObject::getbyte(Env *env, Value index_obj) const {
     }
 
     unsigned char byte = m_string[index];
-    return IntegerObject::create(Integer(byte));
+    return Integer(byte);
 }
 
 void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_string, RegexpObject *find, Value replacement_value, MatchDataObject **match, StringObject **expanded_replacement, size_t byte_index, Block *block) {
@@ -2822,7 +2822,7 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
 
     nat_int_t number = strtoll(digits_only.c_str(), nullptr, base);
     if (number == NAT_INT_MIN || number == NAT_INT_MAX) {
-        return IntegerObject::create(BigInt(std::move(digits_only), base));
+        return Integer(BigInt(std::move(digits_only), base));
     }
     return Value::integer(number);
 }
@@ -3829,10 +3829,6 @@ void StringObject::append(const FloatObject *f) {
     m_string.append(f->to_s());
 }
 
-void StringObject::append(const IntegerObject *i) {
-    m_string.append(IntegerObject::to_s(i));
-}
-
 void StringObject::append(const String &str) {
     m_string.append(str);
 }
@@ -3866,9 +3862,6 @@ void StringObject::append(Value val) {
         break;
     case Type::Float:
         append(obj->as_float());
-        break;
-    case Type::Integer:
-        append(static_cast<IntegerObject *>(obj));
         break;
     case Type::Nil:
         append("nil");
@@ -3978,11 +3971,11 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
     auto convint = strtoll(str.c_str(), &end, base);
     if (convint == NAT_INT_MIN || convint == NAT_INT_MAX) {
         if (signchar == '-') str.prepend_char(signchar);
-        return IntegerObject::create(BigInt(str, base));
+        return Integer(BigInt(str, base));
     }
 
     if (end == NULL || end[0] == '\0') {
-        return IntegerObject::create(Integer(convint * sign));
+        return Integer(convint * sign);
     }
 
     return nullptr;

@@ -102,7 +102,7 @@ private:
                 // Previously had pushed Value::integer() values, but for large unsigned values
                 // it produced incorrect results.
                 auto bigint = BigInt(*(T *)out.c_str());
-                append(IntegerObject::create(Integer(std::move(bigint))));
+                append(Integer(std::move(bigint)));
             }
             consumed++;
         }

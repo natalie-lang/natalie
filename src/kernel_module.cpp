@@ -500,7 +500,7 @@ Value KernelModule::sleep(Env *env, Value length) {
     } else if (length.is_rational()) {
         secs = length->as_rational()->to_f(env)->as_float()->to_double();
     } else if (length.respond_to(env, "divmod"_s)) {
-        auto divmod = length.send(env, "divmod"_s, { IntegerObject::create(1) })->as_array();
+        auto divmod = length.send(env, "divmod"_s, { Value::integer(1) })->as_array();
         secs = divmod->at(0).to_f(env)->as_float()->to_double();
         secs += divmod->at(1).to_f(env)->as_float()->to_double();
     } else {
@@ -685,7 +685,7 @@ Value KernelModule::klass_obj(Env *env, Value self) {
 Value KernelModule::define_singleton_method(Env *env, Value self, Value name, Block *block) {
     env->ensure_block_given(block);
     SymbolObject *name_obj = name.to_symbol(env, Value::Conversion::Strict);
-    self->define_singleton_method(env, name_obj, block);
+    Object::define_singleton_method(env, self, name_obj, block);
     return name_obj;
 }
 
@@ -745,7 +745,7 @@ Value KernelModule::initialize_copy(Env *env, Value self, Value object) {
     if (object == self)
         return self;
 
-    self->assert_not_frozen(env);
+    self.assert_not_frozen(env);
     if (self.klass() != object.klass())
         env->raise("TypeError", "initialize_copy should take same class object");
 
@@ -766,32 +766,27 @@ bool KernelModule::instance_variable_defined(Env *env, Value self, Value name_va
     case Object::Type::Nil:
     case Object::Type::True:
     case Object::Type::False:
-    case Object::Type::Integer:
     case Object::Type::Float:
     case Object::Type::Symbol:
         return false;
     default:
         break;
     }
-    auto name = name_val->to_instance_variable_name(env);
+    auto name = Object::to_instance_variable_name(env, name_val);
     return self->ivar_defined(env, name);
 }
 
 Value KernelModule::instance_variable_get(Env *env, Value self, Value name_val) {
-    switch (self->type()) {
-    case Object::Type::Integer:
-    case Object::Type::Float:
+    if (self.is_integer() || self.is_float())
         return NilObject::the();
-    default:
-        break;
-    }
-    auto name = name_val->to_instance_variable_name(env);
+
+    auto name = Object::to_instance_variable_name(env, name_val);
     return self->ivar_get(env, name);
 }
 
 Value KernelModule::instance_variable_set(Env *env, Value self, Value name_val, Value value) {
-    auto name = name_val->to_instance_variable_name(env);
-    self->assert_not_frozen(env);
+    auto name = Object::to_instance_variable_name(env, name_val);
+    self.assert_not_frozen(env);
     self->ivar_set(env, name, value);
     return value;
 }
@@ -892,14 +887,14 @@ Value KernelModule::protected_methods(Env *env, Value self, Value recur) {
 }
 
 Value KernelModule::public_methods(Env *env, Value self, Value recur) {
-    if (self->singleton_class())
-        return self->singleton_class()->public_instance_methods(env, TrueObject::the());
+    if (self.singleton_class())
+        return self.singleton_class()->public_instance_methods(env, TrueObject::the());
     else
         return self.klass()->public_instance_methods(env, recur);
 }
 
 Value KernelModule::remove_instance_variable(Env *env, Value self, Value name_val) {
-    auto name = name_val->to_instance_variable_name(env);
+    auto name = Object::to_instance_variable_name(env, name_val);
     self->assert_not_frozen(env);
     return self->ivar_remove(env, name);
 }

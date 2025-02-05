@@ -252,10 +252,10 @@ Value RangeObject::last(Env *env, Value n) {
 String RangeObject::dbg_inspect() const {
     String str;
     auto append = [&](Value v) {
-        if (v.is_fast_integer()) {
-            str.append(v.get_fast_integer());
+        if (v.is_integer()) {
+            str.append(v.integer().to_nat_int_t());
         } else {
-            auto obj = v.object_or_null();
+            auto obj = v.object();
             assert(obj);
             if (type() != Type::Nil)
                 str.append(obj->dbg_inspect());
@@ -302,10 +302,10 @@ bool RangeObject::eql(Env *env, Value other_value) {
 }
 
 bool RangeObject::include(Env *env, Value arg) {
-    if (arg.is_fast_integer() && m_begin.is_fast_integer() && m_end.is_fast_integer()) {
-        const auto begin = m_begin.get_fast_integer();
-        const auto end = m_end.get_fast_integer();
-        const auto i = arg.get_fast_integer();
+    if (arg.is_integer() && m_begin.is_integer() && m_end.is_integer()) {
+        const auto begin = m_begin.integer().to_nat_int_t();
+        const auto end = m_end.integer().to_nat_int_t();
+        const auto i = arg.integer().to_nat_int_t();
 
         const auto larger_than_begin = begin <= i;
         const auto smaller_than_end = m_exclude_end ? i < end : i <= end;
@@ -357,7 +357,7 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         auto right = left + 1;
 
         // Find a right border in which we can perform the binary search.
-        while (binary_search_check(env, block->run(env, { IntegerObject::create(right) }, nullptr)) != BSearchCheckResult::SMALLER) {
+        while (binary_search_check(env, block->run(env, { Value::integer(right) }, nullptr)) != BSearchCheckResult::SMALLER) {
             right = left + (right - left) * 2;
         }
 
@@ -367,7 +367,7 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         auto left = right - 1;
 
         // Find a left border in which we can perform the binary search.
-        while (binary_search_check(env, block->run(env, { IntegerObject::create(left) }, nullptr)) != BSearchCheckResult::BIGGER) {
+        while (binary_search_check(env, block->run(env, { Value::integer(left) }, nullptr)) != BSearchCheckResult::BIGGER) {
             left = right - (right - left) * 2;
         }
 

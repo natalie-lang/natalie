@@ -147,7 +147,7 @@ Value Etc_nprocessors(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     const auto result = sysconf(_SC_NPROCESSORS_ONLN);
     if (result < 0) env->raise_errno();
-    return IntegerObject::create(result);
+    return Value::integer(result);
 }
 
 Value Etc_setgrent(Env *env, Value self, Args &&args, Block *_block) {

@@ -41,7 +41,7 @@ module Natalie
         arity = arity.value unless arity.is_a?(Integer)
         transform.exec_and_push(
           :method,
-          "self->define_method(env, #{ruby_name.to_s.inspect}_s, #{cpp_name}, #{arity})",
+          "Object::define_method(env, self, #{ruby_name.to_s.inspect}_s, #{cpp_name}, #{arity})",
         )
       end
 
@@ -51,7 +51,7 @@ module Natalie
         arity = arity.value unless arity.is_a?(Integer)
         transform.exec_and_push(
           :method,
-          "self->klass()->define_method(env, #{ruby_name.to_s.inspect}_s, #{cpp_name}, #{arity})",
+          "Object::define_method(env, self->klass(), #{ruby_name.to_s.inspect}_s, #{cpp_name}, #{arity})",
         )
       end
 
@@ -71,7 +71,7 @@ module Natalie
           when 'double'
             "#{value}->as_float()->to_double()"
           when 'int'
-            "#{value}.as_fast_integer()"
+            "#{value}.integer().to_nat_int_t()"
           when 'bool'
             "#{value}.is_truthy()"
           when 'Value'
@@ -127,7 +127,7 @@ module Natalie
                when 'int', 'unsigned short'
                  "Object::const_set(env, self, \"#{name}\"_s, Value::integer(#{value}))"
                when 'bigint'
-                 "Object::const_set(env, self, \"#{name}\"_s, IntegerObject::create(Integer(BigInt(#{value}))));"
+                 "Object::const_set(env, self, \"#{name}\"_s, Integer(BigInt(#{value})));"
                else
                  raise "I don't yet know how to handle constant of type #{type.inspect}"
                end

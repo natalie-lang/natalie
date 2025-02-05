@@ -253,7 +253,7 @@ Value HashObject::square_new(Env *env, Args &&args, ClassObject *klass) {
             if (value.is_array()) {
                 HashObject *hash = new HashObject { klass };
                 for (auto &pair : *value->as_array()) {
-                    if (pair->type() != Object::Type::Array) {
+                    if (!pair.is_array()) {
                         env->raise("ArgumentError", "wrong element in array to Hash[]");
                     }
                     size_t size = pair->as_array()->size();

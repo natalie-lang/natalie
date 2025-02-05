@@ -58,8 +58,8 @@ Env *build_top_env() {
     ClassObject *EnumeratorArithmeticSequence = Enumerator->subclass(env, "ArithmeticSequence", Object::Type::EnumeratorArithmeticSequence);
     Enumerator->const_set("ArithmeticSequence"_s, EnumeratorArithmeticSequence);
 
-    BasicObject->define_singleton_method(env, "new"_s, Object::_new, -1);
-    BasicObject->define_singleton_method(env, "allocate"_s, Object::allocate, -1);
+    Object::define_singleton_method(env, BasicObject, "new"_s, Object::_new, -1);
+    Object::define_singleton_method(env, BasicObject, "allocate"_s, Object::allocate, -1);
 
     ClassObject *NilClass = Object->subclass(env, "NilClass", Object::Type::Nil);
     Object->const_set("NilClass"_s, NilClass);
@@ -83,7 +83,7 @@ Env *build_top_env() {
     Object->const_set("Numeric"_s, Numeric);
     Numeric->include_once(env, Comparable);
 
-    ClassObject *Integer = Numeric->subclass(env, "Integer", Object::Type::Integer);
+    ClassObject *Integer = Numeric->subclass(env, "Integer", Object::Type::Object);
     global_env->set_Integer(Integer);
     Object->const_set("Integer"_s, Integer);
 
@@ -622,7 +622,7 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
         }
     } else if (exception_value.is_a(env, find_top_level_const(env, "SignalException"_s)->as_class())) {
         Value signo = exception->ivar_get(env, "@signo"_s);
-        if (signo->type() == Object::Type::Integer) {
+        if (signo.is_integer()) {
             auto val = signo.integer().to_nat_int_t();
             if (val >= 0 && val <= 255) {
                 clean_up_and_exit(val + 128);
@@ -718,7 +718,7 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
             int *int_ptr = va_arg(va_args, int *); // NOLINT(clang-analyzer-valist.Uninitialized) bug in clang-tidy?
             if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
-            obj.assert_type(env, Object::Type::Integer, "Integer");
+            obj.assert_integer(env);
             *int_ptr = obj.integer().to_nat_int_t();
             break;
         }
