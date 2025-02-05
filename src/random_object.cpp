@@ -80,6 +80,11 @@ Value RandomObject::rand(Env *env, Value arg) {
                 }
             }
             env->raise("ArgumentError", "bad value for range");
+        } else if (arg.is_integer() && arg.integer().is_bignum()) {
+            if (arg.integer().is_negative())
+                env->raise("ArgumentError", "invalid argument - {}", arg.to_s(env)->string());
+            auto fraction = generate_random(0.0, 1.0);
+            return arg.send(env, "*"_s, { fraction }).send(env, "to_i"_s);
         }
 
         if (arg.is_nil())
