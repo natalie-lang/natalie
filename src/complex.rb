@@ -355,7 +355,7 @@ class Complex
 
   def to_r
     imaginary = self.imaginary
-    if not _exact_zero?(imaginary)
+    unless imaginary.zero?
       raise RangeError, "can't convert #{self} into Rational"
     end
 
