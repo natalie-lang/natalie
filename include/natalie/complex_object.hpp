@@ -36,9 +36,9 @@ public:
         freeze();
     }
 
-    Value imaginary(Env *);
+    Value imaginary() { return m_imaginary; }
     Value inspect(Env *);
-    Value real(Env *);
+    Value real() { return m_real; }
 
     virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);

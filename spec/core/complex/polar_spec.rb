@@ -24,10 +24,8 @@ describe "Complex.polar" do
       b = Complex.polar(1+0.0i)
       b.real.should be_close(1.0, TOLERANCE)
       b.imag.should be_close(0.0, TOLERANCE)
-      NATFIXME 'Parts should be converted to real numbers', exception: SpecFailedException do
-        b.real.real?.should be_true
-        b.imag.real?.should be_true
-      end
+      b.real.real?.should be_true
+      b.imag.real?.should be_true
     end
   end
 end

@@ -5,10 +5,8 @@ require_relative 'fixtures/Complex'
 describe "Kernel.Complex()" do
   describe "when passed [Complex, Complex]" do
     it "returns a new Complex number based on the two given numbers" do
-      NATFIXME 'returns a new Complex number based on the two given numbers', exception: NoMethodError, message: /undefined method [`']negative\?' for an instance of Complex/ do
-        Complex(Complex(3, 4), Complex(5, 6)).should == Complex(3 - 6, 4 + 5)
-        Complex(Complex(1.5, 2), Complex(-5, 6.3)).should == Complex(1.5 - 6.3, 2 - 5)
-      end
+      Complex(Complex(3, 4), Complex(5, 6)).should == Complex(3 - 6, 4 + 5)
+      Complex(Complex(1.5, 2), Complex(-5, 6.3)).should == Complex(1.5 - 6.3, 2 - 5)
     end
   end
 
