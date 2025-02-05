@@ -49,4 +49,35 @@ describe 'Process' do
       end
     end
   end
+
+  describe '.ppid' do
+    before :each do
+      @file = tmp('ppid')
+      @exe = tmp('exe')
+      @natalie = ENV.fetch('NAT_BINARY', 'bin/natalie') # Force to use Natalie, not MRI, in the subprocess
+    end
+
+    after :each do
+      rm_r @file
+      rm_r @exe
+    end
+
+    it 'returns the main Natalie process' do
+      pid = spawn(@natalie, '-e', "File.open(#{@file.dump}, 'w') { |f| f.puts(Process.ppid) }")
+      Process.wait(pid)
+      $?.exitstatus.should == 0
+      File.read(@file).chomp.to_i.should == pid
+    end
+
+    it 'returns this process if we create an executable' do
+      pid = spawn(@natalie, '-c', @exe, '-e', "File.open(#{@file.dump}, 'w') { |f| f.puts(Process.ppid) }")
+      Process.wait(pid)
+      $?.exitstatus.should == 0
+
+      pid = spawn(@exe)
+      Process.wait(pid)
+      $?.exitstatus.should == 0
+      File.read(@file).chomp.to_i.should == Process.pid
+    end
+  end
 end
