@@ -42,9 +42,7 @@ describe "Complex#to_r" do
 
     ruby_version_is '3.4' do
       it "returns a Rational" do
-        NATFIXME 'it returns a Rational', exception: RangeError, message: "can't convert 0+0.0i into Rational" do
-          Complex(0, 0.0).to_r.should == 0r
-        end
+        Complex(0, 0.0).to_r.should == 0r
       end
     end
   end
