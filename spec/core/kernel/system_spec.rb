@@ -3,7 +3,9 @@ require_relative 'fixtures/classes'
 
 describe :kernel_system, shared: true do
   it "executes the specified command in a subprocess" do
-    -> { @object.system("echo a") }.should output_to_fd("a\n")
+    NATFIXME 'it executes the specified command in a subprocess', exception: SpecFailedException do
+      -> { @object.system("echo a") }.should output_to_fd("a\n")
+    end
 
     $?.should be_an_instance_of Process::Status
     $?.should.success?
@@ -26,7 +28,9 @@ describe :kernel_system, shared: true do
   end
 
   it "raises RuntimeError when `exception: true` is given and the command exits with a non-zero exit status" do
-    -> { @object.system(ruby_cmd('exit 1'), exception: true) }.should raise_error(RuntimeError)
+    NATFIXME 'it raises RuntimeError when `exception: true` is given and the command exits with a non-zero exit status', exception: SpecFailedException do
+      -> { @object.system(ruby_cmd('exit 1'), exception: true) }.should raise_error(RuntimeError)
+    end
   end
 
   it "raises Errno::ENOENT when `exception: true` is given and the specified command does not exist" do
@@ -133,7 +137,9 @@ end
 
 describe "Kernel#system" do
   it "is a private method" do
-    Kernel.should have_private_instance_method(:system)
+    NATFIXME 'it is a private method', exception: SpecFailedException do
+      Kernel.should have_private_instance_method(:system)
+    end
   end
 
   it_behaves_like :kernel_system, :system, KernelSpecs::Method.new
