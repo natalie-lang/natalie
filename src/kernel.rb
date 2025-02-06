@@ -881,4 +881,5 @@ module Kernel
   rescue
     nil
   end
+  module_function :system
 end
