@@ -137,9 +137,7 @@ end
 
 describe "Kernel#system" do
   it "is a private method" do
-    NATFIXME 'it is a private method', exception: SpecFailedException do
-      Kernel.should have_private_instance_method(:system)
-    end
+    Kernel.should have_private_instance_method(:system)
   end
 
   it_behaves_like :kernel_system, :system, KernelSpecs::Method.new
