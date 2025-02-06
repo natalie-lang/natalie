@@ -6,7 +6,9 @@ describe "Dir.mktmpdir when passed no arguments" do
     Dir.rmdir @tmpdir if File.directory? @tmpdir
   end
 
-  it "returns the path to the created tmp-dir" do
+  # NATFIXME: Fix the stub! method, this now removes the method for the
+  # duration of this spec.
+  xit "returns the path to the created tmp-dir" do
     Dir.stub!(:mkdir)
     Dir.should_receive(:tmpdir).and_return("/tmp")
     @tmpdir = Dir.mktmpdir
@@ -21,7 +23,9 @@ describe "Dir.mktmpdir when passed no arguments" do
   end
 end
 
-describe "Dir.mktmpdir when passed a block" do
+# NATFIXME: Skip for now, we don't support the block, which means we don't
+# clean up the tempdir and get errors from the spec runner
+xdescribe "Dir.mktmpdir when passed a block" do
   before :each do
     @real_tmp_root = tmp('')
     Dir.stub!(:tmpdir).and_return(@real_tmp_root)
@@ -83,8 +87,10 @@ describe "Dir.mktmpdir when passed [String]" do
 
   it "uses the passed String as a prefix to the tmp-directory" do
     prefix = "before"
-    @tmpdir = Dir.mktmpdir(prefix)
-    @tmpdir.should =~ /^\/tmp\/#{prefix}/
+    NATFIXME 'Support arguments', exception: ArgumentError, message: 'TODO: Support arguments' do
+      @tmpdir = Dir.mktmpdir(prefix)
+      @tmpdir.should =~ /^\/tmp\/#{prefix}/
+    end
   end
 end
 
@@ -103,8 +109,10 @@ describe "Dir.mktmpdir when passed [Array]" do
     prefix = "before"
     suffix = "after"
 
-    @tmpdir = Dir.mktmpdir([prefix, suffix])
-    @tmpdir.should =~ /#{suffix}$/
+    NATFIXME 'Support arguments', exception: ArgumentError, message: 'TODO: Support arguments' do
+      @tmpdir = Dir.mktmpdir([prefix, suffix])
+      @tmpdir.should =~ /#{suffix}$/
+    end
   end
 end
 
