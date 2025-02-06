@@ -458,6 +458,8 @@ Value IntegerObject::bitwise_xor(Env *env, Integer &self, Value arg) {
 }
 
 Value IntegerObject::left_shift(Env *env, Integer &self, Value arg) {
+    if (is_zero(self))
+        return Value::integer(0);
     auto integer = arg.to_int(env);
     if (is_bignum(integer)) {
         if (IntegerObject::is_negative(self))
@@ -475,6 +477,8 @@ Value IntegerObject::left_shift(Env *env, Integer &self, Value arg) {
 }
 
 Value IntegerObject::right_shift(Env *env, Integer &self, Value arg) {
+    if (is_zero(self))
+        return Value::integer(0);
     auto integer = arg.to_int(env);
     if (is_bignum(integer)) {
         if (IntegerObject::is_negative(self))

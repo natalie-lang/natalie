@@ -182,8 +182,7 @@ describe "Integer#<< (with n << m)" do
     end
 
     ruby_bug "#18517", ""..."3.2" do
-      # NATFIXME: Timeout error
-      xit "returns 0 when m > 0 long and n == 0" do
+      it "returns 0 when m > 0 long and n == 0" do
         (0 << (2**40)).should == 0
       end
     end
