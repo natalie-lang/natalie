@@ -462,16 +462,21 @@ Value IntegerObject::left_shift(Env *env, Integer &self, Value arg) {
         return Value::integer(0);
     auto integer = arg.to_int(env);
     if (is_bignum(integer)) {
-        if (IntegerObject::is_negative(self))
+        if (IntegerObject::is_negative(self) && IntegerObject::is_negative(integer))
             return Value::integer(-1);
-        else
+        else if (IntegerObject::is_negative(integer))
             return Value::integer(0);
+        else
+            env->raise("RangeError", "shift width too big");
     }
 
     auto nat_int = integer.to_nat_int_t();
 
     if (nat_int < 0)
         return IntegerObject::right_shift(env, self, Value::integer(-nat_int));
+
+    if (nat_int >= (static_cast<nat_int_t>(1) << 32) || nat_int <= -(static_cast<nat_int_t>(1) << 32))
+        env->raise("RangeError", "shift width too big");
 
     return create(self << nat_int);
 }
