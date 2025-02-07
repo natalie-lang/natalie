@@ -4,31 +4,6 @@
 
 namespace Natalie {
 
-Value IntegerObject::create(const nat_int_t integer) {
-    return Value::integer(integer);
-}
-
-Value IntegerObject::create(const Integer &integer) {
-    return Value { integer };
-}
-
-Value IntegerObject::create(Integer &&integer) {
-    return Value { std::move(integer) };
-}
-
-Value IntegerObject::create(const char *string) {
-    String str { string };
-    return create(str);
-};
-
-Value IntegerObject::create(const TM::String &string) {
-    return Value { Integer(string) };
-};
-
-Value IntegerObject::create(TM::String &&string) {
-    return Value { Integer(std::move(string)) };
-};
-
 Value IntegerObject::to_s(Env *env, Integer &self, Value base_value) {
     if (self == 0)
         return new StringObject { "0" };
@@ -73,7 +48,7 @@ Value IntegerObject::to_f(Integer &self) {
 
 Value IntegerObject::add(Env *env, Integer &self, Value arg) {
     if (arg.is_integer()) {
-        return create(self + arg.integer());
+        return self + arg.integer();
     } else if (arg.is_float()) {
         return new FloatObject { self + arg->as_float()->to_double() };
     } else if (!arg.is_integer()) {
@@ -84,12 +59,12 @@ Value IntegerObject::add(Env *env, Integer &self, Value arg) {
     }
     arg.assert_integer(env);
 
-    return create(self + arg.integer());
+    return self + arg.integer();
 }
 
 Value IntegerObject::sub(Env *env, Integer &self, Value arg) {
     if (arg.is_integer()) {
-        return create(self - arg.integer());
+        return self - arg.integer();
     } else if (arg.is_float()) {
         double result = self.to_double() - arg->as_float()->to_double();
         return new FloatObject { result };
@@ -101,7 +76,7 @@ Value IntegerObject::sub(Env *env, Integer &self, Value arg) {
     }
     arg.assert_integer(env);
 
-    return create(self - arg.integer());
+    return self - arg.integer();
 }
 
 Value IntegerObject::mul(Env *env, Integer &self, Value arg) {
@@ -120,7 +95,7 @@ Value IntegerObject::mul(Env *env, Integer &self, Value arg) {
     if (self == 0 || arg.integer() == 0)
         return Value::integer(0);
 
-    return create(self * arg.integer());
+    return self * arg.integer();
 }
 
 Value IntegerObject::div(Env *env, Integer &self, Value arg) {
@@ -141,7 +116,7 @@ Value IntegerObject::div(Env *env, Integer &self, Value arg) {
     if (other == 0)
         env->raise("ZeroDivisionError", "divided by 0");
 
-    return create(self / other);
+    return self / other;
 }
 
 Value IntegerObject::mod(Env *env, Integer &self, Value arg) {
@@ -162,7 +137,7 @@ Value IntegerObject::mod(Env *env, Integer &self, Value arg) {
     if (argument == 0)
         env->raise("ZeroDivisionError", "divided by 0");
 
-    return create(self % argument);
+    return self % argument;
 }
 
 Value IntegerObject::pow(Env *env, Integer &self, Integer &arg) {
@@ -178,7 +153,7 @@ Value IntegerObject::pow(Env *env, Integer &self, Integer &arg) {
     if (arg == 0)
         return Value::integer(1);
     else if (arg == 1)
-        return create(self);
+        return self;
 
     if (self == 0)
         return Value::integer(0);
@@ -194,7 +169,7 @@ Value IntegerObject::pow(Env *env, Integer &self, Integer &arg) {
     if (length > BIGINT_LIMIT || length * arg > (nat_int_t)BIGINT_LIMIT)
         env->raise("ArgumentError", "exponent is too large");
 
-    return create(Natalie::pow(self, arg));
+    return Natalie::pow(self, arg);
 }
 
 Value IntegerObject::pow(Env *env, Integer &self, Value arg) {
@@ -401,9 +376,7 @@ Value IntegerObject::times(Env *env, Integer &self, Block *block) {
         return self;
 
     for (Integer i = 0; i < self; ++i) {
-        Value num = create(i);
-        Value args[] = { num };
-        block->run(env, Args(1, args), nullptr);
+        block->run(env, Args({ i }, false), nullptr);
     }
     return self;
 }
@@ -418,7 +391,7 @@ Value IntegerObject::bitwise_and(Env *env, Integer &self, Value arg) {
     }
     arg.assert_integer(env);
 
-    return create(self & arg.integer());
+    return self & arg.integer();
 }
 
 Value IntegerObject::bitwise_or(Env *env, Integer &self, Value arg) {
@@ -432,7 +405,7 @@ Value IntegerObject::bitwise_or(Env *env, Integer &self, Value arg) {
     }
     arg.assert_integer(env);
 
-    return create(self | arg.integer());
+    return self | arg.integer();
 }
 
 Value IntegerObject::bitwise_xor(Env *env, Integer &self, Value arg) {
@@ -446,7 +419,7 @@ Value IntegerObject::bitwise_xor(Env *env, Integer &self, Value arg) {
     }
     arg.assert_integer(env);
 
-    return create(self ^ arg.integer());
+    return self ^ arg.integer();
 }
 
 Value IntegerObject::left_shift(Env *env, Integer &self, Value arg) {
@@ -470,7 +443,7 @@ Value IntegerObject::left_shift(Env *env, Integer &self, Value arg) {
     if (nat_int >= (static_cast<nat_int_t>(1) << 32) || nat_int <= -(static_cast<nat_int_t>(1) << 32))
         env->raise("RangeError", "shift width too big");
 
-    return create(self << nat_int);
+    return self << nat_int;
 }
 
 Value IntegerObject::right_shift(Env *env, Integer &self, Value arg) {
@@ -489,7 +462,7 @@ Value IntegerObject::right_shift(Env *env, Integer &self, Value arg) {
     if (nat_int < 0)
         return left_shift(env, self, Value::integer(-nat_int));
 
-    return create(self >> nat_int);
+    return self >> nat_int;
 }
 
 Value IntegerObject::size(Env *env, Integer &self) {
@@ -605,7 +578,7 @@ Value IntegerObject::sqrt(Env *env, Value arg) {
         env->raise_exception(exception);
     }
 
-    return create(Natalie::sqrt(argument));
+    return Natalie::sqrt(argument);
 }
 
 Value IntegerObject::round(Env *env, Integer &self, Value ndigits, Value half) {
@@ -648,7 +621,7 @@ Value IntegerObject::round(Env *env, Integer &self, Value ndigits, Value half) {
         }
     }
 
-    return create(result);
+    return result;
 }
 
 Value IntegerObject::truncate(Env *env, Integer &self, Value ndigits) {
@@ -664,7 +637,7 @@ Value IntegerObject::truncate(Env *env, Integer &self, Value ndigits) {
     auto dividend = Natalie::pow(Integer(10), -digits);
     auto remainder = result.modulo_c(dividend);
 
-    return create(result - remainder);
+    return result - remainder;
 }
 
 Value IntegerObject::ref(Env *env, Integer &self, Value offset_obj, Value size_obj) {
@@ -688,7 +661,7 @@ Value IntegerObject::ref(Env *env, Integer &self, Value offset_obj, Value size_o
         if (result != 0 && !offset_or_empty.present())
             env->raise("ArgumentError", "The beginless range for Integer#[] results in infinity");
 
-        return create(result);
+        return result;
     };
 
     if (!size_obj && offset_obj.is_range()) {

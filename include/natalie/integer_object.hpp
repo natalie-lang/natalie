@@ -21,13 +21,6 @@ class IntegerObject : public Object {
 public:
     IntegerObject() = delete;
 
-    static Value create(nat_int_t);
-    static Value create(const Integer &);
-    static Value create(Integer &&);
-    static Value create(const char *);
-    static Value create(const TM::String &);
-    static Value create(TM::String &&);
-
     static bool is_negative(const Integer self) { return self.is_negative(); }
     static bool is_zero(const Integer self) { return self.is_zero(); }
     static bool is_odd(const Integer self) { return self % 2 != 0; }

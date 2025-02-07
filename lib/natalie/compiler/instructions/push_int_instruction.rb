@@ -15,7 +15,7 @@ module Natalie
 
       def generate(transform)
         if @int > NAT_MAX_FIXNUM || @int < NAT_MIN_FIXNUM
-          transform.push("IntegerObject::create(#{@int.to_s.inspect})")
+          transform.push("Value::integer(#{@int.to_s.inspect})")
         else
           transform.push("Value::integer(#{@int})")
         end

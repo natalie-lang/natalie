@@ -1164,7 +1164,7 @@ Value OpenSSL_BN_to_i(Env *env, Value self, Args &&args, Block *) {
     if (!str)
         OpenSSL_raise_error(env, "BN_bn2dec");
     Defer str_free { [str] { OPENSSL_free(str); } };
-    return IntegerObject::create(str);
+    return Value::integer(str);
 }
 
 Value OpenSSL_Random_random_bytes(Env *env, Value self, Args &&args, Block *) {
