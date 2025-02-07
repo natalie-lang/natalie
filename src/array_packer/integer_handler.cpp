@@ -268,8 +268,8 @@ namespace ArrayPacker {
 
         TM::Vector<char> bytes {};
         size_t size = 0;
-        if (IntegerMethods::is_bignum(m_source)) {
-            auto num = IntegerMethods::to_bigint(m_source);
+        if (m_source.is_bignum()) {
+            auto num = m_source.to_bigint();
             do {
                 bytes[size] = (num & 0x7f).to_long();
                 num = num >> 7;
@@ -293,7 +293,7 @@ namespace ArrayPacker {
     // NOTE: We probably don't need this monster method, but I could not figure out
     // how to pack 'j'/'J' using the modulus trick. ¯\_(ツ)_/¯
     void IntegerHandler::pack_bignum(size_t max_bits) {
-        auto digits = IntegerMethods::to_bigint(m_source).to_binary();
+        auto digits = m_source.to_bigint().to_binary();
 
         // TODO: support big endian systems
         assert(system_is_little_endian());

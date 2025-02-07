@@ -89,7 +89,7 @@ private:
     void set_subsec(Env *, RationalObject *);
     Value strip_zeroes(StringObject *);
 
-    Value m_integer;
+    Integer m_integer;
     Mode m_mode;
     Value m_subsec;
     struct tm m_time;

@@ -723,7 +723,7 @@ Value KernelModule::extend(Env *env, Value self, Args &&args) {
 
 Value KernelModule::hash(Env *env, Value self) {
     if (self.is_integer())
-        return Value::integer(IntegerMethods::to_s(self.integer()).djb2_hash());
+        return Value::integer(self.integer().to_string().djb2_hash());
 
     switch (self->type()) {
     // NOTE: string "foo" and symbol :foo will get the same hash.

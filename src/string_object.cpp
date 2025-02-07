@@ -1022,7 +1022,7 @@ Value StringObject::cmp(Env *env, Value other) {
             return negative_cmp;
         }
         auto i = negative_cmp.to_int(env);
-        return IntegerMethods::negate(env, i);
+        return -i;
     } else {
         return NilObject::the();
     }
@@ -1061,11 +1061,11 @@ Value StringObject::concat(Env *env, Args &&args) {
         StringObject *str_obj;
         if (arg.is_string()) {
             str_obj = arg->as_string();
-        } else if (arg.is_integer() && IntegerMethods::is_negative(arg.integer())) {
-            env->raise("RangeError", "{} out of char range", IntegerMethods::to_s(env, arg.integer())->as_string()->string());
+        } else if (arg.is_integer() && arg.integer().is_negative()) {
+            env->raise("RangeError", "{} out of char range", arg.integer().to_string());
         } else if (arg.is_integer()) {
             // Special case: US-ASCII << (128..255) will change the string to binary
-            if (m_encoding == EncodingObject::get(Encoding::US_ASCII) && IntegerMethods::is_fixnum(arg.integer())) {
+            if (m_encoding == EncodingObject::get(Encoding::US_ASCII) && arg.integer().is_fixnum()) {
                 const auto nat_int = arg.integer();
                 if (nat_int >= 128 && nat_int <= 255)
                     m_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
@@ -1213,7 +1213,7 @@ Value StringObject::prepend(Env *env, Args &&args) {
         if (arg.is_string()) {
             str_obj = arg->as_string();
         } else if (arg.is_integer() && arg.integer() < 0) {
-            env->raise("RangeError", "{} out of char range", IntegerMethods::to_s(env, arg.integer())->as_string()->string());
+            env->raise("RangeError", "{} out of char range", arg.integer().to_string());
         } else if (arg.is_integer()) {
             str_obj = arg.send(env, "chr"_s, { m_encoding.ptr() })->as_string();
         } else {

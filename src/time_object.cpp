@@ -28,7 +28,7 @@ TimeObject *TimeObject::local(Env *env, Value year, Value month, Value mday, Val
     result->build_time(env, year, month, mday, hour, min, sec);
     int seconds = mktime(&result->m_time);
     result->m_mode = Mode::Localtime;
-    result->m_integer = Value::integer(seconds);
+    result->m_integer = seconds;
     if (usec && usec.is_integer()) {
         result->set_subsec(env, usec.integer());
     }
@@ -49,7 +49,7 @@ TimeObject *TimeObject::initialize(Env *env, Value year, Value month, Value mday
         auto result = now(env, nullptr);
         result->build_time(env, year, month, mday, hour, min, sec);
         int seconds = mktime(&result->m_time);
-        result->m_integer = Value::integer(seconds);
+        result->m_integer = seconds;
         result->m_subsec = nullptr;
         if (tmzone && in) {
             env->raise("ArgumentError", "cannot specify zone and in:");
@@ -74,7 +74,7 @@ TimeObject *TimeObject::now(Env *env, Value in) {
     TimeObject *result = new TimeObject {};
     result->m_time = time;
     result->m_mode = Mode::Localtime;
-    result->m_integer = Value::integer(ts.tv_sec);
+    result->m_integer = ts.tv_sec;
     result->set_subsec(env, ts.tv_nsec);
     if (in) {
         result->m_time.tm_gmtoff = normalize_timezone(env, in);
@@ -88,7 +88,7 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
     result->m_time.tm_gmtoff = 0;
     int seconds = timegm(&result->m_time);
     result->m_mode = Mode::UTC;
-    result->m_integer = Value::integer(seconds);
+    result->m_integer = seconds;
     if (subsec) {
         if (subsec.is_integer()) {
             auto integer = subsec.integer();
@@ -126,10 +126,9 @@ Value TimeObject::asctime(Env *env) {
 Value TimeObject::cmp(Env *env, Value other) {
     if (other.is_time()) {
         auto time = other->as_time();
-        auto integer = m_integer.integer();
-        if (IntegerMethods::gt(env, integer, time->m_integer)) {
+        if (m_integer > time->m_integer) {
             return Value::integer(1);
-        } else if (IntegerMethods::lt(env, integer, time->m_integer)) {
+        } else if (m_integer < time->m_integer) {
             return Value::integer(-1);
         } else {
             return subsec(env).send(env, "to_r"_s)->as_rational()->cmp(env, time->subsec(env).send(env, "to_r"_s));
@@ -153,7 +152,7 @@ Value TimeObject::cmp(Env *env, Value other) {
 bool TimeObject::eql(Env *env, Value other) {
     if (other.is_time()) {
         auto time = other->as_time();
-        if (m_integer.integer() == time->m_integer.integer()) {
+        if (m_integer == time->m_integer) {
             if (m_subsec && time->m_subsec && m_subsec->as_rational()->eq(env, time->m_subsec)) {
                 return true;
             } else if (!m_subsec && !time->m_subsec) {
@@ -252,7 +251,7 @@ Value TimeObject::to_a(Env *env) const {
 }
 
 Value TimeObject::to_f(Env *env) {
-    Value result = IntegerMethods::to_f(m_integer.integer());
+    Value result = IntegerMethods::to_f(m_integer);
     if (m_subsec) {
         result = result->as_float()->add(env, m_subsec->as_rational());
     }
@@ -260,7 +259,7 @@ Value TimeObject::to_f(Env *env) {
 }
 
 Value TimeObject::to_r(Env *env) {
-    Value result = RationalObject::create(env, m_integer.integer(), Integer(1));
+    Value result = RationalObject::create(env, m_integer, Integer(1));
     if (m_subsec) {
         result = result->as_rational()->add(env, m_subsec->as_rational());
     }
