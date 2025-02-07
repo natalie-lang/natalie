@@ -1,10 +1,10 @@
 #include "natalie.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 
 namespace Natalie {
 
 RationalObject *RationalObject::create(Env *env, Integer numerator, Integer denominator) {
-    if (IntegerObject::is_zero(denominator))
+    if (IntegerMethods::is_zero(denominator))
         env->raise("ZeroDivisionError", "divided by 0");
 
     if (denominator.is_negative()) {
@@ -12,7 +12,7 @@ RationalObject *RationalObject::create(Env *env, Integer numerator, Integer deno
         denominator = -denominator;
     }
 
-    auto gcd = IntegerObject::gcd(env, numerator, denominator).integer();
+    auto gcd = IntegerMethods::gcd(env, numerator, denominator).integer();
     numerator = numerator / gcd;
     denominator = denominator / gcd;
 
@@ -44,7 +44,7 @@ Value RationalObject::add(Env *env, Value other) {
 Value RationalObject::cmp(Env *env, Value other) {
     if (other.is_integer()) {
         if (m_denominator == 1)
-            return IntegerObject::cmp(env, m_numerator, other.integer());
+            return IntegerMethods::cmp(env, m_numerator, other.integer());
         other = new RationalObject { other.integer(), Value::integer(1) };
     }
     if (other.is_rational()) {
@@ -52,7 +52,7 @@ Value RationalObject::cmp(Env *env, Value other) {
         auto num1 = m_numerator * rational->denominator(env).integer();
         auto num2 = m_denominator * rational->numerator(env).integer();
         auto a = num1 - num2;
-        return IntegerObject::cmp(env, a, Value::integer(0));
+        return IntegerMethods::cmp(env, a, Value::integer(0));
     }
     if (other.is_float()) {
         return to_f(env)->as_float()->cmp(env, other->as_float());
@@ -136,14 +136,14 @@ bool RationalObject::eq(Env *env, Value other) {
 Value RationalObject::floor(Env *env, Value precision_value) {
     nat_int_t precision = 0;
     if (precision_value)
-        precision = IntegerObject::convert_to_nat_int_t(env, precision_value);
+        precision = IntegerMethods::convert_to_nat_int_t(env, precision_value);
 
     if (m_denominator == 1)
-        return IntegerObject::floor(env, m_numerator, precision_value);
+        return IntegerMethods::floor(env, m_numerator, precision_value);
 
     if (precision < 0) {
         auto i = to_i(env).integer();
-        return IntegerObject::floor(env, i, precision_value);
+        return IntegerMethods::floor(env, i, precision_value);
     }
 
     if (precision == 0)
@@ -219,11 +219,11 @@ Value RationalObject::pow(Env *env, Value other) {
             if (m_numerator.is_zero())
                 env->raise("ZeroDivisionError", "divided by 0");
             auto negated = -numerator;
-            new_numerator = IntegerObject::pow(env, m_denominator, negated);
-            new_denominator = IntegerObject::pow(env, m_numerator, negated);
+            new_numerator = IntegerMethods::pow(env, m_denominator, negated);
+            new_denominator = IntegerMethods::pow(env, m_numerator, negated);
         } else {
-            new_numerator = IntegerObject::pow(env, m_numerator, numerator);
-            new_denominator = IntegerObject::pow(env, m_denominator, numerator);
+            new_numerator = IntegerMethods::pow(env, m_numerator, numerator);
+            new_denominator = IntegerMethods::pow(env, m_denominator, numerator);
         }
 
         if (new_numerator.is_integer() && new_denominator.is_integer())
@@ -260,12 +260,12 @@ Value RationalObject::to_f(Env *env) {
 }
 
 Value RationalObject::to_i(Env *env) {
-    if (IntegerObject::is_negative(m_numerator)) {
+    if (IntegerMethods::is_negative(m_numerator)) {
         auto a = -m_numerator;
         auto b = a / m_denominator;
         return -b;
     }
-    return IntegerObject::div(env, m_numerator, m_denominator);
+    return IntegerMethods::div(env, m_numerator, m_denominator);
 }
 
 Value RationalObject::to_s(Env *env) {
@@ -292,7 +292,7 @@ Value RationalObject::truncate(Env *env, Value ndigits) {
 
     if (digits < 0) {
         auto quotient = Value::integer(numerator / denominator);
-        return IntegerObject::truncate(env, quotient.integer(), ndigits);
+        return IntegerMethods::truncate(env, quotient.integer(), ndigits);
     }
 
     const auto power = static_cast<nat_int_t>(std::pow(10, digits));

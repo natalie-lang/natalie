@@ -340,9 +340,9 @@ class Date
     __inline__ <<-END
       format_var.assert_type(env, Object::Type::String, "String");
       struct tm time = { 0 };
-      time.tm_year = IntegerObject::convert_to_int(env, self->ivar_get(env, "@year"_s)) - 1900;
-      time.tm_mon = IntegerObject::convert_to_int(env, self->ivar_get(env, "@month"_s)) - 1;
-      time.tm_mday = IntegerObject::convert_to_int(env, self->ivar_get(env, "@mday"_s));
+      time.tm_year = IntegerMethods::convert_to_int(env, self->ivar_get(env, "@year"_s)) - 1900;
+      time.tm_mon = IntegerMethods::convert_to_int(env, self->ivar_get(env, "@month"_s)) - 1;
+      time.tm_mday = IntegerMethods::convert_to_int(env, self->ivar_get(env, "@mday"_s));
       time.tm_gmtoff = 0;
       time.tm_isdst = 0;
       int maxsize = 32;

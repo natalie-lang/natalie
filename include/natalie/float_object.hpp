@@ -7,7 +7,7 @@
 #include "natalie/class_object.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"

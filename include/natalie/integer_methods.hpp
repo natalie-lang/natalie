@@ -17,9 +17,9 @@
 
 namespace Natalie {
 
-class IntegerObject : public Object {
+class IntegerMethods {
 public:
-    IntegerObject() = delete;
+    IntegerMethods() = delete;
 
     static bool is_negative(const Integer self) { return self.is_negative(); }
     static bool is_zero(const Integer self) { return self.is_zero(); }

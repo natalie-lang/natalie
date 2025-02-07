@@ -1,6 +1,6 @@
 #include "natalie/enumerator/arithmetic_sequence_object.hpp"
 #include "natalie.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 
 namespace Natalie::Enumerator {
 ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, const TM::String &range_origin_method, Value begin, Value end, Value step, bool exclude_end)
@@ -158,7 +158,7 @@ Value ArithmeticSequenceObject::hash(Env *env) {
         if (hash.is_nil())
             return;
 
-        auto nat_int = IntegerObject::convert_to_nat_int_t(env, hash);
+        auto nat_int = IntegerMethods::convert_to_nat_int_t(env, hash);
         hash_builder.append(nat_int);
     };
 
@@ -220,7 +220,7 @@ Value ArithmeticSequenceObject::last(Env *env, Value n) {
         if (n_as_int > steps)
             count = steps;
 
-        IntegerObject::assert_fixnum(env, n_as_int);
+        IntegerMethods::assert_fixnum(env, n_as_int);
 
         auto array = new ArrayObject { (size_t)count.to_nat_int_t() };
 

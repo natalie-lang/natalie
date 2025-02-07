@@ -92,7 +92,7 @@
 #include "natalie/global_env.hpp"
 #include "natalie/hash_builder.hpp"
 #include "natalie/hash_object.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include "natalie/io_object.hpp"
 #include "natalie/kernel_module.hpp"
 #include "natalie/local_jump_error_type.hpp"

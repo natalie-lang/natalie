@@ -11,7 +11,7 @@ Value RandomObject::initialize(Env *env, Value seed) {
             seed = seed->as_float()->to_i(env);
         }
 
-        m_seed = IntegerObject::convert_to_nat_int_t(env, seed);
+        m_seed = IntegerMethods::convert_to_nat_int_t(env, seed);
     }
 
     if (m_generator) delete m_generator;
@@ -58,19 +58,19 @@ Value RandomObject::rand(Env *env, Value arg) {
                     if (min.is_float()) {
                         min_rand = min->as_float()->to_double();
                     } else {
-                        min_rand = static_cast<double>(IntegerObject::convert_to_native_type<nat_int_t>(env, min));
+                        min_rand = static_cast<double>(IntegerMethods::convert_to_native_type<nat_int_t>(env, min));
                     }
 
                     if (max.is_float()) {
                         max_rand = max->as_float()->to_double();
                     } else {
-                        max_rand = static_cast<double>(IntegerObject::convert_to_native_type<nat_int_t>(env, max));
+                        max_rand = static_cast<double>(IntegerMethods::convert_to_native_type<nat_int_t>(env, max));
                     }
 
                     return generate_random(min_rand, max_rand);
                 } else {
-                    auto min_rand = IntegerObject::convert_to_native_type<nat_int_t>(env, min);
-                    auto max_rand = IntegerObject::convert_to_native_type<nat_int_t>(env, max);
+                    auto min_rand = IntegerMethods::convert_to_native_type<nat_int_t>(env, min);
+                    auto max_rand = IntegerMethods::convert_to_native_type<nat_int_t>(env, max);
 
                     if (arg->as_range()->exclude_end()) {
                         max_rand -= 1;
@@ -90,7 +90,7 @@ Value RandomObject::rand(Env *env, Value arg) {
         if (arg.is_nil())
             env->raise("ArgumentError", "invalid argument - {}", arg.to_s(env)->string());
 
-        nat_int_t max = IntegerObject::convert_to_nat_int_t(env, arg);
+        nat_int_t max = IntegerMethods::convert_to_nat_int_t(env, arg);
         if (max <= 0) {
             env->raise("ArgumentError", "invalid argument - {}", arg.inspect_str(env));
         }

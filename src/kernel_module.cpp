@@ -1,5 +1,5 @@
 #include "natalie.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include "natalie/thread_object.hpp"
 #include "natalie/throw_catch_exception.hpp"
 
@@ -457,7 +457,7 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
 }
 
 RationalObject *KernelModule::Rational(Env *env, class Integer &x, class Integer &y) {
-    Value gcd = IntegerObject::gcd(env, x, y).integer();
+    Value gcd = IntegerMethods::gcd(env, x, y).integer();
     class Integer numerator = x / gcd;
     class Integer denominator = y / gcd;
     return RationalObject::create(env, numerator, denominator);
@@ -466,7 +466,7 @@ RationalObject *KernelModule::Rational(Env *env, class Integer &x, class Integer
 RationalObject *KernelModule::Rational(Env *env, double arg) {
     class Integer radix(FLT_RADIX);
     auto power = Value::integer(DBL_MANT_DIG);
-    auto y = IntegerObject::pow(env, radix, power).integer();
+    auto y = IntegerMethods::pow(env, radix, power).integer();
 
     int exponent;
     FloatObject *significand = new FloatObject { std::frexp(arg, &exponent) };
@@ -475,9 +475,9 @@ RationalObject *KernelModule::Rational(Env *env, double arg) {
     class Integer two(2);
     class Integer exp = exponent;
     if (exp < 0)
-        y = y * IntegerObject::pow(env, two, -exp).integer();
+        y = y * IntegerMethods::pow(env, two, -exp).integer();
     else
-        x = x * IntegerObject::pow(env, two, exp).integer();
+        x = x * IntegerMethods::pow(env, two, exp).integer();
 
     return Rational(env, x, y);
 }
@@ -723,7 +723,7 @@ Value KernelModule::extend(Env *env, Value self, Args &&args) {
 
 Value KernelModule::hash(Env *env, Value self) {
     if (self.is_integer())
-        return Value::integer(IntegerObject::to_s(self.integer()).djb2_hash());
+        return Value::integer(IntegerMethods::to_s(self.integer()).djb2_hash());
 
     switch (self->type()) {
     // NOTE: string "foo" and symbol :foo will get the same hash.

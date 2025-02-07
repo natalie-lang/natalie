@@ -443,7 +443,7 @@ Value RegexpObject::eqtilde(Env *env, Value other) {
     } else {
         MatchDataObject *matchdata = result->as_match_data();
         assert(matchdata->size() > 0);
-        return IntegerObject::from_ssize_t(env, matchdata->beg_char_index(env, 0));
+        return IntegerMethods::from_ssize_t(env, matchdata->beg_char_index(env, 0));
     }
 }
 
@@ -466,7 +466,7 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
 
     nat_int_t start_byte_index = 0;
     if (start != nullptr) {
-        auto char_index = IntegerObject::convert_to_native_type<ssize_t>(env, start);
+        auto char_index = IntegerMethods::convert_to_native_type<ssize_t>(env, start);
         start_byte_index = str_obj->char_index_to_byte_index(char_index);
     }
 

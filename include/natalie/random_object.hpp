@@ -6,7 +6,7 @@
 #include "natalie/float_object.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include "natalie/object.hpp"
 #include <random>
 
@@ -47,7 +47,7 @@ public:
             seed = new_seed(env);
         auto default_random = GlobalEnv::the()->Random()->const_fetch("DEFAULT"_s)->as_random();
         auto old_seed = default_random->seed();
-        auto new_seed = IntegerObject::convert_to_native_type<nat_int_t>(env, seed);
+        auto new_seed = IntegerMethods::convert_to_native_type<nat_int_t>(env, seed);
         default_random->m_seed = new_seed;
         delete default_random->m_generator;
         default_random->m_generator = new std::mt19937(new_seed);
@@ -58,7 +58,7 @@ public:
         auto integer = size.integer();
         if (integer.is_negative())
             env->raise("ArgumentError", "negative string size (or size too big)");
-        if (IntegerObject::is_zero(integer))
+        if (IntegerMethods::is_zero(integer))
             return new StringObject { "", Encoding::ASCII_8BIT };
 
         size_t length = (size_t)integer.to_nat_int_t();

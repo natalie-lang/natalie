@@ -1,5 +1,5 @@
 #include "natalie.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include "tm/recursion_guard.hpp"
 #include "tm/vector.hpp"
 
@@ -213,7 +213,7 @@ Value HashObject::initialize(Env *env, Value default_value, Value capacity, Bloc
     assert_not_frozen(env);
 
     if (capacity) {
-        const auto capacity_int = IntegerObject::convert_to_native_type<ssize_t>(env, capacity);
+        const auto capacity_int = IntegerMethods::convert_to_native_type<ssize_t>(env, capacity);
         if (capacity_int > 0)
             m_hashmap = TM::Hashmap<Key *, Value> { hash, compare, static_cast<size_t>(capacity_int) };
     }
@@ -427,7 +427,7 @@ Value HashObject::dig(Env *env, Args &&args) {
 }
 
 Value HashObject::size(Env *env) const {
-    return IntegerObject::from_size_t(env, size());
+    return IntegerMethods::from_size_t(env, size());
 }
 
 bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
@@ -649,7 +649,7 @@ Value HashObject::hash(Env *env) {
                 auto value_hash = value.send(env, hash_method);
 
                 if (!value_hash.is_nil()) {
-                    entry_hash.append(IntegerObject::convert_to_nat_int_t(env, value_hash));
+                    entry_hash.append(IntegerMethods::convert_to_nat_int_t(env, value_hash));
                     any_change = true;
                 }
             }
@@ -659,7 +659,7 @@ Value HashObject::hash(Env *env) {
                 auto key_hash = key.send(env, hash_method);
 
                 if (!key_hash.is_nil()) {
-                    entry_hash.append(IntegerObject::convert_to_nat_int_t(env, key_hash));
+                    entry_hash.append(IntegerMethods::convert_to_nat_int_t(env, key_hash));
                     any_change = true;
                 }
             }

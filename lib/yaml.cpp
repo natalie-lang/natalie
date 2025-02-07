@@ -1,5 +1,5 @@
 #include "natalie.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include <yaml.h>
 
 using namespace Natalie;
@@ -87,7 +87,7 @@ static void emit_value(Env *env, HashObject *value, yaml_emitter_t &emitter, yam
 }
 
 static void emit_value(Env *env, Integer &value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    const auto str = IntegerObject::to_s(value);
+    const auto str = IntegerMethods::to_s(value);
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_INT_TAG,
         (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
     emit(env, emitter, event);

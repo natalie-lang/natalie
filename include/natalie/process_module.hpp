@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 #include "natalie/forward.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include "natalie/object.hpp"
 
 namespace Natalie {
@@ -68,7 +68,7 @@ public:
     }
 
     static int getpgid(Env *env, Value idval) {
-        pid_t idnum = IntegerObject::convert_to_nat_int_t(env, idval);
+        pid_t idnum = IntegerMethods::convert_to_nat_int_t(env, idval);
         pid_t pgrp = ::getpgid(idnum);
         if (pgrp < 0) env->raise_errno();
         return pgrp;
@@ -91,8 +91,8 @@ public:
     }
 
     static int getpriority(Env *env, Value which, Value who) {
-        int whichnum = IntegerObject::convert_to_nat_int_t(env, which);
-        id_t whonum = IntegerObject::convert_to_nat_int_t(env, who);
+        int whichnum = IntegerMethods::convert_to_nat_int_t(env, which);
+        id_t whonum = IntegerMethods::convert_to_nat_int_t(env, who);
         errno = 0;
         int pri = ::getpriority(whichnum, whonum);
         if (errno) env->raise_errno();
@@ -114,7 +114,7 @@ public:
         if (!pid || pid.is_nil()) {
             pidnum = 0;
         } else {
-            pidnum = IntegerObject::convert_to_nat_int_t(env, pid);
+            pidnum = IntegerMethods::convert_to_nat_int_t(env, pid);
         }
         pid_t sid = ::getsid(pidnum);
         if (sid < 0) env->raise_errno();
@@ -187,7 +187,7 @@ private:
             val = rlimval;
         }
 
-        resource = IntegerObject::convert_to_nat_int_t(env, val);
+        resource = IntegerMethods::convert_to_nat_int_t(env, val);
         return resource;
     }
 };

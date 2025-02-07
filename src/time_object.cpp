@@ -1,5 +1,5 @@
 #include "natalie.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include <string.h>
 
 namespace Natalie {
@@ -127,9 +127,9 @@ Value TimeObject::cmp(Env *env, Value other) {
     if (other.is_time()) {
         auto time = other->as_time();
         auto integer = m_integer.integer();
-        if (IntegerObject::gt(env, integer, time->m_integer)) {
+        if (IntegerMethods::gt(env, integer, time->m_integer)) {
             return Value::integer(1);
-        } else if (IntegerObject::lt(env, integer, time->m_integer)) {
+        } else if (IntegerMethods::lt(env, integer, time->m_integer)) {
             return Value::integer(-1);
         } else {
             return subsec(env).send(env, "to_r"_s)->as_rational()->cmp(env, time->subsec(env).send(env, "to_r"_s));
@@ -252,7 +252,7 @@ Value TimeObject::to_a(Env *env) const {
 }
 
 Value TimeObject::to_f(Env *env) {
-    Value result = IntegerObject::to_f(m_integer.integer());
+    Value result = IntegerMethods::to_f(m_integer.integer());
     if (m_subsec) {
         result = result->as_float()->add(env, m_subsec->as_rational());
     }

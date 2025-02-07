@@ -299,7 +299,7 @@ Value Zlib_adler32(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 2);
     auto string = args.at(0, new StringObject { "", Encoding::ASCII_8BIT }).to_str(env);
     auto checksum = args.at(1, Value::integer(1)).to_int(env);
-    IntegerObject::assert_fixnum(env, checksum);
+    IntegerMethods::assert_fixnum(env, checksum);
     const nat_int_t result = adler32_z(checksum.to_nat_int_t(), reinterpret_cast<const Bytef *>(string->c_str()), string->bytesize());
     return Value::integer(result);
 }
@@ -310,7 +310,7 @@ Value Zlib_crc32(Env *env, Value self, Args &&args, Block *) {
     if (args.size() < 2) {
         crc = crc32(0L, Z_NULL, 0);
     } else {
-        crc = IntegerObject::convert_to_native_type<long>(env, args.at(1));
+        crc = IntegerMethods::convert_to_native_type<long>(env, args.at(1));
     }
     if (args.size() > 0) {
         Value string = args.at(0);

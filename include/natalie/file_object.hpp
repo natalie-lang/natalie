@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 
 #include "natalie/forward.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include "natalie/io_object.hpp"
 #include "natalie/regexp_object.hpp"
 #include "natalie/string_object.hpp"

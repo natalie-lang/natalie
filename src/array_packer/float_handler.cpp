@@ -1,5 +1,5 @@
 #include "natalie/array_packer/float_handler.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 
 namespace Natalie {
 
