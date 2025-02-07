@@ -224,7 +224,7 @@ Value IntegerObject::pow(Env *env, Integer &self, Value arg) {
 }
 
 Value IntegerObject::powmod(Env *env, Integer &self, Value exponent, Value mod) {
-    if (exponent.is_integer() && IntegerObject::is_negative(exponent.integer()) && mod)
+    if (exponent.is_integer() && exponent.integer().is_negative() && mod)
         env->raise("RangeError", "2nd argument not allowed when first argument is negative");
 
     auto powd = pow(env, self, exponent);
@@ -239,15 +239,7 @@ Value IntegerObject::powmod(Env *env, Integer &self, Value exponent, Value mod) 
     if (modi.is_zero())
         env->raise("ZeroDivisionError", "cannot divide by zero");
 
-    auto powi = powd.integer();
-
-    if (is_bignum(powi))
-        return Integer(to_bigint(powi) % to_bigint(modi));
-
-    if (powi < 0 || modi < 0)
-        return IntegerObject::mod(env, powi, mod);
-
-    return powi % modi;
+    return powd.integer() % modi;
 }
 
 Value IntegerObject::cmp(Env *env, Integer &self, Value arg) {
@@ -269,7 +261,7 @@ Value IntegerObject::cmp(Env *env, Integer &self, Value arg) {
 
     if (lt(env, self, arg)) {
         return Value::integer(-1);
-    } else if (IntegerObject::eq(env, self, arg)) {
+    } else if (eq(env, self, arg)) {
         return Value::integer(0);
     } else {
         return Value::integer(1);
@@ -458,13 +450,13 @@ Value IntegerObject::bitwise_xor(Env *env, Integer &self, Value arg) {
 }
 
 Value IntegerObject::left_shift(Env *env, Integer &self, Value arg) {
-    if (is_zero(self))
+    if (self.is_zero())
         return Value::integer(0);
     auto integer = arg.to_int(env);
-    if (is_bignum(integer)) {
-        if (IntegerObject::is_negative(self) && IntegerObject::is_negative(integer))
+    if (integer.is_bignum()) {
+        if (self.is_negative() && integer.is_negative())
             return Value::integer(-1);
-        else if (IntegerObject::is_negative(integer))
+        else if (integer.is_negative())
             return Value::integer(0);
         else
             env->raise("RangeError", "shift width too big");
@@ -473,7 +465,7 @@ Value IntegerObject::left_shift(Env *env, Integer &self, Value arg) {
     auto nat_int = integer.to_nat_int_t();
 
     if (nat_int < 0)
-        return IntegerObject::right_shift(env, self, Value::integer(-nat_int));
+        return right_shift(env, self, Value::integer(-nat_int));
 
     if (nat_int >= (static_cast<nat_int_t>(1) << 32) || nat_int <= -(static_cast<nat_int_t>(1) << 32))
         env->raise("RangeError", "shift width too big");
@@ -482,11 +474,11 @@ Value IntegerObject::left_shift(Env *env, Integer &self, Value arg) {
 }
 
 Value IntegerObject::right_shift(Env *env, Integer &self, Value arg) {
-    if (is_zero(self))
+    if (self.is_zero())
         return Value::integer(0);
     auto integer = arg.to_int(env);
-    if (is_bignum(integer)) {
-        if (IntegerObject::is_negative(self))
+    if (integer.is_bignum()) {
+        if (self.is_negative())
             return Value::integer(-1);
         else
             return Value::integer(0);
@@ -501,8 +493,8 @@ Value IntegerObject::right_shift(Env *env, Integer &self, Value arg) {
 }
 
 Value IntegerObject::size(Env *env, Integer &self) {
-    if (is_bignum(self)) {
-        const nat_int_t bitstring_size = IntegerObject::to_s(env, self, Value::integer(2))->as_string()->bytesize();
+    if (self.is_bignum()) {
+        const nat_int_t bitstring_size = to_s(env, self, Value::integer(2))->as_string()->bytesize();
         return Value::integer((bitstring_size + 7) / 8);
     }
     return Value::integer(sizeof(nat_int_t));
@@ -569,7 +561,7 @@ Value IntegerObject::gcd(Env *env, Integer &self, Value divisor) {
 Value IntegerObject::chr(Env *env, Integer &self, Value encoding) {
     if (self < 0 || self > (nat_int_t)UINT_MAX)
         env->raise("RangeError", "{} out of char range", self.to_string());
-    else if (is_bignum(self))
+    else if (self.is_bignum())
         env->raise("RangeError", "bignum out of char range");
 
     if (encoding) {
@@ -620,7 +612,7 @@ Value IntegerObject::round(Env *env, Integer &self, Value ndigits, Value half) {
     if (!ndigits)
         return self;
 
-    int digits = IntegerObject::convert_to_int(env, ndigits);
+    int digits = convert_to_int(env, ndigits);
     RoundingMode rounding_mode = rounding_mode_from_value(env, half);
 
     if (digits >= 0)
@@ -663,7 +655,7 @@ Value IntegerObject::truncate(Env *env, Integer &self, Value ndigits) {
     if (!ndigits)
         return self;
 
-    int digits = IntegerObject::convert_to_int(env, ndigits);
+    int digits = convert_to_int(env, ndigits);
 
     if (digits >= 0)
         return self;
@@ -723,7 +715,7 @@ Value IntegerObject::ref(Env *env, Integer &self, Value offset_obj, Value size_o
         return from_offset_and_size(begin, size);
     } else {
         auto offset_integer = offset_obj.to_int(env);
-        if (is_bignum(offset_integer))
+        if (offset_integer.is_bignum())
             return Value::integer(0);
 
         auto offset = offset_integer.to_nat_int_t();
@@ -731,7 +723,7 @@ Value IntegerObject::ref(Env *env, Integer &self, Value offset_obj, Value size_o
         Optional<nat_int_t> size;
         if (size_obj) {
             auto size_integer = size_obj.to_int(env);
-            if (is_bignum(size_integer))
+            if (size_integer.is_bignum())
                 env->raise("RangeError", "shift width too big");
 
             size = size_integer.to_nat_int_t();
