@@ -6,9 +6,9 @@ BSearchCheckResult binary_search_check(Env *env, Value block_result) {
     if (block_result.is_numeric()) {
         if (block_result.is_integer()) {
             auto i = block_result.integer();
-            if (IntegerMethods::is_zero(i))
+            if (i.is_zero())
                 return BSearchCheckResult::EQUAL;
-            else if (IntegerMethods::is_negative(i))
+            else if (i.is_negative())
                 return BSearchCheckResult::SMALLER;
         } else {
             auto f = block_result->as_float();

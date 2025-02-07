@@ -4,7 +4,7 @@
 namespace Natalie {
 
 RationalObject *RationalObject::create(Env *env, Integer numerator, Integer denominator) {
-    if (IntegerMethods::is_zero(denominator))
+    if (denominator.is_zero())
         env->raise("ZeroDivisionError", "divided by 0");
 
     if (denominator.is_negative()) {
@@ -260,7 +260,7 @@ Value RationalObject::to_f(Env *env) {
 }
 
 Value RationalObject::to_i(Env *env) {
-    if (IntegerMethods::is_negative(m_numerator)) {
+    if (m_numerator.is_negative()) {
         auto a = -m_numerator;
         auto b = a / m_denominator;
         return -b;

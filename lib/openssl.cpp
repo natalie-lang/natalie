@@ -1004,7 +1004,7 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
     auto r = kwargs->remove(env, "r"_s).to_int(env);
     auto p = kwargs->remove(env, "p"_s).to_int(env);
     auto length = kwargs->remove(env, "length"_s).to_int(env);
-    if (IntegerMethods::is_negative(length) || IntegerMethods::is_bignum(length))
+    if (length.is_negative() || length.is_bignum())
         env->raise("ArgumentError", "negative string size (or size too big)");
     env->ensure_no_extra_keywords(kwargs);
 

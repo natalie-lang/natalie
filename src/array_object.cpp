@@ -43,7 +43,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
     }
 
     auto size_integer = size.to_int(env);
-    if (IntegerMethods::is_bignum(size_integer))
+    if (size_integer.is_bignum())
         env->raise("ArgumentError", "array size too big");
 
     auto s = size_integer.to_nat_int_t();

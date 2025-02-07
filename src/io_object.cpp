@@ -290,7 +290,7 @@ Value IoObject::read_file(Env *env, Args &&args) {
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     file->set_encoding(env, flags.external_encoding(), flags.internal_encoding());
     if (offset && !offset.is_nil()) {
-        if (offset.is_integer() && IntegerMethods::is_negative(offset.integer()))
+        if (offset.is_integer() && offset.integer().is_negative())
             env->raise("ArgumentError", "negative offset {} given", offset.inspect_str(env));
         file->set_pos(env, offset);
     }
@@ -895,7 +895,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
         return NilObject::the();
     if (byte.is_integer()) {
         nat_int_t value = 0xff;
-        if (!IntegerMethods::is_bignum(byte.integer())) {
+        if (!byte.integer().is_bignum()) {
             value = IntegerMethods::convert_to_nat_int_t(env, byte);
             if (value > 0xff) value = 0xff;
         }
@@ -1011,7 +1011,7 @@ bool IoObject::sync(Env *env) const {
 }
 
 Value IoObject::sysread(Env *env, Value amount, Value buffer) {
-    if (IntegerMethods::is_zero(amount.to_int(env)) && buffer && !buffer.is_nil())
+    if (amount.to_int(env).is_zero() && buffer && !buffer.is_nil())
         return buffer;
     if (!m_read_buffer.is_empty())
         env->raise("IOError", "sysread for buffered IO");

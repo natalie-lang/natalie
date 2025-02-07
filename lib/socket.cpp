@@ -1381,7 +1381,7 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
     if (servname.is_nil() || (servname.is_string() && servname->as_string()->is_empty()))
         service = "0";
     else if (servname.is_integer())
-        service = IntegerMethods::to_s(servname.integer());
+        service = servname.integer().to_string();
     else
         service = servname->as_string_or_raise(env)->string();
 

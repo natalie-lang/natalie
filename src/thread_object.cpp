@@ -498,7 +498,7 @@ Value ThreadObject::priority(Env *env) const {
 // Example code: https://en.cppreference.com/w/cpp/thread/thread/native_handle
 Value ThreadObject::set_priority(Env *env, Value priority) {
     auto priority_int = priority.to_int(env);
-    if (IntegerMethods::is_bignum(priority_int))
+    if (priority_int.is_bignum())
         env->raise("RangeError", "bignum too big to convert into 'long'");
 
     m_priority = priority_int.to_nat_int_t();
