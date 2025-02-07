@@ -25,6 +25,10 @@ size_t test_size_t(size_t arg) {
     return arg;
 }
 
+const char *test_string() {
+    return "string";
+}
+
 typedef enum {
     ENUMTEST_VALUE_A,
     ENUMTEST_VALUE_B,
