@@ -204,8 +204,7 @@ describe "Integer#>> (with n >> m)" do
     end
 
     ruby_bug "#18517", ""..."3.2" do
-      # NATFIXME: Timeout error
-      xit "returns 0 when m < 0 long and n == 0" do
+      it "returns 0 when m < 0 long and n == 0" do
         (0 >> -(2**40)).should == 0
       end
     end
@@ -214,22 +213,24 @@ describe "Integer#>> (with n >> m)" do
       (0 >> -bignum_value).should == 0
     end
 
-    ruby_bug "#18518", ""..."3.4" do
-      # NATFIXME: Timeout error
-      xit "raises NoMemoryError when m < 0 and n != 0" do
-        coerce_long = mock("long")
-        coerce_long.stub!(:to_int).and_return(-(2**40))
-        coerce_bignum = mock("bignum")
-        coerce_bignum.stub!(:to_int).and_return(-bignum_value)
-        exps = [-(2**40), -bignum_value, coerce_long, coerce_bignum]
+    # NATFIXME: Timeout error
+    xit "raises RangeError when m < 0 and n != 0" do
+      # https://bugs.ruby-lang.org/issues/18518#note-9
+      limit = RUBY_ENGINE == 'ruby' ? 2**67 : 2**32
 
-        exps.each { |exp|
-          -> { (1 >> exp) }.should raise_error(NoMemoryError)
-          -> { (-1 >> exp) }.should raise_error(NoMemoryError)
-          -> { (bignum_value >> exp) }.should raise_error(NoMemoryError)
-          -> { (-bignum_value >> exp) }.should raise_error(NoMemoryError)
-        }
-      end
+      coerce_long = mock("long")
+      coerce_long.stub!(:to_int).and_return(-limit)
+      coerce_bignum = mock("bignum")
+      coerce_bignum.stub!(:to_int).and_return(-bignum_value)
+      exps = [-limit, coerce_long]
+      exps << -bignum_value << coerce_bignum if bignum_value >= limit
+
+      exps.each { |exp|
+        -> { (1 >> exp) }.should raise_error(RangeError, 'shift width too big')
+        -> { (-1 >> exp) }.should raise_error(RangeError, 'shift width too big')
+        -> { (bignum_value >> exp) }.should raise_error(RangeError, 'shift width too big')
+        -> { (-bignum_value >> exp) }.should raise_error(RangeError, 'shift width too big')
+      }
     end
   end
 end
