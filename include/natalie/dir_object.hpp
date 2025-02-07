@@ -7,7 +7,7 @@
 #include <sys/types.h>
 
 #include "natalie/forward.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"
 #include "natalie/regexp_object.hpp"

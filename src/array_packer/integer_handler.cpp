@@ -1,5 +1,5 @@
 #include "natalie/array_packer/integer_handler.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 
 namespace Natalie {
 
@@ -268,8 +268,8 @@ namespace ArrayPacker {
 
         TM::Vector<char> bytes {};
         size_t size = 0;
-        if (IntegerObject::is_bignum(m_source)) {
-            auto num = IntegerObject::to_bigint(m_source);
+        if (IntegerMethods::is_bignum(m_source)) {
+            auto num = IntegerMethods::to_bigint(m_source);
             do {
                 bytes[size] = (num & 0x7f).to_long();
                 num = num >> 7;
@@ -293,7 +293,7 @@ namespace ArrayPacker {
     // NOTE: We probably don't need this monster method, but I could not figure out
     // how to pack 'j'/'J' using the modulus trick. ¯\_(ツ)_/¯
     void IntegerHandler::pack_bignum(size_t max_bits) {
-        auto digits = IntegerObject::to_bigint(m_source).to_binary();
+        auto digits = IntegerMethods::to_bigint(m_source).to_binary();
 
         // TODO: support big endian systems
         assert(system_is_little_endian());

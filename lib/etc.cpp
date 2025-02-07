@@ -48,7 +48,7 @@ Value init_etc(Env *env, Value self) {
 
 Value Etc_confstr(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    const int name = IntegerObject::convert_to_nat_int_t(env, args[0]);
+    const int name = IntegerMethods::convert_to_nat_int_t(env, args[0]);
     const auto size = ::confstr(name, nullptr, 0);
     if (size == 0) {
         if (errno)
@@ -83,7 +83,7 @@ Value Etc_getgrgid(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_between(env, 0, 1);
     uid_t uid;
     if (args.size() == 1) {
-        uid = IntegerObject::convert_to_nat_int_t(env, args.at(0));
+        uid = IntegerMethods::convert_to_nat_int_t(env, args.at(0));
     } else {
         uid = ::getgid();
     }
@@ -134,7 +134,7 @@ Value Etc_getpwuid(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_between(env, 0, 1);
     uid_t uid;
     if (args.size() == 1) {
-        uid = IntegerObject::convert_to_nat_int_t(env, args.at(0));
+        uid = IntegerMethods::convert_to_nat_int_t(env, args.at(0));
     } else {
         uid = ::getuid();
     }
@@ -164,7 +164,7 @@ Value Etc_setpwent(Env *env, Value self, Args &&args, Block *_block) {
 
 Value Etc_sysconf(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 1);
-    nat_int_t nameval = IntegerObject::convert_to_nat_int_t(env, args.at(0));
+    nat_int_t nameval = IntegerMethods::convert_to_nat_int_t(env, args.at(0));
     errno = 0;
     long status = ::sysconf(nameval);
     if (status < 0) {

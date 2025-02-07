@@ -226,7 +226,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             arg_values[i].double_ = double_;
             arg_pointers[i] = &(arg_values[i].double_);
         } else if (type == int_sym) {
-            auto sint = IntegerObject::convert_to_native_type<int>(env, val);
+            auto sint = IntegerMethods::convert_to_native_type<int>(env, val);
             arg_values[i].sint = sint;
             arg_pointers[i] = &(arg_values[i].sint);
         } else {
@@ -355,8 +355,8 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
 Value FFI_AbstractMemory_put_int8(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 2);
 
-    auto offset = IntegerObject::convert_to_native_type<size_t>(env, args.at(0));
-    auto value = IntegerObject::convert_to_native_type<int8_t>(env, args.at(1));
+    auto offset = IntegerMethods::convert_to_native_type<size_t>(env, args.at(0));
+    auto value = IntegerMethods::convert_to_native_type<int8_t>(env, args.at(1));
 
     auto address = (int8_t *)self->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
     address[offset] = value;
@@ -395,7 +395,7 @@ Value FFI_Pointer_write_string(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
 
     auto str = args.at(0)->as_string_or_raise(env);
-    auto length = args.size() > 1 ? IntegerObject::convert_to_native_type<size_t>(env, args.at(0)) : str->bytesize();
+    auto length = args.size() > 1 ? IntegerMethods::convert_to_native_type<size_t>(env, args.at(0)) : str->bytesize();
 
     auto address = (void *)self.send(env, "address"_s).integer_or_raise(env).to_nat_int_t();
     memcpy(address, str->c_str(), length);
@@ -431,12 +431,12 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args &&args, Block *blo
             env->raise("TypeError", "unknown size argument for FFI#initialize: {}", args.at(0).inspect_str(env));
         }
     } else {
-        size = IntegerObject::convert_to_native_type<size_t>(env, args.at(0));
+        size = IntegerMethods::convert_to_native_type<size_t>(env, args.at(0));
     }
 
     size_t count = 1;
     if (args.size() > 1)
-        count = IntegerObject::convert_to_native_type<size_t>(env, args.at(1));
+        count = IntegerMethods::convert_to_native_type<size_t>(env, args.at(1));
 
     self->ivar_set(env, "@size"_s, Value::integer(size * count));
 

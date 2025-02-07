@@ -1,5 +1,5 @@
 #include "natalie.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include "string.h"
 
 #include <math.h>
@@ -297,7 +297,7 @@ Value FloatObject::div(Env *env, Value rhs) {
 Value FloatObject::mod(Env *env, Value rhs) {
     Value lhs = this;
 
-    bool rhs_is_non_zero = (rhs.is_float() && !rhs->as_float()->is_zero()) || (rhs.is_integer() && !IntegerObject::is_zero(rhs.integer()));
+    bool rhs_is_non_zero = (rhs.is_float() && !rhs->as_float()->is_zero()) || (rhs.is_integer() && !IntegerMethods::is_zero(rhs.integer()));
 
     if (rhs.is_float() && rhs->as_float()->is_negative_infinity()) return new FloatObject { rhs->as_float()->to_double() };
     if (is_negative_zero() && rhs_is_non_zero) return new FloatObject { m_double };
@@ -331,7 +331,7 @@ Value FloatObject::divmod(Env *env, Value arg) {
     if (!arg.is_numeric()) env->raise("TypeError", "{} can't be coerced into Float", arg.klass()->inspect_str());
     if (arg.is_float() && arg->as_float()->is_nan()) env->raise("FloatDomainError", "NaN");
     if (arg.is_float() && arg->as_float()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
-    if (arg.is_integer() && IntegerObject::is_zero(arg.integer())) env->raise("ZeroDivisionError", "divided by 0");
+    if (arg.is_integer() && IntegerMethods::is_zero(arg.integer())) env->raise("ZeroDivisionError", "divided by 0");
 
     Value division = div(env, arg);
     Value modulus = mod(env, arg);

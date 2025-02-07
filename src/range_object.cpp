@@ -1,6 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/bsearch.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 
 namespace Natalie {
 
@@ -186,7 +186,7 @@ Value RangeObject::first(Env *env, Value n) {
         env->raise("RangeError", "cannot get the first element of beginless range");
     }
     if (n) {
-        nat_int_t count = IntegerObject::convert_to_nat_int_t(env, n);
+        nat_int_t count = IntegerMethods::convert_to_nat_int_t(env, n);
         if (count < 0) {
             env->raise("ArgumentError", "negative array size (or size too big)");
             return nullptr;
@@ -315,9 +315,9 @@ bool RangeObject::include(Env *env, Value arg) {
     } else if ((m_begin.is_nil() || m_begin.is_numeric()) && (m_end.is_nil() || m_end.is_numeric())) {
         return send(env, "cover?"_s, { arg }).is_truthy();
     } else if (m_begin.is_time() || m_end.is_time()) {
-        if (m_begin.is_nil() || IntegerObject::lte(env, m_begin->as_time()->cmp(env, arg).integer(), Value::integer(0))) {
+        if (m_begin.is_nil() || IntegerMethods::lte(env, m_begin->as_time()->cmp(env, arg).integer(), Value::integer(0))) {
             Value integer = Value::integer(m_exclude_end ? -1 : 0);
-            if (m_end.is_nil() || IntegerObject::lte(env, arg->as_time()->cmp(env, m_end).integer(), integer))
+            if (m_end.is_nil() || IntegerMethods::lte(env, arg->as_time()->cmp(env, m_end).integer(), integer))
                 return true;
         }
         return false;

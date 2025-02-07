@@ -99,7 +99,7 @@ Value MatchDataObject::group(int index) const {
 }
 
 Value MatchDataObject::offset(Env *env, Value n) {
-    nat_int_t index = IntegerObject::convert_to_nat_int_t(env, n);
+    nat_int_t index = IntegerMethods::convert_to_nat_int_t(env, n);
     if (index >= (nat_int_t)size())
         return NilObject::the();
 
@@ -142,7 +142,7 @@ Value MatchDataObject::begin(Env *env, Value start) const {
     }
     if (group(index).is_nil())
         return NilObject::the();
-    return IntegerObject::from_ssize_t(env, beg_char_index(env, (size_t)index));
+    return IntegerMethods::from_ssize_t(env, beg_char_index(env, (size_t)index));
 }
 
 Value MatchDataObject::captures(Env *env) {
@@ -161,7 +161,7 @@ Value MatchDataObject::end(Env *env, Value end) const {
         env->raise("IndexError", "bad index");
     if (group(index).is_nil())
         return NilObject::the();
-    return IntegerObject::from_ssize_t(env, end_char_index(env, (size_t)index));
+    return IntegerMethods::from_ssize_t(env, end_char_index(env, (size_t)index));
 }
 
 Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
@@ -242,7 +242,7 @@ Value MatchDataObject::match(Env *env, Value index) {
 
         return group(backref_number);
     }
-    auto match = this->group(IntegerObject::convert_to_int(env, index));
+    auto match = this->group(IntegerMethods::convert_to_int(env, index));
     if (match.is_nil()) {
         return NilObject::the();
     }
@@ -370,8 +370,8 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
     }
     if (index_value.is_range()) {
         auto range = index_value->as_range();
-        const nat_int_t first = range->begin().is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, range->begin());
-        nat_int_t last = range->end().is_nil() ? size() - 1 : IntegerObject::convert_to_nat_int_t(env, range->end());
+        const nat_int_t first = range->begin().is_nil() ? 0 : IntegerMethods::convert_to_nat_int_t(env, range->begin());
+        nat_int_t last = range->end().is_nil() ? size() - 1 : IntegerMethods::convert_to_nat_int_t(env, range->end());
         if (last < 0)
             last += size();
         if (range->exclude_end())
@@ -392,14 +392,14 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
     if (index_value.is_integer()) {
         index = index_value.integer().to_nat_int_t();
     } else {
-        index = IntegerObject::convert_to_nat_int_t(env, index_value);
+        index = IntegerMethods::convert_to_nat_int_t(env, index_value);
     }
     if (size_value && !size_value.is_nil()) {
         nat_int_t size;
         if (size_value.is_integer()) {
             size = size_value.integer().to_nat_int_t();
         } else {
-            size = IntegerObject::convert_to_nat_int_t(env, size_value);
+            size = IntegerMethods::convert_to_nat_int_t(env, size_value);
         }
 
         if (size < 0)

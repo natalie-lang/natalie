@@ -46,7 +46,7 @@ Value FileObject::initialize(Env *env, Args &&args, Block *block) {
     const auto modenum = ioutil::perm_to_mode(env, perm);
 
     if (filename.is_integer()) { // passing in a number uses fd number
-        int fileno = IntegerObject::convert_to_int(env, filename);
+        int fileno = IntegerMethods::convert_to_int(env, filename);
         String flags_str = String('r');
         if (flags_obj) {
             flags_obj.assert_type(env, Object::Type::String, "String");
@@ -172,7 +172,7 @@ Value FileObject::expand_path(Env *env, Value path, Value root) {
 }
 
 Value FileObject::flock(Env *env, Value locking_constant) {
-    const auto locking_constant_int = IntegerObject::convert_to_nat_int_t(env, locking_constant);
+    const auto locking_constant_int = IntegerMethods::convert_to_nat_int_t(env, locking_constant);
     if (::flock(fileno(env), locking_constant_int) < 0) {
         if (errno == EWOULDBLOCK)
             return FalseObject::the();
@@ -498,7 +498,7 @@ Value FileObject::chmod(Env *env, Args &&args) {
     // requires mode argument, file arguments are optional
     args.ensure_argc_at_least(env, 1);
     auto mode = args[0];
-    mode_t modenum = IntegerObject::convert_to_int(env, mode);
+    mode_t modenum = IntegerMethods::convert_to_int(env, mode);
     for (size_t i = 1; i < args.size(); ++i) {
         auto path = ioutil::convert_using_to_path(env, args[i]);
         int result = ::chmod(path->as_string()->c_str(), modenum);
@@ -513,8 +513,8 @@ Value FileObject::chown(Env *env, Args &&args) {
     args.ensure_argc_at_least(env, 2);
     auto uid = args.at(0);
     auto gid = args.at(1);
-    uid_t uidnum = IntegerObject::convert_to_uid(env, uid);
-    gid_t gidnum = IntegerObject::convert_to_gid(env, gid);
+    uid_t uidnum = IntegerMethods::convert_to_uid(env, uid);
+    gid_t gidnum = IntegerMethods::convert_to_gid(env, gid);
     for (size_t i = 2; i < args.size(); ++i) {
         auto path = ioutil::convert_using_to_path(env, args[i]);
         int result = ::chown(path->as_string()->c_str(), uidnum, gidnum);
@@ -526,7 +526,7 @@ Value FileObject::chown(Env *env, Args &&args) {
 
 // Instance method (single arg)
 Value FileObject::chmod(Env *env, Value mode) {
-    mode_t modenum = IntegerObject::convert_to_int(env, mode);
+    mode_t modenum = IntegerMethods::convert_to_int(env, mode);
     auto file_desc = fileno(); // current file descriptor
     int result = ::fchmod(file_desc, modenum);
     if (result < 0) env->raise_errno();
@@ -535,8 +535,8 @@ Value FileObject::chmod(Env *env, Value mode) {
 
 // Instance method (two args)
 Value FileObject::chown(Env *env, Value uid, Value gid) {
-    uid_t uidnum = IntegerObject::convert_to_uid(env, uid);
-    gid_t gidnum = IntegerObject::convert_to_gid(env, gid);
+    uid_t uidnum = IntegerMethods::convert_to_uid(env, uid);
+    gid_t gidnum = IntegerMethods::convert_to_gid(env, gid);
     auto file_desc = fileno(); // current file descriptor
     int result = ::fchown(file_desc, uidnum, gidnum);
     if (result < 0) env->raise_errno();
@@ -575,7 +575,7 @@ Value FileObject::ftype(Env *env, Value path) {
 Value FileObject::umask(Env *env, Value mask) {
     mode_t old_mask = 0;
     if (mask) {
-        mode_t mask_mode = IntegerObject::convert_to_int(env, mask);
+        mode_t mask_mode = IntegerMethods::convert_to_int(env, mask);
         old_mask = ::umask(mask_mode);
     } else {
         old_mask = ::umask(0);
@@ -646,7 +646,7 @@ Value FileObject::lutime(Env *env, Args &&args) {
             t.tv_sec = static_cast<time_t>(v->as_time()->to_i(env).integer().to_nat_int_t());
             t.tv_usec = static_cast<suseconds_t>(v->as_time()->usec(env).integer().to_nat_int_t());
         } else if (v.is_integer()) {
-            t.tv_sec = IntegerObject::convert_to_native_type<time_t>(env, v);
+            t.tv_sec = IntegerMethods::convert_to_native_type<time_t>(env, v);
             t.tv_usec = 0;
         } else if (v.is_float()) {
             const auto tmp = v.to_f(env)->to_double();
@@ -668,14 +668,14 @@ Value FileObject::lutime(Env *env, Args &&args) {
 
 int FileObject::truncate(Env *env, Value path, Value size) {
     path = ioutil::convert_using_to_path(env, path);
-    off_t len = IntegerObject::convert_to_int(env, size);
+    off_t len = IntegerMethods::convert_to_int(env, size);
     if (::truncate(path->as_string()->c_str(), len) == -1) {
         env->raise_errno();
     }
     return 0;
 }
 int FileObject::truncate(Env *env, Value size) const { // instance method
-    off_t len = IntegerObject::convert_to_int(env, size);
+    off_t len = IntegerMethods::convert_to_int(env, size);
     if (::ftruncate(fileno(), len) == -1) {
         env->raise_errno();
     }

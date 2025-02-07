@@ -246,7 +246,7 @@ namespace ioutil {
 
     mode_t perm_to_mode(Env *env, Value perm) {
         if (perm && !perm.is_nil())
-            return IntegerObject::convert_to_int(env, perm);
+            return IntegerMethods::convert_to_int(env, perm);
         else
             return S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; // 0660 default
     }

@@ -1,6 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/bsearch.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include <algorithm>
 #include <math.h>
 #include <natalie/array_object.hpp>
@@ -43,7 +43,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
     }
 
     auto size_integer = size.to_int(env);
-    if (IntegerObject::is_bignum(size_integer))
+    if (IntegerMethods::is_bignum(size_integer))
         env->raise("ArgumentError", "array size too big");
 
     auto s = size_integer.to_nat_int_t();
@@ -246,7 +246,7 @@ Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
             index_obj = index_obj.send(env, "to_int"_s);
 
         if (index_obj.is_integer()) {
-            IntegerObject::assert_fixnum(env, index_obj.integer());
+            IntegerMethods::assert_fixnum(env, index_obj.integer());
 
             auto index = _resolve_index(index_obj.integer().to_nat_int_t());
             if (index < 0 || index >= (nat_int_t)m_vector.size())
@@ -273,7 +273,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
         if (begin_obj.is_nil()) {
             start = 0;
         } else {
-            start = IntegerObject::convert_to_nat_int_t(env, begin_obj);
+            start = IntegerMethods::convert_to_nat_int_t(env, begin_obj);
             if (start < 0) {
                 if ((size_t)(-start) > this->size()) {
                     env->raise("RangeError", "{} out of range", range->inspect_str(env));
@@ -287,7 +287,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
         if (end_obj.is_nil()) {
             end = this->size();
         } else {
-            end = IntegerObject::convert_to_nat_int_t(env, end_obj);
+            end = IntegerMethods::convert_to_nat_int_t(env, end_obj);
             if (end < 0) {
                 end = this->size() + end;
             }
@@ -301,7 +301,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
             width = this->size() - start;
         }
     } else {
-        start = IntegerObject::convert_to_nat_int_t(env, index_obj);
+        start = IntegerMethods::convert_to_nat_int_t(env, index_obj);
         if (start < 0) {
             if ((size_t)(-start) > this->size()) {
                 env->raise("IndexError", "index {} too small for array; minimum: -{}", start, this->size());
@@ -321,7 +321,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
             return val;
         }
 
-        width = IntegerObject::convert_to_nat_int_t(env, size);
+        width = IntegerMethods::convert_to_nat_int_t(env, size);
         if (width < 0) {
             env->raise("IndexError", "negative length ({})", width);
             return nullptr;
@@ -524,7 +524,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
         if (!length_obj && start_obj.is_range()) {
             Value begin = start_obj->as_range()->begin();
             if (!begin.is_nil()) {
-                start = IntegerObject::convert_to_nat_int_t(env, begin);
+                start = IntegerMethods::convert_to_nat_int_t(env, begin);
 
                 if (start < 0)
                     start += size();
@@ -535,7 +535,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
             auto end = start_obj->as_range()->end();
 
             if (!end.is_nil()) {
-                max = IntegerObject::convert_to_nat_int_t(env, end);
+                max = IntegerMethods::convert_to_nat_int_t(env, end);
 
                 if (max < 0)
                     max += size();
@@ -543,7 +543,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
                     ++max;
             }
         } else {
-            start = IntegerObject::convert_to_nat_int_t(env, start_obj);
+            start = IntegerMethods::convert_to_nat_int_t(env, start_obj);
 
             if (start < 0)
                 start += size();
@@ -551,7 +551,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
                 start = 0;
 
             if (length_obj && !length_obj.is_nil()) {
-                auto length = IntegerObject::convert_to_nat_int_t(env, length_obj);
+                auto length = IntegerMethods::convert_to_nat_int_t(env, length_obj);
 
                 if (length <= 0)
                     return this;
@@ -588,7 +588,7 @@ Value ArrayObject::first(Env *env, Value n) {
         return (*this)[0];
     }
 
-    nat_int_t n_value = IntegerObject::convert_to_nat_int_t(env, n);
+    nat_int_t n_value = IntegerMethods::convert_to_nat_int_t(env, n);
 
     if (n_value < 0) {
         env->raise("ArgumentError", "negative array size");
@@ -615,7 +615,7 @@ Value ArrayObject::flatten_in_place(Env *env, Value depth) {
 
     auto has_depth = depth != nullptr;
     if (has_depth) {
-        auto depth_value = IntegerObject::convert_to_nat_int_t(env, depth);
+        auto depth_value = IntegerMethods::convert_to_nat_int_t(env, depth);
         changed = _flatten_in_place(env, depth_value);
     } else {
         changed = _flatten_in_place(env, -1);
@@ -681,7 +681,7 @@ bool ArrayObject::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayObje
 Value ArrayObject::delete_at(Env *env, Value n) {
     this->assert_not_frozen(env);
 
-    auto nat_resolved_index = _resolve_index(IntegerObject::convert_to_nat_int_t(env, n));
+    auto nat_resolved_index = _resolve_index(IntegerMethods::convert_to_nat_int_t(env, n));
     if (nat_resolved_index < 0)
         return NilObject::the();
 
@@ -768,7 +768,7 @@ Value ArrayObject::dig(Env *env, Args &&args) {
 }
 
 Value ArrayObject::drop(Env *env, Value n) {
-    auto n_value = IntegerObject::convert_to_nat_int_t(env, n);
+    auto n_value = IntegerMethods::convert_to_nat_int_t(env, n);
 
     if (n_value < 0) {
         env->raise("ArgumentError", "attempt to drop negative size");
@@ -808,7 +808,7 @@ Value ArrayObject::last(Env *env, Value n) {
         return (*this)[size() - 1];
     }
 
-    auto n_value = IntegerObject::convert_to_nat_int_t(env, n);
+    auto n_value = IntegerMethods::convert_to_nat_int_t(env, n);
 
     if (n_value < 0) {
         env->raise("ArgumentError", "negative array size");
@@ -851,7 +851,7 @@ Value ArrayObject::shift(Env *env, Value count) {
     size_t shift_count = 1;
     Value result = nullptr;
     if (has_count) {
-        auto count_signed = IntegerObject::convert_to_nat_int_t(env, count);
+        auto count_signed = IntegerMethods::convert_to_nat_int_t(env, count);
 
         if (count_signed < 0)
             env->raise("ArgumentError", "negative array size");
@@ -1020,7 +1020,7 @@ Value ArrayObject::pop(Env *env, Value count) {
     this->assert_not_frozen(env);
 
     if (count) {
-        auto c = IntegerObject::convert_to_nat_int_t(env, count);
+        auto c = IntegerMethods::convert_to_nat_int_t(env, count);
 
         if (c < 0)
             env->raise("ArgumentError", "negative array size");
@@ -1220,7 +1220,7 @@ Value ArrayObject::max(Env *env, Value count, Block *block) {
                 item.klass()->inspect_str(),
                 min.klass()->inspect_str());
 
-        auto nat_int = IntegerObject::convert_to_nat_int_t(env, compare);
+        auto nat_int = IntegerMethods::convert_to_nat_int_t(env, compare);
         return nat_int > 0;
     };
 
@@ -1230,7 +1230,7 @@ Value ArrayObject::max(Env *env, Value count, Block *block) {
     if (has_implicit_count) {
         c = 1;
     } else {
-        auto c_nat_int = IntegerObject::convert_to_nat_int_t(env, count);
+        auto c_nat_int = IntegerMethods::convert_to_nat_int_t(env, count);
         if (c_nat_int < 0)
             env->raise("ArgumentError", "negative size ({})", c_nat_int);
 
@@ -1270,7 +1270,7 @@ Value ArrayObject::min(Env *env, Value count, Block *block) {
                 item.klass()->inspect_str(),
                 min.klass()->inspect_str());
 
-        auto nat_int = IntegerObject::convert_to_nat_int_t(env, compare);
+        auto nat_int = IntegerMethods::convert_to_nat_int_t(env, compare);
         return nat_int < 0;
     };
 
@@ -1280,7 +1280,7 @@ Value ArrayObject::min(Env *env, Value count, Block *block) {
     if (has_implicit_count) {
         c = 1;
     } else {
-        auto c_nat_int = IntegerObject::convert_to_nat_int_t(env, count);
+        auto c_nat_int = IntegerMethods::convert_to_nat_int_t(env, count);
         if (c_nat_int < 0)
             env->raise("ArgumentError", "negative size ({})", c_nat_int);
 
@@ -1320,7 +1320,7 @@ Value ArrayObject::minmax(Env *env, Block *block) {
                 item.klass()->inspect_str(),
                 min.klass()->inspect_str());
 
-        auto nat_int = IntegerObject::convert_to_nat_int_t(env, compare);
+        auto nat_int = IntegerMethods::convert_to_nat_int_t(env, compare);
         return nat_int;
     };
 
@@ -1344,7 +1344,7 @@ Value ArrayObject::multiply(Env *env, Value factor) {
         return join(env, factor);
     }
 
-    auto times = IntegerObject::convert_to_nat_int_t(env, factor);
+    auto times = IntegerMethods::convert_to_nat_int_t(env, factor);
     if (times < 0)
         env->raise("ArgumentError", "negative argument");
 
@@ -1516,7 +1516,7 @@ Value ArrayObject::hash(Env *env) {
             if (item.is_array() && size() == item->as_array()->size() && eql(env, item))
                 continue;
 
-            auto nat_int = IntegerObject::convert_to_nat_int_t(env, item_hash);
+            auto nat_int = IntegerMethods::convert_to_nat_int_t(env, item_hash);
             hash.append(nat_int);
         }
 
@@ -1532,7 +1532,7 @@ Value ArrayObject::insert(Env *env, Args &&args) {
 
     auto index_ptr = args[0];
 
-    auto index = IntegerObject::convert_to_nat_int_t(env, index_ptr);
+    auto index = IntegerMethods::convert_to_nat_int_t(env, index_ptr);
     auto should_append = index < 0;
 
     if (index < 0)
@@ -1732,7 +1732,7 @@ Value ArrayObject::rindex(Env *env, Value object, Block *block) {
 
 Value ArrayObject::fetch(Env *env, Value arg_index, Value default_value, Block *block) {
     Value value;
-    auto index_val = IntegerObject::convert_to_nat_int_t(env, arg_index);
+    auto index_val = IntegerMethods::convert_to_nat_int_t(env, arg_index);
     auto index = _resolve_index(index_val);
     if (index < 0) {
         if (block) {
@@ -1849,7 +1849,7 @@ Value ArrayObject::rotate_in_place(Env *env, Value val) {
     assert_not_frozen(env);
     nat_int_t count = 1;
     if (val) {
-        count = IntegerObject::convert_to_nat_int_t(env, val);
+        count = IntegerMethods::convert_to_nat_int_t(env, val);
     }
 
     if (size() == 0) {
@@ -1893,11 +1893,11 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         index_obj = index_obj.to_int(env);
         size = size.to_int(env);
 
-        IntegerObject::assert_fixnum(env, size.integer());
+        IntegerMethods::assert_fixnum(env, size.integer());
     }
 
     if (index_obj.is_integer()) {
-        IntegerObject::assert_fixnum(env, index_obj.integer());
+        IntegerMethods::assert_fixnum(env, index_obj.integer());
 
         auto start = index_obj.integer().to_nat_int_t();
 
@@ -1938,7 +1938,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         if (begin_obj.is_nil()) {
             start = 0;
         } else {
-            start = IntegerObject::convert_to_nat_int_t(env, begin_obj);
+            start = IntegerMethods::convert_to_nat_int_t(env, begin_obj);
         }
 
         Value end_obj = range->end();
@@ -1948,7 +1948,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         if (end_obj.is_nil()) {
             end = this->size();
         } else {
-            end = IntegerObject::convert_to_nat_int_t(env, end_obj);
+            end = IntegerMethods::convert_to_nat_int_t(env, end_obj);
         }
 
         return _slice_in_place(start, end, range->exclude_end());
@@ -1957,11 +1957,11 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
     if (index_obj.is_enumerator_arithmetic_sequence()) {
         auto seq = index_obj->as_enumerator_arithmetic_sequence();
         Vector<Value> result {};
-        const auto step = IntegerObject::convert_to_nat_int_t(env, seq->step());
+        const auto step = IntegerMethods::convert_to_nat_int_t(env, seq->step());
         if (step > 0) {
-            nat_int_t idx = seq->begin().is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->begin());
+            nat_int_t idx = seq->begin().is_nil() ? 0 : IntegerMethods::convert_to_nat_int_t(env, seq->begin());
             if (idx < 0) idx = this->size() + idx;
-            nat_int_t end = seq->end().is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->end());
+            nat_int_t end = seq->end().is_nil() ? this->size() : IntegerMethods::convert_to_nat_int_t(env, seq->end());
             if (end < 0) end = this->size() + end;
             if (seq->exclude_end()) end--;
             while (idx <= end && static_cast<size_t>(idx) < this->size()) {
@@ -1969,8 +1969,8 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
                 idx += step;
             }
         } else {
-            const nat_int_t begin = seq->end().is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->end());
-            nat_int_t idx = seq->begin().is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->begin());
+            const nat_int_t begin = seq->end().is_nil() ? 0 : IntegerMethods::convert_to_nat_int_t(env, seq->end());
+            nat_int_t idx = seq->begin().is_nil() ? this->size() : IntegerMethods::convert_to_nat_int_t(env, seq->begin());
             if (begin < 0 && idx != 0) {
                 idx = -1; // break early
             } else {
@@ -2085,7 +2085,7 @@ Value ArrayObject::values_at(Env *env, Args &&args) {
             if (begin_value.is_nil()) {
                 begin = 0;
             } else {
-                begin = IntegerObject::convert_to_nat_int_t(env, begin_value);
+                begin = IntegerMethods::convert_to_nat_int_t(env, begin_value);
                 if (begin < -1 * (nat_int_t)(this->size())) {
                     env->raise("RangeError", "{} out of range", arg->as_range()->inspect_str(env));
                 }
@@ -2096,7 +2096,7 @@ Value ArrayObject::values_at(Env *env, Args &&args) {
             if (end_value.is_nil()) {
                 end = size();
             } else {
-                end = IntegerObject::convert_to_nat_int_t(env, end_value);
+                end = IntegerMethods::convert_to_nat_int_t(env, end_value);
                 if (!arg->as_range()->exclude_end())
                     end += 1;
                 if (end < 0)
@@ -2108,7 +2108,7 @@ Value ArrayObject::values_at(Env *env, Args &&args) {
             for (nat_int_t j = begin; j < end; ++j)
                 indices.push(j);
         } else {
-            indices.push(IntegerObject::convert_to_nat_int_t(env, arg));
+            indices.push(IntegerMethods::convert_to_nat_int_t(env, arg));
         }
     }
 

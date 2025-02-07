@@ -2,7 +2,7 @@
 #include "ctype.h"
 #include "natalie.hpp"
 #include "natalie/crypt.h"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include "natalie/nil_object.hpp"
 #include "natalie/string_unpacker.hpp"
 #include "string.h"
@@ -746,7 +746,7 @@ static Value byteindex_string_needle(Env *env, const StringObject *haystack, Str
 Value StringObject::byteindex(Env *env, Value needle_obj, Value offset_obj) const {
     ssize_t offset = 0;
     if (offset_obj)
-        offset = IntegerObject::convert_to_native_type<ssize_t>(env, offset_obj);
+        offset = IntegerMethods::convert_to_native_type<ssize_t>(env, offset_obj);
     if (offset < 0)
         offset += bytesize();
     if (offset < 0 || (size_t)offset > bytesize())
@@ -762,7 +762,7 @@ Value StringObject::byteindex(Env *env, Value needle_obj, Value offset_obj) cons
 Value StringObject::byterindex(Env *env, Value needle_obj, Value offset_obj) const {
     ssize_t offset = bytesize();
     if (offset_obj)
-        offset = IntegerObject::convert_to_native_type<ssize_t>(env, offset_obj);
+        offset = IntegerMethods::convert_to_native_type<ssize_t>(env, offset_obj);
     if (offset < 0)
         offset += bytesize();
     if (offset < 0)
@@ -777,7 +777,7 @@ Value StringObject::byterindex(Env *env, Value needle_obj, Value offset_obj) con
 }
 
 Value StringObject::index(Env *env, Value needle, Value offset) {
-    int offset_i = (offset) ? IntegerObject::convert_to_int(env, offset) : 0;
+    int offset_i = (offset) ? IntegerMethods::convert_to_int(env, offset) : 0;
     int len = char_count(env);
     if (offset_i < -1 * len) {
         // extremely negative offset larger than string length returns nil
@@ -797,7 +797,7 @@ Value StringObject::index(Env *env, Value needle, size_t start) {
     if (byte_index == -1)
         return NilObject::the();
     auto char_index = byte_index_to_char_index(byte_index);
-    return IntegerObject::from_size_t(env, char_index);
+    return IntegerMethods::from_size_t(env, char_index);
 }
 
 nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
@@ -849,7 +849,7 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
 
 Value StringObject::rindex(Env *env, Value needle, Value offset) const {
     int len = char_count(env);
-    int offset_i = (offset) ? IntegerObject::convert_to_int(env, offset) : len;
+    int offset_i = (offset) ? IntegerMethods::convert_to_int(env, offset) : len;
     if (offset_i < -1 * len) {
         // extremely negative offset larger than string length returns nil
         return NilObject::the();
@@ -870,7 +870,7 @@ Value StringObject::rindex(Env *env, Value needle, size_t start) const {
     if (byte_index == -1)
         return NilObject::the();
     auto char_index = byte_index_to_char_index(byte_index);
-    return IntegerObject::from_size_t(env, char_index);
+    return IntegerMethods::from_size_t(env, char_index);
 }
 
 nat_int_t StringObject::rindex_int(Env *env, Value needle, size_t byte_start) const {
@@ -940,7 +940,7 @@ Value StringObject::initialize(Env *env, Value arg, Value encoding, Value capaci
         force_encoding(env, encoding);
     }
     if (capacity) {
-        const auto cap = IntegerObject::convert_to_native_type<size_t>(env, capacity);
+        const auto cap = IntegerMethods::convert_to_native_type<size_t>(env, capacity);
         m_string.set_capacity(cap);
     }
     return this;
@@ -990,7 +990,7 @@ Value StringObject::mul(Env *env, Value arg) const {
     if (int_arg.is_negative())
         env->raise("ArgumentError", "negative argument");
 
-    auto nat_int = IntegerObject::convert_to_nat_int_t(env, int_arg);
+    auto nat_int = IntegerMethods::convert_to_nat_int_t(env, int_arg);
     if (nat_int && (std::numeric_limits<size_t>::max() / nat_int) < length())
         env->raise("ArgumentError", "argument too big");
 
@@ -1022,7 +1022,7 @@ Value StringObject::cmp(Env *env, Value other) {
             return negative_cmp;
         }
         auto i = negative_cmp.to_int(env);
-        return IntegerObject::negate(env, i);
+        return IntegerMethods::negate(env, i);
     } else {
         return NilObject::the();
     }
@@ -1061,11 +1061,11 @@ Value StringObject::concat(Env *env, Args &&args) {
         StringObject *str_obj;
         if (arg.is_string()) {
             str_obj = arg->as_string();
-        } else if (arg.is_integer() && IntegerObject::is_negative(arg.integer())) {
-            env->raise("RangeError", "{} out of char range", IntegerObject::to_s(env, arg.integer())->as_string()->string());
+        } else if (arg.is_integer() && IntegerMethods::is_negative(arg.integer())) {
+            env->raise("RangeError", "{} out of char range", IntegerMethods::to_s(env, arg.integer())->as_string()->string());
         } else if (arg.is_integer()) {
             // Special case: US-ASCII << (128..255) will change the string to binary
-            if (m_encoding == EncodingObject::get(Encoding::US_ASCII) && IntegerObject::is_fixnum(arg.integer())) {
+            if (m_encoding == EncodingObject::get(Encoding::US_ASCII) && IntegerMethods::is_fixnum(arg.integer())) {
                 const auto nat_int = arg.integer();
                 if (nat_int >= 128 && nat_int <= 255)
                     m_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
@@ -1213,7 +1213,7 @@ Value StringObject::prepend(Env *env, Args &&args) {
         if (arg.is_string()) {
             str_obj = arg->as_string();
         } else if (arg.is_integer() && arg.integer() < 0) {
-            env->raise("RangeError", "{} out of char range", IntegerObject::to_s(env, arg.integer())->as_string()->string());
+            env->raise("RangeError", "{} out of char range", IntegerMethods::to_s(env, arg.integer())->as_string()->string());
         } else if (arg.is_integer()) {
             str_obj = arg.send(env, "chr"_s, { m_encoding.ptr() })->as_string();
         } else {
@@ -1334,8 +1334,8 @@ Value StringObject::scan(Env *env, Value pattern, Block *block) {
 Value StringObject::setbyte(Env *env, Value index_obj, Value value_obj) {
     assert_not_frozen(env);
 
-    nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
-    nat_int_t value = IntegerObject::convert_to_nat_int_t(env, value_obj);
+    nat_int_t index = IntegerMethods::convert_to_nat_int_t(env, index_obj);
+    nat_int_t value = IntegerMethods::convert_to_nat_int_t(env, value_obj);
     nat_int_t length = static_cast<nat_int_t>(m_string.length());
     nat_int_t index_original = index;
 
@@ -1356,7 +1356,7 @@ Value StringObject::setbyte(Env *env, Value index_obj, Value value_obj) {
 }
 
 Value StringObject::size(Env *env) const {
-    return IntegerObject::from_size_t(env, char_count(env));
+    return IntegerMethods::from_size_t(env, char_count(env));
 }
 
 Value StringObject::encode(Env *env, Value dst_encoding, Value src_encoding, HashObject *kwargs) {
@@ -1590,7 +1590,7 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
             // we attempt to convert it into an integer _before_ we return nil
             // if there we no match result.
             if (!length_obj.is_string())
-                IntegerObject::convert_to_nat_int_t(env, length_obj);
+                IntegerMethods::convert_to_nat_int_t(env, length_obj);
 
             // If the match failed, return nil. Note that this must happen after
             // the implicit conversion of the index argument to an integer.
@@ -1603,11 +1603,11 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
         } else {
             // First, attempt to convert the index object into an integer, and
             // make sure it fits into a fixnum.
-            nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+            nat_int_t index = IntegerMethods::convert_to_nat_int_t(env, index_obj);
 
             // If we have a length, then attempt to convert the length object
             // into an integer, and make sure it fits into a fixnum.
-            nat_int_t length = IntegerObject::convert_to_nat_int_t(env, length_obj);
+            nat_int_t length = IntegerMethods::convert_to_nat_int_t(env, length_obj);
             nat_int_t count = static_cast<nat_int_t>(char_count(env));
 
             // Now, check that the index is within the bounds of the string. If
@@ -1644,7 +1644,7 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
         if (begin_obj.is_nil()) {
             begin = 0;
         } else {
-            begin = IntegerObject::convert_to_nat_int_t(env, begin_obj);
+            begin = IntegerMethods::convert_to_nat_int_t(env, begin_obj);
         }
 
         // Shortcut here before doing anything else to return an empty
@@ -1670,7 +1670,7 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
 
         // If it's not endless, then we'll go ahead and grab the ending now by
         // converting to an integer and asserting it fits into a fixnum.
-        nat_int_t end = IntegerObject::convert_to_nat_int_t(env, end_obj);
+        nat_int_t end = IntegerMethods::convert_to_nat_int_t(env, end_obj);
 
         // Now, we're going to do some bounds checks on the ending of the range.
         // If it's too negative, we'll return nil.
@@ -1712,7 +1712,7 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
     } else {
         // First, attempt to convert the index object into an integer, and
         // make sure it fits into a fixnum.
-        nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+        nat_int_t index = IntegerMethods::convert_to_nat_int_t(env, index_obj);
         nat_int_t count = static_cast<nat_int_t>(char_count(env));
 
         // Now, check that the index is within the bounds of the string. If
@@ -1729,7 +1729,7 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
         if (length_obj != nullptr) {
             // If we have a length, then attempt to convert the length object
             // into an integer, and make sure it fits into a fixnum.
-            nat_int_t length = IntegerObject::convert_to_nat_int_t(env, length_obj);
+            nat_int_t length = IntegerMethods::convert_to_nat_int_t(env, length_obj);
 
             // Now, check that the index is within the bounds of the string. If
             // not, then return nil.
@@ -1766,14 +1766,14 @@ Value StringObject::byteslice(Env *env, Value index_obj, Value length_obj) {
         // First, we're going to get the start index of the slice and make sure
         // that it's not right at the end of the string. If it is, we'll just
         // return an empty string.
-        nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+        nat_int_t index = IntegerMethods::convert_to_nat_int_t(env, index_obj);
         if (index == m_length)
             return new StringObject("", m_encoding);
 
         // Next, we're going to get the length that was passed in and make sure
         // that it's not negative. If it is, or the index is too far out of
         // bounds, we'll return nil.
-        nat_int_t length = IntegerObject::convert_to_nat_int_t(env, length_obj);
+        nat_int_t length = IntegerMethods::convert_to_nat_int_t(env, length_obj);
         nat_int_t ignored;
         if (length < 0 || __builtin_add_overflow(index, m_length, &ignored) || index + m_length < 0 || index > m_length)
             return NilObject::the();
@@ -1803,7 +1803,7 @@ Value StringObject::byteslice(Env *env, Value index_obj, Value length_obj) {
         if (begin_obj.is_nil()) {
             begin = 0;
         } else {
-            begin = IntegerObject::convert_to_nat_int_t(env, begin_obj);
+            begin = IntegerMethods::convert_to_nat_int_t(env, begin_obj);
         }
 
         // Shortcut here before doing anything else to return an empty
@@ -1828,7 +1828,7 @@ Value StringObject::byteslice(Env *env, Value index_obj, Value length_obj) {
 
         // If it's not endless, then we'll go ahead and grab the ending now by
         // converting to an integer and asserting it fits into a fixnum.
-        nat_int_t end = IntegerObject::convert_to_nat_int_t(env, end_obj);
+        nat_int_t end = IntegerMethods::convert_to_nat_int_t(env, end_obj);
 
         // Now, we're going to do some bounds checks on the ending of the range.
         // If it's too negative, we'll return nil.
@@ -1860,7 +1860,7 @@ Value StringObject::byteslice(Env *env, Value index_obj, Value length_obj) {
 
     // First, attempt to convert the index object into an integer, and
     // make sure it fits into a fixnum.
-    nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+    nat_int_t index = IntegerMethods::convert_to_nat_int_t(env, index_obj);
 
     // Now, check that the index is within the bounds of the string. If
     // not, then return nil.
@@ -2049,7 +2049,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
         if (begin_obj.is_nil()) {
             begin = 0;
         } else {
-            begin = IntegerObject::convert_to_nat_int_t(env, begin_obj);
+            begin = IntegerMethods::convert_to_nat_int_t(env, begin_obj);
         }
 
         // Shortcut here before doing anything else to return an empty
@@ -2073,7 +2073,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
         if (end_obj.is_nil()) {
             end = count;
         } else {
-            end = IntegerObject::convert_to_nat_int_t(env, end_obj);
+            end = IntegerMethods::convert_to_nat_int_t(env, end_obj);
         }
 
         // Now, we're going to do some bounds checks on the ending of the range.
@@ -2106,7 +2106,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
         // we attempt to convert it into an integer _before_ we return nil
         // if there we no match result.
         if (length_obj != nullptr && !length_obj.is_string())
-            capture = IntegerObject::convert_to_nat_int_t(env, length_obj);
+            capture = IntegerMethods::convert_to_nat_int_t(env, length_obj);
 
         // If the match failed, return nil. Note that this must happen after
         // the implicit conversion of the index argument to an integer.
@@ -2166,12 +2166,12 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
     } else {
         // First, attempt to convert the index object into an integer, and
         // make sure it fits into a fixnum.
-        nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+        nat_int_t index = IntegerMethods::convert_to_nat_int_t(env, index_obj);
         nat_int_t count = static_cast<nat_int_t>(char_count(env));
 
         if (length_obj != nullptr) {
             // First, convert the length to an integer.
-            nat_int_t length = IntegerObject::convert_to_nat_int_t(env, length_obj);
+            nat_int_t length = IntegerMethods::convert_to_nat_int_t(env, length_obj);
 
             // Now, check that the index is within the bounds of the string. If
             // not, then return nil.
@@ -2411,7 +2411,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
 
     auto get_end_by_length = [env](nat_int_t begin, Value length_argument) -> nat_int_t {
         if (length_argument) {
-            auto length = IntegerObject::convert_to_nat_int_t(env, length_argument);
+            auto length = IntegerMethods::convert_to_nat_int_t(env, length_argument);
             if (length < 0)
                 env->raise("IndexError", "negative length {}", length);
             return begin + length;
@@ -2429,7 +2429,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
     } else if (arg1.is_range()) {
         assert(arg2 == nullptr);
         auto range = arg1->as_range();
-        begin = IntegerObject::convert_to_nat_int_t(env, range->begin());
+        begin = IntegerMethods::convert_to_nat_int_t(env, range->begin());
 
         // raises a RangeError if Range begin is greater than String size
         if (::abs(begin) >= (nat_int_t)chars->size())
@@ -2438,7 +2438,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
         // process the begin later to eventually raise the error above
         begin = process_begin(begin);
 
-        end = IntegerObject::convert_to_nat_int_t(env, range->end());
+        end = IntegerMethods::convert_to_nat_int_t(env, range->end());
 
         // treats a negative out-of-range Range end as a zero count
         if (end < 0 && -end >= (nat_int_t)chars->size()) {
@@ -2459,7 +2459,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
 
         nat_int_t match_index_argument = 0;
         if (arg2)
-            match_index_argument = IntegerObject::convert_to_nat_int_t(env, arg2);
+            match_index_argument = IntegerMethods::convert_to_nat_int_t(env, arg2);
 
         if (::abs(match_index_argument) >= (nat_int_t)match_result->size())
             env->raise("IndexError", "index {} out of regexp", match_index_argument);
@@ -2472,8 +2472,8 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
         if (offset->at(0).is_nil())
             env->raise("IndexError", "regexp group {} not matched", match_index);
 
-        begin = IntegerObject::convert_to_nat_int_t(env, offset->at(0));
-        end = IntegerObject::convert_to_nat_int_t(env, offset->at(1));
+        begin = IntegerMethods::convert_to_nat_int_t(env, offset->at(0));
+        end = IntegerMethods::convert_to_nat_int_t(env, offset->at(1));
     } else if (arg1.is_string()) {
         assert(arg2 == nullptr);
         auto query = arg1->as_string()->string();
@@ -2483,7 +2483,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
         begin = byte_index_to_char_index(chars, (size_t)begin);
         end = begin + arg1->as_string()->chars(env)->as_array()->size();
     } else {
-        begin = process_begin(IntegerObject::convert_to_nat_int_t(env, arg1));
+        begin = process_begin(IntegerMethods::convert_to_nat_int_t(env, arg1));
         end = get_end_by_length(begin, arg2);
     }
 
@@ -2594,7 +2594,7 @@ Value StringObject::gsub_in_place(Env *env, Value find, Value replacement_value,
 }
 
 Value StringObject::getbyte(Env *env, Value index_obj) const {
-    nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+    nat_int_t index = IntegerMethods::convert_to_nat_int_t(env, index_obj);
     nat_int_t length = static_cast<nat_int_t>(m_string.length());
 
     if (index < 0) {
@@ -2983,7 +2983,7 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
     }
     int max_count = 0;
     if (max_count_value) {
-        max_count = IntegerObject::convert_to_int(env, max_count_value);
+        max_count = IntegerMethods::convert_to_int(env, max_count_value);
     }
     if (length() == 0) {
         return ary;
@@ -3056,7 +3056,7 @@ bool StringObject::include(Env *env, const nat_int_t codepoint) const {
 Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
     assert_not_frozen(env);
 
-    auto char_index = IntegerObject::convert_to_native_type<ssize_t>(env, index_obj.to_int(env));
+    auto char_index = IntegerMethods::convert_to_native_type<ssize_t>(env, index_obj.to_int(env));
     StringObject *string = other_str.to_str(env);
 
     if (char_index == -1) {

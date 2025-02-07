@@ -1,4 +1,4 @@
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <netdb.h>
@@ -152,7 +152,7 @@ static Value Server_accept(Env *env, Value self, SymbolObject *klass, sockaddr_s
 
     auto Socket = find_top_level_const(env, klass)->as_class_or_raise(env);
     auto socket = new IoObject { Socket };
-    socket->as_io()->set_fileno(IntegerObject::convert_to_native_type<int>(env, fd));
+    socket->as_io()->set_fileno(IntegerMethods::convert_to_native_type<int>(env, fd));
     socket->as_io()->set_close_on_exec(env, TrueObject::the());
     socket->as_io()->set_nonblock(env, true);
     socket->ivar_set(env, "@do_not_reverse_lookup"_s, find_top_level_const(env, "BasicSocket"_s).send(env, "do_not_reverse_lookup"_s));
@@ -190,19 +190,19 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
     }
     if (family && !family.is_nil()) {
         family = Socket_const_name_to_i(env, self, { family }, nullptr);
-        hints.ai_family = IntegerObject::convert_to_native_type<decltype(hints.ai_family)>(env, family);
+        hints.ai_family = IntegerMethods::convert_to_native_type<decltype(hints.ai_family)>(env, family);
     }
     if (socktype && !socktype.is_nil()) {
         socktype = Socket_const_name_to_i(env, self, { socktype }, nullptr);
-        hints.ai_socktype = IntegerObject::convert_to_native_type<decltype(hints.ai_socktype)>(env, socktype);
+        hints.ai_socktype = IntegerMethods::convert_to_native_type<decltype(hints.ai_socktype)>(env, socktype);
     }
     if (protocol && !protocol.is_nil()) {
         protocol = Socket_const_name_to_i(env, self, { protocol }, nullptr);
-        hints.ai_protocol = IntegerObject::convert_to_native_type<decltype(hints.ai_protocol)>(env, protocol);
+        hints.ai_protocol = IntegerMethods::convert_to_native_type<decltype(hints.ai_protocol)>(env, protocol);
     }
     if (flags && !flags.is_nil()) {
         flags = Socket_const_name_to_i(env, self, { flags }, nullptr);
-        hints.ai_flags = IntegerObject::convert_to_native_type<decltype(hints.ai_flags)>(env, flags);
+        hints.ai_flags = IntegerMethods::convert_to_native_type<decltype(hints.ai_flags)>(env, flags);
     }
 
     const auto s = getaddrinfo(node, service, &hints, &res);
@@ -317,7 +317,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         if (socktype_hack && hints.ai_socktype == 0)
             hints.ai_socktype = SOCK_DGRAM;
 
-        const char *service_str = IntegerObject::to_s(env, port.integer())->as_string()->c_str();
+        const char *service_str = IntegerMethods::to_s(env, port.integer())->as_string()->c_str();
 
         switch (hints.ai_socktype) {
         case SOCK_RAW:
@@ -395,7 +395,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
 
 Value Addrinfo_getnameinfo(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
-    const auto flags = IntegerObject::convert_to_native_type<int>(env, args.at(0, Value::integer(0)));
+    const auto flags = IntegerMethods::convert_to_native_type<int>(env, args.at(0, Value::integer(0)));
     auto sockaddr = self.send(env, "to_sockaddr"_s)->as_string();
     char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
     const auto res = getnameinfo(reinterpret_cast<const struct sockaddr *>(sockaddr->c_str()), sockaddr->bytesize(), hbuf, sizeof(hbuf), sbuf, sizeof(sbuf), flags);
@@ -551,8 +551,8 @@ Value BasicSocket_recv_nonblock(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 1, 3);
 
-    const auto maxlen = IntegerObject::convert_to_nat_int_t(env, args[0]);
-    const auto flags = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
+    const auto maxlen = IntegerMethods::convert_to_nat_int_t(env, args[0]);
+    const auto flags = IntegerMethods::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
     auto buffer = args.at(2, new StringObject { "", Encoding::ASCII_8BIT }).to_str(env);
     auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
     env->ensure_no_extra_keywords(kwargs);
@@ -820,8 +820,8 @@ Value IPSocket_peeraddr(Env *env, Value self, Args &&args, Block *) {
 
 Value IPSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
-    const auto size = IntegerObject::convert_to_nat_int_t(env, args[0]);
-    const auto flags = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
+    const auto size = IntegerMethods::convert_to_nat_int_t(env, args[0]);
+    const auto flags = IntegerMethods::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
 
     TM::String buf { static_cast<size_t>(size), '\0' };
     sockaddr_storage addr {};
@@ -901,8 +901,8 @@ Value UNIXSocket_peeraddr(Env *env, Value self, Args &&args, Block *block) {
 
 Value UNIXSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 3);
-    const auto size = IntegerObject::convert_to_nat_int_t(env, args[0]);
-    const auto flags = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
+    const auto size = IntegerMethods::convert_to_nat_int_t(env, args[0]);
+    const auto flags = IntegerMethods::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
     if (args.size() > 2)
         env->raise("NotImplementedError", "NATFIXME: Support output buffer argument");
 
@@ -934,8 +934,8 @@ Value UNIXSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
 Value UNIXSocket_pair(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 0, 2);
     // NATFIXME: Add support for symbolized type (like :SOCK_STREAM)
-    const auto type = IntegerObject::convert_to_nat_int_t(env, args.at(0, Value::integer(SOCK_STREAM)));
-    const auto protocol = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
+    const auto type = IntegerMethods::convert_to_nat_int_t(env, args.at(0, Value::integer(SOCK_STREAM)));
+    const auto protocol = IntegerMethods::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
 
     int fd[2];
     if (socketpair(AF_UNIX, type, protocol, fd) < 0)
@@ -1110,10 +1110,10 @@ Value Socket_listen(Env *env, Value self, Args &&args, Block *block) {
 
 Value Socket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
-    const auto maxlen = IntegerObject::convert_to_native_type<size_t>(env, args.at(0));
+    const auto maxlen = IntegerMethods::convert_to_native_type<size_t>(env, args.at(0));
     auto flags = 0;
     if (!args.at(1, NilObject::the()).is_nil())
-        flags = IntegerObject::convert_to_native_type<int>(env, args.at(1));
+        flags = IntegerMethods::convert_to_native_type<int>(env, args.at(1));
 
     char buf[maxlen];
     sockaddr_storage src_addr;
@@ -1381,7 +1381,7 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
     if (servname.is_nil() || (servname.is_string() && servname->as_string()->is_empty()))
         service = "0";
     else if (servname.is_integer())
-        service = IntegerObject::to_s(servname.integer());
+        service = IntegerMethods::to_s(servname.integer());
     else
         service = servname->as_string_or_raise(env)->string();
 
@@ -1496,7 +1496,7 @@ Value Socket_s_getservbyname(Env *env, Value self, Args &&args, Block *) {
 
 Value Socket_s_getservbyport(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
-    auto port = IntegerObject::convert_to_native_type<int>(env, args[0]);
+    auto port = IntegerMethods::convert_to_native_type<int>(env, args[0]);
     const char *proto = "tcp";
     if (auto proto_val = args.at(1, NilObject::the()); !proto_val.is_nil())
         proto = proto_val.to_str(env)->c_str();
@@ -1737,8 +1737,8 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 3);
     env->ensure_no_extra_keywords(kwargs);
 
-    const auto maxlen = IntegerObject::convert_to_nat_int_t(env, args[0]);
-    auto flags = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
+    const auto maxlen = IntegerMethods::convert_to_nat_int_t(env, args[0]);
+    auto flags = IntegerMethods::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
     auto buffer = args.at(2, new StringObject { "", Encoding::ASCII_8BIT }).to_str(env);
     char buf[maxlen];
     sockaddr_storage addr {};

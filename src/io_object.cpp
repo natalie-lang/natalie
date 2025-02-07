@@ -1,5 +1,5 @@
 #include "natalie.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include "natalie/ioutil.hpp"
 #include "tm/defer.hpp"
 
@@ -79,8 +79,8 @@ void IoObject::raise_if_closed(Env *env) const {
 Value IoObject::advise(Env *env, Value advice, Value offset, Value len) {
     raise_if_closed(env);
     advice.assert_type(env, Object::Type::Symbol, "Symbol");
-    nat_int_t offset_i = (offset == nullptr) ? 0 : IntegerObject::convert_to_nat_int_t(env, offset);
-    nat_int_t len_i = (len == nullptr) ? 0 : IntegerObject::convert_to_nat_int_t(env, len);
+    nat_int_t offset_i = (offset == nullptr) ? 0 : IntegerMethods::convert_to_nat_int_t(env, offset);
+    nat_int_t len_i = (len == nullptr) ? 0 : IntegerMethods::convert_to_nat_int_t(env, len);
     int advice_i = 0;
 #ifdef __linux__
     if (advice == "normal"_s) {
@@ -163,7 +163,7 @@ int IoObject::fileno(Env *env) const {
 
 Value IoObject::fcntl(Env *env, Value cmd_value, Value arg_value) {
     raise_if_closed(env);
-    const auto cmd = IntegerObject::convert_to_int(env, cmd_value);
+    const auto cmd = IntegerMethods::convert_to_int(env, cmd_value);
     int result;
     if (arg_value == nullptr || arg_value.is_nil()) {
         result = ::fcntl(m_fileno, cmd);
@@ -171,7 +171,7 @@ Value IoObject::fcntl(Env *env, Value cmd_value, Value arg_value) {
         const auto arg = arg_value->as_string()->c_str();
         result = ::fcntl(m_fileno, cmd, arg);
     } else {
-        const auto arg = IntegerObject::convert_to_int(env, arg_value);
+        const auto arg = IntegerMethods::convert_to_int(env, arg_value);
         result = ::fcntl(m_fileno, cmd, arg);
     }
     if (result < 0) env->raise_errno();
@@ -290,7 +290,7 @@ Value IoObject::read_file(Env *env, Args &&args) {
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     file->set_encoding(env, flags.external_encoding(), flags.internal_encoding());
     if (offset && !offset.is_nil()) {
-        if (offset.is_integer() && IntegerObject::is_negative(offset.integer()))
+        if (offset.is_integer() && IntegerMethods::is_negative(offset.integer()))
             env->raise("ArgumentError", "negative offset {} given", offset.inspect_str(env));
         file->set_pos(env, offset);
     }
@@ -310,7 +310,7 @@ Value IoObject::write_file(Env *env, Args &&args) {
     Value perm = nullptr;
 
     if (!offset || offset.is_nil())
-        mode = Value::integer(IntegerObject::convert_to_nat_int_t(env, mode) | O_TRUNC);
+        mode = Value::integer(IntegerMethods::convert_to_nat_int_t(env, mode) | O_TRUNC);
     if (kwargs && kwargs->has_key(env, "mode"_s))
         mode = kwargs->delete_key(env, "mode"_s, nullptr);
     if (kwargs && kwargs->has_key(env, "perm"_s))
@@ -360,7 +360,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
     }
     ssize_t bytes_read;
     if (count_value && !count_value.is_nil()) {
-        const auto count = IntegerObject::convert_to_native_type<size_t>(env, count_value);
+        const auto count = IntegerMethods::convert_to_native_type<size_t>(env, count_value);
         if (m_read_buffer.size() >= count) {
             auto result = new StringObject { m_read_buffer.c_str(), static_cast<size_t>(count), Encoding::ASCII_8BIT };
             m_read_buffer = String { m_read_buffer.c_str() + count, m_read_buffer.size() - count };
@@ -637,9 +637,9 @@ Value IoObject::putc(Env *env, Value val) {
     if (val.is_string()) {
         ord = val->as_string()->ord(env).integer();
     } else {
-        ord = IntegerObject::convert_to_nat_int_t(env, val) & 0xff;
+        ord = IntegerMethods::convert_to_nat_int_t(env, val) & 0xff;
     }
-    send(env, "write"_s, { IntegerObject::chr(env, ord, nullptr) });
+    send(env, "write"_s, { IntegerMethods::chr(env, ord, nullptr) });
     return val;
 }
 
@@ -705,7 +705,7 @@ Value IoObject::pwrite(Env *env, Value data, Value offset) {
     raise_if_closed(env);
     if (!is_writable(m_fileno))
         env->raise("IOError", "not opened for writing");
-    auto offset_int = IntegerObject::convert_to_nat_int_t(env, offset);
+    auto offset_int = IntegerMethods::convert_to_nat_int_t(env, offset);
     auto str = data.to_s(env);
     auto result = ::pwrite(m_fileno, str->c_str(), str->bytesize(), offset_int);
     if (result < 0)
@@ -744,7 +744,7 @@ Value IoObject::close(Env *env) {
 
 Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
     raise_if_closed(env);
-    nat_int_t amount = IntegerObject::convert_to_nat_int_t(env, amount_value);
+    nat_int_t amount = IntegerMethods::convert_to_nat_int_t(env, amount_value);
     int whence = 0;
     if (whence_value) {
         if (whence_value.is_integer()) {
@@ -821,7 +821,7 @@ Value IoObject::set_lineno(Env *env, Value lineno) {
     raise_if_closed(env);
     if (!is_readable(m_fileno))
         env->raise("IOError", "not opened for reading");
-    m_lineno = IntegerObject::convert_to_int(env, lineno);
+    m_lineno = IntegerMethods::convert_to_int(env, lineno);
     return lineno;
 }
 
@@ -895,8 +895,8 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
         return NilObject::the();
     if (byte.is_integer()) {
         nat_int_t value = 0xff;
-        if (!IntegerObject::is_bignum(byte.integer())) {
-            value = IntegerObject::convert_to_nat_int_t(env, byte);
+        if (!IntegerMethods::is_bignum(byte.integer())) {
+            value = IntegerMethods::convert_to_nat_int_t(env, byte);
             if (value > 0xff) value = 0xff;
         }
         m_read_buffer.prepend_char(static_cast<char>(value & 0xff));
@@ -997,7 +997,7 @@ int IoObject::rewind(Env *env) {
 
 int IoObject::set_pos(Env *env, Value position) {
     raise_if_closed(env);
-    nat_int_t offset = IntegerObject::convert_to_nat_int_t(env, position);
+    nat_int_t offset = IntegerMethods::convert_to_nat_int_t(env, position);
     errno = 0;
     auto result = ::lseek(m_fileno, offset, SEEK_SET);
     if (result < 0 && errno) env->raise_errno();
@@ -1011,7 +1011,7 @@ bool IoObject::sync(Env *env) const {
 }
 
 Value IoObject::sysread(Env *env, Value amount, Value buffer) {
-    if (IntegerObject::is_zero(amount.to_int(env)) && buffer && !buffer.is_nil())
+    if (IntegerMethods::is_zero(amount.to_int(env)) && buffer && !buffer.is_nil())
         return buffer;
     if (!m_read_buffer.is_empty())
         env->raise("IOError", "sysread for buffered IO");

@@ -1,5 +1,5 @@
 #include "natalie.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include "natalie/ioutil.hpp"
 #include "natalie/macros.hpp"
 
@@ -247,7 +247,7 @@ Value DirObject::chroot(Env *env, Value path) {
 Value DirObject::mkdir(Env *env, Value path, Value mode) {
     mode_t octmode = 0777;
     if (mode) {
-        octmode = IntegerObject::convert_to_int(env, mode);
+        octmode = IntegerMethods::convert_to_int(env, mode);
     }
     path = ioutil::convert_using_to_path(env, path);
     auto result = ::mkdir(path->as_string()->c_str(), octmode);

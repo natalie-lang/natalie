@@ -1,7 +1,7 @@
 #pragma once
 
 #include "natalie/forward.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 #include "natalie/object.hpp"
 
 namespace Natalie {

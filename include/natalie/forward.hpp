@@ -33,7 +33,7 @@ class GlobalEnv;
 class HashKey;
 class HashVal;
 class HashObject;
-class IntegerObject;
+class IntegerMethods;
 class IoObject;
 class KernelModule;
 class MatchDataObject;

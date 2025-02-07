@@ -11,7 +11,7 @@
 #include <openssl/x509.h>
 
 #include "natalie.hpp"
-#include "natalie/integer_object.hpp"
+#include "natalie/integer_methods.hpp"
 
 using namespace Natalie;
 
@@ -395,7 +395,7 @@ Value OpenSSL_SSL_SSLContext_set_max_version(Env *env, Value self, Args &&args, 
     }
 
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
-    if (!SSL_CTX_set_max_proto_version(ctx, IntegerObject::convert_to_int(env, version)))
+    if (!SSL_CTX_set_max_proto_version(ctx, IntegerMethods::convert_to_int(env, version)))
         OpenSSL_SSL_raise_error(env, "SSL_CTX_set_max_proto_version");
 
     return args[0];
@@ -417,7 +417,7 @@ Value OpenSSL_SSL_SSLContext_set_min_version(Env *env, Value self, Args &&args, 
     }
 
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
-    if (!SSL_CTX_set_min_proto_version(ctx, IntegerObject::convert_to_int(env, version)))
+    if (!SSL_CTX_set_min_proto_version(ctx, IntegerMethods::convert_to_int(env, version)))
         OpenSSL_SSL_raise_error(env, "SSL_CTX_set_min_proto_version");
 
     return args[0];
@@ -435,7 +435,7 @@ Value OpenSSL_SSL_SSLContext_set_options(Env *env, Value self, Args &&args, Bloc
     args.ensure_argc_is(env, 1);
 
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
-    const uint64_t options = args[0].is_nil() ? SSL_OP_ALL : IntegerObject::convert_to_native_type<uint64_t>(env, args[0]);
+    const uint64_t options = args[0].is_nil() ? SSL_OP_ALL : IntegerMethods::convert_to_native_type<uint64_t>(env, args[0]);
     const auto result = SSL_CTX_set_options(ctx, options);
     if (result != options)
         SSL_CTX_clear_options(ctx, result & ~options);
@@ -473,7 +473,7 @@ Value OpenSSL_SSL_SSLContext_session_cache_mode(Env *env, Value self, Args &&arg
 
 Value OpenSSL_SSL_SSLContext_set_session_cache_mode(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    const auto session_cache_mode = IntegerObject::convert_to_native_type<uint64_t>(env, args[0]);
+    const auto session_cache_mode = IntegerMethods::convert_to_native_type<uint64_t>(env, args[0]);
 
     if (self->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", self.to_s(env)->string());
@@ -497,7 +497,7 @@ Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args &&args, Block *) {
     if (verify_mode.is_nil()) {
         SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, nullptr);
     } else {
-        SSL_CTX_set_verify(ctx, IntegerObject::convert_to_native_type<int>(env, verify_mode), nullptr);
+        SSL_CTX_set_verify(ctx, IntegerMethods::convert_to_native_type<int>(env, verify_mode), nullptr);
     }
 
     auto cert_store = self->ivar_get(env, "@cert_store"_s);
@@ -595,7 +595,7 @@ Value OpenSSL_SSL_SSLSocket_read(Env *env, Value self, Args &&args, Block *) {
     bool has_size_arg = false;
     if (!args.at(0, NilObject::the()).is_nil()) {
         has_size_arg = true;
-        buf_size = IntegerObject::convert_to_native_type<size_t>(env, args[0]);
+        buf_size = IntegerMethods::convert_to_native_type<size_t>(env, args[0]);
     }
     TM::String buf(buf_size, '\0');
     StringObject *result;
@@ -1004,7 +1004,7 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
     auto r = kwargs->remove(env, "r"_s).to_int(env);
     auto p = kwargs->remove(env, "p"_s).to_int(env);
     auto length = kwargs->remove(env, "length"_s).to_int(env);
-    if (IntegerObject::is_negative(length) || IntegerObject::is_bignum(length))
+    if (IntegerMethods::is_negative(length) || IntegerMethods::is_bignum(length))
         env->raise("ArgumentError", "negative string size (or size too big)");
     env->ensure_no_extra_keywords(kwargs);
 
@@ -1164,7 +1164,7 @@ Value OpenSSL_BN_to_i(Env *env, Value self, Args &&args, Block *) {
     if (!str)
         OpenSSL_raise_error(env, "BN_bn2dec");
     Defer str_free { [str] { OPENSSL_free(str); } };
-    return IntegerObject::create(str);
+    return Value::integer(str);
 }
 
 Value OpenSSL_Random_random_bytes(Env *env, Value self, Args &&args, Block *) {
@@ -1197,9 +1197,9 @@ Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args &&args, Block *) {
         type = OBJECT_TYPE_TEMPLATE->ref(env, oid);
     }
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
-    int loc = kwarg_loc && !kwarg_loc.is_nil() ? IntegerObject::convert_to_nat_int_t(env, kwarg_loc) : -1;
-    int set = kwarg_set && !kwarg_set.is_nil() ? IntegerObject::convert_to_nat_int_t(env, kwarg_set) : 0;
-    if (!X509_NAME_add_entry_by_txt(name, oid->c_str(), IntegerObject::convert_to_nat_int_t(env, type), reinterpret_cast<const unsigned char *>(value->c_str()), value->bytesize(), loc, set))
+    int loc = kwarg_loc && !kwarg_loc.is_nil() ? IntegerMethods::convert_to_nat_int_t(env, kwarg_loc) : -1;
+    int set = kwarg_set && !kwarg_set.is_nil() ? IntegerMethods::convert_to_nat_int_t(env, kwarg_set) : 0;
+    if (!X509_NAME_add_entry_by_txt(name, oid->c_str(), IntegerMethods::convert_to_nat_int_t(env, type), reinterpret_cast<const unsigned char *>(value->c_str()), value->bytesize(), loc, set))
         OpenSSL_X509_Name_raise_error(env, "X509_NAME_add_entry_by_txt");
     return self;
 }
@@ -1270,7 +1270,7 @@ Value OpenSSL_X509_Name_to_s(Env *env, Value self, Args &&args, Block *) {
         free(str);
         return result;
     }
-    int flags = IntegerObject::convert_to_nat_int_t(env, format);
+    int flags = IntegerMethods::convert_to_nat_int_t(env, format);
     BIO *bio = BIO_new(BIO_s_mem());
     if (!bio)
         OpenSSL_raise_error(env, "BIO_new_mem_buf");

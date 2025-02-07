@@ -41,19 +41,19 @@ Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
                     if (min.is_float()) {
                         min_rand = min->as_float()->to_double();
                     } else {
-                        min_rand = static_cast<double>(IntegerObject::convert_to_native_type<nat_int_t>(env, min));
+                        min_rand = static_cast<double>(IntegerMethods::convert_to_native_type<nat_int_t>(env, min));
                     }
 
                     if (max.is_float()) {
                         max_rand = max->as_float()->to_double();
                     } else {
-                        max_rand = static_cast<double>(IntegerObject::convert_to_native_type<nat_int_t>(env, max));
+                        max_rand = static_cast<double>(IntegerMethods::convert_to_native_type<nat_int_t>(env, max));
                     }
 
                     return generate_random(min_rand, max_rand);
                 } else {
-                    nat_int_t min_rand = IntegerObject::convert_to_native_type<nat_int_t>(env, min);
-                    nat_int_t max_rand = IntegerObject::convert_to_native_type<nat_int_t>(env, max);
+                    nat_int_t min_rand = IntegerMethods::convert_to_native_type<nat_int_t>(env, min);
+                    nat_int_t max_rand = IntegerMethods::convert_to_native_type<nat_int_t>(env, max);
 
                     if (arg->as_range()->exclude_end()) {
                         max_rand -= 1;
@@ -69,7 +69,7 @@ Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
         if (!arg.is_a(env, Numeric))
             env->raise("ArgumentError", "No implicit conversion of {} into Integer", arg.klass()->inspect_str());
 
-        nat_int_t max = IntegerObject::convert_to_nat_int_t(env, arg);
+        nat_int_t max = IntegerMethods::convert_to_nat_int_t(env, arg);
         if (max <= 0)
             return generate_random(0.0, 1.0);
         return generate_random(0, max - 1);

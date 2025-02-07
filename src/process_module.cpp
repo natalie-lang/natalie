@@ -32,7 +32,7 @@ Value ProcessModule::groups(Env *env) {
 
 Value ProcessModule::clock_gettime(Env *env, Value clock_id) {
     timespec tp;
-    const auto clk_id = static_cast<clockid_t>(IntegerObject::convert_to_nat_int_t(env, clock_id));
+    const auto clk_id = static_cast<clockid_t>(IntegerMethods::convert_to_nat_int_t(env, clock_id));
     if (::clock_gettime(clk_id, &tp) < 0)
         env->raise_errno();
 
@@ -51,19 +51,19 @@ Value ProcessModule::kill(Env *env, Args &&args) {
     if (signal.is_symbol())
         signal = signal.to_s(env);
     if (signal.is_integer()) {
-        signo = IntegerObject::convert_to_nat_int_t(env, signal);
+        signo = IntegerMethods::convert_to_nat_int_t(env, signal);
     } else if (signal.is_string() || signal.respond_to(env, "to_str"_s)) {
         auto signame = signal.to_str(env)->delete_prefix(env, new StringObject { "SIG" });
         auto signo_val = SignalModule::list(env)->as_hash()->ref(env, signame);
         if (signo_val.is_nil())
             env->raise("ArgumentError", "unsupported signal `SIG{}'", signame.to_s(env)->string());
-        signo = IntegerObject::convert_to_nat_int_t(env, signo_val);
+        signo = IntegerMethods::convert_to_nat_int_t(env, signo_val);
     } else {
         env->raise("ArgumentError", "bad signal type {}", signal.klass()->inspect_str());
     }
     const auto own_pid = getpid();
     for (Value pid : *pids) {
-        const auto int_pid = IntegerObject::convert_to_nat_int_t(env, pid);
+        const auto int_pid = IntegerMethods::convert_to_nat_int_t(env, pid);
         if (own_pid == int_pid && signo != 0) {
             pid_contains_self = true;
         } else {
@@ -90,7 +90,7 @@ Value ProcessModule::setmaxgroups(Env *env, Value val) {
     if (int_val.send(env, "positive?"_s).is_falsey())
         env->raise("ArgumentError", "maxgroups {} should be positive", int_val.inspect_str(env));
     const long actual_maxgroups = sysconf(_SC_NGROUPS_MAX);
-    globals::maxgroups = std::min(IntegerObject::convert_to_native_type<long>(env, int_val), actual_maxgroups);
+    globals::maxgroups = std::min(IntegerMethods::convert_to_native_type<long>(env, int_val), actual_maxgroups);
     return val;
 }
 
@@ -112,8 +112,8 @@ Value ProcessModule::times(Env *env) {
 }
 
 Value ProcessModule::wait(Env *env, Value pidval, Value flagsval) {
-    const pid_t pid = pidval ? IntegerObject::convert_to_native_type<pid_t>(env, pidval) : -1;
-    const int flags = (flagsval && !flagsval.is_nil()) ? IntegerObject::convert_to_native_type<int>(env, flagsval) : 0;
+    const pid_t pid = pidval ? IntegerMethods::convert_to_native_type<pid_t>(env, pidval) : -1;
+    const int flags = (flagsval && !flagsval.is_nil()) ? IntegerMethods::convert_to_native_type<int>(env, flagsval) : 0;
     int status;
     const auto result = waitpid(pid, &status, flags);
     if (result == -1)

@@ -198,7 +198,7 @@ public:
     void append(unsigned int);
     void append(double);
     void append(const FloatObject *);
-    void append(const IntegerObject *);
+    void append(const IntegerMethods *);
     void append(const String &);
     void append(const StringView &);
     void append(const StringObject *);

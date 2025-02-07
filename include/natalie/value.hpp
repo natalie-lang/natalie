@@ -44,6 +44,10 @@ public:
         return Value { integer };
     }
 
+    static Value integer(TM::String &&str) {
+        return Integer(std::move(str));
+    }
+
     Type type() const { return m_type; }
 
     Object &operator*() {
