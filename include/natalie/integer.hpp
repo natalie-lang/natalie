@@ -96,6 +96,13 @@ public:
     bool operator==(const double &) const;
     bool operator!=(const double &) const;
 
+    bool operator<(const Value &) const = delete;
+    bool operator>(const Value &) const = delete;
+    bool operator<=(const Value &) const = delete;
+    bool operator>=(const Value &) const = delete;
+    bool operator==(const Value &) const = delete;
+    bool operator!=(const Value &) const = delete;
+
     // Bitwise operators
     Integer operator&(const Integer &) const;
     Integer operator|(const Integer &) const;
