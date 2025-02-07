@@ -213,8 +213,7 @@ describe "Integer#>> (with n >> m)" do
       (0 >> -bignum_value).should == 0
     end
 
-    # NATFIXME: Timeout error
-    xit "raises RangeError when m < 0 and n != 0" do
+    it "raises RangeError when m < 0 and n != 0" do
       # https://bugs.ruby-lang.org/issues/18518#note-9
       limit = RUBY_ENGINE == 'ruby' ? 2**67 : 2**32
 

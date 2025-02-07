@@ -451,7 +451,9 @@ Value IntegerMethods::right_shift(Env *env, Integer &self, Value arg) {
         return Value::integer(0);
     auto integer = arg.to_int(env);
     if (integer.is_bignum()) {
-        if (self.is_negative())
+        if (integer.is_negative())
+            env->raise("RangeError", "shift width too big");
+        else if (self.is_negative())
             return Value::integer(-1);
         else
             return Value::integer(0);
