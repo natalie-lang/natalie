@@ -203,8 +203,7 @@ static void emit_object_value(Env *env, Value value, yaml_emitter_t &emitter, ya
 
     auto ivars = value->instance_variables(env)->as_array();
     for (auto ivar : *ivars) {
-        auto name = ivar.to_s(env);
-        name->delete_prefix_in_place(env, new StringObject { "@" });
+        auto name = ivar.to_s(env)->delete_prefix(env, new StringObject { "@" });
         auto val = value->ivar_get(env, ivar->as_symbol());
         emit_value(env, name, emitter, event);
         emit_value(env, val, emitter, event);
