@@ -32,7 +32,7 @@ StringObject *SymbolObject::to_s(Env *env) {
     } else {
         result = new StringObject { m_name, m_encoding };
     }
-    result->set_chilled(StringObject::Chilled::Symbol);
+    result->freeze();
     return result;
 }
 
