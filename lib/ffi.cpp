@@ -224,6 +224,10 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             else
                 arg_values[i].u64 = size;
             arg_pointers[i] = &(arg_values[i].u64);
+        } else if (type == string_sym) {
+            auto str = val.to_str(env);
+            arg_values[i].vp = (void *)str->c_str();
+            arg_pointers[i] = &(arg_values[i].vp);
         } else if (type == double_sym) {
             auto double_ = val->as_float_or_raise(env)->to_double();
             arg_values[i].double_ = double_;
