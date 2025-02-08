@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -1736,10 +1737,10 @@ public:
      *
      * ```
      * auto str = String("hello");
-     * assert_eq(210714636441, str.djb2_hash());
+     * assert_eq(261238937, str.djb2_hash());
      * ```
      */
-    size_t djb2_hash() const {
+    uint32_t djb2_hash() const {
         size_t hash = 5381;
         int c;
         for (size_t i = 0; i < m_length; ++i) {
