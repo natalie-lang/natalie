@@ -22,6 +22,7 @@ module TestStubs
   attach_function :test_int, [:int], :int
   attach_function :test_size_t, [:size_t], :size_t
   attach_function :test_string, [], :string
+  attach_function :test_string_arg, [:string], :size_t
   attach_function :test_enum_call, [:char], :test_enum
   attach_function :test_enum_argument, [:test_enum], :char
 end
@@ -189,6 +190,28 @@ describe 'FFI' do
 
   it 'can return a string' do
     TestStubs.test_string.should == 'string'
+  end
+
+  it 'can use string as argument' do
+    TestStubs.test_string_arg('foo').should == 3
+  end
+
+  it 'uses the underlying bytes of a string without encoding' do
+    TestStubs.test_string_arg('😉').should == '😉'.bytesize
+  end
+
+  it 'converts an argument using #to_str' do
+    to_str = mock('to_str')
+    to_str.should_receive(:to_str).and_return('foo')
+    TestStubs.test_string_arg(to_str).should == 3
+  end
+
+  it 'does not convert an argument using #to_s' do
+    to_s = mock('to_s')
+    to_s.should_not_receive(:to_s)
+    -> {
+      TestStubs.test_string_arg(to_s)
+    }.should raise_error(TypeError, 'no implicit conversion of MockObject into String')
   end
 
   it 'can return enum values' do

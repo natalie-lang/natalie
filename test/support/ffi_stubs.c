@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stddef.h>
+#include <string.h>
 
 bool test_bool(bool arg) {
     return arg;
@@ -27,6 +28,10 @@ size_t test_size_t(size_t arg) {
 
 const char *test_string() {
     return "string";
+}
+
+size_t test_string_arg(const char *arg) {
+    return strlen(arg);
 }
 
 typedef enum {
