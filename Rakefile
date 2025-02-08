@@ -506,8 +506,8 @@ file 'build/generated/numbers.rb' do |t|
     f1.puts '#include <stdio.h>'
     f1.puts '#include "natalie/constants.hpp"'
     f1.puts 'int main() {'
-    f1.puts '  printf("NAT_MAX_FIXNUM = %lli\n", NAT_MAX_FIXNUM);'
-    f1.puts '  printf("NAT_MIN_FIXNUM = %lli\n", NAT_MIN_FIXNUM);'
+    f1.puts '  printf("NAT_MAX_FIXNUM = %lli\n", Natalie::NAT_MAX_FIXNUM);'
+    f1.puts '  printf("NAT_MIN_FIXNUM = %lli\n", Natalie::NAT_MIN_FIXNUM);'
     f1.puts '}'
     f1.close
     sh "#{cxx} #{include_flags.join(' ')} -std=#{STANDARD} -o #{f2.path} #{f1.path}"
