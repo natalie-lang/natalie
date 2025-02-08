@@ -128,6 +128,8 @@ static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
         return &ffi_type_pointer;
     } else if (type_sym == "size_t"_s) {
         return &ffi_type_uint64;
+    } else if (type_sym == "string"_s) {
+        return &ffi_type_pointer;
     } else if (type_sym == "void"_s) {
         return &ffi_type_void;
     } else {
@@ -181,6 +183,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     auto int_sym = "int"_s;
     auto pointer_sym = "pointer"_s;
     auto size_t_sym = "size_t"_s;
+    auto string_sym = "string"_s;
     auto void_sym = "void"_s;
 
     FFI_Library_call_arg_slot *arg_values = static_cast<FFI_Library_call_arg_slot *>(alloca(sizeof(FFI_Library_call_arg_slot) * cif->nargs));
@@ -270,6 +273,8 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     } else if (return_type == size_t_sym) {
         assert((uint64_t)result <= std::numeric_limits<nat_int_t>::max());
         return Value::integer((nat_int_t)result);
+    } else if (return_type == string_sym) {
+        return new StringObject { reinterpret_cast<const char *>(result) };
     } else if (return_type == void_sym) {
         return NilObject::the();
     } else {

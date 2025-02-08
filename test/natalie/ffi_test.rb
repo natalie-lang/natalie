@@ -21,6 +21,7 @@ module TestStubs
   attach_function :test_char_pointer, [:pointer], :pointer
   attach_function :test_int, [:int], :int
   attach_function :test_size_t, [:size_t], :size_t
+  attach_function :test_string, [], :string
   attach_function :test_enum_call, [:char], :test_enum
   attach_function :test_enum_argument, [:test_enum], :char
 end
@@ -184,6 +185,10 @@ describe 'FFI' do
 
   it 'can pass and return size_t' do
     TestStubs.test_size_t(3).should == 3
+  end
+
+  it 'can return a string' do
+    TestStubs.test_string.should == 'string'
   end
 
   it 'can return enum values' do
