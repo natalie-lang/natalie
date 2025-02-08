@@ -208,7 +208,7 @@ private:
     Type m_type { Type::Pointer };
 
     union {
-        Integer m_integer { 0 };
+        Integer m_integer { Integer::null() };
         Object *m_object;
     };
 };
