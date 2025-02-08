@@ -44,7 +44,7 @@ public:
     template <class T>
     static T convert_to_native_type(Env *env, Value arg) {
         auto integer = arg.to_int(env);
-        if (is_bignum(integer))
+        if (is_bignum(integer) && (integer < LLONG_MIN || integer > LLONG_MAX))
             env->raise("RangeError", "bignum too big to convert into '{}'", typeinfo<T>().name());
         const auto result = integer.to_nat_int_t();
         if (!std::numeric_limits<T>::is_signed && result < 0)

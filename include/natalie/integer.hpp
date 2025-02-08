@@ -150,6 +150,8 @@ public:
     nat_int_t to_nat_int_t() const {
         if (is_fixnum())
             return static_cast<nat_int_t>(m_value) >> 1;
+        else if (*this >= LLONG_MIN && *this <= LLONG_MAX)
+            return ((BigInt *)m_value)->to_long_long();
         else
             NAT_UNREACHABLE();
     }
