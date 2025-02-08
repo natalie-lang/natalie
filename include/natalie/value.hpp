@@ -202,9 +202,6 @@ public:
     String dbg_inspect() const;
 
 private:
-    template <typename Callback>
-    Value on_object_value(Callback &&callback);
-
     Type m_type { Type::Pointer };
 
     union {
