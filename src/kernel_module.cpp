@@ -181,6 +181,9 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
     const char *real_end = nullptr;
     const char *imag_start = nullptr;
     const char *imag_end = nullptr;
+    auto *curr_type = &real_type;
+    const char **curr_start = &real_start;
+    const char **curr_end = &real_end;
     auto new_real = Value::integer(0);
     auto new_imag = Value::integer(0);
     for (const char *c = real->c_str(); c < real->c_str() + real->bytesize(); c++) {
@@ -192,9 +195,9 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
         switch (state) {
         case State::Start:
             if ((*c >= '0' && *c <= '9') || *c == '+' || *c == '-') {
-                real_start = real_end = c;
+                *curr_start = *curr_end = c;
                 state = State::Real;
-                real_type = Type::Integer;
+                *curr_type = Type::Integer;
             } else if (*c == 'i') {
                 new_imag = Value::integer(1);
                 state = State::Finished;
@@ -204,15 +207,15 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
             break;
         case State::Real:
             if (*c >= '0' && *c <= '9') {
-                real_end = c;
+                *curr_end = c;
             } else if (*c == '_') {
                 // TODO: Skip single underscore, fix in String#to_c as well
                 state = State::Fallback;
             } else if (*c == '.') {
-                if (real_type == Type::Integer) {
-                    real_type = Type::Float;
-                    real_end = c;
-                } else if (real_type == Type::Float) {
+                if (*curr_type == Type::Integer) {
+                    *curr_type = Type::Float;
+                    *curr_end = c;
+                } else if (*curr_type == Type::Float) {
                     error();
                 } else {
                     state = State::Fallback;
@@ -230,9 +233,9 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
                 // TODO: Finish real part, continue with parsing complex part
                 state = State::Fallback;
             } else if (*c == 'i') {
-                if (real_start && real_start == real_end && (*real_end == '-' || *real_end == '+')) {
+                if (*curr_start && *curr_start == *curr_end && (**curr_end == '-' || **curr_end == '+')) {
                     // Corner case: '-i' or '+i'
-                    new_imag = Value::integer(*real_end == '-' ? -1 : 1);
+                    new_imag = Value::integer(**curr_end == '-' ? -1 : 1);
                     real_start = nullptr;
                     real_end = nullptr;
                 }
