@@ -1,5 +1,5 @@
+#include "json-c/json.h"
 #include "natalie.hpp"
-#include <json-c/json.h>
 
 using namespace Natalie;
 

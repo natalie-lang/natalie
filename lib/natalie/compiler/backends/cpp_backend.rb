@@ -41,9 +41,10 @@ module Natalie
         BUILD_DIR,
         File.join(BUILD_DIR, 'onigmo/lib'),
         File.join(BUILD_DIR, 'zlib'),
+        File.join(BUILD_DIR, 'json-c'),
       ].freeze
 
-      PACKAGES_REQUIRING_PKG_CONFIG = %w[openssl libffi json-c yaml-0.1].freeze
+      PACKAGES_REQUIRING_PKG_CONFIG = %w[openssl libffi yaml-0.1].freeze
 
       def initialize(instructions, compiler:, compiler_context:)
         @instructions = instructions
