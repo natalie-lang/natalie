@@ -31,18 +31,16 @@ module JSON
 
     private
 
-    __bind_method__ :generate_bool, :JSON_generate_bool, 1
-    __bind_method__ :generate_nil, :JSON_generate_nil, 0
-    __bind_method__ :generate_string, :JSON_generate_string, 1
+    __bind_method__ :generate_inner, :JSON_generate_inner, 1
 
     def generate_element(value)
       case value
       when NilClass
-        @string << generate_nil
+        @string << generate_inner(value)
       when TrueClass, FalseClass
-        @string << generate_bool(value)
+        @string << generate_inner(value)
       when String, Symbol
-        @string << generate_string(value.to_s)
+        @string << generate_inner(value.to_s)
       when Array
         generate_array(value)
       when Hash
@@ -74,7 +72,7 @@ module JSON
     end
 
     def generate_key_value_pair(key, value)
-      @string << generate_string(key.to_s)
+      @string << generate_inner(key.to_s)
       @string << ':'
       generate_element(value)
     end
