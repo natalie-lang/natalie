@@ -47,7 +47,7 @@ static json_object *ruby_to_json(Env *env, Value input) {
     }
 }
 
-Value JSON_generate_inner(Env *env, Value self, Args &&args, Block *) {
+Value JSON_generate(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto res = ruby_to_json(env, args[0]);
     auto json_string = json_object_to_json_string_ext(res, JSON_C_TO_STRING_PLAIN);

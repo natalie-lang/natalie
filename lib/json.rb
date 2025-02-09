@@ -9,49 +9,13 @@ module JSON
   class JSONError < StandardError; end
   class ParserError < JSONError; end
 
-  def self.generate(object)
-    Generator.new(object).generate
-  end
+  __bind_static_method__ :generate, :JSON_generate, 1
 
   def self.parse(string, **options)
     tokens = Lexer.new(string).tokens
     Parser.new(tokens, **options).parse
   end
 
-  class Generator
-    def initialize(object)
-      @object = object
-      @string = +''
-    end
-
-    def generate
-      generate_element(@object)
-      @string
-    end
-
-    private
-
-    __bind_method__ :generate_inner, :JSON_generate_inner, 1
-
-    def generate_element(value)
-      case value
-      when NilClass
-        @string << generate_inner(value)
-      when TrueClass, FalseClass
-        @string << generate_inner(value)
-      when String, Symbol
-        @string << generate_inner(value)
-      when Integer, Float
-        @string << generate_inner(value)
-      when Array
-        @string << generate_inner(value)
-      when Hash
-        @string << generate_inner(value)
-      else
-        @string << generate_inner(value)
-      end
-    end
-  end
 
   class Lexer
     DIGITS = '0'..'9'
