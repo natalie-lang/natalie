@@ -202,8 +202,8 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
             } else if (*c == 'i') {
                 new_imag = Value::integer(1);
                 state = State::Finished;
-            } else {
-                state = State::Fallback;
+            } else if (*c != ' ' && *c != '\t' && *c != '\r' && *c != '\n') {
+                return error();
             }
             break;
         case State::Real:
