@@ -14,6 +14,13 @@ static json_object *ruby_to_json(Env *env, Value input) {
         return json_object_new_boolean(true);
     } else if (input.is_false()) {
         return json_object_new_boolean(false);
+    } else if (input.is_integer()) {
+        auto integer = input.integer();
+        if (integer.is_bignum() || integer < static_cast<nat_int_t>(std::numeric_limits<int64_t>::min()) || integer > static_cast<nat_int_t>(std::numeric_limits<int64_t>::max())) {
+            const auto d = integer.to_double();
+            return json_object_new_double_s(d, integer.to_string().c_str());
+        }
+        return json_object_new_int64(integer.to_nat_int_t());
     } else if (input.is_string()) {
         auto str = input.to_str(env);
         return json_object_new_string_len(str->c_str(), str->bytesize());

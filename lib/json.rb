@@ -41,6 +41,8 @@ module JSON
         @string << generate_inner(value)
       when String, Symbol
         @string << generate_inner(value.to_s)
+      when Integer
+        @string << generate_inner(value)
       when Array
         generate_array(value)
       when Hash
