@@ -18,7 +18,7 @@ describe "SecureRandom.random_number" do
 
   it "generates a random (potentially bignum) integer value for bignum argument" do
     max = 12345678901234567890
-    NATFIXME 'it generates a random (potentially bignum) integer value for bignum argument', exception: RangeError, message: "bignum too big to convert into 'long'" do
+    NATFIXME 'it generates a random (potentially bignum) integer value for bignum argument', exception: RangeError, message: /bignum too big to convert/ do
       11.times do
         num = SecureRandom.random_number max
         num.should be_kind_of(Integer)
