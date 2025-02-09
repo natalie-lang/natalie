@@ -40,7 +40,7 @@ module JSON
       when TrueClass, FalseClass
         @string << generate_inner(value)
       when String, Symbol
-        @string << generate_inner(value.to_s)
+        @string << generate_inner(value)
       when Integer, Float
         @string << generate_inner(value)
       when Array
@@ -48,7 +48,7 @@ module JSON
       when Hash
         generate_object(value)
       else
-        @string << value.to_s
+        @string << generate_inner(value)
       end
     end
 

@@ -34,7 +34,8 @@ static json_object *ruby_to_json(Env *env, Value input) {
             json_object_array_add(res, ruby_to_json(env, elt));
         return res;
     } else {
-        env->raise("ArgumentError", "Unable to parse input: {}", input.inspect_str(env));
+        auto str = input.to_s(env);
+        return json_object_new_string_len(str->c_str(), str->bytesize());
     }
 }
 
