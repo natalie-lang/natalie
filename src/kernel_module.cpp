@@ -17,6 +17,12 @@ extern char **environ;
 
 namespace Natalie {
 
+static bool exception_argument_to_bool(Env *env, Value exception) {
+    if (exception && !exception.is_false() && !exception.is_true())
+        env->raise("ArgumentError", "expected true or false as exception: {}", exception.inspect_str(env));
+    return !exception || exception.is_true();
+}
+
 Value KernelModule::Array(Env *env, Value value) {
     return Natalie::to_ary(env, value, true);
 }
@@ -130,9 +136,7 @@ Value KernelModule::catch_method(Env *env, Value name, Block *block) {
 }
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value exception) {
-    if (exception && !exception.is_false() && !exception.is_true())
-        env->raise("ArgumentError", "expected true or false as exception: {}", exception.inspect_str(env));
-    return Complex(env, real, imaginary, exception ? exception.is_true() : true);
+    return Complex(env, real, imaginary, exception_argument_to_bool(env, exception));
 }
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
@@ -363,12 +367,10 @@ Value KernelModule::exit_bang(Env *env, Value status) {
 }
 
 Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) {
-    if (exception && !exception.is_false() && !exception.is_true())
-        env->raise("ArgumentError", "expected true or false as exception: {}", exception.inspect_str(env));
     nat_int_t base_int = 0; // default to zero if unset
     if (base)
         base_int = base.to_int(env).to_nat_int_t();
-    return Integer(env, value, base_int, exception ? exception.is_true() : true);
+    return Integer(env, value, base_int, exception_argument_to_bool(env, exception));
 }
 
 Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exception) {
@@ -417,9 +419,7 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
 }
 
 Value KernelModule::Float(Env *env, Value value, Value exception) {
-    if (exception && !exception.is_false() && !exception.is_true())
-        env->raise("ArgumentError", "expected true or false as exception: {}", exception.inspect_str(env));
-    return Float(env, value, exception ? exception.is_true() : true);
+    return Float(env, value, exception_argument_to_bool(env, exception));
 }
 
 Value KernelModule::Float(Env *env, Value value, bool exception) {
