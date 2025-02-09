@@ -31,6 +31,9 @@ module JSON
 
     private
 
+    __bind_method__ :generate_bool, :JSON_generate_bool, 1
+    __bind_method__ :generate_nil, :JSON_generate_nil, 0
+
     def generate_element(value)
       case value
       when NilClass
@@ -46,14 +49,6 @@ module JSON
       else
         @string << value.to_s
       end
-    end
-
-    def generate_nil
-      'null'
-    end
-
-    def generate_bool(value)
-      value ? 'true' : 'false'
     end
 
     def generate_string(value)
