@@ -81,11 +81,9 @@ describe "Kernel.Complex()" do
       end
 
       it "raises ArgumentError for trailing garbage" do
-        NATFIXME 'raises ArgumentError for trailing garbage', exception: SpecFailedException do
-          -> {
-            Complex("79+4iruby")
-          }.should raise_error(ArgumentError, 'invalid value for convert(): "79+4iruby"')
-        end
+        -> {
+          Complex("79+4iruby")
+        }.should raise_error(ArgumentError, 'invalid value for convert(): "79+4iruby"')
       end
 
       it "does not understand Float::INFINITY" do
@@ -139,9 +137,7 @@ describe "Kernel.Complex()" do
       end
 
       it "returns nil when trailing garbage" do
-        NATFIXME 'returns nil when trailing garbage', exception: NoMethodError, message: "undefined method 'real' for nil" do
-          Complex("79+4iruby", exception: false).should == nil
-        end
+        Complex("79+4iruby", exception: false).should == nil
       end
 
       it "returns nil for Float::INFINITY" do

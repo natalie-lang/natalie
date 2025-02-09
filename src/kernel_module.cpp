@@ -166,6 +166,7 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
     enum class State {
         Start,
         Real,
+        Imag,
         Finished,
         Fallback, // In case of an error, use String#to_c until we finalize this parser
     };
@@ -206,6 +207,7 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
             }
             break;
         case State::Real:
+        case State::Imag:
             if (*c >= '0' && *c <= '9') {
                 *curr_end = c;
             } else if (*c == '_') {
@@ -230,28 +232,42 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
                 // TODO: Parse polar form, fix in String#to_c as well
                 state = State::Fallback;
             } else if (*c == '+' || *c == '-') {
-                // TODO: Finish real part, continue with parsing complex part
-                state = State::Fallback;
+                if (*curr_start && *curr_start == *curr_end && (**curr_end == '-' || **curr_end == '+'))
+                    return error();
+                if (state == State::Imag)
+                    return error();
+                curr_start = &imag_start;
+                curr_end = &imag_end;
+                *curr_start = *curr_end = c;
+                curr_type = &imag_type;
+                *curr_type = Type::Integer;
+                state = State::Imag;
             } else if (*c == 'i') {
                 if (*curr_start && *curr_start == *curr_end && (**curr_end == '-' || **curr_end == '+')) {
                     // Corner case: '-i' or '+i'
                     new_imag = Value::integer(**curr_end == '-' ? -1 : 1);
+                    *curr_start = nullptr;
+                    *curr_end = nullptr;
+                }
+                if (state == State::Real) {
+                    imag_type = real_type;
+                    imag_start = real_start;
+                    imag_end = c - 1;
+                    real_type = Type::Undefined;
                     real_start = nullptr;
                     real_end = nullptr;
                 }
-                imag_type = real_type;
-                imag_start = real_start;
-                imag_end = c - 1;
-                real_type = Type::Undefined;
-                real_start = nullptr;
-                real_end = nullptr;
                 state = State::Finished;
+            } else if (*c == 'I' || *c == 'j' || *c == 'J') {
+                // TODO: Parse other imaginary markers, fix in String#to_c as well
+                state = State::Fallback;
             } else {
                 return error();
             }
             break;
         case State::Finished:
-            return error();
+            if (*c != ' ' && *c != '\t' && *c != '\r' && *c != '\n')
+                return error();
         case State::Fallback:
             break;
         }
