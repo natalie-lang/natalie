@@ -114,6 +114,12 @@ describe 'Kernel' do
   end
 
   describe '#Float' do
+    it 'only accepts true or false as exception argument' do
+      -> { Float('1.0', exception: nil) }.should raise_error(ArgumentError, 'expected true or false as exception: nil')
+      obj = Object.new
+      -> { Float('1.0', exception: obj) }.should raise_error(ArgumentError, "expected true or false as exception: #{obj}")
+    end
+
     it 'raises error with extra keywords' do
       -> { Float(1, foo: 2, bar: 3) }.should raise_error(ArgumentError, 'unknown keywords: :foo, :bar')
     end
