@@ -33,6 +33,7 @@ module JSON
 
     __bind_method__ :generate_bool, :JSON_generate_bool, 1
     __bind_method__ :generate_nil, :JSON_generate_nil, 0
+    __bind_method__ :generate_string, :JSON_generate_string, 1
 
     def generate_element(value)
       case value
@@ -41,7 +42,7 @@ module JSON
       when TrueClass, FalseClass
         @string << generate_bool(value)
       when String, Symbol
-        generate_string(value)
+        @string << generate_string(value.to_s)
       when Array
         generate_array(value)
       when Hash
@@ -49,12 +50,6 @@ module JSON
       else
         @string << value.to_s
       end
-    end
-
-    def generate_string(value)
-      @string << '"'
-      @string << escape_string(value)
-      @string << '"'
     end
 
     def generate_array(values)
@@ -79,29 +74,9 @@ module JSON
     end
 
     def generate_key_value_pair(key, value)
-      generate_string(key)
+      @string << generate_string(key.to_s)
       @string << ':'
       generate_element(value)
-    end
-
-    def escape_string(value)
-      result = +''
-      value.to_s.codepoints.each do |codepoint|
-        result << case codepoint
-        when 8 then '\\b'
-        when 9 then '\\t'
-        when 10 then '\\n'
-        when 12 then '\\f'
-        when 13 then '\\r'
-        when 34 then '\\"'
-        when 92 then '\\\\'
-        when 0...32
-          '\\u' + codepoint.to_s(16).rjust(4, '0')
-        else
-          codepoint
-        end
-      end
-      result
     end
   end
 
