@@ -34,11 +34,9 @@ module JSON
     def generate_element(value)
       case value
       when NilClass
-        @string << 'null'
-      when TrueClass
-        @string << 'true'
-      when FalseClass
-        @string << 'false'
+        @string << generate_nil
+      when TrueClass, FalseClass
+        @string << generate_bool(value)
       when String, Symbol
         generate_string(value)
       when Array
@@ -48,6 +46,14 @@ module JSON
       else
         @string << value.to_s
       end
+    end
+
+    def generate_nil
+      'null'
+    end
+
+    def generate_bool(value)
+      value ? 'true' : 'false'
     end
 
     def generate_string(value)
