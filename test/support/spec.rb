@@ -233,11 +233,11 @@ def bignum_value(plus = 0)
 end
 
 def fixnum_max
-  9_223_372_036_854_775_807
+  (2**62) - 1
 end
 
 def fixnum_min
-  -9_223_372_036_854_775_807
+  -(2**62)
 end
 
 def max_long
