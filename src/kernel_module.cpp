@@ -156,8 +156,55 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
 }
 
 Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool exception) {
-    // NATFIXME: This is more restrictive than String#to_c, needs its own parser
-    return real->send(env, "to_c"_s);
+    auto error = [&]() -> Value {
+        if (exception)
+            env->raise("ArgumentError", "invalid value for convert(): \"{}\"", real->string());
+        return NilObject::the();
+    };
+    if (!real->is_ascii_only())
+        return error();
+    enum class State {
+        Start,
+        RealInteger,
+        Fallback, // In case of an error, use String#to_c until we finalize this parser
+    };
+    auto state = State::Start;
+    const char *real_start = nullptr;
+    const char *real_end = nullptr;
+    for (const char *c = real->c_str(); c < real->c_str() + real->bytesize(); c++) {
+        switch (state) {
+        case State::Start:
+            if ((*c >= '0' && *c <= '9') || *c == '+' || *c == '-') {
+                real_start = real_end = c;
+                state = State::RealInteger;
+            } else {
+                state = State::Fallback;
+            }
+            break;
+        case State::RealInteger:
+            if (*c >= '0' && *c <= '9') {
+                real_end = c;
+            } else {
+                state = State::Fallback;
+            }
+            break;
+        case State::Fallback:
+            break;
+        }
+    }
+
+    switch (state) {
+    case State::Fallback:
+        return real->send(env, "to_c"_s);
+    case State::Start:
+        return error();
+    default: {
+        if (real_start == nullptr || real_end == nullptr)
+            return error();
+        auto new_real = new StringObject { real_start, static_cast<size_t>(real_end - real_start + 1) };
+        return new ComplexObject { Integer(env, new_real) };
+    }
+    }
 }
 
 Value KernelModule::cur_callee(Env *env) {
