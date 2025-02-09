@@ -21,6 +21,9 @@ static json_object *ruby_to_json(Env *env, Value input) {
             return json_object_new_double_s(d, integer.to_string().c_str());
         }
         return json_object_new_int64(integer.to_nat_int_t());
+    } else if (input.is_float()) {
+        const auto d = input->as_float()->to_double();
+        return json_object_new_double_s(d, input.to_s(env)->c_str());
     } else if (input.is_string()) {
         auto str = input.to_str(env);
         return json_object_new_string_len(str->c_str(), str->bytesize());
