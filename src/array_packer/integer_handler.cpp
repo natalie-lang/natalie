@@ -1,5 +1,6 @@
 #include "natalie/array_packer/integer_handler.hpp"
 #include "natalie/integer_methods.hpp"
+#include <limits>
 
 namespace Natalie {
 
@@ -109,156 +110,167 @@ namespace ArrayPacker {
     }
 
     void IntegerHandler::pack_c() {
-        nat_int_t source;
-        if (m_source.is_bignum())
+        auto source = m_source.to_nat_int_t_or_none();
+        if (!source)
             source = (m_source % 256).to_nat_int_t();
-        else
-            source = m_source.to_nat_int_t();
-
-        m_packed.append_char(static_cast<signed char>(source));
+        m_packed.append_char(static_cast<signed char>(source.value()));
     }
 
     void IntegerHandler::pack_I() {
-        unsigned int source;
-        if (m_source.is_bignum())
-            source = (m_source % BigInt(::pow(2, 8 * sizeof(unsigned int)))).to_nat_int_t();
+        auto source = m_source.to_nat_int_t_or_none();
+        unsigned int source_cast;
+        if (source)
+            source_cast = (unsigned int)source.value();
         else
-            source = (unsigned int)m_source.to_nat_int_t();
+            source_cast = (m_source % BigInt(::pow(2, std::numeric_limits<unsigned int>::digits))).to_nat_int_t();
 
-        append_bytes((const char *)(&source), sizeof(source));
+        append_bytes((const char *)(&source_cast), sizeof(source_cast));
     }
 
     void IntegerHandler::pack_i() {
-        signed int source;
-        if (m_source.is_bignum())
-            source = (m_source % BigInt(::pow(2, 8 * sizeof(signed int)))).to_nat_int_t();
+        auto source = m_source.to_nat_int_t_or_none();
+        signed int source_cast;
+        if (source)
+            source_cast = (signed int)source.value();
         else
-            source = (signed int)m_source.to_nat_int_t();
+            source_cast = (m_source % BigInt(::pow(2, std::numeric_limits<signed int>::digits))).to_nat_int_t();
 
-        append_bytes((const char *)(&source), sizeof(source));
+        append_bytes((const char *)(&source_cast), sizeof(source_cast));
     }
 
     void IntegerHandler::pack_J() {
-        if (m_source.is_bignum()) {
-            pack_bignum(sizeof(uintptr_t) * 8);
+        auto source = m_source.to_nat_int_t_or_none();
+        if (source) {
+            auto source_cast = (uintptr_t)source.value();
+            append_bytes((const char *)(&source_cast), sizeof(source_cast));
         } else {
-            auto source = (uintptr_t)m_source.to_nat_int_t();
-            append_bytes((const char *)(&source), sizeof(source));
+            pack_bignum(sizeof(uintptr_t) * 8);
         }
     }
 
     void IntegerHandler::pack_j() {
-        if (m_source.is_bignum()) {
-            pack_bignum(sizeof(intptr_t) * 8);
+        auto source = m_source.to_nat_int_t_or_none();
+        if (source) {
+            auto source_cast = (intptr_t)source.value();
+            append_bytes((const char *)(&source_cast), sizeof(source_cast));
         } else {
-            auto source = (intptr_t)m_source.to_nat_int_t();
-            append_bytes((const char *)(&source), sizeof(source));
+            pack_bignum(sizeof(intptr_t) * 8);
         }
     }
 
     void IntegerHandler::pack_L() {
         auto size = m_token.native_size ? sizeof(unsigned long) : sizeof(unsigned int);
-        if (m_source.is_bignum()) {
-            pack_bignum(size * 8);
+        auto source = m_source.to_nat_int_t_or_none();
+        if (source) {
+            auto source_cast = (unsigned long long)source.value();
+            append_bytes((const char *)(&source_cast), size);
         } else {
-            auto source = (unsigned long long)m_source.to_nat_int_t();
-            append_bytes((const char *)(&source), size);
+            pack_bignum(size * 8);
         }
     }
 
     void IntegerHandler::pack_l() {
         auto size = m_token.native_size ? sizeof(long) : sizeof(int);
-        if (m_source.is_bignum()) {
-            pack_bignum(size * 8);
+        auto source = m_source.to_nat_int_t_or_none();
+        if (source) {
+            auto source_cast = (long long)source.value();
+            append_bytes((const char *)(&source_cast), size);
         } else {
-            auto source = (long long)m_source.to_nat_int_t();
-            append_bytes((const char *)(&source), size);
+            pack_bignum(size * 8);
         }
     }
 
     void IntegerHandler::pack_N() {
         m_token.endianness = Endianness::Big;
+        auto source = m_source.to_nat_int_t_or_none();
         auto size = 4;
-        if (m_source.is_bignum()) {
-            pack_bignum(size * 8);
+        if (source) {
+            auto source_cast = (unsigned long long)source.value();
+            append_bytes((const char *)(&source_cast), size);
         } else {
-            auto source = (unsigned long long)m_source.to_nat_int_t();
-            append_bytes((const char *)(&source), size);
+            pack_bignum(size * 8);
         }
     }
 
     void IntegerHandler::pack_n() {
         m_token.endianness = Endianness::Big;
+        auto source = m_source.to_nat_int_t_or_none();
         auto size = 2;
-        if (m_source.is_bignum()) {
-            pack_bignum(size * 8);
+        if (source) {
+            auto source_cast = (long long)source.value();
+            append_bytes((const char *)(&source_cast), size);
         } else {
-            auto source = (long long)m_source.to_nat_int_t();
-            append_bytes((const char *)(&source), size);
+            pack_bignum(size * 8);
         }
     }
 
     void IntegerHandler::pack_Q() {
         auto size = sizeof(uint64_t);
-        if (m_source.is_bignum()) {
-            pack_bignum(size * 8);
+        auto source = m_source.to_nat_int_t_or_none();
+        if (source) {
+            auto source_cast = (uint64_t)source.value();
+            append_bytes((const char *)&source_cast, size);
         } else {
-            auto source = (uint64_t)m_source.to_nat_int_t();
-            append_bytes((const char *)&source, size);
+            pack_bignum(size * 8);
         }
     }
 
     void IntegerHandler::pack_q() {
         auto size = sizeof(int64_t);
-        if (m_source.is_bignum()) {
-            pack_bignum(size * 8);
+        auto source = m_source.to_nat_int_t_or_none();
+        if (source) {
+            auto source_cast = (int64_t)source.value();
+            append_bytes((const char *)&source_cast, size);
         } else {
-            auto source = (int64_t)m_source.to_nat_int_t();
-            append_bytes((const char *)&source, size);
+            pack_bignum(size * 8);
         }
     }
 
     void IntegerHandler::pack_S() {
-        unsigned short source;
-        if (m_source.is_bignum())
-            source = (m_source % BigInt(::pow(2, 8 * sizeof(signed int)))).to_nat_int_t();
+        auto source = m_source.to_nat_int_t_or_none();
+        unsigned short source_cast;
+        if (source)
+            source_cast = (unsigned short)source.value();
         else
-            source = (unsigned short)m_source.to_nat_int_t();
+            source_cast = (m_source % BigInt(::pow(2, std::numeric_limits<signed int>::digits))).to_nat_int_t();
 
         auto size = m_token.native_size ? sizeof(unsigned short) : 2;
-        append_bytes((const char *)&source, size);
+        append_bytes((const char *)&source_cast, size);
     }
 
     void IntegerHandler::pack_s() {
-        signed short source;
-        if (m_source.is_bignum())
-            source = (m_source % BigInt(::pow(2, 8 * sizeof(signed int)))).to_nat_int_t();
+        auto source = m_source.to_nat_int_t_or_none();
+        signed short source_cast;
+        if (source)
+            source_cast = (signed short)source.value();
         else
-            source = (signed short)m_source.to_nat_int_t();
+            source_cast = (m_source % BigInt(::pow(2, std::numeric_limits<signed int>::digits))).to_nat_int_t();
 
         auto size = m_token.native_size ? sizeof(signed short) : 2;
-        append_bytes((const char *)&source, size);
+        append_bytes((const char *)&source_cast, size);
     }
 
     void IntegerHandler::pack_V() {
         m_token.endianness = Endianness::Little;
+        auto source = m_source.to_nat_int_t_or_none();
         auto size = 4;
-        if (m_source.is_bignum()) {
-            pack_bignum(size * 8);
+        if (source) {
+            auto source_cast = (unsigned long long)source.value();
+            append_bytes((const char *)(&source_cast), size);
         } else {
-            auto source = (unsigned long long)m_source.to_nat_int_t();
-            append_bytes((const char *)(&source), size);
+            pack_bignum(size * 8);
         }
     }
 
     void IntegerHandler::pack_v() {
         m_token.endianness = Endianness::Little;
+        auto source = m_source.to_nat_int_t_or_none();
         auto size = 2;
-        if (m_source.is_bignum()) {
-            pack_bignum(size * 8);
+        if (source) {
+            auto source_cast = (long long)source.value();
+            append_bytes((const char *)(&source_cast), size);
         } else {
-            auto source = (long long)m_source.to_nat_int_t();
-            append_bytes((const char *)(&source), size);
+            pack_bignum(size * 8);
         }
     }
 
@@ -268,7 +280,16 @@ namespace ArrayPacker {
 
         TM::Vector<char> bytes {};
         size_t size = 0;
-        if (m_source.is_bignum()) {
+        auto source = m_source.to_nat_int_t_or_none();
+        if (source) {
+            auto num = source.value();
+            do {
+                bytes[size] = num & 0x7f;
+                num = num >> 7;
+                if (size > 0) bytes[size] |= 0x80;
+                size++;
+            } while (num > 0);
+        } else {
             auto num = m_source.to_bigint();
             do {
                 bytes[size] = (num & 0x7f).to_long();
@@ -276,14 +297,6 @@ namespace ArrayPacker {
                 if (size > 0) bytes[size] |= 0x80;
                 size++;
             } while (num > 0ll);
-        } else {
-            auto num = m_source.to_nat_int_t();
-            do {
-                bytes[size] = num & 0x7f;
-                num = num >> 7;
-                if (size > 0) bytes[size] |= 0x80;
-                size++;
-            } while (num > 0);
         }
         for (ssize_t i = size - 1; i >= 0; i--) {
             m_packed.append_char(bytes[i]);

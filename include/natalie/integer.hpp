@@ -4,6 +4,7 @@
 #include "natalie/constants.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/types.hpp"
+#include "tm/optional.hpp"
 #include "tm/string.hpp"
 
 #include <math.h>
@@ -141,12 +142,17 @@ public:
     bool is_fixnum() const { return (m_value & 0x1) == 0x1; }
     bool is_bignum() const { return (m_value & 0x1) == 0x0; }
     bool is_negative() const;
+    Integer bit_length() const;
+    double to_double() const;
+    TM::String to_string() const;
+
     BigInt to_bigint() const {
         if (is_bignum())
             return *(BigInt *)m_value;
         else
             return BigInt(to_nat_int_t());
     }
+
     nat_int_t to_nat_int_t() const {
         if (is_fixnum())
             return static_cast<nat_int_t>(m_value) >> 1;
@@ -155,10 +161,15 @@ public:
         else
             NAT_UNREACHABLE();
     }
-    double to_double() const;
-    TM::String to_string() const;
 
-    Integer bit_length() const;
+    TM::Optional<nat_int_t> to_nat_int_t_or_none() const {
+        if (is_fixnum())
+            return static_cast<nat_int_t>(m_value) >> 1;
+        else if (*this >= LLONG_MIN && *this <= LLONG_MAX)
+            return ((BigInt *)m_value)->to_long_long();
+        else
+            return TM::Optional<nat_int_t> {};
+    }
 
     BigInt *bigint_pointer() const {
         if (!is_bignum())
