@@ -46,31 +46,10 @@ module JSON
       when Array
         @string << generate_inner(value)
       when Hash
-        generate_object(value)
+        @string << generate_inner(value)
       else
         @string << generate_inner(value)
       end
-    end
-
-    def generate_object(values)
-      @string << '{'
-      generate_each(values) { |key, value| generate_key_value_pair(key, value) }
-      @string << '}'
-    end
-
-    def generate_each(enumerable, &block)
-      index = 0
-      enumerable.each do |*args|
-        @string << ',' unless index.zero?
-        block.call(*args)
-        index += 1
-      end
-    end
-
-    def generate_key_value_pair(key, value)
-      @string << generate_inner(key.to_s)
-      @string << ':'
-      generate_element(value)
     end
   end
 

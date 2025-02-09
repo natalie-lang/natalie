@@ -33,6 +33,14 @@ static json_object *ruby_to_json(Env *env, Value input) {
         for (auto elt : *ary)
             json_object_array_add(res, ruby_to_json(env, elt));
         return res;
+    } else if (input.is_hash()) {
+        auto hash = input->as_hash();
+        auto res = json_object_new_object();
+        for (auto elt : *hash) {
+            auto val = ruby_to_json(env, elt.val);
+            json_object_object_add(res, elt.key.to_s(env)->c_str(), val);
+        }
+        return res;
     } else {
         auto str = input.to_s(env);
         return json_object_new_string_len(str->c_str(), str->bytesize());
