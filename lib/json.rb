@@ -44,18 +44,12 @@ module JSON
       when Integer, Float
         @string << generate_inner(value)
       when Array
-        generate_array(value)
+        @string << generate_inner(value)
       when Hash
         generate_object(value)
       else
         @string << value.to_s
       end
-    end
-
-    def generate_array(values)
-      @string << '['
-      generate_each(values) { |value| generate_element(value) }
-      @string << ']'
     end
 
     def generate_object(values)
