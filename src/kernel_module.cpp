@@ -165,15 +165,18 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
         return error();
     enum class State {
         Start,
-        RealInteger,
-        RealFloat,
+        Real,
         Fallback, // In case of an error, use String#to_c until we finalize this parser
     };
+    enum class Type {
+        Undefined,
+        Integer,
+        Float,
+    };
     auto state = State::Start;
-    const char *real_int_start = nullptr;
-    const char *real_int_end = nullptr;
-    const char *real_float_start = nullptr;
-    const char *real_float_end = nullptr;
+    auto real_type = Type::Undefined;
+    const char *real_start = nullptr;
+    const char *real_end = nullptr;
     for (const char *c = real->c_str(); c < real->c_str() + real->bytesize(); c++) {
         if (*c == 0) {
             if (exception)
@@ -183,24 +186,28 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
         switch (state) {
         case State::Start:
             if ((*c >= '0' && *c <= '9') || *c == '+' || *c == '-') {
-                real_int_start = real_int_end = c;
-                state = State::RealInteger;
+                real_start = real_end = c;
+                state = State::Real;
+                real_type = Type::Integer;
             } else {
                 state = State::Fallback;
             }
             break;
-        case State::RealInteger:
+        case State::Real:
             if (*c >= '0' && *c <= '9') {
-                real_int_end = c;
+                real_end = c;
             } else if (*c == '_') {
                 // TODO: Skip single underscore, fix in String#to_c as well
                 state = State::Fallback;
             } else if (*c == '.') {
-                real_float_start = real_int_start;
-                real_float_end = c;
-                real_int_start = nullptr;
-                real_int_end = nullptr;
-                state = State::RealFloat;
+                if (real_type == Type::Integer) {
+                    real_type = Type::Float;
+                    real_end = c;
+                } else if (real_type == Type::Float) {
+                    error();
+                } else {
+                    state = State::Fallback;
+                }
             } else if (*c == '/') {
                 // TODO: Parse fraction, fix in String#to_c as well
                 state = State::Fallback;
@@ -211,29 +218,7 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
                 // TODO: Parse polar form, fix in String#to_c as well
                 state = State::Fallback;
             } else if (*c == '+' || *c == '-') {
-                // TODO: Finish real int part, continue with parsing complex part
-                state = State::Fallback;
-            } else if (*c == 'i') {
-                // TODO: Convert real part into imaginary part
-                state = State::Fallback;
-            } else {
-                return error();
-            }
-            break;
-        case State::RealFloat:
-            if (*c >= '0' && *c <= '9') {
-                real_float_end = c;
-            } else if (*c == '/') {
-                // TODO: Parse fraction, fix in String#to_c as well
-                state = State::Fallback;
-            } else if (*c == 'e') {
-                // TODO: Parse scientific notation, fix in String#to_c as well
-                state = State::Fallback;
-            } else if (*c == '@') {
-                // TODO: Parse polar form, fix in String#to_c as well
-                state = State::Fallback;
-            } else if (*c == '+' || *c == '-') {
-                // TODO: Finish real float part, continue with parsing complex part
+                // TODO: Finish real part, continue with parsing complex part
                 state = State::Fallback;
             } else if (*c == 'i') {
                 // TODO: Convert real part into imaginary part
@@ -254,12 +239,18 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
         return error();
     default: {
         auto new_real = Value::integer(0);
-        if (real_int_start != nullptr && real_int_end != nullptr) {
-            auto tmp = new StringObject { real_int_start, static_cast<size_t>(real_int_end - real_int_start + 1) };
-            new_real = Integer(env, tmp);
-        } else if (real_float_start != nullptr && real_float_end != nullptr) {
-            auto tmp = new StringObject { real_float_start, static_cast<size_t>(real_float_end - real_float_start + 1) };
-            new_real = Float(env, tmp);
+        if (real_start != nullptr && real_end != nullptr) {
+            auto tmp = new StringObject { real_start, static_cast<size_t>(real_end - real_start + 1) };
+            switch (real_type) {
+            case Type::Integer:
+                new_real = Integer(env, tmp);
+                break;
+            case Type::Float:
+                new_real = Float(env, tmp);
+                break;
+            case Type::Undefined:
+                return error();
+            }
         }
         return new ComplexObject { new_real };
     }
