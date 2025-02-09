@@ -363,6 +363,8 @@ Value KernelModule::exit_bang(Env *env, Value status) {
 }
 
 Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) {
+    if (exception && !exception.is_false() && !exception.is_true())
+        env->raise("ArgumentError", "expected true or false as exception: {}", exception.inspect_str(env));
     nat_int_t base_int = 0; // default to zero if unset
     if (base)
         base_int = base.to_int(env).to_nat_int_t();

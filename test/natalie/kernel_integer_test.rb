@@ -1,6 +1,12 @@
 require_relative '../spec_helper'
 
 describe 'Kernel.Integer' do
+  it 'only accepts true or false as exception argument' do
+    -> { Integer('1', exception: nil) }.should raise_error(ArgumentError, 'expected true or false as exception: nil')
+    obj = Object.new
+    -> { Integer('1', exception: obj) }.should raise_error(ArgumentError, "expected true or false as exception: #{obj}")
+  end
+
   it 'Does not accept a any whitespace after a sign mark' do
     -> { Integer("+\x001".b) }.should raise_error(ArgumentError, 'invalid value for Integer(): "+\\x001"')
     -> { Integer("+\t1") }.should raise_error(ArgumentError, 'invalid value for Integer(): "+\\t1"')
