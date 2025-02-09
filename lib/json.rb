@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require 'natalie/inline'
+
+__ld_flags__ '-ljson-c'
+
 module JSON
   class JSONError < StandardError; end
   class ParserError < JSONError; end
