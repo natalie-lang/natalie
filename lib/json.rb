@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'natalie/inline'
+require 'json.cpp'
 
 __ld_flags__ '-ljson-c'
 
