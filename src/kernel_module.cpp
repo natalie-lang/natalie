@@ -417,6 +417,8 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
 }
 
 Value KernelModule::Float(Env *env, Value value, Value exception) {
+    if (exception && !exception.is_false() && !exception.is_true())
+        env->raise("ArgumentError", "expected true or false as exception: {}", exception.inspect_str(env));
     return Float(env, value, exception ? exception.is_true() : true);
 }
 
