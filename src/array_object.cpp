@@ -550,6 +550,8 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
 
             if (length_obj && !length_obj.is_nil()) {
                 auto length = IntegerMethods::convert_to_nat_int_t(env, length_obj);
+                if (length >= 2LL << 60)
+                    env->raise("ArgumentError", "argument too big");
 
                 if (length <= 0)
                     return this;
