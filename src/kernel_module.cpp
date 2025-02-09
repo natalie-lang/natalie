@@ -189,8 +189,29 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
         case State::RealInteger:
             if (*c >= '0' && *c <= '9') {
                 real_end = c;
-            } else {
+            } else if (*c == '_') {
+                // TODO: Skip single underscore, fix in String#to_c as well
                 state = State::Fallback;
+            } else if (*c == '.') {
+                // TODO: Parse float
+                state = State::Fallback;
+            } else if (*c == '/') {
+                // TODO: Parse fraction, fix in String#to_c as well
+                state = State::Fallback;
+            } else if (*c == 'e') {
+                // TODO: Parse scientific notation, fix in String#to_c as well
+                state = State::Fallback;
+            } else if (*c == '@') {
+                // TODO: Parse polar form, fix in String#to_c as well
+                state = State::Fallback;
+            } else if (*c == '+' || *c == '-') {
+                // TODO: Finish real int part, continue with parsing complex part
+                state = State::Fallback;
+            } else if (*c == 'i') {
+                // TODO: Convert real part into imaginary part
+                state = State::Fallback;
+            } else {
+                return error();
             }
             break;
         case State::Fallback:
