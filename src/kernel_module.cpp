@@ -166,11 +166,14 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
     enum class State {
         Start,
         RealInteger,
+        RealFloat,
         Fallback, // In case of an error, use String#to_c until we finalize this parser
     };
     auto state = State::Start;
-    const char *real_start = nullptr;
-    const char *real_end = nullptr;
+    const char *real_int_start = nullptr;
+    const char *real_int_end = nullptr;
+    const char *real_float_start = nullptr;
+    const char *real_float_end = nullptr;
     for (const char *c = real->c_str(); c < real->c_str() + real->bytesize(); c++) {
         if (*c == 0) {
             if (exception)
@@ -180,7 +183,7 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
         switch (state) {
         case State::Start:
             if ((*c >= '0' && *c <= '9') || *c == '+' || *c == '-') {
-                real_start = real_end = c;
+                real_int_start = real_int_end = c;
                 state = State::RealInteger;
             } else {
                 state = State::Fallback;
@@ -188,13 +191,16 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
             break;
         case State::RealInteger:
             if (*c >= '0' && *c <= '9') {
-                real_end = c;
+                real_int_end = c;
             } else if (*c == '_') {
                 // TODO: Skip single underscore, fix in String#to_c as well
                 state = State::Fallback;
             } else if (*c == '.') {
-                // TODO: Parse float
-                state = State::Fallback;
+                real_float_start = real_int_start;
+                real_float_end = c;
+                real_int_start = nullptr;
+                real_int_end = nullptr;
+                state = State::RealFloat;
             } else if (*c == '/') {
                 // TODO: Parse fraction, fix in String#to_c as well
                 state = State::Fallback;
@@ -214,6 +220,28 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
                 return error();
             }
             break;
+        case State::RealFloat:
+            if (*c >= '0' && *c <= '9') {
+                real_float_end = c;
+            } else if (*c == '/') {
+                // TODO: Parse fraction, fix in String#to_c as well
+                state = State::Fallback;
+            } else if (*c == 'e') {
+                // TODO: Parse scientific notation, fix in String#to_c as well
+                state = State::Fallback;
+            } else if (*c == '@') {
+                // TODO: Parse polar form, fix in String#to_c as well
+                state = State::Fallback;
+            } else if (*c == '+' || *c == '-') {
+                // TODO: Finish real float part, continue with parsing complex part
+                state = State::Fallback;
+            } else if (*c == 'i') {
+                // TODO: Convert real part into imaginary part
+                state = State::Fallback;
+            } else {
+                return error();
+            }
+            break;
         case State::Fallback:
             break;
         }
@@ -225,10 +253,15 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
     case State::Start:
         return error();
     default: {
-        if (real_start == nullptr || real_end == nullptr)
-            return error();
-        auto new_real = new StringObject { real_start, static_cast<size_t>(real_end - real_start + 1) };
-        return new ComplexObject { Integer(env, new_real) };
+        auto new_real = Value::integer(0);
+        if (real_int_start != nullptr && real_int_end != nullptr) {
+            auto tmp = new StringObject { real_int_start, static_cast<size_t>(real_int_end - real_int_start + 1) };
+            new_real = Integer(env, tmp);
+        } else if (real_float_start != nullptr && real_float_end != nullptr) {
+            auto tmp = new StringObject { real_float_start, static_cast<size_t>(real_float_end - real_float_start + 1) };
+            new_real = Float(env, tmp);
+        }
+        return new ComplexObject { new_real };
     }
     }
 }
