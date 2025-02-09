@@ -134,10 +134,8 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value excepti
 }
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
-    if (real.is_string()) {
-        // NATFIXME: This is more restrictive than String#to_c, needs its own parser
-        return real->as_string()->send(env, "to_c"_s);
-    }
+    if (real.is_string())
+        return Complex(env, real->as_string(), imaginary, exception);
 
     if (real.is_complex() && imaginary == nullptr) {
         return real;
@@ -155,6 +153,11 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
         env->raise("TypeError", "can't convert {} into Complex", real.klass()->inspect_str());
     else
         return nullptr;
+}
+
+Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool exception) {
+    // NATFIXME: This is more restrictive than String#to_c, needs its own parser
+    return real->send(env, "to_c"_s);
 }
 
 Value KernelModule::cur_callee(Env *env) {
