@@ -172,6 +172,11 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
     const char *real_start = nullptr;
     const char *real_end = nullptr;
     for (const char *c = real->c_str(); c < real->c_str() + real->bytesize(); c++) {
+        if (*c == 0) {
+            if (exception)
+                env->raise("ArgumentError", "string contains null byte");
+            return NilObject::the();
+        }
         switch (state) {
         case State::Start:
             if ((*c >= '0' && *c <= '9') || *c == '+' || *c == '-') {

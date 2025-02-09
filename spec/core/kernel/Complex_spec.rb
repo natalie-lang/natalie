@@ -117,11 +117,9 @@ describe "Kernel.Complex()" do
       end
 
       it "does not allow null-byte" do
-        NATFIXME 'does not allow null-byte', exception: SpecFailedException do
-          -> {
-            Complex("1-2i\0")
-          }.should raise_error(ArgumentError, "string contains null byte")
-        end
+        -> {
+          Complex("1-2i\0")
+        }.should raise_error(ArgumentError, "string contains null byte")
       end
     end
 
@@ -166,9 +164,7 @@ describe "Kernel.Complex()" do
       end
 
       it "returns nil when String contains null-byte" do
-        NATFIXME 'returns nil when String contains null-byte', exception: NoMethodError, message: "undefined method 'real' for nil" do
-          Complex("1-2i\0", exception: false).should == nil
-        end
+        Complex("1-2i\0", exception: false).should == nil
       end
     end
   end
