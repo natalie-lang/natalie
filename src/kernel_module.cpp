@@ -134,10 +134,8 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value excepti
 }
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
-    if (real.is_string()) {
-        // NATFIXME: This is more restrictive than String#to_c, needs its own parser
-        return real->as_string()->send(env, "to_c"_s);
-    }
+    if (real.is_string())
+        return Complex(env, real->as_string(), imaginary, exception);
 
     if (real.is_complex() && imaginary == nullptr) {
         return real;
@@ -155,6 +153,161 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
         env->raise("TypeError", "can't convert {} into Complex", real.klass()->inspect_str());
     else
         return nullptr;
+}
+
+Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool exception) {
+    auto error = [&]() -> Value {
+        if (exception)
+            env->raise("ArgumentError", "invalid value for convert(): \"{}\"", real->string());
+        return NilObject::the();
+    };
+    if (!real->is_ascii_only())
+        return error();
+    enum class State {
+        Start,
+        Real,
+        Imag,
+        Finished,
+        Fallback, // In case of an error, use String#to_c until we finalize this parser
+    };
+    enum class Type {
+        Undefined,
+        Integer,
+        Float,
+    };
+    auto state = State::Start;
+    auto real_type = Type::Undefined;
+    auto imag_type = Type::Undefined;
+    const char *real_start = nullptr;
+    const char *real_end = nullptr;
+    const char *imag_start = nullptr;
+    const char *imag_end = nullptr;
+    auto *curr_type = &real_type;
+    const char **curr_start = &real_start;
+    const char **curr_end = &real_end;
+    auto new_real = Value::integer(0);
+    auto new_imag = Value::integer(0);
+    for (const char *c = real->c_str(); c < real->c_str() + real->bytesize(); c++) {
+        if (*c == 0) {
+            if (exception)
+                env->raise("ArgumentError", "string contains null byte");
+            return NilObject::the();
+        }
+        switch (state) {
+        case State::Start:
+            if ((*c >= '0' && *c <= '9') || *c == '+' || *c == '-') {
+                *curr_start = *curr_end = c;
+                state = State::Real;
+                *curr_type = Type::Integer;
+            } else if (*c == 'i') {
+                new_imag = Value::integer(1);
+                state = State::Finished;
+            } else if (*c != ' ' && *c != '\t' && *c != '\r' && *c != '\n') {
+                return error();
+            }
+            break;
+        case State::Real:
+        case State::Imag:
+            if (*c >= '0' && *c <= '9') {
+                *curr_end = c;
+            } else if (*c == '_') {
+                // TODO: Skip single underscore, fix in String#to_c as well
+                state = State::Fallback;
+            } else if (*c == '.') {
+                if (*curr_type == Type::Integer) {
+                    *curr_type = Type::Float;
+                    *curr_end = c;
+                } else if (*curr_type == Type::Float) {
+                    error();
+                } else {
+                    state = State::Fallback;
+                }
+            } else if (*c == '/') {
+                // TODO: Parse fraction, fix in String#to_c as well
+                state = State::Fallback;
+            } else if (*c == 'e') {
+                // TODO: Parse scientific notation, fix in String#to_c as well
+                state = State::Fallback;
+            } else if (*c == '@') {
+                // TODO: Parse polar form, fix in String#to_c as well
+                state = State::Fallback;
+            } else if (*c == '+' || *c == '-') {
+                if (*curr_start && *curr_start == *curr_end && (**curr_end == '-' || **curr_end == '+'))
+                    return error();
+                if (state == State::Imag)
+                    return error();
+                curr_start = &imag_start;
+                curr_end = &imag_end;
+                *curr_start = *curr_end = c;
+                curr_type = &imag_type;
+                *curr_type = Type::Integer;
+                state = State::Imag;
+            } else if (*c == 'i') {
+                if (*curr_start && *curr_start == *curr_end && (**curr_end == '-' || **curr_end == '+')) {
+                    // Corner case: '-i' or '+i'
+                    new_imag = Value::integer(**curr_end == '-' ? -1 : 1);
+                    *curr_start = nullptr;
+                    *curr_end = nullptr;
+                }
+                if (state == State::Real) {
+                    imag_type = real_type;
+                    imag_start = real_start;
+                    imag_end = c - 1;
+                    real_type = Type::Undefined;
+                    real_start = nullptr;
+                    real_end = nullptr;
+                }
+                state = State::Finished;
+            } else if (*c == 'I' || *c == 'j' || *c == 'J') {
+                // TODO: Parse other imaginary markers, fix in String#to_c as well
+                state = State::Fallback;
+            } else {
+                return error();
+            }
+            break;
+        case State::Finished:
+            if (*c != ' ' && *c != '\t' && *c != '\r' && *c != '\n')
+                return error();
+        case State::Fallback:
+            break;
+        }
+    }
+
+    switch (state) {
+    case State::Fallback:
+        return real->send(env, "to_c"_s);
+    case State::Start:
+        return error();
+    default: {
+        if (real_start != nullptr && real_end != nullptr) {
+            auto tmp = new StringObject { real_start, static_cast<size_t>(real_end - real_start + 1) };
+            switch (real_type) {
+            case Type::Integer:
+                new_real = Integer(env, tmp);
+                break;
+            case Type::Float:
+                new_real = Float(env, tmp);
+                break;
+            case Type::Undefined:
+                return error();
+            }
+        }
+        if (imag_start != nullptr && imag_end != nullptr) {
+            auto tmp = new StringObject { imag_start, static_cast<size_t>(imag_end - imag_start + 1) };
+            switch (imag_type) {
+            case Type::Integer:
+                new_imag = Integer(env, tmp);
+                break;
+            case Type::Float:
+                new_imag = Float(env, tmp);
+                break;
+            case Type::Undefined:
+                return error();
+            }
+        }
+        return new ComplexObject { new_real, new_imag };
+    }
+    }
 }
 
 Value KernelModule::cur_callee(Env *env) {

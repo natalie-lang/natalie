@@ -73,19 +73,15 @@ describe "Kernel.Complex()" do
       end
 
       it "raises ArgumentError for unrecognised Strings" do
-        NATFIXME 'raises ArgumentError for unrecognised Strings', exception: SpecFailedException do
-          -> {
-            Complex("ruby")
-          }.should raise_error(ArgumentError, 'invalid value for convert(): "ruby"')
-        end
+        -> {
+          Complex("ruby")
+        }.should raise_error(ArgumentError, 'invalid value for convert(): "ruby"')
       end
 
       it "raises ArgumentError for trailing garbage" do
-        NATFIXME 'raises ArgumentError for trailing garbage', exception: SpecFailedException do
-          -> {
-            Complex("79+4iruby")
-          }.should raise_error(ArgumentError, 'invalid value for convert(): "79+4iruby"')
-        end
+        -> {
+          Complex("79+4iruby")
+        }.should raise_error(ArgumentError, 'invalid value for convert(): "79+4iruby"')
       end
 
       it "does not understand Float::INFINITY" do
@@ -101,11 +97,9 @@ describe "Kernel.Complex()" do
       end
 
       it "does not understand Float::NAN" do
-        NATFIXME 'does not understand Float::NAN', exception: SpecFailedException do
-          -> {
-            Complex("NaN")
-          }.should raise_error(ArgumentError, 'invalid value for convert(): "NaN"')
-        end
+        -> {
+          Complex("NaN")
+        }.should raise_error(ArgumentError, 'invalid value for convert(): "NaN"')
       end
 
       it "does not understand a sequence of _" do
@@ -117,11 +111,9 @@ describe "Kernel.Complex()" do
       end
 
       it "does not allow null-byte" do
-        NATFIXME 'does not allow null-byte', exception: SpecFailedException do
-          -> {
-            Complex("1-2i\0")
-          }.should raise_error(ArgumentError, "string contains null byte")
-        end
+        -> {
+          Complex("1-2i\0")
+        }.should raise_error(ArgumentError, "string contains null byte")
       end
     end
 
@@ -135,28 +127,22 @@ describe "Kernel.Complex()" do
       end
 
       it "returns nil for unrecognised Strings" do
-        NATFIXME 'returns nil for unrecognised Strings', exception: SpecFailedException do
-          Complex("ruby", exception: false).should == nil
-        end
+        Complex("ruby", exception: false).should == nil
       end
 
       it "returns nil when trailing garbage" do
-        NATFIXME 'returns nil when trailing garbage', exception: NoMethodError, message: "undefined method 'real' for nil" do
-          Complex("79+4iruby", exception: false).should == nil
-        end
+        Complex("79+4iruby", exception: false).should == nil
       end
 
       it "returns nil for Float::INFINITY" do
-        NATFIXME 'returns nil for Float::INFINITY', exception: NoMethodError, message: "undefined method 'real' for nil" do
+        NATFIXME 'returns nil for Float::INFINITY', exception: SpecFailedException do
           Complex("Infinity", exception: false).should == nil
           Complex("-Infinity", exception: false).should == nil
         end
       end
 
       it "returns nil for Float::NAN" do
-        NATFIXME 'returns nil for Float::NAN', exception: SpecFailedException do
-          Complex("NaN", exception: false).should == nil
-        end
+        Complex("NaN", exception: false).should == nil
       end
 
       it "returns nil when there is a sequence of _" do
@@ -166,9 +152,7 @@ describe "Kernel.Complex()" do
       end
 
       it "returns nil when String contains null-byte" do
-        NATFIXME 'returns nil when String contains null-byte', exception: NoMethodError, message: "undefined method 'real' for nil" do
-          Complex("1-2i\0", exception: false).should == nil
-        end
+        Complex("1-2i\0", exception: false).should == nil
       end
     end
   end
@@ -291,7 +275,7 @@ describe "Kernel.Complex()" do
 
     describe "and [anything, non-Numeric] argument" do
       it "swallows an error" do
-        NATFIXME '[anything, non-Numeric] argument', exception: SpecFailedException do
+        NATFIXME '[anything, non-Numeric] argument', exception: NoMethodError, message: "undefined method 'real' for nil" do
           Complex("a",  :sym, exception: false).should == nil
           Complex(:sym, :sym, exception: false).should == nil
           Complex(0,    :sym, exception: false).should == nil
@@ -301,7 +285,7 @@ describe "Kernel.Complex()" do
 
     describe "and non-numeric String arguments" do
       it "swallows an error" do
-        NATFIXME 'non-numeric String arguments', exception: SpecFailedException do
+        NATFIXME 'non-numeric String arguments', exception: NoMethodError, message: "undefined method 'real' for nil" do
           Complex("a", "b", exception: false).should == nil
           Complex("a", 0, exception: false).should == nil
           Complex(0, "b", exception: false).should == nil
