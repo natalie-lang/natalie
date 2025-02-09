@@ -166,6 +166,7 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
     enum class State {
         Start,
         Real,
+        Finished,
         Fallback, // In case of an error, use String#to_c until we finalize this parser
     };
     enum class Type {
@@ -175,8 +176,13 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
     };
     auto state = State::Start;
     auto real_type = Type::Undefined;
+    auto imag_type = Type::Undefined;
     const char *real_start = nullptr;
     const char *real_end = nullptr;
+    const char *imag_start = nullptr;
+    const char *imag_end = nullptr;
+    auto new_real = Value::integer(0);
+    auto new_imag = Value::integer(0);
     for (const char *c = real->c_str(); c < real->c_str() + real->bytesize(); c++) {
         if (*c == 0) {
             if (exception)
@@ -189,6 +195,9 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
                 real_start = real_end = c;
                 state = State::Real;
                 real_type = Type::Integer;
+            } else if (*c == 'i') {
+                new_imag = Value::integer(1);
+                state = State::Finished;
             } else {
                 state = State::Fallback;
             }
@@ -221,12 +230,25 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
                 // TODO: Finish real part, continue with parsing complex part
                 state = State::Fallback;
             } else if (*c == 'i') {
-                // TODO: Convert real part into imaginary part
-                state = State::Fallback;
+                if (real_start && real_start == real_end && (*real_end == '-' || *real_end == '+')) {
+                    // Corner case: '-i' or '+i'
+                    new_imag = Value::integer(*real_end == '-' ? -1 : 1);
+                    real_start = nullptr;
+                    real_end = nullptr;
+                }
+                imag_type = real_type;
+                imag_start = real_start;
+                imag_end = c - 1;
+                real_type = Type::Undefined;
+                real_start = nullptr;
+                real_end = nullptr;
+                state = State::Finished;
             } else {
                 return error();
             }
             break;
+        case State::Finished:
+            return error();
         case State::Fallback:
             break;
         }
@@ -238,7 +260,6 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
     case State::Start:
         return error();
     default: {
-        auto new_real = Value::integer(0);
         if (real_start != nullptr && real_end != nullptr) {
             auto tmp = new StringObject { real_start, static_cast<size_t>(real_end - real_start + 1) };
             switch (real_type) {
@@ -252,7 +273,20 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
                 return error();
             }
         }
-        return new ComplexObject { new_real };
+        if (imag_start != nullptr && imag_end != nullptr) {
+            auto tmp = new StringObject { imag_start, static_cast<size_t>(imag_end - imag_start + 1) };
+            switch (imag_type) {
+            case Type::Integer:
+                new_imag = Integer(env, tmp);
+                break;
+            case Type::Float:
+                new_imag = Float(env, tmp);
+                break;
+            case Type::Undefined:
+                return error();
+            }
+        }
+        return new ComplexObject { new_real, new_imag };
     }
     }
 }
