@@ -121,6 +121,8 @@ describe 'JSON' do
       JSON.generate(1234).should == '1234'
       JSON.generate(-3000).should == '-3000'
       JSON.generate(0).should == '0'
+      JSON.generate(2**64).should == "#{2**64}"
+      JSON.generate(-2**64).should == "-#{2**64}"
     end
 
     it 'generates floats' do

@@ -10,3 +10,6 @@
 [submodule "ext/prism"]
 	path = ext/prism
 	url = https://github.com/ruby/prism
+[submodule "ext/json-c"]
+	path = ext/json-c
+	url = https://github.com/json-c/json-c.git
