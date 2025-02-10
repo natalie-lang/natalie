@@ -15,20 +15,20 @@ class Integer {
 public:
     Integer(nat_int_t other) {
         if (other >= NAT_MIN_FIXNUM && other <= NAT_MAX_FIXNUM)
-            m_value = (other << 1) | 0x1;
+            m_value = left_shift_with_undefined_behavior(other, 1) | 0x1;
         else
             m_value = (uintptr_t) new BigInt(other);
     }
 
     Integer(long other) {
         if (other >= NAT_MIN_FIXNUM && other <= NAT_MAX_FIXNUM)
-            m_value = (static_cast<nat_int_t>(other) << 1) | 0x1;
+            m_value = left_shift_with_undefined_behavior(static_cast<nat_int_t>(other), 1) | 0x1;
         else
             m_value = (uintptr_t) new BigInt(other);
     }
 
     Integer(int other) {
-        m_value = (static_cast<nat_int_t>(other) << 1) | 0x1;
+        m_value = left_shift_with_undefined_behavior(static_cast<nat_int_t>(other), 1) | 0x1;
     }
 
     // This is hacky, but we need an Integer representation that
@@ -178,6 +178,9 @@ public:
     }
 
 private:
+    __attribute__((no_sanitize("undefined"))) static nat_int_t left_shift_with_undefined_behavior(nat_int_t x, nat_int_t y) {
+        return x << y; // NOLINT
+    }
     // The least significant bit is used to tag the pointer as either
     // an immediate value (63 bits) or a pointer to a BigInt.
     // If bit is 1, then shift the value to the right to get the actual
