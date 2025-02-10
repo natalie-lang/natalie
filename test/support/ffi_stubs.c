@@ -22,6 +22,10 @@ int test_int(int arg) {
     return arg;
 }
 
+unsigned int test_uint(unsigned int arg) {
+    return arg;
+}
+
 size_t test_size_t(size_t arg) {
     return arg;
 }

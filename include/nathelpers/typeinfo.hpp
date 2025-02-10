@@ -16,6 +16,11 @@ struct typeinfo<int> {
 };
 
 template <>
+struct typeinfo<unsigned int> {
+    constexpr const char *name() { return "unsigned int"; }
+};
+
+template <>
 struct typeinfo<int8_t> {
     constexpr const char *name() { return "int8_t"; }
 };
