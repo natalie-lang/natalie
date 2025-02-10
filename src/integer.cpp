@@ -3,61 +3,36 @@
 #include "natalie/macros.hpp"
 
 namespace Natalie {
-Integer::Integer(nat_int_t other)
-    : m_fixnum(other)
-    , m_is_bignum(false) {
-}
-
-Integer::Integer(int other)
-    : m_fixnum(other)
-    , m_is_bignum(false) {
-}
-
-Integer::Integer(long other)
-    : m_fixnum(other)
-    , m_is_bignum(false) {
-}
 
 Integer::Integer(double other) {
     assert(other == ::floor(other));
-    if (other <= (double)NAT_MIN_FIXNUM || other >= (double)NAT_MAX_FIXNUM) {
-        m_bignum = new BigInt(other);
-        m_is_bignum = true;
-    } else {
-        m_fixnum = static_cast<nat_int_t>(other);
-        m_is_bignum = false;
-    }
+    auto i = (nat_int_t)other;
+    if (i >= NAT_MIN_FIXNUM && i <= NAT_MAX_FIXNUM)
+        m_value = left_shift_with_undefined_behavior(i, 1) | 0x1;
+    else
+        m_value = (uintptr_t) new BigInt(other);
 }
 
 Integer::Integer(const TM::String &other) {
     auto bigint = BigInt(other);
-    if (bigint >= NAT_MIN_FIXNUM && bigint <= NAT_MAX_FIXNUM) {
-        m_is_bignum = false;
-        m_fixnum = bigint.to_long_long();
-    } else {
-        m_is_bignum = true;
-        m_bignum = new BigInt(bigint);
-    }
+    if (bigint >= NAT_MIN_FIXNUM && bigint <= NAT_MAX_FIXNUM)
+        m_value = left_shift_with_undefined_behavior(bigint.to_long_long(), 1) | 0x1;
+    else
+        m_value = (uintptr_t) new BigInt(bigint);
 }
 
 Integer::Integer(const BigInt &other) {
-    if (other <= NAT_MAX_FIXNUM && other >= NAT_MIN_FIXNUM) {
-        m_fixnum = other.to_long_long();
-        m_is_bignum = false;
-    } else {
-        m_bignum = new BigInt(other);
-        m_is_bignum = true;
-    }
+    if (other >= NAT_MIN_FIXNUM && other <= NAT_MAX_FIXNUM)
+        m_value = left_shift_with_undefined_behavior(other.to_long_long(), 1) | 0x1;
+    else
+        m_value = (uintptr_t) new BigInt(other);
 }
 
 Integer::Integer(BigInt &&other) {
-    if (other <= NAT_MAX_FIXNUM && other >= NAT_MIN_FIXNUM) {
-        m_fixnum = other.to_long_long();
-        m_is_bignum = false;
-    } else {
-        m_bignum = new BigInt(std::move(other));
-        m_is_bignum = true;
-    }
+    if (other >= NAT_MIN_FIXNUM && other <= NAT_MAX_FIXNUM)
+        m_value = left_shift_with_undefined_behavior(other.to_long_long(), 1) | 0x1;
+    else
+        m_value = (uintptr_t) new BigInt(std::move(other));
 }
 
 Integer &Integer::operator+=(const Integer &other) {
@@ -113,7 +88,7 @@ Integer Integer::operator-(const Integer &other) const {
     if (overflowed)
         return to_bigint() - other.to_bigint();
 
-    return m_fixnum - other.m_fixnum;
+    return to_nat_int_t() - other.to_nat_int_t();
 }
 
 bool Integer::will_multiplication_overflow(nat_int_t a, nat_int_t b) {
@@ -136,7 +111,7 @@ Integer Integer::operator*(const Integer &other) const {
         return to_bigint() * other.to_bigint();
     }
 
-    return m_fixnum * other.m_fixnum;
+    return to_nat_int_t() * other.to_nat_int_t();
 }
 
 Integer Integer::operator/(const Integer &other) const {
@@ -206,8 +181,8 @@ Integer &Integer::operator--() {
 bool Integer::operator<(const Integer &other) const {
     if (is_bignum()) {
         if (other.is_bignum())
-            return *m_bignum < *other.m_bignum;
-        else if (m_bignum->is_negative())
+            return *(BigInt *)m_value < *(BigInt *)other.m_value;
+        else if (is_negative())
             return true;
         else
             return false;
@@ -218,7 +193,7 @@ bool Integer::operator<(const Integer &other) const {
             return true;
     }
 
-    return m_fixnum < other.m_fixnum;
+    return to_nat_int_t() < other.to_nat_int_t();
 }
 
 bool Integer::operator<=(const Integer &other) const {
@@ -236,14 +211,14 @@ bool Integer::operator>=(const Integer &other) const {
 bool Integer::operator==(const Integer &other) const {
     if (is_bignum()) {
         if (other.is_bignum())
-            return *m_bignum == *other.m_bignum;
+            return *(BigInt *)m_value == *(BigInt *)other.m_value;
         else
             return false;
     } else if (other.is_bignum()) {
         return false;
     }
 
-    return m_fixnum == other.m_fixnum;
+    return to_nat_int_t() == other.to_nat_int_t();
 }
 
 bool Integer::operator!=(const Integer &other) const {
@@ -355,7 +330,7 @@ double Integer::to_double() const {
     if (is_bignum())
         return to_bigint().to_double();
     else
-        return static_cast<double>(m_fixnum);
+        return static_cast<double>(to_nat_int_t());
 }
 
 TM::String Integer::to_string() const {

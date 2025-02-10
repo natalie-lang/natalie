@@ -710,8 +710,7 @@ Value IntegerMethods::ref(Env *env, Integer &self, Value offset_obj, Value size_
 
 nat_int_t IntegerMethods::convert_to_nat_int_t(Env *env, Value arg) {
     auto integer = arg.to_int(env);
-    assert_fixnum(env, integer);
-    return integer.to_nat_int_t();
+    return convert_to_native_type<nat_int_t>(env, integer);
 }
 
 int IntegerMethods::convert_to_int(Env *env, Value arg) {

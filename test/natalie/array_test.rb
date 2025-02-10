@@ -1237,10 +1237,10 @@ describe 'array' do
       it 'handles bignums' do
         %w[j J].each do |directive|
           [0xdef0_abcd_3412_7856].pack(directive).should == "Vx\x124\xCD\xAB\xF0\xDE".b
-          [fixnum_max + 1].pack(directive).should == "\x00\x00\x00\x00\x00\x00\x00\x80".b
-          [fixnum_max + 2].pack(directive).should == "\x01\x00\x00\x00\x00\x00\x00\x80".b
-          [-fixnum_max - 1].pack(directive).should == "\x00\x00\x00\x00\x00\x00\x00\x80".b
-          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x7F".b
+          [fixnum_max + 1].pack(directive).should == "\x00\x00\x00\x00\x00\x00\x00@".b
+          [fixnum_max + 2].pack(directive).should == "\x01\x00\x00\x00\x00\x00\x00@".b
+          [-fixnum_max - 1].pack(directive).should == "\x00\x00\x00\x00\x00\x00\x00\xC0".b
+          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xBF".b
 
           little_endian do
             [0xdef0_abcd_3412_7856].pack(directive + '>').should == "\xDE\xF0\xAB\xCD4\x12xV".b

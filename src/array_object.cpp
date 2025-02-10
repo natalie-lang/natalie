@@ -246,9 +246,7 @@ Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
             index_obj = index_obj.send(env, "to_int"_s);
 
         if (index_obj.is_integer()) {
-            IntegerMethods::assert_fixnum(env, index_obj.integer());
-
-            auto index = _resolve_index(index_obj.integer().to_nat_int_t());
+            auto index = _resolve_index(IntegerMethods::convert_to_nat_int_t(env, index_obj));
             if (index < 0 || index >= (nat_int_t)m_vector.size())
                 return NilObject::the();
             return m_vector[index];
@@ -552,6 +550,8 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
 
             if (length_obj && !length_obj.is_nil()) {
                 auto length = IntegerMethods::convert_to_nat_int_t(env, length_obj);
+                if (length >= 2LL << 60)
+                    env->raise("ArgumentError", "argument too big");
 
                 if (length <= 0)
                     return this;

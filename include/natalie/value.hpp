@@ -202,13 +202,10 @@ public:
     String dbg_inspect() const;
 
 private:
-    template <typename Callback>
-    Value on_object_value(Callback &&callback);
-
     Type m_type { Type::Pointer };
 
     union {
-        Integer m_integer { 0 };
+        Integer m_integer { Integer::null() };
         Object *m_object;
     };
 };
