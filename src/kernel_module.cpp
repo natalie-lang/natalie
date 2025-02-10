@@ -143,16 +143,30 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
     if (real.is_string())
         return Complex(env, real->as_string(), imaginary, exception);
 
-    if (real.is_complex() && imaginary == nullptr) {
+    if (real.is_complex() && imaginary == nullptr)
         return real;
-    } else if (real.is_complex() && imaginary.is_complex()) {
+
+    if (real.is_complex() && imaginary.is_complex()) {
         auto new_real = real->as_complex()->real().send(env, "-"_s, { imaginary->as_complex()->imaginary() });
         auto new_imaginary = real->as_complex()->imaginary().send(env, "+"_s, { imaginary->as_complex()->real() });
         return new ComplexObject { new_real, new_imaginary };
-    } else if (imaginary == nullptr) {
-        return new ComplexObject { real };
-    } else {
-        return new ComplexObject { real, imaginary };
+    }
+
+    auto is_numeric = [&env](Value val) -> bool {
+        if (val.is_numeric() || val.is_rational() || val.is_complex())
+            return true;
+        if (!val.respond_to(env, "real?"_s))
+            return false;
+        auto Numeric = GlobalEnv::the()->Object()->const_get(env, "Numeric"_s);
+        return is_a(env, val, Numeric);
+    };
+
+    if (is_numeric(real)) {
+        if (imaginary == nullptr) {
+            return new ComplexObject { real };
+        } else if (is_numeric(imaginary)) {
+            return new ComplexObject { real, imaginary };
+        }
     }
 
     if (exception)
