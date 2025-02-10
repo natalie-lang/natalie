@@ -17,6 +17,8 @@ describe 'JSON' do
       JSON.parse('-3000').should == -3000
       JSON.parse('0').should == 0
       JSON.parse('-0').should == 0
+      JSON.parse((2**64).to_s).should == 2 **64
+      JSON.parse((-2**64).to_s).should == -2**64
       -> { JSON.parse('01') }.should raise_error(JSON::ParserError)
       -> { JSON.parse('-01') }.should raise_error(JSON::ParserError)
     end
