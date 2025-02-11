@@ -338,8 +338,8 @@ bool Value::is_time() const { return m_type == Type::Pointer && m_object->type()
 bool Value::is_unbound_method() const { return m_type == Type::Pointer && m_object->type() == ObjectType::UnboundMethod; }
 bool Value::is_void_p() const { return m_type == Type::Pointer && m_object->type() == ObjectType::VoidP; }
 
-bool Value::is_truthy() const { return !is_false() && !is_nil(); }
-bool Value::is_falsey() const { return !is_truthy(); }
+bool Value::is_truthy() const { return !is_falsey(); }
+bool Value::is_falsey() const { return is_false() || is_nil(); }
 bool Value::is_numeric() const { return is_integer() || is_float(); }
 bool Value::is_boolean() const { return is_true() || is_false(); }
 
