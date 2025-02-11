@@ -152,6 +152,8 @@ Value FiberObject::resume(Env *env, Args args) {
         env->raise("FiberError", "dead fiber called");
     if (m_previous_fiber)
         env->raise("FiberError", "attempt to resume the current fiber");
+    if (this == FiberObject::main())
+        env->raise("FiberError", "attempt to resume a resuming fiber");
 
     auto suspending_fiber = m_previous_fiber = current();
 

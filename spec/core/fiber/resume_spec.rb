@@ -77,8 +77,7 @@ describe "Fiber#resume" do
     end
   end
 
-  # NATFIXME: assertion failure: src/fiber_object.cpp:171: Natalie::Value Natalie::FiberObject::resume(Natalie::Env*, Natalie::Args): Assertion `res == MCO_SUCCESS' failed.
-  xit "raises a FiberError if the Fiber attempts to resume a resuming fiber" do
+  it "raises a FiberError if the Fiber attempts to resume a resuming fiber" do
     root_fiber = Fiber.current
     fiber1 = Fiber.new { root_fiber.resume }
     -> { fiber1.resume }.should raise_error(FiberError, /attempt to resume a resuming fiber/)
