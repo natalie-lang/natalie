@@ -1,5 +1,3 @@
-require 'fiber'
-
 class Scheduler
   def initialize
     @waiting = {}
