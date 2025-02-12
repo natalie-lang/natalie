@@ -15,10 +15,8 @@
 
 namespace Natalie {
 
-struct BigInt : public Cell {
+class BigInt : public Cell {
 public:
-    bigint data[1];
-
     BigInt() {
         bigint_init(data);
     }
@@ -168,6 +166,55 @@ public:
         return *this;
     }
 
+    BigInt operator-() {
+        BigInt b(*this);
+        b.data->neg = !b.data->neg;
+        return b;
+    }
+
+    bool operator==(const BigInt &b) const { return bigint_cmp(data, b.data) == 0; }
+    bool operator!=(const BigInt &b) const { return bigint_cmp(data, b.data) != 0; }
+    bool operator<=(const BigInt &b) const { return bigint_cmp(data, b.data) <= 0; }
+    bool operator>=(const BigInt &b) const { return bigint_cmp(data, b.data) >= 0; }
+    bool operator<(const BigInt &b) const { return bigint_cmp(data, b.data) < 0; }
+    bool operator>(const BigInt &b) const { return bigint_cmp(data, b.data) > 0; }
+
+    bool operator==(long long b) const { return bigint_cmp(data, BigInt(b).data) == 0; }
+    bool operator!=(long long b) const { return bigint_cmp(data, BigInt(b).data) != 0; }
+    bool operator<=(long long b) const { return bigint_cmp(data, BigInt(b).data) <= 0; }
+    bool operator>=(long long b) const { return bigint_cmp(data, BigInt(b).data) >= 0; }
+    bool operator<(long long b) const { return bigint_cmp(data, BigInt(b).data) < 0; }
+    bool operator>(long long b) const { return bigint_cmp(data, BigInt(b).data) > 0; }
+
+    bool operator==(const double &b) const {
+        if (isinf(b)) return false;
+
+        return *this == BigInt(floor(b));
+    }
+
+    bool operator<(const double &b) const {
+        if (isinf(b)) return b > 0;
+
+        return *this < BigInt(floor(b));
+    }
+
+    bool operator!=(const double &b) const { return !(*this == b); }
+    bool operator>(const double &b) const { return !(*this < b) && !(*this == b); }
+    bool operator<=(const double &b) const { return (*this < b) || (*this == b); }
+    bool operator>=(const double &b) const { return !(*this < b); }
+
+    BigInt operator+(const BigInt &b) const { return BigInt(*this) += b; }
+    BigInt operator-(const BigInt &b) const { return BigInt(*this) -= b; }
+    BigInt operator*(const BigInt &b) const { return BigInt(*this) *= b; }
+    BigInt operator/(const BigInt &b) const { return BigInt(*this) /= b; }
+    BigInt operator%(const BigInt &b) const { return BigInt(*this) %= b; }
+    BigInt operator~() const { return BigInt(-1) - *this; }
+    BigInt operator<<(long long shift) const { return BigInt(*this) <<= shift; }
+    BigInt operator>>(long long shift) const { return BigInt(*this) >>= shift; }
+    BigInt operator&(const BigInt &b) const { return BigInt(*this) &= b; }
+    BigInt operator|(const BigInt &b) const { return BigInt(*this) |= b; }
+    BigInt operator^(const BigInt &b) const { return BigInt(*this) ^= b; }
+
     BigInt &set_bit(int bit_index) {
         bigint_set_bit(data, bit_index);
         return *this;
@@ -247,87 +294,9 @@ public:
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<BigInt %p value=%s>", this, to_string().c_str());
     }
+
+private:
+    bigint data[1];
 };
-
-inline BigInt operator-(const BigInt &a) {
-    BigInt b(a);
-    b.data->neg = !b.data->neg;
-    return b;
-}
-
-inline BigInt operator+(const BigInt &a, const BigInt &b) {
-    return BigInt(a) += b;
-}
-
-inline BigInt operator-(const BigInt &a, const BigInt &b) {
-    return BigInt(a) -= b;
-}
-
-inline BigInt operator*(const BigInt &a, const BigInt &b) {
-    return BigInt(a) *= b;
-}
-
-inline BigInt operator/(const BigInt &a, const BigInt &b) {
-    return BigInt(a) /= b;
-}
-
-inline BigInt operator%(const BigInt &a, const BigInt &b) {
-    return BigInt(a) %= b;
-}
-
-inline BigInt operator~(const BigInt &a) {
-    return BigInt(-1) - a;
-}
-
-inline BigInt operator<<(const BigInt &a, long long shift) {
-    return BigInt(a) <<= shift;
-}
-
-inline BigInt operator>>(const BigInt &a, long long shift) {
-    return BigInt(a) >>= shift;
-}
-
-inline BigInt operator&(const BigInt &a, const BigInt &b) {
-    return BigInt(a) &= b;
-}
-
-inline BigInt operator|(const BigInt &a, const BigInt &b) {
-    return BigInt(a) |= b;
-}
-
-inline BigInt operator^(const BigInt &a, const BigInt &b) {
-    return BigInt(a) ^= b;
-}
-
-inline bool operator==(const BigInt &a, const BigInt &b) { return bigint_cmp(a.data, b.data) == 0; }
-inline bool operator!=(const BigInt &a, const BigInt &b) { return bigint_cmp(a.data, b.data) != 0; }
-inline bool operator<=(const BigInt &a, const BigInt &b) { return bigint_cmp(a.data, b.data) <= 0; }
-inline bool operator>=(const BigInt &a, const BigInt &b) { return bigint_cmp(a.data, b.data) >= 0; }
-inline bool operator<(const BigInt &a, const BigInt &b) { return bigint_cmp(a.data, b.data) < 0; }
-inline bool operator>(const BigInt &a, const BigInt &b) { return bigint_cmp(a.data, b.data) > 0; }
-
-inline bool operator==(const BigInt &a, long long b) { return bigint_cmp(a.data, BigInt(b).data) == 0; }
-inline bool operator!=(const BigInt &a, long long b) { return bigint_cmp(a.data, BigInt(b).data) != 0; }
-inline bool operator<=(const BigInt &a, long long b) { return bigint_cmp(a.data, BigInt(b).data) <= 0; }
-inline bool operator>=(const BigInt &a, long long b) { return bigint_cmp(a.data, BigInt(b).data) >= 0; }
-inline bool operator<(const BigInt &a, long long b) { return bigint_cmp(a.data, BigInt(b).data) < 0; }
-inline bool operator>(const BigInt &a, long long b) { return bigint_cmp(a.data, BigInt(b).data) > 0; }
-
-inline bool operator==(const BigInt &a, const double &b) {
-    if (isinf(b)) return false;
-
-    return a == BigInt(floor(b));
-}
-
-inline bool operator<(const BigInt &a, const double &b) {
-    if (isinf(b)) return b > 0;
-
-    return a < BigInt(floor(b));
-}
-
-inline bool operator!=(const BigInt &a, const double &b) { return !(a == b); }
-inline bool operator>(const BigInt &a, const double &b) { return !(a < b) && !(a == b); }
-inline bool operator<=(const BigInt &a, const double &b) { return (a < b) || (a == b); }
-inline bool operator>=(const BigInt &a, const double &b) { return !(a < b); }
 
 }
