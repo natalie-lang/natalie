@@ -25,7 +25,7 @@ public:
     static Value catch_method(Env *, Value = nullptr, Block * = nullptr);
     static Value Complex(Env *env, Value real, Value imaginary, Value exception);
     static Value Complex(Env *env, Value real, Value imaginary, bool exception = true);
-    static Value Complex(Env *env, StringObject *real, Value imaginary, bool exception);
+    static Value Complex(Env *env, StringObject *input, bool exception);
     static Value cur_callee(Env *env);
     static Value cur_dir(Env *env);
     static Value exit(Env *env, Value status);

@@ -141,7 +141,7 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value excepti
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
     if (real.is_string())
-        return Complex(env, real->as_string(), imaginary, exception);
+        return Complex(env, real->as_string(), exception);
 
     if (real.is_complex() && imaginary == nullptr)
         return real;
@@ -172,13 +172,13 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
         return nullptr;
 }
 
-Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool exception) {
+Value KernelModule::Complex(Env *env, StringObject *input, bool exception) {
     auto error = [&]() -> Value {
         if (exception)
-            env->raise("ArgumentError", "invalid value for convert(): \"{}\"", real->string());
+            env->raise("ArgumentError", "invalid value for convert(): \"{}\"", input->string());
         return NilObject::the();
     };
-    if (!real->is_ascii_only())
+    if (!input->is_ascii_only())
         return error();
     enum class State {
         Start,
@@ -204,7 +204,7 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
     const char **curr_end = &real_end;
     auto new_real = Value::integer(0);
     auto new_imag = Value::integer(0);
-    for (const char *c = real->c_str(); c < real->c_str() + real->bytesize(); c++) {
+    for (const char *c = input->c_str(); c < input->c_str() + input->bytesize(); c++) {
         if (*c == 0) {
             if (exception)
                 env->raise("ArgumentError", "string contains null byte");
@@ -292,7 +292,7 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
 
     switch (state) {
     case State::Fallback:
-        return real->send(env, "to_c"_s);
+        return input->send(env, "to_c"_s);
     case State::Start:
         return error();
     default: {
