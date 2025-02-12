@@ -403,6 +403,7 @@ public:
     Value sum(Env *, Value = nullptr);
     StringObject *swapcase(Env *, Value, Value);
     Value swapcase_in_place(Env *, Value, Value);
+    Value to_c(Env *);
     Value to_f(Env *) const;
     Value to_i(Env *, Value = nullptr) const;
     Value to_r(Env *) const;

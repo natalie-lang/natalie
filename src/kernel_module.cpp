@@ -185,7 +185,6 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception) {
         Real,
         Imag,
         Finished,
-        Fallback, // In case of an error, use String#to_c until we finalize this parser
     };
     enum class Type {
         Undefined,
@@ -228,26 +227,26 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception) {
             if (*c >= '0' && *c <= '9') {
                 *curr_end = c;
             } else if (*c == '_') {
-                // TODO: Skip single underscore, fix in String#to_c as well
-                state = State::Fallback;
+                // TODO: Skip single underscore
+                return error();
             } else if (*c == '.') {
                 if (*curr_type == Type::Integer) {
                     *curr_type = Type::Float;
                     *curr_end = c;
                 } else if (*curr_type == Type::Float) {
-                    error();
+                    return error();
                 } else {
-                    state = State::Fallback;
+                    return error();
                 }
             } else if (*c == '/') {
-                // TODO: Parse fraction, fix in String#to_c as well
-                state = State::Fallback;
+                // TODO: Parse fraction
+                return error();
             } else if (*c == 'e') {
-                // TODO: Parse scientific notation, fix in String#to_c as well
-                state = State::Fallback;
+                // TODO: Parse scientific notation
+                return error();
             } else if (*c == '@') {
-                // TODO: Parse polar form, fix in String#to_c as well
-                state = State::Fallback;
+                // TODO: Parse polar form
+                return error();
             } else if (*c == '+' || *c == '-') {
                 if (*curr_start && *curr_start == *curr_end && (**curr_end == '-' || **curr_end == '+'))
                     return error();
@@ -276,8 +275,8 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception) {
                 }
                 state = State::Finished;
             } else if (*c == 'I' || *c == 'j' || *c == 'J') {
-                // TODO: Parse other imaginary markers, fix in String#to_c as well
-                state = State::Fallback;
+                // TODO: Parse other imaginary markers
+                return error();
             } else {
                 return error();
             }
@@ -285,14 +284,10 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception) {
         case State::Finished:
             if (*c != ' ' && *c != '\t' && *c != '\r' && *c != '\n')
                 return error();
-        case State::Fallback:
-            break;
         }
     }
 
     switch (state) {
-    case State::Fallback:
-        return input->send(env, "to_c"_s);
     case State::Start:
         return error();
     default: {
