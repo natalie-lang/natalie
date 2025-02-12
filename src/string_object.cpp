@@ -2728,7 +2728,7 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
 }
 
 Value StringObject::to_c(Env *env) {
-    return KernelModule::Complex(env, this, false);
+    return KernelModule::Complex(env, this, false, true);
 }
 
 Value StringObject::to_f(Env *env) const {

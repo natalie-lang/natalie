@@ -141,7 +141,7 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value excepti
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
     if (real.is_string())
-        return Complex(env, real->as_string(), exception);
+        return Complex(env, real->as_string(), exception, false);
 
     if (real.is_complex() && imaginary == nullptr)
         return real;
@@ -172,7 +172,7 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
         return nullptr;
 }
 
-Value KernelModule::Complex(Env *env, StringObject *input, bool exception) {
+Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool string_to_c) {
     auto error = [&]() -> Value {
         if (exception)
             env->raise("ArgumentError", "invalid value for convert(): \"{}\"", input->string());
