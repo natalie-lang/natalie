@@ -205,9 +205,15 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
     auto new_imag = Value::integer(0);
     for (const char *c = input->c_str(); c < input->c_str() + input->bytesize(); c++) {
         if (*c == 0) {
-            if (exception)
-                env->raise("ArgumentError", "string contains null byte");
-            return NilObject::the();
+            if (string_to_c) {
+                if (state != State::Start)
+                    state = State::Finished;
+                continue;
+            } else {
+                if (exception)
+                    env->raise("ArgumentError", "string contains null byte");
+                return NilObject::the();
+            }
         }
         switch (state) {
         case State::Start:
@@ -218,7 +224,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             } else if (*c == 'i') {
                 new_imag = Value::integer(1);
                 state = State::Finished;
-            } else if (*c != ' ' && *c != '\t' && *c != '\r' && *c != '\n') {
+            } else if (!string_to_c && *c != ' ' && *c != '\t' && *c != '\r' && *c != '\n') {
                 return error();
             }
             break;
@@ -228,7 +234,12 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                 *curr_end = c;
             } else if (*c == '_') {
                 // TODO: Skip single underscore
-                return error();
+                if (string_to_c) {
+                    imag_start = imag_end = nullptr;
+                    state = State::Finished;
+                } else {
+                    return error();
+                }
             } else if (*c == '.') {
                 if (*curr_type == Type::Integer) {
                     *curr_type = Type::Float;
@@ -282,13 +293,15 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             }
             break;
         case State::Finished:
-            if (*c != ' ' && *c != '\t' && *c != '\r' && *c != '\n')
+            if (!string_to_c && *c != ' ' && *c != '\t' && *c != '\r' && *c != '\n')
                 return error();
         }
     }
 
     switch (state) {
     case State::Start:
+        if (string_to_c)
+            return new ComplexObject { Value::integer(0), Value::integer(0) };
         return error();
     default: {
         if (real_start != nullptr && real_end != nullptr) {
