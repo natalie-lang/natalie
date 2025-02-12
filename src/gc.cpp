@@ -23,10 +23,6 @@ void Cell::operator delete(void *) {
     // object creation. We can just ignore that and let sweep() clean up the cell later.
 }
 
-void Cell::Visitor::visit(const Integer &integer) {
-    visit(integer.bigint_pointer());
-}
-
 void MarkingVisitor::visit(const Value val) {
     switch (val.type()) {
     case Value::Type::Integer:

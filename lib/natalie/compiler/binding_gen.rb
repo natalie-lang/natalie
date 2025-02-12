@@ -162,9 +162,6 @@ class BindingGen
     def write
       if cpp_function_type == :static
         lines = []
-        if method_accepts_integer_as_self?
-          lines << 'auto integer = self.integer();'
-        end
         lines << "auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});"
         call = lines.join("\n")
       else
@@ -203,7 +200,7 @@ class BindingGen
       if pass_self?
         if cast_self?
           if method_accepts_integer_as_self?
-            self_arg = 'integer'
+            self_arg = 'self.integer()'
           else
             self_arg = "static_cast<#{cpp_class}*>(self.object())"
           end

@@ -629,7 +629,7 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
     }
 }
 
-RationalObject *KernelModule::Rational(Env *env, class Integer &x, class Integer &y) {
+RationalObject *KernelModule::Rational(Env *env, class Integer x, class Integer y) {
     Value gcd = IntegerMethods::gcd(env, x, y).integer();
     class Integer numerator = x / gcd;
     class Integer denominator = y / gcd;
