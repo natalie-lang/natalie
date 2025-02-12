@@ -42,6 +42,9 @@ public:
         assert(klass);
     }
 
+    Object(Type type)
+        : m_type { type } { }
+
     Object(Type type, ClassObject *klass)
         : m_klass { klass }
         , m_type { type } {

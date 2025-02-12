@@ -6,6 +6,7 @@ enum class ObjectType {
     Collected,
     Nil,
     Array,
+    BigInt,
     Binding,
     Class,
     Complex,

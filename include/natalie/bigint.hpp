@@ -4,6 +4,7 @@
 
 #include "bigint.h"
 #include "natalie/gc/cell.hpp"
+#include "natalie/object.hpp"
 #include "tm/string.hpp"
 
 #include <algorithm>
@@ -15,19 +16,22 @@
 
 namespace Natalie {
 
-class BigInt : public Cell {
+class BigInt : public Object {
 public:
-    BigInt() {
+    BigInt()
+        : Object { ObjectType::BigInt } {
         bigint_init(data);
     }
 
-    BigInt(int b) {
+    BigInt(int b)
+        : Object { ObjectType::BigInt } {
         bigint_init(data);
         bigint_from_int(data, b);
     }
 
     template <typename T>
-    explicit BigInt(T b) {
+    explicit BigInt(T b)
+        : Object { ObjectType::BigInt } {
         bigint_init(data);
         typename std::make_unsigned<T>::type x;
         if constexpr (std::is_signed_v<T>) {
@@ -45,7 +49,8 @@ public:
         }
     }
 
-    explicit BigInt(double b) {
+    explicit BigInt(double b)
+        : Object { ObjectType::BigInt } {
         int len = snprintf(nullptr, 0, "%.0f", b);
         char buf[len + 1];
         snprintf(buf, len + 1, "%.0f", b);
@@ -53,17 +58,20 @@ public:
         bigint_from_str_base(data, buf, 10);
     }
 
-    BigInt(const char *s, int base = 10) {
+    BigInt(const char *s, int base = 10)
+        : Object { ObjectType::BigInt } {
         bigint_init(data);
         bigint_from_str_base(data, s, base);
     }
 
-    BigInt(const TM::String &s, int base = 10) {
+    BigInt(const TM::String &s, int base = 10)
+        : Object { ObjectType::BigInt } {
         bigint_init(data);
         bigint_from_str_base(data, s.c_str(), base);
     }
 
-    BigInt(const BigInt &b) {
+    BigInt(const BigInt &b)
+        : Object { ObjectType::BigInt } {
         bigint_init(data);
         bigint_cpy(data, b.data);
     }

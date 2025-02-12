@@ -31,6 +31,9 @@ public:
         m_value = left_shift_with_undefined_behavior(static_cast<nat_int_t>(other), 1) | 0x1;
     }
 
+    explicit Integer(BigInt *bigint)
+        : m_value((uintptr_t)bigint) { }
+
     // This is hacky, but we need an Integer representation that
     // is all zeros so Value nullptr works. :-)
     static Integer null() {
@@ -178,6 +181,8 @@ public:
     }
 
 private:
+    friend Value;
+
     __attribute__((no_sanitize("undefined"))) static nat_int_t left_shift_with_undefined_behavior(nat_int_t x, nat_int_t y) {
         return x << y; // NOLINT
     }

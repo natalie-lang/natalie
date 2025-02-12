@@ -24,17 +24,8 @@ void Cell::operator delete(void *) {
 }
 
 void MarkingVisitor::visit(const Value val) {
-    switch (val.type()) {
-    case Value::Type::Integer:
-        if (val.integer().is_bignum())
-            visit(val.integer().bigint_pointer());
-        break;
-    case Value::Type::Pointer:
-        visit(val.object());
-        break;
-    default:
-        break;
-    }
+    if (val.is_pointer())
+        visit(val.pointer());
 }
 
 #ifdef __SANITIZE_ADDRESS__
