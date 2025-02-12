@@ -4,6 +4,9 @@
 
 namespace Natalie {
 
+Value::Value(nat_int_t integer)
+    : Value { Integer(integer) } { }
+
 Value::Value(const Integer integer)
     : m_value { integer.m_value } { }
 
