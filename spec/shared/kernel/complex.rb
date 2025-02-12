@@ -86,12 +86,10 @@ describe :kernel_complex, shared: true do
   end
 
   it "understands i, I, j, and J imaginary units" do
-    NATFIXME 'understands i, I, j, and J imaginary units', exception: SpecFailedException do
-      @object.send(@method, '79+4i').should == Complex(79, 4)
-      @object.send(@method, '79+4I').should == Complex(79, 4)
-      @object.send(@method, '79+4j').should == Complex(79, 4)
-      @object.send(@method, '79+4J').should == Complex(79, 4)
-    end
+    @object.send(@method, '79+4i').should == Complex(79, 4)
+    @object.send(@method, '79+4I').should == Complex(79, 4)
+    @object.send(@method, '79+4j').should == Complex(79, 4)
+    @object.send(@method, '79+4J').should == Complex(79, 4)
   end
 
   it "understands scientific notation for the real part" do

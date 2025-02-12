@@ -89,11 +89,9 @@ describe "Kernel.Complex()" do
           Complex("Infinity")
         }.should raise_error(ArgumentError, 'invalid value for convert(): "Infinity"')
 
-        NATFIXME 'does not understand Float::INFINITY', exception: SpecFailedException do
-          -> {
-            Complex("-Infinity")
-          }.should raise_error(ArgumentError, 'invalid value for convert(): "-Infinity"')
-        end
+        -> {
+          Complex("-Infinity")
+        }.should raise_error(ArgumentError, 'invalid value for convert(): "-Infinity"')
       end
 
       it "does not understand Float::NAN" do

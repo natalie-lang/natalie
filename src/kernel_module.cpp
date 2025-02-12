@@ -221,7 +221,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                 *curr_start = *curr_end = c;
                 state = State::Real;
                 *curr_type = Type::Integer;
-            } else if (*c == 'i') {
+            } else if (*c == 'i' || *c == 'I' || *c == 'j' || *c == 'J') {
                 new_imag = Value::integer(1);
                 state = State::Finished;
             } else if (!string_to_c && *c != ' ' && *c != '\t' && *c != '\r' && *c != '\n') {
@@ -269,7 +269,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                 curr_type = &imag_type;
                 *curr_type = Type::Integer;
                 state = State::Imag;
-            } else if (*c == 'i') {
+            } else if (*c == 'i' || *c == 'I' || *c == 'j' || *c == 'J') {
                 if (*curr_start && *curr_start == *curr_end && (**curr_end == '-' || **curr_end == '+')) {
                     // Corner case: '-i' or '+i'
                     new_imag = Value::integer(**curr_end == '-' ? -1 : 1);
@@ -285,9 +285,6 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                     real_end = nullptr;
                 }
                 state = State::Finished;
-            } else if (*c == 'I' || *c == 'j' || *c == 'J') {
-                // TODO: Parse other imaginary markers
-                return NilObject::the();
             } else {
                 return error();
             }
