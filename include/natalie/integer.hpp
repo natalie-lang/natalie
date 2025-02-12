@@ -50,25 +50,25 @@ public:
 
     static bool will_multiplication_overflow(nat_int_t, nat_int_t);
 
-    Integer &operator+=(const Integer &);
-    Integer &operator-=(const Integer &);
-    Integer &operator*=(const Integer &);
-    Integer &operator/=(const Integer &);
-    Integer &operator%=(const Integer &);
-    Integer &operator>>=(const Integer &);
+    Integer operator+=(const Integer);
+    Integer operator-=(const Integer);
+    Integer operator*=(const Integer);
+    Integer operator/=(const Integer);
+    Integer operator%=(const Integer);
+    Integer operator>>=(const Integer);
 
     // Unary operators
     // Integer operator+() const;
     Integer operator-() const;
 
     // Binary operators
-    Integer operator+(const Integer &) const;
-    Integer operator-(const Integer &) const;
-    Integer operator*(const Integer &) const;
-    Integer operator/(const Integer &) const;
-    Integer div_c(const Integer &) const;
-    Integer operator%(const Integer &) const;
-    Integer modulo_c(const Integer &) const;
+    Integer operator+(const Integer) const;
+    Integer operator-(const Integer) const;
+    Integer operator*(const Integer) const;
+    Integer operator/(const Integer) const;
+    Integer div_c(const Integer) const;
+    Integer operator%(const Integer) const;
+    Integer modulo_c(const Integer) const;
 
     double operator+(const double &) const;
     double operator-(const double &) const;
@@ -90,18 +90,18 @@ public:
     Integer modulo_c(const int &other) const { return this->modulo_c(Integer(other)); }
 
     // Increment and decrement operators
-    Integer &operator++(); // pre-increment
-    Integer &operator--(); // pre-decrement
+    Integer operator++(); // pre-increment
+    Integer operator--(); // pre-decrement
     // Integer operator++(int); // post-increment
     // Integer operator--(int); // post-decrement
 
     // Relational operators
-    bool operator<(const Integer &) const;
-    bool operator>(const Integer &) const;
-    bool operator<=(const Integer &) const;
-    bool operator>=(const Integer &) const;
-    bool operator==(const Integer &) const;
-    bool operator!=(const Integer &) const;
+    bool operator<(const Integer) const;
+    bool operator>(const Integer) const;
+    bool operator<=(const Integer) const;
+    bool operator>=(const Integer) const;
+    bool operator==(const Integer) const;
+    bool operator!=(const Integer) const;
 
     bool operator<(const nat_int_t &other) const { return *this < Integer(other); }
     bool operator>(const nat_int_t &other) const { return *this > Integer(other); }
@@ -132,12 +132,12 @@ public:
     bool operator!=(const Value &) const = delete;
 
     // Bitwise operators
-    Integer operator&(const Integer &) const;
-    Integer operator|(const Integer &) const;
-    Integer operator^(const Integer &) const;
+    Integer operator&(const Integer) const;
+    Integer operator|(const Integer) const;
+    Integer operator^(const Integer) const;
     Integer operator~() const;
-    Integer operator<<(const Integer &) const;
-    Integer operator>>(const Integer &) const;
+    Integer operator<<(const Integer) const;
+    Integer operator>>(const Integer) const;
 
     // Other
     explicit operator bool() const { return *this == 0; }
@@ -193,18 +193,18 @@ private:
     uintptr_t m_value { 0x1 };
 };
 
-Integer operator+(const long long &, const Integer &);
-Integer operator-(const long long &, const Integer &);
-Integer operator*(const long long &, const Integer &);
-Integer operator/(const long long &, const Integer &);
-Integer operator<(const long long &, const Integer &);
-Integer operator>(const long long &, const Integer &);
-Integer operator<=(const long long &, const Integer &);
-Integer operator>=(const long long &, const Integer &);
-Integer operator==(const long long &, const Integer &);
-Integer operator!=(const long long &, const Integer &);
+Integer operator+(const long long &, const Integer);
+Integer operator-(const long long &, const Integer);
+Integer operator*(const long long &, const Integer);
+Integer operator/(const long long &, const Integer);
+Integer operator<(const long long &, const Integer);
+Integer operator>(const long long &, const Integer);
+Integer operator<=(const long long &, const Integer);
+Integer operator>=(const long long &, const Integer);
+Integer operator==(const long long &, const Integer);
+Integer operator!=(const long long &, const Integer);
 Integer pow(Integer, Integer);
-Integer abs(const Integer &);
-Integer gcd(const Integer &, const Integer &);
-Integer sqrt(const Integer &);
+Integer abs(const Integer);
+Integer gcd(const Integer, const Integer);
+Integer sqrt(const Integer);
 }

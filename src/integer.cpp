@@ -35,27 +35,27 @@ Integer::Integer(BigInt &&other) {
         m_value = (uintptr_t) new BigInt(std::move(other));
 }
 
-Integer &Integer::operator+=(const Integer &other) {
+Integer Integer::operator+=(const Integer other) {
     *this = *this + other;
     return *this;
 }
 
-Integer &Integer::operator-=(const Integer &other) {
+Integer Integer::operator-=(const Integer other) {
     *this = *this - other;
     return *this;
 }
 
-Integer &Integer::operator*=(const Integer &other) {
+Integer Integer::operator*=(const Integer other) {
     *this = *this * other;
     return *this;
 }
 
-Integer &Integer::operator/=(const Integer &other) {
+Integer Integer::operator/=(const Integer other) {
     *this = *this / other;
     return *this;
 }
 
-Integer &Integer::operator>>=(const Integer &other) {
+Integer Integer::operator>>=(const Integer other) {
     *this = *this >> other;
     return *this;
 }
@@ -66,7 +66,7 @@ Integer Integer::operator-() const {
     return -to_nat_int_t();
 }
 
-Integer Integer::operator+(const Integer &other) const {
+Integer Integer::operator+(const Integer other) const {
     if (is_bignum() || other.is_bignum()) {
         return to_bigint() + other.to_bigint();
     }
@@ -79,7 +79,7 @@ Integer Integer::operator+(const Integer &other) const {
     return result;
 }
 
-Integer Integer::operator-(const Integer &other) const {
+Integer Integer::operator-(const Integer other) const {
     if (is_bignum() || other.is_bignum())
         return to_bigint() - other.to_bigint();
 
@@ -106,7 +106,7 @@ bool Integer::will_multiplication_overflow(nat_int_t a, nat_int_t b) {
         || (a < 0 && b < 0 && max_fraction >= a));
 }
 
-Integer Integer::operator*(const Integer &other) const {
+Integer Integer::operator*(const Integer other) const {
     if (is_bignum() || other.is_bignum() || will_multiplication_overflow(to_nat_int_t(), other.to_nat_int_t())) {
         return to_bigint() * other.to_bigint();
     }
@@ -114,7 +114,7 @@ Integer Integer::operator*(const Integer &other) const {
     return to_nat_int_t() * other.to_nat_int_t();
 }
 
-Integer Integer::operator/(const Integer &other) const {
+Integer Integer::operator/(const Integer other) const {
     if (is_bignum() || other.is_bignum())
         return to_bigint() / other.to_bigint();
 
@@ -129,14 +129,14 @@ Integer Integer::operator/(const Integer &other) const {
     return quotient - correction;
 }
 
-Integer Integer::div_c(const Integer &other) const {
+Integer Integer::div_c(const Integer other) const {
     if (is_bignum() || other.is_bignum())
         return to_bigint().c_div(other.to_bigint());
 
     return to_nat_int_t() / other.to_nat_int_t();
 }
 
-Integer Integer::operator%(const Integer &other) const {
+Integer Integer::operator%(const Integer other) const {
     if (is_bignum() || other.is_bignum())
         return to_bigint() % other.to_bigint();
 
@@ -147,7 +147,7 @@ Integer Integer::operator%(const Integer &other) const {
     return remainder;
 }
 
-Integer Integer::modulo_c(const Integer &other) const {
+Integer Integer::modulo_c(const Integer other) const {
     if (is_bignum() || other.is_bignum())
         return to_bigint().c_mod(other.to_bigint());
 
@@ -170,15 +170,15 @@ double Integer::operator/(const double &other) const {
     return to_double() / other;
 }
 
-Integer &Integer::operator++() {
+Integer Integer::operator++() {
     return *this += 1;
 }
 
-Integer &Integer::operator--() {
+Integer Integer::operator--() {
     return *this -= 1;
 }
 
-bool Integer::operator<(const Integer &other) const {
+bool Integer::operator<(const Integer other) const {
     if (is_bignum()) {
         if (other.is_bignum())
             return *(BigInt *)m_value < *(BigInt *)other.m_value;
@@ -196,19 +196,19 @@ bool Integer::operator<(const Integer &other) const {
     return to_nat_int_t() < other.to_nat_int_t();
 }
 
-bool Integer::operator<=(const Integer &other) const {
+bool Integer::operator<=(const Integer other) const {
     return *this < other || *this == other;
 }
 
-bool Integer::operator>(const Integer &other) const {
+bool Integer::operator>(const Integer other) const {
     return !(*this <= other);
 }
 
-bool Integer::operator>=(const Integer &other) const {
+bool Integer::operator>=(const Integer other) const {
     return !(*this < other);
 }
 
-bool Integer::operator==(const Integer &other) const {
+bool Integer::operator==(const Integer other) const {
     if (is_bignum()) {
         if (other.is_bignum())
             return *(BigInt *)m_value == *(BigInt *)other.m_value;
@@ -221,7 +221,7 @@ bool Integer::operator==(const Integer &other) const {
     return to_nat_int_t() == other.to_nat_int_t();
 }
 
-bool Integer::operator!=(const Integer &other) const {
+bool Integer::operator!=(const Integer other) const {
     return !(*this == other);
 }
 
@@ -263,7 +263,7 @@ bool Integer::operator!=(const double &other) const {
     return to_double() != other;
 }
 
-Integer Integer::operator<<(const Integer &other) const {
+Integer Integer::operator<<(const Integer other) const {
     if (other.is_bignum())
         NAT_UNREACHABLE();
     if (is_bignum())
@@ -284,7 +284,7 @@ Integer Integer::operator<<(const Integer &other) const {
     return to_nat_int_t() << other.to_nat_int_t();
 }
 
-Integer Integer::operator>>(const Integer &other) const {
+Integer Integer::operator>>(const Integer other) const {
     if (other.is_bignum())
         NAT_UNREACHABLE();
     if (is_bignum())
@@ -296,19 +296,19 @@ Integer Integer::operator>>(const Integer &other) const {
     return to_nat_int_t() >> other.to_nat_int_t();
 }
 
-Integer Integer::operator&(const Integer &other) const {
+Integer Integer::operator&(const Integer other) const {
     if (is_bignum() || other.is_bignum())
         return to_bigint() & other.to_bigint();
     return to_nat_int_t() & other.to_nat_int_t();
 }
 
-Integer Integer::operator|(const Integer &other) const {
+Integer Integer::operator|(const Integer other) const {
     if (is_bignum() || other.is_bignum())
         return to_bigint() | other.to_bigint();
     return to_nat_int_t() | other.to_nat_int_t();
 }
 
-Integer Integer::operator^(const Integer &other) const {
+Integer Integer::operator^(const Integer other) const {
     if (is_bignum() || other.is_bignum())
         return to_bigint() ^ other.to_bigint();
     return to_nat_int_t() ^ other.to_nat_int_t();
@@ -354,43 +354,43 @@ Integer Integer::bit_length() const {
     return ceil(log2(nat_int < 0 ? -nat_int : nat_int + 1));
 }
 
-Integer operator+(const long long &lhs, const Integer &rhs) {
+Integer operator+(const long long &lhs, const Integer rhs) {
     return Integer(lhs) + rhs;
 }
 
-Integer operator-(const long long &lhs, const Integer &rhs) {
+Integer operator-(const long long &lhs, const Integer rhs) {
     return Integer(lhs) - rhs;
 }
 
-Integer operator*(const long long &lhs, const Integer &rhs) {
+Integer operator*(const long long &lhs, const Integer rhs) {
     return Integer(lhs) * rhs;
 }
 
-Integer operator/(const long long &lhs, const Integer &rhs) {
+Integer operator/(const long long &lhs, const Integer rhs) {
     return Integer(lhs) / rhs;
 }
 
-Integer operator<(const long long &lhs, const Integer &rhs) {
+Integer operator<(const long long &lhs, const Integer rhs) {
     return Integer(lhs) < rhs;
 }
 
-Integer operator>(const long long &lhs, const Integer &rhs) {
+Integer operator>(const long long &lhs, const Integer rhs) {
     return Integer(lhs) > rhs;
 }
 
-Integer operator<=(const long long &lhs, const Integer &rhs) {
+Integer operator<=(const long long &lhs, const Integer rhs) {
     return Integer(lhs) <= rhs;
 }
 
-Integer operator>=(const long long &lhs, const Integer &rhs) {
+Integer operator>=(const long long &lhs, const Integer rhs) {
     return Integer(lhs) >= rhs;
 }
 
-Integer operator==(const long long &lhs, const Integer &rhs) {
+Integer operator==(const long long &lhs, const Integer rhs) {
     return Integer(lhs) == rhs;
 }
 
-Integer operator!=(const long long &lhs, const Integer &rhs) {
+Integer operator!=(const long long &lhs, const Integer rhs) {
     return Integer(lhs) != rhs;
 }
 
@@ -421,13 +421,13 @@ Integer pow(Integer lhs, Integer rhs) {
     return result;
 }
 
-Integer abs(const Integer &other) {
+Integer abs(const Integer other) {
     if (other.is_negative())
         return -other;
     return other;
 }
 
-Integer gcd(const Integer &dividend, const Integer &divisor) {
+Integer gcd(const Integer dividend, const Integer divisor) {
     if (dividend.is_bignum() || divisor.is_bignum())
         return BigInt::gcd(dividend.to_bigint(), divisor.to_bigint());
 
@@ -444,7 +444,7 @@ Integer gcd(const Integer &dividend, const Integer &divisor) {
     return result;
 }
 
-Integer sqrt(const Integer &other) {
+Integer sqrt(const Integer other) {
     if (other.is_bignum())
         return other.to_bigint().sqrt();
     return static_cast<nat_int_t>(::sqrt(other.to_nat_int_t()));

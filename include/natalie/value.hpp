@@ -24,7 +24,7 @@ public:
         m_value = left_shift_with_undefined_behavior(integer, 1) | 0x1;
     }
 
-    Value(const Integer &integer);
+    Value(const Integer integer);
 
     static Value integer(nat_int_t integer) {
         // This is required, because initialization by a literal is often ambiguous.

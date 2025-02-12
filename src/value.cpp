@@ -4,7 +4,7 @@
 
 namespace Natalie {
 
-Value::Value(const Integer &integer)
+Value::Value(const Integer integer)
     : m_value { integer.m_value } { }
 
 Value Value::integer(TM::String &&str) {
