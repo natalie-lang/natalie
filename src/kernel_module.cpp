@@ -238,7 +238,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                     imag_start = imag_end = nullptr;
                     state = State::Finished;
                 } else {
-                    return error();
+                    return NilObject::the();
                 }
             } else if (*c == '.') {
                 if (*curr_type == Type::Integer) {
@@ -251,13 +251,13 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                 }
             } else if (*c == '/') {
                 // TODO: Parse fraction
-                return error();
+                return NilObject::the();
             } else if (*c == 'e') {
                 // TODO: Parse scientific notation
-                return error();
+                return NilObject::the();
             } else if (*c == '@') {
                 // TODO: Parse polar form
-                return error();
+                return NilObject::the();
             } else if (*c == '+' || *c == '-') {
                 if (*curr_start && *curr_start == *curr_end && (**curr_end == '-' || **curr_end == '+'))
                     return error();
@@ -287,7 +287,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                 state = State::Finished;
             } else if (*c == 'I' || *c == 'j' || *c == 'J') {
                 // TODO: Parse other imaginary markers
-                return error();
+                return NilObject::the();
             } else {
                 return error();
             }

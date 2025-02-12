@@ -85,11 +85,11 @@ describe "Kernel.Complex()" do
       end
 
       it "does not understand Float::INFINITY" do
-        NATFIXME 'does not understand Float::INFINITY', exception: SpecFailedException do
-          -> {
-            Complex("Infinity")
-          }.should raise_error(ArgumentError, 'invalid value for convert(): "Infinity"')
+        -> {
+          Complex("Infinity")
+        }.should raise_error(ArgumentError, 'invalid value for convert(): "Infinity"')
 
+        NATFIXME 'does not understand Float::INFINITY', exception: SpecFailedException do
           -> {
             Complex("-Infinity")
           }.should raise_error(ArgumentError, 'invalid value for convert(): "-Infinity"')
@@ -135,10 +135,8 @@ describe "Kernel.Complex()" do
       end
 
       it "returns nil for Float::INFINITY" do
-        NATFIXME 'returns nil for Float::INFINITY', exception: SpecFailedException do
-          Complex("Infinity", exception: false).should == nil
-          Complex("-Infinity", exception: false).should == nil
-        end
+        Complex("Infinity", exception: false).should == nil
+        Complex("-Infinity", exception: false).should == nil
       end
 
       it "returns nil for Float::NAN" do
@@ -146,9 +144,7 @@ describe "Kernel.Complex()" do
       end
 
       it "returns nil when there is a sequence of _" do
-        NATFIXME 'returns nil when there is a sequence of _', exception: SpecFailedException do
-          Complex("7__9+4__0i", exception: false).should == nil
-        end
+        Complex("7__9+4__0i", exception: false).should == nil
       end
 
       it "returns nil when String contains null-byte" do
