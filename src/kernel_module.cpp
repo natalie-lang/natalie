@@ -232,8 +232,9 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             if (*c >= '0' && *c <= '9') {
                 *curr_end = c;
             } else if (*c == '_') {
-                // TODO: Skip single underscore
-                if (string_to_c) {
+                if (c[1] && c[1] >= '0' && c[1] <= '9') {
+                    continue; // Skip single underscore, only if it is part of a number
+                } else if (string_to_c) {
                     imag_start = imag_end = nullptr;
                     state = State::Finished;
                 } else {

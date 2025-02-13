@@ -45,15 +45,11 @@ describe "String#to_c" do
 
   ruby_version_is "3.2" do
     it "treats a sequence of underscores as an end of Complex string" do
-      NATFIXME 'Handle single underscore', exception: SpecFailedException do
-        "5+3_1i".to_c.should == Complex(5, 31)
-      end
+      "5+3_1i".to_c.should == Complex(5, 31)
       "5+3__1i".to_c.should == Complex(5)
       "5+3___1i".to_c.should == Complex(5)
 
-      NATFIXME 'Handle single underscore', exception: SpecFailedException do
-        "12_3".to_c.should == Complex(123)
-      end
+      "12_3".to_c.should == Complex(123)
       "12__3".to_c.should == Complex(12)
       "12___3".to_c.should == Complex(12)
     end

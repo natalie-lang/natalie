@@ -152,8 +152,6 @@ describe :kernel_complex, shared: true do
   end
 
   it "understands _" do
-    NATFIXME 'understands _', exception: SpecFailedException do
-      @object.send(@method, '7_9+4_0i').should == Complex(79, 40)
-    end
+    @object.send(@method, '7_9+4_0i').should == Complex(79, 40)
   end
 end
