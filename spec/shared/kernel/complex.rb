@@ -93,46 +93,32 @@ describe :kernel_complex, shared: true do
   end
 
   it "understands scientific notation for the real part" do
-    NATFIXME 'understands scientific notation for the real part', exception: SpecFailedException do
-      @object.send(@method, '2e3+4i').should == Complex(2e3,4)
-    end
+    @object.send(@method, '2e3+4i').should == Complex(2e3,4)
   end
 
   it "understands negative scientific notation for the real part" do
-    NATFIXME 'understands negative scientific notation for the real part', exception: SpecFailedException do
-      @object.send(@method, '-2e3+4i').should == Complex(-2e3,4)
-    end
+    @object.send(@method, '-2e3+4i').should == Complex(-2e3,4)
   end
 
   it "understands scientific notation for the imaginary part" do
-    NATFIXME 'understands scientific notation for the imaginary part', exception: SpecFailedException do
-      @object.send(@method, '4+2e3i').should == Complex(4, 2e3)
-    end
+    @object.send(@method, '4+2e3i').should == Complex(4, 2e3)
   end
 
   it "understands negative scientific notation for the imaginary part" do
-    NATFIXME 'understands negative scientific notation for the imaginary part', exception: SpecFailedException do
-      @object.send(@method, '4-2e3i').should == Complex(4, -2e3)
-    end
+    @object.send(@method, '4-2e3i').should == Complex(4, -2e3)
   end
 
   it "understands scientific notation for the real and imaginary part in the same String" do
-    NATFIXME 'understands scientific notation for the real and imaginary part in the same String', exception: SpecFailedException do
-      @object.send(@method, '2e3+2e4i').should == Complex(2e3,2e4)
-    end
+    @object.send(@method, '2e3+2e4i').should == Complex(2e3,2e4)
   end
 
   it "understands negative scientific notation for the real and imaginary part in the same String" do
-    NATFIXME 'understands negative scientific notation for the real and imaginary part in the same String', exception: SpecFailedException do
-      @object.send(@method, '-2e3-2e4i').should == Complex(-2e3,-2e4)
-    end
+    @object.send(@method, '-2e3-2e4i').should == Complex(-2e3,-2e4)
   end
 
   it "understands scientific notation with e and E" do
-    NATFIXME 'understands scientific notation with e and E', exception: SpecFailedException do
-      @object.send(@method, '2e3+2e4i').should == Complex(2e3, 2e4)
-      @object.send(@method, '2E3+2E4i').should == Complex(2e3, 2e4)
-    end
+    @object.send(@method, '2e3+2e4i').should == Complex(2e3, 2e4)
+    @object.send(@method, '2E3+2E4i').should == Complex(2e3, 2e4)
   end
 
   it "understands 'm@a' to mean a complex number in polar form with 'm' as the modulus, 'a' as the argument" do

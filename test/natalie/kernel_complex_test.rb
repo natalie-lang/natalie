@@ -26,4 +26,10 @@ describe 'Kernel.Complex' do
     -> { Complex('1.0.') }.should raise_error(ArgumentError, 'invalid value for convert(): "1.0."')
     -> { Complex('1..0') }.should raise_error(ArgumentError, 'invalid value for convert(): "1..0"')
   end
+
+  it "accepts an 'e' only once per numeric part" do
+    -> { Complex('1e2e3') }.should raise_error(ArgumentError, 'invalid value for convert(): "1e2e3"')
+    -> { Complex('1e2e3+1i') }.should raise_error(ArgumentError, 'invalid value for convert(): "1e2e3+1i"')
+    -> { Complex('1+1e2e3i') }.should raise_error(ArgumentError, 'invalid value for convert(): "1+1e2e3i"')
+  end
 end

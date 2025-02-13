@@ -190,6 +190,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
         Undefined,
         Integer,
         Float,
+        Scientific,
     };
     auto state = State::Start;
     auto real_type = Type::Undefined;
@@ -252,9 +253,11 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             } else if (*c == '/') {
                 // TODO: Parse fraction
                 return NilObject::the();
-            } else if (*c == 'e') {
-                // TODO: Parse scientific notation
-                return NilObject::the();
+            } else if (*c == 'e' || *c == 'E') {
+                if (*curr_type == Type::Scientific)
+                    return error();
+                *curr_type = Type::Scientific;
+                *curr_end = c;
             } else if (*c == '@') {
                 // TODO: Parse polar form
                 return NilObject::the();
@@ -308,6 +311,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                 new_real = Integer(env, tmp);
                 break;
             case Type::Float:
+            case Type::Scientific:
                 new_real = Float(env, tmp);
                 break;
             case Type::Undefined:
@@ -321,6 +325,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                 new_imag = Integer(env, tmp);
                 break;
             case Type::Float:
+            case Type::Scientific:
                 new_imag = Float(env, tmp);
                 break;
             case Type::Undefined:
