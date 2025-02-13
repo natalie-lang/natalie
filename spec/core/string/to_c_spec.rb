@@ -19,10 +19,8 @@ describe "String#to_c" do
   end
 
   it "understands Float::INFINITY" do
-    NATFIXME 'it "understands Float::INFINITY', exception: SpecFailedException do
-      'Infinity'.to_c.should == Complex(0, 1)
-      '-Infinity'.to_c.should == Complex(0, -1)
-    end
+    'Infinity'.to_c.should == Complex(0, 1)
+    '-Infinity'.to_c.should == Complex(0, -1)
   end
 
   it "understands Float::NAN" do

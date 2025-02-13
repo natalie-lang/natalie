@@ -2727,6 +2727,10 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
     return expanded;
 }
 
+Value StringObject::to_c(Env *env) {
+    return KernelModule::Complex(env, this, false, true);
+}
+
 Value StringObject::to_f(Env *env) const {
     auto result = strtod(c_str(), nullptr);
     return new FloatObject { result };

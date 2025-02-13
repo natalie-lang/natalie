@@ -141,7 +141,7 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value excepti
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
     if (real.is_string())
-        return Complex(env, real->as_string(), imaginary, exception);
+        return Complex(env, real->as_string(), exception, false);
 
     if (real.is_complex() && imaginary == nullptr)
         return real;
@@ -172,20 +172,19 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
         return nullptr;
 }
 
-Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool exception) {
+Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool string_to_c) {
     auto error = [&]() -> Value {
         if (exception)
-            env->raise("ArgumentError", "invalid value for convert(): \"{}\"", real->string());
+            env->raise("ArgumentError", "invalid value for convert(): \"{}\"", input->string());
         return NilObject::the();
     };
-    if (!real->is_ascii_only())
+    if (!input->is_ascii_only())
         return error();
     enum class State {
         Start,
         Real,
         Imag,
         Finished,
-        Fallback, // In case of an error, use String#to_c until we finalize this parser
     };
     enum class Type {
         Undefined,
@@ -204,11 +203,17 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
     const char **curr_end = &real_end;
     auto new_real = Value::integer(0);
     auto new_imag = Value::integer(0);
-    for (const char *c = real->c_str(); c < real->c_str() + real->bytesize(); c++) {
+    for (const char *c = input->c_str(); c < input->c_str() + input->bytesize(); c++) {
         if (*c == 0) {
-            if (exception)
-                env->raise("ArgumentError", "string contains null byte");
-            return NilObject::the();
+            if (string_to_c) {
+                if (state != State::Start)
+                    state = State::Finished;
+                continue;
+            } else {
+                if (exception)
+                    env->raise("ArgumentError", "string contains null byte");
+                return NilObject::the();
+            }
         }
         switch (state) {
         case State::Start:
@@ -216,10 +221,10 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
                 *curr_start = *curr_end = c;
                 state = State::Real;
                 *curr_type = Type::Integer;
-            } else if (*c == 'i') {
+            } else if (*c == 'i' || *c == 'I' || *c == 'j' || *c == 'J') {
                 new_imag = Value::integer(1);
                 state = State::Finished;
-            } else if (*c != ' ' && *c != '\t' && *c != '\r' && *c != '\n') {
+            } else if (!string_to_c && *c != ' ' && *c != '\t' && *c != '\r' && *c != '\n') {
                 return error();
             }
             break;
@@ -228,26 +233,31 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
             if (*c >= '0' && *c <= '9') {
                 *curr_end = c;
             } else if (*c == '_') {
-                // TODO: Skip single underscore, fix in String#to_c as well
-                state = State::Fallback;
+                // TODO: Skip single underscore
+                if (string_to_c) {
+                    imag_start = imag_end = nullptr;
+                    state = State::Finished;
+                } else {
+                    return NilObject::the();
+                }
             } else if (*c == '.') {
                 if (*curr_type == Type::Integer) {
                     *curr_type = Type::Float;
                     *curr_end = c;
                 } else if (*curr_type == Type::Float) {
-                    error();
+                    return error();
                 } else {
-                    state = State::Fallback;
+                    return error();
                 }
             } else if (*c == '/') {
-                // TODO: Parse fraction, fix in String#to_c as well
-                state = State::Fallback;
+                // TODO: Parse fraction
+                return NilObject::the();
             } else if (*c == 'e') {
-                // TODO: Parse scientific notation, fix in String#to_c as well
-                state = State::Fallback;
+                // TODO: Parse scientific notation
+                return NilObject::the();
             } else if (*c == '@') {
-                // TODO: Parse polar form, fix in String#to_c as well
-                state = State::Fallback;
+                // TODO: Parse polar form
+                return NilObject::the();
             } else if (*c == '+' || *c == '-') {
                 if (*curr_start && *curr_start == *curr_end && (**curr_end == '-' || **curr_end == '+'))
                     return error();
@@ -259,7 +269,7 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
                 curr_type = &imag_type;
                 *curr_type = Type::Integer;
                 state = State::Imag;
-            } else if (*c == 'i') {
+            } else if (*c == 'i' || *c == 'I' || *c == 'j' || *c == 'J') {
                 if (*curr_start && *curr_start == *curr_end && (**curr_end == '-' || **curr_end == '+')) {
                     // Corner case: '-i' or '+i'
                     new_imag = Value::integer(**curr_end == '-' ? -1 : 1);
@@ -275,25 +285,20 @@ Value KernelModule::Complex(Env *env, StringObject *real, Value imaginary, bool 
                     real_end = nullptr;
                 }
                 state = State::Finished;
-            } else if (*c == 'I' || *c == 'j' || *c == 'J') {
-                // TODO: Parse other imaginary markers, fix in String#to_c as well
-                state = State::Fallback;
             } else {
                 return error();
             }
             break;
         case State::Finished:
-            if (*c != ' ' && *c != '\t' && *c != '\r' && *c != '\n')
+            if (!string_to_c && *c != ' ' && *c != '\t' && *c != '\r' && *c != '\n')
                 return error();
-        case State::Fallback:
-            break;
         }
     }
 
     switch (state) {
-    case State::Fallback:
-        return real->send(env, "to_c"_s);
     case State::Start:
+        if (string_to_c)
+            return new ComplexObject { Value::integer(0), Value::integer(0) };
         return error();
     default: {
         if (real_start != nullptr && real_end != nullptr) {
