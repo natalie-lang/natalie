@@ -2845,6 +2845,8 @@ Value StringObject::to_r(Env *env) const {
     if (idx < m_string.size() && m_string.at(idx) == '-') {
         numerator_digits.append_char('-');
         idx++;
+    } else if (idx < m_string.size() && m_string.at(idx) == '+') {
+        idx++;
     }
 
     // numerator digits
