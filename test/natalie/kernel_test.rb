@@ -126,6 +126,11 @@ describe 'Kernel' do
   end
 
   describe '#Rational' do
+    it 'can parse a sign' do
+      Rational('+2/3').should == Rational(2, 3)
+      Rational('-2/3').should == Rational(-2, 3)
+    end
+
     it 'raises error with extra keywords' do
       -> { Rational(1, foo: 2, bar: 3) }.should raise_error(ArgumentError, 'unknown keywords: :foo, :bar')
     end
