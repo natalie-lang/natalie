@@ -58,60 +58,60 @@ public:
 
     static Value sqrt(Env *, Value);
 
-    static Value inspect(Env *env, Integer &self) { return to_s(env, self); }
+    static Value inspect(Env *env, Integer self) { return to_s(env, self); }
 
-    static String to_s(const Integer &self) { return self.to_string(); }
+    static String to_s(const Integer self) { return self.to_string(); }
 
-    static Value to_s(Env *, Integer &self, Value = nullptr);
-    static Value to_i(Integer &self) { return self; }
-    static Value to_f(Integer &self);
-    static Value add(Env *, Integer &, Value);
-    static Value sub(Env *, Integer &, Value);
-    static Value mul(Env *, Integer &, Value);
-    static Value div(Env *, Integer &, Value);
-    static Value mod(Env *, Integer &, Value);
-    static Value pow(Env *, Integer &, Integer &);
-    static Value pow(Env *, Integer &, Value);
-    static Value powmod(Env *, Integer &, Integer &, Integer &);
-    static Value powmod(Env *, Integer &, Value, Value);
-    static Value cmp(Env *, Integer &, Value);
-    static Value times(Env *, Integer &, Block *);
-    static Value bitwise_and(Env *, Integer &, Value);
-    static Value bitwise_or(Env *, Integer &, Value);
-    static Value bitwise_xor(Env *, Integer &, Value);
-    static Value bit_length(Env *, Integer &self) { return self.bit_length(); }
-    static Value left_shift(Env *, Integer &, Value);
-    static Value right_shift(Env *, Integer &, Value);
-    static Value pred(Env *env, Integer &self) { return self - 1; }
-    static Value size(Env *, Integer &);
-    static Value succ(Env *, Integer &self) { return self + 1; }
-    static Value ceil(Env *, Integer &, Value);
+    static Value to_s(Env *, Integer self, Value = nullptr);
+    static Value to_i(Integer self) { return self; }
+    static Value to_f(Integer self);
+    static Value add(Env *, Integer, Value);
+    static Value sub(Env *, Integer, Value);
+    static Value mul(Env *, Integer, Value);
+    static Value div(Env *, Integer, Value);
+    static Value mod(Env *, Integer, Value);
+    static Value pow(Env *, Integer, Integer);
+    static Value pow(Env *, Integer, Value);
+    static Value powmod(Env *, Integer, Integer, Integer);
+    static Value powmod(Env *, Integer, Value, Value);
+    static Value cmp(Env *, Integer, Value);
+    static Value times(Env *, Integer, Block *);
+    static Value bitwise_and(Env *, Integer, Value);
+    static Value bitwise_or(Env *, Integer, Value);
+    static Value bitwise_xor(Env *, Integer, Value);
+    static Value bit_length(Env *, Integer self) { return self.bit_length(); }
+    static Value left_shift(Env *, Integer, Value);
+    static Value right_shift(Env *, Integer, Value);
+    static Value pred(Env *env, Integer self) { return self - 1; }
+    static Value size(Env *, Integer);
+    static Value succ(Env *, Integer self) { return self + 1; }
+    static Value ceil(Env *, Integer, Value);
     static Value coerce(Env *, Value, Value);
-    static Value floor(Env *, Integer &, Value);
-    static Value gcd(Env *, Integer &, Value);
-    static Value abs(Env *, Integer &self) { return self.is_negative() ? -self : self; }
-    static Value chr(Env *, Integer &, Value);
-    static Value negate(Env *, Integer &self) { return -self; }
-    static Value numerator(Integer &self) { return self; }
-    static Value complement(Env *, Integer &self) { return ~self; }
-    static Value ord(Integer &self) { return self; }
+    static Value floor(Env *, Integer, Value);
+    static Value gcd(Env *, Integer, Value);
+    static Value abs(Env *, Integer self) { return self.is_negative() ? -self : self; }
+    static Value chr(Env *, Integer, Value);
+    static Value negate(Env *, Integer self) { return -self; }
+    static Value numerator(Integer self) { return self; }
+    static Value complement(Env *, Integer self) { return ~self; }
+    static Value ord(Integer self) { return self; }
     static Value denominator() { return Value::integer(1); }
-    static Value round(Env *, Integer &, Value, Value);
-    static Value truncate(Env *, Integer &, Value);
-    static Value ref(Env *, Integer &, Value, Value);
+    static Value round(Env *, Integer, Value, Value);
+    static Value truncate(Env *, Integer, Value);
+    static Value ref(Env *, Integer, Value, Value);
 
     static bool neq(Env *env, Value self, Value other) { return self.send(env, "=="_s, { other }).is_falsey(); }
-    static bool eq(Env *, Integer &, Value);
-    static bool lt(Env *, Integer &, Value);
-    static bool lte(Env *, Integer &, Value);
-    static bool gt(Env *, Integer &, Value);
-    static bool gte(Env *, Integer &, Value);
-    static bool is_bignum(const Integer &self) { return self.is_bignum(); }
-    static bool is_fixnum(const Integer &self) { return self.is_fixnum(); }
+    static bool eq(Env *, Integer, Value);
+    static bool lt(Env *, Integer, Value);
+    static bool lte(Env *, Integer, Value);
+    static bool gt(Env *, Integer, Value);
+    static bool gte(Env *, Integer, Value);
+    static bool is_bignum(const Integer self) { return self.is_bignum(); }
+    static bool is_fixnum(const Integer self) { return self.is_fixnum(); }
 
-    static BigInt to_bigint(const Integer &self) { return self.to_bigint(); }
+    static BigInt to_bigint(const Integer self) { return self.to_bigint(); }
 
-    static void assert_fixnum(Env *env, const Integer &self) {
+    static void assert_fixnum(Env *env, const Integer self) {
         if (self.is_bignum())
             env->raise("RangeError", "bignum too big to convert into 'long'");
     }

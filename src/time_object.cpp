@@ -519,7 +519,7 @@ void TimeObject::set_subsec(Env *env, long nsec) {
     }
 }
 
-void TimeObject::set_subsec(Env *env, Integer &usec) {
+void TimeObject::set_subsec(Env *env, Integer usec) {
     if (usec < 0 || usec >= 1000000)
         env->raise("ArgumentError", "subsecx out of range");
 

@@ -10,7 +10,7 @@ namespace ArrayPacker {
 
     class IntegerHandler : public Cell {
     public:
-        IntegerHandler(Integer &source, Token token)
+        IntegerHandler(Integer source, Token token)
             : m_source { source }
             , m_token { token } { }
 

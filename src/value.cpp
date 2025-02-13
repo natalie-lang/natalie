@@ -4,12 +4,22 @@
 
 namespace Natalie {
 
+Value::Value(nat_int_t integer)
+    : Value { Integer(integer) } { }
+
+Value::Value(const Integer integer)
+    : m_value { integer.m_value } { }
+
+Value Value::integer(TM::String &&str) {
+    return Integer(std::move(str));
+}
+
 #define PROFILED_SEND(type)                                                             \
     static auto is_profiled = NativeProfiler::the()->enabled();                         \
     NativeProfilerEvent *event = nullptr;                                               \
     if (is_profiled) {                                                                  \
         auto classnameOf = [](Value val) -> String {                                    \
-            if (val.m_type == Type::Integer)                                            \
+            if (val.is_integer())                                                       \
                 return String("Integer");                                               \
             auto maybe_classname = val.klass()->name();                                 \
             if (maybe_classname.present())                                              \
@@ -55,24 +65,20 @@ Value Value::integer_send(Env *env, SymbolObject *name, Args &&args, Block *bloc
 }
 
 ClassObject *Value::klass() const {
-    switch (m_type) {
-    case Type::Integer:
+    if (is_integer())
         return GlobalEnv::the()->Integer();
-    case Type::Pointer:
-        if (m_object)
-            return m_object->klass();
-    }
+    auto ptr = object();
+    if (ptr)
+        return ptr->klass();
     return nullptr;
 }
 
 ClassObject *Value::singleton_class() const {
-    switch (m_type) {
-    case Type::Integer:
+    if (is_integer())
         return nullptr;
-    case Type::Pointer:
-        if (m_object)
-            return m_object->singleton_class();
-    }
+    auto ptr = object();
+    if (ptr)
+        return ptr->singleton_class();
     return nullptr;
 }
 
@@ -88,7 +94,7 @@ StringObject *Value::to_str(Env *env) {
             env->raise_type_error(*this, "String");
     }
 
-    if (is_string()) return m_object->as_string();
+    if (is_string()) return object()->as_string();
 
     auto to_str = "to_str"_s;
     if (!respond_to(env, to_str))
@@ -116,7 +122,7 @@ StringObject *Value::to_str2(Env *env) {
             env->raise_type_error(*this, "String");
     }
 
-    if (is_string()) return m_object->as_string();
+    if (is_string()) return object()->as_string();
 
     auto to_str = "to_str"_s;
     if (!respond_to(env, to_str))
@@ -137,146 +143,62 @@ StringObject *Value::to_str2(Env *env) {
 Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
 
-    if (m_type == Type::Integer)
+    if (is_integer())
         return integer_send(env, name, std::move(args), block, sent_from, MethodVisibility::Public);
 
-    return m_object->public_send(env, name, std::move(args), block, sent_from);
+    return object()->public_send(env, name, std::move(args), block, sent_from);
 }
 
 Value Value::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::SEND);
 
-    if (m_type == Type::Integer)
+    if (is_integer())
         return integer_send(env, name, std::move(args), block, sent_from, MethodVisibility::Private);
 
-    return m_object->send(env, name, std::move(args), block, sent_from);
+    return object()->send(env, name, std::move(args), block, sent_from);
 }
 
-bool Value::operator==(Value other) const {
-    switch (m_type) {
-    case Type::Integer: {
-        switch (other.m_type) {
-        case Type::Integer:
-            return m_integer == other.m_integer;
-        default:
-            return false;
-        }
-    }
-    default:
-        switch (other.m_type) {
-        case Type::Integer:
-            return false;
-        default:
-            return m_object == other.m_object;
-        }
-    }
-}
-
-const Integer &Value::integer() const {
-    switch (m_type) {
-    case Type::Integer:
-        return m_integer;
-    case Type::Pointer:
+Integer Value::integer() const {
+    if (!is_integer()) {
         fprintf(stderr, "Fatal: cannot convert Value of type Pointer to Integer\n");
         abort();
     }
-    NAT_UNREACHABLE();
+    if (is_fixnum())
+        return static_cast<nat_int_t>(m_value) >> 1;
+    return Integer(reinterpret_cast<BigInt *>(m_value));
 }
 
-Integer &Value::integer() {
-    switch (m_type) {
-    case Type::Integer:
-        return m_integer;
-    case Type::Pointer:
-        fprintf(stderr, "Fatal: cannot convert Value of type Pointer to Integer\n");
-        abort();
-    }
-    NAT_UNREACHABLE();
+Integer Value::integer_or_raise(Env *env) const {
+    if (!is_integer())
+        env->raise_type_error(object(), "Integer");
+    return integer();
 }
 
-const Integer &Value::integer_or_raise(Env *env) const {
-    switch (m_type) {
-    case Type::Integer:
-        return m_integer;
-    case Type::Pointer:
-        env->raise_type_error(m_object, "Integer");
-    }
-    NAT_UNREACHABLE();
-}
-
-Integer &Value::integer_or_raise(Env *env) {
-    switch (m_type) {
-    case Type::Integer:
-        return m_integer;
-    case Type::Pointer:
-        env->raise_type_error(m_object, "Integer");
-    }
-    NAT_UNREACHABLE();
-}
-
-__attribute__((no_sanitize("undefined"))) static nat_int_t left_shift_with_undefined_behavior(nat_int_t x, nat_int_t y) {
-    return x << y;
-}
-
-nat_int_t Value::object_id() const {
-    if (is_integer()) {
-        auto i = integer();
-        if (i.is_fixnum()) {
-            /* Recreate the logic from Ruby: Use a long as tagged pointer, where
-             * the rightmost bit is 1, and the remaining bits are the number shifted
-             * one right.
-             * The regular object ids are the actual memory addresses, these are at
-             * least 8 bit aligned, so the rightmost bit will never be set. This
-             * means we don't risk duplicate object ids for different objects.
-             */
-            auto val = i.to_nat_int_t();
-            // FIXME: This is incorrect for 64-bit integers and will produce duplicate ids.
-            return left_shift_with_undefined_behavior(val, 1) | 1;
-        } else {
-            return reinterpret_cast<nat_int_t>(i.bigint_pointer());
-        }
-    }
-
-    assert(m_type == Type::Pointer);
-    assert(m_object);
-
-    return reinterpret_cast<nat_int_t>(m_object);
+bool Value::is_integer() const {
+    if (is_fixnum())
+        return true;
+    auto ptr = reinterpret_cast<Object *>(m_value);
+    return ptr != 0x0 && reinterpret_cast<Object *>(ptr)->type() == ObjectType::BigInt;
 }
 
 void Value::assert_integer(Env *env) const {
-    switch (m_type) {
-    case Type::Integer:
-        break;
-    case Type::Pointer:
-        env->raise_type_error(m_object, "Integer");
-    }
+    if (is_integer())
+        return;
+    env->raise_type_error(object(), "Integer");
 }
 
 void Value::assert_type(Env *env, ObjectType expected_type, const char *expected_class_name) const {
-    switch (m_type) {
-    case Type::Integer:
+    if (is_integer())
         env->raise("TypeError", "no implicit conversion of Integer into {}", expected_class_name);
-    case Type::Pointer:
-        if (m_object->type() != expected_type)
-            env->raise_type_error(m_object, expected_class_name);
-    }
+    if (object()->type() != expected_type)
+        env->raise_type_error(object(), expected_class_name);
 }
 
 void Value::assert_not_frozen(Env *env) const {
     if (is_integer())
         env->raise("FrozenError", "can't modify frozen Integer: {}", integer().to_string());
 
-    m_object->assert_not_frozen(env);
-}
-
-bool Value::is_integer() const {
-    switch (m_type) {
-    case Type::Integer:
-        return true;
-    case Type::Pointer:
-        return false;
-    }
-    NAT_UNREACHABLE();
+    object()->assert_not_frozen(env);
 }
 
 bool Value::is_a(Env *env, Value val) const {
@@ -302,50 +224,50 @@ bool Value::respond_to(Env *env, SymbolObject *name_val, bool include_all) {
     return KernelModule::respond_to_method(env, *this, name_val, include_all);
 }
 
-bool Value::is_nil() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Nil; }
-bool Value::is_true() const { return m_type == Type::Pointer && m_object->type() == ObjectType::True; }
-bool Value::is_false() const { return m_type == Type::Pointer && m_object->type() == ObjectType::False; }
-bool Value::is_fiber() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Fiber; }
-bool Value::is_enumerator_arithmetic_sequence() const { return m_type == Type::Pointer && m_object->type() == ObjectType::EnumeratorArithmeticSequence; }
-bool Value::is_array() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Array; }
-bool Value::is_binding() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Binding; }
-bool Value::is_method() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Method; }
-bool Value::is_module() const { return m_type == Type::Pointer && (m_object->type() == ObjectType::Module || m_object->type() == ObjectType::Class); }
-bool Value::is_class() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Class; }
-bool Value::is_complex() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Complex; }
-bool Value::is_dir() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Dir; }
-bool Value::is_encoding() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Encoding; }
-bool Value::is_env() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Env; }
-bool Value::is_exception() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Exception; }
-bool Value::is_float() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Float; }
-bool Value::is_hash() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Hash; }
-bool Value::is_io() const { return m_type == Type::Pointer && (m_object->type() == ObjectType::Io || m_object->type() == ObjectType::File); }
-bool Value::is_file() const { return m_type == Type::Pointer && m_object->type() == ObjectType::File; }
-bool Value::is_file_stat() const { return m_type == Type::Pointer && m_object->type() == ObjectType::FileStat; }
-bool Value::is_match_data() const { return m_type == Type::Pointer && m_object->type() == ObjectType::MatchData; }
-bool Value::is_proc() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Proc; }
-bool Value::is_random() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Random; }
-bool Value::is_range() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Range; }
-bool Value::is_rational() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Rational; }
-bool Value::is_regexp() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Regexp; }
-bool Value::is_symbol() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Symbol; }
-bool Value::is_string() const { return m_type == Type::Pointer && m_object->type() == ObjectType::String; }
-bool Value::is_thread() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Thread; }
-bool Value::is_thread_backtrace_location() const { return m_type == Type::Pointer && m_object->type() == ObjectType::ThreadBacktraceLocation; }
-bool Value::is_thread_group() const { return m_type == Type::Pointer && m_object->type() == ObjectType::ThreadGroup; }
-bool Value::is_thread_mutex() const { return m_type == Type::Pointer && m_object->type() == ObjectType::ThreadMutex; }
-bool Value::is_time() const { return m_type == Type::Pointer && m_object->type() == ObjectType::Time; }
-bool Value::is_unbound_method() const { return m_type == Type::Pointer && m_object->type() == ObjectType::UnboundMethod; }
-bool Value::is_void_p() const { return m_type == Type::Pointer && m_object->type() == ObjectType::VoidP; }
+bool Value::is_nil() const { return is_pointer() && pointer()->type() == ObjectType::Nil; }
+bool Value::is_true() const { return is_pointer() && pointer()->type() == ObjectType::True; }
+bool Value::is_false() const { return is_pointer() && pointer()->type() == ObjectType::False; }
+bool Value::is_fiber() const { return is_pointer() && pointer()->type() == ObjectType::Fiber; }
+bool Value::is_enumerator_arithmetic_sequence() const { return is_pointer() && pointer()->type() == ObjectType::EnumeratorArithmeticSequence; }
+bool Value::is_array() const { return is_pointer() && pointer()->type() == ObjectType::Array; }
+bool Value::is_binding() const { return is_pointer() && pointer()->type() == ObjectType::Binding; }
+bool Value::is_method() const { return is_pointer() && pointer()->type() == ObjectType::Method; }
+bool Value::is_module() const { return is_pointer() && (pointer()->type() == ObjectType::Module || pointer()->type() == ObjectType::Class); }
+bool Value::is_class() const { return is_pointer() && pointer()->type() == ObjectType::Class; }
+bool Value::is_complex() const { return is_pointer() && pointer()->type() == ObjectType::Complex; }
+bool Value::is_dir() const { return is_pointer() && pointer()->type() == ObjectType::Dir; }
+bool Value::is_encoding() const { return is_pointer() && pointer()->type() == ObjectType::Encoding; }
+bool Value::is_env() const { return is_pointer() && pointer()->type() == ObjectType::Env; }
+bool Value::is_exception() const { return is_pointer() && pointer()->type() == ObjectType::Exception; }
+bool Value::is_float() const { return is_pointer() && pointer()->type() == ObjectType::Float; }
+bool Value::is_hash() const { return is_pointer() && pointer()->type() == ObjectType::Hash; }
+bool Value::is_io() const { return is_pointer() && (pointer()->type() == ObjectType::Io || pointer()->type() == ObjectType::File); }
+bool Value::is_file() const { return is_pointer() && pointer()->type() == ObjectType::File; }
+bool Value::is_file_stat() const { return is_pointer() && pointer()->type() == ObjectType::FileStat; }
+bool Value::is_match_data() const { return is_pointer() && pointer()->type() == ObjectType::MatchData; }
+bool Value::is_proc() const { return is_pointer() && pointer()->type() == ObjectType::Proc; }
+bool Value::is_random() const { return is_pointer() && pointer()->type() == ObjectType::Random; }
+bool Value::is_range() const { return is_pointer() && pointer()->type() == ObjectType::Range; }
+bool Value::is_rational() const { return is_pointer() && pointer()->type() == ObjectType::Rational; }
+bool Value::is_regexp() const { return is_pointer() && pointer()->type() == ObjectType::Regexp; }
+bool Value::is_symbol() const { return is_pointer() && pointer()->type() == ObjectType::Symbol; }
+bool Value::is_string() const { return is_pointer() && pointer()->type() == ObjectType::String; }
+bool Value::is_thread() const { return is_pointer() && pointer()->type() == ObjectType::Thread; }
+bool Value::is_thread_backtrace_location() const { return is_pointer() && pointer()->type() == ObjectType::ThreadBacktraceLocation; }
+bool Value::is_thread_group() const { return is_pointer() && pointer()->type() == ObjectType::ThreadGroup; }
+bool Value::is_thread_mutex() const { return is_pointer() && pointer()->type() == ObjectType::ThreadMutex; }
+bool Value::is_time() const { return is_pointer() && pointer()->type() == ObjectType::Time; }
+bool Value::is_unbound_method() const { return is_pointer() && pointer()->type() == ObjectType::UnboundMethod; }
+bool Value::is_void_p() const { return is_pointer() && pointer()->type() == ObjectType::VoidP; }
 
-bool Value::is_truthy() const { return !is_false() && !is_nil(); }
-bool Value::is_falsey() const { return !is_truthy(); }
+bool Value::is_truthy() const { return !is_falsey(); }
+bool Value::is_falsey() const { return is_false() || is_nil(); }
 bool Value::is_numeric() const { return is_integer() || is_float(); }
 bool Value::is_boolean() const { return is_true() || is_false(); }
 
 ArrayObject *Value::to_ary(Env *env) {
     if (is_array())
-        return m_object->as_array();
+        return object()->as_array();
 
     auto original_class = klass()->inspect_str();
 
@@ -372,7 +294,7 @@ ArrayObject *Value::to_ary(Env *env) {
 
 IoObject *Value::to_io(Env *env) {
     if (is_io())
-        return m_object->as_io();
+        return object()->as_io();
 
     auto to_io = "to_io"_s;
     if (!respond_to(env, to_io))
@@ -413,7 +335,7 @@ Integer Value::to_int(Env *env) {
 
 FloatObject *Value::to_f(Env *env) {
     if (is_float())
-        return m_object->as_float();
+        return object()->as_float();
 
     auto to_f = "to_f"_s;
     if (!respond_to(env, to_f))
@@ -426,7 +348,7 @@ FloatObject *Value::to_f(Env *env) {
 
 HashObject *Value::to_hash(Env *env) {
     if (is_hash())
-        return m_object->as_hash();
+        return object()->as_hash();
 
     auto original_class = klass()->inspect_str();
 
@@ -467,7 +389,7 @@ SymbolObject *Value::to_symbol(Env *env, Conversion conversion) {
     }
 
     if (is_symbol())
-        return m_object->as_symbol();
+        return object()->as_symbol();
     else if (is_string() || respond_to(env, "to_str"_s))
         return to_str(env)->to_symbol(env);
     else if (conversion == Conversion::NullAllowed)
@@ -486,13 +408,9 @@ String Value::inspect_str(Env *env) {
 }
 
 String Value::dbg_inspect() const {
-    switch (m_type) {
-    case Type::Integer:
-        return m_integer.to_string();
-    case Type::Pointer:
-        return m_object->dbg_inspect();
-    }
-    NAT_UNREACHABLE();
+    if (is_integer())
+        return integer().to_string();
+    return object()->dbg_inspect();
 }
 
 #undef PROFILED_SEND

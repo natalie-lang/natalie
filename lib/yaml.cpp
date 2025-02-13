@@ -86,7 +86,7 @@ static void emit_value(Env *env, HashObject *value, yaml_emitter_t &emitter, yam
     emit(env, emitter, event);
 }
 
-static void emit_value(Env *env, Integer &value, yaml_emitter_t &emitter, yaml_event_t &event) {
+static void emit_value(Env *env, Integer value, yaml_emitter_t &emitter, yaml_event_t &event) {
     const auto str = value.to_string();
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_INT_TAG,
         (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
