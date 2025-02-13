@@ -14,27 +14,19 @@ describe :kernel_complex, shared: true do
   end
 
   it "understands fractions (numerator/denominator) for the real part" do
-    NATFIXME 'understands fractions (numerator/denominator) for the real part', exception: SpecFailedException do
-      @object.send(@method, '2/3').should == Complex(Rational(2, 3))
-    end
+    @object.send(@method, '2/3').should == Complex(Rational(2, 3))
   end
 
   it "understands fractions (numerator/denominator) for the imaginary part" do
-    NATFIXME 'understands fractions (numerator/denominator) for the imaginary part', exception: SpecFailedException do
-      @object.send(@method, '4+2/3i').should == Complex(4, Rational(2, 3))
-    end
+    @object.send(@method, '4+2/3i').should == Complex(4, Rational(2, 3))
   end
 
   it "understands negative fractions (-numerator/denominator) for the real part" do
-    NATFIXME 'understands negative fractions (-numerator/denominator) for the real part', exception: SpecFailedException do
-      @object.send(@method, '-2/3').should == Complex(Rational(-2, 3))
-    end
+    @object.send(@method, '-2/3').should == Complex(Rational(-2, 3))
   end
 
   it "understands negative fractions (-numerator/denominator) for the imaginary part" do
-    NATFIXME 'understands negative fractions (-numerator/denominator) for the imaginary part', exception: SpecFailedException do
-      @object.send(@method, '7-2/3i').should == Complex(7, Rational(-2, 3))
-    end
+    @object.send(@method, '7-2/3i').should == Complex(7, Rational(-2, 3))
   end
 
   it "understands floats (a.b) for the real part" do
