@@ -49,7 +49,7 @@ namespace ioutil {
             return;
         }
 
-        switch (flags_obj->type()) {
+        switch (flags_obj.type()) {
         case Object::Type::String: {
             auto colon = new StringObject { ":" };
             auto flagsplit = flags_obj.as_string()->split(env, colon, nullptr).as_array();

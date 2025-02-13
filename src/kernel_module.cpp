@@ -868,7 +868,7 @@ Value KernelModule::dup(Env *env, Value self) {
     // Doing that all at once is a pain, so we'll split off classes here:
     // classes that have their own `initialize_copy` method get the `dup_better` code path,
     // while the rest get the old, wrong code path.
-    switch (self->type()) {
+    switch (self.type()) {
     case Object::Type::Array:
     case Object::Type::Hash:
     case Object::Type::String:
@@ -887,7 +887,7 @@ Value KernelModule::dup_better(Env *env, Value self) {
 
 Value KernelModule::extend(Env *env, Value self, Args &&args) {
     for (size_t i = 0; i < args.size(); i++) {
-        if (args[i]->type() == Object::Type::Module) {
+        if (args[i].type() == Object::Type::Module) {
             args[i].as_module()->send(env, "extend_object"_s, { self });
         } else {
             env->raise("TypeError", "wrong argument type {} (expected Module)", args[i].klass()->inspect_str());
@@ -900,7 +900,7 @@ Value KernelModule::hash(Env *env, Value self) {
     if (self.is_integer())
         return Value::integer(self.integer().to_string().djb2_hash());
 
-    switch (self->type()) {
+    switch (self.type()) {
     // NOTE: string "foo" and symbol :foo will get the same hash.
     // That's probably ok, but maybe worth revisiting.
     case Object::Type::String:
@@ -936,7 +936,7 @@ Value KernelModule::inspect(Env *env, Value value) {
 bool KernelModule::instance_variable_defined(Env *env, Value self, Value name_val) {
     if (self.is_integer())
         return false;
-    switch (self->type()) {
+    switch (self.type()) {
     case Object::Type::Nil:
     case Object::Type::True:
     case Object::Type::False:

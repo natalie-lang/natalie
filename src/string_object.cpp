@@ -3855,7 +3855,7 @@ void StringObject::append(Value val) {
         return;
     }
 
-    switch (val->type()) {
+    switch (val.type()) {
     case Type::Array:
     case Type::Hash:
         append(val->dbg_inspect());

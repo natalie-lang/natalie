@@ -59,7 +59,7 @@ public:
     virtual void gc_inspect(char *buf, size_t len) const override {
         if (m_message == nullptr) {
             snprintf(buf, len, "<ExceptionObject %p message=(null)>", this);
-            // } else if (m_message->type() == Object::Type::String) {
+            // } else if (m_message.type() == Object::Type::String) {
             // snprintf(buf, len, "<ExceptionObject %p message='%s'>", this, m_message.as_string()->c_str());
         } else {
             snprintf(buf, len, "<ExceptionObject %p message=?>", this);

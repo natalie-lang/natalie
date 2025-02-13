@@ -140,6 +140,7 @@ Value Object::create(Env *env, ClassObject *klass) {
 
     case Object::Type::BigInt:
     case Object::Type::Collected:
+    case Object::Type::Integer:
         NAT_UNREACHABLE();
     }
 

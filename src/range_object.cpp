@@ -254,11 +254,12 @@ String RangeObject::dbg_inspect() const {
     auto append = [&](Value v) {
         if (v.is_integer()) {
             str.append(v.integer().to_nat_int_t());
+        } else if (v.is_nil()) {
+            // do nothing
         } else {
             auto obj = v.object();
             assert(obj);
-            if (type() != Type::Nil)
-                str.append(obj->dbg_inspect());
+            str.append(obj->dbg_inspect());
         }
     };
     append(m_begin);

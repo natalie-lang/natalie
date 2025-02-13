@@ -176,6 +176,12 @@ Integer Value::integer_or_raise(Env *env) const {
     return integer();
 }
 
+ObjectType Value::type() const {
+    if (is_integer())
+        return ObjectType::Integer;
+    return pointer()->type();
+}
+
 bool Value::is_integer() const {
     if (is_fixnum())
         return true;

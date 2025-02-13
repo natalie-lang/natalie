@@ -251,12 +251,6 @@ public:
         return *this == *(value.as_string());
     }
 
-    bool operator==(const Object &value) const {
-        if (value.type() != Type::String)
-            return false;
-        return *this == dynamic_cast<const StringObject &>(value);
-    }
-
     bool operator==(const StringObject &value) const {
         return m_string == value.m_string;
     }

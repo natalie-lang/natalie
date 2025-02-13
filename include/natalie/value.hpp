@@ -97,6 +97,8 @@ public:
     Integer integer() const;
     Integer integer_or_raise(Env *) const;
 
+    ObjectType type() const;
+
     bool is_pointer() const { return (m_value & 0x1) == 0x0; }
     bool is_fixnum() const { return (m_value & 0x1) == 0x1; }
     bool is_integer() const;

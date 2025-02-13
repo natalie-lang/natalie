@@ -746,7 +746,7 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
             if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
             obj = obj->ivar_get(env, "@_ptr"_s);
-            assert(obj->type() == Object::Type::VoidP);
+            assert(obj.type() == Object::Type::VoidP);
             *void_ptr = obj.as_void_p()->void_ptr();
             break;
         }
