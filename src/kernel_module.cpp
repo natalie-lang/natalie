@@ -206,8 +206,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
     for (const char *c = input->c_str(); c < input->c_str() + input->bytesize(); c++) {
         if (*c == 0) {
             if (string_to_c) {
-                if (state != State::Start)
-                    state = State::Finished;
+                state = State::Finished;
                 continue;
             } else {
                 if (exception)
