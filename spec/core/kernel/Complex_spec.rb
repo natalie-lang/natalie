@@ -65,7 +65,7 @@ describe "Kernel.Complex()" do
 
     context "invalid argument" do
       it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
-        NATFIXME 'raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding', exception: SpecFailedException do
+        NATFIXME 'Add encoder to to UTF-16', exception: SpecFailedException, message: /code converter not found \(UTF-8 to UTF-16\)/ do
           -> {
             Complex("79+4i".encode("UTF-16"))
           }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
@@ -117,7 +117,7 @@ describe "Kernel.Complex()" do
 
     context "invalid argument and exception: false passed" do
       it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
-        NATFIXME 'raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding', exception: SpecFailedException do
+        NATFIXME 'Add encoder to to UTF-16', exception: SpecFailedException, message: /code converter not found \(UTF-8 to UTF-16\)/ do
           -> {
             Complex("79+4i".encode("UTF-16"), exception: false)
           }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")

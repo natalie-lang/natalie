@@ -190,6 +190,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
         Undefined,
         Integer,
         Float,
+        Scientific,
     };
     auto state = State::Start;
     auto real_type = Type::Undefined;
@@ -206,8 +207,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
     for (const char *c = input->c_str(); c < input->c_str() + input->bytesize(); c++) {
         if (*c == 0) {
             if (string_to_c) {
-                if (state != State::Start)
-                    state = State::Finished;
+                state = State::Finished;
                 continue;
             } else {
                 if (exception)
@@ -233,8 +233,9 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             if (*c >= '0' && *c <= '9') {
                 *curr_end = c;
             } else if (*c == '_') {
-                // TODO: Skip single underscore
-                if (string_to_c) {
+                if (c[1] && c[1] >= '0' && c[1] <= '9') {
+                    continue; // Skip single underscore, only if it is part of a number
+                } else if (string_to_c) {
                     imag_start = imag_end = nullptr;
                     state = State::Finished;
                 } else {
@@ -252,9 +253,11 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             } else if (*c == '/') {
                 // TODO: Parse fraction
                 return NilObject::the();
-            } else if (*c == 'e') {
-                // TODO: Parse scientific notation
-                return NilObject::the();
+            } else if (*c == 'e' || *c == 'E') {
+                if (*curr_type == Type::Scientific)
+                    return error();
+                *curr_type = Type::Scientific;
+                *curr_end = c;
             } else if (*c == '@') {
                 // TODO: Parse polar form
                 return NilObject::the();
@@ -308,6 +311,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                 new_real = Integer(env, tmp);
                 break;
             case Type::Float:
+            case Type::Scientific:
                 new_real = Float(env, tmp);
                 break;
             case Type::Undefined:
@@ -321,6 +325,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                 new_imag = Integer(env, tmp);
                 break;
             case Type::Float:
+            case Type::Scientific:
                 new_imag = Float(env, tmp);
                 break;
             case Type::Undefined:
