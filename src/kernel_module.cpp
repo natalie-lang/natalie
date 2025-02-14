@@ -196,6 +196,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
     auto state = State::Start;
     auto real_type = Type::Undefined;
     auto imag_type = Type::Undefined;
+    bool polar = false;
     const char *real_start = nullptr;
     const char *real_end = nullptr;
     const char *imag_start = nullptr;
@@ -263,19 +264,33 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                     *curr_type = Type::Scientific;
                 *curr_end = c;
             } else if (*c == '@') {
-                // TODO: Parse polar form
-                return NilObject::the();
-            } else if (*c == '+' || *c == '-') {
-                if (*curr_start && *curr_start == *curr_end && (**curr_end == '-' || **curr_end == '+'))
+                if (polar)
                     return error();
-                if (state == State::Imag)
+                if (state != State::Real)
                     return error();
+                if (!c[1])
+                    return error();
+                polar = true;
                 curr_start = &imag_start;
                 curr_end = &imag_end;
                 *curr_start = *curr_end = c;
                 curr_type = &imag_type;
                 *curr_type = Type::Integer;
                 state = State::Imag;
+            } else if (*c == '+' || *c == '-') {
+                if (*curr_start && *curr_start == *curr_end && (**curr_end == '-' || **curr_end == '+'))
+                    return error();
+                if (state == State::Imag) {
+                    if (!polar && (!*curr_start || *curr_start != *curr_end))
+                        return error();
+                } else {
+                    curr_start = &imag_start;
+                    curr_end = &imag_end;
+                    *curr_start = *curr_end = c;
+                    curr_type = &imag_type;
+                    *curr_type = Type::Integer;
+                    state = State::Imag;
+                }
             } else if (*c == 'i' || *c == 'I' || *c == 'j' || *c == 'J') {
                 if (*curr_start && *curr_start == *curr_end && (**curr_end == '-' || **curr_end == '+')) {
                     // Corner case: '-i' or '+i'
@@ -326,6 +341,8 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             }
         }
         if (imag_start != nullptr && imag_end != nullptr) {
+            if (polar)
+                imag_start++; // skip '@'
             auto tmp = new StringObject { imag_start, static_cast<size_t>(imag_end - imag_start + 1) };
             switch (imag_type) {
             case Type::Integer:
@@ -341,6 +358,10 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             case Type::Undefined:
                 return error();
             }
+        }
+        if (polar) {
+            auto Complex = GlobalEnv::the()->Object()->const_get(env, "Complex"_s);
+            return Complex.send(env, "polar"_s, { new_real, new_imag });
         }
         return new ComplexObject { new_real, new_imag };
     }

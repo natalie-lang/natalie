@@ -114,11 +114,9 @@ describe :kernel_complex, shared: true do
   end
 
   it "understands 'm@a' to mean a complex number in polar form with 'm' as the modulus, 'a' as the argument" do
-    NATFIXME "understands 'm@a' to mean a complex number in polar form with 'm' as the modulus, 'a' as the argument", exception: SpecFailedException do
-      @object.send(@method, '79@4').should == Complex.polar(79, 4)
-      @object.send(@method, '-79@4').should == Complex.polar(-79, 4)
-      @object.send(@method, '79@-4').should == Complex.polar(79, -4)
-    end
+    @object.send(@method, '79@4').should == Complex.polar(79, 4)
+    @object.send(@method, '-79@4').should == Complex.polar(-79, 4)
+    @object.send(@method, '79@-4').should == Complex.polar(79, -4)
   end
 
   it "ignores leading whitespaces" do
