@@ -74,7 +74,7 @@ ClassObject *Value::klass() const {
 }
 
 ClassObject *Value::singleton_class() const {
-    if (is_integer())
+    if (is_integer() || is_float() || is_symbol())
         return nullptr;
     auto ptr = object();
     if (ptr)
@@ -187,6 +187,20 @@ bool Value::is_integer() const {
         return true;
     auto ptr = reinterpret_cast<Object *>(m_value);
     return ptr != 0x0 && reinterpret_cast<Object *>(ptr)->type() == ObjectType::BigInt;
+}
+
+bool Value::has_instance_variables() const {
+    switch (type()) {
+    case Object::Type::False:
+    case Object::Type::Float:
+    case Object::Type::Integer:
+    case Object::Type::Nil:
+    case Object::Type::Symbol:
+    case Object::Type::True:
+        return false;
+    default:
+        return true;
+    }
 }
 
 void Value::assert_integer(Env *env) const {

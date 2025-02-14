@@ -183,8 +183,6 @@ public:
     bool is_frozen() const { return m_type == Type::Float || m_frozen; }
 
     static bool not_truthy(Value self) {
-        if (self.is_integer())
-            return false;
         return self.is_falsey();
     }
 

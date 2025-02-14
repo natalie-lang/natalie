@@ -81,6 +81,8 @@ public:
     Value integer_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility);
 
     ClassObject *klass() const;
+
+    bool can_have_singleton_class() const { return !is_integer() && !is_float() && !is_symbol(); }
     ClassObject *singleton_class() const;
     ClassObject *singleton_class(Env *);
 
@@ -102,6 +104,8 @@ public:
     bool is_pointer() const { return (m_value & 0x1) == 0x0; }
     bool is_fixnum() const { return (m_value & 0x1) == 0x1; }
     bool is_integer() const;
+
+    bool has_instance_variables() const;
 
     nat_int_t object_id() const { return (nat_int_t)m_value; }
 

@@ -848,9 +848,7 @@ Value KernelModule::throw_method(Env *env, Value name, Value value) {
 }
 
 Value KernelModule::klass_obj(Env *env, Value self) {
-    if (self.is_integer())
-        return GlobalEnv::the()->Integer();
-    else if (self.klass())
+    if (self.klass())
         return self.klass();
     else
         return NilObject::the();
@@ -897,10 +895,9 @@ Value KernelModule::extend(Env *env, Value self, Args &&args) {
 }
 
 Value KernelModule::hash(Env *env, Value self) {
-    if (self.is_integer())
-        return Value::integer(self.integer().to_string().djb2_hash());
-
     switch (self.type()) {
+    case Object::Type::Integer:
+        return Value::integer(self.integer().to_string().djb2_hash());
     // NOTE: string "foo" and symbol :foo will get the same hash.
     // That's probably ok, but maybe worth revisiting.
     case Object::Type::String:
@@ -934,27 +931,16 @@ Value KernelModule::inspect(Env *env, Value value) {
 }
 
 bool KernelModule::instance_variable_defined(Env *env, Value self, Value name_val) {
-    if (self.is_integer())
+    if (!self.has_instance_variables())
         return false;
-    switch (self.type()) {
-    case Object::Type::Nil:
-    case Object::Type::True:
-    case Object::Type::False:
-    case Object::Type::Float:
-    case Object::Type::Symbol:
-        return false;
-    default:
-        break;
-    }
     auto name = Object::to_instance_variable_name(env, name_val);
     return self->ivar_defined(env, name);
 }
 
 Value KernelModule::instance_variable_get(Env *env, Value self, Value name_val) {
-    if (self.is_integer() || self.is_float())
-        return NilObject::the();
-
     auto name = Object::to_instance_variable_name(env, name_val);
+    if (!self.has_instance_variables())
+        return NilObject::the();
     return self->ivar_get(env, name);
 }
 
@@ -966,7 +952,7 @@ Value KernelModule::instance_variable_set(Env *env, Value self, Value name_val, 
 }
 
 Value KernelModule::instance_variables(Env *env, Value self) {
-    if (self.is_integer())
+    if (!self.has_instance_variables())
         return new ArrayObject;
 
     return self->instance_variables(env);
@@ -975,9 +961,6 @@ Value KernelModule::instance_variables(Env *env, Value self) {
 bool KernelModule::is_a(Env *env, Value self, Value module) {
     if (!module.is_module())
         env->raise("TypeError", "class or module required");
-
-    if (self.is_integer())
-        return GlobalEnv::the()->Integer()->ancestors_includes(env, module.as_module());
 
     return self.is_a(env, module.as_module());
 }

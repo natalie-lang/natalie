@@ -293,13 +293,13 @@ Value Object::const_set(Env *env, Value ns, SymbolObject *name, MethodFnPtr auto
 }
 
 bool Object::ivar_defined(Env *env, Value self, SymbolObject *name) {
-    if (self.is_integer() || self.is_float())
+    if (!self.has_instance_variables())
         return false;
     return self->ivar_defined(env, name);
 }
 
 Value Object::ivar_get(Env *env, Value self, SymbolObject *name) {
-    if (self.is_integer() || self.is_float())
+    if (!self.has_instance_variables())
         return NilObject::the();
     return self->ivar_get(env, name);
 }
@@ -419,19 +419,14 @@ void Object::method_alias(Env *env, Value self, Value new_name, Value old_name) 
 }
 
 void Object::method_alias(Env *env, Value self, SymbolObject *new_name, SymbolObject *old_name) {
-    if (self.is_integer())
+    if (!self.can_have_singleton_class())
         env->raise("TypeError", "no klass to make alias");
-
-    if (self.is_symbol())
-        env->raise("TypeError", "no klass to make alias");
-
-    if (self->is_main_object()) {
+    else if (self->is_main_object())
         self.klass()->make_method_alias(env, new_name, old_name);
-    } else if (self.is_module()) {
+    else if (self.is_module())
         self.as_module()->method_alias(env, new_name, old_name);
-    } else {
+    else
         singleton_class(env, self)->make_method_alias(env, new_name, old_name);
-    }
 }
 
 void Object::singleton_method_alias(Env *env, Value self, SymbolObject *new_name, SymbolObject *old_name) {
@@ -548,9 +543,6 @@ Value Object::public_send(Env *env, SymbolObject *name, Args &&args, Block *bloc
 
 Value Object::public_send(Env *env, Value self, Args &&args, Block *block) {
     auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
-    if (self.is_integer())
-        return self.integer_send(env, name, std::move(args), block, nullptr, MethodVisibility::Public);
-
     return self->public_send(env->caller(), name, std::move(args), block);
 }
 
@@ -560,9 +552,6 @@ Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Valu
 
 Value Object::send(Env *env, Value self, Args &&args, Block *block) {
     auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
-    if (self.is_integer())
-        return self.integer_send(env, name, std::move(args), block, nullptr, MethodVisibility::Private);
-
     return self.send(env->caller(), name, std::move(args), block);
 }
 
