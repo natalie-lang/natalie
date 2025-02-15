@@ -14,24 +14,24 @@
 
 namespace Natalie {
 
+struct HashKey : public Cell {
+    HashKey *prev { nullptr };
+    HashKey *next { nullptr };
+    Value key { nullptr };
+    Value val { nullptr };
+    size_t hash { 0 };
+    bool removed { false };
+
+    virtual void visit_children(Visitor &visitor) const override final {
+        visitor.visit(prev);
+        visitor.visit(next);
+        visitor.visit(key);
+        visitor.visit(val);
+    }
+};
+
 class HashObject : public Object {
 public:
-    struct Key : public Cell {
-        Key *prev { nullptr };
-        Key *next { nullptr };
-        Value key { nullptr };
-        Value val { nullptr };
-        size_t hash { 0 };
-        bool removed { false };
-
-        virtual void visit_children(Visitor &visitor) const override final {
-            visitor.visit(prev);
-            visitor.visit(next);
-            visitor.visit(key);
-            visitor.visit(val);
-        }
-    };
-
     HashObject()
         : HashObject { GlobalEnv::the()->Hash() } { }
 
@@ -88,8 +88,8 @@ public:
         return self.as_hash()->size(env);
     }
 
-    static size_t hash(Key *&);
-    static bool compare(Key *&, Key *&, void *);
+    static size_t hash(HashKey *&);
+    static bool compare(HashKey *&, HashKey *&, void *);
 
     static bool is_ruby2_keywords_hash(Env *, Value);
     static Value ruby2_keywords_hash(Env *, Value);
@@ -121,7 +121,7 @@ public:
 
     class iterator {
     public:
-        iterator(Key *key, const HashObject *hash)
+        iterator(HashKey *key, const HashObject *hash)
             : m_key { key }
             , m_hash { hash } { }
 
@@ -143,8 +143,8 @@ public:
             return i;
         }
 
-        Key &operator*() { return *m_key; }
-        Key *operator->() { return m_key; }
+        HashKey &operator*() { return *m_key; }
+        HashKey *operator->() { return m_key; }
 
         friend bool operator==(const iterator &i1, const iterator &i2) {
             return i1.m_key == i2.m_key;
@@ -158,7 +158,7 @@ public:
         // cannot be heap-allocated, because the GC is not aware of it.
         void *operator new(size_t size) = delete;
 
-        Key *m_key;
+        HashKey *m_key;
         const HashObject *m_hash;
     };
 
@@ -214,23 +214,23 @@ public:
     }
 
 private:
-    void key_list_remove_node(Key *);
-    Key *key_list_append(Env *, Value, nat_int_t, Value);
+    void key_list_remove_node(HashKey *);
+    HashKey *key_list_append(Env *, Value, nat_int_t, Value);
     nat_int_t generate_key_hash(Env *, Value) const;
 
     void destroy_key_list() {
         if (!m_key_list) return;
-        Key *first_key = m_key_list;
-        Key *key = m_key_list;
+        HashKey *first_key = m_key_list;
+        HashKey *key = m_key_list;
         do {
-            Key *next_key = key->next;
+            HashKey *next_key = key->next;
             delete key;
             key = next_key;
         } while (key != first_key);
     }
 
-    Key *m_key_list { nullptr };
-    TM::Hashmap<Key *, Value> m_hashmap { hash, compare, 10 }; // TODO: profile and tune this initial capacity
+    HashKey *m_key_list { nullptr };
+    TM::Hashmap<HashKey *, Value> m_hashmap { hash, compare, 10 }; // TODO: profile and tune this initial capacity
     bool m_is_iterating { false };
     bool m_is_comparing_by_identity { false };
     bool m_is_ruby2_keywords_hash { false };

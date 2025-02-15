@@ -102,7 +102,7 @@ Value EnvObject::dup(Env *env) {
 Value EnvObject::each(Env *env, Block *block) {
     if (block) {
         auto envhash = to_hash(env, nullptr);
-        for (HashObject::Key &node : *envhash.as_hash()) {
+        for (HashKey &node : *envhash.as_hash()) {
             auto name = node.key;
             auto value = node.val;
             block->run(env, Args({ name, value }), nullptr);
@@ -118,7 +118,7 @@ Value EnvObject::each(Env *env, Block *block) {
 Value EnvObject::each_key(Env *env, Block *block) {
     if (block) {
         auto envhash = to_hash(env, nullptr);
-        for (HashObject::Key &node : *envhash.as_hash()) {
+        for (HashKey &node : *envhash.as_hash()) {
             auto name = node.key;
             block->run(env, Args({ name }), nullptr);
         }
@@ -133,7 +133,7 @@ Value EnvObject::each_key(Env *env, Block *block) {
 Value EnvObject::each_value(Env *env, Block *block) {
     if (block) {
         auto envhash = to_hash(env, nullptr);
-        for (HashObject::Key &node : *envhash.as_hash()) {
+        for (HashKey &node : *envhash.as_hash()) {
             auto value = node.val;
             block->run(env, Args({ value }), nullptr);
         }
@@ -273,7 +273,7 @@ Value EnvObject::rehash() const {
 // but is probably more optimal than this solution
 Value EnvObject::clear(Env *env) {
     auto envhash = to_hash(env, nullptr);
-    for (HashObject::Key &node : *envhash.as_hash()) {
+    for (HashKey &node : *envhash.as_hash()) {
         ::unsetenv(node.key.as_string()->c_str());
     }
     return this;
@@ -315,12 +315,12 @@ Value EnvObject::reject_in_place(Env *env, Block *block) {
 
 Value EnvObject::replace(Env *env, Value hash) {
     hash.assert_type(env, Object::Type::Hash, "Hash");
-    for (HashObject::Key &node : *hash.as_hash()) {
+    for (HashKey &node : *hash.as_hash()) {
         node.key.assert_type(env, Object::Type::String, "String");
         node.val.assert_type(env, Object::Type::String, "String");
     }
     clear(env);
-    for (HashObject::Key &node : *hash.as_hash()) {
+    for (HashKey &node : *hash.as_hash()) {
         auto result = ::setenv(node.key.as_string()->c_str(), node.val.as_string()->c_str(), 1);
         if (result == -1)
             env->raise_errno();
