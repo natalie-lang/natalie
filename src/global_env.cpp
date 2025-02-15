@@ -35,7 +35,7 @@ Value GlobalEnv::global_get(Env *env, SymbolObject *name) {
     if (info && info->object(env))
         return info->object(env);
     else
-        return NilObject::the();
+        return Value::nil();
 }
 
 Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val, bool readonly) {
@@ -69,7 +69,7 @@ Value GlobalEnv::global_alias(Env *env, SymbolObject *new_name, SymbolObject *ol
 
     auto info = m_global_variables.get(old_name, env);
     if (!info) {
-        global_set(env, old_name, NilObject::the());
+        global_set(env, old_name, Value::nil());
         info = m_global_variables.get(old_name, env);
     }
     m_global_variables.put(new_name, info, env);

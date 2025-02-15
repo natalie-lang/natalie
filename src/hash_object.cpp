@@ -69,7 +69,7 @@ nat_int_t HashObject::generate_key_hash(Env *env, Value key) const {
 Value HashObject::get_default(Env *env, Value key) {
     if (m_default_proc) {
         if (!key)
-            return NilObject::the();
+            return Value::nil();
         return m_default_proc->call(env, { this, key }, nullptr);
     } else {
         return m_default_value;
@@ -144,7 +144,7 @@ Value HashObject::default_proc(Env *env) {
 
 Value HashObject::set_default_proc(Env *env, Value value) {
     assert_not_frozen(env);
-    if (value == NilObject::the()) {
+    if (value == Value::nil()) {
         m_default_proc = nullptr;
         return value;
     }
@@ -228,7 +228,7 @@ Value HashObject::initialize(Env *env, Value default_value, Value capacity, Bloc
         set_default_proc(new ProcObject { block });
     } else {
         if (!default_value) {
-            default_value = NilObject::the();
+            default_value = Value::nil();
         }
 
         set_default(env, default_value);
@@ -247,7 +247,7 @@ Value HashObject::square_new(Env *env, Args &&args, ClassObject *klass) {
         if (value.is_hash()) {
             auto hash = new HashObject { env, *value.as_hash() };
             hash->m_default_proc = nullptr;
-            hash->m_default_value = NilObject::the();
+            hash->m_default_value = Value::nil();
             hash->m_klass = klass;
             return hash;
         } else {
@@ -264,7 +264,7 @@ Value HashObject::square_new(Env *env, Args &&args, ClassObject *klass) {
                         env->raise("ArgumentError", "invalid number of elements ({} for 1..2)", size);
                     }
                     Value key = (*pair.as_array())[0];
-                    Value value = size == 1 ? NilObject::the() : (*pair.as_array())[1];
+                    Value value = size == 1 ? Value::nil() : (*pair.as_array())[1];
                     hash->put(env, key, value);
                 }
                 return hash;
@@ -409,7 +409,7 @@ Value HashObject::delete_key(Env *env, Value key, Block *block) {
     else if (block)
         return block->run(env, {}, nullptr);
     else
-        return NilObject::the();
+        return Value::nil();
 }
 
 Value HashObject::dig(Env *env, Args &&args) {
@@ -420,7 +420,7 @@ Value HashObject::dig(Env *env, Args &&args) {
     if (args.size() == 0)
         return val;
 
-    if (val == NilObject::the())
+    if (val == Value::nil())
         return val;
 
     if (!val.respond_to(env, dig))
@@ -461,7 +461,7 @@ bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
         return true;
     };
 
-    if (other_value.is_integer())
+    if (other_value.is_integer() || other_value.is_nil())
         return lambda(false);
 
     TM::PairedRecursionGuard guard { this, other_value.object() };
@@ -638,7 +638,7 @@ Value HashObject::hash(Env *env) {
     TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
-            return Value { NilObject::the() };
+            return Value { Value::nil() };
 
         HashBuilder hash { 10889, false };
         auto hash_method = "hash"_s;
@@ -745,7 +745,7 @@ Value HashObject::compact(Env *env) {
     new_hash->m_default_value = m_default_value;
     new_hash->m_default_proc = m_default_proc;
     new_hash->m_is_comparing_by_identity = m_is_comparing_by_identity;
-    auto nil = NilObject::the();
+    auto nil = Value::nil();
     for (auto pair : m_hashmap) {
         if (pair.second != nil)
             new_hash->put(env, pair.first->key, pair.second);
@@ -755,7 +755,7 @@ Value HashObject::compact(Env *env) {
 
 Value HashObject::compact_in_place(Env *env) {
     assert_not_frozen(env);
-    auto nil = NilObject::the();
+    auto nil = Value::nil();
     auto to_remove = TM::Vector<Value> {};
     for (auto pair : m_hashmap) {
         if (pair.second == nil) {
@@ -765,7 +765,7 @@ Value HashObject::compact_in_place(Env *env) {
     for (auto key : to_remove)
         remove(env, key);
     if (to_remove.is_empty())
-        return NilObject::the();
+        return Value::nil();
     return this;
 }
 }

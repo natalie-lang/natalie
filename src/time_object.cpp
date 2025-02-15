@@ -559,7 +559,7 @@ Value TimeObject::strip_zeroes(StringObject *string) {
 // NATFIXME: unclear conditions to return nil, logic may be off here.
 Value TimeObject::zone(Env *env) const {
     if (m_time.tm_gmtoff != 0 || !m_zone) {
-        return NilObject::the();
+        return Value::nil();
     }
     if (is_utc(env)) {
         return new StringObject { "UTC", Encoding::US_ASCII };

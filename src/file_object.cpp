@@ -357,24 +357,24 @@ Value FileObject::world_readable(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
     if (::stat(path.as_string()->c_str(), &sb) == -1)
-        return NilObject::the();
+        return Value::nil();
     if ((sb.st_mode & (S_IROTH)) == S_IROTH) {
         auto modenum = sb.st_mode & (S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH | S_IXUSR | S_IXGRP | S_IXOTH);
         return Value::integer(modenum);
     }
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value FileObject::world_writable(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
     if (::stat(path.as_string()->c_str(), &sb) == -1)
-        return NilObject::the();
+        return Value::nil();
     if ((sb.st_mode & (S_IWOTH)) == S_IWOTH) {
         auto modenum = sb.st_mode & (S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH | S_IXUSR | S_IXGRP | S_IXOTH);
         return Value::integer(modenum);
     }
-    return NilObject::the();
+    return Value::nil();
 }
 
 bool FileObject::is_writable(Env *env, Value path) {
@@ -445,9 +445,9 @@ bool FileObject::is_zero(Env *env, Value path) {
 Value FileObject::is_size(Env *env, Value path) {
     struct stat sb;
     if (ioutil::object_stat(env, path, &sb) == -1)
-        return NilObject::the();
+        return Value::nil();
     if (sb.st_size == 0) // returns nil when file size is zero.
-        return NilObject::the();
+        return Value::nil();
     return Value::integer((nat_int_t)(sb.st_size));
 }
 

@@ -5,7 +5,7 @@
 using namespace Natalie;
 
 Value init_yaml(Env *env, Value self) {
-    return NilObject::the();
+    return Value::nil();
 }
 
 static void emit(Env *env, yaml_emitter_t &emitter, yaml_event_t &event) {
@@ -394,7 +394,7 @@ static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
         return load_hash(env, parser);
     default:
         // Ignore for now
-        return NilObject::the();
+        return Value::nil();
     }
 }
 

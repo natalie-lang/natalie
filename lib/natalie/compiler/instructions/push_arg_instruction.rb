@@ -18,7 +18,7 @@ module Natalie
 
       def generate(transform)
         if @nil_default
-          transform.push("args.at(#{@index}, NilObject::the())")
+          transform.push("args.at(#{@index}, Value::nil())")
         else
           transform.push("args[#{@index}]")
         end

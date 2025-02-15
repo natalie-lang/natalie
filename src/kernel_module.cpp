@@ -47,7 +47,7 @@ Value KernelModule::abort_method(Env *env, Value message) {
 
     env->raise_exception(exception);
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value KernelModule::at_exit(Env *env, Block *block) {
@@ -176,7 +176,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
     auto error = [&]() -> Value {
         if (exception)
             env->raise("ArgumentError", "invalid value for convert(): \"{}\"", input->string());
-        return NilObject::the();
+        return Value::nil();
     };
     if (!input->is_ascii_only()) {
         if (string_to_c)
@@ -217,7 +217,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             } else {
                 if (exception)
                     env->raise("ArgumentError", "string contains null byte");
-                return NilObject::the();
+                return Value::nil();
             }
         } else if (*c <= 0x08 || (*c >= 0x0e && *c <= 0x1f) || *c >= 0x7f) {
             if (string_to_c) {
@@ -251,7 +251,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                     imag_start = imag_end = nullptr;
                     state = State::Finished;
                 } else {
-                    return NilObject::the();
+                    return Value::nil();
                 }
             } else if (*c == '.') {
                 if (*curr_type == Type::Integer) {
@@ -383,7 +383,7 @@ Value KernelModule::cur_callee(Env *env) {
     if (method)
         return SymbolObject::intern(method->name());
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value KernelModule::cur_dir(Env *env) {
@@ -420,7 +420,7 @@ Value KernelModule::exit(Env *env, Value status) {
     ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s).as_class(), new StringObject { "exit" } };
     exception->ivar_set(env, "@status"_s, status.to_int(env));
     env->raise_exception(exception);
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value KernelModule::exit_bang(Env *env, Value status) {
@@ -458,7 +458,7 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
             if (exception)
                 env->raise("FloatDomainError", "{}", float_obj->to_s());
             else
-                return Value(NilObject::the());
+                return Value(Value::nil());
         }
     }
 
@@ -477,7 +477,7 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
     if (exception)
         env->raise("TypeError", "can't convert {} into Integer", value.klass()->inspect_str());
     else
-        return Value(NilObject::the());
+        return Value(Value::nil());
 }
 
 Value KernelModule::Float(Env *env, Value value, Value exception) {
@@ -523,7 +523,7 @@ Value KernelModule::fork(Env *env, Block *block) {
     } else {
         if (pid == 0) {
             // child
-            return NilObject::the();
+            return Value::nil();
         } else {
             // parent
             return Value::integer(pid);
@@ -534,14 +534,14 @@ Value KernelModule::fork(Env *env, Block *block) {
 Value KernelModule::gets(Env *env) {
     char buf[2048];
     if (!fgets(buf, 2048, stdin))
-        return NilObject::the();
+        return Value::nil();
     return new StringObject { buf };
 }
 
 Value KernelModule::get_usage(Env *env) {
     struct rusage usage;
     if (getrusage(RUSAGE_SELF, &usage) != 0)
-        return NilObject::the();
+        return Value::nil();
 
     HashObject *hash = new HashObject {};
     hash->put(env, new StringObject { "maxrss" }, Value::integer(usage.ru_maxrss));
@@ -586,7 +586,7 @@ Value KernelModule::lambda(Env *env, Block *block) {
 
 Value KernelModule::p(Env *env, Args &&args) {
     if (args.size() == 0) {
-        return NilObject::the();
+        return Value::nil();
     } else if (args.size() == 1) {
         Value arg = args[0].send(env, "inspect"_s);
         puts(env, { arg });
@@ -705,7 +705,7 @@ RationalObject *KernelModule::Rational(Env *env, double arg) {
 
 Value KernelModule::sleep(Env *env, Value length) {
     if (FiberObject::scheduler_is_relevant()) {
-        if (!length) length = NilObject::the();
+        if (!length) length = Value::nil();
         return FiberObject::scheduler().send(env, "kernel_sleep"_s, { length });
     }
 
@@ -879,7 +879,7 @@ Value KernelModule::this_method(Env *env) {
     auto method = env->caller()->current_method();
     if (method)
         return SymbolObject::intern(method->original_name());
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value KernelModule::throw_method(Env *env, Value name, Value value) {
@@ -897,7 +897,7 @@ Value KernelModule::klass_obj(Env *env, Value self) {
     if (self.klass())
         return self.klass();
     else
-        return NilObject::the();
+        return Value::nil();
 }
 
 Value KernelModule::define_singleton_method(Env *env, Value self, Value name, Block *block) {
@@ -913,6 +913,9 @@ Value KernelModule::dup(Env *env, Value self) {
     // classes that have their own `initialize_copy` method get the `dup_better` code path,
     // while the rest get the old, wrong code path.
     switch (self.type()) {
+    case Object::Type::Nil:
+    case Object::Type::Integer:
+        return self;
     case Object::Type::Array:
     case Object::Type::Hash:
     case Object::Type::String:
@@ -986,7 +989,7 @@ bool KernelModule::instance_variable_defined(Env *env, Value self, Value name_va
 Value KernelModule::instance_variable_get(Env *env, Value self, Value name_val) {
     auto name = Object::to_instance_variable_name(env, name_val);
     if (!self.has_instance_variables())
-        return NilObject::the();
+        return Value::nil();
     return self->ivar_get(env, name);
 }
 
@@ -1024,7 +1027,7 @@ Value KernelModule::loop(Env *env, Value self, Block *block) {
         for (;;) {
             block->run(env, {}, nullptr);
         }
-        return NilObject::the();
+        return Value::nil();
     } catch (ExceptionObject *exception) {
         auto StopIteration = find_top_level_const(env, "StopIteration"_s);
         if (Value(exception).is_a(env, StopIteration)) {
@@ -1098,7 +1101,7 @@ Value KernelModule::public_methods(Env *env, Value self, Value recur) {
 
 Value KernelModule::remove_instance_variable(Env *env, Value self, Value name_val) {
     auto name = Object::to_instance_variable_name(env, name_val);
-    self->assert_not_frozen(env);
+    self.assert_not_frozen(env);
     return self->ivar_remove(env, name);
 }
 

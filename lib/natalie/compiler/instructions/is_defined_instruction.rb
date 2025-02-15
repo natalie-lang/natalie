@@ -26,7 +26,7 @@ module Natalie
           code << "#{result} = new StringObject(#{@type.inspect})"
           code << "#{result}->freeze()"
           code << '} catch (ExceptionObject *) {'
-          code << "#{result} = NilObject::the()"
+          code << "#{result} = Value::nil()"
           code << '}'
         end
 

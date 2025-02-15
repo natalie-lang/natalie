@@ -224,7 +224,7 @@ Value ModuleObject::is_autoload(Env *env, Value name) const {
         assert(path);
         return path;
     }
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value ModuleObject::const_find_with_autoload(Env *env, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
@@ -299,7 +299,7 @@ Value ModuleObject::const_set(SymbolObject *name, MethodFnPtr autoload_fn, Strin
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     m_constants.put(name, new Constant { name, autoload_fn, autoload_path });
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value ModuleObject::const_set(Env *env, Value name, Value val) {
@@ -776,7 +776,7 @@ Value ModuleObject::name(Env *env) const {
         }
         return new StringObject { name };
     } else {
-        return NilObject::the();
+        return Value::nil();
     }
 }
 
@@ -950,7 +950,7 @@ Value ModuleObject::module_eval(Env *env, Block *block) {
 
 Value ModuleObject::module_exec(Env *env, Args &&args, Block *block) {
     if (!block)
-        env->raise_local_jump_error(NilObject::the(), Natalie::LocalJumpErrorType::None);
+        env->raise_local_jump_error(Value::nil(), Natalie::LocalJumpErrorType::None);
     Value self = this;
     block->set_self(self);
     return block->run(env, std::move(args), nullptr);
@@ -1131,7 +1131,7 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
     undef_method(env, { name });
     define_method(env, name.as_symbol(), new Block { std::move(inner_env), this, method_wrapper, -1 });
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 void ModuleObject::visit_children(Visitor &visitor) const {

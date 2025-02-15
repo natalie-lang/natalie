@@ -30,7 +30,7 @@ Value MethodObject::source_location() {
         method = m_method->original_method();
 
     if (!method->get_file())
-        return NilObject::the();
+        return Value::nil();
 
     return new ArrayObject { new StringObject { method->get_file().value() }, Value::integer(static_cast<nat_int_t>(method->get_line().value())) };
 }

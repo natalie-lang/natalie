@@ -11,7 +11,7 @@
 using namespace Natalie;
 
 Value init_libnat_api(Env *env, Value self) {
-    return NilObject::the();
+    return Value::nil();
 }
 
 #ifdef NAT_OBJECT_FILE
@@ -19,7 +19,7 @@ Value init_libnat_api(Env *env, Value self) {
 Value init_libnat(Env *env, Value self);
 #else
 Value init_libnat(Env *env, Value self) {
-    return NilObject::the();
+    return Value::nil();
 }
 #endif
 

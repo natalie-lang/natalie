@@ -182,7 +182,7 @@ Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
 }
 
 Value Object::initialize(Env *env, Value self) {
-    return NilObject::the();
+    return Value::nil();
 }
 
 SymbolObject *Object::to_instance_variable_name(Env *env, Value name) {
@@ -207,6 +207,8 @@ void Object::set_singleton_class(ClassObject *klass) {
 ClassObject *Object::singleton_class(Env *env, Value self) {
     if (self.is_integer() || self.is_float() || self.is_symbol())
         env->raise("TypeError", "can't define singleton");
+    if (self.is_nil())
+        return GlobalEnv::the()->Object()->const_fetch("NilClass"_s).as_class();
 
     if (self->m_singleton_class)
         return self->m_singleton_class;
@@ -261,10 +263,7 @@ Value Object::const_find_with_autoload(Env *env, Value ns, Value self, SymbolObj
     if (ns.is_module())
         return ns.as_module()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
 
-    if (ns.is_integer())
-        return GlobalEnv::the()->Integer()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
-
-    return ns->m_klass->const_find_with_autoload(env, self, name, search_mode, failure_mode);
+    return ns.klass()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
 }
 
 Value Object::const_fetch(Value ns, SymbolObject *name) {
@@ -300,7 +299,7 @@ bool Object::ivar_defined(Env *env, Value self, SymbolObject *name) {
 
 Value Object::ivar_get(Env *env, Value self, SymbolObject *name) {
     if (!self.has_instance_variables())
-        return NilObject::the();
+        return Value::nil();
     return self->ivar_get(env, name);
 }
 
@@ -330,13 +329,13 @@ Value Object::ivar_get(Env *env, SymbolObject *name) {
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->string());
 
     if (!m_ivars)
-        return NilObject::the();
+        return Value::nil();
 
     auto val = m_ivars->get(name, env);
     if (val)
         return val;
     else
-        return NilObject::the();
+        return Value::nil();
 }
 
 Value Object::ivar_remove(Env *env, SymbolObject *name) {
@@ -653,7 +652,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Module:
         return new ModuleObject { *static_cast<const ModuleObject *>(this) };
     case Object::Type::Nil:
-        return NilObject::the();
+        return Value::nil();
     case Object::Type::Object:
         return new Object { *this };
     case Object::Type::Proc:
@@ -716,7 +715,7 @@ Value Object::clone(Env *env, Value freeze) {
 }
 
 Value Object::clone_obj(Env *env, Value self, Value freeze) {
-    if (self.is_integer())
+    if (self.is_integer() || self.is_nil())
         return self;
 
     return self->clone(env, freeze);
@@ -726,7 +725,7 @@ void Object::copy_instance_variables(const Value other) {
     assert(other);
     if (m_ivars)
         delete m_ivars;
-    if (other.is_integer())
+    if (other.is_integer() || other.is_nil())
         return;
 
     auto ivars = other.object()->m_ivars;
@@ -746,10 +745,10 @@ const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
         if (obj) return "constant";
     } else if (name->is_global_name()) {
         obj = env->global_get(name);
-        if (obj != NilObject::the()) return "global-variable";
+        if (obj != Value::nil()) return "global-variable";
     } else if (name->is_ivar_name()) {
         obj = ivar_get(env, name);
-        if (obj != NilObject::the()) return "instance-variable";
+        if (obj != Value::nil()) return "instance-variable";
     } else if (respond_to(env, name)) {
         return "method";
     }
@@ -761,7 +760,7 @@ Value Object::defined_obj(Env *env, SymbolObject *name, bool strict) {
     if (result) {
         return new StringObject { result };
     } else {
-        return NilObject::the();
+        return Value::nil();
     }
 }
 

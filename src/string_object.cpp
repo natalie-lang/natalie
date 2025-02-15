@@ -3,7 +3,6 @@
 #include "natalie.hpp"
 #include "natalie/crypt.h"
 #include "natalie/integer_methods.hpp"
-#include "natalie/nil_object.hpp"
 #include "natalie/string_unpacker.hpp"
 #include "string.h"
 
@@ -303,7 +302,7 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
 
     // When passed nil, return nil
     if (!record_separator.is_null() && record_separator.is_nil()) {
-        return NilObject::the();
+        return Value::nil();
     }
 
     // When passed a non nil object, call to_str();
@@ -312,7 +311,7 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
     }
 
     if (is_empty()) { // if this is an empty string, return nil
-        return NilObject::the();
+        return Value::nil();
     }
 
     size_t end_idx = m_string.length();
@@ -335,7 +334,7 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
         }
 
         if (end_idx == m_string.length()) {
-            return NilObject::the();
+            return Value::nil();
         } else {
             m_string.truncate(end_idx);
             return this;
@@ -363,7 +362,7 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
         }
 
         if (end_idx == m_string.length()) {
-            return NilObject::the();
+            return Value::nil();
         } else {
             m_string.truncate(end_idx);
             return this;
@@ -385,7 +384,7 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
         }
 
         if (end_idx == m_string.length()) {
-            return NilObject::the();
+            return Value::nil();
         } else {
             m_string.truncate(end_idx);
             return this;
@@ -422,7 +421,7 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
     }
 
     if (end_idx == m_string.length()) {
-        return NilObject::the();
+        return Value::nil();
     } else {
         m_string.truncate(end_idx);
         return this;
@@ -460,7 +459,7 @@ Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value) {
 
     // nothing to do
     if (from_chars->is_empty())
-        return NilObject::the();
+        return Value::nil();
 
     bool inverted_match = false;
     if (from_chars->size() > 1 && *(from_chars->first().as_string()) == "^") {
@@ -547,7 +546,7 @@ Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value) {
     }
 
     if (!changes_made)
-        return NilObject::the();
+        return Value::nil();
 
     return this;
 }
@@ -692,7 +691,7 @@ static Value byteindex_regexp_needle(Env *env, const StringObject *haystack, Reg
     if (result == ONIG_MISMATCH) {
         onig_region_free(region, true);
         env->caller()->set_last_match(nullptr);
-        return NilObject::the();
+        return Value::nil();
     }
 
     auto match = new MatchDataObject { region, haystack, needle };
@@ -707,10 +706,10 @@ static Value byteindex_string_needle(Env *env, const StringObject *haystack, Str
 
     if (reverse) {
         if ((size_t)offset > haystack->bytesize())
-            return NilObject::the();
+            return Value::nil();
     } else {
         if ((size_t)offset + needle.size() > haystack->bytesize())
-            return NilObject::the();
+            return Value::nil();
     }
 
     if ((size_t)offset < haystack->bytesize() && !haystack->encoding()->is_valid_codepoint_boundary(haystack->string(), offset))
@@ -720,7 +719,7 @@ static Value byteindex_string_needle(Env *env, const StringObject *haystack, Str
         return Value::integer(offset);
 
     if (!reverse && (size_t)offset >= haystack->bytesize())
-        return NilObject::the();
+        return Value::nil();
 
     void *pointer = nullptr;
     if (reverse) {
@@ -737,7 +736,7 @@ static Value byteindex_string_needle(Env *env, const StringObject *haystack, Str
     }
 
     if (!pointer)
-        return NilObject::the();
+        return Value::nil();
 
     auto result = (const char *)pointer - haystack->c_str();
     return Value::integer(result);
@@ -750,7 +749,7 @@ Value StringObject::byteindex(Env *env, Value needle_obj, Value offset_obj) cons
     if (offset < 0)
         offset += bytesize();
     if (offset < 0 || (size_t)offset > bytesize())
-        return NilObject::the();
+        return Value::nil();
 
     if (needle_obj.is_regexp())
         return byteindex_regexp_needle(env, this, needle_obj.as_regexp(), offset);
@@ -766,7 +765,7 @@ Value StringObject::byterindex(Env *env, Value needle_obj, Value offset_obj) con
     if (offset < 0)
         offset += bytesize();
     if (offset < 0)
-        return NilObject::the();
+        return Value::nil();
     offset = std::min((size_t)offset, bytesize());
 
     if (needle_obj.is_regexp())
@@ -781,7 +780,7 @@ Value StringObject::index(Env *env, Value needle, Value offset) {
     int len = char_count(env);
     if (offset_i < -1 * len) {
         // extremely negative offset larger than string length returns nil
-        return NilObject::the();
+        return Value::nil();
     } else if (offset_i < 0) {
         // negative offset adds to string length
         offset_i += len;
@@ -792,10 +791,10 @@ Value StringObject::index(Env *env, Value needle, Value offset) {
 Value StringObject::index(Env *env, Value needle, size_t start) {
     auto byte_start = char_index_to_byte_index(start);
     if (byte_start == -1)
-        return NilObject::the();
+        return Value::nil();
     auto byte_index = index_int(env, needle, byte_start);
     if (byte_index == -1)
-        return NilObject::the();
+        return Value::nil();
     auto char_index = byte_index_to_char_index(byte_index);
     return IntegerMethods::from_size_t(env, char_index);
 }
@@ -852,7 +851,7 @@ Value StringObject::rindex(Env *env, Value needle, Value offset) const {
     int offset_i = (offset) ? IntegerMethods::convert_to_int(env, offset) : len;
     if (offset_i < -1 * len) {
         // extremely negative offset larger than string length returns nil
-        return NilObject::the();
+        return Value::nil();
     } else if (offset_i < 0) {
         // negative offset adds to string length
         offset_i += len;
@@ -865,10 +864,10 @@ Value StringObject::rindex(Env *env, Value needle, Value offset) const {
 Value StringObject::rindex(Env *env, Value needle, size_t start) const {
     auto byte_start = char_index_to_byte_index(start);
     if (byte_start == -1)
-        return NilObject::the();
+        return Value::nil();
     auto byte_index = rindex_int(env, needle, byte_start);
     if (byte_index == -1)
-        return NilObject::the();
+        return Value::nil();
     auto char_index = byte_index_to_char_index(byte_index);
     return IntegerMethods::from_size_t(env, char_index);
 }
@@ -1024,7 +1023,7 @@ Value StringObject::cmp(Env *env, Value other) {
         auto i = negative_cmp.to_int(env);
         return -i;
     } else {
-        return NilObject::the();
+        return Value::nil();
     }
 
     if (m_string.is_empty() && other_str->m_string.is_empty())
@@ -1146,7 +1145,7 @@ Value StringObject::delete_in_place(Env *env, Args &&selectors) {
         }
     }
     if (bytesize() == old_len)
-        return NilObject::the();
+        return Value::nil();
     return this;
 }
 
@@ -1613,7 +1612,7 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
             // Now, check that the index is within the bounds of the string. If
             // not, then return nil.
             if (length < 0 || index > count || index + count < 0)
-                return NilObject::the();
+                return Value::nil();
 
             // Shortcut here before doing anything else to return an empty
             // string if the index is right at the end of the string.
@@ -1656,7 +1655,7 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
         // Now, we're going to do some bounds checks on the beginning of the
         // range. If it's too far outside, we'll return nil.
         if (begin + count < 0 || begin > count)
-            return NilObject::the();
+            return Value::nil();
 
         // Now, if the beginning is negative, we know it's within one length of
         // the string, so we'll add that here to make it a valid positive index.
@@ -1708,7 +1707,7 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
             return new StringObject { index_obj.as_string()->m_string, index_obj.as_string()->m_encoding };
 
         // Otherwise we return nil.
-        return NilObject::the();
+        return Value::nil();
     } else {
         // First, attempt to convert the index object into an integer, and
         // make sure it fits into a fixnum.
@@ -1718,7 +1717,7 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
         // Now, check that the index is within the bounds of the string. If
         // not, then return nil.
         if (index > count || index + count < 0)
-            return NilObject::the();
+            return Value::nil();
 
         // If the index is negative, then we know at this point that it's
         // only negative within one length of the string. So just make it
@@ -1734,7 +1733,7 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
             // Now, check that the index is within the bounds of the string. If
             // not, then return nil.
             if (length < 0)
-                return NilObject::the();
+                return Value::nil();
 
             // Shortcut here before doing anything else to return an empty
             // string if the index is right at the end of the string.
@@ -1776,7 +1775,7 @@ Value StringObject::byteslice(Env *env, Value index_obj, Value length_obj) {
         nat_int_t length = IntegerMethods::convert_to_nat_int_t(env, length_obj);
         nat_int_t ignored;
         if (length < 0 || __builtin_add_overflow(index, m_length, &ignored) || index + m_length < 0 || index > m_length)
-            return NilObject::the();
+            return Value::nil();
 
         // Next, we'll add the length of the string to the index if it's
         // negative. We know it's within one length of the string because of our
@@ -1814,7 +1813,7 @@ Value StringObject::byteslice(Env *env, Value index_obj, Value length_obj) {
         // Now, we're going to do some bounds checks on the beginning of the
         // range. If it's too far outside, we'll return nil.
         if (begin + m_length < 0 || begin >= m_length)
-            return NilObject::the();
+            return Value::nil();
 
         // Now, if the beginning is negative, we know it's within one length of
         // the string, so we'll add that here to make it a valid positive index.
@@ -1865,7 +1864,7 @@ Value StringObject::byteslice(Env *env, Value index_obj, Value length_obj) {
     // Now, check that the index is within the bounds of the string. If
     // not, then return nil.
     if (index >= m_length || index + m_length < 0)
-        return NilObject::the();
+        return Value::nil();
 
     // If the index is negative, then we know at this point that it's
     // only negative within one length of the string. So just make it
@@ -2061,7 +2060,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
         // Now, we're going to do some bounds checks on the beginning of the
         // range. If it's too far outside, we'll return nil.
         if (begin + count < 0 || begin > count)
-            return NilObject::the();
+            return Value::nil();
 
         // Now, if the beginning is negative, we know it's within one length of
         // the string, so we'll add that here to make it a valid positive index.
@@ -2116,7 +2115,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
         // Handle out of bounds checks for the capture index.
         int captures = match_result.as_match_data()->size();
         if (capture + captures <= 0 || capture >= captures)
-            return NilObject::the();
+            return Value::nil();
 
         // Handle negative capture indices if necessary here.
         if (capture < 0)
@@ -2127,7 +2126,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
         ssize_t start_byte_index = match_result.as_match_data()->beg_byte_index(capture);
         ssize_t end_byte_index = match_result.as_match_data()->end_byte_index(capture);
         if (start_byte_index == -1 || end_byte_index == -1)
-            return NilObject::the();
+            return Value::nil();
 
         // Clone out the matched string for our result first before we mutate
         // the source string.
@@ -2153,7 +2152,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
 
         // If the value wasn't found, we return nil.
         if (start_byte_index == -1)
-            return NilObject::the();
+            return Value::nil();
 
         // Otherwise, we remove the string and slice it out of the source.
         auto byte_length = length();
@@ -2176,7 +2175,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
             // Now, check that the index is within the bounds of the string. If
             // not, then return nil.
             if (length < 0 || index >= count || index + count < 0)
-                return NilObject::the();
+                return Value::nil();
 
             // Shortcut here before doing anything else to return an empty
             // string if the index is right at the end of the string.
@@ -2196,7 +2195,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
         // Now, check that the index is within the bounds of the string. If
         // not, then return nil.
         if (index >= count || index + count < 0)
-            return NilObject::the();
+            return Value::nil();
 
         // If the index is negative, then we know at this point that it's
         // only negative within one length of the string. So just make it
@@ -2276,13 +2275,13 @@ Value StringObject::ref_fast_index(Env *env, size_t index) const {
             return new StringObject { c, m_encoding };
         char_index++;
     } while (!c.is_empty());
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value StringObject::ref_fast_range(Env *env, size_t begin, size_t end) const {
     if (m_encoding->is_single_byte_encoding()) {
         if (begin >= bytesize())
-            return NilObject::the();
+            return Value::nil();
         if (end > bytesize())
             end = bytesize();
         auto length = end - begin;
@@ -2308,7 +2307,7 @@ Value StringObject::ref_fast_range(Env *env, size_t begin, size_t end) const {
     } while (!c.is_empty());
     if (char_index > (size_t)begin || char_added)
         return new StringObject { result, m_encoding };
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value StringObject::ref_fast_range_endless(Env *env, size_t begin) const {
@@ -2326,7 +2325,7 @@ Value StringObject::ref_fast_range_endless(Env *env, size_t begin) const {
         }
     }
     if (char_index < begin)
-        return NilObject::the();
+        return Value::nil();
     for (; byte_index < m_string.length(); byte_index++)
         result.append_char(m_string[byte_index]);
     return new StringObject { result, m_encoding };
@@ -2541,7 +2540,7 @@ Value StringObject::sub_in_place(Env *env, Value find, Value replacement_value, 
 
     auto replacement = sub(env, find, replacement_value, block).as_string()->string();
     if (m_string == replacement)
-        return NilObject::the();
+        return Value::nil();
 
     m_string = replacement;
     return this;
@@ -2587,7 +2586,7 @@ Value StringObject::gsub_in_place(Env *env, Value find, Value replacement_value,
 
     auto replacement = gsub(env, find, replacement_value, block).as_string()->string();
     if (m_string == replacement)
-        return NilObject::the();
+        return Value::nil();
 
     m_string = replacement;
     return this;
@@ -2602,11 +2601,11 @@ Value StringObject::getbyte(Env *env, Value index_obj) const {
     }
 
     if (index < 0) {
-        return NilObject::the();
+        return Value::nil();
     }
 
     if (index >= length) {
-        return NilObject::the();
+        return Value::nil();
     }
 
     unsigned char byte = m_string[index];
@@ -2626,7 +2625,7 @@ void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_stri
     }
 
     Value match_result = find->match_at_byte_offset(env, orig_string, byte_index);
-    if (match_result == NilObject::the()) {
+    if (match_result == Value::nil()) {
         *match = nullptr;
         // append rest of the unmatched bytes to the string
         if (byte_index < orig_string->bytesize())
@@ -2903,7 +2902,7 @@ Value StringObject::unpack(Env *env, Value format, Value offset_value) const {
     auto format_string = format.to_str(env)->string();
     auto offset = unpack_offset(env, offset_value);
     if (offset == (nat_int_t)bytesize())
-        return new ArrayObject({ NilObject::the() });
+        return new ArrayObject({ Value::nil() });
     auto unpacker = new StringUnpacker { this, format_string, offset };
     return unpacker->unpack(env);
 }
@@ -2912,7 +2911,7 @@ Value StringObject::unpack1(Env *env, Value format, Value offset_value) const {
     auto format_string = format.to_str(env)->string();
     auto offset = unpack_offset(env, offset_value);
     if (offset == (nat_int_t)bytesize())
-        return NilObject::the();
+        return Value::nil();
     auto unpacker = new StringUnpacker { this, format_string, offset };
     return unpacker->unpack1(env);
 }
@@ -3101,7 +3100,7 @@ void StringObject::each_line(Env *env, Value separator, Value chomp_value, std::
     } else {
         auto dollar_slash = env->global_get("$/"_s);
         if (dollar_slash.is_nil())
-            separator = NilObject::the();
+            separator = Value::nil();
         else
             separator = dollar_slash.to_str(env);
     }
@@ -3249,7 +3248,7 @@ Value StringObject::strip_in_place(Env *env) {
     // on the left side
     auto r = rstrip_in_place(env);
     auto l = lstrip_in_place(env);
-    return l.is_nil() && r.is_nil() ? Value(NilObject::the()) : Value(this);
+    return l.is_nil() && r.is_nil() ? Value(Value::nil()) : Value(this);
 }
 
 Value StringObject::lstrip(Env *env) const {
@@ -3274,7 +3273,7 @@ Value StringObject::lstrip(Env *env) const {
 Value StringObject::lstrip_in_place(Env *env) {
     assert_not_frozen(env);
     if (length() == 0)
-        return NilObject::the();
+        return Value::nil();
 
     assert(length() < NAT_INT_MAX);
     nat_int_t first_char;
@@ -3286,7 +3285,7 @@ Value StringObject::lstrip_in_place(Env *env) {
     }
 
     if (first_char == 0)
-        return NilObject::the();
+        return Value::nil();
 
     memmove(&m_string[0], &m_string[0] + first_char, len - first_char);
     m_string.truncate(len - first_char);
@@ -3353,7 +3352,7 @@ Value StringObject::rstrip(Env *env) const {
 Value StringObject::rstrip_in_place(Env *env) {
     assert_not_frozen(env);
     if (length() == 0)
-        return NilObject::the();
+        return Value::nil();
 
     if (!valid_encoding())
         env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s).as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
@@ -3368,7 +3367,7 @@ Value StringObject::rstrip_in_place(Env *env) {
     }
 
     if (last_char == len - 1)
-        return NilObject::the();
+        return Value::nil();
 
     m_string.truncate(last_char < 0 ? 0 : last_char + 1);
     return this;
@@ -3415,7 +3414,7 @@ CaseMapType StringObject::check_case_options(Env *env, Value arg1, Value arg2, b
 Value StringObject::casecmp(Env *env, Value other) {
     other = StringObject::try_convert(env, other);
     if (other.is_nil())
-        return NilObject::the();
+        return Value::nil();
 
     auto other_str = other.as_string_or_raise(env);
 
@@ -3423,7 +3422,7 @@ Value StringObject::casecmp(Env *env, Value other) {
         return Value::integer(0);
 
     if (!negotiate_compatible_encoding(other_str))
-        return NilObject::the();
+        return Value::nil();
 
     auto str1 = this->downcase(env, "ascii"_s, nullptr);
     auto str2 = other_str->downcase(env, "ascii"_s, nullptr);
@@ -3433,7 +3432,7 @@ Value StringObject::casecmp(Env *env, Value other) {
 Value StringObject::is_casecmp(Env *env, Value other) {
     other = StringObject::try_convert(env, other);
     if (other.is_nil())
-        return NilObject::the();
+        return Value::nil();
 
     auto other_str = other.as_string_or_raise(env);
 
@@ -3441,7 +3440,7 @@ Value StringObject::is_casecmp(Env *env, Value other) {
         return Value::integer(0);
 
     if (!negotiate_compatible_encoding(other_str))
-        return NilObject::the();
+        return Value::nil();
 
     auto str1 = this->downcase(env, "fold"_s, nullptr);
     auto str2 = other_str->downcase(env, "fold"_s, nullptr);
@@ -3474,7 +3473,7 @@ Value StringObject::capitalize_in_place(Env *env, Value arg1, Value arg2) {
     auto copy = capitalize(env, arg1, arg2);
     assert_not_frozen(env);
     if (*this == *copy) {
-        return Value(NilObject::the());
+        return Value(Value::nil());
     }
     *this = *copy;
     return this;
@@ -3515,7 +3514,7 @@ Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
     *this = *downcase(env, arg1, arg2);
 
     if (*this == *copy) {
-        return Value(NilObject::the());
+        return Value(Value::nil());
     }
     return this;
 }
@@ -3602,7 +3601,7 @@ Value StringObject::upcase_in_place(Env *env, Value arg1, Value arg2) {
     *this = *upcase(env, arg1, arg2);
 
     if (*this == *copy) {
-        return Value(NilObject::the());
+        return Value(Value::nil());
     }
     return this;
 }
@@ -3635,7 +3634,7 @@ Value StringObject::swapcase_in_place(Env *env, Value arg1, Value arg2) {
     StringObject *copy = duplicate(env).as_string();
     *this = *swapcase(env, arg1, arg2);
     if (*this == *copy) {
-        return Value(NilObject::the());
+        return Value(Value::nil());
     }
     return this;
 }
@@ -4059,7 +4058,7 @@ Value StringObject::delete_prefix_in_place(Env *env, Value val) {
     *this = *delete_prefix(env, val).as_string();
 
     if (*this == *copy) {
-        return Value(NilObject::the());
+        return Value(Value::nil());
     }
     return this;
 }
@@ -4084,7 +4083,7 @@ Value StringObject::delete_suffix_in_place(Env *env, Value val) {
     *this = *delete_suffix(env, val).as_string();
 
     if (*this == *copy) {
-        return Value(NilObject::the());
+        return Value(Value::nil());
     }
     return this;
 }
@@ -4103,7 +4102,7 @@ Value StringObject::chop_in_place(Env *env) {
     assert_not_frozen(env);
 
     if (this->is_empty()) {
-        return NilObject::the();
+        return Value::nil();
     }
 
     size_t byte_index = length();
@@ -4200,7 +4199,7 @@ Value StringObject::try_convert(Env *env, Value val) {
     }
 
     if (!val.respond_to(env, to_str)) {
-        return NilObject::the();
+        return Value::nil();
     }
 
     auto result = val.send(env, to_str);

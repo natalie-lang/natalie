@@ -63,7 +63,6 @@ Env *build_top_env() {
 
     ClassObject *NilClass = Object->subclass(env, "NilClass", Object::Type::Nil);
     Object->const_set("NilClass"_s, NilClass);
-    NilObject::the()->set_singleton_class(NilClass);
     NilClass->set_is_singleton(false);
 
     ClassObject *TrueClass = Object->subclass(env, "TrueClass", Object::Type::True);
@@ -456,10 +455,10 @@ Env *build_top_env() {
     GlobalEnv::the()->global_set_write_hook(env, "$/"_s, GlobalVariableAccessHooks::WriteHooks::as_string_or_raise);
     env->global_alias("$-0"_s, "$/"_s);
 
-    env->global_set("$\\"_s, NilObject::the());
+    env->global_set("$\\"_s, Value::nil());
     GlobalEnv::the()->global_set_write_hook(env, "$\\"_s, GlobalVariableAccessHooks::WriteHooks::as_string_or_raise);
 
-    env->global_set("$;"_s, NilObject::the());
+    env->global_set("$;"_s, Value::nil());
     env->global_alias("$-F"_s, "$;"_s);
 
     env->global_set("$DEBUG"_s, FalseObject::the());
@@ -475,7 +474,7 @@ Env *build_top_env() {
     env->global_set("$\""_s, new ArrayObject {}, true);
     env->global_alias("$LOADED_FEATURES"_s, "$\""_s);
 
-    env->global_set("$?"_s, NilObject::the(), true);
+    env->global_set("$?"_s, Value::nil(), true);
 
     env->global_set("$."_s, Value::integer(0));
     GlobalEnv::the()->global_set_write_hook(env, "$."_s, GlobalVariableAccessHooks::WriteHooks::to_int);
@@ -726,7 +725,7 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
             const char **str_ptr = va_arg(va_args, const char **); // NOLINT(clang-analyzer-valist.Uninitialized) bug in clang-tidy?
             if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
-            if (obj == NilObject::the()) {
+            if (obj == Value::nil()) {
                 *str_ptr = nullptr;
             } else {
                 obj.assert_type(env, Object::Type::String, "String");

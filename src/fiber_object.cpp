@@ -125,7 +125,7 @@ Value FiberObject::ref(Env *env, Value key) {
     while ((fiber->m_storage == nullptr || !fiber->m_storage->has_key(env, key)) && fiber->m_previous_fiber != nullptr)
         fiber = fiber->m_previous_fiber;
     if (fiber->m_storage == nullptr)
-        return NilObject::the();
+        return Value::nil();
     return fiber->m_storage->ref(env, key);
 }
 
@@ -183,7 +183,7 @@ NO_SANITIZE_ADDRESS Value FiberObject::resume(Env *env, Args args) {
 
     auto fiber_args = new_current->args();
     if (fiber_args.size() == 0) {
-        return NilObject::the();
+        return Value::nil();
     } else if (fiber_args.size() == 1) {
         return fiber_args.at(0);
     } else {
@@ -194,7 +194,7 @@ NO_SANITIZE_ADDRESS Value FiberObject::resume(Env *env, Args args) {
 Value FiberObject::scheduler() {
     auto scheduler = ThreadObject::current()->fiber_scheduler();
     if (!scheduler)
-        return NilObject::the();
+        return Value::nil();
 
     return scheduler;
 }
@@ -246,7 +246,7 @@ Value FiberObject::storage(Env *env) const {
     while (fiber->m_storage == nullptr && fiber->m_previous_fiber != nullptr)
         fiber = fiber->m_previous_fiber;
     if (fiber->m_storage == nullptr)
-        return NilObject::the();
+        return Value::nil();
     return fiber->m_storage;
 }
 
@@ -276,7 +276,7 @@ NO_SANITIZE_ADDRESS Value FiberObject::yield(Env *env, Args args) {
 
     auto fiber_args = new_current->args();
     if (fiber_args.size() == 0) {
-        return NilObject::the();
+        return Value::nil();
     } else if (fiber_args.size() == 1) {
         return fiber_args.at(0);
     } else {

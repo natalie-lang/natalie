@@ -80,7 +80,7 @@ Value RangeObject::iterate_over_integer_range(Env *env, Function &&func) {
     auto end = m_end;
     if (end.is_float()) {
         if (end.as_float()->is_infinity())
-            end = NilObject::the();
+            end = Value::nil();
         else
             end = end.to_int(env);
     }
@@ -384,7 +384,7 @@ Value RangeObject::bsearch(Env *env, Block *block) {
 
 Value RangeObject::step(Env *env, Value n, Block *block) {
     if (!n)
-        n = NilObject::the();
+        n = Value::nil();
 
     if (!n.is_numeric() && !n.is_nil()) {
         static const auto coerce_sym = "coerce"_s;

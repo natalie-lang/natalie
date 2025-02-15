@@ -83,7 +83,7 @@ class Fiddle
       auto symbol = self->ivar_get(env, "@symbol"_s).integer().to_nat_int_t();
       auto fn = (void* (*)())symbol;
       fn();
-      return NilObject::the();
+      return Value::nil();
     END
 
     __define_method__ :voidp_no_args, [], <<-END

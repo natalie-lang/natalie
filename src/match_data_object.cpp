@@ -43,7 +43,7 @@ Value MatchDataObject::byteoffset(Env *env, Value n) {
     auto begin = m_region->beg[index];
     auto end = m_region->end[index];
     if (begin == -1)
-        return new ArrayObject { NilObject::the(), NilObject::the() };
+        return new ArrayObject { Value::nil(), Value::nil() };
 
     return new ArrayObject { Value::integer(begin), Value::integer(end) };
 }
@@ -83,7 +83,7 @@ bool MatchDataObject::is_empty() const {
  */
 Value MatchDataObject::group(int index) const {
     if (index + m_region->num_regs <= 0 || index >= m_region->num_regs)
-        return NilObject::the();
+        return Value::nil();
 
     if (index < 0)
         index += m_region->num_regs;
@@ -91,7 +91,7 @@ Value MatchDataObject::group(int index) const {
     assert(index >= 0);
 
     if (m_region->beg[index] == -1)
-        return NilObject::the();
+        return Value::nil();
 
     const char *str = &m_string->c_str()[m_region->beg[index]];
     size_t length = m_region->end[index] - m_region->beg[index];
@@ -101,12 +101,12 @@ Value MatchDataObject::group(int index) const {
 Value MatchDataObject::offset(Env *env, Value n) {
     nat_int_t index = IntegerMethods::convert_to_nat_int_t(env, n);
     if (index >= (nat_int_t)size())
-        return NilObject::the();
+        return Value::nil();
 
     ssize_t begin = m_region->beg[index];
     ssize_t end = m_region->end[index];
     if (begin == -1)
-        return new ArrayObject { NilObject::the(), NilObject::the() };
+        return new ArrayObject { Value::nil(), Value::nil() };
 
     size_t current_byte_index = 0;
     size_t current_char_index = 0;
@@ -141,7 +141,7 @@ Value MatchDataObject::begin(Env *env, Value start) const {
             env->raise("IndexError", "index {} out of matches", index);
     }
     if (group(index).is_nil())
-        return NilObject::the();
+        return Value::nil();
     return IntegerMethods::from_ssize_t(env, beg_char_index(env, (size_t)index));
 }
 
@@ -160,7 +160,7 @@ Value MatchDataObject::end(Env *env, Value end) const {
     if (index < 0)
         env->raise("IndexError", "bad index");
     if (group(index).is_nil())
-        return NilObject::the();
+        return Value::nil();
     return IntegerMethods::from_ssize_t(env, end_char_index(env, (size_t)index));
 }
 
@@ -244,7 +244,7 @@ Value MatchDataObject::match(Env *env, Value index) {
     }
     auto match = this->group(IntegerMethods::convert_to_int(env, index));
     if (match.is_nil()) {
-        return NilObject::the();
+        return Value::nil();
     }
     return match;
 }
@@ -276,7 +276,7 @@ Value MatchDataObject::named_captures(Env *env, Value symbolize_names) const {
             } else {
                 key = new StringObject { reinterpret_cast<const char *>(name), length, RegexpObject::onig_encoding_to_ruby_encoding(regex->enc) };
             }
-            Value value = NilObject::the();
+            Value value = Value::nil();
             for (int i = groups_size - 1; i >= 0; i--) {
                 auto v = match_data_object->group(groups[i]);
                 if (!v.is_nil()) {
@@ -299,7 +299,7 @@ Value MatchDataObject::names() const {
 
 Value MatchDataObject::post_match(Env *env) {
     if (m_region->beg[0] == -1)
-        return NilObject::the();
+        return Value::nil();
 
     auto length = m_string->bytesize() - m_region->end[0];
     if (length == 0)
@@ -310,7 +310,7 @@ Value MatchDataObject::post_match(Env *env) {
 
 Value MatchDataObject::pre_match(Env *env) {
     if (m_region->beg[0] == -1)
-        return NilObject::the();
+        return Value::nil();
 
     auto length = m_region->beg[0];
     if (length == 0)
@@ -320,7 +320,7 @@ Value MatchDataObject::pre_match(Env *env) {
 }
 
 Value MatchDataObject::regexp() const {
-    if (!m_regexp) return NilObject::the();
+    if (!m_regexp) return Value::nil();
 
     return m_regexp;
 }
@@ -348,7 +348,7 @@ ArrayObject *MatchDataObject::values_at(Env *env, Args &&args) {
                 auto size = range->send(env, "size"_s);
                 if (append.is_array() && size.is_integer() && size.integer() > static_cast<nat_int_t>(append.as_array()->size())) {
                     for (nat_int_t i = append.as_array()->size(); i < size.integer().to_nat_int_t(); i++)
-                        result->push(NilObject::the());
+                        result->push(Value::nil());
                 }
             }
         } else {
@@ -379,7 +379,7 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
         if (last < first)
             return new ArrayObject {};
         if (first + static_cast<nat_int_t>(size()) <= 0)
-            return NilObject::the();
+            return Value::nil();
         auto result = new ArrayObject {};
         if (last >= static_cast<nat_int_t>(size())) last = size() - 1;
         for (auto i = first; i <= last; i++) {
@@ -403,13 +403,13 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
         }
 
         if (size < 0)
-            return NilObject::the();
+            return Value::nil();
         if (size == 0)
             return new ArrayObject {};
 
         auto first_result = group(index);
         if (first_result.is_nil())
-            return NilObject::the();
+            return Value::nil();
 
         auto result = new ArrayObject { first_result };
         for (auto i = index + 1; i < index + size; i++) {

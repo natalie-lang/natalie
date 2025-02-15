@@ -32,9 +32,9 @@ module Natalie
         if !var.fetch(:declared) && @default_to_nil
           @meta[:declared] = true
           if @meta.fetch(:captured)
-             "#{env}->var_set(#{@name.to_s.inspect}, #{index}, NilObject::the())"
+             "#{env}->var_set(#{@name.to_s.inspect}, #{index}, Value::nil())"
           else
-            transform.exec("Value #{@meta.fetch(:name)} = NilObject::the()")
+            transform.exec("Value #{@meta.fetch(:name)} = Value::nil()")
           end
         end
 
