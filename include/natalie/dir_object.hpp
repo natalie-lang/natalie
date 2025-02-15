@@ -21,7 +21,7 @@ class DirObject : public Object {
 
 public:
     DirObject()
-        : Object { Object::Type::Dir, GlobalEnv::the()->Object()->const_fetch("Dir"_s)->as_class() } { }
+        : Object { Object::Type::Dir, GlobalEnv::the()->Object()->const_fetch("Dir"_s).as_class() } { }
 
     DirObject(ClassObject *klass)
         : Object { Object::Type::Dir, klass } { }

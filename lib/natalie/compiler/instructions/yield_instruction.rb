@@ -20,7 +20,7 @@ module Natalie
 
       def generate(transform)
         if @args_array_on_stack
-          args = "#{transform.pop}->as_array()"
+          args = "#{transform.pop}.as_array()"
           args_list = "Args(#{args}, #{@has_keyword_hash ? 'true' : 'false'})"
         else
           arg_count = transform.pop

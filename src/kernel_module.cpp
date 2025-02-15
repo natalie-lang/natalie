@@ -37,12 +37,12 @@ Value KernelModule::abort_method(Env *env, Value message) {
 
         message.assert_type(env, Object::Type::String, "String");
 
-        exception = SystemExit.send(env, "new"_s, { Value::integer(1), message })->as_exception();
+        exception = SystemExit.send(env, "new"_s, { Value::integer(1), message }).as_exception();
 
         auto out = env->global_get("$stderr"_s);
         out.send(env, "puts"_s, { message });
     } else {
-        exception = SystemExit.send(env, "new"_s, { Value::integer(1) })->as_exception();
+        exception = SystemExit.send(env, "new"_s, { Value::integer(1) }).as_exception();
     }
 
     env->raise_exception(exception);
@@ -51,7 +51,7 @@ Value KernelModule::abort_method(Env *env, Value message) {
 }
 
 Value KernelModule::at_exit(Env *env, Block *block) {
-    ArrayObject *at_exit_handlers = env->global_get("$NAT_at_exit_handlers"_s)->as_array();
+    ArrayObject *at_exit_handlers = env->global_get("$NAT_at_exit_handlers"_s).as_array();
     env->ensure_block_given(block);
     Value proc = new ProcObject { block };
     at_exit_handlers->push(proc);
@@ -93,11 +93,11 @@ Value KernelModule::caller(Env *env, Value start, Value length) {
     auto ary = backtrace->to_ruby_array();
     ary->shift(); // remove the frame for Kernel#caller itself
     if (start && start.is_range()) {
-        ary = ary->ref(env, start)->as_array();
+        ary = ary->ref(env, start).as_array();
     } else {
         ary->shift(env, start);
         if (length)
-            ary = ary->first(env, length)->as_array();
+            ary = ary->first(env, length).as_array();
     }
     return ary;
 }
@@ -109,11 +109,11 @@ Value KernelModule::caller_locations(Env *env, Value start, Value length) {
     auto ary = backtrace->to_ruby_backtrace_locations_array();
     ary->shift(); // remove the frame for Kernel#caller_locations itself
     if (start && start.is_range()) {
-        ary = ary->ref(env, start)->as_array();
+        ary = ary->ref(env, start).as_array();
     } else {
         ary->shift(env, start);
         if (length)
-            ary = ary->first(env, length)->as_array();
+            ary = ary->first(env, length).as_array();
     }
     return ary;
 }
@@ -141,7 +141,7 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value excepti
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
     if (real.is_string())
-        return Complex(env, real->as_string(), exception, false);
+        return Complex(env, real.as_string(), exception, false);
 
     if (real.is_complex() && imaginary == nullptr)
         return real;
@@ -383,7 +383,7 @@ Value KernelModule::cur_dir(Env *env) {
         return new StringObject { "." };
     } else {
         Value relative = new StringObject { env->file() };
-        StringObject *absolute = FileObject::expand_path(env, relative, nullptr)->as_string();
+        StringObject *absolute = FileObject::expand_path(env, relative, nullptr).as_string();
         size_t last_slash = 0;
         bool found = false;
         for (size_t i = 0; i < absolute->length(); i++) {
@@ -407,14 +407,14 @@ Value KernelModule::exit(Env *env, Value status) {
         // use status passed in
     }
 
-    ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s)->as_class(), new StringObject { "exit" } };
+    ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s).as_class(), new StringObject { "exit" } };
     exception->ivar_set(env, "@status"_s, status.to_int(env));
     env->raise_exception(exception);
     return NilObject::the();
 }
 
 Value KernelModule::exit_bang(Env *env, Value status) {
-    env->global_get("$NAT_at_exit_handlers"_s)->as_array_or_raise(env)->clear(env);
+    env->global_get("$NAT_at_exit_handlers"_s).as_array_or_raise(env)->clear(env);
     return exit(env, status);
 }
 
@@ -427,7 +427,7 @@ Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) 
 
 Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exception) {
     if (value.is_string()) {
-        auto result = value->as_string()->convert_integer(env, base);
+        auto result = value.as_string()->convert_integer(env, base);
         if (!result && exception) {
             env->raise("ArgumentError", "invalid value for Integer(): {}", value.inspect_str(env));
         }
@@ -443,7 +443,7 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
 
     // Infinity/NaN cannot be converted to Integer
     if (value.is_float()) {
-        auto float_obj = value->as_float();
+        auto float_obj = value.as_float();
         if (float_obj->is_nan() || float_obj->is_infinity()) {
             if (exception)
                 env->raise("FloatDomainError", "{}", float_obj->to_s());
@@ -478,7 +478,7 @@ Value KernelModule::Float(Env *env, Value value, bool exception) {
     if (value.is_float()) {
         return value;
     } else if (value.is_string()) {
-        auto result = value->as_string()->convert_float();
+        auto result = value.as_string()->convert_float();
         if (!result && exception) {
             env->raise("ArgumentError", "invalid value for Float(): {}", value.inspect_str(env));
         }
@@ -559,7 +559,7 @@ Value KernelModule::Hash(Env *env, Value value) {
     if (value.is_hash())
         return value;
 
-    if (value.is_nil() || (value.is_array() && value->as_array()->is_empty()))
+    if (value.is_nil() || (value.is_array() && value.as_array()->is_empty()))
         return new HashObject;
 
     return value.to_hash(env);
@@ -638,10 +638,10 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
         if (!y)
             return nullptr;
 
-        if (y->as_float()->is_zero())
+        if (y.as_float()->is_zero())
             env->raise("ZeroDivisionError", "divided by 0");
 
-        return Rational(env, x->as_float()->to_double() / y->as_float()->to_double());
+        return Rational(env, x.as_float()->to_double() / y.as_float()->to_double());
     } else {
         if (x.is_integer()) {
             return new RationalObject { x.integer(), Value::integer(1) };
@@ -663,7 +663,7 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
         if (!x)
             return nullptr;
 
-        return Rational(env, x->as_float()->to_double());
+        return Rational(env, x.as_float()->to_double());
     }
 }
 
@@ -681,7 +681,7 @@ RationalObject *KernelModule::Rational(Env *env, double arg) {
 
     int exponent;
     FloatObject *significand = new FloatObject { std::frexp(arg, &exponent) };
-    auto x = significand->mul(env, y)->as_float()->to_i(env).integer();
+    auto x = significand->mul(env, y).as_float()->to_i(env).integer();
 
     class Integer two(2);
     class Integer exp = exponent;
@@ -706,13 +706,13 @@ Value KernelModule::sleep(Env *env, Value length) {
     if (length.is_integer()) {
         secs = length.integer().to_nat_int_t();
     } else if (length.is_float()) {
-        secs = length->as_float()->to_double();
+        secs = length.as_float()->to_double();
     } else if (length.is_rational()) {
-        secs = length->as_rational()->to_f(env)->as_float()->to_double();
+        secs = length.as_rational()->to_f(env).as_float()->to_double();
     } else if (length.respond_to(env, "divmod"_s)) {
-        auto divmod = length.send(env, "divmod"_s, { Value::integer(1) })->as_array();
-        secs = divmod->at(0).to_f(env)->as_float()->to_double();
-        secs += divmod->at(1).to_f(env)->as_float()->to_double();
+        auto divmod = length.send(env, "divmod"_s, { Value::integer(1) }).as_array();
+        secs = divmod->at(0).to_f(env)->to_double();
+        secs += divmod->at(1).to_f(env)->to_double();
     } else {
         env->raise("TypeError", "can't convert {} into time interval", length.klass()->inspect_str());
     }
@@ -784,10 +784,10 @@ Value KernelModule::spawn(Env *env, Args &&args) {
                 new_env.is_empty() ? environ : new_env.data());
         } else {
             auto splitter = new RegexpObject { env, "\\s+" };
-            auto split = arg->split(env, splitter, 0)->as_array();
+            auto split = arg->split(env, splitter, 0).as_array();
             const char *cmd[split->size() + 1];
             for (size_t i = 0; i < split->size(); i++) {
-                cmd[i] = split->at(i)->as_string()->c_str();
+                cmd[i] = split->at(i).as_string()->c_str();
             }
             cmd[split->size()] = nullptr;
             result = posix_spawnp(
@@ -838,9 +838,9 @@ Value KernelModule::String(Env *env, Value value) {
 Value KernelModule::test(Env *env, Value cmd, Value file) {
     switch (cmd.to_str(env)->string()[0]) {
     case 'A':
-        return FileObject::stat(env, file)->as_file_stat()->atime(env);
+        return FileObject::stat(env, file).as_file_stat()->atime(env);
     case 'C':
-        return FileObject::stat(env, file)->as_file_stat()->ctime(env);
+        return FileObject::stat(env, file).as_file_stat()->ctime(env);
     case 'd':
         return bool_object(FileObject::is_directory(env, file));
     case 'e':
@@ -850,7 +850,7 @@ Value KernelModule::test(Env *env, Value cmd, Value file) {
     case 'l':
         return bool_object(FileObject::is_symlink(env, file));
     case 'M':
-        return FileObject::stat(env, file)->as_file_stat()->mtime(env);
+        return FileObject::stat(env, file).as_file_stat()->mtime(env);
     case 'r':
         return bool_object(FileObject::is_readable(env, file));
     case 'R':
@@ -874,9 +874,9 @@ Value KernelModule::this_method(Env *env) {
 
 Value KernelModule::throw_method(Env *env, Value name, Value value) {
     if (!env->has_catch(name)) {
-        auto klass = GlobalEnv::the()->Object()->const_fetch("UncaughtThrowError"_s)->as_class();
+        auto klass = GlobalEnv::the()->Object()->const_fetch("UncaughtThrowError"_s).as_class();
         auto message = StringObject::format("uncaught throw {}", name.inspect_str(env));
-        auto exception = Object::_new(env, klass, { name, value, message }, nullptr)->as_exception();
+        auto exception = Object::_new(env, klass, { name, value, message }, nullptr).as_exception();
         env->raise_exception(exception);
     }
 
@@ -884,9 +884,7 @@ Value KernelModule::throw_method(Env *env, Value name, Value value) {
 }
 
 Value KernelModule::klass_obj(Env *env, Value self) {
-    if (self.is_integer())
-        return GlobalEnv::the()->Integer();
-    else if (self.klass())
+    if (self.klass())
         return self.klass();
     else
         return NilObject::the();
@@ -904,7 +902,7 @@ Value KernelModule::dup(Env *env, Value self) {
     // Doing that all at once is a pain, so we'll split off classes here:
     // classes that have their own `initialize_copy` method get the `dup_better` code path,
     // while the rest get the old, wrong code path.
-    switch (self->type()) {
+    switch (self.type()) {
     case Object::Type::Array:
     case Object::Type::Hash:
     case Object::Type::String:
@@ -923,8 +921,8 @@ Value KernelModule::dup_better(Env *env, Value self) {
 
 Value KernelModule::extend(Env *env, Value self, Args &&args) {
     for (size_t i = 0; i < args.size(); i++) {
-        if (args[i]->type() == Object::Type::Module) {
-            args[i]->as_module()->send(env, "extend_object"_s, { self });
+        if (args[i].type() == Object::Type::Module) {
+            args[i].as_module()->send(env, "extend_object"_s, { self });
         } else {
             env->raise("TypeError", "wrong argument type {} (expected Module)", args[i].klass()->inspect_str());
         }
@@ -933,18 +931,17 @@ Value KernelModule::extend(Env *env, Value self, Args &&args) {
 }
 
 Value KernelModule::hash(Env *env, Value self) {
-    if (self.is_integer())
+    switch (self.type()) {
+    case Object::Type::Integer:
         return Value::integer(self.integer().to_string().djb2_hash());
-
-    switch (self->type()) {
     // NOTE: string "foo" and symbol :foo will get the same hash.
     // That's probably ok, but maybe worth revisiting.
     case Object::Type::String:
-        return Value::integer(self->as_string()->string().djb2_hash());
+        return Value::integer(self.as_string()->string().djb2_hash());
     case Object::Type::Symbol:
-        return Value::integer(self->as_symbol()->string().djb2_hash());
+        return Value::integer(self.as_symbol()->string().djb2_hash());
     default: {
-        StringObject *inspected = self.send(env, "inspect"_s)->as_string();
+        StringObject *inspected = self.send(env, "inspect"_s).as_string();
         nat_int_t hash_value = inspected->string().djb2_hash();
         return Value::integer(hash_value);
     }
@@ -963,34 +960,23 @@ Value KernelModule::initialize_copy(Env *env, Value self, Value object) {
 }
 
 Value KernelModule::inspect(Env *env, Value value) {
-    if (value.is_module() && value->as_module()->name())
-        return new StringObject { value->as_module()->name().value() };
+    if (value.is_module() && value.as_module()->name())
+        return new StringObject { value.as_module()->name().value() };
     else
         return StringObject::format("#<{}:{}>", value.klass()->inspect_str(), value->pointer_id());
 }
 
 bool KernelModule::instance_variable_defined(Env *env, Value self, Value name_val) {
-    if (self.is_integer())
+    if (!self.has_instance_variables())
         return false;
-    switch (self->type()) {
-    case Object::Type::Nil:
-    case Object::Type::True:
-    case Object::Type::False:
-    case Object::Type::Float:
-    case Object::Type::Symbol:
-        return false;
-    default:
-        break;
-    }
     auto name = Object::to_instance_variable_name(env, name_val);
     return self->ivar_defined(env, name);
 }
 
 Value KernelModule::instance_variable_get(Env *env, Value self, Value name_val) {
-    if (self.is_integer() || self.is_float())
-        return NilObject::the();
-
     auto name = Object::to_instance_variable_name(env, name_val);
+    if (!self.has_instance_variables())
+        return NilObject::the();
     return self->ivar_get(env, name);
 }
 
@@ -1002,7 +988,7 @@ Value KernelModule::instance_variable_set(Env *env, Value self, Value name_val, 
 }
 
 Value KernelModule::instance_variables(Env *env, Value self) {
-    if (self.is_integer())
+    if (!self.has_instance_variables())
         return new ArrayObject;
 
     return self->instance_variables(env);
@@ -1012,10 +998,7 @@ bool KernelModule::is_a(Env *env, Value self, Value module) {
     if (!module.is_module())
         env->raise("TypeError", "class or module required");
 
-    if (self.is_integer())
-        return GlobalEnv::the()->Integer()->ancestors_includes(env, module->as_module());
-
-    return self.is_a(env, module->as_module());
+    return self.is_a(env, module.as_module());
 }
 
 Value KernelModule::loop(Env *env, Value self, Block *block) {

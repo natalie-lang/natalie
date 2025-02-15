@@ -35,8 +35,8 @@ namespace ArrayPacker {
                 StringObject *string_object = nullptr;
                 auto item = m_source->at(m_index);
                 if (m_source->type() == Object::Type::String) {
-                    string_object = item->as_string();
-                    string = item->as_string()->string();
+                    string_object = item.as_string();
+                    string = string_object->string();
                 } else if (item.is_nil()) {
                     if (d == 'u' || d == 'm')
                         env->raise("TypeError", "no implicit conversion of nil into String");
@@ -47,11 +47,11 @@ namespace ArrayPacker {
                 } else if (d == 'M' && (item.respond_to(env, "to_s"_s))) {
                     auto str = item.send(env, "to_s"_s);
                     if (str.is_string()) {
-                        string_object = str->as_string();
-                        string = str->as_string()->string();
+                        string_object = str.as_string();
+                        string = string_object->string();
                     } else {
-                        string_object = str.to_s(env)->as_string();
-                        string = str.to_s(env)->string();
+                        string_object = str.to_s(env);
+                        string = string_object->string();
                     }
                 } else {
                     env->raise("TypeError", "no implicit conversion of {} into String", item.klass()->inspect_str());
@@ -112,9 +112,9 @@ namespace ArrayPacker {
                     if (value.is_integer()) {
                         value = IntegerMethods::to_f(value.integer());
                     } else if (value.is_rational()) {
-                        value = value->as_rational()->to_f(env);
+                        value = value.as_rational()->to_f(env);
                     }
-                    auto packer = FloatHandler { value->as_float_or_raise(env), token };
+                    auto packer = FloatHandler { value.as_float_or_raise(env), token };
                     m_packed.append(packer.pack(env));
                 });
                 break;

@@ -85,7 +85,7 @@ public:
     static Value square_new(Env *, Args &&args, ClassObject *klass);
 
     static Value size_fn(Env *env, Value self, Args &&, Block *) {
-        return self->as_hash()->size(env);
+        return self.as_hash()->size(env);
     }
 
     static size_t hash(Key *&);

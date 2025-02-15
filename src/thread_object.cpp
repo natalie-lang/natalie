@@ -164,7 +164,7 @@ Value ThreadObject::thread_kill(Env *env, Value thread) {
     if (!thread.is_thread())
         env->raise("TypeError", "wrong argument type {} (expected VM/thread)", thread.klass()->inspect_str());
 
-    return thread->as_thread()->kill(env);
+    return thread.as_thread()->kill(env);
 }
 
 Value ThreadObject::stop(Env *env) {
@@ -717,7 +717,7 @@ void ThreadObject::check_exception(Env *env) {
         env->raise_exception(exception);
     }
 
-    exception = Value(exception).send(env, "exception"_s, {})->as_exception_or_raise(env);
+    exception = Value(exception).send(env, "exception"_s, {}).as_exception_or_raise(env);
     m_exception = nullptr;
     env->raise_exception(exception);
 }

@@ -12,7 +12,7 @@ module Natalie
         ary = transform.peek
         # NOTE: ArrayObject::push_splat() is better than concat() because it
         # can handle when the given value is not an array.
-        transform.exec("#{ary}->as_array()->push_splat(env, #{ary2})")
+        transform.exec("#{ary}.as_array()->push_splat(env, #{ary2})")
       end
 
       def execute(vm)

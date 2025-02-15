@@ -8,11 +8,11 @@ namespace Natalie {
 class UnboundMethodObject : public AbstractMethodObject {
 public:
     UnboundMethodObject(ModuleObject *module_or_class, Method *method)
-        : AbstractMethodObject { Object::Type::UnboundMethod, GlobalEnv::the()->Object()->const_fetch("UnboundMethod"_s)->as_class(), method }
+        : AbstractMethodObject { Object::Type::UnboundMethod, GlobalEnv::the()->Object()->const_fetch("UnboundMethod"_s).as_class(), method }
         , m_module_or_class { module_or_class } { }
 
     UnboundMethodObject(const UnboundMethodObject &other)
-        : AbstractMethodObject { Object::Type::UnboundMethod, GlobalEnv::the()->Object()->const_fetch("UnboundMethod"_s)->as_class(), other.m_method }
+        : AbstractMethodObject { Object::Type::UnboundMethod, GlobalEnv::the()->Object()->const_fetch("UnboundMethod"_s).as_class(), other.m_method }
         , m_module_or_class { other.m_module_or_class } { }
 
     Value bind(Env *env, Value obj) {
@@ -24,7 +24,7 @@ public:
     }
 
     Value bind_call(Env *env, Value obj, Args &&args, Block *block) {
-        return bind(env, obj)->as_method()->call(env, std::move(args), block);
+        return bind(env, obj).as_method()->call(env, std::move(args), block);
     }
 
     Value bind_call(Env *env, Args &&args, Block *block) {
@@ -35,7 +35,7 @@ public:
 
     bool eq(Env *env, Value other_value) {
         if (other_value.is_unbound_method()) {
-            auto other = other_value->as_unbound_method();
+            auto other = other_value.as_unbound_method();
             return m_module_or_class == other->m_module_or_class && m_method == other->m_method;
         } else {
             return false;

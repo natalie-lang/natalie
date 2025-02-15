@@ -536,7 +536,7 @@ Env *build_top_env() {
 
 Value splat(Env *env, Value obj) {
     if (obj.is_array()) {
-        return new ArrayObject { *obj->as_array() };
+        return new ArrayObject { *obj.as_array() };
     } else {
         return to_ary(env, obj, false);
     }
@@ -552,7 +552,7 @@ Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat)
             }
         }
         if (when_value.is_array()) {
-            for (auto item : *when_value->as_array()) {
+            for (auto item : *when_value.as_array()) {
                 if (item.send(env, "==="_s, { case_value }).is_truthy()) {
                     return TrueObject::the();
                 }
@@ -564,12 +564,12 @@ Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat)
 }
 
 void run_at_exit_handlers(Env *env) {
-    ArrayObject *at_exit_handlers = env->global_get("$NAT_at_exit_handlers"_s)->as_array_or_raise(env);
+    ArrayObject *at_exit_handlers = env->global_get("$NAT_at_exit_handlers"_s).as_array_or_raise(env);
 
     Value proc;
     while (!(proc = at_exit_handlers->pop()).is_nil()) {
         if (proc.is_proc())
-            proc->as_proc()->block()->run(env, {}, nullptr);
+            proc.as_proc()->block()->run(env, {}, nullptr);
     }
 }
 
@@ -588,11 +588,11 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception, Thread
         if (backtrace->size() > 0) {
             out.send(env, "puts"_s, { new StringObject { "Traceback (most recent call last):" } });
             for (int i = backtrace->size() - 1; i > 0; i--) {
-                auto line = backtrace->at(i)->as_string_or_raise(env);
+                auto line = backtrace->at(i).as_string_or_raise(env);
                 auto formatted = StringObject::format("        {}: from {}", i, line->string());
                 out.send(env, "puts"_s, { formatted });
             }
-            auto line = backtrace->at(0)->as_string_or_raise(env);
+            auto line = backtrace->at(0).as_string_or_raise(env);
             auto formatted = StringObject::format("{}: ", line->string());
             out.send(env, "print"_s, { formatted });
         }
@@ -607,7 +607,7 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception, Thread
 
 void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_exit_handlers) {
     auto exception_value = Value(exception);
-    if (exception_value.is_a(env, find_top_level_const(env, "SystemExit"_s)->as_class())) {
+    if (exception_value.is_a(env, find_top_level_const(env, "SystemExit"_s).as_class())) {
         auto status = exception->ivar_get(env, "@status"_s);
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (status.is_integer()) {
@@ -620,7 +620,7 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
         } else {
             clean_up_and_exit(1);
         }
-    } else if (exception_value.is_a(env, find_top_level_const(env, "SignalException"_s)->as_class())) {
+    } else if (exception_value.is_a(env, find_top_level_const(env, "SignalException"_s).as_class())) {
         Value signo = exception->ivar_get(env, "@signo"_s);
         if (signo.is_integer()) {
             auto val = signo.integer().to_nat_int_t();
@@ -641,14 +641,14 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
 
 ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
     if (obj.is_array()) {
-        return obj->as_array();
+        return obj.as_array();
     }
 
     if (obj.respond_to(env, "to_ary"_s)) {
         auto array = obj.send(env, "to_ary"_s);
         if (!array.is_nil()) {
             if (array.is_array()) {
-                return array->as_array();
+                return array.as_array();
             } else if (raise_for_non_array) {
                 auto class_name = obj.klass()->inspect_str();
                 env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, array.klass()->inspect_str());
@@ -660,7 +660,7 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
         auto array = obj.send(env, "to_a"_s);
         if (!array.is_nil()) {
             if (array.is_array()) {
-                return array->as_array();
+                return array.as_array();
             } else if (raise_for_non_array) {
                 auto class_name = obj.klass()->inspect_str();
                 env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array.klass()->inspect_str());
@@ -674,16 +674,16 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
 Value to_ary_for_masgn(Env *env, Value obj) {
     if (obj.is_array()) {
         if (obj.klass() == GlobalEnv::the()->Array()) {
-            return obj->duplicate(env);
+            return obj->duplicate(env).as_array();
         } else {
-            return obj->as_array()->to_a();
+            return obj.as_array()->to_a();
         }
     }
 
     if (obj.respond_to(env, "to_ary"_s)) {
         auto array = obj.send(env, "to_ary"_s);
         if (array.is_array()) {
-            return array->duplicate(env);
+            return array->duplicate(env).as_array();
         } else if (!array.is_nil()) {
             auto class_name = obj.klass()->inspect_str();
             env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array.klass()->inspect_str());
@@ -731,7 +731,7 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
             } else {
                 obj.assert_type(env, Object::Type::String, "String");
             }
-            *str_ptr = obj->as_string()->c_str();
+            *str_ptr = obj.as_string()->c_str();
             break;
         }
         case 'b': {
@@ -746,8 +746,8 @@ void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {
             if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
             obj = obj->ivar_get(env, "@_ptr"_s);
-            assert(obj->type() == Object::Type::VoidP);
-            *void_ptr = obj->as_void_p()->void_ptr();
+            assert(obj.type() == Object::Type::VoidP);
+            *void_ptr = obj.as_void_p()->void_ptr();
             break;
         }
         default:
@@ -768,8 +768,8 @@ std::pair<Value, Value> coerce(Env *env, Value lhs, Value rhs, CoerceInvalidRetu
             else
                 return { rhs, lhs };
         }
-        lhs = (*coerced->as_array())[0];
-        rhs = (*coerced->as_array())[1];
+        lhs = (*coerced.as_array())[0];
+        rhs = (*coerced.as_array())[1];
         return { lhs, rhs };
     } else {
         return { rhs, lhs };
@@ -847,7 +847,7 @@ int pclose2(FILE *fp, pid_t pid) {
 }
 
 void set_status_object(Env *env, pid_t pid, int status) {
-    auto status_obj = GlobalEnv::the()->Object()->const_fetch("Process"_s)->as_module()->const_fetch("Status"_s).send(env, "new"_s);
+    auto status_obj = GlobalEnv::the()->Object()->const_fetch("Process"_s).as_module()->const_fetch("Status"_s).send(env, "new"_s);
     status_obj->ivar_set(env, "@to_i"_s, Value::integer(status));
     status_obj->ivar_set(env, "@exitstatus"_s, Value::integer(WEXITSTATUS(status)));
     status_obj->ivar_set(env, "@pid"_s, Value::integer(pid));
@@ -866,7 +866,7 @@ Value super(Env *env, Value self, Args &&args, Block *block) {
     auto super_method = klass->find_method(env, SymbolObject::intern(after_method->name()), after_method);
     if (!super_method.is_defined()) {
         if (self.is_module()) {
-            env->raise("NoMethodError", "super: no superclass method '{}' for {}:{}", current_method->original_name(), self->as_module()->inspect_str(), self.klass()->inspect_str());
+            env->raise("NoMethodError", "super: no superclass method '{}' for {}:{}", current_method->original_name(), self.as_module()->inspect_str(), self.klass()->inspect_str());
         } else {
             env->raise("NoMethodError", "super: no superclass method '{}' for {}", current_method->original_name(), self.inspect_str(env));
         }

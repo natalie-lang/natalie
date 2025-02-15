@@ -4,14 +4,14 @@
 
 namespace Natalie::Enumerator {
 ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, const TM::String &range_origin_method, Value begin, Value end, Value step, bool exclude_end)
-    : Object { Object::Type::EnumeratorArithmeticSequence, fetch_nested_const({ "Enumerator"_s, "ArithmeticSequence"_s })->as_class() }
+    : Object { Object::Type::EnumeratorArithmeticSequence, fetch_nested_const({ "Enumerator"_s, "ArithmeticSequence"_s }).as_class() }
     , m_origin { origin }
     , m_range_origin_method { range_origin_method }
     , m_begin { begin }
     , m_end { end }
     , m_step { step }
     , m_exclude_end { exclude_end } {
-    auto Enumerator = GlobalEnv::the()->Object()->const_fetch("Enumerator"_s)->as_module();
+    auto Enumerator = GlobalEnv::the()->Object()->const_fetch("Enumerator"_s).as_module();
     auto method_info = Enumerator->find_method(env, "initialize"_s);
     method_info.method()->call(env, this, {}, new Block { *env, this, enum_block, 1 });
 }
@@ -130,7 +130,7 @@ Value ArithmeticSequenceObject::iterate(Env *env, std::function<Value(Value)> fu
 
 Value ArithmeticSequenceObject::enum_block(Env *env, Value self, Args &&args, Block *) {
     auto yielder = args.at(0);
-    auto enumerator = self->as_enumerator_arithmetic_sequence();
+    auto enumerator = self.as_enumerator_arithmetic_sequence();
 
     // each { |value| yielder << value }
     enumerator->iterate(env, [&yielder, &env](Value value) -> Value {
@@ -144,7 +144,7 @@ bool ArithmeticSequenceObject::eq(Env *env, Value other) {
     if (!other.is_enumerator_arithmetic_sequence())
         return false;
 
-    ArithmeticSequenceObject *other_sequence = other->as_enumerator_arithmetic_sequence();
+    ArithmeticSequenceObject *other_sequence = other.as_enumerator_arithmetic_sequence();
     return Object::equal(hash(env), other_sequence->hash(env));
 }
 

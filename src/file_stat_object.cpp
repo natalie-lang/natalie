@@ -7,7 +7,7 @@ Value FileStatObject::initialize(Env *env, Value path) {
         path = path.send(env, "to_path"_s, { path });
 
     path.assert_type(env, Object::Type::String, "String");
-    if (::stat(path->as_string()->c_str(), &fstatus) != 0)
+    if (::stat(path.as_string()->c_str(), &fstatus) != 0)
         env->raise_errno();
     return this;
 }
@@ -145,7 +145,7 @@ Value FileStatObject::world_writable() const {
 
 Value FileStatObject::comparison(Env *env, Value other) const {
     if (other.is_a(env, klass()))
-        return mtime(env)->as_time()->cmp(env, other->as_file_stat()->mtime(env)->as_time());
+        return mtime(env).as_time()->cmp(env, other.as_file_stat()->mtime(env).as_time());
     return NilObject::the();
 }
 

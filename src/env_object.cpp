@@ -27,7 +27,7 @@ static inline StringObject *string_with_default_encoding(const char *str, size_t
 }
 
 Value EnvObject::inspect(Env *env) {
-    return this->to_hash(env, nullptr)->as_hash()->inspect(env);
+    return this->to_hash(env, nullptr).as_hash()->inspect(env);
 }
 
 Value EnvObject::to_hash(Env *env, Block *block) {
@@ -40,17 +40,17 @@ Value EnvObject::to_hash(Env *env, Block *block) {
         assert(eq);
         size_t index = eq - pair;
         Value name = string_with_default_encoding(pair, index);
-        Value value = string_with_default_encoding(getenv(name->as_string()->c_str()));
+        Value value = string_with_default_encoding(getenv(name.as_string()->c_str()));
         if (block) {
             auto transformed = block->run(env, Args({ name, value }), nullptr);
             if (!transformed.is_array() && transformed.respond_to(env, "to_ary"_s))
                 transformed = transformed.to_ary(env);
             if (!transformed.is_array())
                 env->raise("TypeError", "wrong element type {} (expected array)", transformed.klass()->inspect_str());
-            if (transformed->as_array()->size() != 2)
-                env->raise("ArgumentError", "element has wrong array length (expected 2, was {})", transformed->as_array()->size());
-            name = transformed->as_array()->at(0);
-            value = transformed->as_array()->at(1);
+            if (transformed.as_array()->size() != 2)
+                env->raise("ArgumentError", "element has wrong array length (expected 2, was {})", transformed.as_array()->size());
+            name = transformed.as_array()->at(0);
+            value = transformed.as_array()->at(1);
         }
         hash->put(env, name, value);
         pair = *(environ + i);
@@ -102,7 +102,7 @@ Value EnvObject::dup(Env *env) {
 Value EnvObject::each(Env *env, Block *block) {
     if (block) {
         auto envhash = to_hash(env, nullptr);
-        for (HashObject::Key &node : *envhash->as_hash()) {
+        for (HashObject::Key &node : *envhash.as_hash()) {
             auto name = node.key;
             auto value = node.val;
             block->run(env, Args({ name, value }), nullptr);
@@ -110,7 +110,7 @@ Value EnvObject::each(Env *env, Block *block) {
         return this;
     } else {
         auto envhash = to_hash(env, nullptr);
-        Block *size_block = new Block { *env, envhash->as_hash(), HashObject::size_fn, 0 };
+        Block *size_block = new Block { *env, envhash.as_hash(), HashObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
 }
@@ -118,14 +118,14 @@ Value EnvObject::each(Env *env, Block *block) {
 Value EnvObject::each_key(Env *env, Block *block) {
     if (block) {
         auto envhash = to_hash(env, nullptr);
-        for (HashObject::Key &node : *envhash->as_hash()) {
+        for (HashObject::Key &node : *envhash.as_hash()) {
             auto name = node.key;
             block->run(env, Args({ name }), nullptr);
         }
         return this;
     } else {
         auto envhash = to_hash(env, nullptr);
-        Block *size_block = new Block { *env, envhash->as_hash(), HashObject::size_fn, 0 };
+        Block *size_block = new Block { *env, envhash.as_hash(), HashObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "each_key"_s }, size_block);
     }
 }
@@ -133,14 +133,14 @@ Value EnvObject::each_key(Env *env, Block *block) {
 Value EnvObject::each_value(Env *env, Block *block) {
     if (block) {
         auto envhash = to_hash(env, nullptr);
-        for (HashObject::Key &node : *envhash->as_hash()) {
+        for (HashObject::Key &node : *envhash.as_hash()) {
             auto value = node.val;
             block->run(env, Args({ value }), nullptr);
         }
         return this;
     } else {
         auto envhash = to_hash(env, nullptr);
-        Block *size_block = new Block { *env, envhash->as_hash(), HashObject::size_fn, 0 };
+        Block *size_block = new Block { *env, envhash.as_hash(), HashObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "each_value"_s }, size_block);
     }
 }
@@ -178,7 +178,7 @@ Value EnvObject::ref(Env *env, Value name) {
 }
 
 Value EnvObject::except(Env *env, Args &&args) {
-    auto result = to_hash(env, nullptr)->as_hash();
+    auto result = to_hash(env, nullptr).as_hash();
     for (size_t i = 0; i < args.size(); i++) {
         result->remove(env, args[i]);
     }
@@ -187,7 +187,7 @@ Value EnvObject::except(Env *env, Args &&args) {
 
 Value EnvObject::fetch(Env *env, Value name, Value default_value, Block *block) {
     name.assert_type(env, Object::Type::String, "String");
-    char *value = getenv(name->as_string()->c_str());
+    char *value = getenv(name.as_string()->c_str());
     if (value) {
         return new StringObject { value };
     } else if (block) {
@@ -226,7 +226,7 @@ Value EnvObject::keep_if(Env *env, Block *block) {
 
 Value EnvObject::key(Env *env, Value value) {
     value = value.to_str(env);
-    const auto &needle = value->as_string()->string();
+    const auto &needle = value.as_string()->string();
 
     size_t i = 1;
     char *pair = *environ;
@@ -243,7 +243,7 @@ Value EnvObject::key(Env *env, Value value) {
 }
 
 Value EnvObject::keys(Env *env) {
-    return to_hash(env, nullptr)->as_hash()->keys(env);
+    return to_hash(env, nullptr).as_hash()->keys(env);
 }
 
 bool EnvObject::has_key(Env *env, Value name) {
@@ -256,7 +256,7 @@ Value EnvObject::has_value(Env *env, Value name) {
     if (!name.respond_to(env, "to_str"_s))
         return NilObject::the();
     name = name.to_str(env);
-    if (to_hash(env, nullptr)->as_hash()->has_value(env, name))
+    if (to_hash(env, nullptr).as_hash()->has_value(env, name))
         return TrueObject::the();
     return FalseObject::the();
 }
@@ -273,8 +273,8 @@ Value EnvObject::rehash() const {
 // but is probably more optimal than this solution
 Value EnvObject::clear(Env *env) {
     auto envhash = to_hash(env, nullptr);
-    for (HashObject::Key &node : *envhash->as_hash()) {
-        ::unsetenv(node.key->as_string()->c_str());
+    for (HashObject::Key &node : *envhash.as_hash()) {
+        ::unsetenv(node.key.as_string()->c_str());
     }
     return this;
 }
@@ -290,7 +290,7 @@ Value EnvObject::reject(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "reject"_s }, size_block);
     }
 
-    return to_hash(env, nullptr)->as_hash()->delete_if(env, block);
+    return to_hash(env, nullptr).as_hash()->delete_if(env, block);
 }
 
 Value EnvObject::reject_in_place(Env *env, Block *block) {
@@ -299,8 +299,8 @@ Value EnvObject::reject_in_place(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "reject!"_s }, size_block);
     }
 
-    auto hash = to_hash(env, nullptr)->as_hash();
-    auto keys = hash->keys(env)->as_array();
+    auto hash = to_hash(env, nullptr).as_hash();
+    auto keys = hash->keys(env).as_array();
     if (hash->send(env, "reject!"_s, {}, block).is_nil())
         // No changes
         return NilObject::the();
@@ -308,20 +308,20 @@ Value EnvObject::reject_in_place(Env *env, Block *block) {
     for (size_t i = 0; i < keys->size(); i++) {
         auto key = keys->at(i);
         if (!hash->has_key(env, key))
-            unsetenv(key->as_string()->c_str());
+            unsetenv(key.as_string()->c_str());
     }
     return this;
 }
 
 Value EnvObject::replace(Env *env, Value hash) {
     hash.assert_type(env, Object::Type::Hash, "Hash");
-    for (HashObject::Key &node : *hash->as_hash()) {
+    for (HashObject::Key &node : *hash.as_hash()) {
         node.key.assert_type(env, Object::Type::String, "String");
         node.val.assert_type(env, Object::Type::String, "String");
     }
     clear(env);
-    for (HashObject::Key &node : *hash->as_hash()) {
-        auto result = ::setenv(node.key->as_string()->c_str(), node.val->as_string()->c_str(), 1);
+    for (HashObject::Key &node : *hash.as_hash()) {
+        auto result = ::setenv(node.key.as_string()->c_str(), node.val.as_string()->c_str(), 1);
         if (result == -1)
             env->raise_errno();
     }
@@ -334,7 +334,7 @@ Value EnvObject::select(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "select"_s }, size_block);
     }
 
-    return to_hash(env, nullptr)->as_hash()->keep_if(env, block);
+    return to_hash(env, nullptr).as_hash()->keep_if(env, block);
 }
 
 Value EnvObject::select_in_place(Env *env, Block *block) {
@@ -343,8 +343,8 @@ Value EnvObject::select_in_place(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "select!"_s }, size_block);
     }
 
-    auto hash = to_hash(env, nullptr)->as_hash();
-    auto keys = hash->keys(env)->as_array();
+    auto hash = to_hash(env, nullptr).as_hash();
+    auto keys = hash->keys(env).as_array();
     if (hash->send(env, "select!"_s, {}, block).is_nil())
         // No changes
         return NilObject::the();
@@ -352,7 +352,7 @@ Value EnvObject::select_in_place(Env *env, Block *block) {
     for (size_t i = 0; i < keys->size(); i++) {
         auto key = keys->at(i);
         if (!hash->has_key(env, key))
-            unsetenv(key->as_string()->c_str());
+            unsetenv(key.as_string()->c_str());
     }
     return this;
 }
@@ -410,7 +410,7 @@ Value EnvObject::update(Env *env, Args &&args, Block *block) {
 
         h.assert_type(env, Object::Type::Hash, "Hash");
 
-        for (auto node : *h->as_hash()) {
+        for (auto node : *h.as_hash()) {
             auto old_value = ref(env, node.key);
             auto new_value = node.val;
             if (!old_value.is_nil()) {
@@ -426,7 +426,7 @@ Value EnvObject::update(Env *env, Args &&args, Block *block) {
 }
 
 Value EnvObject::values(Env *env) {
-    return to_hash(env, nullptr)->as_hash()->values(env);
+    return to_hash(env, nullptr).as_hash()->values(env);
 }
 
 Value EnvObject::values_at(Env *env, Args &&args) {

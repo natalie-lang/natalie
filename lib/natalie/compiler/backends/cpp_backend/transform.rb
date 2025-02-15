@@ -44,15 +44,15 @@ module Natalie
           @code << stringify_code(code)
         end
 
-        def exec_and_push(name, code)
-          result = memoize(name, code)
+        def exec_and_push(name, code, type: 'Value')
+          result = memoize(name, code, type:)
           push(result)
           result
         end
 
-        def memoize(name, code)
+        def memoize(name, code, type: 'Value')
           result = temp(name)
-          @code << stringify_code(code, "auto #{result} =")
+          @code << stringify_code(code, "#{type} #{result} =")
           result
         end
 

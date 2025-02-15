@@ -48,7 +48,7 @@ public:
     };
 
     ThreadObject()
-        : Object { Object::Type::Thread, GlobalEnv::the()->Object()->const_fetch("Thread"_s)->as_class() } { }
+        : Object { Object::Type::Thread, GlobalEnv::the()->Object()->const_fetch("Thread"_s).as_class() } { }
 
     ThreadObject(ClassObject *klass)
         : Object { Object::Type::Thread, klass } { }

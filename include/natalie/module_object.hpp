@@ -185,6 +185,8 @@ public:
 private:
     Value handle_missing_constant(Env *, Value, ConstLookupFailureMode);
 
+    ClassObject *as_class();
+
 protected:
     Constant *find_constant(Env *, SymbolObject *, ModuleObject **, ConstLookupSearchMode = ConstLookupSearchMode::Strict);
 

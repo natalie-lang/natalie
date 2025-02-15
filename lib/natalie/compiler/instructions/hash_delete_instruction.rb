@@ -12,8 +12,8 @@ module Natalie
       end
 
       def generate(transform)
-        ary = transform.peek
-        transform.exec_and_push(@name, "#{ary}->as_hash()->remove(env, #{transform.intern(@name)})")
+        hash = transform.peek
+        transform.exec_and_push(@name, "#{hash}.as_hash()->remove(env, #{transform.intern(@name)})")
       end
 
       def execute(vm)

@@ -50,17 +50,17 @@ Value FileObject::initialize(Env *env, Args &&args, Block *block) {
         String flags_str = String('r');
         if (flags_obj) {
             flags_obj.assert_type(env, Object::Type::String, "String");
-            flags_str = flags_obj->as_string()->string();
+            flags_str = flags_obj.as_string()->string();
         }
         FILE *fptr = ::fdopen(fileno, flags_str.c_str());
         if (fptr == nullptr) env->raise_errno();
         set_fileno(fileno);
     } else {
         filename = ioutil::convert_using_to_path(env, filename);
-        int fileno = ::open(filename->as_string()->c_str(), flags.flags(), modenum);
+        int fileno = ::open(filename.as_string()->c_str(), flags.flags(), modenum);
         if (fileno == -1) env->raise_errno();
         set_fileno(fileno);
-        set_path(filename->as_string());
+        set_path(filename.as_string());
     }
     set_encoding(env, flags.external_encoding(), flags.internal_encoding());
     if (block)
@@ -70,9 +70,9 @@ Value FileObject::initialize(Env *env, Args &&args, Block *block) {
 
 Value FileObject::absolute_path(Env *env, Value path, Value dir) {
     path = ioutil::convert_using_to_path(env, path);
-    if (path->as_string()->start_with(env, { new StringObject { "/" } }))
+    if (path.as_string()->start_with(env, { new StringObject { "/" } }))
         return path;
-    if ((!dir || dir.is_nil()) && path->as_string()->eq(env, new StringObject { "~" }))
+    if ((!dir || dir.is_nil()) && path.as_string()->eq(env, new StringObject { "~" }))
         return path;
 
     auto File = GlobalEnv::the()->Object()->const_get("File"_s);
@@ -137,7 +137,7 @@ Value FileObject::expand_path(Env *env, Value path, Value root) {
     auto fs_path = std::filesystem::path(path_string.c_str());
     if (fs_path.is_relative() && root && !root.is_nil()) {
         root = ioutil::convert_using_to_path(env, root);
-        path_string = expand_tilde(String::format("{}/{}", root->as_string()->string(), path_string));
+        path_string = expand_tilde(String::format("{}/{}", root.as_string()->string(), path_string));
         fs_path = std::filesystem::path(path_string.c_str());
     }
 
@@ -183,7 +183,7 @@ Value FileObject::flock(Env *env, Value locking_constant) {
 
 void FileObject::unlink(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
-    int result = ::unlink(path->as_string()->c_str());
+    int result = ::unlink(path.as_string()->c_str());
     if (result != 0)
         env->raise_errno();
 }
@@ -236,18 +236,18 @@ void FileObject::build_constants(Env *env, ModuleObject *fcmodule) {
 bool FileObject::exist(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    return ::stat(path->as_string()->c_str(), &sb) != -1;
+    return ::stat(path.as_string()->c_str(), &sb) != -1;
 }
 
 bool FileObject::is_absolute_path(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
-    return path->as_string()->string()[0] == '/';
+    return path.as_string()->string()[0] == '/';
 }
 
 bool FileObject::is_file(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path.as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISREG(sb.st_mode);
 }
@@ -264,8 +264,8 @@ bool FileObject::is_identical(Env *env, Value file1, Value file2) {
     file2 = ioutil::convert_using_to_path(env, file2);
     struct stat stat1;
     struct stat stat2;
-    auto result1 = ::stat(file1->as_string()->c_str(), &stat1);
-    auto result2 = ::stat(file2->as_string()->c_str(), &stat2);
+    auto result1 = ::stat(file1.as_string()->c_str(), &stat1);
+    auto result2 = ::stat(file2.as_string()->c_str(), &stat2);
     if (result1 < 0) return false;
     if (result2 < 0) return false;
     if (stat1.st_dev != stat2.st_dev) return false;
@@ -276,7 +276,7 @@ bool FileObject::is_identical(Env *env, Value file1, Value file2) {
 bool FileObject::is_sticky(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
     std::error_code ec;
-    auto st = std::filesystem::status(path->as_string()->c_str(), ec);
+    auto st = std::filesystem::status(path.as_string()->c_str(), ec);
     if (ec)
         return false;
     auto perm = st.permissions();
@@ -286,7 +286,7 @@ bool FileObject::is_sticky(Env *env, Value path) {
 bool FileObject::is_setgid(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path.as_string()->c_str(), &sb) == -1)
         return false;
     return (sb.st_mode & S_ISGID);
 }
@@ -294,7 +294,7 @@ bool FileObject::is_setgid(Env *env, Value path) {
 bool FileObject::is_setuid(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path.as_string()->c_str(), &sb) == -1)
         return false;
     return (sb.st_mode & S_ISUID);
 }
@@ -302,7 +302,7 @@ bool FileObject::is_setuid(Env *env, Value path) {
 bool FileObject::is_symlink(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    if (::lstat(path->as_string()->c_str(), &sb) == -1)
+    if (::lstat(path.as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISLNK(sb.st_mode);
 }
@@ -310,7 +310,7 @@ bool FileObject::is_symlink(Env *env, Value path) {
 bool FileObject::is_blockdev(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path.as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISBLK(sb.st_mode);
 }
@@ -318,7 +318,7 @@ bool FileObject::is_blockdev(Env *env, Value path) {
 bool FileObject::is_chardev(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path.as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISCHR(sb.st_mode);
 }
@@ -326,7 +326,7 @@ bool FileObject::is_chardev(Env *env, Value path) {
 bool FileObject::is_pipe(Env *env, Value path) {
     struct stat sb;
     path.assert_type(env, Object::Type::String, "String");
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path.as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISFIFO(sb.st_mode);
 }
@@ -334,21 +334,21 @@ bool FileObject::is_pipe(Env *env, Value path) {
 bool FileObject::is_socket(Env *env, Value path) {
     struct stat sb;
     path.assert_type(env, Object::Type::String, "String");
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path.as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISSOCK(sb.st_mode);
 }
 
 bool FileObject::is_readable(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
-    if (access(path->as_string()->c_str(), R_OK) == -1)
+    if (access(path.as_string()->c_str(), R_OK) == -1)
         return false;
     return true;
 }
 
 bool FileObject::is_readable_real(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
-    if (effective_uid_access(path->as_string()->c_str(), R_OK) == -1)
+    if (effective_uid_access(path.as_string()->c_str(), R_OK) == -1)
         return false;
     return true;
 }
@@ -356,7 +356,7 @@ bool FileObject::is_readable_real(Env *env, Value path) {
 Value FileObject::world_readable(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path.as_string()->c_str(), &sb) == -1)
         return NilObject::the();
     if ((sb.st_mode & (S_IROTH)) == S_IROTH) {
         auto modenum = sb.st_mode & (S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH | S_IXUSR | S_IXGRP | S_IXOTH);
@@ -368,7 +368,7 @@ Value FileObject::world_readable(Env *env, Value path) {
 Value FileObject::world_writable(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path.as_string()->c_str(), &sb) == -1)
         return NilObject::the();
     if ((sb.st_mode & (S_IWOTH)) == S_IWOTH) {
         auto modenum = sb.st_mode & (S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH | S_IXUSR | S_IXGRP | S_IXOTH);
@@ -379,28 +379,28 @@ Value FileObject::world_writable(Env *env, Value path) {
 
 bool FileObject::is_writable(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
-    if (access(path->as_string()->c_str(), W_OK) == -1)
+    if (access(path.as_string()->c_str(), W_OK) == -1)
         return false;
     return true;
 }
 
 bool FileObject::is_writable_real(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
-    if (effective_uid_access(path->as_string()->c_str(), W_OK) == -1)
+    if (effective_uid_access(path.as_string()->c_str(), W_OK) == -1)
         return false;
     return true;
 }
 
 bool FileObject::is_executable(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
-    if (access(path->as_string()->c_str(), X_OK) == -1)
+    if (access(path.as_string()->c_str(), X_OK) == -1)
         return false;
     return true;
 }
 
 bool FileObject::is_executable_real(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
-    if (effective_uid_access(path->as_string()->c_str(), X_OK) == -1)
+    if (effective_uid_access(path.as_string()->c_str(), X_OK) == -1)
         return false;
     return true;
 }
@@ -408,7 +408,7 @@ bool FileObject::is_executable_real(Env *env, Value path) {
 bool FileObject::is_grpowned(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path.as_string()->c_str(), &sb) == -1)
         return false;
     auto size = getgroups(0, nullptr);
     if (size < 0)
@@ -428,7 +428,7 @@ bool FileObject::is_grpowned(Env *env, Value path) {
 bool FileObject::is_owned(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path.as_string()->c_str(), &sb) == -1)
         return false;
     return (sb.st_uid == ::geteuid());
 }
@@ -436,7 +436,7 @@ bool FileObject::is_owned(Env *env, Value path) {
 bool FileObject::is_zero(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path.as_string()->c_str(), &sb) == -1)
         return false;
     return (sb.st_size == 0);
 }
@@ -461,7 +461,7 @@ Value FileObject::size(Env *env, Value path) {
 nat_int_t FileObject::symlink(Env *env, Value from, Value to) {
     from = ioutil::convert_using_to_path(env, from);
     to = ioutil::convert_using_to_path(env, to);
-    int result = ::symlink(from->as_string()->c_str(), to->as_string()->c_str());
+    int result = ::symlink(from.as_string()->c_str(), to.as_string()->c_str());
     if (result < 0) env->raise_errno();
     return 0;
 }
@@ -469,7 +469,7 @@ nat_int_t FileObject::symlink(Env *env, Value from, Value to) {
 nat_int_t FileObject::rename(Env *env, Value from, Value to) {
     from = ioutil::convert_using_to_path(env, from);
     to = ioutil::convert_using_to_path(env, to);
-    int result = ::rename(from->as_string()->c_str(), to->as_string()->c_str());
+    int result = ::rename(from.as_string()->c_str(), to.as_string()->c_str());
     if (result < 0) env->raise_errno();
     return 0;
 }
@@ -477,7 +477,7 @@ nat_int_t FileObject::rename(Env *env, Value from, Value to) {
 nat_int_t FileObject::link(Env *env, Value from, Value to) {
     from = ioutil::convert_using_to_path(env, from);
     to = ioutil::convert_using_to_path(env, to);
-    int result = ::link(from->as_string()->c_str(), to->as_string()->c_str());
+    int result = ::link(from.as_string()->c_str(), to.as_string()->c_str());
     if (result < 0) env->raise_errno();
     return 0;
 }
@@ -489,7 +489,7 @@ nat_int_t FileObject::mkfifo(Env *env, Value path, Value mode) {
         octmode = (mode_t)mode.integer().to_nat_int_t();
     }
     path = ioutil::convert_using_to_path(env, path);
-    int result = ::mkfifo(path->as_string()->c_str(), octmode);
+    int result = ::mkfifo(path.as_string()->c_str(), octmode);
     if (result < 0) env->raise_errno();
     return 0;
 }
@@ -501,7 +501,7 @@ Value FileObject::chmod(Env *env, Args &&args) {
     mode_t modenum = IntegerMethods::convert_to_int(env, mode);
     for (size_t i = 1; i < args.size(); ++i) {
         auto path = ioutil::convert_using_to_path(env, args[i]);
-        int result = ::chmod(path->as_string()->c_str(), modenum);
+        int result = ::chmod(path->c_str(), modenum);
         if (result < 0) env->raise_errno();
     }
     // return number of files
@@ -517,7 +517,7 @@ Value FileObject::chown(Env *env, Args &&args) {
     gid_t gidnum = IntegerMethods::convert_to_gid(env, gid);
     for (size_t i = 2; i < args.size(); ++i) {
         auto path = ioutil::convert_using_to_path(env, args[i]);
-        int result = ::chown(path->as_string()->c_str(), uidnum, gidnum);
+        int result = ::chown(path->c_str(), uidnum, gidnum);
         if (result < 0) env->raise_errno();
     }
     // return number of files
@@ -547,7 +547,7 @@ Value FileObject::ftype(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
     std::error_code ec;
     // use symlink_status instead of status bc we do not want to follow symlinks
-    auto st = std::filesystem::symlink_status(path->as_string()->c_str(), ec);
+    auto st = std::filesystem::symlink_status(path.as_string()->c_str(), ec);
     if (ec) {
         errno = ec.value();
         env->raise_errno();
@@ -592,7 +592,7 @@ Value FileObject::readlink(Env *env, Value filename) {
     filename = ioutil::convert_using_to_path(env, filename);
     TM::String buf(128, '\0');
     while (true) {
-        const auto size = ::readlink(filename->as_string()->c_str(), &buf[0], buf.size());
+        const auto size = ::readlink(filename.as_string()->c_str(), &buf[0], buf.size());
         if (size < 0)
             env->raise_errno();
         if (static_cast<size_t>(size) < buf.size())
@@ -604,11 +604,11 @@ Value FileObject::readlink(Env *env, Value filename) {
 Value FileObject::realpath(Env *env, Value pathname, Value __dir_string) {
     pathname = ioutil::convert_using_to_path(env, pathname);
     if (__dir_string != nullptr) {
-        pathname->as_string()->prepend_char(env, '/');
-        pathname->as_string()->prepend(env, { ioutil::convert_using_to_path(env, __dir_string) });
+        pathname.as_string()->prepend_char(env, '/');
+        pathname.as_string()->prepend(env, { ioutil::convert_using_to_path(env, __dir_string) });
     }
     char *resolved_filepath = nullptr;
-    resolved_filepath = ::realpath(pathname->as_string()->c_str(), nullptr);
+    resolved_filepath = ::realpath(pathname.as_string()->c_str(), nullptr);
     if (!resolved_filepath)
         env->raise_errno();
     auto outstr = new StringObject { resolved_filepath };
@@ -620,15 +620,15 @@ Value FileObject::realpath(Env *env, Value pathname, Value __dir_string) {
 Value FileObject::lstat(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    int result = ::lstat(path->as_string()->c_str(), &sb);
-    if (result < 0) env->raise_errno(path->as_string());
+    int result = ::lstat(path.as_string()->c_str(), &sb);
+    if (result < 0) env->raise_errno(path.as_string());
     return new FileStatObject { sb };
 }
 
 // instance method
 Value FileObject::lstat(Env *env) const {
     struct stat sb;
-    int result = ::stat(get_path()->as_string()->c_str(), &sb);
+    int result = ::stat(get_path().as_string()->c_str(), &sb);
     if (result < 0) env->raise_errno();
     return new FileStatObject { sb };
 }
@@ -643,8 +643,8 @@ Value FileObject::lutime(Env *env, Args &&args) {
         if (v.is_nil()) {
             t = now;
         } else if (v.is_time()) {
-            t.tv_sec = static_cast<time_t>(v->as_time()->to_i(env).integer().to_nat_int_t());
-            t.tv_usec = static_cast<suseconds_t>(v->as_time()->usec(env).integer().to_nat_int_t());
+            t.tv_sec = static_cast<time_t>(v.as_time()->to_i(env).integer().to_nat_int_t());
+            t.tv_usec = static_cast<suseconds_t>(v.as_time()->usec(env).integer().to_nat_int_t());
         } else if (v.is_integer()) {
             t.tv_sec = IntegerMethods::convert_to_native_type<time_t>(env, v);
             t.tv_usec = 0;
@@ -660,7 +660,7 @@ Value FileObject::lutime(Env *env, Args &&args) {
     time_convert(args.at(1), tv[1]);
     for (size_t i = 2; i < args.size(); i++) {
         auto filename = ioutil::convert_using_to_path(env, args.at(i));
-        if (lutimes(filename->as_string()->c_str(), tv) < 0)
+        if (lutimes(filename->c_str(), tv) < 0)
             env->raise_errno();
     }
     return Value::integer(args.size() - 2);
@@ -669,7 +669,7 @@ Value FileObject::lutime(Env *env, Args &&args) {
 int FileObject::truncate(Env *env, Value path, Value size) {
     path = ioutil::convert_using_to_path(env, path);
     off_t len = IntegerMethods::convert_to_int(env, size);
-    if (::truncate(path->as_string()->c_str(), len) == -1) {
+    if (::truncate(path.as_string()->c_str(), len) == -1) {
         env->raise_errno();
     }
     return 0;
@@ -686,8 +686,8 @@ int FileObject::truncate(Env *env, Value size) const { // instance method
 Value FileObject::stat(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);
-    int result = ::stat(path->as_string()->c_str(), &sb);
-    if (result < 0) env->raise_errno(path->as_string());
+    int result = ::stat(path.as_string()->c_str(), &sb);
+    if (result < 0) env->raise_errno(path.as_string());
     return new FileStatObject { sb };
 }
 
@@ -695,20 +695,20 @@ Value FileObject::stat(Env *env, Value path) {
 Value FileObject::atime(Env *env, Value path) {
     FileStatObject *statobj;
     if (path.is_io()) { // using file-descriptor
-        statobj = path->as_io()->stat(env)->as_file_stat();
+        statobj = path.as_io()->stat(env).as_file_stat();
     } else {
         path = ioutil::convert_using_to_path(env, path);
-        statobj = stat(env, path)->as_file_stat();
+        statobj = stat(env, path).as_file_stat();
     }
     return statobj->atime(env);
 }
 Value FileObject::ctime(Env *env, Value path) {
     FileStatObject *statobj;
     if (path.is_io()) { // using file-descriptor
-        statobj = path->as_io()->stat(env)->as_file_stat();
+        statobj = path.as_io()->stat(env).as_file_stat();
     } else {
         path = ioutil::convert_using_to_path(env, path);
-        statobj = stat(env, path)->as_file_stat();
+        statobj = stat(env, path).as_file_stat();
     }
     return statobj->ctime(env);
 }
@@ -716,10 +716,10 @@ Value FileObject::ctime(Env *env, Value path) {
 Value FileObject::mtime(Env *env, Value path) {
     FileStatObject *statobj;
     if (path.is_io()) { // using file-descriptor
-        statobj = path->as_io()->stat(env)->as_file_stat();
+        statobj = path.as_io()->stat(env).as_file_stat();
     } else {
         path = ioutil::convert_using_to_path(env, path);
-        statobj = stat(env, path)->as_file_stat();
+        statobj = stat(env, path).as_file_stat();
     }
     return statobj->mtime(env);
 }
@@ -732,29 +732,29 @@ Value FileObject::utime(Env *env, Args &&args) {
     if (args[0].is_nil()) {
         atime = TimeObject::create(env);
     } else if (args[0].is_time()) {
-        atime = args[0]->as_time();
+        atime = args[0].as_time();
     } else {
         atime = TimeObject::at(env, args[0], nullptr, nullptr);
     }
     if (args[1].is_nil()) {
         mtime = TimeObject::create(env);
     } else if (args[1].is_time()) {
-        mtime = args[1]->as_time();
+        mtime = args[1].as_time();
     } else {
         mtime = TimeObject::at(env, args[1], nullptr, nullptr);
     }
 
     struct timeval ubuf[2], *ubufp = nullptr;
-    ubuf[0].tv_sec = atime->to_r(env)->as_rational()->to_i(env).integer().to_nat_int_t();
+    ubuf[0].tv_sec = atime->to_r(env).as_rational()->to_i(env).integer().to_nat_int_t();
     ubuf[0].tv_usec = atime->usec(env).integer().to_nat_int_t();
-    ubuf[1].tv_sec = mtime->to_r(env)->as_rational()->to_i(env).integer().to_nat_int_t();
+    ubuf[1].tv_sec = mtime->to_r(env).as_rational()->to_i(env).integer().to_nat_int_t();
     ubuf[1].tv_usec = mtime->usec(env).integer().to_nat_int_t();
     ubufp = ubuf;
 
     for (size_t i = 2; i < args.size(); ++i) {
         Value path = args[i];
         path = ioutil::convert_using_to_path(env, path);
-        if (::utimes(path->as_string()->c_str(), ubufp) != 0) {
+        if (::utimes(path.as_string()->c_str(), ubufp) != 0) {
             env->raise_errno();
         }
     }
@@ -763,19 +763,19 @@ Value FileObject::utime(Env *env, Args &&args) {
 
 Value FileObject::atime(Env *env) { // inst method
     if (is_closed()) env->raise("IOError", "closed stream");
-    return as_io()->stat(env)->as_file_stat()->atime(env);
+    return as_io()->stat(env).as_file_stat()->atime(env);
 }
 Value FileObject::ctime(Env *env) { // inst method
     if (is_closed()) env->raise("IOError", "closed stream");
-    return as_io()->stat(env)->as_file_stat()->ctime(env);
+    return as_io()->stat(env).as_file_stat()->ctime(env);
 }
 Value FileObject::mtime(Env *env) { // inst method
     if (is_closed()) env->raise("IOError", "closed stream");
-    return as_io()->stat(env)->as_file_stat()->mtime(env);
+    return as_io()->stat(env).as_file_stat()->mtime(env);
 }
 Value FileObject::size(Env *env) { // inst method
     if (is_closed()) env->raise("IOError", "closed stream");
-    return as_io()->stat(env)->as_file_stat()->size();
+    return as_io()->stat(env).as_file_stat()->size();
 }
 
 }

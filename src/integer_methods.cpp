@@ -50,7 +50,7 @@ Value IntegerMethods::add(Env *env, Integer self, Value arg) {
     if (arg.is_integer()) {
         return self + arg.integer();
     } else if (arg.is_float()) {
-        return new FloatObject { self + arg->as_float()->to_double() };
+        return new FloatObject { self + arg.as_float()->to_double() };
     } else if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         if (!lhs.is_integer())
@@ -66,7 +66,7 @@ Value IntegerMethods::sub(Env *env, Integer self, Value arg) {
     if (arg.is_integer()) {
         return self - arg.integer();
     } else if (arg.is_float()) {
-        double result = self.to_double() - arg->as_float()->to_double();
+        double result = self.to_double() - arg.as_float()->to_double();
         return new FloatObject { result };
     } else if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
@@ -81,7 +81,7 @@ Value IntegerMethods::sub(Env *env, Integer self, Value arg) {
 
 Value IntegerMethods::mul(Env *env, Integer self, Value arg) {
     if (arg.is_float()) {
-        double result = self.to_double() * arg->as_float()->to_double();
+        double result = self.to_double() * arg.as_float()->to_double();
         return new FloatObject { result };
     } else if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
@@ -100,7 +100,7 @@ Value IntegerMethods::mul(Env *env, Integer self, Value arg) {
 
 Value IntegerMethods::div(Env *env, Integer self, Value arg) {
     if (arg.is_float()) {
-        double result = self / arg->as_float()->to_double();
+        double result = self / arg.as_float()->to_double();
         if (isnan(result))
             return FloatObject::nan();
         return new FloatObject { result };
@@ -219,7 +219,7 @@ Value IntegerMethods::powmod(Env *env, Integer self, Value exponent, Value mod) 
 
 Value IntegerMethods::cmp(Env *env, Integer self, Value arg) {
     auto is_comparable_with = [](Value arg) -> bool {
-        return arg.is_integer() || (arg.is_float() && !arg->as_float()->is_nan());
+        return arg.is_integer() || (arg.is_float() && !arg.as_float()->is_nan());
     };
 
     // Check if we might want to coerce the value
@@ -248,7 +248,7 @@ bool IntegerMethods::eq(Env *env, Integer self, Value other) {
         return self == other.integer();
 
     if (other.is_float()) {
-        auto *f = other->as_float();
+        auto *f = other.as_float();
         return !f->is_nan() && self == f->to_double();
     }
 
@@ -267,9 +267,9 @@ bool IntegerMethods::eq(Env *env, Integer self, Value other) {
 
 bool IntegerMethods::lt(Env *env, Integer self, Value other) {
     if (other.is_float()) {
-        if (other->as_float()->is_nan())
+        if (other.as_float()->is_nan())
             return false;
-        return self < other->as_float()->to_double();
+        return self < other.as_float()->to_double();
     }
 
     if (!other.is_integer()) {
@@ -292,9 +292,9 @@ bool IntegerMethods::lt(Env *env, Integer self, Value other) {
 
 bool IntegerMethods::lte(Env *env, Integer self, Value other) {
     if (other.is_float()) {
-        if (other->as_float()->is_nan())
+        if (other.as_float()->is_nan())
             return false;
-        return self <= other->as_float()->to_double();
+        return self <= other.as_float()->to_double();
     }
 
     if (!other.is_integer()) {
@@ -317,9 +317,9 @@ bool IntegerMethods::lte(Env *env, Integer self, Value other) {
 
 bool IntegerMethods::gt(Env *env, Integer self, Value other) {
     if (other.is_float()) {
-        if (other->as_float()->is_nan())
+        if (other.as_float()->is_nan())
             return false;
-        return self > other->as_float()->to_double();
+        return self > other.as_float()->to_double();
     }
 
     if (!other.is_integer()) {
@@ -342,9 +342,9 @@ bool IntegerMethods::gt(Env *env, Integer self, Value other) {
 
 bool IntegerMethods::gte(Env *env, Integer self, Value other) {
     if (other.is_float()) {
-        if (other->as_float()->is_nan())
+        if (other.as_float()->is_nan())
             return false;
-        return self >= other->as_float()->to_double();
+        return self >= other.as_float()->to_double();
     }
 
     if (!other.is_integer()) {
@@ -469,7 +469,7 @@ Value IntegerMethods::right_shift(Env *env, Integer self, Value arg) {
 
 Value IntegerMethods::size(Env *env, Integer self) {
     if (self.is_bignum()) {
-        const nat_int_t bitstring_size = to_s(env, self, Value::integer(2))->as_string()->bytesize();
+        const nat_int_t bitstring_size = to_s(env, self, Value::integer(2)).as_string()->bytesize();
         return Value::integer((bitstring_size + 7) / 8);
     }
     return Value::integer(sizeof(nat_int_t));
@@ -554,7 +554,7 @@ Value IntegerMethods::chr(Env *env, Integer self, Value encoding) {
         env->raise("RangeError", "{} out of char range", self.to_string());
     }
 
-    auto encoding_obj = encoding->as_encoding();
+    auto encoding_obj = encoding.as_encoding();
     if (!encoding_obj->in_encoding_codepoint_range(self.to_nat_int_t()))
         env->raise("RangeError", "{} out of char range", self.to_string());
 
@@ -562,7 +562,7 @@ Value IntegerMethods::chr(Env *env, Integer self, Value encoding) {
         auto hex = String();
         hex.append_sprintf("0x%X", self.to_nat_int_t());
 
-        auto encoding_name = encoding_obj->name()->as_string()->string();
+        auto encoding_name = encoding_obj->name()->string();
         env->raise("RangeError", "invalid codepoint {} in {}", hex, encoding_name);
     }
 
@@ -576,7 +576,7 @@ Value IntegerMethods::sqrt(Env *env, Value arg) {
     if (argument < 0) {
         auto domain_error = fetch_nested_const({ "Math"_s, "DomainError"_s });
         auto message = new StringObject { "Numerical argument is out of domain - \"isqrt\"" };
-        auto exception = new ExceptionObject { domain_error->as_class(), message };
+        auto exception = new ExceptionObject { domain_error.as_class(), message };
         env->raise_exception(exception);
     }
 
@@ -667,7 +667,7 @@ Value IntegerMethods::ref(Env *env, Integer self, Value offset_obj, Value size_o
     };
 
     if (!size_obj && offset_obj.is_range()) {
-        auto range = offset_obj->as_range();
+        auto range = offset_obj.as_range();
 
         Optional<nat_int_t> begin;
         if (!range->begin().is_nil()) {

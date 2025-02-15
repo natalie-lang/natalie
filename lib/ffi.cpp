@@ -27,9 +27,9 @@ static void *dlopen_wrapper(Env *env, const String &name) {
         auto trail = strstr(errmsg, ": invalid ELF header");
         if (!trail) {
             static const auto so_ext = [&] {
-                auto RbConfig = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s)->as_module();
-                auto CONFIG = RbConfig->const_fetch("CONFIG"_s)->as_hash_or_raise(env);
-                auto SO_EXT = CONFIG->fetch(env, new StringObject { "SOEXT" }, nullptr, nullptr)->as_string_or_raise(env);
+                auto RbConfig = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s).as_module();
+                auto CONFIG = RbConfig->const_fetch("CONFIG"_s).as_hash_or_raise(env);
+                auto SO_EXT = CONFIG->fetch(env, new StringObject { "SOEXT" }, nullptr, nullptr).as_string_or_raise(env);
                 return String::format(".{}", SO_EXT->string());
             }();
             if (!name.begins_with('/') && !name.ends_with(so_ext)) {
@@ -76,7 +76,7 @@ static void *dlopen_wrapper(Env *env, const String &name) {
 
 static void *dlopen_wrapper(Env *env, Value name) {
     name.assert_type(env, Object::Type::String, "String");
-    return dlopen_wrapper(env, name->as_string()->string());
+    return dlopen_wrapper(env, name.as_string()->string());
 }
 
 Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
@@ -84,7 +84,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
     auto name = args.at(0);
     void *handle = nullptr;
     if (name.is_array()) {
-        for (auto name2 : *name->as_array()) {
+        for (auto name2 : *name.as_array()) {
             handle = dlopen_wrapper(env, name2);
             if (handle) {
                 name = name2;
@@ -93,15 +93,15 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
         }
         if (!handle) {
             auto error = new StringObject;
-            for (auto name2 : *name->as_array())
-                error->append_sprintf("Could not open library '%s': %s.\n", name2->as_string()->string().c_str(), dlerror());
+            for (auto name2 : *name.as_array())
+                error->append_sprintf("Could not open library '%s': %s.\n", name2.as_string()->string().c_str(), dlerror());
             error->chomp_in_place(env, nullptr);
             env->raise("LoadError", error->string());
         }
     } else {
         handle = dlopen_wrapper(env, name);
         if (!handle)
-            env->raise("LoadError", "Could not open library '{}': {}.", name->as_string()->c_str(), dlerror());
+            env->raise("LoadError", "Could not open library '{}': {}.", name.as_string()->c_str(), dlerror());
     }
     auto handle_ptr = new VoidPObject { handle, [](auto p) { dlclose(p->void_ptr()); } };
     auto libs = self->ivar_get(env, "@ffi_libs"_s);
@@ -109,13 +109,13 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
         libs = self->ivar_set(env, "@ffi_libs"_s, new ArrayObject);
     auto DynamicLibrary = fetch_nested_const({ "FFI"_s, "DynamicLibrary"_s });
     auto lib = DynamicLibrary.send(env, "new"_s, { name, handle_ptr });
-    libs->as_array()->push(lib);
+    libs.as_array()->push(lib);
     return NilObject::the();
 }
 
 static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
     type.assert_type(env, Object::Type::Symbol, "Symbol");
-    auto type_sym = type->as_symbol();
+    auto type_sym = type.as_symbol();
     if (type_sym == "bool"_s) {
         return &ffi_type_ushort;
     } else if (type_sym == "char"_s) {
@@ -137,14 +137,14 @@ static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
     } else {
         auto typedefs = self->ivar_get(env, "@ffi_typedefs"_s);
         if (!typedefs.is_nil()) {
-            if (typedefs->as_hash_or_raise(env)->has_key(env, type_sym)) {
+            if (typedefs.as_hash_or_raise(env)->has_key(env, type_sym)) {
                 // FIXME: I'm pretty sure this is wrong, but I don't yet know what to return here.
                 return &ffi_type_pointer;
             }
         }
         auto enums = self->ivar_get(env, "@enums"_s);
         if (!enums.is_nil()) {
-            auto hash = enums->as_hash_or_raise(env);
+            auto hash = enums.as_hash_or_raise(env);
             if (hash->has_key(env, type_sym)) {
                 return &ffi_type_sint32;
             }
@@ -166,19 +166,19 @@ typedef union {
 
 static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block *block) {
     Value cif_obj = env->outer()->var_get("cif", 0);
-    auto cif = (ffi_cif *)cif_obj->as_void_p()->void_ptr();
+    auto cif = (ffi_cif *)cif_obj.as_void_p()->void_ptr();
     assert(cif);
 
-    auto arg_types = env->outer()->var_get("arg_types", 1)->as_array();
-    auto return_type = env->outer()->var_get("return_type", 2)->as_symbol();
+    auto arg_types = env->outer()->var_get("arg_types", 1).as_array();
+    auto return_type = env->outer()->var_get("return_type", 2).as_symbol();
 
     Value fn_obj = env->outer()->var_get("fn", 4);
-    auto fn = (void (*)())fn_obj->as_void_p()->void_ptr();
+    auto fn = (void (*)())fn_obj.as_void_p()->void_ptr();
     assert(fn);
 
     args.ensure_argc_is(env, cif->nargs);
 
-    auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s })->as_class();
+    auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s }).as_class();
 
     auto bool_sym = "bool"_s;
     auto char_sym = "char"_s;
@@ -200,7 +200,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             if (val.is_a(env, Pointer))
                 arg_values[i].vp = (void *)val.send(env, "address"_s).integer_or_raise(env).to_nat_int_t();
             else if (val.is_string())
-                arg_values[i].vp = (void *)val->as_string()->c_str();
+                arg_values[i].vp = (void *)val.as_string()->c_str();
             else if (val.is_nil())
                 arg_values[i].vp = nullptr;
             else
@@ -233,7 +233,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             arg_values[i].vp = (void *)str->c_str();
             arg_pointers[i] = &(arg_values[i].vp);
         } else if (type == double_sym) {
-            auto double_ = val->as_float_or_raise(env)->to_double();
+            auto double_ = val.as_float_or_raise(env)->to_double();
             arg_values[i].double_ = double_;
             arg_pointers[i] = &(arg_values[i].double_);
         } else if (type == int_sym) {
@@ -246,8 +246,8 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             arg_pointers[i] = &(arg_values[i].uint);
         } else {
             auto enums = self->ivar_get(env, "@enums"_s);
-            if (!enums.is_nil() && enums->as_hash_or_raise(env)->has_key(env, type)) {
-                auto enum_values = enums->as_hash()->ref(env, type);
+            if (!enums.is_nil() && enums.as_hash_or_raise(env)->has_key(env, type)) {
+                auto enum_values = enums.as_hash()->ref(env, type);
                 auto mapped_value = enum_values.send(env, "key"_s, { val });
                 if (mapped_value.is_nil() && val.is_integer())
                     mapped_value = val;
@@ -279,7 +279,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     } else if (return_type == int_sym || return_type == uint_sym) {
         return Value::integer(result);
     } else if (return_type == pointer_sym) {
-        auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s })->as_class();
+        auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s }).as_class();
         auto pointer = Pointer->send(env, "new"_s, { "pointer"_s, Value::integer((nat_int_t)result) });
         return pointer;
     } else if (return_type == size_t_sym) {
@@ -292,9 +292,9 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     } else {
         auto enums = self->ivar_get(env, "@enums"_s);
         if (!enums.is_nil()) {
-            auto hash = enums->as_hash_or_raise(env);
+            auto hash = enums.as_hash_or_raise(env);
             if (hash->has_key(env, return_type)) {
-                hash = hash->ref(env, return_type)->as_hash_or_raise(env);
+                hash = hash->ref(env, return_type).as_hash_or_raise(env);
                 auto return_type_obj = Value::integer(static_cast<int32_t>(result));
                 return hash->fetch(env, return_type_obj, return_type_obj, nullptr);
             }
@@ -311,7 +311,7 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     auto return_type = args.at(2).to_symbol(env, Value::Conversion::Strict);
     // dbg("attach_function {v} {v} {v}", name, arg_types, return_type);
 
-    auto arg_types_array = arg_types->as_array();
+    auto arg_types_array = arg_types.as_array();
     auto arg_count = arg_types_array->size();
 
     auto ffi_args = new ffi_type *[arg_count];
@@ -327,20 +327,20 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     };
 
     auto libs = self->ivar_get(env, "@ffi_libs"_s);
-    auto lib = libs->as_array()->first(); // what do we do if there is more than one?
-    auto handle = lib->ivar_get(env, "@lib"_s)->as_void_p()->void_ptr();
+    auto lib = libs.as_array()->first(); // what do we do if there is more than one?
+    auto handle = lib->ivar_get(env, "@lib"_s).as_void_p()->void_ptr();
 
     dlerror(); // clear any previous error
     auto fn = dlsym(handle, name->string().c_str());
     auto error = dlerror();
     if (error || !fn) {
-        auto NotFoundError = fetch_nested_const({ "FFI"_s, "NotFoundError"_s })->as_class();
+        auto NotFoundError = fetch_nested_const({ "FFI"_s, "NotFoundError"_s }).as_class();
         Value message;
         if (error)
-            message = StringObject::format("Function '{}' not found in [{}]", name->string(), lib.send(env, "name"_s)->as_string());
+            message = StringObject::format("Function '{}' not found in [{}]", name->string(), lib.send(env, "name"_s).as_string());
         else
-            message = StringObject::format("Function '{}' not found in [{}] (unknown error)", name->string(), lib.send(env, "name"_s)->as_string());
-        auto exception = NotFoundError->send(env, "new"_s, { message })->as_exception();
+            message = StringObject::format("Function '{}' not found in [{}] (unknown error)", name->string(), lib.send(env, "name"_s).as_string());
+        auto exception = NotFoundError->send(env, "new"_s, { message }).as_exception();
         env->raise_exception(exception);
     }
 
@@ -375,7 +375,7 @@ Value FFI_AbstractMemory_put_int8(Env *env, Value self, Args &&args, Block *) {
     auto offset = IntegerMethods::convert_to_native_type<size_t>(env, args.at(0));
     auto value = IntegerMethods::convert_to_native_type<int8_t>(env, args.at(1));
 
-    auto address = (int8_t *)self->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
+    auto address = (int8_t *)self->ivar_get(env, "@ptr"_s).as_void_p()->void_ptr();
     address[offset] = value;
 
     return self;
@@ -384,7 +384,7 @@ Value FFI_AbstractMemory_put_int8(Env *env, Value self, Args &&args, Block *) {
 Value FFI_Pointer_address(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
-    auto address = self->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
+    auto address = self->ivar_get(env, "@ptr"_s).as_void_p()->void_ptr();
     return Value::integer((nat_int_t)address);
 }
 
@@ -411,7 +411,7 @@ Value FFI_Pointer_to_obj(Env *env, Value self, Args &&args, Block *) {
 Value FFI_Pointer_write_string(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
 
-    auto str = args.at(0)->as_string_or_raise(env);
+    auto str = args.at(0).as_string_or_raise(env);
     auto length = args.size() > 1 ? IntegerMethods::convert_to_native_type<size_t>(env, args.at(0)) : str->bytesize();
 
     auto address = (void *)self.send(env, "address"_s).integer_or_raise(env).to_nat_int_t();
@@ -425,7 +425,7 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args &&args, Block *blo
 
     size_t size = 0;
     if (args.at(0).is_symbol()) {
-        auto sym = args.at(0)->as_symbol();
+        auto sym = args.at(0).as_symbol();
         if (sym == "char"_s || sym == "uchar"_s || sym == "int8"_s || sym == "uint8"_s) {
             size = 1;
         } else if (sym == "short"_s || sym == "ushort"_s || sym == "int16"_s || sym == "uint16"_s) {
@@ -518,7 +518,7 @@ Value FFI_Pointer_initialize(Env *env, Value self, Args &&args, Block *) {
 Value FFI_Pointer_free(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
-    auto ptr_obj = self->ivar_get(env, "@ptr"_s)->as_void_p();
+    auto ptr_obj = self->ivar_get(env, "@ptr"_s).as_void_p();
     auto address = ptr_obj->void_ptr();
 
     ptr_obj->set_void_ptr(nullptr);

@@ -95,7 +95,7 @@ void Env::raise(ClassObject *klass, String message) {
 }
 
 void Env::raise(const char *class_name, String message) {
-    ClassObject *klass = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern(class_name))->as_class();
+    ClassObject *klass = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern(class_name)).as_class();
     ExceptionObject *exception = new ExceptionObject { klass, new StringObject { std::move(message) } };
     this->raise_exception(exception);
 }
@@ -110,14 +110,14 @@ void Env::raise_exception(ExceptionObject *exception) {
     if (!exception->cause() || exception->cause()->type() == Object::Type::Nil) {
         auto cause = exception_object();
         if (cause && cause.is_exception() && cause != exception)
-            exception->set_cause(cause->as_exception());
+            exception->set_cause(cause.as_exception());
     }
     throw exception;
 }
 
 void Env::raise_key_error(Value receiver, Value key) {
     auto message = new StringObject { String::format("key not found: {}", key->inspect_str(this)) };
-    auto key_error_class = GlobalEnv::the()->Object()->const_fetch("KeyError"_s)->as_class();
+    auto key_error_class = GlobalEnv::the()->Object()->const_fetch("KeyError"_s).as_class();
     ExceptionObject *exception = new ExceptionObject { key_error_class, message };
     exception->ivar_set(this, "@receiver"_s, receiver);
     exception->ivar_set(this, "@key"_s, key);
@@ -126,7 +126,7 @@ void Env::raise_key_error(Value receiver, Value key) {
 
 void Env::raise_local_jump_error(Value exit_value, LocalJumpErrorType type, nat_int_t break_point) {
     auto message = new StringObject { type == LocalJumpErrorType::Return ? "unexpected return" : "break from proc-closure" };
-    auto lje_class = find_top_level_const(this, "LocalJumpError"_s)->as_class();
+    auto lje_class = find_top_level_const(this, "LocalJumpError"_s).as_class();
     ExceptionObject *exception = new ExceptionObject { lje_class, message };
     exception->set_local_jump_error_type(type);
     exception->ivar_set(this, "@exit_value"_s, exit_value);
@@ -139,18 +139,18 @@ void Env::raise_local_jump_error(Value exit_value, LocalJumpErrorType type, nat_
 
 void Env::raise_errno() {
     auto SystemCallError = find_top_level_const(this, "SystemCallError"_s);
-    ExceptionObject *error = SystemCallError.send(this, "exception"_s, { Value::integer(errno) })->as_exception();
+    ExceptionObject *error = SystemCallError.send(this, "exception"_s, { Value::integer(errno) }).as_exception();
     raise_exception(error);
 }
 
 void Env::raise_errno(StringObject *detail) {
     auto SystemCallError = find_top_level_const(this, "SystemCallError"_s);
-    ExceptionObject *error = SystemCallError.send(this, "exception"_s, { detail, Value::integer(errno) })->as_exception();
+    ExceptionObject *error = SystemCallError.send(this, "exception"_s, { detail, Value::integer(errno) }).as_exception();
     raise_exception(error);
 }
 
 void Env::raise_invalid_byte_sequence_error(const EncodingObject *encoding) {
-    auto name = encoding->name()->as_string()->string();
+    auto name = encoding->name()->string();
     raise("ArgumentError", "invalid byte sequence in {}", name);
 }
 
@@ -183,7 +183,7 @@ void Env::raise_no_method_error(Value receiver, SymbolObject *name, MethodMissin
     default:
         NAT_UNREACHABLE();
     }
-    auto NoMethodError = find_top_level_const(this, "NoMethodError"_s)->as_class();
+    auto NoMethodError = find_top_level_const(this, "NoMethodError"_s).as_class();
     ExceptionObject *exception = new ExceptionObject { NoMethodError, new StringObject { std::move(message) } };
     exception->ivar_set(this, "@receiver"_s, receiver);
     exception->ivar_set(this, "@name"_s, name);
@@ -191,14 +191,14 @@ void Env::raise_no_method_error(Value receiver, SymbolObject *name, MethodMissin
 }
 
 void Env::raise_name_error(SymbolObject *name, String message) {
-    auto NameError = find_top_level_const(this, "NameError"_s)->as_class();
+    auto NameError = find_top_level_const(this, "NameError"_s).as_class();
     ExceptionObject *exception = new ExceptionObject { NameError, new StringObject { std::move(message) } };
     exception->ivar_set(this, "@name"_s, name);
     this->raise_exception(exception);
 }
 
 void Env::raise_name_error(StringObject *name, String message) {
-    auto NameError = find_top_level_const(this, "NameError"_s)->as_class();
+    auto NameError = find_top_level_const(this, "NameError"_s).as_class();
     ExceptionObject *exception = new ExceptionObject { NameError, new StringObject { std::move(message) } };
     exception->ivar_set(this, "@name"_s, name);
     this->raise_exception(exception);

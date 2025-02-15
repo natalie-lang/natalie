@@ -24,10 +24,10 @@ Value RationalObject::add(Env *env, Value other) {
         auto numerator = m_numerator + (m_denominator * other.integer());
         return new RationalObject { numerator, m_denominator };
     } else if (other.is_float()) {
-        return this->to_f(env)->as_float()->add(env, other);
+        return this->to_f(env).as_float()->add(env, other);
     } else if (other.is_rational()) {
-        auto num1 = other->as_rational()->numerator(env).integer();
-        auto den1 = other->as_rational()->denominator(env).integer();
+        auto num1 = other.as_rational()->numerator(env).integer();
+        auto den1 = other.as_rational()->denominator(env).integer();
         auto a = den1 * m_numerator;
         auto b = num1 * m_denominator;
         auto c = a + b;
@@ -48,14 +48,14 @@ Value RationalObject::cmp(Env *env, Value other) {
         other = new RationalObject { other.integer(), Value::integer(1) };
     }
     if (other.is_rational()) {
-        auto rational = other->as_rational();
+        auto rational = other.as_rational();
         auto num1 = m_numerator * rational->denominator(env).integer();
         auto num2 = m_denominator * rational->numerator(env).integer();
         auto a = num1 - num2;
         return IntegerMethods::cmp(env, a, Value::integer(0));
     }
     if (other.is_float()) {
-        return to_f(env)->as_float()->cmp(env, other->as_float());
+        return to_f(env).as_float()->cmp(env, other.as_float());
     }
     if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, this);
@@ -72,7 +72,7 @@ Value RationalObject::coerce(Env *env, Value other) {
     } else if (other.is_rational()) {
         return new ArrayObject { other, this };
     } else if (other.is_complex()) {
-        auto complex = other->as_complex();
+        auto complex = other.as_complex();
         if (complex->imaginary().integer().is_zero()) {
             auto a = new RationalObject { complex->real(), Value::integer(1) };
             auto b = new ComplexObject(this);
@@ -95,8 +95,8 @@ Value RationalObject::div(Env *env, Value other) {
         if (other.is_integer()) {
             arg = create(env, Integer(1), other.integer());
         } else {
-            auto numerator = other->as_rational()->numerator(env).integer();
-            auto denominator = other->as_rational()->denominator(env).integer();
+            auto numerator = other.as_rational()->numerator(env).integer();
+            auto denominator = other.as_rational()->denominator(env).integer();
             arg = create(env, denominator, numerator);
         }
 
@@ -105,7 +105,7 @@ Value RationalObject::div(Env *env, Value other) {
 
         return mul(env, arg);
     } else if (other.is_float()) {
-        return this->to_f(env)->as_float()->div(env, other);
+        return this->to_f(env).as_float()->div(env, other);
     } else if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, this);
         return result.first.send(env, "/"_s, { result.second });
@@ -119,15 +119,15 @@ bool RationalObject::eq(Env *env, Value other) {
         return m_denominator == 1 && m_numerator == other.integer();
 
     if (other.is_float())
-        return to_f(env)->as_float()->eq(env, other);
+        return to_f(env).as_float()->eq(env, other);
 
     if (!other.is_rational())
         return other.send(env, "=="_s, { this }).is_truthy();
 
-    if (m_numerator != other->as_rational()->m_numerator)
+    if (m_numerator != other.as_rational()->m_numerator)
         return false;
 
-    if (m_denominator != other->as_rational()->m_denominator)
+    if (m_denominator != other.as_rational()->m_denominator)
         return false;
 
     return true;
@@ -147,10 +147,10 @@ Value RationalObject::floor(Env *env, Value precision_value) {
     }
 
     if (precision == 0)
-        return to_f(env)->as_float()->floor(env, precision_value);
+        return to_f(env).as_float()->floor(env, precision_value);
 
     auto powered = Natalie::pow(10, precision);
-    auto numerator = mul(env, powered)->as_rational()->floor(env, nullptr).integer();
+    auto numerator = mul(env, powered).as_rational()->floor(env, nullptr).integer();
 
     return create(env, numerator, powered);
 }
@@ -168,13 +168,13 @@ Value RationalObject::mul(Env *env, Value other) {
         other = new RationalObject { other.integer(), Value::integer(1) };
 
     if (other.is_rational()) {
-        auto num1 = other->as_rational()->numerator(env).integer();
-        auto den1 = other->as_rational()->denominator(env).integer();
+        auto num1 = other.as_rational()->numerator(env).integer();
+        auto den1 = other.as_rational()->denominator(env).integer();
         auto num2 = m_numerator * num1;
         auto den2 = m_denominator * den1;
         return create(env, num2, den2);
     } else if (other.is_float()) {
-        return this->to_f(env)->as_float()->mul(env, other);
+        return this->to_f(env).as_float()->mul(env, other);
     } else if (other.respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, this);
         return result.first.send(env, "*"_s, { result.second });
@@ -194,10 +194,10 @@ Value RationalObject::pow(Env *env, Value other) {
         numerator = other.integer();
         denominator = 1;
     } else if (other.is_rational()) {
-        numerator = other->as_rational()->numerator(env).integer();
-        denominator = other->as_rational()->denominator(env).integer();
+        numerator = other.as_rational()->numerator(env).integer();
+        denominator = other.as_rational()->denominator(env).integer();
     } else if (other.is_float()) {
-        return this->to_f(env)->as_float()->pow(env, other);
+        return this->to_f(env).as_float()->pow(env, other);
     } else {
         if (other.respond_to(env, "coerce"_s)) {
             auto result = Natalie::coerce(env, other, this);
@@ -230,7 +230,7 @@ Value RationalObject::pow(Env *env, Value other) {
             return create(env, new_numerator.integer(), new_denominator.integer());
     }
 
-    return this->to_f(env)->as_float()->pow(env, other);
+    return this->to_f(env).as_float()->pow(env, other);
 }
 
 Value RationalObject::sub(Env *env, Value other) {
@@ -238,10 +238,10 @@ Value RationalObject::sub(Env *env, Value other) {
         auto numerator = m_numerator - m_denominator * other.integer();
         return new RationalObject { numerator, m_denominator };
     } else if (other.is_float()) {
-        return this->to_f(env)->as_float()->sub(env, other);
+        return this->to_f(env).as_float()->sub(env, other);
     } else if (other.is_rational()) {
-        auto num1 = other->as_rational()->numerator(env).integer();
-        auto den1 = other->as_rational()->denominator(env).integer();
+        auto num1 = other.as_rational()->numerator(env).integer();
+        auto den1 = other.as_rational()->denominator(env).integer();
         auto a = den1 * m_numerator;
         auto b = m_denominator * num1;
         auto c = a - b;

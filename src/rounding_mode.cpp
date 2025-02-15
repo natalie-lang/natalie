@@ -9,7 +9,7 @@ RoundingMode rounding_mode_from_value(Env *env, Value value, RoundingMode defaul
         env->raise("ArgumentError", "invalid rounding mode: {}", value.inspect_str(env));
     }
 
-    auto symbol = value->as_symbol();
+    auto symbol = value.as_symbol();
 
     if (symbol == "up"_s)
         return RoundingMode::Up;

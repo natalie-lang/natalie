@@ -9,7 +9,7 @@ module Natalie
 
       def generate(transform)
         ary = transform.peek
-        transform.exec_and_push(:first_item_of_array, "#{ary}->as_array()->shift()")
+        transform.exec_and_push(:first_item_of_array, "#{ary}.as_array()->shift()")
       end
 
       def execute(vm)

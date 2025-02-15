@@ -22,19 +22,19 @@ static json_object *ruby_to_json(Env *env, Value input) {
         }
         return json_object_new_int64(integer.to_nat_int_t());
     } else if (input.is_float()) {
-        const auto d = input->as_float()->to_double();
+        const auto d = input.as_float()->to_double();
         return json_object_new_double_s(d, input.to_s(env)->c_str());
     } else if (input.is_string()) {
         auto str = input.to_str(env);
         return json_object_new_string_len(str->c_str(), str->bytesize());
     } else if (input.is_array()) {
-        auto ary = input->as_array();
+        auto ary = input.as_array();
         auto res = json_object_new_array_ext(ary->size());
         for (auto elt : *ary)
             json_object_array_add(res, ruby_to_json(env, elt));
         return res;
     } else if (input.is_hash()) {
-        auto hash = input->as_hash();
+        auto hash = input.as_hash();
         auto res = json_object_new_object();
         for (auto elt : *hash) {
             auto val = ruby_to_json(env, elt.val);

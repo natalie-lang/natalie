@@ -17,7 +17,7 @@ module Natalie
         hash = transform.peek
         transform.exec_and_push(
           :has_key,
-          "bool_object(#{hash}->as_hash()->has_key(env, #{@key.to_s.inspect}_s))"
+          "bool_object(#{hash}.as_hash()->has_key(env, #{@key.to_s.inspect}_s))"
         )
       end
 

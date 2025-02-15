@@ -15,13 +15,13 @@ namespace Natalie {
 class ProcObject : public Object {
 public:
     ProcObject()
-        : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch("Proc"_s)->as_class() } { }
+        : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch("Proc"_s).as_class() } { }
 
     ProcObject(ClassObject *klass)
         : Object { Object::Type::Proc, klass } { }
 
     ProcObject(Block *block, nat_int_t break_point = 0)
-        : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch("Proc"_s)->as_class() }
+        : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch("Proc"_s).as_class() }
         , m_block { block }
         , m_break_point { break_point } {
         assert(m_block);

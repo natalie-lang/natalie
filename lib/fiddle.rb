@@ -17,9 +17,9 @@ class Fiddle
   class Handle
     __define_method__ :initialize, [:path], <<-END
       path.assert_type(env, Object::Type::String, "String");
-      auto handle = dlopen(path->as_string()->c_str(), RTLD_LAZY);
+      auto handle = dlopen(path.as_string()->c_str(), RTLD_LAZY);
       if (!handle) {
-          auto dl_error = self.klass()->const_find(env, "DLError"_s, Object::ConstLookupSearchMode::NotStrict)->as_class();
+          auto dl_error = self.klass()->const_find(env, "DLError"_s, Object::ConstLookupSearchMode::NotStrict).as_class();
           env->raise(dl_error, "{}", dlerror());
       }
       auto handle_ptr = new VoidPObject { handle };
@@ -28,9 +28,9 @@ class Fiddle
     END
 
     __define_method__ :[], [:name], <<-END
-      auto handle = self->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
+      auto handle = self->ivar_get(env, "@ptr"_s).as_void_p()->void_ptr();
       name.assert_type(env, Object::Type::String, "String");
-      auto symbol = dlsym(handle, name->as_string()->c_str());
+      auto symbol = dlsym(handle, name.as_string()->c_str());
       return Value::integer((long long)symbol);
     END
   end
@@ -42,7 +42,7 @@ class Fiddle
         len.assert_integer(env);
       auto ptr_obj = self->ivar_get(env, "@ptr"_s);
       ptr_obj.assert_type(env, Object::Type::VoidP, "VoidP");
-      auto ptr = (const char *)ptr_obj->as_void_p()->void_ptr();
+      auto ptr = (const char *)ptr_obj.as_void_p()->void_ptr();
       if (len)
         return new StringObject { ptr, (size_t)len.integer().to_nat_int_t() };
       return new StringObject { ptr };
@@ -90,7 +90,7 @@ class Fiddle
       auto symbol = self->ivar_get(env, "@symbol"_s).integer().to_nat_int_t();
       auto fn = (void* (*)())symbol;
       auto result = fn();
-      auto pointer_class = self.klass()->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict)->as_class();
+      auto pointer_class = self.klass()->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict).as_class();
       auto pointer_obj = new Object { Object::Type::Object, pointer_class };
       auto pointer_ptr = new VoidPObject { result };
       pointer_obj->ivar_set(env, "@ptr"_s, pointer_ptr);
@@ -101,11 +101,11 @@ class Fiddle
       auto symbol = self->ivar_get(env, "@symbol"_s).integer().to_nat_int_t();
       auto fn = (void* (*)(void*))symbol;
       void *p1_ptr;
-      auto pointer_class = self.klass()->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict)->as_class();
+      auto pointer_class = self.klass()->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict).as_class();
       if (p1.is_a(env, pointer_class))
-          p1_ptr = p1->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
+          p1_ptr = p1->ivar_get(env, "@ptr"_s).as_void_p()->void_ptr();
       else if (p1.is_void_p())
-          p1_ptr = p1->as_void_p()->void_ptr();
+          p1_ptr = p1.as_void_p()->void_ptr();
       else
           p1_ptr = (void*)(p1.object());
       auto result = fn(p1_ptr);

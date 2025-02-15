@@ -9,7 +9,7 @@ Value ClassObject::initialize(Env *env, Value superclass, Block *block) {
         superclass = GlobalEnv::the()->Object();
     if (!superclass.is_class())
         env->raise("TypeError", "superclass must be an instance of Class (given an instance of {})", superclass.klass()->inspect_str());
-    superclass->as_class()->initialize_subclass(this, env, "", superclass->as_class()->object_type());
+    superclass.as_class()->initialize_subclass(this, env, "", superclass.as_class()->object_type());
     ModuleObject::initialize(env, block);
     return this;
 }

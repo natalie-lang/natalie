@@ -121,7 +121,9 @@ public:
 
     void ensure_block_given(Block *);
     void ensure_no_missing_keywords(HashObject *, std::initializer_list<const String>);
+    void ensure_no_missing_keywords(Value kwargs, std::initializer_list<const String> list) { return ensure_no_missing_keywords(kwargs.as_hash(), list); }
     void ensure_no_extra_keywords(HashObject *);
+    void ensure_no_extra_keywords(Value kwargs) { return ensure_no_extra_keywords(kwargs.as_hash()); }
 
     Value last_match();
     bool has_last_match();

@@ -74,7 +74,6 @@ public:
         delete m_ivars;
     }
 
-    static Value create(Env *, ClassObject *);
     static Value _new(Env *, Value, Args &&, Block *);
     static Value allocate(Env *, Value, Args &&, Block *);
 
@@ -82,87 +81,6 @@ public:
     ClassObject *klass() const { return m_klass; }
 
     static Value initialize(Env *, Value);
-
-    Enumerator::ArithmeticSequenceObject *as_enumerator_arithmetic_sequence();
-    ArrayObject *as_array();
-    const ArrayObject *as_array() const;
-    BindingObject *as_binding();
-    const BindingObject *as_binding() const;
-    ClassObject *as_class();
-    const ClassObject *as_class() const;
-    ComplexObject *as_complex();
-    const ComplexObject *as_complex() const;
-    DirObject *as_dir();
-    const DirObject *as_dir() const;
-    EncodingObject *as_encoding();
-    const EncodingObject *as_encoding() const;
-    EnvObject *as_env();
-    const EnvObject *as_env() const;
-    ExceptionObject *as_exception();
-    const ExceptionObject *as_exception() const;
-    FalseObject *as_false();
-    const FalseObject *as_false() const;
-    FiberObject *as_fiber();
-    const FiberObject *as_fiber() const;
-    FileObject *as_file();
-    const FileObject *as_file() const;
-    FileStatObject *as_file_stat();
-    const FileStatObject *as_file_stat() const;
-    FloatObject *as_float();
-    const FloatObject *as_float() const;
-    HashObject *as_hash();
-    const HashObject *as_hash() const;
-    IoObject *as_io();
-    const IoObject *as_io() const;
-    MatchDataObject *as_match_data();
-    const MatchDataObject *as_match_data() const;
-    MethodObject *as_method();
-    const MethodObject *as_method() const;
-    ModuleObject *as_module();
-    const ModuleObject *as_module() const;
-    NilObject *as_nil();
-    const NilObject *as_nil() const;
-    ProcObject *as_proc();
-    const ProcObject *as_proc() const;
-    RandomObject *as_random();
-    const RandomObject *as_random() const;
-    RangeObject *as_range();
-    const RangeObject *as_range() const;
-    RationalObject *as_rational();
-    const RationalObject *as_rational() const;
-    RegexpObject *as_regexp();
-    const RegexpObject *as_regexp() const;
-    StringObject *as_string();
-    const StringObject *as_string() const;
-    SymbolObject *as_symbol();
-    const SymbolObject *as_symbol() const;
-    ThreadObject *as_thread();
-    const ThreadObject *as_thread() const;
-    Thread::Backtrace::LocationObject *as_thread_backtrace_location();
-    const Thread::Backtrace::LocationObject *as_thread_backtrace_location() const;
-    ThreadGroupObject *as_thread_group();
-    const ThreadGroupObject *as_thread_group() const;
-    Thread::MutexObject *as_thread_mutex();
-    const Thread::MutexObject *as_thread_mutex() const;
-    TimeObject *as_time();
-    const TimeObject *as_time() const;
-    TrueObject *as_true();
-    const TrueObject *as_true() const;
-    UnboundMethodObject *as_unbound_method();
-    const UnboundMethodObject *as_unbound_method() const;
-    VoidPObject *as_void_p();
-    const VoidPObject *as_void_p() const;
-
-    ArrayObject *as_array_or_raise(Env *);
-    ClassObject *as_class_or_raise(Env *);
-    EncodingObject *as_encoding_or_raise(Env *);
-    ExceptionObject *as_exception_or_raise(Env *);
-    FloatObject *as_float_or_raise(Env *);
-    HashObject *as_hash_or_raise(Env *);
-    MatchDataObject *as_match_data_or_raise(Env *);
-    ModuleObject *as_module_or_raise(Env *);
-    RangeObject *as_range_or_raise(Env *);
-    StringObject *as_string_or_raise(Env *);
 
     static SymbolObject *to_instance_variable_name(Env *, Value);
 
@@ -265,8 +183,6 @@ public:
     bool is_frozen() const { return m_type == Type::Float || m_frozen; }
 
     static bool not_truthy(Value self) {
-        if (self.is_integer())
-            return false;
         return self.is_falsey();
     }
 
@@ -294,6 +210,8 @@ protected:
     ClassObject *m_klass { nullptr };
 
 private:
+    static Value create(Env *, ClassObject *);
+
     Type m_type { Type::Object };
     ClassObject *m_singleton_class { nullptr };
     bool m_frozen { false };

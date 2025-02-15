@@ -25,13 +25,13 @@ class FileStatObject : public Object {
 public:
     FileStatObject()
         : Object { Object::Type::FileStat,
-            GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class()->const_fetch("Stat"_s)->as_class() } { }
+            GlobalEnv::the()->Object()->const_fetch("File"_s).as_class()->const_fetch("Stat"_s).as_class() } { }
     FileStatObject(ClassObject *klass)
         : Object { Object::Type::FileStat, klass } { }
 
     FileStatObject(struct stat status)
         : Object { Object::Type::FileStat,
-            GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class()->const_fetch("Stat"_s)->as_class() } {
+            GlobalEnv::the()->Object()->const_fetch("File"_s).as_class()->const_fetch("Stat"_s).as_class() } {
         fstatus = status;
     }
 

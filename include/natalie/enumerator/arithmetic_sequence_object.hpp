@@ -13,7 +13,7 @@ public:
         : Object { Object::Type::EnumeratorArithmeticSequence, klass } { }
 
     ArithmeticSequenceObject()
-        : ArithmeticSequenceObject { GlobalEnv::the()->Object()->const_fetch("Enumerator"_s)->as_class()->const_fetch("ArithmeticSequence"_s)->as_class() } { }
+        : ArithmeticSequenceObject { GlobalEnv::the()->Object()->const_fetch("Enumerator"_s).as_class()->const_fetch("ArithmeticSequence"_s).as_class() } { }
 
     static ArithmeticSequenceObject *from_range(Env *env, const TM::String &origin_method, Value begin, Value end, Value step, bool exclude_end) {
         return new ArithmeticSequenceObject { env, Origin::Range, origin_method, begin, end, step, exclude_end };

@@ -18,9 +18,9 @@ module Natalie
 
       def generate(transform)
         if @args_array_on_stack
-          args = transform.pop
-          arg_count = "#{args}->as_array()->size()"
-          args_array_on_stack = "#{args}->as_array()->data()"
+          args = "#{transform.pop}.as_array()"
+          arg_count = "#{args}->size()"
+          args_array_on_stack = "#{args}->data()"
         else
           arg_count = transform.pop
           args = []

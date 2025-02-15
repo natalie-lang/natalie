@@ -3,8 +3,7 @@
 namespace Natalie {
 
 enum class ObjectType {
-    Collected,
-    Nil,
+    Collected, // must be first
     Array,
     BigInt,
     Binding,
@@ -22,10 +21,12 @@ enum class ObjectType {
     FileStat,
     Float,
     Hash,
+    Integer,
     Io,
     MatchData,
     Method,
     Module,
+    Nil,
     Object,
     Proc,
     Range,

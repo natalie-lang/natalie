@@ -172,7 +172,7 @@ module Math
     __define_method__ :frexp, [:x], <<-END
       FloatObject *value;
       try {
-          value = KernelModule::Float(env, x)->as_float();
+          value = KernelModule::Float(env, x).as_float();
       } catch (ExceptionObject *exception) {
           ClassObject *klass = exception->klass();
           if (klass->inspect_str() == "ArgumentError") {
@@ -239,7 +239,7 @@ module Math
     __define_method__ :lgamma, [:x], <<-END
       FloatObject *value;
       try {
-          value = KernelModule::Float(env, x)->as_float();
+          value = KernelModule::Float(env, x).as_float();
       } catch (ExceptionObject *exception) {
           ClassObject *klass = exception->klass();
           if (klass->inspect_str() == "ArgumentError") {
@@ -251,7 +251,7 @@ module Math
       if (value->is_positive_infinity()) {
         return new ArrayObject { {  Value(FloatObject::positive_infinity(env)), Value::integer(1) } };
       } else if (value->is_negative_infinity()) {
-        auto DomainError = Object::const_fetch(self, "DomainError"_s)->as_class();
+        auto DomainError = Object::const_fetch(self, "DomainError"_s).as_class();
         env->raise(DomainError, "Numerical argument is out of domain");
       } else if (value->is_positive_zero()) {
         return new ArrayObject { {  Value(FloatObject::positive_infinity(env)), Value::integer(1) } };

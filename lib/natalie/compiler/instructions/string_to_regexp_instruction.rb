@@ -21,9 +21,9 @@ module Natalie
       def generate(transform)
         string = transform.pop
         if @once
-          transform.exec_and_push(:regexp, "Value([&]() { static auto result = new RegexpObject(env, #{string}->as_string()->string(), #{@options}, #{encoding}); return result; }())");
+          transform.exec_and_push(:regexp, "Value([&]() { static auto result = new RegexpObject(env, #{string}.as_string()->string(), #{@options}, #{encoding}); return result; }())");
         else
-          transform.exec_and_push(:regexp, "Value(new RegexpObject(env, #{string}->as_string()->string(), #{@options}, #{encoding}))")
+          transform.exec_and_push(:regexp, "Value(new RegexpObject(env, #{string}.as_string()->string(), #{@options}, #{encoding}))")
         end
       end
 

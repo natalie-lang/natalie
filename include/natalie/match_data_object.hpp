@@ -15,13 +15,13 @@ namespace Natalie {
 class MatchDataObject : public Object {
 public:
     MatchDataObject()
-        : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch("MatchData"_s)->as_class() } { }
+        : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch("MatchData"_s).as_class() } { }
 
     MatchDataObject(ClassObject *klass)
         : Object { Object::Type::MatchData, klass } { }
 
     MatchDataObject(OnigRegion *region, const StringObject *string, RegexpObject *regexp)
-        : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch("MatchData"_s)->as_class() }
+        : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch("MatchData"_s).as_class() }
         , m_region { region }
         , m_string { new StringObject(*string) }
         , m_regexp { regexp } { }
@@ -83,7 +83,7 @@ public:
      * not impacted by those changes.
      */
     void dup_string(Env *env) {
-        m_string = m_string->duplicate(env)->as_string();
+        m_string = m_string->duplicate(env).as_string();
     }
 
 private:

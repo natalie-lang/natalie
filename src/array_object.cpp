@@ -173,7 +173,7 @@ Value ArrayObject::inspect(Env *env) {
             }
 
             if (inspected_repr.is_string())
-                out->append(inspected_repr->as_string());
+                out->append(inspected_repr.as_string());
             else
                 out->append_sprintf("#<%s:%#x>", inspected_repr.klass()->inspect_str().c_str(), static_cast<uintptr_t>(inspected_repr));
 
@@ -235,7 +235,7 @@ Value ArrayObject::sub(Env *env, Value other) {
 
 Value ArrayObject::sum(Env *env, Args &&args, Block *block) {
     // FIXME: this is not exactly the way ruby does it
-    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s).as_module();
     auto method_info = Enumerable->find_method(env, "sum"_s);
     return method_info.method()->call(env, this, std::move(args), block);
 }
@@ -261,7 +261,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
     this->assert_not_frozen(env);
     nat_int_t start, width;
     if (index_obj.is_range()) {
-        RangeObject *range = index_obj->as_range();
+        RangeObject *range = index_obj.as_range();
         Value begin_obj = range->begin();
         Value end_obj = range->end();
 
@@ -355,7 +355,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
 Value ArrayObject::any(Env *env, Args &&args, Block *block) {
     // FIXME: delegating to Enumerable#any? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#any? in MRI and it won't affect Array#any?.
-    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s).as_module();
     auto method_info = Enumerable->find_method(env, "any?"_s);
     return method_info.method()->call(env, this, std::move(args), block);
 }
@@ -373,7 +373,7 @@ bool ArrayObject::eq(Env *env, Value other) {
         if (!other.is_array())
             return false;
 
-        auto other_array = other->as_array();
+        auto other_array = other.as_array();
         if (size() != other_array->size())
             return false;
 
@@ -422,7 +422,7 @@ bool ArrayObject::eql(Env *env, Value other) {
             return false;
         }
 
-        auto other_array = other->as_array();
+        auto other_array = other.as_array();
         if (size() != other_array->size())
             return false;
 
@@ -520,7 +520,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
 
     if (start_obj && !start_obj.is_nil()) {
         if (!length_obj && start_obj.is_range()) {
-            Value begin = start_obj->as_range()->begin();
+            Value begin = start_obj.as_range()->begin();
             if (!begin.is_nil()) {
                 start = IntegerMethods::convert_to_nat_int_t(env, begin);
 
@@ -530,14 +530,14 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
                     env->raise("RangeError", "{} out of range", start_obj.inspect_str(env));
             }
 
-            auto end = start_obj->as_range()->end();
+            auto end = start_obj.as_range()->end();
 
             if (!end.is_nil()) {
                 max = IntegerMethods::convert_to_nat_int_t(env, end);
 
                 if (max < 0)
                     max += size();
-                if (max != 0 && !start_obj->as_range()->exclude_end())
+                if (max != 0 && !start_obj.as_range()->exclude_end())
                     ++max;
             }
         } else {
@@ -652,7 +652,7 @@ bool ArrayObject::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayObje
             changed = true;
             m_vector.remove(i - 1);
 
-            auto array_item = item->as_array();
+            auto array_item = item.as_array();
 
             if (visited.get(array_item) != nullptr) {
                 env->raise("ArgumentError", "tried to flatten recursive array");
@@ -744,7 +744,7 @@ Value ArrayObject::difference(Env *env, Args &&args) {
     Value last = new ArrayObject { m_vector };
 
     for (size_t i = 0; i < args.size(); i++) {
-        last = last->as_array()->sub(env, args[i]);
+        last = last.as_array()->sub(env, args[i]);
     }
 
     return last;
@@ -889,9 +889,9 @@ Value ArrayObject::keep_if(Env *env, Block *block) {
 
 Value ArrayObject::_subjoin(Env *env, Value item, Value joiner) {
     if (item.is_string()) {
-        return item->as_string();
+        return item.as_string();
     } else if (item.is_array()) {
-        return item->as_array()->join(env, joiner)->as_string();
+        return item.as_array()->join(env, joiner).as_string();
     } else {
         auto to_str = "to_str"_s;
         auto to_ary = "to_ary"_s;
@@ -901,17 +901,17 @@ Value ArrayObject::_subjoin(Env *env, Value item, Value joiner) {
         if (item.respond_to(env, to_str)) {
             // Need to support nil, don't use Object::to_str
             auto rval = item.send(env, to_str);
-            if (!rval.is_nil()) return rval->as_string();
+            if (!rval.is_nil()) return rval.as_string();
         }
         if (item.respond_to(env, to_ary)) {
             // Need to support nil, don't use Object::to_ary
             auto rval = item.send(env, to_ary);
-            if (!rval.is_nil()) return rval->as_array()->join(env, joiner)->as_string();
+            if (!rval.is_nil()) return rval.as_array()->join(env, joiner).as_string();
         }
         if (item.respond_to(env, to_s))
             item = item.send(env, to_s);
         if (item.is_string())
-            return item->as_string();
+            return item.as_string();
     }
     env->raise("NoMethodError", "needed to_str, to_ary, or to_s");
 }
@@ -936,7 +936,7 @@ Value ArrayObject::join(Env *env, Value joiner) {
                 Value item = (*this)[i];
                 out->append(_subjoin(env, item, joiner));
                 if (i < (size() - 1))
-                    out->append(joiner->as_string());
+                    out->append(joiner.as_string());
             }
             return (Value)out;
         }
@@ -950,7 +950,7 @@ Value ArrayObject::cmp(Env *env, Value other) {
         return other_converted;
     }
 
-    ArrayObject *other_array = other_converted->as_array();
+    ArrayObject *other_array = other_converted.as_array();
     TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
@@ -982,7 +982,7 @@ Value ArrayObject::pack(Env *env, Value directives, Value buffer) {
     if (!directives.is_string())
         directives = directives.to_str(env);
 
-    auto directives_string = directives->as_string()->string();
+    auto directives_string = directives.as_string()->string();
     if (directives_string.is_empty())
         return new StringObject { "", Encoding::US_ASCII };
 
@@ -990,7 +990,7 @@ Value ArrayObject::pack(Env *env, Value directives, Value buffer) {
         if (!buffer.is_string()) {
             env->raise("TypeError", "buffer must be String, not {}", buffer.klass()->inspect_str());
         }
-        return ArrayPacker::Packer { this, directives_string }.pack(env, buffer->as_string());
+        return ArrayPacker::Packer { this, directives_string }.pack(env, buffer.as_string());
     } else {
         StringObject *start_buffer = new StringObject { "", Encoding::ASCII_8BIT };
         return ArrayPacker::Packer { this, directives_string }.pack(env, start_buffer);
@@ -1010,7 +1010,7 @@ void ArrayObject::push_splat(Env *env, Value val) {
         val = val.send(env, "to_a"_s);
     }
     if (val.is_array()) {
-        m_vector.concat(val->as_array()->m_vector);
+        m_vector.concat(val.as_array()->m_vector);
     } else {
         push(val);
     }
@@ -1386,7 +1386,7 @@ Value ArrayObject::compact_in_place(Env *env) {
 Value ArrayObject::cycle(Env *env, Value count, Block *block) {
     // FIXME: delegating to Enumerable#cycle like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#cycle in MRI and it won't affect Array#cycle.
-    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s).as_module();
     auto method_info = Enumerable->find_method(env, "cycle"_s);
     auto args = count ? Vector<Value> { count } : Vector<Value> {};
     return method_info.method()->call(env, this, { std::move(args) }, block);
@@ -1413,7 +1413,7 @@ Value ArrayObject::uniq_in_place(Env *env, Block *block) {
         }
     }
 
-    ArrayObject *values = hash->values(env)->as_array();
+    ArrayObject *values = hash->values(env).as_array();
 
     if (m_vector.size() == values->size())
         return NilObject::the();
@@ -1513,7 +1513,7 @@ Value ArrayObject::hash(Env *env) {
             // this allows us to return the same hash for recursive arrays:
             // a = []; a << a; a.hash == [a].hash # => true
             // a = []; a << a << a; a.hash == [a, a].hash # => true
-            if (item.is_array() && size() == item->as_array()->size() && eql(env, item))
+            if (item.is_array() && size() == item.as_array()->size() && eql(env, item))
                 continue;
 
             auto nat_int = IntegerMethods::convert_to_nat_int_t(env, item_hash);
@@ -1634,7 +1634,7 @@ Value ArrayObject::union_of(Env *env, Value arg) {
         add_value(val);
     }
 
-    auto *other_array = arg->as_array();
+    auto *other_array = arg.as_array();
     for (auto &val : *other_array) {
         add_value(val);
     }
@@ -1648,7 +1648,7 @@ Value ArrayObject::union_of(Env *env, Args &&args) {
     // TODO: we probably want to make | call this instead of this way for optimization
     for (size_t i = 0; i < args.size(); i++) {
         auto arg = args[i];
-        result = result->union_of(env, arg)->as_array();
+        result = result->union_of(env, arg).as_array();
     }
 
     return result;
@@ -1778,7 +1778,7 @@ Value ArrayObject::find_index(Env *env, Value object, Block *block, bool search_
 Value ArrayObject::none(Env *env, Args &&args, Block *block) {
     // FIXME: delegating to Enumerable#none? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#none? in MRI and it won't affect Array#none?.
-    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s).as_module();
     auto method_info = Enumerable->find_method(env, "none?"_s);
     return method_info.method()->call(env, this, std::move(args), block);
 }
@@ -1786,7 +1786,7 @@ Value ArrayObject::none(Env *env, Args &&args, Block *block) {
 Value ArrayObject::one(Env *env, Args &&args, Block *block) {
     // FIXME: delegating to Enumerable#one? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#one? in MRI and it won't affect Array#one?.
-    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s).as_module();
     auto method_info = Enumerable->find_method(env, "one?"_s);
     return method_info.method()->call(env, this, std::move(args), block);
 }
@@ -1931,7 +1931,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
     }
 
     if (index_obj.is_range()) {
-        RangeObject *range = index_obj->as_range();
+        RangeObject *range = index_obj.as_range();
         Value begin_obj = range->begin();
         nat_int_t start;
 
@@ -1955,7 +1955,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
     }
 
     if (index_obj.is_enumerator_arithmetic_sequence()) {
-        auto seq = index_obj->as_enumerator_arithmetic_sequence();
+        auto seq = index_obj.as_enumerator_arithmetic_sequence();
         Vector<Value> result {};
         const auto step = IntegerMethods::convert_to_nat_int_t(env, seq->step());
         if (step > 0) {
@@ -2040,7 +2040,7 @@ Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_
 
 Value ArrayObject::to_h(Env *env, Block *block) {
     // FIXME: this is not exactly the way ruby does it
-    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s).as_module();
     auto method_info = Enumerable->find_method(env, "to_h"_s);
     return method_info.method()->call(env, this, {}, block);
 }
@@ -2078,8 +2078,8 @@ Value ArrayObject::values_at(Env *env, Args &&args) {
     for (size_t i = 0; i < args.size(); ++i) {
         auto arg = args[i];
         if (arg.is_range()) {
-            auto begin_value = arg->as_range()->begin();
-            auto end_value = arg->as_range()->end();
+            auto begin_value = arg.as_range()->begin();
+            auto end_value = arg.as_range()->end();
             nat_int_t begin, end;
 
             if (begin_value.is_nil()) {
@@ -2087,7 +2087,7 @@ Value ArrayObject::values_at(Env *env, Args &&args) {
             } else {
                 begin = IntegerMethods::convert_to_nat_int_t(env, begin_value);
                 if (begin < -1 * (nat_int_t)(this->size())) {
-                    env->raise("RangeError", "{} out of range", arg->as_range()->inspect_str(env));
+                    env->raise("RangeError", "{} out of range", arg.as_range()->inspect_str(env));
                 }
                 if (begin < 0)
                     break;
@@ -2097,7 +2097,7 @@ Value ArrayObject::values_at(Env *env, Args &&args) {
                 end = size();
             } else {
                 end = IntegerMethods::convert_to_nat_int_t(env, end_value);
-                if (!arg->as_range()->exclude_end())
+                if (!arg.as_range()->exclude_end())
                     end += 1;
                 if (end < 0)
                     end += size();
@@ -2127,7 +2127,7 @@ Value ArrayObject::values_at(Env *env, Args &&args) {
 
 Value ArrayObject::zip(Env *env, Args &&args, Block *block) {
     // FIXME: this is not exactly the way ruby does it
-    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s).as_module();
     auto method_info = Enumerable->find_method(env, "zip"_s);
     return method_info.method()->call(env, this, std::move(args), block);
 }

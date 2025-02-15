@@ -40,6 +40,11 @@ public:
     RegexpObject(ClassObject *klass)
         : Object { Object::Type::Regexp, klass } { }
 
+    RegexpObject(Env *env, const RegexpObject &other)
+        : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
+        initialize_internal(env, other.m_pattern, other.m_options);
+    }
+
     RegexpObject(Env *env, const StringObject *pattern, int options = 0, EncodingObject *encoding = nullptr)
         : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
         initialize_internal(env, pattern, options, encoding);
@@ -144,7 +149,7 @@ public:
     bool eq(Env *env, Value other) const {
         assert_initialized(env);
         if (!other.is_regexp()) return false;
-        RegexpObject *other_regexp = other->as_regexp();
+        RegexpObject *other_regexp = other.as_regexp();
         other_regexp->assert_initialized(env);
         return *this == *other_regexp;
     }

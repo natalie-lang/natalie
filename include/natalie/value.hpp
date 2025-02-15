@@ -81,6 +81,8 @@ public:
     Value integer_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility);
 
     ClassObject *klass() const;
+
+    bool can_have_singleton_class() const { return !is_integer() && !is_float() && !is_symbol(); }
     ClassObject *singleton_class() const;
     ClassObject *singleton_class(Env *);
 
@@ -97,9 +99,13 @@ public:
     Integer integer() const;
     Integer integer_or_raise(Env *) const;
 
+    ObjectType type() const;
+
     bool is_pointer() const { return (m_value & 0x1) == 0x0; }
     bool is_fixnum() const { return (m_value & 0x1) == 0x1; }
     bool is_integer() const;
+
+    bool has_instance_variables() const;
 
     nat_int_t object_id() const { return (nat_int_t)m_value; }
 
@@ -150,6 +156,53 @@ public:
     bool is_falsey() const;
     bool is_numeric() const;
     bool is_boolean() const;
+
+    Enumerator::ArithmeticSequenceObject *as_enumerator_arithmetic_sequence() const;
+    ArrayObject *as_array() const;
+    BindingObject *as_binding() const;
+    ClassObject *as_class() const;
+    ComplexObject *as_complex() const;
+    DirObject *as_dir() const;
+    EncodingObject *as_encoding() const;
+    EnvObject *as_env() const;
+    ExceptionObject *as_exception() const;
+    FalseObject *as_false() const;
+    FiberObject *as_fiber() const;
+    FileObject *as_file() const;
+    FileStatObject *as_file_stat() const;
+    FloatObject *as_float() const;
+    HashObject *as_hash() const;
+    IoObject *as_io() const;
+    MatchDataObject *as_match_data() const;
+    MethodObject *as_method() const;
+    ModuleObject *as_module() const;
+    NilObject *as_nil() const;
+    ProcObject *as_proc() const;
+    RandomObject *as_random() const;
+    RangeObject *as_range() const;
+    RationalObject *as_rational() const;
+    RegexpObject *as_regexp() const;
+    StringObject *as_string() const;
+    SymbolObject *as_symbol() const;
+    ThreadObject *as_thread() const;
+    Thread::Backtrace::LocationObject *as_thread_backtrace_location() const;
+    ThreadGroupObject *as_thread_group() const;
+    Thread::MutexObject *as_thread_mutex() const;
+    TimeObject *as_time() const;
+    TrueObject *as_true() const;
+    UnboundMethodObject *as_unbound_method() const;
+    VoidPObject *as_void_p() const;
+
+    ArrayObject *as_array_or_raise(Env *) const;
+    ClassObject *as_class_or_raise(Env *) const;
+    EncodingObject *as_encoding_or_raise(Env *) const;
+    ExceptionObject *as_exception_or_raise(Env *) const;
+    FloatObject *as_float_or_raise(Env *) const;
+    HashObject *as_hash_or_raise(Env *) const;
+    MatchDataObject *as_match_data_or_raise(Env *) const;
+    ModuleObject *as_module_or_raise(Env *) const;
+    RangeObject *as_range_or_raise(Env *) const;
+    StringObject *as_string_or_raise(Env *) const;
 
     ArrayObject *to_ary(Env *env);
     FloatObject *to_f(Env *env);

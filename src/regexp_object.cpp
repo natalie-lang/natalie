@@ -109,14 +109,14 @@ OnigEncoding RegexpObject::ruby_encoding_to_onig_encoding(NonNullPtr<const Encod
 Value RegexpObject::last_match(Env *env, Value ref) {
     auto match = env->caller()->last_match();
     if (ref && match.is_match_data())
-        return match->as_match_data()->ref(env, ref);
+        return match.as_match_data()->ref(env, ref);
     return match;
 }
 
 Value RegexpObject::quote(Env *env, Value string) {
     if (string.is_symbol())
         string = string.to_s(env);
-    auto str = string->as_string_or_raise(env);
+    auto str = string.as_string_or_raise(env);
 
     String out;
     for (size_t i = 0; i < str->length(); i++) {
@@ -179,7 +179,7 @@ Value RegexpObject::try_convert(Env *env, Value value) {
 }
 
 Value RegexpObject::regexp_union(Env *env, Args &&args) {
-    auto patterns = args.size() == 1 && args[0].is_array() ? args[0]->as_array() : args.to_array();
+    auto patterns = args.size() == 1 && args[0].is_array() ? args[0].as_array() : args.to_array();
     if (patterns->is_empty())
         return RegexpObject::literal(env, "(?!)");
     String out;
@@ -194,11 +194,11 @@ Value RegexpObject::regexp_union(Env *env, Args &&args) {
         if (pattern.is_regexp()) {
             if (patterns->size() == 1)
                 return pattern;
-            out.append(pattern->as_regexp()->to_s(env)->as_string()->string());
+            out.append(pattern.as_regexp()->to_s(env).as_string()->string());
         } else {
             pattern = pattern.to_str(env);
             auto quoted = RegexpObject::quote(env, pattern);
-            out.append(quoted->as_string()->string());
+            out.append(quoted.as_string()->string());
         }
     }
     return new RegexpObject { env, out };
@@ -211,7 +211,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
         env->raise("TypeError", "already initialized regexp");
 
     if (pattern.is_regexp()) {
-        auto other = pattern->as_regexp();
+        auto other = pattern.as_regexp();
         if (opts && !opts.is_nil())
             env->warn("flags ignored");
         initialize_internal(env, other->m_pattern, other->options());
@@ -223,7 +223,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
         if (opts.is_integer()) {
             options = opts.integer().to_nat_int_t();
         } else if (opts.is_string()) {
-            for (auto c : *opts->as_string()) {
+            for (auto c : *opts.as_string()) {
                 if (c == "i") {
                     options |= RegexOpts::IgnoreCase;
                 } else if (c == "m") {
@@ -231,7 +231,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
                 } else if (c == "x") {
                     options |= RegexOpts::Extended;
                 } else {
-                    env->raise("ArgumentError", "unknown regexp option: {}", opts->as_string()->string());
+                    env->raise("ArgumentError", "unknown regexp option: {}", opts.as_string()->string());
                 }
             }
         } else {
@@ -441,7 +441,7 @@ Value RegexpObject::eqtilde(Env *env, Value other) {
     if (result.is_nil()) {
         return result;
     } else {
-        MatchDataObject *matchdata = result->as_match_data();
+        MatchDataObject *matchdata = result.as_match_data();
         assert(matchdata->size() > 0);
         return IntegerMethods::from_ssize_t(env, matchdata->beg_char_index(env, 0));
     }
@@ -457,9 +457,9 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
     }
 
     if (other.is_symbol())
-        other = other->as_symbol()->to_s(env);
+        other = other.as_symbol()->to_s(env);
     other.assert_type(env, Object::Type::String, "String");
-    StringObject *str_obj = other->as_string();
+    StringObject *str_obj = other.as_string();
 
     if (!str_obj->valid_encoding())
         env->raise_invalid_byte_sequence_error(str_obj->encoding());
@@ -511,10 +511,10 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
     if (other.is_nil())
         return false;
     if (other.is_symbol())
-        other = other->as_symbol()->to_s(env);
+        other = other.as_symbol()->to_s(env);
 
     other.assert_type(env, Object::Type::String, "String");
-    StringObject *str_obj = other->as_string();
+    StringObject *str_obj = other.as_string();
 
     nat_int_t start_index = 0;
     if (start && start.is_integer())

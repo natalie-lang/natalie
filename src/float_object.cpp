@@ -27,7 +27,7 @@ bool FloatObject::eq(Env *env, Value other) {
     if (other.is_integer())
         return other.integer() == m_double;
     if (other.is_float()) {
-        auto *f = other->as_float();
+        auto *f = other.as_float();
         return f->m_double == m_double;
     }
     return other.send(env, "=="_s, { this }).is_truthy();
@@ -35,40 +35,40 @@ bool FloatObject::eq(Env *env, Value other) {
 
 bool FloatObject::eql(Value other) const {
     if (!other.is_float()) return false;
-    auto *f = other->as_float();
+    auto *f = other.as_float();
     return f->m_double == m_double;
 }
 
-#define ROUNDING_OPERATION(name, libm_name)                               \
-    Value FloatObject::name(Env *env, Value precision_value) {            \
-        nat_int_t precision = 0;                                          \
-        if (precision_value) {                                            \
-            if (precision_value.is_float()) {                             \
-                precision_value = precision_value->as_float()->to_i(env); \
-            }                                                             \
-            precision_value.assert_integer(env);                          \
-            precision = precision_value.integer().to_nat_int_t();         \
-        }                                                                 \
-        if (precision <= 0 && (is_nan() || is_infinity()))                \
-            env->raise("FloatDomainError", this->inspect_str(env));       \
-                                                                          \
-        if (is_infinity())                                                \
-            return new FloatObject { m_double };                          \
-                                                                          \
-        FloatObject *result;                                              \
-        if (precision == 0)                                               \
-            return f_to_i_or_bigint(::libm_name(m_double));               \
-                                                                          \
-        double f = ::pow(10, precision);                                  \
-        double rounded = ::libm_name(m_double * f) / f;                   \
-        if (isinf(f) || isinf(rounded)) {                                 \
-            return new FloatObject { m_double };                          \
-        }                                                                 \
-        if (precision < 0)                                                \
-            return f_to_i_or_bigint(rounded);                             \
-                                                                          \
-        /* precision > 0 */                                               \
-        return new FloatObject { rounded };                               \
+#define ROUNDING_OPERATION(name, libm_name)                              \
+    Value FloatObject::name(Env *env, Value precision_value) {           \
+        nat_int_t precision = 0;                                         \
+        if (precision_value) {                                           \
+            if (precision_value.is_float()) {                            \
+                precision_value = precision_value.as_float()->to_i(env); \
+            }                                                            \
+            precision_value.assert_integer(env);                         \
+            precision = precision_value.integer().to_nat_int_t();        \
+        }                                                                \
+        if (precision <= 0 && (is_nan() || is_infinity()))               \
+            env->raise("FloatDomainError", this->inspect_str(env));      \
+                                                                         \
+        if (is_infinity())                                               \
+            return new FloatObject { m_double };                         \
+                                                                         \
+        FloatObject *result;                                             \
+        if (precision == 0)                                              \
+            return f_to_i_or_bigint(::libm_name(m_double));              \
+                                                                         \
+        double f = ::pow(10, precision);                                 \
+        double rounded = ::libm_name(m_double * f) / f;                  \
+        if (isinf(f) || isinf(rounded)) {                                \
+            return new FloatObject { m_double };                         \
+        }                                                                \
+        if (precision < 0)                                               \
+            return f_to_i_or_bigint(rounded);                            \
+                                                                         \
+        /* precision > 0 */                                              \
+        return new FloatObject { rounded };                              \
     }
 
 ROUNDING_OPERATION(floor, floor)
@@ -164,12 +164,12 @@ Value FloatObject::cmp(Env *env, Value rhs) {
     if (!lhs.is_float()) return lhs.send(env, "<=>"_s, { rhs });
     if (!rhs.is_float()) return NilObject::the();
 
-    if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {
+    if (lhs.as_float()->is_nan() || rhs.as_float()->is_nan()) {
         return NilObject::the();
     }
 
-    double lhs_d = lhs->as_float()->to_double();
-    double rhs_d = rhs->as_float()->to_double();
+    double lhs_d = lhs.as_float()->to_double();
+    double rhs_d = rhs.as_float()->to_double();
 
     if (lhs_d < rhs_d) {
         return Value::integer(-1);
@@ -196,20 +196,20 @@ Value FloatObject::denominator(Env *env) const {
     if (!is_finite()) {
         return Value::integer(1);
     }
-    return to_r(env)->as_rational()->denominator(env);
+    return to_r(env).as_rational()->denominator(env);
 }
 
 Value FloatObject::numerator(Env *env) const {
     if (!is_finite()) {
         return to_f();
     }
-    return to_r(env)->as_rational()->numerator(env);
+    return to_r(env).as_rational()->numerator(env);
 }
 
 Value FloatObject::to_i(Env *env) const {
     if (is_nan()) env->raise("FloatDomainError", "NaN");
     if (is_infinity()) {
-        env->raise("FloatDomainError", to_s()->as_string()->string());
+        env->raise("FloatDomainError", to_s().as_string()->string());
     }
     double num = m_double;
     if (num > 0.0) num = ::floor(num);
@@ -238,7 +238,7 @@ Value FloatObject::add(Env *env, Value rhs) {
     if (!rhs.is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double addend1 = to_double();
-    double addend2 = rhs->as_float()->to_double();
+    double addend2 = rhs.as_float()->to_double();
     return new FloatObject { addend1 + addend2 };
 }
 
@@ -255,7 +255,7 @@ Value FloatObject::sub(Env *env, Value rhs) {
     if (!rhs.is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double minuend = to_double();
-    double subtrahend = rhs->as_float()->to_double();
+    double subtrahend = rhs.as_float()->to_double();
     return new FloatObject { minuend - subtrahend };
 }
 
@@ -272,7 +272,7 @@ Value FloatObject::mul(Env *env, Value rhs) {
     if (!rhs.is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double multiplicand = to_double();
-    double multiplier = rhs->as_float()->to_double();
+    double multiplier = rhs.as_float()->to_double();
     return new FloatObject { multiplicand * multiplier };
 }
 
@@ -289,7 +289,7 @@ Value FloatObject::div(Env *env, Value rhs) {
     if (!rhs.is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double dividend = to_double();
-    double divisor = rhs->as_float()->to_double();
+    double divisor = rhs.as_float()->to_double();
 
     return new FloatObject { dividend / divisor };
 }
@@ -297,9 +297,9 @@ Value FloatObject::div(Env *env, Value rhs) {
 Value FloatObject::mod(Env *env, Value rhs) {
     Value lhs = this;
 
-    bool rhs_is_non_zero = (rhs.is_float() && !rhs->as_float()->is_zero()) || (rhs.is_integer() && !rhs.integer().is_zero());
+    bool rhs_is_non_zero = (rhs.is_float() && !rhs.as_float()->is_zero()) || (rhs.is_integer() && !rhs.integer().is_zero());
 
-    if (rhs.is_float() && rhs->as_float()->is_negative_infinity()) return new FloatObject { rhs->as_float()->to_double() };
+    if (rhs.is_float() && rhs.as_float()->is_negative_infinity()) return new FloatObject { rhs.as_float()->to_double() };
     if (is_negative_zero() && rhs_is_non_zero) return new FloatObject { m_double };
 
     if (!rhs.is_float()) {
@@ -312,7 +312,7 @@ Value FloatObject::mod(Env *env, Value rhs) {
     if (!rhs.is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double dividend = to_double();
-    double divisor = rhs->as_float()->to_double();
+    double divisor = rhs.as_float()->to_double();
 
     if (divisor == 0) env->raise("ZeroDivisionError", "divided by 0");
 
@@ -329,15 +329,15 @@ Value FloatObject::divmod(Env *env, Value arg) {
     if (is_infinity()) env->raise("FloatDomainError", "Infinity");
 
     if (!arg.is_numeric()) env->raise("TypeError", "{} can't be coerced into Float", arg.klass()->inspect_str());
-    if (arg.is_float() && arg->as_float()->is_nan()) env->raise("FloatDomainError", "NaN");
-    if (arg.is_float() && arg->as_float()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
+    if (arg.is_float() && arg.as_float()->is_nan()) env->raise("FloatDomainError", "NaN");
+    if (arg.is_float() && arg.as_float()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
     if (arg.is_integer() && arg.integer().is_zero()) env->raise("ZeroDivisionError", "divided by 0");
 
     Value division = div(env, arg);
     Value modulus = mod(env, arg);
 
     return new ArrayObject {
-        f_to_i_or_bigint(::floor(division->as_float()->to_double())),
+        f_to_i_or_bigint(::floor(division.as_float()->to_double())),
         modulus
     };
 }
@@ -360,7 +360,7 @@ Value FloatObject::pow(Env *env, Value rhs) {
     if (!rhs.is_float()) rhs.assert_type(env, Object::Type::Float, "Float");
 
     double base = to_double();
-    double exponent = rhs->as_float()->to_double();
+    double exponent = rhs.as_float()->to_double();
 
     if (base < 0 && ::floor(exponent) != exponent)
         env->raise("ArgumentError", "Not yet implemented: negative raised to a fractional power");
@@ -404,12 +404,12 @@ Value FloatObject::arg(Env *env) {
             env->raise("ArgumentError", "comparison of Float with {} failed", rhs.klass()->inspect_str()); \
         }                                                                                                  \
                                                                                                            \
-        if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {                                      \
+        if (lhs.as_float()->is_nan() || rhs.as_float()->is_nan()) {                                        \
             return false;                                                                                  \
         }                                                                                                  \
                                                                                                            \
-        double lhs_d = lhs->as_float()->to_double();                                                       \
-        double rhs_d = rhs->as_float()->to_double();                                                       \
+        double lhs_d = lhs.as_float()->to_double();                                                        \
+        double rhs_d = rhs.as_float()->to_double();                                                        \
                                                                                                            \
         return lhs_d op rhs_d;                                                                             \
     }

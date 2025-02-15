@@ -149,11 +149,11 @@ public:
     const String &string() const { return m_string; }
 
     static Value size_fn(Env *env, Value self, Args &&, Block *) {
-        return self->as_string()->size(env);
+        return self.as_string()->size(env);
     }
 
     static Value bytesize_fn(Env *env, Value self, Args &&, Block *) {
-        auto bytesize = self->as_string()->bytesize();
+        auto bytesize = self.as_string()->bytesize();
         return Value::integer(bytesize);
     }
 
@@ -248,13 +248,7 @@ public:
     bool operator==(Value value) const {
         if (!value.is_string())
             return false;
-        return *this == *(value->as_string());
-    }
-
-    bool operator==(const Object &value) const {
-        if (value.type() != Type::String)
-            return false;
-        return *this == *value.as_string();
+        return *this == *(value.as_string());
     }
 
     bool operator==(const StringObject &value) const {

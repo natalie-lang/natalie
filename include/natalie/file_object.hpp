@@ -17,7 +17,7 @@ namespace Natalie {
 class FileObject : public IoObject {
 public:
     FileObject()
-        : FileObject { GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class() } { }
+        : FileObject { GlobalEnv::the()->Object()->const_fetch("File"_s).as_class() } { }
 
     FileObject(ClassObject *klass)
         : IoObject { Object::Type::File, klass } { }
@@ -101,6 +101,8 @@ public:
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<FileObject %p>", this);
     }
+
+    IoObject *as_io() { return static_cast<IoObject *>(this); }
 };
 
 }
