@@ -6,7 +6,7 @@
 namespace TM {
 
 // this is used by the hashmap library and assumes that obj->env has been set
-size_t HashKeyHandler<Natalie::HashKey *>::hash(Natalie::HashKey *&key) {
+size_t HashKeyHandler<Natalie::HashKey *>::hash(Natalie::HashKey *key) {
     return key->hash;
 }
 
@@ -219,7 +219,7 @@ Value HashObject::initialize(Env *env, Value default_value, Value capacity, Bloc
     if (capacity) {
         const auto capacity_int = IntegerMethods::convert_to_native_type<ssize_t>(env, capacity);
         if (capacity_int > 0)
-            m_hashmap = TM::Hashmap<HashKey *, Value> { TM::HashKeyHandler<HashKey *>::hash, compare, static_cast<size_t>(capacity_int) };
+            m_hashmap = TM::Hashmap<HashKey *, Value> { compare, static_cast<size_t>(capacity_int) };
     }
 
     if (block) {

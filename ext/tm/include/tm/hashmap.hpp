@@ -44,7 +44,7 @@ struct HashKeyHandler<Pointer *> {
      * free(key2);
      * ```
      */
-    static size_t hash(Pointer *&ptr) {
+    static size_t hash(Pointer *ptr) {
         // https://stackoverflow.com/a/12996028/197498
         auto x = (size_t)ptr;
         x = (x ^ (x >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
@@ -73,7 +73,7 @@ struct HashKeyHandler<String> {
      * );
      * ```
      */
-    static size_t hash(String &str) {
+    static size_t hash(const String &str) {
         return str.djb2_hash();
     }
 };
@@ -81,7 +81,6 @@ struct HashKeyHandler<String> {
 template <typename KeyT, typename T = void *>
 class Hashmap {
 public:
-    using HashFn = size_t(KeyT &);
     using CompareFn = bool(KeyT &, KeyT &, void *);
 
     static constexpr size_t HASHMAP_MIN_LOAD_FACTOR = 25;
@@ -101,18 +100,16 @@ public:
      * the initial capacity.
      *
      * ```
-     * auto hash_fn = &Hashmap<char*>::hash_ptr;
      * auto compare_fn = &Hashmap<char*>::compare_ptr;
-     * auto map = Hashmap<char*, Thing>(hash_fn, compare_fn);
+     * auto map = Hashmap<char*, Thing>(compare_fn);
      * auto key = strdup("foo");
      * map.put(key, Thing(1));
      * assert_eq(1, map.size());
      * free(key);
      * ```
      */
-    Hashmap(HashFn hash_fn, CompareFn compare_fn, size_t initial_capacity = 10)
+    Hashmap(CompareFn compare_fn, size_t initial_capacity = 10)
         : m_capacity { calculate_map_size(initial_capacity) }
-        , m_hash_fn { hash_fn }
         , m_compare_fn { compare_fn } { }
 
     /**
@@ -155,43 +152,14 @@ public:
         : m_capacity { calculate_map_size(initial_capacity) } {
         switch (hash_type) {
         case HashType::Pointer:
-            m_hash_fn = &Hashmap::hash_ptr;
             m_compare_fn = &Hashmap::compare_ptr;
             break;
         case HashType::String:
-            m_hash_fn = &Hashmap::hash_tm_str;
             m_compare_fn = &Hashmap::compare_tm_str;
             break;
         default:
             TM_UNREACHABLE();
         }
-    }
-
-    /**
-     * Returns a hash value for the given pointer as if it were
-     * just a 64-bit number. The contents of the pointer are
-     * not examined.
-     *
-     * ```
-     * auto key1 = strdup("foo");
-     * auto key2 = strdup("foo");
-     * assert_neq(
-     *   Hashmap<char*>::hash_ptr(key1),
-     *   Hashmap<char*>::hash_ptr(key2)
-     * );
-     * assert_eq(
-     *   Hashmap<char*>::hash_ptr(key1),
-     *   Hashmap<char*>::hash_ptr(key1)
-     * );
-     * free(key1);
-     * free(key2);
-     * ```
-     */
-    static size_t hash_ptr(KeyT &ptr) {
-        if constexpr (std::is_pointer_v<KeyT>)
-            return HashKeyHandler<KeyT>::hash(ptr);
-        else
-            return 0;
     }
 
     /**
@@ -210,32 +178,6 @@ public:
      */
     static bool compare_ptr(KeyT &a, KeyT &b, void *) {
         return a == b;
-    }
-
-    /**
-     * Returns a hash value for the given TM::String based on its contents.
-     *
-     * ```
-     * auto key1 = String("foo");
-     * auto key2 = String("foo");
-     * auto key3 = String("bar");
-     * assert_eq(
-     *   Hashmap<String>::hash_tm_str(key1),
-     *   Hashmap<String>::hash_tm_str(key2)
-     * );
-     * assert_neq(
-     *   Hashmap<String>::hash_tm_str(key1),
-     *   Hashmap<String>::hash_tm_str(key3)
-     * );
-     * ```
-     */
-    static size_t hash_tm_str(KeyT &ptr) {
-        if constexpr (std::is_pointer_v<KeyT>) {
-            return 0;
-        } else {
-            auto str = (const String &)(ptr);
-            return HashKeyHandler<KeyT>::hash(str);
-        }
     }
 
     /**
@@ -270,7 +212,6 @@ public:
      */
     Hashmap(const Hashmap &other)
         : m_capacity { other.m_capacity }
-        , m_hash_fn { other.m_hash_fn }
         , m_compare_fn { other.m_compare_fn } {
         m_map = new Item *[m_capacity] {};
         copy_items_from(other);
@@ -291,7 +232,6 @@ public:
         m_size = other.m_size;
         m_capacity = other.m_capacity;
         m_map = other.m_map;
-        m_hash_fn = other.m_hash_fn;
         m_compare_fn = other.m_compare_fn;
         other.m_size = 0;
         other.m_capacity = 0;
@@ -312,7 +252,6 @@ public:
      */
     Hashmap &operator=(const Hashmap &other) {
         m_capacity = other.m_capacity;
-        m_hash_fn = other.m_hash_fn;
         m_compare_fn = other.m_compare_fn;
         if (m_map) {
             clear();
@@ -344,7 +283,6 @@ public:
         m_size = other.m_size;
         m_capacity = other.m_capacity;
         m_map = other.m_map;
-        m_hash_fn = other.m_hash_fn;
         m_compare_fn = other.m_compare_fn;
         other.m_size = 0;
         other.m_capacity = 0;
@@ -423,7 +361,7 @@ public:
      * ```
      */
     T get(KeyT key, void *data = nullptr) const {
-        auto hash = m_hash_fn(key);
+        auto hash = HashKeyHandler<KeyT>::hash(key);
         auto item = find_item(key, hash, data);
         if (item)
             return item->value;
@@ -446,7 +384,7 @@ public:
      * auto key = String("foo");
      * auto map = Hashmap<String, Thing>(HashType::String);
      * map.put(key, Thing(1));
-     * auto hash = Hashmap<String>::hash_tm_str(key);
+     * auto hash = HashKeyHandler<String>::hash(key);
      * auto item = map.find_item(key, hash);
      * assert_eq(Thing(1), item->value);
      * ```
@@ -456,7 +394,7 @@ public:
      * ```
      * auto key = String("foo");
      * auto map = Hashmap<String, Thing>(HashType::String);
-     * auto hash = Hashmap<String>::hash_tm_str(key);
+     * auto hash = HashKeyHandler<String>::hash(key);
      * auto item = map.find_item(key, hash);
      * assert_eq(nullptr, item);
      * ```
@@ -508,7 +446,7 @@ public:
             m_map = new Item *[m_capacity] {};
         if (load_factor() > HASHMAP_MAX_LOAD_FACTOR)
             rehash();
-        auto hash = m_hash_fn(key);
+        auto hash = HashKeyHandler<KeyT>::hash(key);
         Item *item;
         if ((item = find_item(key, hash, data))) {
             item->value = value;
@@ -554,7 +492,7 @@ public:
             else
                 return {};
         }
-        auto hash = m_hash_fn(key);
+        auto hash = HashKeyHandler<KeyT>::hash(key);
         auto index = index_for_hash(hash);
         auto item = m_map[index];
         if (item) {
@@ -852,7 +790,6 @@ private:
     size_t m_capacity { 0 };
     Item **m_map { nullptr };
 
-    HashFn *m_hash_fn { nullptr };
     CompareFn *m_compare_fn { nullptr };
     CleanupFn *m_cleanup_fn { nullptr };
 };
