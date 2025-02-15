@@ -82,7 +82,7 @@ public:
 
     Value hash(Env *env) {
         assert_initialized(env);
-        auto hash = (m_options & ~RegexOpts::NoEncoding & ~RegexOpts::FixedEncoding) + m_pattern->string().djb2_hash();
+        auto hash = (m_options & ~RegexOpts::NoEncoding & ~RegexOpts::FixedEncoding) + HashKeyHandler<String>::hash(m_pattern->string());
         return Value::integer(hash);
     }
 

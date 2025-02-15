@@ -88,7 +88,7 @@ struct HashKeyHandler<String> {
      * ```
      */
     static size_t hash(const String &str) {
-        return str.djb2_hash();
+        return djb2_hash(str.c_str(), str.size());
     }
 
     /**
@@ -173,6 +173,15 @@ struct HashKeyHandler<String> {
         return b == a;
     }
 
+    /**
+     * Returns hash value of this String.
+     * This uses the 'djb2' hash algorithm by Dan Bernstein.
+     *
+     * ```
+     * const char *str = "hello";
+     * assert_eq(261238937, HashKeyHandler<String>::djb2_hash(str, strlen(str)));
+     * ```
+     */
     static uint32_t djb2_hash(const char *c, const size_t len) {
         size_t hash = 5381;
         for (size_t i = 0; i < len; ++i)

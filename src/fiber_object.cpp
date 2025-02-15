@@ -84,7 +84,7 @@ FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Bl
 
 Value FiberObject::hash(Env *env) {
     const TM::String file_and_line { m_file && m_line ? TM::String::format(" {}:{}", *m_file, *m_line) : "" };
-    const auto hash = String::format("{}{}{}", m_klass->inspect_str(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed), file_and_line).djb2_hash();
+    const auto hash = HashKeyHandler<String>::hash(String::format("{}{}{}", m_klass->inspect_str(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed), file_and_line));
     return Value::integer(hash);
 }
 

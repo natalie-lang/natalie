@@ -20,7 +20,7 @@ Value MethodObject::gtgt(Env *env, Value other) {
 }
 
 Value MethodObject::hash() const {
-    return Value::integer(m_method->original_name().djb2_hash());
+    return Value::integer(HashKeyHandler<String>::hash(m_method->original_name()));
 }
 
 Value MethodObject::source_location() {
