@@ -3,12 +3,16 @@
 #include "tm/recursion_guard.hpp"
 #include "tm/vector.hpp"
 
-namespace Natalie {
+namespace TM {
 
 // this is used by the hashmap library and assumes that obj->env has been set
-size_t HashObject::hash(HashKey *&key) {
+size_t HashKeyHandler<Natalie::HashKey *>::hash(Natalie::HashKey *&key) {
     return key->hash;
 }
+
+}
+
+namespace Natalie {
 
 // this is used by the hashmap library to compare keys
 bool HashObject::compare(HashKey *&a, HashKey *&b, void *env) {
@@ -215,7 +219,7 @@ Value HashObject::initialize(Env *env, Value default_value, Value capacity, Bloc
     if (capacity) {
         const auto capacity_int = IntegerMethods::convert_to_native_type<ssize_t>(env, capacity);
         if (capacity_int > 0)
-            m_hashmap = TM::Hashmap<HashKey *, Value> { hash, compare, static_cast<size_t>(capacity_int) };
+            m_hashmap = TM::Hashmap<HashKey *, Value> { TM::HashKeyHandler<HashKey *>::hash, compare, static_cast<size_t>(capacity_int) };
     }
 
     if (block) {

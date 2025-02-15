@@ -30,6 +30,19 @@ struct HashKey : public Cell {
     }
 };
 
+}
+
+namespace TM {
+
+template <>
+struct HashKeyHandler<Natalie::HashKey *> {
+    static size_t hash(Natalie::HashKey *&);
+};
+
+}
+
+namespace Natalie {
+
 class HashObject : public Object {
 public:
     HashObject()
@@ -88,7 +101,6 @@ public:
         return self.as_hash()->size(env);
     }
 
-    static size_t hash(HashKey *&);
     static bool compare(HashKey *&, HashKey *&, void *);
 
     static bool is_ruby2_keywords_hash(Env *, Value);
@@ -230,7 +242,7 @@ private:
     }
 
     HashKey *m_key_list { nullptr };
-    TM::Hashmap<HashKey *, Value> m_hashmap { hash, compare, 10 }; // TODO: profile and tune this initial capacity
+    TM::Hashmap<HashKey *, Value> m_hashmap { TM::HashKeyHandler<HashKey *>::hash, compare, 10 }; // TODO: profile and tune this initial capacity
     bool m_is_iterating { false };
     bool m_is_comparing_by_identity { false };
     bool m_is_ruby2_keywords_hash { false };
