@@ -11,7 +11,7 @@ size_t HashKeyHandler<Natalie::HashKey *>::hash(Natalie::HashKey *key) {
 }
 
 // this is used by the hashmap library to compare keys
-bool HashKeyHandler<Natalie::HashKey *>::compare(Natalie::HashKey *&a, Natalie::HashKey *&b, void *env) {
+bool HashKeyHandler<Natalie::HashKey *>::compare(Natalie::HashKey *a, Natalie::HashKey *b, void *env) {
     assert(env);
 
     if (Natalie::Object::object_id(a->key) == Natalie::Object::object_id(b->key) && a->hash == b->hash)

@@ -37,7 +37,7 @@ namespace TM {
 template <>
 struct HashKeyHandler<Natalie::HashKey *> {
     static size_t hash(Natalie::HashKey *);
-    static bool compare(Natalie::HashKey *&, Natalie::HashKey *&, void *);
+    static bool compare(Natalie::HashKey *, Natalie::HashKey *, void *);
 };
 
 }

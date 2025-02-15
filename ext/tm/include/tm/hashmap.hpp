@@ -10,6 +10,7 @@
 
 #include "tm/macros.hpp"
 #include "tm/string.hpp"
+#include "tm/string_view.hpp"
 
 namespace TM {
 
@@ -62,7 +63,7 @@ struct HashKeyHandler<Pointer *> {
      * free(key2);
      * ```
      */
-    static bool compare(Pointer *&a, Pointer *&b, void *) {
+    static bool compare(Pointer *a, Pointer *b, void *) {
         return a == b;
     }
 };
@@ -91,6 +92,40 @@ struct HashKeyHandler<String> {
     }
 
     /**
+     * Returns a hash value for the given TM::StringView based on its contents.
+     * Return value should be the same as the equivalent TM::String
+     *
+     * ```
+     * String key1 { "foo" };
+     * StringView key2 { *key1 };
+     * assert_eq(
+     *   HashKeyHandler<String>::hash(key1),
+     *   HashKeyHandler<String>::hash(key2)
+     * );
+     * ```
+     */
+    static size_t hash(StringView str) {
+        return djb2_hash(str.dangerous_pointer_to_underlying_data(), str.length());
+    }
+
+    /**
+     * Returns a hash value for the given char* based on its contents.
+     * Return value should be the same as the equivalent TM::String
+     *
+     * ```
+     * String key1 { "foo" };
+     * const char key2 = "foo";
+     * assert_eq(
+     *   HashKeyHandler<String>::hash(key1),
+     *   HashKeyHandler<String>::hash(key2)
+     * );
+     * ```
+     */
+    static size_t hash(const char *c) {
+        return djb2_hash(c, strlen(c));
+    }
+
+    /**
      * Returns true if the two given TM:Strings have the same contents.
      * Null must be passed as the third argument.
      *
@@ -102,8 +137,47 @@ struct HashKeyHandler<String> {
      * assert_not(HashKeyHandler<String>::compare(key1, key3, nullptr));
      * ```
      */
-    static bool compare(String &a, String &b, void *) {
+    static bool compare(const String &a, const String &b, void *) {
         return a == b;
+    }
+
+    /**
+     * Returns true if the two given arguments have the same contents.
+     * Null must be passed as the third argument.
+     *
+     * ```
+     * auto key1 = String("foo");
+     * auto key2 = String("bar");
+     * auto sv = StringView { *key1 };
+     * assert(HashKeyHandler<String>::compare(sv, key1, nullptr));
+     * assert_not(HashKeyHandler<String>::compare(sv, key1, nullptr));
+     * ```
+     */
+    static bool compare(StringView a, const String &b, void *) {
+        return a == b;
+    }
+
+    /**
+     * Returns true if the two given arguments have the same contents.
+     * Null must be passed as the third argument.
+     *
+     * ```
+     * auto key1 = String("foo");
+     * auto key2 = String("bar");
+     * const char *charkey = "foo";
+     * assert(HashKeyHandler<String>::compare(sv, key1, nullptr));
+     * assert_not(HashKeyHandler<String>::compare(sv, key1, nullptr));
+     * ```
+     */
+    static bool compare(const char *a, const String &b, void *) {
+        return b == a;
+    }
+
+    static uint32_t djb2_hash(const char *c, const size_t len) {
+        size_t hash = 5381;
+        for (size_t i = 0; i < len; ++i)
+            hash = ((hash << 5) + hash) + c[i];
+        return hash;
     }
 };
 
@@ -292,8 +366,9 @@ public:
      * assert_eq(nullptr, map.get("foo"));
      * ```
      */
-    T get(KeyT key, void *data = nullptr) const {
-        auto hash = HashKeyHandler<KeyT>::hash(key);
+    template <typename KeyTArg>
+    T get(KeyTArg &&key, void *data = nullptr) const {
+        auto hash = HashKeyHandler<KeyT>::hash(std::forward<KeyTArg>(key));
         auto item = find_item(key, hash, data);
         if (item)
             return item->value;
@@ -331,13 +406,14 @@ public:
      * assert_eq(nullptr, item);
      * ```
      */
-    Item *find_item(KeyT key, size_t hash, void *data = nullptr) const {
+    template <typename KeyTArg>
+    Item *find_item(KeyTArg &&key, size_t hash, void *data = nullptr) const {
         if (m_size == 0) return nullptr;
         assert(m_map);
         auto index = index_for_hash(hash);
         auto item = m_map[index];
         while (item) {
-            if (hash == item->hash && HashKeyHandler<KeyT>::compare(key, item->key, data))
+            if (hash == item->hash && HashKeyHandler<KeyT>::compare(std::forward<KeyTArg>(key), item->key, data))
                 return item;
             item = item->next;
         }
@@ -355,8 +431,9 @@ public:
      * assert_not(map.get("bar"));
      * ```
      */
-    void set(KeyT key) {
-        put(key, this); // we just put a placeholder value, a pointer to this Hashmap
+    template <typename KeyTArg>
+    void set(KeyTArg &&key) {
+        put(std::forward<KeyTArg>(key), this); // we just put a placeholder value, a pointer to this Hashmap
     }
 
     /**
@@ -373,19 +450,20 @@ public:
      * If your custom compare function requires the additional 'data'
      * pointer, then pass it as the third parameter.
      */
-    void put(KeyT key, T value, void *data = nullptr) {
+    template <typename KeyTArg>
+    void put(KeyTArg &&key, T value, void *data = nullptr) {
         if (!m_map)
             m_map = new Item *[m_capacity] {};
         if (load_factor() > HASHMAP_MAX_LOAD_FACTOR)
             rehash();
-        auto hash = HashKeyHandler<KeyT>::hash(key);
+        auto hash = HashKeyHandler<KeyT>::hash(std::forward<KeyTArg>(key));
         Item *item;
-        if ((item = find_item(key, hash, data))) {
+        if ((item = find_item(std::forward<KeyTArg>(key), hash, data))) {
             item->value = value;
             return;
         }
         auto index = index_for_hash(hash);
-        auto new_item = new Item { key, value, hash };
+        auto new_item = new Item { std::forward<KeyTArg>(key), value, hash };
         insert_item(m_map, index, new_item);
         m_size++;
     }
@@ -417,20 +495,21 @@ public:
      * assert_eq(nullptr, map.remove("foo"));
      * ```
      */
-    T remove(KeyT key, void *data = nullptr) {
+    template <typename KeyTArg>
+    T remove(KeyTArg &&key, void *data = nullptr) {
         if (!m_map) {
             if constexpr (std::is_pointer_v<T>)
                 return nullptr;
             else
                 return {};
         }
-        auto hash = HashKeyHandler<KeyT>::hash(key);
+        auto hash = HashKeyHandler<KeyT>::hash(std::forward<KeyTArg>(key));
         auto index = index_for_hash(hash);
         auto item = m_map[index];
         if (item) {
             // m_map[index] = [item] -> item -> item
             //                ^ this one
-            if (hash == item->hash && HashKeyHandler<KeyT>::compare(key, item->key, data)) {
+            if (hash == item->hash && HashKeyHandler<KeyT>::compare(std::forward<KeyTArg>(key), item->key, data)) {
                 auto value = item->value;
                 delete_item(index, item);
                 return value;
@@ -439,7 +518,7 @@ public:
             while (chained_item) {
                 // m_map[index] = item -> [item] -> item
                 //                        ^ this one
-                if (hash == chained_item->hash && HashKeyHandler<KeyT>::compare(key, chained_item->key, data)) {
+                if (hash == chained_item->hash && HashKeyHandler<KeyT>::compare(std::forward<KeyTArg>(key), chained_item->key, data)) {
                     auto value = chained_item->value;
                     delete_item(item, chained_item);
                     return value;
