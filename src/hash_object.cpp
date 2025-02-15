@@ -10,19 +10,19 @@ size_t HashKeyHandler<Natalie::HashKey *>::hash(Natalie::HashKey *key) {
     return key->hash;
 }
 
+// this is used by the hashmap library to compare keys
+bool HashKeyHandler<Natalie::HashKey *>::compare(Natalie::HashKey *&a, Natalie::HashKey *&b, void *env) {
+    assert(env);
+
+    if (Natalie::Object::object_id(a->key) == Natalie::Object::object_id(b->key) && a->hash == b->hash)
+        return true;
+
+    return a->key.send((Natalie::Env *)env, Natalie::SymbolObject::intern("eql?"), { b->key }).is_truthy();
+}
+
 }
 
 namespace Natalie {
-
-// this is used by the hashmap library to compare keys
-bool HashObject::compare(HashKey *&a, HashKey *&b, void *env) {
-    assert(env);
-
-    if (object_id(a->key) == object_id(b->key) && a->hash == b->hash)
-        return true;
-
-    return a->key.send((Env *)env, "eql?"_s, { b->key }).is_truthy();
-}
 
 bool HashObject::is_ruby2_keywords_hash(Env *env, Value hash) {
     return hash.as_hash_or_raise(env)->m_is_ruby2_keywords_hash;
@@ -219,7 +219,7 @@ Value HashObject::initialize(Env *env, Value default_value, Value capacity, Bloc
     if (capacity) {
         const auto capacity_int = IntegerMethods::convert_to_native_type<ssize_t>(env, capacity);
         if (capacity_int > 0)
-            m_hashmap = TM::Hashmap<HashKey *, Value> { compare, static_cast<size_t>(capacity_int) };
+            m_hashmap = TM::Hashmap<HashKey *, Value> { TM::HashKeyHandler<HashKey *>::compare, static_cast<size_t>(capacity_int) };
     }
 
     if (block) {

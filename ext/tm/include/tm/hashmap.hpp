@@ -52,6 +52,24 @@ struct HashKeyHandler<Pointer *> {
         x = x ^ (x >> 31);
         return x;
     }
+
+    /**
+     * Returns true if the two given pointers are the same.
+     * The contents of the pointed-to object are not examined.
+     * Null must be passed as the third argument.
+     *
+     * ```
+     * auto key1 = strdup("foo");
+     * auto key2 = strdup("foo");
+     * assert_not(HashKeyHandler<char *>::compare(key1, key2, nullptr));
+     * assert(HashKeyHandler<char *>::compare(key1, key1, nullptr));
+     * free(key1);
+     * free(key2);
+     * ```
+     */
+    static bool compare(Pointer *&a, Pointer *&b, void *) {
+        return a == b;
+    }
 };
 
 template <>
@@ -75,6 +93,22 @@ struct HashKeyHandler<String> {
      */
     static size_t hash(const String &str) {
         return str.djb2_hash();
+    }
+
+    /**
+     * Returns true if the two given TM:Strings have the same contents.
+     * Null must be passed as the third argument.
+     *
+     * ```
+     * auto key1 = String("foo");
+     * auto key2 = String("foo");
+     * auto key3 = String("bar");
+     * assert(HashKeyHandler<String>::compare(key1, key2, nullptr));
+     * assert_not(HashKeyHandler<String>::compare(key1, key3, nullptr));
+     * ```
+     */
+    static bool compare(String &a, String &b, void *) {
+        return a == b;
     }
 };
 
@@ -100,8 +134,8 @@ public:
      * the initial capacity.
      *
      * ```
-     * auto compare_fn = &Hashmap<char*>::compare_ptr;
-     * auto map = Hashmap<char*, Thing>(compare_fn);
+     * auto compare_fn = &HashKeyHandler<char *>::compare;
+     * auto map = Hashmap<char *, Thing>(compare_fn);
      * auto key = strdup("foo");
      * map.put(key, Thing(1));
      * assert_eq(1, map.size());
@@ -152,51 +186,13 @@ public:
         : m_capacity { calculate_map_size(initial_capacity) } {
         switch (hash_type) {
         case HashType::Pointer:
-            m_compare_fn = &Hashmap::compare_ptr;
+            m_compare_fn = &HashKeyHandler<KeyT>::compare;
             break;
         case HashType::String:
-            m_compare_fn = &Hashmap::compare_tm_str;
+            m_compare_fn = &HashKeyHandler<KeyT>::compare;
             break;
         default:
             TM_UNREACHABLE();
-        }
-    }
-
-    /**
-     * Returns true if the two given pointers are the same.
-     * The contents of the pointed-to object are not examined.
-     * Null must be passed as the third argument.
-     *
-     * ```
-     * auto key1 = strdup("foo");
-     * auto key2 = strdup("foo");
-     * assert_not(Hashmap<char*>::compare_ptr(key1, key2, nullptr));
-     * assert(Hashmap<char*>::compare_ptr(key1, key1, nullptr));
-     * free(key1);
-     * free(key2);
-     * ```
-     */
-    static bool compare_ptr(KeyT &a, KeyT &b, void *) {
-        return a == b;
-    }
-
-    /**
-     * Returns true if the two given TM:Strings have the same contents.
-     * Null must be passed as the third argument.
-     *
-     * ```
-     * auto key1 = String("foo");
-     * auto key2 = String("foo");
-     * auto key3 = String("bar");
-     * assert(Hashmap<String>::compare_tm_str(key1, key2, nullptr));
-     * assert_not(Hashmap<String>::compare_tm_str(key1, key3, nullptr));
-     * ```
-     */
-    static bool compare_tm_str(KeyT &a, KeyT &b, void *) {
-        if constexpr (std::is_pointer_v<KeyT>) {
-            return false;
-        } else {
-            return ((const String &)a) == ((const String &)b);
         }
     }
 
