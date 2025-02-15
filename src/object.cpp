@@ -543,7 +543,7 @@ Value Object::public_send(Env *env, SymbolObject *name, Args &&args, Block *bloc
 
 Value Object::public_send(Env *env, Value self, Args &&args, Block *block) {
     auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
-    return self->public_send(env->caller(), name, std::move(args), block);
+    return self.public_send(env->caller(), name, std::move(args), block);
 }
 
 Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
