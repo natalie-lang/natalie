@@ -18,14 +18,63 @@ enum class HashType {
     String,
 };
 
-struct HashmapUtils {
-    static size_t hashmap_hash_ptr(uintptr_t ptr) {
+template <typename KeyT>
+struct HashKeyHandler {
+};
+
+template <typename Pointer>
+struct HashKeyHandler<Pointer *> {
+    /**
+     * Returns a hash value for the given pointer as if it were
+     * just a 64-bit number. The contents of the pointer are
+     * not examined.
+     *
+     * ```
+     * auto key1 = strdup("foo");
+     * auto key2 = strdup("foo");
+     * assert_neq(
+     *   HashKeyHandler<char *>::hash(key1),
+     *   HashKeyHandler<char *>::hash(key2)
+     * );
+     * assert_eq(
+     *   HashKeyHandler<char *>::hash(key1),
+     *   HashKeyHandler<char *>::hash(key1)
+     * );
+     * free(key1);
+     * free(key2);
+     * ```
+     */
+    static size_t hash(Pointer *&ptr) {
         // https://stackoverflow.com/a/12996028/197498
         auto x = (size_t)ptr;
         x = (x ^ (x >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
         x = (x ^ (x >> 27)) * UINT64_C(0x94d049bb133111eb);
         x = x ^ (x >> 31);
         return x;
+    }
+};
+
+template <>
+struct HashKeyHandler<String> {
+    /**
+     * Returns a hash value for the given TM::String based on its contents.
+     *
+     * ```
+     * String key1 { "foo" };
+     * String key2 { "foo" };
+     * String key3 { "bar" };
+     * assert_eq(
+     *   HashKeyHandler<String>::hash(key1),
+     *   HashKeyHandler<String>::hash(key2)
+     * );
+     * assert_neq(
+     *   HashKeyHandler<String>::hash(key1),
+     *   HashKeyHandler<String>::hash(key3)
+     * );
+     * ```
+     */
+    static size_t hash(String &str) {
+        return str.djb2_hash();
     }
 };
 
@@ -140,7 +189,7 @@ public:
      */
     static size_t hash_ptr(KeyT &ptr) {
         if constexpr (std::is_pointer_v<KeyT>)
-            return HashmapUtils::hashmap_hash_ptr((uintptr_t)ptr);
+            return HashKeyHandler<KeyT>::hash(ptr);
         else
             return 0;
     }
@@ -185,7 +234,7 @@ public:
             return 0;
         } else {
             auto str = (const String &)(ptr);
-            return str.djb2_hash();
+            return HashKeyHandler<KeyT>::hash(str);
         }
     }
 
