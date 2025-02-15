@@ -241,7 +241,7 @@ private:
     }
 
     HashKey *m_key_list { nullptr };
-    TM::Hashmap<HashKey *, Value> m_hashmap { TM::HashKeyHandler<HashKey *>::compare, 10 }; // TODO: profile and tune this initial capacity
+    TM::Hashmap<HashKey *, Value> m_hashmap { 10 }; // TODO: profile and tune this initial capacity
     bool m_is_iterating { false };
     bool m_is_comparing_by_identity { false };
     bool m_is_ruby2_keywords_hash { false };

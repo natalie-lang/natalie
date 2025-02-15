@@ -96,7 +96,7 @@ public:
     }
 
 private:
-    inline static TM::Hashmap<TM::String, SymbolObject *> s_symbols { TM::HashType::String, 1000 };
+    inline static TM::Hashmap<TM::String, SymbolObject *> s_symbols { 1000 };
     inline static regex_t *s_inspect_quote_regex { nullptr };
 
     SymbolObject(const String &name, EncodingObject *encoding)

@@ -13,11 +13,6 @@
 
 namespace TM {
 
-enum class HashType {
-    Pointer,
-    String,
-};
-
 template <typename KeyT>
 struct HashKeyHandler {
 };
@@ -115,8 +110,6 @@ struct HashKeyHandler<String> {
 template <typename KeyT, typename T = void *>
 class Hashmap {
 public:
-    using CompareFn = bool(KeyT &, KeyT &, void *);
-
     static constexpr size_t HASHMAP_MIN_LOAD_FACTOR = 25;
     static constexpr size_t HASHMAP_TARGET_LOAD_FACTOR = 50;
     static constexpr size_t HASHMAP_MAX_LOAD_FACTOR = 75;
@@ -130,85 +123,31 @@ public:
 
     /**
      * Constructs a Hashmap templated with key type and value type.
-     * Pass the hash function, compare function, and optionally,
-     * the initial capacity.
+     * Optionally pass the initial capacity.
      *
      * ```
-     * auto compare_fn = &HashKeyHandler<char *>::compare;
-     * auto map = Hashmap<char *, Thing>(compare_fn);
+     * auto map = Hashmap<char *, Thing>();
      * auto key = strdup("foo");
      * map.put(key, Thing(1));
      * assert_eq(1, map.size());
      * free(key);
      * ```
      */
-    Hashmap(CompareFn compare_fn, size_t initial_capacity = 10)
-        : m_capacity { calculate_map_size(initial_capacity) }
-        , m_compare_fn { compare_fn } { }
-
-    /**
-     * Constructs a Hashmap templated with key type and value type.
-     * By default, the Hashmap is configured to hash pointer keys
-     * using a simple identity function.
-     *
-     * ```
-     * auto map = Hashmap<char*, Thing>();
-     * auto key1 = strdup("foo");
-     * auto key2 = strdup(key1); // different pointer
-     * map.put(key1, Thing(1));
-     * map.put(key2, Thing(2));
-     * assert_eq(2, map.size()); // two different keys
-     * free(key1);
-     * free(key2);
-     * ```
-     *
-     * To use a TM::String as the key, specify HashType::String.
-     *
-     * ```
-     * auto map = Hashmap<String, Thing>(HashType::String);
-     * auto key1 = String("foo");
-     * auto key2 = String("foo");
-     * map.put(key1, Thing(1));
-     * map.put(key2, Thing(2));
-     * assert_eq(1, map.size()); // same key
-     * ```
-     *
-     * To use the Hashmap as a hash set (keys only), then you
-     * can specify only the key type and use set()/get().
-     *
-     * ```
-     * auto map = Hashmap<String>(HashType::String);
-     * map.set("foo");
-     * assert(map.get("foo"));
-     * ```
-     */
-    Hashmap(HashType hash_type = HashType::Pointer, size_t initial_capacity = 10)
-        : m_capacity { calculate_map_size(initial_capacity) } {
-        switch (hash_type) {
-        case HashType::Pointer:
-            m_compare_fn = &HashKeyHandler<KeyT>::compare;
-            break;
-        case HashType::String:
-            m_compare_fn = &HashKeyHandler<KeyT>::compare;
-            break;
-        default:
-            TM_UNREACHABLE();
-        }
-    }
+    Hashmap(size_t initial_capacity = 10)
+        : m_capacity { calculate_map_size(initial_capacity) } { }
 
     /**
      * Copies the given Hashmap.
      *
      * ```
-     * auto map1 = Hashmap<String, Thing>(HashType::String);
+     * auto map1 = Hashmap<String, Thing>();
      * map1.put("foo", Thing(1));
      * auto map2 = Hashmap<String, Thing>(map1);
      * assert_eq(Thing(1), map2.get("foo"));
      * ```
      */
     Hashmap(const Hashmap &other)
-        : m_capacity { other.m_capacity }
-        , m_compare_fn { other.m_compare_fn } {
+        : m_capacity { other.m_capacity } {
         m_map = new Item *[m_capacity] {};
         copy_items_from(other);
     }
@@ -217,7 +156,7 @@ public:
      * Creates a new Hashmap from another Hashmap, and clear the input
      *
      * ```
-     * auto map1 = Hashmap<String, Thing>(HashType::String);
+     * auto map1 = Hashmap<String, Thing>();
      * map1.put("foo", Thing(1));
      * auto map2 = Hashmap<String, Thing>(std::move(map1));
      * assert_eq(Thing(1), map2.get("foo"));
@@ -228,7 +167,6 @@ public:
         m_size = other.m_size;
         m_capacity = other.m_capacity;
         m_map = other.m_map;
-        m_compare_fn = other.m_compare_fn;
         other.m_size = 0;
         other.m_capacity = 0;
         other.m_map = nullptr;
@@ -238,9 +176,9 @@ public:
      * Overwrites this Hashmap with another.
      *
      * ```
-     * auto map1 = Hashmap<String, Thing>(HashType::String);
+     * auto map1 = Hashmap<String, Thing>();
      * map1.put("foo", Thing(1));
-     * auto map2 = Hashmap<String, Thing>(HashType::String);
+     * auto map2 = Hashmap<String, Thing>();
      * map2.put("foo", Thing(2));
      * map1 = map2;
      * assert_eq(Thing(2), map1.get("foo"));
@@ -248,7 +186,6 @@ public:
      */
     Hashmap &operator=(const Hashmap &other) {
         m_capacity = other.m_capacity;
-        m_compare_fn = other.m_compare_fn;
         if (m_map) {
             clear();
             delete[] m_map;
@@ -262,9 +199,9 @@ public:
      * Moves data from another Hashmap onto this one.
      *
      * ```
-     * auto map1 = Hashmap<String, Thing>(HashType::String);
+     * auto map1 = Hashmap<String, Thing>();
      * map1.put("foo", Thing(1));
-     * auto map2 = Hashmap<String, Thing>(HashType::String);
+     * auto map2 = Hashmap<String, Thing>();
      * map2.put("foo", Thing(2));
      * map1 = std::move(map2);
      * assert_eq(Thing(2), map1.get("foo"));
@@ -279,7 +216,6 @@ public:
         m_size = other.m_size;
         m_capacity = other.m_capacity;
         m_map = other.m_map;
-        m_compare_fn = other.m_compare_fn;
         other.m_size = 0;
         other.m_capacity = 0;
         other.m_map = nullptr;
@@ -334,7 +270,7 @@ public:
      * use the data pointer.)
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::String);
+     * auto map = Hashmap<String, Thing>();
      * map.put("foo", Thing(1));
      * assert_eq(Thing(1), map.get("foo"));
      * ```
@@ -343,7 +279,7 @@ public:
      * then a default-constructed object is returned.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::String);
+     * auto map = Hashmap<String, Thing>();
      * assert_eq(Thing(0), map.get("foo"));
      * ```
      *
@@ -352,7 +288,7 @@ public:
      * is returned.
      *
      * ```
-     * auto map = Hashmap<String, const char*>(HashType::String);
+     * auto map = Hashmap<String, const char*>();
      * assert_eq(nullptr, map.get("foo"));
      * ```
      */
@@ -378,7 +314,7 @@ public:
      *
      * ```
      * auto key = String("foo");
-     * auto map = Hashmap<String, Thing>(HashType::String);
+     * auto map = Hashmap<String, Thing>();
      * map.put(key, Thing(1));
      * auto hash = HashKeyHandler<String>::hash(key);
      * auto item = map.find_item(key, hash);
@@ -389,7 +325,7 @@ public:
      *
      * ```
      * auto key = String("foo");
-     * auto map = Hashmap<String, Thing>(HashType::String);
+     * auto map = Hashmap<String, Thing>();
      * auto hash = HashKeyHandler<String>::hash(key);
      * auto item = map.find_item(key, hash);
      * assert_eq(nullptr, item);
@@ -401,7 +337,7 @@ public:
         auto index = index_for_hash(hash);
         auto item = m_map[index];
         while (item) {
-            if (hash == item->hash && m_compare_fn(key, item->key, data))
+            if (hash == item->hash && HashKeyHandler<KeyT>::compare(key, item->key, data))
                 return item;
             item = item->next;
         }
@@ -413,7 +349,7 @@ public:
      * Use this if you don't care about storing/retrieving values.
      *
      * ```
-     * auto map = Hashmap<String>(HashType::String);
+     * auto map = Hashmap<String>();
      * map.set("foo");
      * assert(map.get("foo"));
      * assert_not(map.get("bar"));
@@ -427,7 +363,7 @@ public:
      * Puts the given value at the given key in the Hashmap.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::String);
+     * auto map = Hashmap<String, Thing>();
      * map.put("foo", Thing(1));
      * assert_eq(Thing(1), map.get("foo"));
      * map.put("foo", Thing(2));
@@ -458,7 +394,7 @@ public:
      * Removes and returns the value at the given key.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::String);
+     * auto map = Hashmap<String, Thing>();
      * map.put("foo", Thing(1));
      * assert_eq(Thing(1), map.remove("foo"));
      * assert_eq(Thing(), map.remove("foo"));
@@ -468,7 +404,7 @@ public:
      * then a default-constructed object is returned.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::String);
+     * auto map = Hashmap<String, Thing>();
      * assert_eq(Thing(0), map.remove("foo"));
      * ```
      *
@@ -477,7 +413,7 @@ public:
      * is returned.
      *
      * ```
-     * auto map = Hashmap<String, const char*>(HashType::String);
+     * auto map = Hashmap<String, const char*>();
      * assert_eq(nullptr, map.remove("foo"));
      * ```
      */
@@ -494,7 +430,7 @@ public:
         if (item) {
             // m_map[index] = [item] -> item -> item
             //                ^ this one
-            if (hash == item->hash && m_compare_fn(key, item->key, data)) {
+            if (hash == item->hash && HashKeyHandler<KeyT>::compare(key, item->key, data)) {
                 auto value = item->value;
                 delete_item(index, item);
                 return value;
@@ -503,7 +439,7 @@ public:
             while (chained_item) {
                 // m_map[index] = item -> [item] -> item
                 //                        ^ this one
-                if (hash == chained_item->hash && m_compare_fn(key, chained_item->key, data)) {
+                if (hash == chained_item->hash && HashKeyHandler<KeyT>::compare(key, chained_item->key, data)) {
                     auto value = chained_item->value;
                     delete_item(item, chained_item);
                     return value;
@@ -522,7 +458,7 @@ public:
      * Removes all keys/values from the Hashmap.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::String);
+     * auto map = Hashmap<String, Thing>();
      * map.put("foo", Thing(1));
      * assert_eq(1, map.size());
      * map.clear();
@@ -547,7 +483,7 @@ public:
      * Returns the number of values stored in the Hashmap.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::String);
+     * auto map = Hashmap<String, Thing>();
      * map.put("foo", Thing(1));
      * assert_eq(1, map.size());
      * ```
@@ -558,7 +494,7 @@ public:
      * Returns true if there are zero values stored in the Hashmap.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::String);
+     * auto map = Hashmap<String, Thing>();
      * assert(map.is_empty());
      * map.put("foo", Thing(1));
      * assert_not(map.is_empty());
@@ -636,7 +572,7 @@ public:
      * value, respectively.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::String);
+     * auto map = Hashmap<String, Thing>();
      * map.put("foo", Thing(1));
      * for (std::pair item : map) {
      *     assert_str_eq("foo", item.first);
@@ -662,7 +598,7 @@ public:
      * Otherwise works the same as a non-const iterator.
      *
      * ```
-     * auto map = Hashmap<String, Thing>(HashType::String);
+     * auto map = Hashmap<String, Thing>();
      * map.put("foo", Thing(1));
      * const auto const_map = map;
      * for (std::pair item : const_map) {
@@ -786,7 +722,6 @@ private:
     size_t m_capacity { 0 };
     Item **m_map { nullptr };
 
-    CompareFn *m_compare_fn { nullptr };
     CleanupFn *m_cleanup_fn { nullptr };
 };
 }
