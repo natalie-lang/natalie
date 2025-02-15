@@ -57,7 +57,7 @@ private:
         while (token.star ? !at_end() : consumed < token.count) {
             if ((m_index + sizeof(T)) > m_source->length()) {
                 if (!token.star)
-                    append(NilObject::the());
+                    append(Value::nil());
                 m_index++;
             } else {
                 // reverse a character buffer based on endianness
@@ -88,7 +88,7 @@ private:
         while (token.star ? !at_end() : consumed < token.count) {
             if ((m_index + sizeof(T)) > m_source->length()) {
                 if (!token.star)
-                    append(NilObject::the());
+                    append(Value::nil());
                 m_index++;
             } else {
                 // NATFIXME: this method of fixing endianness may not be efficient

@@ -13,7 +13,6 @@
 #include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
-#include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
 #include "natalie/thread_object.hpp"

@@ -61,7 +61,7 @@ Value RationalObject::cmp(Env *env, Value other) {
         auto result = Natalie::coerce(env, other, this);
         return result.first.send(env, "<=>"_s, { result.second });
     }
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value RationalObject::coerce(Env *env, Value other) {

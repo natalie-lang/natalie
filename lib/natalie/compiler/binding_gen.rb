@@ -322,7 +322,7 @@ class BindingGen
       when :size_t
         'return IntegerMethods::from_size_t(env, return_value);'
       when :Object
-        "if (!return_value) return NilObject::the();\nreturn return_value;"
+        "if (!return_value) return Value::nil();\nreturn return_value;"
       else
         raise "Unknown return type: #{return_type.inspect}"
       end
@@ -1103,19 +1103,19 @@ gen.binding('Module', 'to_s', 'ModuleObject', 'inspect', argc: 0, pass_env: true
 gen.binding('Module', 'undef_method', 'ModuleObject', 'undef_method', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('NilClass', 'new')
-gen.static_binding_as_instance_method('NilClass', '&', 'NilObject', 'and_method', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
-gen.static_binding_as_instance_method('NilClass', '|', 'NilObject', 'or_method', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
-gen.static_binding_as_instance_method('NilClass', '^', 'NilObject', 'or_method', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
-gen.static_binding_as_instance_method('NilClass', '=~', 'NilObject', 'eqtilde', argc: 1, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('NilClass', 'inspect', 'NilObject', 'inspect', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('NilClass', 'rationalize', 'NilObject', 'rationalize', argc: 0..1, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('NilClass', 'to_a', 'NilObject', 'to_a', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('NilClass', 'to_c', 'NilObject', 'to_c', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('NilClass', 'to_f', 'NilObject', 'to_f', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('NilClass', 'to_h', 'NilObject', 'to_h', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('NilClass', 'to_i', 'NilObject', 'to_i', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('NilClass', 'to_r', 'NilObject', 'to_r', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('NilClass', 'to_s', 'NilObject', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('NilClass', '&', 'NilMethods', 'and_method', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('NilClass', '|', 'NilMethods', 'or_method', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('NilClass', '^', 'NilMethods', 'or_method', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('NilClass', '=~', 'NilMethods', 'eqtilde', argc: 1, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('NilClass', 'inspect', 'NilMethods', 'inspect', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('NilClass', 'rationalize', 'NilMethods', 'rationalize', argc: 0..1, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('NilClass', 'to_a', 'NilMethods', 'to_a', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('NilClass', 'to_c', 'NilMethods', 'to_c', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('NilClass', 'to_f', 'NilMethods', 'to_f', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('NilClass', 'to_h', 'NilMethods', 'to_h', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('NilClass', 'to_i', 'NilMethods', 'to_i', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('NilClass', 'to_r', 'NilMethods', 'to_r', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('NilClass', 'to_s', 'NilMethods', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
 gen.static_binding_as_instance_method('Object', 'nil?', 'KernelModule', 'is_nil', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.static_binding_as_instance_method('Object', 'itself', 'Object', 'itself', argc: 0, pass_env: false, pass_block: false, return_type: :Object)

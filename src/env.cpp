@@ -9,7 +9,7 @@ using namespace TM;
 thread_local ExceptionObject *tl_current_exception = nullptr;
 
 void Env::build_vars(size_t size) {
-    m_vars = new ManagedVector<Value>(size, NilObject::the());
+    m_vars = new ManagedVector<Value>(size, Value::nil());
 }
 
 bool Env::global_defined(SymbolObject *name) {
@@ -33,21 +33,21 @@ Value Env::global_alias(SymbolObject *new_name, SymbolObject *old_name) {
 Value Env::output_file_separator() {
     Value fsep = global_get("$,"_s);
     if (fsep) return fsep;
-    return NilObject::the();
+    return Value::nil();
 }
 
 // Return the record separator `$\` or nil
 Value Env::output_record_separator() {
     Value rsep = global_get("$\\"_s);
     if (rsep) return rsep;
-    return NilObject::the();
+    return Value::nil();
 }
 
 // Return the last line `$_` or nil
 Value Env::last_line() {
     Value last_line = global_get("$_"_s);
     if (last_line) return last_line;
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value Env::set_last_line(Value val) {
@@ -302,7 +302,7 @@ Value Env::last_match() {
     Env *env = non_block_env();
     if (env->m_match)
         return env->m_match;
-    return NilObject::the();
+    return Value::nil();
 }
 
 bool Env::has_last_match() {
@@ -316,7 +316,7 @@ void Env::set_last_match(MatchDataObject *match) {
 Value Env::exception_object() {
     auto e = exception();
     if (!e)
-        return NilObject::the();
+        return Value::nil();
     return e;
 }
 
@@ -346,12 +346,12 @@ Value Env::var_get(const char *name, size_t index) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (!m_vars || index >= m_vars->size())
-        return NilObject::the();
+        return Value::nil();
     Value val = m_vars->at(index);
     if (val) {
         return val;
     } else {
-        return NilObject::the();
+        return Value::nil();
     }
 }
 
@@ -366,7 +366,7 @@ Value Env::var_set(const char *name, size_t index, bool allocate, Value val) {
             if (!m_vars) {
                 build_vars(needed);
             } else {
-                m_vars->set_size(needed, NilObject::the());
+                m_vars->set_size(needed, Value::nil());
             }
         } else {
             printf("Tried to set a variable without first allocating space for it.\n");

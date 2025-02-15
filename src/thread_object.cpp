@@ -153,7 +153,7 @@ Value ThreadObject::pass(Env *env) {
 
     sched_yield();
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 ThreadObject *ThreadObject::current() {
@@ -169,7 +169,7 @@ Value ThreadObject::thread_kill(Env *env, Value thread) {
 
 Value ThreadObject::stop(Env *env) {
     tl_current_thread->sleep(env, -1.0);
-    return NilObject::the();
+    return Value::nil();
 }
 
 bool ThreadObject::is_stopped() const {
@@ -277,7 +277,7 @@ Value ThreadObject::status(Env *env) {
     auto status_string = status();
     if (m_status == Status::Dead) {
         if (m_exception)
-            return NilObject::the();
+            return Value::nil();
         return FalseObject::the();
     }
     return new StringObject { status_string };
@@ -363,7 +363,7 @@ Value ThreadObject::kill(Env *env) {
 
 Value ThreadObject::raise(Env *env, Args &&args) {
     if (m_status == Status::Dead)
-        return NilObject::the();
+        return Value::nil();
 
     auto exception = ExceptionObject::create_for_raise(env, std::move(args), nullptr, false);
 
@@ -382,12 +382,12 @@ Value ThreadObject::raise(Env *env, Args &&args) {
     // we may need to interrupt it (and all other threads, incidentally).
     ThreadObject::wake_all();
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value ThreadObject::run(Env *env) {
     wakeup(env);
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value ThreadObject::wakeup(Env *env) {
@@ -467,21 +467,21 @@ Value ThreadObject::value(Env *env) {
     join(env);
 
     if (!m_value)
-        return NilObject::the();
+        return Value::nil();
 
     return m_value;
 }
 
 Value ThreadObject::name(Env *env) {
     if (!m_name)
-        return NilObject::the();
+        return Value::nil();
     return new StringObject { *m_name };
 }
 
 Value ThreadObject::set_name(Env *env, Value name) {
     if (!name || name.is_nil()) {
         m_name.clear();
-        return NilObject::the();
+        return Value::nil();
     }
 
     auto name_str = name.to_str(env);
@@ -550,7 +550,7 @@ Value ThreadObject::ref(Env *env, Value key) {
     if (m_current_fiber)
         hash = m_current_fiber->thread_storage();
     if (!hash)
-        return NilObject::the();
+        return Value::nil();
     return hash->ref(env, key);
 }
 
@@ -572,7 +572,7 @@ bool ThreadObject::has_thread_variable(Env *env, Value key) const {
 Value ThreadObject::thread_variable_get(Env *env, Value key) {
     key = validate_key(env, key);
     if (!m_thread_variables)
-        return NilObject::the();
+        return Value::nil();
     return m_thread_variables->ref(env, key);
 }
 

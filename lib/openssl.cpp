@@ -488,7 +488,7 @@ Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
     if (self->is_frozen())
-        return NilObject::the();
+        return Value::nil();
 
     self->freeze();
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s).as_void_p()->void_ptr());
@@ -572,7 +572,7 @@ Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args &&args, Block *) 
 
 Value OpenSSL_SSL_SSLSocket_set_hostname(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
-    Value hostname = NilObject::the();
+    Value hostname = Value::nil();
     const char *hostname_cstr = nullptr;
 
     if (!args[0].is_nil()) {
@@ -593,13 +593,13 @@ Value OpenSSL_SSL_SSLSocket_read(Env *env, Value self, Args &&args, Block *) {
     auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s).as_void_p()->void_ptr());
     size_t buf_size = 1024;
     bool has_size_arg = false;
-    if (!args.at(0, NilObject::the()).is_nil()) {
+    if (!args.at(0, Value::nil()).is_nil()) {
         has_size_arg = true;
         buf_size = IntegerMethods::convert_to_native_type<size_t>(env, args[0]);
     }
     TM::String buf(buf_size, '\0');
     StringObject *result;
-    if (args.at(1, NilObject::the()).is_nil()) {
+    if (args.at(1, Value::nil()).is_nil()) {
         result = new StringObject {};
     } else {
         result = args[1].to_str(env);
@@ -758,7 +758,7 @@ Value OpenSSL_X509_Certificate_not_after(Env *env, Value self, Args &&args, Bloc
         OpenSSL_raise_error(env, "X509_get0_notAfter");
     tm tm;
     if (!ASN1_TIME_to_tm(time, &tm))
-        return NilObject::the();
+        return Value::nil();
 
     auto Time = find_top_level_const(env, "Time"_s).as_class();
     time_t time_since_epoch = mktime(&tm);
@@ -796,7 +796,7 @@ Value OpenSSL_X509_Certificate_not_before(Env *env, Value self, Args &&args, Blo
         OpenSSL_raise_error(env, "X509_get0_notBefore");
     tm tm;
     if (!ASN1_TIME_to_tm(time, &tm))
-        return NilObject::the();
+        return Value::nil();
 
     auto Time = find_top_level_const(env, "Time"_s).as_class();
     time_t time_since_epoch = mktime(&tm);
@@ -1107,7 +1107,7 @@ Value init_openssl(Env *env, Value self) {
     Object::define_singleton_method(env, KDF, "pbkdf2_hmac"_s, OpenSSL_KDF_pbkdf2_hmac, -1);
     Object::define_singleton_method(env, KDF, "scrypt"_s, OpenSSL_KDF_scrypt, -1);
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
@@ -1116,7 +1116,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
         OpenSSL_raise_error(env, "BN_secure_new");
     self->ivar_set(env, "@bn"_s, new VoidPObject { bn, OpenSSL_BN_cleanup });
 
-    auto arg = args.at(0, NilObject::the());
+    auto arg = args.at(0, Value::nil());
     if (arg.is_a(env, self.klass())) {
         args.ensure_argc_is(env, 1);
         auto from = static_cast<BIGNUM *>(args[0]->ivar_get(env, "@bn"_s).as_void_p()->void_ptr());
@@ -1288,7 +1288,7 @@ Value OpenSSL_X509_Name_cmp(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto other = args[0];
     if (!other.is_a(env, self.klass()))
-        return NilObject::the();
+        return Value::nil();
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s).as_void_p()->void_ptr());
     auto other_name = static_cast<X509_NAME *>(other->ivar_get(env, "@name"_s).as_void_p()->void_ptr());
     return Value::integer(X509_NAME_cmp(name, other_name));
@@ -1324,7 +1324,7 @@ Value OpenSSL_X509_Store_set_default_paths(Env *env, Value self, Args &&args, Bl
     auto store = static_cast<X509_STORE *>(self->ivar_get(env, "@store"_s).as_void_p()->void_ptr());
     if (!X509_STORE_set_default_paths(store))
         OpenSSL_X509_Store_raise_error(env, "X509_STORE_set_default_paths");
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value OpenSSL_X509_Store_verify(Env *env, Value self, Args &&args, Block *) {

@@ -232,7 +232,7 @@ Value IntegerMethods::cmp(Env *env, Integer self, Value arg) {
 
     // Check if comparable
     if (!is_comparable_with(arg))
-        return NilObject::the();
+        return Value::nil();
 
     if (lt(env, self, arg)) {
         return Value::integer(-1);

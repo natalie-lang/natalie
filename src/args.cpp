@@ -88,14 +88,14 @@ ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_c
         if (max_count != -1 && count > max_count)
             ary->truncate(max_count);
         else if (count < min_count)
-            ary->fill(env, NilObject::the(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);
+            ary->fill(env, Value::nil(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);
         return ary;
     }
     auto len = max_count >= 0 ? std::min(m_args_size, (size_t)max_count) : m_args_size;
     auto ary = new ArrayObject { len, tl_current_arg_stack->data() + m_args_start_index };
     ssize_t count = ary->size();
     if (count < min_count)
-        ary->fill(env, NilObject::the(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);
+        ary->fill(env, Value::nil(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);
     return ary;
 }
 
@@ -165,7 +165,7 @@ void Args::pop_empty_keyword_hash() {
 Value Args::keyword_arg(Env *env, SymbolObject *name) const {
     auto hash = keyword_hash();
     if (!hash)
-        return NilObject::the();
+        return Value::nil();
     return hash->get(env, name);
 }
 

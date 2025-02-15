@@ -29,10 +29,10 @@ module Natalie
 
         if @meta.fetch(:captured)
           @meta[:declared] = true
-          transform.exec("#{env}->var_set(#{name.to_s.inspect}, #{index}, true, NilObject::the())")
+          transform.exec("#{env}->var_set(#{name.to_s.inspect}, #{index}, true, Value::nil())")
         else
           @meta[:declared] = true
-          transform.exec("Value #{@meta[:name]} = NilObject::the()")
+          transform.exec("Value #{@meta[:name]} = Value::nil()")
         end
       end
 

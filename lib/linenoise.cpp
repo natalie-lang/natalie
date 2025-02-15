@@ -16,7 +16,7 @@ Value Linenoise_add_history(Env *env, Value self, Args &&args, Block *) {
 Value Linenoise_clear_screen(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     linenoiseClearScreen();
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value Linenoise_get_history(Env *env, Value self, Args &&args, Block *) {
@@ -45,7 +45,7 @@ Value Linenoise_load_history(Env *env, Value self, Args &&args, Block *) {
 
     linenoiseHistoryLoad(path.c_str());
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value Linenoise_readline(Env *env, Value self, Args &&args, Block *) {
@@ -56,7 +56,7 @@ Value Linenoise_readline(Env *env, Value self, Args &&args, Block *) {
     auto line = linenoise(prompt.c_str());
 
     if (!line)
-        return NilObject::the();
+        return Value::nil();
 
     return new StringObject { line };
 }
@@ -67,7 +67,7 @@ Value Linenoise_save_history(Env *env, Value self, Args &&args, Block *) {
 
     linenoiseHistorySave(path.c_str());
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 static void completion_callback(const char *edit_buffer, linenoiseCompletions *completions) {
@@ -89,7 +89,7 @@ Value Linenoise_set_completion_callback(Env *env, Value self, Args &&args, Block
 
     linenoiseSetCompletionCallback(completion_callback);
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 static void free_hints_callback(void *hint) {
@@ -127,7 +127,7 @@ Value Linenoise_set_hints_callback(Env *env, Value self, Args &&args, Block *) {
     linenoiseSetHintsCallback(hints_callback);
     linenoiseSetFreeHintsCallback(free_hints_callback);
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 static const char *highlight_callback(const char *edit_buffer, int *length) {
@@ -149,7 +149,7 @@ Value Linenoise_set_highlight_callback(Env *env, Value self, Args &&args, Block 
 
     linenoiseSetHighlightCallback(highlight_callback);
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value Linenoise_set_history(Env *env, Value self, Args &&args, Block *) {
@@ -196,5 +196,5 @@ Value init_linenoise(Env *env, Value self) {
     Object::define_singleton_method(env, Linenoise, "readline"_s, Linenoise_readline, 1);
     Object::define_singleton_method(env, Linenoise, "save_history"_s, Linenoise_save_history, 1);
 
-    return NilObject::the();
+    return Value::nil();
 }

@@ -17,7 +17,7 @@ Value FloatObject::is_infinite(Env *env) const {
     } else if (is_negative_infinity()) {
         return Value::integer(-1);
     } else {
-        return NilObject::the();
+        return Value::nil();
     }
 }
 
@@ -140,7 +140,7 @@ Value FloatObject::cmp(Env *env, Value rhs) {
     auto call_is_infinite = [&](Value value) -> Value {
         if (value.respond_to(env, infinite_sym))
             return value.send(env, infinite_sym);
-        return NilObject::the();
+        return Value::nil();
     };
 
     if (is_positive_infinity()) {
@@ -162,10 +162,10 @@ Value FloatObject::cmp(Env *env, Value rhs) {
     }
 
     if (!lhs.is_float()) return lhs.send(env, "<=>"_s, { rhs });
-    if (!rhs.is_float()) return NilObject::the();
+    if (!rhs.is_float()) return Value::nil();
 
     if (lhs.as_float()->is_nan() || rhs.as_float()->is_nan()) {
-        return NilObject::the();
+        return Value::nil();
     }
 
     double lhs_d = lhs.as_float()->to_double();

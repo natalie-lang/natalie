@@ -4,7 +4,7 @@
 using namespace Natalie;
 
 Value init_nonblock(Env *env, Value self) {
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value IO_is_nonblock(Env *env, Value self, Args &&args, Block *) {

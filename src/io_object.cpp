@@ -105,7 +105,7 @@ Value IoObject::advise(Env *env, Value advice, Value offset, Value len) {
         env->raise("NotImplementedError", "Unsupported advice: {}", advice.as_symbol()->string());
     }
 #endif
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value IoObject::binread(Env *env, Value filename, Value length, Value offset) {
@@ -381,7 +381,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
                     return buffer;
                 return new StringObject { "", 0, Encoding::ASCII_8BIT };
             }
-            return NilObject::the();
+            return Value::nil();
         } else if (buffer != nullptr) {
             buffer.as_string()->set_str(buf.c_str(), static_cast<size_t>(bytes_read));
             return buffer;
@@ -566,8 +566,8 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
             chunk = read(env, limit, nullptr);
             if (chunk.is_nil()) {
                 if (line->is_empty()) {
-                    env->set_last_line(NilObject::the());
-                    return NilObject::the();
+                    env->set_last_line(Value::nil());
+                    return Value::nil();
                 }
                 break;
             }
@@ -594,13 +594,13 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
 
 Value IoObject::get_path() const {
     if (m_path == nullptr)
-        return NilObject::the();
+        return Value::nil();
     return new StringObject { *m_path };
 }
 
 Value IoObject::pid(Env *env) const {
     if (m_pid == -1)
-        return NilObject::the();
+        return Value::nil();
     raise_if_closed(env);
     return Value::integer(m_pid);
 }
@@ -680,7 +680,7 @@ Value IoObject::puts(Env *env, Args &&args) {
             this->puts(env, args[i]);
         }
     }
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value IoObject::print(Env *env, Args &&args) {
@@ -698,7 +698,7 @@ Value IoObject::print(Env *env, Args &&args) {
     }
     auto rsep = env->output_record_separator();
     if (!rsep.is_nil()) write(env, rsep);
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value IoObject::pwrite(Env *env, Value data, Value offset) {
@@ -715,12 +715,12 @@ Value IoObject::pwrite(Env *env, Value data, Value offset) {
 
 Value IoObject::close(Env *env) {
     if (m_closed || !m_autoclose)
-        return NilObject::the();
+        return Value::nil();
 
     m_closed = true;
 
     if (m_fileno == STDIN_FILENO || m_fileno == STDOUT_FILENO || m_fileno == STDERR_FILENO)
-        return NilObject::the();
+        return Value::nil();
 
     // Wake up all threads in case one is blocking on a read to this fd.
     // It is undefined behavior on Linux to continue a read() or select()
@@ -739,7 +739,7 @@ Value IoObject::close(Env *env) {
 
     m_fileno = -1;
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
@@ -884,7 +884,7 @@ Value IoObject::try_convert(Env *env, Value val) {
                 io.klass()->inspect_str());
         return io;
     }
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value IoObject::ungetbyte(Env *env, Value byte) {
@@ -892,7 +892,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
     if (!is_readable(m_fileno))
         env->raise("IOError", "not opened for reading");
     if (!byte || byte.is_nil())
-        return NilObject::the();
+        return Value::nil();
     if (byte.is_integer()) {
         nat_int_t value = 0xff;
         if (!byte.integer().is_bignum()) {
@@ -904,7 +904,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
         const auto &value = byte.to_str(env)->string();
         m_read_buffer.prepend(value);
     }
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value IoObject::ungetc(Env *env, Value c) {
@@ -917,10 +917,10 @@ Value IoObject::wait(Env *env, Args &&args) {
     raise_if_closed(env);
 
     nat_int_t events = 0;
-    Value timeout = NilObject::the();
+    Value timeout = Value::nil();
     bool return_self = false;
 
-    if (args.size() == 2 && args.at(0, NilObject::the()).is_integer() && args.at(1, NilObject::the()).is_numeric()) {
+    if (args.size() == 2 && args.at(0, Value::nil()).is_integer() && args.at(1, Value::nil()).is_numeric()) {
         events = args[0].to_int(env).to_nat_int_t();
         timeout = args[1];
 
@@ -971,7 +971,7 @@ Value IoObject::wait(Env *env, Args &&args) {
     }
 
     if (result == 0)
-        return NilObject::the();
+        return Value::nil();
     if (return_self)
         return this;
     return Value::integer(result);
@@ -1148,7 +1148,7 @@ Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_io
         env->raise_errno();
 
     if (result == 0)
-        return NilObject::the();
+        return Value::nil();
 
     FD_CLR(wake_pipe_fileno, &read_fds);
 
