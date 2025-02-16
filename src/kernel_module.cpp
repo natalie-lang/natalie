@@ -458,7 +458,7 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
             if (exception)
                 env->raise("FloatDomainError", "{}", float_obj->to_s());
             else
-                return Value(Value::nil());
+                return Value::nil();
         }
     }
 
@@ -477,7 +477,7 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
     if (exception)
         env->raise("TypeError", "can't convert {} into Integer", value.klass()->inspect_str());
     else
-        return Value(Value::nil());
+        return Value::nil();
 }
 
 Value KernelModule::Float(Env *env, Value value, Value exception) {

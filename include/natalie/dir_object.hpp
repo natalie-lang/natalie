@@ -34,7 +34,7 @@ public:
     }
 
     static Value size_fn(Env *env, Value self, Args &&, Block *) {
-        return Value(Value::nil());
+        return Value::nil();
     }
 
     Value children(Env *env); // for internal use

@@ -61,7 +61,7 @@ module Natalie
         end
 
         def push_nil
-          @stack << 'Value(Value::nil())'
+          @stack << 'Value::nil()'
         end
 
         def pop
