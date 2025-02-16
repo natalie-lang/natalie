@@ -160,7 +160,6 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 | `dtoa.c`         | David M. Gay, Lucent Technologies | custom permissive |
 | `erb/util.rb`    | Masatoshi SEKI                    | BSD               |
 | `ipaddr.rb`      | Hajimu Umemoto and Akinori Musha  | BSD               |
-| `json-c`         | Eric Haszlakiewicz                | MIT               |
 | `find.rb`        | Kazuki Tsujimoto                  | BSD               |
 | `formatter.rb`   | Yukihiro Matsumoto                | BSD               |
 | `linenoise`      | S. Sanfilippo and P. Noordhuis    | BSD               |
