@@ -22,24 +22,24 @@ ArrayObject::ArrayObject(std::initializer_list<Value> list)
     }
 }
 
-Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
+Value ArrayObject::initialize(Env *env, Optional<Value> size_arg, Optional<Value> value_arg, Block *block) {
     this->assert_not_frozen(env);
 
-    if (!size && !value && block)
+    if (!size_arg && !value_arg && block)
         env->verbose_warn("given block not used");
 
-    if (!size) {
+    if (!size_arg)
         return initialize_copy(env, new ArrayObject);
-    }
 
-    if (!value) {
+    auto size = size_arg.value();
+
+    if (!value_arg) {
         auto to_ary = "to_ary"_s;
         if (!size.is_array() && size.respond_to(env, to_ary))
             size = size.send(env, to_ary);
 
-        if (size.is_array()) {
+        if (size.is_array())
             return initialize_copy(env, size);
-        }
     }
 
     auto size_integer = size.to_int(env);
@@ -52,7 +52,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
         env->raise("ArgumentError", "negative argument");
 
     if (block) {
-        if (value)
+        if (value_arg)
             env->warn("block supersedes default value argument");
 
         ArrayObject new_array;
@@ -64,7 +64,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
         }
 
     } else {
-        if (!value) value = Value::nil();
+        auto value = value_arg.value_or(Value::nil());
         for (nat_int_t i = 0; i < s; i++) {
             push(value);
         }
@@ -240,7 +240,7 @@ Value ArrayObject::sum(Env *env, Args &&args, Block *block) {
     return method_info.method()->call(env, this, std::move(args), block);
 }
 
-Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
+Value ArrayObject::ref(Env *env, Value index_obj, Optional<Value> size) {
     if (!size) {
         if (!index_obj.is_integer() && index_obj.respond_to(env, "to_int"_s))
             index_obj = index_obj.send(env, "to_int"_s);
@@ -257,7 +257,7 @@ Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
     return copy->slice_in_place(env, index_obj, size);
 }
 
-Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
+Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Optional<Value> val_arg) {
     this->assert_not_frozen(env);
     nat_int_t start, width;
     if (index_obj.is_range()) {
@@ -266,7 +266,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
         Value end_obj = range->end();
 
         // Ignore "size"
-        val = size;
+        val_arg = size;
 
         if (begin_obj.is_nil()) {
             start = 0;
@@ -308,7 +308,10 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
             start = this->size() + start;
         }
 
-        if (!val) {
+        Value val;
+        if (val_arg) {
+            val = val_arg.value();
+        } else {
             val = size;
             if (start < (nat_int_t)this->size()) {
                 (*this)[start] = val;
@@ -337,10 +340,16 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
         new_ary.set_size(start, Value::nil());
 
     // the new entry/entries
-    if (val.is_array() || val.respond_to(env, "to_ary"_s)) {
-        new_ary.concat(val.to_ary(env)->m_vector);
+    Value val;
+    if (val_arg) {
+        val = val_arg.value();
+        if (val.is_array() || val.respond_to(env, "to_ary"_s)) {
+            new_ary.concat(val.to_ary(env)->m_vector);
+        } else {
+            new_ary.push(val);
+        }
     } else {
-        new_ary.push(val);
+        NAT_UNREACHABLE();
     }
 
     // stuff after the new entry/entries
@@ -499,27 +508,27 @@ Value ArrayObject::map_in_place(Env *env, Block *block) {
     return this;
 }
 
-Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, Block *block) {
+Value ArrayObject::fill(Env *env, Optional<Value> obj_arg, Optional<Value> start_arg, Optional<Value> length_arg, Block *block) {
     assert_not_frozen(env);
 
-    if (block && length_obj) {
+    if (block && length_arg)
         env->raise("ArgumentError", "wrong number of arguments (given 3, expected 0..2)");
-    }
 
-    if (!obj && !block) {
+    if (!obj_arg && !block)
         env->raise("ArgumentError", "wrong number of arguments (given 0, expected 1..3)");
-    }
 
-    if (!length_obj && block) {
-        length_obj = start_obj;
-        start_obj = obj;
+    if (!length_arg && block) {
+        length_arg = start_arg;
+        start_arg = obj_arg;
     }
 
     nat_int_t start = 0;
     nat_int_t max = size();
 
-    if (start_obj && !start_obj.is_nil()) {
-        if (!length_obj && start_obj.is_range()) {
+    if (start_arg && !start_arg.value().is_nil()) {
+        auto start_obj = start_arg.value();
+        if (!length_arg && start_arg.value().is_range()) {
+
             Value begin = start_obj.as_range()->begin();
             if (!begin.is_nil()) {
                 start = IntegerMethods::convert_to_nat_int_t(env, begin);
@@ -548,8 +557,8 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
             if (start < 0)
                 start = 0;
 
-            if (length_obj && !length_obj.is_nil()) {
-                auto length = IntegerMethods::convert_to_nat_int_t(env, length_obj);
+            if (length_arg && !length_arg.value().is_nil()) {
+                auto length = IntegerMethods::convert_to_nat_int_t(env, length_arg.value());
                 if (length >= 2LL << 60)
                     env->raise("ArgumentError", "argument too big");
 
@@ -573,22 +582,20 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
             Value args[1] = { Value::integer(i) };
             m_vector[i] = block->run(env, Args(1, args), nullptr);
         } else
-            m_vector[i] = obj;
+            m_vector[i] = obj_arg.value();
     }
     return this;
 }
 
-Value ArrayObject::first(Env *env, Value n) {
-    auto has_count = n != nullptr;
-
-    if (!has_count) {
+Value ArrayObject::first(Env *env, Optional<Value> n) {
+    if (!n) {
         if (is_empty())
             return Value::nil();
 
         return (*this)[0];
     }
 
-    nat_int_t n_value = IntegerMethods::convert_to_nat_int_t(env, n);
+    nat_int_t n_value = IntegerMethods::convert_to_nat_int_t(env, n.value());
 
     if (n_value < 0) {
         env->raise("ArgumentError", "negative array size");
@@ -602,20 +609,19 @@ Value ArrayObject::first(Env *env, Value n) {
     return new ArrayObject { std::move(array) };
 }
 
-Value ArrayObject::flatten(Env *env, Value depth) {
+Value ArrayObject::flatten(Env *env, Optional<Value> depth) {
     ArrayObject *copy = new ArrayObject { m_vector };
     copy->flatten_in_place(env, depth);
     return copy;
 }
 
-Value ArrayObject::flatten_in_place(Env *env, Value depth) {
+Value ArrayObject::flatten_in_place(Env *env, Optional<Value> depth) {
     this->assert_not_frozen(env);
 
     bool changed { false };
 
-    auto has_depth = depth != nullptr;
-    if (has_depth) {
-        auto depth_value = IntegerMethods::convert_to_nat_int_t(env, depth);
+    if (depth) {
+        auto depth_value = IntegerMethods::convert_to_nat_int_t(env, depth.value());
         changed = _flatten_in_place(env, depth_value);
     } else {
         changed = _flatten_in_place(env, -1);
@@ -798,17 +804,15 @@ Value ArrayObject::drop_while(Env *env, Block *block) {
     return new ArrayObject { std::move(array) };
 }
 
-Value ArrayObject::last(Env *env, Value n) {
-    auto has_count = n != nullptr;
-
-    if (!has_count) {
+Value ArrayObject::last(Env *env, Optional<Value> n) {
+    if (!n) {
         if (is_empty())
             return Value::nil();
 
         return (*this)[size() - 1];
     }
 
-    auto n_value = IntegerMethods::convert_to_nat_int_t(env, n);
+    auto n_value = IntegerMethods::convert_to_nat_int_t(env, n.value());
 
     if (n_value < 0) {
         env->raise("ArgumentError", "negative array size");
@@ -836,22 +840,21 @@ bool ArrayObject::include(Env *env, Value item) {
     }
 }
 
-Value ArrayObject::index(Env *env, Value object, Block *block) {
+Value ArrayObject::index(Env *env, Optional<Value> object, Block *block) {
     if (!block && !object) return send(env, "enum_for"_s, { "index"_s });
     return find_index(env, object, block);
 }
 
-Value ArrayObject::shift(Env *env, Value count) {
+Value ArrayObject::shift(Env *env, Optional<Value> count) {
     assert_not_frozen(env);
-    auto has_count = count != nullptr;
 
-    if (!has_count && is_empty())
+    if (!count && is_empty())
         return Value::nil();
 
     size_t shift_count = 1;
     Value result = nullptr;
-    if (has_count) {
-        auto count_signed = IntegerMethods::convert_to_nat_int_t(env, count);
+    if (count) {
+        auto count_signed = IntegerMethods::convert_to_nat_int_t(env, count.value());
 
         if (count_signed < 0)
             env->raise("ArgumentError", "negative array size");
@@ -916,7 +919,7 @@ Value ArrayObject::_subjoin(Env *env, Value item, Value joiner) {
     env->raise("NoMethodError", "needed to_str, to_ary, or to_s");
 }
 
-Value ArrayObject::join(Env *env, Value joiner) {
+Value ArrayObject::join(Env *env, Optional<Value> joiner_arg) {
     TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
@@ -924,9 +927,13 @@ Value ArrayObject::join(Env *env, Value joiner) {
         if (size() == 0) {
             return (Value) new StringObject { "", Encoding::US_ASCII };
         } else {
-            if (!joiner || joiner.is_nil())
+            Value joiner;
+            if (joiner_arg && !joiner_arg.value().is_nil())
+                joiner = joiner_arg.value();
+            else
                 joiner = env->global_get("$,"_s);
-            if (!joiner || joiner.is_nil()) joiner = new StringObject { "" };
+            if (joiner.is_nil())
+                joiner = new StringObject { "" };
 
             if (!joiner.is_string())
                 joiner = joiner.to_str(env);
@@ -1016,11 +1023,11 @@ void ArrayObject::push_splat(Env *env, Value val) {
     }
 }
 
-Value ArrayObject::pop(Env *env, Value count) {
+Value ArrayObject::pop(Env *env, Optional<Value> count) {
     this->assert_not_frozen(env);
 
     if (count) {
-        auto c = IntegerMethods::convert_to_nat_int_t(env, count);
+        auto c = IntegerMethods::convert_to_nat_int_t(env, count.value());
 
         if (c < 0)
             env->raise("ArgumentError", "negative array size");
@@ -1205,7 +1212,7 @@ Value ArrayObject::reject_in_place(Env *env, Block *block) {
     return Value::nil();
 }
 
-Value ArrayObject::max(Env *env, Value count, Block *block) {
+Value ArrayObject::max(Env *env, Optional<Value> count, Block *block) {
     if (m_vector.size() == 0)
         return Value::nil();
 
@@ -1224,13 +1231,13 @@ Value ArrayObject::max(Env *env, Value count, Block *block) {
         return nat_int > 0;
     };
 
-    auto has_implicit_count = !count || count.is_nil();
+    auto has_implicit_count = !count || count.value().is_nil();
     size_t c;
 
     if (has_implicit_count) {
         c = 1;
     } else {
-        auto c_nat_int = IntegerMethods::convert_to_nat_int_t(env, count);
+        auto c_nat_int = IntegerMethods::convert_to_nat_int_t(env, count.value());
         if (c_nat_int < 0)
             env->raise("ArgumentError", "negative size ({})", c_nat_int);
 
@@ -1255,7 +1262,7 @@ Value ArrayObject::max(Env *env, Value count, Block *block) {
     return new ArrayObject { maxes.slice(0, c) };
 }
 
-Value ArrayObject::min(Env *env, Value count, Block *block) {
+Value ArrayObject::min(Env *env, Optional<Value> count, Block *block) {
     if (m_vector.size() == 0)
         return Value::nil();
 
@@ -1274,13 +1281,13 @@ Value ArrayObject::min(Env *env, Value count, Block *block) {
         return nat_int < 0;
     };
 
-    auto has_implicit_count = !count || count.is_nil();
+    auto has_implicit_count = !count || count.value().is_nil();
     size_t c;
 
     if (has_implicit_count) {
         c = 1;
     } else {
-        auto c_nat_int = IntegerMethods::convert_to_nat_int_t(env, count);
+        auto c_nat_int = IntegerMethods::convert_to_nat_int_t(env, count.value());
         if (c_nat_int < 0)
             env->raise("ArgumentError", "negative size ({})", c_nat_int);
 
@@ -1383,12 +1390,12 @@ Value ArrayObject::compact_in_place(Env *env) {
     return Value::nil();
 }
 
-Value ArrayObject::cycle(Env *env, Value count, Block *block) {
+Value ArrayObject::cycle(Env *env, Optional<Value> count, Block *block) {
     // FIXME: delegating to Enumerable#cycle like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#cycle in MRI and it won't affect Array#cycle.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s).as_module();
     auto method_info = Enumerable->find_method(env, "cycle"_s);
-    auto args = count ? Vector<Value> { count } : Vector<Value> {};
+    auto args = count ? Vector<Value> { count.value() } : Vector<Value> {};
     return method_info.method()->call(env, this, { std::move(args) }, block);
 }
 
@@ -1430,7 +1437,7 @@ Value ArrayObject::clear(Env *env) {
 }
 
 Value ArrayObject::at(Env *env, Value n) {
-    return ref(env, n, nullptr);
+    return ref(env, n);
 }
 
 Value ArrayObject::assoc(Env *env, Value needle) {
@@ -1725,12 +1732,12 @@ nat_int_t ArrayObject::_resolve_index(nat_int_t nat_index) const {
     return index;
 }
 
-Value ArrayObject::rindex(Env *env, Value object, Block *block) {
+Value ArrayObject::rindex(Env *env, Optional<Value> object, Block *block) {
     if (!block && !object) return send(env, "enum_for"_s, { "rindex"_s });
     return find_index(env, object, block, true);
 }
 
-Value ArrayObject::fetch(Env *env, Value arg_index, Value default_value, Block *block) {
+Value ArrayObject::fetch(Env *env, Value arg_index, Optional<Value> default_value, Block *block) {
     Value value;
     auto index_val = IntegerMethods::convert_to_nat_int_t(env, arg_index);
     auto index = _resolve_index(index_val);
@@ -1742,7 +1749,7 @@ Value ArrayObject::fetch(Env *env, Value arg_index, Value default_value, Block *
             Value args[] = { arg_index };
             value = block->run(env, Args(1, args), nullptr);
         } else if (default_value) {
-            value = default_value;
+            value = default_value.value();
         } else {
             env->raise("IndexError", "index {} outside of array bounds: {}...{}", index_val, -(nat_int_t)size(), size());
         }
@@ -1753,7 +1760,7 @@ Value ArrayObject::fetch(Env *env, Value arg_index, Value default_value, Block *
     return value;
 }
 
-Value ArrayObject::find_index(Env *env, Value object, Block *block, bool search_reverse) {
+Value ArrayObject::find_index(Env *env, Optional<Value> object, Block *block, bool search_reverse) {
     if (object && block) env->warn("given block not used");
     assert(size() <= NAT_INT_MAX);
 
@@ -1762,7 +1769,7 @@ Value ArrayObject::find_index(Env *env, Value object, Block *block, bool search_
         nat_int_t index = search_reverse ? length - i - 1 : i;
         auto item = m_vector[index];
         if (object) {
-            if (item.send(env, "=="_s, { object }).is_truthy())
+            if (item.send(env, "=="_s, { object.value() }).is_truthy())
                 return Value::integer(index);
         } else {
             Value args[] = { item };
@@ -1839,18 +1846,17 @@ Value ArrayObject::product(Env *env, Args &&args, Block *block) {
     return products;
 }
 
-Value ArrayObject::rotate(Env *env, Value val) {
+Value ArrayObject::rotate(Env *env, Optional<Value> val) {
     ArrayObject *copy = new ArrayObject { m_vector };
     copy->rotate_in_place(env, val);
     return copy;
 }
 
-Value ArrayObject::rotate_in_place(Env *env, Value val) {
+Value ArrayObject::rotate_in_place(Env *env, Optional<Value> val) {
     assert_not_frozen(env);
     nat_int_t count = 1;
-    if (val) {
-        count = IntegerMethods::convert_to_nat_int_t(env, val);
-    }
+    if (val)
+        count = IntegerMethods::convert_to_nat_int_t(env, val.value());
 
     if (size() == 0) {
         // prevent
@@ -1886,14 +1892,14 @@ Value ArrayObject::rotate_in_place(Env *env, Value val) {
     return this;
 }
 
-Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
+Value ArrayObject::slice_in_place(Env *env, Value index_obj, Optional<Value> size) {
     this->assert_not_frozen(env);
 
+    Integer size_int;
     if (size) {
         index_obj = index_obj.to_int(env);
-        size = size.to_int(env);
-
-        IntegerMethods::assert_fixnum(env, size.integer());
+        size_int = size.value().to_int(env);
+        IntegerMethods::assert_fixnum(env, size_int);
     }
 
     if (index_obj.is_integer()) {
@@ -1914,9 +1920,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
             return item;
         }
 
-        size.assert_integer(env);
-
-        auto length = size.integer().to_nat_int_t();
+        auto length = size_int.to_nat_int_t();
 
         if (length < 0)
             return Value::nil();

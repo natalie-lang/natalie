@@ -794,8 +794,8 @@ Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
         if (ext_enc.as_string()->include(":")) {
             auto colon = new StringObject { ":" };
             auto encsplit = ext_enc.to_str(env)->split(env, colon, nullptr).as_array();
-            ext_enc = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(0)), nullptr);
-            int_enc = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(1)), nullptr);
+            ext_enc = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(0)));
+            int_enc = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(1)));
         }
     }
 
