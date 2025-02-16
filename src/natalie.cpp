@@ -82,7 +82,7 @@ Env *build_top_env() {
     Object->const_set("Numeric"_s, Numeric);
     Numeric->include_once(env, Comparable);
 
-    ClassObject *Integer = Numeric->subclass(env, "Integer", Object::Type::Object);
+    ClassObject *Integer = Numeric->subclass(env, "Integer", Object::Type::Integer);
     global_env->set_Integer(Integer);
     Object->const_set("Integer"_s, Integer);
 
