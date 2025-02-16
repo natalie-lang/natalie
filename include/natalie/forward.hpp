@@ -30,8 +30,6 @@ class FileObject;
 class FileStatObject;
 class FloatObject;
 class GlobalEnv;
-class HashKey;
-class HashVal;
 class HashObject;
 class IntegerMethods;
 class IoObject;

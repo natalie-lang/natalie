@@ -24,8 +24,8 @@ constexpr bool is_strippable_whitespace(char c) {
 static auto character_class_handler(Env *env, Args &&args) {
     args.ensure_argc_at_least(env, 1);
 
-    auto basic_characters = Hashmap<String>(HashType::String);
-    auto negated_characters = Hashmap<String>(HashType::String);
+    auto basic_characters = Hashmap<String>();
+    auto negated_characters = Hashmap<String>();
 
     // For each argument
     for (size_t i = 0; i < args.size(); ++i) {
@@ -33,7 +33,7 @@ static auto character_class_handler(Env *env, Args &&args) {
 
         // Try convert to string
         auto selectors = arg.to_str(env);
-        auto new_selectors = Hashmap<String>(HashType::String);
+        auto new_selectors = Hashmap<String>();
         StringView last_character = {};
         bool negated = false;
 
@@ -55,7 +55,7 @@ static auto character_class_handler(Env *env, Args &&args) {
             if (value == "-" && last_character != StringView() && last_character != "\\") {
                 result = selectors->next_char_result(&index);
                 if (result.second.is_empty()) {
-                    new_selectors.set(value.to_string());
+                    new_selectors.set(value);
                     break;
                 }
 
@@ -66,7 +66,7 @@ static auto character_class_handler(Env *env, Args &&args) {
                 if (last_character.to_string().cmp(next_value.to_string()) == 1)
                     env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character, next_value);
 
-                auto range = RangeObject::create(env, new StringObject { last_character.to_string() }, new StringObject { next_value.to_string() }, false);
+                auto range = RangeObject::create(env, new StringObject { last_character }, new StringObject { next_value }, false);
                 auto all_chars = range->to_a(env).as_array();
                 for (auto character : *all_chars) {
                     auto character_string = character.as_string()->string();
@@ -75,7 +75,7 @@ static auto character_class_handler(Env *env, Args &&args) {
                 last_character = StringView();
             } else {
                 last_character = value;
-                new_selectors.set(value.to_string());
+                new_selectors.set(value);
             }
             result = selectors->next_char_result(&index);
         }
@@ -86,7 +86,7 @@ static auto character_class_handler(Env *env, Args &&args) {
                 negated_characters.set(pair.first);
             }
         } else {
-            auto new_basic_characters = Hashmap<String>(HashType::String);
+            auto new_basic_characters = Hashmap<String>();
             for (auto pair : new_selectors) {
                 if (basic_characters.is_empty() || basic_characters.get(pair.first) != nullptr) {
                     new_basic_characters.set(pair.first);

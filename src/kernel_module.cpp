@@ -933,16 +933,16 @@ Value KernelModule::extend(Env *env, Value self, Args &&args) {
 Value KernelModule::hash(Env *env, Value self) {
     switch (self.type()) {
     case Object::Type::Integer:
-        return Value::integer(self.integer().to_string().djb2_hash());
+        return Value::integer(HashKeyHandler<TM::String>::hash(self.integer().to_string()));
     // NOTE: string "foo" and symbol :foo will get the same hash.
     // That's probably ok, but maybe worth revisiting.
     case Object::Type::String:
-        return Value::integer(self.as_string()->string().djb2_hash());
+        return Value::integer(HashKeyHandler<TM::String>::hash(self.as_string()->string()));
     case Object::Type::Symbol:
-        return Value::integer(self.as_symbol()->string().djb2_hash());
+        return Value::integer(HashKeyHandler<TM::String>::hash(self.as_symbol()->string()));
     default: {
         StringObject *inspected = self.send(env, "inspect"_s).as_string();
-        nat_int_t hash_value = inspected->string().djb2_hash();
+        nat_int_t hash_value = HashKeyHandler<TM::String>::hash(inspected->string());
         return Value::integer(hash_value);
     }
     }

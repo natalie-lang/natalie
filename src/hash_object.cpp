@@ -3,22 +3,25 @@
 #include "tm/recursion_guard.hpp"
 #include "tm/vector.hpp"
 
-namespace Natalie {
+namespace TM {
 
-// this is used by the hashmap library and assumes that obj->env has been set
-size_t HashObject::hash(Key *&key) {
+size_t HashKeyHandler<Natalie::HashKey *>::hash(Natalie::HashKey *key) {
     return key->hash;
 }
 
 // this is used by the hashmap library to compare keys
-bool HashObject::compare(Key *&a, Key *&b, void *env) {
+bool HashKeyHandler<Natalie::HashKey *>::compare(Natalie::HashKey *a, Natalie::HashKey *b, void *env) {
     assert(env);
 
-    if (object_id(a->key) == object_id(b->key) && a->hash == b->hash)
+    if (Natalie::Object::object_id(a->key) == Natalie::Object::object_id(b->key) && a->hash == b->hash)
         return true;
 
-    return a->key.send((Env *)env, "eql?"_s, { b->key }).is_truthy();
+    return a->key.send((Natalie::Env *)env, Natalie::SymbolObject::intern("eql?"), { b->key }).is_truthy();
 }
+
+}
+
+namespace Natalie {
 
 bool HashObject::is_ruby2_keywords_hash(Env *env, Value hash) {
     return hash.as_hash_or_raise(env)->m_is_ruby2_keywords_hash;
@@ -48,7 +51,7 @@ bool HashObject::is_comparing_by_identity() const {
 Value HashObject::get(Env *env, Value key) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    Key key_container;
+    HashKey key_container;
     key_container.key = key;
     key_container.hash = generate_key_hash(env, key);
     return m_hashmap.get(&key_container, env);
@@ -57,7 +60,7 @@ Value HashObject::get(Env *env, Value key) {
 nat_int_t HashObject::generate_key_hash(Env *env, Value key) const {
     if (m_is_comparing_by_identity && !key.is_float() && !key.is_integer()) {
         auto obj = key.object();
-        return TM::HashmapUtils::hashmap_hash_ptr((uintptr_t)obj);
+        return TM::HashKeyHandler<void *>::hash(obj);
     } else {
         return key.send(env, "hash"_s).integer().to_nat_int_t();
     }
@@ -86,7 +89,7 @@ void HashObject::put(Env *env, Value key, Value val) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     assert_not_frozen(env);
-    Key key_container;
+    HashKey key_container;
     if (!m_is_comparing_by_identity && key.is_string() && !key->is_frozen()) {
         key = key.as_string()->duplicate(env);
     }
@@ -96,7 +99,7 @@ void HashObject::put(Env *env, Value key, Value val) {
     key_container.hash = hash;
     auto entry = m_hashmap.find_item(&key_container, hash, env);
     if (entry) {
-        ((Key *)entry->key)->val = val;
+        ((HashKey *)entry->key)->val = val;
         entry->value = val;
     } else {
         if (m_is_iterating) {
@@ -110,13 +113,13 @@ void HashObject::put(Env *env, Value key, Value val) {
 Value HashObject::remove(Env *env, Value key) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    Key key_container;
+    HashKey key_container;
     key_container.key = key;
     auto hash = generate_key_hash(env, key);
     key_container.hash = hash;
     auto entry = m_hashmap.find_item(&key_container, hash, env);
     if (entry) {
-        key_list_remove_node((Key *)entry->key);
+        key_list_remove_node((HashKey *)entry->key);
         auto val = entry->value;
         m_hashmap.remove(&key_container, env);
         return val;
@@ -158,11 +161,11 @@ Value HashObject::set_default_proc(Env *env, Value value) {
     return value;
 }
 
-HashObject::Key *HashObject::key_list_append(Env *env, Value key, nat_int_t hash, Value val) {
+Natalie::HashKey *HashObject::key_list_append(Env *env, Value key, nat_int_t hash, Value val) {
     if (m_key_list) {
-        Key *first = m_key_list;
-        Key *last = m_key_list->prev;
-        Key *new_last = new Key {};
+        HashKey *first = m_key_list;
+        HashKey *last = m_key_list->prev;
+        HashKey *new_last = new HashKey {};
         new_last->key = key;
         new_last->val = val;
         // <first> ... <last> <new_last> -|
@@ -175,7 +178,7 @@ HashObject::Key *HashObject::key_list_append(Env *env, Value key, nat_int_t hash
         last->next = new_last;
         return new_last;
     } else {
-        Key *node = new Key {};
+        HashKey *node = new HashKey {};
         node->key = key;
         node->val = val;
         node->prev = node;
@@ -187,9 +190,9 @@ HashObject::Key *HashObject::key_list_append(Env *env, Value key, nat_int_t hash
     }
 }
 
-void HashObject::key_list_remove_node(Key *node) {
-    Key *prev = node->prev;
-    Key *next = node->next;
+void HashObject::key_list_remove_node(HashKey *node) {
+    HashKey *prev = node->prev;
+    HashKey *next = node->next;
     // <prev> <-> <node> <-> <next>
     if (node == next) {
         // <node> -|
@@ -215,7 +218,7 @@ Value HashObject::initialize(Env *env, Value default_value, Value capacity, Bloc
     if (capacity) {
         const auto capacity_int = IntegerMethods::convert_to_native_type<ssize_t>(env, capacity);
         if (capacity_int > 0)
-            m_hashmap = TM::Hashmap<Key *, Value> { hash, compare, static_cast<size_t>(capacity_int) };
+            m_hashmap = TM::Hashmap<HashKey *, Value> { static_cast<size_t>(capacity_int) };
     }
 
     if (block) {
@@ -302,7 +305,7 @@ Value HashObject::inspect(Env *env) {
             return obj.as_string();
         };
 
-        for (HashObject::Key &node : *this) {
+        for (HashKey &node : *this) {
             if (node.key.is_symbol()) {
                 StringObject *key_repr = node.key.as_symbol()->to_s(env);
                 out->append(key_repr);
@@ -443,7 +446,7 @@ bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
             return true;
 
         Value other_val;
-        for (HashObject::Key &node : *this) {
+        for (HashKey &node : *this) {
             other_val = other->get(env, node.key);
             if (!other_val)
                 return false;
@@ -518,7 +521,7 @@ Value HashObject::each(Env *env, Block *block) {
     Value block_args[2];
     set_is_iterating(true);
     Defer no_longer_iterating([&]() { set_is_iterating(false); });
-    for (HashObject::Key &node : *this) {
+    for (HashKey &node : *this) {
         auto ary = new ArrayObject { { node.key, node.val } };
         Value block_args[1] = { ary };
         block->run(env, Args(1, block_args), nullptr);
@@ -568,7 +571,7 @@ Value HashObject::fetch_values(Env *env, Args &&args, Block *block) {
 
 Value HashObject::keys(Env *env) {
     ArrayObject *array = new ArrayObject { size() };
-    for (HashObject::Key &node : *this) {
+    for (HashKey &node : *this) {
         array->push(node.key);
     }
     return array;
@@ -625,7 +628,7 @@ Value HashObject::to_h(Env *env, Block *block) {
 
 Value HashObject::values(Env *env) {
     ArrayObject *array = new ArrayObject { size() };
-    for (HashObject::Key &node : *this) {
+    for (HashKey &node : *this) {
         array->push(node.val);
     }
     return array;
@@ -640,7 +643,7 @@ Value HashObject::hash(Env *env) {
         HashBuilder hash { 10889, false };
         auto hash_method = "hash"_s;
 
-        for (HashObject::Key &node : *this) {
+        for (HashKey &node : *this) {
             HashBuilder entry_hash {};
             bool any_change = false;
 

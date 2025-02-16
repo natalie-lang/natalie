@@ -252,6 +252,20 @@ public:
      * ```
      * auto str = String("foo-bar-baz");
      * auto view = StringView(&str, 4, 3);
+     * String str2 = view;
+     * assert_str_eq("bar", str2);
+     * ```
+     */
+    operator String() const {
+        return to_string();
+    }
+
+    /**
+     * Returns a new String constructed from this view.
+     *
+     * ```
+     * auto str = String("foo-bar-baz");
+     * auto view = StringView(&str, 4, 3);
      * auto str2 = view.clone();
      * assert_str_eq("bar", str2);
      * ```

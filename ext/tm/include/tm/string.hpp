@@ -1732,25 +1732,6 @@ public:
     }
 
     /**
-     * Returns hash value of this String.
-     * This uses the 'djb2' hash algorithm by Dan Bernstein.
-     *
-     * ```
-     * auto str = String("hello");
-     * assert_eq(261238937, str.djb2_hash());
-     * ```
-     */
-    uint32_t djb2_hash() const {
-        size_t hash = 5381;
-        int c;
-        for (size_t i = 0; i < m_length; ++i) {
-            c = (*this)[i];
-            hash = ((hash << 5) + hash) + c;
-        }
-        return hash;
-    }
-
-    /**
      * Prints the full string with printf(), character by character.
      * This method will print the full String, even if null characters
      * are encountered.
