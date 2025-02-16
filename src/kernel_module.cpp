@@ -178,8 +178,11 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             env->raise("ArgumentError", "invalid value for convert(): \"{}\"", input->string());
         return NilObject::the();
     };
-    if (!input->is_ascii_only())
+    if (!input->is_ascii_only()) {
+        if (string_to_c)
+            return new ComplexObject { Value::integer(0) };
         return error();
+    }
     enum class State {
         Start,
         Real,
@@ -216,6 +219,13 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                     env->raise("ArgumentError", "string contains null byte");
                 return NilObject::the();
             }
+        } else if (*c <= 0x08 || (*c >= 0x0e && *c <= 0x1f) || *c >= 0x7f) {
+            if (string_to_c) {
+                state = State::Finished;
+                continue;
+            } else {
+                return error();
+            }
         }
         switch (state) {
         case State::Start:
@@ -226,7 +236,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             } else if (*c == 'i' || *c == 'I' || *c == 'j' || *c == 'J') {
                 new_imag = Value::integer(1);
                 state = State::Finished;
-            } else if (!string_to_c && *c != ' ' && *c != '\t' && *c != '\r' && *c != '\n') {
+            } else if (!string_to_c && *c != ' ' && *c != '\t' && *c != '\n' && *c != '\v' && *c != '\f' && *c != '\r') {
                 return error();
             }
             break;
@@ -312,7 +322,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             }
             break;
         case State::Finished:
-            if (!string_to_c && *c != ' ' && *c != '\t' && *c != '\r' && *c != '\n')
+            if (!string_to_c && *c != ' ' && *c != '\t' && *c != '\n' && *c != '\v' && *c != '\f' && *c != '\r')
                 return error();
         }
     }

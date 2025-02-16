@@ -32,4 +32,19 @@ describe 'Kernel.Complex' do
     -> { Complex('1e2e3+1i') }.should raise_error(ArgumentError, 'invalid value for convert(): "1e2e3+1i"')
     -> { Complex('1+1e2e3i') }.should raise_error(ArgumentError, 'invalid value for convert(): "1+1e2e3i"')
   end
+
+  it 'ignores whitespace' do
+    Complex("\t1").should == 1
+    Complex("\n1").should == 1
+    Complex("\v1").should == 1
+    Complex("\f1").should == 1
+    Complex("\r1").should == 1
+  end
+
+  it 'stops on non-printable ascii chars' do
+    ->{ Complex("\x001".b) }.should raise_error(ArgumentError, 'string contains null byte')
+    (Array(0x01..0x08) + Array(0x0E..0x1F) + [0x7F]).each do |c|
+      -> { Complex("#{c.chr(Encoding::ASCII_8BIT)}1") }.should raise_error(ArgumentError, /invalid value for convert\(\):/)
+    end
+  end
 end
