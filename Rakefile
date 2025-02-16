@@ -423,7 +423,6 @@ task libnatalie: [
   :bundle_install,
   :build_dir,
   'build/zlib/libz.a',
-  'build/json-c/libjson-c.a',
   'build/onigmo/lib/libonigmo.a',
   'build/libprism.a',
   "build/libprism.#{SO_EXT}",
@@ -495,17 +494,6 @@ file 'build/zlib/libz.a' do
   sh <<-SH
     cd #{build_dir} && \
     ./configure && \
-    make -j 4
-  SH
-end
-
-file 'build/json-c/libjson-c.a' do
-  build_dir = File.expand_path('build/json-c', __dir__)
-  rm_rf build_dir
-  cp_r 'ext/json-c', build_dir
-  cp FileList['ext/json-c.additional/*'], build_dir
-  sh <<~SH
-    cd #{build_dir} && \
     make -j 4
   SH
 end
