@@ -89,13 +89,6 @@ ClassObject *Value::singleton_class(Env *env) {
 }
 
 StringObject *Value::to_str(Env *env) {
-    if (is_integer()) {
-        if (respond_to(env, "to_str"_s))
-            return send(env, "to_str"_s).as_string_or_raise(env);
-        else
-            env->raise_type_error(*this, "String");
-    }
-
     if (is_string())
         return as_string();
 
@@ -118,13 +111,6 @@ StringObject *Value::to_str(Env *env) {
 // This is just like Value::to_str, but it raises more consistent error messages.
 // We still need the old error messages because CRuby is inconsistent. :-(
 StringObject *Value::to_str2(Env *env) {
-    if (is_integer()) {
-        if (respond_to(env, "to_str"_s))
-            return send(env, "to_str"_s).as_string_or_raise(env);
-        else
-            env->raise_type_error(*this, "String");
-    }
-
     if (is_string())
         return as_string();
 
