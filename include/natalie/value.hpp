@@ -113,8 +113,6 @@ public:
     void assert_type(Env *, ObjectType, const char *) const;
     void assert_not_frozen(Env *) const;
 
-    [[noreturn]] void raise_type_error(Env *, const char *) const;
-
     bool is_a(Env *, Value) const;
     bool respond_to(Env *, SymbolObject *, bool include_all = true);
 

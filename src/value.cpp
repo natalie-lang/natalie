@@ -160,7 +160,7 @@ Integer Value::integer() const {
 
 Integer Value::integer_or_raise(Env *env) const {
     if (!is_integer())
-        raise_type_error(env, "Integer");
+        env->raise_type_error(*this, "Integer");
     return integer();
 }
 
@@ -202,14 +202,14 @@ bool Value::has_instance_variables() const {
 void Value::assert_integer(Env *env) const {
     if (is_integer())
         return;
-    raise_type_error(env, "Integer");
+    env->raise_type_error(*this, "Integer");
 }
 
 void Value::assert_type(Env *env, ObjectType expected_type, const char *expected_class_name) const {
     assert(expected_type != ObjectType::Integer);
     assert(expected_type != ObjectType::Nil);
     if (type() != expected_type)
-        raise_type_error(env, expected_class_name);
+        env->raise_type_error(*this, expected_class_name);
 }
 
 void Value::assert_not_frozen(Env *env) const {
@@ -219,14 +219,6 @@ void Value::assert_not_frozen(Env *env) const {
         env->raise("FrozenError", "can't modify frozen NilClass: nil");
 
     object()->assert_not_frozen(env);
-}
-
-[[noreturn]] void Value::raise_type_error(Env *env, const char *expected_class_name) const {
-    if (is_integer())
-        env->raise("TypeError", "no implicit conversion of Integer into {}", expected_class_name);
-    if (is_nil())
-        env->raise_type_error(Value::nil(), expected_class_name);
-    env->raise_type_error(object(), expected_class_name);
 }
 
 bool Value::is_a(Env *env, Value val) const {
