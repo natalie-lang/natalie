@@ -129,6 +129,7 @@ Value Object::create(Env *env, ClassObject *klass) {
     case Object::Type::Env:
     case Object::Type::False:
     case Object::Type::Float:
+    case Object::Type::Integer:
     case Object::Type::Method:
     case Object::Type::Nil:
     case Object::Type::Rational:
@@ -140,7 +141,6 @@ Value Object::create(Env *env, ClassObject *klass) {
 
     case Object::Type::BigInt:
     case Object::Type::Collected:
-    case Object::Type::Integer:
         NAT_UNREACHABLE();
     }
 
