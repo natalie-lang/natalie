@@ -651,8 +651,6 @@ Value Object::duplicate(Env *env) const {
         return new HashObject { env, *static_cast<const HashObject *>(this) };
     case Object::Type::Module:
         return new ModuleObject { *static_cast<const ModuleObject *>(this) };
-    case Object::Type::Nil:
-        return Value::nil();
     case Object::Type::Object:
         return new Object { *this };
     case Object::Type::Proc:
