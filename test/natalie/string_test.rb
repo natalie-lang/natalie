@@ -522,6 +522,22 @@ describe 'string' do
     end
   end
 
+  describe '#to_c' do
+    it 'ignores whitespace' do
+      "\t1".to_c.should == 1
+      "\n1".to_c.should == 1
+      "\v1".to_c.should == 1
+      "\f1".to_c.should == 1
+      "\r1".to_c.should == 1
+    end
+
+    it 'stops on non-printable ascii chars' do
+      (Array(0x00..0x08) + Array(0x0E..0x1F) + [0x7F]).each do |c|
+        "#{c.chr(Encoding::ASCII_8BIT)}1".to_c.should == 0
+      end
+    end
+  end
+
   describe '#split' do
     it 'splits a string into an array of smaller strings using a string match' do
       ''.split(',').should == []
