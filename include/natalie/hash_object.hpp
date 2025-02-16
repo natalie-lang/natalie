@@ -8,7 +8,6 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
-#include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"
 #include "tm/recursion_guard.hpp"
 
@@ -72,7 +71,7 @@ public:
 
     HashObject(ClassObject *klass)
         : Object { Object::Type::Hash, klass }
-        , m_default_value { NilObject::the() } { }
+        , m_default_value { Value::nil() } { }
 
     HashObject(Env *env, const HashObject &other)
         : Object { other }

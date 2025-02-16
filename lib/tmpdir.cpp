@@ -30,5 +30,5 @@ Value Dir_tmpdir(Env *env, Value self, Args &&args, Block *) {
 }
 
 Value init_tmpdir(Env *env, Value self) {
-    return NilObject::the();
+    return Value::nil();
 }

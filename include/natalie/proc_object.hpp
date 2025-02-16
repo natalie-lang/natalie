@@ -6,7 +6,6 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
-#include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
 
@@ -34,7 +33,7 @@ public:
 
     static Value from_block_maybe(Block *block) {
         if (!block) {
-            return NilObject::the();
+            return Value::nil();
         }
         return new ProcObject { block };
     }

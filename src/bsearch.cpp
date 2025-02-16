@@ -59,10 +59,10 @@ Value binary_search_integer(Env *env, nat_int_t left, nat_int_t right, Block *bl
     });
 
     if (!result.present())
-        return NilObject::the();
+        return Value::nil();
 
     if (exclude_end && result.value() == right)
-        return NilObject::the();
+        return Value::nil();
 
     return Value::integer(result.value());
 }
@@ -93,10 +93,10 @@ Value binary_search_float(Env *env, double left, double right, Block *block, boo
     });
 
     if (!result.present())
-        return NilObject::the();
+        return Value::nil();
 
     if (exclude_end && result.value() == right_int)
-        return NilObject::the();
+        return Value::nil();
 
     return new FloatObject { integer_to_double(result.value()) };
 }

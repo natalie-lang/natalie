@@ -83,7 +83,7 @@ Value ProcObject::ruby2_keywords(Env *env) {
 Value ProcObject::source_location() {
     assert(m_block);
     auto file = m_block->env()->file();
-    if (file == nullptr) return NilObject::the();
+    if (file == nullptr) return Value::nil();
     return new ArrayObject { new StringObject { file }, Value::integer(static_cast<nat_int_t>(m_block->env()->line())) };
 }
 

@@ -60,7 +60,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
 
     Value as_string_or_raise(Env *env, Value v, GlobalVariableInfo &info) {
         if (v.is_nil())
-            return NilObject::the();
+            return Value::nil();
         if (!v.is_string())
             env->raise("TypeError", "value must be String");
         return v.as_string();
@@ -72,7 +72,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
 
     Value last_match(Env *env, Value v, GlobalVariableInfo &) {
         if (!v || v.is_nil())
-            return NilObject::the();
+            return Value::nil();
         if (!v.is_match_data())
             env->raise("TypeError", "wrong argument type {} (expected MatchData)", v.klass()->inspect_str());
         auto match = v.as_match_data();
@@ -89,7 +89,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
     Value set_verbose(Env *env, Value v, GlobalVariableInfo &) {
         GlobalEnv::the()->set_verbose(v.is_truthy());
         if (v.is_nil())
-            return NilObject::the();
+            return Value::nil();
         return bool_object(v.is_truthy());
     }
 }

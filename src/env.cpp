@@ -9,7 +9,7 @@ using namespace TM;
 thread_local ExceptionObject *tl_current_exception = nullptr;
 
 void Env::build_vars(size_t size) {
-    m_vars = new ManagedVector<Value>(size, NilObject::the());
+    m_vars = new ManagedVector<Value>(size, Value::nil());
 }
 
 bool Env::global_defined(SymbolObject *name) {
@@ -33,21 +33,21 @@ Value Env::global_alias(SymbolObject *new_name, SymbolObject *old_name) {
 Value Env::output_file_separator() {
     Value fsep = global_get("$,"_s);
     if (fsep) return fsep;
-    return NilObject::the();
+    return Value::nil();
 }
 
 // Return the record separator `$\` or nil
 Value Env::output_record_separator() {
     Value rsep = global_get("$\\"_s);
     if (rsep) return rsep;
-    return NilObject::the();
+    return Value::nil();
 }
 
 // Return the last line `$_` or nil
 Value Env::last_line() {
     Value last_line = global_get("$_"_s);
     if (last_line) return last_line;
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value Env::set_last_line(Value val) {
@@ -107,7 +107,7 @@ void Env::raise_exception(ExceptionObject *exception) {
         // only build a backtrace the first time the exception is raised (not on a re-raise)
         exception->build_backtrace(this);
     }
-    if (!exception->cause() || exception->cause()->type() == Object::Type::Nil) {
+    if (!exception->cause()) {
         auto cause = exception_object();
         if (cause && cause.is_exception() && cause != exception)
             exception->set_cause(cause.as_exception());
@@ -116,7 +116,7 @@ void Env::raise_exception(ExceptionObject *exception) {
 }
 
 void Env::raise_key_error(Value receiver, Value key) {
-    auto message = new StringObject { String::format("key not found: {}", key->inspect_str(this)) };
+    auto message = new StringObject { String::format("key not found: {}", key.inspect_str(this)) };
     auto key_error_class = GlobalEnv::the()->Object()->const_fetch("KeyError"_s).as_class();
     ExceptionObject *exception = new ExceptionObject { key_error_class, message };
     exception->ivar_set(this, "@receiver"_s, receiver);
@@ -157,15 +157,15 @@ void Env::raise_invalid_byte_sequence_error(const EncodingObject *encoding) {
 void Env::raise_no_method_error(Value receiver, SymbolObject *name, MethodMissingReason reason) {
     String inspect_string;
     if (receiver.is_nil() || receiver.is_true() || receiver.is_false()) {
-        inspect_string = receiver->inspect_str(this);
+        inspect_string = receiver.inspect_str(this);
     } else if (receiver.is_integer()) {
         inspect_string = String::format("an instance of {}", receiver.klass()->inspect_str());
     } else if (receiver->is_main_object()) {
         inspect_string = "main";
     } else if (receiver.is_class()) {
-        inspect_string = String::format("class {}", receiver->inspect_str(this));
+        inspect_string = String::format("class {}", receiver.inspect_str(this));
     } else if (receiver.is_module()) {
-        inspect_string = String::format("module {}", receiver->inspect_str(this));
+        inspect_string = String::format("module {}", receiver.inspect_str(this));
     } else {
         inspect_string = String::format("an instance of {}", receiver.klass()->inspect_str());
     }
@@ -208,7 +208,7 @@ void Env::raise_not_comparable_error(Value lhs, Value rhs) {
     String lhs_class = lhs.klass()->inspect_str();
     String rhs_inspect;
     if (rhs.is_integer() || rhs.is_float() || rhs.is_falsey()) {
-        rhs_inspect = rhs->inspect_str(this);
+        rhs_inspect = rhs.inspect_str(this);
     } else {
         rhs_inspect = rhs.klass()->inspect_str();
     }
@@ -288,12 +288,12 @@ void Env::ensure_no_extra_keywords(HashObject *kwargs) {
         return;
     auto it = kwargs->begin();
     if (kwargs->size() == 1)
-        raise("ArgumentError", "unknown keyword: {}", it->key->inspect_str(this));
+        raise("ArgumentError", "unknown keyword: {}", it->key.inspect_str(this));
     String message { "unknown keywords: " };
-    message.append(it->key->inspect_str(this));
+    message.append(it->key.inspect_str(this));
     for (it++; it != kwargs->end(); it++) {
         message.append(", ");
-        message.append(it->key->inspect_str(this));
+        message.append(it->key.inspect_str(this));
     }
     raise("ArgumentError", std::move(message));
 }
@@ -302,7 +302,7 @@ Value Env::last_match() {
     Env *env = non_block_env();
     if (env->m_match)
         return env->m_match;
-    return NilObject::the();
+    return Value::nil();
 }
 
 bool Env::has_last_match() {
@@ -316,7 +316,7 @@ void Env::set_last_match(MatchDataObject *match) {
 Value Env::exception_object() {
     auto e = exception();
     if (!e)
-        return NilObject::the();
+        return Value::nil();
     return e;
 }
 
@@ -346,12 +346,12 @@ Value Env::var_get(const char *name, size_t index) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (!m_vars || index >= m_vars->size())
-        return NilObject::the();
+        return Value::nil();
     Value val = m_vars->at(index);
     if (val) {
         return val;
     } else {
-        return NilObject::the();
+        return Value::nil();
     }
 }
 
@@ -366,7 +366,7 @@ Value Env::var_set(const char *name, size_t index, bool allocate, Value val) {
             if (!m_vars) {
                 build_vars(needed);
             } else {
-                m_vars->set_size(needed, NilObject::the());
+                m_vars->set_size(needed, Value::nil());
             }
         } else {
             printf("Tried to set a variable without first allocating space for it.\n");

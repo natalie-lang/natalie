@@ -148,7 +148,7 @@ Value ExceptionObject::detailed_message(Env *env, Args &&args) {
 
 Value ExceptionObject::backtrace(Env *env) {
     if (!m_backtrace && !m_backtrace_value)
-        return NilObject::the();
+        return Value::nil();
     if (!m_backtrace_value)
         m_backtrace_value = m_backtrace->to_ruby_array();
     return m_backtrace_value;
@@ -156,7 +156,7 @@ Value ExceptionObject::backtrace(Env *env) {
 
 Value ExceptionObject::backtrace_locations() {
     if (!m_backtrace)
-        return NilObject::the();
+        return Value::nil();
     if (!m_backtrace_locations)
         m_backtrace_locations = m_backtrace->to_ruby_backtrace_locations_array();
     return m_backtrace_locations;

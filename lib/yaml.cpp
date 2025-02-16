@@ -5,7 +5,7 @@
 using namespace Natalie;
 
 Value init_yaml(Env *env, Value self) {
-    return NilObject::the();
+    return Value::nil();
 }
 
 static void emit(Env *env, yaml_emitter_t &emitter, yaml_event_t &event) {
@@ -100,12 +100,6 @@ static void emit_value(Env *env, ModuleObject *value, yaml_emitter_t &emitter, y
     emit(env, emitter, event);
 }
 
-static void emit_value(Env *env, NilObject *, yaml_emitter_t &emitter, yaml_event_t &event) {
-    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_NULL_TAG,
-        (yaml_char_t *)"", 0, 1, 0, YAML_PLAIN_SCALAR_STYLE);
-    emit(env, emitter, event);
-}
-
 static void emit_value(Env *env, RangeObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
     yaml_mapping_start_event_initialize(&event, nullptr, (yaml_char_t *)"!ruby/range",
         0, YAML_BLOCK_MAPPING_STYLE);
@@ -157,6 +151,12 @@ static void emit_value(Env *env, TrueObject *, yaml_emitter_t &emitter, yaml_eve
     const TM::String str { "true" };
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_BOOL_TAG,
         (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
+    emit(env, emitter, event);
+}
+
+static void emit_nil_value(Env *env, yaml_emitter_t &emitter, yaml_event_t &event) {
+    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_NULL_TAG,
+        (yaml_char_t *)"", 0, 1, 0, YAML_PLAIN_SCALAR_STYLE);
     emit(env, emitter, event);
 }
 
@@ -231,7 +231,7 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
     } else if (value.is_module()) {
         emit_value(env, value.as_module(), emitter, event);
     } else if (value.is_nil()) {
-        emit_value(env, value.as_nil(), emitter, event);
+        emit_nil_value(env, emitter, event);
     } else if (value.is_range()) {
         emit_value(env, value.as_range(), emitter, event);
     } else if (value.is_regexp()) {
@@ -394,7 +394,7 @@ static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
         return load_hash(env, parser);
     default:
         // Ignore for now
-        return NilObject::the();
+        return Value::nil();
     }
 }
 
