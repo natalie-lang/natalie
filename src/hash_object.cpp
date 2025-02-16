@@ -5,7 +5,6 @@
 
 namespace TM {
 
-// this is used by the hashmap library and assumes that obj->env has been set
 size_t HashKeyHandler<Natalie::HashKey *>::hash(Natalie::HashKey *key) {
     return key->hash;
 }
