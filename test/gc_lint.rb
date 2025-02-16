@@ -107,6 +107,8 @@ def get_class_details_for_path(path)
             superclass = $1
           elsif cursor.kind == :cursor_class_template
             superclass = TEMPLATE_TYPES[cursor.display_name][:superclass]
+          elsif cursor.qualified_name.start_with?('TM::')
+            superclass = nil
           else
             raise 'could not get base class'
           end
