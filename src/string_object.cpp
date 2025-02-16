@@ -3248,7 +3248,7 @@ Value StringObject::strip_in_place(Env *env) {
     // on the left side
     auto r = rstrip_in_place(env);
     auto l = lstrip_in_place(env);
-    return l.is_nil() && r.is_nil() ? Value(Value::nil()) : Value(this);
+    return l.is_nil() && r.is_nil() ? Value::nil() : Value(this);
 }
 
 Value StringObject::lstrip(Env *env) const {
@@ -3473,7 +3473,7 @@ Value StringObject::capitalize_in_place(Env *env, Value arg1, Value arg2) {
     auto copy = capitalize(env, arg1, arg2);
     assert_not_frozen(env);
     if (*this == *copy) {
-        return Value(Value::nil());
+        return Value::nil();
     }
     *this = *copy;
     return this;
@@ -3514,7 +3514,7 @@ Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
     *this = *downcase(env, arg1, arg2);
 
     if (*this == *copy) {
-        return Value(Value::nil());
+        return Value::nil();
     }
     return this;
 }
@@ -3601,7 +3601,7 @@ Value StringObject::upcase_in_place(Env *env, Value arg1, Value arg2) {
     *this = *upcase(env, arg1, arg2);
 
     if (*this == *copy) {
-        return Value(Value::nil());
+        return Value::nil();
     }
     return this;
 }
@@ -3634,7 +3634,7 @@ Value StringObject::swapcase_in_place(Env *env, Value arg1, Value arg2) {
     StringObject *copy = duplicate(env).as_string();
     *this = *swapcase(env, arg1, arg2);
     if (*this == *copy) {
-        return Value(Value::nil());
+        return Value::nil();
     }
     return this;
 }
@@ -4058,7 +4058,7 @@ Value StringObject::delete_prefix_in_place(Env *env, Value val) {
     *this = *delete_prefix(env, val).as_string();
 
     if (*this == *copy) {
-        return Value(Value::nil());
+        return Value::nil();
     }
     return this;
 }
@@ -4083,7 +4083,7 @@ Value StringObject::delete_suffix_in_place(Env *env, Value val) {
     *this = *delete_suffix(env, val).as_string();
 
     if (*this == *copy) {
-        return Value(Value::nil());
+        return Value::nil();
     }
     return this;
 }
