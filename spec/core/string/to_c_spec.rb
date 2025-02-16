@@ -30,9 +30,7 @@ describe "String#to_c" do
   it "allows null-byte" do
     "1-2i\0".to_c.should == Complex(1, -2)
     "1\0-2i".to_c.should == Complex(1, 0)
-    NATFIXME 'This is not a null-byte, but 0x01', exception: SpecFailedException do
-      "\01-2i".to_c.should == Complex(0, 0)
-    end
+    "\01-2i".to_c.should == Complex(0, 0)
   end
 
   it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
