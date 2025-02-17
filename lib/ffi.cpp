@@ -128,6 +128,8 @@ static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
         return &ffi_type_uint;
     } else if (type_sym == "ulong"_s) {
         return &ffi_type_ulong;
+    } else if (type_sym == "ulong_long"_s) {
+        return &ffi_type_uint64;
     } else if (type_sym == "pointer"_s) {
         return &ffi_type_pointer;
     } else if (type_sym == "size_t"_s) {
@@ -189,6 +191,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     auto int_sym = "int"_s;
     auto uint_sym = "uint"_s;
     auto ulong_sym = "ulong"_s;
+    auto ulong_long_sym = "ulong_long"_s;
     auto pointer_sym = "pointer"_s;
     auto size_t_sym = "size_t"_s;
     auto string_sym = "string"_s;
@@ -252,6 +255,10 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             auto ulong = IntegerMethods::convert_to_native_type<unsigned long>(env, val);
             arg_values[i].ulong = ulong;
             arg_pointers[i] = &(arg_values[i].ulong);
+        } else if (type == ulong_long_sym) {
+            auto ulong_long = IntegerMethods::convert_to_native_type<unsigned long long>(env, val);
+            arg_values[i].u64 = ulong_long;
+            arg_pointers[i] = &(arg_values[i].u64);
         } else {
             auto enums = self->ivar_get(env, "@enums"_s);
             if (!enums.is_nil() && enums.as_hash_or_raise(env)->has_key(env, type)) {
@@ -290,7 +297,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
         auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s }).as_class();
         auto pointer = Pointer->send(env, "new"_s, { "pointer"_s, Value::integer((nat_int_t)result) });
         return pointer;
-    } else if (return_type == size_t_sym) {
+    } else if (return_type == size_t_sym || return_type == ulong_long_sym) {
         assert((uint64_t)result <= std::numeric_limits<nat_int_t>::max());
         return Value::integer((nat_int_t)result);
     } else if (return_type == string_sym) {
