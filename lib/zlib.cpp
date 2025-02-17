@@ -5,7 +5,7 @@
 using namespace Natalie;
 
 Value init_zlib(Env *env, Value self) {
-    return NilObject::the();
+    return Value::nil();
 }
 
 void Zlib_deflate_stream_cleanup(VoidPObject *self) {

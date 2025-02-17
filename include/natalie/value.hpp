@@ -13,6 +13,8 @@
 
 namespace Natalie {
 
+constexpr unsigned int NIL_VALUE = 0x4;
+
 class Value {
 public:
     Value() = default;
@@ -29,25 +31,16 @@ public:
         return Value { integer };
     }
 
+    static Value nil() {
+        Value v;
+        v.m_value = NIL_VALUE;
+        return v;
+    }
+
     static Value integer(TM::String &&str);
 
-    Object &operator*() const {
-        if (is_integer()) {
-            fprintf(stderr, "Fatal: cannot dereference Value of type Integer\n");
-            abort();
-        }
-
-        return *reinterpret_cast<Object *>(m_value);
-    }
-
-    Object *operator->() const {
-        if (is_integer()) {
-            fprintf(stderr, "Fatal: cannot dereference Value of type Integer\n");
-            abort();
-        }
-
-        return reinterpret_cast<Object *>(m_value);
-    }
+    Object &operator*() const { return *object(); }
+    Object *operator->() const { return object(); }
 
     Object *object() const {
         if (is_integer()) {
@@ -55,7 +48,12 @@ public:
             abort();
         }
 
-        return reinterpret_cast<Object *>(m_value);
+        if (is_nil()) {
+            fprintf(stderr, "Fatal: cannot dereference Value of type Nil\n");
+            abort();
+        }
+
+        return pointer();
     }
 
     bool is_null() const { return m_value == 0x0; }
@@ -78,7 +76,7 @@ public:
         return send(env, name, Args(args), block, sent_from);
     }
 
-    Value integer_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility);
+    Value immediate_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility);
 
     ClassObject *klass() const;
 
@@ -101,9 +99,11 @@ public:
 
     ObjectType type() const;
 
-    bool is_pointer() const { return (m_value & 0x1) == 0x0; }
+    bool is_pointer() const { return (m_value & 0b111) == 0x0; }
     bool is_fixnum() const { return (m_value & 0x1) == 0x1; }
     bool is_integer() const;
+    bool is_nil() const { return m_value == NIL_VALUE; }
+    bool is_frozen() const;
 
     bool has_instance_variables() const;
 
@@ -116,7 +116,6 @@ public:
     bool is_a(Env *, Value) const;
     bool respond_to(Env *, SymbolObject *, bool include_all = true);
 
-    bool is_nil() const;
     bool is_true() const;
     bool is_false() const;
     bool is_fiber() const;
@@ -176,7 +175,6 @@ public:
     MatchDataObject *as_match_data() const;
     MethodObject *as_method() const;
     ModuleObject *as_module() const;
-    NilObject *as_nil() const;
     ProcObject *as_proc() const;
     RandomObject *as_random() const;
     RangeObject *as_range() const;
@@ -225,11 +223,6 @@ private:
     friend MarkingVisitor;
 
     Object *pointer() const {
-        if (is_fixnum()) {
-            fprintf(stderr, "Fatal: cannot dereference Value of type Fixnum\n");
-            abort();
-        }
-
         return reinterpret_cast<Object *>(m_value);
     }
 

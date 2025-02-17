@@ -60,7 +60,7 @@ bool FileStatObject::is_symlink() const {
 }
 Value FileStatObject::is_size() const {
     if (fstatus.st_size == 0)
-        return NilObject::the();
+        return Value::nil();
     return Value::integer(fstatus.st_size);
 }
 
@@ -132,7 +132,7 @@ Value FileStatObject::world_readable() const {
         auto modenum = fstatus.st_mode & (S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH | S_IXUSR | S_IXGRP | S_IXOTH);
         return Value::integer(modenum);
     }
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value FileStatObject::world_writable() const {
@@ -140,13 +140,13 @@ Value FileStatObject::world_writable() const {
         auto modenum = fstatus.st_mode & (S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH | S_IXUSR | S_IXGRP | S_IXOTH);
         return Value::integer(modenum);
     }
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value FileStatObject::comparison(Env *env, Value other) const {
     if (other.is_a(env, klass()))
         return mtime(env).as_time()->cmp(env, other.as_file_stat()->mtime(env).as_time());
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value FileStatObject::atime(Env *env) const {

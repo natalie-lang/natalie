@@ -101,7 +101,7 @@
 #include "natalie/method_object.hpp"
 #include "natalie/module_object.hpp"
 #include "natalie/native_profiler.hpp"
-#include "natalie/nil_object.hpp"
+#include "natalie/nil_methods.hpp"
 #include "natalie/object.hpp"
 #include "natalie/proc_object.hpp"
 #include "natalie/process_module.hpp"

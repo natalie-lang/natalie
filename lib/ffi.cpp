@@ -10,7 +10,7 @@
 using namespace Natalie;
 
 Value init_ffi(Env *env, Value self) {
-    return NilObject::the();
+    return Value::nil();
 }
 
 static void *dlopen_wrapper(Env *env, const String &name) {
@@ -110,7 +110,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
     auto DynamicLibrary = fetch_nested_const({ "FFI"_s, "DynamicLibrary"_s });
     auto lib = DynamicLibrary.send(env, "new"_s, { name, handle_ptr });
     libs.as_array()->push(lib);
-    return NilObject::the();
+    return Value::nil();
 }
 
 static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
@@ -296,7 +296,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     } else if (return_type == string_sym) {
         return new StringObject { reinterpret_cast<const char *>(result) };
     } else if (return_type == void_sym) {
-        return NilObject::the();
+        return Value::nil();
     } else {
         auto enums = self->ivar_get(env, "@enums"_s);
         if (!enums.is_nil()) {
@@ -374,7 +374,7 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     Block *block = new Block { std::move(block_env), self, FFI_Library_fn_call_block, 0 };
     Object::define_singleton_method(env, self, name, block);
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value FFI_AbstractMemory_put_int8(Env *env, Value self, Args &&args, Block *) {
@@ -484,7 +484,7 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args &&args, Block *blo
     if (block)
         block->run(env, Args({ self }), nullptr);
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value FFI_Pointer_initialize(Env *env, Value self, Args &&args, Block *) {
@@ -501,7 +501,7 @@ Value FFI_Pointer_initialize(Env *env, Value self, Args &&args, Block *) {
         else
             NAT_NOT_YET_IMPLEMENTED("I don't yet know how to handle type %s in FFI::Pointer.new", type.inspect_str(env).c_str());
     } else {
-        type = NilObject::the();
+        type = Value::nil();
         address = args.at(0);
     }
 
@@ -520,7 +520,7 @@ Value FFI_Pointer_initialize(Env *env, Value self, Args &&args, Block *) {
     self->ivar_set(env, "@ptr"_s, ptr_obj);
     self->ivar_set(env, "@type_size"_s, Value::integer(type_size));
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value FFI_Pointer_free(Env *env, Value self, Args &&args, Block *) {
@@ -532,7 +532,7 @@ Value FFI_Pointer_free(Env *env, Value self, Args &&args, Block *) {
     ptr_obj->set_void_ptr(nullptr);
     free(address);
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value FFI_MemoryPointer_inspect(Env *env, Value self, Args &&args, Block *) {

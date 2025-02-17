@@ -17,7 +17,7 @@ static Value generate_random(nat_int_t min, nat_int_t max) {
 
 Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
-    auto arg = args.at(0, NilObject::the());
+    auto arg = args.at(0, Value::nil());
     if (arg.is_nil()) {
         return generate_random(0.0, 1.0);
     } else {
@@ -77,5 +77,5 @@ Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
 }
 
 Value init_securerandom(Env *env, Value self) {
-    return NilObject::the();
+    return Value::nil();
 }

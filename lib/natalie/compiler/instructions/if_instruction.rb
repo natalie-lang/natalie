@@ -20,7 +20,7 @@ module Natalie
 
         # hoisted variables need to be set to nil here
         (@env[:hoisted_vars] || {}).each do |_, var|
-          code << "Value #{var.fetch(:name)} = NilObject::the()"
+          code << "Value #{var.fetch(:name)} = Value::nil()"
           var[:declared] = true
         end
 

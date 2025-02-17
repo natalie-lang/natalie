@@ -90,7 +90,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
 
         auto handle_fallback = [&](nat_int_t cpt) {
             auto ch = new StringObject { orig_encoding->encode_codepoint(cpt) };
-            Value result = NilObject::the();
+            Value result = Value::nil();
             if (options.fallback_option.respond_to(env, "[]"_s)) {
                 result = options.fallback_option.send(env, "[]"_s, { ch });
             } else if (options.fallback_option.respond_to(env, "call"_s)) {
@@ -267,7 +267,7 @@ Value EncodingObject::find(Env *env, Value name) {
     auto string = name.to_str(env)->string().lowercase();
     if (string == "internal") {
         auto intenc = EncodingObject::default_internal();
-        if (!intenc) return NilObject::the();
+        if (!intenc) return Value::nil();
         return intenc;
     } else if (string == "external") {
         return EncodingObject::default_external();

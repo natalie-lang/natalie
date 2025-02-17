@@ -30,7 +30,7 @@ extern "C" Value *EVAL(Env *env, Value *result_memory) {
         // FIXME: top-level `return` in a Ruby script should probably be changed to `exit`.
         result = [&]() -> Value {
             /*NAT_EVAL_BODY*/
-            return NilObject::the();
+            return Value::nil();
         }();
         run_exit_handlers = false;
         run_at_exit_handlers(env);

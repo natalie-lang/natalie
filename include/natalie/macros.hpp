@@ -19,24 +19,24 @@
     c &operator=(const c &) = delete
 
 #ifdef NAT_GC_GUARD
-#define NAT_GC_GUARD_VALUE(val)                                                               \
-    {                                                                                         \
-        Object *ptr;                                                                          \
-        if (!val.is_integer() && (ptr = val.object()) && Heap::the().gc_enabled()) {          \
-            std::lock_guard<std::recursive_mutex> gc_lock(Natalie::g_gc_recursive_mutex);     \
-            auto end_of_stack = (uintptr_t)__builtin_frame_address(0);                        \
-            auto start_of_stack = (uintptr_t)(ThreadObject::current()->start_of_stack());     \
-            assert(start_of_stack > end_of_stack);                                            \
-            if ((uintptr_t)ptr > end_of_stack && (uintptr_t)ptr < start_of_stack) {           \
-                fprintf(                                                                      \
-                    stderr,                                                                   \
-                    "This object (%p) is stack allocated, but you allowed it to be captured " \
-                    "in a Ruby variable or another data structure.\n"                         \
-                    "Be sure to heap-allocate the object with `new`.",                        \
-                    ptr);                                                                     \
-                abort();                                                                      \
-            }                                                                                 \
-        }                                                                                     \
+#define NAT_GC_GUARD_VALUE(val)                                                                          \
+    {                                                                                                    \
+        Object *ptr;                                                                                     \
+        if (!val.is_integer() && val.is_pointer() && (ptr = val.object()) && Heap::the().gc_enabled()) { \
+            std::lock_guard<std::recursive_mutex> gc_lock(Natalie::g_gc_recursive_mutex);                \
+            auto end_of_stack = (uintptr_t)__builtin_frame_address(0);                                   \
+            auto start_of_stack = (uintptr_t)(ThreadObject::current()->start_of_stack());                \
+            assert(start_of_stack > end_of_stack);                                                       \
+            if ((uintptr_t)ptr > end_of_stack && (uintptr_t)ptr < start_of_stack) {                      \
+                fprintf(                                                                                 \
+                    stderr,                                                                              \
+                    "This object (%p) is stack allocated, but you allowed it to be captured "            \
+                    "in a Ruby variable or another data structure.\n"                                    \
+                    "Be sure to heap-allocate the object with `new`.",                                   \
+                    ptr);                                                                                \
+                abort();                                                                                 \
+            }                                                                                            \
+        }                                                                                                \
     }
 #else
 #define NAT_GC_GUARD_VALUE(val)
