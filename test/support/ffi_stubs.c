@@ -26,6 +26,10 @@ unsigned int test_uint(unsigned int arg) {
     return arg;
 }
 
+unsigned long test_ulong(unsigned long arg) {
+    return arg;
+}
+
 size_t test_size_t(size_t arg) {
     return arg;
 }
