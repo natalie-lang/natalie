@@ -30,6 +30,10 @@ unsigned long test_ulong(unsigned long arg) {
     return arg;
 }
 
+unsigned long long test_ulong_long(unsigned long long arg) {
+    return arg;
+}
+
 size_t test_size_t(size_t arg) {
     return arg;
 }

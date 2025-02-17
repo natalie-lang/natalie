@@ -22,6 +22,7 @@ module TestStubs
   attach_function :test_int, [:int], :int
   attach_function :test_uint, [:uint], :uint
   attach_function :test_ulong, [:ulong], :ulong
+  attach_function :test_ulong_long, [:ulong_long], :ulong_long
   attach_function :test_size_t, [:size_t], :size_t
   attach_function :test_string, [], :string
   attach_function :test_string_arg, [:string], :size_t
@@ -192,6 +193,10 @@ describe 'FFI' do
 
   it 'can pass and return unsigned long' do
     TestStubs.test_ulong(3).should == 3
+  end
+
+  it 'can pass and return unsigned long long' do
+    TestStubs.test_ulong_long(3).should == 3
   end
 
   it 'can pass and return size_t' do
