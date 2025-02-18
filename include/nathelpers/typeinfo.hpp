@@ -45,6 +45,11 @@ template <>
 struct typeinfo<uint64_t> {
     constexpr const char *name() { return "uint64_t"; }
 };
+#else
+template <>
+struct typeinfo<unsigned long long> {
+    constexpr const char *name() { return "unsigned long long"; }
+};
 #endif
 
 }
