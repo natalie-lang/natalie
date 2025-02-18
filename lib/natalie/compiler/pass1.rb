@@ -1351,10 +1351,10 @@ module Natalie
         process_condition = ->(condition_node) {
           case condition_node
           when Prism::StringNode
-            warning_instructions << compile_time_warning(node, "string literal in flip-flop", used: false)
+            warning_instructions << compile_time_warning(node, "string literal in flip-flop")
             transform_expression(condition_node, used: true)
           when Prism::IntegerNode
-            warning_instructions << compile_time_warning(node, "integer literal in flip-flop", used: false)
+            warning_instructions << compile_time_warning(node, "integer literal in flip-flop")
             [PushNilInstruction.new]
           else
             transform_expression(condition_node, used: true)
@@ -1527,7 +1527,7 @@ module Natalie
                   else original[2].slice
                   end
           warning = "key #{slice} is duplicated and overwritten on line #{duplicate[2].start_line}"
-          instructions += compile_time_warning(original[2], warning, used: false)
+          instructions += compile_time_warning(original[2], warning)
         end
 
         # create hash from elements before a splat
@@ -2101,7 +2101,7 @@ module Natalie
       def transform_match_last_line_node(node, used:)
         regexp = Regexp.new(node.unescaped, node.options)
         instructions = [
-          *compile_time_warning(node, 'regex literal in condition', used: false),
+          *compile_time_warning(node, 'regex literal in condition'),
           PushRegexpInstruction.new(regexp),
           GlobalVariableGetInstruction.new(:$_),
           PushArgcInstruction.new(1),
@@ -2261,7 +2261,9 @@ module Natalie
 
       def transform_numbered_reference_read_node(node, used:)
         if node.number == 0
-          return compile_time_warning(node, "`#{node.location.slice}' is too big for a number variable, always nil", used:)
+          instructions = compile_time_warning(node, "`#{node.location.slice}' is too big for a number variable, always nil")
+          instructions.push(PushNilInstruction.new) if used
+          return instructions
         end
 
         return [] unless used
@@ -2855,8 +2857,8 @@ module Natalie
       # This would need some extra care in an eval block, where the warning
       # should be printed at the beginning of the eval, not at the global
       # beginning.
-      def compile_time_warning(node, warning, used:)
-        instructions = [
+      def compile_time_warning(node, warning)
+        [
           PushSelfInstruction.new,
           PushStringInstruction.new("#{@file.path}:#{node.location.start_line}: warning: #{warning}"),
           PushArgcInstruction.new(1),
@@ -2867,9 +2869,8 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
+          PopInstruction.new,
         ]
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       class << self
