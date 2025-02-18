@@ -104,8 +104,8 @@ module Natalie
             @depth -= 1
             Array(result).flatten
           elsif node.first == :compile_time_warning
-            _, warnings, ast = node
-            warnings.filter_map { |w| compile_time_warning(w) } +
+            _, warnings, location, ast = node
+            warnings.filter_map { |w| compile_time_warning(w, "#{location}:#{w.location.start_line}") } +
               transform_expression(ast, used:, **kwargs)
           else
             raise "Unknown node type: #{node.inspect}"
@@ -2833,9 +2833,9 @@ module Natalie
         @locals_stack.pop
       end
 
-      def compile_time_warning(warning)
+      def compile_time_warning(warning, location = "#{@file.path}:#{warning.location.start_line}")
         return nil unless warning.level == :default
-        CompileTimeWarn.new("#{@file.path}:#{warning.location.start_line}: warning: #{warning.message}")
+        CompileTimeWarn.new("#{location}: warning: #{warning.message}")
       end
 
       class << self

@@ -176,7 +176,7 @@ module Natalie
             if result.warnings.empty?
               result.ast
             else
-              [:compile_time_warning, result.warnings, result.ast]
+              [:compile_time_warning, result.warnings, "(eval at #{current_path}:#{node.start_line})", result.ast]
             end
           rescue Parser::ParseError => e
             drop_error(:SyntaxError, e.message, location: node.location)
@@ -239,7 +239,7 @@ module Natalie
         result = Natalie::Parser.new(string_node_to_string(expr.arguments.child_nodes.first), current_path, locals:)
         block = Prism::BlockNode.new(result.ast.child_nodes.first, nil, expr.arguments.location, 0, nil, nil, result.ast.statements, expr.arguments.child_nodes.first.opening_loc, expr.arguments.child_nodes.first.closing_loc)
         output = expr.copy(arguments: nil, block:)
-        output = [:compile_time_warning, result.warnings, output] unless result.warnings.empty?
+        output = [:compile_time_warning, result.warnings, "(eval at #{current_path}:#{expr.start_line})", output] unless result.warnings.empty?
         output
       rescue Parser::ParseError => e
         drop_error(:SyntaxError, e.message, location: expr.location)
