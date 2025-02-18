@@ -2850,27 +2850,11 @@ module Natalie
         @locals_stack.pop
       end
 
-      # NATFIXME: Warnings should only be printed once. Currently if those
-      # instructions are placed inside a loop this will print n times.
-      # Maybe we can fix this when implementing BEGIN which also needs a way
-      # to move instructions to the top.
-      # This would need some extra care in an eval block, where the warning
-      # should be printed at the beginning of the eval, not at the global
-      # beginning.
+      # NATFIXME: This instruction should be moved to the top of the current
+      # compilation scope. This means the start of the eval block in case of a
+      # string eval, or the top of the execution in case of regular code.
       def compile_time_warning(node, warning)
-        [
-          PushSelfInstruction.new,
-          PushStringInstruction.new("#{@file.path}:#{node.location.start_line}: warning: #{warning}"),
-          PushArgcInstruction.new(1),
-          SendInstruction.new(
-            :warn,
-            receiver_is_self: true,
-            with_block: false,
-            file: @file.path,
-            line: node.location.start_line,
-          ),
-          PopInstruction.new,
-        ]
+        [CompileTimeWarn.new("#{@file.path}:#{node.location.start_line}: warning: #{warning}")]
       end
 
       class << self
