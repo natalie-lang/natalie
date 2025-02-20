@@ -22,16 +22,18 @@ module Natalie
     class CompileError < StandardError
     end
 
-    def initialize(ast:, path:, encoding: Encoding::UTF_8, options: {})
+    def initialize(ast:, path:, encoding: Encoding::UTF_8, warnings: [], options: {})
       @ast = ast
       @var_num = 0
       @path = path
       @encoding = encoding
+      @warnings = warnings
       @options = options
       @inline_cpp_enabled = {}
     end
 
     attr_accessor :ast,
+                  :warnings,
                   :context,
                   :inline_cpp_enabled,
                   :options,
@@ -161,6 +163,7 @@ module Natalie
         compiler_context:      @context,
         macro_expander:        macro_expander,
         loaded_file:           main_file,
+        warnings:              warnings,
         frozen_string_literal: frozen_string_literal?
       ).transform(
         used: true

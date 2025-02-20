@@ -25,6 +25,7 @@ module Natalie
       CheckRequiredKeywordsInstruction,
       ClassVariableGetInstruction,
       ClassVariableSetInstruction,
+      CompileTimeWarn,
       ConstFindInstruction,
       ConstSetInstruction,
       ContinueInstruction,

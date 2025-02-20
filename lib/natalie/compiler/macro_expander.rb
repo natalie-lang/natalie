@@ -172,7 +172,12 @@ module Natalie
         $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
         if compile_time_string?(node)
           begin
-            Natalie::Parser.new(string_node_to_string(node), current_path, locals: locals).ast
+            result = Natalie::Parser.new(string_node_to_string(node), current_path, locals: locals)
+            if result.warnings.empty?
+              result.ast
+            else
+              [:compile_time_warning, result.warnings, "(eval at #{current_path}:#{node.start_line})", result.ast]
+            end
           rescue Parser::ParseError => e
             drop_error(:SyntaxError, e.message, location: node.location)
           end
@@ -231,9 +236,11 @@ module Natalie
       def macro_evalish_string_to_block(expr:, current_path:, depth:, locals:, **)
         return expr unless compile_time_string?(expr.arguments&.child_nodes&.first)
 
-        ast = Natalie::Parser.new(string_node_to_string(expr.arguments.child_nodes.first), current_path, locals:).ast
-        block = Prism::BlockNode.new(ast.child_nodes.first, nil, expr.arguments.location, 0, nil, nil, ast.statements, expr.arguments.child_nodes.first.opening_loc, expr.arguments.child_nodes.first.closing_loc)
-        expr.copy(arguments: nil, block:)
+        result = Natalie::Parser.new(string_node_to_string(expr.arguments.child_nodes.first), current_path, locals:)
+        block = Prism::BlockNode.new(result.ast.child_nodes.first, nil, expr.arguments.location, 0, nil, nil, result.ast.statements, expr.arguments.child_nodes.first.opening_loc, expr.arguments.child_nodes.first.closing_loc)
+        output = expr.copy(arguments: nil, block:)
+        output = [:compile_time_warning, result.warnings, "(eval at #{current_path}:#{expr.start_line})", output] unless result.warnings.empty?
+        output
       rescue Parser::ParseError => e
         drop_error(:SyntaxError, e.message, location: expr.location)
       end
