@@ -19,6 +19,9 @@
     c &operator=(const c &) = delete
 
 #ifdef NAT_GC_GUARD
+#ifdef __SANITIZE_ADDRESS__
+#error "Do not enable ASan and NAT_GC_GUARD at the same time"
+#endif
 #define NAT_GC_GUARD_VALUE(val)                                                               \
     {                                                                                         \
         Object *ptr;                                                                          \

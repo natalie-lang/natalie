@@ -30,6 +30,8 @@ module Natalie
       SANITIZED_FLAGS = DEBUG_FLAGS + [
         SANITIZE_FLAG,
         '-fno-omit-frame-pointer',
+      ] - %w[
+        -DNAT_GC_GUARD
       ]
 
       COVERAGE_FLAGS = DEBUG_FLAGS + %w[
