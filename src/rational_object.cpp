@@ -135,7 +135,7 @@ bool RationalObject::eq(Env *env, Value other) {
 
 Value RationalObject::floor(Env *env, Optional<Value> precision_arg) {
     if (m_denominator == 1)
-        return IntegerMethods::floor(env, m_numerator, precision_arg.value_or(static_cast<Value>(nullptr)));
+        return IntegerMethods::floor(env, m_numerator, precision_arg);
 
     nat_int_t precision = 0;
     if (precision_arg)
@@ -292,7 +292,7 @@ Value RationalObject::truncate(Env *env, Optional<Value> ndigits_arg) {
 
     if (digits < 0) {
         auto quotient = Value::integer(numerator / denominator);
-        return IntegerMethods::truncate(env, quotient.integer(), ndigits_arg.value_or(static_cast<Value>(nullptr)));
+        return IntegerMethods::truncate(env, quotient.integer(), ndigits_arg);
     }
 
     const auto power = static_cast<nat_int_t>(std::pow(10, digits));

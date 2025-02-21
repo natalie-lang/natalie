@@ -639,7 +639,7 @@ Value IoObject::putc(Env *env, Value val) {
     } else {
         ord = IntegerMethods::convert_to_nat_int_t(env, val) & 0xff;
     }
-    send(env, "write"_s, { IntegerMethods::chr(env, ord, nullptr) });
+    send(env, "write"_s, { IntegerMethods::chr(env, ord) });
     return val;
 }
 
