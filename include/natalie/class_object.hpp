@@ -54,7 +54,7 @@ public:
 
     Type object_type() { return m_object_type; }
 
-    Value initialize(Env *, Value, Block *);
+    Value initialize(Env *, Optional<Value>, Block *);
 
     bool is_singleton() const { return m_is_singleton; }
     void set_is_singleton(bool is_singleton) { m_is_singleton = is_singleton; }
