@@ -147,7 +147,7 @@ Value RationalObject::floor(Env *env, Optional<Value> precision_arg) {
     }
 
     if (precision == 0)
-        return to_f(env).as_float()->floor(env, precision_arg.value_or(static_cast<Value>(nullptr)));
+        return to_f(env).as_float()->floor(env, precision_arg);
 
     auto powered = Natalie::pow(10, precision);
     auto numerator = mul(env, powered).as_rational()->floor(env).integer();

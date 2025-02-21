@@ -40,9 +40,10 @@ bool FloatObject::eql(Value other) const {
 }
 
 #define ROUNDING_OPERATION(name, libm_name)                              \
-    Value FloatObject::name(Env *env, Value precision_value) {           \
+    Value FloatObject::name(Env *env, Optional<Value> precision_arg) {   \
         nat_int_t precision = 0;                                         \
-        if (precision_value) {                                           \
+        if (precision_arg) {                                             \
+            auto precision_value = precision_arg.value();                \
             if (precision_value.is_float()) {                            \
                 precision_value = precision_value.as_float()->to_i(env); \
             }                                                            \
