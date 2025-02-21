@@ -163,9 +163,9 @@ Value SymbolObject::match(Env *env, Value other, Block *block) const {
     return other.as_regexp()->match(env, name(env), nullptr, block);
 }
 
-bool SymbolObject::has_match(Env *env, Value other, Value start) const {
+bool SymbolObject::has_match(Env *env, Value other, Optional<Value> start) const {
     other.assert_type(env, Object::Type::Regexp, "Regexp");
-    return other.as_regexp()->has_match(env, name(env), start);
+    return other.as_regexp()->has_match(env, name(env), start.value_or(Value::nil()));
 }
 
 Value SymbolObject::name(Env *env) const {
@@ -176,10 +176,10 @@ Value SymbolObject::name(Env *env) const {
     }
     return symbol->m_string;
 }
-Value SymbolObject::ref(Env *env, Value index_obj, Value length_obj) {
+Value SymbolObject::ref(Env *env, Value index_obj, Optional<Value> length_obj) {
     // The next line worked in nearly every case, except it did not set `$~`
     // return to_s(env).send(env, intern("[]"), { index_obj, length_obj });
-    return to_s(env)->ref(env, index_obj, length_obj ? Optional<Value>(length_obj) : Optional<Value>());
+    return to_s(env)->ref(env, index_obj, length_obj);
 }
 
 }

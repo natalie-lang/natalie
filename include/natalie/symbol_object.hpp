@@ -60,11 +60,11 @@ public:
     bool start_with(Env *, Args &&);
 
     Value eqtilde(Env *, Value);
-    bool has_match(Env *, Value, Value = nullptr) const;
+    bool has_match(Env *, Value, Optional<Value> = {}) const;
     Value length(Env *);
     Value match(Env *, Value, Block *) const;
     Value name(Env *) const;
-    Value ref(Env *, Value, Value);
+    Value ref(Env *, Value, Optional<Value> = {});
 
     const String &string() const { return m_name; }
     EncodingObject *encoding(Env *env) const { return m_encoding; }
