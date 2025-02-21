@@ -29,7 +29,7 @@ static void *dlopen_wrapper(Env *env, const String &name) {
             static const auto so_ext = [&] {
                 auto RbConfig = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s).as_module();
                 auto CONFIG = RbConfig->const_fetch("CONFIG"_s).as_hash_or_raise(env);
-                auto SO_EXT = CONFIG->fetch(env, new StringObject { "SOEXT" }, nullptr, nullptr).as_string_or_raise(env);
+                auto SO_EXT = CONFIG->fetch(env, new StringObject { "SOEXT" }).as_string_or_raise(env);
                 return String::format(".{}", SO_EXT->string());
             }();
             if (!name.begins_with('/') && !name.ends_with(so_ext)) {

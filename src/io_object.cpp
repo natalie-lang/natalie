@@ -323,7 +323,7 @@ Value IoObject::write_file(Env *env, Args &&args) {
 
     if (kwargs && kwargs->has_key(env, "open_args"_s)) {
         auto next_args = new ArrayObject { filename };
-        next_args->concat(*kwargs->fetch(env, "open_args"_s, nullptr, nullptr).to_ary(env));
+        next_args->concat(*kwargs->fetch(env, "open_args"_s).to_ary(env));
         auto open_args_has_kw = next_args->last().is_hash();
         file = _new(env, File, Args(next_args, open_args_has_kw), nullptr).as_file();
     } else {

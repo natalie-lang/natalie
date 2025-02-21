@@ -522,7 +522,7 @@ Value ThreadObject::fetch(Env *env, Value key, Optional<Value> default_value, Bl
         hash = m_current_fiber->thread_storage();
     if (!hash)
         hash = new HashObject {};
-    return hash->fetch(env, key, default_value.value_or(static_cast<Value>(nullptr)), block);
+    return hash->fetch(env, key, default_value, block);
 }
 
 bool ThreadObject::has_key(Env *env, Value key) {
