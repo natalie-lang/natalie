@@ -57,7 +57,7 @@ public:
     Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
 
     Value const_get(SymbolObject *) const;
-    Value const_get(Env *, Value, Value = nullptr);
+    Value const_get(Env *, Value, Optional<Value> = {});
     Value const_fetch(SymbolObject *) const;
     Value const_set(SymbolObject *, Value);
     Value const_set(SymbolObject *, MethodFnPtr, StringObject *);
@@ -65,7 +65,7 @@ public:
 
     void remove_const(SymbolObject *);
     Value remove_const(Env *, Value);
-    Value constants(Env *, Value) const;
+    Value constants(Env *, Optional<Value>) const;
     Value const_missing(Env *, Value);
 
     void make_method_alias(Env *, SymbolObject *, SymbolObject *);
@@ -101,10 +101,10 @@ public:
     bool class_variable_defined(Env *, Value);
     Value class_variable_get(Env *, Value);
     Value class_variable_set(Env *, Value, Value);
-    ArrayObject *class_variables(Value = nullptr) const;
+    ArrayObject *class_variables(Optional<Value> = {}) const;
     Value remove_class_variable(Env *, Value);
 
-    Value define_method(Env *, Value, Value, Block *);
+    Value define_method(Env *, Value, Optional<Value>, Block *);
     SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int);
     SymbolObject *define_method(Env *, SymbolObject *, Block *);
     SymbolObject *undefine_method(Env *, SymbolObject *);
@@ -118,11 +118,11 @@ public:
     Value instance_method(Env *, Value);
     Value public_instance_method(Env *, Value);
 
-    Value instance_methods(Env *, Value, std::function<bool(MethodVisibility)>);
-    Value instance_methods(Env *, Value);
-    Value private_instance_methods(Env *, Value);
-    Value protected_instance_methods(Env *, Value);
-    Value public_instance_methods(Env *, Value);
+    Value instance_methods(Env *, Optional<Value>, std::function<bool(MethodVisibility)>);
+    Value instance_methods(Env *, Optional<Value>);
+    Value private_instance_methods(Env *, Optional<Value>);
+    Value protected_instance_methods(Env *, Optional<Value>);
+    Value public_instance_methods(Env *, Optional<Value>);
 
     ArrayObject *ancestors(Env *);
     bool ancestors_includes(Env *, ModuleObject *);
@@ -163,7 +163,7 @@ public:
     Value private_constant(Env *, Args &&);
     Value public_constant(Env *, Args &&);
 
-    bool const_defined(Env *, Value, Value = nullptr);
+    bool const_defined(Env *, Value, Optional<Value> = {});
     Value alias_method(Env *, Value, Value);
     Value remove_method(Env *, Args &&);
     Value undef_method(Env *, Args &&);

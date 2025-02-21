@@ -87,11 +87,11 @@ public:
     static bool is_frozen(Value self) { return self.is_frozen(); }
     static Value loop(Env *env, Value self, Block *block);
     static Value method(Env *env, Value self, Value name);
-    static Value methods(Env *env, Value self, Value regular_val);
+    static Value methods(Env *env, Value self, Optional<Value> regular_val);
     static bool neqtilde(Env *env, Value self, Value other);
-    static Value private_methods(Env *env, Value self, Value recur = nullptr);
-    static Value protected_methods(Env *env, Value self, Value recur = nullptr);
-    static Value public_methods(Env *env, Value self, Value recur = nullptr);
+    static Value private_methods(Env *env, Value self, Optional<Value> recur = {});
+    static Value protected_methods(Env *env, Value self, Optional<Value> recur = {});
+    static Value public_methods(Env *env, Value self, Optional<Value> recur = {});
     static Value remove_instance_variable(Env *env, Value self, Value name_val);
     static bool respond_to_missing(Env *, Value, Value, Value) { return false; }
     static bool respond_to_method(Env *, Value, Value, Value);
