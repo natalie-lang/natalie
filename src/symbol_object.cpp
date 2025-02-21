@@ -160,7 +160,7 @@ Value SymbolObject::length(Env *env) {
 
 Value SymbolObject::match(Env *env, Value other, Block *block) const {
     other.assert_type(env, Object::Type::Regexp, "Regexp");
-    return other.as_regexp()->match(env, name(env), nullptr, block);
+    return other.as_regexp()->match(env, name(env), {}, block);
 }
 
 bool SymbolObject::has_match(Env *env, Value other, Optional<Value> start) const {

@@ -638,7 +638,7 @@ bool StringObject::internal_start_with(Env *env, Value needle) {
         needle = needle.as_regexp()->to_s(env);
         needle.as_string()->prepend(env, { new StringObject { "\\A" } });
         needle = new RegexpObject { env, needle.as_string()->string() };
-        return needle.as_regexp()->match(env, this, nullptr).is_truthy();
+        return needle.as_regexp()->match(env, this).is_truthy();
     }
 
     nat_int_t i = index_int(env, needle, 0);
