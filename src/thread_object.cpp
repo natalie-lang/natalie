@@ -515,14 +515,14 @@ Value ThreadObject::set_priority(Env *env, Value priority) {
     return priority;
 }
 
-Value ThreadObject::fetch(Env *env, Value key, Value default_value, Block *block) {
+Value ThreadObject::fetch(Env *env, Value key, Optional<Value> default_value, Block *block) {
     key = validate_key(env, key);
     HashObject *hash = nullptr;
     if (m_current_fiber)
         hash = m_current_fiber->thread_storage();
     if (!hash)
         hash = new HashObject {};
-    return hash->fetch(env, key, default_value, block);
+    return hash->fetch(env, key, default_value.value_or(static_cast<Value>(nullptr)), block);
 }
 
 bool ThreadObject::has_key(Env *env, Value key) {
