@@ -454,7 +454,7 @@ TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode) {
     RationalObject *subseconds;
     TimeObject *result = new TimeObject {};
     if (rational->send(env, "<"_s, { Value::integer(0) }).is_true()) {
-        auto floor = rational->floor(env, nullptr);
+        auto floor = rational->floor(env);
         integer = floor.send(env, "to_i"_s).integer();
         subseconds = rational->sub(env, floor).as_rational();
     } else {
