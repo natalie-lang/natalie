@@ -27,12 +27,14 @@ Value MutexObject::lock(Env *env) {
     return this;
 }
 
-Value MutexObject::sleep(Env *env, Value timeout) {
-    if (!timeout || timeout.is_nil()) {
+Value MutexObject::sleep(Env *env, Optional<Value> timeout_arg) {
+    if (!timeout_arg || timeout_arg.value().is_nil()) {
         ThreadObject::current()->sleep(env, -1.0, this);
         lock(env);
         return this;
     }
+
+    auto timeout = timeout_arg.value();
 
     if ((timeout.is_float() && timeout.as_float()->is_negative()) || (timeout.is_integer() && timeout.integer().is_negative()))
         env->raise("ArgumentError", "time interval must not be negative");
