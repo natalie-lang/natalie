@@ -11,6 +11,7 @@
 #include "natalie/object_type.hpp"
 #include "natalie/value.hpp"
 #include "tm/hashmap.hpp"
+#include "tm/optional.hpp"
 
 namespace Natalie {
 
@@ -122,7 +123,7 @@ public:
     static SymbolObject *define_singleton_method(Env *, Value, SymbolObject *, Block *);
     static SymbolObject *undefine_singleton_method(Env *, Value, SymbolObject *);
 
-    Value main_obj_define_method(Env *, Value, Value, Block *);
+    Value main_obj_define_method(Env *, Value, Optional<Value>, Block *);
     Value main_obj_inspect(Env *);
 
     virtual Value private_method(Env *, Args &&);

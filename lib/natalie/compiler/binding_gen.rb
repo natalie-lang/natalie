@@ -1530,7 +1530,7 @@ gen.binding('UnboundMethod', 'inspect', 'UnboundMethodObject', 'inspect', argc: 
 gen.binding('UnboundMethod', 'name', 'UnboundMethodObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('UnboundMethod', 'owner', 'UnboundMethodObject', 'owner', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
-gen.member_binding_as_class_method('main_obj', 'define_method', 'Object', 'main_obj_define_method', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('main_obj', 'define_method', 'Object', 'main_obj_define_method', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object, pass_null: false)
 gen.member_binding_as_class_method('main_obj', 'to_s', 'Object', 'main_obj_inspect', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Object)
 
 gen.init
