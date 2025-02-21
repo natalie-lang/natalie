@@ -19,8 +19,6 @@ Value Value::integer(TM::String &&str) {
     NativeProfilerEvent *event = nullptr;                                               \
     if (is_profiled) {                                                                  \
         auto classnameOf = [](Value val) -> String {                                    \
-            if (val.is_integer())                                                       \
-                return String("Integer");                                               \
             auto maybe_classname = val.klass()->name();                                 \
             if (maybe_classname.present())                                              \
                 return maybe_classname.value();                                         \
@@ -44,8 +42,8 @@ Value Value::integer(TM::String &&str) {
     });
 
 // FIXME: this doesn't check method visibility, but no tests are failing yet :-)
-Value Value::integer_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility) {
-    auto method_info = GlobalEnv::the()->Integer()->find_method(env, name);
+Value Value::immediate_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility) {
+    auto method_info = klass()->find_method(env, name);
     if (!method_info.is_defined()) {
         // FIXME: store missing reason on current thread
         GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Undefined);
@@ -67,6 +65,8 @@ Value Value::integer_send(Env *env, SymbolObject *name, Args &&args, Block *bloc
 ClassObject *Value::klass() const {
     if (is_integer())
         return GlobalEnv::the()->Integer();
+    if (is_nil())
+        return GlobalEnv::the()->Object()->const_fetch("NilClass"_s).as_class();
     auto ptr = object();
     if (ptr)
         return ptr->klass();
@@ -76,6 +76,8 @@ ClassObject *Value::klass() const {
 ClassObject *Value::singleton_class() const {
     if (is_integer() || is_float() || is_symbol())
         return nullptr;
+    if (is_nil())
+        return GlobalEnv::the()->Object()->const_fetch("NilClass"_s).as_class();
     auto ptr = object();
     if (ptr)
         return ptr->singleton_class();
@@ -87,13 +89,6 @@ ClassObject *Value::singleton_class(Env *env) {
 }
 
 StringObject *Value::to_str(Env *env) {
-    if (is_integer()) {
-        if (respond_to(env, "to_str"_s))
-            return send(env, "to_str"_s).as_string_or_raise(env);
-        else
-            env->raise_type_error(*this, "String");
-    }
-
     if (is_string())
         return as_string();
 
@@ -116,13 +111,6 @@ StringObject *Value::to_str(Env *env) {
 // This is just like Value::to_str, but it raises more consistent error messages.
 // We still need the old error messages because CRuby is inconsistent. :-(
 StringObject *Value::to_str2(Env *env) {
-    if (is_integer()) {
-        if (respond_to(env, "to_str"_s))
-            return send(env, "to_str"_s).as_string_or_raise(env);
-        else
-            env->raise_type_error(*this, "String");
-    }
-
     if (is_string())
         return as_string();
 
@@ -145,8 +133,8 @@ StringObject *Value::to_str2(Env *env) {
 Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
 
-    if (is_integer())
-        return integer_send(env, name, std::move(args), block, sent_from, MethodVisibility::Public);
+    if (is_integer() || is_nil())
+        return immediate_send(env, name, std::move(args), block, sent_from, MethodVisibility::Public);
 
     return object()->public_send(env, name, std::move(args), block, sent_from);
 }
@@ -154,8 +142,8 @@ Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block
 Value Value::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::SEND);
 
-    if (is_integer())
-        return integer_send(env, name, std::move(args), block, sent_from, MethodVisibility::Private);
+    if (is_integer() || is_nil())
+        return immediate_send(env, name, std::move(args), block, sent_from, MethodVisibility::Private);
 
     return object()->send(env, name, std::move(args), block, sent_from);
 }
@@ -172,21 +160,29 @@ Integer Value::integer() const {
 
 Integer Value::integer_or_raise(Env *env) const {
     if (!is_integer())
-        env->raise_type_error(object(), "Integer");
+        env->raise_type_error(*this, "Integer");
     return integer();
 }
 
 ObjectType Value::type() const {
     if (is_integer())
         return ObjectType::Integer;
+    if (is_nil())
+        return ObjectType::Nil;
     return pointer()->type();
 }
 
 bool Value::is_integer() const {
     if (is_fixnum())
         return true;
+    if (!is_pointer())
+        return false;
     auto ptr = reinterpret_cast<Object *>(m_value);
     return ptr != 0x0 && reinterpret_cast<Object *>(ptr)->type() == ObjectType::BigInt;
+}
+
+bool Value::is_frozen() const {
+    return is_integer() || is_float() || is_nil() || object()->is_frozen();
 }
 
 bool Value::has_instance_variables() const {
@@ -206,19 +202,21 @@ bool Value::has_instance_variables() const {
 void Value::assert_integer(Env *env) const {
     if (is_integer())
         return;
-    env->raise_type_error(object(), "Integer");
+    env->raise_type_error(*this, "Integer");
 }
 
 void Value::assert_type(Env *env, ObjectType expected_type, const char *expected_class_name) const {
-    if (is_integer())
-        env->raise("TypeError", "no implicit conversion of Integer into {}", expected_class_name);
-    if (object()->type() != expected_type)
-        env->raise_type_error(object(), expected_class_name);
+    assert(expected_type != ObjectType::Integer);
+    assert(expected_type != ObjectType::Nil);
+    if (type() != expected_type)
+        env->raise_type_error(*this, expected_class_name);
 }
 
 void Value::assert_not_frozen(Env *env) const {
     if (is_integer())
         env->raise("FrozenError", "can't modify frozen Integer: {}", integer().to_string());
+    if (is_nil())
+        env->raise("FrozenError", "can't modify frozen NilClass: nil");
 
     object()->assert_not_frozen(env);
 }
@@ -246,7 +244,6 @@ bool Value::respond_to(Env *env, SymbolObject *name_val, bool include_all) {
     return KernelModule::respond_to_method(env, *this, name_val, include_all);
 }
 
-bool Value::is_nil() const { return is_pointer() && pointer()->type() == ObjectType::Nil; }
 bool Value::is_true() const { return is_pointer() && pointer()->type() == ObjectType::True; }
 bool Value::is_false() const { return is_pointer() && pointer()->type() == ObjectType::False; }
 bool Value::is_fiber() const { return is_pointer() && pointer()->type() == ObjectType::Fiber; }
@@ -286,11 +283,6 @@ bool Value::is_truthy() const { return !is_falsey(); }
 bool Value::is_falsey() const { return is_false() || is_nil(); }
 bool Value::is_numeric() const { return is_integer() || is_float(); }
 bool Value::is_boolean() const { return is_true() || is_false(); }
-
-NilObject *Value::as_nil() const {
-    assert(is_nil());
-    return reinterpret_cast<NilObject *>(m_value);
-}
 
 Enumerator::ArithmeticSequenceObject *Value::as_enumerator_arithmetic_sequence() const {
     assert(is_enumerator_arithmetic_sequence());
@@ -667,6 +659,8 @@ String Value::inspect_str(Env *env) {
 String Value::dbg_inspect() const {
     if (is_integer())
         return integer().to_string();
+    if (is_nil())
+        return "nil";
     return object()->dbg_inspect();
 }
 

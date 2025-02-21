@@ -15,7 +15,7 @@ public:
 #ifndef NAT_GC_DISABLE
         Heap::the().collect();
 #endif
-        return NilObject::the();
+        return Value::nil();
     }
 
     // prints stats from the GC

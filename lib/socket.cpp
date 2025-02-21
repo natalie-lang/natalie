@@ -22,7 +22,7 @@
 using namespace Natalie;
 
 Value init_socket(Env *env, Value self) {
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
@@ -226,8 +226,8 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
 Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 1, 4);
     auto sockaddr = args.at(0);
-    auto afamily = Socket_const_get(env, args.at(1, NilObject::the()), true);
-    auto socktype = Socket_const_get(env, args.at(2, NilObject::the()), true);
+    auto afamily = Socket_const_get(env, args.at(1, Value::nil()), true);
+    auto socktype = Socket_const_get(env, args.at(2, Value::nil()), true);
     auto protocol = args.at(3, Value::integer(0));
 
     self->ivar_set(env, "@protocol"_s, protocol);
@@ -522,7 +522,7 @@ Value BasicSocket_recv(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 3);
     auto maxlen = args.at(0).integer_or_raise(env).to_nat_int_t();
     auto flags = args.at(1, Value::integer(0)).integer_or_raise(env).to_nat_int_t();
-    auto outbuf = args.at(2, NilObject::the());
+    auto outbuf = args.at(2, Value::nil());
 
     if (!outbuf.is_nil())
         outbuf.assert_type(env, Object::Type::String, "String");
@@ -589,7 +589,7 @@ Value BasicSocket_send(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 2, 3);
     auto mesg = args.at(0).to_str(env);
     auto flags = args.at(1, Value::integer(0)).integer_or_raise(env).to_nat_int_t();
-    auto dest_sockaddr = args.at(2, NilObject::the());
+    auto dest_sockaddr = args.at(2, Value::nil());
     ssize_t bytes;
 
     if (dest_sockaddr.is_nil()) {
@@ -695,12 +695,12 @@ Value BasicSocket_shutdown(Env *env, Value self, Args &&args, Block *) {
     if (result == -1)
         env->raise_errno();
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value IPSocket_addr(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
-    auto reverse_lookup = args.at(0, NilObject::the());
+    auto reverse_lookup = args.at(0, Value::nil());
 
     sockaddr_storage addr {};
     socklen_t addr_len = sizeof(addr);
@@ -760,7 +760,7 @@ Value IPSocket_addr(Env *env, Value self, Args &&args, Block *) {
 
 Value IPSocket_peeraddr(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
-    auto reverse_lookup = args.at(0, NilObject::the());
+    auto reverse_lookup = args.at(0, Value::nil());
 
     sockaddr_storage addr;
     socklen_t addr_len = sizeof(addr);
@@ -853,7 +853,7 @@ Value IPSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     }
     default:
         // Some issue, which means we should replace the ipaddr info
-        ipaddr_info = NilObject::the();
+        ipaddr_info = Value::nil();
     }
     return new ArrayObject {
         new StringObject { std::move(buf), Encoding::ASCII_8BIT },
@@ -1070,7 +1070,7 @@ Value Socket_bind(Env *env, Value self, Args &&args, Block *block) {
 
 Value Socket_close(Env *env, Value self, Args &&args, Block *block) {
     self.as_io()->close(env);
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value Socket_is_closed(Env *env, Value self, Args &&args, Block *block) {
@@ -1112,7 +1112,7 @@ Value Socket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     const auto maxlen = IntegerMethods::convert_to_native_type<size_t>(env, args.at(0));
     auto flags = 0;
-    if (!args.at(1, NilObject::the()).is_nil())
+    if (!args.at(1, Value::nil()).is_nil())
         flags = IntegerMethods::convert_to_native_type<int>(env, args.at(1));
 
     char buf[maxlen];
@@ -1155,7 +1155,7 @@ Value Socket_pair(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 2, 3);
     const auto domain = Socket_const_get(env, args.at(0));
     const auto type = Socket_const_get(env, args.at(1));
-    const auto protocol = Socket_const_get(env, args.at(2, NilObject::the()), true);
+    const auto protocol = Socket_const_get(env, args.at(2, Value::nil()), true);
 
     int fd[2];
     if (socketpair(domain, type, protocol, fd) < 0)
@@ -1349,11 +1349,11 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 2, 7);
     auto nodename = args.at(0);
     auto servname = args.at(1);
-    auto family = args.at(2, NilObject::the());
-    auto socktype = args.at(3, NilObject::the());
-    auto protocol = args.at(4, NilObject::the());
-    auto flags = args.at(5, NilObject::the());
-    auto reverse_lookup = args.at(6, NilObject::the());
+    auto family = args.at(2, Value::nil());
+    auto socktype = args.at(3, Value::nil());
+    auto protocol = args.at(4, Value::nil());
+    auto flags = args.at(5, Value::nil());
+    auto reverse_lookup = args.at(6, Value::nil());
 
     if (reverse_lookup.is_nil()) {
         auto BasicSocket = find_top_level_const(env, "BasicSocket"_s);
@@ -1437,7 +1437,7 @@ Value Socket_s_getifaddrs(Env *env, Value, Args &&args, Block *) {
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s).as_class();
     auto sockaddr_to_addrinfo = [&env, &Addrinfo](sockaddr *addr) -> Value {
         if (!addr)
-            return NilObject::the();
+            return Value::nil();
         size_t len = 0;
         switch (addr->sa_family) {
         case AF_INET:
@@ -1450,7 +1450,7 @@ Value Socket_s_getifaddrs(Env *env, Value, Args &&args, Block *) {
         case AF_PACKET: // NATFIXME: Support AF_PACKET (Ethernet) addr, see packet(7)
 #endif
         default:
-            return NilObject::the();
+            return Value::nil();
         }
         auto addrinfo_str = new StringObject { reinterpret_cast<const char *>(addr), len };
         return Object::_new(env, Addrinfo, { addrinfo_str }, nullptr);
@@ -1485,7 +1485,7 @@ Value Socket_s_getservbyname(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto name = args[0].to_str(env);
     const char *proto = "tcp";
-    if (auto proto_val = args.at(1, NilObject::the()); !proto_val.is_nil())
+    if (auto proto_val = args.at(1, Value::nil()); !proto_val.is_nil())
         proto = proto_val.to_str(env)->c_str();
 
     auto result = getservbyname(name->c_str(), proto);
@@ -1498,7 +1498,7 @@ Value Socket_s_getservbyport(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto port = IntegerMethods::convert_to_native_type<int>(env, args[0]);
     const char *proto = "tcp";
-    if (auto proto_val = args.at(1, NilObject::the()); !proto_val.is_nil())
+    if (auto proto_val = args.at(1, Value::nil()); !proto_val.is_nil())
         proto = proto_val.to_str(env)->c_str();
 
     auto result = getservbyport(port, proto);
@@ -1568,9 +1568,9 @@ Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
 
     auto host = args.at(0);
     auto port = args.at(1);
-    auto local_host = args.at(2, NilObject::the());
-    auto local_port = args.at(3, NilObject::the());
-    auto connect_timeout = kwargs ? kwargs->remove(env, "connect_timeout"_s) : NilObject::the();
+    auto local_host = args.at(2, Value::nil());
+    auto local_port = args.at(3, Value::nil());
+    auto connect_timeout = kwargs ? kwargs->remove(env, "connect_timeout"_s) : Value::nil();
     env->ensure_no_extra_keywords(kwargs);
 
     auto domain = AF_INET;
@@ -1621,7 +1621,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
 Value TCPServer_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 1, 2);
     auto hostname = args.at(0);
-    auto port = args.at(1, NilObject::the());
+    auto port = args.at(1, Value::nil());
 
     // TCPServer.new([hostname,] port)
     if (args.size() == 1) {
@@ -1762,7 +1762,7 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args &&args, Block *) {
             env->raise_errno();
         }
     } else if (recvfrom_result == 0) {
-        return NilObject::the();
+        return Value::nil();
     }
 
     Value sender_inet_addr = nullptr;

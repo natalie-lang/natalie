@@ -54,7 +54,7 @@ Value StringUnpacker::unpack1(Env *env) {
         if (m_unpacked_value)
             return m_unpacked_value;
     }
-    return NilObject::the();
+    return Value::nil();
 }
 
 void StringUnpacker::unpack_token(Env *env, Token &token) {
@@ -256,7 +256,7 @@ void StringUnpacker::unpack_C(Token &token) {
     if (token.count == -1) token.count = 1;
     while (token.star ? !at_end() : consumed < token.count) {
         if (at_end()) {
-            append(NilObject::the());
+            append(Value::nil());
         } else {
             unsigned char c = pointer()[0];
             append(Value::integer((unsigned int)c));
@@ -271,7 +271,7 @@ void StringUnpacker::unpack_c(Token &token) {
     if (token.count == -1) token.count = 1;
     while (token.star ? !at_end() : consumed < token.count) {
         if (at_end()) {
-            append(NilObject::the());
+            append(Value::nil());
         } else {
             signed char c = pointer()[0];
             append(Value::integer((signed int)c));
@@ -438,7 +438,7 @@ void StringUnpacker::unpack_m(Env *env, Token &token) {
 
 void StringUnpacker::unpack_P(Token &token) {
     if (m_index + sizeof(uintptr_t) > m_source->length()) {
-        append(NilObject::the());
+        append(Value::nil());
         return;
     }
 
@@ -450,7 +450,7 @@ void StringUnpacker::unpack_P(Token &token) {
 
 void StringUnpacker::unpack_p() {
     if (m_index + sizeof(uintptr_t) > m_source->length()) {
-        append(NilObject::the());
+        append(Value::nil());
         return;
     }
 

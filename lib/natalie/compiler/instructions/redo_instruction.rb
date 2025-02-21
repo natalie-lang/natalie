@@ -9,7 +9,7 @@ module Natalie
 
       def generate(transform)
         transform.exec('FiberObject::current()->set_redo_block()')
-        transform.exec('return NilObject::the()')
+        transform.exec('return Value::nil()')
         transform.push_nil
       end
 

@@ -6,7 +6,6 @@
 
 #include "natalie/forward.hpp"
 #include "natalie/integer_methods.hpp"
-#include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"
 
 namespace Natalie {
@@ -66,7 +65,7 @@ public:
     static Value klass_obj(Env *env, Value self);
 
     static Value freeze_obj(Env *env, Value self) {
-        if (self.is_integer() || self.is_float())
+        if (self.is_frozen())
             return self;
 
         self->freeze();
@@ -85,7 +84,7 @@ public:
     static Value instance_variable_set(Env *env, Value self, Value name_val, Value value);
     static Value instance_variables(Env *env, Value self);
     static bool is_a(Env *env, Value self, Value module);
-    static bool is_frozen(Value self) { return self.is_integer() || self.is_float() || self->is_frozen(); }
+    static bool is_frozen(Value self) { return self.is_frozen(); }
     static Value loop(Env *env, Value self, Block *block);
     static Value method(Env *env, Value self, Value name);
     static Value methods(Env *env, Value self, Value regular_val);

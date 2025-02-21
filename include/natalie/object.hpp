@@ -62,7 +62,7 @@ public:
         if (m_ivars)
             delete m_ivars;
         m_ivars = other.m_ivars;
-        other.m_type = Type::Nil;
+        other.m_type = Type::Collected;
         other.m_singleton_class = nullptr;
         other.m_frozen = false;
         other.m_ivars = nullptr;

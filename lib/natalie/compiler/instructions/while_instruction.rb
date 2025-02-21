@@ -37,7 +37,7 @@ module Natalie
 
         # hoisted variables need to be set to nil here
         (@env[:hoisted_vars] || {}).each do |_, var|
-          code << "Value #{var.fetch(:name)} = NilObject::the()"
+          code << "Value #{var.fetch(:name)} = Value::nil()"
           var[:declared] = true
         end
 
@@ -49,7 +49,7 @@ module Natalie
           code << '};'
         end
 
-        code << "Value #{result_name} = NilObject::the()"
+        code << "Value #{result_name} = Value::nil()"
 
         transform.with_same_scope(body) do |t|
           if @pre

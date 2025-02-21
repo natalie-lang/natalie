@@ -123,7 +123,7 @@ void Heap::collect() {
     }
 
     visitor.visit(GlobalEnv::the());
-    visitor.visit(NilObject::the());
+    visitor.visit(Value::nil());
     visitor.visit(TrueObject::the());
     visitor.visit(FalseObject::the());
     visitor.visit(tl_current_exception);
@@ -132,6 +132,7 @@ void Heap::collect() {
 
     // We don't collect symbols, but they each can have associated objects we do collect.
     SymbolObject::visit_all_symbols(visitor);
+    NilMethods::visit_string(visitor);
 
     if (is_profiled)
         mark_profiler_event->end_now();

@@ -174,7 +174,7 @@ Value RegexpObject::try_convert(Env *env, Value value) {
         }
         return result;
     } else if (!value.is_regexp())
-        return NilObject::the();
+        return Value::nil();
     return value;
 }
 
@@ -453,7 +453,7 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
     Env *caller_env = env->caller();
     if (other.is_nil()) {
         caller_env->clear_match();
-        return NilObject::the();
+        return Value::nil();
     }
 
     if (other.is_symbol())
@@ -496,7 +496,7 @@ Value RegexpObject::match_at_byte_offset(Env *env, StringObject *str, size_t byt
     } else if (result == ONIG_MISMATCH) {
         caller_env->clear_match();
         onig_region_free(region, true);
-        return NilObject::the();
+        return Value::nil();
     } else {
         caller_env->clear_match();
         onig_region_free(region, true);

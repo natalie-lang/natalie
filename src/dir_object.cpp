@@ -52,14 +52,14 @@ Value DirObject::close(Env *env) {
     if (m_dir)
         ::closedir(m_dir);
     m_dir = nullptr;
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value DirObject::read(Env *env) {
     if (!m_dir) env->raise("IOError", "closed directory");
     struct dirent *dirp;
     dirp = ::readdir(m_dir);
-    if (!dirp) return NilObject::the();
+    if (!dirp) return Value::nil();
     return new StringObject { dirp->d_name, m_encoding };
 }
 
@@ -151,7 +151,7 @@ Value DirObject::children(Env *env) {
             ary->push(new StringObject { dirp->d_name, m_encoding });
         }
     }
-    if (ary->is_empty()) return NilObject::the();
+    if (ary->is_empty()) return Value::nil();
     return ary;
 }
 
@@ -163,7 +163,7 @@ Value DirObject::entries(Env *env) {
     while ((dirp = ::readdir(m_dir))) {
         ary->push(new StringObject { dirp->d_name, m_encoding });
     }
-    if (ary->is_empty()) return NilObject::the();
+    if (ary->is_empty()) return Value::nil();
     return ary;
 }
 
@@ -216,7 +216,7 @@ Value DirObject::each_child(Env *env, Value path, Value encoding, Block *block) 
     if (!block) {
         return result;
     }
-    return NilObject::the();
+    return Value::nil();
 }
 
 // class method of `entries`
@@ -234,7 +234,7 @@ Value DirObject::foreach (Env *env, Value path, Value encoding, Block * block) {
     if (!block) {
         return result;
     }
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value DirObject::chroot(Env *env, Value path) {

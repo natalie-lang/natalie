@@ -64,7 +64,7 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
         }
 
     } else {
-        if (!value) value = NilObject::the();
+        if (!value) value = Value::nil();
         for (nat_int_t i = 0; i < s; i++) {
             push(value);
         }
@@ -103,7 +103,7 @@ Value ArrayObject::first() {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (m_vector.is_empty())
-        return NilObject::the();
+        return Value::nil();
     return m_vector[0];
 }
 
@@ -111,7 +111,7 @@ Value ArrayObject::last() {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (m_vector.is_empty())
-        return NilObject::the();
+        return Value::nil();
     return m_vector[m_vector.size() - 1];
 }
 
@@ -119,7 +119,7 @@ Value ArrayObject::pop() {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (m_vector.is_empty())
-        return NilObject::the();
+        return Value::nil();
     return m_vector.pop();
 }
 
@@ -127,7 +127,7 @@ Value ArrayObject::shift() {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (m_vector.is_empty())
-        return NilObject::the();
+        return Value::nil();
     return m_vector.pop_front();
 }
 
@@ -141,7 +141,7 @@ void ArrayObject::set(size_t index, Value value) {
     }
 
     if (index > m_vector.size()) {
-        m_vector.set_size(index, NilObject::the());
+        m_vector.set_size(index, Value::nil());
         m_vector.push(value);
         return;
     }
@@ -248,7 +248,7 @@ Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
         if (index_obj.is_integer()) {
             auto index = _resolve_index(IntegerMethods::convert_to_nat_int_t(env, index_obj));
             if (index < 0 || index >= (nat_int_t)m_vector.size())
-                return NilObject::the();
+                return Value::nil();
             return m_vector[index];
         }
     }
@@ -334,7 +334,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
 
     // extra nils if needed
     if (start > static_cast<nat_int_t>(this->size()))
-        new_ary.set_size(start, NilObject::the());
+        new_ary.set_size(start, Value::nil());
 
     // the new entry/entries
     if (val.is_array() || val.respond_to(env, "to_ary"_s)) {
@@ -404,7 +404,7 @@ bool ArrayObject::eq(Env *env, Value other) {
         return true;
     };
 
-    if (other.is_integer())
+    if (other.is_integer() || other.is_nil())
         return lambda(false);
 
     TM::PairedRecursionGuard guard { this, other.object() };
@@ -439,7 +439,7 @@ bool ArrayObject::eql(Env *env, Value other) {
         return true;
     };
 
-    if (other.is_integer())
+    if (other.is_integer() || other.is_nil())
         return lambda(false);
 
     TM::PairedRecursionGuard guard { this, other.object() };
@@ -583,7 +583,7 @@ Value ArrayObject::first(Env *env, Value n) {
 
     if (!has_count) {
         if (is_empty())
-            return NilObject::the();
+            return Value::nil();
 
         return (*this)[0];
     }
@@ -624,7 +624,7 @@ Value ArrayObject::flatten_in_place(Env *env, Value depth) {
     if (changed)
         return this;
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 bool ArrayObject::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayObject *> visited) {
@@ -683,7 +683,7 @@ Value ArrayObject::delete_at(Env *env, Value n) {
 
     auto nat_resolved_index = _resolve_index(IntegerMethods::convert_to_nat_int_t(env, n));
     if (nat_resolved_index < 0)
-        return NilObject::the();
+        return Value::nil();
 
     auto resolved_index = static_cast<size_t>(nat_resolved_index);
     auto value = (*this)[resolved_index];
@@ -717,7 +717,7 @@ Value ArrayObject::delete_if(Env *env, Block *block) {
 }
 
 Value ArrayObject::delete_item(Env *env, Value target, Block *block) {
-    Value deleted_item = NilObject::the();
+    Value deleted_item = Value::nil();
 
     for (size_t i = size(); i > 0; --i) {
         auto item = (*this)[i - 1];
@@ -758,7 +758,7 @@ Value ArrayObject::dig(Env *env, Args &&args) {
     if (args.size() == 0)
         return val;
 
-    if (val == NilObject::the())
+    if (val == Value::nil())
         return val;
 
     if (!val.respond_to(env, dig))
@@ -803,7 +803,7 @@ Value ArrayObject::last(Env *env, Value n) {
 
     if (!has_count) {
         if (is_empty())
-            return NilObject::the();
+            return Value::nil();
 
         return (*this)[size() - 1];
     }
@@ -846,7 +846,7 @@ Value ArrayObject::shift(Env *env, Value count) {
     auto has_count = count != nullptr;
 
     if (!has_count && is_empty())
-        return NilObject::the();
+        return Value::nil();
 
     size_t shift_count = 1;
     Value result = nullptr;
@@ -1034,14 +1034,14 @@ Value ArrayObject::pop(Env *env, Value count) {
 
         return pops;
     }
-    if (size() == 0) return NilObject::the();
+    if (size() == 0) return Value::nil();
     Value val = m_vector.pop();
     return val;
 }
 
 void ArrayObject::expand_with_nil(Env *env, size_t total) {
     for (size_t i = size(); i < total; i++) {
-        push(NilObject::the());
+        push(Value::nil());
     }
 }
 
@@ -1133,7 +1133,7 @@ Value ArrayObject::select_in_place(Env *env, Block *block) {
 
     if (changed)
         return this;
-    return NilObject::the();
+    return Value::nil();
 }
 
 bool ArrayObject::select_in_place(std::function<bool(Value &)> predicate) {
@@ -1202,12 +1202,12 @@ Value ArrayObject::reject_in_place(Env *env, Block *block) {
 
     if (changed)
         return this;
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value ArrayObject::max(Env *env, Value count, Block *block) {
     if (m_vector.size() == 0)
-        return NilObject::the();
+        return Value::nil();
 
     auto is_more = [&](Value item, Value min) -> bool {
         Value block_args[] = { item, min };
@@ -1257,7 +1257,7 @@ Value ArrayObject::max(Env *env, Value count, Block *block) {
 
 Value ArrayObject::min(Env *env, Value count, Block *block) {
     if (m_vector.size() == 0)
-        return NilObject::the();
+        return Value::nil();
 
     auto is_less = [&](Value item, Value min) -> bool {
         Value block_args[] = { item, min };
@@ -1307,7 +1307,7 @@ Value ArrayObject::min(Env *env, Value count, Block *block) {
 
 Value ArrayObject::minmax(Env *env, Block *block) {
     if (m_vector.size() == 0)
-        return new ArrayObject { NilObject::the(), NilObject::the() };
+        return new ArrayObject { Value::nil(), Value::nil() };
 
     auto compare = [&](Value item, Value min) -> nat_int_t {
         Value block_args[] = { item, min };
@@ -1380,7 +1380,7 @@ Value ArrayObject::compact_in_place(Env *env) {
     if (changed)
         return this;
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value ArrayObject::cycle(Env *env, Value count, Block *block) {
@@ -1416,7 +1416,7 @@ Value ArrayObject::uniq_in_place(Env *env, Block *block) {
     ArrayObject *values = hash->values(env).as_array();
 
     if (m_vector.size() == values->size())
-        return NilObject::the();
+        return Value::nil();
 
     *this = std::move(*values);
 
@@ -1447,7 +1447,7 @@ Value ArrayObject::assoc(Env *env, Value needle) {
             return sub_array;
     }
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value ArrayObject::bsearch(Env *env, Block *block) {
@@ -1473,7 +1473,7 @@ Value ArrayObject::bsearch_index(Env *env, Block *block) {
     });
 
     if (!result.present())
-        return NilObject::the();
+        return Value::nil();
 
     return Value::integer(result.value());
 }
@@ -1491,14 +1491,14 @@ Value ArrayObject::rassoc(Env *env, Value needle) {
             return sub_array;
     }
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value ArrayObject::hash(Env *env) {
     TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
-            return Value { NilObject::the() };
+            return Value { Value::nil() };
 
         HashBuilder hash {};
         auto hash_method = "hash"_s;
@@ -1550,7 +1550,7 @@ Value ArrayObject::insert(Env *env, Args &&args) {
     size_t size_t_index = static_cast<size_t>(index);
 
     while (size_t_index > m_vector.size()) {
-        m_vector.push(NilObject::the());
+        m_vector.push(Value::nil());
     }
 
     for (size_t i = 1; i < args.size(); i++) {
@@ -1772,7 +1772,7 @@ Value ArrayObject::find_index(Env *env, Value object, Block *block, bool search_
                 return Value::integer(index);
         }
     }
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value ArrayObject::none(Env *env, Args &&args, Block *block) {
@@ -1904,7 +1904,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         if (!size) {
             start = _resolve_index(start);
             if (start < 0 || start >= (nat_int_t)m_vector.size())
-                return NilObject::the();
+                return Value::nil();
 
             Value item = (*this)[start];
             for (size_t i = start; i < this->size() - 1; i++) {
@@ -1919,10 +1919,10 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         auto length = size.integer().to_nat_int_t();
 
         if (length < 0)
-            return NilObject::the();
+            return Value::nil();
 
         if (start > (nat_int_t)m_vector.size())
-            return NilObject::the();
+            return Value::nil();
 
         if (start == (nat_int_t)m_vector.size())
             return new ArrayObject {};
@@ -1992,7 +1992,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
 
 Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end) {
     if (start > (nat_int_t)m_vector.size())
-        return NilObject::the();
+        return Value::nil();
 
     if (start == (nat_int_t)m_vector.size())
         return new ArrayObject {};
@@ -2000,7 +2000,7 @@ Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_
     start = _resolve_index(start);
 
     if (start < 0)
-        return NilObject::the();
+        return Value::nil();
 
     if (end < 0)
         end = _resolve_index(end);
@@ -2014,7 +2014,7 @@ Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_
         length = this->size() - start;
 
     if (length < 0)
-        return NilObject::the();
+        return Value::nil();
 
     ArrayObject *newArr = new ArrayObject();
     if (length == 0) {
@@ -2053,7 +2053,7 @@ Value ArrayObject::try_convert(Env *env, Value val) {
     }
 
     if (!val.respond_to(env, to_ary)) {
-        return NilObject::the();
+        return Value::nil();
     }
 
     auto conversion = val.send(env, to_ary);
@@ -2116,7 +2116,7 @@ Value ArrayObject::values_at(Env *env, Args &&args) {
     for (auto index : indices) {
         auto resolved_index = _resolve_index(index);
         if (resolved_index < 0 || static_cast<size_t>(resolved_index) >= m_vector.size()) {
-            accumulator->push(NilObject::the());
+            accumulator->push(Value::nil());
             continue;
         }
         accumulator->push((*this)[resolved_index]);

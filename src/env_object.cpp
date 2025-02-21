@@ -89,14 +89,14 @@ Value EnvObject::delete_key(Env *env, Value name, Block *block) {
     } else if (block) {
         return block->run(env, Args({ name }), nullptr);
     } else {
-        return NilObject::the();
+        return Value::nil();
     }
 }
 
 Value EnvObject::dup(Env *env) {
     env->raise("TypeError", "Cannot dup ENV, use ENV.to_h to get a copy of ENV as a hash");
 
-    return NilObject::the(); // No void return type
+    return Value::nil(); // No void return type
 }
 
 Value EnvObject::each(Env *env, Block *block) {
@@ -152,7 +152,7 @@ Value EnvObject::assoc(Env *env, Value name) {
         StringObject *valuestr = new StringObject { value };
         return new ArrayObject { { namestr, valuestr } };
     } else {
-        return NilObject::the();
+        return Value::nil();
     }
 }
 
@@ -160,10 +160,10 @@ Value EnvObject::rassoc(Env *env, Value value) {
     if (!value.is_string() && value.respond_to(env, "to_str"_s))
         value = value.to_str(env);
     if (!value.is_string())
-        return NilObject::the();
+        return Value::nil();
     auto name = key(env, value);
     if (name.is_nil())
-        return NilObject::the();
+        return Value::nil();
     return new ArrayObject { name, value };
 }
 
@@ -173,7 +173,7 @@ Value EnvObject::ref(Env *env, Value name) {
     if (value) {
         return string_with_default_encoding(value);
     } else {
-        return NilObject::the();
+        return Value::nil();
     }
 }
 
@@ -239,7 +239,7 @@ Value EnvObject::key(Env *env, Value value) {
         pair = *(environ + i);
     }
 
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value EnvObject::keys(Env *env) {
@@ -254,7 +254,7 @@ bool EnvObject::has_key(Env *env, Value name) {
 
 Value EnvObject::has_value(Env *env, Value name) {
     if (!name.respond_to(env, "to_str"_s))
-        return NilObject::the();
+        return Value::nil();
     name = name.to_str(env);
     if (to_hash(env, nullptr).as_hash()->has_value(env, name))
         return TrueObject::the();
@@ -266,7 +266,7 @@ Value EnvObject::to_s() const {
 }
 
 Value EnvObject::rehash() const {
-    return NilObject::the();
+    return Value::nil();
 }
 
 // Sadly, clearenv() is not available on some OS's
@@ -303,7 +303,7 @@ Value EnvObject::reject_in_place(Env *env, Block *block) {
     auto keys = hash->keys(env).as_array();
     if (hash->send(env, "reject!"_s, {}, block).is_nil())
         // No changes
-        return NilObject::the();
+        return Value::nil();
 
     for (size_t i = 0; i < keys->size(); i++) {
         auto key = keys->at(i);
@@ -347,7 +347,7 @@ Value EnvObject::select_in_place(Env *env, Block *block) {
     auto keys = hash->keys(env).as_array();
     if (hash->send(env, "select!"_s, {}, block).is_nil())
         // No changes
-        return NilObject::the();
+        return Value::nil();
 
     for (size_t i = 0; i < keys->size(); i++) {
         auto key = keys->at(i);
@@ -359,11 +359,11 @@ Value EnvObject::select_in_place(Env *env, Block *block) {
 
 Value EnvObject::shift() {
     if (!environ)
-        return NilObject::the();
+        return Value::nil();
 
     char *pair = *environ;
     if (!pair)
-        return NilObject::the();
+        return Value::nil();
 
     char *eq = strchr(pair, '=');
     assert(eq);

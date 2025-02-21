@@ -105,7 +105,7 @@ SymbolObject *SymbolObject::capitalize(Env *env) {
     return string->to_symbol(env);
 }
 Value SymbolObject::casecmp(Env *env, Value other) {
-    if (!other.is_symbol()) return NilObject::the();
+    if (!other.is_symbol()) return Value::nil();
     auto str1 = to_s(env);
     auto str2 = other.to_s(env);
     str1 = str1->send(env, "downcase"_s, { "ascii"_s }).as_string();
@@ -114,7 +114,7 @@ Value SymbolObject::casecmp(Env *env, Value other) {
 }
 
 Value SymbolObject::is_casecmp(Env *env, Value other) {
-    if (!other.is_symbol()) return NilObject::the();
+    if (!other.is_symbol()) return Value::nil();
     // other.assert_type(env, Object::Type::Symbol, "Symbol");
     auto str1 = to_s(env);
     auto str2 = other.to_s(env);
@@ -141,7 +141,7 @@ Value SymbolObject::to_proc_block_fn(Env *env, Value self_value, Args &&args, Bl
 }
 
 Value SymbolObject::cmp(Env *env, Value other_value) {
-    if (!other_value.is_symbol()) return NilObject::the();
+    if (!other_value.is_symbol()) return Value::nil();
     SymbolObject *other = other_value.as_symbol();
     return Value::integer(m_name.cmp(other->m_name));
 }

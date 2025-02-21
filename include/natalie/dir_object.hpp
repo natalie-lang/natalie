@@ -8,7 +8,6 @@
 
 #include "natalie/forward.hpp"
 #include "natalie/integer_methods.hpp"
-#include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"
 #include "natalie/regexp_object.hpp"
 #include "natalie/string_object.hpp"
@@ -35,7 +34,7 @@ public:
     }
 
     static Value size_fn(Env *env, Value self, Args &&, Block *) {
-        return Value(NilObject::the());
+        return Value::nil();
     }
 
     Value children(Env *env); // for internal use

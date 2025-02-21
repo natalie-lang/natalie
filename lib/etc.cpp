@@ -43,7 +43,7 @@ Value passwd_to_struct(Env *env, Value self, struct passwd *pwd) {
 }
 
 Value init_etc(Env *env, Value self) {
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value Etc_confstr(Env *env, Value self, Args &&args, Block *) {
@@ -53,7 +53,7 @@ Value Etc_confstr(Env *env, Value self, Args &&args, Block *) {
     if (size == 0) {
         if (errno)
             env->raise_errno();
-        return NilObject::the();
+        return Value::nil();
     }
     TM::String buf(size - 1, '\0');
     if (!::confstr(name, &buf[0], size))
@@ -64,18 +64,18 @@ Value Etc_confstr(Env *env, Value self, Args &&args, Block *) {
 Value Etc_endgrent(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     ::endgrent();
-    return NilObject::the();
+    return Value::nil();
 }
 Value Etc_endpwent(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     ::endpwent();
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value Etc_getgrent(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     struct group *grp = ::getgrent();
-    if (!grp) return NilObject::the();
+    if (!grp) return Value::nil();
     return group_to_struct(env, self, grp);
 }
 
@@ -108,14 +108,14 @@ Value Etc_getlogin(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     char *login = ::getlogin();
     if (!login) login = ::getenv("USER");
-    if (!login) return NilObject::the();
+    if (!login) return Value::nil();
     return new StringObject { login, EncodingObject::locale() };
 }
 
 Value Etc_getpwent(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     struct passwd *pwd = ::getpwent();
-    if (!pwd) return NilObject::the();
+    if (!pwd) return Value::nil();
     return passwd_to_struct(env, self, pwd);
 }
 
@@ -153,13 +153,13 @@ Value Etc_nprocessors(Env *env, Value self, Args &&args, Block *) {
 Value Etc_setgrent(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     ::setgrent();
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value Etc_setpwent(Env *env, Value self, Args &&args, Block *_block) {
     args.ensure_argc_is(env, 0);
     ::setpwent();
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value Etc_sysconf(Env *env, Value self, Args &&args, Block *_block) {
@@ -169,7 +169,7 @@ Value Etc_sysconf(Env *env, Value self, Args &&args, Block *_block) {
     long status = ::sysconf(nameval);
     if (status < 0) {
         if (errno) env->raise_errno();
-        return NilObject::the();
+        return Value::nil();
     }
     return Value::integer(status);
 }

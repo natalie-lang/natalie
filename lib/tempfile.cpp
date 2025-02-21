@@ -3,7 +3,7 @@
 using namespace Natalie;
 
 Value init_tempfile(Env *env, Value self) {
-    return NilObject::the();
+    return Value::nil();
 }
 
 Value Tempfile_initialize(Env *env, Value self, Args &&args, Block *) {
