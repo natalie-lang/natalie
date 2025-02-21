@@ -62,7 +62,11 @@ public:
     static Value compile(Env *env, Value pattern, Optional<Value> flags = {}, Optional<ClassObject *> klass = {}) {
         if (!klass)
             klass = GlobalEnv::the()->Regexp();
-        RegexpObject *regexp = new RegexpObject { klass.value_or(static_cast<ClassObject *>(nullptr)) };
+        RegexpObject *regexp;
+        if (klass)
+            regexp = new RegexpObject { klass.value() };
+        else
+            regexp = new RegexpObject;
         if (flags)
             regexp->send(env, "initialize"_s, { pattern, flags.value() });
         else
