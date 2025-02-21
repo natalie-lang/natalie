@@ -280,8 +280,22 @@ class BindingGen
     def pop_kwargs
       case @kwargs
       when Array
-        "auto kwargs = args.pop_keyword_hash();\n" +
-          @kwargs.map { |kw| "auto kwarg_#{kw} = kwargs ? kwargs->remove(env, #{kw.to_s.inspect}_s) : nullptr;" }.join("\n")
+        if pass_null?
+          "auto kwargs = args.pop_keyword_hash();\n" +
+            @kwargs.map { |kw| "auto kwarg_#{kw} = kwargs ? kwargs->remove(env, #{kw.to_s.inspect}_s) : nullptr;" }.join("\n")
+        else
+          [
+            "auto kwargs = args.pop_keyword_hash();",
+          ].tap do |lines|
+            @kwargs.each do |kw|
+              lines << "Optional<Value> kwarg_#{kw};"
+              lines << 'if (kwargs) {'
+              lines << "auto value_or_null = kwargs->remove(env, #{kw.to_s.inspect}_s);"
+              lines << "if (value_or_null != nullptr) kwarg_#{kw} = value_or_null;"
+              lines << '}'
+            end
+          end.join("\n")
+        end
       when true
         "auto kwargs = args.pop_keyword_hash();\n"
       end
@@ -317,7 +331,7 @@ class BindingGen
             if i < min_argc
               "args.at(#{i})"
             else
-              "args.size() > #{i} ? Optional<Value>(args.at(#{i})) : Optional<Value>()"
+              "args.size() > #{i} && !args.at(#{i}).is_null() ? Optional<Value>(args.at(#{i})) : Optional<Value>()"
             end
           end
         end
@@ -1275,25 +1289,25 @@ gen.binding('String', '<<', 'StringObject', 'ltlt', argc: 1, pass_env: true, pas
 gen.binding('String', '<=>', 'StringObject', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', '==', 'StringObject', 'eq', argc: 1, pass_env: true, pass_block: false, aliases: ['==='], return_type: :bool)
 gen.binding('String', '=~', 'StringObject', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', '[]', 'StringObject', 'ref', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', '[]=', 'StringObject', 'refeq', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', '[]', 'StringObject', 'ref', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', '[]=', 'StringObject', 'refeq', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('String', 'ascii_only?', 'StringObject', 'is_ascii_only', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('String', 'append_as_bytes', 'StringObject', 'append_as_bytes', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'b', 'StringObject', 'b', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'bytes', 'StringObject', 'bytes', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('String', 'byteindex', 'StringObject', 'byteindex', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'byterindex', 'StringObject', 'byterindex', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'byteslice', 'StringObject', 'byteslice', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'byteindex', 'StringObject', 'byteindex', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', 'byterindex', 'StringObject', 'byterindex', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', 'byteslice', 'StringObject', 'byteslice', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('String', 'bytesplice', 'StringObject', 'bytesplice', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'bytesize', 'StringObject', 'bytesize', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
-gen.binding('String', 'capitalize', 'StringObject', 'capitalize', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'capitalize!', 'StringObject', 'capitalize_in_place', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'capitalize', 'StringObject', 'capitalize', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', 'capitalize!', 'StringObject', 'capitalize_in_place', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('String', 'casecmp', 'StringObject', 'casecmp', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'casecmp?', 'StringObject', 'is_casecmp', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'center', 'StringObject', 'center', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'center', 'StringObject', 'center', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('String', 'chars', 'StringObject', 'chars', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('String', 'chomp', 'StringObject', 'chomp', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'chomp!', 'StringObject', 'chomp_in_place', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'chomp', 'StringObject', 'chomp', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', 'chomp!', 'StringObject', 'chomp_in_place', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('String', 'chop', 'StringObject', 'chop', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'chop!', 'StringObject', 'chop_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'chr', 'StringObject', 'chr', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -1309,65 +1323,65 @@ gen.binding('String', 'delete_prefix', 'StringObject', 'delete_prefix', argc: 1,
 gen.binding('String', 'delete_prefix!', 'StringObject', 'delete_prefix_in_place', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'delete_suffix', 'StringObject', 'delete_suffix', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'delete_suffix!', 'StringObject', 'delete_suffix_in_place', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'downcase', 'StringObject', 'downcase', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'downcase!', 'StringObject', 'downcase_in_place', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'downcase', 'StringObject', 'downcase', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', 'downcase!', 'StringObject', 'downcase_in_place', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('String', 'each_byte', 'StringObject', 'each_byte', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'each_char', 'StringObject', 'each_char', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'each_codepoint', 'StringObject', 'each_codepoint', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'each_grapheme_cluster', 'StringObject', 'each_grapheme_cluster', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('String', 'each_line', 'StringObject', 'each_line', argc: 0..1, kwargs: [:chomp], pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('String', 'each_line', 'StringObject', 'each_line', argc: 0..1, kwargs: [:chomp], pass_env: true, pass_block: true, return_type: :Object, pass_null: false)
 gen.binding('String', 'empty?', 'StringObject', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.binding('String', 'encode', 'StringObject', 'encode', argc: 0..2, kwargs: true, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'encode!', 'StringObject', 'encode_in_place', argc: 0..2, kwargs: true, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'encode', 'StringObject', 'encode', argc: 0..2, kwargs: true, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', 'encode!', 'StringObject', 'encode_in_place', argc: 0..2, kwargs: true, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('String', 'encoding', 'StringObject', 'encoding', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('String', 'end_with?', 'StringObject', 'end_with', argc: :any, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('String', 'eql?', 'StringObject', 'eql', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('String', 'force_encoding', 'StringObject', 'force_encoding', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'getbyte', 'StringObject', 'getbyte', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'grapheme_clusters', 'StringObject', 'grapheme_clusters', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('String', 'gsub', 'StringObject', 'gsub', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('String', 'gsub!', 'StringObject', 'gsub_in_place', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('String', 'gsub', 'StringObject', 'gsub', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object, pass_null: false)
+gen.binding('String', 'gsub!', 'StringObject', 'gsub_in_place', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object, pass_null: false)
 gen.binding('String', 'hex', 'StringObject', 'hex', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'include?', 'StringObject', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('String', 'index', 'StringObject', 'index', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'initialize', 'StringObject', 'initialize', argc: 0..1, kwargs: %i[encoding capacity], pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'index', 'StringObject', 'index', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', 'initialize', 'StringObject', 'initialize', argc: 0..1, kwargs: %i[encoding capacity], pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('String', 'initialize_copy', 'StringObject', 'initialize_copy', argc: 1, pass_env: true, pass_block: false, aliases: ['replace'], return_type: :Object)
 gen.binding('String', 'insert', 'StringObject', 'insert', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'inspect', 'StringObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'intern', 'StringObject', 'to_sym', argc: 0, pass_env: true, pass_block: false, aliases: ['to_sym'], return_type: :Object)
 gen.binding('String', 'length', 'StringObject', 'size', argc: 0, pass_env: true, pass_block: false, aliases: ['size'], return_type: :Object)
-gen.binding('String', 'lines', 'StringObject', 'lines', argc: 0..1, kwargs: [:chomp], pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('String', 'ljust', 'StringObject', 'ljust', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'lines', 'StringObject', 'lines', argc: 0..1, kwargs: [:chomp], pass_env: true, pass_block: true, return_type: :Object, pass_null: false)
+gen.binding('String', 'ljust', 'StringObject', 'ljust', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('String', 'lstrip', 'StringObject', 'lstrip', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'lstrip!', 'StringObject', 'lstrip_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'match', 'StringObject', 'match', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('String', 'match?', 'StringObject', 'has_match', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('String', 'match', 'StringObject', 'match', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object, pass_null: false)
+gen.binding('String', 'match?', 'StringObject', 'has_match', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool, pass_null: false)
 gen.binding('String', 'prepend', 'StringObject', 'prepend', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'ord', 'StringObject', 'ord', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'partition', 'StringObject', 'partition', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'reverse', 'StringObject', 'reverse', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'reverse!', 'StringObject', 'reverse_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'rindex', 'StringObject', 'rindex', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'rjust', 'StringObject', 'rjust', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'rindex', 'StringObject', 'rindex', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', 'rjust', 'StringObject', 'rjust', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('String', 'rstrip', 'StringObject', 'rstrip', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'rstrip!', 'StringObject', 'rstrip_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'scan', 'StringObject', 'scan', argc: 1, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'setbyte', 'StringObject', 'setbyte', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'slice!', 'StringObject', 'slice_in_place', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'split', 'StringObject', 'split', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'slice!', 'StringObject', 'slice_in_place', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', 'split', 'StringObject', 'split', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('String', 'start_with?', 'StringObject', 'start_with', argc: :any, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('String', 'strip', 'StringObject', 'strip', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'strip!', 'StringObject', 'strip_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'sub', 'StringObject', 'sub', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('String', 'sub!', 'StringObject', 'sub_in_place', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('String', 'sub', 'StringObject', 'sub', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object, pass_null: false)
+gen.binding('String', 'sub!', 'StringObject', 'sub_in_place', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object, pass_null: false)
 gen.binding('String', 'succ', 'StringObject', 'successive', argc: 0, pass_env: true, pass_block: false, aliases: ['next'], return_type: :Object)
 gen.binding('String', 'succ!', 'StringObject', 'successive_in_place', argc: 0, pass_env: true, pass_block: false, aliases: ['next!'], return_type: :Object)
-gen.binding('String', 'swapcase', 'StringObject', 'swapcase', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'swapcase!', 'StringObject', 'swapcase_in_place', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'sum', 'StringObject', 'sum', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'sum', 'StringObject', 'sum', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', 'swapcase', 'StringObject', 'swapcase', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', 'swapcase!', 'StringObject', 'swapcase_in_place', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('String', 'to_c', 'StringObject', 'to_c', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'to_f', 'StringObject', 'to_f', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'to_i', 'StringObject', 'to_i', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'to_i', 'StringObject', 'to_i', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('String', 'to_r', 'StringObject', 'to_r', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'to_s', 'StringObject', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('String', 'to_str', 'StringObject', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
@@ -1376,9 +1390,9 @@ gen.binding('String', 'tr!', 'StringObject', 'tr_in_place', argc: 2, pass_env: t
 gen.static_binding_as_class_method('String', 'try_convert', 'StringObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'unpack', 'StringObject', 'unpack', argc: 1, kwargs: [:offset], pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'unpack1', 'StringObject', 'unpack1', argc: 1, kwargs: [:offset], pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'upcase', 'StringObject', 'upcase', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'upcase!', 'StringObject', 'upcase_in_place', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'upto', 'StringObject', 'upto', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('String', 'upcase', 'StringObject', 'upcase', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', 'upcase!', 'StringObject', 'upcase_in_place', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.binding('String', 'upto', 'StringObject', 'upto', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object, pass_null: false)
 gen.binding('String', 'valid_encoding?', 'StringObject', 'valid_encoding', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
 gen.undefine_singleton_method('Symbol', 'new')

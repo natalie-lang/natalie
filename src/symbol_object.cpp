@@ -179,7 +179,7 @@ Value SymbolObject::name(Env *env) const {
 Value SymbolObject::ref(Env *env, Value index_obj, Value length_obj) {
     // The next line worked in nearly every case, except it did not set `$~`
     // return to_s(env).send(env, intern("[]"), { index_obj, length_obj });
-    return to_s(env)->ref(env, index_obj, length_obj);
+    return to_s(env)->ref(env, index_obj, length_obj ? Optional<Value>(length_obj) : Optional<Value>());
 }
 
 }

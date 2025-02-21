@@ -95,7 +95,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
             auto error = new StringObject;
             for (auto name2 : *name.as_array())
                 error->append_sprintf("Could not open library '%s': %s.\n", name2.as_string()->string().c_str(), dlerror());
-            error->chomp_in_place(env, nullptr);
+            error->chomp_in_place(env);
             env->raise("LoadError", error->string());
         }
     } else {

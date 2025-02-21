@@ -51,8 +51,8 @@ namespace ioutil {
 
         switch (flags_obj.type()) {
         case Object::Type::String: {
-            auto colon = new StringObject { ":" };
-            auto flagsplit = flags_obj.as_string()->split(env, colon, nullptr).as_array();
+            Value colon = new StringObject { ":" };
+            auto flagsplit = flags_obj.as_string()->split(env, colon).as_array();
             auto flags_str = flagsplit->fetch(env, Value::integer(static_cast<nat_int_t>(0)), Value(new StringObject { "" }), nullptr).as_string()->string();
             auto extenc = flagsplit->ref(env, Value::integer(static_cast<nat_int_t>(1)));
             auto intenc = flagsplit->ref(env, Value::integer(static_cast<nat_int_t>(2)));
@@ -132,8 +132,8 @@ namespace ioutil {
         } else {
             encoding = encoding.to_str(env);
             if (encoding.as_string()->include(":")) {
-                auto colon = new StringObject { ":" };
-                auto encsplit = encoding.to_str(env)->split(env, colon, nullptr).as_array();
+                Value colon = new StringObject { ":" };
+                auto encsplit = encoding.to_str(env)->split(env, colon).as_array();
                 encoding = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(0)));
                 auto internal_encoding = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(1)));
                 m_internal_encoding = EncodingObject::find_encoding(env, internal_encoding);

@@ -229,9 +229,9 @@ public:
     Value each_grapheme_cluster(Env *, Block *);
     Value grapheme_clusters(Env *, Block *);
 
-    void each_line(Env *, Value, Value, std::function<Value(StringObject *)>) const;
-    Value each_line(Env *, Value = nullptr, Value = nullptr, Block * = nullptr);
-    Value lines(Env *, Value = nullptr, Value = nullptr, Block * = nullptr);
+    void each_line(Env *, Optional<Value>, Optional<Value>, std::function<Value(StringObject *)>) const;
+    Value each_line(Env *, Optional<Value> = {}, Optional<Value> = {}, Block * = nullptr);
+    Value lines(Env *, Optional<Value> = {}, Optional<Value> = {}, Block * = nullptr);
 
     SymbolObject *to_symbol(Env *) const;
     Value to_sym(Env *) const;
@@ -285,14 +285,14 @@ public:
     StringObject *successive(Env *);
     StringObject *successive_in_place(Env *);
 
-    Value byteindex(Env *, Value, Value = nullptr) const;
-    Value byterindex(Env *, Value, Value = nullptr) const;
+    Value byteindex(Env *, Value, Optional<Value> = {}) const;
+    Value byterindex(Env *, Value, Optional<Value> = {}) const;
 
-    Value index(Env *, Value, Value);
+    Value index(Env *, Value, Optional<Value>);
     Value index(Env *, Value, size_t start);
     nat_int_t index_int(Env *, Value, size_t byte_start);
 
-    Value rindex(Env *, Value, Value = nullptr) const;
+    Value rindex(Env *, Value, Optional<Value> = {}) const;
     Value rindex(Env *, Value, size_t) const;
     nat_int_t rindex_int(Env *, Value, size_t) const;
 
@@ -300,7 +300,7 @@ public:
         m_string.truncate(length);
     }
 
-    Value initialize(Env *, Value, Value, Value);
+    Value initialize(Env *, Optional<Value>, Optional<Value>, Optional<Value>);
     Value initialize_copy(Env *, Value);
     Value ltlt(Env *, Value);
 
@@ -316,26 +316,26 @@ public:
     bool end_with(Env *, Args &&) const;
     bool is_empty() const { return m_string.is_empty(); }
 
-    Value gsub(Env *, Value, Value = nullptr, Block *block = nullptr);
-    Value gsub_in_place(Env *, Value, Value = nullptr, Block *block = nullptr);
+    Value gsub(Env *, Value, Optional<Value> = {}, Block *block = nullptr);
+    Value gsub_in_place(Env *, Value, Optional<Value> = {}, Block *block = nullptr);
     Value getbyte(Env *, Value) const;
-    Value sub(Env *, Value, Value = nullptr, Block *block = nullptr);
-    Value sub_in_place(Env *, Value, Value = nullptr, Block *block = nullptr);
+    Value sub(Env *, Value, Optional<Value> = {}, Block *block = nullptr);
+    Value sub_in_place(Env *, Value, Optional<Value> = {}, Block *block = nullptr);
 
     Value add(Env *, Value) const;
     Value append_as_bytes(Env *, Args &&);
     Value b(Env *) const;
     Value bytes(Env *, Block *);
-    Value byteslice(Env *, Value, Value = nullptr);
+    Value byteslice(Env *, Value, Optional<Value> = {});
     Value bytesplice(Env *, Args &&);
-    StringObject *capitalize(Env *, Value, Value);
-    Value capitalize_in_place(Env *, Value, Value);
+    StringObject *capitalize(Env *, Optional<Value>, Optional<Value>);
+    Value capitalize_in_place(Env *, Optional<Value>, Optional<Value>);
     Value casecmp(Env *, Value);
     Value is_casecmp(Env *, Value);
-    Value center(Env *, Value, Value);
+    Value center(Env *, Value, Optional<Value>);
     Value chr(Env *);
-    Value chomp(Env *, Value) const;
-    Value chomp_in_place(Env *, Value);
+    Value chomp(Env *, Optional<Value>) const;
+    Value chomp_in_place(Env *, Optional<Value> = {});
     Value chop(Env *) const;
     Value chop_in_place(Env *);
     Value clear(Env *);
@@ -349,56 +349,56 @@ public:
     Value delete_prefix_in_place(Env *, Value);
     Value delete_suffix(Env *, Value);
     Value delete_suffix_in_place(Env *, Value);
-    StringObject *downcase(Env *, Value, Value);
-    Value downcase_in_place(Env *, Value = nullptr, Value = nullptr);
+    StringObject *downcase(Env *, Optional<Value> = {}, Optional<Value> = {});
+    Value downcase_in_place(Env *, Optional<Value> = {}, Optional<Value> = {});
     Value dump(Env *);
     Value each_byte(Env *, Block *);
-    Value encode(Env *, Value = nullptr, Value = nullptr, HashObject * = nullptr);
-    Value encode_in_place(Env *, Value = nullptr, Value = nullptr, HashObject * = nullptr);
+    Value encode(Env *, Optional<Value> = {}, Optional<Value> = {}, HashObject * = nullptr);
+    Value encode_in_place(Env *, Optional<Value> = {}, Optional<Value> = {}, HashObject * = nullptr);
     bool eq(Env *, Value arg);
     Value eqtilde(Env *, Value);
     Value force_encoding(Env *, Value);
-    bool has_match(Env *, Value, Value = nullptr);
+    bool has_match(Env *, Value, Optional<Value> = {});
     Value hex(Env *) const;
     bool include(Env *, Value);
     bool include(const char *) const;
     bool include(Env *, nat_int_t) const;
     Value insert(Env *, Value, Value);
-    Value ljust(Env *, Value, Value) const;
+    Value ljust(Env *, Value, Optional<Value>) const;
     Value lstrip(Env *) const;
     Value lstrip_in_place(Env *);
-    Value match(Env *, Value, Value = nullptr, Block * = nullptr);
+    Value match(Env *, Value, Optional<Value> = {}, Block * = nullptr);
     Value mul(Env *, Value) const;
     Value ord(Env *) const;
     Value partition(Env *, Value);
     Value prepend(Env *, Args &&);
-    Value ref(Env *, Value, Value = nullptr);
+    Value ref(Env *, Value, Optional<Value> = {});
     Value ref_slice_range_in_place(size_t, size_t);
     Value ref_fast_index(Env *, size_t) const;
     Value ref_fast_range(Env *, size_t, size_t) const;
     Value ref_fast_range_endless(Env *, size_t) const;
-    Value refeq(Env *, Value, Value, Value);
+    Value refeq(Env *, Value, Optional<Value>, Optional<Value>);
     Value reverse(Env *);
     Value reverse_in_place(Env *);
-    Value rjust(Env *, Value, Value) const;
+    Value rjust(Env *, Value, Optional<Value>) const;
     Value rstrip(Env *) const;
     Value rstrip_in_place(Env *);
     size_t char_count(Env *) const;
     Value scan(Env *, Value, Block * = nullptr);
     Value setbyte(Env *, Value, Value);
     Value size(Env *) const;
-    Value slice_in_place(Env *, Value, Value);
-    Value split(Env *, Value, Value);
+    Value slice_in_place(Env *, Value, Optional<Value>);
+    Value split(Env *, Optional<Value>, Optional<Value> = {});
     Value split(Env *, RegexpObject *, int);
     Value split(Env *, StringObject *, int);
     Value strip(Env *) const;
     Value strip_in_place(Env *);
-    Value sum(Env *, Value = nullptr);
-    StringObject *swapcase(Env *, Value, Value);
-    Value swapcase_in_place(Env *, Value, Value);
+    Value sum(Env *, Optional<Value> = {});
+    StringObject *swapcase(Env *, Optional<Value>, Optional<Value>);
+    Value swapcase_in_place(Env *, Optional<Value>, Optional<Value>);
     Value to_c(Env *);
     Value to_f(Env *) const;
-    Value to_i(Env *, Value = nullptr) const;
+    Value to_i(Env *, Optional<Value> = {}) const;
     Value to_r(Env *) const;
     Value tr(Env *, Value, Value) const;
     Value tr_in_place(Env *, Value, Value);
@@ -406,10 +406,10 @@ public:
     Value uminus(Env *);
     Value unpack(Env *, Value, Value = nullptr) const;
     Value unpack1(Env *, Value, Value = nullptr) const;
-    StringObject *upcase(Env *, Value, Value);
-    Value upcase_in_place(Env *, Value, Value);
+    StringObject *upcase(Env *, Optional<Value> = {}, Optional<Value> = {});
+    Value upcase_in_place(Env *, Optional<Value> = {}, Optional<Value> = {});
     Value uplus(Env *);
-    Value upto(Env *, Value, Value = nullptr, Block * = nullptr);
+    Value upto(Env *, Value, Optional<Value> = {}, Block * = nullptr);
 
     Value convert_float();
     Value convert_integer(Env *, nat_int_t base);
@@ -420,6 +420,9 @@ public:
     ssize_t byte_index_to_char_index(size_t) const;
 
     static CaseMapType check_case_options(Env *env, Value arg1, Value arg2, bool downcase = false);
+    static CaseMapType check_case_options(Env *env, Optional<Value> arg1, Optional<Value> arg2, bool downcase = false) {
+        return check_case_options(env, arg1.value_or(Value::nil()), arg2.value_or(Value::nil()), downcase);
+    }
 
     unsigned char at(size_t index) const {
         return m_string.at(index);
@@ -519,7 +522,7 @@ public:
 
 private:
     StringObject *expand_backrefs(Env *, StringObject *, MatchDataObject *);
-    void regexp_sub(Env *, TM::String &, StringObject *, RegexpObject *, Value, MatchDataObject **, StringObject **, size_t = 0, Block *block = nullptr);
+    void regexp_sub(Env *, TM::String &, StringObject *, RegexpObject *, Optional<Value>, MatchDataObject **, StringObject **, size_t = 0, Block *block = nullptr);
     nat_int_t unpack_offset(Env *, Value) const;
 
     using Object::Object;

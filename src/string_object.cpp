@@ -3,6 +3,7 @@
 #include "natalie.hpp"
 #include "natalie/crypt.h"
 #include "natalie/integer_methods.hpp"
+#include "natalie/object_type.hpp"
 #include "natalie/string_unpacker.hpp"
 #include "string.h"
 
@@ -261,17 +262,20 @@ String create_padding(String &padding, size_t length) {
     return buffer;
 }
 
-Value StringObject::center(Env *env, Value length, Value padstr) {
+Value StringObject::center(Env *env, Value length, Optional<Value> pad_arg) {
     nat_int_t length_i = length.to_int(env).to_nat_int_t();
 
     String pad;
 
-    if (!padstr) {
+    if (!pad_arg) {
         pad = String { " " };
-    } else if (padstr.is_string()) {
-        pad = padstr.as_string()->string();
     } else {
-        pad = padstr.to_str(env)->string();
+        auto padstr = pad_arg.value();
+        if (padstr.is_string()) {
+            pad = padstr.as_string()->string();
+        } else {
+            pad = padstr.to_str(env)->string();
+        }
     }
 
     if (pad.is_empty())
@@ -291,24 +295,22 @@ Value StringObject::center(Env *env, Value length, Value padstr) {
     return new StringObject { result, m_encoding };
 }
 
-Value StringObject::chomp(Env *env, Value record_separator) const {
+Value StringObject::chomp(Env *env, Optional<Value> record_separator) const {
     auto new_str = new StringObject { m_string, m_encoding };
     new_str->chomp_in_place(env, record_separator);
     return new_str;
 }
 
-Value StringObject::chomp_in_place(Env *env, Value record_separator) {
+Value StringObject::chomp_in_place(Env *env, Optional<Value> record_separator) {
     assert_not_frozen(env);
 
     // When passed nil, return nil
-    if (!record_separator.is_null() && record_separator.is_nil()) {
+    if (record_separator && record_separator.value().is_nil())
         return Value::nil();
-    }
 
     // When passed a non nil object, call to_str();
-    if (!record_separator.is_null() && !record_separator.is_string()) {
-        record_separator = record_separator.to_str(env);
-    }
+    if (record_separator && !record_separator.value().is_string())
+        record_separator = record_separator.value().to_str(env);
 
     if (is_empty()) { // if this is an empty string, return nil
         return Value::nil();
@@ -317,7 +319,7 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
     size_t end_idx = m_string.length();
     String global_record_separator = env->global_get("$/"_s).as_string()->string();
     // When using default record separator, also remove trailing \r
-    if (record_separator.is_null() && global_record_separator == "\n") {
+    if (!record_separator && global_record_separator == "\n") {
         size_t char_pos = end_idx;
         auto removed_char = prev_char(&char_pos);
         auto last_codept = m_encoding->decode_codepoint(removed_char);
@@ -342,7 +344,7 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
 
         // When called with custom global record separator and no args
         // don't remove \r unless specified by record separator
-    } else if (record_separator.is_null()) {
+    } else if (!record_separator) { // FIXME: this seems unused?????????????????????????????????????????????????????????????????????
         size_t end_idx = length();
         size_t last_idx = end_idx - 1;
         size_t sep_idx = global_record_separator.length() - 1;
@@ -369,9 +371,9 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
         }
     }
 
-    record_separator.assert_type(env, Object::Type::String, "String");
+    record_separator.value().assert_type(env, Object::Type::String, "String");
 
-    const String rs = record_separator.as_string()->m_string;
+    const String rs = record_separator.value().as_string()->m_string;
     size_t rs_len = rs.length();
 
     // when passed empty string remove trailing \n and \r\n but not \r
@@ -742,10 +744,10 @@ static Value byteindex_string_needle(Env *env, const StringObject *haystack, Str
     return Value::integer(result);
 }
 
-Value StringObject::byteindex(Env *env, Value needle_obj, Value offset_obj) const {
+Value StringObject::byteindex(Env *env, Value needle_obj, Optional<Value> offset_arg) const {
     ssize_t offset = 0;
-    if (offset_obj)
-        offset = IntegerMethods::convert_to_native_type<ssize_t>(env, offset_obj);
+    if (offset_arg)
+        offset = IntegerMethods::convert_to_native_type<ssize_t>(env, offset_arg.value());
     if (offset < 0)
         offset += bytesize();
     if (offset < 0 || (size_t)offset > bytesize())
@@ -758,10 +760,10 @@ Value StringObject::byteindex(Env *env, Value needle_obj, Value offset_obj) cons
     return byteindex_string_needle(env, this, needle, offset);
 }
 
-Value StringObject::byterindex(Env *env, Value needle_obj, Value offset_obj) const {
+Value StringObject::byterindex(Env *env, Value needle_obj, Optional<Value> offset_arg) const {
     ssize_t offset = bytesize();
-    if (offset_obj)
-        offset = IntegerMethods::convert_to_native_type<ssize_t>(env, offset_obj);
+    if (offset_arg)
+        offset = IntegerMethods::convert_to_native_type<ssize_t>(env, offset_arg.value());
     if (offset < 0)
         offset += bytesize();
     if (offset < 0)
@@ -775,8 +777,8 @@ Value StringObject::byterindex(Env *env, Value needle_obj, Value offset_obj) con
     return byteindex_string_needle(env, this, needle, offset, true);
 }
 
-Value StringObject::index(Env *env, Value needle, Value offset) {
-    int offset_i = (offset) ? IntegerMethods::convert_to_int(env, offset) : 0;
+Value StringObject::index(Env *env, Value needle, Optional<Value> offset) {
+    int offset_i = offset ? IntegerMethods::convert_to_int(env, offset.value()) : 0;
     int len = char_count(env);
     if (offset_i < -1 * len) {
         // extremely negative offset larger than string length returns nil
@@ -846,9 +848,9 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
     return (char *)ptr - c_str();
 }
 
-Value StringObject::rindex(Env *env, Value needle, Value offset) const {
+Value StringObject::rindex(Env *env, Value needle, Optional<Value> offset) const {
     int len = char_count(env);
-    int offset_i = (offset) ? IntegerMethods::convert_to_int(env, offset) : len;
+    int offset_i = offset ? IntegerMethods::convert_to_int(env, offset.value()) : len;
     if (offset_i < -1 * len) {
         // extremely negative offset larger than string length returns nil
         return Value::nil();
@@ -932,14 +934,13 @@ nat_int_t StringObject::rindex_int(Env *env, Value needle, size_t byte_start) co
     return -1;
 }
 
-Value StringObject::initialize(Env *env, Value arg, Value encoding, Value capacity) {
+Value StringObject::initialize(Env *env, Optional<Value> arg, Optional<Value> encoding, Optional<Value> capacity) {
     if (arg)
-        initialize_copy(env, arg.to_str(env));
-    if (encoding) {
-        force_encoding(env, encoding);
-    }
+        initialize_copy(env, arg.value().to_str(env));
+    if (encoding)
+        force_encoding(env, encoding.value());
     if (capacity) {
-        const auto cap = IntegerMethods::convert_to_native_type<size_t>(env, capacity);
+        const auto cap = IntegerMethods::convert_to_native_type<size_t>(env, capacity.value());
         m_string.set_capacity(cap);
     }
     return this;
@@ -1166,7 +1167,7 @@ Value StringObject::eqtilde(Env *env, Value other) {
     return other.as_regexp()->eqtilde(env, this);
 }
 
-Value StringObject::match(Env *env, Value other, Value index, Block *block) {
+Value StringObject::match(Env *env, Value other, Optional<Value> index_arg, Block *block) {
     if (!other.is_regexp()) {
         if (other.is_string()) {
             other = new RegexpObject { env, other.as_string()->string() };
@@ -1177,7 +1178,11 @@ Value StringObject::match(Env *env, Value other, Value index, Block *block) {
         }
     }
     other.assert_type(env, Object::Type::Regexp, "Regexp");
-    auto result = other.send(env, "match"_s, { this, index }, block);
+    Value result;
+    if (index_arg)
+        result = other.send(env, "match"_s, { this, index_arg.value() }, block);
+    else
+        result = other.send(env, "match"_s, { this }, block);
     env->caller()->set_match(env->match());
     return result;
 }
@@ -1358,21 +1363,21 @@ Value StringObject::size(Env *env) const {
     return IntegerMethods::from_size_t(env, char_count(env));
 }
 
-Value StringObject::encode(Env *env, Value dst_encoding, Value src_encoding, HashObject *kwargs) {
+Value StringObject::encode(Env *env, Optional<Value> dst_encoding, Optional<Value> src_encoding, HashObject *kwargs) {
     StringObject *copy = duplicate(env).as_string();
     return copy->encode_in_place(env, dst_encoding, src_encoding, kwargs);
 }
 
-Value StringObject::encode_in_place(Env *env, Value dst_encoding, Value src_encoding, HashObject *kwargs) {
+Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, Optional<Value> src_encoding_arg, HashObject *kwargs) {
     assert_not_frozen(env);
 
-    if (!dst_encoding)
-        dst_encoding = EncodingObject::default_internal();
-    if (!dst_encoding)
+    Value dst_encoding = EncodingObject::default_internal();
+    if (dst_encoding_arg)
+        dst_encoding = dst_encoding_arg.value();
+    if (dst_encoding == nullptr) // default_internal can return null
         dst_encoding = EncodingObject::get(Encoding::UTF_8);
 
-    if (!src_encoding)
-        src_encoding = m_encoding.ptr();
+    auto src_encoding = src_encoding_arg.value_or(m_encoding.ptr());
 
     EncodeOptions options;
     if (kwargs) {
@@ -1445,9 +1450,9 @@ Value StringObject::force_encoding(Env *env, Value encoding) {
     return this;
 }
 
-bool StringObject::has_match(Env *env, Value other, Value start) {
+bool StringObject::has_match(Env *env, Value other, Optional<Value> start) {
     other.assert_type(env, Object::Type::Regexp, "Regexp");
-    return other.as_regexp()->has_match(env, this, start);
+    return other.as_regexp()->has_match(env, this, start.value_or(Value::nil()));
 }
 
 /**
@@ -1569,14 +1574,16 @@ Value StringObject::hex(Env *env) const {
  * slice(regexp, capture) → new_str or nil
  * slice(match_str) → new_str or nil
  */
-Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
+Value StringObject::ref(Env *env, Value index_obj, Optional<Value> length_arg) {
     // not sure how we'd handle a string that big anyway
     assert(length() < NAT_INT_MAX);
 
     // First, check if there's a second argument. This is important for the
     // order in which things are attempted to be implicitly converted into
     // integers.
-    if (length_obj != nullptr) {
+    if (length_arg) {
+        auto length_obj = length_arg.value();
+
         // First, we'll check if the index is a regexp. If it's not and there
         // _is_ a second argument, the index is assumed to be an integer or an
         // object that can be implicitly converted into an integer.
@@ -1725,10 +1732,10 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
         if (index < 0)
             index += count;
 
-        if (length_obj != nullptr) {
+        if (length_arg) {
             // If we have a length, then attempt to convert the length object
             // into an integer, and make sure it fits into a fixnum.
-            nat_int_t length = IntegerMethods::convert_to_nat_int_t(env, length_obj);
+            nat_int_t length = IntegerMethods::convert_to_nat_int_t(env, length_arg.value());
 
             // Now, check that the index is within the bounds of the string. If
             // not, then return nil.
@@ -1755,13 +1762,15 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
  * byteslice(index, length = 1) → string or nil
  * byteslice(range) → string or nil
  */
-Value StringObject::byteslice(Env *env, Value index_obj, Value length_obj) {
+Value StringObject::byteslice(Env *env, Value index_obj, Optional<Value> length_arg) {
     nat_int_t m_length = static_cast<nat_int_t>(length());
 
     // not sure how we'd handle a string that big anyway
     assert(m_length < NAT_INT_MAX);
 
-    if (length_obj != nullptr) {
+    if (length_arg) {
+        auto length_obj = length_arg.value();
+
         // First, we're going to get the start index of the slice and make sure
         // that it's not right at the end of the string. If it is, we'll just
         // return an empty string.
@@ -2030,7 +2039,7 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
     return this;
 }
 
-Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) {
+Value StringObject::slice_in_place(Env *env, Value index_obj, Optional<Value> length_obj) {
     assert_not_frozen(env);
 
     // not sure how we'd handle a string that big anyway
@@ -2104,8 +2113,8 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
         // captures or the name of a group. If it's not a string, make sure
         // we attempt to convert it into an integer _before_ we return nil
         // if there we no match result.
-        if (length_obj != nullptr && !length_obj.is_string())
-            capture = IntegerMethods::convert_to_nat_int_t(env, length_obj);
+        if (length_obj && !length_obj.value().is_string())
+            capture = IntegerMethods::convert_to_nat_int_t(env, length_obj.value());
 
         // If the match failed, return nil. Note that this must happen after
         // the implicit conversion of the index argument to an integer.
@@ -2168,9 +2177,9 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
         nat_int_t index = IntegerMethods::convert_to_nat_int_t(env, index_obj);
         nat_int_t count = static_cast<nat_int_t>(char_count(env));
 
-        if (length_obj != nullptr) {
+        if (length_obj) {
             // First, convert the length to an integer.
-            nat_int_t length = IntegerMethods::convert_to_nat_int_t(env, length_obj);
+            nat_int_t length = IntegerMethods::convert_to_nat_int_t(env, length_obj.value());
 
             // Now, check that the index is within the bounds of the string. If
             // not, then return nil.
@@ -2388,12 +2397,12 @@ ssize_t StringObject::byte_index_to_char_index(size_t byte_index) const {
     return current_char_index;
 }
 
-Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
+Value StringObject::refeq(Env *env, Value arg1, Optional<Value> arg2, Optional<Value> value) {
     assert_not_frozen(env);
 
-    if (value == nullptr) {
+    if (!value) {
         value = arg2;
-        arg2 = nullptr;
+        arg2 = Optional<Value> {};
     }
 
     auto chars = this->chars(env).as_array();
@@ -2408,9 +2417,9 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
         return start;
     };
 
-    auto get_end_by_length = [env](nat_int_t begin, Value length_argument) -> nat_int_t {
+    auto get_end_by_length = [env](nat_int_t begin, Optional<Value> length_argument) -> nat_int_t {
         if (length_argument) {
-            auto length = IntegerMethods::convert_to_nat_int_t(env, length_argument);
+            auto length = IntegerMethods::convert_to_nat_int_t(env, length_argument.value());
             if (length < 0)
                 env->raise("IndexError", "negative length {}", length);
             return begin + length;
@@ -2426,7 +2435,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
         begin = process_begin(arg1.integer().to_nat_int_t());
         end = get_end_by_length(begin, arg2);
     } else if (arg1.is_range()) {
-        assert(arg2 == nullptr);
+        assert(!arg2);
         auto range = arg1.as_range();
         begin = IntegerMethods::convert_to_nat_int_t(env, range->begin());
 
@@ -2458,7 +2467,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
 
         nat_int_t match_index_argument = 0;
         if (arg2)
-            match_index_argument = IntegerMethods::convert_to_nat_int_t(env, arg2);
+            match_index_argument = IntegerMethods::convert_to_nat_int_t(env, arg2.value());
 
         if (::abs(match_index_argument) >= (nat_int_t)match_result->size())
             env->raise("IndexError", "index {} out of regexp", match_index_argument);
@@ -2474,7 +2483,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
         begin = IntegerMethods::convert_to_nat_int_t(env, offset->at(0));
         end = IntegerMethods::convert_to_nat_int_t(env, offset->at(1));
     } else if (arg1.is_string()) {
-        assert(arg2 == nullptr);
+        assert(!arg2);
         auto query = arg1.as_string()->string();
         begin = m_string.find(query);
         if (begin == -1)
@@ -2490,7 +2499,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
     if (end > (nat_int_t)chars->size())
         chars_to_be_removed = chars->size() - begin;
 
-    auto string = value.to_str(env);
+    auto string = value.value().to_str(env);
     auto arg_chars = string->chars(env).as_array();
     size_t new_length = arg_chars->size() + (chars->size() - chars_to_be_removed);
 
@@ -2505,10 +2514,10 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
     }
     m_string = result.string();
 
-    return value;
+    return value.value();
 }
 
-Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *block) {
+Value StringObject::sub(Env *env, Value find, Optional<Value> replacement_value, Block *block) {
     if (!block && !replacement_value)
         env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
 
@@ -2535,7 +2544,7 @@ Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *bl
     return new StringObject { out, m_encoding };
 }
 
-Value StringObject::sub_in_place(Env *env, Value find, Value replacement_value, Block *block) {
+Value StringObject::sub_in_place(Env *env, Value find, Optional<Value> replacement_value, Block *block) {
     assert_not_frozen(env);
 
     auto replacement = sub(env, find, replacement_value, block).as_string()->string();
@@ -2546,7 +2555,7 @@ Value StringObject::sub_in_place(Env *env, Value find, Value replacement_value, 
     return this;
 }
 
-Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *block) {
+Value StringObject::gsub(Env *env, Value find, Optional<Value> replacement_value, Block *block) {
     if (!replacement_value && !block)
         env->raise("NotImplementedError", "Enumerator reply in String#gsub");
 
@@ -2581,7 +2590,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
     return new StringObject { out, m_encoding };
 }
 
-Value StringObject::gsub_in_place(Env *env, Value find, Value replacement_value, Block *block) {
+Value StringObject::gsub_in_place(Env *env, Value find, Optional<Value> replacement_value, Block *block) {
     assert_not_frozen(env);
 
     auto replacement = gsub(env, find, replacement_value, block).as_string()->string();
@@ -2612,14 +2621,14 @@ Value StringObject::getbyte(Env *env, Value index_obj) const {
     return Integer(byte);
 }
 
-void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_string, RegexpObject *find, Value replacement_value, MatchDataObject **match, StringObject **expanded_replacement, size_t byte_index, Block *block) {
+void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_string, RegexpObject *find, Optional<Value> replacement_arg, MatchDataObject **match, StringObject **expanded_replacement, size_t byte_index, Block *block) {
     HashObject *replacement_hash = nullptr;
     StringObject *replacement_str = nullptr;
-    if (replacement_value) {
-        if (replacement_value.is_hash()) {
-            replacement_hash = replacement_value.as_hash();
+    if (replacement_arg) {
+        if (replacement_arg.value().is_hash()) {
+            replacement_hash = replacement_arg.value().as_hash();
         } else {
-            replacement_str = replacement_value.to_str(env);
+            replacement_str = replacement_arg.value().to_str(env);
         }
         block = nullptr;
     }
@@ -2735,7 +2744,7 @@ Value StringObject::to_f(Env *env) const {
     return new FloatObject { result };
 }
 
-Value StringObject::to_i(Env *env, Value base_obj) const {
+Value StringObject::to_i(Env *env, Optional<Value> base_obj) const {
     size_t start = 0;
 
     // strip leading whitespace
@@ -2759,7 +2768,7 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
 
     int base = 10;
     if (base_obj) {
-        base = base_obj.to_int(env).to_nat_int_t();
+        base = base_obj.value().to_int(env).to_nat_int_t();
 
         if (base < 0 || base == 1 || base > 36) {
             env->raise("ArgumentError", "invalid radix {}", base);
@@ -2972,24 +2981,23 @@ Value StringObject::split(Env *env, StringObject *splitstr, int max_count) {
 // + special case single-space splitter
 // + proper handling of negative max-count-values
 
-Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
+Value StringObject::split(Env *env, Optional<Value> splitter_arg, Optional<Value> max_count_arg) {
     assert_valid_encoding(env);
 
     ArrayObject *ary = new ArrayObject {};
-    if (!splitter || splitter.is_nil()) {
+    if (!splitter_arg || splitter_arg.value().is_nil()) {
         auto field_sep = env->global_get("$;"_s);
         if (!field_sep.is_nil()) {
             env->warn("$; is set to non-nil value, but the output was {}", field_sep.klass()->inspect_str());
-            splitter = field_sep;
+            splitter_arg = field_sep;
         }
     }
-    if (!splitter) {
-        splitter = new RegexpObject { env, "\\s+" };
-    }
+    Value splitter = splitter_arg.value_or([&env]() { return new RegexpObject { env, "\\s+" }; });
+
     int max_count = 0;
-    if (max_count_value) {
-        max_count = IntegerMethods::convert_to_int(env, max_count_value);
-    }
+    if (max_count_arg)
+        max_count = IntegerMethods::convert_to_int(env, max_count_arg.value());
+
     if (length() == 0) {
         return ary;
     } else if (max_count == 1 || splitter.is_nil()) {
@@ -3093,15 +3101,15 @@ Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
     return this;
 }
 
-void StringObject::each_line(Env *env, Value separator, Value chomp_value, std::function<Value(StringObject *)> callback) const {
-    if (separator) {
+void StringObject::each_line(Env *env, Optional<Value> separator_arg, Optional<Value> chomp_arg, std::function<Value(StringObject *)> callback) const {
+    auto separator = Value::nil();
+    if (separator_arg) {
+        separator = separator_arg.value();
         if (!separator.is_nil())
             separator = separator.to_str(env);
     } else {
         auto dollar_slash = env->global_get("$/"_s);
-        if (dollar_slash.is_nil())
-            separator = Value::nil();
-        else
+        if (!dollar_slash.is_nil())
             separator = dollar_slash.to_str(env);
     }
 
@@ -3122,7 +3130,7 @@ void StringObject::each_line(Env *env, Value separator, Value chomp_value, std::
         separator = new StringObject { "\n\n" };
     }
 
-    const auto chomp = chomp_value ? chomp_value.is_truthy() : false;
+    const auto chomp = chomp_arg ? chomp_arg.value().is_truthy() : false;
     auto separator_length = separator.as_string()->length();
 
     size_t last_index = 0;
@@ -3162,19 +3170,21 @@ void StringObject::each_line(Env *env, Value separator, Value chomp_value, std::
     }
 }
 
-Value StringObject::each_line(Env *env, Value separator, Value chomp, Block *block) {
+Value StringObject::each_line(Env *env, Optional<Value> separator_arg, Optional<Value> chomp, Block *block) {
     if (!block) {
-        Vector<Value> args { separator };
-        auto do_chomp = chomp ? chomp.is_truthy() : false;
+        Vector<Value> args(1);
+        if (separator_arg)
+            args.push(separator_arg.value());
+        auto do_chomp = chomp ? chomp.value().is_truthy() : false;
         if (do_chomp) {
             auto hash = new HashObject {};
-            hash->put(env, "chomp"_s, chomp);
+            hash->put(env, "chomp"_s, chomp.value_or(FalseObject::the()));
             args.push(hash);
         }
         return enum_for(env, "each_line", Args(args, do_chomp));
     }
 
-    each_line(env, separator, chomp, [&](StringObject *part) -> Value {
+    each_line(env, separator_arg, chomp, [&](StringObject *part) -> Value {
         Value args[] = { part };
         block->run(env, Args(1, args), nullptr);
         return this;
@@ -3182,7 +3192,7 @@ Value StringObject::each_line(Env *env, Value separator, Value chomp, Block *blo
     return this;
 }
 
-Value StringObject::lines(Env *env, Value separator, Value chomp, Block *block) {
+Value StringObject::lines(Env *env, Optional<Value> separator, Optional<Value> chomp, Block *block) {
     if (block)
         return each_line(env, separator, chomp, block);
 
@@ -3194,16 +3204,15 @@ Value StringObject::lines(Env *env, Value separator, Value chomp, Block *block) 
     return ary;
 }
 
-Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) const {
+Value StringObject::ljust(Env *env, Value length_obj, Optional<Value> pad_arg) const {
     nat_int_t length_i = length_obj.to_int(env).to_nat_int_t();
     size_t length = length_i < 0 ? 0 : length_i;
 
     StringObject *padstr;
-    if (!pad_obj) {
+    if (pad_arg)
+        padstr = pad_arg.value().to_str(env);
+    else
         padstr = new StringObject { " " };
-    } else {
-        padstr = pad_obj.to_str(env);
-    }
 
     if (padstr->string().is_empty())
         env->raise("ArgumentError", "zero width padding");
@@ -3292,16 +3301,15 @@ Value StringObject::lstrip_in_place(Env *env) {
     return this;
 }
 
-Value StringObject::rjust(Env *env, Value length_obj, Value pad_obj) const {
+Value StringObject::rjust(Env *env, Value length_obj, Optional<Value> pad_arg) const {
     nat_int_t length_i = length_obj.to_int(env).to_nat_int_t();
     size_t length = length_i < 0 ? 0 : length_i;
 
     StringObject *padstr;
-    if (!pad_obj) {
+    if (pad_arg)
+        padstr = pad_arg.value().to_str(env);
+    else
         padstr = new StringObject { " " };
-    } else {
-        padstr = pad_obj.to_str(env);
-    }
 
     if (padstr->string().is_empty())
         env->raise("ArgumentError", "zero width padding");
@@ -3379,10 +3387,10 @@ CaseMapType StringObject::check_case_options(Env *env, Value arg1, Value arg2, b
     SymbolObject *turk = "turkic"_s;
     SymbolObject *lith = "lithuanian"_s;
     // return for zero arg case
-    if (arg1.is_null() && arg2.is_null())
+    if (arg1.is_nil() && arg2.is_nil())
         return CaseMapFull;
     // two arg case only accepts turkic and lithuanian (in either order)
-    if (!arg1.is_null() && !arg2.is_null()) {
+    if (!arg1.is_nil() && !arg2.is_nil()) {
         if ((arg1 == turk && arg2 == lith) || (arg1 == lith && arg2 == turk)) {
             return CaseMapTurkicAzeri | CaseMapLithuanian;
         } else {
@@ -3424,8 +3432,8 @@ Value StringObject::casecmp(Env *env, Value other) {
     if (!negotiate_compatible_encoding(other_str))
         return Value::nil();
 
-    auto str1 = this->downcase(env, "ascii"_s, nullptr);
-    auto str2 = other_str->downcase(env, "ascii"_s, nullptr);
+    auto str1 = this->downcase(env, Value("ascii"_s));
+    auto str2 = other_str->downcase(env, Value("ascii"_s));
     return str1->cmp(env, Value(str2));
 }
 
@@ -3442,15 +3450,15 @@ Value StringObject::is_casecmp(Env *env, Value other) {
     if (!negotiate_compatible_encoding(other_str))
         return Value::nil();
 
-    auto str1 = this->downcase(env, "fold"_s, nullptr);
-    auto str2 = other_str->downcase(env, "fold"_s, nullptr);
+    auto str1 = this->downcase(env, Value("fold"_s));
+    auto str2 = other_str->downcase(env, Value("fold"_s));
     if (str1->string() == str2->string())
         return TrueObject::the();
 
     return FalseObject::the();
 }
 
-StringObject *StringObject::capitalize(Env *env, Value arg1, Value arg2) {
+StringObject *StringObject::capitalize(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     auto flags = check_case_options(env, arg1, arg2);
     auto str = new StringObject { "", m_encoding };
     bool first_char = true;
@@ -3469,7 +3477,7 @@ StringObject *StringObject::capitalize(Env *env, Value arg1, Value arg2) {
     return str;
 }
 
-Value StringObject::capitalize_in_place(Env *env, Value arg1, Value arg2) {
+Value StringObject::capitalize_in_place(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     auto copy = capitalize(env, arg1, arg2);
     assert_not_frozen(env);
     if (*this == *copy) {
@@ -3479,7 +3487,7 @@ Value StringObject::capitalize_in_place(Env *env, Value arg1, Value arg2) {
     return this;
 }
 
-StringObject *StringObject::downcase(Env *env, Value arg1, Value arg2) {
+StringObject *StringObject::downcase(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     auto flags = check_case_options(env, arg1, arg2, true);
     auto str = new StringObject { "", m_encoding };
     nat_int_t result[3] = {};
@@ -3508,7 +3516,7 @@ StringObject *StringObject::downcase(Env *env, Value arg1, Value arg2) {
     return str;
 }
 
-Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
+Value StringObject::downcase_in_place(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     assert_not_frozen(env);
     StringObject *copy = duplicate(env).as_string();
     *this = *downcase(env, arg1, arg2);
@@ -3582,7 +3590,7 @@ Value StringObject::dump(Env *env) {
     return new StringObject { std::move(out), m_encoding };
 }
 
-StringObject *StringObject::upcase(Env *env, Value arg1, Value arg2) {
+StringObject *StringObject::upcase(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     auto flags = check_case_options(env, arg1, arg2);
     auto str = new StringObject { "", m_encoding };
     nat_int_t result[3] = {};
@@ -3595,7 +3603,7 @@ StringObject *StringObject::upcase(Env *env, Value arg1, Value arg2) {
     return str;
 }
 
-Value StringObject::upcase_in_place(Env *env, Value arg1, Value arg2) {
+Value StringObject::upcase_in_place(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     assert_not_frozen(env);
     StringObject *copy = duplicate(env).as_string();
     *this = *upcase(env, arg1, arg2);
@@ -3606,7 +3614,7 @@ Value StringObject::upcase_in_place(Env *env, Value arg1, Value arg2) {
     return this;
 }
 
-StringObject *StringObject::swapcase(Env *env, Value arg1, Value arg2) {
+StringObject *StringObject::swapcase(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     // currently not doing anything with the returned flags
     check_case_options(env, arg1, arg2);
     auto str = new StringObject { "", m_encoding };
@@ -3629,7 +3637,7 @@ StringObject *StringObject::swapcase(Env *env, Value arg1, Value arg2) {
     return str;
 }
 
-Value StringObject::swapcase_in_place(Env *env, Value arg1, Value arg2) {
+Value StringObject::swapcase_in_place(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     assert_not_frozen(env);
     StringObject *copy = duplicate(env).as_string();
     *this = *swapcase(env, arg1, arg2);
@@ -3658,9 +3666,10 @@ Value StringObject::uminus(Env *env) {
     return duplicate;
 }
 
-Value StringObject::upto(Env *env, Value other, Value exclusive, Block *block) {
-    if (!exclusive)
-        exclusive = FalseObject::the();
+Value StringObject::upto(Env *env, Value other, Optional<Value> exclusive_arg, Block *block) {
+    Value exclusive = FalseObject::the();
+    if (exclusive_arg)
+        exclusive = exclusive_arg.value();
 
     if (!block)
         return enum_for(env, "upto", { other, exclusive });
@@ -4172,12 +4181,12 @@ Value StringObject::partition(Env *env, Value val) {
     return ary;
 }
 
-Value StringObject::sum(Env *env, Value val) {
+Value StringObject::sum(Env *env, Optional<Value> val) {
     int base = 16;
     int sum = 0;
 
     if (val)
-        base = val.to_int(env).to_nat_int_t();
+        base = val.value().to_int(env).to_nat_int_t();
 
     for (size_t i = 0; i < length(); ++i) {
         sum += m_string[i];
