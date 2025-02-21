@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <functional>
 #include <stdio.h>
 #include <utility>
 
@@ -210,6 +211,31 @@ public:
             return value();
         else
             return fallback;
+    }
+
+    /**
+     * Returns a copy of the underlying value or
+     * the result of calling the fallback lambda.
+     *
+     * ```
+     * auto obj = Thing(1);
+     * auto opt = Optional<Thing>(obj);
+     * assert_eq(Thing(1), opt.value_or([]() { return Thing(2); }));
+     * ```
+     *
+     * If we don't have a value present, then the fallback
+     * is called and the result returned.
+     *
+     * ```
+     * auto opt = Optional<Thing>();
+     * assert_eq(Thing(2), opt.value_or([]() { return Thing(2); }));
+     * ```
+     */
+    T value_or(std::function<T()> fallback) const {
+        if (present())
+            return value();
+        else
+            return fallback();
     }
 
     /**
