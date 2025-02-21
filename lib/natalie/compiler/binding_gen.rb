@@ -1013,7 +1013,7 @@ gen.module_function_binding('Kernel', 'raise', 'KernelModule', 'raise', argc: :a
 gen.module_function_binding('Kernel', 'Rational', 'KernelModule', 'Rational', argc: 1..2, kwargs: [:exception], pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'sleep', 'KernelModule', 'sleep', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'spawn', 'KernelModule', 'spawn', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
-gen.module_function_binding('Kernel', 'srand', 'RandomObject', 'srand', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_function_binding('Kernel', 'srand', 'RandomObject', 'srand', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.module_function_binding('Kernel', 'String', 'KernelModule', 'String', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'test', 'KernelModule', 'test', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'throw', 'KernelModule', 'throw_method', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
@@ -1209,11 +1209,11 @@ gen.module_function_binding('Process::UID', 'eid', 'ProcessModule', 'euid', argc
 gen.module_function_binding('Process::UID', 'rid', 'ProcessModule', 'uid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.static_binding_as_class_method('Random', 'new_seed', 'RandomObject', 'new_seed', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding_as_class_method('Random', 'srand', 'RandomObject', 'srand', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Random', 'srand', 'RandomObject', 'srand', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.static_binding_as_class_method('Random', 'urandom', 'RandomObject', 'urandom', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Random', 'initialize', 'RandomObject', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, visibility: :private)
+gen.binding('Random', 'initialize', 'RandomObject', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, visibility: :private, pass_null: false)
 gen.binding('Random', 'bytes', 'RandomObject', 'bytes', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Random', 'rand', 'RandomObject', 'rand', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Random', 'rand', 'RandomObject', 'rand', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('Random', 'seed', 'RandomObject', 'seed', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
 gen.binding('Range', '%', 'RangeObject', 'step', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object, pass_null: false)

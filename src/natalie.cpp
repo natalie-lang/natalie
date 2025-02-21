@@ -126,7 +126,7 @@ Env *build_top_env() {
     ClassObject *Random = Object->subclass(env, "Random", Object::Type::Random);
     global_env->set_Random(Random);
     Object->const_set("Random"_s, Random);
-    Random->const_set("DEFAULT"_s, (new RandomObject)->initialize(env, nullptr));
+    Random->const_set("DEFAULT"_s, (new RandomObject)->initialize(env));
 
     ModuleObject *RandomFormatter = new ModuleObject { "Formatter" };
     Random->const_set("Formatter"_s, RandomFormatter);
