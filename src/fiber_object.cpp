@@ -145,7 +145,7 @@ Value FiberObject::refeq(Env *env, Value key, Value value) {
     return value;
 }
 
-Value FiberObject::resume(Env *env, Args args) {
+NO_SANITIZE_ADDRESS Value FiberObject::resume(Env *env, Args args) {
     if (m_thread != ThreadObject::current())
         env->raise("FiberError", "fiber called across threads");
     if (m_status == Status::Terminated)
@@ -166,7 +166,8 @@ Value FiberObject::resume(Env *env, Args args) {
         ThreadObject::current()->m_current_fiber = this;
         tl_current_arg_stack = &m_args_stack;
         ThreadObject::current()->set_start_of_stack(m_start_of_stack);
-        suspending_fiber->m_end_of_stack = __builtin_frame_address(0);
+        void *dummy;
+        suspending_fiber->m_end_of_stack = &dummy;
     }
 
     auto res = mco_resume(m_coroutine);
@@ -249,7 +250,7 @@ Value FiberObject::storage(Env *env) const {
     return fiber->m_storage;
 }
 
-Value FiberObject::yield(Env *env, Args args) {
+NO_SANITIZE_ADDRESS Value FiberObject::yield(Env *env, Args args) {
     auto current_fiber = FiberObject::current();
     auto previous_fiber = current_fiber->m_previous_fiber;
     if (!previous_fiber)
@@ -258,7 +259,8 @@ Value FiberObject::yield(Env *env, Args args) {
     {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         current_fiber->set_status(Status::Suspended);
-        current_fiber->m_end_of_stack = __builtin_frame_address(0);
+        void *dummy;
+        current_fiber->m_end_of_stack = &dummy;
         current_fiber->swap_to_previous(env, args.size(), args.data());
     }
 
