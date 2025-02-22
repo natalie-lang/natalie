@@ -109,7 +109,8 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
             auto result_str = result.to_str(env);
             if (result_str->encoding()->num() != num()) {
                 try {
-                    result_str = result_str->encode(env, EncodingObject::get(num())).to_str(env);
+                    Value encoding = EncodingObject::get(num());
+                    result_str = result_str->encode(env, encoding).to_str(env);
                 } catch (ExceptionObject *e) {
                     // FIXME: I'm not sure how Ruby knows the character is "too big" for the target encoding.
                     // We don't have that kind of information yet.

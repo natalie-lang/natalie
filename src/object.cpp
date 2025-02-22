@@ -495,7 +495,7 @@ SymbolObject *Object::undefine_method(Env *env, Value self, SymbolObject *name) 
     return name;
 }
 
-Value Object::main_obj_define_method(Env *env, Value name, Value proc_or_unbound_method, Block *block) {
+Value Object::main_obj_define_method(Env *env, Value name, Optional<Value> proc_or_unbound_method, Block *block) {
     return m_klass->define_method(env, name, proc_or_unbound_method, block);
 }
 

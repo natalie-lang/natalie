@@ -66,11 +66,11 @@ nat_int_t HashObject::generate_key_hash(Env *env, Value key) const {
     }
 }
 
-Value HashObject::get_default(Env *env, Value key) {
+Value HashObject::get_default(Env *env, Optional<Value> key) {
     if (m_default_proc) {
         if (!key)
             return Value::nil();
-        return m_default_proc->call(env, { this, key }, nullptr);
+        return m_default_proc->call(env, { this, key.value() }, nullptr);
     } else {
         return m_default_value;
     }
@@ -212,26 +212,22 @@ void HashObject::key_list_remove_node(HashKey *node) {
     next->prev = prev;
 }
 
-Value HashObject::initialize(Env *env, Value default_value, Value capacity, Block *block) {
+Value HashObject::initialize(Env *env, Optional<Value> default_arg, Optional<Value> capacity, Block *block) {
     assert_not_frozen(env);
 
     if (capacity) {
-        const auto capacity_int = IntegerMethods::convert_to_native_type<ssize_t>(env, capacity);
+        const auto capacity_int = IntegerMethods::convert_to_native_type<ssize_t>(env, capacity.value());
         if (capacity_int > 0)
             m_hashmap = TM::Hashmap<HashKey *, Value> { static_cast<size_t>(capacity_int) };
     }
 
     if (block) {
-        if (default_value) {
+        if (default_arg) {
             env->raise("ArgumentError", "wrong number of arguments (given 1, expected 0)");
         }
         set_default_proc(new ProcObject { block });
     } else {
-        if (!default_value) {
-            default_value = Value::nil();
-        }
-
-        set_default(env, default_value);
+        set_default(env, default_arg.value_or(Value::nil()));
     }
     return this;
 }
@@ -541,7 +537,7 @@ Value HashObject::except(Env *env, Args &&args) {
     return new_hash;
 }
 
-Value HashObject::fetch(Env *env, Value key, Value default_value, Block *block) {
+Value HashObject::fetch(Env *env, Value key, Optional<Value> default_value, Block *block) {
     Value value = get(env, key);
     if (!value) {
         if (block) {
@@ -551,7 +547,7 @@ Value HashObject::fetch(Env *env, Value key, Value default_value, Block *block) 
             Value args[] = { key };
             value = block->run(env, Args(1, args), nullptr);
         } else if (default_value) {
-            value = default_value;
+            value = default_value.value();
         } else {
             env->raise_key_error(this, key);
         }
@@ -564,7 +560,7 @@ Value HashObject::fetch_values(Env *env, Args &&args, Block *block) {
 
     auto array = new ArrayObject { args.size() };
     for (size_t i = 0; i < args.size(); ++i) {
-        array->push(fetch(env, args[i], nullptr, block));
+        array->push(fetch(env, args[i], {}, block));
     }
     return array;
 }

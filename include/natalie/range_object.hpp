@@ -25,19 +25,19 @@ public:
     Value end() { return m_end; }
     bool exclude_end() const { return m_exclude_end; }
 
-    Value initialize(Env *, Value, Value, Value);
+    Value initialize(Env *, Value, Value, Optional<Value>);
     Value to_a(Env *);
     Value each(Env *, Block *);
-    Value first(Env *, Value);
+    Value first(Env *, Optional<Value>);
     Value inspect(Env *);
-    Value last(Env *, Value);
+    Value last(Env *, Optional<Value>);
     String to_s() const;
     Value to_s(Env *);
     bool eq(Env *, Value);
     bool eql(Env *, Value);
     bool include(Env *, Value);
     Value bsearch(Env *, Block *);
-    Value step(Env *, Value, Block *);
+    Value step(Env *, Optional<Value>, Block *);
 
     static Value size_fn(Env *env, Value self, Args &&, Block *) {
         return Value::integer(self.as_range()->to_a(env).as_array()->size());

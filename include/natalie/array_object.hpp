@@ -122,7 +122,7 @@ public:
 
     bool is_empty() { return m_vector.is_empty(); }
 
-    Value initialize(Env *, Value, Value, Block *);
+    Value initialize(Env *, Optional<Value>, Optional<Value>, Block *);
 
     Value add(Env *, Value);
     Value any(Env *, Args &&, Block *);
@@ -135,7 +135,7 @@ public:
     Value compact(Env *);
     Value compact_in_place(Env *);
     Value concat(Env *, Args &&);
-    Value cycle(Env *, Value, Block *);
+    Value cycle(Env *, Optional<Value>, Block *);
     Value delete_at(Env *, Value);
     Value delete_if(Env *, Block *);
     Value delete_item(Env *, Value, Block *);
@@ -147,14 +147,14 @@ public:
     Value each_index(Env *, Block *);
     bool eq(Env *, Value);
     bool eql(Env *, Value);
-    Value fetch(Env *, Value, Value, Block *);
-    Value fill(Env *, Value, Value, Value, Block *);
-    Value first(Env *, Value);
-    Value flatten(Env *, Value);
-    Value flatten_in_place(Env *, Value);
+    Value fetch(Env *, Value, Optional<Value>, Block *);
+    Value fill(Env *, Optional<Value>, Optional<Value>, Optional<Value>, Block *);
+    Value first(Env *, Optional<Value>);
+    Value flatten(Env *, Optional<Value>);
+    Value flatten_in_place(Env *, Optional<Value>);
     Value hash(Env *);
     bool include(Env *, Value);
-    Value index(Env *, Value, Block *);
+    Value index(Env *, Optional<Value>, Block *);
     Value initialize_copy(Env *, Value);
     Value inspect(Env *);
     Value insert(Env *, Args &&);
@@ -162,38 +162,38 @@ public:
     Value intersection(Env *, Args &&);
     bool intersects(Env *, Value);
     Value _subjoin(Env *, Value, Value);
-    Value join(Env *, Value);
+    Value join(Env *, Optional<Value>);
     Value keep_if(Env *, Block *);
-    Value last(Env *, Value);
+    Value last(Env *, Optional<Value>);
     Value ltlt(Env *, Value);
     Value map(Env *, Block *);
     Value map_in_place(Env *, Block *);
-    Value max(Env *, Value, Block *);
-    Value min(Env *, Value, Block *);
+    Value max(Env *, Optional<Value>, Block *);
+    Value min(Env *, Optional<Value>, Block *);
     Value minmax(Env *, Block *);
     Value multiply(Env *, Value);
     Value none(Env *, Args &&, Block *);
     Value one(Env *, Args &&, Block *);
     Value pack(Env *, Value, Value);
-    Value pop(Env *, Value);
+    Value pop(Env *, Optional<Value>);
     Value product(Env *, Args &&, Block *);
     Value push(Env *, Args &&);
     Value rassoc(Env *, Value);
-    Value ref(Env *, Value, Value = nullptr);
-    Value refeq(Env *, Value, Value, Value);
+    Value ref(Env *, Value, Optional<Value> = {});
+    Value refeq(Env *, Value, Value, Optional<Value> = {});
     Value reject(Env *, Block *);
     Value reject_in_place(Env *, Block *);
     Value reverse(Env *);
     Value reverse_each(Env *, Block *);
     Value reverse_in_place(Env *);
-    Value rindex(Env *, Value, Block *);
-    Value rotate(Env *, Value);
-    Value rotate_in_place(Env *, Value);
+    Value rindex(Env *, Optional<Value>, Block *);
+    Value rotate(Env *, Optional<Value>);
+    Value rotate_in_place(Env *, Optional<Value>);
     Value select(Env *, Block *);
     Value select_in_place(Env *, Block *);
     bool select_in_place(std::function<bool(Value &)>);
-    Value shift(Env *, Value);
-    Value slice_in_place(Env *, Value, Value);
+    Value shift(Env *, Optional<Value>);
+    Value slice_in_place(Env *, Value, Optional<Value>);
     Value sort(Env *, Block *);
     Value sub(Env *, Value);
     static Value try_convert(Env *, Value);
@@ -227,7 +227,7 @@ private:
     nat_int_t _resolve_index(nat_int_t) const;
     bool _flatten_in_place(Env *, nat_int_t depth, Hashmap<ArrayObject *> visited_arrays = Hashmap<ArrayObject *> {});
     Value _slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end);
-    Value find_index(Env *, Value, Block *, bool = false);
+    Value find_index(Env *, Optional<Value>, Block *, bool = false);
     bool include_eql(Env *, Value);
 };
 

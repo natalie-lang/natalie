@@ -106,10 +106,10 @@ OnigEncoding RegexpObject::ruby_encoding_to_onig_encoding(NonNullPtr<const Encod
     return ONIG_ENCODING_ASCII;
 }
 
-Value RegexpObject::last_match(Env *env, Value ref) {
+Value RegexpObject::last_match(Env *env, Optional<Value> ref) {
     auto match = env->caller()->last_match();
     if (ref && match.is_match_data())
-        return match.as_match_data()->ref(env, ref);
+        return match.as_match_data()->ref(env, ref.value_or(static_cast<Value>(nullptr)));
     return match;
 }
 
@@ -204,7 +204,7 @@ Value RegexpObject::regexp_union(Env *env, Args &&args) {
     return new RegexpObject { env, out };
 }
 
-Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
+Value RegexpObject::initialize(Env *env, Value pattern, Optional<Value> opts_arg) {
     assert_not_frozen(env);
 
     if (is_initialized())
@@ -212,14 +212,15 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
 
     if (pattern.is_regexp()) {
         auto other = pattern.as_regexp();
-        if (opts && !opts.is_nil())
+        if (opts_arg && !opts_arg.value().is_nil())
             env->warn("flags ignored");
         initialize_internal(env, other->m_pattern, other->options());
         return this;
     }
 
     nat_int_t options = 0;
-    if (opts != nullptr) {
+    if (opts_arg) {
+        auto opts = opts_arg.value();
         if (opts.is_integer()) {
             options = opts.integer().to_nat_int_t();
         } else if (opts.is_string()) {
@@ -447,7 +448,7 @@ Value RegexpObject::eqtilde(Env *env, Value other) {
     }
 }
 
-Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
+Value RegexpObject::match(Env *env, Value other, Optional<Value> start, Block *block) {
     assert_initialized(env);
 
     Env *caller_env = env->caller();
@@ -465,8 +466,8 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
         env->raise_invalid_byte_sequence_error(str_obj->encoding());
 
     nat_int_t start_byte_index = 0;
-    if (start != nullptr) {
-        auto char_index = IntegerMethods::convert_to_native_type<ssize_t>(env, start);
+    if (start) {
+        auto char_index = IntegerMethods::convert_to_native_type<ssize_t>(env, start.value());
         start_byte_index = str_obj->char_index_to_byte_index(char_index);
     }
 
@@ -506,7 +507,7 @@ Value RegexpObject::match_at_byte_offset(Env *env, StringObject *str, size_t byt
     }
 }
 
-bool RegexpObject::has_match(Env *env, Value other, Value start) {
+bool RegexpObject::has_match(Env *env, Value other, Optional<Value> start) {
     assert_initialized(env);
     if (other.is_nil())
         return false;
@@ -517,8 +518,8 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
     StringObject *str_obj = other.as_string();
 
     nat_int_t start_index = 0;
-    if (start && start.is_integer())
-        start_index = start.integer().to_nat_int_t();
+    if (start && start.value().is_integer())
+        start_index = start.value().integer().to_nat_int_t();
     if (start_index < 0)
         start_index += str_obj->length();
 

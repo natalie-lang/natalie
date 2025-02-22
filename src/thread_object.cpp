@@ -515,7 +515,7 @@ Value ThreadObject::set_priority(Env *env, Value priority) {
     return priority;
 }
 
-Value ThreadObject::fetch(Env *env, Value key, Value default_value, Block *block) {
+Value ThreadObject::fetch(Env *env, Value key, Optional<Value> default_value, Block *block) {
     key = validate_key(env, key);
     HashObject *hash = nullptr;
     if (m_current_fiber)

@@ -28,10 +28,10 @@ public:
 
     ~RandomObject() { delete m_generator; }
 
-    Value initialize(Env *, Value);
+    Value initialize(Env *, Optional<Value> = {});
 
     Value bytes(Env *, Value);
-    Value rand(Env *, Value);
+    Value rand(Env *, Optional<Value>);
     Value seed() const { return Value::integer(m_seed); }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -42,9 +42,8 @@ public:
         return Value::integer(std::random_device()());
     }
 
-    static Value srand(Env *env, Value seed) {
-        if (!seed)
-            seed = new_seed(env);
+    static Value srand(Env *env, Optional<Value> seed_arg) {
+        auto seed = seed_arg.value_or([&env]() { return new_seed(env); });
         auto default_random = GlobalEnv::the()->Random()->const_fetch("DEFAULT"_s).as_random();
         auto old_seed = default_random->seed();
         auto new_seed = IntegerMethods::convert_to_native_type<nat_int_t>(env, seed);

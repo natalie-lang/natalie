@@ -4,13 +4,13 @@
 
 namespace Natalie {
 
-Value IntegerMethods::to_s(Env *env, Integer self, Value base_value) {
+Value IntegerMethods::to_s(Env *env, Integer self, Optional<Value> base_value) {
     if (self == 0)
         return new StringObject { "0" };
 
     nat_int_t base = 10;
     if (base_value) {
-        base = convert_to_nat_int_t(env, base_value);
+        base = convert_to_nat_int_t(env, base_value.value());
 
         if (base < 2 || base > 36) {
             env->raise("ArgumentError", "invalid radix {}", base);
@@ -198,7 +198,7 @@ Value IntegerMethods::pow(Env *env, Integer self, Value arg) {
     return pow(env, self, arg.integer());
 }
 
-Value IntegerMethods::powmod(Env *env, Integer self, Value exponent, Value mod) {
+Value IntegerMethods::powmod(Env *env, Integer self, Value exponent, Optional<Value> mod) {
     if (exponent.is_integer() && exponent.integer().is_negative() && mod)
         env->raise("RangeError", "2nd argument not allowed when first argument is negative");
 
@@ -207,10 +207,10 @@ Value IntegerMethods::powmod(Env *env, Integer self, Value exponent, Value mod) 
     if (!mod)
         return powd;
 
-    if (!mod.is_integer())
+    if (!mod.value().is_integer())
         env->raise("TypeError", "2nd argument not allowed unless all arguments are integers");
 
-    auto modi = mod.integer();
+    auto modi = mod.value().integer();
     if (modi.is_zero())
         env->raise("ZeroDivisionError", "cannot divide by zero");
 
@@ -496,13 +496,13 @@ Value IntegerMethods::coerce(Env *env, Value self, Value arg) {
     return ary;
 }
 
-Value IntegerMethods::ceil(Env *env, Integer self, Value arg) {
-    if (arg == nullptr)
+Value IntegerMethods::ceil(Env *env, Integer self, Optional<Value> arg) {
+    if (!arg)
         return self;
 
-    arg.assert_integer(env);
+    arg.value().assert_integer(env);
 
-    auto precision = arg.integer().to_nat_int_t();
+    auto precision = arg.value().integer().to_nat_int_t();
     if (precision >= 0)
         return self;
 
@@ -512,13 +512,13 @@ Value IntegerMethods::ceil(Env *env, Integer self, Value arg) {
     return Value::integer(result);
 }
 
-Value IntegerMethods::floor(Env *env, Integer self, Value arg) {
-    if (arg == nullptr)
+Value IntegerMethods::floor(Env *env, Integer self, Optional<Value> arg) {
+    if (!arg)
         return self;
 
-    arg.assert_integer(env);
+    arg.value().assert_integer(env);
 
-    auto precision = arg.integer().to_nat_int_t();
+    auto precision = arg.value().integer().to_nat_int_t();
     if (precision >= 0)
         return self;
 
@@ -533,13 +533,15 @@ Value IntegerMethods::gcd(Env *env, Integer self, Value divisor) {
     return Natalie::gcd(self, divisor.integer());
 }
 
-Value IntegerMethods::chr(Env *env, Integer self, Value encoding) {
+Value IntegerMethods::chr(Env *env, Integer self, Optional<Value> encoding_arg) {
     if (self < 0 || self > (nat_int_t)UINT_MAX)
         env->raise("RangeError", "{} out of char range", self.to_string());
     else if (self.is_bignum())
         env->raise("RangeError", "bignum out of char range");
 
-    if (encoding) {
+    Value encoding;
+    if (encoding_arg) {
+        encoding = encoding_arg.value();
         if (!encoding.is_encoding()) {
             encoding.assert_type(env, Object::Type::String, "String");
             encoding = EncodingObject::find(env, encoding);
@@ -583,11 +585,11 @@ Value IntegerMethods::sqrt(Env *env, Value arg) {
     return Natalie::sqrt(argument);
 }
 
-Value IntegerMethods::round(Env *env, Integer self, Value ndigits, Value half) {
+Value IntegerMethods::round(Env *env, Integer self, Optional<Value> ndigits, Optional<Value> half) {
     if (!ndigits)
         return self;
 
-    int digits = convert_to_int(env, ndigits);
+    int digits = convert_to_int(env, ndigits.value());
     RoundingMode rounding_mode = rounding_mode_from_value(env, half);
 
     if (digits >= 0)
@@ -626,11 +628,11 @@ Value IntegerMethods::round(Env *env, Integer self, Value ndigits, Value half) {
     return result;
 }
 
-Value IntegerMethods::truncate(Env *env, Integer self, Value ndigits) {
+Value IntegerMethods::truncate(Env *env, Integer self, Optional<Value> ndigits) {
     if (!ndigits)
         return self;
 
-    int digits = convert_to_int(env, ndigits);
+    int digits = convert_to_int(env, ndigits.value());
 
     if (digits >= 0)
         return self;
@@ -642,7 +644,7 @@ Value IntegerMethods::truncate(Env *env, Integer self, Value ndigits) {
     return result - remainder;
 }
 
-Value IntegerMethods::ref(Env *env, Integer self, Value offset_obj, Value size_obj) {
+Value IntegerMethods::ref(Env *env, Integer self, Value offset_obj, Optional<Value> size_obj) {
     auto from_offset_and_size = [self, env](Optional<nat_int_t> offset_or_empty, Optional<nat_int_t> size_or_empty = {}) -> Value {
         auto offset = offset_or_empty.value_or(0);
 
@@ -697,7 +699,7 @@ Value IntegerMethods::ref(Env *env, Integer self, Value offset_obj, Value size_o
 
         Optional<nat_int_t> size;
         if (size_obj) {
-            auto size_integer = size_obj.to_int(env);
+            auto size_integer = size_obj.value().to_int(env);
             if (size_integer.is_bignum())
                 env->raise("RangeError", "shift width too big");
 

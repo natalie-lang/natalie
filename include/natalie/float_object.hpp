@@ -114,26 +114,26 @@ public:
     Value abs(Env *) const;
     Value add(Env *, Value);
     Value arg(Env *);
-    Value ceil(Env *, Value);
+    Value ceil(Env *, Optional<Value>);
     Value cmp(Env *, Value);
     Value coerce(Env *, Value);
     Value denominator(Env *) const;
     Value div(Env *, Value);
     Value divmod(Env *, Value);
-    Value floor(Env *, Value);
+    Value floor(Env *, Optional<Value>);
     Value mod(Env *, Value);
     Value mul(Env *, Value);
     Value numerator(Env *) const;
     Value next_float(Env *) const;
     Value pow(Env *, Value);
     Value prev_float(Env *) const;
-    Value round(Env *, Value);
+    Value round(Env *, Optional<Value>);
     Value sub(Env *, Value);
     Value to_f() const { return new FloatObject { *this }; }
     Value to_i(Env *) const;
     Value to_r(Env *) const;
     Value to_s() const;
-    Value truncate(Env *, Value);
+    Value truncate(Env *, Optional<Value>);
 
     bool lt(Env *, Value);
     bool lte(Env *, Value);

@@ -16,14 +16,14 @@ void RangeObject::assert_no_bad_value(Env *env, Value begin, Value end) {
         env->raise("ArgumentError", "bad value for range");
 }
 
-Value RangeObject::initialize(Env *env, Value begin, Value end, Value exclude_end_value) {
+Value RangeObject::initialize(Env *env, Value begin, Value end, Optional<Value> exclude_end_value) {
     assert_not_frozen(env);
 
     assert_no_bad_value(env, begin, end);
 
     m_begin = begin;
     m_end = end;
-    m_exclude_end = exclude_end_value && exclude_end_value.is_truthy();
+    m_exclude_end = exclude_end_value && exclude_end_value.value().is_truthy();
     freeze();
 
     return this;
@@ -181,12 +181,12 @@ Value RangeObject::each(Env *env, Block *block) {
     return this;
 }
 
-Value RangeObject::first(Env *env, Value n) {
+Value RangeObject::first(Env *env, Optional<Value> n) {
     if (m_begin.is_nil()) {
         env->raise("RangeError", "cannot get the first element of beginless range");
     }
     if (n) {
-        nat_int_t count = IntegerMethods::convert_to_nat_int_t(env, n);
+        nat_int_t count = IntegerMethods::convert_to_nat_int_t(env, n.value());
         if (count < 0) {
             env->raise("ArgumentError", "negative array size (or size too big)");
             return nullptr;
@@ -194,7 +194,7 @@ Value RangeObject::first(Env *env, Value n) {
 
         ArrayObject *ary = new ArrayObject { (size_t)count };
         iterate_over_range(env, [&](Value item) -> Value {
-            if (count == 0) return n;
+            if (count == 0) return n.value();
 
             ary->push(item);
             count--;
@@ -239,7 +239,7 @@ Value RangeObject::inspect(Env *env) {
     }
 }
 
-Value RangeObject::last(Env *env, Value n) {
+Value RangeObject::last(Env *env, Optional<Value> n) {
     if (m_end.is_nil())
         env->raise("RangeError", "cannot get the last element of endless range");
 
@@ -382,9 +382,8 @@ Value RangeObject::bsearch(Env *env, Block *block) {
     NAT_UNREACHABLE();
 }
 
-Value RangeObject::step(Env *env, Value n, Block *block) {
-    if (!n)
-        n = Value::nil();
+Value RangeObject::step(Env *env, Optional<Value> n_arg, Block *block) {
+    auto n = n_arg.value_or(Value::nil());
 
     if (!n.is_numeric() && !n.is_nil()) {
         static const auto coerce_sym = "coerce"_s;

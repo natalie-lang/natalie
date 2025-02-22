@@ -3,14 +3,14 @@
 #include <random>
 
 namespace Natalie {
-Value RandomObject::initialize(Env *env, Value seed) {
-    if (!seed) {
+Value RandomObject::initialize(Env *env, Optional<Value> seed_arg) {
+    if (!seed_arg) {
         m_seed = (nat_int_t)std::random_device()();
     } else {
+        auto seed = seed_arg.value();
         if (seed.is_float()) {
             seed = seed.as_float()->to_i(env);
         }
-
         m_seed = IntegerMethods::convert_to_nat_int_t(env, seed);
     }
 
@@ -35,8 +35,9 @@ Value RandomObject::bytes(Env *env, Value size) {
     return new StringObject { reinterpret_cast<char *>(output), static_cast<size_t>(isize), Encoding::ASCII_8BIT };
 }
 
-Value RandomObject::rand(Env *env, Value arg) {
-    if (arg) {
+Value RandomObject::rand(Env *env, Optional<Value> max_arg) {
+    if (max_arg) {
+        auto arg = max_arg.value();
         if (arg.is_float()) {
             double max = arg.as_float()->to_double();
             if (max <= 0) {

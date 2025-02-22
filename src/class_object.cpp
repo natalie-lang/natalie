@@ -2,11 +2,10 @@
 
 namespace Natalie {
 
-Value ClassObject::initialize(Env *env, Value superclass, Block *block) {
+Value ClassObject::initialize(Env *env, Optional<Value> superclass_arg, Block *block) {
     if (m_is_initialized)
         env->raise("TypeError", "already initialized class");
-    if (!superclass)
-        superclass = GlobalEnv::the()->Object();
+    auto superclass = superclass_arg.value_or(GlobalEnv::the()->Object());
     if (!superclass.is_class())
         env->raise("TypeError", "superclass must be an instance of Class (given an instance of {})", superclass.klass()->inspect_str());
     superclass.as_class()->initialize_subclass(this, env, "", superclass.as_class()->object_type());

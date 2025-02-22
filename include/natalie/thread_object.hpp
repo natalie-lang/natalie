@@ -131,7 +131,7 @@ public:
     Value priority(Env *) const;
     Value set_priority(Env *, Value);
 
-    Value fetch(Env *, Value, Value = nullptr, Block * = nullptr);
+    Value fetch(Env *, Value, Optional<Value> = {}, Block * = nullptr);
     bool has_key(Env *, Value);
     Value keys(Env *);
     Value ref(Env *env, Value key);

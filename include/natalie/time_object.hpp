@@ -3,7 +3,9 @@
 #include <time.h>
 
 #include "natalie/forward.hpp"
+#include "natalie/integer.hpp"
 #include "natalie/object.hpp"
+#include "tm/optional.hpp"
 
 namespace Natalie {
 
@@ -24,13 +26,13 @@ public:
         free(m_zone);
     }
 
-    static TimeObject *at(Env *, Value, Value, Value);
-    static TimeObject *at(Env *, Value, Value, Value, Value in);
+    static TimeObject *at(Env *, Value, Optional<Value> = {}, Optional<Value> = {});
+    static TimeObject *at(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value> in);
     static TimeObject *create(Env *);
-    static TimeObject *initialize(Env *, Value, Value, Value, Value, Value, Value, Value, Value in);
-    static TimeObject *local(Env *, Value, Value, Value, Value, Value, Value, Value);
+    static TimeObject *initialize(Env *, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value> in);
+    static TimeObject *local(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>);
     static TimeObject *now(Env *, Value in);
-    static TimeObject *utc(Env *, Value, Value, Value, Value, Value, Value, Value);
+    static TimeObject *utc(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>);
 
     Value add(Env *, Value);
     Value asctime(Env *);
@@ -83,7 +85,7 @@ private:
     static nat_int_t normalize_timezone(Env *, Value val);
 
     Value build_string(Env *, const char *);
-    void build_time(Env *, Value, Value, Value, Value, Value, Value);
+    void build_time(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>);
     void set_subsec(Env *, long);
     void set_subsec(Env *, Integer);
     void set_subsec(Env *, RationalObject *);

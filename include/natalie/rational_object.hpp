@@ -34,7 +34,7 @@ public:
     Value denominator(Env *);
     Value div(Env *, Value);
     bool eq(Env *, Value);
-    Value floor(Env *, Value);
+    Value floor(Env *, Optional<Value> = {});
     Value inspect(Env *);
     Value marshal_dump(Env *);
     Value mul(Env *, Value);
@@ -46,7 +46,7 @@ public:
     Value to_i(Env *);
     Value to_r() { return this; }
     Value to_s(Env *);
-    Value truncate(Env *, Value);
+    Value truncate(Env *, Optional<Value>);
 
     virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);

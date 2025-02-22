@@ -133,24 +133,24 @@ bool RationalObject::eq(Env *env, Value other) {
     return true;
 }
 
-Value RationalObject::floor(Env *env, Value precision_value) {
-    nat_int_t precision = 0;
-    if (precision_value)
-        precision = IntegerMethods::convert_to_nat_int_t(env, precision_value);
-
+Value RationalObject::floor(Env *env, Optional<Value> precision_arg) {
     if (m_denominator == 1)
-        return IntegerMethods::floor(env, m_numerator, precision_value);
+        return IntegerMethods::floor(env, m_numerator, precision_arg);
+
+    nat_int_t precision = 0;
+    if (precision_arg)
+        precision = IntegerMethods::convert_to_nat_int_t(env, precision_arg.value());
 
     if (precision < 0) {
         auto i = to_i(env).integer();
-        return IntegerMethods::floor(env, i, precision_value);
+        return IntegerMethods::floor(env, i, precision_arg.value());
     }
 
     if (precision == 0)
-        return to_f(env).as_float()->floor(env, precision_value);
+        return to_f(env).as_float()->floor(env, precision_arg);
 
     auto powered = Natalie::pow(10, precision);
-    auto numerator = mul(env, powered).as_rational()->floor(env, nullptr).integer();
+    auto numerator = mul(env, powered).as_rational()->floor(env).integer();
 
     return create(env, numerator, powered);
 }
@@ -276,15 +276,15 @@ Value RationalObject::rationalize(Env *env) {
     return this;
 }
 
-Value RationalObject::truncate(Env *env, Value ndigits) {
+Value RationalObject::truncate(Env *env, Optional<Value> ndigits_arg) {
     auto numerator = m_numerator.to_nat_int_t();
     auto denominator = m_denominator.to_nat_int_t();
     nat_int_t digits = 0;
 
-    if (ndigits) {
-        if (!ndigits.is_integer())
+    if (ndigits_arg) {
+        if (!ndigits_arg.value().is_integer())
             env->raise("TypeError", "not an integer");
-        digits = ndigits.integer().to_nat_int_t();
+        digits = ndigits_arg.value().integer().to_nat_int_t();
     }
 
     if (digits == 0)
@@ -292,7 +292,7 @@ Value RationalObject::truncate(Env *env, Value ndigits) {
 
     if (digits < 0) {
         auto quotient = Value::integer(numerator / denominator);
-        return IntegerMethods::truncate(env, quotient.integer(), ndigits);
+        return IntegerMethods::truncate(env, quotient.integer(), ndigits_arg);
     }
 
     const auto power = static_cast<nat_int_t>(std::pow(10, digits));

@@ -59,17 +59,24 @@ public:
         onig_free(m_regex);
     }
 
-    static Value compile(Env *env, Value pattern, Value flags = nullptr, ClassObject *klass = nullptr) {
+    static Value compile(Env *env, Value pattern, Optional<Value> flags = {}, Optional<ClassObject *> klass = {}) {
         if (!klass)
             klass = GlobalEnv::the()->Regexp();
-        RegexpObject *regexp = new RegexpObject { klass };
-        regexp->send(env, "initialize"_s, { pattern, flags });
+        RegexpObject *regexp;
+        if (klass)
+            regexp = new RegexpObject { klass.value() };
+        else
+            regexp = new RegexpObject;
+        if (flags)
+            regexp->send(env, "initialize"_s, { pattern, flags.value() });
+        else
+            regexp->send(env, "initialize"_s, { pattern });
         return regexp;
     }
 
     static EncodingObject *onig_encoding_to_ruby_encoding(OnigEncoding encoding);
     static OnigEncoding ruby_encoding_to_onig_encoding(NonNullPtr<const EncodingObject> encoding);
-    static Value last_match(Env *, Value);
+    static Value last_match(Env *, Optional<Value>);
     static Value quote(Env *, Value);
     static Value try_convert(Env *, Value);
     static Value regexp_union(Env *, Args &&);
@@ -172,11 +179,11 @@ public:
         return m_options & RegexOpts::FixedEncoding;
     }
 
-    bool has_match(Env *env, Value, Value);
-    Value initialize(Env *, Value, Value);
+    bool has_match(Env *env, Value, Optional<Value>);
+    Value initialize(Env *, Value, Optional<Value>);
     Value inspect(Env *env);
     Value eqtilde(Env *env, Value);
-    Value match(Env *env, Value, Value = nullptr, Block * = nullptr);
+    Value match(Env *env, Value, Optional<Value> = {}, Block * = nullptr);
     Value match_at_byte_offset(Env *env, StringObject *, size_t);
     Value named_captures(Env *) const;
     Value names() const;

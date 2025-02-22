@@ -289,7 +289,7 @@ Value OpenSSL_Digest_initialize(Env *env, Value self, Args &&args, Block *) {
     if (!EVP_DigestInit_ex(mdctx, md, nullptr))
         OpenSSL_raise_error(env, "EVP_DigestInit_ex");
 
-    self->ivar_set(env, "@name"_s, name.as_string()->upcase(env, nullptr, nullptr));
+    self->ivar_set(env, "@name"_s, name.as_string()->upcase(env));
     self->ivar_set(env, "@mdctx"_s, new VoidPObject { mdctx, OpenSSL_MD_CTX_cleanup });
 
     if (args.size() == 2)

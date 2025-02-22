@@ -29,7 +29,7 @@ static void *dlopen_wrapper(Env *env, const String &name) {
             static const auto so_ext = [&] {
                 auto RbConfig = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s).as_module();
                 auto CONFIG = RbConfig->const_fetch("CONFIG"_s).as_hash_or_raise(env);
-                auto SO_EXT = CONFIG->fetch(env, new StringObject { "SOEXT" }, nullptr, nullptr).as_string_or_raise(env);
+                auto SO_EXT = CONFIG->fetch(env, new StringObject { "SOEXT" }).as_string_or_raise(env);
                 return String::format(".{}", SO_EXT->string());
             }();
             if (!name.begins_with('/') && !name.ends_with(so_ext)) {
@@ -95,7 +95,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
             auto error = new StringObject;
             for (auto name2 : *name.as_array())
                 error->append_sprintf("Could not open library '%s': %s.\n", name2.as_string()->string().c_str(), dlerror());
-            error->chomp_in_place(env, nullptr);
+            error->chomp_in_place(env);
             env->raise("LoadError", error->string());
         }
     } else {

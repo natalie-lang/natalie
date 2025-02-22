@@ -323,7 +323,7 @@ Value IoObject::write_file(Env *env, Args &&args) {
 
     if (kwargs && kwargs->has_key(env, "open_args"_s)) {
         auto next_args = new ArrayObject { filename };
-        next_args->concat(*kwargs->fetch(env, "open_args"_s, nullptr, nullptr).to_ary(env));
+        next_args->concat(*kwargs->fetch(env, "open_args"_s).to_ary(env));
         auto open_args_has_kw = next_args->last().is_hash();
         file = _new(env, File, Args(next_args, open_args_has_kw), nullptr).as_file();
     } else {
@@ -639,7 +639,7 @@ Value IoObject::putc(Env *env, Value val) {
     } else {
         ord = IntegerMethods::convert_to_nat_int_t(env, val) & 0xff;
     }
-    send(env, "write"_s, { IntegerMethods::chr(env, ord, nullptr) });
+    send(env, "write"_s, { IntegerMethods::chr(env, ord) });
     return val;
 }
 
@@ -792,10 +792,10 @@ Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
     if ((int_enc == nullptr || int_enc.is_nil()) && ext_enc != nullptr && (ext_enc.is_string() || ext_enc.respond_to(env, "to_str"_s))) {
         ext_enc = ext_enc.to_str(env);
         if (ext_enc.as_string()->include(":")) {
-            auto colon = new StringObject { ":" };
-            auto encsplit = ext_enc.to_str(env)->split(env, colon, nullptr).as_array();
-            ext_enc = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(0)), nullptr);
-            int_enc = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(1)), nullptr);
+            Value colon = new StringObject { ":" };
+            auto encsplit = ext_enc.to_str(env)->split(env, colon).as_array();
+            ext_enc = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(0)));
+            int_enc = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(1)));
         }
     }
 

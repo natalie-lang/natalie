@@ -110,7 +110,7 @@ public:
     bool is_empty() { return m_hashmap.size() == 0; }
 
     Value get(Env *, Value);
-    Value get_default(Env *, Value = nullptr);
+    Value get_default(Env *, Optional<Value> = {});
     Value set_default(Env *, Value);
 
     void put(Env *, Value, Value);
@@ -194,12 +194,12 @@ public:
     bool lte(Env *, Value);
     bool lt(Env *, Value);
     Value except(Env *, Args &&);
-    Value fetch(Env *, Value, Value, Block *);
+    Value fetch(Env *, Value, Optional<Value> = {}, Block * = nullptr);
     Value fetch_values(Env *, Args &&, Block *);
     Value hash(Env *);
     bool has_key(Env *, Value);
     bool has_value(Env *, Value);
-    Value initialize(Env *, Value, Value = nullptr, Block * = nullptr);
+    Value initialize(Env *, Optional<Value>, Optional<Value> = {}, Block * = nullptr);
     Value inspect(Env *);
     Value keep_if(Env *, Block *);
     Value keys(Env *);

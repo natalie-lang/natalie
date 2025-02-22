@@ -88,11 +88,11 @@ Value ModuleObject::const_get(SymbolObject *name) const {
         return nullptr;
 }
 
-Value ModuleObject::const_get(Env *env, Value name, Value inherited) {
+Value ModuleObject::const_get(Env *env, Value name, Optional<Value> inherited) {
     auto symbol = name.to_symbol(env, Value::Conversion::Strict);
     auto constant = const_get(symbol);
     if (!constant) {
-        if (inherited && inherited.is_falsey())
+        if (inherited && inherited.value().is_falsey())
             env->raise("NameError", "uninitialized constant {}", symbol->string());
         return send(env, "const_missing"_s, { name });
     }
@@ -326,11 +326,11 @@ Value ModuleObject::remove_const(Env *env, Value name) {
     return constant->value();
 }
 
-Value ModuleObject::constants(Env *env, Value inherit) const {
+Value ModuleObject::constants(Env *env, Optional<Value> inherit) const {
     auto ary = new ArrayObject;
     for (auto pair : m_constants)
         ary->push(pair.first);
-    if (inherit == nullptr || inherit.is_truthy()) {
+    if (!inherit || inherit.value().is_truthy()) {
         for (ModuleObject *module : m_included_modules) {
             if (module != this) {
                 ary->concat(*module->constants(env, inherit).as_array());
@@ -460,7 +460,7 @@ Value ModuleObject::class_variable_set(Env *env, Value name, Value value) {
     return cvar_set(env, name.to_symbol(env, Value::Conversion::Strict), value);
 }
 
-ArrayObject *ModuleObject::class_variables(Value inherit) const {
+ArrayObject *ModuleObject::class_variables(Optional<Value> inherit) const {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     auto result = new ArrayObject {};
@@ -470,7 +470,7 @@ ArrayObject *ModuleObject::class_variables(Value inherit) const {
         for (auto [cvar, _] : singleton_class()->m_class_vars)
             result->push(cvar);
     }
-    if (inherit && inherit.is_truthy() && m_superclass)
+    if (inherit && inherit.value().is_truthy() && m_superclass)
         result->concat(*m_superclass->class_variables(inherit));
     return result;
 }
@@ -636,8 +636,8 @@ Value ModuleObject::public_instance_method(Env *env, Value name_value) {
     }
 }
 
-Value ModuleObject::instance_methods(Env *env, Value include_super_value, std::function<bool(MethodVisibility)> predicate) {
-    bool include_super = !include_super_value || include_super_value.is_truthy();
+Value ModuleObject::instance_methods(Env *env, Optional<Value> include_super_value, std::function<bool(MethodVisibility)> predicate) {
+    bool include_super = !include_super_value || include_super_value.value().is_truthy();
     ArrayObject *array = new ArrayObject {};
     methods(env, array, include_super);
     array->select_in_place([this, env, predicate](Value &name_value) -> bool {
@@ -648,25 +648,25 @@ Value ModuleObject::instance_methods(Env *env, Value include_super_value, std::f
     return array;
 }
 
-Value ModuleObject::instance_methods(Env *env, Value include_super_value) {
+Value ModuleObject::instance_methods(Env *env, Optional<Value> include_super_value) {
     return instance_methods(env, include_super_value, [](MethodVisibility visibility) {
         return visibility == MethodVisibility::Public || visibility == MethodVisibility::Protected;
     });
 }
 
-Value ModuleObject::private_instance_methods(Env *env, Value include_super_value) {
+Value ModuleObject::private_instance_methods(Env *env, Optional<Value> include_super_value) {
     return instance_methods(env, include_super_value, [](MethodVisibility visibility) {
         return visibility == MethodVisibility::Private;
     });
 }
 
-Value ModuleObject::protected_instance_methods(Env *env, Value include_super_value) {
+Value ModuleObject::protected_instance_methods(Env *env, Optional<Value> include_super_value) {
     return instance_methods(env, include_super_value, [](MethodVisibility visibility) {
         return visibility == MethodVisibility::Protected;
     });
 }
 
-Value ModuleObject::public_instance_methods(Env *env, Value include_super_value) {
+Value ModuleObject::public_instance_methods(Env *env, Optional<Value> include_super_value) {
     return instance_methods(env, include_super_value, [](MethodVisibility visibility) {
         return visibility == MethodVisibility::Public;
     });
@@ -902,9 +902,10 @@ bool ModuleObject::does_include_module(Env *env, Value module) {
     return false;
 }
 
-Value ModuleObject::define_method(Env *env, Value name_value, Value method_value, Block *block) {
+Value ModuleObject::define_method(Env *env, Value name_value, Optional<Value> method_arg, Block *block) {
     auto name = name_value.to_symbol(env, Value::Conversion::Strict);
-    if (method_value) {
+    if (method_arg) {
+        auto method_value = method_arg.value();
         if (method_value.is_proc()) {
             define_method(env, name, method_value.as_proc()->block());
         } else {
@@ -1065,12 +1066,12 @@ Value ModuleObject::public_constant(Env *env, Args &&args) {
     return this;
 }
 
-bool ModuleObject::const_defined(Env *env, Value name_value, Value inherited) {
+bool ModuleObject::const_defined(Env *env, Value name_value, Optional<Value> inherited) {
     auto name = name_value.to_symbol(env, Value::Conversion::NullAllowed);
     if (!name) {
         env->raise("TypeError", "no implicit conversion of {} to String", name_value.inspect_str(env));
     }
-    if (inherited && inherited.is_falsey()) {
+    if (inherited && inherited.value().is_falsey()) {
         return !!m_constants.get(name);
     }
     return !!const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);

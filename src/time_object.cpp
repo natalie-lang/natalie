@@ -4,33 +4,33 @@
 
 namespace Natalie {
 
-TimeObject *TimeObject::at(Env *env, Value time, Value subsec, Value unit) {
+TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit) {
     RationalObject *rational = convert_rational(env, time);
     if (subsec) {
-        auto scale = convert_unit(env, unit ? unit : "microsecond"_s);
-        rational = rational->add(env, convert_rational(env, subsec)->div(env, scale)).as_rational();
+        auto scale = convert_unit(env, unit.value_or("microsecond"_s));
+        rational = rational->add(env, convert_rational(env, subsec.value())->div(env, scale)).as_rational();
     }
     return create(env, rational, Mode::Localtime);
 }
 
-TimeObject *TimeObject::at(Env *env, Value time, Value subsec, Value unit, Value in) {
+TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit, Optional<Value> in) {
     auto result = at(env, time, subsec, unit);
     if (in) {
-        result->m_time.tm_gmtoff = normalize_timezone(env, in);
+        result->m_time.tm_gmtoff = normalize_timezone(env, in.value());
         result->m_zone = strdup("UTC");
         result->m_time.tm_zone = result->m_zone;
     }
     return result;
 }
 
-TimeObject *TimeObject::local(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value usec) {
+TimeObject *TimeObject::local(Env *env, Value year, Optional<Value> month, Optional<Value> mday, Optional<Value> hour, Optional<Value> min, Optional<Value> sec, Optional<Value> usec) {
     TimeObject *result = new TimeObject {};
     result->build_time(env, year, month, mday, hour, min, sec);
     int seconds = mktime(&result->m_time);
     result->m_mode = Mode::Localtime;
     result->m_integer = seconds;
-    if (usec && usec.is_integer()) {
-        result->set_subsec(env, usec.integer());
+    if (usec && usec.value().is_integer()) {
+        result->set_subsec(env, usec.value().integer());
     }
     return result;
 }
@@ -40,24 +40,25 @@ TimeObject *TimeObject::create(Env *env) {
 }
 
 // Time.new
-TimeObject *TimeObject::initialize(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value tmzone, Value in) {
-    if (!year) {
+TimeObject *TimeObject::initialize(Env *env, Optional<Value> year, Optional<Value> month, Optional<Value> mday, Optional<Value> hour, Optional<Value> min, Optional<Value> sec, Optional<Value> tmzone, Optional<Value> in) {
+    if (!year)
         return now(env, nullptr);
-    } else if (year.is_nil()) {
+
+    if (year.value().is_nil()) {
         env->raise("TypeError", "Year cannot be nil");
     } else {
         auto result = now(env, nullptr);
-        result->build_time(env, year, month, mday, hour, min, sec);
+        result->build_time(env, year.value(), month, mday, hour, min, sec);
         int seconds = mktime(&result->m_time);
         result->m_integer = seconds;
         result->m_subsec = nullptr;
         if (tmzone && in) {
             env->raise("ArgumentError", "cannot specify zone and in:");
         } else if (tmzone) {
-            result->m_time.tm_gmtoff = normalize_timezone(env, tmzone);
+            result->m_time.tm_gmtoff = normalize_timezone(env, tmzone.value());
             result->m_mode = Mode::UTC;
         } else if (in) {
-            result->m_time.tm_gmtoff = normalize_timezone(env, in);
+            result->m_time.tm_gmtoff = normalize_timezone(env, in.value());
             result->m_mode = Mode::UTC;
         } else {
             result->m_mode = Mode::Localtime;
@@ -82,14 +83,15 @@ TimeObject *TimeObject::now(Env *env, Value in) {
     return result;
 }
 
-TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value subsec) {
+TimeObject *TimeObject::utc(Env *env, Value year, Optional<Value> month, Optional<Value> mday, Optional<Value> hour, Optional<Value> min, Optional<Value> sec, Optional<Value> subsec_arg) {
     TimeObject *result = new TimeObject {};
     result->build_time(env, year, month, mday, hour, min, sec);
     result->m_time.tm_gmtoff = 0;
     int seconds = timegm(&result->m_time);
     result->m_mode = Mode::UTC;
     result->m_integer = seconds;
-    if (subsec) {
+    if (subsec_arg) {
+        auto subsec = subsec_arg.value();
         if (subsec.is_integer()) {
             auto integer = subsec.integer();
             if (integer < 0 || integer >= 1000000)
@@ -377,7 +379,7 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
     if (!val.is_integer()) {
         if (val.is_string() || val.respond_to(env, "to_str"_s)) {
             val = val.to_str(env);
-            auto monstr = val.as_string()->downcase(env, nullptr, nullptr)->string();
+            auto monstr = val.as_string()->downcase(env)->string();
             if (monstr == "jan") {
                 return 0;
             } else if (monstr == "feb") {
@@ -452,7 +454,7 @@ TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode) {
     RationalObject *subseconds;
     TimeObject *result = new TimeObject {};
     if (rational->send(env, "<"_s, { Value::integer(0) }).is_true()) {
-        auto floor = rational->floor(env, nullptr);
+        auto floor = rational->floor(env);
         integer = floor.send(env, "to_i"_s).integer();
         subseconds = rational->sub(env, floor).as_rational();
     } else {
@@ -471,7 +473,7 @@ TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode) {
     return result;
 }
 
-void TimeObject::build_time(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec) {
+void TimeObject::build_time(Env *env, Value year, Optional<Value> month, Optional<Value> mday, Optional<Value> hour, Optional<Value> min, Optional<Value> sec_arg) {
     m_time = { 0 };
     m_time.tm_year = TimeObject::normalize_field(env, year) - 1900;
     m_time.tm_mon = 0;
@@ -482,18 +484,19 @@ void TimeObject::build_time(Env *env, Value year, Value month, Value mday, Value
     m_time.tm_isdst = -1; // dst-unknown == -1 ; mktime() will set to 0 or 1.
 
     if (month) {
-        m_time.tm_mon = TimeObject::normalize_month(env, month);
+        m_time.tm_mon = TimeObject::normalize_month(env, month.value());
     }
     if (mday) {
-        m_time.tm_mday = TimeObject::normalize_field(env, mday, 1, 31);
+        m_time.tm_mday = TimeObject::normalize_field(env, mday.value(), 1, 31);
     }
     if (hour) {
-        m_time.tm_hour = TimeObject::normalize_field(env, hour, 0, 24);
+        m_time.tm_hour = TimeObject::normalize_field(env, hour.value(), 0, 24);
     }
     if (min) {
-        m_time.tm_min = TimeObject::normalize_field(env, min, 0, 59);
+        m_time.tm_min = TimeObject::normalize_field(env, min.value(), 0, 59);
     }
-    if (sec && !sec.is_nil()) {
+    if (sec_arg && !sec_arg.value().is_nil()) {
+        auto sec = sec_arg.value();
         if (sec.is_string()) {
             // ensure base10 conversion for case of "01" input
             sec = KernelModule::Integer(env, sec, 10, true);

@@ -62,7 +62,7 @@ public:
 
     static String to_s(const Integer self) { return self.to_string(); }
 
-    static Value to_s(Env *, Integer self, Value = nullptr);
+    static Value to_s(Env *, Integer self, Optional<Value> = {});
     static Value to_i(Integer self) { return self; }
     static Value to_f(Integer self);
     static Value add(Env *, Integer, Value);
@@ -73,7 +73,7 @@ public:
     static Value pow(Env *, Integer, Integer);
     static Value pow(Env *, Integer, Value);
     static Value powmod(Env *, Integer, Integer, Integer);
-    static Value powmod(Env *, Integer, Value, Value);
+    static Value powmod(Env *, Integer, Value, Optional<Value>);
     static Value cmp(Env *, Integer, Value);
     static Value times(Env *, Integer, Block *);
     static Value bitwise_and(Env *, Integer, Value);
@@ -85,20 +85,20 @@ public:
     static Value pred(Env *env, Integer self) { return self - 1; }
     static Value size(Env *, Integer);
     static Value succ(Env *, Integer self) { return self + 1; }
-    static Value ceil(Env *, Integer, Value);
+    static Value ceil(Env *, Integer, Optional<Value>);
     static Value coerce(Env *, Value, Value);
-    static Value floor(Env *, Integer, Value);
+    static Value floor(Env *, Integer, Optional<Value>);
     static Value gcd(Env *, Integer, Value);
     static Value abs(Env *, Integer self) { return self.is_negative() ? -self : self; }
-    static Value chr(Env *, Integer, Value);
+    static Value chr(Env *, Integer, Optional<Value> = {});
     static Value negate(Env *, Integer self) { return -self; }
     static Value numerator(Integer self) { return self; }
     static Value complement(Env *, Integer self) { return ~self; }
     static Value ord(Integer self) { return self; }
     static Value denominator() { return Value::integer(1); }
-    static Value round(Env *, Integer, Value, Value);
-    static Value truncate(Env *, Integer, Value);
-    static Value ref(Env *, Integer, Value, Value);
+    static Value round(Env *, Integer, Optional<Value>, Optional<Value>);
+    static Value truncate(Env *, Integer, Optional<Value>);
+    static Value ref(Env *, Integer, Value, Optional<Value>);
 
     static bool neq(Env *env, Value self, Value other) { return self.send(env, "=="_s, { other }).is_falsey(); }
     static bool eq(Env *, Integer, Value);
