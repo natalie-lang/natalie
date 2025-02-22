@@ -169,7 +169,7 @@ namespace {
     };
 }
 
-FloatObject *NumberParser::string_to_f(const StringObject *str) {
+FloatObject *NumberParser::string_to_f(TM::NonNullPtr<const StringObject> str) {
     FloatParser float_parser { str->string() };
     return new FloatObject { float_parser() };
 }
