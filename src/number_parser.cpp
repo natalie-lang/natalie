@@ -75,7 +75,7 @@ namespace {
         FloatParser(const TM::String &str)
             : m_tokenizer { Tokenizer { str } } { }
 
-        double operator()() {
+        TM::Optional<double> operator()() {
             advance();
             switch (current().type) {
             case TokenType::Whitespace:
@@ -96,7 +96,7 @@ namespace {
             case TokenType::Invalid:
             case TokenType::End:
             case TokenType::NotYetScanned:
-                return 0.0;
+                return {};
             }
 
             return strtod(m_result.c_str(), nullptr);
@@ -196,7 +196,7 @@ namespace {
 
 FloatObject *NumberParser::string_to_f(TM::NonNullPtr<const StringObject> str) {
     FloatParser float_parser { str->string() };
-    return new FloatObject { float_parser() };
+    return new FloatObject { float_parser().value_or(0.0) };
 }
 
 }
