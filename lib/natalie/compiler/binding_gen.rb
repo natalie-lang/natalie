@@ -1482,7 +1482,7 @@ gen.binding('Thread::Mutex', 'unlock', 'Thread::MutexObject', 'unlock', argc: 0,
 gen.static_binding_as_class_method('Time', 'at', 'TimeObject', 'at', argc: 1..3, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.static_binding_as_class_method('Time', 'local', 'TimeObject', 'local', argc: 1..7, pass_env: true, pass_block: false, aliases: ['mktime'], return_type: :Object, pass_null: false)
 gen.static_binding_as_class_method('Time', 'new', 'TimeObject', 'initialize', argc: 0..7, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
-gen.static_binding_as_class_method('Time', 'now', 'TimeObject', 'now', argc: 0, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Time', 'now', 'TimeObject', 'now', argc: 0, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.static_binding_as_class_method('Time', 'utc', 'TimeObject', 'utc', argc: 1..7, pass_env: true, pass_block: false, aliases: ['gm'], return_type: :Object, pass_null: false)
 gen.binding('Time', '+', 'TimeObject', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', '-', 'TimeObject', 'minus', argc: 1, pass_env: true, pass_block: false, return_type: :Object)

@@ -36,18 +36,18 @@ TimeObject *TimeObject::local(Env *env, Value year, Optional<Value> month, Optio
 }
 
 TimeObject *TimeObject::create(Env *env) {
-    return now(env, nullptr);
+    return now(env);
 }
 
 // Time.new
 TimeObject *TimeObject::initialize(Env *env, Optional<Value> year, Optional<Value> month, Optional<Value> mday, Optional<Value> hour, Optional<Value> min, Optional<Value> sec, Optional<Value> tmzone, Optional<Value> in) {
     if (!year)
-        return now(env, nullptr);
+        return now(env);
 
     if (year.value().is_nil()) {
         env->raise("TypeError", "Year cannot be nil");
     } else {
-        auto result = now(env, nullptr);
+        auto result = now(env);
         result->build_time(env, year.value(), month, mday, hour, min, sec);
         int seconds = mktime(&result->m_time);
         result->m_integer = seconds;
@@ -68,7 +68,7 @@ TimeObject *TimeObject::initialize(Env *env, Optional<Value> year, Optional<Valu
     }
 }
 
-TimeObject *TimeObject::now(Env *env, Value in) {
+TimeObject *TimeObject::now(Env *env, Optional<Value> in) {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
     struct tm time = *localtime(&ts.tv_sec);
@@ -77,9 +77,8 @@ TimeObject *TimeObject::now(Env *env, Value in) {
     result->m_mode = Mode::Localtime;
     result->m_integer = ts.tv_sec;
     result->set_subsec(env, ts.tv_nsec);
-    if (in) {
-        result->m_time.tm_gmtoff = normalize_timezone(env, in);
-    }
+    if (in)
+        result->m_time.tm_gmtoff = normalize_timezone(env, in.value());
     return result;
 }
 
