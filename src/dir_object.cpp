@@ -15,9 +15,9 @@ DirObject::~DirObject() {
     m_dir = nullptr;
 }
 
-Value DirObject::open(Env *env, Value path, Value encoding, Block *block) {
+Value DirObject::open(Env *env, Value path, Optional<Value> encoding_kwarg, Block *block) {
     auto dir = new DirObject {};
-    dir->initialize(env, path, encoding);
+    dir->initialize(env, path, encoding_kwarg);
     if (block) {
         Defer close_dir([&]() {
             dir->close(env);
@@ -28,12 +28,12 @@ Value DirObject::open(Env *env, Value path, Value encoding, Block *block) {
     return dir;
 }
 
-Value DirObject::initialize(Env *env, Value path, Value encoding) {
+Value DirObject::initialize(Env *env, Value path, Optional<Value> encoding_kwarg) {
     path = ioutil::convert_using_to_path(env, path);
     m_dir = ::opendir(path.as_string()->c_str());
     if (!m_dir) env->raise_errno();
-    if (encoding && !encoding.is_nil()) {
-        m_encoding = EncodingObject::find_encoding(env, encoding);
+    if (encoding_kwarg && !encoding_kwarg.value().is_nil()) {
+        m_encoding = EncodingObject::find_encoding(env, encoding_kwarg.value());
     } else {
         m_encoding = EncodingObject::filesystem();
     }
@@ -200,9 +200,9 @@ Value DirObject::each_child(Env *env, Block *block) {
 }
 
 // class method of `children`
-Value DirObject::children(Env *env, Value path, Value encoding) {
+Value DirObject::children(Env *env, Value path, Optional<Value> encoding_kwarg) {
     auto dir = new DirObject {};
-    dir->initialize(env, path, encoding);
+    dir->initialize(env, path, encoding_kwarg);
     Defer close_dir([&]() {
         dir->close(env);
     });
@@ -210,9 +210,9 @@ Value DirObject::children(Env *env, Value path, Value encoding) {
 }
 
 // class method of `each_child`
-Value DirObject::each_child(Env *env, Value path, Value encoding, Block *block) {
+Value DirObject::each_child(Env *env, Value path, Optional<Value> encoding_kwarg, Block *block) {
     auto dir = new DirObject {};
-    dir->initialize(env, path, encoding);
+    dir->initialize(env, path, encoding_kwarg);
     auto result = dir->each_child(env, block);
     if (!block) {
         return result;
@@ -221,16 +221,16 @@ Value DirObject::each_child(Env *env, Value path, Value encoding, Block *block) 
 }
 
 // class method of `entries`
-Value DirObject::entries(Env *env, Value path, Value encoding) {
+Value DirObject::entries(Env *env, Value path, Optional<Value> encoding_kwarg) {
     auto dir = new DirObject {};
-    dir->initialize(env, path, encoding);
+    dir->initialize(env, path, encoding_kwarg);
     return dir->entries(env);
 }
 
 // class method of `each`
-Value DirObject::foreach (Env *env, Value path, Value encoding, Block * block) {
+Value DirObject::foreach (Env *env, Value path, Optional<Value> encoding_kwarg, Block * block) {
     auto dir = new DirObject {};
-    dir->initialize(env, path, encoding);
+    dir->initialize(env, path, encoding_kwarg);
     auto result = dir->each(env, block);
     if (!block) {
         return result;
