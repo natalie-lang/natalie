@@ -508,7 +508,7 @@ Value IoObject::write(Env *env, Args &&args) {
     return Value::integer(bytes_written);
 }
 
-Value IoObject::write_nonblock(Env *env, Value obj, Value exception) {
+Value IoObject::write_nonblock(Env *env, Value obj, Optional<Value> exception_kwarg) {
     raise_if_closed(env);
     obj = obj.to_s(env);
     set_nonblock(env, true);
@@ -516,7 +516,7 @@ Value IoObject::write_nonblock(Env *env, Value obj, Value exception) {
     const auto result = ::write(m_fileno, obj.as_string()->c_str(), obj.as_string()->bytesize());
     if (result == -1) {
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
-            if (exception && exception.is_false())
+            if (exception_kwarg && exception_kwarg.value().is_false())
                 return "wait_writable"_s;
             auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
             ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) }).as_exception();

@@ -123,7 +123,7 @@ public:
 
     Value write(Env *, Args &&);
     static Value write_file(Env *, Args &&);
-    Value write_nonblock(Env *, Value, Value = nullptr);
+    Value write_nonblock(Env *, Value, Optional<Value> = {});
 
     Value get_path() const;
     void set_path(StringObject *path) { m_path = path; }
