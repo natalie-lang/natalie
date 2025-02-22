@@ -25,31 +25,29 @@ namespace {
         Tokenizer(const TM::String &str)
             : m_curr { str.c_str() } { }
 
-        TM::Vector<Token> scan() {
-            TM::Vector<Token> res {};
-            while (true) {
-                if (*m_curr == '\0') {
-                    res.push({ TokenType::End, m_curr, 0 });
-                    break;
-                } else if (is_numeric(*m_curr)) {
-                    size_t size = 1;
-                    while (is_numeric(m_curr[size]))
-                        size++;
-                    res.push({ TokenType::Number, m_curr, size });
-                    m_curr += size;
-                } else if (*m_curr == '.') {
-                    res.push({ TokenType::Period, m_curr, 1 });
-                    m_curr++;
-                } else {
-                    res.push({ TokenType::Invalid, m_curr, 1 });
-                    m_curr++;
-                }
+        Token scan() {
+            if (*m_curr == '\0') {
+                return make_token(TokenType::End, 0);
+            } else if (is_numeric(*m_curr)) {
+                size_t size = 1;
+                while (is_numeric(m_curr[size]))
+                    size++;
+                return make_token(TokenType::Number, size);
+            } else if (*m_curr == '.') {
+                return make_token(TokenType::Period, 1);
+            } else {
+                return make_token(TokenType::Invalid, 1);
             }
-            return res;
         }
 
     private:
         const char *m_curr { nullptr };
+
+        Token make_token(TokenType type, size_t size) {
+            Token token { type, m_curr, size };
+            m_curr += size;
+            return token;
+        }
     };
 }
 
@@ -58,27 +56,39 @@ NumberParser::NumberParser(const StringObject *str)
 
 FloatObject *NumberParser::string_to_f(const StringObject *str) {
     NumberParser parser { str };
-    const auto tokens = Tokenizer(parser.m_str).scan();
-    switch (tokens[0].type) {
+    Tokenizer tokenizer { parser.m_str };
+
+    const auto token = tokenizer.scan();
+    switch (token.type) {
     case TokenType::Number: {
-        if (tokens[1].type == TokenType::Period && tokens[2].type == TokenType::Number) {
-            TM::String value { tokens[0].start, tokens[0].size + tokens[1].size + tokens[2].size };
-            auto result = strtod(value.c_str(), nullptr);
-            return new FloatObject { result };
-        } else {
-            TM::String value { tokens[0].start, tokens[0].size };
-            auto result = strtod(value.c_str(), nullptr);
-            return new FloatObject { result };
+        auto next_token = tokenizer.scan();
+        if (next_token.type == TokenType::Period) {
+            next_token = tokenizer.scan();
+            if (next_token.type == TokenType::Number) {
+                // "x.y"
+                TM::String value { token.start, token.size };
+                value.append_char('.');
+                value.append(next_token.start, next_token.size);
+                auto result = strtod(value.c_str(), nullptr);
+                return new FloatObject { result };
+            }
         }
+        // "x" or "x."
+        TM::String value { token.start, token.size };
+        auto result = strtod(value.c_str(), nullptr);
+        return new FloatObject { result };
     }
-    case TokenType::Period:
-        if (tokens[1].type == TokenType::Number) {
-            TM::String value { tokens[0].start, tokens[0].size + tokens[1].size };
+    case TokenType::Period: {
+        auto next_token = tokenizer.scan();
+        if (next_token.type == TokenType::Number) {
+            // ".y"
+            TM::String value { "0." };
+            value.append(next_token.start, next_token.size);
             auto result = strtod(value.c_str(), nullptr);
             return new FloatObject { result };
-        } else {
-            return new FloatObject { 0.0 };
         }
+        return new FloatObject { 0.0 };
+    }
     case TokenType::Invalid:
     case TokenType::End:
         return new FloatObject { 0.0 };
