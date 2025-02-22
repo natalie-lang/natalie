@@ -24,8 +24,8 @@ public:
 
     Value initialize(Env *, Args &&, Block *);
 
-    static Value absolute_path(Env *env, Value path, Value dir = nullptr);
-    static Value expand_path(Env *env, Value path, Value root);
+    static Value absolute_path(Env *env, Value path, Optional<Value> dir = {});
+    static Value expand_path(Env *env, Value path, Optional<Value> dir = {});
     static void unlink(Env *env, Value path);
     static Value unlink(Env *env, Args &&args);
 
@@ -66,19 +66,19 @@ public:
     Value ctime(Env *env);
     Value mtime(Env *env);
 
-    static Value umask(Env *env, Value mask);
+    static Value umask(Env *env, Optional<Value> mask);
     static Value ftype(Env *env, Value path);
     static Value size(Env *env, Value path);
     Value size(Env *env);
     static Value readlink(Env *, Value);
-    static Value realpath(Env *, Value, Value);
+    static Value realpath(Env *, Value, Optional<Value>);
     static Value world_readable(Env *env, Value path);
     static Value world_writable(Env *env, Value path);
 
     static nat_int_t link(Env *env, Value from, Value to);
     static nat_int_t rename(Env *env, Value from, Value to);
     static nat_int_t symlink(Env *env, Value from, Value to);
-    static nat_int_t mkfifo(Env *env, Value path, Value mode);
+    static nat_int_t mkfifo(Env *env, Value path, Optional<Value> mode);
 
     static Value chmod(Env *env, Args &&args);
     static Value chown(Env *env, Args &&args);

@@ -393,7 +393,7 @@ Value KernelModule::cur_dir(Env *env) {
         return new StringObject { "." };
     } else {
         Value relative = new StringObject { env->file() };
-        StringObject *absolute = FileObject::expand_path(env, relative, nullptr).as_string();
+        StringObject *absolute = FileObject::expand_path(env, relative).as_string();
         size_t last_slash = 0;
         bool found = false;
         for (size_t i = 0; i < absolute->length(); i++) {
