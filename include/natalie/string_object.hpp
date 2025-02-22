@@ -404,8 +404,8 @@ public:
     Value tr_in_place(Env *, Value, Value);
     static Value try_convert(Env *, Value);
     Value uminus(Env *);
-    Value unpack(Env *, Value, Value = nullptr) const;
-    Value unpack1(Env *, Value, Value = nullptr) const;
+    Value unpack(Env *, Value, Optional<Value> = {}) const;
+    Value unpack1(Env *, Value, Optional<Value> = {}) const;
     StringObject *upcase(Env *, Optional<Value> = {}, Optional<Value> = {});
     Value upcase_in_place(Env *, Optional<Value> = {}, Optional<Value> = {});
     Value uplus(Env *);
@@ -523,7 +523,7 @@ public:
 private:
     StringObject *expand_backrefs(Env *, StringObject *, MatchDataObject *);
     void regexp_sub(Env *, TM::String &, StringObject *, RegexpObject *, Optional<Value>, MatchDataObject **, StringObject **, size_t = 0, Block *block = nullptr);
-    nat_int_t unpack_offset(Env *, Value) const;
+    nat_int_t unpack_offset(Env *, Optional<Value>) const;
 
     using Object::Object;
 

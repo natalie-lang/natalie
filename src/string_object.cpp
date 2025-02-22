@@ -2895,10 +2895,10 @@ Value StringObject::to_r(Env *env) const {
     return RationalObject::create(env, numerator, denominator);
 }
 
-nat_int_t StringObject::unpack_offset(Env *env, Value offset_value) const {
+nat_int_t StringObject::unpack_offset(Env *env, Optional<Value> offset_arg) const {
     nat_int_t offset = -1;
-    if (offset_value) {
-        offset = offset_value.to_int(env).to_nat_int_t();
+    if (offset_arg) {
+        offset = offset_arg.value().to_int(env).to_nat_int_t();
         if (offset < 0)
             env->raise("ArgumentError", "offset can't be negative");
         else if (offset > (nat_int_t)bytesize())
@@ -2907,18 +2907,18 @@ nat_int_t StringObject::unpack_offset(Env *env, Value offset_value) const {
     return offset;
 }
 
-Value StringObject::unpack(Env *env, Value format, Value offset_value) const {
+Value StringObject::unpack(Env *env, Value format, Optional<Value> offset_kwarg) const {
     auto format_string = format.to_str(env)->string();
-    auto offset = unpack_offset(env, offset_value);
+    auto offset = unpack_offset(env, offset_kwarg);
     if (offset == (nat_int_t)bytesize())
         return new ArrayObject({ Value::nil() });
     auto unpacker = new StringUnpacker { this, format_string, offset };
     return unpacker->unpack(env);
 }
 
-Value StringObject::unpack1(Env *env, Value format, Value offset_value) const {
+Value StringObject::unpack1(Env *env, Value format, Optional<Value> offset_kwarg) const {
     auto format_string = format.to_str(env)->string();
-    auto offset = unpack_offset(env, offset_value);
+    auto offset = unpack_offset(env, offset_kwarg);
     if (offset == (nat_int_t)bytesize())
         return Value::nil();
     auto unpacker = new StringUnpacker { this, format_string, offset };
