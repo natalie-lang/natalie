@@ -311,7 +311,7 @@ Value StringObject::chomp_in_place(Env *env, Optional<Value> record_separator) {
 
     // When passed a non nil object, call to_str();
     if (record_separator && !record_separator.value().is_string())
-        record_separator = record_separator.value().to_str(env);
+        record_separator = Value(record_separator.value().to_str(env));
 
     if (is_empty()) { // if this is an empty string, return nil
         return Value::nil();

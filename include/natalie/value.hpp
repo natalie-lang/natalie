@@ -10,6 +10,7 @@
 #include "natalie/method_visibility.hpp"
 #include "natalie/object_type.hpp"
 #include "natalie/types.hpp"
+#include "tm/optional.hpp"
 
 namespace Natalie {
 
@@ -235,6 +236,84 @@ private:
     // If bit is 1, then shift the value to the right to get the actual
     // 63-bit number. If the bit is 0, then treat the value as a pointer.
     uintptr_t m_value { 0x0 };
+};
+
+}
+
+namespace TM {
+
+// This is a temporary specialization to catch an Optional<Value> which appears to be present
+// but is actually a nullptr. We won't need this at the point we remove nullptr capabilities
+// from Value construction.
+template <>
+class Optional<Natalie::Value> {
+public:
+    Optional(const Natalie::Value &value) {
+        assert(value != nullptr);
+
+        m_present = true;
+        m_value = value;
+    }
+
+    Optional()
+        : m_present { false } { }
+
+    Optional(const Optional &other)
+        : m_present { other.m_present } {
+        if (m_present)
+            m_value = other.m_value;
+    }
+
+    ~Optional() {
+        clear();
+    }
+
+    Optional<Natalie::Value> &operator=(const Optional<Natalie::Value> &other) {
+        m_present = other.m_present;
+        if (m_present)
+            m_value = other.m_value;
+        return *this;
+    }
+
+    Natalie::Value &value() {
+        assert(m_present);
+        return m_value;
+    }
+
+    const Natalie::Value &value() const {
+        assert(m_present);
+        return m_value;
+    }
+
+    Natalie::Value const &value_or(const Natalie::Value &fallback) const {
+        if (present())
+            return value();
+        else
+            return fallback;
+    }
+
+    Natalie::Value value_or(std::function<Natalie::Value()> fallback) const {
+        if (present())
+            return value();
+        else
+            return fallback();
+    }
+
+    Natalie::Value operator*() const {
+        assert(m_present);
+        return m_value;
+    }
+
+    void clear() { m_present = false; }
+
+    operator bool() const { return m_present; }
+
+    bool present() const { return m_present; }
+
+private:
+    bool m_present;
+
+    Natalie::Value m_value {};
 };
 
 }

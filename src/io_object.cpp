@@ -789,8 +789,8 @@ Value IoObject::set_close_on_exec(Env *env, Value value) {
     return value;
 }
 Value IoObject::set_encoding(Env *env, Optional<EncodingObject *> ext_arg, Optional<EncodingObject *> int_arg) {
-    auto e = ext_arg ? Value(ext_arg.value()) : Value::nil();
-    auto i = int_arg ? Value(int_arg.value()) : Value::nil();
+    auto e = ext_arg && ext_arg.value() ? Value(ext_arg.value()) : Value::nil();
+    auto i = int_arg && int_arg.value() ? Value(int_arg.value()) : Value::nil();
     return set_encoding(env, e, i);
 }
 
