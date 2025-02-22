@@ -745,7 +745,7 @@ gen.binding('File::Stat', 'world_readable?', 'FileStatObject', 'world_readable',
 gen.binding('File::Stat', 'world_writable?', 'FileStatObject', 'world_writable', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('File::Stat', 'zero?', 'FileStatObject', 'is_zero', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
-gen.static_binding_as_class_method('Dir', 'chdir', 'DirObject', 'chdir', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'chdir', 'DirObject', 'chdir', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object, pass_null: false)
 gen.static_binding_as_class_method('Dir', 'children', 'DirObject', 'children', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_class_method('Dir', 'chroot', 'DirObject', 'chroot', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_class_method('Dir', 'delete', 'DirObject', 'rmdir', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
@@ -755,14 +755,12 @@ gen.static_binding_as_class_method('Dir', 'entries', 'DirObject', 'entries', arg
 gen.static_binding_as_class_method('Dir', 'exist?', 'FileObject', 'is_directory', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding_as_class_method('Dir', 'foreach', 'DirObject', 'foreach', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: true, return_type: :Object)
 gen.static_binding_as_class_method('Dir', 'getwd', 'DirObject', 'pwd', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-# TODO: Dir.glob
-gen.static_binding_as_class_method('Dir', 'home', 'DirObject', 'home', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding_as_class_method('Dir', 'mkdir', 'DirObject', 'mkdir', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding_as_class_method('Dir', 'home', 'DirObject', 'home', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
+gen.static_binding_as_class_method('Dir', 'mkdir', 'DirObject', 'mkdir', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.static_binding_as_class_method('Dir', 'open', 'DirObject', 'open', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: true, return_type: :Object)
 gen.static_binding_as_class_method('Dir', 'pwd', 'DirObject', 'pwd', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_class_method('Dir', 'rmdir', 'DirObject', 'rmdir', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_class_method('Dir', 'unlink', 'DirObject', 'rmdir', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-
 gen.binding('Dir', 'children', 'DirObject', 'children', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Dir', 'close', 'DirObject', 'close', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Dir', 'each', 'DirObject', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Object)

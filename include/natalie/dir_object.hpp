@@ -54,10 +54,10 @@ public:
     StringObject *inspect(Env *env);
 
     static bool is_empty(Env *, Value);
-    static Value chdir(Env *env, Value path, Block *block);
+    static Value chdir(Env *env, Optional<Value> path, Block *block);
     static Value chroot(Env *env, Value path);
-    static Value home(Env *, Value);
-    static Value mkdir(Env *env, Value path, Value mode);
+    static Value home(Env *, Optional<Value>);
+    static Value mkdir(Env *env, Value path, Optional<Value> mode);
     static Value open(Env *env, Value path, Value encoding, Block *block);
     static Value pwd(Env *env);
     static Value rmdir(Env *env, Value path); // same as .delete, .unlink

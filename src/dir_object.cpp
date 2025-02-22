@@ -104,8 +104,9 @@ void change_current_path(Env *env, std::filesystem::path path) {
         env->raise_errno();
 }
 
-Value DirObject::chdir(Env *env, Value path, Block *block) {
-    if (!path) {
+Value DirObject::chdir(Env *env, Optional<Value> path_arg, Block *block) {
+    auto path = Value::nil();
+    if (!path_arg) {
         auto path_str = ::getenv("HOME");
         if (!path_str)
             path_str = ::getenv("LOGDIR");
@@ -114,7 +115,7 @@ Value DirObject::chdir(Env *env, Value path, Block *block) {
 
         path = new StringObject { path_str };
     } else {
-        path = ioutil::convert_using_to_path(env, path);
+        path = ioutil::convert_using_to_path(env, path_arg.value());
     }
 
     std::error_code ec;
@@ -244,11 +245,10 @@ Value DirObject::chroot(Env *env, Value path) {
     return Value::integer(0);
 }
 
-Value DirObject::mkdir(Env *env, Value path, Value mode) {
+Value DirObject::mkdir(Env *env, Value path, Optional<Value> mode) {
     mode_t octmode = 0777;
-    if (mode) {
-        octmode = IntegerMethods::convert_to_int(env, mode);
-    }
+    if (mode)
+        octmode = IntegerMethods::convert_to_int(env, mode.value());
     path = ioutil::convert_using_to_path(env, path);
     auto result = ::mkdir(path.as_string()->c_str(), octmode);
     if (result < 0) env->raise_errno();
@@ -272,8 +272,9 @@ Value DirObject::rmdir(Env *env, Value path) {
     return Value::integer(0);
 }
 
-Value DirObject::home(Env *env, Value username) {
-    if (username && !username.is_nil()) {
+Value DirObject::home(Env *env, Optional<Value> username_arg) {
+    if (username_arg && !username_arg.value().is_nil()) {
+        auto username = username_arg.value();
         username.assert_type(env, Object::Type::String, "String");
         // lookup home-dir for username
         struct passwd *pw;
