@@ -555,7 +555,7 @@ gen.member_binding_as_class_method('ENV', 'each_pair', 'EnvObject', 'each', argc
 gen.member_binding_as_class_method('ENV', 'each_value', 'EnvObject', 'each_value', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.member_binding_as_class_method('ENV', 'empty?', 'EnvObject', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.member_binding_as_class_method('ENV', 'except', 'EnvObject', 'except', argc: 0.., pass_env: true, pass_block: false, return_type: :Object)
-gen.member_binding_as_class_method('ENV', 'fetch', 'EnvObject', 'fetch', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
+gen.member_binding_as_class_method('ENV', 'fetch', 'EnvObject', 'fetch', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object, pass_null: false)
 gen.member_binding_as_class_method('ENV', 'has_value?', 'EnvObject', 'has_value', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.member_binding_as_class_method('ENV', 'include?', 'EnvObject', 'has_key', argc: 1, pass_env: true, pass_block: false, aliases: ['has_key?', 'member?', 'key?'], return_type: :bool)
 gen.member_binding_as_class_method('ENV', 'inspect', 'EnvObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
