@@ -140,6 +140,13 @@ namespace {
             if (next_token.type == TokenType::Number) {
                 append(token);
                 append(next_token);
+            } else if (next_token.type == TokenType::Sign) {
+                const auto next_next_token = scan();
+                if (next_next_token.type == TokenType::Number) {
+                    append(token);
+                    append(next_token);
+                    append(next_next_token);
+                }
             }
         }
     };
