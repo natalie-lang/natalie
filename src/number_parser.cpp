@@ -8,6 +8,7 @@ namespace {
         Period,
         Sign,
         ScientificE,
+        Underscore,
         Whitespace,
         Invalid,
         End,
@@ -51,6 +52,8 @@ namespace {
                 return make_token(TokenType::Sign, 1);
             } else if (*m_curr == 'e' || *m_curr == 'E') {
                 return make_token(TokenType::ScientificE, 1);
+            } else if (*m_curr == '_') {
+                return make_token(TokenType::Underscore, 1);
             } else {
                 return make_token(TokenType::Invalid, 1);
             }
@@ -88,6 +91,7 @@ namespace {
                 parse_fractional(token);
                 break;
             case TokenType::ScientificE:
+            case TokenType::Underscore:
             case TokenType::Invalid:
             case TokenType::End:
                 return 0.0;
@@ -104,6 +108,17 @@ namespace {
         void append_char(const char c) { m_result.append_char(c); }
         void append(const Token &token) { m_result.append(token.start, token.size); }
 
+        Token parse_number_sequence(const Token &token) {
+            append(token);
+            const auto next_token = scan();
+            if (next_token.type == TokenType::Underscore) {
+                const auto next_next_token = scan();
+                if (next_next_token.type == TokenType::Number)
+                    return parse_number_sequence(next_next_token);
+            }
+            return next_token;
+        }
+
         void parse_sign(const Token &token) {
             const auto next_token = scan();
             if (next_token.type == TokenType::Number) {
@@ -117,8 +132,7 @@ namespace {
         }
 
         void parse_decimal(const Token &token) {
-            append(token);
-            const auto next_token = scan();
+            const auto next_token = parse_number_sequence(token);
             if (next_token.type == TokenType::Period) {
                 parse_fractional(next_token);
             } else if (next_token.type == TokenType::ScientificE) {
@@ -129,7 +143,10 @@ namespace {
         void parse_fractional(const Token &token) {
             if (const auto next_token = scan(); next_token.type == TokenType::Number) {
                 append(token);
-                append(next_token);
+                const auto next_next_token = parse_number_sequence(next_token);
+                if (next_next_token.type == TokenType::ScientificE)
+                    parse_scientific_e(next_next_token);
+                return;
             }
             if (const auto next_token = scan(); next_token.type == TokenType::ScientificE)
                 parse_scientific_e(next_token);
@@ -139,13 +156,13 @@ namespace {
             const auto next_token = scan();
             if (next_token.type == TokenType::Number) {
                 append(token);
-                append(next_token);
+                parse_number_sequence(next_token);
             } else if (next_token.type == TokenType::Sign) {
                 const auto next_next_token = scan();
                 if (next_next_token.type == TokenType::Number) {
                     append(token);
                     append(next_token);
-                    append(next_next_token);
+                    parse_number_sequence(next_next_token);
                 }
             }
         }

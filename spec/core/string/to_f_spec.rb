@@ -39,9 +39,7 @@ describe "String#to_f" do
   end
 
   it "allows for underscores, even in the decimal side" do
-    NATFIXME 'it allows for underscores, even in the decimal side', exception: SpecFailedException do
-      "1_234_567.890_1".to_f.should == 1_234_567.890_1
-    end
+    "1_234_567.890_1".to_f.should == 1_234_567.890_1
   end
 
   it "returns 0 for strings with leading underscores" do
@@ -80,9 +78,7 @@ describe "String#to_f" do
   it "takes an optional sign" do
     "-45.67 degrees".to_f.should == -45.67
     "+45.67 degrees".to_f.should == 45.67
-    NATFIXME 'it takes an optional sign', exception: SpecFailedException do
-      "-5_5e-5_0".to_f.should == -55e-50
-    end
+    "-5_5e-5_0".to_f.should == -55e-50
     "-".to_f.should == 0.0
     (1.0 / "-0".to_f).to_s.should == "-Infinity"
   end
