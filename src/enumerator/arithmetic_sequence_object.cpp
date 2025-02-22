@@ -206,12 +206,12 @@ Value ArithmeticSequenceObject::inspect(Env *env) {
     return nullptr;
 }
 
-Value ArithmeticSequenceObject::last(Env *env, Value n) {
+Value ArithmeticSequenceObject::last(Env *env, Optional<Value> n) {
     auto _end = maybe_to_f(env, m_end);
     auto steps = step_count(env);
 
     if (n) {
-        auto n_as_int = n.to_int(env);
+        auto n_as_int = n.value().to_int(env);
         Integer count = n_as_int;
 
         if (count < 0)

@@ -537,7 +537,7 @@ gen.binding('Enumerator::ArithmeticSequence', 'end', 'Enumerator::ArithmeticSequ
 gen.binding('Enumerator::ArithmeticSequence', 'exclude_end?', 'Enumerator::ArithmeticSequenceObject', 'exclude_end', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Enumerator::ArithmeticSequence', 'hash', 'Enumerator::ArithmeticSequenceObject', 'hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Enumerator::ArithmeticSequence', 'inspect', 'Enumerator::ArithmeticSequenceObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Enumerator::ArithmeticSequence', 'last', 'Enumerator::ArithmeticSequenceObject', 'last', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Enumerator::ArithmeticSequence', 'last', 'Enumerator::ArithmeticSequenceObject', 'last', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, pass_null: false)
 gen.binding('Enumerator::ArithmeticSequence', 'size', 'Enumerator::ArithmeticSequenceObject', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Enumerator::ArithmeticSequence', 'step', 'Enumerator::ArithmeticSequenceObject', 'step', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
