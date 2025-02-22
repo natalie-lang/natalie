@@ -358,7 +358,7 @@ ArrayObject *MatchDataObject::values_at(Env *env, Args &&args) {
     return result;
 }
 
-Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
+Value MatchDataObject::ref(Env *env, Value index_value, Optional<Value> size_arg) {
     if (index_value.is_string() || index_value.is_symbol()) {
         const auto &str = index_value.type() == Object::Type::String ? index_value.as_string()->string() : index_value.as_symbol()->string();
         const nat_int_t index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
@@ -394,7 +394,8 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
     } else {
         index = IntegerMethods::convert_to_nat_int_t(env, index_value);
     }
-    if (size_value && !size_value.is_nil()) {
+    if (size_arg && !size_arg.value().is_nil()) {
+        auto size_value = size_arg.value();
         nat_int_t size;
         if (size_value.is_integer()) {
             size = size_value.integer().to_nat_int_t();
