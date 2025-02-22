@@ -12,6 +12,7 @@ namespace {
         Whitespace,
         Invalid,
         End,
+        NotYetScanned,
     };
 
     struct Token {
@@ -75,25 +76,26 @@ namespace {
             : m_tokenizer { Tokenizer { str } } { }
 
         double operator()() {
-            const auto token = scan();
-            switch (token.type) {
+            advance();
+            switch (current().type) {
             case TokenType::Whitespace:
                 // Skip and continue
                 return operator()();
             case TokenType::Sign:
-                parse_sign(token);
+                parse_sign();
                 break;
             case TokenType::Number:
-                parse_decimal(token);
+                parse_decimal();
                 break;
             case TokenType::Period:
                 append_char('0');
-                parse_fractional(token);
+                parse_fractional();
                 break;
             case TokenType::ScientificE:
             case TokenType::Underscore:
             case TokenType::Invalid:
             case TokenType::End:
+            case TokenType::NotYetScanned:
                 return 0.0;
             }
 
@@ -102,67 +104,90 @@ namespace {
 
     private:
         Tokenizer m_tokenizer;
+        Token m_current { TokenType::NotYetScanned, nullptr, 0 };
+        Token m_next { TokenType::NotYetScanned, nullptr, 0 };
         TM::String m_result {};
 
-        Token scan() { return m_tokenizer.scan(); }
+        Token current() { return m_current; }
+
+        Token peek() {
+            assert(m_current.type != TokenType::NotYetScanned);
+            if (m_next.type == TokenType::NotYetScanned)
+                m_next = m_tokenizer.scan();
+            return m_next;
+        }
+
+        void advance() {
+            if (m_next.type == TokenType::NotYetScanned) {
+                m_current = m_tokenizer.scan();
+            } else {
+                m_current = m_next;
+                m_next = Token { TokenType::NotYetScanned, nullptr, 0 };
+            }
+        }
+
         void append_char(const char c) { m_result.append_char(c); }
-        void append(const Token &token) { m_result.append(token.start, token.size); }
+        void append() { m_result.append(current().start, current().size); }
 
-        Token parse_number_sequence(const Token &token) {
-            append(token);
-            const auto next_token = scan();
-            if (next_token.type == TokenType::Underscore) {
-                const auto next_next_token = scan();
-                if (next_next_token.type == TokenType::Number)
-                    return parse_number_sequence(next_next_token);
+        void parse_number_sequence() {
+            append();
+            advance();
+            if (current().type == TokenType::Underscore && peek().type == TokenType::Number) {
+                advance();
+                parse_number_sequence();
             }
-            return next_token;
         }
 
-        void parse_sign(const Token &token) {
-            const auto next_token = scan();
-            if (next_token.type == TokenType::Number) {
-                append(token);
-                parse_decimal(next_token);
-            } else if (next_token.type == TokenType::Period) {
-                append(token);
+        void parse_sign() {
+            if (peek().type == TokenType::Number) {
+                append();
+                advance();
+                parse_decimal();
+            } else if (peek().type == TokenType::Period) {
+                append();
                 append_char('0');
-                parse_fractional(next_token);
+                advance();
+                parse_fractional();
             }
         }
 
-        void parse_decimal(const Token &token) {
-            const auto next_token = parse_number_sequence(token);
-            if (next_token.type == TokenType::Period) {
-                parse_fractional(next_token);
-            } else if (next_token.type == TokenType::ScientificE) {
-                parse_scientific_e(next_token);
+        void parse_decimal() {
+            parse_number_sequence();
+            if (current().type == TokenType::Period) {
+                parse_fractional();
+            } else if (current().type == TokenType::ScientificE) {
+                parse_scientific_e();
             }
         }
 
-        void parse_fractional(const Token &token) {
-            if (const auto next_token = scan(); next_token.type == TokenType::Number) {
-                append(token);
-                const auto next_next_token = parse_number_sequence(next_token);
-                if (next_next_token.type == TokenType::ScientificE)
-                    parse_scientific_e(next_next_token);
+        void parse_fractional() {
+            if (peek().type == TokenType::Number) {
+                append();
+                advance();
+                parse_number_sequence();
+                if (current().type == TokenType::ScientificE) {
+                    parse_scientific_e();
+                }
                 return;
             }
-            if (const auto next_token = scan(); next_token.type == TokenType::ScientificE)
-                parse_scientific_e(next_token);
+            if (peek().type == TokenType::ScientificE) {
+                advance();
+                parse_scientific_e();
+            }
         }
 
-        void parse_scientific_e(const Token &token) {
-            const auto next_token = scan();
-            if (next_token.type == TokenType::Number) {
-                append(token);
-                parse_number_sequence(next_token);
-            } else if (next_token.type == TokenType::Sign) {
-                const auto next_next_token = scan();
-                if (next_next_token.type == TokenType::Number) {
-                    append(token);
-                    append(next_token);
-                    parse_number_sequence(next_next_token);
+        void parse_scientific_e() {
+            if (peek().type == TokenType::Number) {
+                append();
+                advance();
+                parse_number_sequence();
+            } else if (peek().type == TokenType::Sign) {
+                advance();
+                if (peek().type == TokenType::Number) {
+                    append_char('e');
+                    append();
+                    advance();
+                    parse_number_sequence();
                 }
             }
         }
