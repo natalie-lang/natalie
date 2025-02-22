@@ -79,7 +79,7 @@ Value ArithmeticSequenceObject::each(Env *env, Block *block) {
 
     iterate(env, [&env, &block](Value value) -> Value {
         block->run(env, { value }, nullptr);
-        return nullptr;
+        return Value::nil();
     });
 
     return this;
@@ -203,7 +203,7 @@ Value ArithmeticSequenceObject::inspect(Env *env) {
         return string;
     }
     }
-    return nullptr;
+    return Value::nil();
 }
 
 Value ArithmeticSequenceObject::last(Env *env, Optional<Value> n) {

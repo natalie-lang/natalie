@@ -169,8 +169,8 @@ Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, boo
 
     if (exception)
         env->raise("TypeError", "can't convert {} into Complex", real.klass()->inspect_str());
-    else
-        return nullptr;
+
+    return Value::nil();
 }
 
 Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool string_to_c) {
@@ -440,7 +440,7 @@ Value KernelModule::Integer(Env *env, Value value, Optional<Value> base, Optiona
 Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exception) {
     if (value.is_string()) {
         auto result = value.as_string()->convert_integer(env, base);
-        if (!result && exception) {
+        if (result.is_nil() && exception) {
             env->raise("ArgumentError", "invalid value for Integer(): {}", value.inspect_str(env));
         }
         return result;
@@ -491,7 +491,7 @@ Value KernelModule::Float(Env *env, Value value, bool exception) {
         return value;
     } else if (value.is_string()) {
         auto result = value.as_string()->convert_float();
-        if (!result && exception) {
+        if (result.is_nil() && exception) {
             env->raise("ArgumentError", "invalid value for Float(): {}", value.inspect_str(env));
         }
         return result;
@@ -503,8 +503,8 @@ Value KernelModule::Float(Env *env, Value value, bool exception) {
     }
     if (exception)
         env->raise("TypeError", "can't convert {} into Float", value.klass()->inspect_str());
-    else
-        return nullptr;
+
+    return Value::nil();
 }
 
 Value KernelModule::fork(Env *env, Block *block) {
@@ -644,12 +644,12 @@ Value KernelModule::Rational(Env *env, Value x, Optional<Value> y_arg, bool exce
             return Rational(env, x.integer(), y.integer());
 
         x = Float(env, x, exception);
-        if (!x)
-            return nullptr;
+        if (x.is_nil())
+            return Value::nil();
 
         y = Float(env, y, exception);
-        if (!y)
-            return nullptr;
+        if (y.is_nil())
+            return Value::nil();
 
         if (y.as_float()->is_zero())
             env->raise("ZeroDivisionError", "divided by 0");
@@ -661,7 +661,7 @@ Value KernelModule::Rational(Env *env, Value x, Optional<Value> y_arg, bool exce
         }
 
         if (!exception)
-            return nullptr;
+            return Value::nil();
 
         if (x.is_nil())
             env->raise("TypeError", "can't convert {} into Rational", x.klass()->inspect_str());
@@ -673,8 +673,8 @@ Value KernelModule::Rational(Env *env, Value x, Optional<Value> y_arg, bool exce
         }
 
         x = Float(env, x, exception);
-        if (!x)
-            return nullptr;
+        if (x.is_nil())
+            return Value::nil();
 
         return Rational(env, x.as_float()->to_double());
     }

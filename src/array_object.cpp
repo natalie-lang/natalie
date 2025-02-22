@@ -273,10 +273,8 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Optional<Value> 
         } else {
             start = IntegerMethods::convert_to_nat_int_t(env, begin_obj);
             if (start < 0) {
-                if ((size_t)(-start) > this->size()) {
+                if ((size_t)(-start) > this->size())
                     env->raise("RangeError", "{} out of range", range->inspect_str(env));
-                    return nullptr;
-                }
                 start = this->size() + start;
             }
         }
@@ -301,10 +299,8 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Optional<Value> 
     } else {
         start = IntegerMethods::convert_to_nat_int_t(env, index_obj);
         if (start < 0) {
-            if ((size_t)(-start) > this->size()) {
+            if ((size_t)(-start) > this->size())
                 env->raise("IndexError", "index {} too small for array; minimum: -{}", start, this->size());
-                return nullptr;
-            }
             start = this->size() + start;
         }
 
@@ -323,10 +319,8 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Optional<Value> 
         }
 
         width = IntegerMethods::convert_to_nat_int_t(env, size);
-        if (width < 0) {
+        if (width < 0)
             env->raise("IndexError", "negative length ({})", width);
-            return nullptr;
-        }
     }
 
     // PERF: inefficient for large arrays where changes are being made to only the right side
@@ -597,10 +591,8 @@ Value ArrayObject::first(Env *env, Optional<Value> n) {
 
     nat_int_t n_value = IntegerMethods::convert_to_nat_int_t(env, n.value());
 
-    if (n_value < 0) {
+    if (n_value < 0)
         env->raise("ArgumentError", "negative array size");
-        return nullptr;
-    }
 
     size_t end = std::min(size(), (size_t)n_value);
     if (end == 0)
@@ -776,10 +768,8 @@ Value ArrayObject::dig(Env *env, Args &&args) {
 Value ArrayObject::drop(Env *env, Value n) {
     auto n_value = IntegerMethods::convert_to_nat_int_t(env, n);
 
-    if (n_value < 0) {
+    if (n_value < 0)
         env->raise("ArgumentError", "attempt to drop negative size");
-        return nullptr;
-    }
 
     auto array = m_vector.slice(n_value, 0);
     return new ArrayObject { std::move(array) };
@@ -814,10 +804,8 @@ Value ArrayObject::last(Env *env, Optional<Value> n) {
 
     auto n_value = IntegerMethods::convert_to_nat_int_t(env, n.value());
 
-    if (n_value < 0) {
+    if (n_value < 0)
         env->raise("ArgumentError", "negative array size");
-        return nullptr;
-    }
 
     assert(size() <= NAT_INT_MAX);
     nat_int_t signed_size = static_cast<nat_int_t>(size());
@@ -1625,10 +1613,8 @@ bool ArrayObject::intersects(Env *env, Value arg) {
 }
 
 Value ArrayObject::union_of(Env *env, Value arg) {
-    if (!arg.is_array()) {
+    if (!arg.is_array())
         env->raise("TypeError", "no implicit conversion of {} into Array", arg.klass()->inspect_str());
-        return nullptr;
-    }
 
     auto *result = new ArrayObject();
     auto add_value = [&result, &env](Value &val) {
