@@ -64,10 +64,7 @@ Value IoObject::initialize(Env *env, Args &&args, Block *block) {
         }
     }
     set_fileno(fileno);
-    set_encoding(
-        env,
-        wanted_flags.external_encoding().value_or(static_cast<EncodingObject *>(nullptr)),
-        wanted_flags.internal_encoding().value_or(static_cast<EncodingObject *>(nullptr)));
+    set_encoding(env, wanted_flags.external_encoding(), wanted_flags.internal_encoding());
     m_autoclose = wanted_flags.autoclose();
     m_path = wanted_flags.path();
     if (block)
