@@ -1144,7 +1144,7 @@ gen.static_binding_as_instance_method('NilClass', '|', 'NilMethods', 'or_method'
 gen.static_binding_as_instance_method('NilClass', '^', 'NilMethods', 'or_method', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
 gen.static_binding_as_instance_method('NilClass', '=~', 'NilMethods', 'eqtilde', argc: 1, pass_env: false, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('NilClass', 'inspect', 'NilMethods', 'inspect', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('NilClass', 'rationalize', 'NilMethods', 'rationalize', argc: 0..1, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding_as_instance_method('NilClass', 'rationalize', 'NilMethods', 'rationalize', argc: 0..1, pass_env: false, pass_block: false, return_type: :Object, pass_null: false)
 gen.static_binding_as_instance_method('NilClass', 'to_a', 'NilMethods', 'to_a', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('NilClass', 'to_c', 'NilMethods', 'to_c', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('NilClass', 'to_f', 'NilMethods', 'to_f', argc: 0, pass_env: false, pass_block: false, return_type: :Object)

@@ -16,7 +16,7 @@ public:
     static bool and_method(Value, Value);
     static bool or_method(Value, Value);
     static Value eqtilde(Value, Value);
-    static Value rationalize(Value, Value);
+    static Value rationalize(Value, Optional<Value>);
     static Value to_s(Value);
     static Value to_a(Value);
     static Value to_c(Value);

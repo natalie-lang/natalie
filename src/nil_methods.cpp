@@ -14,7 +14,7 @@ Value NilMethods::eqtilde(const Value, const Value) {
     return Value::nil();
 }
 
-Value NilMethods::rationalize(const Value self, const Value) {
+Value NilMethods::rationalize(const Value self, const Optional<Value>) {
     return to_r(self);
 }
 
