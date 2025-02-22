@@ -6,6 +6,7 @@ namespace {
     enum class TokenType {
         Number,
         Period,
+        Sign,
         Invalid,
         End,
     };
@@ -35,6 +36,8 @@ namespace {
                 return make_token(TokenType::Number, size);
             } else if (*m_curr == '.') {
                 return make_token(TokenType::Period, 1);
+            } else if (*m_curr == '+' || *m_curr == '-') {
+                return make_token(TokenType::Sign, 1);
             } else {
                 return make_token(TokenType::Invalid, 1);
             }
@@ -58,6 +61,9 @@ namespace {
         double operator()() {
             const auto token = scan();
             switch (token.type) {
+            case TokenType::Sign:
+                parse_sign(token);
+                break;
             case TokenType::Number:
                 parse_decimal(token);
                 break;
@@ -80,6 +86,18 @@ namespace {
         Token scan() { return m_tokenizer.scan(); }
         void append_char(const char c) { m_result.append_char(c); }
         void append(const Token &token) { m_result.append(token.start, token.size); }
+
+        void parse_sign(const Token &token) {
+            const auto next_token = scan();
+            if (next_token.type == TokenType::Number) {
+                append(token);
+                parse_decimal(next_token);
+            } else if (next_token.type == TokenType::Period) {
+                append(token);
+                append_char('0');
+                parse_fractional(next_token);
+            }
+        }
 
         void parse_decimal(const Token &token) {
             append(token);
