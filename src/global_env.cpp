@@ -19,10 +19,13 @@ bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {
         env->raise_name_error(name, "`{}' is not allowed as a global variable name", name->string());
 
     auto info = m_global_variables.get(name, env);
-    if (info)
-        return info->object(env);
-    else
-        return false;
+    if (info) {
+        auto obj = info->object(env);
+        if (obj)
+            return true;
+    }
+
+    return false;
 }
 
 Value GlobalEnv::global_get(Env *env, SymbolObject *name) {
@@ -32,13 +35,16 @@ Value GlobalEnv::global_get(Env *env, SymbolObject *name) {
         env->raise_name_error(name, "`{}' is not allowed as a global variable name", name->string());
 
     auto info = m_global_variables.get(name, env);
-    if (info && info->object(env))
-        return info->object(env);
-    else
-        return Value::nil();
+    if (info) {
+        auto obj = info->object(env);
+        if (obj)
+            return obj.value();
+    }
+
+    return Value::nil();
 }
 
-Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val, bool readonly) {
+Value GlobalEnv::global_set(Env *env, SymbolObject *name, Optional<Value> val, bool readonly) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (!name->is_global_name())
@@ -51,12 +57,12 @@ Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val, bool readon
         if (readonly)
             assert(info->is_readonly()); // changing a global to read-only is not anticipated.
         if (val)
-            info->set_object(env, val);
+            info->set_object(env, val.value());
     } else {
         auto info = new GlobalVariableInfo { val, readonly };
         m_global_variables.put(name, info, env);
     }
-    return val;
+    return val.value_or(Value::nil());
 }
 
 Value GlobalEnv::global_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
@@ -73,7 +79,7 @@ Value GlobalEnv::global_alias(Env *env, SymbolObject *new_name, SymbolObject *ol
         info = m_global_variables.get(old_name, env);
     }
     m_global_variables.put(new_name, info, env);
-    return info->object(env);
+    return info->object(env).value_or(Value::nil());
 }
 
 ArrayObject *GlobalEnv::global_list(Env *env) {
@@ -94,7 +100,7 @@ void GlobalEnv::global_set_read_hook(Env *env, SymbolObject *name, bool readonly
 
     auto info = m_global_variables.get(name, env);
     if (!info) {
-        global_set(env, name, nullptr, readonly);
+        global_set(env, name, {}, readonly);
         info = m_global_variables.get(name, env);
     }
     assert(readonly == info->is_readonly());

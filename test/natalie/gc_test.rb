@@ -15,7 +15,7 @@ describe 'GC' do
           nullptr,
           [](auto p) {
               Env e {};
-              GlobalEnv::the()->global_set(&e, "$gc_ran"_s, TrueObject::the());
+              GlobalEnv::the()->global_set(&e, "$gc_ran"_s, Value(TrueObject::the()));
           }
       };
     END
