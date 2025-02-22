@@ -111,9 +111,9 @@ Value ProcessModule::times(Env *env) {
     return _new(env, Tms, { utime, stime, cutime, cstime }, nullptr);
 }
 
-Value ProcessModule::wait(Env *env, Value pidval, Value flagsval) {
-    const pid_t pid = pidval ? IntegerMethods::convert_to_native_type<pid_t>(env, pidval) : -1;
-    const int flags = (flagsval && !flagsval.is_nil()) ? IntegerMethods::convert_to_native_type<int>(env, flagsval) : 0;
+Value ProcessModule::wait(Env *env, Optional<Value> pidval, Optional<Value> flagsval) {
+    const pid_t pid = pidval ? IntegerMethods::convert_to_native_type<pid_t>(env, pidval.value()) : -1;
+    const int flags = (flagsval && !flagsval.value().is_nil()) ? IntegerMethods::convert_to_native_type<int>(env, flagsval.value()) : 0;
     int status;
     const auto result = waitpid(pid, &status, flags);
     if (result == -1)
