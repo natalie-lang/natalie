@@ -677,9 +677,10 @@ Value Object::duplicate(Env *env) const {
     }
 }
 
-Value Object::clone(Env *env, Value freeze) {
+Value Object::clone(Env *env, Optional<Value> freeze_arg) {
     bool freeze_bool = true;
-    if (freeze) {
+    if (freeze_arg) {
+        auto freeze = freeze_arg.value();
         if (freeze.is_false()) {
             freeze_bool = false;
         } else if (!freeze.is_true() && !freeze.is_nil()) {
@@ -695,9 +696,9 @@ Value Object::clone(Env *env, Value freeze) {
         }
     }
 
-    if (freeze) {
+    if (freeze_arg) {
         auto keyword_hash = new HashObject {};
-        keyword_hash->put(env, "freeze"_s, freeze);
+        keyword_hash->put(env, "freeze"_s, freeze_arg.value());
         auto args = Args({ this, keyword_hash }, true);
         duplicate.send(env, "initialize_clone"_s, std::move(args));
     } else {
@@ -712,11 +713,11 @@ Value Object::clone(Env *env, Value freeze) {
     return duplicate;
 }
 
-Value Object::clone_obj(Env *env, Value self, Value freeze) {
+Value Object::clone_obj(Env *env, Value self, Optional<Value> freeze_kwarg) {
     if (self.is_integer() || self.is_nil())
         return self;
 
-    return self->clone(env, freeze);
+    return self->clone(env, freeze_kwarg);
 }
 
 void Object::copy_instance_variables(const Value other) {

@@ -479,8 +479,8 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
         return Value::nil();
 }
 
-Value KernelModule::Float(Env *env, Value value, Value exception) {
-    return Float(env, value, exception_argument_to_bool(env, exception));
+Value KernelModule::Float(Env *env, Value value, Optional<Value> exception_kwarg) {
+    return Float(env, value, exception_argument_to_bool(env, exception_kwarg.value_or(static_cast<Value>(nullptr))));
 }
 
 Value KernelModule::Float(Env *env, Value value, bool exception) {

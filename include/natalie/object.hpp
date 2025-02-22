@@ -166,8 +166,8 @@ public:
     Method *find_method(Env *, SymbolObject *, MethodVisibility, Value) const;
 
     Value duplicate(Env *) const;
-    Value clone(Env *env, Value freeze = nullptr);
-    static Value clone_obj(Env *env, Value self, Value freeze = nullptr);
+    Value clone(Env *env, Optional<Value> freeze = {});
+    static Value clone_obj(Env *env, Value self, Optional<Value> freeze = {});
 
     void copy_instance_variables(Value);
 

@@ -32,7 +32,7 @@ public:
     static Value Integer(Env *env, Value value, Optional<Value> base, Optional<Value> exception);
     static Value Integer(Env *env, Value value, nat_int_t base = 0, bool exception = true);
     static bool is_nil(Value value) { return value.is_nil(); }
-    static Value Float(Env *env, Value value, Value exception);
+    static Value Float(Env *env, Value value, Optional<Value> exception);
     static Value Float(Env *env, Value value, bool exception = true);
     static Value fork(Env *env, Block *);
     static Value gets(Env *env);
