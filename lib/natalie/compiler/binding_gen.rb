@@ -612,7 +612,7 @@ gen.static_binding_as_class_method('Fiber', 'yield', 'FiberObject', 'yield', arg
 gen.binding('Fiber', 'alive?', 'FiberObject', 'is_alive', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Fiber', 'blocking?', 'FiberObject', 'is_blocking', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Fiber', 'hash', 'FiberObject', 'hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Fiber', 'initialize', 'FiberObject', 'initialize', argc: 0, kwargs: %i[blocking storage], pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('Fiber', 'initialize', 'FiberObject', 'initialize', argc: 0, kwargs: %i[blocking storage], pass_env: true, pass_block: true, return_type: :Object, pass_null: false)
 gen.binding('Fiber', 'resume', 'FiberObject', 'resume', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Fiber', 'status', 'FiberObject', 'status', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Fiber', 'storage', 'FiberObject', 'storage', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
