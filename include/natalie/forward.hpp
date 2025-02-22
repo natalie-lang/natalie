@@ -39,6 +39,7 @@ class MethodObject;
 class ModuleObject;
 class NatalieProfiler;
 class NatalieProfilerEvent;
+class NumberParser;
 class ParserObject;
 class ProcObject;
 class RandomObject;
