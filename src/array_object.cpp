@@ -985,7 +985,7 @@ Value ArrayObject::cmp(Env *env, Value other) {
     });
 }
 
-Value ArrayObject::pack(Env *env, Value directives, Value buffer) {
+Value ArrayObject::pack(Env *env, Value directives, Optional<Value> buffer_arg) {
     if (!directives.is_string())
         directives = directives.to_str(env);
 
@@ -993,10 +993,10 @@ Value ArrayObject::pack(Env *env, Value directives, Value buffer) {
     if (directives_string.is_empty())
         return new StringObject { "", Encoding::US_ASCII };
 
-    if (buffer) {
-        if (!buffer.is_string()) {
+    if (buffer_arg) {
+        auto buffer = buffer_arg.value();
+        if (!buffer.is_string())
             env->raise("TypeError", "buffer must be String, not {}", buffer.klass()->inspect_str());
-        }
         return ArrayPacker::Packer { this, directives_string }.pack(env, buffer.as_string());
     } else {
         StringObject *start_buffer = new StringObject { "", Encoding::ASCII_8BIT };
