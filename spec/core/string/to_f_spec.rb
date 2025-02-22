@@ -5,16 +5,12 @@ require_relative 'fixtures/classes'
 
 describe "String#to_f" do
   it "treats leading characters of self as a floating point number" do
-   NATFIXME 'Reworking the parser', exception: SpecFailedException do
-     "123.45e1".to_f.should == 1234.5
-   end
+   "123.45e1".to_f.should == 1234.5
    "45.67 degrees".to_f.should == 45.67
    "0".to_f.should == 0.0
 
    ".5".to_f.should == 0.5
-   NATFIXME 'Reworking the parser', exception: SpecFailedException do
-     ".5e1".to_f.should == 5.0
-   end
+   ".5e1".to_f.should == 5.0
    "5.".to_f.should == 5.0
    "5e".to_f.should == 5.0
    "5E".to_f.should == 5.0
@@ -27,21 +23,13 @@ describe "String#to_f" do
   end
 
   it "allows for varying case" do
-    NATFIXME 'Reworking the parser', exception: SpecFailedException do
-      "123.45e1".to_f.should == 1234.5
-    end
-    NATFIXME 'Reworking the parser', exception: SpecFailedException do
-      "123.45E1".to_f.should == 1234.5
-    end
+    "123.45e1".to_f.should == 1234.5
+    "123.45E1".to_f.should == 1234.5
   end
 
   it "allows for varying signs" do
-    NATFIXME 'Reworking the parser', exception: SpecFailedException do
-      "+123.45e1".to_f.should == +123.45e1
-    end
-    NATFIXME 'Reworking the parser', exception: SpecFailedException do
-      "-123.45e1".to_f.should == -123.45e1
-    end
+    "+123.45e1".to_f.should == +123.45e1
+    "-123.45e1".to_f.should == -123.45e1
     NATFIXME 'Reworking the parser', exception: SpecFailedException do
       "123.45e+1".to_f.should == 123.45e+1
     end
@@ -112,9 +100,7 @@ describe "String#to_f" do
   end
 
   it "treats a second 'e' as terminal" do
-    NATFIXME 'Reworking the parser', exception: SpecFailedException do
-      "1.234e1e2".to_f.should == 1.234e1
-    end
+    "1.234e1e2".to_f.should == 1.234e1
   end
 
   it "treats a second '.' as terminal" do
@@ -122,9 +108,7 @@ describe "String#to_f" do
   end
 
   it "treats a '.' after an 'e' as terminal" do
-    NATFIXME 'Reworking the parser', exception: SpecFailedException do
-      "1.234e1.9".to_f.should == 1.234e1
-    end
+    "1.234e1.9".to_f.should == 1.234e1
   end
 
   it "returns 0.0 if the conversion fails" do
