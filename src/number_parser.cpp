@@ -49,52 +49,59 @@ namespace {
             return token;
         }
     };
+
+    class FloatParser {
+    public:
+        FloatParser(const TM::String &str)
+            : m_tokenizer { Tokenizer { str } } { }
+
+        double operator()() {
+            const auto token = scan();
+            switch (token.type) {
+            case TokenType::Number: {
+                auto next_token = scan();
+                if (next_token.type == TokenType::Period) {
+                    next_token = scan();
+                    if (next_token.type == TokenType::Number) {
+                        // "x.y"
+                        TM::String value { token.start, token.size };
+                        value.append_char('.');
+                        value.append(next_token.start, next_token.size);
+                        return strtod(value.c_str(), nullptr);
+                    }
+                }
+                // "x" or "x."
+                TM::String value { token.start, token.size };
+                return strtod(value.c_str(), nullptr);
+            }
+            case TokenType::Period: {
+                auto next_token = scan();
+                if (next_token.type == TokenType::Number) {
+                    // ".y"
+                    TM::String value { "0." };
+                    value.append(next_token.start, next_token.size);
+                    return strtod(value.c_str(), nullptr);
+                }
+                return 0.0;
+            }
+            case TokenType::Invalid:
+            case TokenType::End:
+                return 0.0;
+            }
+
+            NAT_UNREACHABLE();
+        }
+
+    private:
+        Tokenizer m_tokenizer;
+
+        Token scan() { return m_tokenizer.scan(); }
+    };
 }
 
-NumberParser::NumberParser(const StringObject *str)
-    : m_str { str->string() } { }
-
 FloatObject *NumberParser::string_to_f(const StringObject *str) {
-    NumberParser parser { str };
-    Tokenizer tokenizer { parser.m_str };
-
-    const auto token = tokenizer.scan();
-    switch (token.type) {
-    case TokenType::Number: {
-        auto next_token = tokenizer.scan();
-        if (next_token.type == TokenType::Period) {
-            next_token = tokenizer.scan();
-            if (next_token.type == TokenType::Number) {
-                // "x.y"
-                TM::String value { token.start, token.size };
-                value.append_char('.');
-                value.append(next_token.start, next_token.size);
-                auto result = strtod(value.c_str(), nullptr);
-                return new FloatObject { result };
-            }
-        }
-        // "x" or "x."
-        TM::String value { token.start, token.size };
-        auto result = strtod(value.c_str(), nullptr);
-        return new FloatObject { result };
-    }
-    case TokenType::Period: {
-        auto next_token = tokenizer.scan();
-        if (next_token.type == TokenType::Number) {
-            // ".y"
-            TM::String value { "0." };
-            value.append(next_token.start, next_token.size);
-            auto result = strtod(value.c_str(), nullptr);
-            return new FloatObject { result };
-        }
-        return new FloatObject { 0.0 };
-    }
-    case TokenType::Invalid:
-    case TokenType::End:
-        return new FloatObject { 0.0 };
-    }
-
-    NAT_UNREACHABLE();
+    FloatParser float_parser { str->string() };
+    return new FloatObject { float_parser() };
 }
 
 }
