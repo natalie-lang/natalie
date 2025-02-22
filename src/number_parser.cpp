@@ -58,44 +58,43 @@ namespace {
         double operator()() {
             const auto token = scan();
             switch (token.type) {
-            case TokenType::Number: {
-                auto next_token = scan();
-                if (next_token.type == TokenType::Period) {
-                    next_token = scan();
-                    if (next_token.type == TokenType::Number) {
-                        // "x.y"
-                        TM::String value { token.start, token.size };
-                        value.append_char('.');
-                        value.append(next_token.start, next_token.size);
-                        return strtod(value.c_str(), nullptr);
-                    }
-                }
-                // "x" or "x."
-                TM::String value { token.start, token.size };
-                return strtod(value.c_str(), nullptr);
-            }
-            case TokenType::Period: {
-                auto next_token = scan();
-                if (next_token.type == TokenType::Number) {
-                    // ".y"
-                    TM::String value { "0." };
-                    value.append(next_token.start, next_token.size);
-                    return strtod(value.c_str(), nullptr);
-                }
-                return 0.0;
-            }
+            case TokenType::Number:
+                parse_decimal(token);
+                break;
+            case TokenType::Period:
+                append_char('0');
+                parse_fractional(token);
+                break;
             case TokenType::Invalid:
             case TokenType::End:
                 return 0.0;
             }
 
-            NAT_UNREACHABLE();
+            return strtod(m_result.c_str(), nullptr);
         }
 
     private:
         Tokenizer m_tokenizer;
+        TM::String m_result {};
 
         Token scan() { return m_tokenizer.scan(); }
+        void append_char(const char c) { m_result.append_char(c); }
+        void append(const Token &token) { m_result.append(token.start, token.size); }
+
+        void parse_decimal(const Token &token) {
+            append(token);
+            const auto next_token = scan();
+            if (next_token.type == TokenType::Period)
+                parse_fractional(next_token);
+        }
+
+        void parse_fractional(const Token &token) {
+            const auto next_token = scan();
+            if (next_token.type == TokenType::Number) {
+                append(token);
+                append(next_token);
+            }
+        }
     };
 }
 
