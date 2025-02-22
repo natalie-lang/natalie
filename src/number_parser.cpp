@@ -7,6 +7,7 @@ namespace {
         Number,
         Period,
         Sign,
+        Whitespace,
         Invalid,
         End,
     };
@@ -19,6 +20,10 @@ namespace {
 
     bool is_numeric(const char c) {
         return c >= '0' && c <= '9';
+    }
+
+    bool is_whitespace(const char c) {
+        return c == ' ' || c == '\t' || c == '\n' || c == '\v' || c == '\f' || c == '\r';
     }
 
     class Tokenizer {
@@ -34,6 +39,11 @@ namespace {
                 while (is_numeric(m_curr[size]))
                     size++;
                 return make_token(TokenType::Number, size);
+            } else if (is_whitespace(*m_curr)) {
+                size_t size = 1;
+                while (is_whitespace(m_curr[size]))
+                    size++;
+                return make_token(TokenType::Whitespace, size);
             } else if (*m_curr == '.') {
                 return make_token(TokenType::Period, 1);
             } else if (*m_curr == '+' || *m_curr == '-') {
@@ -61,6 +71,9 @@ namespace {
         double operator()() {
             const auto token = scan();
             switch (token.type) {
+            case TokenType::Whitespace:
+                // Skip and continue
+                return operator()();
             case TokenType::Sign:
                 parse_sign(token);
                 break;

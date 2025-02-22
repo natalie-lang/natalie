@@ -133,28 +133,14 @@ describe "String#to_f" do
   end
 
   it "ignores leading and trailing whitespace" do
-    NATFIXME 'Reworking the parser', exception: SpecFailedException do
-      "  1.2".to_f.should == 1.2
-    end
+    "  1.2".to_f.should == 1.2
     "1.2  ".to_f.should == 1.2
-    NATFIXME 'Reworking the parser', exception: SpecFailedException do
-      " 1.2 ".to_f.should == 1.2
-    end
-    NATFIXME 'Reworking the parser', exception: SpecFailedException do
-      "\t1.2".to_f.should == 1.2
-    end
-    NATFIXME 'Reworking the parser', exception: SpecFailedException do
-      "\n1.2".to_f.should == 1.2
-    end
-    NATFIXME 'Reworking the parser', exception: SpecFailedException do
-      "\v1.2".to_f.should == 1.2
-    end
-    NATFIXME 'Reworking the parser', exception: SpecFailedException do
-      "\f1.2".to_f.should == 1.2
-    end
-    NATFIXME 'Reworking the parser', exception: SpecFailedException do
-      "\r1.2".to_f.should == 1.2
-    end
+    " 1.2 ".to_f.should == 1.2
+    "\t1.2".to_f.should == 1.2
+    "\n1.2".to_f.should == 1.2
+    "\v1.2".to_f.should == 1.2
+    "\f1.2".to_f.should == 1.2
+    "\r1.2".to_f.should == 1.2
   end
 
   it "treats non-printable ASCII characters as terminals" do
