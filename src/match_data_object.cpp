@@ -257,12 +257,12 @@ Value MatchDataObject::match_length(Env *env, Value index) {
     return match.as_string()->size(env);
 }
 
-Value MatchDataObject::named_captures(Env *env, Value symbolize_names) const {
+Value MatchDataObject::named_captures(Env *env, Optional<Value> symbolize_names_kwarg) const {
     if (!m_regexp)
         return new HashObject {};
 
     auto named_captures = new HashObject {};
-    named_captures_data data { this, env, named_captures, symbolize_names && symbolize_names.is_truthy() };
+    named_captures_data data { this, env, named_captures, symbolize_names_kwarg && symbolize_names_kwarg.value().is_truthy() };
     onig_foreach_name(
         m_regexp->m_regex,
         [](const UChar *name, const UChar *name_end, int groups_size, int *groups, regex_t *regex, void *data) -> int {
