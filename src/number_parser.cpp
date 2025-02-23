@@ -102,8 +102,10 @@ namespace {
             parse_decimal_sign();
         }
 
-        TM::Optional<double> result() {
+        TM::Optional<double> result(const bool strict) {
             if (m_result.is_empty())
+                return {};
+            if (strict && current().type != TokenType::End)
                 return {};
             return strtod(m_result.c_str(), nullptr);
         }
@@ -179,7 +181,7 @@ namespace {
 FloatObject *NumberParser::string_to_f(TM::NonNullPtr<const StringObject> str) {
     FloatParser float_parser { str->string() };
     float_parser.parse();
-    return new FloatObject { float_parser.result().value_or(0.0) };
+    return new FloatObject { float_parser.result(false).value_or(0.0) };
 }
 
 }
