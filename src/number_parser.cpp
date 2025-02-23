@@ -95,11 +95,17 @@ namespace {
         FloatParser(const TM::String &str)
             : m_tokenizer { Tokenizer { str } } { }
 
-        TM::Optional<double> operator()() {
+        void parse() {
             advance();
             if (current().type == TokenType::Whitespace)
                 advance();
-            return parse_decimal_sign();
+            parse_decimal_sign();
+        }
+
+        TM::Optional<double> result() {
+            if (m_result.is_empty())
+                return {};
+            return strtod(m_result.c_str(), nullptr);
         }
 
     private:
@@ -122,26 +128,25 @@ namespace {
             }
         }
 
-        TM::Optional<double> parse_decimal_sign() {
+        void parse_decimal_sign() {
             if (current().type == TokenType::Sign && (peek().type == TokenType::Number || peek().type == TokenType::Period)) {
                 append();
                 advance();
             }
-            return parse_decimal();
+            parse_decimal();
         }
 
-        TM::Optional<double> parse_decimal() {
+        void parse_decimal() {
             if (current().type == TokenType::Number) {
                 parse_number_sequence();
+                parse_fraction();
             } else if (current().type == TokenType::Period && peek().type == TokenType::Number) {
                 append_char('0');
-            } else {
-                return {};
+                parse_fraction();
             }
-            return parse_fraction();
         }
 
-        TM::Optional<double> parse_fraction() {
+        void parse_fraction() {
             if (current().type == TokenType::Period) {
                 if (peek().type == TokenType::Number) {
                     append();
@@ -151,10 +156,10 @@ namespace {
                     advance();
                 }
             }
-            return parse_scientific_e();
+            parse_scientific_e();
         }
 
-        TM::Optional<double> parse_scientific_e() {
+        void parse_scientific_e() {
             if (current().type == TokenType::ScientificE) {
                 advance();
                 if (current().type == TokenType::Number) {
@@ -167,14 +172,14 @@ namespace {
                 if (current().type == TokenType::Number)
                     parse_number_sequence();
             }
-            return strtod(m_result.c_str(), nullptr);
         }
     };
 }
 
 FloatObject *NumberParser::string_to_f(TM::NonNullPtr<const StringObject> str) {
     FloatParser float_parser { str->string() };
-    return new FloatObject { float_parser().value_or(0.0) };
+    float_parser.parse();
+    return new FloatObject { float_parser.result().value_or(0.0) };
 }
 
 }
