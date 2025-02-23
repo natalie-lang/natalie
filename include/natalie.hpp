@@ -102,6 +102,7 @@
 #include "natalie/module_object.hpp"
 #include "natalie/native_profiler.hpp"
 #include "natalie/nil_methods.hpp"
+#include "natalie/number_parser.hpp"
 #include "natalie/object.hpp"
 #include "natalie/proc_object.hpp"
 #include "natalie/process_module.hpp"

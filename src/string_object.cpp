@@ -3,6 +3,7 @@
 #include "natalie.hpp"
 #include "natalie/crypt.h"
 #include "natalie/integer_methods.hpp"
+#include "natalie/number_parser.hpp"
 #include "natalie/object_type.hpp"
 #include "natalie/string_unpacker.hpp"
 #include "string.h"
@@ -2740,8 +2741,7 @@ Value StringObject::to_c(Env *env) {
 }
 
 Value StringObject::to_f(Env *env) const {
-    auto result = strtod(c_str(), nullptr);
-    return new FloatObject { result };
+    return NumberParser::string_to_f(this);
 }
 
 Value StringObject::to_i(Env *env, Optional<Value> base_obj) const {
