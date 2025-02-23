@@ -32,7 +32,7 @@ namespace {
     class Tokenizer {
     public:
         Tokenizer(const TM::String &str)
-            : m_curr { str.c_str() } { }
+            : m_str { str.c_str() } { }
 
         Token current() { return m_current; }
 
@@ -53,30 +53,30 @@ namespace {
         }
 
     private:
-        const char *m_curr { nullptr };
+        const char *m_str { nullptr };
         Token m_current { TokenType::NotYetScanned, nullptr, 0 };
         Token m_next { TokenType::NotYetScanned, nullptr, 0 };
 
         Token scan() {
-            if (*m_curr == '\0') {
+            if (*m_str == '\0') {
                 return make_token(TokenType::End, 0);
-            } else if (is_numeric(*m_curr)) {
+            } else if (is_numeric(*m_str)) {
                 size_t size = 1;
-                while (is_numeric(m_curr[size]))
+                while (is_numeric(m_str[size]))
                     size++;
                 return make_token(TokenType::Number, size);
-            } else if (is_whitespace(*m_curr)) {
+            } else if (is_whitespace(*m_str)) {
                 size_t size = 1;
-                while (is_whitespace(m_curr[size]))
+                while (is_whitespace(m_str[size]))
                     size++;
                 return make_token(TokenType::Whitespace, size);
-            } else if (*m_curr == '.') {
+            } else if (*m_str == '.') {
                 return make_token(TokenType::Period, 1);
-            } else if (*m_curr == '+' || *m_curr == '-') {
+            } else if (*m_str == '+' || *m_str == '-') {
                 return make_token(TokenType::Sign, 1);
-            } else if (*m_curr == 'e' || *m_curr == 'E') {
+            } else if (*m_str == 'e' || *m_str == 'E') {
                 return make_token(TokenType::ScientificE, 1);
-            } else if (*m_curr == '_') {
+            } else if (*m_str == '_') {
                 return make_token(TokenType::Underscore, 1);
             } else {
                 return make_token(TokenType::Invalid, 1);
@@ -84,8 +84,8 @@ namespace {
         }
 
         Token make_token(TokenType type, size_t size) {
-            Token token { type, m_curr, size };
-            m_curr += size;
+            Token token { type, m_str, size };
+            m_str += size;
             return token;
         }
     };
