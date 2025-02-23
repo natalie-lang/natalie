@@ -34,6 +34,29 @@ namespace {
         Tokenizer(const TM::String &str)
             : m_curr { str.c_str() } { }
 
+        Token current() { return m_current; }
+
+        Token peek() {
+            assert(m_current.type != TokenType::NotYetScanned);
+            if (m_next.type == TokenType::NotYetScanned)
+                m_next = scan();
+            return m_next;
+        }
+
+        void advance() {
+            if (m_next.type == TokenType::NotYetScanned) {
+                m_current = scan();
+            } else {
+                m_current = m_next;
+                m_next = Token { TokenType::NotYetScanned, nullptr, 0 };
+            }
+        }
+
+    private:
+        const char *m_curr { nullptr };
+        Token m_current { TokenType::NotYetScanned, nullptr, 0 };
+        Token m_next { TokenType::NotYetScanned, nullptr, 0 };
+
         Token scan() {
             if (*m_curr == '\0') {
                 return make_token(TokenType::End, 0);
@@ -60,9 +83,6 @@ namespace {
             }
         }
 
-    private:
-        const char *m_curr { nullptr };
-
         Token make_token(TokenType type, size_t size) {
             Token token { type, m_curr, size };
             m_curr += size;
@@ -84,27 +104,11 @@ namespace {
 
     private:
         Tokenizer m_tokenizer;
-        Token m_current { TokenType::NotYetScanned, nullptr, 0 };
-        Token m_next { TokenType::NotYetScanned, nullptr, 0 };
         TM::String m_result {};
 
-        Token current() { return m_current; }
-
-        Token peek() {
-            assert(m_current.type != TokenType::NotYetScanned);
-            if (m_next.type == TokenType::NotYetScanned)
-                m_next = m_tokenizer.scan();
-            return m_next;
-        }
-
-        void advance() {
-            if (m_next.type == TokenType::NotYetScanned) {
-                m_current = m_tokenizer.scan();
-            } else {
-                m_current = m_next;
-                m_next = Token { TokenType::NotYetScanned, nullptr, 0 };
-            }
-        }
+        Token current() { return m_tokenizer.current(); }
+        Token peek() { return m_tokenizer.peek(); }
+        void advance() { m_tokenizer.advance(); }
 
         void append_char(const char c) { m_result.append_char(c); }
         void append() { m_result.append(current().start, current().size); }
