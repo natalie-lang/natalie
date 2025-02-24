@@ -217,6 +217,7 @@ def default_docker_build_args
     "--build-arg IMAGE='ruby:#{ruby_version_number}'",
     "--build-arg NAT_BUILD_MODE=#{ENV.fetch('NAT_BUILD_MODE', 'release')}",
     "--build-arg NEED_VALGRIND=#{ENV.fetch('NEED_VALGRIND', 'false')}",
+    "--build-arg NEED_CASTXML=#{ENV.fetch('NEED_CASTXML', 'false')}",
   ]
 end
 
@@ -336,7 +337,9 @@ task docker_tidy: :docker_build_clang do
   sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} tidy"
 end
 
-task docker_gc_lint: :docker_build_clang do
+task :docker_gc_lint do
+  ENV['NEED_CASTXML'] = 'true'
+  Rake::Task['docker_build_clang'].invoke
   sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} gc_lint"
 end
 

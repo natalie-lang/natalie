@@ -21,6 +21,14 @@ RUN if [ "$NEED_VALGRIND" = "true" ]; then \
   make install; \
   fi
 
+ARG NEED_CASTXML=false
+RUN if [ "$NEED_CASTXML" = "true" ]; then \
+  cd /tmp && \
+  wget https://github.com/CastXML/CastXMLSuperbuild/releases/download/v0.6.11.post1/castxml-ubuntu-22.04-x86_64.tar.gz && \
+  tar -C /tmp -xzf /tmp/castxml-ubuntu-22.04-x86_64.tar.gz; \
+  fi
+ENV PATH="/tmp/castxml/bin:${PATH}"
+
 ENV LC_ALL=C.UTF-8
 ENV LLVM_CONFIG=/usr/lib/llvm-14/bin/llvm-config
 
