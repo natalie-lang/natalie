@@ -193,11 +193,7 @@ NO_SANITIZE_ADDRESS Value FiberObject::resume(Env *env, Args args) {
 }
 
 Value FiberObject::scheduler() {
-    auto scheduler = ThreadObject::current()->fiber_scheduler();
-    if (!scheduler)
-        return Value::nil();
-
-    return scheduler;
+    return ThreadObject::current()->fiber_scheduler();
 }
 
 bool FiberObject::scheduler_is_relevant() {
@@ -210,7 +206,7 @@ bool FiberObject::scheduler_is_relevant() {
 
 Value FiberObject::set_scheduler(Env *env, Value scheduler) {
     if (scheduler.is_nil()) {
-        ThreadObject::current()->set_fiber_scheduler(nullptr);
+        ThreadObject::current()->set_fiber_scheduler(Value::nil());
     } else {
         TM::Vector<TM::String> required_methods { "block", "unblock", "kernel_sleep", "io_wait" };
         for (const auto &required_method : required_methods) {
