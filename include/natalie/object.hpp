@@ -148,22 +148,22 @@ public:
         return buf;
     }
 
-    Value public_send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Value sent_from = nullptr);
+    Value public_send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Optional<Value> sent_from = {});
     static Value public_send(Env *, Value, Args &&, Block *);
 
-    Value send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Value sent_from = nullptr);
+    Value send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Optional<Value> sent_from = {});
     static Value send(Env *, Value, Args &&, Block *);
 
-    Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Value sent_from = nullptr) {
+    Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Optional<Value> sent_from = {}) {
         // NOTE: sent_from is unused, but accepting it makes the SendInstruction codegen simpler. :-)
         return send(env, name, Args(args), block);
     }
 
-    Value send(Env *, SymbolObject *, Args &&, Block *, MethodVisibility, Value = nullptr);
+    Value send(Env *, SymbolObject *, Args &&, Block *, MethodVisibility, Optional<Value> = {});
     Value method_missing_send(Env *, SymbolObject *, Args &&, Block *);
     static Value method_missing(Env *, Value, Args &&, Block *);
 
-    Method *find_method(Env *, SymbolObject *, MethodVisibility, Value) const;
+    Method *find_method(Env *, SymbolObject *, MethodVisibility, Optional<Value>) const;
 
     Value duplicate(Env *) const;
     Value clone(Env *env, Optional<Value> freeze = {});

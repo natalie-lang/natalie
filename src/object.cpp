@@ -536,7 +536,7 @@ Value Object::module_function(Env *env, Args &&args) {
     abort();
 }
 
-Value Object::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
+Value Object::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Optional<Value> sent_from) {
     return send(env, name, std::move(args), block, MethodVisibility::Public, sent_from);
 }
 
@@ -545,7 +545,7 @@ Value Object::public_send(Env *env, Value self, Args &&args, Block *block) {
     return self.public_send(env->caller(), name, std::move(args), block);
 }
 
-Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
+Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Optional<Value> sent_from) {
     return send(env, name, std::move(args), block, MethodVisibility::Private, sent_from);
 }
 
@@ -554,7 +554,7 @@ Value Object::send(Env *env, Value self, Args &&args, Block *block) {
     return self.send(env->caller(), name, std::move(args), block);
 }
 
-Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility_at_least, Value sent_from) {
+Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility_at_least, Optional<Value> sent_from) {
     static const auto initialize = SymbolObject::intern("initialize");
     Method *method = find_method(env, name, visibility_at_least, sent_from);
     // TODO: make a copy if has empty keyword hash (unless that's not rare)
@@ -591,7 +591,7 @@ Value Object::method_missing(Env *env, Value self, Args &&args, Block *block) {
     }
 }
 
-Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least, Value sent_from) const {
+Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least, Optional<Value> sent_from) const {
     ModuleObject *klass = singleton_class();
     if (!klass)
         klass = m_klass;
@@ -609,7 +609,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     if (visibility >= visibility_at_least)
         return method_info.method();
 
-    if (visibility == MethodVisibility::Protected && sent_from && sent_from.is_a(env, klass))
+    if (visibility == MethodVisibility::Protected && sent_from && sent_from.value().is_a(env, klass))
         return method_info.method();
 
     switch (visibility) {
