@@ -251,7 +251,7 @@ void Object::extend_once(Env *env, ModuleObject *module) {
     singleton_class(env, this)->include_once(env, module);
 }
 
-Value Object::const_find_with_autoload(Env *env, Value ns, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+Optional<Value> Object::const_find_with_autoload(Env *env, Value ns, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     if (GlobalEnv::the()->instance_evaling()) {
         auto context = GlobalEnv::the()->current_instance_eval_context();
         if (context.caller_env->module()) {
@@ -733,13 +733,13 @@ void Object::copy_instance_variables(const Value other) {
 }
 
 const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
-    Value obj = nullptr;
+    Optional<Value> obj;
     if (name->is_constant_name()) {
         if (strict) {
             if (m_type == Type::Module || m_type == Type::Class)
                 obj = static_cast<ModuleObject *>(this)->const_get(name);
         } else {
-            obj = m_klass->const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
+            obj = m_klass->const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::None);
         }
         if (obj) return "constant";
     } else if (name->is_global_name()) {

@@ -44,19 +44,23 @@ module Natalie
         end
 
         mod = transform.temp('module')
+        mod_found = transform.temp('module_found')
         namespace = transform.pop
         search_mode = private? ? 'StrictPrivate' : 'Strict'
 
         code = []
-        code << "auto #{mod} = Object::const_find_with_autoload(env, #{namespace}, self, " \
+        code << "Value #{mod}"
+        code << "auto #{mod_found} = Object::const_find_with_autoload(env, #{namespace}, self, " \
                 "#{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, " \
-                'Object::ConstLookupFailureMode::Null)'
-        code << "if (!#{mod}) {"
+                'Object::ConstLookupFailureMode::None)'
+        code << "if (#{mod_found}) {"
+        code << "  #{mod} = #{mod_found}.value()"
+        code << "  if (!#{mod}.is_module() || #{mod}.is_class()) {"
+        code << "    env->raise(\"TypeError\", \"#{@name} is not a module\");"
+        code << '  }'
+        code << '} else {'
         code << "  #{mod} = new ModuleObject(#{@name.to_s.inspect})"
         code << "  Object::const_set(env, #{namespace}, #{transform.intern(@name)}, #{mod})"
-        code << '}'
-        code << "if (!#{mod}.is_module() || #{mod}.is_class()) {"
-        code << "  env->raise(\"TypeError\", \"#{@name} is not a module\");"
         code << '}'
         code << "#{mod}.as_module()->eval_body(env, #{fn})"
 

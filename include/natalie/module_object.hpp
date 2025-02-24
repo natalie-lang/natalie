@@ -53,8 +53,8 @@ public:
 
     Value is_autoload(Env *, Value) const;
 
-    Value const_find_with_autoload(Env *, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
-    Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
+    Optional<Value> const_find_with_autoload(Env *, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
+    Optional<Value> const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
 
     Value const_get(SymbolObject *) const;
     Value const_get(Env *, Value, Optional<Value> = {});
@@ -183,7 +183,7 @@ public:
     }
 
 private:
-    Value handle_missing_constant(Env *, Value, ConstLookupFailureMode);
+    Optional<Value> handle_missing_constant(Env *, Value, ConstLookupFailureMode);
 
     ClassObject *as_class();
 

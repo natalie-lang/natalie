@@ -30,7 +30,7 @@ public:
     };
 
     enum class ConstLookupFailureMode {
-        Null,
+        None,
         Raise,
         ConstMissing,
     };
@@ -94,7 +94,7 @@ public:
 
     void extend_once(Env *, ModuleObject *);
 
-    static Value const_find_with_autoload(Env *, Value, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
+    static Optional<Value> const_find_with_autoload(Env *, Value, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
     static Value const_fetch(Value, SymbolObject *);
     static Value const_set(Env *, Value, SymbolObject *, Value);
     static Value const_set(Env *, Value, SymbolObject *, MethodFnPtr, StringObject *);

@@ -7,6 +7,7 @@ module Natalie
         @name = name.to_sym
         @strict = strict
         @failure_mode = failure_mode
+        raise 'None not acceptable failure_mode here' if @failure_mode == 'None'
 
         # source location info
         @file = file
@@ -37,7 +38,7 @@ module Natalie
         ]
         transform.exec_and_push(
           :const,
-          "Object::const_find_with_autoload(#{args.join(', ')})"
+          "Object::const_find_with_autoload(#{args.join(', ')}).value()"
         )
       end
 
