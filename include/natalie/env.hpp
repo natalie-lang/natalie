@@ -173,7 +173,7 @@ public:
 
     Optional<Value> match() { return m_match; }
     void set_match(Optional<Value> match) { m_match = match; }
-    void clear_match() { m_match = {}; }
+    void clear_match() { m_match = Optional<Value>(); }
 
     Value exception_object();
     ExceptionObject *exception();
