@@ -20,8 +20,15 @@ Value Env::global_get(SymbolObject *name) {
     return GlobalEnv::the()->global_get(this, name);
 }
 
-Value Env::global_set(SymbolObject *name, Value val, bool readonly) {
-    NAT_GC_GUARD_VALUE(val);
+Value Env::global_set(SymbolObject *name, Object *obj, bool readonly) {
+    return GlobalEnv::the()->global_set(this, name, obj ? Value(obj) : Optional<Value>(), readonly);
+}
+
+Value Env::global_set(SymbolObject *name, Optional<Value> val, bool readonly) {
+#ifdef NAT_GC_GUARD
+    if (val)
+        NAT_GC_GUARD_VALUE(val.value());
+#endif
     return GlobalEnv::the()->global_set(this, name, val, readonly);
 }
 

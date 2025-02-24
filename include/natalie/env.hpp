@@ -39,7 +39,8 @@ public:
 
     bool global_defined(SymbolObject *);
     Value global_get(SymbolObject *);
-    Value global_set(SymbolObject *, Value, bool = false);
+    Value global_set(SymbolObject *, Object *, bool = false);
+    Value global_set(SymbolObject *, Optional<Value>, bool = false);
     Value global_alias(SymbolObject *, SymbolObject *);
 
     const Method *current_method();
