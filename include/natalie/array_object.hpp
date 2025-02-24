@@ -174,7 +174,7 @@ public:
     Value multiply(Env *, Value);
     Value none(Env *, Args &&, Block *);
     Value one(Env *, Args &&, Block *);
-    Value pack(Env *, Value, Value);
+    Value pack(Env *, Value, Optional<Value>);
     Value pop(Env *, Optional<Value>);
     Value product(Env *, Args &&, Block *);
     Value push(Env *, Args &&);

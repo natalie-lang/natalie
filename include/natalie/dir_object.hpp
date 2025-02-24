@@ -43,7 +43,7 @@ public:
     Value each_child(Env *env, Block *block);
     Value entries(Env *env); // for internal use
     int fileno(Env *env);
-    Value initialize(Env *env, Value path, Value encoding);
+    Value initialize(Env *env, Value path, Optional<Value> encoding);
     Value read(Env *env);
     Value rewind(Env *env);
     Value seek(Env *env, Value position);
@@ -54,18 +54,18 @@ public:
     StringObject *inspect(Env *env);
 
     static bool is_empty(Env *, Value);
-    static Value chdir(Env *env, Value path, Block *block);
+    static Value chdir(Env *env, Optional<Value> path, Block *block);
     static Value chroot(Env *env, Value path);
-    static Value home(Env *, Value);
-    static Value mkdir(Env *env, Value path, Value mode);
-    static Value open(Env *env, Value path, Value encoding, Block *block);
+    static Value home(Env *, Optional<Value>);
+    static Value mkdir(Env *env, Value path, Optional<Value> mode);
+    static Value open(Env *env, Value path, Optional<Value> encoding, Block *block);
     static Value pwd(Env *env);
     static Value rmdir(Env *env, Value path); // same as .delete, .unlink
 
-    static Value children(Env *env, Value path, Value encoding);
-    static Value entries(Env *env, Value path, Value encoding);
-    static Value each_child(Env *env, Value path, Value encoding, Block *block);
-    static Value foreach (Env *env, Value path, Value encoding, Block * block);
+    static Value children(Env *env, Value path, Optional<Value> encoding);
+    static Value entries(Env *env, Value path, Optional<Value> encoding);
+    static Value each_child(Env *env, Value path, Optional<Value> encoding, Block *block);
+    static Value foreach (Env *env, Value path, Optional<Value> encoding, Block * block);
 
 private:
     DIR *m_dir { nullptr };

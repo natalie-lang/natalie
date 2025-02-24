@@ -185,17 +185,17 @@ Value EnvObject::except(Env *env, Args &&args) {
     return result;
 }
 
-Value EnvObject::fetch(Env *env, Value name, Value default_value, Block *block) {
+Value EnvObject::fetch(Env *env, Value name, Optional<Value> default_arg, Block *block) {
     name.assert_type(env, Object::Type::String, "String");
     char *value = getenv(name.as_string()->c_str());
     if (value) {
         return new StringObject { value };
     } else if (block) {
-        if (default_value)
+        if (default_arg)
             env->warn("block supersedes default value argument");
         return block->run(env, Args({ name }), nullptr);
-    } else if (default_value) {
-        return default_value;
+    } else if (default_arg) {
+        return default_arg.value();
     } else {
         env->raise_key_error(this, name);
     }
@@ -281,7 +281,6 @@ Value EnvObject::clear(Env *env) {
 
 Value EnvObject::clone(Env *env) {
     env->raise("TypeError", "Cannot clone ENV, use ENV.to_h to get a copy of ENV as a hash");
-    return nullptr;
 }
 
 Value EnvObject::reject(Env *env, Block *block) {

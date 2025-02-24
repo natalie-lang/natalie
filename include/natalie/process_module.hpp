@@ -109,12 +109,12 @@ public:
         return new ArrayObject { curlim, maxlim };
     }
 
-    static int getsid(Env *env, Value pid = nullptr) {
+    static int getsid(Env *env, Optional<Value> pid = {}) {
         pid_t pidnum;
-        if (!pid || pid.is_nil()) {
+        if (!pid || pid.value().is_nil()) {
             pidnum = 0;
         } else {
-            pidnum = IntegerMethods::convert_to_nat_int_t(env, pid);
+            pidnum = IntegerMethods::convert_to_nat_int_t(env, pid.value());
         }
         pid_t sid = ::getsid(pidnum);
         if (sid < 0) env->raise_errno();
@@ -127,7 +127,7 @@ public:
     static long maxgroups();
     static Value setmaxgroups(Env *, Value);
     static Value times(Env *);
-    static Value wait(Env *, Value = nullptr, Value = nullptr);
+    static Value wait(Env *, Optional<Value> = {}, Optional<Value> = {});
 
 private:
     static uid_t value_to_uid(Env *env, Value idval) {

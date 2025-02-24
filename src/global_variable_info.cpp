@@ -10,14 +10,19 @@ void GlobalVariableInfo::set_object(Env *env, Value value) {
     }
 }
 
-Value GlobalVariableInfo::object(Env *env) {
-    if (m_read_hook)
-        return m_read_hook(env, *this);
+Optional<Value> GlobalVariableInfo::object(Env *env) {
+    if (m_read_hook) {
+        auto result = m_read_hook(env, *this);
+        if (result)
+            return result;
+        return Optional<Value> {};
+    }
     return m_value;
 }
 
 void GlobalVariableInfo::visit_children(Visitor &visitor) const {
-    visitor.visit(m_value);
+    if (m_value)
+        visitor.visit(m_value.value());
 }
 
 }

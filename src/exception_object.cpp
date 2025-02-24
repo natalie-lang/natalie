@@ -69,23 +69,27 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
     return exception;
 }
 
-Value ExceptionObject::initialize(Env *env, Value message) {
-    if (message != nullptr)
-        set_message(message);
+Value ExceptionObject::initialize(Env *env, Optional<Value> message) {
+    if (message)
+        set_message(message.value());
     return this;
 }
 
 // static exception
-Value ExceptionObject::exception(Env *env, Value message, ClassObject *klass) {
-    auto exc = new ExceptionObject { klass };
+Value ExceptionObject::exception(Env *env, Optional<Value> message, Optional<ClassObject *> klass) {
+    ExceptionObject *exc = nullptr;
+    if (klass)
+        exc = new ExceptionObject { klass.value() };
+    else
+        exc = new ExceptionObject;
     return exc->initialize(env, message);
 }
 
-Value ExceptionObject::exception(Env *env, Value val) {
+Value ExceptionObject::exception(Env *env, Optional<Value> val) {
     if (!val) return this;
-    if (val == this) return this;
+    if (val.value() == this) return this;
     auto exc = clone(env).as_exception();
-    exc->set_message(val);
+    exc->set_message(val.value());
     return exc;
 }
 

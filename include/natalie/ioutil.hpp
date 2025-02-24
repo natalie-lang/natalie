@@ -19,8 +19,8 @@ namespace ioutil {
 
         bool has_mode() const { return m_has_mode; }
         int flags() const { return m_flags; }
-        EncodingObject *external_encoding() const { return m_external_encoding; }
-        EncodingObject *internal_encoding() const { return m_internal_encoding; }
+        Optional<EncodingObject *> external_encoding() const { return m_external_encoding; }
+        Optional<EncodingObject *> internal_encoding() const { return m_internal_encoding; }
         bool textmode() const { return m_read_mode == read_mode::text; }
         bool binmode() const { return m_read_mode == read_mode::binary; }
         StringObject *path() const { return m_path; }
@@ -42,8 +42,8 @@ namespace ioutil {
         bool m_has_mode { false };
         int m_flags { O_RDONLY | O_CLOEXEC };
         read_mode m_read_mode { read_mode::none };
-        EncodingObject *m_external_encoding { nullptr };
-        EncodingObject *m_internal_encoding { nullptr };
+        Optional<EncodingObject *> m_external_encoding {};
+        Optional<EncodingObject *> m_internal_encoding {};
         bool m_autoclose { false };
         StringObject *m_path { nullptr };
     };

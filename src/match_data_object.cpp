@@ -257,12 +257,12 @@ Value MatchDataObject::match_length(Env *env, Value index) {
     return match.as_string()->size(env);
 }
 
-Value MatchDataObject::named_captures(Env *env, Value symbolize_names) const {
+Value MatchDataObject::named_captures(Env *env, Optional<Value> symbolize_names_kwarg) const {
     if (!m_regexp)
         return new HashObject {};
 
     auto named_captures = new HashObject {};
-    named_captures_data data { this, env, named_captures, symbolize_names && symbolize_names.is_truthy() };
+    named_captures_data data { this, env, named_captures, symbolize_names_kwarg && symbolize_names_kwarg.value().is_truthy() };
     onig_foreach_name(
         m_regexp->m_regex,
         [](const UChar *name, const UChar *name_end, int groups_size, int *groups, regex_t *regex, void *data) -> int {
@@ -358,7 +358,7 @@ ArrayObject *MatchDataObject::values_at(Env *env, Args &&args) {
     return result;
 }
 
-Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
+Value MatchDataObject::ref(Env *env, Value index_value, Optional<Value> size_arg) {
     if (index_value.is_string() || index_value.is_symbol()) {
         const auto &str = index_value.type() == Object::Type::String ? index_value.as_string()->string() : index_value.as_symbol()->string();
         const nat_int_t index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
@@ -394,7 +394,8 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
     } else {
         index = IntegerMethods::convert_to_nat_int_t(env, index_value);
     }
-    if (size_value && !size_value.is_nil()) {
+    if (size_arg && !size_arg.value().is_nil()) {
+        auto size_value = size_arg.value();
         nat_int_t size;
         if (size_value.is_integer()) {
             size = size_value.integer().to_nat_int_t();

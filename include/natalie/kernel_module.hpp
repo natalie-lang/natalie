@@ -14,25 +14,25 @@ class KernelModule {
 public:
     // module functions
     static Value Array(Env *env, Value value);
-    static Value abort_method(Env *env, Value message);
+    static Value abort_method(Env *env, Optional<Value> message);
     static Value at_exit(Env *env, Block *block);
     static Value backtick(Env *, Value);
     static Value binding(Env *env);
     static bool block_given(Env *env, Block *block) { return !!block; }
-    static Value caller(Env *env, Value start = nullptr, Value length = nullptr);
-    static Value caller_locations(Env *env, Value start = nullptr, Value length = nullptr);
-    static Value catch_method(Env *, Value = nullptr, Block * = nullptr);
-    static Value Complex(Env *env, Value real, Value imaginary, Value exception);
-    static Value Complex(Env *env, Value real, Value imaginary, bool exception = true);
+    static Value caller(Env *env, Optional<Value> start = {}, Optional<Value> length = {});
+    static Value caller_locations(Env *env, Optional<Value> start = {}, Optional<Value> length = {});
+    static Value catch_method(Env *, Optional<Value> = {}, Block * = nullptr);
+    static Value Complex(Env *env, Value real, Optional<Value> imaginary, Optional<Value> exception);
+    static Value Complex(Env *env, Value real, Optional<Value> imaginary, bool exception = true);
     static Value Complex(Env *env, StringObject *input, bool exception, bool string_to_c);
     static Value cur_callee(Env *env);
     static Value cur_dir(Env *env);
-    static Value exit(Env *env, Value status);
-    static Value exit_bang(Env *env, Value status);
-    static Value Integer(Env *env, Value value, Value base, Value exception);
+    static Value exit(Env *env, Optional<Value> status);
+    static Value exit_bang(Env *env, Optional<Value> status);
+    static Value Integer(Env *env, Value value, Optional<Value> base, Optional<Value> exception);
     static Value Integer(Env *env, Value value, nat_int_t base = 0, bool exception = true);
     static bool is_nil(Value value) { return value.is_nil(); }
-    static Value Float(Env *env, Value value, Value exception);
+    static Value Float(Env *env, Value value, Optional<Value> exception);
     static Value Float(Env *env, Value value, bool exception = true);
     static Value fork(Env *env, Block *);
     static Value gets(Env *env);
@@ -45,16 +45,16 @@ public:
     static Value proc(Env *env, Block *block);
     static Value puts(Env *env, Args &&args);
     static Value raise(Env *env, Args &&args);
-    static Value Rational(Env *env, Value x, Value y, Value exception);
-    static Value Rational(Env *env, Value x, Value y = nullptr, bool exception = true);
+    static Value Rational(Env *env, Value x, Optional<Value> y, Optional<Value> exception);
+    static Value Rational(Env *env, Value x, Optional<Value> y = {}, bool exception = true);
     static RationalObject *Rational(Env *env, class Integer x, class Integer y);
     static RationalObject *Rational(Env *env, double arg);
-    static Value sleep(Env *env, Value length);
+    static Value sleep(Env *env, Optional<Value> length);
     static Value spawn(Env *, Args &&);
     static Value String(Env *env, Value value);
     static Value test(Env *, Value, Value);
     static Value this_method(Env *env);
-    static Value throw_method(Env *, Value, Value = nullptr);
+    static Value throw_method(Env *, Value, Optional<Value> = {});
 
     // instance methods (mixed into Object)
 
@@ -94,7 +94,7 @@ public:
     static Value public_methods(Env *env, Value self, Optional<Value> recur = {});
     static Value remove_instance_variable(Env *env, Value self, Value name_val);
     static bool respond_to_missing(Env *, Value, Value, Value) { return false; }
-    static bool respond_to_method(Env *, Value, Value, Value);
+    static bool respond_to_method(Env *, Value, Value, Optional<Value>);
     static bool respond_to_method(Env *, Value, Value, bool);
     static Value tap(Env *env, Value self, Block *block);
 };

@@ -15,9 +15,9 @@ DirObject::~DirObject() {
     m_dir = nullptr;
 }
 
-Value DirObject::open(Env *env, Value path, Value encoding, Block *block) {
+Value DirObject::open(Env *env, Value path, Optional<Value> encoding_kwarg, Block *block) {
     auto dir = new DirObject {};
-    dir->initialize(env, path, encoding);
+    dir->initialize(env, path, encoding_kwarg);
     if (block) {
         Defer close_dir([&]() {
             dir->close(env);
@@ -28,12 +28,12 @@ Value DirObject::open(Env *env, Value path, Value encoding, Block *block) {
     return dir;
 }
 
-Value DirObject::initialize(Env *env, Value path, Value encoding) {
+Value DirObject::initialize(Env *env, Value path, Optional<Value> encoding_kwarg) {
     path = ioutil::convert_using_to_path(env, path);
     m_dir = ::opendir(path.as_string()->c_str());
     if (!m_dir) env->raise_errno();
-    if (encoding && !encoding.is_nil()) {
-        m_encoding = EncodingObject::find_encoding(env, encoding);
+    if (encoding_kwarg && !encoding_kwarg.value().is_nil()) {
+        m_encoding = EncodingObject::find_encoding(env, encoding_kwarg.value());
     } else {
         m_encoding = EncodingObject::filesystem();
     }
@@ -104,8 +104,9 @@ void change_current_path(Env *env, std::filesystem::path path) {
         env->raise_errno();
 }
 
-Value DirObject::chdir(Env *env, Value path, Block *block) {
-    if (!path) {
+Value DirObject::chdir(Env *env, Optional<Value> path_arg, Block *block) {
+    auto path = Value::nil();
+    if (!path_arg) {
         auto path_str = ::getenv("HOME");
         if (!path_str)
             path_str = ::getenv("LOGDIR");
@@ -114,7 +115,7 @@ Value DirObject::chdir(Env *env, Value path, Block *block) {
 
         path = new StringObject { path_str };
     } else {
-        path = ioutil::convert_using_to_path(env, path);
+        path = ioutil::convert_using_to_path(env, path_arg.value());
     }
 
     std::error_code ec;
@@ -199,9 +200,9 @@ Value DirObject::each_child(Env *env, Block *block) {
 }
 
 // class method of `children`
-Value DirObject::children(Env *env, Value path, Value encoding) {
+Value DirObject::children(Env *env, Value path, Optional<Value> encoding_kwarg) {
     auto dir = new DirObject {};
-    dir->initialize(env, path, encoding);
+    dir->initialize(env, path, encoding_kwarg);
     Defer close_dir([&]() {
         dir->close(env);
     });
@@ -209,9 +210,9 @@ Value DirObject::children(Env *env, Value path, Value encoding) {
 }
 
 // class method of `each_child`
-Value DirObject::each_child(Env *env, Value path, Value encoding, Block *block) {
+Value DirObject::each_child(Env *env, Value path, Optional<Value> encoding_kwarg, Block *block) {
     auto dir = new DirObject {};
-    dir->initialize(env, path, encoding);
+    dir->initialize(env, path, encoding_kwarg);
     auto result = dir->each_child(env, block);
     if (!block) {
         return result;
@@ -220,16 +221,16 @@ Value DirObject::each_child(Env *env, Value path, Value encoding, Block *block) 
 }
 
 // class method of `entries`
-Value DirObject::entries(Env *env, Value path, Value encoding) {
+Value DirObject::entries(Env *env, Value path, Optional<Value> encoding_kwarg) {
     auto dir = new DirObject {};
-    dir->initialize(env, path, encoding);
+    dir->initialize(env, path, encoding_kwarg);
     return dir->entries(env);
 }
 
 // class method of `each`
-Value DirObject::foreach (Env *env, Value path, Value encoding, Block * block) {
+Value DirObject::foreach (Env *env, Value path, Optional<Value> encoding_kwarg, Block * block) {
     auto dir = new DirObject {};
-    dir->initialize(env, path, encoding);
+    dir->initialize(env, path, encoding_kwarg);
     auto result = dir->each(env, block);
     if (!block) {
         return result;
@@ -244,11 +245,10 @@ Value DirObject::chroot(Env *env, Value path) {
     return Value::integer(0);
 }
 
-Value DirObject::mkdir(Env *env, Value path, Value mode) {
+Value DirObject::mkdir(Env *env, Value path, Optional<Value> mode) {
     mode_t octmode = 0777;
-    if (mode) {
-        octmode = IntegerMethods::convert_to_int(env, mode);
-    }
+    if (mode)
+        octmode = IntegerMethods::convert_to_int(env, mode.value());
     path = ioutil::convert_using_to_path(env, path);
     auto result = ::mkdir(path.as_string()->c_str(), octmode);
     if (result < 0) env->raise_errno();
@@ -272,8 +272,9 @@ Value DirObject::rmdir(Env *env, Value path) {
     return Value::integer(0);
 }
 
-Value DirObject::home(Env *env, Value username) {
-    if (username && !username.is_nil()) {
+Value DirObject::home(Env *env, Optional<Value> username_arg) {
+    if (username_arg && !username_arg.value().is_nil()) {
+        auto username = username_arg.value();
         username.assert_type(env, Object::Type::String, "String");
         // lookup home-dir for username
         struct passwd *pw;

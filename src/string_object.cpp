@@ -311,7 +311,7 @@ Value StringObject::chomp_in_place(Env *env, Optional<Value> record_separator) {
 
     // When passed a non nil object, call to_str();
     if (record_separator && !record_separator.value().is_string())
-        record_separator = record_separator.value().to_str(env);
+        record_separator = Value(record_separator.value().to_str(env));
 
     if (is_empty()) { // if this is an empty string, return nil
         return Value::nil();
@@ -2895,10 +2895,10 @@ Value StringObject::to_r(Env *env) const {
     return RationalObject::create(env, numerator, denominator);
 }
 
-nat_int_t StringObject::unpack_offset(Env *env, Value offset_value) const {
+nat_int_t StringObject::unpack_offset(Env *env, Optional<Value> offset_arg) const {
     nat_int_t offset = -1;
-    if (offset_value) {
-        offset = offset_value.to_int(env).to_nat_int_t();
+    if (offset_arg) {
+        offset = offset_arg.value().to_int(env).to_nat_int_t();
         if (offset < 0)
             env->raise("ArgumentError", "offset can't be negative");
         else if (offset > (nat_int_t)bytesize())
@@ -2907,18 +2907,18 @@ nat_int_t StringObject::unpack_offset(Env *env, Value offset_value) const {
     return offset;
 }
 
-Value StringObject::unpack(Env *env, Value format, Value offset_value) const {
+Value StringObject::unpack(Env *env, Value format, Optional<Value> offset_kwarg) const {
     auto format_string = format.to_str(env)->string();
-    auto offset = unpack_offset(env, offset_value);
+    auto offset = unpack_offset(env, offset_kwarg);
     if (offset == (nat_int_t)bytesize())
         return new ArrayObject({ Value::nil() });
     auto unpacker = new StringUnpacker { this, format_string, offset };
     return unpacker->unpack(env);
 }
 
-Value StringObject::unpack1(Env *env, Value format, Value offset_value) const {
+Value StringObject::unpack1(Env *env, Value format, Optional<Value> offset_kwarg) const {
     auto format_string = format.to_str(env)->string();
-    auto offset = unpack_offset(env, offset_value);
+    auto offset = unpack_offset(env, offset_kwarg);
     if (offset == (nat_int_t)bytesize())
         return Value::nil();
     auto unpacker = new StringUnpacker { this, format_string, offset };
@@ -3896,11 +3896,11 @@ void StringObject::append(Value val) {
 Value StringObject::convert_integer(Env *env, nat_int_t base) {
     // Only input bases 0, 2..36 allowed.
     // base default of 0 is for automatic base determination.
-    if (base < 0 || base == 1 || base > 36) return nullptr;
-    if (m_string.length() < 1) return nullptr;
+    if (base < 0 || base == 1 || base > 36) return Value::nil();
+    if (m_string.length() < 1) return Value::nil();
     // start/end w/ null byte case
-    if (m_string[0] == '\0' || m_string.last_char() == '\0') return nullptr;
-    if (m_string[0] == '_' || m_string.last_char() == '_') return nullptr;
+    if (m_string[0] == '\0' || m_string.last_char() == '\0') return Value::nil();
+    if (m_string[0] == '_' || m_string.last_char() == '_') return Value::nil();
 
     auto str = this->strip(env).as_string()->m_string;
 
@@ -3908,7 +3908,7 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
     auto signchar = str[0];
     auto sign = (signchar == '-') ? -1 : 1;
     if (signchar == '-' || signchar == '+') {
-        if (m_string.length() < 2) return nullptr;
+        if (m_string.length() < 2) return Value::nil();
         str = str.substring(1);
     }
 
@@ -3958,12 +3958,12 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
         // Error if the given input numeric base is not consistent with
         // what is represented in the string.
         if ((base > 0) && (prefix_base > 0) && (base != prefix_base)) {
-            return nullptr;
+            return Value::nil();
         }
     } else if (str[0] == '+' || str[0] == '-' || str[0] == '_' || is_strippable_whitespace(str[0])) {
-        return nullptr;
+        return Value::nil();
     } else if (str.length() > 0 && str.last_char() == '_') {
-        return nullptr;
+        return Value::nil();
     }
 
     // use the externally given base or the one from the string.
@@ -3974,7 +3974,7 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
 
     // invalid for multiple underscores in a row.
     for (size_t i = 0; i < str.length() - 1; ++i) {
-        if ((str[i] == '_') && (str[i + 1] == '_')) return nullptr;
+        if ((str[i] == '_') && (str[i + 1] == '_')) return Value::nil();
     }
 
     // remove underscores.
@@ -3991,10 +3991,12 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
         return Integer(convint * sign);
     }
 
-    return nullptr;
+    return Value::nil();
 }
+
 Value StringObject::convert_float() {
-    if (m_string.length() == 0 || m_string[0] == '_' || m_string.last_char() == '_') return nullptr;
+    if (m_string.length() == 0 || m_string[0] == '_' || m_string.last_char() == '_')
+        return Value::nil();
 
     auto check_underscores = [this](char delimiter) -> bool {
         ssize_t p = m_string.find(delimiter);
@@ -4014,11 +4016,13 @@ Value StringObject::convert_float() {
     };
 
     if (m_string[0] == '0' && (m_string[1] == 'x' || m_string[1] == 'X') && m_string[2] == '_')
-        return nullptr;
+        return Value::nil();
 
-    if (!check_underscores('p') || !check_underscores('e')) return nullptr;
+    if (!check_underscores('p') || !check_underscores('e'))
+        return Value::nil();
 
-    if (m_string.find(0) != -1) return nullptr;
+    if (m_string.find(0) != -1)
+        return Value::nil();
 
     char *endptr = nullptr;
     String string = String(m_string);
@@ -4028,21 +4032,21 @@ Value StringObject::convert_float() {
         auto c2 = string[i];
         auto c1 = string[i - 1];
         if (c1 == '_' && c2 == '_')
-            return nullptr;
+            return Value::nil();
     }
 
     string.remove('_');
     string.strip_trailing_whitespace();
 
     if (string.length() == 0)
-        return nullptr;
+        return Value::nil();
 
     double value = strtod(string.c_str(), &endptr);
 
     if (endptr[0] == '\0') {
         return new FloatObject { value };
     } else {
-        return nullptr;
+        return Value::nil();
     }
 }
 

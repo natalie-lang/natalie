@@ -109,7 +109,7 @@ OnigEncoding RegexpObject::ruby_encoding_to_onig_encoding(NonNullPtr<const Encod
 Value RegexpObject::last_match(Env *env, Optional<Value> ref) {
     auto match = env->caller()->last_match();
     if (ref && match.is_match_data())
-        return match.as_match_data()->ref(env, ref.value_or(static_cast<Value>(nullptr)));
+        return match.as_match_data()->ref(env, ref.value());
     return match;
 }
 

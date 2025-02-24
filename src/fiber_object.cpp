@@ -40,19 +40,20 @@ namespace Natalie {
 
 thread_local TM::Vector<Value> *tl_current_arg_stack = nullptr;
 
-FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Block *block) {
+FiberObject *FiberObject::initialize(Env *env, Optional<Value> blocking_kwarg, Optional<Value> storage_kwarg, Block *block) {
     assert(this != FiberObject::main()); // can never be main fiber
 
     env->ensure_block_given(block);
     m_block = block;
 
-    if (blocking != nullptr)
-        m_blocking = blocking.is_truthy();
+    if (blocking_kwarg)
+        m_blocking = blocking_kwarg.value().is_truthy();
 
     m_file = env->file();
     m_line = env->line();
 
-    if (storage != nullptr && !storage.is_nil()) {
+    if (storage_kwarg && !storage_kwarg.value().is_nil()) {
+        auto storage = storage_kwarg.value();
         if (!storage.is_hash())
             env->raise("TypeError", "storage must be a hash");
         if (storage->is_frozen())

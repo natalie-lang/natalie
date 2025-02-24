@@ -68,21 +68,20 @@ Value FileObject::initialize(Env *env, Args &&args, Block *block) {
     return this;
 }
 
-Value FileObject::absolute_path(Env *env, Value path, Value dir) {
+Value FileObject::absolute_path(Env *env, Value path, Optional<Value> dir_arg) {
     path = ioutil::convert_using_to_path(env, path);
     if (path.as_string()->start_with(env, { new StringObject { "/" } }))
         return path;
-    if ((!dir || dir.is_nil()) && path.as_string()->eq(env, new StringObject { "~" }))
+    if ((!dir_arg || dir_arg.value().is_nil()) && path.as_string()->eq(env, new StringObject { "~" }))
         return path;
 
     auto File = GlobalEnv::the()->Object()->const_get("File"_s);
     assert(File);
-    if (!dir || dir.is_nil())
-        dir = DirObject::pwd(env);
+    auto dir = dir_arg && !dir_arg.value().is_nil() ? dir_arg.value() : DirObject::pwd(env);
     return File.send(env, "join"_s, { dir, path });
 }
 
-Value FileObject::expand_path(Env *env, Value path, Value root) {
+Value FileObject::expand_path(Env *env, Value path, Optional<Value> dir_arg) {
     auto expand_tilde = [&](String &&string) {
         if (string.is_empty() || string[0] != '~')
             return string;
@@ -135,9 +134,10 @@ Value FileObject::expand_path(Env *env, Value path, Value root) {
     path_string = expand_tilde(std::move(path_string));
 
     auto fs_path = std::filesystem::path(path_string.c_str());
-    if (fs_path.is_relative() && root && !root.is_nil()) {
-        root = ioutil::convert_using_to_path(env, root);
-        path_string = expand_tilde(String::format("{}/{}", root.as_string()->string(), path_string));
+    if (fs_path.is_relative() && dir_arg && !dir_arg.value().is_nil()) {
+        auto dir = dir_arg.value();
+        dir = ioutil::convert_using_to_path(env, dir);
+        path_string = expand_tilde(String::format("{}/{}", dir.as_string()->string(), path_string));
         fs_path = std::filesystem::path(path_string.c_str());
     }
 
@@ -482,14 +482,14 @@ nat_int_t FileObject::link(Env *env, Value from, Value to) {
     return 0;
 }
 
-nat_int_t FileObject::mkfifo(Env *env, Value path, Value mode) {
-    mode_t octmode = 0666;
-    if (mode) {
-        mode.assert_integer(env);
-        octmode = (mode_t)mode.integer().to_nat_int_t();
+nat_int_t FileObject::mkfifo(Env *env, Value path, Optional<Value> mode_arg) {
+    mode_t mode = 0666;
+    if (mode_arg) {
+        mode_arg.value().assert_integer(env);
+        mode = (mode_t)mode_arg.value().integer().to_nat_int_t();
     }
     path = ioutil::convert_using_to_path(env, path);
-    int result = ::mkfifo(path.as_string()->c_str(), octmode);
+    int result = ::mkfifo(path.as_string()->c_str(), mode);
     if (result < 0) env->raise_errno();
     return 0;
 }
@@ -572,10 +572,10 @@ Value FileObject::ftype(Env *env, Value path) {
     }
 }
 
-Value FileObject::umask(Env *env, Value mask) {
+Value FileObject::umask(Env *env, Optional<Value> mask) {
     mode_t old_mask = 0;
     if (mask) {
-        mode_t mask_mode = IntegerMethods::convert_to_int(env, mask);
+        mode_t mask_mode = IntegerMethods::convert_to_int(env, mask.value());
         old_mask = ::umask(mask_mode);
     } else {
         old_mask = ::umask(0);
@@ -601,11 +601,11 @@ Value FileObject::readlink(Env *env, Value filename) {
     }
 }
 
-Value FileObject::realpath(Env *env, Value pathname, Value __dir_string) {
+Value FileObject::realpath(Env *env, Value pathname, Optional<Value> dir_arg) {
     pathname = ioutil::convert_using_to_path(env, pathname);
-    if (__dir_string != nullptr) {
+    if (dir_arg) {
         pathname.as_string()->prepend_char(env, '/');
-        pathname.as_string()->prepend(env, { ioutil::convert_using_to_path(env, __dir_string) });
+        pathname.as_string()->prepend(env, { ioutil::convert_using_to_path(env, dir_arg.value()) });
     }
     char *resolved_filepath = nullptr;
     resolved_filepath = ::realpath(pathname.as_string()->c_str(), nullptr);

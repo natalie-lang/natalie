@@ -57,7 +57,7 @@ public:
 
     constexpr static int STACK_SIZE = 1024 * 1024;
 
-    FiberObject *initialize(Env *env, Value, Value, Block *block);
+    FiberObject *initialize(Env *env, Optional<Value>, Optional<Value>, Block *block);
 
     static Value yield(Env *env, Args args);
 

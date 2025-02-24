@@ -1,6 +1,7 @@
 SKIP_CLASS_MEMBERS = {
   # our smart pointer type gets visited by everything else
   'Natalie::Value' => '*',
+  'TM::Optional<Natalie::Value>' => '*',
 
   # Args cannot be heap-allocated, so pointers inside are seen on the stack
   'Natalie::Args' => '*',

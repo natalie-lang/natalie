@@ -1134,7 +1134,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
                 OpenSSL_raise_error(env, "BN_dec2bn");
         } else {
             // No support in OpenSSL libs to add a base argument, so convert string to int with base, and convert int back to string
-            arg = KernelModule::Integer(env, arg, args[1], (Value)TrueObject::the());
+            arg = KernelModule::Integer(env, arg, Optional<Value>(args.at(1)), Value(TrueObject::the()));
             const auto str = arg.integer().to_string();
             if (!BN_dec2bn(&bn, str.c_str()))
                 OpenSSL_raise_error(env, "BN_dec2bn");

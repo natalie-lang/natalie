@@ -31,7 +31,7 @@ public:
     Value hash(Env *);
     bool has_step() { return m_step && !m_step.is_nil(); }
     Value inspect(Env *);
-    Value last(Env *, Value);
+    Value last(Env *, Optional<Value>);
     Value size(Env *);
     Value step() {
         if (has_step())
