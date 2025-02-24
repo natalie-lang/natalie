@@ -1294,7 +1294,7 @@ Value StringObject::scan(Env *env, Value pattern, Block *block) {
 
     while (!(match_value = regexp->match_at_byte_offset(env, this, byte_index)).is_nil()) {
         match_obj = match_value.as_match_data();
-        env->set_match(match_obj);
+        env->set_match(Value(match_obj));
 
         if (match_obj->has_captures()) {
             auto captures = match_obj->captures(env).as_array_or_raise(env);

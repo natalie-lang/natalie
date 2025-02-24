@@ -241,7 +241,7 @@ void Env::raise_type_error2(const Value obj, const char *expected) {
 }
 
 bool Env::has_catch(Value value) const {
-    return (m_catch && Object::equal(value, m_catch)) || (m_caller && m_caller->has_catch(value)) || (m_outer && m_outer->has_catch(value));
+    return (m_catch && Object::equal(value, m_catch.value())) || (m_caller && m_caller->has_catch(value)) || (m_outer && m_outer->has_catch(value));
 }
 
 void Env::warn(String message) {
@@ -300,9 +300,7 @@ void Env::ensure_no_extra_keywords(HashObject *kwargs) {
 
 Value Env::last_match() {
     Env *env = non_block_env();
-    if (env->m_match)
-        return env->m_match;
-    return Value::nil();
+    return env->m_match.value_or(Value::nil());
 }
 
 bool Env::has_last_match() {
@@ -310,7 +308,7 @@ bool Env::has_last_match() {
 }
 
 void Env::set_last_match(MatchDataObject *match) {
-    non_block_env()->set_match(match);
+    non_block_env()->set_match(match ? Value(match) : Optional<Value>());
 }
 
 Value Env::exception_object() {
@@ -394,8 +392,10 @@ void Env::visit_children(Visitor &visitor) const {
     visitor.visit(m_caller);
     visitor.visit(m_method);
     visitor.visit(m_module);
-    visitor.visit(m_match);
+    if (m_match)
+        visitor.visit(m_match.value());
     visitor.visit(m_exception);
-    visitor.visit(m_catch);
+    if (m_catch)
+        visitor.visit(m_catch.value());
 }
 }
