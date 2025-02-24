@@ -48,6 +48,8 @@ public:
         visitor.visit(m_begin);
         visitor.visit(m_end);
         visitor.visit(m_step);
+        if (m_step_count)
+            visitor.visit(m_step_count.value());
     }
 
 private:
