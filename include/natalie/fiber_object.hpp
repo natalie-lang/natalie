@@ -20,10 +20,10 @@
 extern "C" {
 void fiber_wrapper_func(mco_coro *co);
 
-typedef struct {
+struct coroutine_user_data {
     Natalie::Env *env;
     Natalie::FiberObject *fiber;
-} coroutine_user_data;
+};
 }
 
 namespace Natalie {
