@@ -81,7 +81,8 @@ public:
     virtual void visit_children(Visitor &visitor) const override final {
         visitor.visit(m_owner);
         visitor.visit(m_env);
-        visitor.visit(m_self);
+        if (m_self)
+            visitor.visit(m_self.value());
         visitor.visit(m_original_method);
     }
 
@@ -94,7 +95,7 @@ private:
     Method *m_original_method = nullptr;
     ModuleObject *m_owner;
     MethodFnPtr m_fn;
-    Value m_self { nullptr };
+    Optional<Value> m_self {};
     int m_arity { 0 };
     Optional<String> m_file {};
     Optional<size_t> m_line {};
