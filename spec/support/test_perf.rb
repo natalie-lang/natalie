@@ -5,13 +5,18 @@ require 'json'
 require 'net/http'
 require 'uri'
 
-totals = {}
-{
+TESTS = {
   hello:     '/tmp/hello',
   fib:       '/tmp/fib',
   boardslam: '/tmp/boardslam 3 5 1',
-  nat:       'bin/nat -c /tmp/bs examples/boardslam.rb',
-}.each do |name, command|
+}
+
+unless ARGV.first == '--quickly'
+  TESTS[:nat] = 'bin/nat -c /tmp/bs examples/boardslam.rb'
+end
+
+totals = {}
+TESTS.each do |name, command|
   unless name == :nat
     system "bin/natalie -c /tmp/#{name} examples/#{name}.rb"
   end
