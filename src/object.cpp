@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/forward.hpp"
+#include "natalie/method_visibility.hpp"
 #include <cctype>
 
 namespace Natalie {
@@ -534,14 +535,6 @@ Value Object::protected_method(Env *env, Args &&args) {
 Value Object::module_function(Env *env, Args &&args) {
     printf("tried to call module_function on something that isn't a module\n");
     abort();
-}
-
-Value Object::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Optional<Value> sent_from) {
-    return send(env, name, std::move(args), block, MethodVisibility::Public, sent_from);
-}
-
-Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Optional<Value> sent_from) {
-    return send(env, name, std::move(args), block, MethodVisibility::Private, sent_from);
 }
 
 Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility_at_least, Optional<Value> sent_from) {

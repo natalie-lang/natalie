@@ -42,7 +42,7 @@ Value Value::integer(TM::String &&str) {
     });
 
 // FIXME: this doesn't check method visibility, but no tests are failing yet :-)
-Value Value::immediate_send(Env *env, SymbolObject *name, Args &&args, Block *block, Optional<Value> sent_from, MethodVisibility visibility) {
+Value Value::immediate_send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility) {
     auto method_info = klass()->find_method(env, name);
     if (!method_info.is_defined()) {
         // FIXME: store missing reason on current thread
@@ -130,22 +130,31 @@ StringObject *Value::to_str2(Env *env) {
         result.klass()->inspect_str());
 }
 
-Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Optional<Value> sent_from) {
+Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
 
     if (is_integer() || is_nil())
-        return immediate_send(env, name, std::move(args), block, sent_from, MethodVisibility::Public);
+        return immediate_send(env, name, std::move(args), block, MethodVisibility::Public);
 
     return object()->public_send(env, name, std::move(args), block, sent_from);
 }
 
-Value Value::send(Env *env, SymbolObject *name, Args &&args, Block *block, Optional<Value> sent_from) {
+Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block) {
+    PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
+
+    if (is_integer() || is_nil())
+        return immediate_send(env, name, std::move(args), block, MethodVisibility::Public);
+
+    return object()->public_send(env, name, std::move(args), block);
+}
+
+Value Value::send(Env *env, SymbolObject *name, Args &&args, Block *block) {
     PROFILED_SEND(NativeProfilerEvent::Type::SEND);
 
     if (is_integer() || is_nil())
-        return immediate_send(env, name, std::move(args), block, sent_from, MethodVisibility::Private);
+        return immediate_send(env, name, std::move(args), block, MethodVisibility::Private);
 
-    return object()->send(env, name, std::move(args), block, sent_from);
+    return object()->send(env, name, std::move(args), block);
 }
 
 Integer Value::integer() const {

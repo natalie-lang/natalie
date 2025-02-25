@@ -68,19 +68,20 @@ public:
     bool operator!() const { return is_null(); }
     operator bool() const { return !is_null(); }
 
-    Value public_send(Env *, SymbolObject *, Args && = {}, Block * = nullptr, Optional<Value> sent_from = {});
+    Value public_send(Env *, SymbolObject *, Args &&, Block *, Value sent_from);
+    Value public_send(Env *, SymbolObject *, Args && = {}, Block * = nullptr);
 
-    Value public_send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Optional<Value> sent_from = {}) {
-        return public_send(env, name, Args(args), block, sent_from);
+    Value public_send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
+        return public_send(env, name, Args(args), block);
     }
 
-    Value send(Env *, SymbolObject *, Args && = {}, Block * = nullptr, Optional<Value> sent_from = {});
+    Value send(Env *, SymbolObject *, Args && = {}, Block * = nullptr);
 
-    Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Optional<Value> sent_from = {}) {
-        return send(env, name, Args(args), block, sent_from);
+    Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
+        return send(env, name, Args(args), block);
     }
 
-    Value immediate_send(Env *env, SymbolObject *name, Args &&args, Block *block, Optional<Value> sent_from, MethodVisibility visibility);
+    Value immediate_send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility);
 
     ClassObject *klass() const;
 

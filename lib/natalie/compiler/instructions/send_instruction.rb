@@ -58,17 +58,17 @@ module Natalie
       def generate(transform)
         if @args_array_on_stack
           if @forward_args
-            args_list = "std::move(#{transform.pop})"
+            args_list = ["std::move(#{transform.pop})"]
           else
             args = "#{transform.pop}.as_array()"
-            args_list = "Args(#{args}, #{@has_keyword_hash ? 'true' : 'false'})"
+            args_list = ["Args(#{args}, #{@has_keyword_hash ? 'true' : 'false'})"]
           end
         else
           arg_count = transform.pop
           raise "bad argc #{arg_count.inspect} for SendInstruction #{@message.inspect}" unless arg_count.is_a?(Integer)
           args = []
           arg_count.times { args.unshift transform.pop }
-          args_list = "Args({ #{args.join(', ')} }, #{@has_keyword_hash ? 'true' : 'false'})"
+          args_list = ["Args({ #{args.join(', ')} }, #{@has_keyword_hash ? 'true' : 'false'})"]
         end
 
         transform.set_file(@file)
@@ -82,9 +82,10 @@ module Natalie
           exit 1
         end
 
-        block = @with_block ? "to_block(env, #{transform.pop})" : 'nullptr'
+        args_list << (@with_block ? "to_block(env, #{transform.pop})" : 'nullptr')
+        args_list << 'self' if method == :public_send
 
-        call = "#{receiver}.#{method}(env, #{transform.intern(@message)}, #{args_list}, #{block}, self)"
+        call = "#{receiver}.#{method}(env, #{transform.intern(@message)}, #{args_list.join(', ')})"
 
         if message =~ /\w=$|\[\]=$/
           transform.exec(call)

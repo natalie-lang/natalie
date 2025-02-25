@@ -148,9 +148,11 @@ public:
         return buf;
     }
 
-    Value public_send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Optional<Value> sent_from = {});
-    Value send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Optional<Value> sent_from = {});
-    Value send(Env *, SymbolObject *, Args &&, Block *, MethodVisibility, Optional<Value> = {});
+    Value public_send(Env *env, SymbolObject *name, Args &&args = {}, Block *block = nullptr, Optional<Value> sent_from = {}) {
+        return send(env, name, std::move(args), block, MethodVisibility::Public, sent_from);
+    }
+
+    Value send(Env *, SymbolObject *, Args && = {}, Block * = nullptr, MethodVisibility = MethodVisibility::Private, Optional<Value> = {});
     Value method_missing_send(Env *, SymbolObject *, Args &&, Block *);
     static Value method_missing(Env *, Value, Args &&, Block *);
 
