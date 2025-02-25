@@ -163,13 +163,16 @@ namespace {
 
         void parse_scientific_e() {
             if (current().type == TokenType::ScientificE) {
-                advance();
-                if (current().type == TokenType::Number) {
-                    append_char('e');
-                } else if (current().type == TokenType::Sign && peek().type == TokenType::Number) {
-                    append_char('e');
+                if (peek().type == TokenType::Number) {
                     append();
                     advance();
+                } else if (peek().type == TokenType::Sign) {
+                    advance();
+                    if (peek().type == TokenType::Number) {
+                        append_char('e');
+                        append();
+                        advance();
+                    }
                 }
                 if (current().type == TokenType::Number)
                     parse_number_sequence();
