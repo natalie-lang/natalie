@@ -540,18 +540,8 @@ Value Object::public_send(Env *env, SymbolObject *name, Args &&args, Block *bloc
     return send(env, name, std::move(args), block, MethodVisibility::Public, sent_from);
 }
 
-Value Object::public_send(Env *env, Value self, Args &&args, Block *block) {
-    auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
-    return self.public_send(env->caller(), name, std::move(args), block);
-}
-
 Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Optional<Value> sent_from) {
     return send(env, name, std::move(args), block, MethodVisibility::Private, sent_from);
-}
-
-Value Object::send(Env *env, Value self, Args &&args, Block *block) {
-    auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
-    return self.send(env->caller(), name, std::move(args), block);
 }
 
 Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility_at_least, Optional<Value> sent_from) {
