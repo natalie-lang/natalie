@@ -55,13 +55,14 @@ describe 'libnat.so' do
     library = Module.new do
       extend FFI::Library
       ffi_lib(temp_path)
-      attach_function :EVAL, [:pointer, :pointer], :pointer
+      attach_function :EVAL, [:pointer, :pointer], :int
     end
 
     env = FFI::Pointer.from_env
     result_memory = FFI::Pointer.new_value
-    result = library.EVAL(env, result_memory).to_obj
-    result.should == 3
+    status = library.EVAL(env, result_memory)
+    status.should == 0
+    result_memory.to_obj.should == 3
   ensure
     File.unlink(temp_path)
   end
