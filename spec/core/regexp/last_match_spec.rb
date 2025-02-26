@@ -28,18 +28,15 @@ describe "Regexp.last_match" do
 
     it "raises an IndexError when given a missing name" do
       /(?<test>[A-Z]+.*)/ =~ "TEST123"
-      NATFIXME "this error gets thrown, but when in a proc it doesn't get bubbled up properly", exception: SpecFailedException do
+      NATFIXME 'Regexp globals are not accessible from a block', exception: SpecFailedException do
         -> { Regexp.last_match(:missing) }.should raise_error(IndexError)
       end
 
       # NATFIXME: Alternate implementation of the test
-      error = begin
+      -> {
+        /(?<test>[A-Z]+.*)/ =~ "TEST123"
         Regexp.last_match(:missing)
-        nil
-      rescue IndexError => e
-        e
-      end
-      error.should be_kind_of(IndexError)
+      }.should raise_error(IndexError)
     end
   end
 
@@ -61,18 +58,15 @@ describe "Regexp.last_match" do
     it "raises a TypeError when unable to coerce" do
       obj = Object.new
       /(?<test>[A-Z]+.*)/ =~ "TEST123"
-      NATFIXME "this error gets thrown, but when in a proc it doesn't get bubbled up properly", exception: SpecFailedException do
+      NATFIXME 'Regexp globals are not accessible from a block', exception: SpecFailedException do
         -> { Regexp.last_match(obj) }.should raise_error(TypeError)
       end
 
       # NATFIXME: Alternate implementation of the test
-      error = begin
+      -> {
+        /(?<test>[A-Z]+.*)/ =~ "TEST123"
         Regexp.last_match(obj)
-        nil
-      rescue TypeError => e
-        e
-      end
-      error.should be_kind_of(TypeError)
+      }.should raise_error(TypeError)
     end
   end
 end
