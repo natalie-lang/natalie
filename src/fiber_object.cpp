@@ -385,7 +385,7 @@ void fiber_wrapper_func(mco_coro *co) {
     }
 
     assert(fiber->block());
-    Natalie::Value return_arg = nullptr;
+    Natalie::Value return_arg;
     bool reraise = false;
 
     try {
