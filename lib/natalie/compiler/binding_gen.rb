@@ -281,11 +281,7 @@ class BindingGen
           "auto kwargs = args.pop_keyword_hash();",
         ].tap do |lines|
           @kwargs.each do |kw|
-            lines << "Optional<Value> kwarg_#{kw};"
-            lines << 'if (kwargs) {'
-            lines << "    auto value_or_null = kwargs->remove(env, #{kw.to_s.inspect}_s);"
-            lines << "    if (value_or_null != nullptr) kwarg_#{kw} = value_or_null;"
-            lines << '}'
+            lines << "auto kwarg_#{kw} = kwargs ? kwargs->remove(env, #{kw.to_s.inspect}_s) : Optional<Value>();"
           end
         end.join("\n")
       when true

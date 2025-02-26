@@ -964,10 +964,10 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
     auto pass = args.at(0).to_str(env);
     if (!kwargs) kwargs = new HashObject {};
     env->ensure_no_missing_keywords(kwargs, { "salt", "iterations", "length", "hash" });
-    auto salt = kwargs->remove(env, "salt"_s).to_str(env);
-    auto iterations = kwargs->remove(env, "iterations"_s).to_int(env);
-    auto length = kwargs->remove(env, "length"_s).to_int(env);
-    auto hash = kwargs->remove(env, "hash"_s);
+    auto salt = kwargs->remove(env, "salt"_s).value().to_str(env);
+    auto iterations = kwargs->remove(env, "iterations"_s).value().to_int(env);
+    auto length = kwargs->remove(env, "length"_s).value().to_int(env);
+    auto hash = kwargs->remove(env, "hash"_s).value();
     auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s).as_module()->const_get("Digest"_s).as_module();
     if (!hash.is_a(env, digest_klass))
         hash = Object::_new(env, digest_klass, { hash }, nullptr);
@@ -999,11 +999,11 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto pass = args.at(0).to_str(env);
     env->ensure_no_missing_keywords(kwargs, { "salt", "N", "r", "p", "length" });
-    auto salt = kwargs->remove(env, "salt"_s).to_str(env);
-    auto N = kwargs->remove(env, "N"_s).to_int(env);
-    auto r = kwargs->remove(env, "r"_s).to_int(env);
-    auto p = kwargs->remove(env, "p"_s).to_int(env);
-    auto length = kwargs->remove(env, "length"_s).to_int(env);
+    auto salt = kwargs->remove(env, "salt"_s).value().to_str(env);
+    auto N = kwargs->remove(env, "N"_s).value().to_int(env);
+    auto r = kwargs->remove(env, "r"_s).value().to_int(env);
+    auto p = kwargs->remove(env, "p"_s).value().to_int(env);
+    auto length = kwargs->remove(env, "length"_s).value().to_int(env);
     if (length.is_negative() || length.is_bignum())
         env->raise("ArgumentError", "negative string size (or size too big)");
     env->ensure_no_extra_keywords(kwargs);
@@ -1183,8 +1183,8 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
-    auto kwarg_loc = kwargs ? kwargs->remove(env, "loc"_s) : nullptr;
-    auto kwarg_set = kwargs ? kwargs->remove(env, "set"_s) : nullptr;
+    auto kwarg_loc = kwargs ? kwargs->remove(env, "loc"_s) : Optional<Value>();
+    auto kwarg_set = kwargs ? kwargs->remove(env, "set"_s) : Optional<Value>();
     env->ensure_no_extra_keywords(kwargs);
     args.ensure_argc_between(env, 2, 3);
     auto oid = args.at(0).to_str(env);
@@ -1197,8 +1197,8 @@ Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args &&args, Block *) {
         type = OBJECT_TYPE_TEMPLATE->ref(env, oid);
     }
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s).as_void_p()->void_ptr());
-    int loc = kwarg_loc && !kwarg_loc.is_nil() ? IntegerMethods::convert_to_nat_int_t(env, kwarg_loc) : -1;
-    int set = kwarg_set && !kwarg_set.is_nil() ? IntegerMethods::convert_to_nat_int_t(env, kwarg_set) : 0;
+    int loc = kwarg_loc && !kwarg_loc.value().is_nil() ? IntegerMethods::convert_to_nat_int_t(env, kwarg_loc.value()) : -1;
+    int set = kwarg_set && !kwarg_set.value().is_nil() ? IntegerMethods::convert_to_nat_int_t(env, kwarg_set.value()) : 0;
     if (!X509_NAME_add_entry_by_txt(name, oid->c_str(), IntegerMethods::convert_to_nat_int_t(env, type), reinterpret_cast<const unsigned char *>(value->c_str()), value->bytesize(), loc, set))
         OpenSSL_X509_Name_raise_error(env, "X509_NAME_add_entry_by_txt");
     return self;

@@ -1391,36 +1391,36 @@ Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, 
 
         auto invalid = kwargs->remove(env, "invalid"_s);
         if (invalid) {
-            if (invalid.is_nil())
+            if (invalid.value().is_nil())
                 options.invalid_option = EncodeInvalidOption::Raise;
-            else if (invalid == "replace"_s)
+            else if (invalid.value() == "replace"_s)
                 options.invalid_option = EncodeInvalidOption::Replace;
         }
 
         auto undef = kwargs->remove(env, "undef"_s);
         if (undef) {
-            if (undef.is_nil())
+            if (!undef || undef.value().is_nil())
                 options.undef_option = EncodeUndefOption::Raise;
-            else if (undef == "replace"_s)
+            else if (undef.value() == "replace"_s)
                 options.undef_option = EncodeUndefOption::Replace;
         }
 
         auto replace = kwargs->remove(env, "replace"_s);
-        if (replace && !replace.is_nil())
-            options.replace_option = replace.as_string_or_raise(env)->encode(env, dst_encoding).as_string_or_raise(env);
+        if (replace && !replace.value().is_nil())
+            options.replace_option = replace.value().as_string_or_raise(env)->encode(env, dst_encoding).as_string_or_raise(env);
 
         auto fallback = kwargs->remove(env, "fallback"_s);
-        if (fallback && !fallback.is_nil())
-            options.fallback_option = fallback;
+        if (fallback && !fallback.value().is_nil())
+            options.fallback_option = fallback.value();
 
         auto xml = kwargs->remove(env, "xml"_s);
         if (xml) {
-            if (xml == "attr"_s)
+            if (xml.value() == "attr"_s)
                 options.xml_option = EncodeXmlOption::Attr;
-            else if (xml == "text"_s)
+            else if (xml.value() == "text"_s)
                 options.xml_option = EncodeXmlOption::Text;
             else
-                env->raise("ArgumentError", "unexpected value for xml option: {}", xml.inspect_str(env));
+                env->raise("ArgumentError", "unexpected value for xml option: {}", xml.value().inspect_str(env));
         }
     }
 

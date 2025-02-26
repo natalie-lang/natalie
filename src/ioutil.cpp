@@ -104,23 +104,24 @@ namespace ioutil {
     void flags_struct::parse_mode(Env *env) {
         if (!m_kwargs) return;
         auto mode = m_kwargs->remove(env, "mode"_s);
-        if (!mode || mode.is_nil()) return;
+        if (!mode || mode.value().is_nil()) return;
         if (has_mode())
             env->raise("ArgumentError", "mode specified twice");
-        parse_flags_obj(env, mode);
+        parse_flags_obj(env, mode.value());
     }
 
     void flags_struct::parse_flags(Env *env) {
         if (!m_kwargs) return;
         auto flags = m_kwargs->remove(env, "flags"_s);
-        if (!flags || flags.is_nil()) return;
-        m_flags |= static_cast<int>(flags.to_int(env).to_nat_int_t());
+        if (!flags || flags.value().is_nil()) return;
+        m_flags |= static_cast<int>(flags.value().to_int(env).to_nat_int_t());
     }
 
     void flags_struct::parse_encoding(Env *env) {
         if (!m_kwargs) return;
-        auto encoding = m_kwargs->remove(env, "encoding"_s);
-        if (!encoding || encoding.is_nil()) return;
+        auto encoding_kwarg = m_kwargs->remove(env, "encoding"_s);
+        if (!encoding_kwarg || encoding_kwarg.value().is_nil()) return;
+        auto encoding = encoding_kwarg.value();
         if (m_external_encoding) {
             env->raise("ArgumentError", "encoding specified twice");
         } else if (m_kwargs->has_key(env, "external_encoding"_s)) {
@@ -144,8 +145,9 @@ namespace ioutil {
 
     void flags_struct::parse_external_encoding(Env *env) {
         if (!m_kwargs) return;
-        auto external_encoding = m_kwargs->remove(env, "external_encoding"_s);
-        if (!external_encoding || external_encoding.is_nil()) return;
+        auto external_encoding_kwarg = m_kwargs->remove(env, "external_encoding"_s);
+        if (!external_encoding_kwarg || external_encoding_kwarg.value().is_nil()) return;
+        auto external_encoding = external_encoding_kwarg.value();
         if (m_external_encoding)
             env->raise("ArgumentError", "encoding specified twice");
         if (external_encoding.is_encoding()) {
@@ -157,8 +159,9 @@ namespace ioutil {
 
     void flags_struct::parse_internal_encoding(Env *env) {
         if (!m_kwargs) return;
-        auto internal_encoding = m_kwargs->remove(env, "internal_encoding"_s);
-        if (!internal_encoding || internal_encoding.is_nil()) return;
+        auto internal_encoding_kwarg = m_kwargs->remove(env, "internal_encoding"_s);
+        if (!internal_encoding_kwarg || internal_encoding_kwarg.value().is_nil()) return;
+        auto internal_encoding = internal_encoding_kwarg.value();
         if (m_internal_encoding)
             env->raise("ArgumentError", "encoding specified twice");
         if (internal_encoding.is_encoding()) {
@@ -175,8 +178,9 @@ namespace ioutil {
 
     void flags_struct::parse_textmode(Env *env) {
         if (!m_kwargs) return;
-        auto textmode = m_kwargs->remove(env, "textmode"_s);
-        if (!textmode || textmode.is_nil()) return;
+        auto textmode_kwarg = m_kwargs->remove(env, "textmode"_s);
+        if (!textmode_kwarg || textmode_kwarg.value().is_nil()) return;
+        auto textmode = textmode_kwarg.value();
         if (binmode()) {
             env->raise("ArgumentError", "both textmode and binmode specified");
         } else if (this->textmode()) {
@@ -188,8 +192,9 @@ namespace ioutil {
 
     void flags_struct::parse_binmode(Env *env) {
         if (!m_kwargs) return;
-        auto binmode = m_kwargs->remove(env, "binmode"_s);
-        if (!binmode || binmode.is_nil()) return;
+        auto binmode_kwarg = m_kwargs->remove(env, "binmode"_s);
+        if (!binmode_kwarg || binmode_kwarg.value().is_nil()) return;
+        auto binmode = binmode_kwarg.value();
         if (this->binmode()) {
             env->raise("ArgumentError", "binmode specified twice");
         } else if (textmode()) {
@@ -211,14 +216,14 @@ namespace ioutil {
             return;
         }
 
-        m_autoclose = autoclose.is_truthy();
+        m_autoclose = autoclose.value().is_truthy();
     }
 
     void flags_struct::parse_path(Env *env) {
         if (!m_kwargs) return;
         auto path = m_kwargs->remove(env, "path"_s);
         if (!path) return;
-        m_path = convert_using_to_path(env, path);
+        m_path = convert_using_to_path(env, path.value());
     }
 
     flags_struct::flags_struct(Env *env, Value flags_obj, HashObject *kwargs)

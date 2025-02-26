@@ -114,7 +114,7 @@ public:
     Value set_default(Env *, Value);
 
     void put(Env *, Value, Value);
-    Value remove(Env *, Value);
+    Optional<Value> remove(Env *, Value);
     Value clear(Env *);
 
     Value default_proc(Env *);

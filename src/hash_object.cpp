@@ -110,7 +110,7 @@ void HashObject::put(Env *env, Value key, Value val) {
     }
 }
 
-Value HashObject::remove(Env *env, Value key) {
+Optional<Value> HashObject::remove(Env *env, Value key) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     HashKey key_container;
@@ -124,7 +124,7 @@ Value HashObject::remove(Env *env, Value key) {
         m_hashmap.remove(&key_container, env);
         return val;
     } else {
-        return nullptr;
+        return {};
     }
 }
 
@@ -399,9 +399,9 @@ Value HashObject::delete_if(Env *env, Block *block) {
 
 Value HashObject::delete_key(Env *env, Value key, Block *block) {
     assert_not_frozen(env);
-    Value val = remove(env, key);
+    auto val = remove(env, key);
     if (val)
-        return val;
+        return val.value();
     else if (block)
         return block->run(env, {}, nullptr);
     else
