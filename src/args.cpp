@@ -11,9 +11,16 @@ Value Args::at(size_t index) const {
 }
 
 Value Args::at(size_t index, Value default_value) const {
+    auto result = maybe_at(index);
+    if (result)
+        return result.value();
+    return default_value;
+}
+
+Optional<Value> Args::maybe_at(size_t index) const {
     auto offset = m_args_start_index + index;
     if (offset >= tl_current_arg_stack->size() || offset >= m_args_start_index + m_args_size)
-        return default_value;
+        return Optional<Value>();
     return (*tl_current_arg_stack)[offset];
 }
 
