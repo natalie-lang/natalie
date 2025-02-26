@@ -112,7 +112,7 @@ Value ExceptionObject::inspect(Env *env) {
 }
 
 StringObject *ExceptionObject::to_s(Env *env) {
-    if (m_message == nullptr || m_message.is_nil()) {
+    if (m_message.is_nil()) {
         return new StringObject { m_klass->inspect_str() };
     } else if (m_message.is_string()) {
         return m_message.as_string();
@@ -172,7 +172,7 @@ Value ExceptionObject::set_backtrace(Env *env, Value backtrace) {
             if (!element.is_string())
                 env->raise("TypeError", "backtrace must be Array of String");
         }
-        m_backtrace_value = backtrace;
+        m_backtrace_value = backtrace.as_array();
     } else if (backtrace.is_string()) {
         m_backtrace_value = new ArrayObject { backtrace };
     } else if (backtrace.is_nil()) {

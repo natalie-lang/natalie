@@ -57,13 +57,7 @@ public:
     virtual void visit_children(Visitor &) const override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
-        if (m_message == nullptr) {
-            snprintf(buf, len, "<ExceptionObject %p message=(null)>", this);
-            // } else if (m_message.type() == Object::Type::String) {
-            // snprintf(buf, len, "<ExceptionObject %p message='%s'>", this, m_message.as_string()->c_str());
-        } else {
-            snprintf(buf, len, "<ExceptionObject %p message=?>", this);
-        }
+        snprintf(buf, len, "<ExceptionObject %p message=?>", this);
     }
 
     void set_local_jump_error_type(LocalJumpErrorType type) { m_local_jump_error_type = type; }
@@ -78,10 +72,10 @@ public:
 private:
     ArrayObject *generate_backtrace();
 
-    Value m_message { nullptr };
+    Value m_message { Value::nil() };
     Backtrace *m_backtrace { nullptr };
-    Value m_backtrace_value { nullptr };
-    Value m_backtrace_locations { nullptr };
+    ArrayObject *m_backtrace_value { nullptr };
+    ArrayObject *m_backtrace_locations { nullptr };
     ExceptionObject *m_cause { nullptr };
     nat_int_t m_break_point { 0 };
     LocalJumpErrorType m_local_jump_error_type { LocalJumpErrorType::None };
