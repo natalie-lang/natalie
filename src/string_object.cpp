@@ -1372,10 +1372,12 @@ Value StringObject::encode(Env *env, Optional<Value> dst_encoding, Optional<Valu
 Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, Optional<Value> src_encoding_arg, HashObject *kwargs) {
     assert_not_frozen(env);
 
-    Value dst_encoding = EncodingObject::default_internal();
+    Value dst_encoding;
     if (dst_encoding_arg)
         dst_encoding = dst_encoding_arg.value();
-    if (dst_encoding == nullptr) // default_internal can return null
+    else if (EncodingObject::default_internal())
+        dst_encoding = EncodingObject::default_internal();
+    else
         dst_encoding = EncodingObject::get(Encoding::UTF_8);
 
     auto src_encoding = src_encoding_arg.value_or(m_encoding.ptr());
