@@ -40,15 +40,15 @@ Value FileObject::initialize(Env *env, Args &&args, Block *block) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 1, 3);
     auto filename = args.at(0);
-    auto flags_obj = args.at(1, nullptr);
-    auto perm = args.at(2, nullptr);
+    auto flags_obj = args.at(1, Value::nil());
+    auto perm = args.at(2, Value::nil());
     const ioutil::flags_struct flags { env, flags_obj, kwargs };
     const auto modenum = ioutil::perm_to_mode(env, perm);
 
     if (filename.is_integer()) { // passing in a number uses fd number
         int fileno = IntegerMethods::convert_to_int(env, filename);
         String flags_str = String('r');
-        if (flags_obj) {
+        if (!flags_obj.is_nil()) {
             flags_obj.assert_type(env, Object::Type::String, "String");
             flags_str = flags_obj.as_string()->string();
         }
