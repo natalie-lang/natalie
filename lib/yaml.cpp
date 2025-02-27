@@ -415,7 +415,7 @@ Value YAML_load(Env *env, Value self, Args &&args, Block *) {
         yaml_parser_set_input_string(&parser, reinterpret_cast<const unsigned char *>(str->c_str()), str->bytesize());
     }
 
-    Value result = nullptr;
+    Optional<Value> result;
     while (true) {
         yaml_token_t token;
         Defer token_deleter { [&token]() { yaml_token_delete(&token); } };
@@ -425,7 +425,7 @@ Value YAML_load(Env *env, Value self, Args &&args, Block *) {
         result = load_value(env, parser, token);
     }
 
-    if (result == nullptr)
+    if (!result)
         env->raise("NotImplementedError", "TODO: Implement YAML.load");
-    return result;
+    return result.value();
 }
