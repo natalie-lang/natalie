@@ -52,7 +52,7 @@ Value StringUnpacker::unpack1(Env *env) {
     for (auto token : *m_directives) {
         unpack_token(env, token);
         if (m_unpacked_value)
-            return m_unpacked_value;
+            return m_unpacked_value.value();
     }
     return Value::nil();
 }

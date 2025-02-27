@@ -92,10 +92,12 @@ public:
     static Value private_methods(Env *env, Value self, Optional<Value> recur = {});
     static Value protected_methods(Env *env, Value self, Optional<Value> recur = {});
     static Value public_methods(Env *env, Value self, Optional<Value> recur = {});
+    static Value public_send(Env *, Value, Args &&, Block *);
     static Value remove_instance_variable(Env *env, Value self, Value name_val);
     static bool respond_to_missing(Env *, Value, Value, Value) { return false; }
     static bool respond_to_method(Env *, Value, Value, Optional<Value>);
     static bool respond_to_method(Env *, Value, Value, bool);
+    static Value send(Env *, Value, Args &&, Block *);
     static Value tap(Env *env, Value self, Block *block);
 };
 

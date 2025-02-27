@@ -129,14 +129,14 @@ loop do
   library = Module.new do
     extend FFI::Library
     ffi_lib temp.path
-    attach_function :EVAL, [:pointer, :pointer], :pointer
+    attach_function :EVAL, [:pointer, :pointer], :int
   end
 
   @env ||= FFI::Pointer.new_env
-  result_ptr = library.EVAL(@env, @result_memory)
+  status = library.EVAL(@env, @result_memory)
 
-  unless result_ptr.null?
-    p result_ptr.to_obj
+  if status.zero?
+    p @result_memory.to_obj
   end
 
   File.unlink(temp.path)

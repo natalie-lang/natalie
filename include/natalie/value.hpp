@@ -59,25 +59,29 @@ public:
 
     bool is_null() const { return m_value == 0x0; }
 
+    bool operator==(void *ptr) const { return (void *)m_value == ptr; }
+    bool operator!=(void *ptr) const { return (void *)m_value != ptr; }
+
     bool operator==(Value other) const { return m_value == other.m_value; }
     bool operator!=(Value other) const { return m_value != other.m_value; }
 
     bool operator!() const { return is_null(); }
     operator bool() const { return !is_null(); }
 
-    Value public_send(Env *, SymbolObject *, Args && = {}, Block * = nullptr, Value sent_from = nullptr);
+    Value public_send(Env *, SymbolObject *, Args &&, Block *, Value sent_from);
+    Value public_send(Env *, SymbolObject *, Args && = {}, Block * = nullptr);
 
-    Value public_send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Value sent_from = nullptr) {
-        return public_send(env, name, Args(args), block, sent_from);
+    Value public_send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
+        return public_send(env, name, Args(args), block);
     }
 
-    Value send(Env *, SymbolObject *, Args && = {}, Block * = nullptr, Value sent_from = nullptr);
+    Value send(Env *, SymbolObject *, Args && = {}, Block * = nullptr);
 
-    Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Value sent_from = nullptr) {
-        return send(env, name, Args(args), block, sent_from);
+    Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
+        return send(env, name, Args(args), block);
     }
 
-    Value immediate_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from, MethodVisibility visibility);
+    Value immediate_send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility);
 
     ClassObject *klass() const;
 
@@ -236,84 +240,6 @@ private:
     // If bit is 1, then shift the value to the right to get the actual
     // 63-bit number. If the bit is 0, then treat the value as a pointer.
     uintptr_t m_value { 0x0 };
-};
-
-}
-
-namespace TM {
-
-// This is a temporary specialization to catch an Optional<Value> which appears to be present
-// but is actually a nullptr. We won't need this at the point we remove nullptr capabilities
-// from Value construction.
-template <>
-class Optional<Natalie::Value> {
-public:
-    Optional(const Natalie::Value &value) {
-        assert(value != nullptr);
-
-        m_present = true;
-        m_value = value;
-    }
-
-    Optional()
-        : m_present { false } { }
-
-    Optional(const Optional &other)
-        : m_present { other.m_present } {
-        if (m_present)
-            m_value = other.m_value;
-    }
-
-    ~Optional() {
-        clear();
-    }
-
-    Optional<Natalie::Value> &operator=(const Optional<Natalie::Value> &other) {
-        m_present = other.m_present;
-        if (m_present)
-            m_value = other.m_value;
-        return *this;
-    }
-
-    Natalie::Value &value() {
-        assert(m_present);
-        return m_value;
-    }
-
-    const Natalie::Value &value() const {
-        assert(m_present);
-        return m_value;
-    }
-
-    Natalie::Value const &value_or(const Natalie::Value &fallback) const {
-        if (present())
-            return value();
-        else
-            return fallback;
-    }
-
-    Natalie::Value value_or(std::function<Natalie::Value()> fallback) const {
-        if (present())
-            return value();
-        else
-            return fallback();
-    }
-
-    Natalie::Value operator*() const {
-        assert(m_present);
-        return m_value;
-    }
-
-    void clear() { m_present = false; }
-
-    operator bool() const { return m_present; }
-
-    bool present() const { return m_present; }
-
-private:
-    bool m_present;
-
-    Natalie::Value m_value {};
 };
 
 }

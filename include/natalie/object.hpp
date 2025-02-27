@@ -30,7 +30,7 @@ public:
     };
 
     enum class ConstLookupFailureMode {
-        Null,
+        None,
         Raise,
         ConstMissing,
     };
@@ -94,7 +94,7 @@ public:
 
     void extend_once(Env *, ModuleObject *);
 
-    static Value const_find_with_autoload(Env *, Value, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
+    static Optional<Value> const_find_with_autoload(Env *, Value, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
     static Value const_fetch(Value, SymbolObject *);
     static Value const_set(Env *, Value, SymbolObject *, Value);
     static Value const_set(Env *, Value, SymbolObject *, MethodFnPtr, StringObject *);
@@ -148,22 +148,15 @@ public:
         return buf;
     }
 
-    Value public_send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Value sent_from = nullptr);
-    static Value public_send(Env *, Value, Args &&, Block *);
-
-    Value send(Env *, SymbolObject *, Args && = Args(), Block * = nullptr, Value sent_from = nullptr);
-    static Value send(Env *, Value, Args &&, Block *);
-
-    Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Value sent_from = nullptr) {
-        // NOTE: sent_from is unused, but accepting it makes the SendInstruction codegen simpler. :-)
-        return send(env, name, Args(args), block);
+    Value public_send(Env *env, SymbolObject *name, Args &&args = {}, Block *block = nullptr, Optional<Value> sent_from = {}) {
+        return send(env, name, std::move(args), block, MethodVisibility::Public, sent_from);
     }
 
-    Value send(Env *, SymbolObject *, Args &&, Block *, MethodVisibility, Value = nullptr);
+    Value send(Env *, SymbolObject *, Args && = {}, Block * = nullptr, MethodVisibility = MethodVisibility::Private, Optional<Value> = {});
     Value method_missing_send(Env *, SymbolObject *, Args &&, Block *);
     static Value method_missing(Env *, Value, Args &&, Block *);
 
-    Method *find_method(Env *, SymbolObject *, MethodVisibility, Value) const;
+    Method *find_method(Env *, SymbolObject *, MethodVisibility, Optional<Value>) const;
 
     Value duplicate(Env *) const;
     Value clone(Env *env, Optional<Value> freeze = {});

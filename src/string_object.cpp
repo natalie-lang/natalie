@@ -1294,7 +1294,7 @@ Value StringObject::scan(Env *env, Value pattern, Block *block) {
 
     while (!(match_value = regexp->match_at_byte_offset(env, this, byte_index)).is_nil()) {
         match_obj = match_value.as_match_data();
-        env->set_match(match_obj);
+        env->set_match(Value(match_obj));
 
         if (match_obj->has_captures()) {
             auto captures = match_obj->captures(env).as_array_or_raise(env);
@@ -1372,10 +1372,12 @@ Value StringObject::encode(Env *env, Optional<Value> dst_encoding, Optional<Valu
 Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, Optional<Value> src_encoding_arg, HashObject *kwargs) {
     assert_not_frozen(env);
 
-    Value dst_encoding = EncodingObject::default_internal();
+    Value dst_encoding;
     if (dst_encoding_arg)
         dst_encoding = dst_encoding_arg.value();
-    if (dst_encoding == nullptr) // default_internal can return null
+    else if (EncodingObject::default_internal())
+        dst_encoding = EncodingObject::default_internal();
+    else
         dst_encoding = EncodingObject::get(Encoding::UTF_8);
 
     auto src_encoding = src_encoding_arg.value_or(m_encoding.ptr());
@@ -1391,36 +1393,36 @@ Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, 
 
         auto invalid = kwargs->remove(env, "invalid"_s);
         if (invalid) {
-            if (invalid.is_nil())
+            if (invalid.value().is_nil())
                 options.invalid_option = EncodeInvalidOption::Raise;
-            else if (invalid == "replace"_s)
+            else if (invalid.value() == "replace"_s)
                 options.invalid_option = EncodeInvalidOption::Replace;
         }
 
         auto undef = kwargs->remove(env, "undef"_s);
         if (undef) {
-            if (undef.is_nil())
+            if (!undef || undef.value().is_nil())
                 options.undef_option = EncodeUndefOption::Raise;
-            else if (undef == "replace"_s)
+            else if (undef.value() == "replace"_s)
                 options.undef_option = EncodeUndefOption::Replace;
         }
 
         auto replace = kwargs->remove(env, "replace"_s);
-        if (replace && !replace.is_nil())
-            options.replace_option = replace.as_string_or_raise(env)->encode(env, dst_encoding).as_string_or_raise(env);
+        if (replace && !replace.value().is_nil())
+            options.replace_option = replace.value().as_string_or_raise(env)->encode(env, dst_encoding).as_string_or_raise(env);
 
         auto fallback = kwargs->remove(env, "fallback"_s);
-        if (fallback && !fallback.is_nil())
-            options.fallback_option = fallback;
+        if (fallback && !fallback.value().is_nil())
+            options.fallback_option = fallback.value();
 
         auto xml = kwargs->remove(env, "xml"_s);
         if (xml) {
-            if (xml == "attr"_s)
+            if (xml.value() == "attr"_s)
                 options.xml_option = EncodeXmlOption::Attr;
-            else if (xml == "text"_s)
+            else if (xml.value() == "text"_s)
                 options.xml_option = EncodeXmlOption::Text;
             else
-                env->raise("ArgumentError", "unexpected value for xml option: {}", xml.inspect_str(env));
+                env->raise("ArgumentError", "unexpected value for xml option: {}", xml.value().inspect_str(env));
         }
     }
 
@@ -1436,7 +1438,7 @@ Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, 
     EncodingObject *dst_encoding_obj = find_encoding(dst_encoding);
     EncodingObject *src_encoding_obj = find_encoding(src_encoding);
     if (!dst_encoding_obj || !src_encoding_obj) {
-        auto klass = m_encoding->klass()->const_find(env, "ConverterNotFoundError"_s).as_class();
+        auto klass = m_encoding->klass()->const_find(env, "ConverterNotFoundError"_s).value().as_class();
         auto to_name = dst_encoding.to_s(env)->string();
         auto from_name = src_encoding.to_s(env)->string();
         env->raise(klass, "code converter not found ({} to {})", from_name, to_name);
@@ -3338,7 +3340,7 @@ Value StringObject::rstrip(Env *env) const {
         return new StringObject { "", m_encoding };
 
     if (!valid_encoding()) {
-        env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s).as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
+        env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s).value().as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
     }
 
     assert(length() < NAT_INT_MAX);
@@ -3363,7 +3365,7 @@ Value StringObject::rstrip_in_place(Env *env) {
         return Value::nil();
 
     if (!valid_encoding())
-        env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s).as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
+        env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s).value().as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
 
     assert(length() < NAT_INT_MAX);
     nat_int_t last_char;

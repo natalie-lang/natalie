@@ -161,7 +161,10 @@ public:
     void unlock_mutexes() const;
 
     Value fiber_scheduler() const { return m_fiber_scheduler; }
-    void set_fiber_scheduler(Value scheduler) { m_fiber_scheduler = scheduler; }
+    void set_fiber_scheduler(Value scheduler) {
+        assert(scheduler);
+        m_fiber_scheduler = scheduler;
+    }
 
     bool abort_on_exception() const { return m_abort_on_exception; }
     bool set_abort_on_exception(bool abrt) {
@@ -282,7 +285,7 @@ private:
     thread_t m_mach_thread_port { MACH_PORT_NULL };
 #endif
     std::atomic<ExceptionObject *> m_exception { nullptr };
-    Value m_value { nullptr };
+    Optional<Value> m_value {};
     HashObject *m_thread_variables { nullptr };
     FiberObject *m_main_fiber { nullptr };
     FiberObject *m_current_fiber { nullptr };
@@ -307,7 +310,7 @@ private:
 
     TM::Hashmap<Thread::MutexObject *> m_mutexes {};
 
-    Value m_fiber_scheduler { nullptr };
+    Value m_fiber_scheduler { Value::nil() };
 
     // This condition variable is used to wake a sleeping thread,
     // i.e. a thread where Kernel#sleep has been called.

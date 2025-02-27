@@ -112,7 +112,7 @@ public:
         EncodeNewlineOption newline_option = EncodeNewlineOption::None;
         EncodeXmlOption xml_option = EncodeXmlOption::None;
         StringObject *replace_option = nullptr;
-        Value fallback_option = nullptr;
+        Value fallback_option;
     };
 
     virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeOptions) const;

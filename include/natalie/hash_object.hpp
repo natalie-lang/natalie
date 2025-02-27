@@ -16,8 +16,8 @@ namespace Natalie {
 struct HashKey : public Cell {
     HashKey *prev { nullptr };
     HashKey *next { nullptr };
-    Value key { nullptr };
-    Value val { nullptr };
+    Value key;
+    Value val;
     size_t hash { 0 };
     bool removed { false };
 
@@ -114,7 +114,7 @@ public:
     Value set_default(Env *, Value);
 
     void put(Env *, Value, Value);
-    Value remove(Env *, Value);
+    Optional<Value> remove(Env *, Value);
     Value clear(Env *);
 
     Value default_proc(Env *);

@@ -39,7 +39,8 @@ public:
 
     bool global_defined(SymbolObject *);
     Value global_get(SymbolObject *);
-    Value global_set(SymbolObject *, Value, bool = false);
+    Value global_set(SymbolObject *, Object *, bool = false);
+    Value global_set(SymbolObject *, Optional<Value>, bool = false);
     Value global_alias(SymbolObject *, SymbolObject *);
 
     const Method *current_method();
@@ -170,9 +171,9 @@ public:
     ModuleObject *module() { return m_module; }
     void set_module(ModuleObject *module) { m_module = module; }
 
-    Value match() { return m_match; }
-    void set_match(Value match) { m_match = match; }
-    void clear_match() { m_match = nullptr; }
+    Optional<Value> match() { return m_match; }
+    void set_match(Optional<Value> match) { m_match = match; }
+    void clear_match() { m_match = Optional<Value>(); }
 
     Value exception_object();
     ExceptionObject *exception();
@@ -205,8 +206,8 @@ private:
     size_t m_line { 0 };
     const Method *m_method { nullptr };
     ModuleObject *m_module { nullptr };
-    Value m_match { nullptr };
+    Optional<Value> m_match {};
     ExceptionObject *m_exception { nullptr };
-    Value m_catch { nullptr };
+    Optional<Value> m_catch {};
 };
 }

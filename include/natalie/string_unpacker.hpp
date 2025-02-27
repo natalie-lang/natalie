@@ -23,7 +23,8 @@ public:
 
     virtual void visit_children(Visitor &visitor) const override {
         visitor.visit(m_source);
-        visitor.visit(m_unpacked_value);
+        if (m_unpacked_value)
+            visitor.visit(m_unpacked_value.value());
         visitor.visit(m_unpacked_array);
     }
 
@@ -197,7 +198,7 @@ private:
         } else {
             if (!m_unpacked_array) {
                 m_unpacked_array = new ArrayObject {};
-                m_unpacked_array->push(m_unpacked_value);
+                m_unpacked_array->push(m_unpacked_value.value());
             }
             m_unpacked_array->push(value);
         }
@@ -207,13 +208,13 @@ private:
         if (m_unpacked_array)
             return m_unpacked_array;
         else if (m_unpacked_value)
-            return new ArrayObject { m_unpacked_value };
+            return new ArrayObject { m_unpacked_value.value() };
         return new ArrayObject {};
     }
 
     const StringObject *m_source;
     TM::Vector<Token> *m_directives;
-    Value m_unpacked_value { nullptr };
+    Optional<Value> m_unpacked_value {};
     ArrayObject *m_unpacked_array { nullptr };
     size_t m_index { 0 };
 };

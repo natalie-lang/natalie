@@ -30,7 +30,7 @@ Value RangeObject::initialize(Env *env, Value begin, Value end, Optional<Value> 
 }
 
 template <typename Function>
-Value RangeObject::iterate_over_range(Env *env, Function &&func) {
+Optional<Value> RangeObject::iterate_over_range(Env *env, Function &&func) {
     if (m_begin.is_integer())
         return iterate_over_integer_range(env, func);
 
@@ -72,11 +72,11 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
         }
     }
 
-    return nullptr;
+    return {};
 }
 
 template <typename Function>
-Value RangeObject::iterate_over_integer_range(Env *env, Function &&func) {
+Optional<Value> RangeObject::iterate_over_integer_range(Env *env, Function &&func) {
     auto end = m_end;
     if (end.is_float()) {
         if (end.as_float()->is_infinity())
@@ -107,13 +107,13 @@ Value RangeObject::iterate_over_integer_range(Env *env, Function &&func) {
             }
         }
     }
-    return nullptr;
+    return {};
 }
 
 template <typename Function>
-Value RangeObject::iterate_over_string_range(Env *env, Function &&func) {
+Optional<Value> RangeObject::iterate_over_string_range(Env *env, Function &&func) {
     if (Object::equal(m_begin.send(env, "<=>"_s, { m_end }), Value::integer(1)))
-        return nullptr;
+        return {};
 
     TM::Optional<TM::String> current;
     auto end = m_end.as_string()->string();
@@ -128,13 +128,13 @@ Value RangeObject::iterate_over_string_range(Env *env, Function &&func) {
         }
     }
 
-    return nullptr;
+    return {};
 }
 
 template <typename Function>
-Value RangeObject::iterate_over_symbol_range(Env *env, Function &&func) {
+Optional<Value> RangeObject::iterate_over_symbol_range(Env *env, Function &&func) {
     if (Object::equal(m_begin.send(env, "<=>"_s, { m_end }), Value::integer(1)))
-        return nullptr;
+        return {};
 
     TM::Optional<TM::String> current;
     auto end = m_end.as_symbol()->string();
@@ -149,7 +149,7 @@ Value RangeObject::iterate_over_symbol_range(Env *env, Function &&func) {
         }
     }
 
-    return nullptr;
+    return {};
 }
 
 Value RangeObject::to_a(Env *env) {
@@ -169,14 +169,13 @@ Value RangeObject::each(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
 
-    Value break_value = iterate_over_range(env, [&](Value item) -> Value {
+    auto break_value = iterate_over_range(env, [&](Value item) -> Value {
         Value args[] = { item };
         block->run(env, Args(1, args), nullptr);
         return nullptr;
     });
-    if (break_value) {
-        return break_value;
-    }
+    if (break_value)
+        return break_value.value();
 
     return this;
 }
@@ -331,14 +330,14 @@ bool RangeObject::include(Env *env, Value arg) {
     auto eqeq = "=="_s;
     // NATFIXME: Break out of iteration if current arg is smaller than item.
     // This means we have to implement a way to break out of `iterate_over_range`
-    Value found_item = iterate_over_range(env, [&](Value item) -> Value {
+    auto found_item = iterate_over_range(env, [&](Value item) -> Value {
         if (arg.send(env, eqeq, { item }).is_truthy())
             return item;
 
         return nullptr;
     });
 
-    return !!found_item;
+    return found_item.present();
 }
 
 Value RangeObject::bsearch(Env *env, Block *block) {

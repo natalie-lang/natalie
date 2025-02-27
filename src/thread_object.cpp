@@ -465,11 +465,7 @@ Value ThreadObject::sleep(Env *env, float timeout, Thread::MutexObject *mutex_to
 
 Value ThreadObject::value(Env *env) {
     join(env);
-
-    if (!m_value)
-        return Value::nil();
-
-    return m_value;
+    return m_value.value_or(Value::nil());
 }
 
 Value ThreadObject::name(Env *env) {
@@ -649,7 +645,8 @@ void ThreadObject::visit_children(Visitor &visitor) const {
         visitor.visit(arg);
     visitor.visit(m_block);
     visitor.visit(m_exception);
-    visitor.visit(m_value);
+    if (m_value)
+        visitor.visit(m_value.value());
     visitor.visit(m_thread_variables);
     for (auto pair : m_mutexes)
         visitor.visit(pair.first);

@@ -4,11 +4,11 @@ namespace Natalie {
 
 ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, ExceptionObject *current_exception, bool accept_cause) {
     auto kwargs = args.pop_keyword_hash();
-    auto cause = accept_cause && kwargs ? kwargs->remove(env, "cause"_s) : nullptr;
+    auto cause = accept_cause && kwargs ? kwargs->remove(env, "cause"_s) : Optional<Value>();
     args.ensure_argc_between(env, 0, 3);
-    auto klass = args.at(0, nullptr);
-    auto message = args.at(1, nullptr);
-    auto backtrace = args.at(2, nullptr);
+    auto klass = args.maybe_at(0);
+    auto message = args.maybe_at(1);
+    auto backtrace = args.maybe_at(2);
 
     if (!message && kwargs && !kwargs->is_empty())
         message = kwargs;
@@ -18,13 +18,13 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
     if (!klass && !message && cause)
         env->raise("ArgumentError", "only cause is given with no arguments");
 
-    if (klass && klass.is_class() && !message)
-        return _new(env, klass.as_class(), {}, nullptr).as_exception_or_raise(env);
+    if (klass && klass.value().is_class() && !message)
+        return _new(env, klass.value().as_class(), {}, nullptr).as_exception_or_raise(env);
 
-    if (klass && !klass.is_class() && klass.respond_to(env, "exception"_s)) {
+    if (klass && !klass.value().is_class() && klass.value().respond_to(env, "exception"_s)) {
         Vector<Value> args;
-        if (message) args.push(message);
-        klass = klass.send(env, "exception"_s, std::move(args));
+        if (message) args.push(message.value());
+        klass = klass.value().send(env, "exception"_s, std::move(args));
     }
 
     if (!klass && current_exception)
@@ -36,7 +36,7 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
     }
 
     if (!message) {
-        Value arg = klass;
+        Value arg = klass.value();
         if (arg.is_string()) {
             klass = find_top_level_const(env, "RuntimeError"_s).as_class();
             message = arg;
@@ -49,22 +49,21 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
 
     Vector<Value> exception_args;
     if (message)
-        exception_args.push(message);
+        exception_args.push(message.value());
 
     ExceptionObject *exception;
-    if (klass.is_class())
-        exception = _new(env, klass.as_class(), { std::move(exception_args), false }, nullptr).as_exception();
-    else if (klass.is_exception())
-        exception = klass.as_exception();
+    if (klass.value().is_class())
+        exception = _new(env, klass.value().as_class(), { std::move(exception_args), false }, nullptr).as_exception();
+    else if (klass.value().is_exception())
+        exception = klass.value().as_exception();
     else
         env->raise("TypeError", "exception klass/object expected");
 
-    if (accept_cause && cause && cause.is_exception()) {
-        exception->set_cause(cause.as_exception());
-    }
+    if (accept_cause && cause && cause.value().is_exception())
+        exception->set_cause(cause.value().as_exception());
 
     if (backtrace)
-        exception->set_backtrace(env, backtrace);
+        exception->set_backtrace(env, backtrace.value());
 
     return exception;
 }
@@ -112,7 +111,7 @@ Value ExceptionObject::inspect(Env *env) {
 }
 
 StringObject *ExceptionObject::to_s(Env *env) {
-    if (m_message == nullptr || m_message.is_nil()) {
+    if (m_message.is_nil()) {
         return new StringObject { m_klass->inspect_str() };
     } else if (m_message.is_string()) {
         return m_message.as_string();
@@ -172,7 +171,7 @@ Value ExceptionObject::set_backtrace(Env *env, Value backtrace) {
             if (!element.is_string())
                 env->raise("TypeError", "backtrace must be Array of String");
         }
-        m_backtrace_value = backtrace;
+        m_backtrace_value = backtrace.as_array();
     } else if (backtrace.is_string()) {
         m_backtrace_value = new ArrayObject { backtrace };
     } else if (backtrace.is_nil()) {

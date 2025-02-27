@@ -15,7 +15,7 @@ extern "C" Env *build_top_env() {
     return env;
 }
 
-extern "C" Value *EVAL(Env *env, Value *result_memory) {
+extern "C" int EVAL(Env *env, Value *result_memory) {
     /*NAT_EVAL_INIT*/
 
     [[maybe_unused]] Value self = GlobalEnv::the()->main_obj();
@@ -25,7 +25,7 @@ extern "C" Value *EVAL(Env *env, Value *result_memory) {
     Args args;
     Block *block = nullptr;
 
-    Value result = nullptr;
+    Value result = Value::nil();
     try {
         // FIXME: top-level `return` in a Ruby script should probably be changed to `exit`.
         result = [&]() -> Value {
@@ -36,10 +36,10 @@ extern "C" Value *EVAL(Env *env, Value *result_memory) {
         run_at_exit_handlers(env);
     } catch (ExceptionObject *exception) {
         handle_top_level_exception(env, exception, run_exit_handlers);
-        result = nullptr;
+        return 1;
     }
     memcpy(result_memory, &result, sizeof(Value));
-    return result_memory;
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -77,9 +77,8 @@ int main(int argc, char *argv[]) {
         ARGV->push(new StringObject { argv[i] });
     }
 
-    Value result = nullptr;
-    EVAL(env, &result);
-    auto return_code = result ? 0 : 1;
+    Value result = Value::nil();
+    auto return_code = EVAL(env, &result);
 
 #ifdef NAT_NATIVE_PROFILER
     NativeProfiler::the()->dump();

@@ -133,6 +133,10 @@ task test_perf: [:build_release, 'bin/nat'] do
   sh 'ruby spec/support/test_perf.rb'
 end
 
+task test_perf_quickly: [:build_release] do
+  sh 'ruby spec/support/test_perf.rb --quickly'
+end
+
 task output_all_ruby_specs: :build do
   version = RUBY_VERSION.sub(/\.\d+$/, '')
   sh <<~END

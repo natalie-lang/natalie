@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tm/macros.hpp"
+#include "tm/optional.hpp"
 #include "tm/string.hpp"
 #include "tm/vector.hpp"
 #include <iterator>
@@ -54,6 +55,7 @@ public:
 
     Value at(size_t index) const;
     Value at(size_t index, Value default_value) const;
+    Optional<Value> maybe_at(size_t index) const;
 
     ArrayObject *to_array() const;
     ArrayObject *to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread) const;

@@ -1104,6 +1104,11 @@ Value KernelModule::public_methods(Env *env, Value self, Optional<Value> recur) 
         return self.klass()->public_instance_methods(env, recur);
 }
 
+Value KernelModule::public_send(Env *env, Value self, Args &&args, Block *block) {
+    auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
+    return self.public_send(env->caller(), name, std::move(args), block);
+}
+
 Value KernelModule::remove_instance_variable(Env *env, Value self, Value name_val) {
     auto name = Object::to_instance_variable_name(env, name_val);
     self.assert_not_frozen(env);
@@ -1141,6 +1146,11 @@ bool KernelModule::respond_to_method(Env *env, Value self, Value name_val, bool 
     } else {
         return false;
     }
+}
+
+Value KernelModule::send(Env *env, Value self, Args &&args, Block *block) {
+    auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
+    return self.send(env->caller(), name, std::move(args), block);
 }
 
 Value KernelModule::tap(Env *env, Value self, Block *block) {

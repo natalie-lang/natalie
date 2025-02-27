@@ -227,7 +227,7 @@ Value ModuleObject::is_autoload(Env *env, Value name) const {
     return Value::nil();
 }
 
-Value ModuleObject::const_find_with_autoload(Env *env, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+Optional<Value> ModuleObject::const_find_with_autoload(Env *env, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     ModuleObject *module = nullptr;
     auto constant = find_constant(env, name, &module, search_mode);
 
@@ -243,7 +243,7 @@ Value ModuleObject::const_find_with_autoload(Env *env, Value self, SymbolObject 
     return const_find(env, name, search_mode, failure_mode);
 }
 
-Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+Optional<Value> ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     auto constant = find_constant(env, name, nullptr, search_mode);
 
     if (!constant)
@@ -252,9 +252,9 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
     return constant->value();
 }
 
-Value ModuleObject::handle_missing_constant(Env *env, Value name, ConstLookupFailureMode failure_mode) {
-    if (failure_mode == ConstLookupFailureMode::Null)
-        return nullptr;
+Optional<Value> ModuleObject::handle_missing_constant(Env *env, Value name, ConstLookupFailureMode failure_mode) {
+    if (failure_mode == ConstLookupFailureMode::None)
+        return Optional<Value>();
 
     if (failure_mode == ConstLookupFailureMode::Raise) {
         auto name_str = name.to_s(env);
@@ -341,7 +341,7 @@ Value ModuleObject::constants(Env *env, Optional<Value> inherit) const {
 }
 
 Value ModuleObject::const_missing(Env *env, Value name) {
-    return handle_missing_constant(env, name, ConstLookupFailureMode::Raise);
+    return handle_missing_constant(env, name, ConstLookupFailureMode::Raise).value();
 }
 
 void ModuleObject::make_method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
@@ -1074,7 +1074,7 @@ bool ModuleObject::const_defined(Env *env, Value name_value, Optional<Value> inh
     if (inherited && inherited.value().is_falsey()) {
         return !!m_constants.get(name);
     }
-    return !!const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
+    return const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::None).present();
 }
 
 Value ModuleObject::alias_method(Env *env, Value new_name_value, Value old_name_value) {

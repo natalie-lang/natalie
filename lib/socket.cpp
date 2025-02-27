@@ -41,12 +41,12 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
     if (name.is_string() || name.is_symbol()) {
         auto sym = name.to_symbol(env, Value::Conversion::Strict);
         auto Socket = find_top_level_const(env, "Socket"_s).as_module();
-        auto value = Socket->const_find(env, sym, Object::ConstLookupSearchMode::Strict, Object::ConstLookupFailureMode::Null);
+        auto value = Socket->const_find(env, sym, Object::ConstLookupSearchMode::Strict, Object::ConstLookupFailureMode::None);
         if (!value)
-            value = Socket->const_find(env, "SHORT_CONSTANTS"_s).as_hash_or_raise(env)->get(env, sym);
-        if (!value)
+            value = Socket->const_find(env, "SHORT_CONSTANTS"_s).value().as_hash_or_raise(env)->get(env, sym);
+        if (!value || !value.value())
             env->raise_name_error(sym, "uninitialized constant {}::{}", Socket->inspect_str(), sym->string());
-        return value;
+        return value.value();
     } else {
         if (default_zero)
             return Value::integer(0);
@@ -554,7 +554,7 @@ Value BasicSocket_recv_nonblock(Env *env, Value self, Args &&args, Block *) {
     const auto maxlen = IntegerMethods::convert_to_nat_int_t(env, args[0]);
     const auto flags = IntegerMethods::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
     auto buffer = args.at(2, new StringObject { "", Encoding::ASCII_8BIT }).to_str(env);
-    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
+    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : Value(TrueObject::the());
     env->ensure_no_extra_keywords(kwargs);
 
 #ifdef __APPLE__
@@ -568,7 +568,7 @@ Value BasicSocket_recv_nonblock(Env *env, Value self, Args &&args, Block *) {
         nullptr, nullptr);
     if (recvfrom_result < 0) {
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
-            if (exception.is_falsey())
+            if (exception && exception.value().is_falsey())
                 return "wait_readable"_s;
             auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
             ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) }).as_exception();
@@ -996,10 +996,10 @@ Value Socket_accept(Env *env, Value self, Args &&args, Block *block) {
 
 Value Socket_accept_nonblock(Env *env, Value self, Args &&args, Block *block) {
     auto kwargs = args.pop_keyword_hash();
-    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
+    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : Value(TrueObject::the());
     env->ensure_no_extra_keywords(kwargs);
     args.ensure_argc_is(env, 0);
-    return Socket_accept(env, self, false, exception.is_truthy());
+    return Socket_accept(env, self, false, exception.value().is_truthy());
 }
 
 Value Socket_bind(Env *env, Value self, Args &&args, Block *block) {
@@ -1674,7 +1674,7 @@ Value TCPServer_accept(Env *env, Value self, Args &&args, Block *) {
 
 Value TCPServer_accept_nonblock(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
-    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
+    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : Value(TrueObject::the());
     args.ensure_argc_is(env, 0);
     env->ensure_no_extra_keywords(kwargs);
 
@@ -1683,7 +1683,7 @@ Value TCPServer_accept_nonblock(Env *env, Value self, Args &&args, Block *) {
 
     sockaddr_storage addr;
     socklen_t len = sizeof(addr);
-    return Server_accept(env, self, "TCPSocket"_s, addr, len, false, exception.is_truthy());
+    return Server_accept(env, self, "TCPSocket"_s, addr, len, false, exception.value().is_truthy());
 }
 
 Value TCPServer_listen(Env *env, Value self, Args &&args, Block *) {
@@ -1733,7 +1733,7 @@ Value UDPSocket_connect(Env *env, Value self, Args &&args, Block *block) {
 
 Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
-    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
+    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : Value(TrueObject::the());
     args.ensure_argc_between(env, 1, 3);
     env->ensure_no_extra_keywords(kwargs);
 
@@ -1751,7 +1751,7 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args &&args, Block *) {
         reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
     if (recvfrom_result < 0) {
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
-            if (exception.is_falsey())
+            if (exception.value().is_falsey())
                 return "wait_readable"_s;
             auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
             ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) }).as_exception();
@@ -1869,12 +1869,12 @@ Value UNIXServer_accept(Env *env, Value self, Args &&args, Block *) {
 
 Value UNIXServer_accept_nonblock(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
-    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : TrueObject::the();
+    auto exception = kwargs ? kwargs->remove(env, "exception"_s) : Value(TrueObject::the());
     args.ensure_argc_is(env, 0);
     env->ensure_no_extra_keywords(kwargs);
     sockaddr_storage addr;
     socklen_t len = sizeof(addr);
-    return Server_accept(env, self, "UNIXSocket"_s, addr, len, false, exception.is_truthy());
+    return Server_accept(env, self, "UNIXSocket"_s, addr, len, false, exception.value().is_truthy());
 }
 
 Value UNIXServer_listen(Env *env, Value self, Args &&args, Block *) {

@@ -281,11 +281,7 @@ class BindingGen
           "auto kwargs = args.pop_keyword_hash();",
         ].tap do |lines|
           @kwargs.each do |kw|
-            lines << "Optional<Value> kwarg_#{kw};"
-            lines << 'if (kwargs) {'
-            lines << "    auto value_or_null = kwargs->remove(env, #{kw.to_s.inspect}_s);"
-            lines << "    if (value_or_null != nullptr) kwarg_#{kw} = value_or_null;"
-            lines << '}'
+            lines << "auto kwarg_#{kw} = kwargs ? kwargs->remove(env, #{kw.to_s.inspect}_s) : Optional<Value>();"
           end
         end.join("\n")
       when true
@@ -481,7 +477,7 @@ gen.binding('Array', '|', 'ArrayObject', 'union_of', argc: 1, pass_env: true, pa
 
 gen.static_binding_as_instance_method('BasicObject', '__id__', 'Object', 'object_id', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.static_binding_as_instance_method('BasicObject', 'equal?', 'Object', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
-gen.static_binding_as_instance_method('BasicObject', '__send__', 'Object', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_instance_method('BasicObject', '__send__', 'KernelModule', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
 gen.static_binding_as_instance_method('BasicObject', '!', 'Object', 'not_truthy', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.static_binding_as_instance_method('BasicObject', '==', 'Object', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding_as_instance_method('BasicObject', '!=', 'Object', 'neq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
@@ -1031,8 +1027,8 @@ gen.static_binding_as_instance_method('Kernel', 'remove_instance_variable', 'Ker
 gen.static_binding_as_instance_method('Kernel', 'singleton_class', 'Object', 'singleton_class', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'tap', 'KernelModule', 'tap', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding_as_instance_method('Kernel', 'send', 'Object', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
-gen.static_binding_as_instance_method('Kernel', 'public_send', 'Object', 'public_send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'send', 'KernelModule', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding_as_instance_method('Kernel', 'public_send', 'KernelModule', 'public_send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'clone', 'Object', 'clone_obj', argc: 0, kwargs: [:freeze], pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'extend', 'KernelModule', 'extend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding_as_instance_method('Kernel', 'frozen?', 'KernelModule', 'is_frozen', argc: 0, pass_env: false, pass_block: false, return_type: :bool)

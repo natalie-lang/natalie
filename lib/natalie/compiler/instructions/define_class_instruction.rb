@@ -45,15 +45,18 @@ module Natalie
         end
 
         klass = transform.temp('class')
+        klass_found = transform.temp('class_found')
         namespace = transform.pop
         superclass = transform.pop
         search_mode = private? ? 'StrictPrivate' : 'Strict'
 
         code = []
-        code << "auto #{klass} = Object::const_find_with_autoload(env, #{namespace}, self, " \
+        code << "Value #{klass}"
+        code << "auto #{klass_found} = Object::const_find_with_autoload(env, #{namespace}, self, " \
                 "#{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, " \
-                'Object::ConstLookupFailureMode::Null)'
-        code << "if (#{klass}) {"
+                'Object::ConstLookupFailureMode::None)'
+        code << "if (#{klass_found}) {"
+        code << "  #{klass} = #{klass_found}.value()"
         code << "  if (!#{klass}.is_class()) {"
         code << "    env->raise(\"TypeError\", \"#{@name} is not a class\");"
         code << '  }'

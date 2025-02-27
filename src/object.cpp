@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/forward.hpp"
+#include "natalie/method_visibility.hpp"
 #include <cctype>
 
 namespace Natalie {
@@ -251,7 +252,7 @@ void Object::extend_once(Env *env, ModuleObject *module) {
     singleton_class(env, this)->include_once(env, module);
 }
 
-Value Object::const_find_with_autoload(Env *env, Value ns, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+Optional<Value> Object::const_find_with_autoload(Env *env, Value ns, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     if (GlobalEnv::the()->instance_evaling()) {
         auto context = GlobalEnv::the()->current_instance_eval_context();
         if (context.caller_env->module()) {
@@ -536,25 +537,7 @@ Value Object::module_function(Env *env, Args &&args) {
     abort();
 }
 
-Value Object::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
-    return send(env, name, std::move(args), block, MethodVisibility::Public, sent_from);
-}
-
-Value Object::public_send(Env *env, Value self, Args &&args, Block *block) {
-    auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
-    return self.public_send(env->caller(), name, std::move(args), block);
-}
-
-Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
-    return send(env, name, std::move(args), block, MethodVisibility::Private, sent_from);
-}
-
-Value Object::send(Env *env, Value self, Args &&args, Block *block) {
-    auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
-    return self.send(env->caller(), name, std::move(args), block);
-}
-
-Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility_at_least, Value sent_from) {
+Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility_at_least, Optional<Value> sent_from) {
     static const auto initialize = SymbolObject::intern("initialize");
     Method *method = find_method(env, name, visibility_at_least, sent_from);
     // TODO: make a copy if has empty keyword hash (unless that's not rare)
@@ -591,7 +574,7 @@ Value Object::method_missing(Env *env, Value self, Args &&args, Block *block) {
     }
 }
 
-Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least, Value sent_from) const {
+Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least, Optional<Value> sent_from) const {
     ModuleObject *klass = singleton_class();
     if (!klass)
         klass = m_klass;
@@ -609,7 +592,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     if (visibility >= visibility_at_least)
         return method_info.method();
 
-    if (visibility == MethodVisibility::Protected && sent_from && sent_from.is_a(env, klass))
+    if (visibility == MethodVisibility::Protected && sent_from && sent_from.value().is_a(env, klass))
         return method_info.method();
 
     switch (visibility) {
@@ -733,13 +716,13 @@ void Object::copy_instance_variables(const Value other) {
 }
 
 const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
-    Value obj = nullptr;
+    Optional<Value> obj;
     if (name->is_constant_name()) {
         if (strict) {
             if (m_type == Type::Module || m_type == Type::Class)
                 obj = static_cast<ModuleObject *>(this)->const_get(name);
         } else {
-            obj = m_klass->const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
+            obj = m_klass->const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::None);
         }
         if (obj) return "constant";
     } else if (name->is_global_name()) {

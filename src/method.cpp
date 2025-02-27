@@ -15,9 +15,8 @@ Value Method::call(Env *env, Value self, Args &&args, Block *block) const {
     e.set_line(env->line());
     e.set_block(block);
 
-    if (m_self) {
-        self = m_self;
-    }
+    if (m_self)
+        self = m_self.value();
 
     auto call_fn = [&](Args &&args) {
         if (block && !block->calling_env()) {

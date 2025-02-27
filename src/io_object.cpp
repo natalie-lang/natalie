@@ -281,7 +281,7 @@ Value IoObject::read_file(Env *env, Args &&args) {
     auto filename = args.at(0);
     auto length = args.at(1, Value::nil());
     auto offset = args.at(2, Value::nil());
-    const ioutil::flags_struct flags { env, nullptr, kwargs };
+    const ioutil::flags_struct flags { env, Value::nil(), kwargs };
     if (!flags_is_readable(flags.flags()))
         env->raise("IOError", "not opened for reading");
     if (filename.is_string() && filename.as_string()->string()[0] == '|')

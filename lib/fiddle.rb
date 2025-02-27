@@ -19,7 +19,7 @@ class Fiddle
       path.assert_type(env, Object::Type::String, "String");
       auto handle = dlopen(path.as_string()->c_str(), RTLD_LAZY);
       if (!handle) {
-          auto dl_error = self.klass()->const_find(env, "DLError"_s, Object::ConstLookupSearchMode::NotStrict).as_class();
+          auto dl_error = self.klass()->const_find(env, "DLError"_s, Object::ConstLookupSearchMode::NotStrict).value().as_class();
           env->raise(dl_error, "{}", dlerror());
       }
       auto handle_ptr = new VoidPObject { handle };
@@ -90,7 +90,7 @@ class Fiddle
       auto symbol = self->ivar_get(env, "@symbol"_s).integer().to_nat_int_t();
       auto fn = (void* (*)())symbol;
       auto result = fn();
-      auto pointer_class = self.klass()->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict).as_class();
+      auto pointer_class = self.klass()->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict).value().as_class();
       auto pointer_obj = new Object { Object::Type::Object, pointer_class };
       auto pointer_ptr = new VoidPObject { result };
       pointer_obj->ivar_set(env, "@ptr"_s, pointer_ptr);
@@ -101,7 +101,7 @@ class Fiddle
       auto symbol = self->ivar_get(env, "@symbol"_s).integer().to_nat_int_t();
       auto fn = (void* (*)(void*))symbol;
       void *p1_ptr;
-      auto pointer_class = self.klass()->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict).as_class();
+      auto pointer_class = self.klass()->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict).value().as_class();
       if (p1.is_a(env, pointer_class))
           p1_ptr = p1->ivar_get(env, "@ptr"_s).as_void_p()->void_ptr();
       else if (p1.is_void_p())
