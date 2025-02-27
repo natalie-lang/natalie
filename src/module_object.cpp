@@ -371,14 +371,14 @@ Value ModuleObject::eval_body(Env *env, Value (*fn)(Env *, Value)) {
     return result;
 }
 
-Value ModuleObject::cvar_get_or_null(Env *env, SymbolObject *name) {
+Optional<Value> ModuleObject::cvar_get_maybe(Env *env, SymbolObject *name) {
     if (!name->is_cvar_name())
         env->raise_name_error(name, "`{}' is not allowed as a class variable name", name->string());
 
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     ModuleObject *module = this;
-    Value val = nullptr;
+    Optional<Value> val;
     while (module) {
         val = module->m_class_vars.get(name, env);
         if (val)
@@ -398,7 +398,7 @@ Value ModuleObject::cvar_get_or_null(Env *env, SymbolObject *name) {
             return val;
     }
 
-    return nullptr;
+    return {};
 }
 
 Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
@@ -410,7 +410,7 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
 
         ModuleObject *current = module;
 
-        Value exists = nullptr;
+        Optional<Value> exists;
         while (current) {
             exists = current->m_class_vars.get(name, env);
             if (exists) {
@@ -441,17 +441,17 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
 bool ModuleObject::class_variable_defined(Env *env, Value name) {
     auto *name_sym = name.to_symbol(env, Value::Conversion::Strict);
 
-    return cvar_get_or_null(env, name_sym);
+    return cvar_get_maybe(env, name_sym).present();
 }
 
 Value ModuleObject::class_variable_get(Env *env, Value name) {
     auto *name_sym = name.to_symbol(env, Value::Conversion::Strict);
 
-    auto val = cvar_get_or_null(env, name_sym);
+    auto val = cvar_get_maybe(env, name_sym);
     if (!val) {
         env->raise_name_error(name_sym, "uninitialized class variable {} in {}", name_sym->string(), inspect_str());
     }
-    return val;
+    return val.value();
 }
 
 Value ModuleObject::class_variable_set(Env *env, Value name, Value value) {
@@ -484,13 +484,13 @@ Value ModuleObject::remove_class_variable(Env *env, Value name) {
 
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    auto val = cvar_get_or_null(env, name_sym);
+    auto val = cvar_get_maybe(env, name_sym);
     if (!val)
         env->raise_name_error(name_sym, "uninitialized class variable {} in {}", name_sym->string(), inspect_str());
 
     m_class_vars.remove(name_sym);
 
-    return val;
+    return val.value();
 }
 
 SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
@@ -1149,7 +1149,8 @@ void ModuleObject::visit_children(Visitor &visitor) const {
     }
     for (auto pair : m_class_vars) {
         visitor.visit(pair.first);
-        visitor.visit(pair.second);
+        if (pair.second)
+            visitor.visit(pair.second.value());
     }
     for (auto module : m_included_modules) {
         visitor.visit(module);

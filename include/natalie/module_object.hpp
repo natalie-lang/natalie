@@ -96,7 +96,7 @@ public:
     const Vector<ModuleObject *> &included_modules() { return m_included_modules; }
     bool does_include_module(Env *, Value);
 
-    virtual Value cvar_get_or_null(Env *, SymbolObject *) override;
+    virtual Optional<Value> cvar_get_maybe(Env *, SymbolObject *) override;
     virtual Value cvar_set(Env *, SymbolObject *, Value) override;
     bool class_variable_defined(Env *, Value);
     Value class_variable_get(Env *, Value);
@@ -195,7 +195,7 @@ protected:
     ClassObject *m_superclass { nullptr };
     ModuleObject *m_owner { nullptr };
     TM::Hashmap<SymbolObject *, MethodInfo> m_methods {};
-    TM::Hashmap<SymbolObject *, Value> m_class_vars {};
+    TM::Hashmap<SymbolObject *, Optional<Value>> m_class_vars {};
     Vector<ModuleObject *> m_included_modules {};
     MethodVisibility m_method_visibility { MethodVisibility::Public };
     bool m_module_function { false };
