@@ -840,7 +840,7 @@ Value ArrayObject::shift(Env *env, Optional<Value> count) {
         return Value::nil();
 
     size_t shift_count = 1;
-    Value result = nullptr;
+    Value result;
     if (count) {
         auto count_signed = IntegerMethods::convert_to_nat_int_t(env, count.value());
 
