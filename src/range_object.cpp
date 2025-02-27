@@ -172,7 +172,7 @@ Value RangeObject::each(Env *env, Block *block) {
     auto break_value = iterate_over_range(env, [&](Value item) -> Value {
         Value args[] = { item };
         block->run(env, Args(1, args), nullptr);
-        return nullptr;
+        return {};
     });
     if (break_value)
         return break_value.value();
@@ -188,7 +188,6 @@ Value RangeObject::first(Env *env, Optional<Value> n) {
         nat_int_t count = IntegerMethods::convert_to_nat_int_t(env, n.value());
         if (count < 0) {
             env->raise("ArgumentError", "negative array size (or size too big)");
-            return nullptr;
         }
 
         ArrayObject *ary = new ArrayObject { (size_t)count };
@@ -197,7 +196,7 @@ Value RangeObject::first(Env *env, Optional<Value> n) {
 
             ary->push(item);
             count--;
-            return nullptr;
+            return {};
         });
 
         return ary;
@@ -334,7 +333,7 @@ bool RangeObject::include(Env *env, Value arg) {
         if (arg.send(env, eqeq, { item }).is_truthy())
             return item;
 
-        return nullptr;
+        return {};
     });
 
     return found_item.present();
@@ -431,7 +430,7 @@ Value RangeObject::step(Env *env, Optional<Value> n_arg, Block *block) {
                 block->run(env, { item }, nullptr);
 
             index += 1;
-            return nullptr;
+            return {};
         });
     }
 
