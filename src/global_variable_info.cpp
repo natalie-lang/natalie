@@ -11,12 +11,8 @@ void GlobalVariableInfo::set_object(Env *env, Value value) {
 }
 
 Optional<Value> GlobalVariableInfo::object(Env *env) {
-    if (m_read_hook) {
-        auto result = m_read_hook(env, *this);
-        if (result)
-            return result;
-        return Optional<Value> {};
-    }
+    if (m_read_hook)
+        return m_read_hook(env, *this);
     return m_value;
 }
 
