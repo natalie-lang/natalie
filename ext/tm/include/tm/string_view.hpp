@@ -181,6 +181,27 @@ public:
     }
 
     /**
+     * Returns true if this and the given character are equivalent.
+     *
+     * ```
+     * auto str = String("abc");
+     * auto view = StringView(&str, 1, 1);
+     * assert(view == 'b');
+     * assert_not(view == 'c');
+     *
+     * auto longerview = StringView(&str, 1, 2);
+     * assert_not(longerview == 'b');
+     * ```
+     */
+    bool operator==(const char other) const {
+        return m_length == 1 && (*m_string)[m_offset] == other;
+    }
+
+    bool operator!=(const char other) const {
+        return !(*this == other);
+    }
+
+    /**
      * Returns true if this and the given StringView are equivalent.
      *
      * ```
