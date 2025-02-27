@@ -80,12 +80,11 @@ Value ModuleObject::extend_object(Env *env, Value obj) {
     return obj;
 }
 
-Value ModuleObject::const_get(SymbolObject *name) const {
+Optional<Value> ModuleObject::const_get(SymbolObject *name) const {
     auto constant = m_constants.get(name);
-    if (constant)
-        return constant->value();
-    else
-        return nullptr;
+    if (!constant)
+        return {};
+    return constant->value();
 }
 
 Value ModuleObject::const_get(Env *env, Value name, Optional<Value> inherited) {
@@ -96,7 +95,7 @@ Value ModuleObject::const_get(Env *env, Value name, Optional<Value> inherited) {
             env->raise("NameError", "uninitialized constant {}", symbol->string());
         return send(env, "const_missing"_s, { name });
     }
-    return constant;
+    return constant.value();
 }
 
 Value ModuleObject::const_fetch(SymbolObject *name) const {
@@ -105,7 +104,7 @@ Value ModuleObject::const_fetch(SymbolObject *name) const {
         TM::String::format("Constant {} is missing!\n", name->string()).print();
         abort();
     }
-    return constant;
+    return constant.value();
 }
 
 Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject **found_in_module, ConstLookupSearchMode search_mode) {
@@ -323,7 +322,7 @@ Value ModuleObject::remove_const(Env *env, Value name) {
     if (!constant)
         env->raise("NameError", "constant {} not defined", name_as_sym->string());
     remove_const(name_as_sym);
-    return constant->value();
+    return constant->value().value();
 }
 
 Value ModuleObject::constants(Env *env, Optional<Value> inherit) const {

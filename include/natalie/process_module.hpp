@@ -180,11 +180,11 @@ private:
             rlimit_str->append(rlimit_symbol->string());
             rlimit_symbol = rlimit_str->to_symbol(env);
             auto ProcessMod = GlobalEnv::the()->Object()->const_fetch("Process"_s).as_module();
-            Value rlimval = ProcessMod->const_get(rlimit_symbol);
-            if (!rlimval || !rlimval.is_integer()) {
+            auto rlimval = ProcessMod->const_get(rlimit_symbol);
+            if (!rlimval || !rlimval.value().is_integer()) {
                 env->raise("ArgumentError", "invalid resource {}", rlimit_symbol->string());
             }
-            val = rlimval;
+            val = rlimval.value();
         }
 
         resource = IntegerMethods::convert_to_nat_int_t(env, val);

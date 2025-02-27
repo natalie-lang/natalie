@@ -15,11 +15,7 @@ public:
         , m_autoload_path(autoload_path) {};
 
     SymbolObject *name() const { return m_name; }
-
-    Value value() const {
-        assert(m_value);
-        return m_value;
-    }
+    Optional<Value> value() const { return m_value; }
 
     bool is_private() const { return m_private; }
     void set_private(bool is_private) { this->m_private = is_private; }
@@ -38,7 +34,7 @@ public:
 
 private:
     SymbolObject *m_name;
-    Value m_value { nullptr };
+    Optional<Value> m_value {};
     bool m_private { false };
     bool m_deprecated { false };
     MethodFnPtr m_autoload_fn { nullptr };

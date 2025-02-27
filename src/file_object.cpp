@@ -75,8 +75,7 @@ Value FileObject::absolute_path(Env *env, Value path, Optional<Value> dir_arg) {
     if ((!dir_arg || dir_arg.value().is_nil()) && path.as_string()->eq(env, new StringObject { "~" }))
         return path;
 
-    auto File = GlobalEnv::the()->Object()->const_get("File"_s);
-    assert(File);
+    auto File = GlobalEnv::the()->Object()->const_fetch("File"_s);
     auto dir = dir_arg && !dir_arg.value().is_nil() ? dir_arg.value() : DirObject::pwd(env);
     return File.send(env, "join"_s, { dir, path });
 }

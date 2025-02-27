@@ -56,7 +56,7 @@ public:
     Optional<Value> const_find_with_autoload(Env *, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
     Optional<Value> const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
 
-    Value const_get(SymbolObject *) const;
+    Optional<Value> const_get(SymbolObject *) const;
     Value const_get(Env *, Value, Optional<Value> = {});
     Value const_fetch(SymbolObject *) const;
     Value const_set(SymbolObject *, Value);

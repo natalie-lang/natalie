@@ -72,7 +72,7 @@ Value ProcessModule::kill(Env *env, Args &&args) {
         }
     }
     if (pid_contains_self) {
-        auto signal_exception = GlobalEnv::the()->Object()->const_get("SignalException"_s).as_class();
+        auto signal_exception = GlobalEnv::the()->Object()->const_fetch("SignalException"_s).as_class();
         auto exception = _new(env, signal_exception, { signal }, nullptr).as_exception();
         env->raise_exception(exception);
     }

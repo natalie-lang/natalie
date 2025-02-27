@@ -182,7 +182,7 @@ module Math
           }
       }
       if (value->is_nan()) {
-          return GlobalEnv::the()->Float()->const_get("NAN"_s);
+          return GlobalEnv::the()->Float()->const_fetch("NAN"_s);
       }
       int exponent;
       auto significand = std::frexp(value->to_double(), &exponent);

@@ -275,7 +275,7 @@ Value OpenSSL_Digest_update(Env *env, Value self, Args &&args, Block *) {
 Value OpenSSL_Digest_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto name = args.at(0);
-    auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s).as_module()->const_get("Digest"_s).as_module();
+    auto digest_klass = fetch_nested_const({ "OpenSSL"_s, "Digest"_s }).as_module();
     if (name.is_a(env, digest_klass))
         name = name.send(env, "name"_s);
     if (!name.is_string())
@@ -354,7 +354,7 @@ Value OpenSSL_Digest_digest_length(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_HMAC_digest(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 3);
-    auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s).as_module()->const_get("Digest"_s).as_module();
+    auto digest_klass = fetch_nested_const({ "OpenSSL"_s, "Digest"_s }).as_module();
     auto digest = Object::_new(env, digest_klass, { args[0] }, nullptr);
     auto key = args[1].to_str(env);
     auto data = args[2].to_str(env);
@@ -389,8 +389,10 @@ Value OpenSSL_SSL_SSLContext_set_max_version(Env *env, Value self, Args &&args, 
     if (version.is_string() || version.is_symbol()) {
         version = StringObject::format("{}_VERSION", version.to_s(env)->string());
         const auto SSL = fetch_nested_const({ "OpenSSL"_s, "SSL"_s }).as_module();
-        version = SSL->const_get(version.as_string()->to_sym(env).as_symbol());
-        if (!version)
+        auto lookup_version = SSL->const_get(version.as_string()->to_sym(env).as_symbol());
+        if (lookup_version)
+            version = lookup_version.value();
+        else
             env->raise("ArgumentError", "unrecognized version \"{}\"", args[0].to_s(env)->string());
     }
 
@@ -411,8 +413,10 @@ Value OpenSSL_SSL_SSLContext_set_min_version(Env *env, Value self, Args &&args, 
     if (version.is_string() || version.is_symbol()) {
         version = StringObject::format("{}_VERSION", version.to_s(env)->string());
         const auto SSL = fetch_nested_const({ "OpenSSL"_s, "SSL"_s }).as_module();
-        version = SSL->const_get(version.as_string()->to_sym(env).as_symbol());
-        if (!version)
+        auto lookup_version = SSL->const_get(version.as_string()->to_sym(env).as_symbol());
+        if (lookup_version)
+            version = lookup_version.value();
+        else
             env->raise("ArgumentError", "unrecognized version \"{}\"", args[0].to_s(env)->string());
     }
 
@@ -518,7 +522,7 @@ Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args &&args, Block 
     if (!io.is_io())
         env->raise("TypeError", "wrong argument type {} (expected File)", io.klass()->inspect_str());
     auto context = args.at(1, nullptr);
-    auto SSLContext = GlobalEnv::the()->Object()->const_get("OpenSSL"_s).as_module()->const_get("SSL"_s).as_module()->const_get("SSLContext"_s);
+    auto SSLContext = fetch_nested_const({ "OpenSSL"_s, "SSL"_s, "SSLContext"_s });
     if (!context || context.is_nil()) {
         context = Object::_new(env, SSLContext, {}, nullptr);
     } else {
@@ -968,7 +972,7 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
     auto iterations = kwargs->remove(env, "iterations"_s).value().to_int(env);
     auto length = kwargs->remove(env, "length"_s).value().to_int(env);
     auto hash = kwargs->remove(env, "hash"_s).value();
-    auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s).as_module()->const_get("Digest"_s).as_module();
+    auto digest_klass = fetch_nested_const({ "OpenSSL"_s, "Digest"_s }).as_module();
     if (!hash.is_a(env, digest_klass))
         hash = Object::_new(env, digest_klass, { hash }, nullptr);
     hash = hash.send(env, "name"_s);
@@ -985,9 +989,9 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
         md,
         out_size, out);
     if (!result) {
-        auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s).as_module();
-        auto KDF = OpenSSL->const_get("KDF"_s).as_module();
-        auto KDFError = KDF->const_get("KDFError"_s);
+        auto OpenSSL = GlobalEnv::the()->Object()->const_fetch("OpenSSL"_s).as_module();
+        auto KDF = OpenSSL->const_fetch("KDF"_s).as_module();
+        auto KDFError = KDF->const_fetch("KDFError"_s);
         OpenSSL_raise_error(env, "PKCS5_PBKDF2_HMAC", KDFError.as_class());
     }
 
@@ -1008,9 +1012,9 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
         env->raise("ArgumentError", "negative string size (or size too big)");
     env->ensure_no_extra_keywords(kwargs);
 
-    auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s).as_module();
-    auto KDF = OpenSSL->const_get("KDF"_s).as_module();
-    auto KDFError = KDF->const_get("KDFError"_s);
+    auto OpenSSL = GlobalEnv::the()->Object()->const_fetch("OpenSSL"_s).as_module();
+    auto KDF = OpenSSL->const_fetch("KDF"_s).as_module();
+    auto KDFError = KDF->const_fetch("KDFError"_s);
     auto pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_SCRYPT, nullptr);
     Defer pctx_free { [&pctx]() { EVP_PKEY_CTX_free(pctx); } };
     size_t outlen = length.to_nat_int_t();
@@ -1043,8 +1047,11 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
 Value init_openssl(Env *env, Value self) {
     OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, nullptr);
 
-    auto OpenSSL = static_cast<ModuleObject *>(GlobalEnv::the()->Object()->const_get("OpenSSL"_s).object());
-    if (!OpenSSL) {
+    ModuleObject *OpenSSL;
+    auto lookup_OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+    if (lookup_OpenSSL) {
+        OpenSSL = lookup_OpenSSL.value().as_module();
+    } else {
         OpenSSL = new ModuleObject { "OpenSSL" };
         GlobalEnv::the()->Object()->const_set("OpenSSL"_s, OpenSSL);
     }
@@ -1062,8 +1069,11 @@ Value init_openssl(Env *env, Value self) {
     OpenSSL->const_set("OPENSSL_VERSION_NUMBER"_s, Value::integer(OPENSSL_VERSION_NUMBER));
     Object::define_singleton_method(env, OpenSSL, "fixed_length_secure_compare"_s, OpenSSL_fixed_length_secure_compare, 2);
 
-    auto Cipher = OpenSSL->const_get("Cipher"_s);
-    if (!Cipher) {
+    Value Cipher;
+    auto lookup_Cipher = OpenSSL->const_get("Cipher"_s);
+    if (lookup_Cipher) {
+        Cipher = lookup_Cipher.value();
+    } else {
         Cipher = GlobalEnv::the()->Object()->subclass(env, "Cipher");
         OpenSSL->const_set("Cipher"_s, Cipher);
     }
@@ -1079,8 +1089,11 @@ Value init_openssl(Env *env, Value self) {
     Object::define_method(env, Cipher, "update"_s, OpenSSL_Cipher_update, 1);
     Object::define_singleton_method(env, Cipher, "ciphers"_s, OpenSSL_Cipher_ciphers, 0);
 
-    auto Digest = OpenSSL->const_get("Digest"_s);
-    if (!Digest) {
+    Value Digest;
+    auto lookup_Digest = OpenSSL->const_get("Digest"_s);
+    if (lookup_Digest) {
+        Digest = lookup_Digest.value();
+    } else {
         Digest = GlobalEnv::the()->Object()->subclass(env, "Digest");
         OpenSSL->const_set("Digest"_s, Digest);
     }
@@ -1092,15 +1105,21 @@ Value init_openssl(Env *env, Value self) {
     Object::define_method(env, Digest, "update"_s, OpenSSL_Digest_update, 1);
     Object::define_method(env, Digest, "<<"_s, OpenSSL_Digest_update, 1);
 
-    auto HMAC = OpenSSL->const_get("HMAC"_s);
-    if (!HMAC) {
+    Value HMAC;
+    auto lookup_HMAC = OpenSSL->const_get("HMAC"_s);
+    if (lookup_HMAC) {
+        HMAC = lookup_HMAC.value();
+    } else {
         HMAC = GlobalEnv::the()->Object()->subclass(env, "HMAC");
         OpenSSL->const_set("HMAC"_s, HMAC);
     }
     Object::define_singleton_method(env, HMAC, "digest"_s, OpenSSL_HMAC_digest, 3);
 
-    auto KDF = OpenSSL->const_get("KDF"_s);
-    if (!KDF) {
+    Value KDF;
+    auto lookup_KDF = OpenSSL->const_get("KDF"_s);
+    if (lookup_KDF) {
+        KDF = lookup_KDF.value();
+    } else {
         KDF = new ModuleObject { "KDF" };
         OpenSSL->const_set("KDF"_s, KDF);
     }
@@ -1189,11 +1208,11 @@ Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 2, 3);
     auto oid = args.at(0).to_str(env);
     auto value = args.at(1).to_str(env);
-    auto type = args.at(2, nullptr);
-    if (type && !type.is_nil()) {
+    auto type = args.at(2, Value::nil());
+    if (!type.is_nil()) {
         type = type.to_int(env);
     } else {
-        auto OBJECT_TYPE_TEMPLATE = self.klass()->const_get("OBJECT_TYPE_TEMPLATE"_s).as_hash();
+        auto OBJECT_TYPE_TEMPLATE = self.klass()->const_fetch("OBJECT_TYPE_TEMPLATE"_s).as_hash();
         type = OBJECT_TYPE_TEMPLATE->ref(env, oid);
     }
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s).as_void_p()->void_ptr());
@@ -1211,7 +1230,7 @@ Value OpenSSL_X509_Name_initialize(Env *env, Value self, Args &&args, Block *) {
         OpenSSL_X509_Name_raise_error(env, "X509_NAME_new");
     self->ivar_set(env, "@name"_s, new VoidPObject { name, OpenSSL_X509_NAME_cleanup });
     if (args.size() > 0) {
-        HashObject *lookup = self.klass()->const_get("OBJECT_TYPE_TEMPLATE"_s).as_hash();
+        HashObject *lookup = self.klass()->const_fetch("OBJECT_TYPE_TEMPLATE"_s).as_hash();
         if (args.size() >= 2 && !args.at(1).is_nil())
             lookup = args.at(1).to_hash(env);
         for (auto entry : *args.at(0).to_ary(env)) {
