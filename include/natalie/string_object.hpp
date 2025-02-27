@@ -404,6 +404,7 @@ public:
     Value tr_in_place(Env *, Value, Value);
     static Value try_convert(Env *, Value);
     Value uminus(Env *);
+    Value undump(Env *) const;
     Value unpack(Env *, Value, Optional<Value> = {}) const;
     Value unpack1(Env *, Value, Optional<Value> = {}) const;
     StringObject *upcase(Env *, Optional<Value> = {}, Optional<Value> = {});

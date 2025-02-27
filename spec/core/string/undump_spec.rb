@@ -313,80 +313,86 @@ describe "String#undump" do
   end
 
   it "returns a string with \\u{} notation replaced with multi-byte UTF-8 characters" do
-    [ ['"\u{80}"', 0200.chr('utf-8')],
-      ['"\u{81}"', 0201.chr('utf-8')],
-      ['"\u{82}"', 0202.chr('utf-8')],
-      ['"\u{83}"', 0203.chr('utf-8')],
-      ['"\u{84}"', 0204.chr('utf-8')],
-      ['"\u{86}"', 0206.chr('utf-8')],
-      ['"\u{87}"', 0207.chr('utf-8')],
-      ['"\u{88}"', 0210.chr('utf-8')],
-      ['"\u{89}"', 0211.chr('utf-8')],
-      ['"\u{8a}"', 0212.chr('utf-8')],
-      ['"\u{8b}"', 0213.chr('utf-8')],
-      ['"\u{8c}"', 0214.chr('utf-8')],
-      ['"\u{8d}"', 0215.chr('utf-8')],
-      ['"\u{8e}"', 0216.chr('utf-8')],
-      ['"\u{8f}"', 0217.chr('utf-8')],
-      ['"\u{90}"', 0220.chr('utf-8')],
-      ['"\u{91}"', 0221.chr('utf-8')],
-      ['"\u{92}"', 0222.chr('utf-8')],
-      ['"\u{93}"', 0223.chr('utf-8')],
-      ['"\u{94}"', 0224.chr('utf-8')],
-      ['"\u{95}"', 0225.chr('utf-8')],
-      ['"\u{96}"', 0226.chr('utf-8')],
-      ['"\u{97}"', 0227.chr('utf-8')],
-      ['"\u{98}"', 0230.chr('utf-8')],
-      ['"\u{99}"', 0231.chr('utf-8')],
-      ['"\u{9a}"', 0232.chr('utf-8')],
-      ['"\u{9b}"', 0233.chr('utf-8')],
-      ['"\u{9c}"', 0234.chr('utf-8')],
-      ['"\u{9d}"', 0235.chr('utf-8')],
-      ['"\u{9e}"', 0236.chr('utf-8')],
-      ['"\u{9f}"', 0237.chr('utf-8')],
-    ].should be_computed_by(:undump)
+    NATFIXME 'it returns a string with \\u{} notation replaced with multi-byte UTF-8 characters', exception: SpecFailedException do
+      [ ['"\u{80}"', 0200.chr('utf-8')],
+        ['"\u{81}"', 0201.chr('utf-8')],
+        ['"\u{82}"', 0202.chr('utf-8')],
+        ['"\u{83}"', 0203.chr('utf-8')],
+        ['"\u{84}"', 0204.chr('utf-8')],
+        ['"\u{86}"', 0206.chr('utf-8')],
+        ['"\u{87}"', 0207.chr('utf-8')],
+        ['"\u{88}"', 0210.chr('utf-8')],
+        ['"\u{89}"', 0211.chr('utf-8')],
+        ['"\u{8a}"', 0212.chr('utf-8')],
+        ['"\u{8b}"', 0213.chr('utf-8')],
+        ['"\u{8c}"', 0214.chr('utf-8')],
+        ['"\u{8d}"', 0215.chr('utf-8')],
+        ['"\u{8e}"', 0216.chr('utf-8')],
+        ['"\u{8f}"', 0217.chr('utf-8')],
+        ['"\u{90}"', 0220.chr('utf-8')],
+        ['"\u{91}"', 0221.chr('utf-8')],
+        ['"\u{92}"', 0222.chr('utf-8')],
+        ['"\u{93}"', 0223.chr('utf-8')],
+        ['"\u{94}"', 0224.chr('utf-8')],
+        ['"\u{95}"', 0225.chr('utf-8')],
+        ['"\u{96}"', 0226.chr('utf-8')],
+        ['"\u{97}"', 0227.chr('utf-8')],
+        ['"\u{98}"', 0230.chr('utf-8')],
+        ['"\u{99}"', 0231.chr('utf-8')],
+        ['"\u{9a}"', 0232.chr('utf-8')],
+        ['"\u{9b}"', 0233.chr('utf-8')],
+        ['"\u{9c}"', 0234.chr('utf-8')],
+        ['"\u{9d}"', 0235.chr('utf-8')],
+        ['"\u{9e}"', 0236.chr('utf-8')],
+        ['"\u{9f}"', 0237.chr('utf-8')],
+      ].should be_computed_by(:undump)
+    end
   end
 
   it "returns a string with \\uXXXX notation replaced with multi-byte UTF-8 characters" do
-    [ ['"\u0080"', 0200.chr('utf-8')],
-      ['"\u0081"', 0201.chr('utf-8')],
-      ['"\u0082"', 0202.chr('utf-8')],
-      ['"\u0083"', 0203.chr('utf-8')],
-      ['"\u0084"', 0204.chr('utf-8')],
-      ['"\u0086"', 0206.chr('utf-8')],
-      ['"\u0087"', 0207.chr('utf-8')],
-      ['"\u0088"', 0210.chr('utf-8')],
-      ['"\u0089"', 0211.chr('utf-8')],
-      ['"\u008a"', 0212.chr('utf-8')],
-      ['"\u008b"', 0213.chr('utf-8')],
-      ['"\u008c"', 0214.chr('utf-8')],
-      ['"\u008d"', 0215.chr('utf-8')],
-      ['"\u008e"', 0216.chr('utf-8')],
-      ['"\u008f"', 0217.chr('utf-8')],
-      ['"\u0090"', 0220.chr('utf-8')],
-      ['"\u0091"', 0221.chr('utf-8')],
-      ['"\u0092"', 0222.chr('utf-8')],
-      ['"\u0093"', 0223.chr('utf-8')],
-      ['"\u0094"', 0224.chr('utf-8')],
-      ['"\u0095"', 0225.chr('utf-8')],
-      ['"\u0096"', 0226.chr('utf-8')],
-      ['"\u0097"', 0227.chr('utf-8')],
-      ['"\u0098"', 0230.chr('utf-8')],
-      ['"\u0099"', 0231.chr('utf-8')],
-      ['"\u009a"', 0232.chr('utf-8')],
-      ['"\u009b"', 0233.chr('utf-8')],
-      ['"\u009c"', 0234.chr('utf-8')],
-      ['"\u009d"', 0235.chr('utf-8')],
-      ['"\u009e"', 0236.chr('utf-8')],
-      ['"\u009f"', 0237.chr('utf-8')],
-    ].should be_computed_by(:undump)
+    NATFIXME 'it returns a string with \\uXXXX notation replaced with multi-byte UTF-8 characters', exception: SpecFailedException do
+      [ ['"\u0080"', 0200.chr('utf-8')],
+        ['"\u0081"', 0201.chr('utf-8')],
+        ['"\u0082"', 0202.chr('utf-8')],
+        ['"\u0083"', 0203.chr('utf-8')],
+        ['"\u0084"', 0204.chr('utf-8')],
+        ['"\u0086"', 0206.chr('utf-8')],
+        ['"\u0087"', 0207.chr('utf-8')],
+        ['"\u0088"', 0210.chr('utf-8')],
+        ['"\u0089"', 0211.chr('utf-8')],
+        ['"\u008a"', 0212.chr('utf-8')],
+        ['"\u008b"', 0213.chr('utf-8')],
+        ['"\u008c"', 0214.chr('utf-8')],
+        ['"\u008d"', 0215.chr('utf-8')],
+        ['"\u008e"', 0216.chr('utf-8')],
+        ['"\u008f"', 0217.chr('utf-8')],
+        ['"\u0090"', 0220.chr('utf-8')],
+        ['"\u0091"', 0221.chr('utf-8')],
+        ['"\u0092"', 0222.chr('utf-8')],
+        ['"\u0093"', 0223.chr('utf-8')],
+        ['"\u0094"', 0224.chr('utf-8')],
+        ['"\u0095"', 0225.chr('utf-8')],
+        ['"\u0096"', 0226.chr('utf-8')],
+        ['"\u0097"', 0227.chr('utf-8')],
+        ['"\u0098"', 0230.chr('utf-8')],
+        ['"\u0099"', 0231.chr('utf-8')],
+        ['"\u009a"', 0232.chr('utf-8')],
+        ['"\u009b"', 0233.chr('utf-8')],
+        ['"\u009c"', 0234.chr('utf-8')],
+        ['"\u009d"', 0235.chr('utf-8')],
+        ['"\u009e"', 0236.chr('utf-8')],
+        ['"\u009f"', 0237.chr('utf-8')],
+      ].should be_computed_by(:undump)
+    end
   end
 
   it "undumps correctly string produced from non ASCII-compatible one" do
     s = "\u{876}".encode('utf-16be')
-    s.dump.undump.should == s
+    NATFIXME 'it undumps correctly string produced from non ASCII-compatible one', exception: Encoding::CompatibilityError, message: /ASCII incompatible encoding/ do
+      s.dump.undump.should == s
 
-    '"\\bv".force_encoding("UTF-16BE")'.undump.should == "\u0876".encode('utf-16be')
+      '"\\bv".force_encoding("UTF-16BE")'.undump.should == "\u0876".encode('utf-16be')
+    end
   end
 
   it "returns a String in the same encoding as self" do
@@ -414,16 +420,20 @@ describe "String#undump" do
     end
 
     it "raises RuntimeError in there is incorrect \\u sequence" do
-      -> { '"\\u"'.undump }.should raise_error(RuntimeError, /invalid Unicode escape/)
-      -> { '"\\u{"'.undump }.should raise_error(RuntimeError, /invalid Unicode escape/)
-      -> { '"\\u{3042"'.undump }.should raise_error(RuntimeError, /invalid Unicode escape/)
-      -> { '"\\u"'.undump }.should raise_error(RuntimeError, /invalid Unicode escape/)
+      NATFIXME 'it raises RuntimeError in there is incorrect \\u sequence', exception: SpecFailedException do
+        -> { '"\\u"'.undump }.should raise_error(RuntimeError, /invalid Unicode escape/)
+        -> { '"\\u{"'.undump }.should raise_error(RuntimeError, /invalid Unicode escape/)
+        -> { '"\\u{3042"'.undump }.should raise_error(RuntimeError, /invalid Unicode escape/)
+        -> { '"\\u"'.undump }.should raise_error(RuntimeError, /invalid Unicode escape/)
+      end
     end
 
     it "raises RuntimeError if there is malformed dump of non ASCII-compatible string" do
-      -> { '"".force_encoding("BINARY"'.undump }.should raise_error(RuntimeError, /invalid dumped string/)
-      -> { '"".force_encoding("Unknown")'.undump }.should raise_error(RuntimeError, /dumped string has unknown encoding name/)
-      -> { '"".force_encoding()'.undump }.should raise_error(RuntimeError, /invalid dumped string/)
+      NATFIXME 'it raises RuntimeError if there is malformed dump of non ASCII-compatible string', exception: SpecFailedException do
+        -> { '"".force_encoding("BINARY"'.undump }.should raise_error(RuntimeError, /invalid dumped string/)
+        -> { '"".force_encoding("Unknown")'.undump }.should raise_error(RuntimeError, /dumped string has unknown encoding name/)
+        -> { '"".force_encoding()'.undump }.should raise_error(RuntimeError, /invalid dumped string/)
+      end
     end
 
     it "raises RuntimeError if string contains \0 character" do
