@@ -10,7 +10,7 @@ Object::Object(const Object &other)
     , m_type { other.m_type }
     , m_singleton_class { nullptr } {
     if (other.m_ivars)
-        m_ivars = new TM::Hashmap<SymbolObject *, Value> { *other.m_ivars };
+        m_ivars = new TM::Hashmap<SymbolObject *, Optional<Value>> { *other.m_ivars };
 }
 
 Optional<Value> Object::create(Env *env, ClassObject *klass) {
@@ -332,7 +332,7 @@ Value Object::ivar_get(Env *env, SymbolObject *name) {
 
     auto val = m_ivars->get(name, env);
     if (val)
-        return val;
+        return val.value();
     else
         return Value::nil();
 }
@@ -348,7 +348,7 @@ Value Object::ivar_remove(Env *env, SymbolObject *name) {
 
     auto val = m_ivars->remove(name, env);
     if (val)
-        return val;
+        return val.value();
     else
         env->raise("NameError", "instance variable {} not defined", name->string());
 }
@@ -363,7 +363,7 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->string());
 
     if (!m_ivars)
-        m_ivars = new TM::Hashmap<SymbolObject *, Value> {};
+        m_ivars = new TM::Hashmap<SymbolObject *, Optional<Value>> {};
 
     m_ivars->put(name, val, env);
     return val;
@@ -710,7 +710,7 @@ void Object::copy_instance_variables(const Value other) {
 
     auto ivars = other.object()->m_ivars;
     if (ivars)
-        m_ivars = new TM::Hashmap<SymbolObject *, Value> { *ivars };
+        m_ivars = new TM::Hashmap<SymbolObject *, Optional<Value>> { *ivars };
 }
 
 const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
@@ -856,7 +856,8 @@ void Object::visit_children(Visitor &visitor) const {
     if (m_ivars) {
         for (auto pair : *m_ivars) {
             visitor.visit(pair.first);
-            visitor.visit(pair.second);
+            if (pair.second)
+                visitor.visit(pair.second.value());
         }
     }
 }

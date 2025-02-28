@@ -209,7 +209,7 @@ private:
     Type m_type { Type::Object };
     ClassObject *m_singleton_class { nullptr };
     bool m_frozen { false };
-    TM::Hashmap<SymbolObject *, Value> *m_ivars { nullptr };
+    TM::Hashmap<SymbolObject *, Optional<Value>> *m_ivars { nullptr };
 };
 
 }
