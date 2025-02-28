@@ -1319,16 +1319,16 @@ Value ArrayObject::minmax(Env *env, Block *block) {
         return nat_int;
     };
 
-    Value max;
-    Value min;
+    Optional<Value> max;
+    Optional<Value> min;
 
     for (auto item : *this) {
-        if (max == nullptr || compare(item, max) > 0)
+        if (!max || compare(item, max.value()) > 0)
             max = item;
-        if (min == nullptr || compare(item, min) < 0)
+        if (!min || compare(item, min.value()) < 0)
             min = item;
     }
-    return new ArrayObject { min, max };
+    return new ArrayObject { min.value(), max.value() };
 }
 
 Value ArrayObject::multiply(Env *env, Value factor) {
