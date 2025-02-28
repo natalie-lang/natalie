@@ -91,7 +91,7 @@ module FFI
 
     def self.new_value
       __inline__ <<~END
-        auto *v = new Value { nullptr };
+        auto *v = new Value;
         return self.send(env, "new"_s, { Value::integer((uintptr_t)v) });
       END
     end
