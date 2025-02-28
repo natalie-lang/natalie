@@ -18,7 +18,8 @@ constexpr unsigned int NIL_VALUE = 0x4;
 
 class Value {
 public:
-    Value() = default;
+    Value()
+        : m_value { NIL_VALUE } { }
 
     Value(std::nullptr_t) = delete;
 
