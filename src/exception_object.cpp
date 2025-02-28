@@ -176,6 +176,7 @@ Value ExceptionObject::set_backtrace(Env *env, Value backtrace) {
         m_backtrace_value = new ArrayObject { backtrace };
     } else if (backtrace.is_nil()) {
         m_backtrace_value = nullptr;
+        return Value::nil();
     } else {
         env->raise("TypeError", "backtrace must be Array of String");
     }
