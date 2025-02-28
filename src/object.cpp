@@ -13,7 +13,7 @@ Object::Object(const Object &other)
         m_ivars = new TM::Hashmap<SymbolObject *, Value> { *other.m_ivars };
 }
 
-Value Object::create(Env *env, ClassObject *klass) {
+Optional<Value> Object::create(Env *env, ClassObject *klass) {
     if (klass->is_singleton())
         env->raise("TypeError", "can't create instance of singleton class");
 
@@ -137,8 +137,7 @@ Value Object::create(Env *env, ClassObject *klass) {
     case Object::Type::Symbol:
     case Object::Type::True:
     case Object::Type::UnboundMethod:
-        obj = nullptr;
-        break;
+        return {};
 
     case Object::Type::BigInt:
     case Object::Type::Collected:
@@ -149,12 +148,12 @@ Value Object::create(Env *env, ClassObject *klass) {
 }
 
 Value Object::_new(Env *env, Value klass_value, Args &&args, Block *block) {
-    Value obj = create(env, klass_value.as_class());
+    auto obj = create(env, klass_value.as_class());
     if (!obj)
         NAT_UNREACHABLE();
 
-    obj.send(env, "initialize"_s, std::move(args), block);
-    return obj;
+    obj.value().send(env, "initialize"_s, std::move(args), block);
+    return obj.value();
 }
 
 Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
@@ -164,11 +163,10 @@ Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
     if (!klass->respond_to(env, "allocate"_s))
         env->raise("TypeError", "calling {}.allocate is prohibited", klass->inspect_str());
 
-    Value obj;
+    Optional<Value> obj;
     switch (klass->object_type()) {
     case Object::Type::Proc:
     case Object::Type::EnumeratorArithmeticSequence:
-        obj = nullptr;
         break;
 
     default:
@@ -179,7 +177,7 @@ Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
     if (!obj)
         env->raise("TypeError", "allocator undefined for {}", klass->inspect_str());
 
-    return obj;
+    return obj.value();
 }
 
 Value Object::initialize(Env *env, Value self) {

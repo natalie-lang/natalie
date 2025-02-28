@@ -7,18 +7,18 @@ namespace Natalie {
 
 class ThrowCatchException : public Cell {
 public:
-    ThrowCatchException(Value name, Value value = nullptr)
+    ThrowCatchException(Value name, Optional<Value> value = {})
         : m_name { name }
         , m_value { value } { }
 
     Value get_name() const { return m_name; }
-    Value get_value() const { return m_value; }
+    Optional<Value> get_value() const { return m_value; }
 
     virtual void visit_children(Visitor &visitor) const override;
 
 private:
-    Value m_name { nullptr };
-    Value m_value { nullptr };
+    Value m_name {};
+    Optional<Value> m_value {};
 };
 
 }

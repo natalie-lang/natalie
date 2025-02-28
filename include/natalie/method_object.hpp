@@ -54,7 +54,7 @@ public:
     }
 
 private:
-    Value m_object { nullptr };
+    Value m_object;
     SymbolObject *m_method_missing_name { nullptr };
 };
 }

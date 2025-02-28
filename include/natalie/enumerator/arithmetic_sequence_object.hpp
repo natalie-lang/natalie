@@ -79,9 +79,9 @@ private:
 
     Origin m_origin;
     TM::String m_range_origin_method {};
-    Value m_begin { nullptr };
-    Value m_end { nullptr };
-    Value m_step { nullptr };
+    Value m_begin {};
+    Value m_end {};
+    Value m_step {};
     Optional<Integer> m_step_count {};
     bool m_exclude_end { false };
     Optional<bool> m_ascending {};

@@ -32,7 +32,7 @@ public:
 private:
     StringObject *m_source_location { nullptr };
     StringObject *m_file { nullptr };
-    Value m_line { nullptr };
+    Value m_line {};
 };
 
 }

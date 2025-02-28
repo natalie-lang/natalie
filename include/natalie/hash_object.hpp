@@ -244,7 +244,7 @@ private:
     bool m_is_iterating { false };
     bool m_is_comparing_by_identity { false };
     bool m_is_ruby2_keywords_hash { false };
-    Value m_default_value { nullptr };
+    Value m_default_value {};
     ProcObject *m_default_proc { nullptr };
 };
 }

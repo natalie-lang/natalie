@@ -47,7 +47,7 @@ public:
     }
 
 private:
-    Value m_real { nullptr };
-    Value m_imaginary { nullptr };
+    Value m_real {};
+    Value m_imaginary {};
 };
 }

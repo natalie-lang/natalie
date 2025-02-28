@@ -122,7 +122,8 @@ Value Zlib_deflate_deflate(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto string = args[0].as_string_or_raise(env);
     auto flush = Z_NO_FLUSH;
-    if (auto flush_obj = args.at(1, nullptr); flush_obj)
+    auto flush_obj = args.at(1, Value::nil());
+    if (!flush_obj.is_nil())
         flush = flush_obj.integer_or_raise(env).to_nat_int_t();
 
     Zlib_do_deflate(env, self, string->string(), flush);
@@ -276,7 +277,8 @@ Value Zlib_inflate_inflate(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto string = args[0].as_string_or_raise(env);
     auto flush = Z_NO_FLUSH;
-    if (auto flush_obj = args.at(1, nullptr); flush_obj)
+    auto flush_obj = args.at(1, Value::nil());
+    if (!flush_obj.is_nil())
         flush = flush_obj.integer_or_raise(env).to_nat_int_t();
 
     Zlib_do_inflate(env, self, string->string(), flush);

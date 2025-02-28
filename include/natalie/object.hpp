@@ -204,7 +204,7 @@ protected:
     ClassObject *m_klass { nullptr };
 
 private:
-    static Value create(Env *, ClassObject *);
+    static Optional<Value> create(Env *, ClassObject *);
 
     Type m_type { Type::Object };
     ClassObject *m_singleton_class { nullptr };

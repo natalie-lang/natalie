@@ -20,6 +20,8 @@ class Value {
 public:
     Value() = default;
 
+    Value(std::nullptr_t) = delete;
+
     Value(Object *object)
         : m_value { reinterpret_cast<uintptr_t>(object) } { }
 

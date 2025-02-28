@@ -305,11 +305,11 @@ Value IoObject::write_file(Env *env, Args &&args) {
 
     auto filename = args.at(0);
     auto string = args.at(1);
-    auto offset = args.at(2, nullptr);
+    auto offset = args.at(2, Value::nil());
     auto mode = Value::integer(O_WRONLY | O_CREAT | O_CLOEXEC);
-    Value perm = nullptr;
+    Value perm = Value::nil();
 
-    if (!offset || offset.is_nil())
+    if (offset.is_nil())
         mode = Value::integer(IntegerMethods::convert_to_nat_int_t(env, mode) | O_TRUNC);
     if (kwargs && kwargs->has_key(env, "mode"_s))
         mode = kwargs->delete_key(env, "mode"_s, nullptr);
@@ -328,7 +328,7 @@ Value IoObject::write_file(Env *env, Args &&args) {
         file = _new(env, File, Args(next_args, open_args_has_kw), nullptr).as_file();
     } else {
         auto next_args = new ArrayObject { filename, mode };
-        if (perm)
+        if (!perm.is_nil())
             next_args->push(perm);
         if (kwargs)
             next_args->push(kwargs);
@@ -1045,7 +1045,7 @@ Value IoObject::syswrite(Env *env, Value obj) {
 
     auto str = obj.to_s(env);
     if (str->is_empty())
-        return 0;
+        return Value::integer(0);
 
     auto result = ::write(m_fileno, str->c_str(), str->bytesize());
     if (result == -1)

@@ -130,7 +130,7 @@ Value KernelModule::catch_method(Env *env, Optional<Value> name_arg, Block *bloc
         return block->run(&block_env, { name }, nullptr);
     } catch (ThrowCatchException *e) {
         if (Object::equal(e->get_name(), name))
-            return e->get_value();
+            return e->get_value().value_or(Value::nil());
         else
             throw e;
     }

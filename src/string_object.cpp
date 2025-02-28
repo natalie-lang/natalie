@@ -1287,7 +1287,7 @@ Value StringObject::scan(Env *env, Value pattern, Block *block) {
     size_t byte_index = 0;
     size_t new_byte_index = 0;
     size_t total_size = m_string.size();
-    Value match_value = nullptr;
+    Value match_value;
     MatchDataObject *match_obj = nullptr;
 
     auto caller_env = env->caller();
