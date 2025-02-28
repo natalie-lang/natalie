@@ -61,8 +61,9 @@ Optional<Value> RangeObject::iterate_over_range(Env *env, Function &&func) {
         if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
             func(item);
         } else {
-            if (Value ptr = func(item))
-                return ptr;
+            Optional<Value> result = func(item);
+            if (result)
+                return result;
         }
 
         if (!done) {
@@ -93,8 +94,9 @@ Optional<Value> RangeObject::iterate_over_integer_range(Env *env, Function &&fun
             if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
                 func(i);
             } else {
-                if (Value ptr = func(i))
-                    return ptr;
+                Optional<Value> result = func(i);
+                if (result)
+                    return result;
             }
         }
     } else {
@@ -102,8 +104,9 @@ Optional<Value> RangeObject::iterate_over_integer_range(Env *env, Function &&fun
             if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
                 func(i);
             } else {
-                if (Value ptr = func(i))
-                    return ptr;
+                Optional<Value> result = func(i);
+                if (result)
+                    return result;
             }
         }
     }
@@ -123,8 +126,9 @@ Optional<Value> RangeObject::iterate_over_string_range(Env *env, Function &&func
         if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
             func(new StringObject { current.value() });
         } else {
-            if (Value ptr = func(new StringObject { current.value() }))
-                return ptr;
+            Optional<Value> result = func(new StringObject { current.value() });
+            if (result)
+                return result;
         }
     }
 
@@ -144,8 +148,9 @@ Optional<Value> RangeObject::iterate_over_symbol_range(Env *env, Function &&func
         if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
             func(SymbolObject::intern(current.value()));
         } else {
-            if (Value ptr = func(SymbolObject::intern(current.value())))
-                return ptr;
+            Optional<Value> result = func(SymbolObject::intern(current.value()));
+            if (result)
+                return result;
         }
     }
 
@@ -169,7 +174,7 @@ Value RangeObject::each(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
 
-    auto break_value = iterate_over_range(env, [&](Value item) -> Value {
+    auto break_value = iterate_over_range(env, [&](Value item) -> Optional<Value> {
         Value args[] = { item };
         block->run(env, Args(1, args), nullptr);
         return {};
@@ -191,7 +196,7 @@ Value RangeObject::first(Env *env, Optional<Value> n) {
         }
 
         ArrayObject *ary = new ArrayObject { (size_t)count };
-        iterate_over_range(env, [&](Value item) -> Value {
+        iterate_over_range(env, [&](Value item) -> Optional<Value> {
             if (count == 0) return n.value();
 
             ary->push(item);
@@ -329,7 +334,7 @@ bool RangeObject::include(Env *env, Value arg) {
     auto eqeq = "=="_s;
     // NATFIXME: Break out of iteration if current arg is smaller than item.
     // This means we have to implement a way to break out of `iterate_over_range`
-    auto found_item = iterate_over_range(env, [&](Value item) -> Value {
+    auto found_item = iterate_over_range(env, [&](Value item) -> Optional<Value> {
         if (arg.send(env, eqeq, { item }).is_truthy())
             return item;
 
@@ -425,7 +430,7 @@ Value RangeObject::step(Env *env, Optional<Value> n_arg, Block *block) {
         auto step = n.to_int(env);
 
         Integer index = 0;
-        iterate_over_range(env, [env, block, &index, step](Value item) -> Value {
+        iterate_over_range(env, [env, block, &index, step](Value item) -> Optional<Value> {
             if (index % step == 0)
                 block->run(env, { item }, nullptr);
 
