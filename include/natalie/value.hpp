@@ -23,7 +23,9 @@ public:
     Value(std::nullptr_t) = delete;
 
     Value(Object *object)
-        : m_value { reinterpret_cast<uintptr_t>(object) } { }
+        : m_value { reinterpret_cast<uintptr_t>(object) } {
+        assert(object != nullptr);
+    }
 
     explicit Value(nat_int_t integer);
 
