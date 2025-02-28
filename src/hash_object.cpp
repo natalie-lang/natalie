@@ -139,6 +139,8 @@ Value HashObject::clear(Env *env) {
 }
 
 Value HashObject::default_proc(Env *env) {
+    if (m_default_proc == nullptr)
+        return Value::nil();
     return m_default_proc;
 }
 
