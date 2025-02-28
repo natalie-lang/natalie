@@ -173,7 +173,7 @@ Value Args::keyword_arg(Env *env, SymbolObject *name) const {
     auto hash = keyword_hash();
     if (!hash)
         return Value::nil();
-    return hash->get(env, name);
+    return hash->get(env, name).value_or(Value::nil());
 }
 
 }
