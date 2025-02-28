@@ -11,7 +11,8 @@ void Constant::autoload(Env *env, Value self) {
 
 void Constant::visit_children(Visitor &visitor) const {
     visitor.visit(m_name);
-    visitor.visit(m_value);
+    if (m_value)
+        visitor.visit(m_value.value());
     visitor.visit(m_autoload_path);
 }
 

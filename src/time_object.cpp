@@ -51,7 +51,7 @@ TimeObject *TimeObject::initialize(Env *env, Optional<Value> year, Optional<Valu
         result->build_time(env, year.value(), month, mday, hour, min, sec);
         int seconds = mktime(&result->m_time);
         result->m_integer = seconds;
-        result->m_subsec = nullptr;
+        result->m_subsec = Optional<Value>();
         if (tmzone && in) {
             env->raise("ArgumentError", "cannot specify zone and in:");
         } else if (tmzone) {
@@ -154,7 +154,7 @@ bool TimeObject::eql(Env *env, Value other) {
     if (other.is_time()) {
         auto time = other.as_time();
         if (m_integer == time->m_integer) {
-            if (m_subsec && time->m_subsec && m_subsec.as_rational()->eq(env, time->m_subsec)) {
+            if (m_subsec && time->m_subsec && m_subsec.value().as_rational()->eq(env, time->m_subsec.value())) {
                 return true;
             } else if (!m_subsec && !time->m_subsec) {
                 return true;
@@ -171,7 +171,7 @@ Value TimeObject::hour(Env *) const {
 Value TimeObject::inspect(Env *env) {
     StringObject *result = build_string(env, "%Y-%m-%d %H:%M:%S").as_string();
     if (m_subsec) {
-        auto integer = m_subsec.as_rational()->mul(env, Value::integer(1000000000)).as_rational()->to_i(env);
+        auto integer = m_subsec.value().as_rational()->mul(env, Value::integer(1000000000)).as_rational()->to_i(env);
         auto string = integer.to_s(env);
         auto length = string->length();
         if (length > 9) {
@@ -224,7 +224,7 @@ Value TimeObject::month(Env *) const {
 
 Value TimeObject::nsec(Env *env) {
     if (m_subsec) {
-        return m_subsec.as_rational()->mul(env, Value::integer(1000000000)).as_rational()->to_i(env);
+        return m_subsec.value().as_rational()->mul(env, Value::integer(1000000000)).as_rational()->to_i(env);
     } else {
         return Value::integer(0);
     }
@@ -240,7 +240,7 @@ Value TimeObject::strftime(Env *env, Value format) {
 
 Value TimeObject::subsec(Env *) {
     if (m_subsec) {
-        return m_subsec;
+        return m_subsec.value();
     } else {
         return Value::integer(0);
     }
@@ -254,7 +254,7 @@ Value TimeObject::to_a(Env *env) const {
 Value TimeObject::to_f(Env *env) {
     Value result = IntegerMethods::to_f(m_integer);
     if (m_subsec) {
-        result = result.as_float()->add(env, m_subsec.as_rational());
+        result = result.as_float()->add(env, m_subsec.value().as_rational());
     }
     return result;
 }
@@ -262,7 +262,7 @@ Value TimeObject::to_f(Env *env) {
 Value TimeObject::to_r(Env *env) {
     Value result = RationalObject::create(env, m_integer, Integer(1));
     if (m_subsec) {
-        result = result.as_rational()->add(env, m_subsec.as_rational());
+        result = result.as_rational()->add(env, m_subsec.value().as_rational());
     }
     return result;
 }
@@ -281,7 +281,7 @@ Value TimeObject::to_utc(Env *env) {
 
 Value TimeObject::usec(Env *env) {
     if (m_subsec) {
-        return m_subsec.as_rational()->mul(env, Value::integer(1000000)).as_rational()->to_i(env);
+        return m_subsec.value().as_rational()->mul(env, Value::integer(1000000)).as_rational()->to_i(env);
     } else {
         return Value::integer(0);
     }

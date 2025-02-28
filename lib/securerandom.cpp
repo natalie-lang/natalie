@@ -65,7 +65,7 @@ Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
             env->raise("ArgumentError", "bad value for range");
         }
 
-        auto Numeric = GlobalEnv::the()->Object()->const_get("Numeric"_s);
+        auto Numeric = GlobalEnv::the()->Object()->const_fetch("Numeric"_s);
         if (!arg.is_a(env, Numeric))
             env->raise("ArgumentError", "No implicit conversion of {} into Integer", arg.klass()->inspect_str());
 

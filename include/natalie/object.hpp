@@ -111,8 +111,8 @@ public:
     Value instance_variables(Env *);
 
     Value cvar_get(Env *, SymbolObject *);
-    virtual Value cvar_get_or_raise(Env *, SymbolObject *);
-    virtual Value cvar_get_or_null(Env *, SymbolObject *);
+    Value cvar_get_or_raise(Env *, SymbolObject *);
+    virtual Optional<Value> cvar_get_maybe(Env *, SymbolObject *);
     virtual Value cvar_set(Env *, SymbolObject *, Value);
 
     static SymbolObject *define_method(Env *, Value, SymbolObject *, MethodFnPtr, int);

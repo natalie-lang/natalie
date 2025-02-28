@@ -67,7 +67,8 @@ public:
     virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);
         visitor.visit(m_integer);
-        visitor.visit(m_subsec);
+        if (m_subsec)
+            visitor.visit(m_subsec.value());
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -93,7 +94,7 @@ private:
 
     Integer m_integer;
     Mode m_mode;
-    Value m_subsec;
+    Optional<Value> m_subsec;
     struct tm m_time;
     char *m_zone { nullptr };
 };

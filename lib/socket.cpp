@@ -238,7 +238,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
     bool socktype_hack = false;
 
     StringObject *unix_path = nullptr;
-    Value port = nullptr;
+    Optional<Value> port;
     StringObject *host = nullptr;
 
     if (!afamily)
@@ -291,7 +291,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
 
     } else {
         assert(host);
-        assert(port);
+        assert(port.present());
 
         if (host->is_empty())
             host = new StringObject { "0.0.0.0" };
@@ -317,7 +317,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         if (socktype_hack && hints.ai_socktype == 0)
             hints.ai_socktype = SOCK_DGRAM;
 
-        const char *service_str = IntegerMethods::to_s(env, port.integer()).as_string()->c_str();
+        const char *service_str = IntegerMethods::to_s(env, port.value().integer()).as_string()->c_str();
 
         switch (hints.ai_socktype) {
         case SOCK_RAW:

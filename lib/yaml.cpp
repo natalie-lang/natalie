@@ -244,11 +244,11 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
         emit_value(env, value.as_time(), emitter, event);
     } else if (value.is_true()) {
         emit_value(env, value.as_true(), emitter, event);
-    } else if (GlobalEnv::the()->Object()->defined(env, "Date"_s, false) && value.is_a(env, GlobalEnv::the()->Object()->const_get("Date"_s).as_class())) {
+    } else if (GlobalEnv::the()->Object()->defined(env, "Date"_s, false) && value.is_a(env, GlobalEnv::the()->Object()->const_fetch("Date"_s).as_class())) {
         emit_value(env, value.send(env, "to_s"_s).as_string(), emitter, event);
-    } else if (GlobalEnv::the()->Object()->defined(env, "OpenStruct"_s, false) && value.is_a(env, GlobalEnv::the()->Object()->const_get("OpenStruct"_s).as_class())) {
+    } else if (GlobalEnv::the()->Object()->defined(env, "OpenStruct"_s, false) && value.is_a(env, GlobalEnv::the()->Object()->const_fetch("OpenStruct"_s).as_class())) {
         emit_openstruct_value(env, value, emitter, event);
-    } else if (value.is_a(env, GlobalEnv::the()->Object()->const_get("Struct"_s).as_class())) {
+    } else if (value.is_a(env, GlobalEnv::the()->Object()->const_fetch("Struct"_s).as_class())) {
         emit_struct_value(env, value, emitter, event);
     } else {
         emit_object_value(env, value, emitter, event);
@@ -415,7 +415,7 @@ Value YAML_load(Env *env, Value self, Args &&args, Block *) {
         yaml_parser_set_input_string(&parser, reinterpret_cast<const unsigned char *>(str->c_str()), str->bytesize());
     }
 
-    Value result = nullptr;
+    Optional<Value> result;
     while (true) {
         yaml_token_t token;
         Defer token_deleter { [&token]() { yaml_token_delete(&token); } };
@@ -425,7 +425,7 @@ Value YAML_load(Env *env, Value self, Args &&args, Block *) {
         result = load_value(env, parser, token);
     }
 
-    if (result == nullptr)
+    if (!result)
         env->raise("NotImplementedError", "TODO: Implement YAML.load");
-    return result;
+    return result.value();
 }

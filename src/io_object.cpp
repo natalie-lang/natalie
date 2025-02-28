@@ -50,7 +50,7 @@ Value IoObject::initialize(Env *env, Args &&args, Block *block) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 1, 2);
     Value file_number = args.at(0);
-    Value flags_obj = args.at(1, nullptr);
+    Value flags_obj = args.at(1, Value::nil());
     const ioutil::flags_struct wanted_flags { env, flags_obj, kwargs };
     nat_int_t fileno = file_number.to_int(env).to_nat_int_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);

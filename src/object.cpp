@@ -391,9 +391,9 @@ Value Object::cvar_get(Env *env, SymbolObject *name) {
 }
 
 Value Object::cvar_get_or_raise(Env *env, SymbolObject *name) {
-    Value val = cvar_get_or_null(env, name);
+    auto val = cvar_get_maybe(env, name);
     if (val) {
-        return val;
+        return val.value();
     } else {
         ModuleObject *module;
         if (m_type == Type::Module || m_type == Type::Class)
@@ -404,8 +404,8 @@ Value Object::cvar_get_or_raise(Env *env, SymbolObject *name) {
     }
 }
 
-Value Object::cvar_get_or_null(Env *env, SymbolObject *name) {
-    return m_klass->cvar_get_or_null(env, name);
+Optional<Value> Object::cvar_get_maybe(Env *env, SymbolObject *name) {
+    return m_klass->cvar_get_maybe(env, name);
 }
 
 Value Object::cvar_set(Env *env, SymbolObject *name, Value val) {

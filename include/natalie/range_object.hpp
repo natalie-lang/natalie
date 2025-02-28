@@ -64,8 +64,8 @@ private:
 
     static void assert_no_bad_value(Env *, Value, Value);
 
-    Value m_begin { nullptr };
-    Value m_end { nullptr };
+    Value m_begin { Value::nil() };
+    Value m_end { Value::nil() };
     bool m_exclude_end { false };
 
     template <typename Function>

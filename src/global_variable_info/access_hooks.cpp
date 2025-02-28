@@ -5,52 +5,52 @@ namespace Natalie {
 
 namespace GlobalVariableAccessHooks::ReadHooks {
 
-    Value getpid(Env *env, GlobalVariableInfo &info) {
+    Optional<Value> getpid(Env *env, GlobalVariableInfo &info) {
         auto pid = Value::integer(::getpid());
         info.set_object(env, pid);
         info.set_read_hook(nullptr);
         return pid;
     }
 
-    Value last_exception(Env *env, GlobalVariableInfo &) {
+    Optional<Value> last_exception(Env *env, GlobalVariableInfo &) {
         return env->exception_object();
     }
 
-    Value last_exception_backtrace(Env *env, GlobalVariableInfo &) {
+    Optional<Value> last_exception_backtrace(Env *env, GlobalVariableInfo &) {
         if (!env->exception_object().is_exception())
-            return nullptr;
+            return {};
         return env->exception_object().as_exception()->backtrace(env);
     }
 
-    Value last_match(Env *env, GlobalVariableInfo &) {
+    Optional<Value> last_match(Env *env, GlobalVariableInfo &) {
         return env->last_match();
     }
 
-    Value last_match_pre_match(Env *env, GlobalVariableInfo &) {
+    Optional<Value> last_match_pre_match(Env *env, GlobalVariableInfo &) {
         auto last_match = env->last_match();
         if (last_match.is_nil())
-            return nullptr;
+            return {};
         return last_match.as_match_data()->pre_match(env);
     }
 
-    Value last_match_post_match(Env *env, GlobalVariableInfo &) {
+    Optional<Value> last_match_post_match(Env *env, GlobalVariableInfo &) {
         auto last_match = env->last_match();
         if (last_match.is_nil())
-            return nullptr;
+            return {};
         return last_match.as_match_data()->post_match(env);
     }
 
-    Value last_match_last_group(Env *env, GlobalVariableInfo &) {
+    Optional<Value> last_match_last_group(Env *env, GlobalVariableInfo &) {
         auto last_match = env->last_match();
         if (last_match.is_nil())
-            return nullptr;
+            return {};
         return last_match.as_match_data()->captures(env).as_array()->compact(env).as_array()->last();
     }
 
-    Value last_match_to_s(Env *env, GlobalVariableInfo &) {
+    Optional<Value> last_match_to_s(Env *env, GlobalVariableInfo &) {
         auto last_match = env->last_match();
         if (last_match.is_nil())
-            return nullptr;
+            return {};
         return last_match.as_match_data()->to_s(env);
     }
 
