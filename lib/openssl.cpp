@@ -521,14 +521,12 @@ Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args &&args, Block 
     auto io = args.at(0);
     if (!io.is_io())
         env->raise("TypeError", "wrong argument type {} (expected File)", io.klass()->inspect_str());
-    auto context = args.at(1, nullptr);
+    auto context = args.at(1, Value::nil());
     auto SSLContext = fetch_nested_const({ "OpenSSL"_s, "SSL"_s, "SSLContext"_s });
-    if (!context || context.is_nil()) {
+    if (context.is_nil())
         context = Object::_new(env, SSLContext, {}, nullptr);
-    } else {
-        if (!context.is_a(env, SSLContext.as_class()))
-            env->raise("TypeError", "wrong argument type {} (expected OpenSSL/SSL/CTX)", context.klass()->inspect_str());
-    }
+    else if (!context.is_a(env, SSLContext.as_class()))
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/SSL/CTX)", context.klass()->inspect_str());
     context.send(env, "setup"_s);
     auto *ctx = static_cast<SSL_CTX *>(context->ivar_get(env, "@ctx"_s).as_void_p()->void_ptr());
     SSL *ssl = SSL_new(ctx);
@@ -1279,9 +1277,9 @@ Value OpenSSL_X509_Name_to_a(Env *env, Value self, Args &&args, Block *) {
 
 Value OpenSSL_X509_Name_to_s(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 1);
-    auto format = args.at(0, nullptr);
+    auto format = args.at(0, Value::nil());
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s).as_void_p()->void_ptr());
-    if (!format || format.is_nil()) {
+    if (format.is_nil()) {
         char *str = X509_NAME_oneline(name, nullptr, 0);
         if (!str)
             OpenSSL_X509_Name_raise_error(env, "X509_NAME_oneline");
