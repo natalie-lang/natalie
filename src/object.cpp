@@ -702,7 +702,6 @@ Value Object::clone_obj(Env *env, Value self, Optional<Value> freeze_kwarg) {
 }
 
 void Object::copy_instance_variables(const Value other) {
-    assert(other);
     if (m_ivars)
         delete m_ivars;
     if (other.is_integer() || other.is_nil())
@@ -714,8 +713,8 @@ void Object::copy_instance_variables(const Value other) {
 }
 
 const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
-    Optional<Value> obj;
     if (name->is_constant_name()) {
+        Optional<Value> obj;
         if (strict) {
             if (m_type == Type::Module || m_type == Type::Class)
                 obj = static_cast<ModuleObject *>(this)->const_get(name);
@@ -724,10 +723,10 @@ const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
         }
         if (obj) return "constant";
     } else if (name->is_global_name()) {
-        obj = env->global_get(name);
+        auto obj = env->global_get(name);
         if (obj != Value::nil()) return "global-variable";
     } else if (name->is_ivar_name()) {
-        obj = ivar_get(env, name);
+        auto obj = ivar_get(env, name);
         if (obj != Value::nil()) return "instance-variable";
     } else if (respond_to(env, name)) {
         return "method";

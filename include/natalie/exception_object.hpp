@@ -21,9 +21,7 @@ public:
 
     ExceptionObject(ClassObject *klass, Value message)
         : Object { Object::Type::Exception, klass }
-        , m_message { message } {
-        assert(m_message);
-    }
+        , m_message { message } { }
 
     ExceptionObject(Env *env, ExceptionObject &other)
         : Object { other } {

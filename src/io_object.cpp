@@ -96,7 +96,7 @@ Value IoObject::advise(Env *env, Value advice, Optional<Value> offset, Optional<
     } else if (advice == "dontneed"_s) {
         advice_i = POSIX_FADV_DONTNEED;
     } else {
-        env->raise("NotImplementedError", "Unsupported advice: {}", advice);
+        env->raise("NotImplementedError", "Unsupported advice: {}", advice.inspect_str(env));
     }
     if (::posix_fadvise(m_fileno, offset_i, len_i, advice_i) != 0)
         env->raise_errno();
@@ -289,7 +289,7 @@ Value IoObject::read_file(Env *env, Args &&args) {
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s).as_class();
     FileObject *file = _new(env, File, { filename }, nullptr).as_file();
     file->set_encoding(env, flags.external_encoding(), flags.internal_encoding());
-    if (offset && !offset.is_nil()) {
+    if (!offset.is_nil()) {
         if (offset.is_integer() && offset.integer().is_negative())
             env->raise("ArgumentError", "negative offset {} given", offset.inspect_str(env));
         file->set_pos(env, offset);
@@ -334,7 +334,7 @@ Value IoObject::write_file(Env *env, Args &&args) {
             next_args->push(kwargs);
         file = _new(env, File, Args(next_args, kwargs != nullptr), nullptr).as_file();
     }
-    if (offset && !offset.is_nil())
+    if (!offset.is_nil())
         file->set_pos(env, offset);
     Defer close { [&file, &env]() { file->close(env); } };
     int bytes_written = file->write(env, string);
@@ -900,7 +900,7 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
     raise_if_closed(env);
     if (!is_readable(m_fileno))
         env->raise("IOError", "not opened for reading");
-    if (!byte || byte.is_nil())
+    if (byte.is_nil())
         return Value::nil();
     if (byte.is_integer()) {
         nat_int_t value = 0xff;
@@ -938,7 +938,7 @@ Value IoObject::wait(Env *env, Args &&args) {
     } else {
         return_self = true;
         for (size_t i = 0; i < args.size(); i++) {
-            if (!args[i] || args[i].is_nil()) {
+            if (args[i].is_nil()) {
                 continue;
             } else if (args[i].is_numeric()) {
                 if (!timeout.is_nil())
@@ -1105,7 +1105,7 @@ Value IoObject::select(Env *env, Value read_ios, Optional<Value> write_ios, Opti
         timeout_ptr = &timeout_tv;
     }
 
-    auto read_ios_ary = read_ios && !read_ios.is_nil() ? read_ios.to_ary(env) : new ArrayObject {};
+    auto read_ios_ary = !read_ios.is_nil() ? read_ios.to_ary(env) : new ArrayObject {};
     auto write_ios_ary = write_ios && !write_ios.value().is_nil() ? write_ios.value().to_ary(env) : new ArrayObject {};
     auto error_ios_ary = error_ios && !error_ios.value().is_nil() ? error_ios.value().to_ary(env) : new ArrayObject {};
 

@@ -38,23 +38,17 @@ Value Env::global_alias(SymbolObject *new_name, SymbolObject *old_name) {
 
 // Return the file separator `$,` or nil
 Value Env::output_file_separator() {
-    Value fsep = global_get("$,"_s);
-    if (fsep) return fsep;
-    return Value::nil();
+    return global_get("$,"_s);
 }
 
 // Return the record separator `$\` or nil
 Value Env::output_record_separator() {
-    Value rsep = global_get("$\\"_s);
-    if (rsep) return rsep;
-    return Value::nil();
+    return global_get("$\\"_s);
 }
 
 // Return the last line `$_` or nil
 Value Env::last_line() {
-    Value last_line = global_get("$_"_s);
-    if (last_line) return last_line;
-    return Value::nil();
+    return global_get("$_"_s);
 }
 
 Value Env::set_last_line(Value val) {
@@ -116,7 +110,7 @@ void Env::raise_exception(ExceptionObject *exception) {
     }
     if (!exception->cause()) {
         auto cause = exception_object();
-        if (cause && cause.is_exception() && cause != exception)
+        if (cause.is_exception() && cause != exception)
             exception->set_cause(cause.as_exception());
     }
     throw exception;
@@ -352,12 +346,7 @@ Value Env::var_get(const char *name, size_t index) {
 
     if (!m_vars || index >= m_vars->size())
         return Value::nil();
-    Value val = m_vars->at(index);
-    if (val) {
-        return val;
-    } else {
-        return Value::nil();
-    }
+    return m_vars->at(index);
 }
 
 Value Env::var_set(const char *name, size_t index, bool allocate, Value val) {

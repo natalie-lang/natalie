@@ -1153,7 +1153,7 @@ Value StringObject::delete_in_place(Env *env, Args &&selectors) {
 
 bool StringObject::eq(Env *env, Value arg) {
     if (!arg.is_string() && arg.respond_to(env, "to_str"_s))
-        return arg.send(env, "=="_s, { this });
+        return arg.send(env, "=="_s, { this }).is_truthy();
     return eql(arg);
 }
 
@@ -3838,11 +3838,11 @@ void StringObject::append(unsigned int i) {
 
 void StringObject::append(double d) {
     auto f = FloatObject(d);
-    m_string.append(f.to_s());
+    m_string.append(f.to_s().as_string()->string());
 }
 
 void StringObject::append(const FloatObject *f) {
-    m_string.append(f->to_s());
+    m_string.append(f->to_s().as_string()->string());
 }
 
 void StringObject::append(const String &str) {

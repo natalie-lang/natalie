@@ -62,16 +62,11 @@ public:
         return pointer();
     }
 
-    bool is_null() const { return m_value == 0x0; }
-
     bool operator==(void *ptr) const { return (void *)m_value == ptr; }
     bool operator!=(void *ptr) const { return (void *)m_value != ptr; }
 
     bool operator==(Value other) const { return m_value == other.m_value; }
     bool operator!=(Value other) const { return m_value != other.m_value; }
-
-    bool operator!() const { return is_null(); }
-    operator bool() const { return !is_null(); }
 
     Value public_send(Env *, SymbolObject *, Args &&, Block *, Value sent_from);
     Value public_send(Env *, SymbolObject *, Args && = {}, Block * = nullptr);

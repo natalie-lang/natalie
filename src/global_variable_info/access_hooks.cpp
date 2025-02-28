@@ -71,7 +71,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
     }
 
     Value last_match(Env *env, Value v, GlobalVariableInfo &) {
-        if (!v || v.is_nil())
+        if (v.is_nil())
             return Value::nil();
         if (!v.is_match_data())
             env->raise("TypeError", "wrong argument type {} (expected MatchData)", v.klass()->inspect_str());

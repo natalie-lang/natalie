@@ -28,7 +28,7 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
     auto _begin = m_begin;
     auto _end = m_end;
 
-    if (!_end || _end.is_nil() || _end.send(env, "infinite?"_s).is_truthy())
+    if (_end.is_nil() || _end.send(env, "infinite?"_s).is_truthy())
         return 0;
 
     if (_begin.send(env, "infinite?"_s).is_truthy())
@@ -92,7 +92,7 @@ Value ArithmeticSequenceObject::iterate(Env *env, std::function<Value(Value)> fu
     auto steps = step_count(env);
 
     auto cmp = ascending(env) ? ">"_s : "<"_s;
-    auto infinite = !_end || _end.is_nil() || (_end.send(env, "infinite?"_s).is_truthy() && _end.send(env, cmp, { Value::integer(0) }).is_truthy());
+    auto infinite = _end.is_nil() || (_end.send(env, "infinite?"_s).is_truthy() && _end.send(env, cmp, { Value::integer(0) }).is_truthy());
 
     if (_step.is_float() || _begin.is_float() || _end.is_float()) {
         _step = _step.to_f(env);
@@ -252,7 +252,7 @@ Value ArithmeticSequenceObject::maybe_to_f(Env *env, Value v) {
 }
 
 Value ArithmeticSequenceObject::size(Env *env) {
-    if (!m_end || m_end.is_nil())
+    if (m_end.is_nil())
         return FloatObject::positive_infinity(env);
 
     if (m_end.send(env, "infinite?"_s).is_truthy()) {

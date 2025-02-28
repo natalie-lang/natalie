@@ -101,7 +101,6 @@ bool ExceptionObject::eq(Env *env, Value other) {
 Value ExceptionObject::inspect(Env *env) {
     auto klassname = m_klass->inspect_str();
     auto msgstr = send(env, "to_s"_s);
-    assert(msgstr);
     msgstr.assert_type(env, Object::Type::String, "String");
     if (msgstr.as_string()->is_empty())
         return new StringObject { klassname };

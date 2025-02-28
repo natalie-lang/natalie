@@ -475,7 +475,7 @@ Value ThreadObject::name(Env *env) {
 }
 
 Value ThreadObject::set_name(Env *env, Value name) {
-    if (!name || name.is_nil()) {
+    if (name.is_nil()) {
         m_name.clear();
         return Value::nil();
     }

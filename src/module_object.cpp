@@ -425,12 +425,10 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
     if (GlobalEnv::the()->instance_evaling()) {
         // Set class variable in block definition scope
         auto context = GlobalEnv::the()->current_instance_eval_context();
-        if (context.block_original_self) {
-            if (context.block_original_self.is_module()) {
-                return set_cvar_in(context.block_original_self.as_module());
-            } else {
-                return set_cvar_in(context.block_original_self.klass());
-            }
+        if (context.block_original_self.is_module()) {
+            return set_cvar_in(context.block_original_self.as_module());
+        } else {
+            return set_cvar_in(context.block_original_self.klass());
         }
     }
 
@@ -820,7 +818,6 @@ SymbolObject *ModuleObject::attr_reader(Env *env, Value obj) {
 
 Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args &&args, Block *block) {
     Value name_obj = env->outer()->var_get("name", 0);
-    assert(name_obj);
     assert(name_obj.is_symbol());
     SymbolObject *ivar_name = SymbolObject::intern(TM::String::format("@{}", name_obj.as_symbol()->string()));
     return Object::ivar_get(env, self, ivar_name);
@@ -848,7 +845,6 @@ SymbolObject *ModuleObject::attr_writer(Env *env, Value obj) {
 Value ModuleObject::attr_writer_block_fn(Env *env, Value self, Args &&args, Block *block) {
     Value val = args[0];
     Value name_obj = env->outer()->var_get("name", 0);
-    assert(name_obj);
     assert(name_obj.is_symbol());
     SymbolObject *ivar_name = SymbolObject::intern(TM::String::format("@{}", name_obj.as_symbol()->string()));
     Object::ivar_set(env, self, ivar_name, val);

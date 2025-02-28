@@ -44,7 +44,7 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
         auto value = Socket->const_find(env, sym, Object::ConstLookupSearchMode::Strict, Object::ConstLookupFailureMode::None);
         if (!value)
             value = Socket->const_find(env, "SHORT_CONSTANTS"_s).value().as_hash_or_raise(env)->get(env, sym);
-        if (!value || !value.value())
+        if (!value)
             env->raise_name_error(sym, "uninitialized constant {}::{}", Socket->inspect_str(), sym->string());
         return value.value();
     } else {

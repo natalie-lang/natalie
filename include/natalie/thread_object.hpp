@@ -162,18 +162,17 @@ public:
 
     Value fiber_scheduler() const { return m_fiber_scheduler; }
     void set_fiber_scheduler(Value scheduler) {
-        assert(scheduler);
         m_fiber_scheduler = scheduler;
     }
 
     bool abort_on_exception() const { return m_abort_on_exception; }
     bool set_abort_on_exception(bool abrt) {
         m_abort_on_exception = abrt;
-        return abrt;
+        return m_abort_on_exception;
     }
     bool set_abort_on_exception(Value abrt) {
         m_abort_on_exception = abrt.is_truthy();
-        return abrt;
+        return m_abort_on_exception;
     }
 
     bool report_on_exception() const { return m_report_on_exception; }
@@ -183,7 +182,7 @@ public:
     }
     bool set_report_on_exception(Value report) {
         m_report_on_exception = report.is_truthy();
-        return report;
+        return m_report_on_exception;
     }
 
     void check_exception(Env *);
@@ -236,17 +235,17 @@ public:
     }
     static bool set_default_report_on_exception(Value report) {
         s_report_on_exception = report.is_truthy();
-        return report;
+        return s_report_on_exception;
     }
 
     static bool global_abort_on_exception() { return s_abort_on_exception; }
     static bool set_global_abort_on_exception(bool abrt) {
         s_abort_on_exception = abrt;
-        return abrt;
+        return s_abort_on_exception;
     }
     static bool set_global_abort_on_exception(Value abrt) {
         s_abort_on_exception = abrt.is_truthy();
-        return abrt;
+        return s_abort_on_exception;
     }
 
     static void check_current_exception(Env *env);

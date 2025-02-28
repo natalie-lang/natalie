@@ -145,7 +145,7 @@ HashObject *Args::keyword_hash() const {
         return nullptr;
 
     auto hash = last();
-    if (!hash || !hash.is_hash())
+    if (!hash.is_hash())
         return nullptr;
 
     return hash.as_hash();

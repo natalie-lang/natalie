@@ -31,7 +31,7 @@ namespace ioutil {
     }
 
     void flags_struct::parse_flags_obj(Env *env, Value flags_obj) {
-        if (!flags_obj || flags_obj.is_nil())
+        if (flags_obj.is_nil())
             return;
 
         m_has_mode = true;
@@ -125,9 +125,9 @@ namespace ioutil {
         if (m_external_encoding) {
             env->raise("ArgumentError", "encoding specified twice");
         } else if (m_kwargs->has_key(env, "external_encoding"_s)) {
-            env->warn("Ignoring encoding parameter '{}', external_encoding is used", encoding);
+            env->warn("Ignoring encoding parameter '{}', external_encoding is used", encoding.inspect_str(env));
         } else if (m_kwargs->has_key(env, "internal_encoding"_s)) {
-            env->warn("Ignoring encoding parameter '{}', internal_encoding is used", encoding);
+            env->warn("Ignoring encoding parameter '{}', internal_encoding is used", encoding.inspect_str(env));
         } else if (encoding.is_encoding()) {
             m_external_encoding = encoding.as_encoding();
         } else {
@@ -250,7 +250,7 @@ namespace ioutil {
     }
 
     mode_t perm_to_mode(Env *env, Value perm) {
-        if (perm && !perm.is_nil())
+        if (!perm.is_nil())
             return IntegerMethods::convert_to_int(env, perm);
         else
             return S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; // 0660 default
