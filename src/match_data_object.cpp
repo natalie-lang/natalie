@@ -165,7 +165,7 @@ Value MatchDataObject::end(Env *env, Value end) const {
 }
 
 Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
-    if (!keys || keys.is_nil()) {
+    if (keys.is_nil()) {
         auto result = new HashObject {};
         for (auto name : *names().as_array()) {
             auto value = ref(env, name);

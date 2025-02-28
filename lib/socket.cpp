@@ -44,7 +44,7 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
         auto value = Socket->const_find(env, sym, Object::ConstLookupSearchMode::Strict, Object::ConstLookupFailureMode::None);
         if (!value)
             value = Socket->const_find(env, "SHORT_CONSTANTS"_s).value().as_hash_or_raise(env)->get(env, sym);
-        if (!value || !value.value())
+        if (!value)
             env->raise_name_error(sym, "uninitialized constant {}::{}", Socket->inspect_str(), sym->string());
         return value.value();
     } else {
@@ -169,10 +169,10 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 2, 6);
     auto nodename = args[0];
     auto servicename = args[1];
-    auto family = args.at(2, nullptr);
-    auto socktype = args.at(3, nullptr);
-    auto protocol = args.at(4, nullptr);
-    auto flags = args.at(5, nullptr);
+    auto family = args.at(2, Value::nil());
+    auto socktype = args.at(3, Value::nil());
+    auto protocol = args.at(4, Value::nil());
+    auto flags = args.at(5, Value::nil());
 
     const char *node = nullptr;
     const char *service = nullptr;
@@ -188,19 +188,19 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
     } else if (!servicename.is_nil()) {
         service = servicename.to_str(env)->c_str();
     }
-    if (family && !family.is_nil()) {
+    if (!family.is_nil()) {
         family = Socket_const_name_to_i(env, self, { family }, nullptr);
         hints.ai_family = IntegerMethods::convert_to_native_type<decltype(hints.ai_family)>(env, family);
     }
-    if (socktype && !socktype.is_nil()) {
+    if (!socktype.is_nil()) {
         socktype = Socket_const_name_to_i(env, self, { socktype }, nullptr);
         hints.ai_socktype = IntegerMethods::convert_to_native_type<decltype(hints.ai_socktype)>(env, socktype);
     }
-    if (protocol && !protocol.is_nil()) {
+    if (!protocol.is_nil()) {
         protocol = Socket_const_name_to_i(env, self, { protocol }, nullptr);
         hints.ai_protocol = IntegerMethods::convert_to_native_type<decltype(hints.ai_protocol)>(env, protocol);
     }
-    if (flags && !flags.is_nil()) {
+    if (!flags.is_nil()) {
         flags = Socket_const_name_to_i(env, self, { flags }, nullptr);
         hints.ai_flags = IntegerMethods::convert_to_native_type<decltype(hints.ai_flags)>(env, flags);
     }
@@ -1765,7 +1765,7 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args &&args, Block *) {
         return Value::nil();
     }
 
-    Value sender_inet_addr = nullptr;
+    Value sender_inet_addr;
     switch (addr.ss_family) {
     case AF_INET: {
         sockaddr_in *addr_in = reinterpret_cast<sockaddr_in *>(&addr);

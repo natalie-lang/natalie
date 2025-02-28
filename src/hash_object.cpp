@@ -48,7 +48,7 @@ bool HashObject::is_comparing_by_identity() const {
     }
 }
 
-Value HashObject::get(Env *env, Value key) {
+Optional<Value> HashObject::get(Env *env, Value key) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     HashKey key_container;
@@ -139,6 +139,8 @@ Value HashObject::clear(Env *env) {
 }
 
 Value HashObject::default_proc(Env *env) {
+    if (m_default_proc == nullptr)
+        return Value::nil();
     return m_default_proc;
 }
 
@@ -218,7 +220,7 @@ Value HashObject::initialize(Env *env, Optional<Value> default_arg, Optional<Val
     if (capacity) {
         const auto capacity_int = IntegerMethods::convert_to_native_type<ssize_t>(env, capacity.value());
         if (capacity_int > 0)
-            m_hashmap = TM::Hashmap<HashKey *, Value> { static_cast<size_t>(capacity_int) };
+            m_hashmap = TM::Hashmap<HashKey *, Optional<Value>> { static_cast<size_t>(capacity_int) };
     }
 
     if (block) {
@@ -340,12 +342,10 @@ String HashObject::dbg_inspect() const {
 }
 
 Value HashObject::ref(Env *env, Value key) {
-    Value val = get(env, key);
-    if (val) {
-        return val;
-    } else {
+    auto val = get(env, key);
+    if (!val)
         return send(env, "default"_s, { key });
-    }
+    return val.value();
 }
 
 Value HashObject::refeq(Env *env, Value key, Value val) {
@@ -441,11 +441,12 @@ bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
         if (is_recursive)
             return true;
 
-        Value other_val;
         for (HashKey &node : *this) {
-            other_val = other->get(env, node.key);
-            if (!other_val)
+            auto other_optional_val = other->get(env, node.key);
+            if (!other_optional_val)
                 return false;
+
+            auto other_val = other_optional_val.value();
 
             if (node.val == other_val)
                 continue;
@@ -476,8 +477,8 @@ bool HashObject::gte(Env *env, Value other) {
     auto other_hash = other.to_hash(env);
 
     for (auto &node : *other_hash) {
-        Value value = get(env, node.key);
-        if (!value || value.send(env, "=="_s, { node.val }).is_false()) {
+        auto value = get(env, node.key);
+        if (!value || value.value().send(env, "=="_s, { node.val }).is_false()) {
             return false;
         }
     }
@@ -494,8 +495,8 @@ bool HashObject::lte(Env *env, Value other) {
     auto other_hash = other.to_hash(env);
 
     for (auto &node : *this) {
-        Value value = other_hash->get(env, node.key);
-        if (!value || value.send(env, "=="_s, { node.val }).is_false()) {
+        auto value = other_hash->get(env, node.key);
+        if (!value || value.value().send(env, "=="_s, { node.val }).is_false()) {
             return false;
         }
     }
@@ -538,7 +539,7 @@ Value HashObject::except(Env *env, Args &&args) {
 }
 
 Value HashObject::fetch(Env *env, Value key, Optional<Value> default_value, Block *block) {
-    Value value = get(env, key);
+    auto value = get(env, key);
     if (!value) {
         if (block) {
             if (default_value)
@@ -552,7 +553,7 @@ Value HashObject::fetch(Env *env, Value key, Optional<Value> default_value, Bloc
             env->raise_key_error(this, key);
         }
     }
-    return value;
+    return value.value();
 }
 
 Value HashObject::fetch_values(Env *env, Args &&args, Block *block) {
@@ -672,12 +673,7 @@ Value HashObject::hash(Env *env) {
 }
 
 bool HashObject::has_key(Env *env, Value key) {
-    Value val = get(env, key);
-    if (val) {
-        return true;
-    } else {
-        return false;
-    }
+    return get(env, key).present();
 }
 
 bool HashObject::has_value(Env *env, Value value) {
@@ -702,7 +698,7 @@ Value HashObject::merge_in_place(Env *env, Args &&args, Block *block) {
             if (block) {
                 auto old_value = get(env, node.key);
                 if (old_value) {
-                    Value args[3] = { node.key, old_value, new_value };
+                    Value args[3] = { node.key, old_value.value(), new_value };
                     new_value = block->run(env, Args(3, args), nullptr);
                 }
             }
@@ -716,10 +712,9 @@ Value HashObject::slice(Env *env, Args &&args) {
     auto new_hash = new HashObject {};
     for (size_t i = 0; i < args.size(); i++) {
         Value key = args[i];
-        Value value = this->get(env, key);
-        if (value) {
-            new_hash->put(env, key, value);
-        }
+        auto value = this->get(env, key);
+        if (value)
+            new_hash->put(env, key, value.value());
     }
     return new_hash;
 }
@@ -730,7 +725,8 @@ void HashObject::visit_children(Visitor &visitor) const {
         visitor.visit(pair.first);
         visitor.visit(pair.first->key);
         visitor.visit(pair.first->val);
-        visitor.visit(pair.second);
+        if (pair.second)
+            visitor.visit(pair.second.value());
     }
     visitor.visit(m_default_value);
     visitor.visit(m_default_proc);
@@ -741,22 +737,21 @@ Value HashObject::compact(Env *env) {
     new_hash->m_default_value = m_default_value;
     new_hash->m_default_proc = m_default_proc;
     new_hash->m_is_comparing_by_identity = m_is_comparing_by_identity;
-    auto nil = Value::nil();
     for (auto pair : m_hashmap) {
-        if (pair.second != nil)
-            new_hash->put(env, pair.first->key, pair.second);
+        auto val = pair.second.value();
+        if (!val.is_nil())
+            new_hash->put(env, pair.first->key, val);
     }
     return new_hash;
 }
 
 Value HashObject::compact_in_place(Env *env) {
     assert_not_frozen(env);
-    auto nil = Value::nil();
     auto to_remove = TM::Vector<Value> {};
     for (auto pair : m_hashmap) {
-        if (pair.second == nil) {
+        auto val = pair.second.value();
+        if (val.is_nil())
             to_remove.push(pair.first->key);
-        }
     }
     for (auto key : to_remove)
         remove(env, key);

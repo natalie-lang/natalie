@@ -138,7 +138,7 @@ Value FiberObject::refeq(Env *env, Value key, Value value) {
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key.klass()->inspect_str());
     if (current()->m_storage == nullptr)
         current()->m_storage = new HashObject {};
-    if (!value || value.is_nil()) {
+    if (value.is_nil()) {
         current()->m_storage->remove(env, key);
     } else {
         current()->m_storage->refeq(env, key, value);
@@ -221,6 +221,7 @@ Value FiberObject::set_scheduler(Env *env, Value scheduler) {
 Value FiberObject::set_storage(Env *env, Value storage) {
     if (storage == nullptr || storage.is_nil()) {
         m_storage = nullptr;
+        return Value::nil();
     } else if (!storage.is_hash()) {
         env->raise("TypeError", "storage must be a hash");
     } else {

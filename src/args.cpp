@@ -145,7 +145,7 @@ HashObject *Args::keyword_hash() const {
         return nullptr;
 
     auto hash = last();
-    if (!hash || !hash.is_hash())
+    if (!hash.is_hash())
         return nullptr;
 
     return hash.as_hash();
@@ -173,7 +173,7 @@ Value Args::keyword_arg(Env *env, SymbolObject *name) const {
     auto hash = keyword_hash();
     if (!hash)
         return Value::nil();
-    return hash->get(env, name);
+    return hash->get(env, name).value_or(Value::nil());
 }
 
 }

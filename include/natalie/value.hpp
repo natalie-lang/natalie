@@ -18,10 +18,15 @@ constexpr unsigned int NIL_VALUE = 0x4;
 
 class Value {
 public:
-    Value() = default;
+    Value()
+        : m_value { NIL_VALUE } { }
+
+    Value(std::nullptr_t) = delete;
 
     Value(Object *object)
-        : m_value { reinterpret_cast<uintptr_t>(object) } { }
+        : m_value { reinterpret_cast<uintptr_t>(object) } {
+        assert(object != nullptr);
+    }
 
     explicit Value(nat_int_t integer);
 
@@ -57,16 +62,11 @@ public:
         return pointer();
     }
 
-    bool is_null() const { return m_value == 0x0; }
-
     bool operator==(void *ptr) const { return (void *)m_value == ptr; }
     bool operator!=(void *ptr) const { return (void *)m_value != ptr; }
 
     bool operator==(Value other) const { return m_value == other.m_value; }
     bool operator!=(Value other) const { return m_value != other.m_value; }
-
-    bool operator!() const { return is_null(); }
-    operator bool() const { return !is_null(); }
 
     Value public_send(Env *, SymbolObject *, Args &&, Block *, Value sent_from);
     Value public_send(Env *, SymbolObject *, Args && = {}, Block * = nullptr);

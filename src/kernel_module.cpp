@@ -94,7 +94,7 @@ Value KernelModule::caller(Env *env, Optional<Value> start_arg, Optional<Value> 
     auto backtrace = env->backtrace();
     auto ary = backtrace->to_ruby_array();
     ary->shift(); // remove the frame for Kernel#caller itself
-    if (start && start.is_range()) {
+    if (start.is_range()) {
         ary = ary->ref(env, start).as_array();
     } else {
         ary->shift(env, start);
@@ -109,7 +109,7 @@ Value KernelModule::caller_locations(Env *env, Optional<Value> start_arg, Option
     auto backtrace = env->backtrace();
     auto ary = backtrace->to_ruby_backtrace_locations_array();
     ary->shift(); // remove the frame for Kernel#caller_locations itself
-    if (start && start.is_range()) {
+    if (start.is_range()) {
         ary = ary->ref(env, start).as_array();
     } else {
         ary->shift(env, start);
@@ -130,7 +130,7 @@ Value KernelModule::catch_method(Env *env, Optional<Value> name_arg, Block *bloc
         return block->run(&block_env, { name }, nullptr);
     } catch (ThrowCatchException *e) {
         if (Object::equal(e->get_name(), name))
-            return e->get_value();
+            return e->get_value().value_or(Value::nil());
         else
             throw e;
     }
@@ -458,7 +458,7 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
         auto float_obj = value.as_float();
         if (float_obj->is_nan() || float_obj->is_infinity()) {
             if (exception)
-                env->raise("FloatDomainError", "{}", float_obj->to_s());
+                env->raise("FloatDomainError", "{}", float_obj->to_s().as_string()->string());
             else
                 return Value::nil();
         }
@@ -607,7 +607,6 @@ Value KernelModule::p(Env *env, Args &&args) {
 
 Value KernelModule::print(Env *env, Args &&args) {
     auto _stdout = env->global_get("$stdout"_s);
-    assert(_stdout);
     if (args.size() == 0)
         return _stdout.send(env, "write"_s, Args { env->global_get("$_"_s) });
     // NATFIXME: Kernel.print should actually call IO.print and not
@@ -640,7 +639,7 @@ Value KernelModule::Rational(Env *env, Value x, Optional<Value> y, Optional<Valu
 Value KernelModule::Rational(Env *env, Value x, Optional<Value> y_arg, bool exception) {
     if (y_arg) {
         auto y = y_arg.value();
-        if (x.is_integer() && y && y.is_integer())
+        if (x.is_integer() && y.is_integer())
             return Rational(env, x.integer(), y.integer());
 
         x = Float(env, x, exception);
@@ -681,7 +680,7 @@ Value KernelModule::Rational(Env *env, Value x, Optional<Value> y_arg, bool exce
 }
 
 RationalObject *KernelModule::Rational(Env *env, class Integer x, class Integer y) {
-    Value gcd = IntegerMethods::gcd(env, x, y).integer();
+    auto gcd = IntegerMethods::gcd(env, x, y).integer();
     class Integer numerator = x / gcd;
     class Integer denominator = y / gcd;
     return RationalObject::create(env, numerator, denominator);

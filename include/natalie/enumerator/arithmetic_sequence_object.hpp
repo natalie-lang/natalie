@@ -29,7 +29,7 @@ public:
     bool eq(Env *, Value);
     bool exclude_end() const { return m_exclude_end; }
     Value hash(Env *);
-    bool has_step() { return m_step && !m_step.is_nil(); }
+    bool has_step() { return !m_step.is_nil(); }
     Value inspect(Env *);
     Value last(Env *, Optional<Value>);
     Value size(Env *);
@@ -79,9 +79,9 @@ private:
 
     Origin m_origin;
     TM::String m_range_origin_method {};
-    Value m_begin { nullptr };
-    Value m_end { nullptr };
-    Value m_step { nullptr };
+    Value m_begin {};
+    Value m_end {};
+    Value m_step {};
     Optional<Integer> m_step_count {};
     bool m_exclude_end { false };
     Optional<bool> m_ascending {};

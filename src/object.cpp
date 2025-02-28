@@ -10,10 +10,10 @@ Object::Object(const Object &other)
     , m_type { other.m_type }
     , m_singleton_class { nullptr } {
     if (other.m_ivars)
-        m_ivars = new TM::Hashmap<SymbolObject *, Value> { *other.m_ivars };
+        m_ivars = new TM::Hashmap<SymbolObject *, Optional<Value>> { *other.m_ivars };
 }
 
-Value Object::create(Env *env, ClassObject *klass) {
+Optional<Value> Object::create(Env *env, ClassObject *klass) {
     if (klass->is_singleton())
         env->raise("TypeError", "can't create instance of singleton class");
 
@@ -137,8 +137,7 @@ Value Object::create(Env *env, ClassObject *klass) {
     case Object::Type::Symbol:
     case Object::Type::True:
     case Object::Type::UnboundMethod:
-        obj = nullptr;
-        break;
+        return {};
 
     case Object::Type::BigInt:
     case Object::Type::Collected:
@@ -149,12 +148,12 @@ Value Object::create(Env *env, ClassObject *klass) {
 }
 
 Value Object::_new(Env *env, Value klass_value, Args &&args, Block *block) {
-    Value obj = create(env, klass_value.as_class());
+    auto obj = create(env, klass_value.as_class());
     if (!obj)
         NAT_UNREACHABLE();
 
-    obj.send(env, "initialize"_s, std::move(args), block);
-    return obj;
+    obj.value().send(env, "initialize"_s, std::move(args), block);
+    return obj.value();
 }
 
 Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
@@ -164,11 +163,10 @@ Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
     if (!klass->respond_to(env, "allocate"_s))
         env->raise("TypeError", "calling {}.allocate is prohibited", klass->inspect_str());
 
-    Value obj;
+    Optional<Value> obj;
     switch (klass->object_type()) {
     case Object::Type::Proc:
     case Object::Type::EnumeratorArithmeticSequence:
-        obj = nullptr;
         break;
 
     default:
@@ -179,7 +177,7 @@ Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
     if (!obj)
         env->raise("TypeError", "allocator undefined for {}", klass->inspect_str());
 
-    return obj;
+    return obj.value();
 }
 
 Value Object::initialize(Env *env, Value self) {
@@ -334,7 +332,7 @@ Value Object::ivar_get(Env *env, SymbolObject *name) {
 
     auto val = m_ivars->get(name, env);
     if (val)
-        return val;
+        return val.value();
     else
         return Value::nil();
 }
@@ -350,7 +348,7 @@ Value Object::ivar_remove(Env *env, SymbolObject *name) {
 
     auto val = m_ivars->remove(name, env);
     if (val)
-        return val;
+        return val.value();
     else
         env->raise("NameError", "instance variable {} not defined", name->string());
 }
@@ -365,7 +363,7 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->string());
 
     if (!m_ivars)
-        m_ivars = new TM::Hashmap<SymbolObject *, Value> {};
+        m_ivars = new TM::Hashmap<SymbolObject *, Optional<Value>> {};
 
     m_ivars->put(name, val, env);
     return val;
@@ -704,7 +702,6 @@ Value Object::clone_obj(Env *env, Value self, Optional<Value> freeze_kwarg) {
 }
 
 void Object::copy_instance_variables(const Value other) {
-    assert(other);
     if (m_ivars)
         delete m_ivars;
     if (other.is_integer() || other.is_nil())
@@ -712,12 +709,12 @@ void Object::copy_instance_variables(const Value other) {
 
     auto ivars = other.object()->m_ivars;
     if (ivars)
-        m_ivars = new TM::Hashmap<SymbolObject *, Value> { *ivars };
+        m_ivars = new TM::Hashmap<SymbolObject *, Optional<Value>> { *ivars };
 }
 
 const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
-    Optional<Value> obj;
     if (name->is_constant_name()) {
+        Optional<Value> obj;
         if (strict) {
             if (m_type == Type::Module || m_type == Type::Class)
                 obj = static_cast<ModuleObject *>(this)->const_get(name);
@@ -726,10 +723,10 @@ const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
         }
         if (obj) return "constant";
     } else if (name->is_global_name()) {
-        obj = env->global_get(name);
+        auto obj = env->global_get(name);
         if (obj != Value::nil()) return "global-variable";
     } else if (name->is_ivar_name()) {
-        obj = ivar_get(env, name);
+        auto obj = ivar_get(env, name);
         if (obj != Value::nil()) return "instance-variable";
     } else if (respond_to(env, name)) {
         return "method";
@@ -858,7 +855,8 @@ void Object::visit_children(Visitor &visitor) const {
     if (m_ivars) {
         for (auto pair : *m_ivars) {
             visitor.visit(pair.first);
-            visitor.visit(pair.second);
+            if (pair.second)
+                visitor.visit(pair.second.value());
         }
     }
 }

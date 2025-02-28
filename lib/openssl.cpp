@@ -551,7 +551,7 @@ Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args &&args, Block *) 
     auto context = self->ivar_get(env, "@context"_s);
     auto hostname = self->ivar_get(env, "@hostname"_s);
 
-    if (context && context->ivar_get(env, "@verify_hostname"_s).is_truthy() && !hostname.is_nil()) {
+    if (context->ivar_get(env, "@verify_hostname"_s).is_truthy() && !hostname.is_nil()) {
         if (!SSL_set1_host(ssl, hostname.to_str(env)->c_str()))
             OpenSSL_SSL_raise_error(env, "SSL_set1_host");
     }

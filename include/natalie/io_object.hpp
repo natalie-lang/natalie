@@ -58,7 +58,6 @@ public:
     static Value copy_stream(Env *, Value, Value, Optional<Value> = {}, Optional<Value> = {});
     Value dup(Env *) const;
     Value each_byte(Env *, Block *);
-    Value external_encoding() const { return m_external_encoding; }
     Value fcntl(Env *, Value, Optional<Value> = {});
     int fdatasync(Env *);
     int fileno() const;
@@ -69,7 +68,6 @@ public:
     Value gets(Env *, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
     Value initialize(Env *, Args &&, Block * = nullptr);
     Value inspect() const;
-    Value internal_encoding() const { return m_internal_encoding; }
     bool is_autoclose(Env *) const;
     bool is_binmode(Env *) const;
     bool is_closed() const { return m_closed; }
@@ -128,6 +126,17 @@ public:
     Value get_path() const;
     void set_path(StringObject *path) { m_path = path; }
     void set_path(String path) { m_path = new StringObject { path }; }
+
+    Value external_encoding() const {
+        if (!m_external_encoding)
+            return Value::nil();
+        return m_external_encoding;
+    }
+
+    Value internal_encoding() const {
+        if (!m_internal_encoding) return Value::nil();
+        return m_internal_encoding;
+    }
 
     static void build_constants(Env *env, ClassObject *klass);
 

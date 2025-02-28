@@ -164,18 +164,17 @@ Value ArrayObject::inspect(Env *env) {
             Value obj = (*this)[i];
 
             auto inspected_repr = obj.send(env, "inspect"_s);
-            SymbolObject *to_s = "to_s"_s;
 
             if (!inspected_repr.is_string()) {
-                if (inspected_repr.respond_to(env, to_s)) {
+                SymbolObject *to_s = "to_s"_s;
+                if (inspected_repr.respond_to(env, to_s))
                     inspected_repr = obj.send(env, to_s);
-                }
             }
 
             if (inspected_repr.is_string())
                 out->append(inspected_repr.as_string());
             else
-                out->append_sprintf("#<%s:%#x>", inspected_repr.klass()->inspect_str().c_str(), static_cast<uintptr_t>(inspected_repr));
+                out->append_sprintf("#<%s:%#x>", inspected_repr.klass()->inspect_str().c_str(), inspected_repr.object_id());
 
             if (i < size() - 1) {
                 out->append(", ");
@@ -220,7 +219,7 @@ Value ArrayObject::sub(Env *env, Value other) {
     for (auto &item : *this) {
         int found = 0;
         for (auto &compare_item : *other_array) {
-            if ((item.send(env, "eql?"_s, { compare_item }).is_truthy() && item.send(env, "hash"_s).send(env, "eql?"_s, { compare_item.send(env, "hash"_s) }))
+            if ((item.send(env, "eql?"_s, { compare_item }).is_truthy() && item.send(env, "hash"_s).send(env, "eql?"_s, { compare_item.send(env, "hash"_s) }).is_truthy())
                 || item.send(env, "=="_s, { compare_item }).is_truthy()) {
                 found = 1;
                 break;
@@ -1319,16 +1318,16 @@ Value ArrayObject::minmax(Env *env, Block *block) {
         return nat_int;
     };
 
-    Value max;
-    Value min;
+    Optional<Value> max;
+    Optional<Value> min;
 
     for (auto item : *this) {
-        if (max == nullptr || compare(item, max) > 0)
+        if (!max || compare(item, max.value()) > 0)
             max = item;
-        if (min == nullptr || compare(item, min) < 0)
+        if (!min || compare(item, min.value()) < 0)
             min = item;
     }
-    return new ArrayObject { min, max };
+    return new ArrayObject { min.value(), max.value() };
 }
 
 Value ArrayObject::multiply(Env *env, Value factor) {

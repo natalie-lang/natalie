@@ -109,7 +109,7 @@ public:
 
     bool is_empty() { return m_hashmap.size() == 0; }
 
-    Value get(Env *, Value);
+    Optional<Value> get(Env *, Value);
     Value get_default(Env *, Optional<Value> = {});
     Value set_default(Env *, Value);
 
@@ -240,11 +240,11 @@ private:
     }
 
     HashKey *m_key_list { nullptr };
-    TM::Hashmap<HashKey *, Value> m_hashmap { 10 }; // TODO: profile and tune this initial capacity
+    TM::Hashmap<HashKey *, Optional<Value>> m_hashmap { 10 }; // TODO: profile and tune this initial capacity
     bool m_is_iterating { false };
     bool m_is_comparing_by_identity { false };
     bool m_is_ruby2_keywords_hash { false };
-    Value m_default_value { nullptr };
+    Value m_default_value {};
     ProcObject *m_default_proc { nullptr };
 };
 }

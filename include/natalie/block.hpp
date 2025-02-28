@@ -68,7 +68,7 @@ private:
     int m_arity { 0 };
     Env *m_env { nullptr };
     Env *m_calling_env { nullptr };
-    Value m_self { nullptr };
+    Value m_self {};
     BlockType m_type { BlockType::Proc };
 };
 

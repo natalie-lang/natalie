@@ -175,7 +175,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                     continue;
                 }
 
-                if (options.fallback_option) {
+                if (!options.fallback_option.is_nil()) {
                     handle_fallback(unicode_codepoint);
                     continue;
                 }
@@ -314,7 +314,7 @@ EncodingObject *EncodingObject::find_encoding(Env *env, Value encoding) {
 
     auto enc = EncodingObject::find_encoding_by_name(env, String("BINARY"));
     if (!enc)
-        env->raise("ArgumentError", "unknown encoding name - {}", encoding);
+        env->raise("ArgumentError", "unknown encoding name - {}", encoding.inspect_str(env));
 
     return enc;
 }

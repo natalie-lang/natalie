@@ -101,7 +101,6 @@ bool ExceptionObject::eq(Env *env, Value other) {
 Value ExceptionObject::inspect(Env *env) {
     auto klassname = m_klass->inspect_str();
     auto msgstr = send(env, "to_s"_s);
-    assert(msgstr);
     msgstr.assert_type(env, Object::Type::String, "String");
     if (msgstr.as_string()->is_empty())
         return new StringObject { klassname };
@@ -176,6 +175,7 @@ Value ExceptionObject::set_backtrace(Env *env, Value backtrace) {
         m_backtrace_value = new ArrayObject { backtrace };
     } else if (backtrace.is_nil()) {
         m_backtrace_value = nullptr;
+        return Value::nil();
     } else {
         env->raise("TypeError", "backtrace must be Array of String");
     }
