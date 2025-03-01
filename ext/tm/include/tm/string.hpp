@@ -798,6 +798,8 @@ public:
      * assert_str_eq("foo-bar-baz", str);
      * str.replace_bytes(10, 1, String { "a" });
      * assert_str_eq("foo-bar-baa", str);
+     * str.replace_bytes(10, 1, String { "" });
+     * assert_str_eq("foo-bar-ba", str);
      * ```
      */
     void replace_bytes(const size_t index, const size_t length, const String &replacement) {
@@ -817,6 +819,8 @@ public:
      * assert_str_eq("foo-bar-baz", str);
      * str.replace_bytes(10, 1, "a");
      * assert_str_eq("foo-bar-baa", str);
+     * str.replace_bytes(10, 1, "");
+     * assert_str_eq("foo-bar-ba", str);
      * ```
      */
     void replace_bytes(const size_t index, const size_t length, const char *replacement) {
@@ -834,8 +838,7 @@ public:
             const auto dest = src + diff;
             memmove(m_str + dest, m_str + src, m_length - index - length);
         }
-        for (size_t i = 0; i < replacement_size; i++)
-            m_str[index + i] = replacement[i];
+        memcpy(m_str + index, replacement, replacement_size);
         m_length += diff;
         m_str[m_length] = 0;
     }
