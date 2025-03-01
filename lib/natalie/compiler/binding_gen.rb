@@ -1353,6 +1353,8 @@ gen.binding('String', 'scan', 'StringObject', 'scan', argc: 1, pass_env: true, p
 gen.binding('String', 'setbyte', 'StringObject', 'setbyte', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'slice!', 'StringObject', 'slice_in_place', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'split', 'StringObject', 'split', argc: 0..2, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'squeeze', 'StringObject', 'squeeze', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'squeeze!', 'StringObject', 'squeeze_in_place', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'start_with?', 'StringObject', 'start_with', argc: :any, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('String', 'strip', 'StringObject', 'strip', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'strip!', 'StringObject', 'strip_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Value)

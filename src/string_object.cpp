@@ -3038,6 +3038,57 @@ Value StringObject::split(Env *env, Optional<Value> splitter_arg, Optional<Value
     return ary;
 }
 
+Value StringObject::squeeze(Env *env, Args &&selectors) {
+    auto copy = new StringObject { m_string, m_encoding };
+    copy->squeeze_in_place(env, std::move(selectors));
+    return copy;
+}
+
+Value StringObject::squeeze_in_place(Env *env, Args &&selectors) {
+    assert_not_frozen(env);
+    if (selectors.size() == 0)
+        return squeeze_in_place_without_selectors(env);
+
+    const auto old_len = bytesize();
+    auto handler = character_class_handler(env, std::move(selectors));
+    size_t index = 0;
+    auto last_character = next_char(&index);
+    while (index < m_string.size()) {
+        const auto old_index = index;
+        auto character = next_char(&index);
+
+        if (last_character.to_string() == character.to_string() && handler(character)) {
+            m_string.replace_bytes(old_index, character.size(), "");
+            index = old_index;
+        } else {
+            last_character = character;
+        }
+    }
+    if (bytesize() == old_len)
+        return Value::nil();
+    return this;
+}
+
+Value StringObject::squeeze_in_place_without_selectors(Env *env) {
+    const auto old_len = bytesize();
+    size_t index = 0;
+    auto last_character = next_char(&index);
+    while (index < m_string.size()) {
+        const auto old_index = index;
+        auto character = next_char(&index);
+
+        if (last_character.to_string() == character.to_string()) {
+            m_string.replace_bytes(old_index, character.size(), "");
+            index = old_index;
+        } else {
+            last_character = character;
+        }
+    }
+    if (bytesize() == old_len)
+        return Value::nil();
+    return this;
+}
+
 bool StringObject::include(Env *env, Value arg) {
     arg = arg.to_str(env);
 
