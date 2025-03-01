@@ -326,7 +326,8 @@ class Runner
     ast = parser.ast
     encoding = parser.encoding
     warnings = parser.warnings
-    @compiler = Natalie::Compiler.new(ast:, path: source_path, encoding:, warnings:, options: options).tap do |c|
+    data_loc = parser.data_loc
+    @compiler = Natalie::Compiler.new(ast:, path: source_path, encoding:, warnings:, data_loc:, options: options).tap do |c|
       c.load_path = options[:load_path]
       c.write_obj_path = options[:write_obj_path]
     end

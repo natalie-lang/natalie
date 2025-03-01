@@ -11,10 +11,11 @@ module Natalie
     # Representation, which we implement using Instructions.
     # You can debug this pass with the `-d p1` CLI flag.
     class Pass1 < BasePass
-      def initialize(ast, compiler_context:, macro_expander:, loaded_file:, warnings: [], frozen_string_literal: false)
+      def initialize(ast, compiler_context:, data_loc:, macro_expander:, loaded_file:, warnings: [], frozen_string_literal: false)
         super()
         @ast = ast
         @compiler_context = compiler_context
+        @data_loc = data_loc
         @required_ruby_files = @compiler_context[:required_ruby_files]
         @macro_expander = macro_expander
 
@@ -78,8 +79,30 @@ module Natalie
       end
 
       def transform_program_node(node, used:)
+        data_loc = []
+        if @data_loc && @data_loc[:path] == @file.path
+          data = @data_loc[:data_loc].slice_lines.delete_prefix("__END__\n")
+          require_arguments = Prism::ArgumentsNode.new(nil, nil, node.location, 0, [Prism::StringNode.new(nil, nil, node.location, 0, nil, nil, nil, 'stringio')])
+          require_node = Prism::CallNode.new(nil, nil, node.location, 0, nil, nil, :require, nil, nil, require_arguments, nil, nil)
+          data_loc += transform_expression(require_node, used: false).flatten
+          data_loc += [
+            PushSelfInstruction.new,
+            ConstFindInstruction.new(:StringIO, strict: false),
+            PushStringInstruction.new(data),
+            PushArgcInstruction.new(1),
+            SendInstruction.new(
+              :new,
+              receiver_is_self: false,
+              with_block: false,
+              file: @file.path,
+              line: node.location.start_line,
+            ),
+            PushSelfInstruction.new,
+            ConstSetInstruction.new(:DATA),
+          ]
+        end
         with_locals(node.locals) do
-          transform_statements_node(node.statements, used: used).flatten
+          data_loc + transform_statements_node(node.statements, used: used).flatten
         end
       end
 
