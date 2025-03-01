@@ -2897,6 +2897,89 @@ Value StringObject::to_r(Env *env) const {
     return RationalObject::create(env, numerator, denominator);
 }
 
+Value StringObject::undump(Env *env) const {
+    if (!m_encoding->is_ascii_compatible()) {
+        auto CompatibilityError = GlobalEnv::the()->Object()->const_fetch("Encoding"_s).as_module()->const_fetch("CompatibilityError"_s).as_class();
+        env->raise(CompatibilityError, "ASCII incompatible encoding: {}", m_encoding->name()->string());
+    }
+    if (!is_ascii_only())
+        env->raise("RuntimeError", "non-ASCII character detected");
+    auto error = [&env]() {
+        env->raise("RuntimeError", "invalid dumped string; not wrapped with '\"' nor '\"...\".force_encoding(\"...\")' form");
+    };
+    auto it = begin();
+    if (it == end() || *it != '"')
+        error();
+    it++;
+    String result;
+    while (it != end() && *it != '"') {
+        auto c = *it++;
+        if (c == '\\') {
+            if (it == end())
+                error();
+            c = *it++;
+            if (c == 'a') {
+                result.append("\a");
+            } else if (c == 'b') {
+                result.append("\b");
+            } else if (c == 't') {
+                result.append("\t");
+            } else if (c == 'n') {
+                result.append("\n");
+            } else if (c == 'v') {
+                result.append("\v");
+            } else if (c == 'f') {
+                result.append("\f");
+            } else if (c == 'r') {
+                result.append("\r");
+            } else if (c == 'e') {
+                result.append("\e");
+            } else if (c == '"') {
+                result.append("\"");
+            } else if (c == '\\') {
+                result.append("\\");
+            } else if (c == '#') {
+                if (it == end())
+                    error();
+                c = *it++;
+                if (c == '$' || c == '@' || c == '{') {
+                    result.append("#");
+                    result.append(c);
+                } else {
+                    result.append("\\#");
+                    result.append(c);
+                }
+            } else if (c == 'x') {
+                if (it == end())
+                    env->raise("RuntimeError", "invalid hex escape");
+                auto c1 = *it++;
+                if (c1.length() != 1 || !std::isxdigit(static_cast<unsigned char>(c1[0])))
+                    env->raise("RuntimeError", "invalid hex escape");
+                if (it == end())
+                    env->raise("RuntimeError", "invalid hex escape");
+                auto c2 = *it++;
+                if (c2.length() != 1 || !std::isxdigit(static_cast<unsigned char>(c2[0])))
+                    env->raise("RuntimeError", "invalid hex escape");
+                const char hex[] = { c1[0], c2[0], 0 };
+                result.append_char(static_cast<char>(std::strtol(hex, nullptr, 0x10)));
+            } else {
+                result.append("\\");
+                result.append(c);
+            }
+        } else if (c == '\0') {
+            env->raise("RuntimeError", "string contains null byte");
+        } else {
+            result.append(c);
+        }
+    }
+    if (it == end() || *it != '"')
+        env->raise("RuntimeError", "unterminated dumped string");
+    it++;
+    if (it != end())
+        env->raise("RuntimeError", "invalid dumped string");
+    return new StringObject { std::move(result), m_encoding };
+}
+
 nat_int_t StringObject::unpack_offset(Env *env, Optional<Value> offset_arg) const {
     nat_int_t offset = -1;
     if (offset_arg) {
