@@ -24,9 +24,9 @@ public:
         return s_instance;
     }
 
-    bool and_method(const Env *, Value) const;
-    bool or_method(const Env *, Value) const;
-    Value to_s(const Env *) const;
+    static bool and_method(const Env *, Value, Value);
+    static bool or_method(const Env *, Value, Value);
+    static Value to_s(const Env *, Value);
 
     virtual void visit_children(Visitor &visitor) const override final;
 
