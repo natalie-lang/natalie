@@ -391,6 +391,9 @@ public:
     Value split(Env *, Optional<Value>, Optional<Value> = {});
     Value split(Env *, RegexpObject *, int);
     Value split(Env *, StringObject *, int);
+    Value squeeze(Env *env, Args &&selectors);
+    Value squeeze_in_place(Env *env, Args &&selectors);
+    Value squeeze_in_place_without_selectors(Env *env);
     Value strip(Env *) const;
     Value strip_in_place(Env *);
     Value sum(Env *, Optional<Value> = {});
