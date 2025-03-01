@@ -11,9 +11,7 @@ describe "Integer#chr without argument" do
 
   it "raises a RangeError is self is less than 0" do
     -> { -1.chr }.should raise_error(RangeError, /-1 out of char range/)
-    NATFIXME 'it raises a RangeError for a negative bignum', exception: SpecFailedException do
-      -> { (-bignum_value).chr }.should raise_error(RangeError, /bignum out of char range/)
-    end
+    -> { (-bignum_value).chr }.should raise_error(RangeError, /bignum out of char range/)
   end
 
   it "raises a RangeError if self is too large" do
@@ -51,9 +49,7 @@ describe "Integer#chr without argument" do
 
     it "raises a RangeError is self is greater than 255" do
       -> { 256.chr }.should raise_error(RangeError, /256 out of char range/)
-      NATFIXME 'it raises a RangeError for a negative bignum', exception: SpecFailedException do
-        -> { bignum_value.chr }.should raise_error(RangeError, /bignum out of char range/)
-      end
+      -> { bignum_value.chr }.should raise_error(RangeError, /bignum out of char range/)
     end
   end
 
@@ -173,9 +169,7 @@ describe "Integer#chr with an encoding argument" do
   # http://redmine.ruby-lang.org/issues/4869
   it "raises a RangeError is self is less than 0" do
     -> { -1.chr(Encoding::UTF_8) }.should raise_error(RangeError, /-1 out of char range/)
-    NATFIXME 'it raises a RangeError for a negative bignum', exception: SpecFailedException do
-      -> { (-bignum_value).chr(Encoding::EUC_JP) }.should raise_error(RangeError, /bignum out of char range/)
-    end
+    -> { (-bignum_value).chr(Encoding::EUC_JP) }.should raise_error(RangeError, /bignum out of char range/)
   end
 
   it "raises a RangeError if self is too large" do
