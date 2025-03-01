@@ -790,6 +790,25 @@ public:
      *
      * ```
      * auto str = String { "foo-bar-baz" };
+     * str.replace_bytes(4, 3, String { "buz" });
+     * assert_str_eq("foo-buz-baz", str);
+     * str.replace_bytes(4, 3, String { "b" });
+     * assert_str_eq("foo-b-baz", str);
+     * str.replace_bytes(4, 1, String { "bar" });
+     * assert_str_eq("foo-bar-baz", str);
+     * str.replace_bytes(10, 1, String { "a" });
+     * assert_str_eq("foo-bar-baa", str);
+     * ```
+     */
+    void replace_bytes(const size_t index, const size_t length, const String &replacement) {
+        replace_bytes(index, length, replacement.c_str(), replacement.size());
+    }
+
+    /**
+     * Replaces the specified index+size bytes with the C string given.
+     *
+     * ```
+     * auto str = String { "foo-bar-baz" };
      * str.replace_bytes(4, 3, "buz");
      * assert_str_eq("foo-buz-baz", str);
      * str.replace_bytes(4, 3, "b");
@@ -800,10 +819,14 @@ public:
      * assert_str_eq("foo-bar-baa", str);
      * ```
      */
-    void replace_bytes(const size_t index, const size_t length, const String &replacement) {
+    void replace_bytes(const size_t index, const size_t length, const char *replacement) {
+        replace_bytes(index, length, replacement, strlen(replacement));
+    }
+
+    void replace_bytes(const size_t index, const size_t length, const char *replacement, const size_t replacement_size) {
         assert(index < m_length);
         assert(index + length <= m_length);
-        const ssize_t diff = replacement.size() - length;
+        const ssize_t diff = replacement_size - length;
         if (diff > 0)
             grow_at_least(m_length + diff);
         if (diff != 0) {
@@ -811,7 +834,7 @@ public:
             const auto dest = src + diff;
             memmove(m_str + dest, m_str + src, m_length - index - length);
         }
-        for (size_t i = 0; i < replacement.size(); i++)
+        for (size_t i = 0; i < replacement_size; i++)
             m_str[index + i] = replacement[i];
         m_length += diff;
         m_str[m_length] = 0;
