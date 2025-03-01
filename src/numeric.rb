@@ -129,9 +129,10 @@ class Numeric
   end
 
   def remainder(other)
-    remainder = self % other
+    obj, other = other.coerce(self)
+    remainder = obj % other
     return remainder if remainder == 0
-    return remainder - other if (self < 0 && other > 0) || (self > 0 && other < 0)
+    return remainder - other if (obj < 0 && other > 0) || (obj > 0 && other < 0)
     remainder
   end
 
