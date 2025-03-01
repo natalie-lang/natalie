@@ -534,10 +534,10 @@ Value IntegerMethods::gcd(Env *env, Integer self, Value divisor) {
 }
 
 Value IntegerMethods::chr(Env *env, Integer self, Optional<Value> encoding_arg) {
-    if (self < 0 || self > (nat_int_t)UINT_MAX)
-        env->raise("RangeError", "{} out of char range", self.to_string());
-    else if (self.is_bignum())
+    if (self.is_bignum())
         env->raise("RangeError", "bignum out of char range");
+    else if (self < 0 || self > (nat_int_t)UINT_MAX)
+        env->raise("RangeError", "{} out of char range", self.to_string());
 
     Value encoding;
     if (encoding_arg) {
