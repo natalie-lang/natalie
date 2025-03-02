@@ -215,17 +215,18 @@ public:
      * assert_not(view1 == view2);
      *
      * assert(StringView() == StringView());
+     * assert(StringView() == StringView(&str2, 0, 0));
      * ```
      */
     bool operator==(const StringView &other) const {
-        if (m_string == other.m_string) // shortcut
-            return m_offset == other.m_offset && m_length == other.m_length;
+        if (m_length != other.m_length)
+            return false;
         if (!m_string && other.m_length == 0)
             return true;
         if (!m_string)
             return false;
-        if (m_length != other.m_length)
-            return false;
+        if (m_string == other.m_string) // shortcut
+            return m_offset == other.m_offset;
         return memcmp(m_string->c_str() + m_offset, other.m_string->c_str(), sizeof(char) * m_length) == 0;
     }
 
