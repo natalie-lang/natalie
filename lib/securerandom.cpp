@@ -69,6 +69,12 @@ Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
         if (!arg.is_a(env, Numeric))
             env->raise("ArgumentError", "No implicit conversion of {} into Integer", arg.klass()->inspect_str());
 
+        if (!arg.is_integer() && arg.respond_to(env, "to_int"_s))
+            arg = arg.to_int(env);
+
+        if (arg.is_integer() && !arg.is_fixnum())
+            return Integer(arg.integer() * generate_random(0.0, 1.0).as_float()->to_double());
+
         nat_int_t max = IntegerMethods::convert_to_nat_int_t(env, arg);
         if (max <= 0)
             return generate_random(0.0, 1.0);
