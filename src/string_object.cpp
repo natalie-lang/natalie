@@ -64,7 +64,7 @@ static auto character_class_handler(Env *env, Args &&args) {
                 if (!result.first)
                     env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character, next_value);
 
-                if (last_character.to_string().cmp(next_value.to_string()) == 1)
+                if (last_character.cmp(next_value) == 1)
                     env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character, next_value);
 
                 auto range = RangeObject::create(env, new StringObject { last_character }, new StringObject { next_value }, false);
