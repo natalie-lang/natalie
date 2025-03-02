@@ -167,9 +167,9 @@ Value ArithmeticSequenceObject::hash(Env *env) {
     add(step());
 
     if (m_exclude_end)
-        add(TrueObject::the());
+        add(Value::True());
     else
-        add(FalseObject::the());
+        add(Value::False());
 
     return Value::integer(hash_builder.digest());
 }

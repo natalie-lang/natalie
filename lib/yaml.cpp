@@ -49,13 +49,6 @@ static void emit_value(Env *env, ExceptionObject *value, yaml_emitter_t &emitter
     emit(env, emitter, event);
 }
 
-static void emit_value(Env *env, FalseObject *, yaml_emitter_t &emitter, yaml_event_t &event) {
-    const TM::String str { "false" };
-    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_BOOL_TAG,
-        (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
-    emit(env, emitter, event);
-}
-
 static void emit_value(Env *env, FloatObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
     String str;
     if (value->is_nan()) {
@@ -147,16 +140,9 @@ static void emit_value(Env *env, TimeObject *value, yaml_emitter_t &emitter, yam
     emit(env, emitter, event);
 }
 
-static void emit_value(Env *env, TrueObject *, yaml_emitter_t &emitter, yaml_event_t &event) {
-    const TM::String str { "true" };
-    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_BOOL_TAG,
-        (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
-    emit(env, emitter, event);
-}
-
-static void emit_nil_value(Env *env, yaml_emitter_t &emitter, yaml_event_t &event) {
+static void emit_literal_value(Env *env, yaml_char_t *literal, int length, yaml_emitter_t &emitter, yaml_event_t &event) {
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_NULL_TAG,
-        (yaml_char_t *)"", 0, 1, 0, YAML_PLAIN_SCALAR_STYLE);
+        literal, length, 1, 0, YAML_PLAIN_SCALAR_STYLE);
     emit(env, emitter, event);
 }
 
@@ -221,7 +207,7 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
     } else if (value.is_exception()) {
         emit_value(env, value.as_exception(), emitter, event);
     } else if (value.is_false()) {
-        emit_value(env, value.as_false(), emitter, event);
+        emit_literal_value(env, (yaml_char_t *)"false", 5, emitter, event);
     } else if (value.is_float()) {
         emit_value(env, value.as_float(), emitter, event);
     } else if (value.is_hash()) {
@@ -231,7 +217,7 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
     } else if (value.is_module()) {
         emit_value(env, value.as_module(), emitter, event);
     } else if (value.is_nil()) {
-        emit_nil_value(env, emitter, event);
+        emit_literal_value(env, (yaml_char_t *)"", 0, emitter, event);
     } else if (value.is_range()) {
         emit_value(env, value.as_range(), emitter, event);
     } else if (value.is_regexp()) {
@@ -243,7 +229,7 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
     } else if (value.is_time()) {
         emit_value(env, value.as_time(), emitter, event);
     } else if (value.is_true()) {
-        emit_value(env, value.as_true(), emitter, event);
+        emit_literal_value(env, (yaml_char_t *)"true", 4, emitter, event);
     } else if (GlobalEnv::the()->Object()->defined(env, "Date"_s, false) && value.is_a(env, GlobalEnv::the()->Object()->const_fetch("Date"_s).as_class())) {
         emit_value(env, value.send(env, "to_s"_s).as_string(), emitter, event);
     } else if (GlobalEnv::the()->Object()->defined(env, "OpenStruct"_s, false) && value.is_a(env, GlobalEnv::the()->Object()->const_fetch("OpenStruct"_s).as_class())) {

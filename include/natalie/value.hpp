@@ -14,7 +14,9 @@
 
 namespace Natalie {
 
+constexpr unsigned int FALSE_VALUE = 0x0;
 constexpr unsigned int NIL_VALUE = 0x4;
+constexpr unsigned int TRUE_VALUE = 0x14;
 
 class Value {
 public:
@@ -37,9 +39,21 @@ public:
         return Value { integer };
     }
 
+    static Value False() {
+        Value v;
+        v.m_value = FALSE_VALUE;
+        return v;
+    }
+
     static Value nil() {
         Value v;
         v.m_value = NIL_VALUE;
+        return v;
+    }
+
+    static Value True() {
+        Value v;
+        v.m_value = TRUE_VALUE;
         return v;
     }
 
@@ -49,16 +63,7 @@ public:
     Object *operator->() const { return object(); }
 
     Object *object() const {
-        if (is_integer()) {
-            fprintf(stderr, "Fatal: cannot dereference Value of type Integer\n");
-            abort();
-        }
-
-        if (is_nil()) {
-            fprintf(stderr, "Fatal: cannot dereference Value of type Nil\n");
-            abort();
-        }
-
+        assert(!is_integer() && !is_nil() && !is_true() && !is_false());
         return pointer();
     }
 
@@ -104,11 +109,15 @@ public:
 
     ObjectType type() const;
 
-    bool is_pointer() const { return (m_value & 0b111) == 0x0; }
+    bool is_pointer() const { return m_value != 0x0 && (m_value & 0b111) == 0x0; }
     bool is_fixnum() const { return (m_value & 0x1) == 0x1; }
     bool is_integer() const;
     bool is_nil() const { return m_value == NIL_VALUE; }
+    bool is_true() const { return m_value == TRUE_VALUE; }
+    bool is_false() const { return m_value == FALSE_VALUE; }
     bool is_frozen() const;
+
+    bool has_heap_object() const { return !is_fixnum() && !is_nil() && !is_true() && !is_false(); }
 
     bool has_instance_variables() const;
 
@@ -121,8 +130,6 @@ public:
     bool is_a(Env *, Value) const;
     bool respond_to(Env *, SymbolObject *, bool include_all = true);
 
-    bool is_true() const;
-    bool is_false() const;
     bool is_fiber() const;
     bool is_enumerator_arithmetic_sequence() const;
     bool is_array() const;
@@ -170,7 +177,6 @@ public:
     EncodingObject *as_encoding() const;
     EnvObject *as_env() const;
     ExceptionObject *as_exception() const;
-    FalseObject *as_false() const;
     FiberObject *as_fiber() const;
     FileObject *as_file() const;
     FileStatObject *as_file_stat() const;
@@ -192,7 +198,6 @@ public:
     ThreadGroupObject *as_thread_group() const;
     Thread::MutexObject *as_thread_mutex() const;
     TimeObject *as_time() const;
-    TrueObject *as_true() const;
     UnboundMethodObject *as_unbound_method() const;
     VoidPObject *as_void_p() const;
 

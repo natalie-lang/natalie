@@ -458,7 +458,7 @@ bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
         return true;
     };
 
-    if (other_value.is_integer() || other_value.is_nil())
+    if (!other_value.has_heap_object())
         return lambda(false);
 
     TM::PairedRecursionGuard guard { this, other_value.object() };

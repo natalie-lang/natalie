@@ -174,7 +174,7 @@ Value FileObject::flock(Env *env, Value locking_constant) {
     const auto locking_constant_int = IntegerMethods::convert_to_nat_int_t(env, locking_constant);
     if (::flock(fileno(env), locking_constant_int) < 0) {
         if (errno == EWOULDBLOCK)
-            return FalseObject::the();
+            return Value::False();
         env->raise_errno();
     }
     return Value::integer(0);

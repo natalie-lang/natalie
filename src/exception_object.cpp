@@ -195,13 +195,13 @@ Value ExceptionObject::match_rescue_array(Env *env, Value ary) {
         }
     }
     if (!match_local_jump_error && m_local_jump_error_type != LocalJumpErrorType::None)
-        return FalseObject::the();
+        return Value::False();
 
     for (auto klass : *ary.as_array()) {
         if (klass.send(env, "==="_s, { this }).is_truthy())
-            return TrueObject::the();
+            return Value::True();
     }
-    return FalseObject::the();
+    return Value::False();
 }
 
 bool ExceptionObject::is_local_jump_error_with_break_point(nat_int_t match_break_point) const {
