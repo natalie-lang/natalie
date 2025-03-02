@@ -217,6 +217,11 @@ public:
      * assert(StringView() == StringView());
      * assert(StringView() == StringView(&str2, 0, 0));
      * assert(StringView(&str2, 0, 0) == StringView());
+     *
+     * auto str3 = String("abcabc");
+     * auto view3 = StringView(&str3, 0, 3);
+     * auto view3b = StringView(&str3, 3, 3);
+     * assert(view3 == view3b);
      * ```
      */
     bool operator==(const StringView &other) const {
@@ -224,8 +229,8 @@ public:
             return false;
         if (m_length == 0)
             return true;
-        if (m_string == other.m_string) // shortcut
-            return m_offset == other.m_offset;
+        if (m_string == other.m_string && m_offset == other.m_offset) // shortcut
+            return true;
         return memcmp(m_string->c_str() + m_offset, other.m_string->c_str(), sizeof(char) * m_length) == 0;
     }
 
