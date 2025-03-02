@@ -100,8 +100,8 @@ static auto character_class_handler(Env *env, Args &&args) {
     return [basic_characters, negated_characters](const StringView character) -> bool {
         if (basic_characters.is_empty() && negated_characters.is_empty())
             return false;
-        return ((negated_characters.is_empty() || negated_characters.get(character.to_string()) == nullptr)
-            && (basic_characters.is_empty() || basic_characters.get(character.to_string()) != nullptr));
+        return ((negated_characters.is_empty() || negated_characters.get(character) == nullptr)
+            && (basic_characters.is_empty() || basic_characters.get(character) != nullptr));
     };
 }
 
