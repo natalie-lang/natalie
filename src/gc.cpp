@@ -60,7 +60,7 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     Hashmap<Cell *> roots;
 
     for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < start_of_stack; ptr += sizeof(intptr_t)) {
-        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
+        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
         if (roots.get(potential_cell))
             continue;
         if (is_a_heap_cell_in_use(potential_cell))
@@ -73,13 +73,12 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     // step over any registers, saving potential pointers
     jmp_buf jump_buf;
     setjmp(jump_buf);
-    for (char *i = (char *)jump_buf; i < (char *)jump_buf + sizeof(jump_buf); ++i) {
-        Cell *potential_cell = *reinterpret_cast<Cell **>(i);
-        if (!potential_cell || roots.get(potential_cell))
+    for (char *ptr = reinterpret_cast<char *>(jump_buf); ptr < reinterpret_cast<char *>(jump_buf) + sizeof(jump_buf); ptr += sizeof(intptr_t)) {
+        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
+        if (!potential_cell)
             continue;
-        if (is_a_heap_cell_in_use(potential_cell)) {
+        if (is_a_heap_cell_in_use(potential_cell))
             roots.set(potential_cell);
-        }
     }
 
     return roots;
@@ -87,7 +86,7 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
 
 void Heap::collect() {
     // Only collect on the main thread for now.
-    if (ThreadObject::current() != ThreadObject::main()) return;
+    if (!ThreadObject::current()->is_main()) return;
 
     std::lock_guard<std::recursive_mutex> gc_lock(g_gc_recursive_mutex);
 
