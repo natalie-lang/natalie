@@ -190,7 +190,7 @@ void *Heap::allocate(size_t size) {
 
     if (m_gc_enabled) {
 #ifdef NAT_GC_DEBUG_ALWAYS_COLLECT
-        collect_dangerously_without_mutex();
+        collect();
 #else
 
         if (m_allocations_without_collection_count++ >= check_free_percentage_every) {
