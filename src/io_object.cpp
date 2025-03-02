@@ -125,7 +125,7 @@ Value IoObject::binwrite(Env *env, Args &&args) {
     auto kwargs = args.pop_keyword_hash();
     if (!kwargs)
         kwargs = new HashObject {};
-    kwargs->put(env, "binmode"_s, TrueObject::the());
+    kwargs->put(env, "binmode"_s, Value::True());
     auto args_array = args.to_array();
     args_array->push(kwargs);
     return write_file(env, Args { args_array, true });
@@ -136,8 +136,8 @@ Value IoObject::dup(Env *env) const {
     if (dup_fd < 0)
         env->raise_errno();
     auto dup_obj = _new(env, m_klass, { Value::integer(dup_fd) }, nullptr).as_io();
-    dup_obj->set_close_on_exec(env, TrueObject::the());
-    dup_obj->autoclose(env, TrueObject::the());
+    dup_obj->set_close_on_exec(env, Value::True());
+    dup_obj->autoclose(env, Value::True());
     return dup_obj;
 }
 

@@ -121,8 +121,8 @@ Value SymbolObject::is_casecmp(Env *env, Value other) {
     str1 = str1->send(env, "downcase"_s, { "ascii"_s }).as_string();
     str2 = str2->send(env, "downcase"_s, { "ascii"_s }).as_string();
     if (str1->string() == str2->string())
-        return TrueObject::the();
-    return FalseObject::the();
+        return Value::True();
+    return Value::False();
 }
 
 ProcObject *SymbolObject::to_proc(Env *env) {

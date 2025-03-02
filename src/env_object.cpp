@@ -257,8 +257,8 @@ Value EnvObject::has_value(Env *env, Value name) {
         return Value::nil();
     name = name.to_str(env);
     if (to_hash(env, nullptr).as_hash()->has_value(env, name))
-        return TrueObject::the();
-    return FalseObject::the();
+        return Value::True();
+    return Value::False();
 }
 
 Value EnvObject::to_s() const {

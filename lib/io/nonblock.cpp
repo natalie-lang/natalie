@@ -10,8 +10,8 @@ Value init_nonblock(Env *env, Value self) {
 Value IO_is_nonblock(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     if (self.as_io()->is_nonblock(env))
-        return TrueObject::the();
-    return FalseObject::the();
+        return Value::True();
+    return Value::False();
 }
 
 Value IO_set_nonblock(Env *env, Value self, Args &&args, Block *) {
