@@ -215,18 +215,27 @@ public:
      * assert_not(view1 == view2);
      *
      * assert(StringView() == StringView());
+     * assert(StringView() == StringView(&str2, 0, 0));
+     * assert(StringView(&str2, 0, 0) == StringView());
+     *
+     * auto str3 = String("abcabc");
+     * auto view3 = StringView(&str3, 0, 3);
+     * auto view3b = StringView(&str3, 3, 3);
+     * assert(view3 == view3b);
+     *
+     * auto view4 = StringView(&str3, 1, 2);
+     * auto view4b = StringView(&str3, 4, 2);
+     * assert(view4 == view4b);
      * ```
      */
     bool operator==(const StringView &other) const {
-        if (m_string == other.m_string) // shortcut
-            return m_offset == other.m_offset && m_length == other.m_length;
-        if (!m_string && other.m_length == 0)
-            return true;
-        if (!m_string)
-            return false;
         if (m_length != other.m_length)
             return false;
-        return memcmp(m_string->c_str() + m_offset, other.m_string->c_str(), sizeof(char) * m_length) == 0;
+        if (m_length == 0)
+            return true;
+        if (m_string == other.m_string && m_offset == other.m_offset) // shortcut
+            return true;
+        return memcmp(m_string->c_str() + m_offset, other.m_string->c_str() + other.m_offset, sizeof(char) * m_length) == 0;
     }
 
     bool operator!=(const StringView &other) const {

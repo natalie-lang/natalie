@@ -3140,7 +3140,7 @@ Value StringObject::squeeze_in_place(Env *env, Args &&selectors) {
         const auto old_index = index;
         auto character = next_char(&index);
 
-        if (last_character.to_string() == character.to_string() && handler(character)) {
+        if (last_character == character && handler(character)) {
             m_string.replace_bytes(old_index, character.size(), "");
             index = old_index;
         } else {
@@ -3160,7 +3160,7 @@ Value StringObject::squeeze_in_place_without_selectors(Env *env) {
         const auto old_index = index;
         auto character = next_char(&index);
 
-        if (last_character.to_string() == character.to_string()) {
+        if (last_character == character) {
             m_string.replace_bytes(old_index, character.size(), "");
             index = old_index;
         } else {
