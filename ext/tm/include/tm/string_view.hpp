@@ -216,12 +216,13 @@ public:
      *
      * assert(StringView() == StringView());
      * assert(StringView() == StringView(&str2, 0, 0));
+     * assert(StringView(&str2, 0, 0) == StringView());
      * ```
      */
     bool operator==(const StringView &other) const {
         if (m_length != other.m_length)
             return false;
-        if (!m_string && other.m_length == 0)
+        if (m_length == 0)
             return true;
         if (!m_string)
             return false;
