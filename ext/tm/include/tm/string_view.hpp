@@ -252,6 +252,70 @@ public:
     }
 
     /**
+     * Returns -1, 0, or 1 by comparing this StringView to the given StringView.
+     * -1 is returned if this StringView is alphanumerically less than the other one.
+     * 0 is returned if they are equivalent.
+     * 1 is returned if this StringView is alphanumerically greater than the other one.
+     *
+     * ```
+     * String str { "abcdef" };
+     * StringView sv1 { &str, 3, 3 };
+     * StringView sv2 { &str, 0, 3 };
+     * assert_eq(1, sv1.cmp(sv2));
+     * assert_eq(-1, sv2.cmp(sv1));
+     * String str2 { "abc" };
+     * StringView sv3 { &str2 };
+     * assert_eq(0, sv2.cmp(sv3));
+     * String str3 { "abcabc" };
+     * StringView sv4 { &str3 };
+     * assert_eq(-1, sv2.cmp(sv4));
+     * ```
+     */
+    int cmp(const StringView &other) const {
+        if (m_length == 0) {
+            if (other.m_length == 0)
+                return 0;
+            return -1;
+        }
+        for (size_t i = 0; i < std::min(m_length, other.m_length); ++i) {
+            const auto c1 = (unsigned char)(*this)[i], c2 = (unsigned char)other[i];
+            if (c1 < c2)
+                return -1;
+            else if (c1 > c2)
+                return 1;
+        }
+        if (m_length == other.m_length)
+            return 0;
+        else if (m_length < other.m_length)
+            return -1;
+        else
+            return 1;
+    }
+
+    /**
+     * Returns -1, 0, or 1 by comparing this StringView to the given String.
+     * -1 is returned if this StringView is alphanumerically less than the other one.
+     * 0 is returned if they are equivalent.
+     * 1 is returned if this StringView is alphanumerically greater than the other one.
+     *
+     * ```
+     * String str1 { "def" };
+     * String str2 { "abc" };
+     * StringView sv1 { &str1 };
+     * StringView sv2 { &str2 };
+     * assert_eq(1, sv1.cmp(str2));
+     * assert_eq(-1, sv2.cmp(str1));
+     * String str3 { "abc" };
+     * assert_eq(0, sv2.cmp(str3));
+     * String str4 { "abcabc" };
+     * assert_eq(-1, sv2.cmp(str4));
+     * ```
+     */
+    int cmp(const String &other) const {
+        return cmp(StringView { &other });
+    }
+
+    /**
      * Returns a new String constructed from this view.
      *
      * ```
