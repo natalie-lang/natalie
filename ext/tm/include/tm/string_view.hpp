@@ -224,8 +224,6 @@ public:
             return false;
         if (m_length == 0)
             return true;
-        if (!m_string)
-            return false;
         if (m_string == other.m_string) // shortcut
             return m_offset == other.m_offset;
         return memcmp(m_string->c_str() + m_offset, other.m_string->c_str(), sizeof(char) * m_length) == 0;
