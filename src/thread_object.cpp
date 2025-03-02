@@ -278,7 +278,7 @@ Value ThreadObject::status(Env *env) {
     if (m_status == Status::Dead) {
         if (m_exception)
             return Value::nil();
-        return FalseObject::the();
+        return Value::False();
     }
     return new StringObject { status_string };
 }

@@ -206,8 +206,8 @@ void Object::set_singleton_class(ClassObject *klass) {
 ClassObject *Object::singleton_class(Env *env, Value self) {
     if (self.is_integer() || self.is_float() || self.is_symbol())
         env->raise("TypeError", "can't define singleton");
-    if (self.is_nil())
-        return GlobalEnv::the()->Object()->const_fetch("NilClass"_s).as_class();
+    if (self.is_nil() || self.is_true() || self.is_false())
+        return self.singleton_class();
 
     if (self->m_singleton_class)
         return self->m_singleton_class;
@@ -625,7 +625,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Exception:
         return new ExceptionObject { *static_cast<const ExceptionObject *>(this) };
     case Object::Type::False:
-        return FalseObject::the();
+        return Value::False();
     case Object::Type::Float:
         return new FloatObject { *static_cast<const FloatObject *>(this) };
     case Object::Type::Hash:
@@ -647,7 +647,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Symbol:
         return SymbolObject::intern(static_cast<const SymbolObject *>(this)->string());
     case Object::Type::True:
-        return TrueObject::the();
+        return Value::True();
     case Object::Type::UnboundMethod:
         return new UnboundMethodObject { *static_cast<const UnboundMethodObject *>(this) };
     case Object::Type::MatchData:
@@ -695,7 +695,7 @@ Value Object::clone(Env *env, Optional<Value> freeze_arg) {
 }
 
 Value Object::clone_obj(Env *env, Value self, Optional<Value> freeze_kwarg) {
-    if (self.is_integer() || self.is_nil())
+    if (self.is_integer() || self.is_nil() || self.is_true() || self.is_false())
         return self;
 
     return self->clone(env, freeze_kwarg);
@@ -704,7 +704,7 @@ Value Object::clone_obj(Env *env, Value self, Optional<Value> freeze_kwarg) {
 void Object::copy_instance_variables(const Value other) {
     if (m_ivars)
         delete m_ivars;
-    if (other.is_integer() || other.is_nil())
+    if (other.is_integer() || other.is_nil() || other.is_true() || other.is_false())
         return;
 
     auto ivars = other.object()->m_ivars;

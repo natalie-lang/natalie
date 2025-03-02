@@ -67,12 +67,10 @@ Env *build_top_env() {
 
     ClassObject *TrueClass = Object->subclass(env, "TrueClass", Object::Type::True);
     Object->const_set("TrueClass"_s, TrueClass);
-    TrueObject::the()->set_singleton_class(TrueClass);
     TrueClass->set_is_singleton(false);
 
     ClassObject *FalseClass = Object->subclass(env, "FalseClass", Object::Type::False);
     Object->const_set("FalseClass"_s, FalseClass);
-    FalseObject::the()->set_singleton_class(FalseClass);
     FalseClass->set_is_singleton(false);
 
     ClassObject *Fiber = Object->subclass(env, "Fiber", Object::Type::Fiber);
@@ -461,10 +459,10 @@ Env *build_top_env() {
     env->global_set("$;"_s, Value::nil());
     env->global_alias("$-F"_s, "$;"_s);
 
-    env->global_set("$DEBUG"_s, FalseObject::the());
+    env->global_set("$DEBUG"_s, Value::False());
     env->global_alias("$-d"_s, "$DEBUG"_s);
 
-    env->global_set("$VERBOSE"_s, FalseObject::the());
+    env->global_set("$VERBOSE"_s, Value::False());
     GlobalEnv::the()->global_set_write_hook(env, "$VERBOSE"_s, GlobalVariableAccessHooks::WriteHooks::set_verbose);
     env->global_alias("$-v"_s, "$VERBOSE"_s);
     env->global_alias("$-w"_s, "$VERBOSE"_s);
@@ -553,10 +551,10 @@ Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat)
         if (when_value.is_array()) {
             for (auto item : *when_value.as_array()) {
                 if (item.send(env, "==="_s, { case_value }).is_truthy()) {
-                    return TrueObject::the();
+                    return Value::True();
                 }
             }
-            return FalseObject::the();
+            return Value::False();
         }
     }
     return when_value.send(env, "==="_s, { case_value });
@@ -888,9 +886,9 @@ void clean_up_and_exit(int status) {
 
 Value bool_object(bool b) {
     if (b)
-        return TrueObject::the();
+        return Value::True();
     else
-        return FalseObject::the();
+        return Value::False();
 }
 
 int hex_char_to_decimal_value(char c) {

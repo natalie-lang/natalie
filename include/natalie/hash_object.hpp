@@ -9,7 +9,6 @@
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/object.hpp"
-#include "tm/recursion_guard.hpp"
 
 namespace Natalie {
 

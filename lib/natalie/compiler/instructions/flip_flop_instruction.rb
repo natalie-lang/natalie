@@ -55,7 +55,7 @@ module Natalie
         end
 
         transform.exec(code)
-        transform.push("(#{state} == FlipFlopState::Off ? (Value)FalseObject::the() : (Value)TrueObject::the())")
+        transform.push("(#{state} == FlipFlopState::Off ? Value::False() : Value::True())")
       end
 
       def execute(vm)

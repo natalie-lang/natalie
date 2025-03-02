@@ -406,7 +406,7 @@ bool ArrayObject::eq(Env *env, Value other) {
         return true;
     };
 
-    if (other.is_integer() || other.is_nil())
+    if (!other.has_heap_object())
         return lambda(false);
 
     TM::PairedRecursionGuard guard { this, other.object() };
@@ -441,7 +441,7 @@ bool ArrayObject::eql(Env *env, Value other) {
         return true;
     };
 
-    if (other.is_integer() || other.is_nil())
+    if (!other.has_heap_object())
         return lambda(false);
 
     TM::PairedRecursionGuard guard { this, other.object() };

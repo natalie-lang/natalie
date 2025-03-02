@@ -582,10 +582,10 @@ gen.binding('Exception', 'set_backtrace', 'ExceptionObject', 'set_backtrace', ar
 gen.binding('Exception', 'to_s', 'ExceptionObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.undefine_singleton_method('FalseClass', 'new')
-gen.static_binding_as_instance_method('FalseClass', '&', 'FalseObject', 'and_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding_as_instance_method('FalseClass', '|', 'FalseObject', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding_as_instance_method('FalseClass', '^', 'FalseObject', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding_as_instance_method('FalseClass', 'to_s', 'FalseObject', 'to_s', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Value)
+gen.static_binding_as_instance_method('FalseClass', '&', 'FalseMethods', 'and_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('FalseClass', '|', 'FalseMethods', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('FalseClass', '^', 'FalseMethods', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('FalseClass', 'to_s', 'FalseMethods', 'to_s', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Value)
 
 gen.static_binding_as_class_method('Fiber', '[]', 'FiberObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding_as_class_method('Fiber', '[]=', 'FiberObject', 'refeq', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
@@ -1503,10 +1503,10 @@ gen.binding('Time', 'year', 'TimeObject', 'year', argc: 0, pass_env: true, pass_
 gen.binding('Time', 'zone', 'TimeObject', 'zone', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.undefine_singleton_method('TrueClass', 'new')
-gen.static_binding_as_instance_method('TrueClass', '&', 'TrueObject', 'and_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding_as_instance_method('TrueClass', '|', 'TrueObject', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding_as_instance_method('TrueClass', '^', 'TrueObject', 'xor_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding_as_instance_method('TrueClass', 'to_s', 'TrueObject', 'to_s', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Value)
+gen.static_binding_as_instance_method('TrueClass', '&', 'TrueMethods', 'and_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('TrueClass', '|', 'TrueMethods', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('TrueClass', '^', 'TrueMethods', 'xor_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding_as_instance_method('TrueClass', 'to_s', 'TrueMethods', 'to_s', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Value)
 
 gen.undefine_singleton_method('UnboundMethod', 'new')
 gen.binding('UnboundMethod', '==', 'UnboundMethodObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

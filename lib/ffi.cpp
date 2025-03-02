@@ -214,9 +214,9 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
                 env->raise("ArgumentError", "Expected Pointer but got {} for arg {}", val.inspect_str(env), (int)i);
             arg_pointers[i] = &(arg_values[i].vp);
         } else if (type == bool_sym) {
-            if (val == TrueObject::the())
+            if (val == Value::True())
                 arg_values[i].us = 1;
-            else if (val == FalseObject::the())
+            else if (val == Value::False())
                 arg_values[i].us = 0;
             else
                 env->raise("TypeError", "wrong argument type (expected a boolean parameter)");
@@ -486,7 +486,7 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args &&args, Block *blo
     self->ivar_set(env, "@type_size"_s, Value::integer(size));
 
     auto ptr_obj = self->ivar_get(env, "@ptr"_s);
-    ptr_obj->ivar_set(env, "@autorelease"_s, TrueObject::the());
+    ptr_obj->ivar_set(env, "@autorelease"_s, Value::True());
 
     if (block)
         block->run(env, Args({ self }), nullptr);
@@ -522,7 +522,7 @@ Value FFI_Pointer_initialize(Env *env, Value self, Args &&args, Block *) {
             }
         }
     };
-    ptr_obj->ivar_set(env, "@autorelease"_s, FalseObject::the());
+    ptr_obj->ivar_set(env, "@autorelease"_s, Value::False());
 
     self->ivar_set(env, "@ptr"_s, ptr_obj);
     self->ivar_set(env, "@type_size"_s, Value::integer(type_size));

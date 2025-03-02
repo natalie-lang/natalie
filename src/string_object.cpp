@@ -3314,7 +3314,7 @@ Value StringObject::each_line(Env *env, Optional<Value> separator_arg, Optional<
         auto do_chomp = chomp ? chomp.value().is_truthy() : false;
         if (do_chomp) {
             auto hash = new HashObject {};
-            hash->put(env, "chomp"_s, chomp.value_or(FalseObject::the()));
+            hash->put(env, "chomp"_s, chomp.value_or(Value::False()));
             args.push(hash);
         }
         return enum_for(env, "each_line", Args(args, do_chomp));
@@ -3589,9 +3589,9 @@ Value StringObject::is_casecmp(Env *env, Value other) {
     auto str1 = this->downcase(env, Value("fold"_s));
     auto str2 = other_str->downcase(env, Value("fold"_s));
     if (str1->string() == str2->string())
-        return TrueObject::the();
+        return Value::True();
 
-    return FalseObject::the();
+    return Value::False();
 }
 
 StringObject *StringObject::capitalize(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
@@ -3803,7 +3803,7 @@ Value StringObject::uminus(Env *env) {
 }
 
 Value StringObject::upto(Env *env, Value other, Optional<Value> exclusive_arg, Block *block) {
-    Value exclusive = FalseObject::the();
+    Value exclusive = Value::False();
     if (exclusive_arg)
         exclusive = exclusive_arg.value();
 
