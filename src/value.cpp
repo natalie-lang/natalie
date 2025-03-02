@@ -67,6 +67,10 @@ ClassObject *Value::klass() const {
         return GlobalEnv::the()->Integer();
     if (is_nil())
         return GlobalEnv::the()->Object()->const_fetch("NilClass"_s).as_class();
+    if (is_true())
+        return GlobalEnv::the()->Object()->const_fetch("TrueClass"_s).as_class();
+    if (is_false())
+        return GlobalEnv::the()->Object()->const_fetch("FalseClass"_s).as_class();
     auto ptr = object();
     if (ptr)
         return ptr->klass();
@@ -76,8 +80,8 @@ ClassObject *Value::klass() const {
 ClassObject *Value::singleton_class() const {
     if (is_integer() || is_float() || is_symbol())
         return nullptr;
-    if (is_nil())
-        return GlobalEnv::the()->Object()->const_fetch("NilClass"_s).as_class();
+    if (is_nil() || is_true() || is_false())
+        return klass();
     auto ptr = object();
     if (ptr)
         return ptr->singleton_class();
@@ -133,7 +137,7 @@ StringObject *Value::to_str2(Env *env) {
 Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
 
-    if (is_integer() || is_nil())
+    if (is_integer() || is_nil() || is_true() || is_false())
         return immediate_send(env, name, std::move(args), block, MethodVisibility::Public);
 
     return object()->public_send(env, name, std::move(args), block, sent_from);
@@ -142,7 +146,7 @@ Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block
 Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block) {
     PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
 
-    if (is_integer() || is_nil())
+    if (is_integer() || is_nil() || is_true() || is_false())
         return immediate_send(env, name, std::move(args), block, MethodVisibility::Public);
 
     return object()->public_send(env, name, std::move(args), block);
@@ -151,7 +155,7 @@ Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block
 Value Value::send(Env *env, SymbolObject *name, Args &&args, Block *block) {
     PROFILED_SEND(NativeProfilerEvent::Type::SEND);
 
-    if (is_integer() || is_nil())
+    if (is_integer() || is_nil() || is_true() || is_false())
         return immediate_send(env, name, std::move(args), block, MethodVisibility::Private);
 
     return object()->send(env, name, std::move(args), block);
@@ -159,7 +163,7 @@ Value Value::send(Env *env, SymbolObject *name, Args &&args, Block *block) {
 
 Integer Value::integer() const {
     if (!is_integer()) {
-        fprintf(stderr, "Fatal: cannot convert Value of type Pointer to Integer\n");
+        fprintf(stderr, "Fatal: not an Integer\n");
         abort();
     }
     if (is_fixnum())
@@ -178,6 +182,10 @@ ObjectType Value::type() const {
         return ObjectType::Integer;
     if (is_nil())
         return ObjectType::Nil;
+    if (is_true())
+        return ObjectType::True;
+    if (is_false())
+        return ObjectType::False;
     return pointer()->type();
 }
 
@@ -191,7 +199,7 @@ bool Value::is_integer() const {
 }
 
 bool Value::is_frozen() const {
-    return is_integer() || is_float() || is_nil() || object()->is_frozen();
+    return is_integer() || is_float() || is_nil() || is_true() || is_false() || object()->is_frozen();
 }
 
 bool Value::has_instance_variables() const {
@@ -217,6 +225,8 @@ void Value::assert_integer(Env *env) const {
 void Value::assert_type(Env *env, ObjectType expected_type, const char *expected_class_name) const {
     assert(expected_type != ObjectType::Integer);
     assert(expected_type != ObjectType::Nil);
+    assert(expected_type != ObjectType::True);
+    assert(expected_type != ObjectType::False);
     if (type() != expected_type)
         env->raise_type_error(*this, expected_class_name);
 }
@@ -226,6 +236,10 @@ void Value::assert_not_frozen(Env *env) const {
         env->raise("FrozenError", "can't modify frozen Integer: {}", integer().to_string());
     if (is_nil())
         env->raise("FrozenError", "can't modify frozen NilClass: nil");
+    if (is_true())
+        env->raise("FrozenError", "can't modify frozen TrueClass: true");
+    if (is_false())
+        env->raise("FrozenError", "can't modify frozen FalseClass: false");
 
     object()->assert_not_frozen(env);
 }
@@ -253,8 +267,6 @@ bool Value::respond_to(Env *env, SymbolObject *name_val, bool include_all) {
     return KernelModule::respond_to_method(env, *this, name_val, include_all);
 }
 
-bool Value::is_true() const { return is_pointer() && pointer()->type() == ObjectType::True; }
-bool Value::is_false() const { return is_pointer() && pointer()->type() == ObjectType::False; }
 bool Value::is_fiber() const { return is_pointer() && pointer()->type() == ObjectType::Fiber; }
 bool Value::is_enumerator_arithmetic_sequence() const { return is_pointer() && pointer()->type() == ObjectType::EnumeratorArithmeticSequence; }
 bool Value::is_array() const { return is_pointer() && pointer()->type() == ObjectType::Array; }
@@ -346,11 +358,6 @@ EnvObject *Value::as_env() const {
 ExceptionObject *Value::as_exception() const {
     assert(is_exception());
     return reinterpret_cast<ExceptionObject *>(m_value);
-}
-
-FalseObject *Value::as_false() const {
-    assert(is_false());
-    return reinterpret_cast<FalseObject *>(m_value);
 }
 
 FiberObject *Value::as_fiber() const {
@@ -446,11 +453,6 @@ Thread::MutexObject *Value::as_thread_mutex() const {
 TimeObject *Value::as_time() const {
     assert(is_time());
     return reinterpret_cast<TimeObject *>(m_value);
-}
-
-TrueObject *Value::as_true() const {
-    assert(is_true());
-    return reinterpret_cast<TrueObject *>(m_value);
 }
 
 UnboundMethodObject *Value::as_unbound_method() const {
@@ -670,6 +672,10 @@ String Value::dbg_inspect() const {
         return integer().to_string();
     if (is_nil())
         return "nil";
+    if (is_true())
+        return "true";
+    if (is_false())
+        return "false";
     return object()->dbg_inspect();
 }
 

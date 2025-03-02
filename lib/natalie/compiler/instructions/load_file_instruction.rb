@@ -29,11 +29,11 @@ module Natalie
             fn_code = []
             fn_code << "Value #{fn}(Env *env, Value self, bool require_once) {"
             fn_code << "if (require_once && #{transform.has_file(filename_sym)}) {"
-            fn_code << '  return FalseObject::the();'
+            fn_code << '  return Value::False();'
             fn_code << '}'
             fn_code << "#{transform.add_file(filename_sym)};"
             fn_code << t.transform
-            fn_code << 'return TrueObject::the();'
+            fn_code << 'return Value::True();'
             fn_code << '}'
             transform.top(fn_code)
           end

@@ -136,8 +136,8 @@ Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args &&args, Blo
     if (b->bytesize() != len)
         env->raise("ArgumentError", "inputs must be of equal length");
     if (CRYPTO_memcmp(a->c_str(), b->c_str(), len) == 0)
-        return TrueObject::the();
-    return FalseObject::the();
+        return Value::True();
+    return Value::False();
 }
 
 static void OpenSSL_Cipher_ciphers_add_cipher(const OBJ_NAME *cipher_meth, void *arg) {
@@ -374,7 +374,7 @@ Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args &&args, Block
     if (!ctx)
         OpenSSL_SSL_raise_error(env, "SSL_CTX_new");
     self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_SSL_CTX_cleanup });
-    self->ivar_set(env, "@verify_hostname"_s, FalseObject::the());
+    self->ivar_set(env, "@verify_hostname"_s, Value::False());
     self->ivar_set(env, "@verify_mode"_s, Value::integer(0));
     return self;
 }
@@ -513,7 +513,7 @@ Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args &&args, Block *) {
         SSL_CTX_set1_cert_store(ctx, store);
     }
 
-    return TrueObject::the();
+    return Value::True();
 }
 
 Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args &&args, Block *) {
@@ -686,10 +686,10 @@ Value OpenSSL_PKey_RSA_is_private(Env *env, Value self, Args &&args, Block *) {
     BIGNUM *tmp = nullptr;
     if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_D, &tmp)) {
         BN_clear_free(tmp);
-        return TrueObject::the();
+        return Value::True();
     }
 
-    return FalseObject::the();
+    return Value::False();
 }
 
 Value OpenSSL_PKey_RSA_public_key(Env *env, Value self, Args &&args, Block *) {
@@ -1151,7 +1151,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
                 OpenSSL_raise_error(env, "BN_dec2bn");
         } else {
             // No support in OpenSSL libs to add a base argument, so convert string to int with base, and convert int back to string
-            arg = KernelModule::Integer(env, arg, Optional<Value>(args.at(1)), Value(TrueObject::the()));
+            arg = KernelModule::Integer(env, arg, Optional<Value>(args.at(1)), Value::True());
             const auto str = arg.integer().to_string();
             if (!BN_dec2bn(&bn, str.c_str()))
                 OpenSSL_raise_error(env, "BN_dec2bn");

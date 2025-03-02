@@ -8,7 +8,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.push('Value(FalseObject::the())')
+        transform.push('Value::False()')
       end
 
       def execute(vm)

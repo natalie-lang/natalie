@@ -919,6 +919,8 @@ Value KernelModule::dup(Env *env, Value self) {
     switch (self.type()) {
     case Object::Type::Nil:
     case Object::Type::Integer:
+    case Object::Type::True:
+    case Object::Type::False:
         return self;
     case Object::Type::Array:
     case Object::Type::Hash:
@@ -1051,7 +1053,7 @@ Value KernelModule::method(Env *env, Value self, Value name) {
     if (!method_info.is_defined()) {
         auto respond_to_missing = module->find_method(env, "respond_to_missing?"_s);
         if (respond_to_missing.is_defined()) {
-            if (respond_to_missing.method()->call(env, self, { name_symbol, TrueObject::the() }, nullptr).is_truthy()) {
+            if (respond_to_missing.method()->call(env, self, { name_symbol, Value::True() }, nullptr).is_truthy()) {
                 auto method_missing = module->find_method(env, "method_missing"_s);
                 if (method_missing.is_defined()) {
                     return new MethodObject { self, method_missing.method(), name_symbol };
@@ -1067,13 +1069,13 @@ Value KernelModule::methods(Env *env, Value self, Optional<Value> regular_val) {
     bool regular = regular_val ? regular_val.value().is_truthy() : true;
     if (regular) {
         if (self->singleton_class()) {
-            return self->singleton_class()->instance_methods(env, Value(TrueObject::the()));
+            return self->singleton_class()->instance_methods(env, Value::True());
         } else {
-            return self.klass()->instance_methods(env, Value(TrueObject::the()));
+            return self.klass()->instance_methods(env, Value::True());
         }
     }
     if (self->singleton_class())
-        return self->singleton_class()->instance_methods(env, Value(FalseObject::the()));
+        return self->singleton_class()->instance_methods(env, Value::False());
     else
         return new ArrayObject {};
 }
@@ -1084,21 +1086,21 @@ bool KernelModule::neqtilde(Env *env, Value self, Value other) {
 
 Value KernelModule::private_methods(Env *env, Value self, Optional<Value> recur) {
     if (self->singleton_class())
-        return self->singleton_class()->private_instance_methods(env, Value(TrueObject::the()));
+        return self->singleton_class()->private_instance_methods(env, Value::True());
     else
         return self.klass()->private_instance_methods(env, recur);
 }
 
 Value KernelModule::protected_methods(Env *env, Value self, Optional<Value> recur) {
     if (self->singleton_class())
-        return self->singleton_class()->protected_instance_methods(env, Value(TrueObject::the()));
+        return self->singleton_class()->protected_instance_methods(env, Value::True());
     else
         return self.klass()->protected_instance_methods(env, recur);
 }
 
 Value KernelModule::public_methods(Env *env, Value self, Optional<Value> recur) {
     if (self.singleton_class())
-        return self.singleton_class()->public_instance_methods(env, Value(TrueObject::the()));
+        return self.singleton_class()->public_instance_methods(env, Value::True());
     else
         return self.klass()->public_instance_methods(env, recur);
 }
