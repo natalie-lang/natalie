@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <functional>
 #include <mutex>
 #include <setjmp.h>
 #include <stdlib.h>
@@ -80,6 +81,9 @@ public:
 
     bool collect_all_at_exit() const { return m_collect_all_at_exit; }
     void set_collect_all_at_exit(bool collect) { m_collect_all_at_exit = collect; }
+
+    void scan_memory(Cell::Visitor &visitor, void *start, void *end);
+    void scan_memory(Cell::Visitor &visitor, void *start, void *end, std::function<void(Cell *)> fn);
 
 private:
     friend Allocator;

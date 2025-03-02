@@ -1,5 +1,4 @@
 #include "natalie.hpp"
-#include "natalie/thread_object.hpp"
 
 #define MINICORO_IMPL
 #include "minicoro/minicoro.h"
@@ -321,14 +320,13 @@ NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_stack(Visitor &visitor
     if (m_status == Status::Terminated)
         return;
 
-    for (char *ptr = reinterpret_cast<char *>(m_end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
-        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-        if (Heap::the().is_a_heap_cell_in_use(potential_cell))
-            visitor.visit(potential_cell);
 #ifdef __SANITIZE_ADDRESS__
+    Heap::the().scan_memory(visitor, m_end_of_stack, m_start_of_stack, [&](Cell *potential_cell) {
         visit_children_from_asan_fake_stack(visitor, potential_cell);
+    });
+#else
+    Heap::the().scan_memory(visitor, m_end_of_stack, m_start_of_stack);
 #endif
-    }
 }
 
 #ifdef __SANITIZE_ADDRESS__
@@ -339,11 +337,7 @@ NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_asan_fake_stack(Visito
 
     if (!real_stack) return;
 
-    for (char *ptr = reinterpret_cast<char *>(begin); ptr < end; ptr += sizeof(intptr_t)) {
-        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-        if (Heap::the().is_a_heap_cell_in_use(potential_cell))
-            visitor.visit(potential_cell);
-    }
+    Heap::the().scan_memory(visitor, begin, end);
 }
 #else
 void FiberObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const { }
@@ -361,7 +355,6 @@ HashObject *FiberObject::ensure_thread_storage() {
         m_thread_storage = new HashObject {};
     return m_thread_storage;
 }
-
 }
 
 extern "C" {
