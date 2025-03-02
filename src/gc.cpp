@@ -29,7 +29,7 @@ void MarkingVisitor::visit(const Value val) {
 }
 
 #ifdef __SANITIZE_ADDRESS__
-NO_SANITIZE_ADDRESS void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *> &roots, Cell *potential_cell) {
+NO_SANITIZE_ADDRESS void Heap::visit_roots_from_asan_fake_stack(Cell::Visitor &visitor, Cell *potential_cell) {
     void *begin_fake_frame = nullptr;
     void *end_fake_frame = nullptr;
     auto fake_stack = __asan_get_current_fake_stack();
@@ -39,17 +39,17 @@ NO_SANITIZE_ADDRESS void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *>
 
     for (char *ptr = reinterpret_cast<char *>(begin_fake_frame); ptr < end_fake_frame; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-        if (roots.get(potential_cell))
+        if (!potential_cell)
             continue;
         if (is_a_heap_cell_in_use(potential_cell))
-            roots.set(potential_cell);
+            visitor.visit(potential_cell);
     }
 }
 #else
-void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *> &roots, Cell *potential_cell) { }
+void Heap::visit_roots_from_asan_fake_stack(Cell::Visitor &visitor, Cell *potential_cell) { }
 #endif
 
-NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
+NO_SANITIZE_ADDRESS void Heap::visit_roots(Cell::Visitor &visitor) {
     void *dummy;
     void *end_of_stack = &dummy;
 
@@ -57,16 +57,14 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     auto start_of_stack = ThreadObject::current()->start_of_stack();
     assert(start_of_stack > end_of_stack);
 
-    Hashmap<Cell *> roots;
-
     for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-        if (roots.get(potential_cell))
+        if (!potential_cell)
             continue;
         if (is_a_heap_cell_in_use(potential_cell))
-            roots.set(potential_cell);
+            visitor.visit(potential_cell);
 #ifdef __SANITIZE_ADDRESS__
-        gather_roots_from_asan_fake_stack(roots, potential_cell);
+        visit_roots_from_asan_fake_stack(visitor, potential_cell);
 #endif
     }
 
@@ -78,10 +76,8 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
         if (!potential_cell)
             continue;
         if (is_a_heap_cell_in_use(potential_cell))
-            roots.set(potential_cell);
+            visitor.visit(potential_cell);
     }
-
-    return roots;
 }
 
 void Heap::collect() {
@@ -115,11 +111,7 @@ void Heap::collect() {
 
     MarkingVisitor visitor;
 
-    auto roots = gather_conservative_roots();
-
-    for (auto pair : roots) {
-        visitor.visit(pair.first);
-    }
+    visit_roots(visitor);
 
     visitor.visit(GlobalEnv::the());
     visitor.visit(Value::nil());

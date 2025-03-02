@@ -111,8 +111,8 @@ private:
         NAT_UNREACHABLE();
     }
 
-    void gather_roots_from_asan_fake_stack(Hashmap<Cell *> &, Cell *);
-    TM::Hashmap<Cell *> gather_conservative_roots();
+    void visit_roots_from_asan_fake_stack(Cell::Visitor &, Cell *);
+    void visit_roots(Cell::Visitor &);
 
     void sweep();
 
