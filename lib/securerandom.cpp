@@ -51,6 +51,8 @@ Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
                     }
 
                     return generate_random(min_rand, max_rand);
+                } else if (max.is_integer() && !max.is_fixnum()) {
+                    return Integer((max.integer() - min.integer()) * generate_random(0.0, 1.0).as_float()->to_double() + min.integer());
                 } else {
                     nat_int_t min_rand = IntegerMethods::convert_to_native_type<nat_int_t>(env, min);
                     nat_int_t max_rand = IntegerMethods::convert_to_native_type<nat_int_t>(env, max);
