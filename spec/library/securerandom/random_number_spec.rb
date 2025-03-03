@@ -47,13 +47,11 @@ describe "SecureRandom.random_number" do
   it "generates a random value in given big (integer) range limits" do
     lower = 12345678901234567890
     upper = 12345678901234567890 + 5
-    NATFIXME 'it generates a random value in given big (integer) range limits', exception: RangeError, message: "bignum too big to convert into 'long long int'" do
-      32.times do
-        num = SecureRandom.random_number lower..upper
-        num.should be_kind_of(Integer)
-        lower.should <= num
-        num.should <= upper
-      end
+    32.times do
+      num = SecureRandom.random_number lower..upper
+      num.should be_kind_of(Integer)
+      lower.should <= num
+      num.should <= upper
     end
   end
 
