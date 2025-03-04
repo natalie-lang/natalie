@@ -959,6 +959,11 @@ void gc_signal_handler(int signal, siginfo_t *, void *ucontext) {
         }
         memcpy(ctx, ucontext, sizeof(ucontext_t));
         thread->set_suspend_status(ThreadObject::SuspendStatus::Suspended);
+
+#if defined(__x86_64__)
+        thread->set_end_of_stack(reinterpret_cast<void *>(ctx->uc_mcontext.gregs[REG_RSP]));
+#endif
+
 #ifdef NAT_DEBUG_THREADS
         char msg[] = "THREAD DEBUG: Thread suspended\n";
         assert(::write(STDERR_FILENO, msg, sizeof(msg)) != -1);
