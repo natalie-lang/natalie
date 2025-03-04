@@ -29,7 +29,7 @@ void MarkingVisitor::visit(const Value val) {
 }
 
 #ifdef __SANITIZE_ADDRESS__
-NO_SANITIZE_ADDRESS void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *> &roots, Cell *potential_cell) {
+NO_SANITIZE_ADDRESS void Heap::visit_roots_from_asan_fake_stack(Cell::Visitor &visitor, Cell *potential_cell) {
     void *begin_fake_frame = nullptr;
     void *end_fake_frame = nullptr;
     auto fake_stack = __asan_get_current_fake_stack();
@@ -37,57 +37,37 @@ NO_SANITIZE_ADDRESS void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *>
 
     if (!real_stack) return;
 
-    for (char *ptr = reinterpret_cast<char *>(begin_fake_frame); ptr < end_fake_frame; ptr += sizeof(intptr_t)) {
-        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-        if (roots.get(potential_cell))
-            continue;
-        if (is_a_heap_cell_in_use(potential_cell))
-            roots.set(potential_cell);
-    }
+    scan_memory(visitor, begin_fake_frame, end_fake_frame);
 }
 #else
-void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *> &roots, Cell *potential_cell) { }
+void Heap::visit_roots_from_asan_fake_stack(Cell::Visitor &visitor, Cell *potential_cell) { }
 #endif
 
-NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
+NO_SANITIZE_ADDRESS void Heap::visit_roots(Cell::Visitor &visitor) {
     void *dummy;
     void *end_of_stack = &dummy;
 
     // step over stack, saving potential pointers
     auto start_of_stack = ThreadObject::current()->start_of_stack();
     assert(start_of_stack > end_of_stack);
-
-    Hashmap<Cell *> roots;
-
-    for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < start_of_stack; ptr += sizeof(intptr_t)) {
-        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
-        if (roots.get(potential_cell))
-            continue;
-        if (is_a_heap_cell_in_use(potential_cell))
-            roots.set(potential_cell);
 #ifdef __SANITIZE_ADDRESS__
-        gather_roots_from_asan_fake_stack(roots, potential_cell);
+    scan_memory(visitor, end_of_stack, start_of_stack, [&](Cell *potential_cell) {
+        visit_roots_from_asan_fake_stack(visitor, potential_cell);
+    });
+#else
+    scan_memory(visitor, end_of_stack, start_of_stack);
 #endif
-    }
 
     // step over any registers, saving potential pointers
     jmp_buf jump_buf;
     setjmp(jump_buf);
-    for (char *i = (char *)jump_buf; i < (char *)jump_buf + sizeof(jump_buf); ++i) {
-        Cell *potential_cell = *reinterpret_cast<Cell **>(i);
-        if (!potential_cell || roots.get(potential_cell))
-            continue;
-        if (is_a_heap_cell_in_use(potential_cell)) {
-            roots.set(potential_cell);
-        }
-    }
-
-    return roots;
+    auto start = reinterpret_cast<std::byte *>(jump_buf);
+    scan_memory(visitor, start, start + sizeof(jump_buf));
 }
 
 void Heap::collect() {
     // Only collect on the main thread for now.
-    if (ThreadObject::current() != ThreadObject::main()) return;
+    if (!ThreadObject::current()->is_main()) return;
 
     std::lock_guard<std::recursive_mutex> gc_lock(g_gc_recursive_mutex);
 
@@ -116,11 +96,7 @@ void Heap::collect() {
 
     MarkingVisitor visitor;
 
-    auto roots = gather_conservative_roots();
-
-    for (auto pair : roots) {
-        visitor.visit(pair.first);
-    }
+    visit_roots(visitor);
 
     visitor.visit(GlobalEnv::the());
     visitor.visit(Value::nil());
@@ -191,7 +167,7 @@ void *Heap::allocate(size_t size) {
 
     if (m_gc_enabled) {
 #ifdef NAT_GC_DEBUG_ALWAYS_COLLECT
-        collect_dangerously_without_mutex();
+        collect();
 #else
 
         if (m_allocations_without_collection_count++ >= check_free_percentage_every) {
@@ -260,6 +236,27 @@ void Heap::dump() const {
         }
     }
     printf("Total allocations: %lld\n", allocation_count);
+}
+
+NO_SANITIZE_ADDRESS void Heap::scan_memory(Cell::Visitor &visitor, void *start, void *end) {
+    for (auto *ptr = reinterpret_cast<std::byte *>(start); ptr < end; ptr += sizeof(intptr_t)) {
+        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
+        if (!potential_cell)
+            continue;
+        if (is_a_heap_cell_in_use(potential_cell))
+            visitor.visit(potential_cell);
+    }
+}
+
+NO_SANITIZE_ADDRESS void Heap::scan_memory(Cell::Visitor &visitor, void *start, void *end, std::function<void(Cell *)> fn) {
+    for (auto *ptr = reinterpret_cast<std::byte *>(start); ptr < end; ptr += sizeof(intptr_t)) {
+        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
+        if (!potential_cell)
+            continue;
+        if (is_a_heap_cell_in_use(potential_cell))
+            visitor.visit(potential_cell);
+        fn(potential_cell);
+    }
 }
 
 Cell *HeapBlock::find_next_free_cell() {
