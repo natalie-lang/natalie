@@ -1140,13 +1140,15 @@ module Natalie
       end
 
       def transform_constant_path_write_node(node, used:)
-        instructions = [transform_expression(node.value, used: true)]
-        instructions << DupInstruction.new if used
         name, _is_private, prep_instruction = constant_name(node.target)
         # FIXME: is_private shouldn't be ignored I think
-        instructions << prep_instruction
-        instructions << ConstSetInstruction.new(name)
-        instructions
+        [
+          *prep_instruction,
+          transform_expression(node.value, used: true),
+          *(used ? DupInstruction.new : []),
+          MoveRelInstruction.new(used ? 2 : 1),
+          ConstSetInstruction.new(name),
+        ]
       end
 
       def transform_constant_read_node(node, used:)
