@@ -23,9 +23,7 @@ describe "String#gsub with pattern and replacement" do
     str = "こにちわ"
     reg = %r!!
 
-    NATFIXME 'respects unicode when the pattern collapses', exception: SpecFailedException do
-      str.gsub(reg, ".").should == ".こ.に.ち.わ."
-    end
+    str.gsub(reg, ".").should == ".こ.に.ち.わ."
   end
 
   it "doesn't freak out when replacing ^" do
@@ -40,9 +38,7 @@ describe "String#gsub with pattern and replacement" do
     str.gsub(/\Ah\S+\s*/, "huh? ").should == "huh? homely world. hah!"
 
     str = "¿por qué?"
-    NATFIXME 'respects unicode when the pattern collapses', exception: SpecFailedException do
-      str.gsub(/([a-z\d]*)/, "*").should == "*¿** **é*?*"
-    end
+    str.gsub(/([a-z\d]*)/, "*").should == "*¿** **é*?*"
   end
 
   it "ignores a block if supplied" do
@@ -170,9 +166,7 @@ describe "String#gsub with pattern and replacement" do
   it "handles pattern collapse" do
     str = "こにちわ"
     reg = %r!!
-    NATFIXME 'respects unicode when the pattern collapses', exception: SpecFailedException do
-      str.gsub(reg, ".").should == ".こ.に.ち.わ."
-    end
+    str.gsub(reg, ".").should == ".こ.に.ち.わ."
   end
 
   it "tries to convert pattern to a string using to_str" do
@@ -531,10 +525,8 @@ describe "String#gsub! with pattern and replacement" do
 
   it "modifies self in place with multi-byte characters and returns self" do
     a = "¿por qué?"
-    NATFIXME 'respects unicode when the pattern collapses', exception: SpecFailedException do
-      a.gsub!(/([a-z\d]*)/, "*").should equal(a)
-      a.should == "*¿** **é*?*"
-    end
+    a.gsub!(/([a-z\d]*)/, "*").should equal(a)
+    a.should == "*¿** **é*?*"
   end
 
   it "returns nil if no modifications were made" do

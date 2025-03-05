@@ -2581,11 +2581,16 @@ Value StringObject::gsub(Env *env, Value find, Optional<Value> replacement_value
         if (match) {
             byte_index = match->end_byte_index(0);
             if (match->is_empty()) {
-                // The match was empty, and running it again with the same byte_index would cause an infinite loop.
-                // So we increment ahead one byte (and append that one byte), and run the match again.
                 if (byte_index < m_string.size())
-                    out.append_char(m_string.at(byte_index));
-                byte_index++;
+                    out += peek_char(byte_index);
+
+                // The match was empty, and running it again with the same byte_index would cause an infinite loop.
+                // So we increment ahead one character, and run the match again.
+                if (byte_index < m_string.size())
+                    next_char(&byte_index);
+                else
+                    // When the end of the string is reached, increment ahead one byte
+                    byte_index++;
             }
         }
     } while (match);
