@@ -243,6 +243,8 @@ NO_SANITIZE_ADDRESS void Heap::scan_memory(Cell::Visitor &visitor, void *start, 
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
         if (!potential_cell)
             continue;
+        if ((reinterpret_cast<uintptr_t>(potential_cell) & 0b111) != 0b000)
+            continue;
         if (is_a_heap_cell_in_use(potential_cell))
             visitor.visit(potential_cell);
     }
@@ -252,6 +254,8 @@ NO_SANITIZE_ADDRESS void Heap::scan_memory(Cell::Visitor &visitor, void *start, 
     for (auto *ptr = reinterpret_cast<std::byte *>(start); ptr < end; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
         if (!potential_cell)
+            continue;
+        if ((reinterpret_cast<uintptr_t>(potential_cell) & 0b111) != 0b000)
             continue;
         if (is_a_heap_cell_in_use(potential_cell))
             visitor.visit(potential_cell);
