@@ -226,6 +226,10 @@ public:
     static TM::Vector<ThreadObject *> &list() { return s_list; }
     static Value list(Env *);
 
+    static bool all_launched();
+    static bool all_suspended_except_main();
+    static bool all_running();
+
     static void set_current_sleeping(bool is_sleeping) { current()->set_sleeping(is_sleeping); }
 
     static bool default_report_on_exception() { return s_report_on_exception; }

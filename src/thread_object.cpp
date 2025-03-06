@@ -699,6 +699,32 @@ void ThreadObject::clear_wake_pipe() {
     } while (bytes > 0);
 }
 
+bool ThreadObject::all_launched() {
+    for (auto thread : ThreadObject::list()) {
+        if (thread->suspend_status() == SuspendStatus::Launching)
+            return false;
+    }
+    return true;
+}
+
+bool ThreadObject::all_suspended_except_main() {
+    for (auto thread : ThreadObject::list()) {
+        if (thread->is_main())
+            continue;
+        if (thread->suspend_status() != SuspendStatus::Suspended)
+            return false;
+    }
+    return true;
+}
+
+bool ThreadObject::all_running() {
+    for (auto thread : ThreadObject::list()) {
+        if (thread->suspend_status() != SuspendStatus::Running)
+            return false;
+    }
+    return true;
+}
+
 void ThreadObject::check_current_exception(Env *env) {
     current()->check_exception(env);
 }
@@ -734,37 +760,19 @@ void ThreadObject::stop_the_world_and_save_context() {
     assert(current()->is_main());
 
     NAT_THREAD_DEBUG("waiting till all threads have launched");
-    bool all_launched;
-    do {
-        all_launched = true;
-        for (auto thread : ThreadObject::list()) {
-            if (thread->suspend_status() == SuspendStatus::Launching) {
-                all_launched = false;
-                break;
-            }
-        }
+    while (!all_launched()) {
         sched_yield();
-    } while (!all_launched);
+    }
 
     NAT_THREAD_DEBUG("sending signals to suspend all threads except main");
     for (auto thread : ThreadObject::list()) {
-        if (thread->is_main()) continue;
+        if (thread->is_main())
+            continue;
         thread->suspend();
     }
 
     NAT_THREAD_DEBUG("waiting for threads to suspend");
-    bool ready = false;
-    while (!ready) {
-        ready = true;
-        for (auto thread : ThreadObject::list()) {
-            if (thread->is_main()) continue;
-            if (thread->suspend_status() == SuspendStatus::Suspended) {
-                continue;
-            } else {
-                ready = false;
-                break;
-            }
-        }
+    while (!all_suspended_except_main()) {
         NAT_THREAD_DEBUG("spinning...");
         sched_yield();
     }
@@ -775,23 +783,13 @@ void ThreadObject::stop_the_world_and_save_context() {
 void ThreadObject::wake_up_the_world() {
     NAT_THREAD_DEBUG("sending signals to resume all threads except main");
     for (auto thread : ThreadObject::list()) {
-        if (thread->is_main()) continue;
+        if (thread->is_main())
+            continue;
         thread->resume();
     }
 
     NAT_THREAD_DEBUG("waiting for threads to resume");
-    bool ready = false;
-    while (!ready) {
-        ready = true;
-        for (auto thread : ThreadObject::list()) {
-            if (thread->is_main()) continue;
-            if (thread->suspend_status() == SuspendStatus::Running) {
-                continue;
-            } else {
-                ready = false;
-                break;
-            }
-        }
+    while (!all_running()) {
         NAT_THREAD_DEBUG("spinning...");
         sched_yield();
     }
@@ -874,5 +872,4 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_context(Visitor &visi
     auto start = reinterpret_cast<std::byte *>(m_context);
     Heap::the().scan_memory(visitor, start, start + sizeof(ucontext_t));
 }
-
 }
