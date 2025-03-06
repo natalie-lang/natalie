@@ -40,9 +40,7 @@ describe 'Assignments' do
           ScratchPad.record []
 
           (ScratchPad << :module; m)::A = (ScratchPad << :rhs; :value)
-          NATFIXME 'it evaluates expressions left to right', exception: SpecFailedException do
-            ScratchPad.recorded.should == [:module, :rhs]
-          end
+          ScratchPad.recorded.should == [:module, :rhs]
         end
       end
 

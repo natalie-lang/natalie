@@ -151,15 +151,13 @@ describe "Literal (A::X) constant resolution" do
       it "evaluates left-to-right" do
         mod = Module.new
 
-        NATFIXME 'it evaluates left-to-right', exception: SpecFailedException do
-          mod.module_eval <<-EOC
-            order = []
-            ConstantSpecsRHS = Module.new
-            (order << :lhs; ConstantSpecsRHS)::B = (order << :rhs)
-          EOC
+        mod.module_eval <<-EOC
+          order = []
+          ConstantSpecsRHS = Module.new
+          (order << :lhs; ConstantSpecsRHS)::B = (order << :rhs)
+        EOC
 
-          mod::ConstantSpecsRHS::B.should == [:lhs, :rhs]
-        end
+        mod::ConstantSpecsRHS::B.should == [:lhs, :rhs]
       end
     end
 
