@@ -418,20 +418,18 @@ describe "String#sub with pattern and Hash" do
   end
 
   it "sets $~ to MatchData of first match and nil when there's none for access from outside" do
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      'hello.'.sub('l', 'l' => 'L')
-      $~.begin(0).should == 2
-      $~[0].should == 'l'
+    'hello.'.sub('l', 'l' => 'L')
+    $~.begin(0).should == 2
+    $~[0].should == 'l'
 
-      'hello.'.sub('not', 'ot' => 'to')
-      $~.should == nil
+    'hello.'.sub('not', 'ot' => 'to')
+    $~.should == nil
 
-      'hello.'.sub(/.(.)/, 'o' => ' hole')
-      $~[0].should == 'he'
+    'hello.'.sub(/.(.)/, 'o' => ' hole')
+    $~[0].should == 'he'
 
-      'hello.'.sub(/not/, 'z' => 'glark')
-      $~.should == nil
-    end
+    'hello.'.sub(/not/, 'z' => 'glark')
+    $~.should == nil
   end
 
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
@@ -485,20 +483,18 @@ describe "String#sub! with pattern and Hash" do
   end
 
   it "sets $~ to MatchData of first match and nil when there's none for access from outside" do
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      'hello.'.sub!('l', 'l' => 'L')
-      $~.begin(0).should == 2
-      $~[0].should == 'l'
+    'hello.'.sub!('l', 'l' => 'L')
+    $~.begin(0).should == 2
+    $~[0].should == 'l'
 
-      'hello.'.sub!('not', 'ot' => 'to')
-      $~.should == nil
+    'hello.'.sub!('not', 'ot' => 'to')
+    $~.should == nil
 
-      'hello.'.sub!(/.(.)/, 'o' => ' hole')
-      $~[0].should == 'he'
+    'hello.'.sub!(/.(.)/, 'o' => ' hole')
+    $~[0].should == 'he'
 
-      'hello.'.sub!(/not/, 'z' => 'glark')
-      $~.should == nil
-    end
+    'hello.'.sub!(/not/, 'z' => 'glark')
+    $~.should == nil
   end
 
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
