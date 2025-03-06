@@ -133,6 +133,8 @@ private:
     size_t m_free_cells { 0 };
     size_t m_total_cells { 0 };
     size_t m_allocations_without_collection_count { 0 };
+    uintptr_t m_lowest_pointer_address { 0 };
+    uintptr_t m_highest_pointer_address { 0 };
 };
 
 }
