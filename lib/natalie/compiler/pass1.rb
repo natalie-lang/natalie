@@ -1650,7 +1650,7 @@ module Natalie
 
             # stack before: [obj, *keys, obj]
             #  stack after: [obj, *keys, obj, *keys]
-            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
+            key_args.map { DupRelInstruction.new(key_args.size) },
 
             PushArgcInstruction.new(key_args.size),
           )
@@ -1773,7 +1773,7 @@ module Natalie
             DupRelInstruction.new(key_args.size),
 
             # stack: [obj, *keys, obj, *keys]
-            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
+            key_args.map { DupRelInstruction.new(key_args.size) },
 
             # old_value = obj[*keys]
             # stack: [obj, *keys, old_value]
@@ -1859,7 +1859,7 @@ module Natalie
 
             # stack before: [obj, *keys, obj]
             #  stack after: [obj, *keys, obj, *keys]
-            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
+            key_args.map { DupRelInstruction.new(key_args.size) },
 
             # stack before: [obj, *keys, obj, *keys]
             #  stack after: [obj, *keys, old_value]

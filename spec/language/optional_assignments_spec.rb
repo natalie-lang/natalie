@@ -484,9 +484,7 @@ describe 'Optional variable assignments' do
 
         ary[foo.pop, foo.pop] &&= 2 # expected `ary[2, 0] &&= 2`
 
-        NATFIXME 'evaluates the index arguments in the correct order', exception: SpecFailedException do
-          ary[2, 0].should == 2
-        end
+        ary[2, 0].should == 2
         ary[6, 0].should == 1 # returns the same element as `ary[0, 2]`
       end
 
