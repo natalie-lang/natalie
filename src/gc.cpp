@@ -260,13 +260,13 @@ NO_SANITIZE_ADDRESS void Heap::scan_memory(Cell::Visitor &visitor, void *start, 
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
         if (!potential_cell)
             continue;
+        fn(potential_cell); // this must be here for ASan to check if it's on the fake stack
         if ((reinterpret_cast<uintptr_t>(potential_cell) & 0b111) != 0b000)
             continue;
         if (reinterpret_cast<uintptr_t>(potential_cell) < m_lowest_pointer_address || reinterpret_cast<uintptr_t>(potential_cell) > m_highest_pointer_address)
             continue;
         if (is_a_heap_cell_in_use(potential_cell))
             visitor.visit(potential_cell);
-        fn(potential_cell);
     }
 }
 
