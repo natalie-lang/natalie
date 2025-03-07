@@ -1782,30 +1782,51 @@ module Natalie
       def transform_index_or_write_node(node, used:)
         obj = node.receiver
         key_args = node.arguments&.arguments || []
+        args_array_on_stack = key_args.any? { |a| a.type == :splat_node }
 
         instructions = [
           # stack before: []
           #  stack after: [obj]
           transform_expression(obj, used: true),
+        ]
+        if args_array_on_stack
+          instructions.append(
+            # stack before: [obj]
+            #  stack after: [obj, [*keys]]
+            *transform_array_elements_with_splat(key_args),
 
-          # stack before: [obj]
-          #  stack after: [obj, *keys]
-          key_args.map { |arg| transform_expression(arg, used: true) },
+            # stack before: [obj, [*keys]]
+            #  stack after: [obj, [*keys], obj]
+            DupRelInstruction.new(1),
 
-          # stack before: [obj, *keys]
-          #  stack after: [obj, *keys, obj]
-          DupRelInstruction.new(key_args.size),
+            # stack before: [obj, [*keys], obj]
+            #  stack after: [obj, [*keys], obj, [*keys]]
+            DupRelInstruction.new(1),
+          )
+        else
+          instructions.append(
+            # stack before: [obj]
+            #  stack after: [obj, *keys]
+            key_args.map { |arg| transform_expression(arg, used: true) },
 
-          # stack before: [obj, *keys, obj]
-          #  stack after: [obj, *keys, obj, *keys]
-          key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
+            # stack before: [obj, *keys]
+            #  stack after: [obj, *keys, obj]
+            DupRelInstruction.new(key_args.size),
 
-          # stack before: [obj, *keys, obj, *keys]
-          #  stack after: [obj, *keys, old_value]
-          PushArgcInstruction.new(key_args.size),
+            # stack before: [obj, *keys, obj]
+            #  stack after: [obj, *keys, obj, *keys]
+            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
+
+            # stack before: [obj, *keys, obj, *keys]
+            #  stack after: [obj, *keys, old_value]
+            PushArgcInstruction.new(key_args.size),
+          )
+        end
+        instructions.append(
           SendInstruction.new(
             :[],
             receiver_is_self: obj.is_a?(Prism::SelfNode),
+            args_array_on_stack:,
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
@@ -1819,17 +1840,28 @@ module Natalie
           # stack before: [obj, *keys, old_value, old_value]
           #  stack after: [obj, *keys, old_value]
           IfInstruction.new,
-
-          # don't need the extra key(s) after all :-)
-          # stack before: [obj, *keys, old_value]
-          #  stack after: [obj, old_value]
-          key_args.map do
-            [
-              SwapInstruction.new, # move value above duplicated key
-              PopInstruction.new, # get rid of duplicated key
-            ]
-          end,
-
+        )
+        # don't need the extra key(s) after all :-)
+        if args_array_on_stack
+          instructions.append(
+            # stack before: [obj, [*keys], old_value]
+            #  stack after: [obj, old_value]
+            SwapInstruction.new,
+            PopInstruction.new,
+          )
+        else
+          instructions.append(
+            # stack before: [obj, *keys, old_value]
+            #  stack after: [obj, old_value]
+            key_args.map do
+              [
+                SwapInstruction.new, # move value above duplicated key
+                PopInstruction.new, # get rid of duplicated key
+              ]
+            end,
+          )
+        end
+        instructions.append(
           # don't need the obj now
           # stack before: [obj, old_value]
           #  stack after: [old_value]
@@ -1838,7 +1870,6 @@ module Natalie
 
           # old_value is falsey...
           ElseInstruction.new(:if),
-
           # stack before: [obj, *keys, old_value]
           #  stack after: [obj, *keys]
           PopInstruction.new,
@@ -1846,21 +1877,29 @@ module Natalie
           # stack before: [obj, *keys]
           #  stack after: [obj, *keys, new_value]
           transform_expression(node.value, used: true),
-
-          # obj[*keys] = new_value
-          # stack before: [obj, *keys, new_value]
-          #  stack after: [result_of_send]
-          PushArgcInstruction.new(key_args.size + 1),
+        )
+        if args_array_on_stack
+          # stack before: [obj, [*keys], new_value]
+          #  stack after: [obj, [*keys, new_value]]
+          instructions << ArrayPushInstruction.new
+        else
+          instructions << PushArgcInstruction.new(key_args.size + 1)
+        end
+        # obj[*keys] = new_value
+        # stack before: [obj, *keys, new_value]
+        #  stack after: [result_of_send]
+        instructions.append(
           SendInstruction.new(
             :[]=,
             receiver_is_self: obj.is_a?(Prism::SelfNode),
+            args_array_on_stack:,
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
           ),
 
           EndInstruction.new(:if),
-        ]
+        )
 
         instructions << PopInstruction.new unless used
         instructions
