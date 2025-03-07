@@ -228,15 +228,13 @@ describe 'Optional variable assignments' do
       context 'splatted argument' do
         it 'correctly handles it' do
           (@b[*[:m]] ||= 10).should == 10
-          NATFIXME 'correctly handles splatted argument', exception: SpecFailedException do
-            @b[:m].should == 10
+          @b[:m].should == 10
 
-            (@b[*(1; [:n])] ||= 10).should == 10
-            @b[:n].should == 10
+          (@b[*(1; [:n])] ||= 10).should == 10
+          @b[:n].should == 10
 
-            (@b[*begin 1; [:k] end] ||= 10).should == 10
-            @b[:k].should == 10
-          end
+          (@b[*begin 1; [:k] end] ||= 10).should == 10
+          @b[:k].should == 10
         end
 
         it 'calls #to_a only once' do
@@ -248,17 +246,13 @@ describe 'Optional variable assignments' do
 
           ScratchPad.record []
           (@b[*k] ||= 20).should == 20
-          NATFIXME 'calls #to_a only once', exception: SpecFailedException do
-            @b[:k].should == 20
-            ScratchPad.recorded.should == [:to_a]
-          end
+          @b[:k].should == 20
+          ScratchPad.recorded.should == [:to_a]
         end
 
         it 'correctly handles a nested splatted argument' do
           (@b[*[*[:k]]] ||= 20).should == 20
-          NATFIXME 'correctly handles a nested splatted argument', exception: SpecFailedException do
-            @b[:k].should == 20
-          end
+          @b[:k].should == 20
         end
 
         it 'correctly handles multiple nested splatted arguments' do
@@ -277,9 +271,7 @@ describe 'Optional variable assignments' do
           a = klass_with_multiple_parameters.new
 
           (a[*[:a], *[:b], *[:c]] ||= 20).should == 20
-          NATFIXME 'correctly handles multiple nested splatted arguments', exception: SpecFailedException do
-            a[:a, :b, :c].should == 20
-          end
+          a[:a, :b, :c].should == 20
         end
       end
     end
@@ -529,18 +521,16 @@ describe 'Optional variable assignments' do
       context 'splatted argument' do
         it 'correctly handles it' do
           @b[:m] = 0
-          NATFIXME 'correctly handles splatted argument', exception: SpecFailedException do
-            (@b[*[:m]] &&= 10).should == 10
-            @b[:m].should == 10
+          (@b[*[:m]] &&= 10).should == 10
+          @b[:m].should == 10
 
-            @b[:n] = 0
-            (@b[*(1; [:n])] &&= 10).should == 10
-            @b[:n].should == 10
+          @b[:n] = 0
+          (@b[*(1; [:n])] &&= 10).should == 10
+          @b[:n].should == 10
 
-            @b[:k] = 0
-            (@b[*begin 1; [:k] end] &&= 10).should == 10
-            @b[:k].should == 10
-          end
+          @b[:k] = 0
+          (@b[*begin 1; [:k] end] &&= 10).should == 10
+          @b[:k].should == 10
         end
 
         it 'calls #to_a only once' do
@@ -552,19 +542,15 @@ describe 'Optional variable assignments' do
 
           ScratchPad.record []
           @b[:k] = 10
-          NATFIXME 'calls #to_a only once', exception: SpecFailedException do
-            (@b[*k] &&= 20).should == 20
-            @b[:k].should == 20
-            ScratchPad.recorded.should == [:to_a]
-          end
+          (@b[*k] &&= 20).should == 20
+          @b[:k].should == 20
+          ScratchPad.recorded.should == [:to_a]
         end
 
         it 'correctly handles a nested splatted argument' do
           @b[:k] = 10
-          NATFIXME 'correctly handles a nested splatted argument', exception: SpecFailedException do
-            (@b[*[*[:k]]] &&= 20).should == 20
-            @b[:k].should == 20
-          end
+          (@b[*[*[:k]]] &&= 20).should == 20
+          @b[:k].should == 20
         end
 
         it 'correctly handles multiple nested splatted arguments' do
@@ -583,10 +569,8 @@ describe 'Optional variable assignments' do
           a = klass_with_multiple_parameters.new
 
           a[:a, :b, :c] = 10
-          NATFIXME 'correctly handles multiple nested splatted arguments', exception: SpecFailedException do
-            (a[*[:a], *[:b], *[:c]] &&= 20).should == 20
-            a[:a, :b, :c].should == 20
-          end
+          (a[*[:a], *[:b], *[:c]] &&= 20).should == 20
+          a[:a, :b, :c].should == 20
         end
       end
     end
