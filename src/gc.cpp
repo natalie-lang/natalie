@@ -203,8 +203,11 @@ HeapBlock *Allocator::add_heap_block() {
     m_blocks.set(block);
     add_free_block(block);
     m_free_cells += cell_count_per_block();
-    Heap::the().m_free_cells += cell_count_per_block();
-    Heap::the().m_total_cells += cell_count_per_block();
+    auto &heap = Heap::the();
+    heap.m_free_cells += cell_count_per_block();
+    heap.m_total_cells += cell_count_per_block();
+    heap.m_lowest_pointer_address = std::min(heap.m_lowest_pointer_address, reinterpret_cast<uintptr_t>(block));
+    heap.m_highest_pointer_address = std::max(heap.m_highest_pointer_address, reinterpret_cast<uintptr_t>(block) + HEAP_BLOCK_SIZE);
     return block;
 }
 
@@ -243,6 +246,10 @@ NO_SANITIZE_ADDRESS void Heap::scan_memory(Cell::Visitor &visitor, void *start, 
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
         if (!potential_cell)
             continue;
+        if ((reinterpret_cast<uintptr_t>(potential_cell) & 0b111) != 0b000)
+            continue;
+        if (reinterpret_cast<uintptr_t>(potential_cell) < m_lowest_pointer_address || reinterpret_cast<uintptr_t>(potential_cell) > m_highest_pointer_address)
+            continue;
         if (is_a_heap_cell_in_use(potential_cell))
             visitor.visit(potential_cell);
     }
@@ -253,9 +260,13 @@ NO_SANITIZE_ADDRESS void Heap::scan_memory(Cell::Visitor &visitor, void *start, 
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
         if (!potential_cell)
             continue;
+        fn(potential_cell); // this must be here for ASan to check if it's on the fake stack
+        if ((reinterpret_cast<uintptr_t>(potential_cell) & 0b111) != 0b000)
+            continue;
+        if (reinterpret_cast<uintptr_t>(potential_cell) < m_lowest_pointer_address || reinterpret_cast<uintptr_t>(potential_cell) > m_highest_pointer_address)
+            continue;
         if (is_a_heap_cell_in_use(potential_cell))
             visitor.visit(potential_cell);
-        fn(potential_cell);
     }
 }
 
