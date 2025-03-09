@@ -9,8 +9,9 @@ module Natalie
         include Flags
         include PkgConfig
 
-        def initialize(source:, compiler:, compiler_context:)
+        def initialize(source:, source_path:, compiler:, compiler_context:)
           @source = source
+          @source_path = source_path
           @compiler = compiler
           @compiler_context = compiler_context
         end
@@ -18,7 +19,7 @@ module Natalie
         attr_reader :source_path # {tempfile}.cpp
 
         def write_source_to_tempfile
-          temp = Tempfile.create('natalie.cpp') # FIXME: filename relevant to source name
+          temp = Tempfile.create(temp_path('cpp'))
           temp.write(@source)
           temp.close
           @source_path = temp.path
@@ -56,7 +57,7 @@ module Natalie
 
         def out_path
           @out_path ||= begin
-            out = Tempfile.create("natalie.o") # FIXME: filename relevant to source name
+            out = Tempfile.create(temp_path('o'))
             out.close
             out.path
           end
@@ -89,6 +90,10 @@ module Natalie
           else
             raise "unknown build mode: #{@compiler.build.inspect}"
           end
+        end
+
+        def temp_path(extension)
+          File.split(@source_path).last.sub(/(\.rb)?$/, ".#{extension}")
         end
       end
     end

@@ -112,6 +112,7 @@ module Natalie
         indented = reindent(merged)
         OutFile.new(
           source: indented,
+          source_path: @compiler_context[:source_path],
           compiler: @compiler,
           compiler_context: @compiler_context,
         )
