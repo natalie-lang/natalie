@@ -1,3 +1,4 @@
+require_relative './cpp_backend/out_file'
 require_relative './cpp_backend/transform'
 require_relative '../string_to_cpp'
 require_relative '../flags'
@@ -69,32 +70,16 @@ module Natalie
       end
 
       def compile_temp_to_binary
-        cmd = compiler_command
-        out = `#{cmd} 2>&1`
-        File.unlink(@cpp_path) unless @compiler.keep_cpp? || $? != 0
-        puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?
-        warn out if out.strip != ''
-        raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
+        @out_file.compile_object_file
       end
 
-      def compile_to_object
-        cpp = generate
-        File.write(@compiler.write_obj_path, cpp)
+      def write_object_source(path)
+        @out_file = build_out_file
+        @out_file.write_source_to_path(path)
       end
 
       def compiler_command
-        [
-          cc,
-          build_flags,
-          (@compiler.repl? ? LIBNAT_AND_REPL_FLAGS.join(' ') : ''),
-          inc_paths.map { |path| "-I #{path}" }.join(' '),
-          "-o #{@compiler.out_path}",
-          '-x c++ -std=c++17',
-          (cpp_path || 'code.cpp'),
-          lib_paths.map { |path| "-L #{path}" }.join(' '),
-          libraries.join(' '),
-          link_flags,
-        ].map(&:to_s).join(' ')
+        @out_file.compiler_command
       end
 
       def write_file_for_debugging
@@ -102,14 +87,16 @@ module Natalie
         @cpp_path
       end
 
+      def compiler_command
+        @out_file = build_out_file
+        @out_file.compiler_command
+      end
+
       private
 
       def write_file
-        cpp = generate
-        temp_cpp = Tempfile.create('natalie.cpp')
-        temp_cpp.write(cpp)
-        temp_cpp.close
-        @cpp_path = temp_cpp.path
+        @out_file = build_out_file
+        @cpp_path = @out_file.write_source_to_tempfile
       end
 
       def check_build
@@ -119,10 +106,11 @@ module Natalie
         exit 1
       end
 
-      def generate
-        string_of_cpp = transform_instructions
-        out = merge_cpp_with_template(string_of_cpp)
-        reindent(out)
+      def build_out_file
+        source = transform_instructions
+        merged = merge_cpp_with_template(source)
+        indented = reindent(merged)
+        OutFile.new(source: indented, compiler: @compiler, compiler_context: @compiler_context)
       end
 
       def transform_instructions
@@ -153,19 +141,9 @@ module Natalie
         end
       end
 
-      def libraries
-        if @compiler.repl?
-          []
-        elsif @compiler.dynamic_linking?
-          LIBRARIES_FOR_DYNAMIC_LINKING
-        else
-          LIBRARIES_FOR_STATIC_LINKING
-        end
-      end
-
       def obj_name
         @compiler
-          .write_obj_path
+          .write_obj_source_path
           .sub(/\.rb\.cpp/, '')
           .sub(%r{.*build/(generated/)?}, '')
           .tr('/', '_')
@@ -181,89 +159,8 @@ module Natalie
         end
       end
 
-      def cc
-        ENV['CXX'] || 'c++'
-      end
-
-      def inc_paths
-        INC_PATHS +
-          PACKAGES_REQUIRING_PKG_CONFIG.flat_map do |package|
-            flags_for_package(package, :inc)
-          end.compact
-      end
-
-      def lib_paths
-        LIB_PATHS +
-          PACKAGES_REQUIRING_PKG_CONFIG.flat_map do |package|
-            flags_for_package(package, :lib)
-          end.compact
-      end
-
-      # FIXME: We should run this on any system (not just Darwin), but only when one
-      # of the packages in PACKAGES_REQUIRING_PKG_CONFIG are used.
-      def flags_for_package(package, type)
-        return unless DARWIN
-
-        @flags_for_package ||= {}
-        existing_flags = @flags_for_package[package]
-        return existing_flags[type] if existing_flags
-
-        unless system("pkg-config --exists #{package}")
-          @flags_for_package[package] = { inc: [], lib: [] }
-          return []
-        end
-
-        flags = @flags_for_package[package] = {}
-        unless (inc_result = `pkg-config --cflags #{package}`.strip).empty?
-          flags[:inc] = inc_result.sub(/^-I/, '')
-        end
-        unless (lib_result = `pkg-config --libs-only-L #{package}`.strip).empty?
-          flags[:lib] = lib_result.sub(/^-L/, '')
-        end
-
-        flags[type]
-      end
-
-      def link_flags
-        flags = if @compiler.build == 'sanitized'
-                  [SANITIZE_FLAG]
-                else
-                  []
-                end
-        flags += @compiler_context[:compile_ld_flags].join(' ').split
-        flags -= unnecessary_link_flags
-        flags.join(' ')
-      end
-
-      def build_flags
-        (
-          base_build_flags +
-          [ENV['NAT_CXX_FLAGS']].compact +
-          @compiler_context[:compile_cxx_flags]
-        ).join(' ')
-      end
-
-      def base_build_flags
-        case @compiler.build
-        when 'release'
-          RELEASE_FLAGS
-        when 'debug', nil
-          DEBUG_FLAGS
-        when 'sanitized'
-          SANITIZED_FLAGS
-        when 'coverage'
-          COVERAGE_FLAGS
-        else
-          raise "unknown build mode: #{@compiler.build.inspect}"
-        end
-      end
-
-      def unnecessary_link_flags
-        OPENBSD ? ['-ldl'] : []
-      end
-
       def write_object_file?
-        !!@compiler.write_obj_path
+        !!@compiler.write_obj_source_path
       end
 
       def declarations

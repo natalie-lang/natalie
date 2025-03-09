@@ -548,7 +548,7 @@ file 'bin/nat' => OBJECT_FILES + ['bin/natalie'] do
 end
 
 file "build/libnat.#{SO_EXT}" => SOURCES + ['lib/libnat_api.rb', 'lib/libnat_api.cpp'] do |t|
-  sh 'bin/natalie --write-obj build/libnat.rb.cpp lib/libnat_api.rb'
+  sh 'bin/natalie --write-obj-source build/libnat.rb.cpp lib/libnat_api.rb'
   if system('pkg-config --exists libffi')
     flags = `pkg-config --cflags --libs libffi`.chomp
   end
@@ -575,7 +575,7 @@ end
 rule '.rb.cpp' => ['src/%{build\/generated/,}X'] do |t|
   subdir = File.split(t.name).first
   mkdir_p subdir unless File.exist?(subdir)
-  sh "bin/natalie --write-obj #{t.name} #{t.source}"
+  sh "bin/natalie --write-obj-source #{t.name} #{t.source}"
 end
 
 file "build/libprism.#{SO_EXT}" => ['build/libprism.a']

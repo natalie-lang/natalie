@@ -41,14 +41,16 @@ module Natalie
                   :repl,
                   :repl_num,
                   :vars,
-                  :write_obj_path
+                  :write_obj_source_path
 
     attr_writer :load_path, :out_path
 
     def compile
-      return backend.compile_to_object if write_obj_path
-
       backend.compile_to_binary
+    end
+
+    def write_object_source
+      backend.write_object_source(write_obj_source_path)
     end
 
     def write_bytecode_to_file
