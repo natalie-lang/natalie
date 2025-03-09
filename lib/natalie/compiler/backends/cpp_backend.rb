@@ -1,3 +1,4 @@
+require_relative './cpp_backend/linker'
 require_relative './cpp_backend/out_file'
 require_relative './cpp_backend/transform'
 require_relative '../string_to_cpp'
@@ -44,8 +45,6 @@ module Natalie
         File.join(BUILD_DIR, 'zlib'),
       ].freeze
 
-      PACKAGES_REQUIRING_PKG_CONFIG = %w[openssl libffi yaml-0.1].freeze
-
       def initialize(instructions, compiler:, compiler_context:)
         @instructions = instructions
         @compiler = compiler
@@ -70,16 +69,13 @@ module Natalie
       end
 
       def compile_temp_to_binary
-        @out_file.compile_object_file
+        object_file_path = @out_file.compile_object_file
+        link([object_file_path])
       end
 
       def write_object_source(path)
         @out_file = build_out_file
         @out_file.write_source_to_path(path)
-      end
-
-      def compiler_command
-        @out_file.compiler_command
       end
 
       def write_file_for_debugging
@@ -90,6 +86,10 @@ module Natalie
       def compiler_command
         @out_file = build_out_file
         @out_file.compiler_command
+        [
+          @out_file.compiler_command,
+          linker([@out_file.out_path]).link_command,
+        ].join("\n")
       end
 
       private
@@ -110,7 +110,11 @@ module Natalie
         source = transform_instructions
         merged = merge_cpp_with_template(source)
         indented = reindent(merged)
-        OutFile.new(source: indented, compiler: @compiler, compiler_context: @compiler_context)
+        OutFile.new(
+          source: indented,
+          compiler: @compiler,
+          compiler_context: @compiler_context,
+        )
       end
 
       def transform_instructions
@@ -280,6 +284,19 @@ module Natalie
           compile_ld_flags:  [],
           var_prefix:        var_prefix,
         )
+      end
+
+      def linker(paths)
+        Linker.new(
+          in_paths: paths,
+          out_path: @compiler.out_path,
+          compiler: @compiler,
+          compiler_context: @compiler_context,
+        )
+      end
+
+      def link(paths)
+        linker(paths).link
       end
     end
   end

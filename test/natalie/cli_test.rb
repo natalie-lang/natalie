@@ -15,7 +15,7 @@ describe '-d' do
 
   specify '-d cc-cmd' do
     cc = ENV['CXX'] || 'c++'
-    ruby_exe('puts "hello world"', options: '-d cc-cmd').should =~ /^#{Regexp.escape(cc)}.*\-o temp.*code\.cpp/
+    ruby_exe('puts "hello world"', options: '-d cc-cmd').should =~ /^#{Regexp.escape(cc)}.*\-o temp/m
   end
 
   specify '-d edit' do

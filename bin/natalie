@@ -244,15 +244,12 @@ class Runner
     compiler.backend.prepare_temp
     loop do
       system(ENV['EDITOR'] || 'vim', compiler.backend.cpp_path)
-      out = Tempfile.create("natalie#{extension}")
-      out.close
-      compiler.out_path = out.path
       begin
         compiler.backend.compile_temp_to_binary
       rescue Natalie::Compiler::CompileError => e
         puts e
       else
-        run_temp_and_wait(out.path)
+        run_temp_and_wait(compiler.out_path)
       end
       print 'Edit again? [Yn] '
       response = gets.strip.downcase
