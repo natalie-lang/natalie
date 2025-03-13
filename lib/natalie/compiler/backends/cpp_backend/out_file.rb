@@ -42,6 +42,13 @@ module Natalie
           @cpp_path = path
         end
 
+        def append_loaded_file(other_out_file)
+          raise "Expected OutFile, got #{other_out_file.class}" unless other_out_file.is_a?(OutFile)
+
+          fn = @backend.compiled_files.fetch(other_out_file.ruby_path)
+          @top["#{fn}_def"] = other_out_file.loaded_file_fn_source(fn_only: true)
+        end
+
         def compile_object_file
           write_source_to_tempfile unless @cpp_path
           cmd = compiler_command
@@ -75,19 +82,28 @@ module Natalie
           end
         end
 
-        private
-
         def merged_source
-          @merged_source ||= begin
-            template ||= get_template
-            result = template
-              .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
-              .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files.join("\n") }
-              .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
-              .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
-            reindent(result)
-          end
+          result = get_template
+            .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
+            .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files.join("\n") }
+            .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
+            .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
+          reindent(result)
         end
+
+        def loaded_file_fn_source(fn_only: false)
+          fn = @backend.compiled_files.fetch(@ruby_path)
+          source = LOADED_FILE_TEMPLATE
+          source = source.sub(/.*(?=Value __FN_NAME__)/m, '') if fn_only
+          result = source
+            .sub('__FN_NAME__', fn)
+            .sub('"FILE_NAME"_s', "#{@ruby_path.inspect}_s")
+            .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
+            .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
+          reindent(result)
+        end
+
+        private
 
         def get_template
           case @type
@@ -96,10 +112,7 @@ module Natalie
           when :obj
             OBJ_TEMPLATE.gsub(/OBJ_NAME/, @backend.obj_name)
           when :loaded_file
-            fn = @backend.compiled_files.fetch(@ruby_path)
-            LOADED_FILE_TEMPLATE
-              .sub('__FN_NAME__', fn)
-              .sub('"FILE_NAME"_s', "#{@ruby_path.inspect}_s")
+            loaded_file_fn_source
           else
             raise "Unexpected type: #{@type.inspect}"
           end

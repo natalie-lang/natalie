@@ -56,13 +56,20 @@ module Natalie
 
       def compile_to_binary
         outs = prepare_out_files
-        object_paths = outs.map do |out|
-          puts "compiling #{out.ruby_path}..."
-          out.compile_object_file
+        if ENV['SINGLE_SOURCE']
+          main_out = outs.shift
+          outs.each { |out| main_out.append_loaded_file(out) }
+          object_path = main_out.compile_object_file
+          link([object_path])
+        else
+          object_paths = outs.map do |out|
+            puts "compiling #{out.ruby_path}..."
+            out.compile_object_file
+          end
+          puts 'linking...'
+          link(object_paths)
+          puts 'done'
         end
-        puts 'linking...'
-        link(object_paths)
-        puts 'done'
       end
 
       def write_files_for_debugging
@@ -106,16 +113,17 @@ module Natalie
       private
 
       def prepare_out_files
+        @top = {}
         outs = []
         outs << prepare_main_out_file
         @compiler_context[:required_ruby_files].each do |name, loaded_file|
+          @top = {} if reset_top_for_each_file?
           outs << prepare_loaded_out_file(name, loaded_file)
         end
         outs
       end
 
       def prepare_main_out_file
-        @top = {}
         main_transform = build_transform(@instructions)
         body = main_transform.transform('return')
         type = write_object_file? ? :obj : :main
@@ -123,10 +131,13 @@ module Natalie
       end
 
       def prepare_loaded_out_file(name, loaded_file)
-        @top = {}
         transform = build_transform(loaded_file.instructions)
         body = transform.transform('return')
         out_file_for_source(type: :loaded_file, body:, ruby_path: name)
+      end
+
+      def reset_top_for_each_file?
+        !ENV['SINGLE_SOURCE']
       end
 
       # def write_file
