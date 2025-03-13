@@ -24,7 +24,7 @@ module Natalie
           fn_code << "Value #{fn}(Env *env, Value self, Args &&args = {}, Block *block = nullptr) {"
           fn_code << t.transform('return')
           fn_code << '}'
-          transform.top(fn_code)
+          transform.top(fn, fn_code)
         end
         transform.exec("Object::const_set(env, self, #{transform.intern(@name)}, #{fn}, new StringObject(#{@path.inspect}))")
         transform.push_nil

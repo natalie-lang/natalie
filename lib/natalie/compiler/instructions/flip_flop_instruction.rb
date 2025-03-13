@@ -18,7 +18,7 @@ module Natalie
 
       def generate(transform)
         state = transform.temp('flip_flop')
-        transform.top("FlipFlopState #{state} = FlipFlopState::Off;")
+        transform.top(state, "FlipFlopState #{state} = FlipFlopState::Off;")
 
         switch_on_body = transform.fetch_block_of_instructions(until_instruction: ElseInstruction, expected_label: :flip_flop)
         switch_off_body = transform.fetch_block_of_instructions(expected_label: :flip_flop)

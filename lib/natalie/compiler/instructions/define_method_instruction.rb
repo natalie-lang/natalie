@@ -34,7 +34,7 @@ module Natalie
           body << "Value #{fn}(Env *env, Value self, Args &&args, Block *block) {"
           body << t.transform('return')
           body << '}'
-          transform.top(body)
+          transform.top(fn, body)
         end
         transform.exec("Object::define_method(env, #{klass}, #{transform.intern(@name)}, #{fn}, #{@arity})")
       end

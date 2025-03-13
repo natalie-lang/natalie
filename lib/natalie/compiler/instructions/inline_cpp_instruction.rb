@@ -177,7 +177,7 @@ module Natalie
         env = transform.env
         env = env.fetch(:outer) while env[:hoist]
         if env[:outer].nil? || env[:main]
-          transform.top body
+          transform.top(body, body)
         else
           transform.exec body
         end
@@ -186,7 +186,7 @@ module Natalie
 
       def generate_internal_inline_code(transform, body)
         body = comptime_string(body)
-        transform.top body
+        transform.top(body, body)
         transform.push_nil
       end
 

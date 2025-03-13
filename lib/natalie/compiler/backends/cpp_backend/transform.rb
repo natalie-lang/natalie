@@ -2,7 +2,7 @@ module Natalie
   class Compiler
     class CppBackend
       class Transform
-        def initialize(instructions, compiler_context:, symbols:, interned_strings:, inline_functions:, top: [], stack: [], compiled_files: {})
+        def initialize(instructions, compiler_context:, symbols:, interned_strings:, inline_functions:, top: {}, stack: [], compiled_files: {})
           if instructions.is_a?(InstructionManager)
             @instructions = instructions
           else
@@ -148,10 +148,10 @@ module Natalie
           @stack_sizes = nil
         end
 
-        def top(code = nil)
-          return @top if code.nil?
+        def get_top = @top
 
-          @top << Array(code).join("\n")
+        def top(name, code)
+          @top[name] = Array(code).join("\n")
         end
 
         def intern(symbol)

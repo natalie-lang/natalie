@@ -25,7 +25,7 @@ module Natalie
           transform.compiled_files[@filename] = fn
           loaded_file = transform.required_ruby_file(@filename)
         end
-        transform.top("Value #{fn}(Env *, Value, bool);")
+        transform.top(fn, "Value #{fn}(Env *, Value, bool);")
         transform.exec_and_push(
           :result_of_load_file,
           "#{fn}(env, GlobalEnv::the()->main_obj(), #{@require_once})"

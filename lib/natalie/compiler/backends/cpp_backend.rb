@@ -159,7 +159,7 @@ module Natalie
 
       def merge_cpp_with_template(transform, template: nil)
         body = transform.transform('return')
-        top = transform.top
+        top = transform.get_top
         template ||= get_template
         result = template
           .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations(top:) }
@@ -211,7 +211,7 @@ module Natalie
           object_file_declarations,
           symbols_declaration,
           interned_strings_declaration,
-          top.join("\n")
+          top.values.join("\n")
         ].join("\n\n")
       end
 
