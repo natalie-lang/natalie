@@ -13,8 +13,9 @@ module Natalie
       ROOT_DIR = File.expand_path('../../../../', __dir__)
       BUILD_DIR = File.join(ROOT_DIR, 'build')
       SRC_PATH = File.join(ROOT_DIR, 'src')
-      MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.cpp'))
-      OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit.cpp'))
+      MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main_template.cpp'))
+      OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit_template.cpp'))
+      LOADED_FILE_TEMPLATE = File.read(File.join(SRC_PATH, 'loaded_file_template.cpp'))
 
       DARWIN = RUBY_PLATFORM.match?(/darwin/)
       OPENBSD = RUBY_PLATFORM.match?(/openbsd/)
@@ -53,51 +54,81 @@ module Natalie
         @symbols = {}
         @interned_strings = {}
         @inline_functions = {}
-        @top = []
+        check_build
       end
 
       attr_reader :cpp_path
 
       def compile_to_binary
-        prepare_temp
-        compile_temp_to_binary
+        outs = prepare_out_files
+        object_paths = outs.map do |out|
+          puts "compiling #{out.ruby_path}..."
+          out.compile_object_file
+        end
+        puts 'linking...'
+        link(object_paths)
+        puts 'done'
       end
 
-      def prepare_temp
-        check_build
-        write_file
+      def write_files_for_debugging
+        prepare_out_files.map { |out| out.write_source_to_tempfile }
       end
 
-      def compile_temp_to_binary
-        object_file_path = @out_file.compile_object_file
-        link([object_file_path])
-      end
-
-      def write_object_source(path)
-        @out_file = build_out_file
-        @out_file.write_source_to_path(path)
-      end
-
-      def write_file_for_debugging
-        write_file
-        @cpp_path
-      end
-
-      def compiler_command
-        @out_file = build_out_file
-        @out_file.compiler_command
-        [
-          @out_file.compiler_command,
-          linker([@out_file.out_path]).link_command,
-        ].join("\n")
-      end
+      # def compile_to_binary
+      #   prepare_temp
+      #   compile_temp_to_binary
+      # end
+      #
+      # def prepare_temp
+      #   check_build
+      #   write_file
+      # end
+      #
+      # def compile_temp_to_binary
+      #   object_file_path = @out_file.compile_object_file
+      #   link([object_file_path])
+      # end
+      #
+      # def write_object_source(path)
+      #   @out_file = build_main_out_file
+      #   @out_file.write_source_to_path(path)
+      # end
+      #
+      # def write_file_for_debugging
+      #   write_file
+      #   @cpp_path
+      # end
+      #
+      # def compiler_command
+      #   @out_file = build_main_out_file
+      #   @out_file.compiler_command
+      #   [
+      #     @out_file.compiler_command,
+      #     linker([@out_file.out_path]).link_command,
+      #   ].join("\n")
+      # end
 
       private
 
-      def write_file
-        @out_file = build_out_file
-        @cpp_path = @out_file.write_source_to_tempfile
+      def prepare_out_files
+        outs = []
+        compiled_files = {}
+        main_transform = build_transform(@instructions, compiled_files:)
+        source = merge_cpp_with_template(main_transform)
+        outs << out_file_for_source(source:, ruby_path: @compiler_context[:source_path])
+        @compiler_context[:required_ruby_files].each do |name, loaded_file|
+          fn = compiled_files.fetch(name)
+          transform = build_transform(loaded_file.instructions, compiled_files:)
+          source = merge_cpp_with_loaded_file_template(transform, name:, fn:)
+          outs << out_file_for_source(source:, ruby_path: name)
+        end
+        outs
       end
+
+      # def write_file
+      #   @out_file = build_main_out_file
+      #   @cpp_path = @out_file.write_source_to_tempfile
+      # end
 
       def check_build
         return if File.file?(File.join(BUILD_DIR, "libnatalie_base.#{DL_EXT}"))
@@ -106,39 +137,46 @@ module Natalie
         exit 1
       end
 
-      def build_out_file
-        source = transform_instructions
-        merged = merge_cpp_with_template(source)
-        indented = reindent(merged)
+      def out_file_for_source(source:, ruby_path:)
         OutFile.new(
-          source: indented,
-          source_path: @compiler_context[:source_path],
+          source:,
+          ruby_path:,
           compiler: @compiler,
           compiler_context: @compiler_context,
         )
       end
 
-      def transform_instructions
-        transform = Transform.new(
-          @instructions,
-          top:              @top,
+      def build_transform(instructions, compiled_files:)
+        Transform.new(
+          instructions,
           compiler_context: @compiler_context,
           symbols:          @symbols,
           interned_strings: @interned_strings,
           inline_functions: @inline_functions,
+          compiled_files:,
         )
-        transform.transform('return')
       end
 
-      def merge_cpp_with_template(string_of_cpp)
-        template
-          .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
+      def merge_cpp_with_template(transform, template: nil)
+        body = transform.transform('return')
+        top = transform.top
+        template ||= get_template
+        result = template
+          .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations(top:) }
           .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files.join("\n") }
           .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
-          .sub('/*' + 'NAT_EVAL_BODY' + '*/') { string_of_cpp }
+          .sub('/*' + 'NAT_EVAL_BODY' + '*/') { body }
+        reindent(result)
       end
 
-      def template
+      def merge_cpp_with_loaded_file_template(transform, name:, fn:)
+        template = LOADED_FILE_TEMPLATE
+          .sub('__FN_NAME__', fn)
+          .sub('"FILE_NAME"_s', "#{name.inspect}_s")
+        merge_cpp_with_template(transform, template:)
+      end
+
+      def get_template
         if write_object_file?
           OBJ_TEMPLATE.gsub(/OBJ_NAME/, obj_name)
         else
@@ -168,12 +206,12 @@ module Natalie
         !!@compiler.write_obj_source_path
       end
 
-      def declarations
+      def declarations(top:)
         [
           object_file_declarations,
           symbols_declaration,
           interned_strings_declaration,
-          @top.join("\n")
+          top.join("\n")
         ].join("\n\n")
       end
 

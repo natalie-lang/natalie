@@ -81,8 +81,8 @@ module Natalie
       io.write(bytecode)
     end
 
-    def write_file_for_debugging
-      backend.write_file_for_debugging
+    def write_files_for_debugging
+      backend.write_files_for_debugging
     end
 
     def compiler_command

@@ -178,8 +178,8 @@ class Runner
       if options[:interpret]
         puts compiler.instructions.map(&:to_s)
       else
-        path = compiler.write_file_for_debugging
-        print_cpp_source(path)
+        paths = compiler.write_files_for_debugging
+        print_cpp_sources(paths)
       end
     elsif options[:debug] == 'S'
       show_assembly
@@ -334,16 +334,20 @@ class Runner
     @parser ||= Natalie::Parser.new(code, source_path)
   end
 
-  def print_cpp_source(path)
+  def print_cpp_sources(paths)
     if system('which bat 2>&1 >/dev/null')
-      system('bat', path, '-lcpp')
+      system('bat', *paths, '-lcpp')
     elsif system('which batcat 2>&1 >/dev/null')
-      system('batcat', path, '-lcpp')
+      system('batcat', *paths, '-lcpp')
     else
-      puts File.read(path)
-      unless ENV['DO_NOT_PRINT_CPP_PATH']
-        puts '-' * 80
-        puts path
+      paths.each do |path|
+        unless ENV['DO_NOT_PRINT_CPP_PATH']
+          puts
+          puts '=' * 80
+          puts path
+          puts '-' * 80
+        end
+        puts File.read(path)
       end
     end
   end

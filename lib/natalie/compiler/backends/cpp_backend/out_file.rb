@@ -9,33 +9,34 @@ module Natalie
         include Flags
         include PkgConfig
 
-        def initialize(source:, source_path:, compiler:, compiler_context:)
+        def initialize(source:, ruby_path:, compiler:, compiler_context:)
           @source = source
-          @source_path = source_path
+          @ruby_path = ruby_path
           @compiler = compiler
           @compiler_context = compiler_context
         end
 
-        attr_reader :source_path # {tempfile}.cpp
+        attr_reader :ruby_path,
+                    :cpp_path
 
         def write_source_to_tempfile
-          temp = Tempfile.create(temp_path('cpp'))
+          temp = Tempfile.create(temp_name('cpp'))
           temp.write(@source)
           temp.close
-          @source_path = temp.path
+          @cpp_path = temp.path
         end
 
         def write_source_to_path(path)
           File.write(path, @source)
-          @source_path = path
+          @cpp_path = path
         end
 
         def compile_object_file
-          raise 'no source file yet' unless @source_path
+          write_source_to_tempfile unless @cpp_path
           cmd = compiler_command
           out = `#{cmd} 2>&1`
-          File.unlink(@source_path) unless @compiler.keep_cpp? || $? != 0
-          puts "cpp file path is: #{@source_path}" if @compiler.keep_cpp?
+          File.unlink(@cpp_path) unless @compiler.keep_cpp? || $? != 0
+          puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?
           warn out if out.strip != ''
           raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
           @out_path
@@ -51,13 +52,13 @@ module Natalie
             '-c',
             "-o #{out_path}",
             '-x c++ -std=c++17',
-            (@source_path || 'code.cpp'),
+            (@cpp_path || 'code.cpp'),
           ].map(&:to_s).join(' ')
         end
 
         def out_path
           @out_path ||= begin
-            out = Tempfile.create(temp_path('o'))
+            out = Tempfile.create(temp_name('o'))
             out.close
             out.path
           end
@@ -92,8 +93,8 @@ module Natalie
           end
         end
 
-        def temp_path(extension)
-          File.split(@source_path).last.sub(/(\.rb)?$/, ".#{extension}")
+        def temp_name(extension)
+          File.split(@ruby_path).last.sub(/(\.rb)?$/, ".#{extension}")
         end
       end
     end
