@@ -30,6 +30,16 @@ module Natalie
         attr_reader :ruby_path,
                     :cpp_path
 
+        def write_source
+          if build_dir
+            @cpp_path = build_path('cpp')
+            FileUtils.mkdir_p(File.dirname(@cpp_path))
+            write_source_to_path(@cpp_path)
+          else
+            write_source_to_tempfile
+          end
+        end
+
         def write_source_to_tempfile
           temp = Tempfile.create(temp_name('cpp'))
           temp.write(merged_source)
@@ -50,14 +60,14 @@ module Natalie
         end
 
         def compile_object_file
-          write_source_to_tempfile unless @cpp_path
+          write_source unless @cpp_path
           cmd = compiler_command
           out = `#{cmd} 2>&1`
-          File.unlink(@cpp_path) unless @compiler.keep_cpp? || $? != 0
+          File.unlink(@cpp_path) unless @compiler.keep_cpp? || build_dir || $? != 0
           puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?
           warn out if out.strip != ''
           raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
-          @out_path
+          out_path
         end
 
         def compiler_command
@@ -75,10 +85,20 @@ module Natalie
         end
 
         def out_path
-          @out_path ||= begin
+          @out_path ||= if build_dir
+            build_path('o')
+          else
             out = Tempfile.create(temp_name('o'))
             out.close
             out.path
+          end
+        end
+
+        def relative_ruby_path
+          if File.absolute_path?(@ruby_path) && @ruby_path.start_with?(Dir.pwd)
+            @ruby_path[(Dir.pwd.size + 1)..-1]
+          else
+            @ruby_path
           end
         end
 
@@ -143,6 +163,12 @@ module Natalie
           else
             raise "unknown build mode: #{@compiler.build.inspect}"
           end
+        end
+
+        def build_dir = @compiler.build_dir
+
+        def build_path(extension)
+          File.join(build_dir, relative_ruby_path.sub(/\.rb$/, ".#{extension}"))
         end
 
         def temp_name(extension)

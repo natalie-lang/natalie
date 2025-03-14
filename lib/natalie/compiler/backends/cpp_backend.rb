@@ -56,14 +56,14 @@ module Natalie
 
       def compile_to_binary
         outs = prepare_out_files
-        if ENV['SINGLE_SOURCE']
+        if single_source?
           main_out = outs.shift
           outs.each { |out| main_out.append_loaded_file(out) }
           object_path = main_out.compile_object_file
           link([object_path])
         else
           object_paths = outs.map do |out|
-            puts "compiling #{out.ruby_path}..."
+            puts "compiling #{out.relative_ruby_path}..."
             out.compile_object_file
           end
           puts 'linking...'
@@ -117,7 +117,7 @@ module Natalie
         outs = []
         outs << prepare_main_out_file
         @compiler_context[:required_ruby_files].each do |name, loaded_file|
-          @top = {} if reset_top_for_each_file?
+          @top = {} unless single_source?
           outs << prepare_loaded_out_file(name, loaded_file)
         end
         outs
@@ -136,8 +136,8 @@ module Natalie
         out_file_for_source(type: :loaded_file, body:, ruby_path: name)
       end
 
-      def reset_top_for_each_file?
-        !ENV['SINGLE_SOURCE']
+      def single_source?
+        !@compiler.build_dir
       end
 
       # def write_file

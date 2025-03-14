@@ -126,33 +126,14 @@ module Natalie
       Array(@load_path) + [RB_LIB_PATH]
     end
 
-    def debug
-      options[:debug]
-    end
-
-    def build
-      options[:build]
-    end
-
-    def keep_cpp?
-      !!(debug || options[:keep_cpp])
-    end
-
-    def interpret?
-      !!options[:interpret]
-    end
-
-    def dynamic_linking?
-      !!options[:dynamic_linking]
-    end
-
-    def repl?
-      !!repl
-    end
-
-    def frozen_string_literal?
-      !!options[:frozen_string_literal]
-    end
+    def debug = options[:debug]
+    def build = options[:build]
+    def build_dir = options[:build_dir]
+    def keep_cpp? = !!(debug || options[:keep_cpp])
+    def interpret? = !!options[:interpret]
+    def dynamic_linking? = !!options[:dynamic_linking]
+    def repl? = !!repl
+    def frozen_string_literal? = !!options[:frozen_string_literal]
 
     private
 

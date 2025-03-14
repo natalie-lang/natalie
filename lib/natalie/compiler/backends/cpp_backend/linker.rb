@@ -18,7 +18,7 @@ module Natalie
         def link
           cmd = link_command
           out = `#{cmd} 2>&1`
-          @in_paths.each { |path| File.unlink(path) } unless $? != 0
+          @in_paths.each { |path| File.unlink(path) } unless @compiler.build_dir || $? != 0
           warn out if out.strip != ''
           raise Compiler::CompileError, 'There was an error linking.' if $? != 0
         end

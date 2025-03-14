@@ -113,6 +113,10 @@ OptionParser.new do |opts|
     options[:interpret] = true
   end
 
+  opts.on('--build-dir', 'Setup build directory and compile files separately') do |path|
+    options[:build_dir] = path
+  end
+
   opts.on('--keep-cpp', 'Do not delete intermediate cpp file used for compilation') do
     options[:keep_cpp] = true
   end
