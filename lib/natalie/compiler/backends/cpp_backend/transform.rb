@@ -2,21 +2,23 @@ module Natalie
   class Compiler
     class CppBackend
       class Transform
-        def initialize(instructions, compiler_context:, symbols:, interned_strings:, inline_functions:, top: {}, stack: [], compiled_files: {})
+        def initialize(instructions, compiler_context:, transform_data:, stack: [], compiled_files: {})
           if instructions.is_a?(InstructionManager)
             @instructions = instructions
           else
             @instructions = InstructionManager.new(instructions)
           end
           @result_stack = []
-          @top = top
           @code = []
           @compiler_context = compiler_context
-          @symbols = symbols
-          @interned_strings = interned_strings
-          @inline_functions = inline_functions
           @stack = stack
           @compiled_files = compiled_files
+          @transform_data = transform_data
+          @top = transform_data.top
+          @symbols = transform_data.symbols
+          @interned_strings = transform_data.interned_strings
+          @inline_functions = transform_data.inline_functions
+          @var_prefix = transform_data.var_prefix
         end
 
         def ip
@@ -105,17 +107,14 @@ module Natalie
         def temp(name)
           name = name.to_s.gsub(/[^a-zA-Z_]/, '')
           n = @compiler_context[:var_num] += 1
-          "#{@compiler_context[:var_prefix]}#{name}#{n}"
+          "#{@var_prefix}#{name}#{n}"
         end
 
         def with_new_scope(instructions)
           t = Transform.new(
             instructions,
-            top: @top,
+            transform_data: @transform_data,
             compiler_context: @compiler_context,
-            symbols: @symbols,
-            interned_strings: @interned_strings,
-            inline_functions: @inline_functions,
             compiled_files: @compiled_files,
           )
           yield(t)
@@ -126,11 +125,8 @@ module Natalie
           t = Transform.new(
             instructions,
             stack: stack,
-            top: @top,
+            transform_data: @transform_data,
             compiler_context: @compiler_context,
-            symbols: @symbols,
-            interned_strings: @interned_strings,
-            inline_functions: @inline_functions,
             compiled_files: @compiled_files,
           )
           yield(t)
@@ -209,11 +205,11 @@ module Natalie
         end
 
         def symbols_var_name
-          "#{@compiler_context[:var_prefix]}symbols"
+          "#{@var_prefix}symbols"
         end
 
         def interned_strings_var_name
-          "#{@compiler_context[:var_prefix]}interned_strings"
+          "#{@var_prefix}interned_strings"
         end
 
         def stringify_code(lines, result_prefix = nil)

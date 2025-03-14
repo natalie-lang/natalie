@@ -17,11 +17,14 @@ module Natalie
         OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit_template.cpp'))
         LOADED_FILE_TEMPLATE = File.read(File.join(SRC_PATH, 'loaded_file_template.cpp'))
 
-        def initialize(type:, body:, top:, ruby_path:, compiler:, backend:)
+        def initialize(type:, body:, transform_data:, ruby_path:, compiler:, backend:)
           @type = type
           raise "type must be :main, :obj, or :loaded_file" unless %i[main obj loaded_file].include?(type)
           @body = body
-          @top = top
+          @top = transform_data.top
+          @symbols = transform_data.symbols
+          @interned_strings = transform_data.interned_strings
+          @var_prefix = transform_data.var_prefix
           @ruby_path = ruby_path
           @compiler = compiler
           @backend = backend
@@ -109,12 +112,14 @@ module Natalie
         end
 
         def merged_source
-          result = get_template
-            .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
-            .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files.join("\n") }
-            .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
-            .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
-          reindent(result)
+          @mereged_source ||= begin
+            result = get_template
+              .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
+              .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files.join("\n") }
+              .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
+              .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
+            reindent(result)
+          end
         end
 
         def loaded_file_fn_source(fn_only: false)
@@ -124,7 +129,7 @@ module Natalie
           result = source
             .sub('__FN_NAME__', fn)
             .sub('"FILE_NAME"_s', "#{@ruby_path.inspect}_s")
-            .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
+            .sub('/*' + 'NAT_EVAL_INIT' + '*/') { build_dir ? init_matter : '' }
             .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
           reindent(result)
         end
@@ -203,13 +208,13 @@ module Natalie
         end
 
         def symbols_declaration
-          "static SymbolObject *#{symbols_var_name}[#{@backend.symbols.size}] = {};"
+          "static SymbolObject *#{symbols_var_name}[#{@symbols.size}] = {};"
         end
 
         def interned_strings_declaration
-          return '' if @backend.interned_strings.empty?
+          return '' if @interned_strings.empty?
 
-          "static StringObject *#{interned_strings_var_name}[#{@backend.interned_strings.size}] = { 0 };"
+          "static StringObject *#{interned_strings_var_name}[#{@interned_strings.size}] = { 0 };"
         end
 
         def init_object_files
@@ -219,19 +224,19 @@ module Natalie
         end
 
         def init_symbols
-          @backend.symbols.map do |name, index|
+          @symbols.map do |name, index|
             "#{symbols_var_name}[#{index}] = SymbolObject::intern(#{string_to_cpp(name.to_s)}, #{name.to_s.bytesize});"
           end
         end
 
         def init_interned_strings
-          return [] if @backend.interned_strings.empty?
+          return [] if @interned_strings.empty?
 
           # Start with setting the interned strings list all to nullptr and register the GC hook before creating strings
           # Otherwise, we might start GC before we finished setting up this structure if the source contains enough strings
           [
-            "GlobalEnv::the()->set_interned_strings(#{interned_strings_var_name}, #{@backend.interned_strings.size});"
-          ] + @backend.interned_strings.flat_map do |(str, encoding), index|
+            "GlobalEnv::the()->set_interned_strings(#{interned_strings_var_name}, #{@interned_strings.size});"
+          ] + @interned_strings.flat_map do |(str, encoding), index|
             enum = encoding.name.tr('-', '_').upcase
             encoding_object = "EncodingObject::get(Encoding::#{enum})"
             new_string = if str.empty?
@@ -261,7 +266,7 @@ module Natalie
         end
 
         def static_var_name(suffix)
-          "#{@backend.compiler_context[:var_prefix]}#{suffix}"
+          "#{@var_prefix}#{suffix}"
         end
 
         def object_files

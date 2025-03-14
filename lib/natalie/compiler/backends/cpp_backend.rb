@@ -8,6 +8,18 @@ module Natalie
     class CppBackend
       include Flags
 
+      class TransformData
+        def initialize(top: {}, symbols: {}, interned_strings: {}, inline_functions: {}, var_prefix: nil)
+          @top = top
+          @symbols = symbols
+          @interned_strings = interned_strings
+          @inline_functions = inline_functions
+          @var_prefix = var_prefix
+        end
+
+        attr_reader :top, :symbols, :interned_strings, :inline_functions, :var_prefix
+      end
+
       ROOT_DIR = File.expand_path('../../../../', __dir__)
       BUILD_DIR = File.join(ROOT_DIR, 'build')
 
@@ -45,9 +57,7 @@ module Natalie
         @compiler = compiler
         @compiler_context = compiler_context
         augment_compiler_context
-        @symbols = {}
-        @interned_strings = {}
-        @inline_functions = {}
+        @transform_data = TransformData.new(var_prefix: build_var_prefix)
         @compiled_files = {}
       end
 
@@ -104,14 +114,20 @@ module Natalie
       end
 
       def prepare_out_files
-        @top = {}
         outs = []
         outs << prepare_main_out_file
         @compiler_context[:required_ruby_files].each do |name, loaded_file|
-          @top = {} unless single_source?
+          reset_data_for_next_loaded_file(loaded_file)
           outs << prepare_loaded_out_file(name, loaded_file)
         end
         outs
+      end
+
+      def reset_data_for_next_loaded_file(loaded_file)
+        return if single_source?
+
+        var_prefix = loaded_file.relative_path.gsub(/[^a-zA-Z_]/, '_') + '_'
+        @transform_data = TransformData.new(var_prefix:)
       end
 
       def prepare_main_out_file
@@ -142,7 +158,7 @@ module Natalie
         OutFile.new(
           type:,
           body:,
-          top: @top,
+          transform_data: @transform_data,
           ruby_path:,
           compiler: @compiler,
           backend: self,
@@ -152,22 +168,19 @@ module Natalie
       def build_transform(instructions)
         Transform.new(
           instructions,
-          top:              @top,
           compiler_context: @compiler_context,
-          symbols:          @symbols,
-          interned_strings: @interned_strings,
-          inline_functions: @inline_functions,
+          transform_data:   @transform_data,
           compiled_files:   @compiled_files,
         )
       end
 
-      def var_prefix
+      def build_var_prefix
         if write_object_file?
           "#{obj_name}_"
         elsif @compiler.repl?
           "repl#{@compiler.repl_num}_"
         else
-          ''
+          nil
         end
       end
 
@@ -179,7 +192,6 @@ module Natalie
         @compiler_context.merge!(
           compile_cxx_flags: [],
           compile_ld_flags:  [],
-          var_prefix:        var_prefix,
         )
       end
 
