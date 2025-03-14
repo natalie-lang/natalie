@@ -110,7 +110,7 @@ module Natalie
 
       def prepare_loaded_out_file(name, loaded_file)
         transform = build_transform(loaded_file.instructions)
-        body = transform.transform('return')
+        body = transform.transform
         out_file_for_source(type: :loaded_file, body:, ruby_path: name)
       end
 
