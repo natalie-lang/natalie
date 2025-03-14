@@ -57,9 +57,8 @@ module Natalie
         check_build
         outs = prepare_out_files
         if single_source?
-          main_out = outs.shift
-          outs.each { |out| main_out.append_loaded_file(out) }
-          object_path = main_out.compile_object_file
+          out = merge_out_file_sources(outs)
+          object_path = out.compile_object_file
           link([object_path])
         else
           object_paths = outs.map do |out|
@@ -72,8 +71,20 @@ module Natalie
         end
       end
 
+      def merge_out_file_sources(outs)
+        main_out = outs.shift
+        outs.each { |out| main_out.append_loaded_file(out) }
+        main_out
+      end
+
       def write_files_for_debugging
-        prepare_out_files.map { |out| out.write_source_to_tempfile }
+        outs = prepare_out_files
+        if single_source?
+          out = merge_out_file_sources(outs)
+          [out.write_source_to_tempfile]
+        else
+          outs.map { |out| out.write_source_to_tempfile }
+        end
       end
 
       def write_object_source(path)
