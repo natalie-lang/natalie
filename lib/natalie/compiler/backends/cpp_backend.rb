@@ -76,38 +76,9 @@ module Natalie
         prepare_out_files.map { |out| out.write_source_to_tempfile }
       end
 
-      # def compile_to_binary
-      #   prepare_temp
-      #   compile_temp_to_binary
-      # end
-      #
-      # def prepare_temp
-      #   check_build
-      #   write_file
-      # end
-      #
-      # def compile_temp_to_binary
-      #   object_file_path = @out_file.compile_object_file
-      #   link([object_file_path])
-      # end
-
       def write_object_source(path)
         prepare_out_files.first.write_source_to_path(path)
       end
-
-      # def write_file_for_debugging
-      #   write_file
-      #   @cpp_path
-      # end
-      #
-      # def compiler_command
-      #   @out_file = build_main_out_file
-      #   @out_file.compiler_command
-      #   [
-      #     @out_file.compiler_command,
-      #     linker([@out_file.out_path]).link_command,
-      #   ].join("\n")
-      # end
 
       def obj_name
         @compiler
@@ -146,11 +117,6 @@ module Natalie
       def single_source?
         !@compiler.build_dir
       end
-
-      # def write_file
-      #   @out_file = build_main_out_file
-      #   @cpp_path = @out_file.write_source_to_tempfile
-      # end
 
       def check_build
         return if File.file?(File.join(BUILD_DIR, "libnatalie_base.#{DL_EXT}"))
