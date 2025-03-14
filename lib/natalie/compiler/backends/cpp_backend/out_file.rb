@@ -115,7 +115,7 @@ module Natalie
           @mereged_source ||= begin
             result = get_template
               .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
-              .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files.join("\n") }
+              .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files }
               .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
               .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
             reindent(result)
@@ -129,7 +129,8 @@ module Natalie
           result = source
             .sub('__FN_NAME__', fn)
             .sub('"FILE_NAME"_s', "#{@ruby_path.inspect}_s")
-            .sub('/*' + 'NAT_EVAL_INIT' + '*/') { build_dir ? init_matter : '' }
+            .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
+            .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
             .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
           reindent(result)
         end
@@ -177,6 +178,7 @@ module Natalie
         end
 
         def build_dir = @compiler.build_dir
+        def single_source? = !build_dir
 
         def build_path(extension)
           File.join(
@@ -204,6 +206,8 @@ module Natalie
         end
 
         def init_matter
+          return '' if single_source? && @type == :loaded_file
+
           [
             init_symbols.join("\n"),
             init_interned_strings.join("\n"),
@@ -212,7 +216,11 @@ module Natalie
         end
 
         def object_file_declarations
-          object_files.map { |name| "Value init_#{name.tr('/', '_')}(Env *env, Value self);" }.join("\n")
+          return '' if @type == :loaded_file
+
+          object_files.map do |name|
+            "Value init_#{name.tr('/', '_')}(Env *env, Value self);"
+          end.join("\n")
         end
 
         def symbols_declaration
@@ -228,7 +236,7 @@ module Natalie
         def init_object_files
           object_files.map do |name|
             "init_#{name.tr('/', '_')}(env, self);"
-          end
+          end.join("\n")
         end
 
         def init_symbols
