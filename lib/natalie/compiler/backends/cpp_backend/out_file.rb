@@ -67,6 +67,7 @@ module Natalie
           end
 
           cmd = compiler_command
+          puts cmd if @compiler.debug == 'cc-cmd'
           out = `#{cmd} 2>&1`
           File.unlink(@cpp_path) unless @compiler.keep_cpp? || build_dir || $? != 0
           puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?

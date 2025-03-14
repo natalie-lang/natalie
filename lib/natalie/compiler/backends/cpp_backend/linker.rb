@@ -17,6 +17,7 @@ module Natalie
 
         def link
           cmd = link_command
+          puts cmd if @compiler.debug == 'cc-cmd'
           out = `#{cmd} 2>&1`
           @in_paths.each { |path| File.unlink(path) } unless @compiler.build_dir || $? != 0
           warn out if out.strip != ''

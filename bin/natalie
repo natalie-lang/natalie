@@ -174,10 +174,6 @@ class Runner
       compiler.compile
     elsif options[:write_obj_source_path]
       compiler.write_object_source
-    elsif options[:debug] == 'cc-cmd'
-      compiler.out_path = 'temp'
-      compiler.instructions # trigger compilation
-      puts compiler.compiler_command
     elsif options[:debug] == 'cpp'
       if options[:interpret]
         puts compiler.instructions.map(&:to_s)
