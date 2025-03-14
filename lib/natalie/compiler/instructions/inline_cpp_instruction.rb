@@ -156,7 +156,7 @@ module Natalie
         end
         output << comptime_string(body)
         output << '}'
-        transform.top(output)
+        transform.top(fn, output)
         transform.exec("self.as_module()->define_method(env, #{transform.intern(name)}, #{fn}, -1)")
         transform.push(transform.intern(name))
       end

@@ -49,12 +49,12 @@ module Natalie
         @interned_strings = {}
         @inline_functions = {}
         @compiled_files = {}
-        check_build
       end
 
       attr_reader :cpp_path, :compiler_context, :compiled_files, :symbols, :interned_strings
 
       def compile_to_binary
+        check_build
         outs = prepare_out_files
         if single_source?
           main_out = outs.shift
@@ -90,12 +90,11 @@ module Natalie
       #   object_file_path = @out_file.compile_object_file
       #   link([object_file_path])
       # end
-      #
-      # def write_object_source(path)
-      #   @out_file = build_main_out_file
-      #   @out_file.write_source_to_path(path)
-      # end
-      #
+
+      def write_object_source(path)
+        prepare_out_files.first.write_source_to_path(path)
+      end
+
       # def write_file_for_debugging
       #   write_file
       #   @cpp_path
@@ -109,6 +108,14 @@ module Natalie
       #     linker([@out_file.out_path]).link_command,
       #   ].join("\n")
       # end
+
+      def obj_name
+        @compiler
+          .write_obj_source_path
+          .sub(/\.rb\.cpp/, '')
+          .sub(%r{.*build/(generated/)?}, '')
+          .tr('/', '_')
+      end
 
       private
 
@@ -173,14 +180,6 @@ module Natalie
           inline_functions: @inline_functions,
           compiled_files:   @compiled_files,
         )
-      end
-
-      def obj_name
-        @compiler
-          .write_obj_source_path
-          .sub(/\.rb\.cpp/, '')
-          .sub(%r{.*build/(generated/)?}, '')
-          .tr('/', '_')
       end
 
       def var_prefix
