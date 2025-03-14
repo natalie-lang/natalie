@@ -31,6 +31,7 @@ module Natalie
           @instructions.walk do |instruction|
             @env = instruction.env
             instruction.generate(self)
+            @file = nil if instruction.is_a?(LoadFileInstruction)
           end
           @code << @stack.pop
           stringify_code(@code, result_prefix)
@@ -117,9 +118,7 @@ module Natalie
             inline_functions: @inline_functions,
             compiled_files: @compiled_files,
           )
-          result = yield(t)
-          @file = nil # env->set_file() inside the new transform shouldn't affect outside
-          result
+          yield(t)
         end
 
         def with_same_scope(instructions)
