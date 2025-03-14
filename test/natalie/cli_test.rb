@@ -29,6 +29,6 @@ end
 
 describe '--keep-cpp' do
   it 'prints the temporary cpp file path' do
-    ruby_exe('puts "hello world"', options: '--keep-cpp').should =~ /tmp\/natalie\.cpp/
+    ruby_exe('puts "hello world"', options: '--keep-cpp').should =~ /tmp\/ruby_exe\.rb/
   end
 end
