@@ -71,12 +71,6 @@ module Natalie
         end
       end
 
-      def merge_out_file_sources(outs)
-        main_out = outs.shift
-        outs.each { |out| main_out.append_loaded_file(out) }
-        main_out
-      end
-
       def write_files_for_debugging
         outs = prepare_out_files
         if single_source?
@@ -88,7 +82,9 @@ module Natalie
       end
 
       def write_object_source(path)
-        prepare_out_files.first.write_source_to_path(path)
+        outs = prepare_out_files
+        out = merge_out_file_sources(outs)
+        out.write_source_to_path(path)
       end
 
       def obj_name
@@ -100,6 +96,12 @@ module Natalie
       end
 
       private
+
+      def merge_out_file_sources(outs)
+        main_out = outs.shift
+        outs.each { |out| main_out.append_loaded_file(out) }
+        main_out
+      end
 
       def prepare_out_files
         @top = {}
