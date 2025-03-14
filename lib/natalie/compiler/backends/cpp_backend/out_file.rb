@@ -48,8 +48,9 @@ module Natalie
         end
 
         def write_source_to_path(path)
+          return if File.exist?(path) && File.read(path) == merged_source
+
           File.write(path, merged_source)
-          @cpp_path = path
         end
 
         def append_loaded_file(other_out_file)
@@ -61,6 +62,10 @@ module Natalie
 
         def compile_object_file
           write_source unless @cpp_path
+          if build_dir && File.exist?(out_path) && File.stat(out_path).mtime >= File.stat(@cpp_path).mtime
+            return out_path
+          end
+
           cmd = compiler_command
           out = `#{cmd} 2>&1`
           File.unlink(@cpp_path) unless @compiler.keep_cpp? || build_dir || $? != 0
