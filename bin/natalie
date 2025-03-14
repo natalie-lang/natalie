@@ -37,7 +37,7 @@ OptionParser.new do |opts|
     case type
     when true, 'c', 'cpp', 'c++'
       options[:debug] = 'cpp'
-    when /^p\d/, 'S', 'edit', 'cc-cmd', 'callgrind', 'strace'
+    when /^p\d/, 'S', 'cc-cmd', 'callgrind', 'strace'
       options[:debug] = type
     when 'gdb', 'lldb'
       options[:debug] = type
@@ -183,8 +183,6 @@ class Runner
       end
     elsif options[:debug] == 'S'
       show_assembly
-    elsif options[:debug] == 'edit'
-      edit_compile_run_loop
     elsif options[:bytecode]
       io = File.open(@source_path, 'rb')
       compile_and_run_bytecode(io, options)
@@ -237,23 +235,6 @@ class Runner
           File.unlink(out.path)
         end
       end
-    end
-  end
-
-  def edit_compile_run_loop
-    compiler.backend.prepare_temp
-    loop do
-      system(ENV['EDITOR'] || 'vim', compiler.backend.cpp_path)
-      begin
-        compiler.backend.compile_temp_to_binary
-      rescue Natalie::Compiler::CompileError => e
-        puts e
-      else
-        run_temp_and_wait(compiler.out_path)
-      end
-      print 'Edit again? [Yn] '
-      response = gets.strip.downcase
-      break if response == 'n'
     end
   end
 

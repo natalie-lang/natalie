@@ -17,14 +17,6 @@ describe '-d' do
     cc = ENV['CXX'] || 'c++'
     ruby_exe('puts "hello world"', options: '-d cc-cmd').should =~ /^#{Regexp.escape(cc)}.*\-o \/tmp/m
   end
-
-  specify '-d edit' do
-    binary = ENV.fetch('NAT_BINARY', 'bin/natalie')
-    out = `echo n | EDITOR=echo #{binary} -d edit examples/hello.rb`
-    out.should include('tmp/natalie.cpp')
-    out.should include('hello world')
-    out.should include('Edit again? [Yn]')
-  end
 end
 
 describe '--keep-cpp' do
