@@ -179,11 +179,19 @@ module Natalie
         def build_dir = @compiler.build_dir
 
         def build_path(extension)
-          File.join(build_dir, relative_ruby_path.sub(/\.rb$/, ".#{extension}"))
+          File.join(
+            build_dir,
+            relative_ruby_path
+              .sub(/\.rb$/, ".#{extension}")
+              .gsub(/[^a-zA-Z0-9_\.\/]/, '_')
+          )
         end
 
         def temp_name(extension)
-          File.split(@ruby_path).last.sub(/(\.rb)?$/, ".#{extension}")
+          File.split(@ruby_path)
+            .last
+            .sub(/(\.rb)?$/, ".#{extension}")
+            .gsub(/[^a-zA-Z0-9_\.\/]/, '_')
         end
 
         def declarations
