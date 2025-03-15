@@ -26,7 +26,7 @@ Value Dir_tmpdir(Env *env, Value self, Args &&args, Block *) {
     const auto tmpdir = getenv("TMPDIR");
     if (tmpdir)
         return new StringObject { tmpdir, Encoding::ASCII_8BIT };
-    return Etc_systmpdir(env, self, std::move(args), nullptr);
+    return find_top_level_const(env, "Etc"_s).send(env, "systmpdir"_s, std::move(args));
 }
 
 Value init_tmpdir(Env *env, Value self) {
