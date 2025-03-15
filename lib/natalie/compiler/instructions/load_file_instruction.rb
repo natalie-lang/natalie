@@ -21,9 +21,9 @@ module Natalie
         fn = transform.compiled_files[@filename]
         filename_sym = transform.intern(@filename)
         unless fn
-          fn = transform.temp('load_file_fn')
-          transform.compiled_files[@filename] = fn
           loaded_file = transform.required_ruby_file(@filename)
+          fn = build_fn_name(loaded_file)
+          transform.compiled_files[@filename] = fn
         end
         transform.top(fn, "Value #{fn}(Env *, Value, bool);")
         transform.exec_and_push(
@@ -35,6 +35,13 @@ module Natalie
       def execute(vm)
         vm.with_self(vm.main) { vm.run }
         :no_halt
+      end
+
+      private
+
+      def build_fn_name(loaded_file)
+        suffix = loaded_file.relative_path.gsub(/[^a-zA-Z_]/, '_')
+        "load_file_fn_#{suffix}"
       end
     end
   end
