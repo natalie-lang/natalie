@@ -77,8 +77,14 @@ module Natalie
           link([object_path])
         else
           object_paths = outs.map do |out|
-            puts "compiling #{out.relative_ruby_path}..."
-            out.compile_object_file
+            print "compiling #{out.relative_ruby_path}... "
+            object_path = out.compile_object_file
+            case out.status
+              when :compiled then puts 'done'
+              when :unchanged then puts 'unchanged'
+              else raise "unexpected status: #{out.status}"
+            end
+            object_path
           end
           puts 'linking...'
           link(object_paths)

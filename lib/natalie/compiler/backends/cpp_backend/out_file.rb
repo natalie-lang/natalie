@@ -31,7 +31,8 @@ module Natalie
         end
 
         attr_reader :ruby_path,
-                    :cpp_path
+                    :cpp_path,
+                    :status
 
         def write_source
           if build_dir
@@ -66,6 +67,7 @@ module Natalie
         def compile_object_file
           write_source unless @cpp_path
           if build_dir && File.exist?(out_path) && File.stat(out_path).mtime >= File.stat(@cpp_path).mtime
+            @status = :unchanged
             return out_path
           end
 
@@ -76,6 +78,8 @@ module Natalie
           puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?
           warn out if out.strip != ''
           raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
+
+          @status = :compiled
           out_path
         end
 
