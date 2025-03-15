@@ -37,7 +37,7 @@ OptionParser.new do |opts|
     case type
     when true, 'c', 'cpp', 'c++'
       options[:debug] = 'cpp'
-    when /^p\d/, 'S', 'edit', 'cc-cmd', 'callgrind', 'strace'
+    when /^p\d/, 'S', 'cc-cmd', 'callgrind', 'strace'
       options[:debug] = type
     when 'gdb', 'lldb'
       options[:debug] = type
@@ -95,8 +95,8 @@ OptionParser.new do |opts|
     options[:expecting_script] = true
   end
 
-  opts.on('--write-obj path', 'Write to C++ file for object file') do |path|
-    options[:write_obj_path] = path
+  opts.on('--write-obj-source path', 'Write to C++ file for object file') do |path|
+    options[:write_obj_source_path] = path
   end
 
   opts.on('-r library', 'Require the library before executing your script') do |library|
@@ -111,6 +111,10 @@ OptionParser.new do |opts|
 
   opts.on('-i', '--interpret', 'Interpret Ruby code instead of compiling it (experimental)') do
     options[:interpret] = true
+  end
+
+  opts.on('--build-dir', 'Setup build directory and compile files separately') do |path|
+    options[:build_dir] = path
   end
 
   opts.on('--keep-cpp', 'Do not delete intermediate cpp file used for compilation') do
@@ -168,23 +172,17 @@ class Runner
     elsif options[:compile]
       compiler.out_path = options[:compile]
       compiler.compile
-    elsif options[:write_obj_path]
-      compiler.compile
-    elsif options[:debug] == 'cc-cmd'
-      compiler.out_path = 'temp'
-      compiler.instructions # trigger compilation
-      puts compiler.compiler_command
+    elsif options[:write_obj_source_path]
+      compiler.write_object_source
     elsif options[:debug] == 'cpp'
       if options[:interpret]
         puts compiler.instructions.map(&:to_s)
       else
-        path = compiler.write_file_for_debugging
-        print_cpp_source(path)
+        paths = compiler.write_files_for_debugging
+        print_cpp_sources(paths)
       end
     elsif options[:debug] == 'S'
       show_assembly
-    elsif options[:debug] == 'edit'
-      edit_compile_run_loop
     elsif options[:bytecode]
       io = File.open(@source_path, 'rb')
       compile_and_run_bytecode(io, options)
@@ -237,26 +235,6 @@ class Runner
           File.unlink(out.path)
         end
       end
-    end
-  end
-
-  def edit_compile_run_loop
-    compiler.backend.prepare_temp
-    loop do
-      system(ENV['EDITOR'] || 'vim', compiler.backend.cpp_path)
-      out = Tempfile.create("natalie#{extension}")
-      out.close
-      compiler.out_path = out.path
-      begin
-        compiler.backend.compile_temp_to_binary
-      rescue Natalie::Compiler::CompileError => e
-        puts e
-      else
-        run_temp_and_wait(out.path)
-      end
-      print 'Edit again? [Yn] '
-      response = gets.strip.downcase
-      break if response == 'n'
     end
   end
 
@@ -329,7 +307,7 @@ class Runner
     data_loc = parser.data_loc
     @compiler = Natalie::Compiler.new(ast:, path: source_path, encoding:, warnings:, data_loc:, options: options).tap do |c|
       c.load_path = options[:load_path]
-      c.write_obj_path = options[:write_obj_path]
+      c.write_obj_source_path = options[:write_obj_source_path]
     end
   end
 
@@ -337,16 +315,20 @@ class Runner
     @parser ||= Natalie::Parser.new(code, source_path)
   end
 
-  def print_cpp_source(path)
+  def print_cpp_sources(paths)
     if system('which bat 2>&1 >/dev/null')
-      system('bat', path, '-lcpp')
+      system('bat', *paths, '-lcpp')
     elsif system('which batcat 2>&1 >/dev/null')
-      system('batcat', path, '-lcpp')
+      system('batcat', *paths, '-lcpp')
     else
-      puts File.read(path)
-      unless ENV['DO_NOT_PRINT_CPP_PATH']
-        puts '-' * 80
-        puts path
+      paths.each do |path|
+        unless ENV['DO_NOT_PRINT_CPP_PATH']
+          puts
+          puts '=' * 80
+          puts path
+          puts '-' * 80
+        end
+        puts File.read(path)
       end
     end
   end

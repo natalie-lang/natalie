@@ -41,7 +41,7 @@ module Natalie
           fn_code << "Value #{fn}(Env *env, Value self) {"
           fn_code << t.transform('return')
           fn_code << '}'
-          transform.top(fn_code)
+          transform.top(fn, fn_code)
         end
 
         klass = transform.temp('class')

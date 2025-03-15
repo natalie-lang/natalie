@@ -156,7 +156,7 @@ module Natalie
         end
         output << comptime_string(body)
         output << '}'
-        transform.top(output)
+        transform.top(fn, output)
         transform.exec("self.as_module()->define_method(env, #{transform.intern(name)}, #{fn}, -1)")
         transform.push(transform.intern(name))
       end
@@ -177,7 +177,7 @@ module Natalie
         env = transform.env
         env = env.fetch(:outer) while env[:hoist]
         if env[:outer].nil? || env[:main]
-          transform.top body
+          transform.top(body, body)
         else
           transform.exec body
         end
@@ -186,7 +186,7 @@ module Natalie
 
       def generate_internal_inline_code(transform, body)
         body = comptime_string(body)
-        transform.top body
+        transform.top(body, body)
         transform.push_nil
       end
 

@@ -25,7 +25,7 @@ module Natalie
           body << "Value #{fn}(Env *env, Value self, Args &&args, Block *block) {"
           body << t.transform('return')
           body << '}'
-          transform.top(body)
+          transform.top(fn, body)
         end
         transform.push("(new Block(*env, self, #{fn}, #{@arity}))")
       end

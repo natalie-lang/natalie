@@ -20,6 +20,10 @@ module Natalie
       end
 
       class << self
+        def reset_result_id
+          @result_id = 0
+        end
+
         def next_result_name
           @result_id ||= 0
           "while_result#{@result_id += 1}"
