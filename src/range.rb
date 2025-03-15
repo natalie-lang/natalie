@@ -121,6 +121,41 @@ class Range
     [min, max]
   end
 
+  def overlap?(other)
+    raise TypeError, "wrong argument type #{other.class} (expected Range)" unless other.is_a?(Range)
+
+    is_empty = lambda do |arg|
+      compare = arg.exclude_end? ? :>= : :>
+      !arg.begin.nil? && !arg.end.nil? && arg.begin.__send__(compare, arg.end)
+    end
+
+    if is_empty.call(self) || is_empty.call(other)
+      false
+    elsif (self.begin.nil? && self.end.nil?) || (other.begin.nil? && other.end.nil?)
+      true
+    elsif self.begin.nil?
+      compare = exclude_end? ? :< : :<=
+      other.begin.nil? || other.begin.__send__(compare, self.end)
+    elsif other.begin.nil?
+      compare = other.exclude_end? ? :< : :<=
+      self.begin.nil? || self.begin.__send__(compare, other.end)
+    elsif self.end.nil?
+      compare = other.exclude_end? ? :< : :<=
+      other.end.nil? || self.begin.__send__(compare, other.end)
+    elsif other.end.nil?
+      compare = exclude_end? ? :< : :<=
+      self.end.nil? || other.begin.__send__(compare, self.end)
+    else
+      compare_other_end = other.exclude_end? ? :< : :<=
+      compare_self_end = exclude_end? ? :< : :<=
+      begin
+        self.begin.__send__(compare_other_end, other.end) && other.begin.__send__(compare_self_end, self.end)
+      rescue ArgumentError
+        false
+      end
+    end
+  end
+
   def size
     raise TypeError, "can't iterate from #{self.begin.class}" unless self.begin.respond_to?(:succ)
     return if self.begin.nil? && !self.end.is_a?(Numeric)
