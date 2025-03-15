@@ -183,6 +183,7 @@ module Natalie
         'p3' => Pass3,
         'p4' => Pass4,
       }.each do |short_name, klass|
+        WhileInstruction.reset_result_id
         file_info.instructions = klass.new(
           file_info.instructions,
           compiler_context:,
