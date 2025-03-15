@@ -404,8 +404,8 @@ Value RangeObject::step(Env *env, Optional<Value> n_arg, Block *block) {
         auto enumerator = Enumerator::ArithmeticSequenceObject::from_range(env, env->current_method()->name(), m_begin, m_end, n, m_exclude_end);
 
         if (block) {
-            if (enumerator->step().send(env, "<"_s, { Value::integer(0) }).is_true())
-                env->raise("ArgumentError", "step can't be negative");
+            if (begin.is_numeric() && end.is_numeric() && begin.send(env, "<="_s, { end }).is_true() && enumerator->step().send(env, "<"_s, { Value::integer(0) }).is_true())
+                return duplicate(env);
 
             enumerator->send(env, "each"_s, {}, block);
         } else {
