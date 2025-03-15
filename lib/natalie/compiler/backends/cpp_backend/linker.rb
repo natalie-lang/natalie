@@ -7,6 +7,7 @@ module Natalie
     class CppBackend
       class Linker
         include PkgConfig
+        include Flags
 
         def initialize(in_paths:, out_path:, compiler:, compiler_context:)
           @in_paths = in_paths
