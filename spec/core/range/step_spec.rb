@@ -98,17 +98,13 @@ describe "Range#step" do
 
       ruby_version_is "3.4" do
         it "does not iterate if step is negative for forward range" do
-          NATFIXME 'it does not iterate if step is negative for forward range', exception: ArgumentError, message: "step can't be negative" do
-            (-1..1).step(-1) { |x| ScratchPad << x }
-            ScratchPad.recorded.should eql([])
-          end
+          (-1..1).step(-1) { |x| ScratchPad << x }
+          ScratchPad.recorded.should eql([])
         end
 
         it "iterates backward if step is negative for backward range" do
-          NATFIXME 'it iterates backward if step is negative for backward range', exception: ArgumentError, message: "step can't be negative" do
-            (1..-1).step(-1) { |x| ScratchPad << x }
-            ScratchPad.recorded.should eql([1, 0, -1])
-          end
+          (1..-1).step(-1) { |x| ScratchPad << x }
+          ScratchPad.recorded.should eql([1, 0, -1])
         end
       end
     end
