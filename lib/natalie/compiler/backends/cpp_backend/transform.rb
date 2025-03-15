@@ -106,7 +106,7 @@ module Natalie
 
         def temp(name)
           name = name.to_s.gsub(/[^a-zA-Z_]/, '')
-          n = @compiler_context[:var_num] += 1
+          n = @transform_data.next_var_num
           "#{@var_prefix}#{name}#{n}"
         end
 

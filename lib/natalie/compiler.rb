@@ -24,7 +24,6 @@ module Natalie
 
     def initialize(ast:, path:, encoding: Encoding::UTF_8, warnings: [], data_loc: nil, options: {})
       @ast = ast
-      @var_num = 0
       @path = path
       @encoding = encoding
       @warnings = warnings
@@ -96,7 +95,6 @@ module Natalie
         required_cpp_files:  {},
         required_ruby_files: {},
         source_path:         @path,
-        var_num:             0,
         vars:                vars || {},
       }
     end

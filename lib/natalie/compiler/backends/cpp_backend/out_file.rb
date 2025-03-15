@@ -268,7 +268,7 @@ module Natalie
         end
 
         def init_dollar_zero_global
-          return if @type == :obj
+          return unless @type == :main
 
           "env->global_set(\"$0\"_s, new StringObject { #{@backend.compiler_context[:source_path].inspect} });"
         end

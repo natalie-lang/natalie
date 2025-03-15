@@ -9,12 +9,17 @@ module Natalie
       include Flags
 
       class TransformData
-        def initialize(top: {}, symbols: {}, interned_strings: {}, inline_functions: {}, var_prefix: nil)
-          @top = top
-          @symbols = symbols
-          @interned_strings = interned_strings
-          @inline_functions = inline_functions
+        def initialize(var_prefix: nil)
+          @top = {}
+          @symbols = {}
+          @interned_strings = {}
+          @inline_functions = {}
           @var_prefix = var_prefix
+          @var_num = 0
+        end
+
+        def next_var_num
+          @var_num += 1
         end
 
         attr_reader :top, :symbols, :interned_strings, :inline_functions, :var_prefix
