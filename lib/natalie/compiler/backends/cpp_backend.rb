@@ -64,6 +64,7 @@ module Natalie
         augment_compiler_context
         @transform_data = TransformData.new(var_prefix: build_var_prefix)
         @compiled_files = {}
+        @var_prefixes_used = {}
       end
 
       attr_reader :cpp_path, :compiler_context, :compiled_files, :symbols, :interned_strings
@@ -137,7 +138,15 @@ module Natalie
       def reset_data_for_next_loaded_file(loaded_file)
         return if single_source?
 
-        var_prefix = loaded_file.relative_path.gsub(/[^a-zA-Z_]/, '_') + '_'
+        var_prefix = loaded_file.relative_path
+                                .sub(/^[^a-zA-Z_]/, '_')
+                                .gsub(/[^a-zA-Z0-9_]/, '_') + '_'
+        if @var_prefixes_used[var_prefix]
+          # This causes some hard-to-debug compilation/linking bugs.
+          raise "I don't know what to do when two var_prefixes collide."
+        end
+        @var_prefixes_used[var_prefix] = true
+
         @transform_data = TransformData.new(var_prefix:)
       end
 

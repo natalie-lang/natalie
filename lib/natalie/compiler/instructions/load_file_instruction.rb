@@ -40,7 +40,9 @@ module Natalie
       private
 
       def build_fn_name(loaded_file)
-        suffix = loaded_file.relative_path.gsub(/[^a-zA-Z_]/, '_')
+        suffix = loaded_file.relative_path
+                            .sub(/^[^a-zA-Z_]/, '_')
+                            .gsub(/[^a-zA-Z0-9_]/, '_')
         "load_file_fn_#{suffix}"
       end
     end
