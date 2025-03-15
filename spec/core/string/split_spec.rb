@@ -321,22 +321,28 @@ describe "String#split with Regexp" do
     end
   end
 
-  # NATFIXME: Slow or infinite loop
-  xit "splits between characters when regexp matches a zero-length string" do
+  it "splits between characters when regexp matches a zero-length string" do
     "hello".split(//).should == ["h", "e", "l", "l", "o"]
-    "hello".split(//, -1).should == ["h", "e", "l", "l", "o", ""]
+    NATFIXME 'Fix argument handling', exception: SpecFailedException do
+      "hello".split(//, -1).should == ["h", "e", "l", "l", "o", ""]
+    end
     "hello".split(//, 0).should == ["h", "e", "l", "l", "o"]
     "hello".split(//, 1).should == ["hello"]
-    "hello".split(//, 2).should == ["h", "ello"]
+    NATFIXME 'Fix argument handling', exception: SpecFailedException do
+      "hello".split(//, 2).should == ["h", "ello"]
+    end
     "hello".split(//, 5).should == ["h", "e", "l", "l", "o"]
-    "hello".split(//, 6).should == ["h", "e", "l", "l", "o", ""]
-    "hello".split(//, 7).should == ["h", "e", "l", "l", "o", ""]
+    NATFIXME 'Fix argument handling', exception: SpecFailedException do
+      "hello".split(//, 6).should == ["h", "e", "l", "l", "o", ""]
+      "hello".split(//, 7).should == ["h", "e", "l", "l", "o", ""]
+    end
 
-    "hi mom".split(/\s*/).should == ["h", "i", "m", "o", "m"]
+    # NATFIXME: Slow or infinite loop
+    # "hi mom".split(/\s*/).should == ["h", "i", "m", "o", "m"]
 
-    "AABCCBAA".split(/(?=B)/).should == ["AA", "BCC", "BAA"]
-    "AABCCBAA".split(/(?=B)/, -1).should == ["AA", "BCC", "BAA"]
-    "AABCCBAA".split(/(?=B)/, 2).should == ["AA", "BCCBAA"]
+    # "AABCCBAA".split(/(?=B)/).should == ["AA", "BCC", "BAA"]
+    # "AABCCBAA".split(/(?=B)/, -1).should == ["AA", "BCC", "BAA"]
+    # "AABCCBAA".split(/(?=B)/, 2).should == ["AA", "BCCBAA"]
   end
 
   it "respects unicode when splitting between characters" do
