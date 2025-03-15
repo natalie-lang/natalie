@@ -188,7 +188,7 @@ module Natalie
           File.join(
             build_dir,
             relative_ruby_path
-              .sub(/\.rb$/, ".#{extension}")
+              .sub(/(\.rb)?$/, ".#{extension}")
               .gsub(/[^a-zA-Z0-9_\.\/]/, '_')
           )
         end
