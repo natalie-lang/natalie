@@ -32,10 +32,10 @@ module Natalie
 
           flags = @flags_for_package[package] = {}
           unless (inc_result = `pkg-config --cflags #{package}`.strip).empty?
-            flags[:inc] = inc_result.sub(/^-I/, '')
+            flags[:inc] = inc_result
           end
           unless (lib_result = `pkg-config --libs-only-L #{package}`.strip).empty?
-            flags[:lib] = lib_result.sub(/^-L/, '')
+            flags[:lib] = lib_result
           end
 
           flags[type]
