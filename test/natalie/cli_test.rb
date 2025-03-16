@@ -2,6 +2,8 @@
 
 require_relative '../spec_helper'
 
+TMPDIR = ENV.fetch('TMPDIR', '/tmp')
+
 describe '-d' do
   specify '-d {p1,p2,p3,p4}' do
     %w[p1 p2 p3 p4].each do |pass|
@@ -15,12 +17,14 @@ describe '-d' do
 
   specify '-d cc-cmd' do
     cc = ENV['CXX'] || 'c++'
-    ruby_exe('puts "hello world"', options: '-d cc-cmd').should =~ /^#{Regexp.escape(cc)}.*\-o \/tmp/m
+    out = ruby_exe('puts "hello world"', options: '-d cc-cmd')
+    out.should include(cc)
+    out.should include("-o #{TMPDIR}")
   end
 end
 
 describe '--keep-cpp' do
   it 'prints the temporary cpp file path' do
-    ruby_exe('puts "hello world"', options: '--keep-cpp').should =~ /tmp\/ruby_exe\.rb/
+    ruby_exe('puts "hello world"', options: '--keep-cpp').should include(File.join(TMPDIR, 'ruby_exe.rb'))
   end
 end
