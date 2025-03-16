@@ -87,7 +87,7 @@ module Natalie
           [
             cc,
             build_flags,
-            (@compiler.repl? ? LIBNAT_AND_REPL_FLAGS.join(' ') : ''),
+            (@compiler.repl? ? LIBNAT_AND_REPL_COMPILE_FLAGS.join(' ') : ''),
             INC_PATHS.map { |path| "-I #{path}" }.join(' '),
             *package_compile_flags,
             '-c',

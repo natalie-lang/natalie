@@ -29,7 +29,7 @@ module Natalie
           [
             cc,
             LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
-            (@compiler.repl? ? LIBNAT_AND_REPL_FLAGS.join(' ') : ''),
+            (@compiler.repl? ? LIBNAT_AND_REPL_LINK_FLAGS.join(' ') : ''),
             *package_link_flags,
             *@in_paths,
             libraries.join(' '),
