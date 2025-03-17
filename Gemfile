@@ -6,6 +6,7 @@ gem 'rake'
 
 group :development do
   gem 'stackprof'
+  gem 'syntax_tree'
 end
 
 group :run_all_specs, optional: true do

@@ -1,0 +1,29 @@
+--print-width=120
+
+# Append * to .rb files so my conform.nvim config works plz :-)
+#
+#     syntax_tree = {
+#       tmpfile_format = "$FILENAME.conform.tmp",
+#       args = { "write", "$RELATIVE_FILEPATH" },
+#     }
+#
+--ignore-files=build/*
+--ignore-files=ext/*
+--ignore-files=lib/abbrev.rb*
+--ignore-files=lib/benchmark.rb*
+--ignore-files=lib/cgi*
+--ignore-files=lib/delegate.rb*
+--ignore-files=lib/erb*
+--ignore-files=lib/find.rb*
+--ignore-files=lib/ipaddr.rb*
+--ignore-files=lib/matrix*
+--ignore-files=lib/natalie/compiler/binding_gen.rb*
+--ignore-files=lib/pp.rb*
+--ignore-files=lib/prettyprint.rb*
+--ignore-files=lib/random/formatter.rb*
+--ignore-files=lib/shellwords.rb*
+--ignore-files=lib/uri*
+--ignore-files=spec/*
+--ignore-files=test/support/version.rb*
+
+--plugins=plugin/trailing_comma,plugin/single_quotes,plugin/disable_auto_ternary

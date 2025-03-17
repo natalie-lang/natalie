@@ -1,4 +1,5 @@
 require_relative './lib/natalie/compiler/flags'
+require 'syntax_tree/rake_tasks'
 
 task default: :build
 
@@ -693,4 +694,10 @@ def current_build_mode
   return DEFAULT_BUILD_MODE unless File.exist?('.build')
 
   File.read('.build').strip
+end
+
+SyntaxTree::Rake::CheckTask.new
+SyntaxTree::Rake::WriteTask.new do |t|
+  t.source_files = FileList[%w[Gemfile Rakefile lib/**/*.rb test/**/*.rb]]
+  # additional options in .streerc are respected
 end
