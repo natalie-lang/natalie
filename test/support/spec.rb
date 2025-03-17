@@ -658,13 +658,13 @@ end
 
 class BeEmptyExpectation
   def match(subject)
-    if (subject.length > 0)
+    if !subject.empty?
       raise SpecFailedException, subject.inspect + ' should be empty but has size ' + subject.length
     end
   end
 
   def inverted_match(subject)
-    raise SpecFailedException, subject.inspect + ' should not be empty' if (subject.length == 0)
+    raise SpecFailedException, subject.inspect + ' should not be empty' if subject.empty?
   end
 end
 
