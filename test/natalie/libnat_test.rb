@@ -64,6 +64,6 @@ describe 'libnat.so' do
     status.should == 0
     result_memory.to_obj.should == 3
   ensure
-    File.unlink(temp_path)
+    File.unlink(temp_path) if temp_path
   end
 end

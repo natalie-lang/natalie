@@ -1,5 +1,12 @@
 require 'natalie/inline'
 
+__inline__ <<END
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
+#include <sys/socket.h>
+END
+
 class Socket < BasicSocket
   module Constants
     __constant__('AF_APPLETALK', 'unsigned short')

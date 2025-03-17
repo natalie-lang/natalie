@@ -23,6 +23,7 @@ module Natalie
         -Wno-unknown-warning-option
         -Wno-trigraphs
         -DNAT_GC_GUARD
+        -Wno-vla-cxx-extension
       ].freeze
 
       SANITIZE_FLAG = "-fsanitize=#{ENV.fetch('NAT_SANITIZE_FLAG_VALUE', 'address')}".freeze
@@ -39,8 +40,11 @@ module Natalie
         -ftest-coverage
       ].freeze
 
-      LIBNAT_AND_REPL_FLAGS = %w[
+      LIBNAT_AND_REPL_COMPILE_FLAGS = %w[
         -fPIC
+      ].freeze
+
+      LIBNAT_AND_REPL_LINK_FLAGS = %w[
         -shared
         -rdynamic
         -Wl,-undefined,dynamic_lookup

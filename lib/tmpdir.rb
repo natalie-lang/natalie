@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'natalie/inline'
-require 'etc.cpp' # For Dir.tmp fallback to Etc.systmpdir
+require 'etc' # For Dir.tmp fallback to Etc.systmpdir
 require 'tmpdir.cpp'
 require 'fileutils'
 

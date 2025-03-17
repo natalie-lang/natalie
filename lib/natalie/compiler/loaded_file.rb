@@ -13,6 +13,14 @@ module Natalie
                   :encoding
 
       attr_accessor :instructions
+
+      def relative_path
+        if File.absolute_path?(@path) && @path.start_with?(Dir.pwd)
+          @path[(Dir.pwd.size + 1)..-1]
+        else
+          @path
+        end
+      end
     end
   end
 end

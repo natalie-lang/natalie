@@ -24,7 +24,6 @@ module Natalie
 
     def initialize(ast:, path:, encoding: Encoding::UTF_8, warnings: [], data_loc: nil, options: {})
       @ast = ast
-      @var_num = 0
       @path = path
       @encoding = encoding
       @warnings = warnings
@@ -41,14 +40,16 @@ module Natalie
                   :repl,
                   :repl_num,
                   :vars,
-                  :write_obj_path
+                  :write_obj_source_path
 
     attr_writer :load_path, :out_path
 
     def compile
-      return backend.compile_to_object if write_obj_path
-
       backend.compile_to_binary
+    end
+
+    def write_object_source
+      backend.write_object_source(write_obj_source_path)
     end
 
     def write_bytecode_to_file
@@ -79,8 +80,8 @@ module Natalie
       io.write(bytecode)
     end
 
-    def write_file_for_debugging
-      backend.write_file_for_debugging
+    def write_files_for_debugging
+      backend.write_files_for_debugging
     end
 
     def compiler_command
@@ -94,7 +95,6 @@ module Natalie
         required_cpp_files:  {},
         required_ruby_files: {},
         source_path:         @path,
-        var_num:             0,
         vars:                vars || {},
       }
     end
@@ -124,33 +124,14 @@ module Natalie
       Array(@load_path) + [RB_LIB_PATH]
     end
 
-    def debug
-      options[:debug]
-    end
-
-    def build
-      options[:build]
-    end
-
-    def keep_cpp?
-      !!(debug || options[:keep_cpp])
-    end
-
-    def interpret?
-      !!options[:interpret]
-    end
-
-    def dynamic_linking?
-      !!options[:dynamic_linking]
-    end
-
-    def repl?
-      !!repl
-    end
-
-    def frozen_string_literal?
-      !!options[:frozen_string_literal]
-    end
+    def debug = options[:debug]
+    def build = options[:build]
+    def build_dir = options[:build_dir]
+    def keep_cpp? = !!((debug && debug != 'cc-cmd') || options[:keep_cpp])
+    def interpret? = !!options[:interpret]
+    def dynamic_linking? = !!options[:dynamic_linking]
+    def repl? = !!repl
+    def frozen_string_literal? = !!options[:frozen_string_literal]
 
     private
 
@@ -202,6 +183,7 @@ module Natalie
         'p3' => Pass3,
         'p4' => Pass4,
       }.each do |short_name, klass|
+        WhileInstruction.reset_result_id
         file_info.instructions = klass.new(
           file_info.instructions,
           compiler_context:,

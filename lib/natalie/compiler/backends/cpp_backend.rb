@@ -1,18 +1,32 @@
+require_relative './cpp_backend/linker'
+require_relative './cpp_backend/out_file'
 require_relative './cpp_backend/transform'
-require_relative '../string_to_cpp'
 require_relative '../flags'
 
 module Natalie
   class Compiler
     class CppBackend
-      include StringToCpp
       include Flags
+
+      class TransformData
+        def initialize(var_prefix: nil)
+          @top = {}
+          @symbols = {}
+          @interned_strings = {}
+          @inline_functions = {}
+          @var_prefix = var_prefix
+          @var_num = 0
+        end
+
+        def next_var_num
+          @var_num += 1
+        end
+
+        attr_reader :top, :symbols, :interned_strings, :inline_functions, :var_prefix
+      end
 
       ROOT_DIR = File.expand_path('../../../../', __dir__)
       BUILD_DIR = File.join(ROOT_DIR, 'build')
-      SRC_PATH = File.join(ROOT_DIR, 'src')
-      MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.cpp'))
-      OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit.cpp'))
 
       DARWIN = RUBY_PLATFORM.match?(/darwin/)
       OPENBSD = RUBY_PLATFORM.match?(/openbsd/)
@@ -43,73 +57,114 @@ module Natalie
         File.join(BUILD_DIR, 'zlib'),
       ].freeze
 
-      PACKAGES_REQUIRING_PKG_CONFIG = %w[openssl libffi yaml-0.1].freeze
-
       def initialize(instructions, compiler:, compiler_context:)
         @instructions = instructions
         @compiler = compiler
         @compiler_context = compiler_context
         augment_compiler_context
-        @symbols = {}
-        @interned_strings = {}
-        @inline_functions = {}
-        @top = []
+        @transform_data = TransformData.new(var_prefix: build_var_prefix)
+        @compiled_files = {}
+        @var_prefixes_used = {}
       end
 
-      attr_reader :cpp_path
+      attr_reader :cpp_path, :compiler_context, :compiled_files, :symbols, :interned_strings
 
       def compile_to_binary
-        prepare_temp
-        compile_temp_to_binary
-      end
-
-      def prepare_temp
         check_build
-        write_file
+        outs = prepare_out_files
+        if single_source?
+          out = merge_out_file_sources(outs)
+          object_path = out.compile_object_file
+          link([object_path])
+        else
+          object_paths = outs.map do |out|
+            print "compiling #{out.relative_ruby_path}... "
+            object_path = out.compile_object_file
+            case out.status
+              when :compiled then puts 'done'
+              when :unchanged then puts 'unchanged'
+              else raise "unexpected status: #{out.status}"
+            end
+            object_path
+          end
+          puts 'linking...'
+          link(object_paths)
+          puts 'done'
+        end
       end
 
-      def compile_temp_to_binary
-        cmd = compiler_command
-        out = `#{cmd} 2>&1`
-        File.unlink(@cpp_path) unless @compiler.keep_cpp? || $? != 0
-        puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?
-        warn out if out.strip != ''
-        raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
+      def write_files_for_debugging
+        outs = prepare_out_files
+        if single_source?
+          out = merge_out_file_sources(outs)
+          [out.write_source_to_tempfile]
+        else
+          outs.map { |out| out.write_source_to_tempfile }
+        end
       end
 
-      def compile_to_object
-        cpp = generate
-        File.write(@compiler.write_obj_path, cpp)
+      def write_object_source(path)
+        outs = prepare_out_files
+        out = merge_out_file_sources(outs)
+        out.write_source_to_path(path)
       end
 
-      def compiler_command
-        [
-          cc,
-          build_flags,
-          (@compiler.repl? ? LIBNAT_AND_REPL_FLAGS.join(' ') : ''),
-          inc_paths.map { |path| "-I #{path}" }.join(' '),
-          "-o #{@compiler.out_path}",
-          '-x c++ -std=c++17',
-          (cpp_path || 'code.cpp'),
-          lib_paths.map { |path| "-L #{path}" }.join(' '),
-          libraries.join(' '),
-          link_flags,
-        ].map(&:to_s).join(' ')
-      end
-
-      def write_file_for_debugging
-        write_file
-        @cpp_path
+      def obj_name
+        @compiler
+          .write_obj_source_path
+          .sub(/\.rb\.cpp/, '')
+          .sub(%r{.*build/(generated/)?}, '')
+          .tr('/', '_')
       end
 
       private
 
-      def write_file
-        cpp = generate
-        temp_cpp = Tempfile.create('natalie.cpp')
-        temp_cpp.write(cpp)
-        temp_cpp.close
-        @cpp_path = temp_cpp.path
+      def merge_out_file_sources(outs)
+        main_out = outs.shift
+        outs.each { |out| main_out.append_loaded_file(out) }
+        main_out
+      end
+
+      def prepare_out_files
+        outs = []
+        outs << prepare_main_out_file
+        @compiler_context[:required_ruby_files].each do |name, loaded_file|
+          reset_data_for_next_loaded_file(loaded_file)
+          outs << prepare_loaded_out_file(name, loaded_file)
+        end
+        outs
+      end
+
+      def reset_data_for_next_loaded_file(loaded_file)
+        return if single_source?
+
+        var_prefix = loaded_file.relative_path
+                                .sub(/^[^a-zA-Z_]/, '_')
+                                .gsub(/[^a-zA-Z0-9_]/, '_') + '_'
+        if @var_prefixes_used[var_prefix]
+          # This causes some hard-to-debug compilation/linking bugs.
+          raise "I don't know what to do when two var_prefixes collide."
+        end
+        @var_prefixes_used[var_prefix] = true
+
+        @transform_data = TransformData.new(var_prefix:)
+      end
+
+      def prepare_main_out_file
+        main_transform = build_transform(@instructions)
+        body = main_transform.transform('return')
+        type = write_object_file? ? :obj : :main
+        out_file_for_source(type:, body:, ruby_path: @compiler_context[:source_path])
+      end
+
+      def prepare_loaded_out_file(name, loaded_file)
+        transform = build_transform(loaded_file.instructions)
+        body = transform.transform
+        out_file_for_source(type: :loaded_file, body:, ruby_path: name)
+      end
+
+      def single_source?
+        !@compiler.build_dir
       end
 
       def check_build
@@ -119,270 +174,58 @@ module Natalie
         exit 1
       end
 
-      def generate
-        string_of_cpp = transform_instructions
-        out = merge_cpp_with_template(string_of_cpp)
-        reindent(out)
-      end
-
-      def transform_instructions
-        transform = Transform.new(
-          @instructions,
-          top:              @top,
-          compiler_context: @compiler_context,
-          symbols:          @symbols,
-          interned_strings: @interned_strings,
-          inline_functions: @inline_functions,
+      def out_file_for_source(type:, body:, ruby_path:)
+        OutFile.new(
+          type:,
+          body:,
+          transform_data: @transform_data,
+          ruby_path:,
+          compiler: @compiler,
+          backend: self,
         )
-        transform.transform('return')
       end
 
-      def merge_cpp_with_template(string_of_cpp)
-        template
-          .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
-          .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files.join("\n") }
-          .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
-          .sub('/*' + 'NAT_EVAL_BODY' + '*/') { string_of_cpp }
+      def build_transform(instructions)
+        Transform.new(
+          instructions,
+          compiler_context: @compiler_context,
+          transform_data:   @transform_data,
+          compiled_files:   @compiled_files,
+        )
       end
 
-      def template
-        if write_object_file?
-          OBJ_TEMPLATE.gsub(/OBJ_NAME/, obj_name)
-        else
-          MAIN_TEMPLATE
-        end
-      end
-
-      def libraries
-        if @compiler.repl?
-          []
-        elsif @compiler.dynamic_linking?
-          LIBRARIES_FOR_DYNAMIC_LINKING
-        else
-          LIBRARIES_FOR_STATIC_LINKING
-        end
-      end
-
-      def obj_name
-        @compiler
-          .write_obj_path
-          .sub(/\.rb\.cpp/, '')
-          .sub(%r{.*build/(generated/)?}, '')
-          .tr('/', '_')
-      end
-
-      def var_prefix
+      def build_var_prefix
         if write_object_file?
           "#{obj_name}_"
         elsif @compiler.repl?
           "repl#{@compiler.repl_num}_"
         else
-          ''
+          nil
         end
-      end
-
-      def cc
-        ENV['CXX'] || 'c++'
-      end
-
-      def inc_paths
-        INC_PATHS +
-          PACKAGES_REQUIRING_PKG_CONFIG.flat_map do |package|
-            flags_for_package(package, :inc)
-          end.compact
-      end
-
-      def lib_paths
-        LIB_PATHS +
-          PACKAGES_REQUIRING_PKG_CONFIG.flat_map do |package|
-            flags_for_package(package, :lib)
-          end.compact
-      end
-
-      # FIXME: We should run this on any system (not just Darwin), but only when one
-      # of the packages in PACKAGES_REQUIRING_PKG_CONFIG are used.
-      def flags_for_package(package, type)
-        return unless DARWIN
-
-        @flags_for_package ||= {}
-        existing_flags = @flags_for_package[package]
-        return existing_flags[type] if existing_flags
-
-        unless system("pkg-config --exists #{package}")
-          @flags_for_package[package] = { inc: [], lib: [] }
-          return []
-        end
-
-        flags = @flags_for_package[package] = {}
-        unless (inc_result = `pkg-config --cflags #{package}`.strip).empty?
-          flags[:inc] = inc_result.sub(/^-I/, '')
-        end
-        unless (lib_result = `pkg-config --libs-only-L #{package}`.strip).empty?
-          flags[:lib] = lib_result.sub(/^-L/, '')
-        end
-
-        flags[type]
-      end
-
-      def link_flags
-        flags = if @compiler.build == 'sanitized'
-                  [SANITIZE_FLAG]
-                else
-                  []
-                end
-        flags += @compiler_context[:compile_ld_flags].join(' ').split
-        flags -= unnecessary_link_flags
-        flags.join(' ')
-      end
-
-      def build_flags
-        (
-          base_build_flags +
-          [ENV['NAT_CXX_FLAGS']].compact +
-          @compiler_context[:compile_cxx_flags]
-        ).join(' ')
-      end
-
-      def base_build_flags
-        case @compiler.build
-        when 'release'
-          RELEASE_FLAGS
-        when 'debug', nil
-          DEBUG_FLAGS
-        when 'sanitized'
-          SANITIZED_FLAGS
-        when 'coverage'
-          COVERAGE_FLAGS
-        else
-          raise "unknown build mode: #{@compiler.build.inspect}"
-        end
-      end
-
-      def unnecessary_link_flags
-        OPENBSD ? ['-ldl'] : []
       end
 
       def write_object_file?
-        !!@compiler.write_obj_path
-      end
-
-      def declarations
-        [
-          object_file_declarations,
-          symbols_declaration,
-          interned_strings_declaration,
-          @top.join("\n")
-        ].join("\n\n")
-      end
-
-      def init_matter
-        [
-          init_symbols.join("\n"),
-          init_interned_strings.join("\n"),
-          init_dollar_zero_global,
-        ].compact.join("\n\n")
-      end
-
-      def object_file_declarations
-        object_files.map { |name| "Value init_#{name.tr('/', '_')}(Env *env, Value self);" }.join("\n")
-      end
-
-      def symbols_declaration
-        "static SymbolObject *#{symbols_var_name}[#{@symbols.size}] = {};"
-      end
-
-      def interned_strings_declaration
-        return '' if @interned_strings.empty?
-
-        "static StringObject *#{interned_strings_var_name}[#{@interned_strings.size}] = { 0 };"
-      end
-
-      def init_object_files
-        object_files.map do |name|
-          "init_#{name.tr('/', '_')}(env, self);"
-        end
-      end
-
-      def init_symbols
-        @symbols.map do |name, index|
-          "#{symbols_var_name}[#{index}] = SymbolObject::intern(#{string_to_cpp(name.to_s)}, #{name.to_s.bytesize});"
-        end
-      end
-
-      def init_interned_strings
-        return [] if @interned_strings.empty?
-
-        # Start with setting the interned strings list all to nullptr and register the GC hook before creating strings
-        # Otherwise, we might start GC before we finished setting up this structure if the source contains enough strings
-        [
-          "GlobalEnv::the()->set_interned_strings(#{interned_strings_var_name}, #{@interned_strings.size});"
-        ] + @interned_strings.flat_map do |(str, encoding), index|
-          enum = encoding.name.tr('-', '_').upcase
-          encoding_object = "EncodingObject::get(Encoding::#{enum})"
-          new_string = if str.empty?
-                         "#{interned_strings_var_name}[#{index}] = new StringObject(#{encoding_object});"
-                       else
-                         "#{interned_strings_var_name}[#{index}] = new StringObject(#{string_to_cpp(str)}, #{str.bytesize}, #{encoding_object});"
-                       end
-          [
-            new_string,
-            "#{interned_strings_var_name}[#{index}]->freeze();",
-          ]
-        end
-      end
-
-      def init_dollar_zero_global
-        return if write_object_file?
-
-        "env->global_set(\"$0\"_s, new StringObject { #{@compiler_context[:source_path].inspect} });"
-      end
-
-      def symbols_var_name
-        static_var_name('symbols')
-      end
-
-      def interned_strings_var_name
-        static_var_name('interned_strings')
-      end
-
-      def static_var_name(suffix)
-        "#{@compiler_context[:var_prefix]}#{suffix}"
-      end
-
-      def object_files
-        rb_files = Dir[File.expand_path('../../../../src/**/*.rb', __dir__)].map do |path|
-          path.sub(%r{^.*/src/}, '')
-        end.grep(%r{^([a-z0-9_]+/)?[a-z0-9_]+\.rb$})
-        list = rb_files.sort.map { |name| name.split('.').first }
-        ['exception'] + # must come first
-          (list - ['exception']) +
-          @compiler_context[:required_cpp_files].values
-      end
-
-      def reindent(code)
-        out = []
-        indent = 0
-        code
-          .split("\n")
-          .each do |line|
-            indent -= 4 if line =~ /^\s*\}/
-            indent = [0, indent].max
-            if line.start_with?('#')
-              out << line
-            else
-              out << line.sub(/^\s*/, ' ' * indent)
-            end
-            indent += 4 if line.end_with?('{')
-          end
-        out.join("\n")
+        !!@compiler.write_obj_source_path
       end
 
       def augment_compiler_context
         @compiler_context.merge!(
           compile_cxx_flags: [],
           compile_ld_flags:  [],
-          var_prefix:        var_prefix,
         )
+      end
+
+      def linker(paths)
+        Linker.new(
+          in_paths: paths,
+          out_path: @compiler.out_path,
+          compiler: @compiler,
+          compiler_context: @compiler_context,
+        )
+      end
+
+      def link(paths)
+        linker(paths).link
       end
     end
   end
