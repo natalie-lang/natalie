@@ -5,7 +5,15 @@ class BeCloseToMatrixMatcher
     @tolerance = tolerance
   end
 
-  def matches?(actual)
+  def match(subject)
+    raise SpecFailedException, failure_message.first unless matches?(subject)
+  end
+
+  def inverted_match(subject)
+    raise SpecFailedException, negative_failure_message.first if matches?(subject)
+  end
+
+  private def matches?(actual)
     @actual = actual
     return false unless @actual.is_a? Matrix
     return false unless @actual.row_size == @expected.row_size
