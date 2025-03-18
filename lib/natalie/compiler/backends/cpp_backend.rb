@@ -73,23 +73,23 @@ module Natalie
         check_build
         outs = prepare_out_files
         if single_source?
-          out = merge_out_file_sources(outs)
-          object_path = out.compile_object_file
+          one_out = merge_out_file_sources(outs)
+          object_path = one_out.compile_object_file
           link([object_path])
         else
           object_paths = outs.map do |out|
-            print "compiling #{out.relative_ruby_path}... "
+            build_print "compiling #{out.relative_ruby_path}... "
             object_path = out.compile_object_file
             case out.status
-              when :compiled then puts 'done'
-              when :unchanged then puts 'unchanged'
+              when :compiled then build_puts 'done'
+              when :unchanged then build_puts 'unchanged'
               else raise "unexpected status: #{out.status}"
             end
             object_path
           end
-          puts 'linking...'
+          build_puts 'linking...'
           link(object_paths)
-          puts 'done'
+          build_puts 'done'
         end
       end
 
@@ -99,7 +99,7 @@ module Natalie
           out = merge_out_file_sources(outs)
           [out.write_source_to_tempfile]
         else
-          outs.map { |out| out.write_source_to_tempfile }
+          outs.map(&:write_source_to_tempfile)
         end
       end
 
@@ -226,6 +226,14 @@ module Natalie
 
       def link(paths)
         linker(paths).link
+      end
+
+      def build_puts(str)
+        puts str unless @compiler.build_quietly?
+      end
+
+      def build_print(str)
+        print str unless @compiler.build_quietly?
       end
     end
   end

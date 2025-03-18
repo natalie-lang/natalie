@@ -182,6 +182,7 @@ module Natalie
         end
 
         def build_dir = @compiler.build_dir
+        def build_quietly? = @compiler.build_quietly?
         def single_source? = !build_dir
 
         def build_path(extension)
