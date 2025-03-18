@@ -1,6 +1,7 @@
 require 'natalie/inline'
 
 __inline__ <<END
+#include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
