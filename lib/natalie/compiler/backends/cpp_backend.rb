@@ -143,9 +143,10 @@ module Natalie
                                 .gsub(/[^a-zA-Z0-9_]/, '_') + '_'
         if @var_prefixes_used[var_prefix]
           # This causes some hard-to-debug compilation/linking bugs.
+          p(var_prefix:, path: loaded_file.path, previous_path: @var_prefixes_used[var_prefix].path)
           raise "I don't know what to do when two var_prefixes collide."
         end
-        @var_prefixes_used[var_prefix] = true
+        @var_prefixes_used[var_prefix] = loaded_file
 
         @transform_data = TransformData.new(var_prefix:)
       end
