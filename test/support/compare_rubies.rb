@@ -5,7 +5,7 @@ module CompareRubies
   NAT_BINARY = ENV.fetch('NAT_BINARY', 'bin/natalie')
 
   def run_nat(path, *args)
-    out_nat = sh("#{NAT_BINARY} -I test/support #{path} #{args.join(' ')} 2>&1")
+    out_nat = sh("#{NAT_BINARY} --build-dir=test/build --build-quietly -I test/support #{path} #{args.join(' ')} 2>&1")
     puts out_nat unless $?.success?
     expect($?).must_be :success?
     out_nat
@@ -32,6 +32,8 @@ module CompareRubies
   end
 
   def sh(command)
-    Timeout.timeout(SPEC_TIMEOUT, nil, "execution expired running: #{command}") { `#{command}` }
+    Timeout.timeout(SPEC_TIMEOUT, nil, "execution expired running: #{command}") do
+      `#{command}`
+    end
   end
 end

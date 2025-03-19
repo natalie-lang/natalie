@@ -117,6 +117,10 @@ OptionParser.new do |opts|
     options[:build_dir] = path
   end
 
+  opts.on('--build-quietly', "Don't print any output during build (unless there is an error)") do
+    options[:build_quietly] = true
+  end
+
   opts.on('--keep-cpp', 'Do not delete intermediate cpp file used for compilation') do
     options[:keep_cpp] = true
   end

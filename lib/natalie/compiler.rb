@@ -127,6 +127,7 @@ module Natalie
     def debug = options[:debug]
     def build = options[:build]
     def build_dir = options[:build_dir]
+    def build_quietly? = !!options[:build_quietly]
     def keep_cpp? = !!((debug && debug != 'cc-cmd') || options[:keep_cpp])
     def interpret? = !!options[:interpret]
     def dynamic_linking? = !!options[:dynamic_linking]

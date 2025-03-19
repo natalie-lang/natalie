@@ -264,13 +264,15 @@ module Natalie
       end
 
       def find_file_in_load_path(path)
-        load_path.map { |d| File.join(d, path) }.detect { |p| File.file?(p) }
+        load_path.map { |d| File.expand_path(File.join(d, path)) }.detect { |p| File.file?(p) }
       end
 
       def load_file(path, require_once:, location:)
         return load_cpp_file(path, require_once: require_once, location: location) if path =~ /\.cpp$/
 
-        unless (loaded_file = @required_ruby_files[path])
+        raise "Expected an absolute path, but got: #{path.inspect}" unless File.absolute_path?(path)
+
+        unless @required_ruby_files[path]
           code = File.read(path)
           parser = Natalie::Parser.new(code, path)
           @required_ruby_files[path] = LoadedFile.new(path: path, ast: parser.ast, encoding: parser.encoding)
