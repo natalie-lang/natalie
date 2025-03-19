@@ -35,17 +35,20 @@ task :clean do
     rm_rf path
   end
   rm_rf 'build/build.log'
+  rm_rf 'build/libnat.rb.cpp'
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
   rm_rf "build/libnatalie_base.#{DL_EXT}"
   rm_rf "build/libnat.#{SO_EXT}"
   rm_rf Rake::FileList['build/*.o']
+  rm_rf 'test/build'
 end
 
 desc 'Remove all generated files'
 task :clobber do
   rm_rf 'build'
   rm_rf '.build'
+  rm_rf 'test/build'
 end
 
 task distclean: :clobber

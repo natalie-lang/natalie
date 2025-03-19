@@ -37,7 +37,7 @@ describe 'ruby/spec' do
     describe path do
       it 'passes all specs' do
         out_nat = Timeout.timeout(spec_timeout(path), nil, "execution expired running: #{path}") do
-          `#{NAT_BINARY} #{path} 2>&1`
+          `#{NAT_BINARY} --build-dir=test/build --build-quietly #{path} 2>&1`
         end
         puts out_nat if ENV['DEBUG'] || !$?.success?
         expect($?).must_be :success?
