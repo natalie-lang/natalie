@@ -12,7 +12,7 @@ pool = Concurrent::ThreadPoolExecutor.new(
   max_queue: 0 # unbounded work queue
 )
 
-specs = 'spec/**/*_spec.rb'
+specs = ENV.fetch('GLOB', 'spec/**/*_spec.rb')
 env = { 'DO_NOT_PRINT_CPP_PATH' => 'true' }
 
 errors = []

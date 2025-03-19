@@ -140,12 +140,12 @@ task test_perf_quickly: [:build_release] do
   sh 'ruby spec/support/test_perf.rb --quickly'
 end
 
-task output_all_ruby_specs: :build do
+task output_language_specs: :build do
   version = RUBY_VERSION.sub(/\.\d+$/, '')
   sh <<~END
     bundle config set --local with 'run_all_specs'
     bundle install
-    ruby spec/support/cpp_output_all_specs.rb output/ruby#{version}
+    GLOB=spec/language/**/*_spec.rb ruby spec/support/cpp_output_specs.rb output/ruby#{version}
   END
 end
 
@@ -284,15 +284,13 @@ task :docker_test_output do
     Rake::Task[:docker_build_clang].reenable # allow to run again
     sh "docker run #{docker_run_flags} --rm -v $(pwd)/output:/natalie/output " \
        "--entrypoint rake natalie_clang_#{version} " \
-       'output_all_ruby_specs ' \
+       'output_language_specs ' \
        'copy_generated_files_to_output'
   end
 
   SUPPORTED_HOST_RUBY_VERSIONS.each_cons(2) do |v1, v2|
-    out = `diff -r output/#{v1} output/#{v2} 2>&1`.strip
-    unless out.empty?
-      puts out
-      puts
+    success = sh("diff -r output/#{v1} output/#{v2}")
+    unless success
       raise "Output for #{v1} and #{v2} differs"
     end
   end
