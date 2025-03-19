@@ -926,8 +926,11 @@ Value KernelModule::dup(Env *env, Value self) {
     case Object::Type::Hash:
     case Object::Type::String:
         return dup_better(env, self);
-    default:
-        return self->duplicate(env);
+    default: {
+        auto result = self->duplicate(env);
+        result.send(env, "initialize_copy"_s, { self });
+        return result;
+    }
     }
 }
 

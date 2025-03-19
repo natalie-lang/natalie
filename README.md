@@ -149,27 +149,28 @@ Some parts of this program are copied from other sources, and the copyright
 belongs to the respective owner. Such copyright notices are either at the top of
 the respective file, in the same directory with a name like `LICENSE`, or both.
 
-| file(s)          | copyright                         | license           |
-| ---------------- | --------------------------------- | ----------------- |
-| `abbrev.rb`      | Akinori Musha                     | BSD               |
-| `benchmark.rb`   | Gotoken                           | BSD               |
-| `bigint.{h,c}`   | 983                               | Unlicense         |
-| `cgi.rb`/`cgi/*` | Wakou Aoyama                      | BSD               |
-| `crypt.{h,c}`    | The Regents of the Univ. of Cali. | BSD               |
-| `delegate.rb`    | Yukihiro Matsumoto                | BSD               |
-| `dtoa.c`         | David M. Gay, Lucent Technologies | custom permissive |
-| `erb/util.rb`    | Masatoshi SEKI                    | BSD               |
-| `ipaddr.rb`      | Hajimu Umemoto and Akinori Musha  | BSD               |
-| `find.rb`        | Kazuki Tsujimoto                  | BSD               |
-| `formatter.rb`   | Yukihiro Matsumoto                | BSD               |
-| `linenoise`      | S. Sanfilippo and P. Noordhuis    | BSD               |
-| `minicoro.h`     | Eduardo Bart                      | MIT               |
-| `pp.rb`          | Yukihiro Matsumoto                | BSD               |
-| `prettyprint.rb` | Yukihiro Matsumoto                | BSD               |
-| `shellwords.rb`  | Akinori MUSHA                     | BSD               |
-| `spec/*`         | Engine Yard, Inc.                 | MIT               |
-| `uri.rb`/`uri/*` | Akira Yamada                      | BSD               |
-| `version.rb`     | Engine Yard, Inc.                 | MIT               |
-| `zlib`           | Jean-loup Gailly and Mark Adler   | zlib license      |
+| file(s)                | copyright                         | license           |
+| ---------------------- | --------------------------------- | ----------------- |
+| `abbrev.rb`            | Akinori Musha                     | BSD               |
+| `benchmark.rb`         | Gotoken                           | BSD               |
+| `bigint.{h,c}`         | 983                               | Unlicense         |
+| `cgi.rb`/`cgi/*`       | Wakou Aoyama                      | BSD               |
+| `crypt.{h,c}`          | The Regents of the Univ. of Cali. | BSD               |
+| `delegate.rb`          | Yukihiro Matsumoto                | BSD               |
+| `dtoa.c`               | David M. Gay, Lucent Technologies | custom permissive |
+| `erb/util.rb`          | Masatoshi SEKI                    | BSD               |
+| `ipaddr.rb`            | Hajimu Umemoto and Akinori Musha  | BSD               |
+| `find.rb`              | Kazuki Tsujimoto                  | BSD               |
+| `formatter.rb`         | Yukihiro Matsumoto                | BSD               |
+| `linenoise`            | S. Sanfilippo and P. Noordhuis    | BSD               |
+| `matrix.rb`/`matrix/*` | Marc-Andre Lafortune              | BSD               |
+| `minicoro.h`           | Eduardo Bart                      | MIT               |
+| `pp.rb`                | Yukihiro Matsumoto                | BSD               |
+| `prettyprint.rb`       | Yukihiro Matsumoto                | BSD               |
+| `shellwords.rb`        | Akinori MUSHA                     | BSD               |
+| `spec/*`               | Engine Yard, Inc.                 | MIT               |
+| `uri.rb`/`uri/*`       | Akira Yamada                      | BSD               |
+| `version.rb`           | Engine Yard, Inc.                 | MIT               |
+| `zlib`                 | Jean-loup Gailly and Mark Adler   | zlib license      |
 
 See each file above for full copyright and license text.
