@@ -17,7 +17,7 @@ RUN if [ "$NEED_VALGRIND" = "true" ]; then \
   tar xvf valgrind-3.24.0.tar.bz2 && \
   cd valgrind-3.24.0 && \
   ./configure && \
-  make -j 4 && \
+  make -j && \
   make install; \
   fi
 

@@ -489,7 +489,7 @@ file 'build/onigmo/lib/libonigmo.a' do
     sh autogen.sh && \
     ./configure --with-pic --prefix #{build_dir} && \
     git apply #{patch_path} && \
-    make -j 4 && \
+    make -j && \
     make install
   SH
 end
@@ -501,7 +501,7 @@ file 'build/zlib/libz.a' do
   sh <<-SH
     cd #{build_dir} && \
     ./configure && \
-    make -j 4
+    make -j
   SH
 end
 
@@ -600,7 +600,7 @@ file "build/prism/ext/prism/prism.#{DL_EXT}" => Rake::FileList['ext/prism/**/*.{
     make && \
     cd ext/prism && \
     ruby extconf.rb && \
-    make -j 4
+    make -j
   SH
 end
 
