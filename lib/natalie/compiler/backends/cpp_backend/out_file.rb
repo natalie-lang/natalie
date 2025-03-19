@@ -1,6 +1,7 @@
 require 'tempfile'
-require_relative '../../flags'
 require_relative './pkg_config'
+require_relative '../../advisory_lock'
+require_relative '../../flags'
 require_relative '../../string_to_cpp'
 
 module Natalie
@@ -54,7 +55,19 @@ module Natalie
         def write_source_to_path(path)
           return if File.exist?(path) && File.read(path) == merged_source
 
-          File.write(path, merged_source)
+          AdvisoryLock.new("#{path}.lock").lock do
+            File.open(path, File::RDWR | File::CREAT) do |f|
+              existing_source = f.read
+              if existing_source != ''
+                if existing_source == merged_source
+                  break
+                end
+              end
+              f.rewind
+              f.write(merged_source)
+            end
+            File.open('/tmp/writes.log', 'a') { |f| f.puts "#{path} => #{File.stat(path).size}" }
+          end
         end
 
         def append_loaded_file(other_out_file)
@@ -66,21 +79,26 @@ module Natalie
 
         def compile_object_file
           write_source unless @cpp_path
-          if build_dir && File.exist?(out_path) && File.stat(out_path).mtime >= File.stat(@cpp_path).mtime
-            @status = :unchanged
-            return out_path
+
+          AdvisoryLock.new("#{out_path}.lock").lock do
+            if build_dir && File.exist?(out_path) && File.stat(out_path).mtime >= File.stat(@cpp_path).mtime
+              @status = :unchanged
+              return out_path
+            end
+
+            raise 'Something went wrong. The source file is empty.' if File.stat(@cpp_path).size.zero?
+
+            cmd = compiler_command
+            puts cmd if @compiler.debug == 'cc-cmd'
+            out = `#{cmd} 2>&1`
+            File.unlink(@cpp_path) unless @compiler.keep_cpp? || build_dir || $? != 0
+            puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?
+            warn out if out.strip != ''
+            raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
+
+            @status = :compiled
+            out_path
           end
-
-          cmd = compiler_command
-          puts cmd if @compiler.debug == 'cc-cmd'
-          out = `#{cmd} 2>&1`
-          File.unlink(@cpp_path) unless @compiler.keep_cpp? || build_dir || $? != 0
-          puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?
-          warn out if out.strip != ''
-          raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
-
-          @status = :compiled
-          out_path
         end
 
         def compiler_command
