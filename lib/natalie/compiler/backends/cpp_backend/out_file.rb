@@ -66,7 +66,6 @@ module Natalie
               f.rewind
               f.write(merged_source)
             end
-            File.open('/tmp/writes.log', 'a') { |f| f.puts "#{path} => #{File.stat(path).size}" }
           end
         end
 
