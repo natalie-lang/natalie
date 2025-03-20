@@ -1,120 +1,15 @@
 AllCops:
   TargetRubyVersion: 3.1 # the oldest version we support (don't suggest syntax newer than that)
+  # NOTE: I tried using `Enabled: false`, but that had no effect,
+  # at least in my editor. This was the only way I get Rubocop
+  # to stop yelling at me.
   Exclude:
+    - bin/**/*
     - build/generated/**/*
+    - Gemfile
+    - lib/**/*
+    - Rakefile
     - spec/**/*.rb
+    - src/**/*
+    - test/**/*
     - vendor/**/*
-
-Layout/CaseIndentation:
-  Enabled: false
-
-Layout/EmptyLineAfterGuardClause:
-  Enabled: false
-
-Layout/FirstArrayElementIndentation:
-  EnforcedStyle: consistent
-
-Layout/HashAlignment:
-  Enabled: false
-
-Layout/HeredocIndentation:
-  Enabled: false
-
-Layout/LeadingCommentSpace:
-  Enabled: false
-
-Layout/LineLength:
-  Exclude:
-    - lib/natalie/compiler/binding_gen.rb
-
-Lint/BooleanSymbol:
-  Enabled: false
-
-# No autoload in Natalie, so we do need to require pp/set
-Lint/RedundantRequireStatement:
-  Enabled: false
-
-Lint/Void:
-  Exclude:
-    - test/**/*.rb
-
-Metrics:
-  Enabled: false
-
-Naming/HeredocDelimiterNaming:
-  Enabled: false
-
-Naming/MethodParameterName:
-  Enabled: false
-
-Naming/PredicateName:
-  Enabled: false
-
-Style/AccessModifierDeclarations:
-  Enabled: false
-
-Style/AccessorGrouping:
-  Enabled: false
-
-Style/ConditionalAssignment:
-  Enabled: false
-
-Style/Documentation:
-  Enabled: false
-
-Style/DoubleNegation:
-  Enabled: false
-
-Style/EmptyElse:
-  Enabled: false
-
-Style/FormatString:
-  Enabled: false
-
-Style/FrozenStringLiteralComment:
-  Enabled: false
-
-Style/GuardClause:
-  Enabled: false
-
-Style/IfUnlessModifier:
-  Enabled: false
-
-Style/LambdaCall:
-  Enabled: false
-
-Style/Next:
-  Enabled: false
-
-Style/NumericPredicate:
-  Enabled: false
-
-Style/OptionalBooleanParameter:
-  Enabled: false
-
-Style/ParallelAssignment:
-  Enabled: false
-
-Style/PerlBackrefs:
-  Enabled: false
-
-Style/SingleLineMethods:
-  Enabled: false
-
-Style/SpecialGlobalVars:
-  Enabled: false
-
-Style/StringConcatenation:
-  Enabled: false
-
-Style/TrailingCommaInArguments:
-  Enabled: false
-
-Style/TrailingCommaInArrayLiteral:
-  Enabled: false
-
-Style/TrailingCommaInHashLiteral:
-  Enabled: false
-
-Style/WhileUntilModifier:
-  Enabled: false
