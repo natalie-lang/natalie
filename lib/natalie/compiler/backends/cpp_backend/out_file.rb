@@ -133,7 +133,7 @@ module Natalie
         end
 
         def merged_source
-          @mereged_source ||= begin
+          @merged_source ||= begin
             result = get_template
               .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
               .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files }
