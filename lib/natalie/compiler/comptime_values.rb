@@ -11,11 +11,8 @@ module Natalie
 
       def comptime_string(node, path: nil)
         if node.is_a?(::Prism::InterpolatedStringNode) && node.parts.all?(::Prism::StringNode)
-          string_node = node.parts.first
-          node.parts[1..].each do |next_node|
-            string_node = string_node.copy(unescaped: string_node.unescaped + next_node.unescaped)
-          end
-          node = string_node
+          unescaped = node.parts.each_with_object(+'') { |part, memo| memo << part.unescaped }
+          node = node.parts.first.copy(unescaped:)
         end
 
         unless node.type == :string_node
