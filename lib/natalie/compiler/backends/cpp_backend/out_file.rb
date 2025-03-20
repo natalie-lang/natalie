@@ -66,7 +66,6 @@ module Natalie
               f.rewind
               f.write(merged_source)
             end
-            File.open('/tmp/writes.log', 'a') { |f| f.puts "#{path} => #{File.stat(path).size}" }
           end
         end
 
@@ -134,7 +133,7 @@ module Natalie
         end
 
         def merged_source
-          @mereged_source ||= begin
+          @merged_source ||= begin
             result = get_template
               .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
               .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files }
