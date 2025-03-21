@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  clang-format:
+  format:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,11 +20,15 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
       - name: install dependencies
-        run: sudo apt-get install -y -q ruby clang-format
+        run: |
+          sudo apt-get install -y -q ruby clang-format build-essential
+          sudo gem install bundler
+          bundle config set --local path vendor/bundle
+          bundle install
       - name: format
-        run: rake format
+        run: bundle exec rake format
       - uses: EndBug/add-and-commit@v9
         with:
           author_name: Tim Morgan
           author_email: tim@timmorgan.org
-          message: "Format code with clang-format (automated)"
+          message: "Format code (automated)"

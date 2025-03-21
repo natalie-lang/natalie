@@ -1,5 +1,8 @@
 require_relative './lib/natalie/compiler/flags'
-require 'syntax_tree/rake_tasks'
+begin
+  require 'syntax_tree/rake_tasks'
+rescue LoadError
+end
 
 task default: :build
 
@@ -184,6 +187,11 @@ task :format do
        '! -path src/encoding/casemap.cpp ' \
        '! -path src/encoding/casefold.cpp ' \
        '-exec clang-format -i --style=file {} +'
+  if Rake::Task.task_defined?('stree:write')
+    Rake::Task['stree:write'].invoke
+  else
+    puts 'Did NOT run syntax_tree because it is not installed.'
+  end
 end
 
 desc 'Show TODO and FIXME comments in the project'
@@ -673,8 +681,10 @@ def current_build_mode
   File.read('.build').strip
 end
 
-SyntaxTree::Rake::CheckTask.new
-SyntaxTree::Rake::WriteTask.new do |t|
-  t.source_files = FileList[%w[Gemfile Rakefile lib/**/*.rb test/**/*.rb]]
-  # additional options in .streerc are respected
+if defined?(SyntaxTree)
+  SyntaxTree::Rake::CheckTask.new
+  SyntaxTree::Rake::WriteTask.new do |t|
+    t.source_files = FileList[%w[Gemfile Rakefile lib/**/*.rb test/**/*.rb bin/natalie examples/**/*.rb]]
+    # additional options in .streerc are respected
+  end
 end
