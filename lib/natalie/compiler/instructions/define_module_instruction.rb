@@ -51,8 +51,8 @@ module Natalie
         code = []
         code << "Value #{mod}"
         code << "auto #{mod_found} = Object::const_find_with_autoload(env, #{namespace}, self, " \
-                "#{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, " \
-                'Object::ConstLookupFailureMode::None)'
+          "#{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, " \
+          'Object::ConstLookupFailureMode::None)'
         code << "if (#{mod_found}) {"
         code << "  #{mod} = #{mod_found}.value()"
         code << "  if (!#{mod}.is_module() || #{mod}.is_class()) {"

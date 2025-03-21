@@ -167,20 +167,14 @@ class Numeric
   __function__('Enumerator::ArithmeticSequenceObject::from_numeric', ['Env *', 'Value', 'Value', 'Value'], 'Value')
 
   def step(to_pos = nil, by_pos = nil, by: nil, to: nil, &block)
-    if to_pos && to
-      raise ArgumentError, 'to is given twice'
-    end
+    raise ArgumentError, 'to is given twice' if to_pos && to
 
-    if by_pos && by
-      raise ArgumentError, 'by is given twice'
-    end
+    raise ArgumentError, 'by is given twice' if by_pos && by
 
     by ||= by_pos
     to ||= to_pos
 
-    if by == 0
-      raise ArgumentError, "step can't be 0"
-    end
+    raise ArgumentError, "step can't be 0" if by == 0
 
     enumerator = __call__('Enumerator::ArithmeticSequenceObject::from_numeric', self, to, by)
     return enumerator unless block_given?

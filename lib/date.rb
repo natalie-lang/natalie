@@ -13,8 +13,24 @@ class Date
   ABBR_DAYNAMES = freeze[%w[Sun Mon Tue Wed Thu Fri Sat]]
   ABBR_MONTHNAMES = freeze[[nil, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']]
   DAYNAMES = freeze[%w[Sunday Monday Tuesday Wednesday Thursday Friday Saturday]]
-  MONTHNAMES = freeze[[nil, 'January', 'February', 'March', 'April', 'May', 'June',
-                       'July', 'August', 'September', 'October', 'November', 'December']]
+  MONTHNAMES =
+    freeze[
+      [
+        nil,
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+      ]
+    ]
 
   Error = Class.new(ArgumentError)
 
@@ -112,7 +128,7 @@ class Date
         new($1.to_i, $2.to_i, $3.to_i)
       when %r{\A(\d\d)/(\d\d)/(\d{4})\z} # DD/MM/YYYY
         new($3.to_i, $2.to_i, $1.to_i)
-      when %r{\A(\d\d)/(\d\d)/(\d\d)\z}  # YY/MM/DD
+      when %r{\A(\d\d)/(\d\d)/(\d\d)\z} # YY/MM/DD
         new(year + $1.to_i, $2.to_i, $3.to_i)
       when /\A(\d{4})-(\d\d)-(\d\d)\z/ # YYYY-MM-DD
         new($1.to_i, $2.to_i, $3.to_i)
@@ -141,19 +157,11 @@ class Date
   end
 
   def initialize(year = -4712, month = 1, mday = 1, start = Date::ITALY)
-    if month < 0
-      month += 13
-    end
-    unless month.between?(1, 12)
-      raise Date::Error, 'invalid date'
-    end
+    month += 13 if month < 0
+    raise Date::Error, 'invalid date' unless month.between?(1, 12)
     last = last_mday(year, month)
-    if mday < 0
-      mday = last + mday + 1
-    end
-    if mday < 1 || mday > last
-      raise Date::Error, 'invalid date'
-    end
+    mday = last + mday + 1 if mday < 0
+    raise Date::Error, 'invalid date' if mday < 1 || mday > last
     @year = year
     @month = month
     @mday = mday
@@ -161,9 +169,7 @@ class Date
     @jd = self.class.civil_to_jd(year, month, mday, start)
     if @jd >= start
       _y, m, d = self.class.jd_to_civil(@jd)
-      unless m == @month && d == @mday
-        raise Date::Error, 'invalid date'
-      end
+      raise Date::Error, 'invalid date' unless m == @month && d == @mday
     end
   end
 
@@ -186,9 +192,7 @@ class Date
   end
 
   def <<(n)
-    unless n.is_a?(Numeric)
-      raise TypeError, 'expected numeric'
-    end
+    raise TypeError, 'expected numeric' unless n.is_a?(Numeric)
     self >> (-n)
   end
 
@@ -201,18 +205,14 @@ class Date
   end
 
   def >>(other)
-    unless other.is_a?(Numeric)
-      raise TypeError, "#{other.class} can't be coerced into Integer"
-    end
+    raise TypeError, "#{other.class} can't be coerced into Integer" unless other.is_a?(Numeric)
     other = other.to_int
     i = (@year * 12) + (@month - 1) + other
     year = i.div(12)
     month = (i % 12) + 1
     mday = @mday
     last = last_mday(year, month)
-    if mday > last
-      mday = last
-    end
+    mday = last if mday > last
     self.class.new(year, month, mday)
   rescue Date::Error
     self.class.jd(@start - 1)
@@ -240,9 +240,7 @@ class Date
   end
 
   def eql?(other)
-    unless other.is_a?(self.class)
-      return false
-    end
+    return false unless other.is_a?(self.class)
     (self <=> other).zero?
   end
 

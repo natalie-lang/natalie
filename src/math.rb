@@ -221,7 +221,7 @@ module Math
       sqrt(x**2 + y**2)
     end
 
-    __function__('::ldexp', ['double', 'int'], 'double')
+    __function__('::ldexp', %w[double int], 'double')
     def ldexp(fraction, exponent)
       begin
         fraction = Float(fraction)

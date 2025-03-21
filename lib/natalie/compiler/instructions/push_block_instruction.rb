@@ -15,9 +15,9 @@ module Natalie
 
       def generate(transform)
         if @from_nearest_env
-          transform.exec_and_push(:block, "ProcObject::from_block_maybe(env->nearest_block(true))")
+          transform.exec_and_push(:block, 'ProcObject::from_block_maybe(env->nearest_block(true))')
         else
-          transform.exec_and_push(:block, "ProcObject::from_block_maybe(block)")
+          transform.exec_and_push(:block, 'ProcObject::from_block_maybe(block)')
         end
       end
 
@@ -26,10 +26,7 @@ module Natalie
       end
 
       def serialize(_)
-        [
-          instruction_number,
-          @from_nearest_env ? 1 : 0,
-        ].pack('CC')
+        [instruction_number, @from_nearest_env ? 1 : 0].pack('CC')
       end
 
       def self.deserialize(io, _)

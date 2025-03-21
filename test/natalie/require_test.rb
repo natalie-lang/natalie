@@ -56,27 +56,18 @@ describe 'require' do
   end
 
   it 'requires a cpp file' do
-    if RUBY_ENGINE == 'natalie'
-      cpp_file.should == 'cpp_file'
-    end
+    cpp_file.should == 'cpp_file' if RUBY_ENGINE == 'natalie'
   end
 
   it 'raises an error when the path does not exist' do
-    lambda do
-      require 'something_non_existent'
-    end.should raise_error(
-      LoadError,
-      /cannot load such file.*something_non_existent/
-    )
+    lambda do require 'something_non_existent' end.should raise_error(
+                 LoadError,
+                 /cannot load such file.*something_non_existent/,
+               )
   end
 
   it 'raises an error when the path is a directory' do
-    lambda do
-      require_relative '../../test'
-    end.should raise_error(
-      LoadError,
-      /cannot load such file.*test/
-    )
+    lambda do require_relative '../../test' end.should raise_error(LoadError, /cannot load such file.*test/)
   end
 
   it 'returns true when require loads a file and false when it\'s already loaded' do

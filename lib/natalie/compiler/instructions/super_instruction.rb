@@ -37,18 +37,20 @@ module Natalie
         current_method_block = 'block'
         block = @with_block ? "to_block(env, #{transform.pop})" : current_method_block
 
-        transform.exec_and_push :super, "super(env, #{receiver}, Args(#{arg_count}, #{args_array_on_stack}, #{@has_keyword_hash ? 'true' : 'false'}), #{block})"
+        transform.exec_and_push :super,
+                                "super(env, #{receiver}, Args(#{arg_count}, #{args_array_on_stack}, #{@has_keyword_hash ? 'true' : 'false'}), #{block})"
       end
 
       def execute(vm)
-        args = if @args_array_on_stack
-                 vm.pop
-               else
-                 arg_count = vm.pop
-                 args = []
-                 arg_count.times { args.unshift vm.pop }
-                 args
-               end
+        args =
+          if @args_array_on_stack
+            vm.pop
+          else
+            arg_count = vm.pop
+            args = []
+            arg_count.times { args.unshift vm.pop }
+            args
+          end
         receiver = vm.pop
         block = @with_block ? vm.pop : vm.block
         vm.with_self(receiver) do

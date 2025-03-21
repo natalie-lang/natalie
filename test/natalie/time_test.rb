@@ -17,7 +17,7 @@ describe 'Time' do
     context 'with a Float argument' do
       it 'returns a time' do
         t = Time.at(10.5)
-        t.usec.should == 500000
+        t.usec.should == 500_000
         t.should_not == Time.at(10)
       end
     end
@@ -60,19 +60,19 @@ describe 'Time' do
 
     context 'with a valid unit argument' do
       it 'returns a time' do
-        Time.at(0, 123456789, :nanosecond).nsec.should == 123456789
-        Time.at(0, 123456789, :nsec).nsec.should == 123456789
-        Time.at(0, 123456, :microsecond).nsec.should == 123456000
-        Time.at(0, 123456, :usec).nsec.should == 123456000
-        Time.at(0, 123, :millisecond).nsec.should == 123000000
+        Time.at(0, 123_456_789, :nanosecond).nsec.should == 123_456_789
+        Time.at(0, 123_456_789, :nsec).nsec.should == 123_456_789
+        Time.at(0, 123_456, :microsecond).nsec.should == 123_456_000
+        Time.at(0, 123_456, :usec).nsec.should == 123_456_000
+        Time.at(0, 123, :millisecond).nsec.should == 123_000_000
       end
     end
 
     context 'with an invalid unit argument' do
       it 'raises an error' do
-        -> { Time.at(0, 123456, 2) }.should raise_error(ArgumentError)
-        -> { Time.at(0, 123456, nil) }.should raise_error(ArgumentError)
-        -> { Time.at(0, 123456, :invalid) }.should raise_error(ArgumentError)
+        -> { Time.at(0, 123_456, 2) }.should raise_error(ArgumentError)
+        -> { Time.at(0, 123_456, nil) }.should raise_error(ArgumentError)
+        -> { Time.at(0, 123_456, :invalid) }.should raise_error(ArgumentError)
       end
     end
   end
@@ -253,7 +253,7 @@ describe 'Time' do
 
   describe '#to_i' do
     it 'returns an integer' do
-      time.to_i.should == 482196050
+      time.to_i.should == 482_196_050
     end
   end
 

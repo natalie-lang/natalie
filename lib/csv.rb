@@ -6,37 +6,35 @@ require 'csv/writer'
 class CSV
   DEFAULT_OPTIONS = {
     # For both parsing and generating.
-    col_sep:            ',',
-    row_sep:            :auto,
-    quote_char:         '"',
+    col_sep: ',',
+    row_sep: :auto,
+    quote_char: '"',
     # For parsing.
-    field_size_limit:   nil,
-    converters:         nil,
+    field_size_limit: nil,
+    converters: nil,
     unconverted_fields: nil,
-    headers:            false,
-    return_headers:     false,
-    header_converters:  nil,
-    skip_blanks:        false,
-    skip_lines:         nil,
-    liberal_parsing:    false,
-    nil_value:          nil,
-    empty_value:        '',
-    strip:              false,
+    headers: false,
+    return_headers: false,
+    header_converters: nil,
+    skip_blanks: false,
+    skip_lines: nil,
+    liberal_parsing: false,
+    nil_value: nil,
+    empty_value: '',
+    strip: false,
     # For generating.
-    write_headers:      nil,
-    quote_empty:        true,
-    force_quotes:       false,
-    write_converters:   nil,
-    write_nil_value:    nil,
-    write_empty_value:  '',
+    write_headers: nil,
+    quote_empty: true,
+    force_quotes: false,
+    write_converters: nil,
+    write_nil_value: nil,
+    write_empty_value: '',
   }.freeze
 
   attr_reader :encoding
 
   def initialize(io, **options)
-    if io.is_a? String
-      io = StringIO.new(io)
-    end
+    io = StringIO.new(io) if io.is_a? String
 
     @io = io
     @encoding = @io.internal_encoding || @io.external_encoding
@@ -53,9 +51,7 @@ class CSV
   end
 
   def self.generate_line(ary, **options)
-    generate('', **options) do |csv|
-      csv << ary
-    end
+    generate('', **options) { |csv| csv << ary }
   end
 
   def self.open(file_path_or_io, mode = 'r')
@@ -85,9 +81,7 @@ class CSV
   def col_sep
     @col_sep ||= @options[:col_sep].to_s.encode(encoding)
 
-    if @col_sep.empty?
-      raise ArgumentError, ":col_sep must be 1 or more characters: #{@options[:col_sep].inspect}"
-    end
+    raise ArgumentError, ":col_sep must be 1 or more characters: #{@options[:col_sep].inspect}" if @col_sep.empty?
 
     @col_sep
   end

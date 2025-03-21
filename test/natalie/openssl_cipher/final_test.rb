@@ -1,9 +1,9 @@
 require_relative '../../../spec/spec_helper'
 require 'openssl'
 
-describe "OpenSSL::Cipher#final" do
-  it "can encrypt and decrypt data" do
-    data = "Very, very confidential data"
+describe 'OpenSSL::Cipher#final' do
+  it 'can encrypt and decrypt data' do
+    data = 'Very, very confidential data'
 
     cipher = OpenSSL::Cipher.new('AES-128-CBC')
     cipher.encrypt

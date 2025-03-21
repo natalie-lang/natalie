@@ -16,9 +16,7 @@ module Natalie
           else
             arg = args.pop
           end
-          if yield(arg) == :reverse
-            reverse
-          end
+          reverse if yield(arg) == :reverse
         end
       end
 

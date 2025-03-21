@@ -8,15 +8,15 @@ class Range
   end
 
   def cover?(object)
-    greater_than_begin = ->() {
+    greater_than_begin = -> do
       value = object.is_a?(Range) ? object.begin : object
       return false unless value
 
       compare_result = (self.begin <=> value)
       !!compare_result && compare_result != 1
-    }
+    end
 
-    less_than_end = ->() {
+    less_than_end = -> do
       if object.is_a?(Range)
         object_end =
           if object.exclude_end? && object.end.respond_to?(:pred)
@@ -38,17 +38,13 @@ class Range
         compare_result = (object <=> self.end)
         !!compare_result && compare_result <= expected
       end
-    }
+    end
 
     result = true
 
-    if self.begin
-      result &&= greater_than_begin.()
-    end
+    result &&= greater_than_begin.() if self.begin
 
-    if self.end
-      result &&= less_than_end.()
-    end
+    result &&= less_than_end.() if self.end
 
     result
   end
@@ -63,14 +59,10 @@ class Range
       return super
     end
 
-    if n
-      return last(n)
-    end
+    return last(n) if n
 
     # If end is not a numeric and the range excludes it's end, we cannot calculate the max value without iterating
-    if exclude_end? && !self.end.is_a?(Numeric)
-      return super
-    end
+    return super if exclude_end? && !self.end.is_a?(Numeric)
 
     max =
       if exclude_end?
@@ -85,9 +77,7 @@ class Range
         self.end
       end
 
-    if !self.begin || (max == self.begin || (self.begin <=> max) == -1)
-      max
-    end
+    max if !self.begin || (max == self.begin || (self.begin <=> max) == -1)
   end
 
   def min(n = nil)
@@ -99,9 +89,7 @@ class Range
       return super
     end
 
-    if n
-      return first(n)
-    end
+    return first(n) if n
 
     min = first
     return min if !self.end
@@ -114,9 +102,7 @@ class Range
   end
 
   def minmax(&block)
-    if block_given?
-      return super
-    end
+    return super if block_given?
 
     [min, max]
   end
@@ -124,10 +110,11 @@ class Range
   def overlap?(other)
     raise TypeError, "wrong argument type #{other.class} (expected Range)" unless other.is_a?(Range)
 
-    is_empty = lambda do |arg|
-      compare = arg.exclude_end? ? :>= : :>
-      !arg.begin.nil? && !arg.end.nil? && arg.begin.__send__(compare, arg.end)
-    end
+    is_empty =
+      lambda do |arg|
+        compare = arg.exclude_end? ? :>= : :>
+        !arg.begin.nil? && !arg.end.nil? && arg.begin.__send__(compare, arg.end)
+      end
 
     if is_empty.call(self) || is_empty.call(other)
       false

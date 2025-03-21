@@ -30,14 +30,12 @@ end
 
 # Creates each directory in path that does not exist.
 def mkdir_p(path)
-  parts = File.expand_path(path).split %r[/|\\]
+  parts = File.expand_path(path).split %r{/|\\}
   name = parts.shift
   parts.each do |part|
     name = File.join name, part
 
-    if File.file? name
-      raise ArgumentError, "path component of #{path} is a file"
-    end
+    raise ArgumentError, "path component of #{path} is a file" if File.file? name
 
     unless File.directory? name
       begin
@@ -61,9 +59,7 @@ def rm_r(*paths)
     path = path.is_a?(File) ? path.to_path : File.expand_path(path)
 
     prefix = SPEC_TEMP_DIR
-    unless path[0, prefix.size] == prefix
-      raise ArgumentError, "#{path} is not prefixed by #{prefix}"
-    end
+    raise ArgumentError, "#{path} is not prefixed by #{prefix}" unless path[0, prefix.size] == prefix
 
     # File.symlink? needs to be checked first as
     # File.exist? returns false for dangling symlinks
@@ -80,10 +76,8 @@ end
 
 # Creates a file +name+. Creates the directory for +name+
 # if it does not exist.
-def touch(name, mode = "w")
+def touch(name, mode = 'w')
   mkdir_p File.dirname(name)
 
-  File.open(name, mode) do |f|
-    yield f if block_given?
-  end
+  File.open(name, mode) { |f| yield f if block_given? }
 end

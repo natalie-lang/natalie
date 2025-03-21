@@ -8,8 +8,7 @@ module Natalie
         @has_keyword_hash = has_keyword_hash
       end
 
-      attr_reader :args_array_on_stack,
-                  :has_keyword_hash
+      attr_reader :args_array_on_stack, :has_keyword_hash
 
       def to_s
         s = 'yield'
@@ -42,23 +41,15 @@ module Natalie
 
       def serialize(_)
         flags = 0
-        [args_array_on_stack, has_keyword_hash].each_with_index do |flag, index|
-          flags |= (1 << index) if flag
-        end
-        [
-          instruction_number,
-          flags,
-        ].pack('CC')
+        [args_array_on_stack, has_keyword_hash].each_with_index { |flag, index| flags |= (1 << index) if flag }
+        [instruction_number, flags].pack('CC')
       end
 
       def self.deserialize(io, _)
         flags = io.getbyte
         args_array_on_stack = flags[0] == 1
         has_keyword_hash = flags[1] == 1
-        new(
-          args_array_on_stack:,
-          has_keyword_hash:,
-        )
+        new(args_array_on_stack:, has_keyword_hash:)
       end
     end
   end

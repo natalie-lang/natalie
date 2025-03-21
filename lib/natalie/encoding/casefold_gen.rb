@@ -30,10 +30,7 @@ def generate_function(name, statuses, data)
 end
 
 unless File.exist?('/tmp/CaseFolding.txt')
-  File.write(
-    '/tmp/CaseFolding.txt',
-    URI.open('https://www.unicode.org/Public/UCD/latest/ucd/CaseFolding.txt').read
-  )
+  File.write('/tmp/CaseFolding.txt', URI.open('https://www.unicode.org/Public/UCD/latest/ucd/CaseFolding.txt').read)
 end
 
 data = File.read('/tmp/CaseFolding.txt').split(/\n/).grep_v(/^#/).map { |l| l.split('; ') }

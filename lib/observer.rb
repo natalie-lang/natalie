@@ -4,25 +4,23 @@ module Observable
   end
 
   def add_observer(observer, callback = :update)
-    @observers = {} unless defined? @observers
+    @observers = {} unless defined?(@observers)
 
-    unless observer.respond_to? callback
-      raise NoMethodError, "observer does not respond to `#{callback}`"
-    end
+    raise NoMethodError, "observer does not respond to `#{callback}`" unless observer.respond_to? callback
 
     @observers[observer] = callback
   end
 
   def delete_observer(observer)
-    @observers.delete observer if defined? @observers
+    @observers.delete observer if defined?(@observers)
   end
 
   def delete_observers
-    @observers.clear if defined? @observers
+    @observers.clear if defined?(@observers)
   end
 
   def count_observers
-    if defined? @observers
+    if defined?(@observers)
       @observers.size
     else
       0
@@ -31,11 +29,7 @@ module Observable
 
   def notify_observers(*arg)
     if defined?(@observer_state) && @observer_state
-      if defined?(@observers)
-        @observers.each do |observer, callback|
-          observer.__send__(callback, *arg)
-        end
-      end
+      @observers.each { |observer, callback| observer.__send__(callback, *arg) } if defined?(@observers)
 
       @observer_state = false
     end

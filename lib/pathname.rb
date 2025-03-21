@@ -88,9 +88,7 @@ class Pathname
     if secondpath.absolute?
       @path = secondpath.path
     else
-      while @path.end_with?(File::SEPARATOR)
-        @path.chop!
-      end
+      @path.chop! while @path.end_with?(File::SEPARATOR)
       @path << File::SEPARATOR
       @path << secondpath.path
     end

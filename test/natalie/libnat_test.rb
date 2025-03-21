@@ -7,9 +7,7 @@ require 'tempfile'
 require 'natalie/inline'
 
 LIBNAT_PATH = "build/libnat.#{RbConfig::CONFIG['SOEXT']}"
-unless File.exist?(LIBNAT_PATH)
-  `rake #{LIBNAT_PATH}`
-end
+`rake #{LIBNAT_PATH}` unless File.exist?(LIBNAT_PATH)
 
 module LibNat
   extend FFI::Library
@@ -52,11 +50,12 @@ describe 'libnat.so' do
     ast = LibNat.parse('1 + 2', 'foo.rb')
     temp_path = LibNat.compile(ast, 'foo.rb', Encoding::UTF_8)
 
-    library = Module.new do
-      extend FFI::Library
-      ffi_lib(temp_path)
-      attach_function :EVAL, [:pointer, :pointer], :int
-    end
+    library =
+      Module.new do
+        extend FFI::Library
+        ffi_lib(temp_path)
+        attach_function :EVAL, %i[pointer pointer], :int
+      end
 
     env = FFI::Pointer.from_env
     result_memory = FFI::Pointer.new_value

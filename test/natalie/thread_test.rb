@@ -3,14 +3,16 @@ require_relative '../spec_helper'
 $results = []
 
 def create_threads
-  1.upto(5).map do |i|
-    Thread.new do
-      x = "#{i}foo"
-      $results << x
-      sleep 0.1
-      $results << x + "bar"
+  1
+    .upto(5)
+    .map do |i|
+      Thread.new do
+        x = "#{i}foo"
+        $results << x
+        sleep 0.1
+        $results << x + 'bar'
+      end
     end
-  end
 end
 
 describe 'Thread' do
@@ -69,19 +71,22 @@ describe 'Thread' do
     end
 
     it 'calls join implicitly' do
-      t = Thread.new { sleep 0.1; 102 }
+      t =
+        Thread.new do
+          sleep 0.1
+          102
+        end
       t.value.should == 102
     end
   end
 
   describe 'Fibers within threads' do
     it 'works' do
-      t = Thread.new do
-        @f = Fiber.new do
-          1
+      t =
+        Thread.new do
+          @f = Fiber.new { 1 }
+          @f.resume.should == 1
         end
-        @f.resume.should == 1
-      end
       t.join
     end
   end
@@ -98,20 +103,16 @@ describe 'Thread' do
 
   describe 'abort_on_exception' do
     it 'raises an error in the main thread if either Thread.abort_on_exception or Thread#abort_on_exception is true' do
-      [
-        [false, false],
-        [true, false],
-        [false, true],
-        [true, true],
-      ].each do |global, local|
+      [[false, false], [true, false], [false, true], [true, true]].each do |global, local|
         Thread.abort_on_exception = global
 
-        t = Thread.new do
-          Thread.current.report_on_exception = false
-          Thread.pass until Thread.main.stop?
-          Thread.current.abort_on_exception = local
-          raise 'foo'
-        end
+        t =
+          Thread.new do
+            Thread.current.report_on_exception = false
+            Thread.pass until Thread.main.stop?
+            Thread.current.abort_on_exception = local
+            raise 'foo'
+          end
 
         # this is always false by default
         t.abort_on_exception.should == false
@@ -150,14 +151,15 @@ describe 'Thread' do
       xit 'works' do
         running = false
         ensure_ran = false
-        t = Thread.new do
-          running = true
-          loop do
-            # noop
+        t =
+          Thread.new do
+            running = true
+            loop do
+              # noop
+            end
+          ensure
+            ensure_ran = true
           end
-        ensure
-          ensure_ran = true
-        end
         Thread.pass until running
         t.kill
         t.join

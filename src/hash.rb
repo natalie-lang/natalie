@@ -8,7 +8,8 @@ class Hash
       elsif obj.respond_to?(:to_hash)
         obj.to_hash.tap do |hash|
           unless hash.nil? || hash.is_a?(Hash)
-            raise TypeError, "can't convert #{obj.class.inspect} to Hash (#{obj.class.inspect}#to_hash gives #{hash.class.inspect})"
+            raise TypeError,
+                  "can't convert #{obj.class.inspect} to Hash (#{obj.class.inspect}#to_hash gives #{hash.class.inspect})"
           end
         end
       end
@@ -118,13 +119,14 @@ class Hash
     new_hash = {}
     unless empty?
       each do |key, value|
-        new_key = if !hash2.nil? && hash2.key?(key)
-          hash2[key]
-        elsif block
-          block.call(key)
-        else
-          key
-        end
+        new_key =
+          if !hash2.nil? && hash2.key?(key)
+            hash2[key]
+          elsif block
+            block.call(key)
+          else
+            key
+          end
         new_hash[new_key] = value
       end
     end
@@ -140,13 +142,14 @@ class Hash
       new_keys = Hash.new(0)
       duped = dup
       duped.each do |key, value|
-        new_key = if !hash2.nil? && hash2.key?(key)
-          hash2[key]
-        elsif block
-          block.call(key)
-        else
-          key
-        end
+        new_key =
+          if !hash2.nil? && hash2.key?(key)
+            hash2[key]
+          elsif block
+            block.call(key)
+          else
+            key
+          end
         self.delete(key) if new_keys[key]
         self[new_key] = value
         new_keys[new_key] = nil

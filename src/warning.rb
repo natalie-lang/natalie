@@ -1,38 +1,26 @@
 module Warning
   extend self
 
-  FLAGS = {
-    deprecated: nil,
-    experimental: true,
-    performance: false
-  }
+  FLAGS = { deprecated: nil, experimental: true, performance: false }
 
   private_constant :FLAGS
 
   def [](category)
-    unless category.is_a?(Symbol)
-      raise TypeError, "wrong argument type #{category.class.name} (expected Symbol)"
-    end
+    raise TypeError, "wrong argument type #{category.class.name} (expected Symbol)" unless category.is_a?(Symbol)
 
-    unless FLAGS.key?(category)
-      raise ArgumentError, "unknown category: #{category}"
-    end
+    raise ArgumentError, "unknown category: #{category}" unless FLAGS.key?(category)
 
     flag = FLAGS[category]
 
-    return ($VERBOSE == true) if category == :deprecated && flag.nil?
+    return($VERBOSE == true) if category == :deprecated && flag.nil?
 
     flag
   end
 
   def []=(category, flag)
-    unless category.is_a?(Symbol)
-      raise TypeError, "wrong argument type #{category.class.name} (expected Symbol)"
-    end
+    raise TypeError, "wrong argument type #{category.class.name} (expected Symbol)" unless category.is_a?(Symbol)
 
-    unless FLAGS.key?(category)
-      raise ArgumentError, "unknown category: #{category}"
-    end
+    raise ArgumentError, "unknown category: #{category}" unless FLAGS.key?(category)
 
     FLAGS[category] = flag
   end

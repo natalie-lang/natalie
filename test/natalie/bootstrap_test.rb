@@ -1,7 +1,8 @@
 # some basic tests as we are starting out
 
 class TestCase
-  class TestFailedError < StandardError; end
+  class TestFailedError < StandardError
+  end
 
   def initialize
     @assertions = 0
@@ -197,29 +198,23 @@ class TestCompiler < TestCase
 
   def test_block_arg_and_pass
     x = 1
-    block_call do
-      x = 2
-    end
+    block_call { x = 2 }
     assert_eq(2, x)
 
-    block_pass do
-      x = 3
-    end
+    block_pass { x = 3 }
     assert_eq(3, x)
 
-    (arg, block) = block_pass2 { 4 }
+    arg, block = block_pass2 { 4 }
     assert_eq(nil, arg)
     assert_eq(4, block.call)
 
-    (arg, block) = block_pass2(5) { 6 }
+    arg, block = block_pass2(5) { 6 }
     assert_eq(5, arg)
     assert_eq(6, block.call)
   end
 
   def test_block_arg_destructure
-    [
-      [1, 2],
-    ].each do |(x, y)|
+    [[1, 2]].each do |(x, y)|
       assert_eq(1, x)
       assert_eq(2, y)
     end
@@ -231,9 +226,7 @@ class TestCompiler < TestCase
     end
     assert_eq([[3, 4]], ary) # don't mutate ary
 
-    [
-      5
-    ].each do |x, y|
+    [5].each do |x, y|
       assert_eq(5, x)
       assert_eq(nil, y)
     end
@@ -241,9 +234,7 @@ class TestCompiler < TestCase
 
   def test_block_arg_does_not_overwrite_outer_scope_arg
     z = 0
-    [1].each do |z|
-      assert_eq(1, z)
-    end
+    [1].each { |z| assert_eq(1, z) }
     assert_eq(0, z)
   end
 
@@ -251,81 +242,56 @@ class TestCompiler < TestCase
     y = 1
     2.times do
       y += 2
-      3.times do
-        y += 3
-      end
+      3.times { y += 3 }
     end
     assert_eq(23, y)
   end
 
   def test_break_from_block
-    result = block_yield3(1, 2, 3) do
-      break 100
-    end
+    result = block_yield3(1, 2, 3) { break 100 }
     assert_eq(100, result)
 
-    result = block_yield3(1, 2, 3) do
-      break
-    end
+    result = block_yield3(1, 2, 3) { break }
     assert_eq(nil, result)
 
-    result = [3, 2, 1].sort { 1 }.each do
-      break 4
-    end
+    result = [3, 2, 1].sort { 1 }.each { break 4 }
     assert_eq(4, result)
 
-    result = [3, 2, 1].sort.each do
-      break 5
-    end
+    result = [3, 2, 1].sort.each { break 5 }
     assert_eq(5, result)
   end
 
   def test_break_from_lambda
-    l1 = -> do
-      break 400
-    end
+    l1 = -> { break 400 }
     assert_eq(400, l1.call)
-    l2 = lambda do
-      break 500
-    end
+    l2 = lambda { break 500 }
     assert_eq(500, l2.call)
-    l3 = lambda do
-      break
-    end
+    l3 = lambda { break }
     assert_eq(nil, l3.call)
   end
 
   def test_break_from_loop
-    result = loop do
-      break 200
-    end
+    result = loop { break 200 }
     assert_eq(200, result)
-    result = loop do
-      break
-    end
+    result = loop { break }
     assert_eq(nil, result)
   end
 
   def test_break_from_proc
-    the_proc = proc do
-      break 300
-    end
-    assert_raises(LocalJumpError, 'break from proc-closure') do
-      the_proc.call
-    end
+    the_proc = proc { break 300 }
+    assert_raises(LocalJumpError, 'break from proc-closure') { the_proc.call }
   end
 
   def test_break_from_while
-    result = while true
-      break 200
-      break 300
-      break 400
-    end
+    result =
+      while true
+        break 200
+        break 300
+        break 400
+      end
     assert_eq(200, result)
 
-    result = while true
-      break
-    end
+    result = (break while true)
     assert_eq(nil, result)
   end
 
@@ -361,7 +327,10 @@ class TestCompiler < TestCase
     end
     assert_eq(foo, :foo)
 
-    case_result = case 0;when 1; end
+    case_result =
+      case 0
+      when 1
+      end
     assert_eq(case_result, nil)
 
     case 1..2
@@ -399,7 +368,7 @@ class TestCompiler < TestCase
     begin
       result << 1
       non_existent_method
-    rescue
+    rescue StandardError
       result << 2
     ensure
       result << 3
@@ -415,7 +384,7 @@ class TestCompiler < TestCase
       ensure
         result << 3
       end
-    rescue
+    rescue StandardError
     end
     assert_eq([1, 3], result)
 
@@ -423,7 +392,7 @@ class TestCompiler < TestCase
     result = []
     begin
       result << 1
-    rescue
+    rescue StandardError
       result << 2
     ensure
       result << 3
@@ -436,7 +405,7 @@ class TestCompiler < TestCase
     begin
       begin
         result << 1
-      rescue
+      rescue StandardError
         result << 2
       ensure
         result << 3
@@ -530,12 +499,12 @@ class TestCompiler < TestCase
     assert_eq(1, a)
     assert_eq(2, b)
 
-    ((a, b), c) = [[1, 2], 3]
+    (a, b), c = [[1, 2], 3]
     assert_eq(1, a)
     assert_eq(2, b)
     assert_eq(3, c)
 
-    ((a, *b), c) = [[1, 2, 3], 3]
+    (a, *b), c = [[1, 2, 3], 3]
     assert_eq([2, 3], b)
 
     ary = [1, 2, 3]
@@ -612,54 +581,61 @@ class TestCompiler < TestCase
   end
 
   def test_rescue
-    x = begin
-          1
-        rescue ArgumentError
-          2
-        end
+    x =
+      begin
+        1
+      rescue ArgumentError
+        2
+      end
     assert_eq(1, x)
-    y = begin
-          send() # missing args
-        rescue NoMethodError
-          1
-        rescue ArgumentError
-          2
-        end
+    y =
+      begin
+        send() # missing args
+      rescue NoMethodError
+        1
+      rescue ArgumentError
+        2
+      end
     assert_eq(2, y)
-    z = begin
-          method_raises
-        rescue
-          y + 1
-        end
+    z =
+      begin
+        method_raises
+      rescue StandardError
+        y + 1
+      end
     assert_eq(3, z)
   end
 
   def test_rescue_else
-    x = begin
-          1
-        rescue
-          2
-        else
-          :noop # ensure the whole body is run
-          3
-        end
+    x =
+      begin
+        1
+      rescue StandardError
+        2
+      else
+        :noop # ensure the whole body is run
+        3
+      end
+
     assert_eq(3, x)
 
-    y = begin
-          :noop # ensure the whole body is run
-          non_existent_method
-        rescue
-          :noop # ensure the whole body is run
-          2
-        else
-          3
-        end
+    y =
+      begin
+        :noop # ensure the whole body is run
+        non_existent_method
+      rescue StandardError
+        :noop # ensure the whole body is run
+        2
+      else
+        3
+      end
+
     assert_eq(2, y)
 
     assert_raises(RuntimeError, 'this is the error') do
       begin
         # noop
-      rescue
+      rescue StandardError
         raise 'should not be reached'
       else
         raise 'this is the error'
@@ -745,7 +721,7 @@ class TestCompiler < TestCase
     s5 = "hello #{:world}"
     assert_eq(s1, s5)
     s6 = "#{1 + 2} = 3"
-    assert_eq("3 = 3", s6)
+    assert_eq('3 = 3', s6)
   end
 
   def test_super
@@ -767,9 +743,7 @@ class TestCompiler < TestCase
 
   def test_until
     y = 0
-    until y >= 3
-      y += 1
-    end
+    y += 1 until y >= 3
     assert_eq(3, y)
 
     y = 0
@@ -788,18 +762,14 @@ class TestCompiler < TestCase
     if true
       x += 2
       [3, 4].each { |i| x += i }
-      while x % 2 == 0
-        x += 1
-      end
+      x += 1 while x % 2 == 0
     end
     assert_eq(11, x)
   end
 
   def test_while
     x = 0
-    while x < 3
-      x += 1
-    end
+    x += 1 while x < 3
     assert_eq(3, x)
 
     x = 0
@@ -914,9 +884,7 @@ class TestCompiler < TestCase
   end
 
   def block_yield_in_block
-    [1].map do |i|
-      yield i
-    end
+    [1].map { |i| yield i }
   end
 
   def block_call(&block)
@@ -965,19 +933,31 @@ class TestCompiler < TestCase
 
   # reopen class
   class ClassWithInitialize
-    def bar; :bar; end
+    def bar
+      :bar
+    end
   end
 
   class ClassWithPrivateMethod
-    def pub; 'pub'; end
+    def pub
+      'pub'
+    end
+
     private
-    def priv; 'priv'; end
+
+    def priv
+      'priv'
+    end
   end
 
   class ClassWithClassMethod
-    def self.foo; 'foo'; end
+    def self.foo
+      'foo'
+    end
     class << self
-      def bar; 'bar'; end
+      def bar
+        'bar'
+      end
     end
   end
 
@@ -1021,9 +1001,13 @@ class TestCompiler < TestCase
   class AttrAssignTest
     attr_accessor :foo
     class << self
-      def bar; @bar; end
+      def bar
+        @bar
+      end
     end
-    def self.bar=(bar); @bar = bar; end
+    def self.bar=(bar)
+      @bar = bar
+    end
   end
 
   class AliasTest

@@ -18,11 +18,12 @@ module FileUtils
   def self.mkdir_p(path, mode: nil)
     parts = File.expand_path(path).split(File::SEPARATOR)
 
-    mkdir = lambda do |dir, *args|
-      Dir.mkdir(dir, *args)
-    rescue # rubocop:disable Style/RescueStandardError
-      raise unless File.directory?(dir)
-    end
+    mkdir =
+      lambda do |dir, *args|
+        Dir.mkdir(dir, *args)
+      rescue StandardError # rubocop:disable Style/RescueStandardError
+        raise unless File.directory?(dir)
+      end
 
     dir = parts.shift
     parts.each do |part|

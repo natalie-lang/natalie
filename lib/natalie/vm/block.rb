@@ -24,25 +24,20 @@ module Natalie
       end
 
       def to_proc
-        @lambda ||= lambda do |*args|
-          vm.with_self(@captured_self) do
-            scope = { vars: {}, parent: @parent_scope }
-            vm.push_call(
-              name: nil,
-              return_ip: vm.ip,
-              args: args,
-              scope: scope,
-              block: @captured_block
-            )
-            vm.ip = @ip
-            begin
-              vm.run
-            ensure
-              vm.ip = vm.pop_call.fetch(:return_ip)
+        @lambda ||=
+          lambda do |*args|
+            vm.with_self(@captured_self) do
+              scope = { vars: {}, parent: @parent_scope }
+              vm.push_call(name: nil, return_ip: vm.ip, args: args, scope: scope, block: @captured_block)
+              vm.ip = @ip
+              begin
+                vm.run
+              ensure
+                vm.ip = vm.pop_call.fetch(:return_ip)
+              end
+              vm.pop # result must be returned from proc
             end
-            vm.pop # result must be returned from proc
           end
-        end
       end
     end
   end

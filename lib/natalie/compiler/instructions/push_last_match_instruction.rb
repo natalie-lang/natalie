@@ -8,7 +8,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.push("Value(env->last_match())")
+        transform.push('Value(env->last_match())')
       end
 
       def execute(vm)

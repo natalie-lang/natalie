@@ -18,9 +18,9 @@ describe 'regexp' do
   it 'can handle the # character with or without string interpolation' do
     /\#foo/.should =~ '#foo'
     /#foo/.should =~ '#foo'
-    /#$1/.should =~ '#$1'
+    /#{$1}/.should =~ '#$1'
     @bar = 'x'
-    /#@bar/.should =~ 'x'
+    /#{@bar}/.should =~ 'x'
     /\#@bar/.should =~ '#@bar'
   end
 
@@ -30,16 +30,26 @@ describe 'regexp' do
     /\u1234/.source.should == '\u1234'
     /\x20/.source.should == '\x20'
 
-    r = /\u{1}/;      r.source.should == '\u{1}';      r.should =~ "\u{1}"
-    r = /\u{1F}/;     r.source.should == '\u{1F}';     r.should =~ "\u{1F}"
-    r = /\u{1fa}/;    r.source.should == '\u{1fa}';    r.should =~ "\u{1fa}"
-    r = /\u{aEaD}/;   r.source.should == '\u{aEaD}';   r.should =~ "\u{aEaD}"
-    r = /\u{f2345}/;  r.source.should == '\u{f2345}';  r.should =~ "\u{f2345}"
-    r = /\u{10FFFF}/; r.source.should == '\u{10FFFF}'; r.should =~ "\u{10FFFF}"
+    r = /\u{1}/
+    r.source.should == '\u{1}'
+    r.should =~ "\u{1}"
+    r = /\u{1F}/
+    r.source.should == '\u{1F}'
+    r.should =~ "\u{1F}"
+    r = /\u{1fa}/
+    r.source.should == '\u{1fa}'
+    r.should =~ "\u{1fa}"
+    r = /\u{aEaD}/
+    r.source.should == '\u{aEaD}'
+    r.should =~ "\u{aEaD}"
+    r = /\u{f2345}/
+    r.source.should == '\u{f2345}'
+    r.should =~ "\u{f2345}"
+    r = /\u{10FFFF}/
+    r.source.should == '\u{10FFFF}'
+    r.should =~ "\u{10FFFF}"
 
-    /^\u{1F90F  1F3FC}$/.should =~ [
-      240, 159, 164, 143, 240, 159, 143, 188
-    ].pack('C*').force_encoding(Encoding::UTF_8)
+    /^\u{1F90F  1F3FC}$/.should =~ [240, 159, 164, 143, 240, 159, 143, 188].pack('C*').force_encoding(Encoding::UTF_8)
 
     -> { eval('/\u{1111111}/') }.should raise_error(SyntaxError)
     -> { eval('/\u{}/') }.should raise_error(SyntaxError)
@@ -47,7 +57,7 @@ describe 'regexp' do
   end
 
   it 'uses the right onigmo encoding' do
-    pattern = Regexp.new("木".encode('EUC-JP'), Regexp::FIXEDENCODING)
+    pattern = Regexp.new('木'.encode('EUC-JP'), Regexp::FIXEDENCODING)
     pattern.encoding.should == Encoding::EUC_JP
   end
 
@@ -338,7 +348,6 @@ describe 'regexp' do
       m = /(?<name-and-age>\w+ is \d+)/.match('Joe is 21 years old')
       m.named_captures['name-and-age'].should == 'Joe is 21'
     end
-
 
     it 'sets variables to nil when there is no match' do
       /(?<name>\w+) is (?'age'\d+) years/ =~ 'Joe is not yet 21 years old'

@@ -25,10 +25,7 @@ module Natalie
 
       def serialize(rodata)
         position = rodata.add(matching_label.to_s)
-        [
-          instruction_number,
-          position,
-        ].pack('Cw')
+        [instruction_number, position].pack('Cw')
       end
 
       def self.deserialize(io, rodata)

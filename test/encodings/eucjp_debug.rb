@@ -8,7 +8,14 @@ to_encoding = Encoding::UTF_8
 (0..0x8ffefe).each do |codepoint|
   $stderr.print("0x#{codepoint.to_s(16)}    \r") if codepoint % 0x10000 == 0
 
-  if (str = codepoint.chr(from_encoding) rescue nil)
+  if (
+       str =
+         begin
+           codepoint.chr(from_encoding)
+         rescue StandardError
+           nil
+         end
+     )
     bytes = str.bytes
     puts "chr: 0x#{codepoint.to_s(16)} => #{bytes.map { |b| "0x#{b.to_s(16)}" }.join(', ')}"
     begin

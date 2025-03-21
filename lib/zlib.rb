@@ -21,14 +21,22 @@ module Zlib
   __constant__ 'RLE', 'int', 'Z_RLE'
   __constant__ 'UNKNOWN', 'int', 'Z_UNKNOWN'
 
-  class Error < StandardError; end
-  class BufError < Error; end
-  class DataError < Error; end
-  class MemError < Error; end
-  class NeedDict < Error; end
-  class StreamEnd < Error; end
-  class StreamError < Error; end
-  class VersionError < Error; end
+  class Error < StandardError
+  end
+  class BufError < Error
+  end
+  class DataError < Error
+  end
+  class MemError < Error
+  end
+  class NeedDict < Error
+  end
+  class StreamEnd < Error
+  end
+  class StreamError < Error
+  end
+  class VersionError < Error
+  end
 
   def self._error(num)
     case num
@@ -37,7 +45,7 @@ module Zlib
     when 2
       raise NeedDict
     when -1
-      __inline__ "env->raise_errno();"
+      __inline__ 'env->raise_errno();'
     when -2
       raise StreamError
     when -3
@@ -49,7 +57,7 @@ module Zlib
     when -6
       raise VersionError
     else
-      raise Error, "unknown error"
+      raise Error, 'unknown error'
     end
   end
 
@@ -74,20 +82,17 @@ module Zlib
     # compressed data instead of a zlib wrapper.
     zstream = Zlib::Inflate.new(MAX_WBITS | 16)
     zstream << input
-    zstream.finish.tap do
-      zstream.close
-    end
+    zstream.finish.tap { zstream.close }
   end
 
   def self.gzip(src, level: nil, strategy: nil)
     # windowBits can also be greater than 15 for optional gzip encoding. Add
     # 16 to windowBits to write a simple gzip header and trailer around the
     # compressed data instead of a zlib wrapper.
-    zstream = Zlib::Deflate.new(level || DEFAULT_COMPRESSION, MAX_WBITS | 16, DEF_MEM_LEVEL, strategy || DEFAULT_STRATEGY)
+    zstream =
+      Zlib::Deflate.new(level || DEFAULT_COMPRESSION, MAX_WBITS | 16, DEF_MEM_LEVEL, strategy || DEFAULT_STRATEGY)
     zstream << src
-    zstream.finish.tap do
-      zstream.close
-    end
+    zstream.finish.tap { zstream.close }
   end
 
   class ZStream
@@ -112,9 +117,7 @@ module Zlib
       def deflate(input, level = -1)
         zstream = Zlib::Deflate.new(level)
         zstream << input
-        zstream.finish.tap do
-          zstream.close
-        end
+        zstream.finish.tap { zstream.close }
       end
 
       def _error(num)
@@ -134,9 +137,7 @@ module Zlib
       def inflate(input)
         zstream = Zlib::Inflate.new
         zstream << input
-        zstream.finish.tap do
-          zstream.close
-        end
+        zstream.finish.tap { zstream.close }
       end
 
       def _error(num)
@@ -146,7 +147,8 @@ module Zlib
   end
 
   class GzipFile
-    class Error < Zlib::Error; end
+    class Error < Zlib::Error
+    end
 
     attr_writer :comment, :orig_name
 

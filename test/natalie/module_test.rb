@@ -87,20 +87,25 @@ describe 'Module' do
 
   describe '#constants' do
     it 'retursn an array of constant names' do
-      M3.constants.sort.should == [:A, :M3A]
+      M3.constants.sort.should == %i[A M3A]
     end
   end
 
   describe '#private_methods' do
-    mod = Module.new do
-      private
-      def m_mod = :m
-    end
-    klass = Class.new do
-      include mod
-      private
-      def m_klass = :k
-    end
+    mod =
+      Module.new do
+        private
+
+        def m_mod = :m
+      end
+    klass =
+      Class.new do
+        include mod
+
+        private
+
+        def m_klass = :k
+      end
     klass.new.private_methods.grep(/^m_/).sort.should == %i[m_klass m_mod]
     klass.new.private_methods(true).grep(/^m_/).sort.should == %i[m_klass m_mod]
     klass.new.private_methods(1).grep(/^m_/).sort.should == %i[m_klass m_mod]
@@ -109,15 +114,20 @@ describe 'Module' do
   end
 
   describe '#protected_methods' do
-    mod = Module.new do
-      protected
-      def m_mod = :m
-    end
-    klass = Class.new do
-      include mod
-      protected
-      def m_klass = :k
-    end
+    mod =
+      Module.new do
+        protected
+
+        def m_mod = :m
+      end
+    klass =
+      Class.new do
+        include mod
+
+        protected
+
+        def m_klass = :k
+      end
     klass.new.protected_methods.grep(/^m_/).sort.should == %i[m_klass m_mod]
     klass.new.protected_methods(true).grep(/^m_/).sort.should == %i[m_klass m_mod]
     klass.new.protected_methods(1).grep(/^m_/).sort.should == %i[m_klass m_mod]
@@ -126,13 +136,12 @@ describe 'Module' do
   end
 
   describe '#public_methods' do
-    mod = Module.new do
-      def m_mod = :m
-    end
-    klass = Class.new do
-      include mod
-      def m_klass = :k
-    end
+    mod = Module.new { def m_mod = :m }
+    klass =
+      Class.new do
+        include mod
+        def m_klass = :k
+      end
     klass.new.public_methods.grep(/^m_/).sort.should == %i[m_klass m_mod]
     klass.new.public_methods(true).grep(/^m_/).sort.should == %i[m_klass m_mod]
     klass.new.public_methods(1).grep(/^m_/).sort.should == %i[m_klass m_mod]

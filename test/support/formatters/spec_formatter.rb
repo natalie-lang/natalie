@@ -1,7 +1,6 @@
 class SpecFormatter < DefaultFormatter
-
   def print_context(cxt)
-    puts cxt.map(&:description).join(" ")
+    puts cxt.map(&:description).join(' ')
   end
 
   def print_success(_cxt, test)
@@ -19,5 +18,4 @@ class SpecFormatter < DefaultFormatter
   def print_skipped(_cxt, test)
     puts "- [Skip] #{test}"
   end
-
 end

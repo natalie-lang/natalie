@@ -15,7 +15,8 @@ class ConstMissingConst
   end
 end
 
-def foo; end
+def foo
+end
 
 describe 'defined?' do
   it 'recognizes constants' do
@@ -87,13 +88,13 @@ describe 'defined?' do
 
   ruby_version_is ''...'3.4' do
     it 'recognizes expressions with undefined ivar' do
-      defined?({1=>@baz}).should == 'expression'
+      defined?({ 1 => @baz }).should == 'expression'
     end
   end
 
   ruby_version_is '3.4' do
     it 'does not recognize expressions with undefined ivar' do
-      defined?({1=>@baz}).should be_nil
+      defined?({ 1 => @baz }).should be_nil
     end
   end
 

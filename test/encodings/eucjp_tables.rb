@@ -10,25 +10,25 @@ TABLES = {
 
 TABLES.each do |table_name, url|
   lines = URI.open(url).readlines(chomp: true) # rubocop:disable Security/Open
-  index = lines.grep_v(/^#|^\s*$/).map(&:split).each_with_object({}) do |(idx, value, *), hash|
-    hash[idx.to_i] = value
-  end
+  index = lines.grep_v(/^#|^\s*$/).map(&:split).each_with_object({}) { |(idx, value, *), hash| hash[idx.to_i] = value }
 
   print "static const long #{table_name}[] = {"
 
-  0.upto(index.keys.max).each do |i|
-    value = index[i]
+  0
+    .upto(index.keys.max)
+    .each do |i|
+      value = index[i]
 
-    puts if i % 10 == 0
+      puts if i % 10 == 0
 
-    if value
-      print '0x%X' % value
-    else
-      print '-1'
+      if value
+        print '0x%X' % value
+      else
+        print '-1'
+      end
+
+      print ', ' unless i == index.keys.max
     end
-
-    print ', ' unless i == index.keys.max
-  end
 
   puts '};'
   puts "static const long #{table_name}_max = #{index.keys.max};"

@@ -20,7 +20,8 @@ module Natalie
         state = transform.temp('flip_flop')
         transform.top(state, "FlipFlopState #{state} = FlipFlopState::Off;")
 
-        switch_on_body = transform.fetch_block_of_instructions(until_instruction: ElseInstruction, expected_label: :flip_flop)
+        switch_on_body =
+          transform.fetch_block_of_instructions(until_instruction: ElseInstruction, expected_label: :flip_flop)
         switch_off_body = transform.fetch_block_of_instructions(expected_label: :flip_flop)
 
         code = []
@@ -29,25 +30,19 @@ module Natalie
           switch_off_result = transform.temp('switch_on_result')
 
           code << "if (#{state} == FlipFlopState::On) {"
-          transform.with_same_scope(switch_off_body) do |t|
-            code << t.transform("Value #{switch_off_result} =")
-          end
+          transform.with_same_scope(switch_off_body) { |t| code << t.transform("Value #{switch_off_result} =") }
           code << "  if (#{switch_off_result}.is_truthy()) {"
           code << "    #{state} = FlipFlopState::Transitioning"
           code << '  }'
           code << '} else {'
-          transform.with_same_scope(switch_on_body) do |t|
-            code << t.transform("Value #{switch_on_result} =")
-          end
+          transform.with_same_scope(switch_on_body) { |t| code << t.transform("Value #{switch_on_result} =") }
           code << "  if (#{state} == FlipFlopState::Transitioning) {"
           code << "    #{state} = #{switch_on_result}.is_truthy() ? FlipFlopState::On : FlipFlopState::Off"
           code << "  } else if (#{switch_on_result}.is_truthy()) {"
           if @exclude_end
             code << "    #{state} = FlipFlopState::On"
           else
-            transform.with_same_scope(switch_off_body) do |t|
-              code << t.transform("Value #{switch_off_result} =")
-            end
+            transform.with_same_scope(switch_off_body) { |t| code << t.transform("Value #{switch_off_result} =") }
             code << "    #{state} = #{switch_off_result}.is_truthy() ? FlipFlopState::Transitioning : FlipFlopState::On"
           end
           code << '  }'
@@ -71,9 +66,7 @@ module Natalie
         if state == :on
           vm.ip = off_start_ip
           vm.run
-          if vm.pop
-            vm.flip_flop_states[on_start_ip] = :transitioning
-          end
+          vm.flip_flop_states[on_start_ip] = :transitioning if vm.pop
         else
           vm.ip = on_start_ip
           vm.run

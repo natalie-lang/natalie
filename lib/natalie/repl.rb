@@ -34,60 +34,100 @@ end
 
 Linenoise.load_history(HISTORY_PATH)
 
-Linenoise.highlight_callback = lambda do |input|
-  tokens = Natalie::Parser.new(input, '(repl)').tokenize.value.map(&:first)
-  highlighted = ''
-  offset = 0
+Linenoise.highlight_callback =
+  lambda do |input|
+    tokens = Natalie::Parser.new(input, '(repl)').tokenize.value.map(&:first)
+    highlighted = ''
+    offset = 0
 
-  tokens.each do |token|
-    until offset >= token.location.start_offset
-      highlighted << ' '
-      offset += 1
+    tokens.each do |token|
+      until offset >= token.location.start_offset
+        highlighted << ' '
+        offset += 1
+      end
+
+      case token.type
+      when :INTEGER
+        highlighted << "\e[31m#{token.value}\e[0m"
+      when /^KEYWORD_/
+        highlighted << "\e[32m#{token.value}\e[0m"
+      when :FLOAT
+        highlighted << "\e[33m#{token.value}\e[0m"
+      when :STRING_BEGIN, :STRING_CONTENT, :STRING_END
+        highlighted << "\e[34m#{token.value}\e[0m"
+      when :IDENTIFIER
+        highlighted << "\e[36m#{token.value}\e[0m"
+      else
+        highlighted << token.value
+      end
+
+      offset = token.location.end_offset
     end
 
-    case token.type
-    when :INTEGER
-      highlighted << "\e[31m#{token.value}\e[0m"
-    when /^KEYWORD_/
-      highlighted << "\e[32m#{token.value}\e[0m"
-    when :FLOAT
-      highlighted << "\e[33m#{token.value}\e[0m"
-    when :STRING_BEGIN, :STRING_CONTENT, :STRING_END
-      highlighted << "\e[34m#{token.value}\e[0m"
-    when :IDENTIFIER
-      highlighted << "\e[36m#{token.value}\e[0m"
-    else
-      highlighted << token.value
-    end
-
-    offset = token.location.end_offset
+    highlighted
   end
 
-  highlighted
-end
-
-KEYWORDS = %w[__ENCODING__ __LINE__ __FILE__ BEGIN END alias and begin break case class def defined? do else
-              elsif end ensure false for if in module next nil not or redo rescue retry return self super
-              then true undef unless until when while yield].freeze
+KEYWORDS = %w[
+  __ENCODING__
+  __LINE__
+  __FILE__
+  BEGIN
+  END
+  alias
+  and
+  begin
+  break
+  case
+  class
+  def
+  defined?
+  do
+  else
+  elsif
+  end
+  ensure
+  false
+  for
+  if
+  in
+  module
+  next
+  nil
+  not
+  or
+  redo
+  rescue
+  retry
+  return
+  self
+  super
+  then
+  true
+  undef
+  unless
+  until
+  when
+  while
+  yield
+].freeze
 
 vars = {}
 repl_num = 0
 
-Linenoise.completion_callback = lambda do |input|
-  tokens = Natalie::Parser.new(input, '(repl)').tokenize.value.map(&:first)
-  tokens.pop if tokens.last.type == :EOF
-  token = tokens.last
-  locals = vars.keys.map(&:to_s)
-  completions = []
-  if token.type == :IDENTIFIER
-    (KEYWORDS + locals).each do |word|
-      if word.start_with?(token.value) && word != token.value
-        completions << input + word[token.value.length..]
+Linenoise.completion_callback =
+  lambda do |input|
+    tokens = Natalie::Parser.new(input, '(repl)').tokenize.value.map(&:first)
+    tokens.pop if tokens.last.type == :EOF
+    token = tokens.last
+    locals = vars.keys.map(&:to_s)
+    completions = []
+    if token.type == :IDENTIFIER
+      (KEYWORDS + locals).each do |word|
+        completions << input + word[token.value.length..] if word.start_with?(token.value) && word != token.value
       end
     end
+    completions
   end
-  completions
-end
 
 @env = nil
 @result_memory = FFI::Pointer.new_value
@@ -106,13 +146,14 @@ loop do
 
   source_path = '(repl)'
   parser = Natalie::Parser.new(line.strip, source_path, locals: vars.keys)
-  ast = begin
-    parser.ast
-  rescue Natalie::Parser::ParseError => e
-    puts e.message
-    puts e.backtrace
-    next
-  end
+  ast =
+    begin
+      parser.ast
+    rescue Natalie::Parser::ParseError => e
+      puts e.message
+      puts e.backtrace
+      next
+    end
 
   compiler = Natalie::Compiler.new(ast: ast, path: source_path, encoding: parser.encoding)
   compiler.repl = true
@@ -126,18 +167,17 @@ loop do
 
   vars = compiler.context[:vars]
 
-  library = Module.new do
-    extend FFI::Library
-    ffi_lib temp.path
-    attach_function :EVAL, [:pointer, :pointer], :int
-  end
+  library =
+    Module.new do
+      extend FFI::Library
+      ffi_lib temp.path
+      attach_function :EVAL, %i[pointer pointer], :int
+    end
 
   @env ||= FFI::Pointer.new_env
   status = library.EVAL(@env, @result_memory)
 
-  if status.zero?
-    p @result_memory.to_obj
-  end
+  p @result_memory.to_obj if status.zero?
 
   File.unlink(temp.path)
 end

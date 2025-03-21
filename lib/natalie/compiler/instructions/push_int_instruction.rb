@@ -55,10 +55,7 @@ module Natalie
             bytes.unshift(256 - bytes.size)
           end
         end
-        [
-          instruction_number,
-          *bytes
-        ].pack('C*')
+        [instruction_number, *bytes].pack('C*')
       end
 
       def self.deserialize(io, _)
@@ -74,9 +71,7 @@ module Natalie
             return new(byte - 5)
           end
           integer = 0
-          byte.times do |i|
-            integer |= io.getbyte << (8 * i)
-          end
+          byte.times { |i| integer |= io.getbyte << (8 * i) }
           new(integer)
         else
           if byte == -5

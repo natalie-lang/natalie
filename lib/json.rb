@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 module JSON
-  class JSONError < StandardError; end
-  class ParserError < JSONError; end
+  class JSONError < StandardError
+  end
+  class ParserError < JSONError
+  end
 
   def self.generate(object)
     Generator.new(object).generate
@@ -82,13 +84,20 @@ module JSON
       result = +''
       value.to_s.codepoints.each do |codepoint|
         result << case codepoint
-        when 8 then '\\b'
-        when 9 then '\\t'
-        when 10 then '\\n'
-        when 12 then '\\f'
-        when 13 then '\\r'
-        when 34 then '\\"'
-        when 92 then '\\\\'
+        when 8
+          '\\b'
+        when 9
+          '\\t'
+        when 10
+          '\\n'
+        when 12
+          '\\f'
+        when 13
+          '\\r'
+        when 34
+          '\\"'
+        when 92
+          '\\\\'
         when 0...32
           '\\u' + codepoint.to_s(16).rjust(4, '0')
         else
@@ -197,12 +206,8 @@ module JSON
               str << "\t"
             when 'u'
               escaped = +''
-              while HEX_DIGITS.include?(current_char) && escaped.size < 4
-                escaped << advance
-              end
-              if escaped.size != 4
-                raise ParserError, 'incomplete unicode escape'
-              end
+              escaped << advance while HEX_DIGITS.include?(current_char) && escaped.size < 4
+              raise ParserError, 'incomplete unicode escape' if escaped.size != 4
               str << escaped.to_i(16).chr(Encoding::UTF_8)
             else
               str << c2
@@ -248,9 +253,7 @@ module JSON
 
     def parse
       result = parse_sequence(@tokens.shift)
-      if @tokens.any?
-        raise ParserError, "unexpected token: #{@tokens.first.inspect}"
-      end
+      raise ParserError, "unexpected token: #{@tokens.first.inspect}" if @tokens.any?
       result
     end
 

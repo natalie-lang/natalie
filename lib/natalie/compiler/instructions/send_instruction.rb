@@ -9,7 +9,16 @@ module Natalie
     # push(argc)
     # send(message)
     class SendInstruction < BaseInstruction
-      def initialize(message, receiver_is_self:, with_block:, file:, line:, args_array_on_stack: false, has_keyword_hash: false, forward_args: false)
+      def initialize(
+        message,
+        receiver_is_self:,
+        with_block:,
+        file:,
+        line:,
+        args_array_on_stack: false,
+        has_keyword_hash: false,
+        forward_args: false
+      )
         # the message to send
         @message = message.to_sym
 
@@ -34,13 +43,7 @@ module Natalie
         @line = line
       end
 
-      attr_reader :message,
-                  :receiver_is_self,
-                  :with_block,
-                  :args_array_on_stack,
-                  :has_keyword_hash,
-                  :file,
-                  :line
+      attr_reader :message, :receiver_is_self, :with_block, :args_array_on_stack, :has_keyword_hash, :file, :line
 
       def with_block?
         !!@with_block
@@ -151,11 +154,7 @@ module Natalie
         [receiver_is_self, with_block, args_array_on_stack, has_keyword_hash].each_with_index do |flag, index|
           flags |= (1 << index) if flag
         end
-        [
-          instruction_number,
-          position,
-          flags,
-        ].pack("CwC")
+        [instruction_number, position, flags].pack('CwC')
       end
 
       def self.deserialize(io, rodata)
@@ -173,7 +172,7 @@ module Natalie
           args_array_on_stack: args_array_on_stack,
           has_keyword_hash: has_keyword_hash,
           file: '', # FIXME
-          line: 0 # FIXME
+          line: 0, # FIXME
         )
       end
 

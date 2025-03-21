@@ -33,10 +33,8 @@ describe 'Kernel' do
   end
 
   describe '#instance_of?' do
-    it "can be bound to BasicObject" do
-      klass = Class.new(BasicObject) do
-        define_method :instance_of?, Kernel.instance_method(:instance_of?)
-      end
+    it 'can be bound to BasicObject' do
+      klass = Class.new(BasicObject) { define_method :instance_of?, Kernel.instance_method(:instance_of?) }
       klass.new.instance_of?(klass).should == true
     end
   end
@@ -117,7 +115,10 @@ describe 'Kernel' do
     it 'only accepts true or false as exception argument' do
       -> { Float('1.0', exception: nil) }.should raise_error(ArgumentError, 'expected true or false as exception: nil')
       obj = Object.new
-      -> { Float('1.0', exception: obj) }.should raise_error(ArgumentError, "expected true or false as exception: #{obj}")
+      -> { Float('1.0', exception: obj) }.should raise_error(
+                   ArgumentError,
+                   "expected true or false as exception: #{obj}",
+                 )
     end
 
     it 'raises error with extra keywords' do

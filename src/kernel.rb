@@ -6,13 +6,9 @@ module Kernel
   end
 
   def then
-    if block_given?
-      return yield(self)
-    end
+    return yield(self) if block_given?
 
-    Enumerator.new(1) do |yielder|
-      yielder.yield(self)
-    end
+    Enumerator.new(1) { |yielder| yielder.yield(self) }
   end
   alias yield_self then
 
@@ -75,10 +71,9 @@ module Kernel
       raise TypeError, "no implicit conversion of #{uplevel.class} into Integer" unless uplevel.is_a?(Integer)
       raise ArgumentError, "negative level (#{uplevel})" if uplevel&.negative?
       backtrace = caller_locations(uplevel + 1, 1)&.first
-      location = "warning: "
+      location = 'warning: '
       location.prepend("#{backtrace.path}:#{backtrace.lineno}: ") unless backtrace.nil?
     end
-
 
     msgs = msgs[0] if msgs.size == 1 && msgs[0].is_a?(Array)
     msgs.each do |message|
@@ -100,24 +95,24 @@ module Kernel
       @unnumbered_argument_used = nil
     end
 
-    attr_reader \
-      :format_string,
-      :arguments,
-      :arguments_index
+    attr_reader :format_string, :arguments, :arguments_index
 
     def format
       tokens = Parser.new(format_string).tokens
 
-      result = tokens.map do |token|
-        case token.type
-        when :literal
-          token.datum
-        when :field
-          format_field(token)
-        else
-          raise "unknown token: #{token.inspect}"
-        end
-      end.join
+      result =
+        tokens
+          .map do |token|
+            case token.type
+            when :literal
+              token.datum
+            when :field
+              format_field(token)
+            else
+              raise "unknown token: #{token.inspect}"
+            end
+          end
+          .join
 
       begin
         result = result.encode(format_string.encoding)
@@ -126,7 +121,7 @@ module Kernel
       end
 
       if $DEBUG && arguments.any? && !@positional_argument_used
-        raise ArgumentError, "too many arguments for format string"
+        raise ArgumentError, 'too many arguments for format string'
       end
 
       result
@@ -153,93 +148,89 @@ module Kernel
         end
       end
 
-      val = if token.value_arg_name
-              get_named_argument(token.value_arg_name)
-            elsif token.value_arg_position
-              get_positional_argument(token.value_arg_position)
-            else
-              next_argument
-            end
+      val =
+        if token.value_arg_name
+          get_named_argument(token.value_arg_name)
+        elsif token.value_arg_position
+          get_positional_argument(token.value_arg_position)
+        else
+          next_argument
+        end
 
-      val = case token.datum
-            when nil
-              if token.value_arg_name
-                # %{foo} doesn't require a specifier
-                s = format_str(token, val)
-              else
-                raise ArgumentError, 'malformed format string'
-              end
-            when 'a', 'A'
-              format_float_as_hex(token, float_from_arg(val))
-            when 'b'
-              format_binary(token, val)
-            when 'B'
-              format_binary(token, val).upcase
-            when 'c'
-              format_char(token, val)
-            when 'd', 'u', 'i'
-              format_integer(token, val)
-            when 'e'
-              format_float_with_e_notation(token, float_from_arg(val), e: 'e')
-            when 'E'
-              format_float_with_e_notation(token, float_from_arg(val), e: 'E')
-            when 'f'
-              format_float(token, float_from_arg(val))
-            when 'g'
-              format_float_g(token, float_from_arg(val), e: 'e')
-            when 'G'
-              format_float_g(token, float_from_arg(val), e: 'E')
-            when 'o'
-              format_octal(token, val)
-            when 'p'
-              format_inspect(token, val)
-            when 's'
-              format_str(token, val)
-            when 'x'
-              format_hex(token, val)
-            when 'X'
-              format_hex(token, val).upcase
-            else
-              raise ArgumentError, "malformed format string - %#{token.datum}"
-            end
+      val =
+        case token.datum
+        when nil
+          if token.value_arg_name
+            # %{foo} doesn't require a specifier
+            s = format_str(token, val)
+          else
+            raise ArgumentError, 'malformed format string'
+          end
+        when 'a', 'A'
+          format_float_as_hex(token, float_from_arg(val))
+        when 'b'
+          format_binary(token, val)
+        when 'B'
+          format_binary(token, val).upcase
+        when 'c'
+          format_char(token, val)
+        when 'd', 'u', 'i'
+          format_integer(token, val)
+        when 'e'
+          format_float_with_e_notation(token, float_from_arg(val), e: 'e')
+        when 'E'
+          format_float_with_e_notation(token, float_from_arg(val), e: 'E')
+        when 'f'
+          format_float(token, float_from_arg(val))
+        when 'g'
+          format_float_g(token, float_from_arg(val), e: 'e')
+        when 'G'
+          format_float_g(token, float_from_arg(val), e: 'E')
+        when 'o'
+          format_octal(token, val)
+        when 'p'
+          format_inspect(token, val)
+        when 's'
+          format_str(token, val)
+        when 'x'
+          format_hex(token, val)
+        when 'X'
+          format_hex(token, val).upcase
+        else
+          raise ArgumentError, "malformed format string - %#{token.datum}"
+        end
 
       pad_value(token, val)
     end
 
     def float_from_arg(arg)
-      f = if arg.is_a?(Float)
-            arg
-          else
-            Float(arg)
-          end
-      unless f.is_a?(Float)
-        raise TypeError, "no implicit conversion of #{arg.class.name} into Float"
-      end
+      f =
+        if arg.is_a?(Float)
+          arg
+        else
+          Float(arg)
+        end
+      raise TypeError, "no implicit conversion of #{arg.class.name} into Float" unless f.is_a?(Float)
       f
     end
 
     def int_from_arg(arg)
-      int = if arg.is_a?(Integer)
-              arg
-            elsif arg.respond_to?(:to_int)
-              arg.to_int
-            end
-      unless int.is_a?(Integer)
-        raise TypeError, "no implicit conversion of #{arg.class.name} into Integer"
-      end
+      int =
+        if arg.is_a?(Integer)
+          arg
+        elsif arg.respond_to?(:to_int)
+          arg.to_int
+        end
+      raise TypeError, "no implicit conversion of #{arg.class.name} into Integer" unless int.is_a?(Integer)
       int
     end
 
     def pad_value(token, val)
       pad_char = token.flags.include?(:zero) ? '0' : ' '
 
-      while token.width && val.size < token.width
-        val = pad_char + val
-      end
+      val = pad_char + val while token.width && val.size < token.width
 
-      if token.width && token.width < 0
-        val << pad_char while val.size < token.width.abs
-      end
+      val << pad_char while val.size < token.width.abs if token.width && token.width < 0
 
       val
     end
@@ -251,9 +242,7 @@ module Kernel
       else
         s = s.dup
       end
-      if token.width && s.size < token.width
-        s = (' ' * (token.width - s.size)) + s
-      end
+      s = (' ' * (token.width - s.size)) + s if token.width && s.size < token.width
       s
     end
 
@@ -281,19 +270,15 @@ module Kernel
       raise unless Kernel.instance_method(:instance_of?).bind(arg).call(BasicObject)
       begin
         i = arg.to_int
-        unless i.is_a?(Integer)
-          raise TypeError, "can't convert BasicObject to Integer"
-        end
+        raise TypeError, "can't convert BasicObject to Integer" unless i.is_a?(Integer)
         i.chr(format_string.encoding)
       rescue NoMethodError
         begin
           s = arg.to_str
-          unless s.is_a?(String)
-            raise TypeError, "can't convert BasicObject to String"
-          end
+          raise TypeError, "can't convert BasicObject to String" unless s.is_a?(String)
           s[0]
         rescue NoMethodError
-          raise TypeError, "no implicit conversion of BasicObject into Integer"
+          raise TypeError, 'no implicit conversion of BasicObject into Integer'
         end
       end
     end
@@ -339,18 +324,19 @@ module Kernel
       sign = ''
 
       if i.negative?
-        if (token.flags & [:space, :plus]).any? || base == 10
+        if (token.flags & %i[space plus]).any? || base == 10
           sign = '-'
           value = i.abs.to_s(base)
         else
           dotdot_sign = '..'
-          width = if token.precision
-                    (token.precision.to_i - 2) * bits_per_char
-                  elsif token.width && token.flags.include?(:zero)
-                    (token.width.to_i - 2) * bits_per_char
-                  else
-                    0
-                  end
+          width =
+            if token.precision
+              (token.precision.to_i - 2) * bits_per_char
+            elsif token.width && token.flags.include?(:zero)
+              (token.width.to_i - 2) * bits_per_char
+            else
+              0
+            end
           value = twos_complement(arg, base, [width, 0].max)
         end
       else
@@ -375,21 +361,13 @@ module Kernel
         value = ('0' * ([needed, 0].max)) + value
       end
 
-      build_numeric_value_with_padding(
-        token: token,
-        sign: sign,
-        value: value,
-        prefix: prefix,
-        dotdot_sign: dotdot_sign
-      )
+      build_numeric_value_with_padding(token: token, sign: sign, value: value, prefix: prefix, dotdot_sign: dotdot_sign)
     end
 
     def format_inspect(token, val)
       str = val.inspect
 
-      if token.precision && token.precision < str.size
-        str = str[0...token.precision]
-      end
+      str = str[0...token.precision] if token.precision && token.precision < str.size
 
       str
     end
@@ -425,9 +403,7 @@ module Kernel
       loop do
         result = (2**bits - num.abs).to_s(base)
         bits += 1
-        if result.start_with?(first_digit)
-          break
-        end
+        break if result.start_with?(first_digit)
         raise 'something went wrong' if bits > 128 # arbitrarily chosen upper sanity limit
       end
       if result == first_digit + first_digit
@@ -438,7 +414,7 @@ module Kernel
       end
     end
 
-    __define_method__ :sprintf, [:format, :val], <<-END
+    __define_method__ :sprintf, %i[format val], <<-END
       assert(format.is_string());
       assert(val.is_float());
       char buf[100];
@@ -458,12 +434,8 @@ module Kernel
     END
 
     def next_argument
-      if arguments_index >= arguments.size
-        raise ArgumentError, 'too few arguments'
-      end
-      if @positional_argument_used
-        raise ArgumentError, "unnumbered(#{arguments_index}) mixed with numbered"
-      end
+      raise ArgumentError, 'too few arguments' if arguments_index >= arguments.size
+      raise ArgumentError, "unnumbered(#{arguments_index}) mixed with numbered" if @positional_argument_used
       arg = arguments[arguments_index]
       @unnumbered_argument_used = arguments_index
       @arguments_index += 1
@@ -479,9 +451,7 @@ module Kernel
     end
 
     def get_positional_argument(position)
-      if position > arguments.size
-        raise ArgumentError, 'too few arguments'
-      end
+      raise ArgumentError, 'too few arguments' if position > arguments.size
       if @unnumbered_argument_used
         raise ArgumentError, "numbered(#{position}) after unnumbered(#{@unnumbered_argument_used})"
       end
@@ -603,15 +573,20 @@ module Kernel
         },
       }.freeze
 
-      COMPLETE_STATES = %i[
-        field_end
-        literal
-        literal_percent
-        named_argument_curly_end
-      ].freeze
+      COMPLETE_STATES = %i[field_end literal literal_percent named_argument_curly_end].freeze
 
       class Token
-        def initialize(type:, datum:, flags: [], width: nil, width_arg_position: nil, precision: nil, precision_arg_position: nil, value_arg_position: nil, value_arg_name: nil)
+        def initialize(
+          type:,
+          datum:,
+          flags: [],
+          width: nil,
+          width_arg_position: nil,
+          precision: nil,
+          precision_arg_position: nil,
+          value_arg_position: nil,
+          value_arg_name: nil
+        )
           @type = type
           @datum = datum
           @flags = flags
@@ -623,18 +598,19 @@ module Kernel
           @value_arg_name = value_arg_name
         end
 
-        attr_accessor :type, :datum, :flags,
-          :width, :width_arg_position,
-          :precision, :precision_arg_position,
-          :value_arg_position, :value_arg_name
+        attr_accessor :type,
+                      :datum,
+                      :flags,
+                      :width,
+                      :width_arg_position,
+                      :precision,
+                      :precision_arg_position,
+                      :value_arg_position,
+                      :value_arg_name
 
         def c_printf_format
-          flag_chars = {
-            alternate_format: '#',
-            space: ' ',
-            plus: '+',
-            zero: '0',
-          }.select { |k| flags.include?(k) }.values.join
+          flag_chars =
+            { alternate_format: '#', space: ' ', plus: '+', zero: '0' }.select { |k| flags.include?(k) }.values.join
           prec = ".#{precision}" if precision
           "%#{flag_chars}#{width}#{prec}#{datum}"
         end
@@ -647,45 +623,45 @@ module Kernel
 
         while index < chars.size
           char = current_char
-          transition = case char
-                      when '%'
-                        :on_percent
-                      when "\n"
-                        :on_newline
-                      when "\0"
-                        :on_null_byte
-                      when '.'
-                        :on_period
-                      when '#'
-                        :on_pound
-                      when '+'
-                        :on_plus
-                      when '-'
-                        :on_minus
-                      when '*'
-                        :on_asterisk
-                      when '0'
-                        :on_zero
-                      when ' '
-                        :on_space
-                      when '$'
-                        :on_dollar
-                      when '<'
-                        :on_less_than
-                      when '>'
-                        :on_greater_than
-                      when '{'
-                        :on_left_curly_brace
-                      when '}'
-                        :on_right_curly_brace
-                      when '1'..'9'
-                        :on_number
-                      when 'a'..'z', 'A'..'Z'
-                        :on_alpha
-                      end
+          transition =
+            case char
+            when '%'
+              :on_percent
+            when "\n"
+              :on_newline
+            when "\0"
+              :on_null_byte
+            when '.'
+              :on_period
+            when '#'
+              :on_pound
+            when '+'
+              :on_plus
+            when '-'
+              :on_minus
+            when '*'
+              :on_asterisk
+            when '0'
+              :on_zero
+            when ' '
+              :on_space
+            when '$'
+              :on_dollar
+            when '<'
+              :on_less_than
+            when '>'
+              :on_greater_than
+            when '{'
+              :on_left_curly_brace
+            when '}'
+              :on_right_curly_brace
+            when '1'..'9'
+              :on_number
+            when 'a'..'z', 'A'..'Z'
+              :on_alpha
+            end
 
-          new_state = STATES_AND_TRANSITIONS.dig(state, transition) ||
-            STATES_AND_TRANSITIONS.dig(state, :default)
+          new_state = STATES_AND_TRANSITIONS.dig(state, transition) || STATES_AND_TRANSITIONS.dig(state, :default)
 
           if !new_state && (return_state = STATES_AND_TRANSITIONS.dig(state, :return))
             # :return is a special transition that consumes no characters
@@ -693,11 +669,9 @@ module Kernel
           end
 
           #puts "#{state.inspect}, given #{char.inspect}, " \
-              #"transition #{transition.inspect} to #{new_state.inspect}"
+          #"transition #{transition.inspect} to #{new_state.inspect}"
 
-          unless new_state
-            raise ArgumentError, "no transition from #{state.inspect} with char #{char.inspect}"
-          end
+          raise ArgumentError, "no transition from #{state.inspect} with char #{char.inspect}" unless new_state
 
           state = new_state
           next_char unless return_state
@@ -712,17 +686,17 @@ module Kernel
             :noop
           when :flag
             flags << case char
-                    when '#'
-                      :alternate_format
-                    when ' '
-                      :space
-                    when '+'
-                      :plus
-                    when '0'
-                      :zero
-                    else
-                      raise ArgumentError, "unknown flag: #{char.inspect}"
-                    end
+            when '#'
+              :alternate_format
+            when ' '
+              :space
+            when '+'
+              :plus
+            when '0'
+              :zero
+            else
+              raise ArgumentError, "unknown flag: #{char.inspect}"
+            end
           when :width_or_positional_arg
             @width_or_positional_arg = (@width_or_positional_arg || 0) * 10 + char.to_i
           when :width_minus
@@ -760,9 +734,7 @@ module Kernel
           when :positional_argument_end
             new_arg_position = @width_or_positional_arg
             @width_or_positional_arg = nil
-            if @value_arg_position
-              raise ArgumentError, "value given twice - #{new_arg_position}$"
-            end
+            raise ArgumentError, "value given twice - #{new_arg_position}$" if @value_arg_position
             @value_arg_position = new_arg_position
           else
             raise ArgumentError, "unknown state: #{state.inspect}"
@@ -776,24 +748,21 @@ module Kernel
           state = :field_end
         end
 
-        unless COMPLETE_STATES.include?(state)
-          raise ArgumentError, "malformed format string #{state}"
-        end
+        raise ArgumentError, "malformed format string #{state}" unless COMPLETE_STATES.include?(state)
 
         tokens
       end
 
       private
 
-      attr_reader \
-        :flags,
-        :precision_arg_position,
-        :precision,
-        :value_arg_name,
-        :value_arg_position,
-        :width_arg_position,
-        :width,
-        :width_or_positional_arg
+      attr_reader :flags,
+                  :precision_arg_position,
+                  :precision,
+                  :value_arg_name,
+                  :value_arg_position,
+                  :width_arg_position,
+                  :width,
+                  :width_or_positional_arg
 
       def reset_token_args
         @flags = []
@@ -807,11 +776,12 @@ module Kernel
 
       def build_token(datum)
         if width_or_positional_arg
-          width = if flags.include?(:width_negative)
-                    -width_or_positional_arg
-                  else
-                    width_or_positional_arg
-                  end
+          width =
+            if flags.include?(:width_negative)
+              -width_or_positional_arg
+            else
+              width_or_positional_arg
+            end
         end
 
         Token.new(
@@ -878,7 +848,7 @@ module Kernel
   def system(...)
     Process.wait(spawn(...))
     $?.exitstatus.zero?
-  rescue
+  rescue StandardError
     nil
   end
   module_function :system

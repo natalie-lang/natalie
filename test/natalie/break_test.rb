@@ -125,11 +125,11 @@ describe 'break' do
     r =
       loop do
         begin
-
         rescue StandardError
         else
           break :ok
         end
+
         break :bad
       end
     r.should == :ok
@@ -139,11 +139,11 @@ describe 'break' do
       loop do
         break if x > 1
         begin
-
         rescue StandardError
         else
           yield x
         end
+
         x += 1
       end
       x
@@ -187,11 +187,12 @@ describe 'break' do
 
   it 'can break from a lambda' do
     lr = nil
-    r = [1].each do
-      l = -> { break 2 }
-      lr = l.()
-      break 3
-    end
+    r =
+      [1].each do
+        l = -> { break 2 }
+        lr = l.()
+        break 3
+      end
     r.should == 3
     lr.should == 2
   end

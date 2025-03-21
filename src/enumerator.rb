@@ -39,9 +39,7 @@ class Enumerator
   end
 
   def self.produce(*values, &block)
-    if values.size > 1
-      raise ArgumentError, "wrong number of arguments (given #{values.size}, expected 0..1)"
-    end
+    raise ArgumentError, "wrong number of arguments (given #{values.size}, expected 0..1)" if values.size > 1
 
     new do |yielder|
       value = values.empty? ? block.call(nil) : values.first
@@ -176,9 +174,7 @@ class Enumerator
 
   def with_object(memo)
     return to_enum(:with_object, memo) { respond_to?(:size) ? size : @size } unless block_given?
-    each do |item|
-      yield item, memo
-    end
+    each { |item| yield item, memo }
     memo
   end
 
@@ -219,9 +215,7 @@ class Enumerator
     end
 
     def compact
-      Lazy.new(self, nil) do |yielder, element|
-        yielder.yield(element) unless element.nil?
-      end
+      Lazy.new(self, nil) { |yielder, element| yielder.yield(element) unless element.nil? }
     end
 
     def drop(n)
@@ -459,7 +453,7 @@ class Enumerator
           raise TypeError, "wrong argument type #{arg.class.name} (must respond to :each)" unless arg.respond_to?(:each)
         end
 
-        enum_block = ->(yielder) { super(*args) { |item| yielder << item } }
+        enum_block = ->(yielder) { super(*args) do |item| yielder << item end }
         lazy = Lazy.new(self, size) {}
         lazy.instance_variable_set(:@enum_block, enum_block)
         lazy

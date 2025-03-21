@@ -2,8 +2,10 @@ require_relative '../spec_helper'
 
 describe 'instance_eval' do
   class Foo
-    def foo; end
-    def self.bar; end
+    def foo
+    end
+    def self.bar
+    end
   end
 
   before :each do

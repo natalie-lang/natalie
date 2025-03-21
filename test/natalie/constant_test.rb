@@ -99,7 +99,10 @@ describe 'constants' do
   end
 
   it 'raises NameError for missing const' do
-    -> { UnknownConst; nil }.should raise_error(NameError, /uninitialized constant UnknownConst/)
+    -> do
+      UnknownConst
+      nil
+    end.should raise_error(NameError, /uninitialized constant UnknownConst/)
   end
 
   describe 'using &&= assignment (Prism::ConstantAndWriteNode)' do
@@ -156,17 +159,11 @@ describe 'constants' do
       module ModuleA
         (QUUX ||= nil).should be_nil
 
-        suppress_warning do
-          (QUUX ||= false).should be_false
-        end
+        suppress_warning { (QUUX ||= false).should be_false }
 
-        suppress_warning do
-          (QUUX ||= 1).should == 1
-        end
+        suppress_warning { (QUUX ||= 1).should == 1 }
 
-        suppress_warning do
-          (QUUX ||= 2).should == 1
-        end
+        suppress_warning { (QUUX ||= 2).should == 1 }
 
         remove_const(:QUUX)
       end
@@ -181,9 +178,7 @@ describe 'constants' do
       suppress_warning { ModuleA::QUUX += 1 }
       ModuleA::QUUX.should == 2
 
-      suppress_warning do
-        (ModuleA::QUUX += 1).should == 3
-      end
+      suppress_warning { (ModuleA::QUUX += 1).should == 3 }
 
       ModuleA.send(:remove_const, :QUUX)
     end

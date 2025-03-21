@@ -11,10 +11,7 @@ module Natalie
         @has_keyword_hash = has_keyword_hash
       end
 
-      attr_reader :message,
-                  :receiver_is_self,
-                  :args_array_on_stack,
-                  :has_keyword_hash
+      attr_reader :message, :receiver_is_self, :args_array_on_stack, :has_keyword_hash
 
       def to_s
         "method_defined #{@message.inspect}"
@@ -34,7 +31,7 @@ module Natalie
         # we have to include all methods in this case
         include_all = receiver == 'self'
         transform.exec(
-          "if (!#{receiver}.respond_to(env, #{transform.intern(@message)}, #{include_all})) throw new ExceptionObject"
+          "if (!#{receiver}.respond_to(env, #{transform.intern(@message)}, #{include_all})) throw new ExceptionObject",
         )
         transform.push_nil
       end

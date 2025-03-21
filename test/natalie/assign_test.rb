@@ -219,7 +219,9 @@ describe 'assignment' do
     d ||= 5
     d.should == true
 
-    def e; :e; end
+    def e
+      :e
+    end
 
     h = {}
     (h[e] ||= 5).should == 5
@@ -230,12 +232,11 @@ describe 'assignment' do
     h[e].should == 6
     h[e] -= 1
     h[e].should == 5
-    h[:f] ||=
-      begin
-        1
-        2
-        3
-      end
+    h[:f] ||= begin
+      1
+      2
+      3
+    end
     h[:f].should == 3
 
     index = h[:e] ||= h.size
@@ -290,9 +291,9 @@ describe 'assignment' do
     text = nil
     case 1
     when 1
-      text ||= "test"
+      text ||= 'test'
     end
-    text.should == "test"
+    text.should == 'test'
   end
 
   it 'can optionally call an attr writer with ||=' do
@@ -468,7 +469,13 @@ describe 'assignment' do
     ran = false
 
     # x gets captured
-    x = foo(-> { ran = true; x })
+    x =
+      foo(
+        -> do
+          ran = true
+          x
+        end,
+      )
 
     x.should be_nil
     ran.should be_true
@@ -484,7 +491,7 @@ describe 'assignment' do
     end
     (o.foo = 1).should == 1
     (o[:foo] = 2).should == 2
-    ary = ['a', 'b']
+    ary = %w[a b]
     (o[*ary] = 3).should == 3
   end
 end

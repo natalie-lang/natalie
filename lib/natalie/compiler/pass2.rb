@@ -10,10 +10,7 @@ module Natalie
       def initialize(instructions, compiler_context:)
         super()
         @compiler_context = compiler_context
-        env = {
-          vars: compiler_context[:vars],
-          outer: nil,
-        }
+        env = { vars: compiler_context[:vars], outer: nil }
         @instructions = InstructionManager.new(instructions, env: env)
         EnvBuilder.new(@instructions, env: env).process
       end
@@ -28,17 +25,11 @@ module Natalie
       private
 
       def transform_variable_declare(instruction)
-        instruction.meta = find_or_create_var(
-          instruction.env,
-          instruction.name,
-        )
+        instruction.meta = find_or_create_var(instruction.env, instruction.name)
       end
 
       def transform_variable_get(instruction)
-        instruction.meta = find_or_create_var(
-          instruction.env,
-          instruction.name,
-        )
+        instruction.meta = find_or_create_var(instruction.env, instruction.name)
       end
 
       def transform_variable_set(instruction)
@@ -47,15 +38,16 @@ module Natalie
         #     foo = foo
         #
         previous_instruction = @instructions.peek_back(2)
-        setting_to_itself = previous_instruction.is_a?(VariableGetInstruction) &&
-                            previous_instruction.name == instruction.name
+        setting_to_itself =
+          previous_instruction.is_a?(VariableGetInstruction) && previous_instruction.name == instruction.name
 
-        instruction.meta = find_or_create_var(
-          instruction.env,
-          instruction.name,
-          local_only: instruction.local_only,
-          setting_to_itself: setting_to_itself,
-        )
+        instruction.meta =
+          find_or_create_var(
+            instruction.env,
+            instruction.name,
+            local_only: instruction.local_only,
+            setting_to_itself: setting_to_itself,
+          )
       end
 
       def find_or_create_var(env, name, local_only: false, setting_to_itself: false)
@@ -96,12 +88,7 @@ module Natalie
           end
         end
 
-        var = {
-          name: "#{name}_var",
-          captured: false,
-          declared: false,
-          index: owning_env[:vars].size,
-        }
+        var = { name: "#{name}_var", captured: false, declared: false, index: owning_env[:vars].size }
 
         owning_env[:vars][name] = var
 
@@ -128,9 +115,7 @@ module Natalie
           env = nil
           instructions.each_with_index do |instruction, index|
             desc = "#{index} #{instruction}"
-            if instruction.is_a?(EndInstruction)
-              puts desc
-            end
+            puts desc if instruction.is_a?(EndInstruction)
             unless env.equal?(instruction.env)
               env = instruction.env
               e = env
@@ -140,13 +125,11 @@ module Natalie
               end
               puts
               puts '== SCOPE ' \
-                   "vars=[#{vars.join(', ')}] " \
-                   "#{env[:block] ? 'is_block ' : ''}" \
-                   '=='
+                     "vars=[#{vars.join(', ')}] " \
+                     "#{env[:block] ? 'is_block ' : ''}" \
+                     '=='
             end
-            unless instruction.is_a?(EndInstruction)
-              puts desc
-            end
+            puts desc unless instruction.is_a?(EndInstruction)
           end
         end
       end

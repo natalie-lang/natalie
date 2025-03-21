@@ -11,19 +11,13 @@ describe 'Process' do
     end
 
     it 'needs an integer' do
-      -> {
-        Process.maxgroups = 'abc'
-      }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { Process.maxgroups = 'abc' }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
     end
 
     it 'needs a positive value' do
-      -> {
-        Process.maxgroups = -1
-      }.should raise_error(ArgumentError, 'maxgroups -1 should be positive')
+      -> { Process.maxgroups = -1 }.should raise_error(ArgumentError, 'maxgroups -1 should be positive')
 
-      -> {
-        Process.maxgroups = 0
-      }.should raise_error(ArgumentError, 'maxgroups 0 should be positive')
+      -> { Process.maxgroups = 0 }.should raise_error(ArgumentError, 'maxgroups 0 should be positive')
     end
 
     it 'converts values using to_int' do
@@ -36,9 +30,7 @@ describe 'Process' do
     it 'uses the return value of to_int in the error message' do
       maxgroups = mock('to_int')
       maxgroups.should_receive(:to_int).and_return(-1)
-      -> {
-        Process.maxgroups = maxgroups
-      }.should raise_error(ArgumentError, 'maxgroups -1 should be positive')
+      -> { Process.maxgroups = maxgroups }.should raise_error(ArgumentError, 'maxgroups -1 should be positive')
     end
 
     guard -> { File.readable?('/proc/sys/kernel/ngroups_max') } do

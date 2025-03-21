@@ -20,7 +20,10 @@ module Natalie
 
       def generate(transform)
         if @for_block
-          transform.exec_and_push(:args, "args.to_array_for_block(env, #{@min_count}, #{@max_count || -1}, #{@spread ? 'true' : 'false'})")
+          transform.exec_and_push(
+            :args,
+            "args.to_array_for_block(env, #{@min_count}, #{@max_count || -1}, #{@spread ? 'true' : 'false'})",
+          )
         elsif @to_array
           transform.exec_and_push(:args, 'args.to_array()')
         else
@@ -47,10 +50,7 @@ module Natalie
         [@for_block, @spread, @to_array, !@min_count.nil?, !@max_count.nil?].each_with_index do |flag, index|
           flags |= (1 << index) if flag
         end
-        bytecode = [
-                     instruction_number,
-                     flags,
-                   ].pack('CC')
+        bytecode = [instruction_number, flags].pack('CC')
         bytecode << [@min_count].pack('w') unless @min_count.nil?
         bytecode << [@max_count].pack('w') unless @max_count.nil?
         bytecode

@@ -1,12 +1,7 @@
 module Natalie
   class Compiler
     module Flags
-      RELEASE_FLAGS = %w[
-        -pthread
-        -O3
-        -Wno-unused-value
-        -Wno-trigraphs
-      ].freeze
+      RELEASE_FLAGS = %w[-pthread -O3 -Wno-unused-value -Wno-trigraphs].freeze
 
       DEBUG_FLAGS = %w[
         -pthread
@@ -28,27 +23,13 @@ module Natalie
 
       SANITIZE_FLAG = "-fsanitize=#{ENV.fetch('NAT_SANITIZE_FLAG_VALUE', 'address')}".freeze
 
-      SANITIZED_FLAGS = DEBUG_FLAGS + [
-        SANITIZE_FLAG,
-        '-fno-omit-frame-pointer',
-      ] - %w[
-        -DNAT_GC_GUARD
-      ]
+      SANITIZED_FLAGS = DEBUG_FLAGS + [SANITIZE_FLAG, '-fno-omit-frame-pointer'] - %w[-DNAT_GC_GUARD]
 
-      COVERAGE_FLAGS = DEBUG_FLAGS + %w[
-        -fprofile-arcs
-        -ftest-coverage
-      ].freeze
+      COVERAGE_FLAGS = DEBUG_FLAGS + %w[-fprofile-arcs -ftest-coverage].freeze
 
-      LIBNAT_AND_REPL_COMPILE_FLAGS = %w[
-        -fPIC
-      ].freeze
+      LIBNAT_AND_REPL_COMPILE_FLAGS = %w[-fPIC].freeze
 
-      LIBNAT_AND_REPL_LINK_FLAGS = %w[
-        -shared
-        -rdynamic
-        -Wl,-undefined,dynamic_lookup
-      ].freeze
+      LIBNAT_AND_REPL_LINK_FLAGS = %w[-shared -rdynamic -Wl,-undefined,dynamic_lookup].freeze
     end
   end
 end

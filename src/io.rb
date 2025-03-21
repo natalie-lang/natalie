@@ -20,9 +20,7 @@ class IO
     end
 
     def foreach(path, *args, **opts)
-      if path.to_s.start_with?('|')
-        raise NotImplementedError, 'no support for pipe in IO.foreach'
-      end
+      raise NotImplementedError, 'no support for pipe in IO.foreach' if path.to_s.start_with?('|')
       return enum_for(:foreach, path, *args, **opts) unless block_given?
 
       mode = opts.delete(:mode) || 'r'
@@ -37,14 +35,10 @@ class IO
     end
 
     def readlines(path, *args, **opts, &block)
-      if path.to_s.start_with?('|')
-        raise NotImplementedError, 'no support for pipe in IO.readlines'
-      end
+      raise NotImplementedError, 'no support for pipe in IO.readlines' if path.to_s.start_with?('|')
       mode = opts.delete(:mode) || 'r'
       chomp = opts.delete(:chomp)
-      File.open(path, mode, **opts) do |io|
-        io.each_line(*args, **opts.merge(chomp: chomp), &block).to_a
-      end
+      File.open(path, mode, **opts) { |io| io.each_line(*args, **opts.merge(chomp: chomp), &block).to_a }
     end
   end
 
@@ -102,18 +96,20 @@ class IO
     end
 
     buf = String.new('', encoding: Encoding.default_external)
-    get_bytes = lambda do |size|
-      buf << read(1024) while !eof? && buf.bytesize < size
-      return nil if eof? && buf.empty?
-      buf.byteslice(0, size).force_encoding(Encoding.default_external)
-    end
-    advance = lambda do |size|
-      buf = buf.byteslice(size..)
-      if skip_leading_newlines
-        num_leading_newlines = buf.match(/^\n+/).to_s.size
-        buf = buf.byteslice(num_leading_newlines..)
+    get_bytes =
+      lambda do |size|
+        buf << read(1024) while !eof? && buf.bytesize < size
+        return nil if eof? && buf.empty?
+        buf.byteslice(0, size).force_encoding(Encoding.default_external)
       end
-    end
+    advance =
+      lambda do |size|
+        buf = buf.byteslice(size..)
+        if skip_leading_newlines
+          num_leading_newlines = buf.match(/^\n+/).to_s.size
+          buf = buf.byteslice(num_leading_newlines..)
+        end
+      end
 
     $. = 0
     loop do
@@ -142,8 +138,10 @@ class IO
 
   # The following are used in IO.select
 
-  module WaitReadable; end
-  module WaitWritable; end
+  module WaitReadable
+  end
+  module WaitWritable
+  end
 
   class EAGAINWaitReadable < Errno::EAGAIN
     include IO::WaitReadable

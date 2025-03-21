@@ -102,7 +102,7 @@ module Natalie
       WhileBodyInstruction,
       WhileInstruction,
       WithSingletonInstruction,
-      YieldInstruction
+      YieldInstruction,
     ].freeze
   end
 end

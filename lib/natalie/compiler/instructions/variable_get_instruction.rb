@@ -32,17 +32,18 @@ module Natalie
         if !var.fetch(:declared) && @default_to_nil
           @meta[:declared] = true
           if @meta.fetch(:captured)
-             "#{env}->var_set(#{@name.to_s.inspect}, #{index}, Value::nil())"
+            "#{env}->var_set(#{@name.to_s.inspect}, #{index}, Value::nil())"
           else
             transform.exec("Value #{@meta.fetch(:name)} = Value::nil()")
           end
         end
 
-        code = if @meta.fetch(:captured)
-                 "#{env}->var_get(#{@name.to_s.inspect}, #{index})"
-               else
-                 @meta.fetch(:name)
-               end
+        code =
+          if @meta.fetch(:captured)
+            "#{env}->var_get(#{@name.to_s.inspect}, #{index})"
+          else
+            @meta.fetch(:name)
+          end
 
         if var.fetch(:declared)
           transform.push(code)
@@ -63,11 +64,7 @@ module Natalie
 
       def serialize(rodata)
         position = rodata.add(@name.to_s)
-        [
-          instruction_number,
-          position,
-          @default_to_nil ? 1 : 0,
-        ].pack('CwC')
+        [instruction_number, position, @default_to_nil ? 1 : 0].pack('CwC')
       end
 
       def self.deserialize(io, rodata)

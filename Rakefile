@@ -82,8 +82,8 @@ end
 desc 'Run the most-recently-modified test when any source files change (requires entr binary)'
 task :watch do
   sh 'find . \( -path build -o -path ext -o -path master \) -prune ' \
-     "-o -name '*.cpp' -o -name '*.c' -o -name '*.hpp' -o -name '*.rb' | " \
-     "entr -c -s 'rake test_last_modified'"
+       "-o -name '*.cpp' -o -name '*.c' -o -name '*.hpp' -o -name '*.rb' | " \
+       "entr -c -s 'rake test_last_modified'"
 end
 
 # The self-hosted compiler is a bit slow yet, so let's run a core subset
@@ -91,19 +91,14 @@ end
 desc 'Test that the self-hosted compiler builds and runs a core subset of the tests'
 task test_self_hosted: %i[bootstrap build_test_support] do
   sh 'bin/nat --version'
-  env = {
-    'NAT_BINARY' => 'bin/nat',
-    'GLOB'       => 'spec/language/*_spec.rb',
-  }
+  env = { 'NAT_BINARY' => 'bin/nat', 'GLOB' => 'spec/language/*_spec.rb' }
   sh env, 'bundle exec ruby test/all.rb'
 end
 
 desc 'Test that the self-hosted compiler builds and runs the full test suite'
 task test_self_hosted_full: %i[bootstrap build_test_support] do
   sh 'bin/nat --version'
-  env = {
-    'NAT_BINARY' => 'bin/nat',
-  }
+  env = { 'NAT_BINARY' => 'bin/nat' }
   sh env, 'bundle exec ruby test/all.rb'
 end
 
@@ -153,9 +148,7 @@ end
 task :copy_generated_files_to_output do
   version = RUBY_VERSION.sub(/\.\d+$/, '')
   Dir['build/generated/*'].each do |entry|
-    if File.directory?(entry)
-      mkdir_p entry.sub('build/generated', "output/ruby#{version}")
-    end
+    mkdir_p entry.sub('build/generated', "output/ruby#{version}") if File.directory?(entry)
   end
   Rake::FileList['build/generated/**/*.cpp'].each do |path|
     cp path, path.sub('build/generated', "output/ruby#{version}")
@@ -187,10 +180,10 @@ task tags: :ctags
 desc 'Format C++ code with clang-format'
 task :format do
   sh 'find include src lib ' \
-     "-type f -name '*.?pp' " \
-     '! -path src/encoding/casemap.cpp ' \
-     '! -path src/encoding/casefold.cpp ' \
-     '-exec clang-format -i --style=file {} +'
+       "-type f -name '*.?pp' " \
+       '! -path src/encoding/casemap.cpp ' \
+       '! -path src/encoding/casefold.cpp ' \
+       '-exec clang-format -i --style=file {} +'
 end
 
 desc 'Show TODO and FIXME comments in the project'
@@ -210,11 +203,7 @@ def docker_run_flags
   ci = '-i -t' if !ENV['CI'] && $stdout.isatty
   ci = "-e CI=#{ENV['CI']}" if ENV['CI']
   glob = "-e GLOB='#{ENV['GLOB']}'" if ENV['GLOB']
-  [
-    '-e DOCKER=true',
-    ci,
-    glob,
-  ].compact.join(' ')
+  ['-e DOCKER=true', ci, glob].compact.join(' ')
 end
 
 DEFAULT_HOST_RUBY_VERSION = 'ruby3.4'.freeze
@@ -233,18 +222,18 @@ task :docker_build_gcc do
   suffix = ruby_version_string
   suffix += '_sanitized' if ENV['NAT_BUILD_MODE'] == 'sanitized'
   sh "docker build -t natalie_gcc_#{suffix} " \
-     "#{default_docker_build_args.join(' ')} " \
-     '.'
+       "#{default_docker_build_args.join(' ')} " \
+       '.'
 end
 
 task :docker_build_clang do
   suffix = ruby_version_string
   suffix += '_sanitized' if ENV['NAT_BUILD_MODE'] == 'sanitized'
   sh "docker build -t natalie_clang_#{suffix} " \
-     "#{default_docker_build_args.join(' ')} " \
-     '--build-arg CC=clang ' \
-     '--build-arg CXX=clang++ ' \
-     '.'
+       "#{default_docker_build_args.join(' ')} " \
+       '--build-arg CC=clang ' \
+       '--build-arg CXX=clang++ ' \
+       '.'
 end
 
 task docker_bash: :docker_build_clang do
@@ -257,20 +246,20 @@ end
 
 task docker_bash_lldb: :docker_build_clang do
   sh 'docker run -it --rm ' \
-     '--entrypoint bash ' \
-     '--cap-add=SYS_PTRACE ' \
-     '--security-opt seccomp=unconfined ' \
-     "natalie_clang_#{ruby_version_string}"
+       '--entrypoint bash ' \
+       '--cap-add=SYS_PTRACE ' \
+       '--security-opt seccomp=unconfined ' \
+       "natalie_clang_#{ruby_version_string}"
 end
 
 task docker_bash_gdb: :docker_build_gcc do
   sh 'docker run -it --rm ' \
-     '--entrypoint bash ' \
-     '--cap-add=SYS_PTRACE ' \
-     '--security-opt seccomp=unconfined ' \
-     '-m 2g ' \
-     '--cpus=2 ' \
-     "natalie_gcc_#{ruby_version_string}"
+       '--entrypoint bash ' \
+       '--cap-add=SYS_PTRACE ' \
+       '--security-opt seccomp=unconfined ' \
+       '-m 2g ' \
+       '--cpus=2 ' \
+       "natalie_gcc_#{ruby_version_string}"
 end
 
 task docker_test: %i[docker_test_gcc docker_test_clang docker_test_self_hosted docker_test_asan]
@@ -284,16 +273,14 @@ task :docker_test_output do
     Rake::Task[:docker_build_clang].invoke
     Rake::Task[:docker_build_clang].reenable # allow to run again
     sh "docker run #{docker_run_flags} --rm -v $(pwd)/output:/natalie/output " \
-       "--entrypoint rake natalie_clang_#{version} " \
-       'output_language_specs ' \
-       'copy_generated_files_to_output'
+         "--entrypoint rake natalie_clang_#{version} " \
+         'output_language_specs ' \
+         'copy_generated_files_to_output'
   end
 
   SUPPORTED_HOST_RUBY_VERSIONS.each_cons(2) do |v1, v2|
     success = sh("diff -r output/#{v1} output/#{v2}")
-    unless success
-      raise "Output for #{v1} and #{v2} differs"
-    end
+    raise "Output for #{v1} and #{v2} differs" unless success
   end
 end
 
@@ -321,22 +308,22 @@ end
 
 task docker_test_all_ruby_spec_nightly: :docker_build_clang do
   sh "docker run #{docker_run_flags} " \
-     "-e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect} " \
-     '--rm ' \
-     '--entrypoint rake ' \
-     "natalie_clang_#{ruby_version_string} test_all_ruby_spec_nightly"
+       "-e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect} " \
+       '--rm ' \
+       '--entrypoint rake ' \
+       "natalie_clang_#{ruby_version_string} test_all_ruby_spec_nightly"
 end
 
 task :docker_test_perf do
   ENV['NEED_VALGRIND'] = 'true'
   Rake::Task['docker_build_clang'].invoke
   sh "docker run #{docker_run_flags} " \
-     "-e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect} " \
-     "-e GIT_SHA=#{(ENV['LAST_COMMIT_SHA'] || '').inspect} " \
-     "-e GIT_BRANCH=#{(ENV['BRANCH'] || '').inspect} " \
-     '--rm ' \
-     '--entrypoint rake ' \
-     "natalie_clang_#{ruby_version_string} test_perf"
+       "-e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect} " \
+       "-e GIT_SHA=#{(ENV['LAST_COMMIT_SHA'] || '').inspect} " \
+       "-e GIT_BRANCH=#{(ENV['BRANCH'] || '').inspect} " \
+       '--rm ' \
+       '--entrypoint rake ' \
+       "natalie_clang_#{ruby_version_string} test_perf"
 end
 
 task docker_tidy: :docker_build_clang do
@@ -427,39 +414,33 @@ task(:set_build_release) do
 end
 
 task libnatalie: [
-  :update_submodules,
-  :bundle_install,
-  :build_dir,
-  'build/zlib/libz.a',
-  'build/onigmo/lib/libonigmo.a',
-  'build/libprism.a',
-  "build/libprism.#{SO_EXT}",
-  'build/generated/numbers.rb',
-  :primary_objects,
-  :ruby_objects,
-  :special_objects,
-  'build/libnatalie.a',
-  "build/libnatalie_base.#{DL_EXT}",
-  :write_compile_database,
-]
+       :update_submodules,
+       :bundle_install,
+       :build_dir,
+       'build/zlib/libz.a',
+       'build/onigmo/lib/libonigmo.a',
+       'build/libprism.a',
+       "build/libprism.#{SO_EXT}",
+       'build/generated/numbers.rb',
+       :primary_objects,
+       :ruby_objects,
+       :special_objects,
+       'build/libnatalie.a',
+       "build/libnatalie_base.#{DL_EXT}",
+       :write_compile_database,
+     ]
 
 task :build_dir do
   mkdir_p 'build/generated' unless File.exist?('build/generated')
 end
 
-task build_test_support: [
-  "build/libnat.#{SO_EXT}",
-  "build/test/support/ffi_stubs.#{SO_EXT}",
-]
+task build_test_support: ["build/libnat.#{SO_EXT}", "build/test/support/ffi_stubs.#{SO_EXT}"]
 
 multitask primary_objects: PRIMARY_OBJECT_FILES
 multitask ruby_objects: RUBY_OBJECT_FILES
 multitask special_objects: SPECIAL_OBJECT_FILES
 
-file 'build/libnatalie.a' => %w[
-  build/libnatalie_base.a
-  build/onigmo/lib/libonigmo.a
-] do |t|
+file 'build/libnatalie.a' => %w[build/libnatalie_base.a build/onigmo/lib/libonigmo.a] do |t|
   apple_libtool = system('libtool -V 2>&1 | grep Apple 2>&1 >/dev/null')
   if apple_libtool
     sh "libtool -static -o #{t.name} #{t.sources.join(' ')}"
@@ -549,15 +530,13 @@ file 'bin/nat' => OBJECT_FILES + ['bin/natalie'] do
   sh 'bin/natalie -c bin/nat bin/natalie'
 end
 
-file "build/libnat.#{SO_EXT}" => SOURCES + ['lib/libnat_api.rb', 'lib/libnat_api.cpp'] do |t|
+file "build/libnat.#{SO_EXT}" => SOURCES + %w[lib/libnat_api.rb lib/libnat_api.cpp] do |t|
   sh 'bin/natalie --write-obj-source build/libnat.rb.cpp lib/libnat_api.rb'
-  if system('pkg-config --exists libffi')
-    flags = `pkg-config --cflags --libs libffi`.chomp
-  end
+  flags = `pkg-config --cflags --libs libffi`.chomp if system('pkg-config --exists libffi')
   sh "#{cxx} #{cxx_flags.join(' ')} #{flags} -std=#{STANDARD} " \
-     '-DNAT_OBJECT_FILE -shared -fPIC -rdynamic ' \
-     '-Wl,-undefined,dynamic_lookup ' \
-     "-o #{t.name} build/libnat.rb.cpp"
+       '-DNAT_OBJECT_FILE -shared -fPIC -rdynamic ' \
+       '-Wl,-undefined,dynamic_lookup ' \
+       "-o #{t.name} build/libnat.rb.cpp"
 end
 
 rule '.c.o' => 'src/%n' do |t|
@@ -623,9 +602,7 @@ task :bundle_install do
 end
 
 task :update_submodules do
-  unless ENV['SKIP_SUBMODULE_UPDATE']
-    sh 'git submodule update --init --recursive'
-  end
+  sh 'git submodule update --init --recursive' unless ENV['SKIP_SUBMODULE_UPDATE']
 end
 
 def ccache_exists?

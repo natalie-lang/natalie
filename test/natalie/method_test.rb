@@ -37,9 +37,7 @@ def block_given_test_bar
 end
 
 def block_given_test_foo
-  block_given_test_bar do
-    yield 'foo' if block_given?
-  end
+  block_given_test_bar { yield 'foo' if block_given? }
 end
 
 def block_given_test_baz
@@ -124,9 +122,9 @@ describe 'method' do
   it 'raises an error when there are too many arguments' do
     -> { double(1, 2) }.should raise_error(ArgumentError, 'wrong number of arguments (given 2, expected 1)')
     -> { default_after_regular(1, 2, 3) }.should raise_error(
-                                                   ArgumentError,
-                                                   'wrong number of arguments (given 3, expected 1..2)',
-                                                 )
+                 ArgumentError,
+                 'wrong number of arguments (given 3, expected 1..2)',
+               )
   end
 
   it 'can receive and yield to a block' do
@@ -281,11 +279,11 @@ describe 'method' do
     args
   end
 
-  def anonymous_splat_forwarding_middle(a, *,  b)
+  def anonymous_splat_forwarding_middle(a, *, b)
     anonymous_splat_forward_receiver(*)
   end
 
-  def anonymous_splat_forwarding_first(*,  a)
+  def anonymous_splat_forwarding_first(*, a)
     anonymous_splat_forward_receiver(*)
   end
 
@@ -338,23 +336,27 @@ describe 'method' do
   describe '#methods' do
     it 'returns all the methods defined on the object' do
       module M1
-        def m1; end
+        def m1
+        end
       end
 
       class C1
         include M1
-        def c1; end
+        def c1
+        end
       end
 
       class C2 < C1
-        def c2; end
+        def c2
+        end
       end
 
       o1 = C2.new
       o1.methods.should include_all(:c1, :c2, :m1)
 
       o2 = C2.new
-      def o2.s1; end
+      def o2.s1
+      end
       o2.methods.should include_all(:c1, :c2, :m1, :s1)
     end
   end
@@ -530,9 +532,9 @@ describe 'method with keyword args' do
 
   it 'raises an error when there are too many positional arguments' do
     -> { method_with_kwargs1(1, 2, b: 3) }.should raise_error(
-                                                    ArgumentError,
-                                                    'wrong number of arguments (given 2, expected 1; required keyword: b)',
-                                                  )
+                 ArgumentError,
+                 'wrong number of arguments (given 2, expected 1; required keyword: b)',
+               )
     [
       [:method_with_kwargs2, 'wrong number of arguments (given 3, expected 1; required keywords: b, c)'],
       [:method_with_kwargs3, 'wrong number of arguments (given 3, expected 1; required keyword: b)'],
@@ -598,9 +600,9 @@ describe 'method with keyword args' do
 
     it 'does not loop infinitely when trying to call inspect on BasicObject' do
       -> { BasicObject.new.inspect }.should raise_error(
-                                              NoMethodError,
-                                              /undefined method `inspect' for #<BasicObject:0x.+>/,
-                                            )
+                   NoMethodError,
+                   /undefined method `inspect' for #<BasicObject:0x.+>/,
+                 )
     end
 
     it 'raises an error when the class method is not defined' do
@@ -617,7 +619,10 @@ describe 'method with keyword args' do
 
     it 'raises an error when the method of a singleton object is not defined' do
       -> { true.not_a_method }.should raise_error(NoMethodError, /undefined method `not_a_method' for true:TrueClass/)
-      -> { false.not_a_method }.should raise_error(NoMethodError, /undefined method `not_a_method' for false:FalseClass/)
+      -> { false.not_a_method }.should raise_error(
+                   NoMethodError,
+                   /undefined method `not_a_method' for false:FalseClass/,
+                 )
       -> { nil.not_a_method }.should raise_error(NoMethodError, /undefined method `not_a_method' for nil:NilClass/)
       -> { not_a_method() }.should raise_error(NoMethodError, /undefined method `not_a_method' for main:Object/)
     end
@@ -627,14 +632,17 @@ describe 'method with keyword args' do
     it 'raises an error when the method is not defined' do
       class Foo
       end
-      -> { Foo.new.not_a_method }.should raise_error(NoMethodError, "undefined method `not_a_method' for an instance of Foo")
+      -> { Foo.new.not_a_method }.should raise_error(
+                   NoMethodError,
+                   "undefined method `not_a_method' for an instance of Foo",
+                 )
     end
 
     it 'does not loop infinitely when trying to call inspect on BasicObject' do
       -> { BasicObject.new.inspect }.should raise_error(
-                                              NoMethodError,
-                                              "undefined method `inspect' for an instance of BasicObject",
-                                            )
+                   NoMethodError,
+                   "undefined method `inspect' for an instance of BasicObject",
+                 )
     end
 
     it 'raises an error when the class method is not defined' do
@@ -661,14 +669,17 @@ describe 'method with keyword args' do
     it 'raises an error when the method is not defined' do
       class Foo
       end
-      -> { Foo.new.not_a_method }.should raise_error(NoMethodError, "undefined method 'not_a_method' for an instance of Foo")
+      -> { Foo.new.not_a_method }.should raise_error(
+                   NoMethodError,
+                   "undefined method 'not_a_method' for an instance of Foo",
+                 )
     end
 
     it 'does not loop infinitely when trying to call inspect on BasicObject' do
       -> { BasicObject.new.inspect }.should raise_error(
-                                              NoMethodError,
-                                              "undefined method 'inspect' for an instance of BasicObject",
-                                            )
+                   NoMethodError,
+                   "undefined method 'inspect' for an instance of BasicObject",
+                 )
     end
 
     it 'raises an error when the class method is not defined' do
@@ -703,11 +714,14 @@ describe 'safe navigation operator' do
   end
 end
 
-def splat(*args); end
+def splat(*args)
+end
 
-def splat_after_required(a, *args); end
+def splat_after_required(a, *args)
+end
 
-def splat_before_required(*args, a); end
+def splat_before_required(*args, a)
+end
 
 describe 'Method' do
   describe '#arity' do

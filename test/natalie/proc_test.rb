@@ -26,9 +26,7 @@ describe 'Proc' do
         def create_lambda(&block)
           lambda(&block)
         end
-        result = suppress_warning do
-          create_lambda { 1 }
-        end
+        result = suppress_warning { create_lambda { 1 } }
         result.should be_kind_of(Proc)
       end
     end
@@ -89,7 +87,7 @@ describe 'Proc' do
       p = Proc.new {}
       p.to_proc.object_id.should == p.object_id
       p.to_proc.lambda?.should == false
-      l = -> {  }
+      l = -> {}
       l.to_proc.object_id.should == l.object_id # does not convert
       l.to_proc.lambda?.should == true # does not change to false
     end
@@ -97,9 +95,7 @@ describe 'Proc' do
 
   describe 'passing a block to a proc' do
     it 'works' do
-      block_to_proc = ->(a, b, &block) {
-        block && block.call(a, b)
-      }
+      block_to_proc = ->(a, b, &block) { block && block.call(a, b) }
       (block_to_proc.call(1, 2) { |a, b| [a * 2, b * 2] }).should == [2, 4]
       block_to_proc.call(1, 2).should == nil
     end

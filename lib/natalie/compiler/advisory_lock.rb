@@ -17,7 +17,11 @@ module Natalie
         end
         result
       ensure
-        File.unlink(@path) rescue nil
+        begin
+          File.unlink(@path)
+        rescue StandardError
+          nil
+        end
       end
     end
   end

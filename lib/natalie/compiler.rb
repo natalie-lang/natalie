@@ -53,16 +53,12 @@ module Natalie
     end
 
     def write_bytecode_to_file
-      File.open(@out_path, 'wb') do |file|
-        compile_to_bytecode(file)
-      end
+      File.open(@out_path, 'wb') { |file| compile_to_bytecode(file) }
     end
 
     def compile_to_bytecode(io)
       rodata = Bytecode::RoData.new
-      bytecode = instructions.each.with_object(''.b) do |instruction, output|
-        output << instruction.serialize(rodata)
-      end
+      bytecode = instructions.each.with_object(''.b) { |instruction, output| output << instruction.serialize(rodata) }
 
       header = Bytecode::Header.new
       io.write(header)
@@ -90,12 +86,14 @@ module Natalie
 
     def build_context
       {
-        inline_cpp_enabled:  inline_cpp_enabled,
-        repl:                repl?,
-        required_cpp_files:  {},
-        required_ruby_files: {},
-        source_path:         @path,
-        vars:                vars || {},
+        inline_cpp_enabled: inline_cpp_enabled,
+        repl: repl?,
+        required_cpp_files: {
+        },
+        required_ruby_files: {
+        },
+        source_path: @path,
+        vars: vars || {},
       }
     end
 
@@ -147,17 +145,16 @@ module Natalie
 
       main_file = LoadedFile.new(path: @path, encoding: @encoding)
 
-      instructions = Pass1.new(
-        ast,
-        compiler_context:      @context,
-        data_loc:              data_loc,
-        macro_expander:        macro_expander,
-        loaded_file:           main_file,
-        warnings:              warnings,
-        frozen_string_literal: frozen_string_literal?
-      ).transform(
-        used: true
-      )
+      instructions =
+        Pass1.new(
+          ast,
+          compiler_context: @context,
+          data_loc: data_loc,
+          macro_expander: macro_expander,
+          loaded_file: main_file,
+          warnings: warnings,
+          frozen_string_literal: frozen_string_literal?,
+        ).transform(used: true)
       if debug == 'p1'
         Pass1.debug_instructions(instructions)
         exit
@@ -167,11 +164,13 @@ module Natalie
       transform_file(main_file, @context)
 
       @context[:required_ruby_files].each_value do |file_info|
-        context = @context.update(
-          # Each required file gets its own top-level variables,
-          # so give a fresh vars hash for each file.
-          vars: {}
-        )
+        context =
+          @context.update(
+            # Each required file gets its own top-level variables,
+            # so give a fresh vars hash for each file.
+            vars: {
+            },
+          )
         transform_file(file_info, context)
       end
 
@@ -179,16 +178,9 @@ module Natalie
     end
 
     def transform_file(file_info, compiler_context)
-      {
-        'p2' => Pass2,
-        'p3' => Pass3,
-        'p4' => Pass4,
-      }.each do |short_name, klass|
+      { 'p2' => Pass2, 'p3' => Pass3, 'p4' => Pass4 }.each do |short_name, klass|
         WhileInstruction.reset_result_id
-        file_info.instructions = klass.new(
-          file_info.instructions,
-          compiler_context:,
-        ).transform
+        file_info.instructions = klass.new(file_info.instructions, compiler_context:).transform
         if debug == short_name
           klass.debug_instructions(file_info.instructions)
           exit
@@ -197,12 +189,13 @@ module Natalie
     end
 
     def macro_expander
-      @macro_expander ||= MacroExpander.new(
-        load_path:        load_path,
-        interpret:        interpret?,
-        log_load_error:   options[:log_load_error],
-        compiler_context: @context,
-      )
+      @macro_expander ||=
+        MacroExpander.new(
+          load_path: load_path,
+          interpret: interpret?,
+          log_load_error: options[:log_load_error],
+          compiler_context: @context,
+        )
     end
   end
 end

@@ -32,14 +32,14 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 SPEC_TEMP_DIR_PID = Process.pid
 
-if spec_temp_dir = ENV["SPEC_TEMP_DIR"]
+if spec_temp_dir = ENV['SPEC_TEMP_DIR']
   spec_temp_dir = File.realdirpath(spec_temp_dir)
 else
   spec_temp_dir = "#{File.realpath(Dir.pwd)}/rubyspec_temp/#{SPEC_TEMP_DIR_PID}"
 end
 SPEC_TEMP_DIR = spec_temp_dir
 
-SPEC_TEMP_UNIQUIFIER = +"0"
+SPEC_TEMP_UNIQUIFIER = +'0'
 
 at_exit do
   begin
@@ -70,7 +70,7 @@ def tmp(name, uniquify = true)
     #slash = name.rindex "/"
     #index = slash ? slash + 1 : 0
     #name.insert index, "#{SPEC_TEMP_UNIQUIFIER.succ!}-"
-    slash = name.reverse.index("/")
+    slash = name.reverse.index('/')
     index = slash ? name.size - slash : 0
     name = name[0...index] + "#{SPEC_TEMP_UNIQUIFIER.succ!}-" + name[index..-1]
   end

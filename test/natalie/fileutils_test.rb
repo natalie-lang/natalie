@@ -26,9 +26,7 @@ describe 'FileUtils' do
     end
 
     it 'does not error when given a non-existent path' do
-      -> {
-        FileUtils.rm_rf(File.join(TMP_DIR, 'path/to/absolutely/nothing'))
-      }.should_not raise_error
+      -> { FileUtils.rm_rf(File.join(TMP_DIR, 'path/to/absolutely/nothing')) }.should_not raise_error
     end
   end
 
@@ -42,14 +40,10 @@ describe 'FileUtils' do
     it 'raises an error when the path is a file' do
       foo = File.join(TMP_DIR, 'foo')
       touch foo
-      -> {
-        FileUtils.mkdir_p(foo)
-      }.should raise_error(Errno::EEXIST, /File exists/)
+      -> { FileUtils.mkdir_p(foo) }.should raise_error(Errno::EEXIST, /File exists/)
 
       bar = File.join(foo, 'bar')
-      -> {
-        FileUtils.mkdir_p(bar)
-      }.should raise_error(Errno::EEXIST, /File exists/)
+      -> { FileUtils.mkdir_p(bar) }.should raise_error(Errno::EEXIST, /File exists/)
     end
 
     it 'accepts a mode argument' do

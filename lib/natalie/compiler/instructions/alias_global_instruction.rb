@@ -14,7 +14,10 @@ module Natalie
       def generate(transform)
         old_name = transform.pop
         new_name = transform.pop
-        transform.exec_and_push(:global_alias, "env->global_alias(#{new_name}.to_symbol(env, Value::Conversion::Strict), #{old_name}.to_symbol(env, Value::Conversion::Strict))")
+        transform.exec_and_push(
+          :global_alias,
+          "env->global_alias(#{new_name}.to_symbol(env, Value::Conversion::Strict), #{old_name}.to_symbol(env, Value::Conversion::Strict))",
+        )
       end
 
       def execute(vm)

@@ -49,42 +49,39 @@ describe 'Fiber' do
 
   it 'raises an error when attempting to yield from the main fiber' do
     -> { Fiber.yield 'foo' }.should raise_error(
-                                      FiberError,
-                                      /can't yield from root fiber|attempt to yield on a not resumed fiber/,
-                                    )
+                 FiberError,
+                 /can't yield from root fiber|attempt to yield on a not resumed fiber/,
+               )
   end
 end
 
 describe 'Scheduler' do
   it 'validates the scheduler for required methods' do
     # We should not be testing for ordering of these error messages
-    required_methods = [:block, :unblock, :kernel_sleep, :io_wait]
+    required_methods = %i[block unblock kernel_sleep io_wait]
     required_methods.each do |missing_method|
       scheduler = Object.new
-      required_methods.difference([missing_method]).each do |method|
-        scheduler.define_singleton_method(method) {}
-      end
+      required_methods.difference([missing_method]).each { |method| scheduler.define_singleton_method(method) {} }
 
-      -> { Fiber.set_scheduler(scheduler) }.should raise_error(ArgumentError, /Scheduler must implement ##{missing_method}/)
+      -> { Fiber.set_scheduler(scheduler) }.should raise_error(
+                   ArgumentError,
+                   /Scheduler must implement ##{missing_method}/,
+                 )
     end
   end
 
   it 'can set and get the scheduler' do
-    required_methods = [:block, :unblock, :kernel_sleep, :io_wait]
+    required_methods = %i[block unblock kernel_sleep io_wait]
     scheduler = Object.new
-    required_methods.each do |method|
-      scheduler.define_singleton_method(method) {}
-    end
+    required_methods.each { |method| scheduler.define_singleton_method(method) {} }
     Fiber.set_scheduler(scheduler)
     Fiber.scheduler.should == scheduler
   end
 
   it 'can remove the scheduler' do
-    required_methods = [:block, :unblock, :kernel_sleep, :io_wait]
+    required_methods = %i[block unblock kernel_sleep io_wait]
     scheduler = Object.new
-    required_methods.each do |method|
-      scheduler.define_singleton_method(method) {}
-    end
+    required_methods.each { |method| scheduler.define_singleton_method(method) {} }
     Fiber.set_scheduler(scheduler)
     Fiber.set_scheduler(nil)
     Fiber.scheduler.should be_nil

@@ -60,8 +60,8 @@ describe 'Enumerable' do
 
   describe '#sum' do
     it 'should return the correct result with optimized Range operations' do
-      (1..1000).sum.should == 500500
-      (1...1000).sum.should == 499500
+      (1..1000).sum.should == 500_500
+      (1...1000).sum.should == 499_500
       (10..20).sum.should == 165
     end
 

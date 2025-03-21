@@ -30,10 +30,7 @@ module Natalie
       end
 
       def serialize(_)
-        [
-          instruction_number,
-          @exclude_end ? 1 : 0,
-        ].pack('CC')
+        [instruction_number, @exclude_end ? 1 : 0].pack('CC')
       end
 
       def self.deserialize(io, _)

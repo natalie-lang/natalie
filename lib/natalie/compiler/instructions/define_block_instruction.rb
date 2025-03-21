@@ -37,10 +37,7 @@ module Natalie
       end
 
       def serialize(_)
-        [
-          instruction_number,
-          arity,
-        ].pack('Cw')
+        [instruction_number, arity].pack('Cw')
       end
 
       def self.deserialize(io, _)

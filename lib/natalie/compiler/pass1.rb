@@ -11,7 +11,15 @@ module Natalie
     # Representation, which we implement using Instructions.
     # You can debug this pass with the `-d p1` CLI flag.
     class Pass1 < BasePass
-      def initialize(ast, compiler_context:, data_loc:, macro_expander:, loaded_file:, warnings: [], frozen_string_literal: false)
+      def initialize(
+        ast,
+        compiler_context:,
+        data_loc:,
+        macro_expander:,
+        loaded_file:,
+        warnings: [],
+        frozen_string_literal: false
+      )
         super()
         @ast = ast
         @compiler_context = compiler_context
@@ -70,9 +78,7 @@ module Natalie
         when :program_node
           warnings + transform_program_node(@ast, used: used).flatten
         when :statements_node
-          with_locals([]) do
-            warnings + transform_statements_node(@ast, used: used).flatten
-          end
+          with_locals([]) { warnings + transform_statements_node(@ast, used: used).flatten }
         else
           raise 'unexpected AST input'
         end
@@ -82,8 +88,16 @@ module Natalie
         data_loc = []
         if @data_loc && @data_loc[:path] == @file.path
           data = @data_loc[:data_loc].slice_lines.delete_prefix("__END__\n")
-          require_arguments = Prism::ArgumentsNode.new(nil, nil, node.location, 0, [Prism::StringNode.new(nil, nil, node.location, 0, nil, nil, nil, 'stringio')])
-          require_node = Prism::CallNode.new(nil, nil, node.location, 0, nil, nil, :require, nil, nil, require_arguments, nil, nil)
+          require_arguments =
+            Prism::ArgumentsNode.new(
+              nil,
+              nil,
+              node.location,
+              0,
+              [Prism::StringNode.new(nil, nil, node.location, 0, nil, nil, nil, 'stringio')],
+            )
+          require_node =
+            Prism::CallNode.new(nil, nil, node.location, 0, nil, nil, :require, nil, nil, require_arguments, nil, nil)
           data_loc += transform_expression(require_node, used: false).flatten
           data_loc += [
             PushSelfInstruction.new,
@@ -101,9 +115,7 @@ module Natalie
             ConstSetInstruction.new(:DATA),
           ]
         end
-        with_locals(node.locals) do
-          data_loc + transform_statements_node(node.statements, used: used).flatten
-        end
+        with_locals(node.locals) { data_loc + transform_statements_node(node.statements, used: used).flatten }
       end
 
       def transform_expression(node, used:, **kwargs)
@@ -113,9 +125,7 @@ module Natalie
           return transform_expression(node, used: used) unless node.is_a?(::Prism::Node)
           @depth += 1 unless node.type == :statements_node
           method = "transform_#{node.type}"
-          result = track_scope(node) do
-            send(method, node, used: used, **kwargs)
-          end
+          result = track_scope(node) { send(method, node, used: used, **kwargs) }
           @depth -= 1 unless node.type == :statements_node
           Array(result).flatten
         when Array
@@ -202,12 +212,14 @@ module Natalie
 
         if args.any? { |a| a.type == :splat_node }
           instructions << transform_array_elements_with_splat(args)
-          return {
-            instructions: instructions,
-            with_block_pass: !!block,
-            args_array_on_stack: true,
-            has_keyword_hash: args.last&.type == :keyword_hash_node
-          }
+          return(
+            {
+              instructions: instructions,
+              with_block_pass: !!block,
+              args_array_on_stack: true,
+              has_keyword_hash: args.last&.type == :keyword_hash_node,
+            }
+          )
         end
 
         # special ... syntax
@@ -219,18 +231,18 @@ module Natalie
             spread: false,
             to_array: false,
           )
-          return {
-            instructions: instructions,
-            with_block_pass: !!block,
-            args_array_on_stack: true,
-            has_keyword_hash: false,
-            forward_args: true,
-          }
+          return(
+            {
+              instructions: instructions,
+              with_block_pass: !!block,
+              args_array_on_stack: true,
+              has_keyword_hash: false,
+              forward_args: true,
+            }
+          )
         end
 
-        args.each do |arg|
-          instructions << transform_expression(arg, used: true)
-        end
+        args.each { |arg| instructions << transform_expression(arg, used: true) }
 
         has_keyword_hash = args.last&.type == :keyword_hash_node
 
@@ -272,12 +284,11 @@ module Natalie
         # now add to the array the first splat item and everything after
         elements.each do |arg|
           if arg.type == :splat_node
-            instructions <<
-              if arg.expression
-                transform_expression(arg.expression, used: true)
-              else
-                AnonymousSplatGetInstruction.new
-              end
+            instructions << if arg.expression
+              transform_expression(arg.expression, used: true)
+            else
+              AnonymousSplatGetInstruction.new
+            end
 
             instructions << ArrayConcatInstruction.new
           else
@@ -296,9 +307,7 @@ module Natalie
         if node.elements.any? { |a| a.type == :splat_node }
           instructions += transform_array_elements_with_splat(elements)
         else
-          elements.each do |element|
-            instructions << transform_expression(element, used: true)
-          end
+          elements.each { |element| instructions << transform_expression(element, used: true) }
           instructions << CreateArrayInstruction.new(count: elements.size)
         end
 
@@ -338,10 +347,8 @@ module Natalie
           instructions.unshift(try_instruction)
           instructions += [
             CatchInstruction.new,
-            retry_context(retry_id) do
-              transform_expression(node.rescue_clause, used: true)
-            end,
-            EndInstruction.new(:try)
+            retry_context(retry_id) { transform_expression(node.rescue_clause, used: true) },
+            EndInstruction.new(:try),
           ]
         end
 
@@ -365,7 +372,7 @@ module Natalie
             transform_expression(node.ensure_clause.statements, used: true),
             transform_expression(raise_call, used: true),
             EndInstruction.new(:try),
-            transform_expression(node.ensure_clause.statements, used: false)
+            transform_expression(node.ensure_clause.statements, used: false),
           ]
         end
 
@@ -405,19 +412,18 @@ module Natalie
           instructions << transform_block_args(node.parameters, used: true)
         end
 
-        instructions += with_locals(node.locals) do
-          body = node.body || Prism.nil_node(location: node.location)
-          transform_expression(body, used: true)
-        end
+        instructions +=
+          with_locals(node.locals) do
+            body = node.body || Prism.nil_node(location: node.location)
+            transform_expression(body, used: true)
+          end
 
         instructions << EndInstruction.new(:define_block)
         instructions
       end
 
       def transform_break_node(node, used:)
-        instructions = [
-          transform_arguments_node_for_returnish(node.arguments, location: node.location)
-        ]
+        instructions = [transform_arguments_node_for_returnish(node.arguments, location: node.location)]
 
         if %i[while_node until_node].include?(@next_or_break_context.last)
           instructions << BreakOutInstruction.new
@@ -437,11 +443,13 @@ module Natalie
 
         if args.any? { |a| a.type == :splat_node }
           instructions << transform_array_elements_with_splat(args)
-          return {
-            with_block_pass: !!with_block,
-            args_array_on_stack: true,
-            has_keyword_hash: args.last&.type == :keyword_hash_node
-          }
+          return(
+            {
+              with_block_pass: !!with_block,
+              args_array_on_stack: true,
+              has_keyword_hash: args.last&.type == :keyword_hash_node,
+            }
+          )
         end
 
         # special ... syntax
@@ -453,18 +461,18 @@ module Natalie
             spread: false,
             to_array: false,
           )
-          return {
-            instructions: instructions,
-            with_block_pass: !!with_block,
-            args_array_on_stack: true,
-            has_keyword_hash: false,
-            forward_args: true,
-          }
+          return(
+            {
+              instructions: instructions,
+              with_block_pass: !!with_block,
+              args_array_on_stack: true,
+              has_keyword_hash: false,
+              forward_args: true,
+            }
+          )
         end
 
-        args.each do |arg|
-          instructions << transform_expression(arg, used: true)
-        end
+        args.each { |arg| instructions << transform_expression(arg, used: true) }
 
         has_keyword_hash = args.last&.type == :keyword_hash_node
 
@@ -485,11 +493,7 @@ module Natalie
 
         if is_inline_macro_call_node?(node)
           instructions = []
-          if message == :__call__
-            args[1..].reverse_each do |arg|
-              instructions << transform_expression(arg, used: true)
-            end
-          end
+          args[1..].reverse_each { |arg| instructions << transform_expression(arg, used: true) } if message == :__call__
           instructions << InlineCppInstruction.new(node)
           instructions << PopInstruction.new unless used
           return instructions
@@ -504,11 +508,7 @@ module Natalie
         # block handling
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
-          instructions << transform_expression(
-            node.block,
-            used: true,
-            is_lambda: is_lambda_call?(node)
-          )
+          instructions << transform_expression(node.block, used: true, is_lambda: is_lambda_call?(node))
         elsif node.block.is_a?(Prism::BlockArgumentNode)
           with_block = true
           instructions << transform_expression(node.block, used: true)
@@ -533,7 +533,8 @@ module Natalie
         else
           inst = transform_expression(receiver, used: true)
 
-          if node.name == :freeze && !node.safe_navigation? && !with_block && inst.size == 1 && inst.first.is_a?(PushStringInstruction)
+          if node.name == :freeze && !node.safe_navigation? && !with_block && inst.size == 1 &&
+               inst.first.is_a?(PushStringInstruction)
             # "foo".freeze get special treatment so we can intern the string at compile time
             inst.first.frozen = true
           end
@@ -583,7 +584,6 @@ module Natalie
         # a
         instructions = [
           transform_expression(node.receiver, used: true),
-
           # duplicate for use in the truthy case, so we only evaluate `a` once
           DupInstruction.new,
         ]
@@ -608,16 +608,12 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-
           # duplicate for use by the if falsey case
           DupInstruction.new,
-
           # if a.foo
           IfInstruction.new,
-
           # remove duplicated value that was truthy
           PopInstruction.new,
-
           # a.foo=('bar')
           transform_expression(node.value, used: true),
           PushArgcInstruction.new(1),
@@ -628,13 +624,10 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-
           ElseInstruction.new(:if),
           # if !a.foo, return duplicated value
-
           SwapInstruction.new,
           PopInstruction.new,
-
           EndInstruction.new(:if),
         )
 
@@ -657,21 +650,14 @@ module Natalie
         ]
 
         if node.safe_navigation?
-          instructions.append(
-            DupInstruction.new,
-            IsNilInstruction.new,
-            IfInstruction.new,
-            ElseInstruction.new(:if),
-          )
+          instructions.append(DupInstruction.new, IsNilInstruction.new, IfInstruction.new, ElseInstruction.new(:if))
         end
 
         instructions.append(
           # stack: [obj, value]
           transform_expression(node.value, used: true),
-
           # stack: [obj, value, obj]
           DupRelInstruction.new(1),
-
           # temp = obj.foo
           # stack: [obj, value, temp]
           PushArgcInstruction.new(0),
@@ -682,10 +668,8 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-
           # stack: [obj, temp, value]
           MoveRelInstruction.new(1),
-
           # result = temp + value
           # stack: [obj, new_value]
           PushArgcInstruction.new(1),
@@ -696,7 +680,6 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-
           # obj.foo = new_value
           PushArgcInstruction.new(1),
           SendInstruction.new(
@@ -717,10 +700,8 @@ module Natalie
       def transform_call_or_write_node(node, used:)
         # a.foo ||= 'bar'
         instructions = [
-
           # a
           transform_expression(node.receiver, used: true),
-
           # duplicate for use in the falsey case, so we only evaluate `a` once
           DupInstruction.new,
         ]
@@ -744,22 +725,16 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-
           # duplicate for use by the if truthy case
           DupInstruction.new,
-
           # if a.foo
           IfInstruction.new,
-
           # if a.foo, return duplicated value of a.foo, but get rid of the duplicated value of `a`
           SwapInstruction.new,
           PopInstruction.new,
-
           ElseInstruction.new(:if),
-
           # remove duplicated value that was falsey
           PopInstruction.new,
-
           # .foo=('bar')
           transform_expression(node.value, used: true),
           PushArgcInstruction.new(1),
@@ -770,7 +745,6 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-
           EndInstruction.new(:if),
         )
 
@@ -826,9 +800,10 @@ module Natalie
             options = when_statement.conditions
             body = when_statement.statements&.body
 
-            options = options[1..].reduce(options[0]) do |prev, option|
-              Prism.or_node(left: prev, right: option, location: prev.location)
-            end
+            options =
+              options[1..].reduce(options[0]) do |prev, option|
+                Prism.or_node(left: prev, right: option, location: prev.location)
+              end
 
             instructions << transform_expression(options, used: true)
             instructions << IfInstruction.new
@@ -838,10 +813,10 @@ module Natalie
         end
 
         instructions << if node.else_clause.nil?
-                          PushNilInstruction.new
-                        else
-                          transform_expression(node.else_clause, used: true)
-                        end
+          PushNilInstruction.new
+        else
+          transform_expression(node.else_clause, used: true)
+        end
 
         instructions << [EndInstruction.new(:if)] * node.conditions.length
 
@@ -867,9 +842,7 @@ module Natalie
           file: @file.path,
           line: node.location.start_line,
         )
-        instructions += with_locals(node.locals) do
-          transform_body(node.body, used: true, location: node.location)
-        end
+        instructions += with_locals(node.locals) { transform_body(node.body, used: true, location: node.location) }
         instructions << EndInstruction.new(:define_class)
         instructions << PopInstruction.new unless used
         instructions
@@ -885,7 +858,7 @@ module Natalie
           DupInstruction.new, # duplicate value for return
           ClassVariableSetInstruction.new(node.name),
           ElseInstruction.new(:if),
-          EndInstruction.new(:if)
+          EndInstruction.new(:if),
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -901,9 +874,9 @@ module Natalie
             receiver_is_self: false,
             with_block: false,
             file: @file.path,
-            line: node.location.start_line
+            line: node.location.start_line,
           ),
-          ClassVariableSetInstruction.new(node.name)
+          ClassVariableSetInstruction.new(node.name),
         ]
         instructions << ClassVariableGetInstruction.new(node.name) if used
         instructions
@@ -989,7 +962,6 @@ module Natalie
           ConstFindInstruction.new(node.name, strict: false, failure_mode: 'Raise'),
           EndInstruction.new(:is_defined),
           DupInstruction.new,
-
           # && CONST
           IfInstruction.new,
           PopInstruction.new,
@@ -1002,21 +974,15 @@ module Natalie
         instructions.append(
           # if defined?(CONST) && CONST
           IfInstruction.new,
-
           # CONST
           # Nothing to do here, return value is on the stack if the result is used
-
           # else; CONST = value; end
           ElseInstruction.new(:if),
         )
         instructions << PopInstruction.new if used
         instructions.concat(transform_expression(node.value, used: true))
         instructions << DupInstruction.new if used
-        instructions.append(
-          PushSelfInstruction.new,
-          ConstSetInstruction.new(node.name),
-          EndInstruction.new(:if),
-        )
+        instructions.append(PushSelfInstruction.new, ConstSetInstruction.new(node.name), EndInstruction.new(:if))
         instructions
       end
 
@@ -1044,10 +1010,7 @@ module Natalie
           ConstSetInstruction.new(name),
         )
         instructions << ConstFindInstruction.new(name, strict: true) if used
-        instructions.append(
-          ElseInstruction.new(:if),
-          PopInstruction.new,
-        )
+        instructions.append(ElseInstruction.new(:if), PopInstruction.new)
         instructions << PushNilInstruction.new if used
         instructions << EndInstruction.new(:if)
         instructions
@@ -1057,10 +1020,7 @@ module Natalie
         name, _is_private, prep_instruction = constant_name(node)
         # FIXME: is_private shouldn't be ignored I think
         return [] unless used
-        [
-          prep_instruction,
-          ConstFindInstruction.new(name, strict: true),
-        ]
+        [prep_instruction, ConstFindInstruction.new(name, strict: true)]
       end
 
       def transform_constant_path_operator_write_node(node, used:)
@@ -1083,10 +1043,7 @@ module Natalie
           ),
         ]
         if used
-          instructions.append(
-            DupInstruction.new,
-            MoveRelInstruction.new(2),
-          )
+          instructions.append(DupInstruction.new, MoveRelInstruction.new(2))
         else
           instructions << SwapInstruction.new
         end
@@ -1105,36 +1062,36 @@ module Natalie
         #    end
         name, _is_private, prep_instruction = constant_name(node.target)
         # FIXME: is_private shouldn't be ignored I think
-        #
+
         #                                                                       This describes the stack for the three distinct paths
-        instructions = [                                                        # if !defined?(tmp::CONST)           if defined?(tmp::CONST) && !tmp::CONST          if defined(tmp::CONST) && tmp::CONST
-          prep_instruction,                                                     # [tmp]                              [tmp]                                           [tmp]
-          DupInstruction.new,                                                   # [tmp, tmp]                         [tmp, tmp]                                      [tmp, tmp]
-          IsDefinedInstruction.new(type: 'constant'),                           # [tmp, tmp, is_defined]             [tmp, tmp, is_defined]                          [tmp, tmp, is_defined]
-          SwapInstruction.new,                                                  # [tmp, is_defined, tmp]             [tmp, is_defined, tmp]                          [tmp, is_defined, tmp]
-          ConstFindInstruction.new(name, strict: true, failure_mode: 'Raise'),  # [tmp, is_defined, tmp, CONST]      [tmp, is_defined, tmp, CONST]                   [tmp, is_defined, tmp, CONST]
-          EndInstruction.new(:is_defined),                                      # [tmp, false]                       [tmp, true]                                     [tmp, true]
-          IfInstruction.new,                                                    # [tmp]                              [tmp]                                           [tmp]
-          DupInstruction.new,                                                   #                                    [tmp, tmp]                                      [tmp, tmp]
-          ConstFindInstruction.new(name, strict: true),                         #                                    [tmp, false]                                    [tmp, tmp::CONST]
+        instructions = [ #                                                        if !defined?(tmp::CONST)           if defined?(tmp::CONST) && !tmp::CONST          if defined(tmp::CONST) && tmp::CONST
+          prep_instruction, #                                                     [tmp]                              [tmp]                                           [tmp]
+          DupInstruction.new, #                                                   [tmp, tmp]                         [tmp, tmp]                                      [tmp, tmp]
+          IsDefinedInstruction.new(type: 'constant'), #                           [tmp, tmp, is_defined]             [tmp, tmp, is_defined]                          [tmp, tmp, is_defined]
+          SwapInstruction.new, #                                                  [tmp, is_defined, tmp]             [tmp, is_defined, tmp]                          [tmp, is_defined, tmp]
+          ConstFindInstruction.new(name, strict: true, failure_mode: 'Raise'), #  [tmp, is_defined, tmp, CONST]      [tmp, is_defined, tmp, CONST]                   [tmp, is_defined, tmp, CONST]
+          EndInstruction.new(:is_defined), #                                      [tmp, false]                       [tmp, true]                                     [tmp, true]
+          IfInstruction.new, #                                                    [tmp]                              [tmp]                                           [tmp]
+          DupInstruction.new, #                                                                                      [tmp, tmp]                                      [tmp, tmp]
+          ConstFindInstruction.new(name, strict: true), #                                                            [tmp, false]                                    [tmp, tmp::CONST]
           ElseInstruction.new(:if),
-          PushFalseInstruction.new,                                             # [tmp, false]
+          PushFalseInstruction.new, #                                             [tmp, false]
           EndInstruction.new(:if),
-          IfInstruction.new,                                                    # [tmp]                              [tmp]                                           [tmp]
+          IfInstruction.new, #                                                    [tmp]                              [tmp]                                           [tmp]
         ]
         if used
-          instructions << ConstFindInstruction.new(name, strict: true)          #                                                                                    [tmp::Const]
+          instructions << ConstFindInstruction.new(name, strict: true) #                                                                                             [tmp::Const]
         else
-          instructions << PopInstruction.new                                    #                                                                                    []
+          instructions << PopInstruction.new #                                                                                                                       []
         end
         instructions << ElseInstruction.new(:if)
-        instructions << DupInstruction.new if used                              # [tmp, tmp]                         [tmp, tmp]
+        instructions << DupInstruction.new if used #                              [tmp, tmp]                         [tmp, tmp]
         instructions.append(
-          transform_expression(node.value, used: true),                         # [tmp, tmp, value]                  [tmp, tmp, value]
-          SwapInstruction.new,                                                  # [tmp, value, tmp]                  [tmp, value, tmp]
-          ConstSetInstruction.new(name),                                        # [tmp]                              [tmp]
+          transform_expression(node.value, used: true), #                         [tmp, tmp, value]                  [tmp, tmp, value]
+          SwapInstruction.new, #                                                  [tmp, value, tmp]                  [tmp, value, tmp]
+          ConstSetInstruction.new(name), #                                        [tmp]                              [tmp]
         )
-        instructions << ConstFindInstruction.new(name, strict: true) if used    # [value]               [value]
+        instructions << ConstFindInstruction.new(name, strict: true) if used #    [value]               [value]
         instructions << EndInstruction.new(:if)
         instructions
       end
@@ -1154,12 +1111,7 @@ module Natalie
       def transform_constant_read_node(node, used:)
         instructions = [
           PushSelfInstruction.new,
-          ConstFindInstruction.new(
-            node.name,
-            strict: false,
-            file: @file.path,
-            line: node.location.start_line
-          ),
+          ConstFindInstruction.new(node.name, strict: false, file: @file.path, line: node.location.start_line),
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -1178,10 +1130,7 @@ module Natalie
 
         instructions = []
         if node.receiver
-          instructions << [
-            transform_expression(node.receiver, used: true),
-            SingletonClassInstruction.new,
-          ]
+          instructions << [transform_expression(node.receiver, used: true), SingletonClassInstruction.new]
         else
           instructions << PushSelfInstruction.new
         end
@@ -1189,9 +1138,7 @@ module Natalie
         instructions << [
           DefineMethodInstruction.new(name: node.name, arity: arity, file: @file.path, line: node.location.start_line),
           transform_defn_args(node.parameters, used: true),
-          with_locals(node.locals) do
-            transform_body([node.body], used: true, location: node.location)
-          end,
+          with_locals(node.locals) { transform_body([node.body], used: true, location: node.location) },
           EndInstruction.new(:define_method),
         ]
 
@@ -1216,22 +1163,21 @@ module Natalie
           end
         end
 
-        instant_return_type = ->(type) {
-          [PushStringInstruction.new(type, status: :frozen)]
-        }
+        instant_return_type = ->(type) { [PushStringInstruction.new(type, status: :frozen)] }
 
         type =
           case current_node
           when Prism::LocalVariableWriteNode, Prism::InstanceVariableWriteNode, Prism::GlobalVariableWriteNode,
-              Prism::ClassVariableWriteNode, Prism::ConstantWriteNode, Prism::ConstantPathWriteNode,
-              Prism::MultiWriteNode, Prism::LocalVariableOperatorWriteNode, Prism::InstanceVariableOperatorWriteNode,
-              Prism::GlobalVariableOperatorWriteNode, Prism::ClassVariableOperatorWriteNode, Prism::ConstantOperatorWriteNode,
-              Prism::ConstantPathOperatorWriteNode, Prism::CallOperatorWriteNode, Prism::IndexOperatorWriteNode,
-              Prism::LocalVariableOrWriteNode, Prism::InstanceVariableOrWriteNode, Prism::GlobalVariableOrWriteNode,
-              Prism::ClassVariableOrWriteNode, Prism::ConstantOrWriteNode, Prism::ConstantPathOrWriteNode,
-              Prism::CallOrWriteNode, Prism::IndexOrWriteNode, Prism::LocalVariableAndWriteNode, Prism::InstanceVariableAndWriteNode,
-              Prism::GlobalVariableAndWriteNode, Prism::ClassVariableAndWriteNode, Prism::ConstantAndWriteNode,
-              Prism::ConstantPathAndWriteNode, Prism::CallAndWriteNode, Prism::IndexAndWriteNode
+               Prism::ClassVariableWriteNode, Prism::ConstantWriteNode, Prism::ConstantPathWriteNode,
+               Prism::MultiWriteNode, Prism::LocalVariableOperatorWriteNode, Prism::InstanceVariableOperatorWriteNode,
+               Prism::GlobalVariableOperatorWriteNode, Prism::ClassVariableOperatorWriteNode,
+               Prism::ConstantOperatorWriteNode, Prism::ConstantPathOperatorWriteNode, Prism::CallOperatorWriteNode,
+               Prism::IndexOperatorWriteNode, Prism::LocalVariableOrWriteNode, Prism::InstanceVariableOrWriteNode,
+               Prism::GlobalVariableOrWriteNode, Prism::ClassVariableOrWriteNode, Prism::ConstantOrWriteNode,
+               Prism::ConstantPathOrWriteNode, Prism::CallOrWriteNode, Prism::IndexOrWriteNode,
+               Prism::LocalVariableAndWriteNode, Prism::InstanceVariableAndWriteNode, Prism::GlobalVariableAndWriteNode,
+               Prism::ClassVariableAndWriteNode, Prism::ConstantAndWriteNode, Prism::ConstantPathAndWriteNode,
+               Prism::CallAndWriteNode, Prism::IndexAndWriteNode
             return instant_return_type.('assignment')
           when Prism::TrueNode
             return instant_return_type.('true')
@@ -1242,15 +1188,13 @@ module Natalie
           when Prism::SelfNode
             return instant_return_type.('self')
           when Prism::IfNode, Prism::UnlessNode, Prism::CaseNode, Prism::ForNode, Prism::AndNode, Prism::OrNode,
-              Prism::RetryNode, Prism::ReturnNode, Prism::RedoNode, Prism::BreakNode, Prism::WhileNode,
-              Prism::UntilNode, Prism::NextNode, Prism::BeginNode, Prism::StringNode, Prism::InterpolatedStringNode,
-              Prism::InterpolatedRegularExpressionNode, Prism::IntegerNode, Prism::FloatNode,
-              Prism::SymbolNode, Prism::RegularExpressionNode, Prism::RangeNode
+               Prism::RetryNode, Prism::ReturnNode, Prism::RedoNode, Prism::BreakNode, Prism::WhileNode,
+               Prism::UntilNode, Prism::NextNode, Prism::BeginNode, Prism::StringNode, Prism::InterpolatedStringNode,
+               Prism::InterpolatedRegularExpressionNode, Prism::IntegerNode, Prism::FloatNode, Prism::SymbolNode,
+               Prism::RegularExpressionNode, Prism::RangeNode
             return instant_return_type.('expression')
           when Prism::CallNode
-            if current_node.block
-              return instant_return_type.('expression')
-            end
+            return instant_return_type.('expression') if current_node.block
             'method'
           when Prism::YieldNode
             'yield'
@@ -1287,7 +1231,6 @@ module Natalie
             'expression'
           end
 
-
         body.each_with_index do |instruction, index|
           case instruction
           when GlobalVariableGetInstruction
@@ -1303,25 +1246,23 @@ module Natalie
               # Arguments should not be evaluated so we instead push nil for and send instructions
               # inside of arguments. This is super hacky because it looks at the name of the method
               if current_node.is_a?(Prism::CallNode) && current_node.arguments &&
-                  current_node.arguments.arguments.select { |node| node.is_a?(Prism::CallNode) }.map(&:name).include?(body[index].message)
-
+                   current_node
+                     .arguments
+                     .arguments
+                     .select { |node| node.is_a?(Prism::CallNode) }
+                     .map(&:name)
+                     .include?(body[index].message)
                 # Remove all related instructions
                 argc_instruction = body[index - 1]
                 body[index - 1] = nil
-                argc_instruction.count.times do |n|
-                  body[index - n - 2] = nil
-                end
+                argc_instruction.count.times { |n| body[index - n - 2] = nil }
                 body[index] = PushNilInstruction.new
               end
             end
           end
         end
 
-        [
-          IsDefinedInstruction.new(type: type),
-          body.compact.flatten,
-          EndInstruction.new(:is_defined),
-        ]
+        [IsDefinedInstruction.new(type: type), body.compact.flatten, EndInstruction.new(:is_defined)]
       end
 
       def transform_defn_args(node, used:, for_block: false, check_args: true, local_only: true)
@@ -1344,12 +1285,11 @@ module Natalie
         # &block pass
         if node.is_a?(Prism::ParametersNode) && node.block.is_a?(Prism::BlockParameterNode)
           instructions << PushBlockInstruction.new
-          instructions <<
-            if node.block.name
-              VariableSetInstruction.new(node.block.name, local_only: local_only)
-            else
-              AnonymousBlockSetInstruction.new
-            end
+          instructions << if node.block.name
+            VariableSetInstruction.new(node.block.name, local_only: local_only)
+          else
+            AnonymousBlockSetInstruction.new
+          end
         end
 
         args_compiler = Args.new(node:, pass: self, check_args:, local_only:, for_block:)
@@ -1375,13 +1315,11 @@ module Natalie
       end
 
       def transform_flip_flop_node(node, used:)
-        if !used
-          raise 'flip flop must be used in an if condition?'
-        end
+        raise 'flip flop must be used in an if condition?' if !used
 
         warning_instructions = []
 
-        process_condition = ->(condition_node) {
+        process_condition = ->(condition_node) do
           case condition_node
           when Prism::StringNode
             transform_expression(condition_node, used: true)
@@ -1390,7 +1328,7 @@ module Natalie
           else
             transform_expression(condition_node, used: true)
           end
-        }
+        end
 
         switch_on_body = process_condition.(node.left)
         switch_off_body = process_condition.(node.right)
@@ -1417,17 +1355,9 @@ module Natalie
         case args.type
         when :multi_target_node
           targets = args.lefts + [args.rest].compact + args.rights
-          targets.each do |arg|
-            instructions += transform_for_declare_args(arg)
-          end
-        when :call_target_node,
-             :class_variable_target_node,
-             :constant_target_node,
-             :global_variable_target_node,
-             :implicit_rest_node,
-             :index_target_node,
-             :instance_variable_target_node,
-             :local_variable_target_node,
+          targets.each { |arg| instructions += transform_for_declare_args(arg) }
+        when :call_target_node, :class_variable_target_node, :constant_target_node, :global_variable_target_node,
+             :implicit_rest_node, :index_target_node, :instance_variable_target_node, :local_variable_target_node,
              :splat_node
           :noop
         else
@@ -1454,11 +1384,7 @@ module Natalie
         # block handling
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
-          instructions << transform_expression(
-            node.block,
-            used: true,
-            is_lambda: is_lambda_call?(node)
-          )
+          instructions << transform_expression(node.block, used: true, is_lambda: is_lambda_call?(node))
         elsif node.block.is_a?(Prism::BlockArgumentNode)
           with_block = true
           instructions << transform_expression(node.block, used: true)
@@ -1466,10 +1392,7 @@ module Natalie
 
         instructions << PushSelfInstruction.new
         instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
-        instructions << SuperInstruction.new(
-          args_array_on_stack: true,
-          with_block: with_block,
-        )
+        instructions << SuperInstruction.new(args_array_on_stack: true, with_block: with_block)
 
         instructions << PopInstruction.new unless used
         instructions
@@ -1534,7 +1457,7 @@ module Natalie
         [
           transform_expression(node.value, used: true),
           used ? DupInstruction.new : nil,
-          GlobalVariableSetInstruction.new(node.name)
+          GlobalVariableSetInstruction.new(node.name),
         ].compact
       end
 
@@ -1554,12 +1477,11 @@ module Natalie
         # now, if applicable, add to the hash the splat element and everything after
         node.elements[prior_to_splat_count..].each do |element|
           if element.type == :assoc_splat_node
-            instructions <<
-              if element.value
-                transform_expression(element.value, used: true)
-              else
-                AnonymousKeywordSplatGetInstruction.new
-              end
+            instructions << if element.value
+              transform_expression(element.value, used: true)
+            else
+              AnonymousKeywordSplatGetInstruction.new
+            end
             instructions << HashMergeInstruction.new
           else
             instructions << transform_expression(element.key, used: true)
@@ -1604,10 +1526,7 @@ module Natalie
             raise "Unexpected imaginary value: \"#{value.inspect}\""
           end
 
-        [
-          instruction,
-          CreateComplexInstruction.new,
-        ]
+        [instruction, CreateComplexInstruction.new]
       end
 
       def transform_implicit_node(node, used:)
@@ -1629,11 +1548,9 @@ module Natalie
             # stack before: [obj]
             #  stack after: [obj, [*keys]]
             *transform_array_elements_with_splat(key_args),
-
             # stack before: [obj, [*keys]]
             #  stack after: [obj, [*keys], obj]
             DupRelInstruction.new(1),
-
             # stack before: [obj, [*keys], obj]
             #  stack after: [obj, [*keys], obj, [*keys]]
             DupRelInstruction.new(1),
@@ -1643,15 +1560,12 @@ module Natalie
             # stack before: [obj]
             #  stack after: [obj, *keys]
             key_args.map { |arg| transform_expression(arg, used: true) },
-
             # stack before: [obj, *keys]
             #  stack after: [obj, *keys, obj]
             DupRelInstruction.new(key_args.size),
-
             # stack before: [obj, *keys, obj]
             #  stack after: [obj, *keys, obj, *keys]
             key_args.map { DupRelInstruction.new(key_args.size) },
-
             PushArgcInstruction.new(key_args.size),
           )
         end
@@ -1666,20 +1580,16 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-
           # stack before: [obj, *keys, old_value]
           #  stack after: [obj, *keys, old_value, old_value]
           DupInstruction.new,
-
           # if old_value
           # stack before: [obj, *keys, old_value, old_value]
           #  stack after: [obj, *keys, old_value]
           IfInstruction.new,
-
           # stack before: [obj, *keys, old_value]
           #  stack after: [obj, *keys]
           PopInstruction.new,
-
           # stack before: [obj, *keys]
           #  stack after: [obj, *keys, new_value]
           transform_expression(node.value, used: true),
@@ -1703,7 +1613,6 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-
           # old_value is falsey...
           ElseInstruction.new(:if),
         )
@@ -1714,7 +1623,6 @@ module Natalie
             #  stack after: [obj, old_value]
             SwapInstruction.new,
             PopInstruction.new,
-
             # stack before: [obj, old_value]
             #  stack after: [old_value]
             SwapInstruction.new,
@@ -1730,7 +1638,6 @@ module Natalie
                 PopInstruction.new, # get rid of duplicated key
               ]
             end,
-
             # don't need the obj now
             # stack before: [obj, old_value]
             #  stack after: [old_value]
@@ -1768,13 +1675,10 @@ module Natalie
           instructions.append(
             # stack: [obj, *keys]
             key_args.map { |arg| transform_expression(arg, used: true) },
-
             # stack: [obj, *keys, obj]
             DupRelInstruction.new(key_args.size),
-
             # stack: [obj, *keys, obj, *keys]
             key_args.map { DupRelInstruction.new(key_args.size) },
-
             # old_value = obj[*keys]
             # stack: [obj, *keys, old_value]
             PushArgcInstruction.new(key_args.size),
@@ -1789,7 +1693,6 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-
           # stack: [obj, *keys, old_value, value]
           transform_expression(node.value, used: true),
           # new_value = old_value + value
@@ -1811,13 +1714,13 @@ module Natalie
           instructions << PushArgcInstruction.new(key_args.size + 1)
         end
         instructions << SendInstruction.new(
-            :[]=,
-            receiver_is_self: obj.is_a?(Prism::SelfNode),
-            args_array_on_stack:,
-            with_block: false,
-            file: @file.path,
-            line: node.location.start_line,
-          )
+          :[]=,
+          receiver_is_self: obj.is_a?(Prism::SelfNode),
+          args_array_on_stack:,
+          with_block: false,
+          file: @file.path,
+          line: node.location.start_line,
+        )
 
         instructions << PopInstruction.new unless used
         instructions
@@ -1838,11 +1741,9 @@ module Natalie
             # stack before: [obj]
             #  stack after: [obj, [*keys]]
             *transform_array_elements_with_splat(key_args),
-
             # stack before: [obj, [*keys]]
             #  stack after: [obj, [*keys], obj]
             DupRelInstruction.new(1),
-
             # stack before: [obj, [*keys], obj]
             #  stack after: [obj, [*keys], obj, [*keys]]
             DupRelInstruction.new(1),
@@ -1852,15 +1753,12 @@ module Natalie
             # stack before: [obj]
             #  stack after: [obj, *keys]
             key_args.map { |arg| transform_expression(arg, used: true) },
-
             # stack before: [obj, *keys]
             #  stack after: [obj, *keys, obj]
             DupRelInstruction.new(key_args.size),
-
             # stack before: [obj, *keys, obj]
             #  stack after: [obj, *keys, obj, *keys]
             key_args.map { DupRelInstruction.new(key_args.size) },
-
             # stack before: [obj, *keys, obj, *keys]
             #  stack after: [obj, *keys, old_value]
             PushArgcInstruction.new(key_args.size),
@@ -1875,11 +1773,9 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-
           # stack before: [obj, *keys, old_value]
           #  stack after: [obj, *keys, old_value, old_value]
           DupInstruction.new,
-
           # if old_value
           # stack before: [obj, *keys, old_value, old_value]
           #  stack after: [obj, *keys, old_value]
@@ -1911,13 +1807,11 @@ module Natalie
           #  stack after: [old_value]
           SwapInstruction.new,
           PopInstruction.new,
-
           # old_value is falsey...
           ElseInstruction.new(:if),
           # stack before: [obj, *keys, old_value]
           #  stack after: [obj, *keys]
           PopInstruction.new,
-
           # stack before: [obj, *keys]
           #  stack after: [obj, *keys, new_value]
           transform_expression(node.value, used: true),
@@ -1941,7 +1835,6 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-
           EndInstruction.new(:if),
         )
 
@@ -1959,7 +1852,7 @@ module Natalie
           DupInstruction.new, # duplicate value for return
           InstanceVariableSetInstruction.new(node.name),
           ElseInstruction.new(:if),
-          EndInstruction.new(:if)
+          EndInstruction.new(:if),
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -2005,9 +1898,7 @@ module Natalie
       end
 
       def transform_instance_variable_write_node(node, used:)
-        instructions = [
-          transform_expression(node.value, used: true),
-        ]
+        instructions = [transform_expression(node.value, used: true)]
         instructions << DupInstruction.new if used
         instructions << InstanceVariableSetInstruction.new(node.name)
         instructions
@@ -2020,7 +1911,11 @@ module Natalie
 
       def transform_interpolated_regular_expression_node(node, used:)
         instructions = transform_interpolated_stringish_node(node, used: true, unescaped: false)
-        instructions << StringToRegexpInstruction.new(options: node.options, once: node.once?, **encoding_for_regexp_node(node))
+        instructions << StringToRegexpInstruction.new(
+          options: node.options,
+          once: node.once?,
+          **encoding_for_regexp_node(node),
+        )
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -2043,12 +1938,13 @@ module Natalie
           end
         end
 
-        starter = if parts.first.type == :string_node
-                    part = parts.shift
-                    PushStringInstruction.new(unescaped ? part.unescaped : part.content, encoding: encoding)
-                  else
-                    PushStringInstruction.new('', encoding: encoding)
-                  end
+        starter =
+          if parts.first.type == :string_node
+            part = parts.shift
+            PushStringInstruction.new(unescaped ? part.unescaped : part.content, encoding: encoding)
+          else
+            PushStringInstruction.new('', encoding: encoding)
+          end
 
         instructions = [starter]
 
@@ -2086,7 +1982,7 @@ module Natalie
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
-          )
+          ),
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -2103,16 +1999,14 @@ module Natalie
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
-          )
+          ),
         ]
         instructions << PopInstruction.new unless used
         instructions
       end
 
       def transform_it_local_variable_read_node(node, used:)
-        instructions = [
-          VariableGetInstruction.new(:it),
-        ]
+        instructions = [VariableGetInstruction.new(:it)]
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -2120,9 +2014,7 @@ module Natalie
       alias transform_keyword_hash_node transform_hash_node
 
       def transform_lambda_node(node, used:)
-        instructions = track_scope(node) do
-          transform_block_node(node, used: true, is_lambda: true)
-        end
+        instructions = track_scope(node) { transform_block_node(node, used: true, is_lambda: true) }
         instructions << CreateLambdaInstruction.new(file: @file.path, line: node.location.start_line)
         instructions << PopInstruction.new unless used
         instructions
@@ -2143,9 +2035,7 @@ module Natalie
           @file = file_was
         end
 
-        instructions = [
-          LoadFileInstruction.new(filename, require_once: require_once),
-        ]
+        instructions = [LoadFileInstruction.new(filename, require_once: require_once)]
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -2335,9 +2225,7 @@ module Natalie
           file: @file.path,
           line: node.location.start_line,
         )
-        instructions += with_locals(node.locals) do
-          transform_body(node.body, used: true, location: node.location)
-        end
+        instructions += with_locals(node.locals) { transform_body(node.body, used: true, location: node.location) }
         instructions << EndInstruction.new(:define_module)
         instructions << PopInstruction.new unless used
         instructions
@@ -2357,14 +2245,9 @@ module Natalie
       end
 
       def transform_next_node(node, used:)
-        if %i[while_node until_node].include?(@next_or_break_context.last)
-          return [ContinueInstruction.new]
-        end
+        return [ContinueInstruction.new] if %i[while_node until_node].include?(@next_or_break_context.last)
 
-        [
-          transform_arguments_node_for_returnish(node.arguments, location: node.location),
-          NextInstruction.new
-        ]
+        [transform_arguments_node_for_returnish(node.arguments, location: node.location), NextInstruction.new]
       end
 
       def transform_nil_node(_, used:)
@@ -2373,9 +2256,7 @@ module Natalie
       end
 
       def transform_numbered_reference_read_node(node, used:)
-        if node.number == 0
-          return used ? [PushNilInstruction.new] : []
-        end
+        return used ? [PushNilInstruction.new] : [] if node.number == 0
 
         return [] unless used
         [
@@ -2483,7 +2364,7 @@ module Natalie
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
-          )
+          ),
         ]
       end
 
@@ -2517,9 +2398,7 @@ module Natalie
 
       def transform_rescue_node(node, used:)
         exceptions = node.exceptions.dup
-        if exceptions.empty?
-          exceptions << Prism.constant_read_node(name: :StandardError, location: node.location)
-        end
+        exceptions << Prism.constant_read_node(name: :StandardError, location: node.location) if exceptions.empty?
 
         instructions = [
           exceptions.map { |n| transform_expression(n, used: true) },
@@ -2557,7 +2436,7 @@ module Natalie
               with_block: false,
               file: @file.path,
               line: node.location.start_line,
-            )
+            ),
           ]
         end
         instructions << EndInstruction.new(:if)
@@ -2596,10 +2475,7 @@ module Natalie
           instructions << ClassVariableSetInstruction.new(node.name)
         when ::Prism::ConstantTargetNode, ::Prism::ConstantPathTargetNode
           prepper = ConstPrepper.new(node, pass: self)
-          instructions << [
-            prepper.namespace,
-            ConstSetInstruction.new(prepper.name)
-          ]
+          instructions << [prepper.namespace, ConstSetInstruction.new(prepper.name)]
         when ::Prism::GlobalVariableTargetNode
           instructions << GlobalVariableSetInstruction.new(node.name)
         when ::Prism::IndexTargetNode
@@ -2635,10 +2511,7 @@ module Natalie
       end
 
       def transform_return_node(node, used:) # rubocop:disable Lint/UnusedMethodArgument
-        [
-          transform_arguments_node_for_returnish(node.arguments, location: node.location),
-          ReturnInstruction.new
-        ]
+        [transform_arguments_node_for_returnish(node.arguments, location: node.location), ReturnInstruction.new]
       end
 
       def transform_self_node(_, used:)
@@ -2697,7 +2570,7 @@ module Natalie
         instructions = [
           transform_expression(node.left, used: true),
           transform_expression(node.right, used: true),
-          StringAppendInstruction.new
+          StringAppendInstruction.new,
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -2707,11 +2580,12 @@ module Natalie
         return [] unless used
 
         encoding = encoding_for_string_node(node)
-        status = if @frozen_string_literal || node.frozen?
-                   :frozen
-                 elsif !node.mutable?
-                   :chilled
-                 end
+        status =
+          if @frozen_string_literal || node.frozen?
+            :frozen
+          elsif !node.mutable?
+            :chilled
+          end
         PushStringInstruction.new(node.unescaped, encoding: encoding, status:)
       end
 
@@ -2721,11 +2595,7 @@ module Natalie
         # block handling
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
-          instructions << transform_expression(
-            node.block,
-            used: true,
-            is_lambda: is_lambda_call?(node)
-          )
+          instructions << transform_expression(node.block, used: true, is_lambda: is_lambda_call?(node))
         elsif node.block.is_a?(Prism::BlockArgumentNode)
           with_block = true
           instructions << transform_expression(node.block, used: true)
@@ -2738,7 +2608,7 @@ module Natalie
         instructions << SuperInstruction.new(
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
           with_block: with_block,
-          has_keyword_hash: call_args.fetch(:has_keyword_hash)
+          has_keyword_hash: call_args.fetch(:has_keyword_hash),
         )
 
         instructions << PopInstruction.new unless used
@@ -2756,12 +2626,8 @@ module Natalie
       end
 
       def transform_undef_node(node, used:)
-        instructions = node.names.flat_map do |name|
-          [
-            transform_expression(name, used: true),
-            UndefineMethodInstruction.new
-          ]
-        end
+        instructions =
+          node.names.flat_map { |name| [transform_expression(name, used: true), UndefineMethodInstruction.new] }
 
         instructions << PushNilInstruction.new if used
         instructions
@@ -2833,7 +2699,7 @@ module Natalie
             with_block: false,
             file: @file.path,
             line: node.location.start_line,
-          )
+          ),
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -2877,10 +2743,10 @@ module Natalie
             SendInstruction.new(
               :raise,
               receiver_is_self: true,
-              with_block:       false,
-              file:             @file.path,
-              line:             node.location.start_line,
-            ),
+              with_block: false,
+              file: @file.path,
+              line: node.location.start_line,
+            )
           ]
         end
 
@@ -2937,18 +2803,13 @@ module Natalie
       end
 
       def is_lambda_call?(node)
-        node.is_a?(::Prism::CallNode) &&
-          node.receiver.nil? &&
-          node.name == :lambda &&
+        node.is_a?(::Prism::CallNode) && node.receiver.nil? && node.name == :lambda &&
           (node.arguments.nil? || node.arguments.arguments.empty?)
       end
 
       def is_inline_macro_call_node?(node)
-        inline_enabled = @inline_cpp_enabled[@file.path] ||
-                         node.name == :__internal_inline_code__
-        inline_enabled &&
-          node.receiver.nil? &&
-          INLINE_CPP_MACROS.include?(node.name)
+        inline_enabled = @inline_cpp_enabled[@file.path] || node.name == :__internal_inline_code__
+        inline_enabled && node.receiver.nil? && INLINE_CPP_MACROS.include?(node.name)
       end
 
       def with_locals(locals)

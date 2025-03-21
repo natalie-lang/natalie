@@ -47,7 +47,7 @@ class StringScanner
   end
 
   def empty?
-    warn("warning: StringScanner#empty? is obsolete; use #eos? instead") if $VERBOSE
+    warn('warning: StringScanner#empty? is obsolete; use #eos? instead') if $VERBOSE
     eos?
   end
 
@@ -87,12 +87,13 @@ class StringScanner
       raise TypeError, "no implicit conversion of #{pattern.class} into String" unless pattern.is_a?(String)
       pattern = Regexp.new(Regexp.quote(pattern))
     end
-    @match = if @fixed_anchor
-               @string.match(pattern, @pos)
-             else
-               anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
-               rest.match(anchored_pattern)
-             end
+    @match =
+      if @fixed_anchor
+        @string.match(pattern, @pos)
+      else
+        anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
+        rest.match(anchored_pattern)
+      end
     if @match
       if @fixed_anchor && pattern.source.start_with?('^') && @match.pre_match.size > @pos
         @match = nil
@@ -165,7 +166,7 @@ class StringScanner
   end
 
   def peep(length)
-    warn("warning: StringScanner#peep is obsolete; use #peek instead") if $VERBOSE
+    warn('warning: StringScanner#peep is obsolete; use #peek instead') if $VERBOSE
     peek(length)
   end
 
@@ -192,15 +193,13 @@ class StringScanner
   end
 
   def getbyte
-    warn("warning: StringScanner#getbyte is obsolete; use #get_byte instead") if $VERBOSE
+    warn('warning: StringScanner#getbyte is obsolete; use #get_byte instead') if $VERBOSE
     get_byte
   end
 
   def [](index)
     return nil unless @match
-    if index.is_a?(Range)
-      raise TypeError, "no implicit conversion of #{index.class} into Integer"
-    end
+    raise TypeError, "no implicit conversion of #{index.class} into Integer" if index.is_a?(Range)
 
     @match[index]
   end
@@ -265,7 +264,7 @@ class StringScanner
   end
 
   def restsize
-    warn("warning: StringScanner#restsize is obsolete; use #rest_size instead") if $VERBOSE
+    warn('warning: StringScanner#restsize is obsolete; use #rest_size instead') if $VERBOSE
     rest_size
   end
 
@@ -288,7 +287,7 @@ class StringScanner
   end
 
   def clear
-    warn("warning: StringScanner#clear is obsolete; use #terminate instead") if $VERBOSE
+    warn('warning: StringScanner#clear is obsolete; use #terminate instead') if $VERBOSE
     terminate
   end
 

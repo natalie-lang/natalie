@@ -14,7 +14,7 @@ module Natalie
       def generate(transform)
         items = []
         if @count.zero?
-          transform.exec_and_push(:array, "Value(new ArrayObject)")
+          transform.exec_and_push(:array, 'Value(new ArrayObject)')
         else
           @count.times { items.unshift(transform.pop) }
           items_temp = transform.temp('items')
@@ -30,10 +30,7 @@ module Natalie
       end
 
       def serialize(_)
-        [
-          instruction_number,
-          @count,
-        ].pack('Cw')
+        [instruction_number, @count].pack('Cw')
       end
 
       def self.deserialize(io, _)

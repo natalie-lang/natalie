@@ -47,4 +47,3 @@ module Etc
   __bind_static_method__ :systmpdir, :Etc_systmpdir, 0
   __bind_static_method__ :uname, :Etc_uname
 end
-

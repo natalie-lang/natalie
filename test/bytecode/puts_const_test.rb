@@ -13,13 +13,13 @@ describe 'puts a const' do
     code = 'puts Float'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
+    ruby_exe(@bytecode_file, options: '--bytecode').should == ruby_exe(code)
   end
 
   it 'can run a puts with a const with path' do
     code = 'puts Float::NAN'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
+    ruby_exe(@bytecode_file, options: '--bytecode').should == ruby_exe(code)
   end
 end

@@ -26,9 +26,7 @@ class CSV
       end
 
       def advance
-        peek.tap do
-          @current_index += 1
-        end
+        peek.tap { @current_index += 1 }
       end
 
       def read_line
@@ -48,9 +46,7 @@ class CSV
       def peek
         return nil if @eof
 
-        if !@line || @current_index >= @line.size
-          read_line
-        end
+        read_line if !@line || @current_index >= @line.size
 
         @line&.[](@current_index)
       end
@@ -109,7 +105,7 @@ class CSV
 
     def parse_quoted_column_value
       advance
-      "".tap do |out|
+      ''.tap do |out|
         while true
           if quote?
             advance
@@ -127,15 +123,11 @@ class CSV
     end
 
     def parse_unquoted_column_value
-      if separator? || eof? || line_break?
-        return nil
-      end
+      return nil if separator? || eof? || line_break?
 
-      "".tap do |out|
+      ''.tap do |out|
         while !(separator? || eof? || line_break?)
-          if !@options[:liberal_parsing] && quote?
-            raise MalformedCSVError.new('Illegal quoting', @lineno)
-          end
+          raise MalformedCSVError.new('Illegal quoting', @lineno) if !@options[:liberal_parsing] && quote?
 
           out << advance
         end

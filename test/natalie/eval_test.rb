@@ -40,9 +40,7 @@ describe 'eval macro' do
   end
 
   it 'raises an TypeError for interpolated strings or other values' do
-    if RUBY_ENGINE == 'natalie'
-      -> { eval("1 + #{1}") }.should raise_error(TypeError)
-    end
+    -> { eval("1 + #{1}") }.should raise_error(TypeError) if RUBY_ENGINE == 'natalie'
     -> { eval(1) }.should raise_error(TypeError)
   end
 

@@ -275,14 +275,14 @@ describe 'File' do
     end
   end
 
-  describe ".chmod" do
-    it "allows a single mode argument and no files" do
+  describe '.chmod' do
+    it 'allows a single mode argument and no files' do
       File.chmod(0777).should == 0
     end
   end
 
-  describe "#inspect" do
-    it "should include the filename" do
+  describe '#inspect' do
+    it 'should include the filename' do
       f = File.new('test/support/file.txt')
       f.inspect.should.include?('test/support/file.txt')
       f.inspect.should_not.include?('(closed)')
@@ -346,7 +346,10 @@ describe 'File' do
     it 'raises a TypeError if the result of #to_str is not a String' do
       to_str = mock(:to_str)
       to_str.should_receive(:to_str).and_return(:not_a_string)
-      -> { File.lutime(nil, nil, to_str) }.should raise_error(TypeError, "can't convert MockObject to String (MockObject#to_str gives Symbol)")
+      -> { File.lutime(nil, nil, to_str) }.should raise_error(
+                   TypeError,
+                   "can't convert MockObject to String (MockObject#to_str gives Symbol)",
+                 )
     end
 
     it 'supports multiple file arguments' do

@@ -53,8 +53,8 @@ module Natalie
         code = []
         code << "Value #{klass}"
         code << "auto #{klass_found} = Object::const_find_with_autoload(env, #{namespace}, self, " \
-                "#{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, " \
-                'Object::ConstLookupFailureMode::None)'
+          "#{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, " \
+          'Object::ConstLookupFailureMode::None)'
         code << "if (#{klass_found}) {"
         code << "  #{klass} = #{klass_found}.value()"
         code << "  if (!#{klass}.is_class()) {"
@@ -86,11 +86,7 @@ module Natalie
 
       def serialize(rodata)
         position = rodata.add(@name.to_s)
-        [
-          instruction_number,
-          position,
-          @is_private ? 1 : 0,
-        ].pack('CwC')
+        [instruction_number, position, @is_private ? 1 : 0].pack('CwC')
       end
 
       def self.deserialize(io, rodata)
@@ -101,7 +97,7 @@ module Natalie
           name:,
           is_private:,
           file: '', # FIXME
-          line: 0 # FIXME
+          line: 0, # FIXME
         )
       end
     end

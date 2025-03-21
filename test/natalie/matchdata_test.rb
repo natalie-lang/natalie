@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 describe 'MatchData' do
   describe '#captures' do
     /foo/.match('foo').captures.should == []
-    /f(.)(o)/.match('foo').captures.should == ['o', 'o']
+    /f(.)(o)/.match('foo').captures.should == %w[o o]
   end
 
   describe '#size' do
@@ -55,7 +55,7 @@ describe 'MatchData' do
 
     it 'supports ranges with negative end values' do
       match = /(foo) bar (baz)/.match('foo bar baz')
-      match[1..-1].should == ['foo', 'baz']
+      match[1..-1].should == %w[foo baz]
       match[1..-2].should == ['foo']
       match[1..-3].should == []
       match[1..-4].should == []

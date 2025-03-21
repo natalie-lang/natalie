@@ -122,15 +122,14 @@ class OptionParser
     long_name, long_value = args.grep(/^\-\-/).first&.split(/[ =]/, 2)
     value_label = short_value || long_value
     description = args.grep_v(/^\-/).first
-    @switches <<
-      Switch.new(
-        short_name: short_name,
-        long_name: long_name,
-        value_label: value_label,
-        description: description,
-        block: block,
-        options: options,
-      )
+    @switches << Switch.new(
+      short_name: short_name,
+      long_name: long_name,
+      value_label: value_label,
+      description: description,
+      block: block,
+      options: options,
+    )
   end
 
   def on_path(&block)

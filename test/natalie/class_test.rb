@@ -36,13 +36,15 @@ describe 'class' do
     end
 
     it 'should check if the reopened constant really is a class' do
-      -> {
-        class RUBY_VERSION; end
-      }.should raise_error(TypeError, /RUBY_VERSION is not a class/)
+      -> do
+        class RUBY_VERSION
+        end
+      end.should raise_error(TypeError, /RUBY_VERSION is not a class/)
 
-      -> {
-        class Comparable; end
-      }.should raise_error(TypeError, /Comparable is not a class/)
+      -> do
+        class Comparable
+        end
+      end.should raise_error(TypeError, /Comparable is not a class/)
     end
   end
 end
@@ -63,30 +65,30 @@ describe 'class' do
     end
 
     it 'raises an error if the superclass is not a class' do
-      -> {
-        class WatClass < WAT; end
-      }.should raise_error(TypeError, "superclass must be an instance of Class (given an instance of Integer)")
-      -> {
-        Class.new(WAT)
-      }.should raise_error(TypeError, "superclass must be an instance of Class (given an instance of Integer)")
+      -> do
+        class WatClass < WAT
+        end
+      end.should raise_error(TypeError, 'superclass must be an instance of Class (given an instance of Integer)')
+      -> { Class.new(WAT) }.should raise_error(
+                   TypeError,
+                   'superclass must be an instance of Class (given an instance of Integer)',
+                 )
     end
 
     it 'raises an error if the superclass is Class' do
-      -> {
-        class WatClass < Class; end
-      }.should raise_error(TypeError, "can't make subclass of Class")
-      -> {
-        Class.new(Class)
-      }.should raise_error(TypeError, "can't make subclass of Class")
+      -> do
+        class WatClass < Class
+        end
+      end.should raise_error(TypeError, "can't make subclass of Class")
+      -> { Class.new(Class) }.should raise_error(TypeError, "can't make subclass of Class")
     end
 
     it 'raises an error if the superclass is a singleton class' do
-      -> {
-        class WatClass < Object.singleton_class; end
-      }.should raise_error(TypeError, "can't make subclass of singleton class")
-      -> {
-        Class.new(Object.singleton_class)
-      }.should raise_error(TypeError, "can't make subclass of singleton class")
+      -> do
+        class WatClass < Object.singleton_class
+        end
+      end.should raise_error(TypeError, "can't make subclass of singleton class")
+      -> { Class.new(Object.singleton_class) }.should raise_error(TypeError, "can't make subclass of singleton class")
     end
   end
 end

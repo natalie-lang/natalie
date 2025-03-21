@@ -21,8 +21,8 @@ module Natalie
         name = transform.temp(:compile_time_warn)
         transform.exec "static const bool #{name} = [&]() {"
         transform.exec "    self.send(env, \"warn\"_s, { new StringObject { #{string_to_cpp(message)} } })"
-        transform.exec "    return true"
-        transform.exec "}()"
+        transform.exec '    return true'
+        transform.exec '}()'
       end
 
       def execute(_vm)

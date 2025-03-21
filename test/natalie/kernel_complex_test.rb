@@ -42,9 +42,12 @@ describe 'Kernel.Complex' do
   end
 
   it 'stops on non-printable ascii chars' do
-    ->{ Complex("\x001".b) }.should raise_error(ArgumentError, 'string contains null byte')
+    -> { Complex("\x001".b) }.should raise_error(ArgumentError, 'string contains null byte')
     (Array(0x01..0x08) + Array(0x0E..0x1F) + [0x7F]).each do |c|
-      -> { Complex("#{c.chr(Encoding::ASCII_8BIT)}1") }.should raise_error(ArgumentError, /invalid value for convert\(\):/)
+      -> { Complex("#{c.chr(Encoding::ASCII_8BIT)}1") }.should raise_error(
+                   ArgumentError,
+                   /invalid value for convert\(\):/,
+                 )
     end
   end
 end

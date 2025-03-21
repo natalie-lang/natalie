@@ -20,33 +20,30 @@ def calc_delta(code, mapped)
 end
 
 def format_array(nums, count_per_line:, num_width:)
-  "    " +
-  nums.each_slice(count_per_line).map do |slice|
-    slice.map do |num|
-      num.to_s.rjust(num_width)
-    end.join(', ')
-  end.join(",\n    ")
+  '    ' +
+    nums
+      .each_slice(count_per_line)
+      .map { |slice| slice.map { |num| num.to_s.rjust(num_width) }.join(', ') }
+      .join(",\n    ")
 end
 
 def build_map_and_index(blocks)
   map = EMPTY_BLOCK.dup
   idx = 0
-  index = blocks.map do |key, deltas|
-    if deltas.all?(&:zero?)
-      0
-    else
-      map += deltas
-      idx += EMPTY_BLOCK.size
+  index =
+    blocks.map do |key, deltas|
+      if deltas.all?(&:zero?)
+        0
+      else
+        map += deltas
+        idx += EMPTY_BLOCK.size
+      end
     end
-  end
   [map, index]
 end
 
 unless File.exist?('/tmp/UnicodeData.txt')
-  File.write(
-    '/tmp/UnicodeData.txt',
-    URI.open('http://ftp.unicode.org/Public/UNIDATA/UnicodeData.txt').read
-  )
+  File.write('/tmp/UnicodeData.txt', URI.open('http://ftp.unicode.org/Public/UNIDATA/UnicodeData.txt').read)
 end
 
 data = File.read('/tmp/UnicodeData.txt').split(/\n/).map { |l| l.split(';') }
@@ -69,26 +66,26 @@ ucase_map, ucase_index = build_map_and_index(ucase_blocks)
 tcase_map, tcase_index = build_map_and_index(tcase_blocks)
 
 unless File.exist?('/tmp/SpecialCasing.txt')
-  File.write(
-    '/tmp/SpecialCasing.txt',
-    URI.open('http://ftp.unicode.org/Public/UNIDATA/SpecialCasing.txt').read
-  )
+  File.write('/tmp/SpecialCasing.txt', URI.open('http://ftp.unicode.org/Public/UNIDATA/SpecialCasing.txt').read)
 end
 
-data = File.read('/tmp/SpecialCasing.txt')
-           .split(/# Conditional Mappings\n/)
-           .first
-           .split(/\n/)
-           .reject { |l| l.start_with?('#') || l.strip.empty? }
-special_casing_map = data.map do |line|
-  parts = line.sub!(/\s*#.*$/, '').split(/\s*;\s*/)
-  code, lower, title, upper = parts.map { |cc| cc.split.map { |c| c.to_i(16) } }
-  code = code.first
-  lower << 0 if lower.size < 2
-  title << 0 if title.size < 3
-  upper << 0 if upper.size < 3
-  { code:, lower:, title:, upper: }
-end
+data =
+  File
+    .read('/tmp/SpecialCasing.txt')
+    .split(/# Conditional Mappings\n/)
+    .first
+    .split(/\n/)
+    .reject { |l| l.start_with?('#') || l.strip.empty? }
+special_casing_map =
+  data.map do |line|
+    parts = line.sub!(/\s*#.*$/, '').split(/\s*;\s*/)
+    code, lower, title, upper = parts.map { |cc| cc.split.map { |c| c.to_i(16) } }
+    code = code.first
+    lower << 0 if lower.size < 2
+    title << 0 if title.size < 3
+    upper << 0 if upper.size < 3
+    { code:, lower:, title:, upper: }
+  end
 
 puts '// This file is auto-generated from http://ftp.unicode.org/Public/UNIDATA/UnicodeData.txt'
 puts '// See casemap_gen.rb in this repository for instructions regenerating it.'

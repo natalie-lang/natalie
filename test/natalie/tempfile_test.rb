@@ -45,13 +45,13 @@ describe 'Tempfile' do
     end
 
     it 'accepts an array with 2 elements' do
-      @temp = Tempfile.new(['basename', '.ext'])
+      @temp = Tempfile.new(%w[basename .ext])
       @temp.path.should.include?('basename')
       @temp.path.should.end_with?('.ext')
     end
 
     it 'accepts an array with 3 elements, but ignores the third element' do
-      @temp = Tempfile.new(['basename', '.ext', 'foobarbaz'])
+      @temp = Tempfile.new(%w[basename .ext foobarbaz])
       @temp.path.should.include?('basename')
       @temp.path.should.end_with?('.ext')
       @temp.path.should_not.include?('foobarbaz')

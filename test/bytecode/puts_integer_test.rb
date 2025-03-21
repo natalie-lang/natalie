@@ -13,21 +13,21 @@ describe 'puts an integer' do
     code = 'puts 0'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
+    ruby_exe(@bytecode_file, options: '--bytecode').should == ruby_exe(code)
   end
 
   it 'can run a puts with 1' do
     code = 'puts 1'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
+    ruby_exe(@bytecode_file, options: '--bytecode').should == ruby_exe(code)
   end
 
   it 'can run a puts with -1' do
     code = 'puts -1'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
+    ruby_exe(@bytecode_file, options: '--bytecode').should == ruby_exe(code)
   end
 
   it 'can run a puts with the extreme positive value for regular int encoding' do
@@ -35,7 +35,7 @@ describe 'puts an integer' do
     code = "puts #{num}"
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
+    ruby_exe(@bytecode_file, options: '--bytecode').should == ruby_exe(code)
   end
 
   it 'can run a puts with the extreme negative value for regular int encoding' do
@@ -43,7 +43,7 @@ describe 'puts an integer' do
     code = "puts #{num}"
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
+    ruby_exe(@bytecode_file, options: '--bytecode').should == ruby_exe(code)
   end
 
   it 'can run a puts with a bignum' do
@@ -51,7 +51,7 @@ describe 'puts an integer' do
     code = "puts #{num}"
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
+    ruby_exe(@bytecode_file, options: '--bytecode').should == ruby_exe(code)
   end
 
   it 'can run a puts with a negative bignum' do
@@ -59,6 +59,6 @@ describe 'puts an integer' do
     code = "puts -#{num}"
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
+    ruby_exe(@bytecode_file, options: '--bytecode').should == ruby_exe(code)
   end
 end
