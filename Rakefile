@@ -544,6 +544,7 @@ end
 
 file "build/libnat.#{SO_EXT}" => LIBNAT_SOURCES do |t|
   cmd = [
+    "CXX='#{cxx}'",
     'NAT_CXX_FLAGS="-fPIC"',
     'NAT_LD_FLAGS="-shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup"',
     "bin/natalie -c build/libnat.#{SO_EXT}",
@@ -567,7 +568,7 @@ end
 rule '.rb.o' => ['src/%{build\/generated/,}X'] do |t|
   subdir = File.dirname(t.name)
   mkdir_p(subdir) unless File.directory?(subdir)
-  sh "NAT_CXX_FLAGS='-fPIC' bin/natalie --compilation-type=object -c #{t.name} #{t.source}"
+  sh "NAT_CXX_FLAGS='-fPIC' CXX='#{cxx}' bin/natalie --compilation-type=object -c #{t.name} #{t.source}"
 end
 
 file "build/libprism.#{SO_EXT}" => ['build/libprism.a']
