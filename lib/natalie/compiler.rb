@@ -45,11 +45,11 @@ module Natalie
     attr_writer :load_path, :out_path
 
     def compile
-      backend.compile_to_binary
-    end
-
-    def write_object_source
-      backend.write_object_source(write_obj_source_path)
+      if compilation_type == 'object'
+        backend.compile_to_object_file(@out_path)
+      else
+        backend.compile_to_binary
+      end
     end
 
     def write_bytecode_to_file

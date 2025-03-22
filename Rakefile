@@ -39,10 +39,10 @@ task :clean do
     rm_rf path
   end
   rm_rf 'build/build.log'
-  rm_rf 'build/libnat'
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
   rm_rf "build/libnatalie_base.#{DL_EXT}"
+  rm_rf 'build/libnat'
   rm_rf "build/libnat.#{SO_EXT}"
   rm_rf Rake::FileList['build/*.o']
   rm_rf 'test/build'
@@ -555,19 +555,15 @@ rule '.c.o' => 'src/%n' do |t|
 end
 
 rule '.cpp.o' => ['src/%{build/,}X'] + HEADERS do |t|
-  subdir = File.split(t.name).first
-  mkdir_p subdir unless File.exist?(subdir)
+  subdir = File.dirname(t.name)
+  mkdir_p(subdir) unless File.directory?(subdir)
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 
-rule '.rb.o' => ['.rb.cpp'] + HEADERS do |t|
-  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
-end
-
-rule '.rb.cpp' => ['src/%{build\/generated/,}X'] do |t|
-  subdir = File.split(t.name).first
-  mkdir_p subdir unless File.exist?(subdir)
-  sh "bin/natalie --write-obj-source #{t.name} #{t.source}"
+rule '.rb.o' => ['src/%{build\/generated/,}X'] do |t|
+  subdir = File.dirname(t.name)
+  mkdir_p(subdir) unless File.directory?(subdir)
+  sh "NAT_CXX_FLAGS='-fPIC' bin/natalie --compilation-type=object -c #{t.name} #{t.source}"
 end
 
 file "build/libprism.#{SO_EXT}" => ['build/libprism.a']
