@@ -181,7 +181,7 @@ class StringScanner
 
   alias search_full scan_full
 
-  def get_byte # rubocop:disable Naming/AccessorMethodName
+  def get_byte
     @matched = scan(/./)
   end
 
@@ -291,7 +291,7 @@ class StringScanner
     terminate
   end
 
-  def self.must_C_version # rubocop:disable Naming/MethodName
+  def self.must_C_version
     self
   end
 end

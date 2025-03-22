@@ -9,7 +9,7 @@ TABLES = {
 }.freeze
 
 TABLES.each do |table_name, url|
-  lines = URI.open(url).readlines(chomp: true) # rubocop:disable Security/Open
+  lines = URI.open(url).readlines(chomp: true)
   index = lines.grep_v(/^#|^\s*$/).map(&:split).each_with_object({}) { |(idx, value, *), hash| hash[idx.to_i] = value }
 
   print "static const long #{table_name}[] = {"

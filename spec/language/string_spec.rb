@@ -254,7 +254,7 @@ end
 
 describe "Ruby String interpolation" do
   it "permits an empty expression" do
-    s = "#{}" # rubocop:disable Lint/EmptyInterpolation
+    s = "#{}"
     s.should.empty?
     s.should_not.frozen?
   end

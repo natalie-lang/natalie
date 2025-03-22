@@ -21,7 +21,7 @@ module FileUtils
     mkdir =
       lambda do |dir, *args|
         Dir.mkdir(dir, *args)
-      rescue StandardError # rubocop:disable Style/RescueStandardError
+      rescue StandardError
         raise unless File.directory?(dir)
       end
 

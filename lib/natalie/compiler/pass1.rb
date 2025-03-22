@@ -2510,7 +2510,7 @@ module Natalie
         [RetryInstruction.new(id: @retry_context.last)]
       end
 
-      def transform_return_node(node, used:) # rubocop:disable Lint/UnusedMethodArgument
+      def transform_return_node(node, used:)
         [transform_arguments_node_for_returnish(node.arguments, location: node.location), ReturnInstruction.new]
       end
 

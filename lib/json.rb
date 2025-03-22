@@ -136,10 +136,10 @@ module JSON
       case (c = current_char)
       when 't'
         raise ParserError, "unknown literal: #{c}" unless advance(4) == 'true'
-        :true # rubocop:disable Lint/BooleanSymbol
+        :true
       when 'f'
         raise ParserError, "unknown literal: #{c}" unless advance(5) == 'false'
-        :false # rubocop:disable Lint/BooleanSymbol
+        :false
       when 'n'
         raise ParserError, "unknown literal: #{c}" unless advance(4) == 'null'
         :null
@@ -261,9 +261,9 @@ module JSON
 
     def parse_sequence(token)
       case token
-      when :true # rubocop:disable Lint/BooleanSymbol
+      when :true
         true
-      when :false # rubocop:disable Lint/BooleanSymbol
+      when :false
         false
       when :null
         nil
