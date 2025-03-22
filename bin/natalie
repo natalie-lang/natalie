@@ -109,6 +109,15 @@ OptionParser
       options[:build_quietly] = true
     end
 
+    opts.on('--compilation-type=TYPE', 'One of "executable" (default), "object", or "shared-object"') do |type|
+      unless %w[executable object shared-object].include?(type)
+        puts "Unrecognized --compilation-type: #{type.inspect}"
+        puts "Must be one of 'executable', 'object', or 'shared-object'"
+        exit 1
+      end
+      options[:compilation_type] = type
+    end
+
     opts.on('--keep-cpp', 'Do not delete intermediate cpp file used for compilation') { options[:keep_cpp] = true }
 
     opts.on('--log-load-error', 'Log a message when natalie cannot load a required file') do

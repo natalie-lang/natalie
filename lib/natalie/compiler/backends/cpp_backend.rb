@@ -109,7 +109,8 @@ module Natalie
       end
 
       def obj_name
-        @compiler.write_obj_source_path.sub(/\.rb\.cpp/, '').sub(%r{.*build/(generated/)?}, '').tr('/', '_')
+        path = @compiler.write_obj_source_path || @compiler.out_path
+        path.sub(/\.rb\.cpp$/, '').sub(/\.so$/, '').sub(%r{.*build/(generated/)?}, '').tr('/', '_')
       end
 
       private
@@ -147,7 +148,11 @@ module Natalie
       def prepare_main_out_file
         main_transform = build_transform(@instructions)
         body = main_transform.transform('return')
-        type = write_object_file? ? :obj : :main
+        if write_object_file?
+          type = :obj
+        else
+          type = { 'executable' => :main, 'object' => :obj, 'shared-object' => :obj }.fetch(@compiler.compilation_type)
+        end
         out_file_for_source(type:, body:, ruby_path: @compiler_context[:source_path])
       end
 

@@ -58,9 +58,7 @@ module Natalie
             .lock do
               File.open(path, File::RDWR | File::CREAT) do |f|
                 existing_source = f.read
-                if existing_source != ''
-                  break if existing_source == merged_source
-                end
+                break if existing_source != '' && existing_source == merged_source
                 f.rewind
                 f.truncate(0)
                 f.write(merged_source)
@@ -86,7 +84,7 @@ module Natalie
                 return out_path
               end
 
-              raise 'Something went wrong. The source file is empty.' if File.stat(@cpp_path).size.zero?
+              raise "Something went wrong. The source file #{@cpp_path} is empty." if File.stat(@cpp_path).size.zero?
 
               cmd = compiler_command
               puts cmd if @compiler.debug == 'cc-cmd'
@@ -163,7 +161,7 @@ module Natalie
 
         private
 
-        def get_template
+        def get_template # rubocop:disable Naming/AccessorMethodName
           case @type
           when :main
             MAIN_TEMPLATE

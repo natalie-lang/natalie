@@ -39,7 +39,7 @@ task :clean do
     rm_rf path
   end
   rm_rf 'build/build.log'
-  rm_rf 'build/libnat.rb.cpp'
+  rm_rf 'build/libnat'
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
   rm_rf "build/libnatalie_base.#{DL_EXT}"
@@ -539,12 +539,15 @@ file 'bin/nat' => OBJECT_FILES + ['bin/natalie'] do
 end
 
 file "build/libnat.#{SO_EXT}" => SOURCES + %w[lib/libnat_api.rb lib/libnat_api.cpp] do |t|
-  sh 'bin/natalie --write-obj-source build/libnat.rb.cpp lib/libnat_api.rb'
-  flags = `pkg-config --cflags --libs libffi`.chomp if system('pkg-config --exists libffi')
-  sh "#{cxx} #{cxx_flags.join(' ')} #{flags} -std=#{STANDARD} " \
-       '-DNAT_OBJECT_FILE -shared -fPIC -rdynamic ' \
-       '-Wl,-undefined,dynamic_lookup ' \
-       "-o #{t.name} build/libnat.rb.cpp"
+  cmd = [
+    'NAT_CXX_FLAGS="-DNAT_OBJECT_FILE -fPIC"',
+    'NAT_LD_FLAGS="-shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup"',
+    "bin/natalie -c build/libnat.#{SO_EXT}",
+    '--build-dir=build/libnat',
+    '--compilation-type=shared-object',
+    'lib/libnat_api.rb',
+  ].join(' ')
+  sh cmd
 end
 
 rule '.c.o' => 'src/%n' do |t|

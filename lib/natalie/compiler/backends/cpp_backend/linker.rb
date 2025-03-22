@@ -35,7 +35,8 @@ module Natalie
             libraries.join(' '),
             link_flags,
             "-o #{@compiler.out_path}",
-          ].join(' ')
+            ENV['NAT_LD_FLAGS'],
+          ].compact.join(' ')
         end
 
         private
