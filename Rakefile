@@ -539,7 +539,7 @@ file 'build/generated/bindings.cpp.o' => ['lib/natalie/compiler/binding_gen.rb']
 end
 
 file 'bin/nat' => OBJECT_FILES + ['bin/natalie'] do
-  sh 'bin/natalie -c bin/nat bin/natalie'
+  sh 'bin/natalie --build-dir=build/libnat -c bin/nat bin/natalie'
 end
 
 file "build/libnat.#{SO_EXT}" => LIBNAT_SOURCES do |t|
