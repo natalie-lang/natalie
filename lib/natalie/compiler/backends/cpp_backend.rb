@@ -68,20 +68,22 @@ module Natalie
           object_path = one_out.compile_object_file
           link([object_path])
         else
-          object_paths =
+          object_paths = []
+          threads =
             outs.map do |out|
-              build_print "compiling #{out.relative_ruby_path}... "
-              object_path = out.compile_object_file
-              case out.status
-              when :compiled
-                build_puts 'done'
-              when :unchanged
-                build_puts 'unchanged'
-              else
-                raise "unexpected status: #{out.status}"
+              Thread.new do
+                object_paths << out.compile_object_file
+                case out.status
+                when :compiled
+                  build_puts "compiled: #{out.relative_ruby_path}"
+                when :unchanged
+                  build_puts "unchanged: #{out.relative_ruby_path}"
+                else
+                  raise "unexpected status: #{out.status}"
+                end
               end
-              object_path
             end
+          threads.each(&:join)
           build_puts 'linking...'
           link(object_paths)
           build_puts 'done'
