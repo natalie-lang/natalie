@@ -32,6 +32,7 @@ module Natalie
         end
 
         attr_reader :ruby_path, :cpp_path, :status
+        attr_writer :out_path
 
         def write_source
           if build_dir

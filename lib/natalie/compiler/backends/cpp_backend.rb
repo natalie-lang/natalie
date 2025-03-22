@@ -102,15 +102,16 @@ module Natalie
         end
       end
 
-      def write_object_source(path)
+      def compile_to_object_file(out_path)
         outs = prepare_out_files
-        out = merge_out_file_sources(outs)
-        out.write_source_to_path(path)
+        one_out = merge_out_file_sources(outs)
+        one_out.out_path = out_path
+        one_out.compile_object_file
       end
 
       def obj_name
         path = @compiler.write_obj_source_path || @compiler.out_path
-        path.sub(/\.rb\.cpp$/, '').sub(/\.so$/, '').sub(%r{.*build/(generated/)?}, '').tr('/', '_')
+        path.sub(/\.rb\.o$/, '').sub(/\.so$/, '').sub(%r{.*build/(generated/)?}, '').tr('/', '_')
       end
 
       private
@@ -151,7 +152,7 @@ module Natalie
         if write_object_file?
           type = :obj
         else
-          type = { 'executable' => :main, 'object' => :obj, 'shared-object' => :obj }.fetch(@compiler.compilation_type)
+          type = { 'executable' => :main, 'object' => :obj, 'shared-object' => :obj }.fetch(compilation_type)
         end
         out_file_for_source(type:, body:, ruby_path: @compiler_context[:source_path])
       end
@@ -167,6 +168,7 @@ module Natalie
       end
 
       def check_build
+        return if compilation_type == 'object'
         return if File.file?(File.join(BUILD_DIR, "libnatalie_base.#{DL_EXT}"))
 
         puts 'please run: rake'
@@ -187,7 +189,7 @@ module Natalie
       end
 
       def build_var_prefix
-        if write_object_file?
+        if write_object_file? || compilation_type == 'object'
           "#{obj_name}_"
         elsif @compiler.repl?
           "repl#{@compiler.repl_num}_"
@@ -199,6 +201,8 @@ module Natalie
       def write_object_file?
         !!@compiler.write_obj_source_path
       end
+
+      def compilation_type = @compiler.compilation_type
 
       def augment_compiler_context
         @compiler_context.merge!(compile_cxx_flags: [], compile_ld_flags: [])
