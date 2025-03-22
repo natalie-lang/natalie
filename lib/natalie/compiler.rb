@@ -126,6 +126,7 @@ module Natalie
     def build = options[:build]
     def build_dir = options[:build_dir]
     def build_quietly? = !!options[:build_quietly]
+    def compilation_type = options.fetch(:compilation_type, 'executable')
     def keep_cpp? = !!((debug && debug != 'cc-cmd') || options[:keep_cpp])
     def interpret? = !!options[:interpret]
     def dynamic_linking? = !!options[:dynamic_linking]
