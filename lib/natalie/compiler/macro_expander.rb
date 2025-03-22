@@ -186,11 +186,11 @@ module Natalie
         end
       end
 
-      def macro_nat_ignore_require(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
+      def macro_nat_ignore_require(expr:, current_path:)
         Prism.false_node(location: nil) # Script has not been loaded
       end
 
-      def macro_nat_ignore_require_relative(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
+      def macro_nat_ignore_require_relative(expr:, current_path:)
         Prism.false_node(location: nil) # Script has not been loaded
       end
 

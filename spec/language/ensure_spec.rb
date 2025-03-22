@@ -347,7 +347,7 @@ describe "An ensure block inside 'do end' block" do
         begin
           raise "oops"
         ensure
-          return caller(0, 2) # rubocop:disable Lint/EnsureReturn
+          return caller(0, 2)
         end
       end
       line = __LINE__

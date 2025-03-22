@@ -28,7 +28,7 @@ end
 # this is here to test that order of requires goes top-to-bottom
 class Foo1Child < Foo1
 end
-require 'require/simple' # rubocop:disable Lint/DuplicateRequire
+require 'require/simple'
 
 # having this top-level variable named the same as the one in simple.rb
 # should not cause a compilation error

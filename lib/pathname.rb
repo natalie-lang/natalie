@@ -99,10 +99,10 @@ class Pathname
 end
 
 module Kernel
-  private def Pathname(arg) # rubocop:disable Naming/MethodName
+  private def Pathname(arg)
     Pathname.new(arg)
   end
-  def self.Pathname(arg) # rubocop:disable Naming/MethodName
+  def self.Pathname(arg)
     Pathname.new(arg)
   end
 end

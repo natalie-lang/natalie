@@ -10,7 +10,7 @@ class Foo
   end
 
   def public_foo_calling_private_foo_with_self
-    self.private_foo # rubocop:disable Style/RedundantSelf
+    self.private_foo
   end
 
   def public_foo_calling_protected_foo

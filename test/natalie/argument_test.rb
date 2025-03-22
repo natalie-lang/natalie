@@ -77,7 +77,7 @@ end
 describe 'underscore args' do
   def underscore_arguments(_, _)
     _
-  end # rubocop:disable Lint/UnderscorePrefixedVariableName
+  end
 
   it 'does not overwrite the first underscore' do
     underscore_arguments(1, 2).should == 1

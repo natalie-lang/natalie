@@ -751,7 +751,7 @@ describe "A block" do
     end
 
     it "accepts unnamed arguments" do
-      lambda { |_,_| }.should be_an_instance_of(Proc) # rubocop:disable Style/Lambda
+      lambda { |_,_| }.should be_an_instance_of(Proc)
       -> _,_ {}.should be_an_instance_of(Proc)
       Proc.new { |_,_| }.should be_an_instance_of(Proc)
     end

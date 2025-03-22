@@ -357,16 +357,16 @@ end
 # # # # Build Compile Database # # # #
 
 if system('command -v compiledb 2>&1 >/dev/null')
-  $compiledb_out = [] # rubocop:disable Style/GlobalVars
+  $compiledb_out = []
 
   def $stderr.puts(str)
     write(str + "\n")
-    $compiledb_out << str # rubocop:disable Style/GlobalVars
+    $compiledb_out << str
   end
 
   task :write_compile_database do
-    if $compiledb_out.any? # rubocop:disable Style/GlobalVars
-      File.write('build/build.log', $compiledb_out.join("\n")) # rubocop:disable Style/GlobalVars
+    if $compiledb_out.any?
+      File.write('build/build.log', $compiledb_out.join("\n"))
       sh 'compiledb < build/build.log'
     end
   end

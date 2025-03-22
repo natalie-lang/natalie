@@ -74,7 +74,7 @@ class Fiddle
       end
     end
 
-    private # rubocop:disable Lint/UselessAccessModifier
+    private
 
     # NOTE: currently only supporting the few function signatures that we need for Natalie's REPL
     # In the future, Natalie will have macros that will allow this to be generated at compile time.
