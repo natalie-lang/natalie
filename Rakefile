@@ -383,7 +383,7 @@ HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
 
 PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp', 'src/des_tables.c')
 RUBY_SOURCES = Rake::FileList['src/**/*.rb']
-LIBNAT_SOURCES = Rake::FileList['lib/natalie/**/*.rb']
+LIBNAT_SOURCES = Rake::FileList['lib/natalie/**/*.rb', 'lib/libnat_api.rb']
 SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generated/bindings.cpp']
 SOURCES = PRIMARY_SOURCES + RUBY_SOURCES + LIBNAT_SOURCES + SPECIAL_SOURCES
 
@@ -542,9 +542,9 @@ file 'bin/nat' => OBJECT_FILES + ['bin/natalie'] do
   sh 'bin/natalie -c bin/nat bin/natalie'
 end
 
-file "build/libnat.#{SO_EXT}" => SOURCES + %w[lib/libnat_api.rb lib/libnat_api.cpp] do |t|
+file "build/libnat.#{SO_EXT}" => LIBNAT_SOURCES do |t|
   cmd = [
-    'NAT_CXX_FLAGS="-DNAT_OBJECT_FILE -fPIC"',
+    'NAT_CXX_FLAGS="-fPIC"',
     'NAT_LD_FLAGS="-shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup"',
     "bin/natalie -c build/libnat.#{SO_EXT}",
     '--build-dir=build/libnat',
