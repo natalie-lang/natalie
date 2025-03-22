@@ -32,15 +32,7 @@ module Natalie
       @inline_cpp_enabled = {}
     end
 
-    attr_accessor :ast,
-                  :warnings,
-                  :context,
-                  :inline_cpp_enabled,
-                  :options,
-                  :repl,
-                  :repl_num,
-                  :vars,
-                  :write_obj_source_path
+    attr_accessor :ast, :warnings, :context, :inline_cpp_enabled, :options, :repl, :repl_num, :vars
 
     attr_writer :load_path, :out_path
 

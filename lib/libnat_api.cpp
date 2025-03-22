@@ -15,7 +15,7 @@ Value init_libnat_api(Env *env, Value self) {
 }
 
 #ifdef NAT_OBJECT_FILE
-// This gets redefined just a bit later by `bin/natalie --write-obj-source` (see obj_unit.cpp).
+// This gets redefined just a bit later by `bin/natalie --compilation-type=object` (see obj_unit.cpp).
 Value init_libnat(Env *env, Value self);
 #else
 Value init_libnat(Env *env, Value self) {
