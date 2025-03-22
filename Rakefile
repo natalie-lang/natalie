@@ -18,17 +18,17 @@ task :build do
 end
 
 desc 'Build Natalie with release optimizations enabled and warnings off (default)'
-task build_release: %i[set_build_release libnatalie prism_c_ext] do
+task build_release: %i[set_build_release libnatalie prism_c_ext libnat] do
   puts 'Build mode: release'
 end
 
 desc 'Build Natalie with no optimization and all warnings'
-task build_debug: %i[set_build_debug libnatalie prism_c_ext ctags] do
+task build_debug: %i[set_build_debug libnatalie prism_c_ext libnat ctags] do
   puts 'Build mode: debug'
 end
 
 desc 'Build Natalie with sanitizers enabled'
-task build_sanitized: %i[set_build_sanitized libnatalie prism_c_ext] do
+task build_sanitized: %i[set_build_sanitized libnatalie prism_c_ext libnat] do
   puts 'Build mode: sanitized'
 end
 
@@ -159,7 +159,7 @@ task :copy_generated_files_to_output do
 end
 
 desc 'Build the self-hosted version of Natalie at bin/nat'
-task bootstrap: [:build, "build/libnat.#{SO_EXT}", 'bin/nat']
+task bootstrap: [:build, 'bin/nat']
 
 desc 'Build MRI C Extension for Prism'
 task prism_c_ext: ["build/libprism.#{SO_EXT}", "build/prism/ext/prism/prism.#{DL_EXT}"]
@@ -382,9 +382,10 @@ STANDARD = 'c++17'.freeze
 HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
 
 PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp', 'src/des_tables.c')
-RUBY_SOURCES = Rake::FileList['src/**/*.rb'].exclude('**/extconf.rb')
+RUBY_SOURCES = Rake::FileList['src/**/*.rb']
+LIBNAT_SOURCES = Rake::FileList['lib/natalie/**/*.rb']
 SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generated/bindings.cpp']
-SOURCES = PRIMARY_SOURCES + RUBY_SOURCES + SPECIAL_SOURCES
+SOURCES = PRIMARY_SOURCES + RUBY_SOURCES + LIBNAT_SOURCES + SPECIAL_SOURCES
 
 PRIMARY_OBJECT_FILES = PRIMARY_SOURCES.sub('src/', 'build/').pathmap('%p.o')
 RUBY_OBJECT_FILES = RUBY_SOURCES.pathmap('build/generated/%{^src/,}p.o')
@@ -438,11 +439,14 @@ task libnatalie: [
        :write_compile_database,
      ]
 
+# libnat is the parser and compiler, needed for the REPL.
+task libnat: ["build/libnat.#{SO_EXT}"]
+
 task :build_dir do
   mkdir_p 'build/generated' unless File.exist?('build/generated')
 end
 
-task build_test_support: ["build/libnat.#{SO_EXT}", "build/test/support/ffi_stubs.#{SO_EXT}"]
+task build_test_support: ["build/test/support/ffi_stubs.#{SO_EXT}"]
 
 multitask primary_objects: PRIMARY_OBJECT_FILES
 multitask ruby_objects: RUBY_OBJECT_FILES
