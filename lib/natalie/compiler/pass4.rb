@@ -22,9 +22,7 @@ module Natalie
           method = "transform_#{instruction.class.label}"
           method << "_#{instruction.matching_label}" if instruction.matching_label
           @env = instruction.env
-          if respond_to?(method, true)
-            send(method, instruction)
-          end
+          send(method, instruction) if respond_to?(method, true)
         end
       end
 
@@ -46,10 +44,7 @@ module Natalie
 
         # get the top-most block in the method
         top_block_env = env
-        while top_block_env[:hoist] || (
-          top_block_env.dig(:outer, :block) &&
-          !top_block_env[:lambda]
-        )
+        while top_block_env[:hoist] || (top_block_env.dig(:outer, :block) && !top_block_env[:lambda])
           top_block_env = top_block_env[:outer]
         end
 
@@ -108,15 +103,13 @@ module Natalie
             ),
             EndInstruction.new(:if),
             EndInstruction.new(:try),
-          ]
+          ],
         )
       end
 
       class << self
         def debug_instructions(instructions)
-          instructions.each_with_index do |instruction, index|
-            puts "#{index} #{instruction}"
-          end
+          instructions.each_with_index { |instruction, index| puts "#{index} #{instruction}" }
         end
       end
     end

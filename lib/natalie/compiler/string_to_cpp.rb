@@ -4,7 +4,8 @@ module Natalie
       private
 
       def string_to_cpp(string)
-        chars = string.to_s.bytes.map do |byte|
+        chars =
+          string.to_s.bytes.map do |byte|
             case byte
             when 9
               "\\t"

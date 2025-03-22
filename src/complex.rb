@@ -33,39 +33,31 @@ class Complex
     real = self.real
     imaginary = self.imaginary
 
-    s = +""
+    s = +''
 
     if real.respond_to?(:nan?) && real.nan?
-      s << "NaN"
+      s << 'NaN'
     else
       s << real.send(method_name)
     end
 
-    if ! imaginary.negative? && ! imaginary.to_s.include?("-")
-      s << "+"
-    end
+    s << '+' if !imaginary.negative? && !imaginary.to_s.include?('-')
 
     if imaginary.respond_to?(:nan?) && imaginary.nan?
-      if imaginary.negative?
-        s << '-'
-      end
+      s << '-' if imaginary.negative?
 
-      s << "NaN"
-    elsif ! imaginary.finite?
-      if imaginary.negative?
-        s << '-'
-      end
+      s << 'NaN'
+    elsif !imaginary.finite?
+      s << '-' if imaginary.negative?
 
-      s << "Infinity"
+      s << 'Infinity'
     else
       s << imaginary.send(method_name)
     end
 
-    unless ('0'..'9').cover?(s[-1])
-      s << '*'
-    end
+    s << '*' unless ('0'..'9').cover?(s[-1])
 
-    s << "i"
+    s << 'i'
     s
   end
   private :_to_s
@@ -79,13 +71,9 @@ class Complex
   end
 
   def +(other)
-    if other.is_a?(Complex)
-      return Complex(self.real + other.real, self.imaginary + other.imaginary)
-    end
+    return Complex(self.real + other.real, self.imaginary + other.imaginary) if other.is_a?(Complex)
 
-    if other.is_a?(Numeric) && other.real?
-      return Complex(self.real + other, self.imaginary)
-    end
+    return Complex(self.real + other, self.imaginary) if other.is_a?(Numeric) && other.real?
 
     if other.respond_to?(:coerce)
       first, second = other.coerce(self)
@@ -94,13 +82,9 @@ class Complex
   end
 
   def -(other)
-    if other.is_a?(Complex)
-      return Complex(self.real - other.real, self.imaginary - other.imaginary)
-    end
+    return Complex(self.real - other.real, self.imaginary - other.imaginary) if other.is_a?(Complex)
 
-    if other.is_a?(Numeric) && other.real?
-      return Complex(self.real - other, self.imaginary)
-    end
+    return Complex(self.real - other, self.imaginary) if other.is_a?(Numeric) && other.real?
 
     if other.respond_to?(:coerce)
       first, second = other.coerce(self)
@@ -117,7 +101,7 @@ class Complex
       bd = self.imaginary * other.imaginary
       bc = self.imaginary * other.real
       ad = self.real * other.imaginary
-      c2d2 = (other.real ** 2) + (other.imaginary ** 2)
+      c2d2 = (other.real**2) + (other.imaginary**2)
 
       return Complex((ac + bd) / c2d2, (bc - ad) / c2d2)
     end
@@ -142,9 +126,7 @@ class Complex
   alias quo /
 
   def fdiv(other)
-    unless other.is_a?(Numeric)
-      raise TypeError, "#{other.class} can't be coerced into #{self.class}"
-    end
+    raise TypeError, "#{other.class} can't be coerced into #{self.class}" unless other.is_a?(Numeric)
 
     return Complex(self.real / other.to_f, self.imaginary / other.to_f)
   end
@@ -160,9 +142,7 @@ class Complex
       return Complex(ac - bd, ad + bc)
     end
 
-    if other.is_a?(Numeric) && other.real?
-      return Complex(self.real * other, self.imaginary * other)
-    end
+    return Complex(self.real * other, self.imaginary * other) if other.is_a?(Numeric) && other.real?
 
     if other.respond_to?(:coerce)
       first, second = other.coerce(self)
@@ -178,15 +158,15 @@ class Complex
     end
 
     if n.is_a?(Complex)
-      r = Math.sqrt(real ** 2 + imaginary ** 2)
+      r = Math.sqrt(real**2 + imaginary**2)
       theta = Math.atan2(imaginary, real)
       r_n = Math.exp(n.real * Math.log(r) - n.imaginary * theta)
       theta_n = n.real * theta + n.imaginary * Math.log(r)
       Complex(r_n * Math.cos(theta_n), r_n * Math.sin(theta_n))
     elsif n.is_a?(Float) || n.is_a?(Rational) || (n.is_a?(Integer) && n.negative?)
-      r = Math.sqrt(real ** 2 + imaginary ** 2)
+      r = Math.sqrt(real**2 + imaginary**2)
       theta = Math.atan2(imaginary, real)
-      r_n = r ** n
+      r_n = r**n
       theta_n = n * theta
       Complex(r_n * Math.cos(theta_n), r_n * Math.sin(theta_n))
     elsif n.is_a?(Integer)
@@ -197,7 +177,7 @@ class Complex
       result
     elsif n.respond_to?(:coerce)
       first, second = n.coerce(self)
-      return first ** second
+      return first**second
     end
   end
 
@@ -214,35 +194,23 @@ class Complex
       end
     end
 
-    if other.is_a?(Numeric)
-      return self.real <=> other
-    end
+    return self.real <=> other if other.is_a?(Numeric)
   end
 
   def eql?(other)
-    if ! other.is_a?(Complex)
-      return false
-    end
+    return false if !other.is_a?(Complex)
 
     return self.real.class == other.real.class && self.imaginary.class == other.imaginary.class && self == other
   end
 
   def ==(other)
-    if other.is_a?(Complex)
-      return self.real == other.real && self.imaginary == other.imaginary
-    end
+    return self.real == other.real && self.imaginary == other.imaginary if other.is_a?(Complex)
 
-    if ! other.is_a?(Numeric) && ! other.is_a?(Object)
-      return false
-    end
+    return false if !other.is_a?(Numeric) && !other.is_a?(Object)
 
-    if other.respond_to?(:real) && ! other.real?
-      return other == self
-    end
+    return other == self if other.respond_to?(:real) && !other.real?
 
-    if imaginary == 0
-      return real == other
-    end
+    return real == other if imaginary == 0
 
     real = self.real
     imaginary = self.imaginary
@@ -259,12 +227,12 @@ class Complex
 
   def abs
     # r = |z| = sqrt(a^2 + b^2).
-    Math.sqrt(self.real ** 2 + self.imaginary ** 2)
+    Math.sqrt(self.real**2 + self.imaginary**2)
   end
   alias magnitude abs
 
   def abs2
-    (self.real ** 2) + (self.imaginary ** 2)
+    (self.real**2) + (self.imaginary**2)
   end
 
   def arg
@@ -281,9 +249,7 @@ class Complex
   end
 
   def self.polar(abs, arg = 0)
-    if abs.nil? || arg.nil?
-      raise TypeError, "not a real"
-    end
+    raise TypeError, 'not a real' if abs.nil? || arg.nil?
 
     # real = rcosθ
     real = abs * Math.cos(arg)
@@ -299,17 +265,13 @@ class Complex
   end
 
   def rectangular
-    return [self.real, self.imaginary]
+    return self.real, self.imaginary
   end
 
   def self.rectangular(real, imaginary = 0)
-    if ! real.is_a?(Numeric) || ! imaginary.is_a?(Numeric)
-      raise TypeError, "not a Numeric"
-    end
+    raise TypeError, 'not a Numeric' if !real.is_a?(Numeric) || !imaginary.is_a?(Numeric)
 
-    if ! real.real? || ! imaginary.real?
-      raise TypeError, "not a real"
-    end
+    raise TypeError, 'not a real' if !real.real? || !imaginary.real?
 
     Complex(real, imaginary)
   end
@@ -331,13 +293,9 @@ class Complex
   end
 
   def coerce(other)
-    if other.is_a?(Complex)
-      return [other, self]
-    end
+    return other, self if other.is_a?(Complex)
 
-    if other.is_a?(Numeric) && other.real?
-      return [Complex(other), self]
-    end
+    return Complex(other), self if other.is_a?(Numeric) && other.real?
 
     raise TypeError, "#{other.inspect} can't be coerced into Complex"
   end
@@ -355,27 +313,24 @@ class Complex
 
   def to_r
     imaginary = self.imaginary
-    unless imaginary.zero?
-      raise RangeError, "can't convert #{self} into Rational"
-    end
+    raise RangeError, "can't convert #{self} into Rational" unless imaginary.zero?
 
     self.real.to_r
   end
 
-  def rationalize(eps=0)
+  def rationalize(eps = 0)
     imaginary = self.imaginary
-    if not _exact_zero?(imaginary)
-      raise RangeError, "can't convert #{self} into Rational"
-    end
+    raise RangeError, "can't convert #{self} into Rational" if not _exact_zero?(imaginary)
 
     self.real.rationalize eps
   end
 
-  undef :i
-  undef :positive?
-  undef :negative?
+  undef i
+  undef positive?
+  undef negative?
 
   private
+
   def marshal_dump
     [self.real, self.imaginary]
   end

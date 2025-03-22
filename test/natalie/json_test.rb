@@ -17,7 +17,7 @@ describe 'JSON' do
       JSON.parse('-3000').should == -3000
       JSON.parse('0').should == 0
       JSON.parse('-0').should == 0
-      JSON.parse((2**64).to_s).should == 2 **64
+      JSON.parse((2**64).to_s).should == 2**64
       JSON.parse((-2**64).to_s).should == -2**64
       -> { JSON.parse('01') }.should raise_error(JSON::ParserError)
       -> { JSON.parse('-01') }.should raise_error(JSON::ParserError)
@@ -47,7 +47,7 @@ describe 'JSON' do
     it 'parses arrays' do
       JSON.parse('[]').should == []
       JSON.parse('[1]').should == [1]
-      JSON.parse('[1,2]').should == [1,2]
+      JSON.parse('[1,2]').should == [1, 2]
       -> { JSON.parse('[1,]') }.should raise_error(JSON::ParserError)
       -> { JSON.parse('[') }.should raise_error(JSON::ParserError)
     end
@@ -85,26 +85,27 @@ describe 'JSON' do
           }
         }
       END
-      result.should == {
-        'Image' => {
-          'Width' => 800,
-          'Height' => 600,
-          'Title' => 'View from 15th Floor',
-          'Thumbnail' => {
-            'Url' => 'http://www.example.com/image/481989943',
-            'Height' => 125,
-            'Width' => 100
+      result.should ==
+        {
+          'Image' => {
+            'Width' => 800,
+            'Height' => 600,
+            'Title' => 'View from 15th Floor',
+            'Thumbnail' => {
+              'Url' => 'http://www.example.com/image/481989943',
+              'Height' => 125,
+              'Width' => 100,
+            },
+            'Animated' => false,
+            'IDs' => [116, 943, 234, 38_793],
           },
-          'Animated' => false,
-          'IDs' => [116, 943, 234, 38793]
         }
-      }
     end
 
     context 'with symbolize_names argument' do
       it 'returns symbol keys' do
         JSON.parse('{"foo":"bar"}', symbolize_names: true).should == { foo: 'bar' }
-        JSON.parse('{"1":"foo","2":"bar"}', symbolize_names: true).should == { :'1' => 'foo', :'2' => 'bar' }
+        JSON.parse('{"1":"foo","2":"bar"}', symbolize_names: true).should == { '1': 'foo', '2': 'bar' }
       end
     end
   end

@@ -4,7 +4,8 @@ require 'ffi.cpp'
 __ld_flags__ '-lffi -ldl'
 
 module FFI
-  class NotFoundError < LoadError; end
+  class NotFoundError < LoadError
+  end
 
   module Library
     __bind_method__ :ffi_lib, :FFI_Library_ffi_lib
@@ -26,14 +27,15 @@ module FFI
         enum_name = values[i]
         raise TypeError, "expected Symbol, got #{enum_name.class}" unless enum_name.is_a?(Symbol)
         i += 1
-        enum_value = if values[i].is_a?(Integer)
-                       i += 1
-                       values[i - 1]
-                     elsif !enum.empty?
-                       enum.values.last + 1
-                     else
-                       0
-                     end
+        enum_value =
+          if values[i].is_a?(Integer)
+            i += 1
+            values[i - 1]
+          elsif !enum.empty?
+            enum.values.last + 1
+          else
+            0
+          end
         enum[enum_name] = enum_value
       end
 

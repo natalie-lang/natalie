@@ -35,7 +35,7 @@ class IOStub
     self << str.join
   end
 
-  def << str
+  def <<(str)
     @buffer << str
     self
   end
@@ -48,11 +48,11 @@ class IOStub
     to_s.send(name, *args, &block)
   end
 
-  def == other
+  def ==(other)
     to_s == other
   end
 
-  def =~ other
+  def =~(other)
     to_s =~ other
   end
 
@@ -89,12 +89,12 @@ end
 # Creates a "bare" file descriptor (i.e. one that is not associated
 # with any Ruby object). The file descriptor can safely be passed
 # to IO.new without creating a Ruby object alias to the fd.
-def new_fd(name, mode = "w:utf-8")
+def new_fd(name, mode = 'w:utf-8')
   if mode.kind_of? Hash
     if mode.key? :mode
       mode = mode[:mode]
     else
-      raise ArgumentError, "new_fd options Hash must include :mode"
+      raise ArgumentError, 'new_fd options Hash must include :mode'
     end
   end
 
@@ -103,7 +103,7 @@ end
 
 # Creates an IO instance for a temporary file name. The file
 # must be deleted.
-def new_io(name, mode = "w:utf-8")
+def new_io(name, mode = 'w:utf-8')
   if Hash === mode # Avoid kwargs warnings on Ruby 2.7+
     File.new(name, **mode)
   else

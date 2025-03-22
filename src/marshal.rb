@@ -72,9 +72,7 @@ module Marshal
         elsif value == -1
           write_byte(256 - buffer.length)
         end
-        buffer.each do |integer|
-          write_byte(integer)
-        end
+        buffer.each { |integer| write_byte(integer) }
       end
     end
 
@@ -92,9 +90,7 @@ module Marshal
       end
       buffer << 0 if buffer.size.odd?
       write_integer_bytes(buffer.size / 2)
-      buffer.each do |integer|
-        write_byte(integer)
-      end
+      buffer.each { |integer| write_byte(integer) }
     end
 
     def write_string_bytes(value)
@@ -120,7 +116,7 @@ module Marshal
     end
 
     def write_integer(value)
-      if value >= -2 ** 30 && value < 2 ** 30
+      if value >= -2**30 && value < 2**30
         write_char('i')
         write_integer_bytes(value)
       else
@@ -194,9 +190,7 @@ module Marshal
       write_char('I') unless ivars.empty?
       write_char('[')
       write_integer_bytes(values.size)
-      values.each do |value|
-        write(value)
-      end
+      values.each { |value| write(value) }
       write_ivars(ivars) unless ivars.empty?
     end
 
@@ -212,9 +206,7 @@ module Marshal
         write(key)
         write(value)
       end
-      unless values.default.nil?
-        write(values.default)
-      end
+      write(values.default) unless values.default.nil?
       write_ivars(ivars) unless ivars.empty?
     end
 
@@ -280,11 +272,7 @@ module Marshal
     end
 
     def write_range(value, ivars)
-      ivars.concat([
-        [:excl, value.exclude_end?],
-        [:begin, value.begin],
-        [:end, value.end],
-      ])
+      ivars.concat([[:excl, value.exclude_end?], [:begin, value.begin], [:end, value.end]])
       write_object(value, ivars)
     end
 
@@ -344,7 +332,8 @@ module Marshal
         return @output
       end
 
-      if !value.nil? && !value.is_a?(TrueClass) && !value.is_a?(FalseClass) && !value.is_a?(Integer) && !value.is_a?(Float) && !value.is_a?(Symbol)
+      if !value.nil? && !value.is_a?(TrueClass) && !value.is_a?(FalseClass) && !value.is_a?(Integer) &&
+           !value.is_a?(Float) && !value.is_a?(Symbol)
         @object_lookup[value.object_id] = @object_lookup.size
       elsif value.is_a?(Integer) && (value >= 2**30 || value < -(2**30))
         # Integers are special: Object links are only used when 64 bits are used, but the objects are counted when 32 bits are used
@@ -391,7 +380,8 @@ module Marshal
         write_user_marshaled_object_with_allocate(value)
       elsif value.respond_to?(:_dump, true)
         write_user_marshaled_object_without_allocate(value)
-      elsif value.is_a?(Mutex) || value.is_a?(Proc) || value.is_a?(Method) || (defined?(StringIO) && value.is_a?(StringIO))
+      elsif value.is_a?(Mutex) || value.is_a?(Proc) || value.is_a?(Method) ||
+            (defined?(StringIO) && value.is_a?(StringIO))
         raise TypeError, "no _dump_data is defined for class #{value.class}"
       elsif value.is_a?(MatchData) || value.is_a?(IO)
         raise TypeError, "can't dump #{value.class}"
@@ -444,9 +434,7 @@ module Marshal
       major = read_byte
       minor = read_byte
 
-      if major != MAJOR_VERSION || minor > MINOR_VERSION
-        raise TypeError, 'incompatible marshal file format'
-      end
+      raise TypeError, 'incompatible marshal file format' if major != MAJOR_VERSION || minor > MINOR_VERSION
     end
 
     def read_object_link
@@ -465,18 +453,12 @@ module Marshal
       if byte == 0
         return 0
       elsif byte > 0
-        if byte > 4 && byte < 128
-          return byte - 5
-        end
+        return byte - 5 if byte > 4 && byte < 128
         integer = 0
-        byte.times do |i|
-          integer |= read_byte << (8 * i)
-        end
+        byte.times { |i| integer |= read_byte << (8 * i) }
         integer
       else
-        if byte > -129 && byte < -4
-          return byte + 5
-        end
+        return byte + 5 if byte > -129 && byte < -4
         byte = -byte
         integer = -1
         byte.times do |i|
@@ -489,12 +471,10 @@ module Marshal
 
     def read_big_integer
       sign = read_byte.chr
-      raise TypeError, 'incompatible marshal file format' unless ['+', '-'].include?(sign)
+      raise TypeError, 'incompatible marshal file format' unless %w[+ -].include?(sign)
       size = read_integer
       integer = 0
-      (2 * size).times do |i|
-        integer |= read_byte << (8 * i)
-      end
+      (2 * size).times { |i| integer |= read_byte << (8 * i) }
       integer = -integer if sign == '-'
       integer
     end
@@ -519,11 +499,16 @@ module Marshal
     def read_float
       string = read_string
       case string
-      when 'nan' then Float::NAN
-      when 'inf' then Float::INFINITY
-      when '-inf' then -Float::INFINITY
-      when '0' then 0.0
-      when '-0' then -0.0
+      when 'nan'
+        Float::NAN
+      when 'inf'
+        Float::INFINITY
+      when '-inf'
+        -Float::INFINITY
+      when '0'
+        0.0
+      when '-0'
+        -0.0
       else
         string.to_f
       end
@@ -552,18 +537,14 @@ module Marshal
     def read_class
       name = read_string
       result = find_constant(name)
-      unless result.instance_of?(Class)
-        raise ArgumentError, "#{name} does not refer to class"
-      end
+      raise ArgumentError, "#{name} does not refer to class" unless result.instance_of?(Class)
       result
     end
 
     def read_module
       name = read_string
       result = find_constant(name)
-      unless result.instance_of?(Module)
-        raise ArgumentError, "#{name} does not refer to module"
-      end
+      raise ArgumentError, "#{name} does not refer to module" unless result.instance_of?(Module)
       result
     end
 
@@ -591,9 +572,7 @@ module Marshal
     def read_user_marshaled_object_without_allocate
       name = read_value
       object_class = find_constant(name)
-      unless object_class.respond_to?(:_load)
-        raise TypeError, "#{object_class} needs to have method `_load'"
-      end
+      raise TypeError, "#{object_class} needs to have method `_load'" unless object_class.respond_to?(:_load)
       data = read_string
       object_class._load(data)
     end
@@ -602,11 +581,14 @@ module Marshal
       name = read_value
       object_class = find_constant(name)
       size = read_integer
-      values = size.times.each_with_object({}) do |_, tmp|
-        name = read_value
-        value = read_value
-        tmp[name] = value
-      end
+      values =
+        size
+          .times
+          .each_with_object({}) do |_, tmp|
+            name = read_value
+            value = read_value
+            tmp[name] = value
+          end
       if object_class.ancestors.include?(Data)
         object_class.new(**values)
       else
@@ -632,9 +614,7 @@ module Marshal
           __inline__ 'exception_var.as_exception_or_raise(env)->set_cause(cause_var.as_exception_or_raise(env));'
         end
       end
-      ivars_hash.each do |ivar_name, value|
-        object.instance_variable_set(ivar_name, value)
-      end
+      ivars_hash.each { |ivar_name, value| object.instance_variable_set(ivar_name, value) }
       object
     end
 
@@ -682,32 +662,33 @@ module Marshal
       else
         index = @object_lookup.size
         @object_lookup << nil # placeholder
-        value = case char
-                when '"'
-                  read_string
-                when '['
-                  read_array
-                when '{'
-                  read_hash
-                when '}'
-                  read_hash_with_default
-                when 'c'
-                  read_class
-                when 'm'
-                  read_module
-                when '/'
-                  read_regexp
-                when 'U'
-                  read_user_marshaled_object_with_allocate
-                when 'u'
-                  read_user_marshaled_object_without_allocate
-                when 'S'
-                  read_struct
-                when 'o'
-                  read_object
-                else
-                  raise ArgumentError, 'dump format error'
-                end
+        value =
+          case char
+          when '"'
+            read_string
+          when '['
+            read_array
+          when '{'
+            read_hash
+          when '}'
+            read_hash_with_default
+          when 'c'
+            read_class
+          when 'm'
+            read_module
+          when '/'
+            read_regexp
+          when 'U'
+            read_user_marshaled_object_with_allocate
+          when 'u'
+            read_user_marshaled_object_without_allocate
+          when 'S'
+            read_struct
+          when 'o'
+            read_object
+          else
+            raise ArgumentError, 'dump format error'
+          end
         @object_lookup[index] = value
         value
       end

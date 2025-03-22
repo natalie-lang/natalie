@@ -8,13 +8,13 @@ describe 'float' do
 
   describe '#==' do
     it 'compares with bignums' do
-      1124000727777607680000.0.should == 1124000727777607680000
+      1124000727777607680000.0.should == 1_124_000_727_777_607_680_000
     end
   end
 
   describe '#**' do
     it 'raises to a power' do
-      (2.2 ** 3).should be_close(10.648, TOLERANCE)
+      (2.2**3).should be_close(10.648, TOLERANCE)
     end
   end
 
@@ -24,7 +24,7 @@ describe 'float' do
       2.5.to_r.should == Rational(5, 2)
       -0.75.to_r.should == Rational(-3, 4)
       0.0.to_r.should == Rational(0, 1)
-      0.3.to_r.should == Rational(5404319552844595, 18014398509481984)
+      0.3.to_r.should == Rational(5_404_319_552_844_595, 18_014_398_509_481_984)
     end
   end
 

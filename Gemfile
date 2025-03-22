@@ -5,8 +5,8 @@ gem 'minitest-reporters'
 gem 'rake'
 
 group :development do
-  gem 'rubocop'
   gem 'stackprof'
+  gem 'syntax_tree'
 end
 
 group :run_all_specs, optional: true do

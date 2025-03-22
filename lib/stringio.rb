@@ -61,9 +61,7 @@ class StringIO
       end
     end
 
-    unless mode.is_a? String
-      mode = mode.to_str
-    end
+    mode = mode.to_str unless mode.is_a? String
     @mode = mode
 
     if !binmode.nil?
@@ -82,9 +80,7 @@ class StringIO
 
     __set_closed
 
-    if !closed_write? && string.frozen?
-      raise Errno::EACCES, 'Permission denied'
-    end
+    raise Errno::EACCES, 'Permission denied' if !closed_write? && string.frozen?
 
     @string.clear if @mode == 'w'
 
@@ -132,9 +128,7 @@ class StringIO
     return enum_for(:each) unless block_given?
     __assert_not_read_closed
 
-    until eof?
-      yield __next_line(separator, limit, chomp: chomp)
-    end
+    yield __next_line(separator, limit, chomp: chomp) until eof?
 
     self
   end
@@ -144,9 +138,7 @@ class StringIO
     return enum_for(:each_byte) unless block_given?
     __assert_not_read_closed
 
-    until eof?
-      getc.each_byte { |b| yield b }
-    end
+    getc.each_byte { |b| yield b } until eof?
 
     self
   end
@@ -155,9 +147,7 @@ class StringIO
     return enum_for(:each_char) unless block_given?
     __assert_not_read_closed
 
-    until eof?
-      yield getc
-    end
+    yield getc until eof?
 
     self
   end
@@ -204,9 +194,7 @@ class StringIO
   def getc
     __assert_not_read_closed
 
-    @string[@index].tap do
-      @index += 1 unless eof?
-    end
+    @string[@index].tap { @index += 1 unless eof? }
   end
 
   def gets(separator = $/, limit = nil, chomp: false)
@@ -235,9 +223,7 @@ class StringIO
   alias tell pos
 
   def pos=(new_index)
-    if new_index < 0
-      raise Errno::EINVAL, 'Invalid argument'
-    end
+    raise Errno::EINVAL, 'Invalid argument' if new_index < 0
 
     @index = new_index
   end
@@ -269,17 +255,11 @@ class StringIO
 
     encoding = nil
     if length
-      if !length.is_a?(Integer) && length.respond_to?(:to_int)
-        length = length.to_int
-      end
+      length = length.to_int if !length.is_a?(Integer) && length.respond_to?(:to_int)
 
-      unless length.is_a? Integer
-        raise TypeError, "no implicit conversion of #{length.class} into Integer"
-      end
+      raise TypeError, "no implicit conversion of #{length.class} into Integer" unless length.is_a? Integer
 
-      if length < 0
-        raise ArgumentError, "negative length #{length} given"
-      end
+      raise ArgumentError, "negative length #{length} given" if length < 0
 
       return +'' if length == 0
       return nil if eof?
@@ -292,18 +272,12 @@ class StringIO
     end
 
     if out_string
-      if !out_string.is_a?(String) && out_string.respond_to?(:to_str)
-        out_string = out_string.to_str
-      end
+      out_string = out_string.to_str if !out_string.is_a?(String) && out_string.respond_to?(:to_str)
 
-      unless out_string.is_a? String
-        raise TypeError, "no implicit conversion of #{out_string.class} into String"
-      end
+      raise TypeError, "no implicit conversion of #{out_string.class} into String" unless out_string.is_a? String
     end
 
-    if @index + length > @string.length
-      length = @string.length - @index
-    end
+    length = @string.length - @index if @index + length > @string.length
 
     result = @string[@index..(@index + [length - 1, 0].max)]
     @index += length
@@ -311,9 +285,7 @@ class StringIO
     if out_string
       out_string.replace(result)
     else
-      if encoding
-        result = result.encode(encoding)
-      end
+      result = result.encode(encoding) if encoding
       result
     end
   end
@@ -368,9 +340,7 @@ class StringIO
   def set_encoding(external_encoding, _ = nil, **_options)
     external_encoding = Encoding.find(external_encoding) if external_encoding.is_a?(String)
     @external_encoding = external_encoding || Encoding.default_external
-    unless @string.frozen?
-      @string.force_encoding(@external_encoding)
-    end
+    @string.force_encoding(@external_encoding) unless @string.frozen?
     self
   end
 
@@ -463,9 +433,7 @@ class StringIO
     argument = argument.to_str if !argument.is_a?(String) && argument.respond_to?(:to_str)
     raise TypeError, "no implicit conversion of #{argument.class} into String" unless argument.is_a?(String)
 
-    if @index > @string.bytesize
-      @string.concat("\x00".b * (@index - @string.bytesize))
-    end
+    @string.concat("\x00".b * (@index - @string.bytesize)) if @index > @string.bytesize
 
     if @index.zero?
       @string.prepend(argument)
@@ -487,9 +455,7 @@ class StringIO
     __assert_not_write_closed
 
     if !argument.is_a?(String)
-      if !argument.respond_to?(:to_int)
-        raise TypeError, "no implicit conversion of #{argument.class} into Integer"
-      end
+      raise TypeError, "no implicit conversion of #{argument.class} into Integer" if !argument.respond_to?(:to_int)
 
       argument = (argument.to_int % 256).chr
     end
@@ -502,9 +468,7 @@ class StringIO
   def write(argument)
     __assert_not_write_closed
 
-    unless argument.is_a? String
-      argument = argument.to_s
-    end
+    argument = argument.to_s unless argument.is_a? String
 
     @mutex.synchronize do
       if __appending?
@@ -564,9 +528,7 @@ class StringIO
   private def __next_line(separator, limit, chomp: false)
     return if eof?
 
-    if limit && !limit.is_a?(Integer)
-      limit = limit.to_int
-    end
+    limit = limit.to_int if limit && !limit.is_a?(Integer)
 
     initial_separator = separator
     if separator && !separator.is_a?(String)
@@ -582,22 +544,16 @@ class StringIO
       separator = $/
     end
 
-    if limit&.negative?
-      limit = nil
-    end
+    limit = nil if limit&.negative?
 
     if limit == 0
       @lineno += 1
       return +''
     end
 
-    if separator == ''
-      separator = "\n\n"
-    end
+    separator = "\n\n" if separator == ''
 
-    if separator
-      line_ending = @string[@index..].index(separator)
-    end
+    line_ending = @string[@index..].index(separator) if separator
 
     if line_ending
       if chomp
@@ -609,18 +565,14 @@ class StringIO
       line_ending = @string.length - 1
     end
 
-    if limit && line_ending - @index + 1 > limit
-      line_ending = @index + limit - 1
-    end
+    line_ending = @index + limit - 1 if limit && line_ending - @index + 1 > limit
 
     @string[@index..line_ending].tap do |result|
       if chomp
         @index = line_ending + separator.size + 1
 
         # I don't really understand why ruby does this but it seems correct?
-        if result[-1] == "\r"
-          result.replace(result[0..-2])
-        end
+        result.replace(result[0..-2]) if result[-1] == "\r"
       else
         @index = line_ending + 1
       end
@@ -630,11 +582,7 @@ class StringIO
       # This means the separator is set to \n\n, but if there are more
       # line ending we want to skip over those.
       # See spec/library/stringio/shared/each.rb:43
-      if result && initial_separator == ''
-        while @string[@index] == "\n"
-          @index += 1
-        end
-      end
+      @index += 1 while @string[@index] == "\n" if result && initial_separator == ''
     end
   end
 end

@@ -16,7 +16,7 @@ describe 'OptionParser' do
       parser.on('-d [level]', 'enable debug mode')
       hash = {}
       parser.parse!(%w[foo -d verbose], into: hash)
-      hash.should == { 'd': 'verbose' }
+      hash.should == { d: 'verbose' }
     end
 
     it 'calls the block when matched' do
@@ -61,7 +61,7 @@ END
       hash = {}
       args = %w[-d foo -- -i bar]
       parser.parse!(args, into: hash)
-      hash.should == { 'd': true }
+      hash.should == { d: true }
       args.should == %w[foo -i bar]
     end
   end

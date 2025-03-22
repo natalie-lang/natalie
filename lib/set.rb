@@ -45,22 +45,14 @@ class Set
   end
 
   def ==(other)
-    if eql?(other)
-      return true
-    end
-    if other.class == self.class
-      return @data == other.instance_variable_get(:@data)
-    end
-    if other.is_a?(Set) && self.size == other.size
-      return other.all? { |element| @data.include?(element) }
-    end
+    return true if eql?(other)
+    return @data == other.instance_variable_get(:@data) if other.class == self.class
+    return other.all? { |element| @data.include?(element) } if other.is_a?(Set) && self.size == other.size
     false
   end
 
   def ^(other)
-    unless other.is_a?(Enumerable)
-      raise ArgumentError, 'value must be enumerable'
-    end
+    raise ArgumentError, 'value must be enumerable' unless other.is_a?(Enumerable)
 
     (self | other) - (self & other)
   end
@@ -116,9 +108,7 @@ class Set
   end
 
   def delete(obj)
-    if include?(obj)
-      @data.delete(obj)
-    end
+    @data.delete(obj) if include?(obj)
     self
   end
 
@@ -133,15 +123,11 @@ class Set
 
   def delete_if
     return enum_for(:delete_if) unless block_given?
-    each do |element|
-      @data.delete(element) if yield element
-    end
+    each { |element| @data.delete(element) if yield element }
   end
 
   def difference(other)
-    unless other.is_a?(Enumerable)
-      raise ArgumentError, 'value must be enumerable'
-    end
+    raise ArgumentError, 'value must be enumerable' unless other.is_a?(Enumerable)
 
     self.class.new(to_a - other.to_a)
   end
@@ -193,9 +179,7 @@ class Set
   def flatten_merge(other, ids = Set.new)
     other.each do |obj|
       if obj.is_a?(self.class)
-        if ids.include?(obj.object_id)
-          raise ArgumentError, 'tried to flatten recursive Set'
-        end
+        raise ArgumentError, 'tried to flatten recursive Set' if ids.include?(obj.object_id)
         ids.add(obj.object_id)
         flatten_merge(obj, ids)
         ids.delete(obj.object_id)
@@ -243,16 +227,12 @@ class Set
   alias to_s inspect
 
   def intersect?(other)
-    unless other.is_a?(Enumerable)
-      raise ArgumentError, 'value must be enumerable'
-    end
+    raise ArgumentError, 'value must be enumerable' unless other.is_a?(Enumerable)
     other.any? { |obj| include?(obj) }
   end
 
   def intersection(other)
-    unless other.is_a?(Enumerable)
-      raise ArgumentError, 'value must be enumerable'
-    end
+    raise ArgumentError, 'value must be enumerable' unless other.is_a?(Enumerable)
 
     self.class.new(other.select { |obj| include?(obj) })
   end
@@ -269,9 +249,7 @@ class Set
 
   def keep_if
     return enum_for(:keep_if) { size } unless block_given?
-    each do |element|
-      @data.delete(element) unless yield element
-    end
+    each { |element| @data.delete(element) unless yield element }
     self
   end
 
@@ -290,9 +268,7 @@ class Set
 
   def merge(*others)
     others.each do |other|
-      unless other.is_a?(Enumerable)
-        raise ArgumentError, "value must be enumerable"
-      end
+      raise ArgumentError, 'value must be enumerable' unless other.is_a?(Enumerable)
       other.each { |element| add(element) }
     end
     self
@@ -303,17 +279,13 @@ class Set
   end
 
   def proper_subset?(other)
-    unless other.is_a?(self.class)
-      raise ArgumentError, 'value must be a set'
-    end
+    raise ArgumentError, 'value must be a set' unless other.is_a?(self.class)
     size < other.size && all? { |obj| other.include?(obj) }
   end
   alias < proper_subset?
 
   def proper_superset?(other)
-    unless other.is_a?(self.class)
-      raise ArgumentError, 'value must be a set'
-    end
+    raise ArgumentError, 'value must be a set' unless other.is_a?(self.class)
     other.size < size && other.all? { |obj| include?(obj) }
   end
   alias > proper_superset?
@@ -331,9 +303,7 @@ class Set
   end
 
   def union(other)
-    unless other.is_a?(Enumerable)
-      raise ArgumentError, 'value must be enumerable'
-    end
+    raise ArgumentError, 'value must be enumerable' unless other.is_a?(Enumerable)
 
     self.class.new(to_a + other.to_a)
   end
@@ -372,9 +342,7 @@ class Set
   end
 
   def subset?(other)
-    unless other.is_a?(self.class)
-      raise ArgumentError, 'value must be a set'
-    end
+    raise ArgumentError, 'value must be a set' unless other.is_a?(self.class)
     all? { |element| other.include?(element) }
   end
   alias <= subset?
@@ -385,9 +353,7 @@ class Set
   end
 
   def superset?(other)
-    unless other.is_a?(self.class)
-      raise ArgumentError, 'value must be a set'
-    end
+    raise ArgumentError, 'value must be a set' unless other.is_a?(self.class)
     other.all? { |element| include?(element) }
   end
   alias >= superset?

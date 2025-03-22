@@ -47,9 +47,9 @@ describe 'instance variables' do
       o.instance_variable_set(:@x, 10)
       o.freeze
       -> { o.instance_variable_set(:@x, 20) }.should raise_error(
-                                                       FrozenError,
-                                                       "can't modify frozen Object: #{o.inspect}",
-                                                     )
+                   FrozenError,
+                   "can't modify frozen Object: #{o.inspect}",
+                 )
     end
   end
 end

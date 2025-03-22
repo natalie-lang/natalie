@@ -65,32 +65,34 @@ module Natalie
         fn_name = comptime_string(fn_name)
         fn = transform.inline_functions.fetch(fn_name)
 
-        cast_value_to_cpp = lambda do |_, type|
-          value = transform.pop # Pass1 already did the work to push the value onto the stack
-          case type
-          when 'double'
-            "#{value}.as_float()->to_double()"
-          when 'int'
-            "#{value}.integer().to_nat_int_t()"
-          when 'bool'
-            "#{value}.is_truthy()"
-          when 'Value'
-            value
-          else
-            raise "I don't yet know how to cast arg type #{type}"
+        cast_value_to_cpp =
+          lambda do |_, type|
+            value = transform.pop # Pass1 already did the work to push the value onto the stack
+            case type
+            when 'double'
+              "#{value}.as_float()->to_double()"
+            when 'int'
+              "#{value}.integer().to_nat_int_t()"
+            when 'bool'
+              "#{value}.is_truthy()"
+            when 'Value'
+              value
+            else
+              raise "I don't yet know how to cast arg type #{type}"
+            end
           end
-        end
 
-        cast_value_from_cpp = lambda do |value, type|
-          case type
-          when 'double'
-            "Value(new FloatObject { #{value} })"
-          when 'Value'
-            value
-          else
-            raise "I don't yet know how to cast return type #{type}"
+        cast_value_from_cpp =
+          lambda do |value, type|
+            case type
+            when 'double'
+              "Value(new FloatObject { #{value} })"
+            when 'Value'
+              value
+            else
+              raise "I don't yet know how to cast return type #{type}"
+            end
           end
-        end
 
         casted_args = []
 
@@ -101,9 +103,7 @@ module Natalie
         end
 
         args.each_with_index do |arg, index|
-          if fn[:args][0] == 'Env *'
-            index += 1
-          end
+          index += 1 if fn[:args][0] == 'Env *'
 
           type = fn[:args][index]
           casted_args << cast_value_to_cpp.(arg, type)
@@ -111,10 +111,7 @@ module Natalie
 
         transform.exec_and_push(
           :call_result,
-          cast_value_from_cpp.(
-            "#{fn_name}(#{casted_args.join(', ')})",
-            fn[:return_type],
-          ),
+          cast_value_from_cpp.("#{fn_name}(#{casted_args.join(', ')})", fn[:return_type]),
         )
       end
 
@@ -123,14 +120,15 @@ module Natalie
         type = comptime_string(type)
         value = comptime_string(value)
 
-        code = case type
-               when 'int', 'unsigned short'
-                 "Object::const_set(env, self, \"#{name}\"_s, Value::integer(#{value}))"
-               when 'bigint'
-                 "Object::const_set(env, self, \"#{name}\"_s, Integer(BigInt(#{value})));"
-               else
-                 raise "I don't yet know how to handle constant of type #{type.inspect}"
-               end
+        code =
+          case type
+          when 'int', 'unsigned short'
+            "Object::const_set(env, self, \"#{name}\"_s, Value::integer(#{value}))"
+          when 'bigint'
+            "Object::const_set(env, self, \"#{name}\"_s, Integer(BigInt(#{value})));"
+          else
+            raise "I don't yet know how to handle constant of type #{type.inspect}"
+          end
 
         transform.exec("#ifdef #{value}")
         transform.exec(code)
@@ -150,9 +148,7 @@ module Natalie
         if args
           args = args.elements
           output << "args.ensure_argc_is(env, #{args.size});"
-          args.each_with_index do |arg, i|
-            output << "Value #{comptime_symbol(arg)} = args[#{i}];"
-          end
+          args.each_with_index { |arg, i| output << "Value #{comptime_symbol(arg)} = args[#{i}];" }
         end
         output << comptime_string(body)
         output << '}'
@@ -165,10 +161,7 @@ module Natalie
         name = comptime_string(name)
         args = comptime_array_of_strings(args)
         return_type = comptime_string(return_type)
-        transform.inline_functions[name] = {
-          args: args,
-          return_type: return_type,
-        }
+        transform.inline_functions[name] = { args: args, return_type: return_type }
         transform.push_nil
       end
 

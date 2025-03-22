@@ -14,17 +14,11 @@ class Integer
   end
 
   def digits(radix = 10)
-    if self < 0
-      raise Math::DomainError, 'out of domain'
-    end
+    raise Math::DomainError, 'out of domain' if self < 0
 
-    if !radix.is_a?(Integer) && radix.respond_to?(:to_int)
-      radix = radix.to_int
-    end
+    radix = radix.to_int if !radix.is_a?(Integer) && radix.respond_to?(:to_int)
 
-    unless radix.is_a?(Integer)
-      raise TypeError, "no implicit conversion of #{radix.class} into Integer"
-    end
+    raise TypeError, "no implicit conversion of #{radix.class} into Integer" unless radix.is_a?(Integer)
 
     if radix < 0
       raise ArgumentError, 'negative radix'

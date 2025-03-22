@@ -34,7 +34,10 @@ class Scheduler
     Process.clock_gettime(Process::CLOCK_MONOTONIC)
   end
 
-  def io_wait(io, events, duration) end
-  def block(blocker, timeout = nil) end
-  def unblock(blocker, fiber) end
+  def io_wait(io, events, duration)
+  end
+  def block(blocker, timeout = nil)
+  end
+  def unblock(blocker, fiber)
+  end
 end

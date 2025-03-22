@@ -191,35 +191,35 @@ describe 'namespace' do
     -> { NestedGlobalClass }.should_not raise_error
     -> { NestedGlobalModule }.should_not raise_error
     -> { GlobalTest::NESTED_GLOBAL_CONSTANT }.should raise_error(
-      NameError,
-      /uninitialized constant GlobalTest::NESTED_GLOBAL_CONSTANT/,
-    )
+                 NameError,
+                 /uninitialized constant GlobalTest::NESTED_GLOBAL_CONSTANT/,
+               )
     -> { GlobalTest::NestedGlobalClass }.should raise_error(
-      NameError,
-      /uninitialized constant GlobalTest::NestedGlobalClass/,
-    )
+                 NameError,
+                 /uninitialized constant GlobalTest::NestedGlobalClass/,
+               )
     -> { GlobalTest::NestedGlobalModule }.should raise_error(
-      NameError,
-      /uninitialized constant GlobalTest::NestedGlobalModule/,
-    )
+                 NameError,
+                 /uninitialized constant GlobalTest::NestedGlobalModule/,
+               )
   end
 
   it 'stores global constants in Object class' do
     -> { Object::GLOBAL_CONSTANT }.should_not raise_error
     -> { GlobalTest::GLOBAL_CONSTANT }.should raise_error(
-      NameError,
-      /uninitialized constant GlobalTest::GLOBAL_CONSTANT/,
-    )
+                 NameError,
+                 /uninitialized constant GlobalTest::GLOBAL_CONSTANT/,
+               )
   end
 
   it 'raises a NameError when the given namespace is not initialized' do
-    -> {
+    -> do
       class NonexistentNamespace::Foo
       end
-    }.should raise_error(NameError, /uninitialized constant NonexistentNamespace/)
-    -> {
+    end.should raise_error(NameError, /uninitialized constant NonexistentNamespace/)
+    -> do
       module NonexistentNamespace::Foo
       end
-    }.should raise_error(NameError, /uninitialized constant NonexistentNamespace/)
+    end.should raise_error(NameError, /uninitialized constant NonexistentNamespace/)
   end
 end

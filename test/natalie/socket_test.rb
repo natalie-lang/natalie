@@ -41,15 +41,14 @@ describe 'BasicSocket' do
     end
 
     it 'Using explicit nil argument as dest_sockaddr' do
-      -> {
-        @client.send('hello', 0, nil)
-      }.should raise_error(SystemCallError, /Destination address required/)
+      -> { @client.send('hello', 0, nil) }.should raise_error(SystemCallError, /Destination address required/)
     end
 
     it 'tries to dest_sockaddr into String using #to_str' do
-      -> {
-        @client.send('hello', 0, Object.new)
-      }.should raise_error(TypeError, 'no implicit conversion of Object into String')
+      -> { @client.send('hello', 0, Object.new) }.should raise_error(
+                   TypeError,
+                   'no implicit conversion of Object into String',
+                 )
 
       dest_sockaddr = mock('dest_sockaddr')
       dest_sockaddr.should_receive(:to_str).and_return(@server.getsockname.to_s)
@@ -57,17 +56,13 @@ describe 'BasicSocket' do
     end
 
     it 'does not support an empty string as dest_sockaddr' do
-      -> {
-        @client.send('hello', 0, '')
-      }.should raise_error(Errno::EINVAL)
+      -> { @client.send('hello', 0, '') }.should raise_error(Errno::EINVAL)
     end
   end
 end
 
 describe 'Socket' do
-  before do
-    @socket = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM)
-  end
+  before { @socket = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM) }
 
   it 'connects to a TCP port and can read/write' do
     @socket.connect(Socket.pack_sockaddr_in(80, '71m.us'))
@@ -78,46 +73,46 @@ describe 'Socket' do
   it 'accepts connections from multiple threads without error' do
     server = TCPServer.new(0)
     port = server.addr[1]
-    threads = (1..2).map do |i|
-      Thread.new do
-        conn = server.accept
-        conn.gets.should == "GET / HTTP/1.1\r\n"
-        line = conn.gets until line == "\r\n"
-        conn.write "HTTP/1.1 200\r\n"
-        conn.write "\r\n"
-        conn.write "hello from thread #{i}\r\n"
-        conn.close
+    threads =
+      (1..2).map do |i|
+        Thread.new do
+          conn = server.accept
+          conn.gets.should == "GET / HTTP/1.1\r\n"
+          line = conn.gets until line == "\r\n"
+          conn.write "HTTP/1.1 200\r\n"
+          conn.write "\r\n"
+          conn.write "hello from thread #{i}\r\n"
+          conn.close
+        end
       end
-    end
 
     responses = []
     2.times do
       client = TCPSocket.new('127.0.0.1', port)
       client.write "GET / HTTP/1.1\r\n" \
-                  "Host: localhost:#{port}\r\n" \
-                  "User-Agent: ruby\r\n" \
-                  "\r\n"
+                     "Host: localhost:#{port}\r\n" \
+                     "User-Agent: ruby\r\n" \
+                     "\r\n"
       responses << client.read
       client.close
     end
 
     threads.each(&:join)
 
-    responses.sort.should == [
-      "HTTP/1.1 200\r\n\r\nhello from thread 1\r\n",
-      "HTTP/1.1 200\r\n\r\nhello from thread 2\r\n",
-    ]
+    responses.sort.should ==
+      ["HTTP/1.1 200\r\n\r\nhello from thread 1\r\n", "HTTP/1.1 200\r\n\r\nhello from thread 2\r\n"]
   end
 
   it 'does not truncate large writes to the socket' do
     server = TCPServer.new(0)
     port = server.addr[1]
 
-    t = Thread.new do
-      conn = server.accept
-      conn.write('a' * 10_000_000).should == 10_000_000
-      conn.close
-    end
+    t =
+      Thread.new do
+        conn = server.accept
+        conn.write('a' * 10_000_000).should == 10_000_000
+        conn.close
+      end
 
     client = TCPSocket.new('127.0.0.1', port)
     client.read.size.should == 10_000_000
@@ -161,7 +156,7 @@ describe 'UNIXServer' do
   end
 end
 
-describe "Socket::BasicSocket#getsockname" do
+describe 'Socket::BasicSocket#getsockname' do
   before :each do
     @path = SocketSpecs.socket_path
     @server = UNIXServer.new(@path)

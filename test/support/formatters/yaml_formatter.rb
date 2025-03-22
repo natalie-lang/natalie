@@ -1,13 +1,18 @@
 class YamlFormatter
-  def print_context(*) ; end
+  def print_context(*)
+  end
 
-  def print_success(*); end
+  def print_success(*)
+  end
 
-  def print_error(*); end
+  def print_error(*)
+  end
 
-  def print_failure(*); end
+  def print_failure(*)
+  end
 
-  def print_skipped(*); end
+  def print_skipped(*)
+  end
 
   def print_finish(test_count, failures, errors, skipped)
     print "---\n"

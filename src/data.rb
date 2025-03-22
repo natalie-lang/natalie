@@ -3,9 +3,7 @@ class Data
     members = members.map(&:to_sym)
 
     Class.new(Data) do
-      members.each do |name|
-        define_method(name) { instance_variable_get(:"@#{name}") }
-      end
+      members.each { |name| define_method(name) { instance_variable_get(:"@#{name}") } }
 
       define_method(:initialize) do |*args, **kwargs|
         if args.empty? && !kwargs.empty?
@@ -18,9 +16,7 @@ class Data
           unless extra.empty?
             raise ArgumentError, "unknown keyword#{extra.size == 1 ? '' : 's'}: #{extra.map(&:inspect).join(', ')}"
           end
-          kwargs.each do |name, value|
-            instance_variable_set(:"@#{name}", value)
-          end
+          kwargs.each { |name, value| instance_variable_set(:"@#{name}", value) }
         elsif args.empty?
           raise ArgumentError, "missing keyword#{members.size == 1 ? '' : 's'}: #{members.map(&:inspect).join(', ')}"
         else
@@ -28,9 +24,7 @@ class Data
             raise ArgumentError, "wrong number of arguments (given #{args.size}, expected #{members.size})"
           end
 
-          members.zip(args) do |name, value|
-            instance_variable_set(:"@#{name}", value)
-          end
+          members.zip(args) { |name, value| instance_variable_set(:"@#{name}", value) }
         end
       end
 
@@ -63,9 +57,7 @@ class Data
 
       define_singleton_method(:members) { members }
 
-      if block
-        instance_eval(&block)
-      end
+      instance_eval(&block) if block
     end
   end
 end

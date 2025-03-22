@@ -1,9 +1,9 @@
 require_relative '../spec_helper'
 require_relative '../../spec/core/io/fixtures/classes'
 
-describe "IO#gets" do
+describe 'IO#gets' do
   before :each do
-    @name = tmp("io_gets")
+    @name = tmp('io_gets')
     File.open(@name, 'w') do |fh|
       fh.write('.' * 2050 + "\n")
       fh.write(':' * 2500 + "\n")
@@ -16,14 +16,14 @@ describe "IO#gets" do
     rm_r @name
   end
 
-  it "can read lines larger than our block size (1024)" do
+  it 'can read lines larger than our block size (1024)' do
     @io.gets.should == '.' * 2050 + "\n"
     @io.gets.should == ':' * 2500 + "\n"
     @io.gets.should be_nil
   end
 end
 
-describe "IO#ungetbyte" do
+describe 'IO#ungetbyte' do
   before :each do
     @name = tmp('io_ungetbyte')
     @io = File.open(@name, 'a+')
@@ -34,35 +34,33 @@ describe "IO#ungetbyte" do
     rm_r @name
   end
 
-  it "converts negative values to positive bytes" do
+  it 'converts negative values to positive bytes' do
     @io.ungetbyte(-50)
     @io.getbyte.should == 256 - 50
   end
 
-  it "supports negative values over 255" do
+  it 'supports negative values over 255' do
     @io.ungetbyte(-256)
     @io.getbyte.should == 0
   end
 
-  it "does things with big negative values" do
+  it 'does things with big negative values' do
     @io.ungetbyte(-400)
     @io.getbyte.should == [-400].pack('C').ord
 
-    @io.ungetbyte(-12345678)
-    @io.getbyte.should == [-12345678].pack('C').ord
+    @io.ungetbyte(-12_345_678)
+    @io.getbyte.should == [-12_345_678].pack('C').ord
   end
 end
 
-describe "IO#pos" do
+describe 'IO#pos' do
   # There is little in the officials specs about interactions of buffered reads
   # with other methods. These tests add a bit more of an integration testing
   # level.
-  context "Buffered IO and interactions with other methods" do
+  context 'Buffered IO and interactions with other methods' do
     before :each do
-      @name = tmp("io_gets")
-      File.open(@name, 'w') do |fh|
-        fh.write('.' * 200)
-      end
+      @name = tmp('io_gets')
+      File.open(@name, 'w') { |fh| fh.write('.' * 200) }
       @io = File.open(@name)
     end
 
@@ -71,7 +69,7 @@ describe "IO#pos" do
       rm_r @name
     end
 
-    it "can be negative" do
+    it 'can be negative' do
       @io.ungetbyte(0x30)
       @io.ungetbyte(0x31)
       @io.pos.should == -2
@@ -79,16 +77,14 @@ describe "IO#pos" do
   end
 end
 
-describe "IO#pos=" do
+describe 'IO#pos=' do
   # There is little in the officials specs about interactions of buffered reads
   # with other methods. These tests add a bit more of an integration testing
   # level.
-  context "Buffered IO and interactions with other methods" do
+  context 'Buffered IO and interactions with other methods' do
     before :each do
-      @name = tmp("io_gets")
-      File.open(@name, 'w') do |fh|
-        fh.write('.' * 200)
-      end
+      @name = tmp('io_gets')
+      File.open(@name, 'w') { |fh| fh.write('.' * 200) }
       @io = File.open(@name)
     end
 
@@ -96,13 +92,13 @@ describe "IO#pos=" do
       @io.close
       rm_r @name
     end
-    it "cannot be set to negative values" do
+    it 'cannot be set to negative values' do
       @io.ungetbyte(0x30)
       @io.ungetbyte(0x31)
       -> { @io.pos = -1 }.should raise_error(Errno::EINVAL, /Invalid argument/)
     end
 
-    it "completely resets the IO buffer" do
+    it 'completely resets the IO buffer' do
       @io.read(2)
       @io.ungetbyte(0x30)
       @io.ungetbyte(0x31)
@@ -112,11 +108,11 @@ describe "IO#pos=" do
   end
 end
 
-describe "IO#read" do
+describe 'IO#read' do
   # There is little in the officials specs about interactions of buffered reads
   # with other methods. These tests add a bit more of an integration testing
   # level.
-  context "Buffered reads and interactions with other methods" do
+  context 'Buffered reads and interactions with other methods' do
     before :each do
       file = File.join(__dir__, '../../spec/core/io/fixtures/lines.txt')
       @lines = File.read(file)
@@ -127,7 +123,7 @@ describe "IO#read" do
       @io.close if @io && !@io.closed?
     end
 
-    it "reads the buffer filled by ungetbyte with a limit" do
+    it 'reads the buffer filled by ungetbyte with a limit' do
       @io.ungetbyte('X'.ord)
       @io.ungetbyte('Y'.ord)
       @io.ungetbyte('Z'.ord)
@@ -136,7 +132,7 @@ describe "IO#read" do
       @io.read(3).should == "X#{@lines[0, 2]}"
     end
 
-    it "reads the buffer filled by ungetbyte" do
+    it 'reads the buffer filled by ungetbyte' do
       @io.ungetbyte('X'.ord)
       @io.ungetbyte('Y'.ord)
       @io.ungetbyte('Z'.ord)

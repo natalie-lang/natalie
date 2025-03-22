@@ -19,6 +19,6 @@ describe 'run the boardslam example' do
     code_ruby = "load '#{filename}'\n#{code}"
     ruby_exe(code_bytecode, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code_ruby)
+    ruby_exe(@bytecode_file, options: '--bytecode').should == ruby_exe(code_ruby)
   end
 end

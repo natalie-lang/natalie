@@ -12,9 +12,7 @@ module Natalie
 
       def transform(exp)
         @instructions = []
-        @consumer.consume(exp) do |arg|
-          transform_arg(arg)
-        end
+        @consumer.consume(exp) { |arg| transform_arg(arg) }
         clean_up
       end
 
@@ -51,9 +49,7 @@ module Natalie
         args = args_node&.arguments || []
         shift_or_pop_next_arg
         @instructions << @pass.transform_expression(receiver, used: true)
-        if args.any?
-          args.each { |arg| @instructions << @pass.transform_expression(arg, used: true) }
-        end
+        args.each { |arg| @instructions << @pass.transform_expression(arg, used: true) } if args.any?
         @instructions << MoveRelInstruction.new(args.size + 1) # move value after args
         @instructions << PushArgcInstruction.new(args.size + 1)
         @instructions << SendInstruction.new(

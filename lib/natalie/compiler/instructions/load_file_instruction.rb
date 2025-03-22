@@ -26,10 +26,7 @@ module Natalie
           transform.compiled_files[@filename] = fn
         end
         transform.top(fn, "Value #{fn}(Env *, Value, bool);")
-        transform.exec_and_push(
-          :result_of_load_file,
-          "#{fn}(env, GlobalEnv::the()->main_obj(), #{@require_once})"
-        )
+        transform.exec_and_push(:result_of_load_file, "#{fn}(env, GlobalEnv::the()->main_obj(), #{@require_once})")
       end
 
       def execute(vm)
@@ -40,9 +37,7 @@ module Natalie
       private
 
       def build_fn_name(loaded_file)
-        suffix = loaded_file.relative_path
-                            .sub(/^[^a-zA-Z_]/, '_')
-                            .gsub(/[^a-zA-Z0-9_]/, '_')
+        suffix = loaded_file.relative_path.sub(/^[^a-zA-Z_]/, '_').gsub(/[^a-zA-Z0-9_]/, '_')
         "load_file_fn_#{suffix}"
       end
     end

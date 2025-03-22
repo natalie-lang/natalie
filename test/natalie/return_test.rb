@@ -92,14 +92,12 @@ describe 'return' do
   it 'can return from a begin/rescue/else in a deeply nested loop' do
     def foo
       begin
-
       rescue StandardError
       else
         loop do
           while true
             until false
               begin
-
               rescue StandardError
               else
                 return 4
@@ -117,35 +115,29 @@ describe 'return' do
 
   it 'can return from a lambda' do
     x = 1
-    ret = lambda {
-      x += 1
-      return :foo
-      x += 1
-    }
+    ret =
+      lambda do
+        x += 1
+        return :foo
+        x += 1
+      end
     ret.().should == :foo
     x.should == 2
 
-    ret = lambda {
-      x += 1
-      if true
-        unless false
-          [1].each do |i|
-            return i
-          end
+    ret =
+      lambda do
+        x += 1
+        if true
+          [1].each { |i| return i } unless false
         end
+        x += 1
       end
-      x += 1
-    }
     ret.().should == 1
     x.should == 3
 
     def foo
-      l1 = lambda {
-        return 3
-      }
-      l2 = lambda {
-        return 4
-      }
+      l1 = lambda { return 3 }
+      l2 = lambda { return 4 }
       return l1.() + l2.()
     end
     foo.should == 7
@@ -162,7 +154,7 @@ describe 'return' do
     foo(:break).should == 5
     foo(:return).should == 6
 
-    l = ->(t) {
+    l = ->(t) do
       [1].each do
         if t == :break
           break 7
@@ -170,7 +162,7 @@ describe 'return' do
           return 8
         end
       end
-    }
+    end
     l.(:break).should == 7
     l.(:return).should == 8
 
@@ -178,12 +170,8 @@ describe 'return' do
       result = 0
       loop do
         loop do
-          if false
-            return 4
-          end
-          unless false
-            break 3
-          end
+          return 4 if false
+          break 3 unless false
         end
         result = 9
         break

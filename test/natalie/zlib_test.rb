@@ -16,7 +16,129 @@ describe 'Zlib' do
     it 'deflates large inputs' do
       input = 'x' * 100_000
       deflated = Zlib::Deflate.deflate(input)
-      deflated.bytes.should == [120, 156, 237, 193, 49, 1, 0, 0, 0, 194, 160, 218, 139, 111, 13, 15, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 87, 3, 126, 42, 37, 186]
+      deflated.bytes.should ==
+        [
+          120,
+          156,
+          237,
+          193,
+          49,
+          1,
+          0,
+          0,
+          0,
+          194,
+          160,
+          218,
+          139,
+          111,
+          13,
+          15,
+          160,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          87,
+          3,
+          126,
+          42,
+          37,
+          186,
+        ]
 
       input = File.read(LARGE_TEXT_PATH)
       deflated = Zlib::Deflate.deflate(input, Zlib::BEST_COMPRESSION)
@@ -26,9 +148,7 @@ describe 'Zlib' do
     it 'deflates in chunks' do
       inflated = 'xyz' * 100
       zstream = Zlib::Deflate.new
-      inflated.chars.each_slice(50) do |chunk|
-        zstream << chunk.join
-      end
+      inflated.chars.each_slice(50) { |chunk| zstream << chunk.join }
       deflated = zstream.finish
       zstream.close
       deflated.bytes.should == "x\x9C\xAB\xA8\xAC\xAA\x18E\xC4!\x00a\xAF\x8D\xCD".b.bytes
@@ -54,7 +174,128 @@ describe 'Zlib' do
     end
 
     it 'inflates large inputs' do
-      deflated = [120, 156, 237, 193, 49, 1, 0, 0, 0, 194, 160, 218, 139, 111, 13, 15, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 87, 3, 126, 42, 37, 186].map(&:chr).join.b
+      deflated = [
+        120,
+        156,
+        237,
+        193,
+        49,
+        1,
+        0,
+        0,
+        0,
+        194,
+        160,
+        218,
+        139,
+        111,
+        13,
+        15,
+        160,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        128,
+        87,
+        3,
+        126,
+        42,
+        37,
+        186,
+      ].map(&:chr).join.b
       inflated = Zlib::Inflate.inflate(deflated)
       inflated.should == 'x' * 100_000
 
@@ -66,9 +307,7 @@ describe 'Zlib' do
     it 'inflates in chunks' do
       deflated = "x\x9C\xCBH\xCD\xC9\xC9W(\xCF/\xCAI\x01\x00\x1A\v\x04]".b
       zstream = Zlib::Inflate.new
-      deflated.chars.each_slice(5) do |chunk|
-        zstream << chunk.join
-      end
+      deflated.chars.each_slice(5) { |chunk| zstream << chunk.join }
       inflated = zstream.finish
       zstream.close
       inflated.should == 'hello world'
@@ -77,9 +316,7 @@ describe 'Zlib' do
     it 'returns itself in the streaming interface' do
       deflated = "x\x9C\xCBH\xCD\xC9\xC9W(\xCF/\xCAI\x01\x00\x1A\v\x04]".b
       zstream = Zlib::Inflate.new
-      deflated.chars.each_slice(5) do |chunk|
-        (zstream << chunk.join).should == zstream
-      end
+      deflated.chars.each_slice(5) { |chunk| (zstream << chunk.join).should == zstream }
       inflated = zstream.finish
       zstream.close
       inflated.should == 'hello world'
@@ -94,10 +331,10 @@ describe 'Zlib' do
 
   describe 'Zlib.crc32' do
     it 'converts initial value with #to_int' do
-    test_string = "This is a test string! How exciting!%?"
-    to_int = mock('to_int')
-    to_int.should_receive(:to_int).and_return(1)
-    Zlib.crc32(test_string, to_int).should == Zlib.crc32(test_string, 1)
+      test_string = 'This is a test string! How exciting!%?'
+      to_int = mock('to_int')
+      to_int.should_receive(:to_int).and_return(1)
+      Zlib.crc32(test_string, to_int).should == Zlib.crc32(test_string, 1)
     end
   end
 end

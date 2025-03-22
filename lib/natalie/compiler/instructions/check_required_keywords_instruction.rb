@@ -13,7 +13,9 @@ module Natalie
 
       def generate(transform)
         hash = transform.peek
-        transform.exec("env->ensure_no_missing_keywords(#{hash}, { #{@keywords.map { |kw| kw.to_s.inspect }.join ', ' } })")
+        transform.exec(
+          "env->ensure_no_missing_keywords(#{hash}, { #{@keywords.map { |kw| kw.to_s.inspect }.join ', '} })",
+        )
       end
 
       def execute(vm)

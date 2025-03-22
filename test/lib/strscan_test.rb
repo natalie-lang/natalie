@@ -26,7 +26,7 @@ describe 'StringScanner' do
     it 'works' do
       s = StringScanner.new('Fri Dec 12 1975 14:39')
       s.scan(/(\w+) (\w+) (\d+) /)
-      s.captures.should == ['Fri', 'Dec', '12']
+      s.captures.should == %w[Fri Dec 12]
       s.scan(/(\w+) (\w+) (\d+) /)
       s.captures.should == nil
     end

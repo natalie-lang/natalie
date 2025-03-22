@@ -2,9 +2,7 @@ module Natalie
   class Compiler
     class InstructionManager
       def initialize(instructions, env: nil)
-        unless instructions.is_a?(Array)
-          raise 'expected array'
-        end
+        raise 'expected array' unless instructions.is_a?(Array)
         @instructions = instructions
         @break_point = 0
         @env = env
@@ -61,7 +59,7 @@ module Natalie
       def replace_at(ip, new_instructions)
         raise 'expected array of instructions' unless new_instructions.all? { |i| i.is_a?(BaseInstruction) }
 
-        @instructions[ip,1] = new_instructions
+        @instructions[ip, 1] = new_instructions
         EnvBuilder.new(new_instructions, env: @env).process
       end
 

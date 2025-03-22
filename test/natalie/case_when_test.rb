@@ -194,14 +194,14 @@ describe 'case/when' do
   it 'calls #=== even if it is private' do
     o1 = PrivateCaseTestObj.new
     o2 = PrivateCaseTestObj.new
-    -> {
+    -> do
       case 1
       when o1
         'one'
       when o2
         'two'
       end
-    }.should_not raise_error
+    end.should_not raise_error
   end
 
   it 'executes every line of the when body' do

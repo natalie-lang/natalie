@@ -22,24 +22,12 @@ module Natalie
           transform_multi_target_arg(@node)
           @instructions << PopInstruction.new
         when Prism::ParametersNode
-          @node.requireds.each do |arg|
-            transform_required_arg(arg)
-          end
-          @node.posts.reverse_each do |arg|
-            transform_required_post_arg(arg)
-          end
-          @node.optionals.each do |arg|
-            transform_optional_arg(arg)
-          end
-          if @node.rest
-            transform_rest_arg(@node.rest)
-          end
-          @node.keywords.each do |arg|
-            transform_keyword_arg(arg)
-          end
-          if @node.keyword_rest
-            transform_keyword_rest_arg(@node.keyword_rest)
-          end
+          @node.requireds.each { |arg| transform_required_arg(arg) }
+          @node.posts.reverse_each { |arg| transform_required_post_arg(arg) }
+          @node.optionals.each { |arg| transform_optional_arg(arg) }
+          transform_rest_arg(@node.rest) if @node.rest
+          @node.keywords.each { |arg| transform_keyword_arg(arg) }
+          transform_keyword_rest_arg(@node.keyword_rest) if @node.keyword_rest
         when Prism::LocalVariableTargetNode
           transform_required_arg(@node)
         when Prism::ItParametersNode
@@ -71,8 +59,9 @@ module Natalie
         return true if @node.nil?
         return false unless @node.is_a?(Prism::ParametersNode)
         return false if @node.requireds.any? { |arg| arg.type != :required_parameter_node }
-        return false if @node.optionals.any? || @node.posts.any? ||
-                        @node.rest || @node.keywords.any? || @node.keyword_rest
+        if @node.optionals.any? || @node.posts.any? || @node.rest || @node.keywords.any? || @node.keyword_rest
+          return false
+        end
         return false if @node.requireds.count { |a| a.type == :required_parameter_node && a.name == :_ } > 1
         return false if @for_block && @node.requireds.size > 1
 
@@ -82,9 +71,7 @@ module Natalie
       def transform_simply
         args = @node&.requireds || []
 
-        if @check_args
-          @instructions << CheckArgsInstruction.new(positional: args.size, keywords: [])
-        end
+        @instructions << CheckArgsInstruction.new(positional: args.size, keywords: []) if @check_args
 
         args.each_with_index do |arg, index|
           @instructions << PushArgInstruction.new(index, nil_default: @for_block)
@@ -105,9 +92,7 @@ module Natalie
           @instructions << CheckArgsInstruction.new(positional: argc, keywords: required_keywords)
         end
 
-        if required_keywords.any?
-          @instructions << CheckRequiredKeywordsInstruction.new(required_keywords)
-        end
+        @instructions << CheckRequiredKeywordsInstruction.new(required_keywords) if required_keywords.any?
 
         spread = @for_block && args_to_array.size > 1
         @instructions << PushArgsInstruction.new(for_block: @for_block, min_count:, max_count:, spread:)
@@ -157,15 +142,9 @@ module Natalie
       end
 
       def transform_multi_target_arg(node)
-        node.lefts.each do |arg|
-          transform_required_arg(arg)
-        end
-        node.rights.reverse_each do |arg|
-          transform_required_post_arg(arg)
-        end
-        if node.rest
-          transform_rest_arg(node.rest)
-        end
+        node.lefts.each { |arg| transform_required_arg(arg) }
+        node.rights.reverse_each { |arg| transform_required_post_arg(arg) }
+        transform_rest_arg(node.rest) if node.rest
       end
 
       def transform_optional_arg(arg)
@@ -240,15 +219,13 @@ module Natalie
         @instructions << SendInstruction.new(
           arg.name,
           args_array_on_stack: false,
-          receiver_is_self:    arg.receiver.is_a?(Prism::SelfNode),
-          with_block:          false,
-          has_keyword_hash:    false,
-          file:                @pass.file.path,
-          line:                arg.location.start_line,
+          receiver_is_self: arg.receiver.is_a?(Prism::SelfNode),
+          with_block: false,
+          has_keyword_hash: false,
+          file: @pass.file.path,
+          line: arg.location.start_line,
         )
-        if arg.safe_navigation?
-          @instructions << EndInstruction.new(:if)
-        end
+        @instructions << EndInstruction.new(:if) if arg.safe_navigation?
       end
 
       def transform_index_arg(arg)
@@ -263,11 +240,11 @@ module Natalie
         @instructions << SendInstruction.new(
           :[]=,
           args_array_on_stack: false,
-          receiver_is_self:    arg.receiver.is_a?(Prism::SelfNode),
-          with_block:          false,
-          has_keyword_hash:    false,
-          file:                @pass.file.path,
-          line:                arg.location.start_line,
+          receiver_is_self: arg.receiver.is_a?(Prism::SelfNode),
+          with_block: false,
+          has_keyword_hash: false,
+          file: @pass.file.path,
+          line: arg.location.start_line,
         )
       end
 
@@ -371,17 +348,10 @@ module Natalie
             []
           when Prism::ParametersNode
             (
-              @node.requireds +
-              [@node.rest] +
-              @node.optionals +
-              @node.posts +
-              @node.keywords +
-              [@node.keyword_rest]
+              @node.requireds + [@node.rest] + @node.optionals + @node.posts + @node.keywords + [@node.keyword_rest]
             ).compact
           when Prism::NumberedParametersNode
-            @node.maximum.times.map do |i|
-              Prism::RequiredParameterNode.new(nil, nil, @node.location, 0, :"_#{i + 1}")
-            end
+            @node.maximum.times.map { |i| Prism::RequiredParameterNode.new(nil, nil, @node.location, 0, :"_#{i + 1}") }
           when Prism::ItParametersNode
             [Prism::RequiredParameterNode.new(nil, nil, @node.location, 0, :it)]
           else
@@ -390,9 +360,7 @@ module Natalie
       end
 
       def minimum_arg_count
-        args_to_array.count do |arg|
-          arg.type == :required_parameter_node || arg.type == :multi_target_node
-        end
+        args_to_array.count { |arg| arg.type == :required_parameter_node || arg.type == :multi_target_node }
       end
 
       def maximum_arg_count
@@ -417,9 +385,7 @@ module Natalie
       def required_keywords
         return [] unless @node.is_a?(Prism::ParametersNode)
 
-        @node.keywords.filter_map do |arg|
-          arg.name if arg.type == :required_keyword_parameter_node
-        end
+        @node.keywords.filter_map { |arg| arg.name if arg.type == :required_keyword_parameter_node }
       end
 
       def any_keyword_args?

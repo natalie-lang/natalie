@@ -27,11 +27,14 @@ module Natalie
 
         block = transform.pop
         block_temp = transform.temp('block')
-        transform.exec_and_push(:lambda, [
-          "auto #{block_temp} = #{block}",
-          "#{block_temp}->set_type(Block::BlockType::Lambda)",
-          "Value(new ProcObject(#{block_temp}, #{@break_point || 0}))"
-        ])
+        transform.exec_and_push(
+          :lambda,
+          [
+            "auto #{block_temp} = #{block}",
+            "#{block_temp}->set_type(Block::BlockType::Lambda)",
+            "Value(new ProcObject(#{block_temp}, #{@break_point || 0}))",
+          ],
+        )
       end
 
       def execute(vm)
@@ -42,18 +45,19 @@ module Natalie
         end
 
         block_lambda = vm.pop
-        proc_wrapper_that_catches_break = lambda do |*args|
-          begin
-            block_lambda.call
-          rescue LocalJumpError => exception
-            break_point = exception.instance_variable_get(:@break_point)
-            if break_point == @break_point
-              exception.exit_value
-            else
-              raise
+        proc_wrapper_that_catches_break =
+          lambda do |*args|
+            begin
+              block_lambda.call
+            rescue LocalJumpError => exception
+              break_point = exception.instance_variable_get(:@break_point)
+              if break_point == @break_point
+                exception.exit_value
+              else
+                raise
+              end
             end
           end
-        end
         vm.push(proc_wrapper_that_catches_break)
       end
     end

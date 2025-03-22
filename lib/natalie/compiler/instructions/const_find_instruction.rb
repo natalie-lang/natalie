@@ -36,10 +36,7 @@ module Natalie
           "Object::ConstLookupSearchMode::#{search_mode}",
           "Object::ConstLookupFailureMode::#{@failure_mode}",
         ]
-        transform.exec_and_push(
-          :const,
-          "Object::const_find_with_autoload(#{args.join(', ')}).value()"
-        )
+        transform.exec_and_push(:const, "Object::const_find_with_autoload(#{args.join(', ')}).value()")
       end
 
       def execute(vm)
@@ -72,11 +69,7 @@ module Natalie
       def serialize(rodata)
         position = rodata.add(@name.to_s)
 
-        [
-          instruction_number,
-          position,
-          @strict ? 1 : 0,
-        ].pack("CwC")
+        [instruction_number, position, @strict ? 1 : 0].pack('CwC')
       end
 
       def self.deserialize(io, rodata)
@@ -87,7 +80,7 @@ module Natalie
           name,
           strict:,
           file: '', # FIXME
-          line: 0 # FIXME
+          line: 0, # FIXME
         )
       end
     end

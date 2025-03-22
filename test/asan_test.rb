@@ -18,29 +18,27 @@ when 'dots'
   # just use the default reporter
 end
 
-TESTS = if ENV['SOME_TESTS'] == 'true'
-          # runs on every PR -- some tests
-          Dir[
-            'spec/language/*_spec.rb',
-            'test/natalie/**/*_test.rb',
-            # fixed:
-            'spec/core/kernel/Float_spec.rb',
-            'spec/core/kernel/srand_spec.rb',
-            'spec/core/process/spawn_spec.rb',
-            'spec/core/random/new_seed_spec.rb',
-            'spec/core/random/srand_spec.rb',
-            'spec/core/string/crypt_spec.rb',
-            'spec/library/yaml/dump_spec.rb',
-            'spec/library/yaml/load_spec.rb',
-            'spec/library/yaml/to_yaml_spec.rb',
-          ].to_a
-        else
-          # runs nightly -- all tests
-          Dir[
-            'spec/**/*_spec.rb',
-            'test/natalie/**/*_test.rb',
-          ].to_a
-        end
+TESTS =
+  if ENV['SOME_TESTS'] == 'true'
+    # runs on every PR -- some tests
+    Dir[
+      'spec/language/*_spec.rb',
+      'test/natalie/**/*_test.rb',
+      # fixed:
+      'spec/core/kernel/Float_spec.rb',
+      'spec/core/kernel/srand_spec.rb',
+      'spec/core/process/spawn_spec.rb',
+      'spec/core/random/new_seed_spec.rb',
+      'spec/core/random/srand_spec.rb',
+      'spec/core/string/crypt_spec.rb',
+      'spec/library/yaml/dump_spec.rb',
+      'spec/library/yaml/load_spec.rb',
+      'spec/library/yaml/to_yaml_spec.rb'
+    ].to_a
+  else
+    # runs nightly -- all tests
+    Dir['spec/**/*_spec.rb', 'test/natalie/**/*_test.rb'].to_a
+  end
 
 TESTS_TO_SKIP = [
   # calls GC.start/GC.enable, but we're not ready for that
@@ -48,10 +46,8 @@ TESTS_TO_SKIP = [
   'spec/core/gc/enable_spec.rb',
   'test/natalie/gc_test.rb',
   'test/natalie/thread_test.rb',
-
   # leak after use of PEM_read_bio_PUBKEY
   'test/natalie/openssl_test.rb',
-
   # getaddrinfo "leak"
   # https://bugs.kde.org/show_bug.cgi?id=448991
   # https://bugzilla.redhat.com/show_bug.cgi?id=859717
@@ -70,12 +66,10 @@ TESTS_TO_SKIP = [
   'spec/library/socket/tcpsocket/setsockopt_spec.rb',
   'spec/library/socket/udpsocket/bind_spec.rb',
   'spec/library/socket/udpsocket/write_spec.rb',
-
   # spec timeout, hangs on waitpid
   'spec/core/kernel/fork_spec.rb',
   'spec/core/process/fork_spec.rb',
-
-   # some issue to do with ptrace + Docker privileges
+  # some issue to do with ptrace + Docker privileges
   'spec/core/process/egid_spec.rb',
   'spec/core/process/euid_spec.rb',
   'spec/core/process/uid_spec.rb',
@@ -88,9 +82,7 @@ describe 'Sanitizers tests' do
 
   Dir.chdir File.expand_path('..', __dir__)
 
-  before do
-    FileUtils.mkdir_p 'test/tmp'
-  end
+  before { FileUtils.mkdir_p 'test/tmp' }
 
   TESTS.each do |path|
     next if TESTS_TO_SKIP.include?(path)

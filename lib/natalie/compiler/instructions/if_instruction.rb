@@ -28,14 +28,10 @@ module Natalie
 
         transform.normalize_stack do
           code << "if (#{condition}.is_truthy()) {"
-          if_size = transform.with_same_scope(true_body) do |t|
-            code << t.transform("#{result} =")
-          end
+          if_size = transform.with_same_scope(true_body) { |t| code << t.transform("#{result} =") }
 
           code << '} else {'
-          else_size = transform.with_same_scope(false_body) do |t|
-            code << t.transform("#{result} =")
-          end
+          else_size = transform.with_same_scope(false_body) { |t| code << t.transform("#{result} =") }
           code << '}'
 
           if if_size != else_size
@@ -48,7 +44,7 @@ module Natalie
             puts 'false body:'
             puts false_body
             raise "IfInstruction branch sizes are uneven! #{if_size} != #{else_size}\n" \
-                  'This is a bug in the compiler. Please report it.'
+                    'This is a bug in the compiler. Please report it.'
           end
         end
 
@@ -72,9 +68,7 @@ module Natalie
           result = vm.run
           vm.ip = end_ip
         end
-        unless result == :halt
-          result
-        end
+        result unless result == :halt
       end
 
       def serialize(_)

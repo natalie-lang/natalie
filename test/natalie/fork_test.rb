@@ -10,9 +10,7 @@ describe :process_fork, shared: true do
 
   context 'with a block' do
     it 'creates a child process with given block and returns the pid' do
-      pid = @object.fork do
-        `echo 'hello from child with block' > #{@path}`
-      end
+      pid = @object.fork { `echo 'hello from child with block' > #{@path}` }
       pid.should be_kind_of(Integer)
       pid.should > 0
       Process.wait(pid)
@@ -39,7 +37,7 @@ describe :process_fork, shared: true do
 end
 
 describe 'Kernel.fork' do
-  it "is a private method" do
+  it 'is a private method' do
     Kernel.should have_private_instance_method(:fork)
   end
 
@@ -50,6 +48,6 @@ describe 'Kernel#fork' do
   it_behaves_like :process_fork, :fork, Kernel
 end
 
-describe "Process.fork" do
+describe 'Process.fork' do
   it_behaves_like :process_fork, :fork, Process
 end

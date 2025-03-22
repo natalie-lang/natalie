@@ -87,7 +87,7 @@ module Natalie
             env = env.fetch(:outer) while env[:hoist]
             if env.fetch(:vars).key?(name)
               var = env.dig(:vars, name)
-              return [depth, var]
+              return depth, var
             end
             if env[:block] && !local_only && (outer = env.fetch(:outer))
               env = outer
@@ -111,24 +111,26 @@ module Natalie
         end
 
         def with_new_scope(instructions)
-          t = Transform.new(
-            instructions,
-            transform_data: @transform_data,
-            compiler_context: @compiler_context,
-            compiled_files: @compiled_files,
-          )
+          t =
+            Transform.new(
+              instructions,
+              transform_data: @transform_data,
+              compiler_context: @compiler_context,
+              compiled_files: @compiled_files,
+            )
           yield(t)
         end
 
         def with_same_scope(instructions)
           stack = @stack.dup
-          t = Transform.new(
-            instructions,
-            stack: stack,
-            transform_data: @transform_data,
-            compiler_context: @compiler_context,
-            compiled_files: @compiled_files,
-          )
+          t =
+            Transform.new(
+              instructions,
+              stack: stack,
+              transform_data: @transform_data,
+              compiler_context: @compiler_context,
+              compiled_files: @compiled_files,
+            )
           yield(t)
           @stack_sizes << stack.size if @stack_sizes
           stack.size
@@ -200,7 +202,7 @@ module Natalie
 
         def value_has_side_effects?(value)
           return false if value =~ /^Value\((False|Nil|True)Object::the\(\)\)$/
-          return false if value =~ /^Value\(\w*symbols\[\d+\]\/\*\:[^\*]+\*\/\)$/
+          return false if value =~ %r{^Value\(\w*symbols\[\d+\]/\*\:[^\*]+\*/\)$}
           true
         end
 

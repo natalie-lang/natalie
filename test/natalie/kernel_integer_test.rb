@@ -14,7 +14,7 @@ describe 'Kernel.Integer' do
     -> { Integer("+\v1") }.should raise_error(ArgumentError, 'invalid value for Integer(): "+\\v1"')
     -> { Integer("+\f1") }.should raise_error(ArgumentError, 'invalid value for Integer(): "+\\f1"')
     -> { Integer("+\r1") }.should raise_error(ArgumentError, 'invalid value for Integer(): "+\\r1"')
-    -> { Integer("+ 1") }.should raise_error(ArgumentError, 'invalid value for Integer(): "+ 1"')
+    -> { Integer('+ 1') }.should raise_error(ArgumentError, 'invalid value for Integer(): "+ 1"')
   end
 
   it 'does not accept only a sign mark' do

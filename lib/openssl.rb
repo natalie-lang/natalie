@@ -60,7 +60,8 @@ module Digest
 end
 
 module OpenSSL
-  class OpenSSLError < StandardError; end
+  class OpenSSLError < StandardError
+  end
 
   def self.secure_compare(a, b)
     sha1_a = Digest.digest('SHA1', a)
@@ -112,7 +113,8 @@ module OpenSSL
   end
 
   class Cipher
-    class CipherError < OpenSSLError; end
+    class CipherError < OpenSSLError
+    end
 
     def random_iv
       self.iv = Random.random_bytes(iv_len)
@@ -150,12 +152,13 @@ module OpenSSL
     def self.const_missing(name)
       normalized_name = new(name.to_s).name
       raise if name.to_s != normalized_name
-      klass = Class.new(self) do
-        define_method(:initialize) { |*args| super(normalized_name, *args) }
-        define_singleton_method(:digest) { |*args| Digest.digest(normalized_name, *args) }
-        define_singleton_method(:base64digest) { |*args| Digest.base64digest(normalized_name, *args) }
-        define_singleton_method(:hexdigest) { |*args| Digest.hexdigest(normalized_name, *args) }
-      end
+      klass =
+        Class.new(self) do
+          define_method(:initialize) { |*args| super(normalized_name, *args) }
+          define_singleton_method(:digest) { |*args| Digest.digest(normalized_name, *args) }
+          define_singleton_method(:base64digest) { |*args| Digest.base64digest(normalized_name, *args) }
+          define_singleton_method(:hexdigest) { |*args| Digest.hexdigest(normalized_name, *args) }
+        end
       const_set(name, klass)
       klass
     rescue StandardError
@@ -170,9 +173,12 @@ module OpenSSL
   end
 
   module X509
-    class CertificateError < OpenSSLError; end
-    class NameError < OpenSSLError; end
-    class StoreError < OpenSSLError; end
+    class CertificateError < OpenSSLError
+    end
+    class NameError < OpenSSLError
+    end
+    class StoreError < OpenSSLError
+    end
 
     class Certificate
       __bind_method__ :initialize, :OpenSSL_X509_Certificate_initialize
@@ -196,15 +202,16 @@ module OpenSSL
     class Name
       include Comparable
 
-      OBJECT_TYPE_TEMPLATE = {
-        'C'               => ASN1::PRINTABLESTRING,
-        'countryName'     => ASN1::PRINTABLESTRING,
-        'serialNumber'    => ASN1::PRINTABLESTRING,
-        'dnQualifier'     => ASN1::PRINTABLESTRING,
-        'DC'              => ASN1::IA5STRING,
-        'domainComponent' => ASN1::IA5STRING,
-        'emailAddress'    => ASN1::IA5STRING
-      }.tap { |hash| hash.default = ASN1::UTF8STRING }.freeze
+      OBJECT_TYPE_TEMPLATE =
+        {
+          'C' => ASN1::PRINTABLESTRING,
+          'countryName' => ASN1::PRINTABLESTRING,
+          'serialNumber' => ASN1::PRINTABLESTRING,
+          'dnQualifier' => ASN1::PRINTABLESTRING,
+          'DC' => ASN1::IA5STRING,
+          'domainComponent' => ASN1::IA5STRING,
+          'emailAddress' => ASN1::IA5STRING,
+        }.tap { |hash| hash.default = ASN1::UTF8STRING }.freeze
 
       __constant__('COMPAT', 'int', 'XN_FLAG_COMPAT')
       __constant__('RFC2253', 'int', 'XN_FLAG_RFC2253')
@@ -219,11 +226,12 @@ module OpenSSL
 
       class << self
         def parse_openssl(str, template = OBJECT_TYPE_TEMPLATE)
-          ary = if str.start_with?('/')
-                  str.split('/')[1..]
-                else
-                  str.split(/,\s*/)
-                end
+          ary =
+            if str.start_with?('/')
+              str.split('/')[1..]
+            else
+              str.split(/,\s*/)
+            end
           ary = ary.map { |e| e.split('=') }
           raise TypeError, 'invalid OpenSSL::X509::Name input' unless ary.all? { |e| e.size == 2 }
           new(ary, template)
@@ -286,7 +294,8 @@ module OpenSSL
     __constant__ 'VERIFY_CLIENT_ONCE', 'int', 'SSL_VERIFY_CLIENT_ONCE'
     __constant__ 'VERIFY_POST_HANDSHAKE', 'int', 'SSL_VERIFY_POST_HANDSHAKE'
 
-    class SSLError < OpenSSLError; end
+    class SSLError < OpenSSLError
+    end
 
     class SSLContext
       __constant__ 'SESSION_CACHE_OFF', 'int', 'SSL_SESS_CACHE_OFF'
@@ -304,7 +313,8 @@ module OpenSSL
       DEFAULT_PARAMS = {
         verify_mode: OpenSSL::SSL::VERIFY_PEER,
         verify_hostname: true,
-        options: (OpenSSL::SSL::OP_ALL & ~OpenSSL::SSL::OP_DONT_INSERT_EMPTY_FRAGMENTS) | OpenSSL::SSL::OP_NO_COMPRESSION,
+        options:
+          (OpenSSL::SSL::OP_ALL & ~OpenSSL::SSL::OP_DONT_INSERT_EMPTY_FRAGMENTS) | OpenSSL::SSL::OP_NO_COMPRESSION,
       }.freeze
 
       __bind_method__ :initialize, :OpenSSL_SSL_SSLContext_initialize
@@ -326,9 +336,7 @@ module OpenSSL
         params = DEFAULT_PARAMS.merge(params)
         self.cert_store ||= DEFAULT_CERT_STORE
         self.options |= params.delete(:options)
-        params.each do |key, value|
-          send("#{key}=", value)
-        end
+        params.each { |key, value| send("#{key}=", value) }
       end
     end
 
@@ -345,14 +353,18 @@ module OpenSSL
   end
 
   module KDF
-    class KDFError < OpenSSLError; end
+    class KDFError < OpenSSLError
+    end
   end
 
   module PKey
-    class PKeyError < OpenSSLError; end
-    class RSAError < PKeyError; end
+    class PKeyError < OpenSSLError
+    end
+    class RSAError < PKeyError
+    end
 
-    class PKey; end
+    class PKey
+    end
 
     class RSA < PKey
       __bind_method__ :initialize, :OpenSSL_PKey_RSA_initialize

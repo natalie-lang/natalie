@@ -1,7 +1,9 @@
 require_relative '../spec_helper'
 
-class Foo < Struct; end
-class Bar < Foo; end
+class Foo < Struct
+end
+class Bar < Foo
+end
 
 describe 'Struct' do
   it 'can be created' do
@@ -133,9 +135,9 @@ describe 'Struct' do
   it 'does not allow mutations of the result of members' do
     s = Struct.new(:a, :b)
     s.members.clear
-    s.members.should == [:a, :b]
+    s.members.should == %i[a b]
     i = s.new(1)
     i.members.clear
-    i.members.should == [:a, :b]
+    i.members.should == %i[a b]
   end
 end

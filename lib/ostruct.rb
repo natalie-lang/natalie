@@ -15,12 +15,8 @@ class OpenStruct
 
   def []=(key, value)
     @table[key.to_sym] = value
-    unless respond_to?(key)
-      define_singleton_method(key) { @table[key] }
-    end
-    unless respond_to?("#{key}=")
-      define_singleton_method("#{key}=") { |value| @table[key] = value }
-    end
+    define_singleton_method(key) { @table[key] } unless respond_to?(key)
+    define_singleton_method("#{key}=") { |value| @table[key] = value } unless respond_to?("#{key}=")
   end
 
   def ==(other)
@@ -43,9 +39,8 @@ class OpenStruct
   end
 
   def inspect
-    fields = [self.class] + @table.map do |key, value|
-      "#{key}=#{value.equal?(self) ? "#<#{self.class} ...>" : value.inspect}"
-    end
+    fields =
+      [self.class] + @table.map { |key, value| "#{key}=#{value.equal?(self) ? "#<#{self.class} ...>" : value.inspect}" }
     "#<#{fields.join(' ')}>"
   end
   alias to_s inspect
@@ -57,9 +52,7 @@ class OpenStruct
 
   def method_missing(method, *args)
     if method.to_s[-1] == '='
-      if args.size != 1
-        raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1)"
-      end
+      raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1)" if args.size != 1
 
       m = define_singleton_method(method) { |value| @table[method.to_s.chop.to_sym] = value }
       return send(method, *args)

@@ -28,15 +28,11 @@ describe 'yield' do
   end
 
   it 'calls the block with keyword args' do
-    method_that_yields_keyword_args(foo: :bar) do |foo:|
-      foo.should == :bar
-    end
+    method_that_yields_keyword_args(foo: :bar) { |foo:| foo.should == :bar }
   end
 
   it 'does not append empty keyword hash to args array' do
-    method_that_yields_empty_keyword_args(:foo, :bar) do |*args|
-      args.should == [:foo, :bar]
-    end
+    method_that_yields_empty_keyword_args(:foo, :bar) { |*args| args.should == %i[foo bar] }
   end
 
   it 'calls the block passed to a method when yielding from within a block' do

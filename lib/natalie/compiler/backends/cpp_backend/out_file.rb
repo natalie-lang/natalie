@@ -20,7 +20,7 @@ module Natalie
 
         def initialize(type:, body:, transform_data:, ruby_path:, compiler:, backend:)
           @type = type
-          raise "type must be :main, :obj, or :loaded_file" unless %i[main obj loaded_file].include?(type)
+          raise 'type must be :main, :obj, or :loaded_file' unless %i[main obj loaded_file].include?(type)
           @body = body
           @top = transform_data.top
           @symbols = transform_data.symbols
@@ -31,9 +31,7 @@ module Natalie
           @backend = backend
         end
 
-        attr_reader :ruby_path,
-                    :cpp_path,
-                    :status
+        attr_reader :ruby_path, :cpp_path, :status
 
         def write_source
           if build_dir
@@ -55,18 +53,18 @@ module Natalie
         def write_source_to_path(path)
           return if File.exist?(path) && File.read(path) == merged_source
 
-          AdvisoryLock.new("#{path}.lock").lock do
-            File.open(path, File::RDWR | File::CREAT) do |f|
-              existing_source = f.read
-              if existing_source != ''
-                if existing_source == merged_source
-                  break
+          AdvisoryLock
+            .new("#{path}.lock")
+            .lock do
+              File.open(path, File::RDWR | File::CREAT) do |f|
+                existing_source = f.read
+                if existing_source != ''
+                  break if existing_source == merged_source
                 end
+                f.rewind
+                f.write(merged_source)
               end
-              f.rewind
-              f.write(merged_source)
             end
-          end
         end
 
         def append_loaded_file(other_out_file)
@@ -79,25 +77,27 @@ module Natalie
         def compile_object_file
           write_source unless @cpp_path
 
-          AdvisoryLock.new("#{out_path}.lock").lock do
-            if build_dir && File.exist?(out_path) && File.stat(out_path).mtime >= File.stat(@cpp_path).mtime
-              @status = :unchanged
-              return out_path
+          AdvisoryLock
+            .new("#{out_path}.lock")
+            .lock do
+              if build_dir && File.exist?(out_path) && File.stat(out_path).mtime >= File.stat(@cpp_path).mtime
+                @status = :unchanged
+                return out_path
+              end
+
+              raise 'Something went wrong. The source file is empty.' if File.stat(@cpp_path).size.zero?
+
+              cmd = compiler_command
+              puts cmd if @compiler.debug == 'cc-cmd'
+              out = `#{cmd} 2>&1`
+              File.unlink(@cpp_path) unless @compiler.keep_cpp? || build_dir || $? != 0
+              puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?
+              warn out if out.strip != ''
+              raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
+
+              @status = :compiled
+              out_path
             end
-
-            raise 'Something went wrong. The source file is empty.' if File.stat(@cpp_path).size.zero?
-
-            cmd = compiler_command
-            puts cmd if @compiler.debug == 'cc-cmd'
-            out = `#{cmd} 2>&1`
-            File.unlink(@cpp_path) unless @compiler.keep_cpp? || build_dir || $? != 0
-            puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?
-            warn out if out.strip != ''
-            raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
-
-            @status = :compiled
-            out_path
-          end
         end
 
         def compiler_command
@@ -115,13 +115,14 @@ module Natalie
         end
 
         def out_path
-          @out_path ||= if build_dir
-            build_path('o')
-          else
-            out = Tempfile.create(temp_name('o'))
-            out.close
-            out.path
-          end
+          @out_path ||=
+            if build_dir
+              build_path('o')
+            else
+              out = Tempfile.create(temp_name('o'))
+              out.close
+              out.path
+            end
         end
 
         def relative_ruby_path
@@ -133,26 +134,29 @@ module Natalie
         end
 
         def merged_source
-          @merged_source ||= begin
-            result = get_template
-              .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
-              .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files }
-              .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
-              .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
-            reindent(result)
-          end
+          @merged_source ||=
+            begin
+              result =
+                get_template
+                  .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
+                  .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files }
+                  .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
+                  .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
+              reindent(result)
+            end
         end
 
         def loaded_file_fn_source(fn_only: false)
           fn = @backend.compiled_files.fetch(@ruby_path)
           source = LOADED_FILE_TEMPLATE
           source = source.sub(/.*(?=Value __FN_NAME__)/m, '') if fn_only
-          result = source
-            .sub('__FN_NAME__', fn)
-            .sub('"FILE_NAME"_s', "#{@ruby_path.inspect}_s")
-            .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
-            .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
-            .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
+          result =
+            source
+              .sub('__FN_NAME__', fn)
+              .sub('"FILE_NAME"_s', "#{@ruby_path.inspect}_s")
+              .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
+              .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
+              .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
           reindent(result)
         end
 
@@ -176,11 +180,7 @@ module Natalie
         end
 
         def build_flags
-          (
-            base_build_flags +
-            [ENV['NAT_CXX_FLAGS']].compact +
-            @backend.compiler_context[:compile_cxx_flags]
-          ).join(' ')
+          (base_build_flags + [ENV['NAT_CXX_FLAGS']].compact + @backend.compiler_context[:compile_cxx_flags]).join(' ')
         end
 
         def base_build_flags
@@ -203,46 +203,29 @@ module Natalie
         def single_source? = !build_dir
 
         def build_path(extension)
-          File.join(
-            build_dir,
-            relative_ruby_path
-              .sub(/(\.rb)?$/, ".#{extension}")
-              .gsub(/[^a-zA-Z0-9_\.\/]/, '_')
-          )
+          File.join(build_dir, relative_ruby_path.sub(/(\.rb)?$/, ".#{extension}").gsub(%r{[^a-zA-Z0-9_\./]}, '_'))
         end
 
         def temp_name(extension)
-          File.split(@ruby_path)
-            .last
-            .sub(/(\.rb)?$/, ".#{extension}")
-            .gsub(/[^a-zA-Z0-9_\.\/]/, '_')
+          File.split(@ruby_path).last.sub(/(\.rb)?$/, ".#{extension}").gsub(%r{[^a-zA-Z0-9_\./]}, '_')
         end
 
         def declarations
-          [
-            object_file_declarations,
-            symbols_declaration,
-            interned_strings_declaration,
-            @top.values.join("\n")
-          ].join("\n\n")
+          [object_file_declarations, symbols_declaration, interned_strings_declaration, @top.values.join("\n")].join(
+            "\n\n",
+          )
         end
 
         def init_matter
           return '' if single_source? && @type == :loaded_file
 
-          [
-            init_symbols.join("\n"),
-            init_interned_strings.join("\n"),
-            init_dollar_zero_global,
-          ].compact.join("\n\n")
+          [init_symbols.join("\n"), init_interned_strings.join("\n"), init_dollar_zero_global].compact.join("\n\n")
         end
 
         def object_file_declarations
           return '' if @type == :loaded_file
 
-          object_files.map do |name|
-            "Value init_#{name.tr('/', '_')}(Env *env, Value self);"
-          end.join("\n")
+          object_files.map { |name| "Value init_#{name.tr('/', '_')}(Env *env, Value self);" }.join("\n")
         end
 
         def symbols_declaration
@@ -256,9 +239,7 @@ module Natalie
         end
 
         def init_object_files
-          object_files.map do |name|
-            "init_#{name.tr('/', '_')}(env, self);"
-          end.join("\n")
+          object_files.map { |name| "init_#{name.tr('/', '_')}(env, self);" }.join("\n")
         end
 
         def init_symbols
@@ -272,21 +253,18 @@ module Natalie
 
           # Start with setting the interned strings list all to nullptr and register the GC hook before creating strings
           # Otherwise, we might start GC before we finished setting up this structure if the source contains enough strings
-          [
-            "GlobalEnv::the()->set_interned_strings(#{interned_strings_var_name}, #{@interned_strings.size});"
-          ] + @interned_strings.flat_map do |(str, encoding), index|
-            enum = encoding.name.tr('-', '_').upcase
-            encoding_object = "EncodingObject::get(Encoding::#{enum})"
-            new_string = if str.empty?
-              "#{interned_strings_var_name}[#{index}] = new StringObject(#{encoding_object});"
-            else
-              "#{interned_strings_var_name}[#{index}] = new StringObject(#{string_to_cpp(str)}, #{str.bytesize}, #{encoding_object});"
+          ["GlobalEnv::the()->set_interned_strings(#{interned_strings_var_name}, #{@interned_strings.size});"] +
+            @interned_strings.flat_map do |(str, encoding), index|
+              enum = encoding.name.tr('-', '_').upcase
+              encoding_object = "EncodingObject::get(Encoding::#{enum})"
+              new_string =
+                if str.empty?
+                  "#{interned_strings_var_name}[#{index}] = new StringObject(#{encoding_object});"
+                else
+                  "#{interned_strings_var_name}[#{index}] = new StringObject(#{string_to_cpp(str)}, #{str.bytesize}, #{encoding_object});"
+                end
+              [new_string, "#{interned_strings_var_name}[#{index}]->freeze();"]
             end
-            [
-              new_string,
-              "#{interned_strings_var_name}[#{index}]->freeze();",
-            ]
-          end
         end
 
         def init_dollar_zero_global
@@ -308,13 +286,12 @@ module Natalie
         end
 
         def object_files
-          rb_files = Dir[File.join(ROOT_DIR, '/src/**/*.rb')].map do |path|
-            path.sub(%r{^.*/src/}, '')
-          end.grep(%r{^([a-z0-9_]+/)?[a-z0-9_]+\.rb$})
+          rb_files =
+            Dir[File.join(ROOT_DIR, '/src/**/*.rb')]
+              .map { |path| path.sub(%r{^.*/src/}, '') }
+              .grep(%r{^([a-z0-9_]+/)?[a-z0-9_]+\.rb$})
           list = rb_files.sort.map { |name| name.split('.').first }
-          ['exception'] + # must come first
-          (list - ['exception']) +
-          @backend.compiler_context[:required_cpp_files].values
+          ['exception'] + (list - ['exception']) + @backend.compiler_context[:required_cpp_files].values # must come first
         end
 
         def reindent(code)

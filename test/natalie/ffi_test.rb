@@ -7,9 +7,7 @@ SO_EXT = RbConfig::CONFIG['SOEXT']
 PRISM_LIBRARY_PATH = File.expand_path("../../build/prism/build/libprism.#{SO_EXT}", __dir__)
 STUB_LIBRARY_PATH = File.expand_path("../../build/test/support/ffi_stubs.#{SO_EXT}", __dir__)
 
-unless File.exist?(STUB_LIBRARY_PATH)
-  `rake 'build/test/support/ffi_stubs.#{SO_EXT}'`
-end
+`rake 'build/test/support/ffi_stubs.#{SO_EXT}'` unless File.exist?(STUB_LIBRARY_PATH)
 
 module TestStubs
   extend FFI::Library
@@ -46,19 +44,17 @@ describe 'FFI' do
     lambda do
       Module.new do
         extend FFI::Library
-        ffi_lib "non_existent.so"
+        ffi_lib 'non_existent.so'
       end
-    end.should raise_error(
-      LoadError,
-      /Could not open library.*non_existent\.so/
-    )
+    end.should raise_error(LoadError, /Could not open library.*non_existent\.so/)
   end
 
   it 'supports an array of strings as library and uses the first one available' do
-    foo = Module.new do
-      extend FFI::Library
-      ffi_lib ['non_existent.so', STUB_LIBRARY_PATH, PRISM_LIBRARY_PATH]
-    end
+    foo =
+      Module.new do
+        extend FFI::Library
+        ffi_lib ['non_existent.so', STUB_LIBRARY_PATH, PRISM_LIBRARY_PATH]
+      end
     libs = foo.instance_variable_get(:@ffi_libs)
     libs.size.should == 1
     lib = libs.first
@@ -70,12 +66,12 @@ describe 'FFI' do
     lambda do
       Module.new do
         extend FFI::Library
-        ffi_lib ["non_existent.so", "neither_existent.so"]
+        ffi_lib %w[non_existent.so neither_existent.so]
       end
     end.should raise_error(
-      LoadError,
-      /Could not open library.*non_existent\.so.*Could not open library.*neither_existent\.so/m
-    )
+                 LoadError,
+                 /Could not open library.*non_existent\.so.*Could not open library.*neither_existent\.so/m,
+               )
   end
 
   it 'raises an error if an empty list is provided' do
@@ -102,10 +98,7 @@ describe 'FFI' do
         ffi_lib PRISM_LIBRARY_PATH
         attach_function :something_unknown, [], :pointer
       end
-    end.should raise_error(
-      FFI::NotFoundError,
-      "Function 'something_unknown' not found in [#{PRISM_LIBRARY_PATH}]"
-    )
+    end.should raise_error(FFI::NotFoundError, "Function 'something_unknown' not found in [#{PRISM_LIBRARY_PATH}]")
   end
 
   it 'raises an error if an unknown type is used' do
@@ -115,10 +108,7 @@ describe 'FFI' do
         ffi_lib PRISM_LIBRARY_PATH
         attach_function :pm_version, [], :some_bad_type
       end
-    end.should raise_error(
-      TypeError,
-      "unable to resolve type 'some_bad_type'"
-    )
+    end.should raise_error(TypeError, "unable to resolve type 'some_bad_type'")
   end
 
   it 'attaches a function that can be called' do
@@ -145,9 +135,7 @@ describe 'FFI' do
   it 'can pass and return bools' do
     TestStubs.test_bool(true).should == true
     TestStubs.test_bool(false).should == false
-    [1, 'foo', nil].each do |bad_arg|
-      -> { TestStubs.test_bool(bad_arg) }.should raise_error(TypeError)
-    end
+    [1, 'foo', nil].each { |bad_arg| -> { TestStubs.test_bool(bad_arg) }.should raise_error(TypeError) }
   end
 
   it 'can pass and return chars' do
@@ -224,9 +212,10 @@ describe 'FFI' do
   it 'does not convert an argument using #to_s' do
     to_s = mock('to_s')
     to_s.should_not_receive(:to_s)
-    -> {
-      TestStubs.test_string_arg(to_s)
-    }.should raise_error(TypeError, 'no implicit conversion of MockObject into String')
+    -> { TestStubs.test_string_arg(to_s) }.should raise_error(
+                 TypeError,
+                 'no implicit conversion of MockObject into String',
+               )
   end
 
   it 'can return enum values' do
@@ -254,29 +243,32 @@ describe 'FFI' do
   end
 
   it 'supports relative paths' do
-    libm = Module.new do
-      extend FFI::Library
-      ffi_lib "libm.#{SO_EXT}"
-      attach_function :pow, [:double, :double], :double
-    end
+    libm =
+      Module.new do
+        extend FFI::Library
+        ffi_lib "libm.#{SO_EXT}"
+        attach_function :pow, %i[double double], :double
+      end
     libm.pow(2.0, 3.0).should == 8.0
   end
 
   it 'can omit the file extension' do
-    libm = Module.new do
-      extend FFI::Library
-      ffi_lib "libm"
-      attach_function :pow, [:double, :double], :double
-    end
+    libm =
+      Module.new do
+        extend FFI::Library
+        ffi_lib 'libm'
+        attach_function :pow, %i[double double], :double
+      end
     libm.pow(2.0, 3.0).should == 8.0
   end
 
   it 'can omit the file extension and the "lib" part' do
-    libm = Module.new do
-      extend FFI::Library
-      ffi_lib "m"
-      attach_function :pow, [:double, :double], :double
-    end
+    libm =
+      Module.new do
+        extend FFI::Library
+        ffi_lib 'm'
+        attach_function :pow, %i[double double], :double
+      end
     libm.pow(2.0, 3.0).should == 8.0
   end
 

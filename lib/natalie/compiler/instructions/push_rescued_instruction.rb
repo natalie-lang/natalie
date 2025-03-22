@@ -8,7 +8,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.push("bool_object(GlobalEnv::the()->rescued())")
+        transform.push('bool_object(GlobalEnv::the()->rescued())')
       end
 
       def execute(vm)

@@ -66,7 +66,7 @@ describe 'hash' do
       Hash.new(capacity: -1).should be_kind_of(Hash)
       Hash.new(capacity: 3.14).should be_kind_of(Hash)
       -> { Hash.new(capacity: nil) }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
-      -> { Hash.new(capacity: 2 ** 64) }.should raise_error(RangeError, /bignum too big to convert/)
+      -> { Hash.new(capacity: 2**64) }.should raise_error(RangeError, /bignum too big to convert/)
 
       to_int = mock('to_int')
       to_int.should_receive(:to_int).and_return(10)
@@ -103,7 +103,7 @@ describe 'hash' do
       h.should == { 'a' => 100, 'b' => 200 }
     end
 
-    it "removes the default" do
+    it 'removes the default' do
       hash = Hash.new(1)
       Hash[hash].default.should be_nil
     end
@@ -234,9 +234,9 @@ describe 'hash' do
   it 'raises an error when adding a new key while iterating' do
     hash = { 1 => 'one', 2 => 'two', 3 => 'three' }
     -> { hash.each { |key, val| hash[4] = 'four' } }.should raise_error(
-                                                              RuntimeError,
-                                                              "can't add a new key into hash during iteration",
-                                                            )
+                 RuntimeError,
+                 "can't add a new key into hash during iteration",
+               )
   end
 
   it 'can modify an entry during iteration' do

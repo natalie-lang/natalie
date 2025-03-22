@@ -10,10 +10,10 @@ describe 'it in block' do
     it 'should use the method if no local variable exists' do
       # This test is hacky: we now depend on the `it` method of the specs
       suppress_warning do
-        -> {
+        -> do
           # eval is required for suppress_warning
           eval('[1, 2, 3].map { it }')
-        }.should raise_error(ArgumentError, 'wrong number of arguments (given 0, expected 1)')
+        end.should raise_error(ArgumentError, 'wrong number of arguments (given 0, expected 1)')
       end
     end
   end

@@ -8,7 +8,7 @@ module Natalie
         when Encoding::EUC_JP
           'EncodingObject::get(Encoding::EUC_JP)'
         else
-          'nullptr';
+          'nullptr'
         end
       end
     end

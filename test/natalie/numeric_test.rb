@@ -1,9 +1,7 @@
 require_relative '../spec_helper'
 
 describe 'Equals methods on numeric classes' do
-  before do
-    @no_equals_method = Object.new.tap { |obj| obj.singleton_class.undef_method(:==) }
-  end
+  before { @no_equals_method = Object.new.tap { |obj| obj.singleton_class.undef_method(:==) } }
 
   it 'should work on Integer' do
     (3 == 3).should be_true
@@ -42,7 +40,7 @@ describe 'Equals methods on numeric classes' do
     (Rational(4, -2) == -2.0).should be_true
     -> { Rational(3, 4) == @no_equals_method }.should raise_error(NoMethodError)
 
-    obj = mock("Object")
+    obj = mock('Object')
     obj.should_receive(:==).and_return(:result)
     (Rational(3, 4) == obj).should_not be_false
   end

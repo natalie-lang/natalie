@@ -5,15 +5,11 @@ module Natalie
         PACKAGES_REQUIRING_PKG_CONFIG = %w[openssl libffi yaml-0.1].freeze
 
         def package_compile_flags
-          PACKAGES_REQUIRING_PKG_CONFIG.flat_map do |package|
-            flags_for_package(package, :inc)
-          end.compact
+          PACKAGES_REQUIRING_PKG_CONFIG.flat_map { |package| flags_for_package(package, :inc) }.compact
         end
 
         def package_link_flags
-          PACKAGES_REQUIRING_PKG_CONFIG.flat_map do |package|
-            flags_for_package(package, :lib)
-          end.compact
+          PACKAGES_REQUIRING_PKG_CONFIG.flat_map { |package| flags_for_package(package, :lib) }.compact
         end
 
         # FIXME: We should run this on any system (not just Darwin), but only when one

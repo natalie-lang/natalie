@@ -2,38 +2,37 @@ require 'linenoise'
 
 HISTORY_PATH = 'linenoise_history.txt'
 
-Linenoise.completion_callback = lambda do |input|
-  ['help', 'history', 'delete', 'multi_line'].select do |command|
-    command.start_with?(input) && command != input
+Linenoise.completion_callback =
+  lambda do |input|
+    %w[help history delete multi_line].select { |command| command.start_with?(input) && command != input }
   end
-end
 
-Linenoise.hints_callback = lambda do |input|
-  if input =~ /^delete\s*$/
-    [' <index> or all', 35, false]
+Linenoise.hints_callback = lambda { |input| [' <index> or all', 35, false] if input =~ /^delete\s*$/ }
+
+Linenoise.highlight_callback =
+  lambda do |input|
+    input
+      .split(' ')
+      .map do |word|
+        case word
+        when 'help'
+          "\e[31m#{word}\e[0m"
+        when 'history', 'delete'
+          "\e[33m#{word}\e[0m"
+        when 'all'
+          "\e[34m#{word}\e[0m"
+        when 'clear'
+          "\e[32m#{word}\e[0m"
+        when 'multi_line'
+          "\e[35m#{word}\e[0m"
+        when /^\d+$/
+          "\e[36m#{word}\e[0m"
+        else
+          word
+        end
+      end
+      .join(' ')
   end
-end
-
-Linenoise.highlight_callback = lambda do |input|
-  input.split(' ').map do |word|
-    case word
-    when 'help'
-      "\e[31m#{word}\e[0m"
-    when 'history', 'delete'
-      "\e[33m#{word}\e[0m"
-    when 'all'
-      "\e[34m#{word}\e[0m"
-    when 'clear'
-      "\e[32m#{word}\e[0m"
-    when 'multi_line'
-      "\e[35m#{word}\e[0m"
-    when /^\d+$/
-      "\e[36m#{word}\e[0m"
-    else
-      word
-    end
-  end.join(' ')
-end
 
 Linenoise.load_history(HISTORY_PATH)
 

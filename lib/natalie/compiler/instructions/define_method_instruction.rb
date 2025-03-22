@@ -70,11 +70,7 @@ module Natalie
         raise NotImplementedError, 'Methods with more than 127 arguments are not supported' if @arity > 127
 
         position = rodata.add(@name.to_s)
-        [
-          instruction_number,
-          position,
-          @arity
-        ].pack("Cwc")
+        [instruction_number, position, @arity].pack('Cwc')
       end
 
       def self.deserialize(io, rodata)
@@ -85,7 +81,7 @@ module Natalie
           name:,
           arity:,
           file: '', # FIXME
-          line: 0 # FIXME
+          line: 0, # FIXME
         )
       end
     end

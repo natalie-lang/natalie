@@ -20,7 +20,7 @@ module Natalie
         case_value = transform.peek
         transform.exec_and_push(
           :is_case_equal,
-          "is_case_equal(env, #{case_value}, #{when_value}, #{@is_splat ? 'true' : 'false'})"
+          "is_case_equal(env, #{case_value}, #{when_value}, #{@is_splat ? 'true' : 'false'})",
         )
       end
 

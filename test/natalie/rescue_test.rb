@@ -5,19 +5,21 @@ end
 
 describe 'begin/rescue/else' do
   it 'runs the rescue block with the exception named' do
-    r = begin
-          a = []
-          a[1, 2, 3]
-        rescue => e
-          e
-        end
+    r =
+      begin
+        a = []
+        a[1, 2, 3]
+      rescue => e
+        e
+      end
     r.message.should == 'wrong number of arguments (given 3, expected 1..2)'
 
-    r2 ||= begin
-             raise 'foo'
-           rescue => e
-             e
-           end
+    r2 ||=
+      begin
+        raise 'foo'
+      rescue => e
+        e
+      end
     r2.message.should == 'foo'
 
     begin
@@ -38,7 +40,8 @@ describe 'begin/rescue/else' do
     end
     E.message.should == 'foo'
 
-    module M; end
+    module M
+    end
     begin
       raise 'foo'
     rescue => M::E
@@ -156,11 +159,11 @@ describe 'begin/rescue/else' do
   it 'sets the magic $! global' do
     begin
       raise 'foo'
-    rescue
+    rescue StandardError
       $!.message.should == 'foo'
       begin
         raise 'bar'
-      rescue
+      rescue StandardError
         $!.message.should == 'bar'
       end
       $!.message.should == 'foo'
@@ -169,12 +172,13 @@ describe 'begin/rescue/else' do
 
     begin
       raise 'foo'
-    rescue
+    rescue StandardError
       begin
-      rescue
+      rescue StandardError
       else
         $!.message.should == 'foo'
       end
+
       $!.message.should == 'foo'
     end
   end
@@ -183,29 +187,30 @@ describe 'begin/rescue/else' do
     ran = []
     begin
       raise 'foo'
-    rescue
+    rescue StandardError
       ran << :rescue
       begin
-      rescue
+      rescue StandardError
       end
     else
       ran << :else
     end
+
     ran.should == [:rescue]
   end
 
   it 'does not get confused by an unused LocalJumpError' do
     ran = []
-    l = -> {
+    l = -> do
       begin
         raise 'foo'
-      rescue
+      rescue StandardError
         ran << :rescue
         nil.tap { return 'bar' if false } # return here could raise a LocalJumpError, but doesn't
       else
         ran << :else
       end
-    }
+    end
     l.call
     ran.should == [:rescue]
   end
@@ -257,7 +262,7 @@ describe 'raise' do
       begin
         begin
           raise 'foo'
-        rescue
+        rescue StandardError
           raise
         end
       rescue => e
@@ -314,37 +319,45 @@ describe 'ensure' do
   end
 
   it 'does not return the value from the ensure section' do
-    result = begin
-               1
-             rescue
-               2
-             ensure
-               3
-             end
+    result =
+      begin
+        1
+      rescue StandardError
+        2
+      ensure
+        3
+      end
     result.should == 1
-    result = begin
-               1
-               raise 'foo'
-             rescue
-               2
-             ensure
-               3
-             end
+    result =
+      begin
+        1
+        raise 'foo'
+      rescue StandardError
+        2
+      ensure
+        3
+      end
     result.should == 2
-    result = begin
-               1
-             rescue
-               2
-             else
-               3
-             ensure
-               4
-             end
+    result =
+      begin
+        1
+      rescue StandardError
+        2
+      else
+        3
+      ensure
+        4
+      end
     result.should == 3
   end
 
   it 'works in modifier form' do
-    x = foo rescue 3
+    x =
+      begin
+        foo
+      rescue StandardError
+        3
+      end
     x.should == 3
   end
 end

@@ -26,13 +26,13 @@ describe '$LOAD_PATH' do
   if RUBY_ENGINE == 'natalie'
     it 'does not support conditional modification' do
       -> { $LOAD_PATH << 'foo' }.should raise_error(
-        LoadError,
-        %r{^Cannot manipulate \$LOAD_PATH at runtime \(test/natalie/load_path_test\.rb#\d+\)$}
-      )
+                   LoadError,
+                   %r{^Cannot manipulate \$LOAD_PATH at runtime \(test/natalie/load_path_test\.rb#\d+\)$},
+                 )
       -> { $LOAD_PATH.unshift('foo') }.should raise_error(
-        LoadError,
-        %r{^Cannot manipulate \$LOAD_PATH at runtime \(test/natalie/load_path_test.rb#\d+\)}
-      )
+                   LoadError,
+                   %r{^Cannot manipulate \$LOAD_PATH at runtime \(test/natalie/load_path_test.rb#\d+\)},
+                 )
     end
   end
 end
@@ -45,13 +45,13 @@ describe '$:' do
   if RUBY_ENGINE == 'natalie'
     it 'does not support conditional modification' do
       -> { $: << 'foo' }.should raise_error(
-        LoadError,
-        %r{^Cannot manipulate \$: at runtime \(test/natalie/load_path_test\.rb#\d+\)$}
-      )
+                   LoadError,
+                   %r{^Cannot manipulate \$: at runtime \(test/natalie/load_path_test\.rb#\d+\)$},
+                 )
       -> { $:.unshift('foo') }.should raise_error(
-        LoadError,
-        %r{^Cannot manipulate \$: at runtime \(test/natalie/load_path_test.rb#\d+\)}
-      )
+                   LoadError,
+                   %r{^Cannot manipulate \$: at runtime \(test/natalie/load_path_test.rb#\d+\)},
+                 )
     end
   end
 end

@@ -2,42 +2,20 @@ GEM
   remote: https://rubygems.org/
   specs:
     ansi (1.5.0)
-    ast (2.4.2)
     builder (3.3.0)
     concurrent-ruby (1.2.2)
-    json (2.9.1)
-    language_server-protocol (3.17.0.3)
     minitest (5.25.4)
     minitest-reporters (1.7.1)
       ansi
       builder
       minitest (>= 5.0)
       ruby-progressbar
-    parallel (1.26.3)
-    parser (3.3.6.0)
-      ast (~> 2.4.1)
-      racc
-    racc (1.8.1)
-    rainbow (3.1.1)
+    prettier_print (1.2.1)
     rake (13.1.0)
-    regexp_parser (2.9.3)
-    rubocop (1.69.2)
-      json (~> 2.3)
-      language_server-protocol (>= 3.17.0)
-      parallel (~> 1.10)
-      parser (>= 3.3.0.2)
-      rainbow (>= 2.2.2, < 4.0)
-      regexp_parser (>= 2.9.3, < 3.0)
-      rubocop-ast (>= 1.36.2, < 2.0)
-      ruby-progressbar (~> 1.7)
-      unicode-display_width (>= 2.4.0, < 4.0)
-    rubocop-ast (1.37.0)
-      parser (>= 3.3.1.0)
     ruby-progressbar (1.13.0)
     stackprof (0.2.25)
-    unicode-display_width (3.1.2)
-      unicode-emoji (~> 4.0, >= 4.0.4)
-    unicode-emoji (4.0.4)
+    syntax_tree (6.2.0)
+      prettier_print (>= 1.2.0)
 
 PLATFORMS
   arm64-darwin-20
@@ -56,8 +34,8 @@ DEPENDENCIES
   minitest
   minitest-reporters
   rake
-  rubocop
   stackprof
+  syntax_tree
 
 BUNDLED WITH
    2.3.26

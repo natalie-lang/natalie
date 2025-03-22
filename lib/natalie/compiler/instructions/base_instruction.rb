@@ -7,8 +7,7 @@ module Natalie
       end
 
       def self.label
-        @label ||=
-          self.underscore(self.name.sub(/Instruction$/, '')).to_sym
+        @label ||= self.underscore(self.name.sub(/Instruction$/, '')).to_sym
       end
 
       def label
@@ -23,7 +22,7 @@ module Natalie
 
       class << self
         def instruction_number
-          @instruction_number ||= INSTRUCTIONS.index(self) or raise("Instruction not found!")
+          @instruction_number ||= INSTRUCTIONS.index(self) or raise('Instruction not found!')
         end
       end
 

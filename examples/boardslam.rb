@@ -73,8 +73,9 @@ class BoardSlam
           result2 = result1.send(op2, z)
           next if op2 == '/' && result1 % z != 0
           if BOARD.include?(result2) and !answers.key?(result2)
-            answers[result2] =
-              "#{x_pretty.to_s.ljust(3)} #{op1} #{y_pretty.to_s.ljust(3)} #{op2} #{z_pretty.to_s.ljust(3)}"
+            answers[
+              result2
+            ] = "#{x_pretty.to_s.ljust(3)} #{op1} #{y_pretty.to_s.ljust(3)} #{op2} #{z_pretty.to_s.ljust(3)}"
           end
         end
       end

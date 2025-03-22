@@ -46,7 +46,7 @@ class Tempfile
     elsif !closed?
       @tmpfile.size
     else
-      raise Errno::ENOENT, "No such file or directory"
+      raise Errno::ENOENT, 'No such file or directory'
     end
   end
   alias length size
@@ -57,8 +57,6 @@ class Tempfile
   alias delete unlink
 
   (File.public_instance_methods - public_instance_methods).each do |method|
-    define_method(method) do |*args, **kwargs, &block|
-      @tmpfile.public_send(method, *args, **kwargs, &block)
-    end
+    define_method(method) { |*args, **kwargs, &block| @tmpfile.public_send(method, *args, **kwargs, &block) }
   end
 end

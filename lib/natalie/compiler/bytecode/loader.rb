@@ -47,9 +47,7 @@ module Natalie
             loop do
               byte = getbyte
               result += (byte & 0x7f)
-              if (byte & 0x80) == 0
-                break
-              end
+              break if (byte & 0x80) == 0
               result <<= 7
             end
             result

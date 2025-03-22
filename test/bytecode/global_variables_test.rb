@@ -13,7 +13,7 @@ describe 'it can read and write global variables' do
     code = 'p $FOO'
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
+    ruby_exe(@bytecode_file, options: '--bytecode').should == ruby_exe(code)
   end
 
   it 'can read and write global variables' do
@@ -23,6 +23,6 @@ describe 'it can read and write global variables' do
     RUBY
     ruby_exe(code, options: "--compile-bytecode #{@bytecode_file}")
 
-    ruby_exe(@bytecode_file, options: "--bytecode").should == ruby_exe(code)
+    ruby_exe(@bytecode_file, options: '--bytecode').should == ruby_exe(code)
   end
 end

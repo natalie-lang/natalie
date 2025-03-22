@@ -160,15 +160,15 @@ describe 'string' do
       s = 'abc 😢'.encode 'utf-8'
       s.encoding.should == Encoding::UTF_8
       -> { s.encode 'ascii-8bit' }.should raise_error(
-                                            Encoding::UndefinedConversionError,
-                                            'U+1F622 from UTF-8 to ASCII-8BIT',
-                                          )
+                   Encoding::UndefinedConversionError,
+                   'U+1F622 from UTF-8 to ASCII-8BIT',
+                 )
       s = 'xyz 🥺'.encode 'utf-8'
       s.encoding.should == Encoding::UTF_8
       -> { s.encode 'ascii-8bit' }.should raise_error(
-                                            Encoding::UndefinedConversionError,
-                                            'U+1F97A from UTF-8 to ASCII-8BIT',
-                                          )
+                   Encoding::UndefinedConversionError,
+                   'U+1F97A from UTF-8 to ASCII-8BIT',
+                 )
     end
 
     it 'raises an error if the encoding converter does not exist' do
@@ -177,18 +177,18 @@ describe 'string' do
     end
 
     it 'does not raise an error when encoding binary to binary' do
-      "\xFF".dup.force_encoding('ASCII-8BIT').encode('ASCII-8BIT').should == "\xFF".dup.force_encoding("ASCII-8BIT")
+      "\xFF".dup.force_encoding('ASCII-8BIT').encode('ASCII-8BIT').should == "\xFF".dup.force_encoding('ASCII-8BIT')
     end
 
-    context "UTF-16BE" do
+    context 'UTF-16BE' do
       it 'encodes and decodes two-byte characters' do
-        s = "é".encode(Encoding::UTF_16BE, Encoding::UTF_8)
+        s = 'é'.encode(Encoding::UTF_16BE, Encoding::UTF_8)
         s.bytes.should == [0, 233]
         s.encode(Encoding::UTF_8, Encoding::UTF_16BE).bytes.should == [195, 169]
       end
 
       it 'encodes and decodes four-byte characters' do
-        s = "😢".encode(Encoding::UTF_16BE, Encoding::UTF_8)
+        s = '😢'.encode(Encoding::UTF_16BE, Encoding::UTF_8)
         s.bytes.should == [216, 61, 222, 34]
         s.encode(Encoding::UTF_8, Encoding::UTF_16BE).bytes.should == [240, 159, 152, 162]
       end
@@ -222,19 +222,19 @@ describe 'string' do
     end
 
     it 'returns characters from an improperly-encoded string' do
-      "\xF0\x9F\x98\x81".chars.should == ["😁"] # proper four bytes
+      "\xF0\x9F\x98\x81".chars.should == ['😁'] # proper four bytes
       "\xF0\x9F\x98".chars.should == ["\xF0", "\x9F", "\x98"]
       "\xF0\x9F".chars.should == ["\xF0", "\x9F"]
       "\xF0".chars.should == ["\xF0"]
 
       # second byte doesn't match 10xxxxxx
-      "\xF0x\x9F\x81".chars.should == ["\xF0", "x", "\x9F", "\x81"]
+      "\xF0x\x9F\x81".chars.should == ["\xF0", 'x', "\x9F", "\x81"]
 
       # third byte doesn't match 10xxxxxx
-      "\xF0\x9Fx\x81".chars.should == ["\xF0", "\x9F", "x", "\x81"]
+      "\xF0\x9Fx\x81".chars.should == ["\xF0", "\x9F", 'x', "\x81"]
 
       # fourth byte doesn't match 10xxxxxx
-      "\xF0\x9F\x98x".chars.should == ["\xF0", "\x9F", "\x98", "x"]
+      "\xF0\x9F\x98x".chars.should == ["\xF0", "\x9F", "\x98", 'x']
     end
   end
 
@@ -306,14 +306,14 @@ describe 'string' do
 
     context 'given a beginless range' do
       it 'returns a substring from the start of the string' do
-        s = "hello"
+        s = 'hello'
         s[..2].should == 'hel'
       end
     end
 
     context 'given an endless range' do
       it 'returns a substring to the end of the string' do
-        s = "hello"
+        s = 'hello'
         s[2..].should == 'llo'
         s[2...].should == 'llo'
       end
@@ -353,8 +353,8 @@ describe 'string' do
 
   describe '#[]=' do
     it 'returns passed string' do
-      str = +"abc"
-      (str[1] = "x").should == "x"
+      str = +'abc'
+      (str[1] = 'x').should == 'x'
     end
   end
 
@@ -460,7 +460,7 @@ describe 'string' do
       s = 'tim is ok'
       s.sub(/is ok/, 'rocks').should == 'tim rocks'
       s.should == 'tim is ok'
-      s.sub(/ is ok/, '').should == 'tim'
+      s.sub(%r{ is ok}, '').should == 'tim'
       s.sub(/is.*/, 'rocks').should == 'tim rocks'
       s.sub(/bogus/, '').should == 'tim is ok'
     end
@@ -532,9 +532,7 @@ describe 'string' do
     end
 
     it 'stops on non-printable ascii chars' do
-      (Array(0x00..0x08) + Array(0x0E..0x1F) + [0x7F]).each do |c|
-        "#{c.chr(Encoding::ASCII_8BIT)}1".to_c.should == 0
-      end
+      (Array(0x00..0x08) + Array(0x0E..0x1F) + [0x7F]).each { |c| "#{c.chr(Encoding::ASCII_8BIT)}1".to_c.should == 0 }
     end
   end
 
@@ -553,7 +551,7 @@ describe 'string' do
       'tim'.split(/,/).should == ['tim']
       'tim,morgan,rocks'.split(/,/).should == %w[tim morgan rocks]
       'tim     morgan rocks'.split(/\s+/).should == %w[tim morgan rocks]
-      'tim morgan rocks'.split(/ mo[a-z]+ /).should == %w[tim rocks]
+      'tim morgan rocks'.split(%r{ mo[a-z]+ }).should == %w[tim rocks]
     end
 
     it 'only splits into the specified number of pieces' do
@@ -564,11 +562,11 @@ describe 'string' do
 
     it 'can split when the string contains a null byte' do
       "foo\nbar\0baz".split("\n").should == ['foo', "bar\0baz"]
-      "foo\nbar\0baz\nbuz".split("\n").should == ['foo', "bar\0baz", "buz"]
+      "foo\nbar\0baz\nbuz".split("\n").should == ['foo', "bar\0baz", 'buz']
       "foo\nbar\0baz\nbuz".split("\n", 2).should == ['foo', "bar\0baz\nbuz"]
 
       "foo\nbar\0baz".split(/\n/).should == ['foo', "bar\0baz"]
-      "foo\nbar\0baz\nbuz".split(/\n/).should == ['foo', "bar\0baz", "buz"]
+      "foo\nbar\0baz\nbuz".split(/\n/).should == ['foo', "bar\0baz", 'buz']
       "foo\nbar\0baz\nbuz".split(/\n/, 2).should == ['foo', "bar\0baz\nbuz"]
     end
   end
@@ -647,7 +645,7 @@ describe 'string' do
 
         s = "\x00\x00\x00".dup.force_encoding('UTF-32LE') # incorrect binary representation - it should take 4 bytes, not 3
         s.chop!
-        s.should == "".encode('UTF-32LE')
+        s.should == ''.encode('UTF-32LE')
 
         s = "\x00\x00\x00\x00\x00\xD8\x00\x00".dup.force_encoding('UTF-32LE') # incorrect codepoint 0xD800 - it isn't supported
         s.chop!
@@ -668,7 +666,7 @@ describe 'string' do
 
         s = "\x00\x00\x00".dup.force_encoding('UTF-32BE') # incorrect binary representation - it should take 4 bytes, not 3
         s.chop!
-        s.should == "".encode('UTF-32BE')
+        s.should == ''.encode('UTF-32BE')
 
         s = "\x00\x00\x00\x00\x00\x00\xD8\x00".dup.force_encoding('UTF-32BE') # incorrect codepoint 0xD800 - it isn't supported
         s.chop!
@@ -788,22 +786,23 @@ describe 'string' do
     end
   end
 
-  describe "Shift_JIS" do
-    it "returns a code representation of a string" do
+  describe 'Shift_JIS' do
+    it 'returns a code representation of a string' do
       # tests EncodingObject::append_escaped_char
       # ascii, single-byte halfwid-katakana, and two-byte
-      "foo\xA1\xc4\xDF\x81\x77\xe9\xF0".force_encoding("shift_jis").inspect.should == '"foo\xA1\xC4\xDF\x{8177}\x{E9F0}"'
+      "foo\xA1\xc4\xDF\x81\x77\xe9\xF0".force_encoding('shift_jis').inspect.should ==
+        '"foo\xA1\xC4\xDF\x{8177}\x{E9F0}"'
     end
 
     # Test ShiftJisEncoding::prev_char method
-    it "chops the last char of an empty string" do
+    it 'chops the last char of an empty string' do
       # empty string case
       s = ''.encode('Shift_JIS')
       s.chop!
       s.should == ''.encode('Shift_JIS')
     end
 
-    it "chops the last char of a string" do
+    it 'chops the last char of a string' do
       # single-byte char
       s = "foo\xA1".force_encoding('Shift_JIS')
       s.chop!
@@ -816,34 +815,34 @@ describe 'string' do
     end
   end
 
-  describe "EUC_JP" do
-    it "returns a code representation of a string" do
+  describe 'EUC_JP' do
+    it 'returns a code representation of a string' do
       # tests EncodingObject::append_escaped_char
-      "foo\xAa\xBb\xA1\xA1\xFE\xfe".force_encoding("eucjp").inspect.should == '"foo\x{AABB}\x{A1A1}\x{FEFE}"'
+      "foo\xAa\xBb\xA1\xA1\xFE\xfe".force_encoding('eucjp').inspect.should == '"foo\x{AABB}\x{A1A1}\x{FEFE}"'
       # two byte
-      "\x8E\xA1\x8E\xFE".force_encoding("eucjp").inspect.should == '"\x{8EA1}\x{8EFE}"'
+      "\x8E\xA1\x8E\xFE".force_encoding('eucjp').inspect.should == '"\x{8EA1}\x{8EFE}"'
       # triple byte
-      "\x8F\xA1\xA1\x8F\xFE\xFE".force_encoding("eucjp").inspect.should == '"\x{8FA1A1}\x{8FFEFE}"'
+      "\x8F\xA1\xA1\x8F\xFE\xFE".force_encoding('eucjp').inspect.should == '"\x{8FA1A1}\x{8FFEFE}"'
       # passes through invalid codepoints
-      "\xff\x80\x90".force_encoding("eucjp").inspect.should == '"\xFF\x80\x90"'
+      "\xff\x80\x90".force_encoding('eucjp').inspect.should == '"\xFF\x80\x90"'
     end
 
     # Test EucJpEncoding::prev_char method
-    it "chops the last char of an empty string" do
+    it 'chops the last char of an empty string' do
       # empty string case
       s = ''.dup.force_encoding('EUCJP')
       s.chop!
       s.should == ''.dup.force_encoding('EUCJP')
     end
 
-    it "chops the last char of a string with single-byte final char" do
+    it 'chops the last char of a string with single-byte final char' do
       # single-byte char
       s = "foo\x77".dup.force_encoding('EUCJP')
       s.chop!
       s.should == 'foo'.dup.force_encoding('EUCJP')
     end
 
-    it "chops the last char of a string with two-byte final char" do
+    it 'chops the last char of a string with two-byte final char' do
       # two-byte char removal
       s = "foo\xA1\xA1".dup.force_encoding('EUCJP')
       s.chop!
@@ -855,7 +854,7 @@ describe 'string' do
       s.should == 'foo'.dup.force_encoding('EUCJP')
     end
 
-    it "chops the last char of a string with three-byte final char" do
+    it 'chops the last char of a string with three-byte final char' do
       # three-byte char removal (8E lead)
       s = "foo\x8F\xA1\xA2".dup.force_encoding('EUCJP')
       s.chop!
@@ -873,23 +872,28 @@ describe 'string' do
 
   describe 'line continuation' do
     it 'works' do
-      s = 'foo' \
+      s =
+        'foo' \
           'bar'
       s.should == 'foobar'
 
-      s = 'foo' \
+      s =
+        'foo' \
           "bar#{1 + 1}"
       s.should == 'foobar2'
 
-      s = "foo#{1 + 1}" \
+      s =
+        "foo#{1 + 1}" \
           "bar#{1 + 1}"
       s.should == 'foo2bar2'
 
-      s = "foo#{1 + 1}" \
+      s =
+        "foo#{1 + 1}" \
           'bar'
       s.should == 'foo2bar'
 
-      s = 'foo' \
+      s =
+        'foo' \
           'bar' \
           'baz'
       s.should == 'foobarbaz'

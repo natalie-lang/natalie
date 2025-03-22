@@ -49,7 +49,7 @@ module Natalie
 
         transform.with_same_scope(condition) do |t|
           code << "auto #{condition_name} = [&]() {"
-          code << t.transform("return")
+          code << t.transform('return')
           code << '};'
         end
 
@@ -77,12 +77,12 @@ module Natalie
         body_ip = vm.ip
         vm.skip_block_of_instructions(until_instruction: EndInstruction, expected_label: :while)
         end_ip = vm.ip
-        condition = -> {
+        condition = -> do
           vm.ip = start_ip
           vm.run
           vm.ip = end_ip
           vm.pop
-        }
+        end
         if @pre
           while condition.()
             vm.ip = body_ip
@@ -105,16 +105,11 @@ module Natalie
             end
           end while condition.()
         end
-        unless result == :halt
-          result
-        end
+        result unless result == :halt
       end
 
       def serialize(_)
-        [
-          instruction_number,
-          pre ? 1 : 0,
-        ].pack('CC')
+        [instruction_number, pre ? 1 : 0].pack('CC')
       end
 
       def self.deserialize(io, _)

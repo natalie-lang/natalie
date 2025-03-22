@@ -16,9 +16,9 @@ module Natalie
       def generate(transform)
         if @float.infinite?
           if @float.positive?
-            transform.push("Value(FloatObject::positive_infinity(env))")
+            transform.push('Value(FloatObject::positive_infinity(env))')
           else
-            transform.push("Value(FloatObject::negative_infinity(env))")
+            transform.push('Value(FloatObject::negative_infinity(env))')
           end
         else
           transform.push("Value(new FloatObject(#{@float}))")
@@ -30,10 +30,7 @@ module Natalie
       end
 
       def serialize(_)
-        [
-          instruction_number,
-          @float,
-        ].pack('CG')
+        [instruction_number, @float].pack('CG')
       end
 
       def self.deserialize(io, _)

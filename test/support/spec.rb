@@ -204,9 +204,7 @@ end
 def with_timezone(zone, offset = nil)
   old_tz = ENV['TZ']
 
-  if offset
-    zone += "#{(-offset).to_s}:00:00"
-  end
+  zone += "#{(-offset).to_s}:00:00" if offset
 
   ENV['TZ'] = zone
 
@@ -214,9 +212,7 @@ def with_timezone(zone, offset = nil)
     yield
   ensure
     # Natalie does not allow setting ENV values that are not strings?
-    if old_tz.is_a?(String)
-      ENV['TZ'] = old_tz
-    end
+    ENV['TZ'] = old_tz if old_tz.is_a?(String)
   end
 end
 
@@ -229,7 +225,7 @@ def infinity_value
 end
 
 def bignum_value(plus = 0)
-  (2 ** 64) + plus
+  (2**64) + plus
 end
 
 def fixnum_max
@@ -250,29 +246,31 @@ end
 
 def ruby_exe(code = nil, options: nil, args: nil, escape: true, exit_status: 0, env: {})
   env = env.map { |key, value| "#{key}=#{value} " }.join
-  binary = if RUBY_ENGINE == 'ruby'
-             'ruby'
-           else
-             ENV.fetch('NAT_BINARY', 'bin/natalie')
-           end
+  binary =
+    if RUBY_ENGINE == 'ruby'
+      'ruby'
+    else
+      ENV.fetch('NAT_BINARY', 'bin/natalie')
+    end
   if code.nil?
     return binary if args.nil?
 
     return `#{env}#{binary} #{options} #{args}`
   end
 
-  output = if !escape
-             `#{env}#{binary} #{options} -e #{code.inspect} #{args}`
-           elsif File.readable?(code)
-             `#{binary} #{options} #{code} #{args}`
-           else
-             Tempfile.create('ruby_exe.rb') do |file|
-               file.write(code)
-               file.rewind
+  output =
+    if !escape
+      `#{env}#{binary} #{options} -e #{code.inspect} #{args}`
+    elsif File.readable?(code)
+      `#{binary} #{options} #{code} #{args}`
+    else
+      Tempfile.create('ruby_exe.rb') do |file|
+        file.write(code)
+        file.rewind
 
-               `#{env}#{binary} #{options} #{file.path} #{args}`
-             end
-           end
+        `#{env}#{binary} #{options} #{file.path} #{args}`
+      end
+    end
 
   if exit_status.is_a?(Symbol) || exit_status.is_a?(String)
     exit_status = 128 + Signal.list.fetch(exit_status.to_s.delete_prefix('SIG'))
@@ -318,9 +316,7 @@ end
 def version_is(*args)
   matched = _version_is(*args)
   return matched unless block_given?
-  if matched
-    yield
-  end
+  yield if matched
 end
 
 def ruby_bug(bug_id, _version, &block)
@@ -332,37 +328,34 @@ def slow_test
 end
 
 def _platform_match(*args)
-   options, platforms = if args.last.is_a?(Hash)
-                          [args.last, args[0..-2]]
-                        else
-                          [{}, args]
-                        end
-   return true if options[:wordsize] == 64 || options[:pointer_size] == 64
-   return true if platforms.include?(:windows) && RUBY_PLATFORM =~ /(mswin|mingw)/
-   return true if platforms.include?(:linux) && RUBY_PLATFORM =~ /linux/
-   return true if platforms.include?(:darwin) && RUBY_PLATFORM =~ /darwin/i
-   return true if platforms.include?(:openbsd) && RUBY_PLATFORM =~ /openbsd/i
-   return true if platforms.include?(:freebsd) && RUBY_PLATFORM =~ /freebsd/i
-   return true if platforms.include?(:netbsd) && RUBY_PLATFORM =~ /netbsd/i
-   return true if platforms.include?(:bsd) && RUBY_PLATFORM =~ /(bsd|darwin)/i
-   # TODO: cygwin, android, solaris and aix are currently uncovered
-   false
+  options, platforms =
+    if args.last.is_a?(Hash)
+      [args.last, args[0..-2]]
+    else
+      [{}, args]
+    end
+  return true if options[:wordsize] == 64 || options[:pointer_size] == 64
+  return true if platforms.include?(:windows) && RUBY_PLATFORM =~ /(mswin|mingw)/
+  return true if platforms.include?(:linux) && RUBY_PLATFORM =~ /linux/
+  return true if platforms.include?(:darwin) && RUBY_PLATFORM =~ /darwin/i
+  return true if platforms.include?(:openbsd) && RUBY_PLATFORM =~ /openbsd/i
+  return true if platforms.include?(:freebsd) && RUBY_PLATFORM =~ /freebsd/i
+  return true if platforms.include?(:netbsd) && RUBY_PLATFORM =~ /netbsd/i
+  return true if platforms.include?(:bsd) && RUBY_PLATFORM =~ /(bsd|darwin)/i
+  # TODO: cygwin, android, solaris and aix are currently uncovered
+  false
 end
 
 def platform_is(*args)
   matched = _platform_match(*args)
   return matched unless block_given?
-  if matched
-    yield
-  end
+  yield if matched
 end
 
 def platform_is_not(*args)
   not_matched = !_platform_match(*args)
   return not_matched unless block_given?
-  if not_matched
-    yield
-  end
+  yield if not_matched
 end
 
 def not_supported_on(*)
@@ -375,21 +368,15 @@ def kernel_version_is(*)
 end
 
 def as_user
-  if Process.euid != 0
-    yield
-  end
+  yield if Process.euid != 0
 end
 
 def as_superuser
-  if Process.euid == 0
-    yield
-  end
+  yield if Process.euid == 0
 end
 
 def as_real_superuser
-  if Process.uid == 0
-    yield
-  end
+  yield if Process.uid == 0
 end
 
 def little_endian
@@ -431,7 +418,7 @@ end
 
 def guard(proc)
   yield if proc.call
-rescue
+rescue StandardError
   nil
 end
 
@@ -464,14 +451,15 @@ class Matcher
 
   def eq(other)
     if @subject != other
-      if @subject.is_a?(String) && other.is_a?(String) && (@subject.size >= MIN_STRING_SIZE_TO_RUN_DIFF || other.size >= MIN_STRING_SIZE_TO_RUN_DIFF) && $natfixme_depth == 0
+      if @subject.is_a?(String) && other.is_a?(String) &&
+           (@subject.size >= MIN_STRING_SIZE_TO_RUN_DIFF || other.size >= MIN_STRING_SIZE_TO_RUN_DIFF) &&
+           $natfixme_depth == 0
         diff(other, @subject)
         raise SpecFailedException, 'two strings should match'
-      elsif @subject.is_a?(Array) && other.is_a?(Array) && (@subject.size >= MIN_ARRAY_SIZE_TO_RUN_DIFF || other.size >= MIN_ARRAY_SIZE_TO_RUN_DIFF) && $natfixme_depth == 0
-        diff(
-          "[\n" + other.map(&:inspect).join("\n") + "\n]",
-          "[\n" + @subject.map(&:inspect).join("\n") + "\n]",
-        )
+      elsif @subject.is_a?(Array) && other.is_a?(Array) &&
+            (@subject.size >= MIN_ARRAY_SIZE_TO_RUN_DIFF || other.size >= MIN_ARRAY_SIZE_TO_RUN_DIFF) &&
+            $natfixme_depth == 0
+        diff("[\n" + other.map(&:inspect).join("\n") + "\n]", "[\n" + @subject.map(&:inspect).join("\n") + "\n]")
         raise SpecFailedException, @subject.inspect + ' should be == to ' + other.inspect
       else
         raise SpecFailedException, @subject.inspect + ' should be == to ' + other.inspect
@@ -522,16 +510,17 @@ class Matcher
   end
 
   def method_missing(method, *args)
-    target = if args.any?
-               case method
-               when :<, :<=, :>, :>=
-                 "be #{method} than #{args.first.inspect}"
-               else
-                 "#{method} #{args.first.inspect}"
-               end
-             else
-               "be #{method.to_s}"
-             end
+    target =
+      if args.any?
+        case method
+        when :<, :<=, :>, :>=
+          "be #{method} than #{args.first.inspect}"
+        else
+          "#{method} #{args.first.inspect}"
+        end
+      else
+        "be #{method.to_s}"
+      end
     send = Kernel.instance_method(:send)
     if !@inverted
       raise SpecFailedException, "#{@subject.inspect} should #{target}" if !send.bind_call(@subject, method, *args)
@@ -559,11 +548,15 @@ class BeKindOfExpectation
   end
 
   def match(subject)
-    raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should be a kind of #{@klass}" if !(@klass === subject)
+    if !(@klass === subject)
+      raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should be a kind of #{@klass}"
+    end
   end
 
   def inverted_match(subject)
-    raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should not be a kind of #{@klass}" if @klass === subject
+    if @klass === subject
+      raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should not be a kind of #{@klass}"
+    end
   end
 end
 
@@ -573,11 +566,15 @@ class BeInstanceOfExpectation
   end
 
   def match(subject)
-    raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should be an instance of #{@klass}" if !subject.instance_of?(@klass)
+    if !subject.instance_of?(@klass)
+      raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should be an instance of #{@klass}"
+    end
   end
 
   def inverted_match(subject)
-    raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should not be an instance of #{@klass}" if subject.instance_of?(@klass)
+    if subject.instance_of?(@klass)
+      raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should not be an instance of #{@klass}"
+    end
   end
 end
 
@@ -601,15 +598,11 @@ end
 
 class BlockCallerExpectation
   def match(subject)
-    unless check(subject)
-      raise SpecFailedException, subject.inspect + ' should have blocked, but it did not'
-    end
+    raise SpecFailedException, subject.inspect + ' should have blocked, but it did not' unless check(subject)
   end
 
   def inverted_match(subject)
-    if check(subject)
-      raise SpecFailedException, subject.inspect + ' should have not have blocked, but it did'
-    end
+    raise SpecFailedException, subject.inspect + ' should have not have blocked, but it did' if check(subject)
   end
 
   private
@@ -622,14 +615,14 @@ class BlockCallerExpectation
 
     loop do
       case t.status
-      when 'sleep'    # blocked
+      when 'sleep' # blocked
         t.kill
         t.join
         return true
-      when false      # terminated normally, so never blocked
+      when false # terminated normally, so never blocked
         t.join
         return false
-      when nil        # terminated exceptionally
+      when nil # terminated exceptionally
         t.value
       else
         Thread.pass
@@ -658,9 +651,7 @@ end
 
 class BeEmptyExpectation
   def match(subject)
-    if !subject.empty?
-      raise SpecFailedException, subject.inspect + ' should be empty but has size ' + subject.length
-    end
+    raise SpecFailedException, subject.inspect + ' should be empty but has size ' + subject.length if !subject.empty?
   end
 
   def inverted_match(subject)
@@ -695,7 +686,8 @@ class EqualElementExpectation
   def match(subject)
     @actual = subject
     unless matches?
-      raise SpecFailedException,  "Expected #{@actual} to be a '#{@element}' element with #{attributes_for_failure_message} and #{content_for_failure_message}"
+      raise SpecFailedException,
+            "Expected #{@actual} to be a '#{@element}' element with #{attributes_for_failure_message} and #{content_for_failure_message}"
     end
   end
 
@@ -713,11 +705,11 @@ class EqualElementExpectation
     matched = true
 
     if @options[:not_closed]
-      matched &&= actual =~ /^#{Regexp.quote("<" + @element)}.*#{Regexp.quote(">" + (@content || ''))}$/
+      matched &&= actual =~ /^#{Regexp.quote('<' + @element)}.*#{Regexp.quote('>' + (@content || ''))}$/
     else
-      matched &&= actual =~ /^#{Regexp.quote("<" + @element)}/
-      matched &&= actual =~ /#{Regexp.quote("</" + @element + ">")}$/
-      matched &&= actual =~ /#{Regexp.quote(">" + @content + "</")}/ if @content
+      matched &&= actual =~ /^#{Regexp.quote('<' + @element)}/
+      matched &&= actual =~ /#{Regexp.quote('</' + @element + '>')}$/
+      matched &&= actual =~ /#{Regexp.quote('>' + @content + '</')}/ if @content
     end
 
     if @attributes
@@ -740,39 +732,35 @@ class EqualElementExpectation
   def attributes_for_failure_message
     if @attributes
       if @attributes.empty?
-        "no attributes"
+        'no attributes'
       else
-        @attributes.inject([]) { |memo, n| memo << %Q{#{n[0]}="#{n[1]}"} }.join(" ")
+        @attributes.inject([]) { |memo, n| memo << %Q{#{n[0]}="#{n[1]}"} }.join(' ')
       end
     else
-      "any attributes"
+      'any attributes'
     end
   end
 
   def content_for_failure_message
     if @content
       if @content.empty?
-        "no content"
+        'no content'
       else
         "#{@content.inspect} as content"
       end
     else
-      "any content"
+      'any content'
     end
   end
 end
 
 class TrueFalseExpectation
   def match(subject)
-    unless subject == true || subject == false
-      raise SpecFailedException, subject.inspect + ' should be true or false'
-    end
+    raise SpecFailedException, subject.inspect + ' should be true or false' unless subject == true || subject == false
   end
 
   def inverted_match(subject)
-    if subject == true || subject == false
-      raise SpecFailedException, subject.inspect + ' should not be true or false'
-    end
+    raise SpecFailedException, subject.inspect + ' should not be true or false' if subject == true || subject == false
   end
 end
 
@@ -855,7 +843,9 @@ class BeInfinityExpectation
   end
 
   def match(subject)
-    raise SpecFailedException, "#{subject.inspect} should be #{"-" if negative?}Infinity" unless expected_infinity?(subject)
+    unless expected_infinity?(subject)
+      raise SpecFailedException, "#{subject.inspect} should be #{'-' if negative?}Infinity"
+    end
   end
 
   private
@@ -869,7 +859,6 @@ class BeInfinityExpectation
   end
 end
 
-
 class OutputExpectation
   def initialize(expected_out, expected_err)
     @expected_out = expected_out
@@ -877,20 +866,18 @@ class OutputExpectation
   end
 
   def match(subject)
-    actual_out, actual_err = capture_output do
-      subject.call
-    end
+    actual_out, actual_err = capture_output { subject.call }
     if @expected_out && !(@expected_out === actual_out)
-      raise SpecFailedException, "expected $stdout to get #{@expected_out.inspect} but it got #{actual_out.inspect} instead"
+      raise SpecFailedException,
+            "expected $stdout to get #{@expected_out.inspect} but it got #{actual_out.inspect} instead"
     elsif @expected_err && !(@expected_err === actual_err)
-      raise SpecFailedException, "expected $stderr to get #{@expected_err.inspect} but it got #{actual_err.inspect} instead"
+      raise SpecFailedException,
+            "expected $stderr to get #{@expected_err.inspect} but it got #{actual_err.inspect} instead"
     end
   end
 
   def inverted_match(subject)
-    actual_out, actual_err = capture_output do
-      subject.call
-    end
+    actual_out, actual_err = capture_output { subject.call }
     if @expected_out && @expected_out === actual_out
       raise SpecFailedException, "expected $stdout not to get #{@expected_out.inspect} but it did"
     elsif @expected_err && @expected_err === actual_err
@@ -935,6 +922,7 @@ class RaiseErrorExpectation
       else
         raise SpecFailedException, "#{subject.inspect} should have raised an error, but instead raised nothing"
       end
+
       return
     end
 
@@ -1065,9 +1053,7 @@ class YAMLExpectation
   private
 
   def prepare_yaml(yaml)
-    yaml
-      .gsub(/^---\n/, "--- \n")
-      .gsub(/:\n/, ": \n")
+    yaml.gsub(/^---\n/, "--- \n").gsub(/:\n/, ": \n")
   end
 end
 
@@ -1084,7 +1070,8 @@ class StubRegistry
     if stub.message == :object_id
       # If some spec has to stub object_id we have to rethink the idea of the StubRegistry class. We currently use the object_id
       # method do build a hash key from the object id and the stub message.
-      raise SpecFailedException, "Cannot register stub for :object_id. This method is used internally and thus cannot be stubbed."
+      raise SpecFailedException,
+            'Cannot register stub for :object_id. This method is used internally and thus cannot be stubbed.'
     end
 
     key = [stub.subject.object_id, stub.message]
@@ -1095,15 +1082,17 @@ class StubRegistry
       stubs[key] = [stub]
 
       get_stubs = ->(subject, method) { @stubs[[subject.object_id, method]] }
-      stub.subject.define_singleton_method(stub.message) do |*args, &block|
-        matched_stub = get_stubs.(stub.subject, stub.message).find { |stub| stub.match?(*args) }
+      stub
+        .subject
+        .define_singleton_method(stub.message) do |*args, &block|
+          matched_stub = get_stubs.(stub.subject, stub.message).find { |stub| stub.match?(*args) }
 
-        if matched_stub
-          matched_stub.execute(&block)
-        else
-          super(*args, &block)
+          if matched_stub
+            matched_stub.execute(&block)
+          else
+            super(*args, &block)
+          end
         end
-      end
     end
   end
 
@@ -1121,9 +1110,7 @@ class StubRegistry
     yield
   ensure
     stub_keys_added = @stubs.keys - stubs_before.keys
-    stub_keys_added.each do |key|
-      @stubs[key].each(&:disable)
-    end
+    stub_keys_added.each { |key| @stubs[key].each(&:disable) }
     @stubs = stubs_before
   end
 end
@@ -1149,9 +1136,7 @@ class Stub
   def execute
     @count += 1
 
-    unless @raises.empty?
-      raise @raises.size > 1 ? @raises[@count - 1] : @raises[0]
-    end
+    raise @raises.size > 1 ? @raises[@count - 1] : @raises[0] unless @raises.empty?
 
     if block_given? && !@yield_values.empty?
       @yield_values.each { |yield_value| yield yield_value }
@@ -1227,12 +1212,17 @@ class Stub
   end
 
   def exactly(n)
-    @count_restriction = case n
-      when :once then 1
-      when :twice then 2
-      when Integer then n
-      else raise ArgumentError, "Invalid arg #{n} in exactly"
-    end
+    @count_restriction =
+      case n
+      when :once
+        1
+      when :twice
+        2
+      when Integer
+        n
+      else
+        raise ArgumentError, "Invalid arg #{n} in exactly"
+      end
     self
   end
 
@@ -1246,8 +1236,9 @@ class Stub
   def validate!
     unless @count_restriction == nil || @count_restriction === @count
       actual_count = @count
-      message = "#{@subject.inspect} should have received ##{@message} " \
-                "#{@count_restriction} time(s) but received #{actual_count} time(s)"
+      message =
+        "#{@subject.inspect} should have received ##{@message} " \
+          "#{@count_restriction} time(s) but received #{actual_count} time(s)"
 
       raise SpecFailedException, message
     end
@@ -1527,11 +1518,11 @@ class Object
     EqualElementExpectation.new(*args)
   end
 
-  def output(expected_stdout=nil, expected_stderr=nil)
+  def output(expected_stdout = nil, expected_stderr = nil)
     OutputExpectation.new(expected_stdout, expected_stderr)
   end
 
-  def output_to_fd(expected, fd=STDOUT)
+  def output_to_fd(expected, fd = STDOUT)
     return OutputExpectation.new(expected, nil) if fd == $stdout
     return OutputExpectation.new(nil, expected) if fd == $stderr
     raise NotImplementedError, "Invalid fd #{fd.inspect}"
@@ -1682,7 +1673,6 @@ def run_specs
         fn.call
 
         $expectations.each { |expectation| expectation.validate! }
-
       rescue SpecFailedException => e
         @failures << [context, test, e]
         @formatter.print_failure(*@failures.last)
@@ -1713,7 +1703,6 @@ end
 
 at_exit { run_specs }
 
-
 # NATFIXME method to wrap spec-matchers that are known to fail and mark them
 # as "fix this later".
 #
@@ -1738,7 +1727,7 @@ at_exit { run_specs }
 # not match the exception (or exception/message) then NatalieFixMeException will be raised.
 #
 def NATFIXME(description, exception: nil, condition: true, message: nil)
-  raise SpecFailedException, "NATFIXME requires a block" unless block_given?
+  raise SpecFailedException, 'NATFIXME requires a block' unless block_given?
   exception ||= StandardError
 
   return yield unless condition
@@ -1751,42 +1740,48 @@ def NATFIXME(description, exception: nil, condition: true, message: nil)
     @formatter.print_skipped(*@skipped.last)
   end
 
-  matcher = case message
-  when String then ->(exmsg) { exmsg.include?(message) }
-  when Regexp then ->(exmsg) { message.match?(exmsg) }
-  when nil then ->(_) { true }
-  else raise ArgumentError, "match must be nil, Regexp or String"
-  end
+  matcher =
+    case message
+    when String
+      ->(exmsg) { exmsg.include?(message) }
+    when Regexp
+      ->(exmsg) { message.match?(exmsg) }
+    when nil
+      ->(_) { true }
+    else
+      raise ArgumentError, 'match must be nil, Regexp or String'
+    end
 
-  status, ex = begin
-    if $stub_registry
-      $stub_registry.snapshot do
+  status, ex =
+    begin
+      if $stub_registry
+        $stub_registry.snapshot { yield }
+      else
         yield
       end
-    else
-      yield
+      [:unexpected_pass, nil]
+    rescue exception => ex
+      if matcher.call(ex.message)
+        [:valid_fixme, ex]
+      else
+        [:correct_error_class_wrong_message, ex]
+      end
+    rescue Exception => ex
+      [:wrong_error_class, ex] # another error was thrown
     end
-    [:unexpected_pass, nil]
-  rescue exception => ex
-    if matcher.call(ex.message)
-      [:valid_fixme, ex]
-    else
-      [:correct_error_class_wrong_message, ex]
-    end
-  rescue Exception => ex
-    [:wrong_error_class, ex] # another error was thrown
-  end
 
   $natfixme_depth -= 1
 
   case status
   when :unexpected_pass
     if RUBY_ENGINE == 'natalie'
-      raise NatalieFixMeException, "Issue has been fixed, please remove or update the NATFIXME marker"
+      raise NatalieFixMeException, 'Issue has been fixed, please remove or update the NATFIXME marker'
     end
   when :correct_error_class_wrong_message
-    raise NatalieFixMeException, "Issue hidden by NATFIXME marker message is incorrect (should be #{message.inspect} but was #{ex.message.inspect})"
+    raise NatalieFixMeException,
+          "Issue hidden by NATFIXME marker message is incorrect (should be #{message.inspect} but was #{ex.message.inspect})"
   when :wrong_error_class
-    raise NatalieFixMeException, "Issue hidden by NATFIXME marker class is incorrect.  Expected #{exception}, was #{ex.class}"
+    raise NatalieFixMeException,
+          "Issue hidden by NATFIXME marker class is incorrect.  Expected #{exception}, was #{ex.class}"
   end
 end

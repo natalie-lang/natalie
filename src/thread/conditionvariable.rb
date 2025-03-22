@@ -9,9 +9,7 @@ class Thread
       @mutex.synchronize do
         until @waiting.empty?
           thread = @waiting.shift
-          if thread.status != 'dead'
-            thread.wakeup
-          end
+          thread.wakeup if thread.status != 'dead'
         end
       end
     end
@@ -34,9 +32,7 @@ class Thread
     end
 
     def wait(mutex, timeout = nil)
-      @mutex.synchronize do
-        @waiting << Thread.current
-      end
+      @mutex.synchronize { @waiting << Thread.current }
       mutex.sleep(timeout)
     end
   end

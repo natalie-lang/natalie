@@ -43,19 +43,16 @@ describe 'while' do
 
   it 'returns the value of a break, or nil if no break' do
     x = 1
-    result = while true
-               break :foo
-             end
+    result = (break :foo while true)
     result.should == :foo
 
     x = 1
-    result = while x > 0
-               x -= 1
-             end
+    result = (x -= 1 while x > 0)
     result.should == nil
 
-    result = while false
-             end
+    result =
+      while false
+      end
     result.should == nil
   end
 end
@@ -102,19 +99,16 @@ describe 'until' do
 
   it 'returns the value of a break, or nil if no break' do
     x = 1
-    result = until false
-               break :foo
-             end
+    result = (break :foo until false)
     result.should == :foo
 
     x = 1
-    result = until x == 0
-               x -= 1
-             end
+    result = (x -= 1 until x == 0)
     result.should == nil
 
-    result = until true
-             end
+    result =
+      until true
+      end
     result.should == nil
   end
 end

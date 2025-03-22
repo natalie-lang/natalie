@@ -38,15 +38,13 @@ module Natalie
 
         if has_retry
           code << "bool #{retry_name}"
-          code << "do {"
+          code << 'do {'
           code << "#{retry_name} = false"
         end
 
         transform.normalize_stack do
           code << 'try {'
-          transform.with_same_scope(body) do |t|
-            code << t.transform("#{result} =")
-          end
+          transform.with_same_scope(body) { |t| code << t.transform("#{result} =") }
 
           code << 'GlobalEnv::the()->set_rescued(false);'
           code << '} catch(ExceptionObject *exception) {'
@@ -54,9 +52,7 @@ module Natalie
           code << 'auto exception_was = env->exception()'
           code << 'env->set_exception(exception)'
 
-          transform.with_same_scope(catch_body) do |t|
-            code << t.transform(@discard_catch_result ? nil : "#{result} =")
-          end
+          transform.with_same_scope(catch_body) { |t| code << t.transform(@discard_catch_result ? nil : "#{result} =") }
 
           code << 'env->set_exception(exception_was)'
           code << 'GlobalEnv::the()->set_rescued(true)'
@@ -64,9 +60,7 @@ module Natalie
           code << '}'
         end
 
-        if has_retry
-          code << "} while (#{retry_name})"
-        end
+        code << "} while (#{retry_name})" if has_retry
 
         transform.exec(code)
         transform.push(result)
@@ -104,7 +98,6 @@ module Natalie
       def retry_name
         "should_retry_#{serial}"
       end
-
     end
   end
 end

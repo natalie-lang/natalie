@@ -8,7 +8,10 @@ module Natalie
       end
 
       def generate(transform)
-        transform.exec_and_push(:undef_result, "Object::undefine_method(env, self, #{transform.pop}.to_symbol(env, Value::Conversion::Strict))")
+        transform.exec_and_push(
+          :undef_result,
+          "Object::undefine_method(env, self, #{transform.pop}.to_symbol(env, Value::Conversion::Strict))",
+        )
       end
 
       def execute(vm)

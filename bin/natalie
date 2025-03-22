@@ -15,137 +15,122 @@ require 'tempfile'
 require_relative '../lib/natalie'
 
 options = { load_path: [], require: [], execute: [], profile: false }
-OptionParser.new do |opts|
-  opts.banner = 'Usage: natalie [options] file.rb'
+OptionParser
+  .new do |opts|
+    opts.banner = 'Usage: natalie [options] file.rb'
 
-  opts.program_name = 'Natalie'
-  opts.version = '0.1'
+    opts.program_name = 'Natalie'
+    opts.version = '0.1'
 
-  opts.on(
-    '-d [type]', '--debug [type]',
-    'Show debug output (specify option below)',
-    options: {
-      '{p1,p2,p3,p4}' => 'print intermediate instructions from individual compiler pass',
-      'cpp'           => 'print generated C++',
-      'transform'     => 'only transform the code to C++ without outputting it (can be used for profiling the compiler)',
-      'cc-cmd'        => 'show the gcc/clang compiler command that will be run',
-      'callgrind'     => 'run the resulting binary with valgrind (callgrind) and create a profile (set CALLGRIND_RUN to open)',
-      'strace'        => 'run the resulting binary with strace',
-      '{gdb,lldb}'    => 'run the resulting binary with gdb or lldb',
-    },
-  ) do |type|
-    case type
-    when true, 'c', 'cpp', 'c++'
-      options[:debug] = 'cpp'
-    when /^p\d/, 'S', 'cc-cmd', 'callgrind', 'strace'
-      options[:debug] = type
-    when 'gdb', 'lldb'
-      options[:debug] = type
-      options[:keep_cpp] = true
-    else
-      puts "Unrecognized -d argument: #{type.inspect}"
-      exit 1
+    opts.on(
+      '-d [type]',
+      '--debug [type]',
+      'Show debug output (specify option below)',
+      options: {
+        '{p1,p2,p3,p4}' => 'print intermediate instructions from individual compiler pass',
+        'cpp' => 'print generated C++',
+        'transform' => 'only transform the code to C++ without outputting it (can be used for profiling the compiler)',
+        'cc-cmd' => 'show the gcc/clang compiler command that will be run',
+        'callgrind' =>
+          'run the resulting binary with valgrind (callgrind) and create a profile (set CALLGRIND_RUN to open)',
+        'strace' => 'run the resulting binary with strace',
+        '{gdb,lldb}' => 'run the resulting binary with gdb or lldb',
+      },
+    ) do |type|
+      case type
+      when true, 'c', 'cpp', 'c++'
+        options[:debug] = 'cpp'
+      when /^p\d/, 'S', 'cc-cmd', 'callgrind', 'strace'
+        options[:debug] = type
+      when 'gdb', 'lldb'
+        options[:debug] = type
+        options[:keep_cpp] = true
+      else
+        puts "Unrecognized -d argument: #{type.inspect}"
+        exit 1
+      end
+      options[:expecting_script] = true
     end
-    options[:expecting_script] = true
-  end
 
-  opts.on('-e one-line-script', 'Execute one-line script') do |e|
-    options[:execute] << e
-  end
+    opts.on('-e one-line-script', 'Execute one-line script') { |e| options[:execute] << e }
 
-  opts.on(
-    '--profile-compiler format',
-    'Run the compiler and gather a profile (must specify format of "text", "json", "graphviz", etc.)',
-  ) do |format|
-    options[:profile] = :compiler
-    options[:profile_format] = format
-    options[:expecting_script] = true
-  end
+    opts.on(
+      '--profile-compiler format',
+      'Run the compiler and gather a profile (must specify format of "text", "json", "graphviz", etc.)',
+    ) do |format|
+      options[:profile] = :compiler
+      options[:profile_format] = format
+      options[:expecting_script] = true
+    end
 
-  opts.on(
-    '--profile-app',
-    'Run the application and gather a profile with Trace Event Format',
-  ) do |type|
-    options[:profile] = :app
-    options[:expecting_script] = true
-  end
+    opts.on('--profile-app', 'Run the application and gather a profile with Trace Event Format') do |type|
+      options[:profile] = :app
+      options[:expecting_script] = true
+    end
 
-  opts.on('--ast', 'Show AST rather than compiling') do |ast|
-    options[:ast] = ast
-  end
+    opts.on('--ast', 'Show AST rather than compiling') { |ast| options[:ast] = ast }
 
-  opts.on('--compile-bytecode path', 'Compile to bytecode') do |path|
-    options[:compile] = path
-    options[:bytecode] = path
-    options[:expecting_script] = true
-  end
+    opts.on('--compile-bytecode path', 'Compile to bytecode') do |path|
+      options[:compile] = path
+      options[:bytecode] = path
+      options[:expecting_script] = true
+    end
 
-  opts.on('-b path', '--bytecode path', 'Load from bytecode dump') do |path|
-    options[:bytecode] = path
-  end
+    opts.on('-b path', '--bytecode path', 'Load from bytecode dump') { |path| options[:bytecode] = path }
 
-  opts.on('--run-bytecode', 'Compile and run bytecode without an intermediate file') do |path|
-    options[:run] = path
-    options[:bytecode] = true
-    options[:expecting_script] = true
-  end
+    opts.on('--run-bytecode', 'Compile and run bytecode without an intermediate file') do |path|
+      options[:run] = path
+      options[:bytecode] = true
+      options[:expecting_script] = true
+    end
 
-  opts.on('-c path', '--compile path', 'Compile to binary but do not execute') do |path|
-    options[:compile] = path
-    options[:expecting_script] = true
-  end
+    opts.on('-c path', '--compile path', 'Compile to binary but do not execute') do |path|
+      options[:compile] = path
+      options[:expecting_script] = true
+    end
 
-  opts.on('--write-obj-source path', 'Write to C++ file for object file') do |path|
-    options[:write_obj_source_path] = path
-  end
+    opts.on('--write-obj-source path', 'Write to C++ file for object file') do |path|
+      options[:write_obj_source_path] = path
+    end
 
-  opts.on('-r library', 'Require the library before executing your script') do |library|
-    options[:require] << library
-  end
+    opts.on('-r library', 'Require the library before executing your script') { |library| options[:require] << library }
 
-  opts.on('-I path', 'Specify $LOAD_PATH directory (may be used more than once)') do |value|
-    value.split(':').each do |p|
-      options[:load_path].unshift(p)
+    opts.on('-I path', 'Specify $LOAD_PATH directory (may be used more than once)') do |value|
+      value.split(':').each { |p| options[:load_path].unshift(p) }
+    end
+
+    opts.on('-i', '--interpret', 'Interpret Ruby code instead of compiling it (experimental)') do
+      options[:interpret] = true
+    end
+
+    opts.on('--build-dir', 'Setup build directory and compile files separately') { |path| options[:build_dir] = path }
+
+    opts.on('--build-quietly', "Don't print any output during build (unless there is an error)") do
+      options[:build_quietly] = true
+    end
+
+    opts.on('--keep-cpp', 'Do not delete intermediate cpp file used for compilation') { options[:keep_cpp] = true }
+
+    opts.on('--log-load-error', 'Log a message when natalie cannot load a required file') do
+      options[:log_load_error] = true
+    end
+
+    opts.on('--print-objects', 'Disabled GC and prints all allocated objects on program termination') do
+      options[:print_objects] = true
+    end
+
+    opts.on('-w', 'Turn on verbose mode / warnings') { options[:warnings] = true }
+
+    opts.on('--enable-frozen-string-literal', 'freeze all string literals (default: disabled)') do
+      options[:frozen_string_literal] = true
+    end
+
+    opts.on_path do |path|
+      ARGV.unshift(path)
+      opts.stop_parsing!
     end
   end
-
-  opts.on('-i', '--interpret', 'Interpret Ruby code instead of compiling it (experimental)') do
-    options[:interpret] = true
-  end
-
-  opts.on('--build-dir', 'Setup build directory and compile files separately') do |path|
-    options[:build_dir] = path
-  end
-
-  opts.on('--build-quietly', "Don't print any output during build (unless there is an error)") do
-    options[:build_quietly] = true
-  end
-
-  opts.on('--keep-cpp', 'Do not delete intermediate cpp file used for compilation') do
-    options[:keep_cpp] = true
-  end
-
-  opts.on('--log-load-error', 'Log a message when natalie cannot load a required file') do
-    options[:log_load_error] = true
-  end
-
-  opts.on('--print-objects', 'Disabled GC and prints all allocated objects on program termination') do
-    options[:print_objects] = true
-  end
-
-  opts.on('-w', 'Turn on verbose mode / warnings') do
-    options[:warnings] = true
-  end
-
-  opts.on('--enable-frozen-string-literal', 'freeze all string literals (default: disabled)') do
-    options[:frozen_string_literal] = true
-  end
-
-  opts.on_path do |path|
-    ARGV.unshift(path)
-    opts.stop_parsing!
-  end
-end.parse!
+  .parse!
 
 build_mode_path = File.expand_path('../.build', __dir__)
 build_setting = File.exist?(build_mode_path) ? File.read(build_mode_path).strip : 'release'
@@ -193,9 +178,7 @@ class Runner
     else
       compile_and_run
     end
-    if @run_result
-      exit @run_result.exitstatus || 1
-    end
+    exit @run_result.exitstatus || 1 if @run_result
   end
 
   private
@@ -204,12 +187,8 @@ class Runner
     out = Tempfile.create("natalie#{extension}")
     out.close
     compiler.out_path = out.path
-    if options[:profile] == :app
-      compiler.cxx_flags << '-DNAT_NATIVE_PROFILER'
-    end
-    if options[:print_objects]
-      compiler.cxx_flags << '-DNAT_PRINT_OBJECTS'
-    end
+    compiler.cxx_flags << '-DNAT_NATIVE_PROFILER' if options[:profile] == :app
+    compiler.cxx_flags << '-DNAT_PRINT_OBJECTS' if options[:print_objects]
 
     case options[:debug]
     when 'gdb', 'lldb', 'strace'
@@ -271,15 +250,11 @@ class Runner
     if options[:execute].any?
       @source_path = '-e'
       @code = options[:execute].join("\n").gsub(/\\n/, "\n")
-      if options[:require].any?
-        @code = options[:require].map { |l| "require #{l.inspect}" }.join("\n") + "\n" + @code
-      end
+      @code = options[:require].map { |l| "require #{l.inspect}" }.join("\n") + "\n" + @code if options[:require].any?
     elsif ARGV.any?
       @source_path = ARGV.shift
       @code = File.read(source_path)
-      if options[:require].any?
-        @code = options[:require].map { |l| "require #{l.inspect}" }.join("\n") + "\n" + @code
-      end
+      @code = options[:require].map { |l| "require #{l.inspect}" }.join("\n") + "\n" + @code if options[:require].any?
     elsif options[:bytecode]
       @source_path = options[:bytecode]
     elsif options[:expecting_script]
@@ -289,9 +264,7 @@ class Runner
       @source_path = File.expand_path('../lib/natalie/repl.rb', __dir__)
       @code = File.read(source_path)
     end
-    if options[:warnings] && !@code.nil?
-      @code = '$VERBOSE = true' + "\n" + @code
-    end
+    @code = '$VERBOSE = true' + "\n" + @code if options[:warnings] && !@code.nil?
   end
 
   def extension
@@ -309,10 +282,13 @@ class Runner
     encoding = parser.encoding
     warnings = parser.warnings
     data_loc = parser.data_loc
-    @compiler = Natalie::Compiler.new(ast:, path: source_path, encoding:, warnings:, data_loc:, options: options).tap do |c|
-      c.load_path = options[:load_path]
-      c.write_obj_source_path = options[:write_obj_source_path]
-    end
+    @compiler =
+      Natalie::Compiler
+        .new(ast:, path: source_path, encoding:, warnings:, data_loc:, options: options)
+        .tap do |c|
+          c.load_path = options[:load_path]
+          c.write_obj_source_path = options[:write_obj_source_path]
+        end
   end
 
   def parser

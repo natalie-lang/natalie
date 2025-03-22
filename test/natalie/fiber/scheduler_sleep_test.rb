@@ -11,15 +11,14 @@ describe 'Fiber.scheduler with Kernel.sleep' do
     Fiber.set_scheduler(scheduler)
     events = []
 
-    sleeper = Fiber.new do
-      events << 'Going to sleep'
-      sleep(0.01)
-      events << 'Woken up'
-    end
+    sleeper =
+      Fiber.new do
+        events << 'Going to sleep'
+        sleep(0.01)
+        events << 'Woken up'
+      end
 
-    barista = Fiber.new do
-      events << 'Coffee'
-    end
+    barista = Fiber.new { events << 'Coffee' }
 
     sleeper.resume
     barista.resume
@@ -34,15 +33,14 @@ describe 'Fiber.scheduler with Kernel.sleep' do
     Fiber.set_scheduler(scheduler)
     events = []
 
-    sleeper = Fiber.new do
-      events << 'Going to sleep'
-      sleep
-      events << 'Woken up'
-    end
+    sleeper =
+      Fiber.new do
+        events << 'Going to sleep'
+        sleep
+        events << 'Woken up'
+      end
 
-    barista = Fiber.new do
-      events << 'Coffee'
-    end
+    barista = Fiber.new { events << 'Coffee' }
 
     Thread.new do
       sleep 1
@@ -62,15 +60,14 @@ describe 'Fiber.scheduler with Kernel.sleep' do
     Fiber.set_scheduler(scheduler)
     events = []
 
-    sleeper = Fiber.new(blocking: true) do
-      events << 'Going to sleep'
-      sleep(0.01)
-      events << 'Woken up'
-    end
+    sleeper =
+      Fiber.new(blocking: true) do
+        events << 'Going to sleep'
+        sleep(0.01)
+        events << 'Woken up'
+      end
 
-    barista = Fiber.new do
-      events << 'Coffee'
-    end
+    barista = Fiber.new { events << 'Coffee' }
 
     sleeper.resume
     barista.resume
@@ -83,15 +80,14 @@ describe 'Fiber.scheduler with Kernel.sleep' do
   it 'does not interleave fibers without scheduler' do
     events = []
 
-    sleeper = Fiber.new do
-      events << 'Going to sleep'
-      sleep(0.01)
-      events << 'Woken up'
-    end
+    sleeper =
+      Fiber.new do
+        events << 'Going to sleep'
+        sleep(0.01)
+        events << 'Woken up'
+      end
 
-    barista = Fiber.new do
-      events << 'Coffee'
-    end
+    barista = Fiber.new { events << 'Coffee' }
 
     sleeper.resume
     barista.resume
@@ -99,4 +95,3 @@ describe 'Fiber.scheduler with Kernel.sleep' do
     events.should == ['Going to sleep', 'Woken up', 'Coffee']
   end
 end
-

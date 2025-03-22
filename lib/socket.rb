@@ -112,9 +112,7 @@ end
 require_relative './socket/constants'
 
 class Socket < BasicSocket
-  Constants.constants.each do |name|
-    const_set(name, Constants.const_get(name))
-  end
+  Constants.constants.each { |name| const_set(name, Constants.const_get(name)) }
 
   SHORT_CONSTANTS = {
     DGRAM: SOCK_DGRAM,
@@ -211,54 +209,57 @@ class Socket < BasicSocket
 
     def tcp(host, port, local_host = nil, local_port = nil)
       block_given = block_given?
-      Socket.new(:INET, :STREAM).tap do |socket|
-        if local_host || local_port
-          local_sockaddr = Socket.pack_sockaddr_in(
-            local_port || host,
-            local_host || port,
-          )
-          socket.bind(local_sockaddr)
-        end
-        sockaddr = Socket.pack_sockaddr_in(port, host)
-        socket.connect(sockaddr)
-        if block_given
-          begin
-            yield socket
-          ensure
-            socket.close
+      Socket
+        .new(:INET, :STREAM)
+        .tap do |socket|
+          if local_host || local_port
+            local_sockaddr = Socket.pack_sockaddr_in(local_port || host, local_host || port)
+            socket.bind(local_sockaddr)
+          end
+          sockaddr = Socket.pack_sockaddr_in(port, host)
+          socket.connect(sockaddr)
+          if block_given
+            begin
+              yield socket
+            ensure
+              socket.close
+            end
           end
         end
-      end
     end
 
     def unix(path, &block)
       block_given = block_given?
-      Socket.new(:UNIX, :STREAM).tap do |socket|
-        sockaddr = Socket.pack_sockaddr_un(path)
-        socket.connect(sockaddr)
-        if block_given
-          begin
-            yield socket
-          ensure
-            socket.close
+      Socket
+        .new(:UNIX, :STREAM)
+        .tap do |socket|
+          sockaddr = Socket.pack_sockaddr_un(path)
+          socket.connect(sockaddr)
+          if block_given
+            begin
+              yield socket
+            ensure
+              socket.close
+            end
           end
         end
-      end
     end
 
     def unix_server_socket(path, &block)
       block_given = block_given?
-      Socket.new(:UNIX, :STREAM).tap do |socket|
-        sockaddr = Socket.pack_sockaddr_un(path)
-        socket.bind(sockaddr)
-        if block_given
-          begin
-            yield socket
-          ensure
-            socket.close
+      Socket
+        .new(:UNIX, :STREAM)
+        .tap do |socket|
+          sockaddr = Socket.pack_sockaddr_un(path)
+          socket.bind(sockaddr)
+          if block_given
+            begin
+              yield socket
+            ensure
+              socket.close
+            end
           end
         end
-      end
     end
   end
 end
@@ -341,16 +342,12 @@ class Addrinfo
   end
 
   def ip_address
-    unless @ip_address
-      raise SocketError, 'need IPv4 or IPv6 address'
-    end
+    raise SocketError, 'need IPv4 or IPv6 address' unless @ip_address
     @ip_address
   end
 
   def ip_port
-    unless @ip_port
-      raise SocketError, 'need IPv4 or IPv6 address'
-    end
+    raise SocketError, 'need IPv4 or IPv6 address' unless @ip_port
     @ip_port
   end
 

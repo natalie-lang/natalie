@@ -41,21 +41,12 @@ module Natalie
       ].freeze
 
       # When running `bin/natalie script.rb`, we use dynamic linking to speed things up.
-      LIBRARIES_FOR_DYNAMIC_LINKING = %w[
-        -lnatalie_base
-        -lonigmo
-      ].freeze
+      LIBRARIES_FOR_DYNAMIC_LINKING = %w[-lnatalie_base -lonigmo].freeze
 
       # When compiling a binary with the `-c` option, we use static linking for compatibility.
-      LIBRARIES_FOR_STATIC_LINKING = %w[
-        -lnatalie
-      ].freeze
+      LIBRARIES_FOR_STATIC_LINKING = %w[-lnatalie].freeze
 
-      LIB_PATHS = [
-        BUILD_DIR,
-        File.join(BUILD_DIR, 'onigmo/lib'),
-        File.join(BUILD_DIR, 'zlib'),
-      ].freeze
+      LIB_PATHS = [BUILD_DIR, File.join(BUILD_DIR, 'onigmo/lib'), File.join(BUILD_DIR, 'zlib')].freeze
 
       def initialize(instructions, compiler:, compiler_context:)
         @instructions = instructions
@@ -77,16 +68,20 @@ module Natalie
           object_path = one_out.compile_object_file
           link([object_path])
         else
-          object_paths = outs.map do |out|
-            build_print "compiling #{out.relative_ruby_path}... "
-            object_path = out.compile_object_file
-            case out.status
-              when :compiled then build_puts 'done'
-              when :unchanged then build_puts 'unchanged'
-              else raise "unexpected status: #{out.status}"
+          object_paths =
+            outs.map do |out|
+              build_print "compiling #{out.relative_ruby_path}... "
+              object_path = out.compile_object_file
+              case out.status
+              when :compiled
+                build_puts 'done'
+              when :unchanged
+                build_puts 'unchanged'
+              else
+                raise "unexpected status: #{out.status}"
+              end
+              object_path
             end
-            object_path
-          end
           build_puts 'linking...'
           link(object_paths)
           build_puts 'done'
@@ -110,11 +105,7 @@ module Natalie
       end
 
       def obj_name
-        @compiler
-          .write_obj_source_path
-          .sub(/\.rb\.cpp/, '')
-          .sub(%r{.*build/(generated/)?}, '')
-          .tr('/', '_')
+        @compiler.write_obj_source_path.sub(/\.rb\.cpp/, '').sub(%r{.*build/(generated/)?}, '').tr('/', '_')
       end
 
       private
@@ -138,9 +129,7 @@ module Natalie
       def reset_data_for_next_loaded_file(loaded_file)
         return if single_source?
 
-        var_prefix = loaded_file.relative_path
-                                .sub(/^[^a-zA-Z_]/, '_')
-                                .gsub(/[^a-zA-Z0-9_]/, '_') + '_'
+        var_prefix = loaded_file.relative_path.sub(/^[^a-zA-Z_]/, '_').gsub(/[^a-zA-Z0-9_]/, '_') + '_'
         if @var_prefixes_used[var_prefix]
           # This causes some hard-to-debug compilation/linking bugs.
           p(var_prefix:, path: loaded_file.path, previous_path: @var_prefixes_used[var_prefix].path)
@@ -176,22 +165,15 @@ module Natalie
       end
 
       def out_file_for_source(type:, body:, ruby_path:)
-        OutFile.new(
-          type:,
-          body:,
-          transform_data: @transform_data,
-          ruby_path:,
-          compiler: @compiler,
-          backend: self,
-        )
+        OutFile.new(type:, body:, transform_data: @transform_data, ruby_path:, compiler: @compiler, backend: self)
       end
 
       def build_transform(instructions)
         Transform.new(
           instructions,
           compiler_context: @compiler_context,
-          transform_data:   @transform_data,
-          compiled_files:   @compiled_files,
+          transform_data: @transform_data,
+          compiled_files: @compiled_files,
         )
       end
 
@@ -210,10 +192,7 @@ module Natalie
       end
 
       def augment_compiler_context
-        @compiler_context.merge!(
-          compile_cxx_flags: [],
-          compile_ld_flags:  [],
-        )
+        @compiler_context.merge!(compile_cxx_flags: [], compile_ld_flags: [])
       end
 
       def linker(paths)

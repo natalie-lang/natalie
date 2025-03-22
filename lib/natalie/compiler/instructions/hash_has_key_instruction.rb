@@ -15,10 +15,7 @@ module Natalie
 
       def generate(transform)
         hash = transform.peek
-        transform.exec_and_push(
-          :has_key,
-          "bool_object(#{hash}.as_hash()->has_key(env, #{@key.to_s.inspect}_s))"
-        )
+        transform.exec_and_push(:has_key, "bool_object(#{hash}.as_hash()->has_key(env, #{@key.to_s.inspect}_s))")
       end
 
       def execute(vm)
@@ -28,10 +25,7 @@ module Natalie
 
       def serialize(rodata)
         position = rodata.add(@key.to_s)
-        [
-          instruction_number,
-          position,
-        ].pack('Cw')
+        [instruction_number, position].pack('Cw')
       end
 
       def self.deserialize(io, rodata)

@@ -26,7 +26,9 @@ module Natalie
         private
 
         def transform_array_pattern_node(node, value)
-          raise SyntaxError, 'PinnedExpressionNode not yet supported' if (node.requireds + node.posts).any? { |n| n.is_a?(Prism::PinnedExpressionNode) }
+          if (node.requireds + node.posts).any? { |n| n.is_a?(Prism::PinnedExpressionNode) }
+            raise SyntaxError, 'PinnedExpressionNode not yet supported'
+          end
 
           # Transform `expr => [a, b] into `a, b = ->(expr) { expr.deconstruct }.call(expr)`
           targets = node.requireds.filter_map { |n| n.name if n.type == :local_variable_target_node }
@@ -38,51 +40,52 @@ module Natalie
             expected_size_str << '+'
           end
           targets.concat(node.posts.filter_map { |n| n.name if n.type == :local_variable_target_node })
-          targets_str = if targets.empty? || targets == [:*]
-                          ''
-                        elsif targets.size == 1 && !targets.first.start_with?('*')
-                          "#{targets.first}, * = "
-                        else
-                          "#{targets.join(', ')} = "
-                        end
+          targets_str =
+            if targets.empty? || targets == [:*]
+              ''
+            elsif targets.size == 1 && !targets.first.start_with?('*')
+              "#{targets.first}, * = "
+            else
+              "#{targets.join(', ')} = "
+            end
           const_check = ''
-          if node.constant
-            const_check = <<~RUBY
+          const_check = <<~RUBY if node.constant
               unless #{node.constant.full_name} === result
                 raise ::NoMatchingPatternError, "\#{result}: #{node.constant.full_name} === \#{result} does not return true"
               end
             RUBY
-          end
-          main_loop_instructions = node.requireds.each_with_index.map do |n, i|
-            compare_to = n.type == :pinned_variable_node ? n.variable.location.slice : n.location.slice
-            if n.type == :local_variable_target_node
-              "outputs << values[#{i}]"
-            else
-              <<~RUBY
+          main_loop_instructions =
+            node.requireds.each_with_index.map do |n, i|
+              compare_to = n.type == :pinned_variable_node ? n.variable.location.slice : n.location.slice
+              if n.type == :local_variable_target_node
+                "outputs << values[#{i}]"
+              else
+                <<~RUBY
                 unless #{compare_to} === values[#{i}]
                   compare_to_str = #{n.type == :pinned_variable_node ? "\"\#{#{n.variable.location.slice}}\"" : compare_to}
                   raise ::NoMatchingPatternError, "\#{result}: \#{compare_to_str} === \#{values[#{i}]} does not return true"
                 end
               RUBY
+              end
             end
-          end
           if node.posts.empty?
             main_loop_instructions << "outputs.concat(values.slice(#{node.requireds.size}..))"
           else
             main_loop_instructions << "outputs.concat(values.slice(#{node.requireds.size}...(values.size - #{node.posts.size})))"
-            main_loop_instructions += node.posts.each_with_index.map do |n, i|
-              compare_to = n.type == :pinned_variable_node ? n.variable.location.slice : n.location.slice
-              if n.type == :local_variable_target_node
-                "outputs << values[#{i - node.posts.size}]"
-              else
-                <<~RUBY
+            main_loop_instructions +=
+              node.posts.each_with_index.map do |n, i|
+                compare_to = n.type == :pinned_variable_node ? n.variable.location.slice : n.location.slice
+                if n.type == :local_variable_target_node
+                  "outputs << values[#{i - node.posts.size}]"
+                else
+                  <<~RUBY
                   unless #{compare_to} === values[#{i - node.posts.size}]
                   compare_to_str = #{n.type == :pinned_variable_node ? "\"\#{#{n.variable.location.slice}}\"" : compare_to}
                     raise ::NoMatchingPatternError, "\#{result}: \#{compare_to_str} === \#{values[#{i - node.posts.size}]} does not return true"
                   end
                 RUBY
+                end
               end
-            end
           end
           <<~RUBY
             #{targets_str}lambda do |result|
@@ -103,14 +106,15 @@ module Natalie
         def transform_eqeqeq_check(node, value)
           # Transform `expr => var` into `->(res, var) { res === var }.call(expr, var)`
           alternations = []
-          alternation_handler = lambda do |n|
-            if n.is_a?(Prism::AlternationPatternNode)
-              alternation_handler.call(n.left)
-              alternation_handler.call(n.right)
-            else
-              alternations << n.location.slice
+          alternation_handler =
+            lambda do |n|
+              if n.is_a?(Prism::AlternationPatternNode)
+                alternation_handler.call(n.left)
+                alternation_handler.call(n.right)
+              else
+                alternations << n.location.slice
+              end
             end
-          end
           alternation_handler.call(node)
           <<~RUBY
             lambda do |result, expect|

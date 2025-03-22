@@ -29,11 +29,7 @@ module Natalie
       end
 
       def serialize(_)
-        [
-          instruction_number,
-          index,
-          nil_default ? 1 : 0,
-        ].pack("CwC")
+        [instruction_number, index, nil_default ? 1 : 0].pack('CwC')
       end
 
       def self.deserialize(io, _)

@@ -10,12 +10,7 @@ module Natalie
       @self = @main = build_main
       @method_visibility = :public
       @flip_flop_states = []
-      @global_variables = {
-        "$0": @path,
-        "$stderr": $stderr,
-        "$stdout": $stdout,
-        "$~": $~,
-      }
+      @global_variables = { '$0': @path, '$stderr': $stderr, '$stdout': $stdout, '$~': $~ }
     end
 
     attr_accessor :self, :method_visibility, :global_variables, :rescued
@@ -33,9 +28,7 @@ module Natalie
     def run
       @instructions.walk do |instruction|
         result = instruction.execute(self)
-        if %i[break_out halt next return].include?(result)
-          return result
-        end
+        return result if %i[break_out halt next return].include?(result)
       end
       @stack.last
     end
@@ -104,9 +97,7 @@ module Natalie
     def find_var(name, local_only: false)
       s = scope
       loop do
-        if s[:vars].key?(name)
-          return s.dig(:vars, name)
-        end
+        return s.dig(:vars, name) if s[:vars].key?(name)
         if s[:parent] && !local_only
           s = s[:parent]
         else
@@ -132,15 +123,29 @@ module Natalie
 
     def build_main
       main = Object.new
-      def main.to_s; 'main'; end
-      def main.inspect; 'main'; end
-      def main.define_method(name, &block); Object.define_method(name, &block); end
+      def main.to_s
+        'main'
+      end
+      def main.inspect
+        'main'
+      end
+      def main.define_method(name, &block)
+        Object.define_method(name, &block)
+      end
       main.instance_variable_set(:@path, @path)
-      def main.__dir__; File.split(File.expand_path(@path)).first; end
+      def main.__dir__
+        File.split(File.expand_path(@path)).first
+      end
       # FIXME: I don't think these 3 methods are used:
-      def main.private(*args); Object.send(:private, *args); end
-      def main.protected(*args); Object.send(:potected, *args); end
-      def main.public(*args); Object.send(:public, *args); end
+      def main.private(*args)
+        Object.send(:private, *args)
+      end
+      def main.protected(*args)
+        Object.send(:potected, *args)
+      end
+      def main.public(*args)
+        Object.send(:public, *args)
+      end
       main
     end
   end

@@ -22,15 +22,16 @@ describe 'caller' do
   end
 
   def normalize_lines(lines)
-    lines.reject { |line| line =~ /test\/support/ }.map { |line| make_path_relative(line) }
+    lines.reject { |line| line =~ %r{test/support} }.map { |line| make_path_relative(line) }
   end
 
   it 'returns an array of paths, line numbers, and call site names' do
     # FIXME: make this more closely match MRI
-    normalize_lines(get_caller).should == [
-      "test/natalie/caller_test.rb:13:in 'get_caller'",
-      "test/natalie/caller_test.rb:30:in 'block in block in block'",
-      "test/natalie/caller_test.rb:5:in '<main>'"
-    ]
+    normalize_lines(get_caller).should ==
+      [
+        "test/natalie/caller_test.rb:13:in 'get_caller'",
+        "test/natalie/caller_test.rb:30:in 'block in block in block'",
+        "test/natalie/caller_test.rb:5:in '<main>'",
+      ]
   end
 end

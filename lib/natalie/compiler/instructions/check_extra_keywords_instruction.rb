@@ -4,7 +4,7 @@ module Natalie
   class Compiler
     class CheckExtraKeywordsInstruction < BaseInstruction
       def to_s
-        "check_extra_keywords"
+        'check_extra_keywords'
       end
 
       def generate(transform)

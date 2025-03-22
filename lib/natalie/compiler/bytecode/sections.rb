@@ -2,10 +2,7 @@ module Natalie
   class Compiler
     module Bytecode
       class Sections
-        SECTIONS = {
-          1 => :CODE,
-          2 => :RODATA,
-        }.freeze
+        SECTIONS = { 1 => :CODE, 2 => :RODATA }.freeze
 
         attr_reader :bytecode_offset
 
@@ -21,18 +18,21 @@ module Natalie
 
         def self.load(io)
           result = allocate
-          io.read(1).unpack1('C').times do
-            type, offset = io.read(5).unpack('CN')
-            case SECTIONS[type]
-            when :CODE
-              result.send(:bytecode_offset=, offset)
-            when :RODATA
-              result.send(:rodata_offset=, offset)
-            else
-              allowed = SECTIONS.map { |k, v| "#{k} (#{v})" }.join(', ')
-              raise "Invalid section identifier, expected any of #{allowed}, got #{id}"
+          io
+            .read(1)
+            .unpack1('C')
+            .times do
+              type, offset = io.read(5).unpack('CN')
+              case SECTIONS[type]
+              when :CODE
+                result.send(:bytecode_offset=, offset)
+              when :RODATA
+                result.send(:rodata_offset=, offset)
+              else
+                allowed = SECTIONS.map { |k, v| "#{k} (#{v})" }.join(', ')
+                raise "Invalid section identifier, expected any of #{allowed}, got #{id}"
+              end
             end
-          end
           result
         end
 

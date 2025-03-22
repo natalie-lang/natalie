@@ -756,13 +756,13 @@ module Enumerable
 
   def first(*args)
     if args.length == 0
-      each { |*item| return (item.size <= 1 ? item.first : item) }
+      each { |*item| return(item.size <= 1 ? item.first : item) }
     else
       count = args[0]
       count = count.to_int if not count.is_a? Integer and count.respond_to? :to_int
       raise TypeError unless count.is_a? Integer
       raise ArgumentError, 'negative array size' unless count >= 0
-      raise RangeError, "bignum too big to convert into 'long'" if count >= 2 ** 63
+      raise RangeError, "bignum too big to convert into 'long'" if count >= 2**63
 
       result = []
       return result if count == 0
@@ -922,9 +922,7 @@ module Enumerable
   def tally(hash = nil)
     if hash
       hash = hash.to_hash
-      if hash.frozen?
-        raise FrozenError, "can't modify frozen #{hash.class.name}: #{hash.inspect}"
-      end
+      raise FrozenError, "can't modify frozen #{hash.class.name}: #{hash.inspect}" if hash.frozen?
     else
       hash = {}
     end
@@ -935,9 +933,7 @@ module Enumerable
       key = gather.(item)
       if hash.key?(key)
         value = hash[key]
-        unless value.is_a?(Integer)
-          raise TypeError, "wrong argument type #{value.class.name} (expected Integer)"
-        end
+        raise TypeError, "wrong argument type #{value.class.name} (expected Integer)" unless value.is_a?(Integer)
         hash[key] = value + 1
       else
         hash[key] = 1
@@ -1008,12 +1004,11 @@ module Enumerable
     each do |*item|
       entry = [gather.(item)]
       args.each do |arg|
-        entry <<
-          begin
-            arg.next
-          rescue StopIteration
-            nil
-          end
+        entry << begin
+          arg.next
+        rescue StopIteration
+          nil
+        end
       end
       if has_block
         yield entry

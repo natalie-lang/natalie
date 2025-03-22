@@ -35,11 +35,13 @@ module Natalie
         case @positional
         when Integer
           if vm.args.size != @positional
-            raise ArgumentError, "wrong number of arguments (given #{vm.args.size}, expected #{@positional}#{error_suffix})"
+            raise ArgumentError,
+                  "wrong number of arguments (given #{vm.args.size}, expected #{@positional}#{error_suffix})"
           end
         when Range
           unless @positional.cover?(vm.args.size)
-            raise ArgumentError, "wrong number of arguments (given #{vm.args.size}, expected #{@positional.inspect}#{error_suffix})"
+            raise ArgumentError,
+                  "wrong number of arguments (given #{vm.args.size}, expected #{@positional.inspect}#{error_suffix})"
           end
         else
           raise "unknown CheckArgsInstruction @positional type: #{@positional.inspect}"
@@ -50,18 +52,15 @@ module Natalie
         needs_positional_range = @positional.is_a?(Range) && !@positional.end.nil?
         has_positional_splat = @positional.is_a?(Range) && @positional.end.nil?
         flags = 0
-        [@args_array_on_stack, needs_positional_range, has_positional_splat, @keywords.any?].each_with_index do |flag, index|
-          flags |= (1 << index) if flag
-        end
+        [
+          @args_array_on_stack,
+          needs_positional_range,
+          has_positional_splat,
+          @keywords.any?,
+        ].each_with_index { |flag, index| flags |= (1 << index) if flag }
         positional = @positional.is_a?(Range) ? @positional.first : @positional
-        bytecode = [
-                     instruction_number,
-                     flags,
-                     positional,
-                   ].pack('CCw')
-        if needs_positional_range
-          bytecode << [@positional.last].pack('w')
-        end
+        bytecode = [instruction_number, flags, positional].pack('CCw')
+        bytecode << [@positional.last].pack('w') if needs_positional_range
         if @keywords.any?
           bytecode << [@keywords.size].pack('w')
           @keywords.each do |keyword|
@@ -98,7 +97,7 @@ module Natalie
       private
 
       def cpp_keywords
-        "{ #{@keywords.map { |kw| kw.to_s.inspect }.join ', ' } }"
+        "{ #{@keywords.map { |kw| kw.to_s.inspect }.join ', '} }"
       end
 
       def error_suffix

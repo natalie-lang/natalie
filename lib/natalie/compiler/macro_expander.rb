@@ -3,8 +3,10 @@ module Natalie
     class MacroExpander
       include ComptimeValues
 
-      class MacroError < StandardError; end
-      class LoadPathMacroError < MacroError; end
+      class MacroError < StandardError
+      end
+      class LoadPathMacroError < MacroError
+      end
 
       def initialize(load_path:, interpret:, compiler_context:, log_load_error:)
         @load_path = load_path
@@ -18,11 +20,7 @@ module Natalie
       attr_reader :node, :load_path, :depth
 
       # Eval-like calls that can take a static string or a block
-      EVALISH_STRING_TO_BLOCK = %i[
-        class_eval
-        instance_eval
-        module_eval
-      ].freeze
+      EVALISH_STRING_TO_BLOCK = %i[class_eval instance_eval module_eval].freeze
 
       MACROS = %i[
         autoload
@@ -66,9 +64,11 @@ module Natalie
       # "Hidden macros" are just regular-looking Ruby code we intercept at compile-time.
       # We will try to support common Ruby idioms here that cannot be done at runtime.
       def get_hidden_macro_name(node)
-        if node.type == :call_node && node.receiver&.type == :global_variable_read_node && %i[$LOAD_PATH $:].include?(node.receiver.name) && %i[<< unshift].include?(node.name)
+        if node.type == :call_node && node.receiver&.type == :global_variable_read_node &&
+             %i[$LOAD_PATH $:].include?(node.receiver.name) && %i[<< unshift].include?(node.name)
           :update_load_path
-        elsif node.type == :call_node && EVALISH_STRING_TO_BLOCK.include?(node.name) && node.block.nil? && node.arguments&.arguments&.size == 1 && compile_time_string?(node.arguments.arguments.first)
+        elsif node.type == :call_node && EVALISH_STRING_TO_BLOCK.include?(node.name) && node.block.nil? &&
+              node.arguments&.arguments&.size == 1 && compile_time_string?(node.arguments.arguments.first)
           :evalish_string_to_block
         end
       end
@@ -99,20 +99,23 @@ module Natalie
         begin
           path = comptime_string(path_node, path: current_path)
         rescue ArgumentError
-          return drop_load_error(
-            "cannot load such file #{path_node.inspect} at #{current_path}##{expr.location.start_line}",
-            location: expr.location
+          return(
+            drop_load_error(
+              "cannot load such file #{path_node.inspect} at #{current_path}##{expr.location.start_line}",
+              location: expr.location,
+            )
           )
         end
 
-        full_path = EXTENSIONS_TO_TRY.lazy.filter_map do |ext|
-          find_full_path(path + ext, base: Dir.pwd, search: true)
-        end.first
+        full_path =
+          EXTENSIONS_TO_TRY.lazy.filter_map { |ext| find_full_path(path + ext, base: Dir.pwd, search: true) }.first
 
         unless full_path
-          return drop_load_error(
-            "cannot load such file #{path} at #{current_path}##{expr.location.start_line}",
-            location: expr.location
+          return(
+            drop_load_error(
+              "cannot load such file #{path} at #{current_path}##{expr.location.start_line}",
+              location: expr.location,
+            )
           )
         end
 
@@ -135,7 +138,7 @@ module Natalie
         end
         drop_load_error(
           "cannot load such file #{name} at #{current_path}##{expr.location.start_line}",
-          location: expr.location
+          location: expr.location,
         )
       end
 
@@ -151,7 +154,7 @@ module Natalie
         end
         drop_load_error(
           "cannot load such file #{name} at #{current_path}##{expr.location.start_line}",
-          location: expr.location
+          location: expr.location,
         )
       end
 
@@ -160,10 +163,7 @@ module Natalie
         path = comptime_string(args.first, path: current_path)
         full_path = find_full_path(path, base: Dir.pwd, search: true)
         return load_file(full_path, require_once: false, location: location(expr)) if full_path
-        drop_load_error(
-          "cannot load such file -- #{path}",
-          location: expr.location
-        )
+        drop_load_error("cannot load such file -- #{path}", location: expr.location)
       end
 
       def macro_eval(expr:, current_path:, locals:, **)
@@ -213,17 +213,20 @@ module Natalie
           else
             name = expr.receiver[1] # receiver is $(gvar, :$LOAD_PATH)
           end
-          return drop_error(
-            :LoadError,
-            "Cannot manipulate #{name} at runtime (#{current_path}##{expr.location.start_line})",
-            location: expr.location
+          return(
+            drop_error(
+              :LoadError,
+              "Cannot manipulate #{name} at runtime (#{current_path}##{expr.location.start_line})",
+              location: expr.location,
+            )
           )
         end
 
-        path_to_add = VM.compile_and_run(
-          ::Prism::StatementsNode.new(nil, nil, location(expr), 0, expr.arguments&.arguments),
-          path: current_path
-        )
+        path_to_add =
+          VM.compile_and_run(
+            ::Prism::StatementsNode.new(nil, nil, location(expr), 0, expr.arguments&.arguments),
+            path: current_path,
+          )
 
         unless path_to_add.is_a?(String) && File.directory?(path_to_add)
           raise LoadPathMacroError, "#{path_to_add.inspect} is not a directory"
@@ -237,9 +240,25 @@ module Natalie
         return expr unless compile_time_string?(expr.arguments&.child_nodes&.first)
 
         result = Natalie::Parser.new(string_node_to_string(expr.arguments.child_nodes.first), current_path, locals:)
-        block = Prism::BlockNode.new(result.ast.child_nodes.first, nil, expr.arguments.location, 0, nil, nil, result.ast.statements, expr.arguments.child_nodes.first.opening_loc, expr.arguments.child_nodes.first.closing_loc)
+        block =
+          Prism::BlockNode.new(
+            result.ast.child_nodes.first,
+            nil,
+            expr.arguments.location,
+            0,
+            nil,
+            nil,
+            result.ast.statements,
+            expr.arguments.child_nodes.first.opening_loc,
+            expr.arguments.child_nodes.first.closing_loc,
+          )
         output = expr.copy(arguments: nil, block:)
-        output = [:compile_time_warning, result.warnings, "(eval at #{current_path}:#{expr.start_line})", output] unless result.warnings.empty?
+        output = [
+          :compile_time_warning,
+          result.warnings,
+          "(eval at #{current_path}:#{expr.start_line})",
+          output,
+        ] unless result.warnings.empty?
         output
       rescue Parser::ParseError => e
         drop_error(:SyntaxError, e.message, location: expr.location)
@@ -300,13 +319,11 @@ module Natalie
             Prism.call_node(
               receiver: nil,
               name: :__internal_inline_code__,
-              arguments: [
-                Prism.string_node(unescaped: "#include \"#{File.absolute_path(path)}\"", location: location)
-              ],
-              location: location
+              arguments: [Prism.string_node(unescaped: "#include \"#{File.absolute_path(path)}\"", location: location)],
+              location: location,
             ),
-            ::Prism.true_node(location: location)
-          ]
+            ::Prism.true_node(location: location),
+          ],
         )
       end
 
@@ -317,9 +334,9 @@ module Natalie
           name: :raise,
           arguments: [
             Prism.constant_read_node(name: exception_class, location: location),
-            Prism.string_node(unescaped: message, location: location)
+            Prism.string_node(unescaped: message, location: location),
           ],
-          location: location
+          location: location,
         )
       end
 
@@ -341,7 +358,8 @@ module Natalie
       end
 
       def compile_time_string?(expr)
-        expr&.type == :string_node || expr&.type == :interpolated_string_node && expr.parts.all? { |subexpr| subexpr.type == :string_node }
+        expr&.type == :string_node ||
+          expr&.type == :interpolated_string_node && expr.parts.all? { |subexpr| subexpr.type == :string_node }
       end
 
       def string_node_to_string(expr)

@@ -19,7 +19,10 @@ module Natalie
       end
 
       def generate(transform)
-        transform.exec_and_push(:regexp, "Value(RegexpObject::literal(env, #{string_to_cpp(@regexp.source)}, #{@regexp.options}, #{encoding}))")
+        transform.exec_and_push(
+          :regexp,
+          "Value(RegexpObject::literal(env, #{string_to_cpp(@regexp.source)}, #{@regexp.options}, #{encoding}))",
+        )
       end
 
       def execute(vm)
@@ -31,11 +34,7 @@ module Natalie
       def serialize(rodata)
         position = rodata.add(@regexp.source)
 
-        [
-          instruction_number,
-          position,
-          @regexp.options,
-        ].pack('Cww')
+        [instruction_number, position, @regexp.options].pack('Cww')
       end
 
       def self.deserialize(io, rodata)

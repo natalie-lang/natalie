@@ -20,11 +20,11 @@ describe 'Marshal' do
       Marshal.dump(0).should == "\x04\bi\x00".b
       Marshal.dump(4).should == "\x04\bi\t".b
       Marshal.dump(128).should == "\x04\bi\x01\x80".b
-      Marshal.dump(123456).should == "\x04\bi\x03@\xE2\x01".b
+      Marshal.dump(123_456).should == "\x04\bi\x03@\xE2\x01".b
       Marshal.dump(-1).should == "\x04\bi\xFA".b
       Marshal.dump(-4).should == "\x04\bi\xF7".b
       Marshal.dump(-128).should == "\x04\bi\xFF\x80".b
-      Marshal.dump(-123456).should == "\x04\bi\xFD\xC0\x1D\xFE".b
+      Marshal.dump(-123_456).should == "\x04\bi\xFD\xC0\x1D\xFE".b
     end
 
     it 'writes strings' do
@@ -49,8 +49,8 @@ describe 'Marshal' do
 
     it 'writes hashes' do
       Marshal.dump({}).should == "\x04\b{\x00".b
-      Marshal.dump({a: 1}).should == "\x04\b{\x06:\x06ai\x06".b
-      Marshal.dump({E: true}).should == "\x04\b{\x06:\x06ET".b
+      Marshal.dump({ a: 1 }).should == "\x04\b{\x06:\x06ai\x06".b
+      Marshal.dump({ E: true }).should == "\x04\b{\x06:\x06ET".b
     end
 
     it 'writes classes' do
@@ -93,11 +93,11 @@ describe 'Marshal' do
       Marshal.load("\x04\bi\x00".b).should == 0
       Marshal.load("\x04\bi\t".b).should == 4
       Marshal.load("\x04\bi\x01\x80".b).should == 128
-      Marshal.load("\x04\bi\x03@\xE2\x01".b).should == 123456
+      Marshal.load("\x04\bi\x03@\xE2\x01".b).should == 123_456
       Marshal.load("\x04\bi\xFA".b).should == -1
       Marshal.load("\x04\bi\xF7".b).should == -4
       Marshal.load("\x04\bi\xFF\x80".b).should == -128
-      Marshal.load("\x04\bi\xFD\xC0\x1D\xFE".b).should == -123456
+      Marshal.load("\x04\bi\xFD\xC0\x1D\xFE".b).should == -123_456
     end
 
     it 'reads strings' do
@@ -122,8 +122,8 @@ describe 'Marshal' do
 
     it 'reads hashes' do
       Marshal.load("\x04\b{\x00".b).should == {}
-      Marshal.load("\x04\b{\x06:\x06ai\x06".b).should == {a: 1}
-      Marshal.load("\x04\b{\x06:\x06ET".b).should == {E: true}
+      Marshal.load("\x04\b{\x06:\x06ai\x06".b).should == { a: 1 }
+      Marshal.load("\x04\b{\x06:\x06ET".b).should == { E: true }
     end
 
     it 'reads hashes with default values' do
@@ -134,14 +134,14 @@ describe 'Marshal' do
 
     it 'reads classes' do
       Marshal.load("\x04\bc\nArray".b).should == Array
-      ->{ Marshal.load("\x04\bc\nArraz".b) }.should raise_error(ArgumentError)
-      ->{ Marshal.load("\x04\bc\x0FEnumerable".b) }.should raise_error(ArgumentError)
+      -> { Marshal.load("\x04\bc\nArraz".b) }.should raise_error(ArgumentError)
+      -> { Marshal.load("\x04\bc\x0FEnumerable".b) }.should raise_error(ArgumentError)
     end
 
     it 'reads modules' do
       Marshal.load("\x04\bm\x0FEnumerable".b).should == Enumerable
-      ->{ Marshal.load("\x04\bm\x0FEnumerablz".b) }.should raise_error(ArgumentError)
-      ->{ Marshal.load("\x04\bm\nArray".b) }.should raise_error(ArgumentError)
+      -> { Marshal.load("\x04\bm\x0FEnumerablz".b) }.should raise_error(ArgumentError)
+      -> { Marshal.load("\x04\bm\nArray".b) }.should raise_error(ArgumentError)
     end
 
     it 'reads regexps' do

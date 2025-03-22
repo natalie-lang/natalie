@@ -11,7 +11,9 @@ class Thread
         raise TypeError, "can't convert #{enum.class} into Array" unless enum.respond_to?(:to_a)
 
         @queue = enum.to_a
-        raise TypeError, "can't convert #{enum.class} to Array (#{enum.class}#to_a gives #{@queue.class})" unless @queue.is_a?(Array)
+        unless @queue.is_a?(Array)
+          raise TypeError, "can't convert #{enum.class} to Array (#{enum.class}#to_a gives #{@queue.class})"
+        end
       end
       @waiting = []
     end
@@ -68,9 +70,7 @@ class Thread
 
         @waiting << Thread.current
         if timeout.nil?
-          while @queue.empty? && !@closed
-            @mutex.sleep
-          end
+          @mutex.sleep while @queue.empty? && !@closed
         else
           @mutex.sleep(timeout) if @queue.empty? && !@closed
         end
@@ -89,9 +89,7 @@ class Thread
 
         @queue.push(obj)
         thread = @waiting.pop
-        while !thread.nil? && !thread.status == 'sleep'
-          thread = @waiting.pop
-        end
+        thread = @waiting.pop while !thread.nil? && !thread.status == 'sleep'
       end
       thread.wakeup if thread&.status == 'sleep'
       self
