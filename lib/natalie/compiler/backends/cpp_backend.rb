@@ -79,7 +79,7 @@ module Natalie
               when :compiled
                 build_puts "compiled: #{out.relative_ruby_path}"
               when :unchanged
-                build_puts "unchanged: #{out.relative_ruby_path}"
+                build_puts "unchanged: #{out.relative_ruby_path}" if ENV['NAT_VERBOSE']
               else
                 raise "unexpected status: #{out.status}"
               end
