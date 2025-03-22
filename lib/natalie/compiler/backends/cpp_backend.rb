@@ -110,7 +110,7 @@ module Natalie
       end
 
       def obj_name
-        path = @compiler.write_obj_source_path || @compiler.out_path
+        path = @compiler.out_path
         path.sub(/\.rb\.o$/, '').sub(/\.so$/, '').sub(%r{.*build/(generated/)?}, '').tr('/', '_')
       end
 
@@ -149,11 +149,7 @@ module Natalie
       def prepare_main_out_file
         main_transform = build_transform(@instructions)
         body = main_transform.transform('return')
-        if write_object_file?
-          type = :obj
-        else
-          type = { 'executable' => :main, 'object' => :obj, 'shared-object' => :obj }.fetch(compilation_type)
-        end
+        type = { 'executable' => :main, 'object' => :obj, 'shared-object' => :obj }.fetch(compilation_type)
         out_file_for_source(type:, body:, ruby_path: @compiler_context[:source_path])
       end
 
@@ -189,17 +185,13 @@ module Natalie
       end
 
       def build_var_prefix
-        if write_object_file? || compilation_type == 'object'
+        if compilation_type == 'object'
           "#{obj_name}_"
         elsif @compiler.repl?
           "repl#{@compiler.repl_num}_"
         else
           nil
         end
-      end
-
-      def write_object_file?
-        !!@compiler.write_obj_source_path
       end
 
       def compilation_type = @compiler.compilation_type

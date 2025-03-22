@@ -89,10 +89,6 @@ OptionParser
       options[:expecting_script] = true
     end
 
-    opts.on('--write-obj-source path', 'Write to C++ file for object file') do |path|
-      options[:write_obj_source_path] = path
-    end
-
     opts.on('-r library', 'Require the library before executing your script') { |library| options[:require] << library }
 
     opts.on('-I path', 'Specify $LOAD_PATH directory (may be used more than once)') do |value|
@@ -170,8 +166,6 @@ class Runner
     elsif options[:compile]
       compiler.out_path = options[:compile]
       compiler.compile
-    elsif options[:write_obj_source_path]
-      compiler.write_object_source
     elsif options[:debug] == 'cpp'
       if options[:interpret]
         puts compiler.instructions.map(&:to_s)
@@ -294,10 +288,7 @@ class Runner
     @compiler =
       Natalie::Compiler
         .new(ast:, path: source_path, encoding:, warnings:, data_loc:, options: options)
-        .tap do |c|
-          c.load_path = options[:load_path]
-          c.write_obj_source_path = options[:write_obj_source_path]
-        end
+        .tap { |c| c.load_path = options[:load_path] }
   end
 
   def parser
