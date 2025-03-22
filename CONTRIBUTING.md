@@ -10,8 +10,7 @@ direction. If you are not sure about this, open an issue first so we can discuss
 
 ## Code Formatting
 
-- Use `clang-format` to automatically format C++ files. You can run `rake format`.
-- Use `rubocop` to keep Ruby style and usage consistent.
+- Use `clang-format` to automatically format C++ files and `syntax_tree` for Ruby files. You can run `rake format`.
 
 ## Tests
 
