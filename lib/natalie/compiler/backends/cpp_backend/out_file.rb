@@ -62,6 +62,7 @@ module Natalie
                   break if existing_source == merged_source
                 end
                 f.rewind
+                f.truncate(0)
                 f.write(merged_source)
               end
             end
