@@ -83,7 +83,7 @@ Value FileObject::absolute_path(Env *env, Value path, Optional<Value> dir_arg) {
 Value FileObject::expand_path(Env *env, Value path, Optional<Value> dir_arg) {
     auto expand_tilde = [&](String &&string) {
         if (string.is_empty() || string[0] != '~')
-            return string;
+            return std::move(string);
 
         String user;
         size_t len = 0;
