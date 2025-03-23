@@ -543,10 +543,14 @@ file 'bin/nat' => OBJECT_FILES + ['bin/natalie'] do
 end
 
 file "build/libnat.#{SO_EXT}" => LIBNAT_SOURCES do |t|
+  if system('pkg-config --exists libffi')
+    ffi_cxx_flags = `pkg-config --cflags libffi`.chomp
+    ffi_ld_flags = `pkg-config --libs libffi`.chomp
+  end
   cmd = [
     "CXX='#{cxx}'",
-    'NAT_CXX_FLAGS="-fPIC"',
-    'NAT_LD_FLAGS="-shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup"',
+    "NAT_CXX_FLAGS='#{extra_cxx_flags.join(' ')} #{ffi_cxx_flags}'",
+    "NAT_LD_FLAGS='-shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup #{ffi_ld_flags}'",
     "bin/natalie -c build/libnat.#{SO_EXT}",
     '--build-dir=build/libnat',
     '--compilation-type=shared-object',
@@ -568,7 +572,7 @@ end
 rule '.rb.o' => ['src/%{build\/generated/,}X'] do |t|
   subdir = File.dirname(t.name)
   mkdir_p(subdir) unless File.directory?(subdir)
-  sh "NAT_CXX_FLAGS='-fPIC' CXX='#{cxx}' bin/natalie --compilation-type=object -c #{t.name} #{t.source}"
+  sh "NAT_CXX_FLAGS='#{extra_cxx_flags.join(' ')}' CXX='#{cxx}' bin/natalie --compilation-type=object -c #{t.name} #{t.source}"
 end
 
 file "build/libprism.#{SO_EXT}" => ['build/libprism.a']
@@ -656,13 +660,16 @@ def cxx_flags
     else
       raise "unknown build mode: #{ENV['BUILD']}"
     end
-  base_flags += ['-fPIC'] # needed for repl
+  base_flags + extra_cxx_flags + include_flags
+end
+
+def extra_cxx_flags
+  flags = ['-fPIC'] # needed for repl
   if RUBY_PLATFORM =~ /darwin/
     # needed for Process.groups to return more than 16 groups on macOS
-    base_flags += ['-D_DARWIN_C_SOURCE']
+    flags += ['-D_DARWIN_C_SOURCE']
   end
-  user_flags = Array(ENV['NAT_CXX_FLAGS'])
-  base_flags + user_flags + include_flags
+  flags + Array(ENV['NAT_CXX_FLAGS'])
 end
 
 def include_flags
