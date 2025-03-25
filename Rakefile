@@ -538,7 +538,7 @@ file 'build/generated/bindings.cpp.o' => ['lib/natalie/compiler/binding_gen.rb']
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.name.pathmap('%d/%n')}"
 end
 
-file 'bin/nat' => OBJECT_FILES + ['bin/natalie'] do
+file 'bin/nat' => LIBNAT_SOURCES + %w[bin/natalie build/libnatalie.a] do
   sh 'bin/natalie --build-dir=build/libnat -c bin/nat bin/natalie'
 end
 
