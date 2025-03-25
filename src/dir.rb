@@ -60,12 +60,12 @@ class Dir
           yield dir_to_match if patterns.any? { |pattern| File.fnmatch(pattern, dir_to_match, flags) }
 
           Dir
-            .children(dir)
+            .children(File.join(base, dir))
             &.each do |path|
               relative_path = File.join(dir, path)
               relative_path.sub!(%r{^\./}, '') unless dot_slash
               path_to_match = is_absolute ? File.join(base, relative_path) : relative_path
-              if File.directory?(relative_path)
+              if File.directory?(File.join(base, relative_path))
                 recurse.(relative_path)
               elsif patterns.any? { |pattern| File.fnmatch(pattern, path_to_match, flags) }
                 yield path_to_match
@@ -75,7 +75,7 @@ class Dir
           :noop
         end
 
-      Dir.chdir(base) { recurse.('.') }
+      recurse.('.')
 
       nil
     end
