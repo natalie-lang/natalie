@@ -129,16 +129,20 @@ Value DirObject::chdir(Env *env, Optional<Value> path_arg, Block *block) {
     if (!block)
         return Value::integer(0);
 
-    Value args[] = { path };
-    Value result;
-    try {
-        result = block->run(env, Args(1, args), nullptr);
-    } catch (ExceptionObject *exception) {
-        change_current_path(env, old_path);
-        throw exception;
-    }
+    bool changed_back = false;
+    Defer change_directory_back([&] {
+        if (!changed_back) {
+            std::error_code ec;
+            std::filesystem::current_path(old_path, ec);
+        }
+    });
 
+    Value args[] = { path };
+    auto result = block->run(env, Args(1, args), nullptr);
+
+    changed_back = true;
     change_current_path(env, old_path);
+
     return result;
 }
 

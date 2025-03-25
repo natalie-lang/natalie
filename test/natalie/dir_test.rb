@@ -1,6 +1,21 @@
 require_relative '../spec_helper'
 
 describe 'Dir' do
+  describe '.chdir' do
+    it 'Changes the directory back when using throw/catch' do
+      cwd_before = Dir.pwd
+      cwd_in_block = nil
+      catch(:foo) do
+        Dir.chdir(__dir__) do
+          cwd_in_block = Dir.pwd
+          throw :foo
+        end
+      end
+      cwd_in_block.should == __dir__
+      Dir.pwd.should == cwd_before
+    end
+  end
+
   describe '.each_child' do
     it 'raises an error if given a bad path' do
       -> { Dir.each_child('this_directory_does_not_exist') {} }.should raise_error(SystemCallError)
