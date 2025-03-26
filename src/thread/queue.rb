@@ -65,18 +65,23 @@ class Thread
       end
 
       @mutex.synchronize do
-        raise ThreadError, 'queue empty' if non_block && @queue.empty?
-        return @queue.shift if !@queue.empty? || @closed
+        begin
+          raise ThreadError, 'queue empty' if non_block && @queue.empty?
+          return @queue.shift if !@queue.empty? || @closed
 
-        @waiting << Thread.current
-        if timeout.nil?
-          @mutex.sleep while @queue.empty? && !@closed
-        else
-          @mutex.sleep(timeout) if @queue.empty? && !@closed
+          if timeout.nil?
+            while @queue.empty? && !@closed
+              @waiting << Thread.current unless @waiting.include?(Thread.current)
+              @mutex.sleep
+            end
+          else
+            @waiting << Thread.current
+            @mutex.sleep(timeout) if @queue.empty? && !@closed
+          end
+          @queue.shift
+        ensure
+          @waiting.delete(Thread.current)
         end
-        @queue.shift
-      ensure
-        @waiting.delete(Thread.current)
       end
     end
     alias deq pop
@@ -88,10 +93,11 @@ class Thread
         raise ClosedQueueError, 'queue closed' if @closed
 
         @queue.push(obj)
-        thread = @waiting.pop
-        thread = @waiting.pop while !thread.nil? && !thread.status == 'sleep'
+        if (thread = @waiting.pop)
+          Thread.pass until thread.status == 'sleep'
+          thread.wakeup
+        end
       end
-      thread.wakeup if thread&.status == 'sleep'
       self
     end
     alias << push
