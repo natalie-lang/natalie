@@ -2,6 +2,8 @@ require_relative './cpp_backend/linker'
 require_relative './cpp_backend/out_file'
 require_relative './cpp_backend/transform'
 require_relative '../flags'
+require_relative '../../../thread_pool'
+require 'etc'
 
 module Natalie
   class Compiler
@@ -68,20 +70,22 @@ module Natalie
           object_path = one_out.compile_object_file
           link([object_path])
         else
-          object_paths =
-            outs.map do |out|
-              build_print "compiling #{out.relative_ruby_path}... "
-              object_path = out.compile_object_file
+          object_paths = []
+          pool = ThreadPool.new(Etc.nprocessors)
+          outs.each do |out|
+            pool.schedule do
+              object_paths << out.compile_object_file
               case out.status
               when :compiled
-                build_puts 'done'
+                build_puts "compiled: #{out.relative_ruby_path}"
               when :unchanged
-                build_puts 'unchanged'
+                build_puts "unchanged: #{out.relative_ruby_path}"
               else
                 raise "unexpected status: #{out.status}"
               end
-              object_path
             end
+          end
+          pool.shutdown
           build_puts 'linking...'
           link(object_paths)
           build_puts 'done'
