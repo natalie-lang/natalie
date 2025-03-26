@@ -65,7 +65,7 @@ private:
         s_did_run.remove(m_instance);
     }
 
-    static inline TM::Hashmap<void *> s_did_run {};
+    static inline thread_local TM::Hashmap<void *> s_did_run {};
 };
 
 class PairedRecursionGuard {
