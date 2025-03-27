@@ -15,8 +15,13 @@ namespace Natalie {
 
 class SymbolObject : public Object {
 public:
-    static SymbolObject *intern(const char *, size_t length, EncodingObject *encoding = nullptr);
-    static SymbolObject *intern(const String &, EncodingObject *encoding = nullptr);
+    static SymbolObject *intern(const char *, size_t, EncodingObject * = nullptr);
+    static SymbolObject *intern(const String &, EncodingObject * = nullptr);
+
+    static SymbolObject *intern_with_lock(const String &name, EncodingObject *encoding = nullptr) {
+        std::lock_guard<std::recursive_mutex> lock(s_intern_mutex);
+        return intern(name, encoding);
+    }
 
     static ArrayObject *all_symbols(Env *);
     StringObject *to_s(Env *);
@@ -99,6 +104,8 @@ private:
     inline static TM::Hashmap<TM::String, SymbolObject *> s_symbols { 1000 };
     inline static regex_t *s_inspect_quote_regex { nullptr };
 
+    inline static std::recursive_mutex s_intern_mutex;
+
     SymbolObject(const String &name, EncodingObject *encoding)
         : Object { Object::Type::Symbol, GlobalEnv::the()->Symbol() }
         , m_name { name }
@@ -127,7 +134,7 @@ private:
 };
 
 [[nodiscard]] __attribute__((always_inline)) inline SymbolObject *operator"" _s(const char *cstring, size_t) {
-    return SymbolObject::intern(cstring);
+    return SymbolObject::intern_with_lock(cstring);
 }
 
 }
