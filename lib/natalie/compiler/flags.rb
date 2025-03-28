@@ -1,7 +1,14 @@
 module Natalie
   class Compiler
     module Flags
-      RELEASE_FLAGS = %w[-pthread -O3 -Wno-unused-value -Wno-trigraphs].freeze
+      RELEASE_FLAGS = %w[
+        -pthread
+        -O3
+        -Wno-unused-value
+        -Wno-trigraphs
+        -Wno-vla-cxx-extension
+        -Wno-unknown-warning-option
+      ].freeze
 
       DEBUG_FLAGS = %w[
         -pthread
@@ -19,6 +26,7 @@ module Natalie
         -Wno-trigraphs
         -DNAT_GC_GUARD
         -Wno-vla-cxx-extension
+        -Wno-unknown-warning-option
       ].freeze
 
       SANITIZE_FLAG = "-fsanitize=#{ENV.fetch('NAT_SANITIZE_FLAG_VALUE', 'address')}".freeze
