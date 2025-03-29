@@ -54,7 +54,7 @@ module Natalie
         end
 
         def libraries
-          if @compiler.repl?
+          if @compiler.repl? || @compiler.compilation_type == 'shared-object'
             []
           elsif @compiler.dynamic_linking?
             LIBRARIES_FOR_DYNAMIC_LINKING
