@@ -32,24 +32,16 @@ module Natalie
       @inline_cpp_enabled = {}
     end
 
-    attr_accessor :ast,
-                  :warnings,
-                  :context,
-                  :inline_cpp_enabled,
-                  :options,
-                  :repl,
-                  :repl_num,
-                  :vars,
-                  :write_obj_source_path
+    attr_accessor :ast, :warnings, :context, :inline_cpp_enabled, :options, :repl, :repl_num, :vars
 
     attr_writer :load_path, :out_path
 
     def compile
-      backend.compile_to_binary
-    end
-
-    def write_object_source
-      backend.write_object_source(write_obj_source_path)
+      if compilation_type == 'object'
+        backend.compile_to_object_file(@out_path)
+      else
+        backend.compile_to_binary
+      end
     end
 
     def write_bytecode_to_file
@@ -126,6 +118,7 @@ module Natalie
     def build = options[:build]
     def build_dir = options[:build_dir]
     def build_quietly? = !!options[:build_quietly]
+    def compilation_type = options.fetch(:compilation_type, 'executable')
     def keep_cpp? = !!((debug && debug != 'cc-cmd') || options[:keep_cpp])
     def interpret? = !!options[:interpret]
     def dynamic_linking? = !!options[:dynamic_linking]
