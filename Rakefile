@@ -547,10 +547,11 @@ file "build/libnat.#{SO_EXT}" => LIBNAT_SOURCES do |t|
     ffi_cxx_flags = `pkg-config --cflags libffi`.chomp
     ffi_ld_flags = `pkg-config --libs libffi`.chomp
   end
+  cxx_flags = (extra_cxx_flags + [ffi_cxx_flags]).compact.join(' ').strip
   cmd = [
     "CXX='#{cxx}'",
-    "NAT_CXX_FLAGS='#{extra_cxx_flags.join(' ')} #{ffi_cxx_flags}'",
-    "NAT_LD_FLAGS='-shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup #{ffi_ld_flags}'",
+    "NAT_CXX_FLAGS=#{cxx_flags.inspect}",
+    "NAT_LD_FLAGS='-shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup'",
     "bin/natalie -c build/libnat.#{SO_EXT}",
     '--build-dir=build/libnat',
     '--compilation-type=shared-object',
