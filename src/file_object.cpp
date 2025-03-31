@@ -172,12 +172,16 @@ Value FileObject::expand_path(Env *env, Value path, Optional<Value> dir_arg) {
 
 Value FileObject::flock(Env *env, Value locking_constant) {
     const auto locking_constant_int = IntegerMethods::convert_to_nat_int_t(env, locking_constant);
-    if (::flock(fileno(env), locking_constant_int) < 0) {
+
+    do {
+        auto result = ::flock(fileno(env), locking_constant_int);
+        if (result == 0)
+            return Value::integer(0);
         if (errno == EWOULDBLOCK)
             return Value::False();
-        env->raise_errno();
-    }
-    return Value::integer(0);
+    } while (errno == EINTR);
+
+    env->raise_errno();
 }
 
 void FileObject::unlink(Env *env, Value path) {
