@@ -3,6 +3,7 @@ require 'minitest/autorun'
 require 'time'
 require 'timeout'
 require_relative '../support/nat_binary'
+require 'open3'
 
 describe 'ruby/spec' do
   parallelize_me!
@@ -37,13 +38,29 @@ describe 'ruby/spec' do
   files.each do |path|
     describe path do
       it 'passes all specs' do
-        out_nat =
+        out_nat = []
+        status = -1
+        begin
           Timeout.timeout(spec_timeout(path), nil, "execution expired running: #{path}") do
-            `#{NAT_BINARY} --build-dir=test/build --build-quietly #{path} 2>&1`
+            status =
+              Open3.popen2e(NAT_BINARY, '--build-dir=test/build', '--build-quietly', path) do |_i, o, t|
+                begin
+                  out_nat << o.gets until o.eof?
+                  t.value.to_i
+                ensure
+                  begin
+                    Process.kill(9, t.pid)
+                  rescue StandardError
+                    nil
+                  end
+                end
+              end
           end
-        puts out_nat if ENV['DEBUG'] || !$?.success?
-        expect($?).must_be :success?
-        expect(out_nat).wont_match(/traceback|error/i)
+        ensure
+          puts out_nat.join("\n") if ENV['DEBUG'] || status != 0
+        end
+        expect(status).must_equal(0)
+        expect(out_nat.join("\n")).wont_match(/traceback|error/i)
       end
     end
   end
