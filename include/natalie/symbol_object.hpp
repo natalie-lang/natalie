@@ -19,7 +19,7 @@ public:
     static SymbolObject *intern(const String &, EncodingObject * = nullptr);
 
     static SymbolObject *intern_with_lock(const String &name, EncodingObject *encoding = nullptr) {
-        std::lock_guard<std::recursive_mutex> lock(s_intern_mutex);
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return intern(name, encoding);
     }
 
@@ -103,8 +103,6 @@ public:
 private:
     inline static TM::Hashmap<TM::String, SymbolObject *> s_symbols { 1000 };
     inline static regex_t *s_inspect_quote_regex { nullptr };
-
-    inline static std::recursive_mutex s_intern_mutex;
 
     SymbolObject(const String &name, EncodingObject *encoding)
         : Object { Object::Type::Symbol, GlobalEnv::the()->Symbol() }
