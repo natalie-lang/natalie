@@ -18,17 +18,17 @@ task :build do
 end
 
 desc 'Build Natalie with release optimizations enabled and warnings off (default)'
-task build_release: %i[set_build_release libnatalie prism_c_ext] do
+task build_release: %i[set_build_release libnatalie prism_c_ext libnat] do
   puts 'Build mode: release'
 end
 
 desc 'Build Natalie with no optimization and all warnings'
-task build_debug: %i[set_build_debug libnatalie prism_c_ext ctags] do
+task build_debug: %i[set_build_debug libnatalie prism_c_ext libnat ctags] do
   puts 'Build mode: debug'
 end
 
 desc 'Build Natalie with sanitizers enabled'
-task build_sanitized: %i[set_build_sanitized libnatalie prism_c_ext] do
+task build_sanitized: %i[set_build_sanitized libnatalie prism_c_ext libnat] do
   puts 'Build mode: sanitized'
 end
 
@@ -39,10 +39,10 @@ task :clean do
     rm_rf path
   end
   rm_rf 'build/build.log'
-  rm_rf 'build/libnat.rb.cpp'
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
   rm_rf "build/libnatalie_base.#{DL_EXT}"
+  rm_rf 'build/libnat'
   rm_rf "build/libnat.#{SO_EXT}"
   rm_rf Rake::FileList['build/*.o']
   rm_rf 'test/build'
@@ -159,7 +159,7 @@ task :copy_generated_files_to_output do
 end
 
 desc 'Build the self-hosted version of Natalie at bin/nat'
-task bootstrap: [:build, "build/libnat.#{SO_EXT}", 'bin/nat']
+task bootstrap: [:build, 'bin/nat']
 
 desc 'Build MRI C Extension for Prism'
 task prism_c_ext: ["build/libprism.#{SO_EXT}", "build/prism/ext/prism/prism.#{DL_EXT}"]
@@ -382,9 +382,10 @@ STANDARD = 'c++17'.freeze
 HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
 
 PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp', 'src/des_tables.c')
-RUBY_SOURCES = Rake::FileList['src/**/*.rb'].exclude('**/extconf.rb')
+RUBY_SOURCES = Rake::FileList['src/**/*.rb']
+LIBNAT_SOURCES = Rake::FileList['lib/natalie/**/*.rb', 'lib/libnat_api.rb']
 SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generated/bindings.cpp']
-SOURCES = PRIMARY_SOURCES + RUBY_SOURCES + SPECIAL_SOURCES
+SOURCES = PRIMARY_SOURCES + RUBY_SOURCES + LIBNAT_SOURCES + SPECIAL_SOURCES
 
 PRIMARY_OBJECT_FILES = PRIMARY_SOURCES.sub('src/', 'build/').pathmap('%p.o')
 RUBY_OBJECT_FILES = RUBY_SOURCES.pathmap('build/generated/%{^src/,}p.o')
@@ -438,11 +439,14 @@ task libnatalie: [
        :write_compile_database,
      ]
 
+# libnat is the parser and compiler, needed for the REPL.
+task libnat: ["build/libnat.#{SO_EXT}"]
+
 task :build_dir do
   mkdir_p 'build/generated' unless File.exist?('build/generated')
 end
 
-task build_test_support: ["build/libnat.#{SO_EXT}", "build/test/support/ffi_stubs.#{SO_EXT}"]
+task build_test_support: ["build/test/support/ffi_stubs.#{SO_EXT}"]
 
 multitask primary_objects: PRIMARY_OBJECT_FILES
 multitask ruby_objects: RUBY_OBJECT_FILES
@@ -534,17 +538,26 @@ file 'build/generated/bindings.cpp.o' => ['lib/natalie/compiler/binding_gen.rb']
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.name.pathmap('%d/%n')}"
 end
 
-file 'bin/nat' => OBJECT_FILES + ['bin/natalie'] do
-  sh 'bin/natalie -c bin/nat bin/natalie'
+file 'bin/nat' => LIBNAT_SOURCES + %w[bin/natalie build/libnatalie.a] do
+  sh 'bin/natalie --build-dir=build/libnat -c bin/nat bin/natalie'
 end
 
-file "build/libnat.#{SO_EXT}" => SOURCES + %w[lib/libnat_api.rb lib/libnat_api.cpp] do |t|
-  sh 'bin/natalie --write-obj-source build/libnat.rb.cpp lib/libnat_api.rb'
-  flags = `pkg-config --cflags --libs libffi`.chomp if system('pkg-config --exists libffi')
-  sh "#{cxx} #{cxx_flags.join(' ')} #{flags} -std=#{STANDARD} " \
-       '-DNAT_OBJECT_FILE -shared -fPIC -rdynamic ' \
-       '-Wl,-undefined,dynamic_lookup ' \
-       "-o #{t.name} build/libnat.rb.cpp"
+file "build/libnat.#{SO_EXT}" => LIBNAT_SOURCES do |t|
+  if system('pkg-config --exists libffi')
+    ffi_cxx_flags = `pkg-config --cflags libffi`.chomp
+    ffi_ld_flags = `pkg-config --libs libffi`.chomp
+  end
+  cxx_flags = (extra_cxx_flags + [ffi_cxx_flags]).compact.join(' ').strip
+  cmd = [
+    "CXX='#{cxx}'",
+    "NAT_CXX_FLAGS=#{cxx_flags.inspect}",
+    "NAT_LD_FLAGS='-shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup'",
+    "bin/natalie -c build/libnat.#{SO_EXT}",
+    '--build-dir=build/libnat',
+    '--compilation-type=shared-object',
+    'lib/libnat_api.rb',
+  ].join(' ')
+  sh cmd
 end
 
 rule '.c.o' => 'src/%n' do |t|
@@ -552,19 +565,15 @@ rule '.c.o' => 'src/%n' do |t|
 end
 
 rule '.cpp.o' => ['src/%{build/,}X'] + HEADERS do |t|
-  subdir = File.split(t.name).first
-  mkdir_p subdir unless File.exist?(subdir)
+  subdir = File.dirname(t.name)
+  mkdir_p(subdir) unless File.directory?(subdir)
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 
-rule '.rb.o' => ['.rb.cpp'] + HEADERS do |t|
-  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
-end
-
-rule '.rb.cpp' => ['src/%{build\/generated/,}X'] do |t|
-  subdir = File.split(t.name).first
-  mkdir_p subdir unless File.exist?(subdir)
-  sh "bin/natalie --write-obj-source #{t.name} #{t.source}"
+rule '.rb.o' => ['src/%{build\/generated/,}X'] do |t|
+  subdir = File.dirname(t.name)
+  mkdir_p(subdir) unless File.directory?(subdir)
+  sh "NAT_CXX_FLAGS='#{extra_cxx_flags.join(' ')}' CXX='#{cxx}' bin/natalie --compilation-type=object -c #{t.name} #{t.source}"
 end
 
 file "build/libprism.#{SO_EXT}" => ['build/libprism.a']
@@ -652,13 +661,16 @@ def cxx_flags
     else
       raise "unknown build mode: #{ENV['BUILD']}"
     end
-  base_flags += ['-fPIC'] # needed for repl
+  base_flags + extra_cxx_flags + include_flags
+end
+
+def extra_cxx_flags
+  flags = ['-fPIC'] # needed for repl
   if RUBY_PLATFORM =~ /darwin/
     # needed for Process.groups to return more than 16 groups on macOS
-    base_flags += ['-D_DARWIN_C_SOURCE']
+    flags += ['-D_DARWIN_C_SOURCE']
   end
-  user_flags = Array(ENV['NAT_CXX_FLAGS'])
-  base_flags + user_flags + include_flags
+  flags + Array(ENV['NAT_CXX_FLAGS'])
 end
 
 def include_flags

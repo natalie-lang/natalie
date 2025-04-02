@@ -35,7 +35,8 @@ module Natalie
             libraries.join(' '),
             link_flags,
             "-o #{@compiler.out_path}",
-          ].join(' ')
+            ENV['NAT_LD_FLAGS'],
+          ].compact.join(' ')
         end
 
         private
@@ -53,7 +54,7 @@ module Natalie
         end
 
         def libraries
-          if @compiler.repl?
+          if @compiler.repl? || @compiler.compilation_type == 'shared-object'
             []
           elsif @compiler.dynamic_linking?
             LIBRARIES_FOR_DYNAMIC_LINKING
