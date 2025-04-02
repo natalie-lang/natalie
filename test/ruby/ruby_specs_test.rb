@@ -1,8 +1,8 @@
 require 'minitest/spec'
 require 'minitest/autorun'
 require 'time'
-require 'timeout'
 require_relative '../support/nat_binary'
+require_relative '../support/command'
 
 describe 'ruby/spec' do
   parallelize_me!
@@ -37,13 +37,10 @@ describe 'ruby/spec' do
   files.each do |path|
     describe path do
       it 'passes all specs' do
-        out_nat =
-          Timeout.timeout(spec_timeout(path), nil, "execution expired running: #{path}") do
-            `#{NAT_BINARY} --build-dir=test/build --build-quietly #{path} 2>&1`
-          end
-        puts out_nat if ENV['DEBUG'] || !$?.success?
-        expect($?).must_be :success?
-        expect(out_nat).wont_match(/traceback|error/i)
+        timeout = spec_timeout(path)
+        out = Command.new(NAT_BINARY, '--build-dir=test/build', '--build-quietly', path, timeout:).run
+        puts out if ENV['DEBUG']
+        expect(out).wont_match(/traceback|error/i)
       end
     end
   end
