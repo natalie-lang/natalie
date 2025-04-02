@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include <filesystem>
 
 namespace Natalie {
 
@@ -48,11 +49,10 @@ void NativeProfiler::dump() {
     if (!m_is_enabled)
         return;
 
-    String path("profile-");
-
+    auto cwd = std::filesystem::current_path();
     auto epoch = std::chrono::system_clock::now().time_since_epoch();
     auto seconds = std::chrono::duration_cast<std::chrono::seconds>(epoch);
-    path.append_sprintf("%lld.json", seconds.count());
+    auto path = String::format("{}/profile-{}.json", cwd.c_str(), seconds.count());
 
     FILE *fp = fopen(path.c_str(), "w+");
 

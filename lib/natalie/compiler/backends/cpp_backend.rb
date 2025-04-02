@@ -114,6 +114,14 @@ module Natalie
         path.sub(/\.rb\.o$/, '').sub(/\.(so|dylib)$/, '').sub(%r{.*build/(generated/)?}, '').tr('/', '_')
       end
 
+      def profile_app!
+        @compiler_context.fetch(:compile_cxx_flags) << '-DNAT_NATIVE_PROFILER'
+      end
+
+      def print_objects!
+        @compiler_context.fetch(:compile_cxx_flags) << '-DNAT_PRINT_OBJECTS'
+      end
+
       private
 
       def merge_out_file_sources(outs)

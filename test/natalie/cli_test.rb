@@ -28,3 +28,19 @@ describe '--keep-cpp' do
     ruby_exe('puts "hello world"', options: '--keep-cpp').should include(File.join(TMPDIR, 'ruby_exe.rb'))
   end
 end
+
+describe '--profile-app' do
+  it 'outputs a profile' do
+    out = ruby_exe('puts "hello world"', options: '--profile-app')
+    path = out.match(/Profile path: (.*profile-\d+\.json)/)[1]
+    File.read(path).size.should > 0
+  end
+end
+
+describe '--print-objects' do
+  it 'prints objects allocated' do
+    out = ruby_exe('puts "hello world"', options: '--print-objects')
+    out.should =~ /<StringObject 0x[a-z0-9]+ str='hello world'>/
+    out.should =~ /Total allocations: \d+/
+  end
+end
