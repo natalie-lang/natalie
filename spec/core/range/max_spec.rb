@@ -55,10 +55,26 @@ describe "Range#max" do
     (..1.0).max.should == 1.0
   end
 
-  it "raises for an exclusive beginless range" do
-    -> {
-      (...1).max
-    }.should raise_error(TypeError, 'cannot exclude end value with non Integer begin value')
+  ruby_version_is ""..."3.5" do
+    it "raises for an exclusive beginless Integer range" do
+      -> {
+        (...1).max
+      }.should raise_error(TypeError, 'cannot exclude end value with non Integer begin value')
+    end
+  end
+
+  ruby_version_is "3.5" do
+    it "returns the end point for exclusive beginless Integer ranges" do
+      (...1).max.should == 0
+    end
+  end
+
+  it "raises for an exclusive beginless non Integer range" do
+  NATFIXME 'Fix error message', exception: SpecFailedException, message: /but the message was/ do
+      -> {
+        (...1.0).max
+      }.should raise_error(TypeError, 'cannot exclude non Integer end value')
+    end
   end
 end
 
