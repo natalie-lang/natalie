@@ -124,6 +124,8 @@ module Natalie
     def dynamic_linking? = !!options[:dynamic_linking]
     def repl? = !!repl
     def frozen_string_literal? = !!options[:frozen_string_literal]
+    def profile_app! = backend.profile_app!
+    def print_objects! = backend.print_objects!
 
     private
 

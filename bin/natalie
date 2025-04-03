@@ -190,8 +190,8 @@ class Runner
     out = Tempfile.create("natalie#{extension}")
     out.close
     compiler.out_path = out.path
-    compiler.cxx_flags << '-DNAT_NATIVE_PROFILER' if options[:profile] == :app
-    compiler.cxx_flags << '-DNAT_PRINT_OBJECTS' if options[:print_objects]
+    compiler.profile_app! if options[:profile] == :app
+    compiler.print_objects! if options[:print_objects]
 
     case options[:debug]
     when 'gdb', 'lldb', 'strace'
