@@ -579,6 +579,17 @@ public:
     size_t size() const { return m_size; }
 
     /**
+     * Returns the number of storage slots available.
+     *
+     * ```
+     * auto map = Hashmap<String, Thing>();
+     * map.put("foo", Thing(1));
+     * assert_eq(32, map.capacity());
+     * ```
+     */
+    size_t capacity() const { return m_capacity; }
+
+    /**
      * Returns true if there are zero values stored in the Hashmap.
      *
      * ```
