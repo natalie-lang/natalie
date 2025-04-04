@@ -185,7 +185,7 @@ ruby_version_is '3.3' do
       dir.close
     end
 
-    platform_is_not :windows do
+    guard -> { Dir.respond_to? :fchdir } do
       it "does not raise an Errno::ENOENT if the original directory no longer exists" do
         dir_name1 = tmp('testdir1')
         dir_name2 = tmp('testdir2')
@@ -197,10 +197,8 @@ ruby_version_is '3.3' do
         dir2 = Dir.new(dir_name2)
 
         begin
-          NATFIXME 'Implement Dir#chdir', exception: NoMethodError, message: "undefined method 'chdir' for an instance of Dir" do
-            Dir.chdir(dir_name1) do
-              dir2.chdir { Dir.unlink dir_name1 }
-            end
+          Dir.chdir(dir_name1) do
+            dir2.chdir { Dir.unlink dir_name1 }
           end
           Dir.pwd.should == @original
         ensure

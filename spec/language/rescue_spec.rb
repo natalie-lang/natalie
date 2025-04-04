@@ -581,13 +581,8 @@ describe "The rescue keyword" do
         end
       end
       line = __LINE__
-      NATFIXME 'incorrect backtrace', exception: SpecFailedException do
-        foo.should == [
-          "#{__FILE__}:#{line-3}:in 'foo'",
-          "#{__FILE__}:#{line+1}:in 'block (3 levels) in <top (required)>'"
-        ]
-      end
-      foo[0].should == "#{__FILE__}:#{line-3}:in 'foo'"
+      foo[0].should =~ /#{__FILE__}:#{line-3}:in 'foo'/
+      foo[1].should =~ /#{__FILE__}:#{line+2}:in 'block/
     end
   end
 

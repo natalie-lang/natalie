@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class StringIO
-  VERSION = '3.1.0'
+  VERSION = '3.1.2'
 
   include Enumerable
 

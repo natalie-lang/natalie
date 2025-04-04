@@ -3,15 +3,15 @@ require_relative 'fixtures/classes'
 
 describe "Array#sample" do
   it "samples evenly" do
-    ary = [0, 1, 2, 3]
-    3.times do |i|
-      counts = [0, 0, 0, 0]
-      4000.times do
-        counts[ary.sample(3)[i]] += 1
-      end
-      counts.each do |count|
-        (800..1200).should include(count)
-      end
+    NATFIXME 'it samples evenly', exception: SpecFailedException do
+      ArraySpecs.measure_sample_fairness(4, 1, 400)
+      ArraySpecs.measure_sample_fairness(4, 2, 400)
+      ArraySpecs.measure_sample_fairness(4, 3, 400)
+      ArraySpecs.measure_sample_fairness(40, 3, 400)
+      ArraySpecs.measure_sample_fairness(40, 4, 400)
+      ArraySpecs.measure_sample_fairness(40, 8, 400)
+      ArraySpecs.measure_sample_fairness(40, 16, 400)
+      ArraySpecs.measure_sample_fairness_large_sample_size(100, 80, 4000)
     end
   end
 
@@ -19,8 +19,20 @@ describe "Array#sample" do
     [].sample.should be_nil
   end
 
+  it "returns nil for an empty array when called without n and a Random is given" do
+    [].sample(random: Random.new(42)).should be_nil
+  end
+
   it "returns a single value when not passed a count" do
     [4].sample.should equal(4)
+  end
+
+  it "returns a single value when not passed a count and a Random is given" do
+    [4].sample(random: Random.new(42)).should equal(4)
+  end
+
+  it "returns a single value when not passed a count and a Random class is given" do
+    [4].sample(random: Random).should equal(4)
   end
 
   it "returns an empty Array when passed zero" do
@@ -101,6 +113,13 @@ describe "Array#sample" do
       it "raises a RangeError if the value is equal to the Array size" do
         random = mock("array_sample_random")
         random.should_receive(:rand).and_return(2)
+
+        -> { [1, 2].sample(random: random) }.should raise_error(RangeError)
+      end
+
+      it "raises a RangeError if the value is greater than the Array size" do
+        random = mock("array_sample_random")
+        random.should_receive(:rand).and_return(3)
 
         -> { [1, 2].sample(random: random) }.should raise_error(RangeError)
       end

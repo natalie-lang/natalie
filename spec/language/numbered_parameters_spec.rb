@@ -94,10 +94,19 @@ describe "Numbered parameters" do
     end
   end
 
-  it "affects binding local variables" do
-    NATFIXME 'Implement Binding#local_variables', exception: NoMethodError, message: /undefined method [`']local_variables' for an instance of Binding/ do
-      -> { _1; binding.local_variables }.call("a").should == [:_1]
-      -> { _2; binding.local_variables }.call("a", "b").should == [:_1, :_2]
+  ruby_version_is ""..."3.5" do
+    it "affects binding local variables" do
+      NATFIXME 'Implement Binding#local_variables', exception: NoMethodError, message: /undefined method [`']local_variables' for an instance of Binding/ do
+        -> { _1; binding.local_variables }.call("a").should == [:_1]
+        -> { _2; binding.local_variables }.call("a", "b").should == [:_1, :_2]
+      end
+    end
+  end
+
+  ruby_version_is "3.5" do
+    it "does not affect binding local variables" do
+      -> { _1; binding.local_variables }.call("a").should == []
+      -> { _2; binding.local_variables }.call("a", "b").should == []
     end
   end
 
