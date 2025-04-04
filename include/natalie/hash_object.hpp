@@ -222,6 +222,10 @@ public:
         snprintf(buf, len, "<HashObject %p size=%zu>", this, size());
     }
 
+    virtual bool is_large() override {
+        return m_hashmap.capacity() >= 100;
+    }
+
 private:
     void key_list_remove_node(HashKey *);
     HashKey *key_list_append(Env *, Value, nat_int_t, Value);

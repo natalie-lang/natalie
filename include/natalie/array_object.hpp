@@ -220,6 +220,10 @@ public:
         snprintf(buf, len, "<ArrayObject %p size=%zu>", this, size);
     }
 
+    virtual bool is_large() override {
+        return m_vector.capacity() >= 100;
+    }
+
 private:
     Vector<Value> m_vector {};
 

@@ -227,12 +227,14 @@ size_t Heap::total_allocations() const {
     return count;
 }
 
-void Heap::dump() const {
+void Heap::dump(bool only_large) const {
     nat_int_t allocation_count = 0;
     for (auto allocator : m_allocators) {
         for (auto block_pair : *allocator) {
             auto *block = block_pair.first;
             for (auto cell : *block) {
+                if (only_large && !cell->is_large())
+                    continue;
                 cell->gc_print();
                 allocation_count++;
             }

@@ -476,6 +476,10 @@ public:
         snprintf(buf, len, "<StringObject %p str='%s'>", this, m_string.c_str());
     }
 
+    virtual bool is_large() override {
+        return m_string.capacity() >= 100;
+    }
+
     class iterator {
     public:
         iterator(const StringObject *string, StringView view)

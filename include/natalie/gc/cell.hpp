@@ -45,6 +45,10 @@ public:
         return true;
     }
 
+    virtual bool is_large() {
+        return false;
+    }
+
     bool is_marked() const {
         return m_marked;
     }
