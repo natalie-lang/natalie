@@ -168,7 +168,7 @@ Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, boo
     }
 
     if (exception)
-        env->raise("TypeError", "can't convert {} into Complex", real.klass()->inspect_string());
+        env->raise("TypeError", "can't convert {} into Complex", real.klass()->inspect_module());
 
     return Value::nil();
 }
@@ -477,7 +477,7 @@ Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exceptio
         }
     }
     if (exception)
-        env->raise("TypeError", "can't convert {} into Integer", value.klass()->inspect_string());
+        env->raise("TypeError", "can't convert {} into Integer", value.klass()->inspect_module());
     else
         return Value::nil();
 }
@@ -502,7 +502,7 @@ Value KernelModule::Float(Env *env, Value value, bool exception) {
         }
     }
     if (exception)
-        env->raise("TypeError", "can't convert {} into Float", value.klass()->inspect_string());
+        env->raise("TypeError", "can't convert {} into Float", value.klass()->inspect_module());
 
     return Value::nil();
 }
@@ -663,7 +663,7 @@ Value KernelModule::Rational(Env *env, Value x, Optional<Value> y_arg, bool exce
             return Value::nil();
 
         if (x.is_nil())
-            env->raise("TypeError", "can't convert {} into Rational", x.klass()->inspect_string());
+            env->raise("TypeError", "can't convert {} into Rational", x.klass()->inspect_module());
 
         if (x.respond_to(env, "to_r"_s)) {
             auto result = x->public_send(env, "to_r"_s);
@@ -728,7 +728,7 @@ Value KernelModule::sleep(Env *env, Optional<Value> length_arg) {
         secs = divmod->at(0).to_f(env)->to_double();
         secs += divmod->at(1).to_f(env)->to_double();
     } else {
-        env->raise("TypeError", "can't convert {} into time interval", length.klass()->inspect_string());
+        env->raise("TypeError", "can't convert {} into time interval", length.klass()->inspect_module());
     }
 
     if (secs < 0.0)
@@ -842,7 +842,7 @@ Value KernelModule::String(Env *env, Value value) {
     auto to_s = "to_s"_s;
 
     if (!respond_to_method(env, value, Value(to_s), true) || !value.respond_to(env, to_s))
-        env->raise("TypeError", "can't convert {} into String", value.klass()->inspect_string());
+        env->raise("TypeError", "can't convert {} into String", value.klass()->inspect_module());
 
     value = value.send(env, to_s);
     value.assert_type(env, Object::Type::String, "String");
@@ -946,7 +946,7 @@ Value KernelModule::extend(Env *env, Value self, Args &&args) {
         if (args[i].type() == Object::Type::Module) {
             args[i].as_module()->send(env, "extend_object"_s, { self });
         } else {
-            env->raise("TypeError", "wrong argument type {} (expected Module)", args[i].klass()->inspect_string());
+            env->raise("TypeError", "wrong argument type {} (expected Module)", args[i].klass()->inspect_module());
         }
     }
     return self;
@@ -985,7 +985,7 @@ Value KernelModule::inspect(Env *env, Value value) {
     if (value.is_module() && value.as_module()->name())
         return new StringObject { value.as_module()->name().value() };
     else
-        return StringObject::format("#<{}:{}>", value.klass()->inspect_string(), value->pointer_id());
+        return StringObject::format("#<{}:{}>", value.klass()->inspect_module(), value->pointer_id());
 }
 
 bool KernelModule::instance_variable_defined(Env *env, Value self, Value name_val) {
@@ -1063,7 +1063,7 @@ Value KernelModule::method(Env *env, Value self, Value name) {
                 }
             }
         }
-        env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspected(env), self.klass()->inspect_string());
+        env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspected(env), self.klass()->inspect_module());
     }
     return new MethodObject { self, method_info.method() };
 }

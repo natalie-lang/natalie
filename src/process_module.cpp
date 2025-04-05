@@ -59,7 +59,7 @@ Value ProcessModule::kill(Env *env, Args &&args) {
             env->raise("ArgumentError", "unsupported signal `SIG{}'", signame.to_s(env)->string());
         signo = IntegerMethods::convert_to_nat_int_t(env, signo_val);
     } else {
-        env->raise("ArgumentError", "bad signal type {}", signal.klass()->inspect_string());
+        env->raise("ArgumentError", "bad signal type {}", signal.klass()->inspect_module());
     }
     const auto own_pid = getpid();
     for (Value pid : *pids) {

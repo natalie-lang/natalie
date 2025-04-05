@@ -7,7 +7,7 @@ Value ClassObject::initialize(Env *env, Optional<Value> superclass_arg, Block *b
         env->raise("TypeError", "already initialized class");
     auto superclass = superclass_arg.value_or(GlobalEnv::the()->Object());
     if (!superclass.is_class())
-        env->raise("TypeError", "superclass must be an instance of Class (given an instance of {})", superclass.klass()->inspect_string());
+        env->raise("TypeError", "superclass must be an instance of Class (given an instance of {})", superclass.klass()->inspect_module());
     superclass.as_class()->initialize_subclass(this, env, "", superclass.as_class()->object_type());
     ModuleObject::initialize(env, block);
     return this;
@@ -75,7 +75,7 @@ ClassObject *ClassObject::bootstrap_basic_object(Env *env, ClassObject *Class) {
 
 String ClassObject::backtrace_name() const {
     if (!m_name)
-        return inspect_string();
+        return inspect_module();
     return String::format("<class:{}>", m_name.value());
 }
 

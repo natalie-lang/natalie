@@ -130,7 +130,7 @@ public:
 
     bool is_method_defined(Env *, Value) const;
 
-    String inspect_string() const;
+    String inspect_module() const;
     Value inspect(Env *) const;
     Value name(Env *) const;
     Optional<String> name() { return m_name; }

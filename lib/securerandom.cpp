@@ -69,7 +69,7 @@ Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
 
         auto Numeric = GlobalEnv::the()->Object()->const_fetch("Numeric"_s);
         if (!arg.is_a(env, Numeric))
-            env->raise("ArgumentError", "No implicit conversion of {} into Integer", arg.klass()->inspect_string());
+            env->raise("ArgumentError", "No implicit conversion of {} into Integer", arg.klass()->inspect_module());
 
         if (!arg.is_integer() && arg.respond_to(env, "to_int"_s))
             arg = arg.to_int(env);

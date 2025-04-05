@@ -156,30 +156,30 @@ void Env::raise_invalid_byte_sequence_error(const EncodingObject *encoding) {
 }
 
 void Env::raise_no_method_error(Value receiver, SymbolObject *name, MethodMissingReason reason) {
-    String inspect_string;
+    String inspect_module;
     if (receiver.is_nil() || receiver.is_true() || receiver.is_false()) {
-        inspect_string = receiver.inspected(this);
+        inspect_module = receiver.inspected(this);
     } else if (receiver.is_integer()) {
-        inspect_string = String::format("an instance of {}", receiver.klass()->inspect_string());
+        inspect_module = String::format("an instance of {}", receiver.klass()->inspect_module());
     } else if (receiver->is_main_object()) {
-        inspect_string = "main";
+        inspect_module = "main";
     } else if (receiver.is_class()) {
-        inspect_string = String::format("class {}", receiver.inspected(this));
+        inspect_module = String::format("class {}", receiver.inspected(this));
     } else if (receiver.is_module()) {
-        inspect_string = String::format("module {}", receiver.inspected(this));
+        inspect_module = String::format("module {}", receiver.inspected(this));
     } else {
-        inspect_string = String::format("an instance of {}", receiver.klass()->inspect_string());
+        inspect_module = String::format("an instance of {}", receiver.klass()->inspect_module());
     }
     String message;
     switch (reason) {
     case MethodMissingReason::Private:
-        message = String::format("private method '{}' called for {}", name->string(), inspect_string);
+        message = String::format("private method '{}' called for {}", name->string(), inspect_module);
         break;
     case MethodMissingReason::Protected:
-        message = String::format("protected method '{}' called for {}", name->string(), inspect_string);
+        message = String::format("protected method '{}' called for {}", name->string(), inspect_module);
         break;
     case MethodMissingReason::Undefined:
-        message = String::format("undefined method '{}' for {}", name->string(), inspect_string);
+        message = String::format("undefined method '{}' for {}", name->string(), inspect_module);
         break;
     default:
         NAT_UNREACHABLE();
@@ -206,12 +206,12 @@ void Env::raise_name_error(StringObject *name, String message) {
 }
 
 void Env::raise_not_comparable_error(Value lhs, Value rhs) {
-    String lhs_class = lhs.klass()->inspect_string();
+    String lhs_class = lhs.klass()->inspect_module();
     String rhs_inspect;
     if (rhs.is_integer() || rhs.is_float() || rhs.is_falsey()) {
         rhs_inspect = rhs.inspected(this);
     } else {
-        rhs_inspect = rhs.klass()->inspect_string();
+        rhs_inspect = rhs.klass()->inspect_module();
     }
 
     String message = String::format("comparison of {} with {} failed", lhs_class, rhs_inspect);
@@ -224,7 +224,7 @@ void Env::raise_type_error(const Value obj, const char *expected) {
         lowercase_expected->downcase_in_place(this);
         raise("TypeError", "no implicit conversion from nil to {}", lowercase_expected->string());
     } else {
-        raise("TypeError", "no implicit conversion of {} into {}", obj.klass()->inspect_string(), expected);
+        raise("TypeError", "no implicit conversion of {} into {}", obj.klass()->inspect_module(), expected);
     }
 }
 
@@ -238,7 +238,7 @@ void Env::raise_type_error2(const Value obj, const char *expected) {
     else if (obj.is_false())
         raise("TypeError", "no implicit conversion of false into {}", expected);
     else
-        raise("TypeError", "no implicit conversion of {} into {}", obj.klass()->inspect_string(), expected);
+        raise("TypeError", "no implicit conversion of {} into {}", obj.klass()->inspect_module(), expected);
 }
 
 bool Env::has_catch(Value value) const {

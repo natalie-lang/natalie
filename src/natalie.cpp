@@ -545,7 +545,7 @@ Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat)
             auto original_class = when_value.klass();
             when_value = when_value.send(env, "to_a"_s);
             if (!when_value.is_array()) {
-                env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", original_class->inspect_string(), original_class->inspect_string(), when_value.klass()->inspect_string());
+                env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", original_class->inspect_module(), original_class->inspect_module(), when_value.klass()->inspect_module());
             }
         }
         if (when_value.is_array()) {
@@ -598,7 +598,7 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception, Thread
     auto formatted = StringObject::format(
         "{} ({})",
         exception->to_s(env)->c_str(),
-        exception->klass()->inspect_string());
+        exception->klass()->inspect_module());
     out.send(env, "puts"_s, { formatted });
 }
 
@@ -647,8 +647,8 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
             if (array.is_array()) {
                 return array.as_array();
             } else if (raise_for_non_array) {
-                auto class_name = obj.klass()->inspect_string();
-                env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, array.klass()->inspect_string());
+                auto class_name = obj.klass()->inspect_module();
+                env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, array.klass()->inspect_module());
             }
         }
     }
@@ -659,8 +659,8 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
             if (array.is_array()) {
                 return array.as_array();
             } else if (raise_for_non_array) {
-                auto class_name = obj.klass()->inspect_string();
-                env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array.klass()->inspect_string());
+                auto class_name = obj.klass()->inspect_module();
+                env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array.klass()->inspect_module());
             }
         }
     }
@@ -682,8 +682,8 @@ Value to_ary_for_masgn(Env *env, Value obj) {
         if (array.is_array()) {
             return array->duplicate(env).as_array();
         } else if (!array.is_nil()) {
-            auto class_name = obj.klass()->inspect_string();
-            env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array.klass()->inspect_string());
+            auto class_name = obj.klass()->inspect_module();
+            env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array.klass()->inspect_module());
         }
     }
 
@@ -863,7 +863,7 @@ Value super(Env *env, Value self, Args &&args, Block *block) {
     auto super_method = klass->find_method(env, SymbolObject::intern(after_method->name()), after_method);
     if (!super_method.is_defined()) {
         if (self.is_module()) {
-            env->raise("NoMethodError", "super: no superclass method '{}' for {}:{}", current_method->original_name(), self.as_module()->inspect_string(), self.klass()->inspect_string());
+            env->raise("NoMethodError", "super: no superclass method '{}' for {}:{}", current_method->original_name(), self.as_module()->inspect_module(), self.klass()->inspect_module());
         } else {
             env->raise("NoMethodError", "super: no superclass method '{}' for {}", current_method->original_name(), self.inspected(env));
         }

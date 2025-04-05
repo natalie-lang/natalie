@@ -161,7 +161,7 @@ Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
 
     ClassObject *klass = klass_value.as_class();
     if (!klass->respond_to(env, "allocate"_s))
-        env->raise("TypeError", "calling {}.allocate is prohibited", klass->inspect_string());
+        env->raise("TypeError", "calling {}.allocate is prohibited", klass->inspect_module());
 
     Optional<Value> obj;
     switch (klass->object_type()) {
@@ -175,7 +175,7 @@ Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
     }
 
     if (!obj)
-        env->raise("TypeError", "allocator undefined for {}", klass->inspect_string());
+        env->raise("TypeError", "allocator undefined for {}", klass->inspect_module());
 
     return obj.value();
 }
@@ -214,7 +214,7 @@ ClassObject *Object::singleton_class(Env *env, Value self) {
 
     String name;
     if (self.is_module()) {
-        name = String::format("#<Class:{}>", self.as_module()->inspect_string());
+        name = String::format("#<Class:{}>", self.as_module()->inspect_module());
     } else if (self.respond_to(env, "inspect"_s)) {
         name = String::format("#<Class:{}>", self.inspected(env));
     }
@@ -242,7 +242,7 @@ ClassObject *Object::singleton_class(Env *env, Value self) {
 
 ClassObject *Object::subclass(Env *env, Value superclass, const char *name) {
     if (!superclass.is_class())
-        env->raise("TypeError", "superclass must be an instance of Class (given an instance of {})", superclass.klass()->inspect_string());
+        env->raise("TypeError", "superclass must be an instance of Class (given an instance of {})", superclass.klass()->inspect_module());
     return superclass.as_class()->subclass(env, name);
 }
 
@@ -398,7 +398,7 @@ Value Object::cvar_get_or_raise(Env *env, SymbolObject *name) {
             module = static_cast<ModuleObject *>(this);
         else
             module = m_klass;
-        env->raise_name_error(name, "uninitialized class variable {} in {}", name->string(), module->inspect_string());
+        env->raise_name_error(name, "uninitialized class variable {} in {}", name->string(), module->inspect_module());
     }
 }
 
@@ -564,7 +564,7 @@ Value Object::method_missing(Env *env, Value self, Args &&args, Block *block) {
     if (args.size() == 0) {
         env->raise("ArgError", "no method name given");
     } else if (!args[0].is_symbol()) {
-        env->raise("ArgError", "method name must be a Symbol but {} is given", args[0].klass()->inspect_string());
+        env->raise("ArgError", "method name must be a Symbol but {} is given", args[0].klass()->inspect_module());
     } else {
         auto name = args[0].as_symbol();
         env = env->caller();
@@ -653,7 +653,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::MatchData:
         return new MatchDataObject { *static_cast<const MatchDataObject *>(this) };
     default:
-        fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->inspect_string().c_str(), static_cast<int>(m_type));
+        fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->inspect_module().c_str(), static_cast<int>(m_type));
         abort();
     }
 }
@@ -665,7 +665,7 @@ Value Object::clone(Env *env, Optional<Value> freeze_arg) {
         if (freeze.is_false()) {
             freeze_bool = false;
         } else if (!freeze.is_true() && !freeze.is_nil()) {
-            env->raise("ArgumentError", "unexpected value for freeze: {}", freeze.klass()->inspect_string());
+            env->raise("ArgumentError", "unexpected value for freeze: {}", freeze.klass()->inspect_module());
         }
     }
 
@@ -748,7 +748,7 @@ ProcObject *Object::to_proc(Env *env) {
     if (respond_to(env, to_proc_symbol)) {
         return send(env, to_proc_symbol).as_proc();
     } else {
-        env->raise("TypeError", "wrong argument type {} (expected Proc)", m_klass->inspect_string());
+        env->raise("TypeError", "wrong argument type {} (expected Proc)", m_klass->inspect_module());
     }
 }
 
@@ -793,7 +793,7 @@ Value Object::instance_exec(Env *env, Value self, Args &&args, Block *block) {
 
 void Object::assert_not_frozen(Env *env) {
     if (is_frozen()) {
-        env->raise("FrozenError", "can't modify frozen {}: {}", klass()->inspect_string(), inspected(env));
+        env->raise("FrozenError", "can't modify frozen {}: {}", klass()->inspect_module(), inspected(env));
     } else if (m_type == Type::String && static_cast<StringObject *>(this)->is_chilled()) {
         if (static_cast<StringObject *>(this)->chilled() == StringObject::Chilled::String) {
             env->deprecation_warn("literal string will be frozen in the future");
@@ -807,7 +807,7 @@ void Object::assert_not_frozen(Env *env) {
 void Object::assert_not_frozen(Env *env, Value receiver) {
     if (is_frozen()) {
         auto FrozenError = GlobalEnv::the()->Object()->const_fetch("FrozenError"_s);
-        String message = String::format("can't modify frozen {}: {}", klass()->inspect_string(), inspected(env));
+        String message = String::format("can't modify frozen {}: {}", klass()->inspect_module(), inspected(env));
         auto kwargs = new HashObject(env, { "receiver"_s, receiver });
         auto args = Args({ new StringObject { message }, kwargs }, true);
         ExceptionObject *error = FrozenError.send(env, "new"_s, std::move(args)).as_exception();

@@ -175,7 +175,7 @@ Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
     }
 
     if (!keys.is_array())
-        env->raise("TypeError", "wrong argument type {} (expected Array)", keys.klass()->inspect_string());
+        env->raise("TypeError", "wrong argument type {} (expected Array)", keys.klass()->inspect_module());
 
     auto result = new HashObject {};
     if (keys.as_array()->size() > static_cast<size_t>(onig_number_of_names(m_regexp->m_regex)))
@@ -183,7 +183,7 @@ Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
 
     for (auto name : *keys.as_array()) {
         if (!name.is_symbol())
-            env->raise("TypeError", "wrong argument type {} (expected Symbol)", name.klass()->inspect_string());
+            env->raise("TypeError", "wrong argument type {} (expected Symbol)", name.klass()->inspect_module());
         const auto &str = name.as_symbol()->string();
         auto index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
         if (index < 0)

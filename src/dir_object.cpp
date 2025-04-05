@@ -89,7 +89,7 @@ nat_int_t DirObject::set_pos(Env *env, Value position) {
 
 StringObject *DirObject::inspect(Env *env) {
     StringObject *out = new StringObject { "#<" };
-    out->append(klass()->inspect_string());
+    out->append(klass()->inspect_module());
     out->append(":");
     out->append(path(env));
     out->append(">");
