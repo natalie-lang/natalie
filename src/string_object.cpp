@@ -2323,6 +2323,13 @@ Value StringObject::ref_fast_range(Env *env, size_t begin, size_t end) const {
 }
 
 Value StringObject::ref_fast_range_endless(Env *env, size_t begin) const {
+    if (m_encoding->is_single_byte_encoding()) {
+        if (begin >= bytesize())
+            return Value::nil();
+        auto length = bytesize() - begin;
+        return new StringObject { m_string.substring(begin, length), m_encoding };
+    }
+
     size_t byte_index = 0;
     size_t char_index = 0;
     String result;
