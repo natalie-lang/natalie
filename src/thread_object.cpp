@@ -162,7 +162,7 @@ ThreadObject *ThreadObject::current() {
 
 Value ThreadObject::thread_kill(Env *env, Value thread) {
     if (!thread.is_thread())
-        env->raise("TypeError", "wrong argument type {} (expected VM/thread)", thread.klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected VM/thread)", thread.klass()->inspect_string());
 
     return thread.as_thread()->kill(env);
 }
@@ -265,7 +265,7 @@ Value ThreadObject::to_s(Env *env) {
 
     auto formatted = String::format(
         "#<{}:{}{} {}>",
-        m_klass->inspect_str(),
+        m_klass->inspect_string(),
         String::hex(Object::object_id(this), String::HexFormat::LowercaseAndPrefixed),
         location,
         status());

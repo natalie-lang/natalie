@@ -97,7 +97,7 @@ namespace ioutil {
             break;
         }
         default:
-            env->raise("TypeError", "no implicit conversion of {} into String", flags_obj.klass()->inspect_str());
+            env->raise("TypeError", "no implicit conversion of {} into String", flags_obj.klass()->inspect_string());
         }
     }
 

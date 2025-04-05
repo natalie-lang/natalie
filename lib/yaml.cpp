@@ -28,14 +28,14 @@ static void emit_value(Env *env, ArrayObject *value, yaml_emitter_t &emitter, ya
 }
 
 static void emit_value(Env *env, ClassObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    auto str = value->inspect_str();
+    auto str = value->inspect_string();
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)"!ruby/class",
         (yaml_char_t *)(str.c_str()), str.size(), 0, 0, YAML_SINGLE_QUOTED_SCALAR_STYLE);
     emit(env, emitter, event);
 }
 
 static void emit_value(Env *env, ExceptionObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    const auto mapping_header = String::format("!ruby/exception:{}", value->klass()->inspect_str());
+    const auto mapping_header = String::format("!ruby/exception:{}", value->klass()->inspect_string());
     yaml_mapping_start_event_initialize(&event, nullptr, (yaml_char_t *)(mapping_header.c_str()),
         0, YAML_ANY_MAPPING_STYLE);
     emit(env, emitter, event);
@@ -87,7 +87,7 @@ static void emit_value(Env *env, Integer value, yaml_emitter_t &emitter, yaml_ev
 }
 
 static void emit_value(Env *env, ModuleObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    auto str = value->inspect_str();
+    auto str = value->inspect_string();
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)"!ruby/module",
         (yaml_char_t *)(str.c_str()), str.size(), 0, 0, YAML_SINGLE_QUOTED_SCALAR_STYLE);
     emit(env, emitter, event);
@@ -182,7 +182,7 @@ static void emit_struct_value(Env *env, Value value, yaml_emitter_t &emitter, ya
 }
 
 static void emit_object_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    const auto mapping_header = String::format("!ruby/object:{}", value.klass()->inspect_str());
+    const auto mapping_header = String::format("!ruby/object:{}", value.klass()->inspect_string());
     yaml_mapping_start_event_initialize(&event, nullptr, (yaml_char_t *)(mapping_header.c_str()),
         0, YAML_ANY_MAPPING_STYLE);
     emit(env, emitter, event);

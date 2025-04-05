@@ -36,7 +36,7 @@ Optional<Value> RangeObject::iterate_over_range(Env *env, Function &&func) {
 
     auto succ = "succ"_s;
     if (!m_begin.respond_to(env, succ))
-        env->raise("TypeError", "can't iterate from {}", m_begin.klass()->inspect_str());
+        env->raise("TypeError", "can't iterate from {}", m_begin.klass()->inspect_string());
 
     if (m_begin.is_string() && m_end.is_string())
         return iterate_over_string_range(env, func);
@@ -332,7 +332,7 @@ bool RangeObject::include(Env *env, Value arg) {
 
 Value RangeObject::bsearch(Env *env, Block *block) {
     if ((!m_begin.is_numeric() && !m_begin.is_nil()) || (!m_end.is_numeric() && !m_end.is_nil()))
-        env->raise("TypeError", "can't do binary search for {}", m_begin.klass()->inspect_str());
+        env->raise("TypeError", "can't do binary search for {}", m_begin.klass()->inspect_string());
 
     if (!block)
         return enum_for(env, "bsearch");
@@ -377,7 +377,7 @@ Value RangeObject::step(Env *env, Optional<Value> n_arg, Block *block) {
     if (!n.is_numeric() && !n.is_nil()) {
         static const auto coerce_sym = "coerce"_s;
         if (!n.respond_to(env, coerce_sym))
-            env->raise("TypeError", "no implicit conversion of {} into Integer", n.klass()->inspect_str());
+            env->raise("TypeError", "no implicit conversion of {} into Integer", n.klass()->inspect_string());
         n = n.send(env, coerce_sym, { Value::integer(0) }).as_array_or_raise(env)->last();
     }
 
@@ -411,7 +411,7 @@ Value RangeObject::step(Env *env, Optional<Value> n_arg, Block *block) {
         //   - It only appears for floats (not for rational for example)
         //   - Class names are written in lower case?
         if (n.is_float())
-            env->raise("TypeError", "no implicit conversion to float from {}", m_begin.klass()->inspect_str().lowercase());
+            env->raise("TypeError", "no implicit conversion to float from {}", m_begin.klass()->inspect_string().lowercase());
 
         auto step = n.to_int(env);
 

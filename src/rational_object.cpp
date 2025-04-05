@@ -37,7 +37,7 @@ Value RationalObject::add(Env *env, Value other) {
         auto result = Natalie::coerce(env, other, this);
         return result.first.send(env, "+"_s, { result.second });
     } else {
-        env->raise("TypeError", "{} can't be coerced into Rational", other.klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into Rational", other.klass()->inspect_string());
     }
 }
 
@@ -82,7 +82,7 @@ Value RationalObject::coerce(Env *env, Value other) {
         }
     }
 
-    env->raise("TypeError", "{} can't be coerced into {}", other.klass()->inspect_str(), klass()->inspect_str());
+    env->raise("TypeError", "{} can't be coerced into {}", other.klass()->inspect_string(), klass()->inspect_string());
 }
 
 Value RationalObject::denominator(Env *env) {
@@ -110,7 +110,7 @@ Value RationalObject::div(Env *env, Value other) {
         auto result = Natalie::coerce(env, other, this);
         return result.first.send(env, "/"_s, { result.second });
     } else {
-        env->raise("TypeError", "{} can't be coerced into Rational", other.klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into Rational", other.klass()->inspect_string());
     }
 }
 
@@ -179,7 +179,7 @@ Value RationalObject::mul(Env *env, Value other) {
         auto result = Natalie::coerce(env, other, this);
         return result.first.send(env, "*"_s, { result.second });
     } else {
-        env->raise("TypeError", "{} can't be coerced into Rational", other.klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into Rational", other.klass()->inspect_string());
     }
 }
 
@@ -203,7 +203,7 @@ Value RationalObject::pow(Env *env, Value other) {
             auto result = Natalie::coerce(env, other, this);
             return result.first.send(env, "**"_s, { result.second });
         } else {
-            env->raise("TypeError", "{} can't be coerced into Rational", other.klass()->inspect_str());
+            env->raise("TypeError", "{} can't be coerced into Rational", other.klass()->inspect_string());
         }
     }
 
@@ -251,7 +251,7 @@ Value RationalObject::sub(Env *env, Value other) {
         auto result = Natalie::coerce(env, other, this);
         return result.first.send(env, "-"_s, { result.second });
     } else {
-        env->raise("TypeError", "{} can't be coerced into Rational", other.klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into Rational", other.klass()->inspect_string());
     }
 }
 

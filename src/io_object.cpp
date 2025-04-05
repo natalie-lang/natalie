@@ -68,7 +68,7 @@ Value IoObject::initialize(Env *env, Args &&args, Block *block) {
     m_autoclose = wanted_flags.autoclose();
     m_path = wanted_flags.path();
     if (block)
-        env->warn("{}::new() does not take block; use {}::open() instead", m_klass->inspect_str(), m_klass->inspect_str());
+        env->warn("{}::new() does not take block; use {}::open() instead", m_klass->inspect_string(), m_klass->inspect_string());
     return this;
 }
 
@@ -223,7 +223,7 @@ Value IoObject::inspect() const {
     } else {
         details = TM::String::format("fd {}", m_fileno);
     }
-    return StringObject::format("#<{}:{}>", klass()->inspect_str(), details);
+    return StringObject::format("#<{}:{}>", klass()->inspect_string(), details);
 }
 
 bool IoObject::is_autoclose(Env *env) const {
@@ -762,7 +762,7 @@ Value IoObject::seek(Env *env, Value amount_value, Optional<Value> whence_arg) {
                 env->raise("TypeError", "no implicit conversion of Symbol into Integer");
             }
         } else {
-            env->raise("TypeError", "no implicit conversion of {} into Integer", whence_value.klass()->inspect_str());
+            env->raise("TypeError", "no implicit conversion of {} into Integer", whence_value.klass()->inspect_string());
         }
     }
     if (whence == SEEK_CUR && !m_read_buffer.is_empty())
@@ -888,9 +888,9 @@ Value IoObject::try_convert(Env *env, Value val) {
         if (!io.is_io())
             env->raise(
                 "TypeError", "can't convert {} to IO ({}#to_io gives {})",
-                val.klass()->inspect_str(),
-                val.klass()->inspect_str(),
-                io.klass()->inspect_str());
+                val.klass()->inspect_string(),
+                val.klass()->inspect_string(),
+                io.klass()->inspect_string());
         return io;
     }
     return Value::nil();

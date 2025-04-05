@@ -329,7 +329,7 @@ Value FloatObject::divmod(Env *env, Value arg) {
     if (is_nan()) env->raise("FloatDomainError", "NaN");
     if (is_infinity()) env->raise("FloatDomainError", "Infinity");
 
-    if (!arg.is_numeric()) env->raise("TypeError", "{} can't be coerced into Float", arg.klass()->inspect_str());
+    if (!arg.is_numeric()) env->raise("TypeError", "{} can't be coerced into Float", arg.klass()->inspect_string());
     if (arg.is_float() && arg.as_float()->is_nan()) env->raise("FloatDomainError", "NaN");
     if (arg.is_float() && arg.as_float()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
     if (arg.is_integer() && arg.integer().is_zero()) env->raise("ZeroDivisionError", "divided by 0");
@@ -402,7 +402,7 @@ Value FloatObject::arg(Env *env) {
                                                                                                              \
         if (!lhs.is_float()) return lhs.send(env, SymbolObject::intern(NAT_QUOTE(op)), { rhs }).is_truthy(); \
         if (!rhs.is_float()) {                                                                               \
-            env->raise("ArgumentError", "comparison of Float with {} failed", rhs.klass()->inspect_str());   \
+            env->raise("ArgumentError", "comparison of Float with {} failed", rhs.klass()->inspect_string());   \
         }                                                                                                    \
                                                                                                              \
         if (lhs.as_float()->is_nan() || rhs.as_float()->is_nan()) {                                          \

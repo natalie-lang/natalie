@@ -28,7 +28,7 @@ public:
         if (the_owner->type() == Type::Class && static_cast<ClassObject *>(the_owner)->is_singleton())
             return StringObject::format("#<Method: {}.{}(*)>", m_object.inspect_str(env), name);
         else
-            return StringObject::format("#<Method: {}#{}(*)>", owner()->inspect_str(), name);
+            return StringObject::format("#<Method: {}#{}(*)>", owner()->inspect_string(), name);
     }
 
     virtual ProcObject *to_proc(Env *env) override {

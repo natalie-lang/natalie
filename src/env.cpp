@@ -160,7 +160,7 @@ void Env::raise_no_method_error(Value receiver, SymbolObject *name, MethodMissin
     if (receiver.is_nil() || receiver.is_true() || receiver.is_false()) {
         inspect_string = receiver.inspect_str(this);
     } else if (receiver.is_integer()) {
-        inspect_string = String::format("an instance of {}", receiver.klass()->inspect_str());
+        inspect_string = String::format("an instance of {}", receiver.klass()->inspect_string());
     } else if (receiver->is_main_object()) {
         inspect_string = "main";
     } else if (receiver.is_class()) {
@@ -168,7 +168,7 @@ void Env::raise_no_method_error(Value receiver, SymbolObject *name, MethodMissin
     } else if (receiver.is_module()) {
         inspect_string = String::format("module {}", receiver.inspect_str(this));
     } else {
-        inspect_string = String::format("an instance of {}", receiver.klass()->inspect_str());
+        inspect_string = String::format("an instance of {}", receiver.klass()->inspect_string());
     }
     String message;
     switch (reason) {
@@ -206,12 +206,12 @@ void Env::raise_name_error(StringObject *name, String message) {
 }
 
 void Env::raise_not_comparable_error(Value lhs, Value rhs) {
-    String lhs_class = lhs.klass()->inspect_str();
+    String lhs_class = lhs.klass()->inspect_string();
     String rhs_inspect;
     if (rhs.is_integer() || rhs.is_float() || rhs.is_falsey()) {
         rhs_inspect = rhs.inspect_str(this);
     } else {
-        rhs_inspect = rhs.klass()->inspect_str();
+        rhs_inspect = rhs.klass()->inspect_string();
     }
 
     String message = String::format("comparison of {} with {} failed", lhs_class, rhs_inspect);
@@ -224,7 +224,7 @@ void Env::raise_type_error(const Value obj, const char *expected) {
         lowercase_expected->downcase_in_place(this);
         raise("TypeError", "no implicit conversion from nil to {}", lowercase_expected->string());
     } else {
-        raise("TypeError", "no implicit conversion of {} into {}", obj.klass()->inspect_str(), expected);
+        raise("TypeError", "no implicit conversion of {} into {}", obj.klass()->inspect_string(), expected);
     }
 }
 
@@ -238,7 +238,7 @@ void Env::raise_type_error2(const Value obj, const char *expected) {
     else if (obj.is_false())
         raise("TypeError", "no implicit conversion of false into {}", expected);
     else
-        raise("TypeError", "no implicit conversion of {} into {}", obj.klass()->inspect_str(), expected);
+        raise("TypeError", "no implicit conversion of {} into {}", obj.klass()->inspect_string(), expected);
 }
 
 bool Env::has_catch(Value value) const {

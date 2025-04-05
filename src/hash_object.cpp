@@ -299,7 +299,7 @@ Value HashObject::inspect(Env *env) {
             else
                 obj = new StringObject("?");
             if (!obj.is_string())
-                obj = StringObject::format("#<{}:{}>", obj.klass()->inspect_str(), String::hex(object_id(obj), String::HexFormat::LowercaseAndPrefixed));
+                obj = StringObject::format("#<{}:{}>", obj.klass()->inspect_string(), String::hex(object_id(obj), String::HexFormat::LowercaseAndPrefixed));
             return obj.as_string();
         };
 
@@ -422,7 +422,7 @@ Value HashObject::dig(Env *env, Args &&args) {
         return val;
 
     if (!val.respond_to(env, dig))
-        env->raise("TypeError", "{} does not have #dig method", val.klass()->inspect_str());
+        env->raise("TypeError", "{} does not have #dig method", val.klass()->inspect_string());
 
     return val.send(env, dig, std::move(args));
 }
@@ -615,7 +615,7 @@ Value HashObject::to_h(Env *env, Block *block) {
         if (!result.is_array() && result.respond_to(env, "to_ary"_s))
             result = result.to_ary(env);
         if (!result.is_array())
-            env->raise("TypeError", "wrong element type {} (expected array)", result.klass()->inspect_str());
+            env->raise("TypeError", "wrong element type {} (expected array)", result.klass()->inspect_string());
         auto result_array = result.as_array();
         if (result_array->size() != 2)
             env->raise("ArgumentError", "element has wrong array length (expected 2, was {})", result_array->size());

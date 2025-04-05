@@ -107,9 +107,9 @@ StringObject *Value::to_str(Env *env) {
 
     env->raise(
         "TypeError", "can't convert {} to String ({}#to_str gives {})",
-        klass()->inspect_str(),
-        klass()->inspect_str(),
-        result.klass()->inspect_str());
+        klass()->inspect_string(),
+        klass()->inspect_string(),
+        result.klass()->inspect_string());
 }
 
 // This is just like Value::to_str, but it raises more consistent error messages.
@@ -129,9 +129,9 @@ StringObject *Value::to_str2(Env *env) {
 
     env->raise(
         "TypeError", "can't convert {} to String ({}#to_str gives {})",
-        klass()->inspect_str(),
-        klass()->inspect_str(),
-        result.klass()->inspect_str());
+        klass()->inspect_string(),
+        klass()->inspect_string(),
+        result.klass()->inspect_string());
 }
 
 Value Value::public_send(Env *env, SymbolObject *name, Args &&args, Block *block, Value sent_from) {
@@ -467,61 +467,61 @@ VoidPObject *Value::as_void_p() const {
 
 ArrayObject *Value::as_array_or_raise(Env *env) const {
     if (!is_array())
-        env->raise("TypeError", "{} can't be coerced into Array", klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into Array", klass()->inspect_string());
     return reinterpret_cast<ArrayObject *>(m_value);
 }
 
 ClassObject *Value::as_class_or_raise(Env *env) const {
     if (!is_class())
-        env->raise("TypeError", "{} can't be coerced into Class", klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into Class", klass()->inspect_string());
     return reinterpret_cast<ClassObject *>(m_value);
 }
 
 EncodingObject *Value::as_encoding_or_raise(Env *env) const {
     if (!is_encoding())
-        env->raise("TypeError", "{} can't be coerced into Encoding", klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into Encoding", klass()->inspect_string());
     return reinterpret_cast<EncodingObject *>(m_value);
 }
 
 ExceptionObject *Value::as_exception_or_raise(Env *env) const {
     if (!is_exception())
-        env->raise("TypeError", "{} can't be coerced into Exception", klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into Exception", klass()->inspect_string());
     return reinterpret_cast<ExceptionObject *>(m_value);
 }
 
 FloatObject *Value::as_float_or_raise(Env *env) const {
     if (!is_float())
-        env->raise("TypeError", "{} can't be coerced into Float", klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into Float", klass()->inspect_string());
     return reinterpret_cast<FloatObject *>(m_value);
 }
 
 HashObject *Value::as_hash_or_raise(Env *env) const {
     if (!is_hash())
-        env->raise("TypeError", "{} can't be coerced into Hash", klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into Hash", klass()->inspect_string());
     return reinterpret_cast<HashObject *>(m_value);
 }
 
 MatchDataObject *Value::as_match_data_or_raise(Env *env) const {
     if (!is_match_data())
-        env->raise("TypeError", "{} can't be coerced into MatchData", klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into MatchData", klass()->inspect_string());
     return reinterpret_cast<MatchDataObject *>(m_value);
 }
 
 ModuleObject *Value::as_module_or_raise(Env *env) const {
     if (!is_module())
-        env->raise("TypeError", "{} can't be coerced into Module", klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into Module", klass()->inspect_string());
     return reinterpret_cast<ModuleObject *>(m_value);
 }
 
 RangeObject *Value::as_range_or_raise(Env *env) const {
     if (!is_range())
-        env->raise("TypeError", "{} can't be coerced into Range", klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into Range", klass()->inspect_string());
     return reinterpret_cast<RangeObject *>(m_value);
 }
 
 StringObject *Value::as_string_or_raise(Env *env) const {
     if (!is_string())
-        env->raise("TypeError", "{} can't be coerced into String", klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into String", klass()->inspect_string());
     return reinterpret_cast<StringObject *>(m_value);
 }
 
@@ -529,7 +529,7 @@ ArrayObject *Value::to_ary(Env *env) {
     if (is_array())
         return as_array();
 
-    auto original_class = klass()->inspect_str();
+    auto original_class = klass()->inspect_string();
 
     auto to_ary = "to_ary"_s;
 
@@ -549,7 +549,7 @@ ArrayObject *Value::to_ary(Env *env) {
         "TypeError", "can't convert {} to Array ({}#to_ary gives {})",
         original_class,
         original_class,
-        val.klass()->inspect_str());
+        val.klass()->inspect_string());
 }
 
 IoObject *Value::to_io(Env *env) {
@@ -567,9 +567,9 @@ IoObject *Value::to_io(Env *env) {
 
     env->raise(
         "TypeError", "can't convert {} to IO ({}#to_io gives {})",
-        klass()->inspect_str(),
-        klass()->inspect_str(),
-        result.klass()->inspect_str());
+        klass()->inspect_string(),
+        klass()->inspect_string(),
+        result.klass()->inspect_string());
 }
 
 Integer Value::to_int(Env *env) {
@@ -588,9 +588,9 @@ Integer Value::to_int(Env *env) {
     auto the_klass = klass();
     env->raise(
         "TypeError", "can't convert {} to Integer ({}#to_int gives {})",
-        the_klass->inspect_str(),
-        the_klass->inspect_str(),
-        result.klass()->inspect_str());
+        the_klass->inspect_string(),
+        the_klass->inspect_string(),
+        result.klass()->inspect_string());
 }
 
 FloatObject *Value::to_f(Env *env) {
@@ -610,7 +610,7 @@ HashObject *Value::to_hash(Env *env) {
     if (is_hash())
         return as_hash();
 
-    auto original_class = klass()->inspect_str();
+    auto original_class = klass()->inspect_string();
 
     auto to_hash = "to_hash"_s;
 
@@ -630,7 +630,7 @@ HashObject *Value::to_hash(Env *env) {
         "TypeError", "can't convert {} to Hash ({}#to_hash gives {})",
         original_class,
         original_class,
-        val.klass()->inspect_str());
+        val.klass()->inspect_string());
 }
 
 StringObject *Value::to_s(Env *env) {
@@ -660,7 +660,7 @@ SymbolObject *Value::to_symbol(Env *env, Conversion conversion) {
 
 String Value::inspect_str(Env *env) {
     if (!respond_to(env, "inspect"_s))
-        return String::format("#<{}:{}>", klass()->inspect_str(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));
+        return String::format("#<{}:{}>", klass()->inspect_string(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));
     auto inspected = send(env, "inspect"_s);
     if (!inspected.is_string())
         return ""; // TODO: what to do here?

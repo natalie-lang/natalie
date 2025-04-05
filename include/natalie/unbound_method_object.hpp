@@ -19,7 +19,7 @@ public:
         if (owner()->type() != Type::Class || obj.is_a(env, owner())) {
             return new MethodObject { obj, m_method };
         } else {
-            env->raise("TypeError", "bind argument must be an instance of {}", owner()->inspect_str());
+            env->raise("TypeError", "bind argument must be an instance of {}", owner()->inspect_string());
         }
     }
 
@@ -44,9 +44,9 @@ public:
 
     Value inspect(Env *env) {
         if (owner() != m_module_or_class) {
-            return StringObject::format("#<UnboundMethod: {}({})#{}(*)>", m_module_or_class->inspect_str(), owner()->inspect_str(), m_method->name());
+            return StringObject::format("#<UnboundMethod: {}({})#{}(*)>", m_module_or_class->inspect_string(), owner()->inspect_string(), m_method->name());
         } else {
-            return StringObject::format("#<UnboundMethod: {}#{}(*)>", owner()->inspect_str(), m_method->name());
+            return StringObject::format("#<UnboundMethod: {}#{}(*)>", owner()->inspect_string(), m_method->name());
         }
     }
 

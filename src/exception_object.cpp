@@ -99,7 +99,7 @@ bool ExceptionObject::eq(Env *env, Value other) {
 }
 
 Value ExceptionObject::inspect(Env *env) {
-    auto klassname = m_klass->inspect_str();
+    auto klassname = m_klass->inspect_string();
     auto msgstr = send(env, "to_s"_s);
     msgstr.assert_type(env, Object::Type::String, "String");
     if (msgstr.as_string()->is_empty())
@@ -111,7 +111,7 @@ Value ExceptionObject::inspect(Env *env) {
 
 StringObject *ExceptionObject::to_s(Env *env) {
     if (m_message.is_nil()) {
-        return new StringObject { m_klass->inspect_str() };
+        return new StringObject { m_klass->inspect_string() };
     } else if (m_message.is_string()) {
         return m_message.as_string();
     }
@@ -134,7 +134,7 @@ Value ExceptionObject::detailed_message(Env *env, Args &&args) {
         if (klass() == find_top_level_const(env, "RuntimeError"_s).as_class()) {
             message->set_str("unhandled exception");
         } else {
-            message->set_str(klass()->inspect_str().c_str());
+            message->set_str(klass()->inspect_string().c_str());
         }
         if (highlight)
             message = StringObject::format("\e[1;4m{}\e[m", message);
@@ -145,7 +145,7 @@ Value ExceptionObject::detailed_message(Env *env, Args &&args) {
         return message;
 
     const char *fmt = highlight ? "\e[1m{} (\e[1;4m{}\e[m\e[1m)\e[m" : "{} ({})";
-    return StringObject::format(fmt, message, klass()->inspect_str());
+    return StringObject::format(fmt, message, klass()->inspect_string());
 }
 
 Value ExceptionObject::backtrace(Env *env) {
