@@ -424,9 +424,19 @@ Value MatchDataObject::ref(Env *env, Value index_value, Optional<Value> size_arg
 }
 
 String MatchDataObject::dbg_inspect(int indent) const {
-    auto str = group(0);
-    assert(!str.is_nil());
-    return String::format("#<MatchData \"{}\">", str.as_string());
+    auto str = String::format("<MatchDataObject string={} regexp={} indices=[",
+        m_string ? m_string->dbg_inspect() : "null",
+        m_regexp ? m_regexp->dbg_inspect() : "null",
+        m_region ? m_region->num_regs : -1);
+    if (m_region) {
+        for (int i = 0; i < m_region->num_regs; i++) {
+            if (i > 0)
+                str.append(", ");
+            str.append(String::format("{}..{}", m_region->beg[i], m_region->end[i]));
+        }
+    }
+    str.append("]>");
+    return str;
 }
 
 }
