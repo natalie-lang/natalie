@@ -192,10 +192,6 @@ public:
 
     virtual String dbg_inspect() const override;
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<RegexpObject %p>", this);
-    }
-
     virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);
         if (m_pattern)

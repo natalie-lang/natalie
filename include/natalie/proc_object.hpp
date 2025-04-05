@@ -64,8 +64,8 @@ public:
         visitor.visit(m_block);
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<ProcObject %p>", this);
+    virtual TM::String dbg_inspect() const override {
+        return TM::String::format("<ProcObject {h} block={}>", this, m_block ? m_block->dbg_inspect() : "null");
     }
 
 private:

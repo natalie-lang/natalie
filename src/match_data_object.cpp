@@ -426,7 +426,7 @@ Value MatchDataObject::ref(Env *env, Value index_value, Optional<Value> size_arg
 String MatchDataObject::dbg_inspect() const {
     auto str = group(0);
     assert(!str.is_nil());
-    return String::format("#<MatchData \"{}\">", str.as_string()->c_str());
+    return String::format("#<MatchData \"{}\">", str.as_string());
 }
 
 }

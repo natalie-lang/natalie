@@ -253,22 +253,8 @@ Value RangeObject::last(Env *env, Optional<Value> n) {
 }
 
 String RangeObject::dbg_inspect() const {
-    String str;
-    auto append = [&](Value v) {
-        if (v.is_integer()) {
-            str.append(v.integer().to_nat_int_t());
-        } else if (v.is_nil()) {
-            // do nothing
-        } else {
-            auto obj = v.object();
-            assert(obj);
-            str.append(obj->dbg_inspect());
-        }
-    };
-    append(m_begin);
-    str.append(m_exclude_end ? "..." : "..");
-    append(m_end);
-    return str;
+    auto dots = m_exclude_end ? "..." : "..";
+    return String::format("<RangeObject {h} {}{}{}>", this, m_begin.dbg_inspect(), dots, m_end.dbg_inspect());
 }
 
 Value RangeObject::to_s(Env *env) {

@@ -754,12 +754,6 @@ Value ModuleObject::inspect(Env *env) const {
     return new StringObject { inspect_str() };
 }
 
-String ModuleObject::dbg_inspect() const {
-    if (m_name)
-        return String::format("\"{}\"", m_name.value());
-    return Object::dbg_inspect();
-}
-
 Value ModuleObject::name(Env *env) const {
     if (m_name) {
         String name = m_name.value();

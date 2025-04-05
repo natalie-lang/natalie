@@ -54,8 +54,8 @@ public:
 
     virtual void visit_children(Visitor &) const override final;
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<ExceptionObject %p message=?>", this);
+    virtual TM::String dbg_inspect() const override {
+        return TM::String::format("<ExceptionObject {h} message={}>", this, m_message.dbg_inspect());
     }
 
     void set_local_jump_error_type(LocalJumpErrorType type) { m_local_jump_error_type = type; }

@@ -107,15 +107,8 @@ public:
     void visit_children_from_stack(Visitor &) const;
     void visit_children_from_asan_fake_stack(Visitor &, Cell *) const;
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        auto size = m_coroutine ? m_coroutine->stack_size : 0;
-        snprintf(
-            buf,
-            len,
-            "<FiberObject %p stack=%p..%p>",
-            this,
-            m_end_of_stack,
-            m_start_of_stack);
+    virtual TM::String dbg_inspect() const override {
+        return TM::String::format("<FiberObject {h} stack={h}..{h}>", this, m_end_of_stack, m_start_of_stack);
     }
 
     static FiberObject *current() { return tl_current_thread->current_fiber(); }

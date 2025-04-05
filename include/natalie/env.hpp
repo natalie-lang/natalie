@@ -186,8 +186,8 @@ public:
 
     virtual void visit_children(Visitor &visitor) const override final;
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<Env %p>", this);
+    virtual TM::String dbg_inspect() const override {
+        return TM::String::format("<Env {h} outer={h}>", this, m_outer);
     }
 
     Value output_file_separator();

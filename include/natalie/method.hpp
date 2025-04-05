@@ -86,8 +86,8 @@ public:
         visitor.visit(m_original_method);
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<Method %p name='%s' fn=%p>", this, m_name.c_str(), m_fn);
+    virtual TM::String dbg_inspect() const override {
+        return TM::String::format("<Method {h} name=\"{}\" fn={h}>", this, m_name, reinterpret_cast<void *>(m_fn));
     }
 
 private:

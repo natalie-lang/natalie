@@ -199,14 +199,8 @@ public:
 
     virtual void visit_children(Visitor &) const override final;
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(
-            buf,
-            len,
-            "<ThreadObject %p stack=%p..%p>",
-            this,
-            m_end_of_stack,
-            m_start_of_stack);
+    virtual TM::String dbg_inspect() const override {
+        return TM::String::format("<ThreadObject {h} stack={h}..{h}>", this, m_end_of_stack, m_start_of_stack);
     }
 
     static Value pass(Env *env);

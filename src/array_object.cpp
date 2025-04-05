@@ -186,7 +186,7 @@ Value ArrayObject::inspect(Env *env) {
 }
 
 String ArrayObject::dbg_inspect() const {
-    String str("[");
+    auto str = String::format("<ArrayObject {h} data=[", this);
     size_t index = 0;
     for (size_t index = 0; index < size(); index++) {
         auto item = (*this)[index];
@@ -194,7 +194,7 @@ String ArrayObject::dbg_inspect() const {
         if (index < size() - 1)
             str.append(", ");
     }
-    str.append("]");
+    str.append("]>");
     return str;
 }
 

@@ -51,10 +51,6 @@ public:
 
     virtual String dbg_inspect() const override;
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<RangeObject %p>", this);
-    }
-
 private:
     RangeObject(Value begin, Value end, bool exclude_end)
         : Object { Object::Type::Range, GlobalEnv::the()->Object()->const_fetch("Range"_s).as_class() }

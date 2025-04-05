@@ -218,10 +218,6 @@ public:
 
     virtual String dbg_inspect() const override;
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<HashObject %p size=%zu>", this, size());
-    }
-
     virtual bool is_large() override {
         return m_hashmap.capacity() >= 100;
     }

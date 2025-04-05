@@ -834,10 +834,7 @@ bool Object::neq(Env *env, Value self, Value other) {
 
 String Object::dbg_inspect() const {
     auto klass = m_klass->name();
-    return String::format(
-        "#<{}:{}>",
-        klass ? *klass : "Object",
-        String::hex(reinterpret_cast<nat_int_t>(this), String::HexFormat::LowercaseAndPrefixed));
+    return String::format("<{} {h}>", klass.value_or("Object"), this);
 }
 
 Value Object::enum_for(Env *env, const char *method, Args &&args) {
@@ -859,10 +856,6 @@ void Object::visit_children(Visitor &visitor) const {
                 visitor.visit(pair.second.value());
         }
     }
-}
-
-void Object::gc_inspect(char *buf, size_t len) const {
-    snprintf(buf, len, "<Object %p type=%d class=%p>", this, (int)m_type, m_klass);
 }
 
 }

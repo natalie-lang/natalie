@@ -692,7 +692,7 @@ Value RegexpObject::to_s(Env *env) const {
 }
 
 String RegexpObject::dbg_inspect() const {
-    return String::format("/{}/", m_pattern->string());
+    return String::format("<RegexpObject {h} regex=/{}/>", this, m_pattern->string());
 }
 
 }

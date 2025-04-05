@@ -65,10 +65,6 @@ public:
     ArrayObject *values_at(Env *, Args &&);
     Value ref(Env *, Value, Optional<Value> = {});
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<MatchDataObject %p>", this);
-    }
-
     virtual void visit_children(Visitor &visitor) const override final {
         Object::visit_children(visitor);
         visitor.visit(m_string);

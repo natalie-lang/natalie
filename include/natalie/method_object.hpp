@@ -49,8 +49,8 @@ public:
         visitor.visit(m_method_missing_name);
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<MethodObject %p method=", this);
+    virtual TM::String dbg_inspect() const override {
+        return TM::String::format("<MethodObject {h} method={}>", this, m_object.dbg_inspect());
     }
 
 private:

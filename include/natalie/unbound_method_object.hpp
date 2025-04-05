@@ -56,8 +56,8 @@ public:
         visitor.visit(m_method);
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<UnboundMethodObject %p method=%p>", this, m_method);
+    virtual TM::String dbg_inspect() const override {
+        return TM::String::format("<UnboundMethodObject {h} method={h}>", this, m_method);
     }
 
 private:

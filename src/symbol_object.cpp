@@ -67,7 +67,7 @@ bool SymbolObject::should_be_quoted() const {
 }
 
 String SymbolObject::dbg_inspect() const {
-    return String::format(":{}", m_name);
+    return String::format("<SymbolObject {h} name=\"{}\">", this, m_name);
 }
 
 Value SymbolObject::eqtilde(Env *env, Value other) {

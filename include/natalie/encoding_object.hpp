@@ -162,8 +162,8 @@ public:
     static Value casefold_full(nat_int_t codepoint);
     static Value casefold_simple(nat_int_t codepoint);
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<EncodingObject %p>", this);
+    virtual TM::String dbg_inspect() const override {
+        return TM::String::format("<EncodingObject {h} name={}>", this, m_names[0]);
     }
 
 private:

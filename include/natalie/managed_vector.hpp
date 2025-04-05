@@ -23,9 +23,9 @@ public:
         }
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
+    virtual TM::String dbg_inspect() const override {
         size_t the_size = TM::Vector<T>::size();
-        snprintf(buf, len, "<ManagedVector %p size=%zu>", this, the_size);
+        return TM::String::format("<ManagedVector {h} size={}>", this, the_size);
     }
 };
 

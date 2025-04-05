@@ -21,8 +21,8 @@ public:
     ArrayObject *to_ruby_array();
     ArrayObject *to_ruby_backtrace_locations_array();
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<Backtrace %p size=%ld>", this, m_items.size());
+    virtual TM::String dbg_inspect() const override {
+        return TM::String::format("<Backtrace {h} size={}>", this, m_items.size());
     }
 
 private:

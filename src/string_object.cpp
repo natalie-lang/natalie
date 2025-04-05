@@ -612,7 +612,7 @@ StringObject *StringObject::inspect(Env *env) const {
 }
 
 String StringObject::dbg_inspect() const {
-    return String::format("\"{}\"", m_string);
+    return String::format("<StringObject {h} string=\"{}\">", this, m_string);
 }
 
 StringObject *StringObject::successive(Env *env) {

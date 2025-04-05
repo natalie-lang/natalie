@@ -299,8 +299,8 @@ public:
         return b;
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<BigInt %p value=%s>", this, to_string().c_str());
+    virtual TM::String dbg_inspect() const override {
+        return TM::String::format("<BigInt {h} value={}>", this, to_string());
     }
 
 private:

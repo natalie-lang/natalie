@@ -327,7 +327,7 @@ Value HashObject::inspect(Env *env) {
 }
 
 String HashObject::dbg_inspect() const {
-    String str("{");
+    auto str = String::format("<HashObject {h} {", this);
     size_t index = 0;
     for (auto pair : *this) {
         str.append(pair.key.dbg_inspect());
@@ -337,7 +337,7 @@ String HashObject::dbg_inspect() const {
             str.append(", ");
         index++;
     }
-    str.append("}");
+    str.append("}>");
     return str;
 }
 

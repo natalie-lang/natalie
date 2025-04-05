@@ -71,8 +71,8 @@ public:
             visitor.visit(m_subsec.value());
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<TimeObject %p>", this);
+    virtual TM::String dbg_inspect() const override {
+        return TM::String::format("<TimeObject {h} integer={}>", this, m_integer.to_string());
     }
 
 private:
