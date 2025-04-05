@@ -216,7 +216,7 @@ public:
 
     virtual void visit_children(Visitor &) const override final;
 
-    virtual String dbg_inspect() const override;
+    virtual String dbg_inspect(int indent = 0) const override;
 
     virtual bool is_large() override {
         return m_hashmap.capacity() >= 100;

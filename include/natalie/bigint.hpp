@@ -299,7 +299,7 @@ public:
         return b;
     }
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<BigInt {h} value={}>", this, to_string());
     }
 

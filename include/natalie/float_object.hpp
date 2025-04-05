@@ -163,7 +163,7 @@ public:
         klass->const_set("RADIX"_s, new FloatObject { double { std::numeric_limits<double>::radix } });
     }
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<FloatObject {h} float={}>", this, m_double);
     }
 

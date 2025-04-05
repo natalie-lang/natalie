@@ -691,7 +691,7 @@ Value RegexpObject::to_s(Env *env) const {
     return out;
 }
 
-String RegexpObject::dbg_inspect() const {
+String RegexpObject::dbg_inspect(int indent) const {
     return String::format("<RegexpObject {h} regex=/{}/>", this, m_pattern->string());
 }
 

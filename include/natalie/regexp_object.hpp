@@ -190,7 +190,7 @@ public:
     Value source(Env *env) const;
     Value to_s(Env *env) const;
 
-    virtual String dbg_inspect() const override;
+    virtual String dbg_inspect(int indent = 0) const override;
 
     virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);

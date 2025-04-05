@@ -162,7 +162,7 @@ public:
     static Value casefold_full(nat_int_t codepoint);
     static Value casefold_simple(nat_int_t codepoint);
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<EncodingObject {h} name={}>", this, m_names[0]);
     }
 

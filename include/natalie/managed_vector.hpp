@@ -23,7 +23,7 @@ public:
         }
     }
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         size_t the_size = TM::Vector<T>::size();
         return TM::String::format("<ManagedVector {h} size={}>", this, the_size);
     }

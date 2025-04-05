@@ -196,7 +196,7 @@ public:
 
     virtual void visit_children(Visitor &visitor) const override;
 
-    virtual String dbg_inspect() const override;
+    virtual String dbg_inspect(int indent = 0) const override;
 
 protected:
     ClassObject *m_klass { nullptr };

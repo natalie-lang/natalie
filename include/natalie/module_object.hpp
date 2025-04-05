@@ -174,7 +174,7 @@ public:
 
     virtual void visit_children(Visitor &) const override final;
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<ModuleObject {h} name=\"{}\">", this, m_name.value_or("none"));
     }
 

@@ -39,7 +39,7 @@ public:
         return Value::integer(1);
     }
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<Enumerator::ArithmeticSequence {h}>", this);
     }
 

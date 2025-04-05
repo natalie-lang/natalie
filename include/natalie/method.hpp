@@ -86,7 +86,7 @@ public:
         visitor.visit(m_original_method);
     }
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<Method {h} name=\"{}\" fn={h}>", this, m_name, reinterpret_cast<void *>(m_fn));
     }
 

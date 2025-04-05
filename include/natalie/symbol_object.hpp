@@ -76,7 +76,7 @@ public:
 
     bool should_be_quoted() const;
 
-    virtual String dbg_inspect() const override;
+    virtual String dbg_inspect(int indent = 0) const override;
 
     virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);

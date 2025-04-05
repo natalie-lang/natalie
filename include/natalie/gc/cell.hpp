@@ -30,7 +30,7 @@ public:
     virtual void visit_children(Visitor &) const {
     }
 
-    virtual TM::String dbg_inspect() const {
+    virtual TM::String dbg_inspect(int indent = 0) const {
         return TM::String::format("<Cell {h} size={}>", this, sizeof(*this));
     }
 

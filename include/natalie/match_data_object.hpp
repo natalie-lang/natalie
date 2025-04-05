@@ -71,7 +71,7 @@ public:
         visitor.visit(m_regexp);
     }
 
-    virtual String dbg_inspect() const override;
+    virtual String dbg_inspect(int indent = 0) const override;
 
     /**
      * If the underlying string that this MatchDataObject references is going to

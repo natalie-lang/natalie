@@ -61,7 +61,7 @@ public:
 
     virtual String backtrace_name() const override final;
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<ClassObject {h} name=\"{}\">", this, m_name.value_or("none"));
     }
 

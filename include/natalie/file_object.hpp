@@ -98,7 +98,7 @@ public:
 
     static StringObject *path(Env *env, Value path); // path class method
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<FileObject {h} fileno={}>", this, fileno());
     }
 

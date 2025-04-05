@@ -71,7 +71,7 @@ public:
             visitor.visit(m_subsec.value());
     }
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<TimeObject {h} integer={}>", this, m_integer.to_string());
     }
 

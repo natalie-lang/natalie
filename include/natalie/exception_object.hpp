@@ -54,8 +54,8 @@ public:
 
     virtual void visit_children(Visitor &) const override final;
 
-    virtual TM::String dbg_inspect() const override {
-        return TM::String::format("<ExceptionObject {h} message={}>", this, m_message.dbg_inspect());
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<ExceptionObject {h} message={}>", this, m_message.dbg_inspect(indent));
     }
 
     void set_local_jump_error_type(LocalJumpErrorType type) { m_local_jump_error_type = type; }

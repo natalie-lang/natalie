@@ -667,7 +667,7 @@ String Value::inspect_str(Env *env) {
     return inspected.as_string()->string();
 }
 
-String Value::dbg_inspect() const {
+String Value::dbg_inspect(int indent) const {
     if (is_integer())
         return integer().to_string();
     if (is_nil())
@@ -676,7 +676,7 @@ String Value::dbg_inspect() const {
         return "true";
     if (is_false())
         return "false";
-    return object()->dbg_inspect();
+    return object()->dbg_inspect(indent);
 }
 
 #undef PROFILED_SEND

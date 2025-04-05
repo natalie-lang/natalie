@@ -64,8 +64,8 @@ public:
         visitor.visit(m_block);
     }
 
-    virtual TM::String dbg_inspect() const override {
-        return TM::String::format("<ProcObject {h} block={}>", this, m_block ? m_block->dbg_inspect() : "null");
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<ProcObject {h} block={}>", this, m_block ? m_block->dbg_inspect(indent) : "null");
     }
 
 private:

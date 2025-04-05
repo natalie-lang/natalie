@@ -185,14 +185,15 @@ Value ArrayObject::inspect(Env *env) {
     });
 }
 
-String ArrayObject::dbg_inspect() const {
-    auto str = String::format("<ArrayObject {h} data=[", this);
-    size_t index = 0;
+String ArrayObject::dbg_inspect(int indent) const {
+    auto str = String::format("<ArrayObject {h} size={} data=[", this, size());
     for (size_t index = 0; index < size(); index++) {
+        str.append_char('\n');
+        str.append_char(' ', indent + 2);
         auto item = (*this)[index];
-        str.append(item.dbg_inspect());
+        str.append(item.dbg_inspect(indent + 2));
         if (index < size() - 1)
-            str.append(", ");
+            str.append_char(',');
     }
     str.append("]>");
     return str;

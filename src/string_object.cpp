@@ -611,7 +611,7 @@ StringObject *StringObject::inspect(Env *env) const {
     return new StringObject { std::move(out) };
 }
 
-String StringObject::dbg_inspect() const {
+String StringObject::dbg_inspect(int indent) const {
     return String::format("<StringObject {h} string=\"{}\">", this, m_string);
 }
 

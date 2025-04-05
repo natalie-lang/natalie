@@ -326,15 +326,17 @@ Value HashObject::inspect(Env *env) {
     });
 }
 
-String HashObject::dbg_inspect() const {
-    auto str = String::format("<HashObject {h} {", this);
+String HashObject::dbg_inspect(int indent) const {
+    auto str = String::format("<HashObject {h} size={} {", this, size());
     size_t index = 0;
     for (auto pair : *this) {
-        str.append(pair.key.dbg_inspect());
+        str.append_char('\n');
+        str.append_char(' ', indent + 2);
+        str.append(pair.key.dbg_inspect(indent + 2));
         str.append(" => ");
-        str.append(pair.val.dbg_inspect());
+        str.append(pair.val.dbg_inspect(indent + 2));
         if (index < size() - 1)
-            str.append(", ");
+            str.append_char(',');
         index++;
     }
     str.append("}>");

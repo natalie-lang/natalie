@@ -21,7 +21,7 @@ public:
     ArrayObject *to_ruby_array();
     ArrayObject *to_ruby_backtrace_locations_array();
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<Backtrace {h} size={}>", this, m_items.size());
     }
 

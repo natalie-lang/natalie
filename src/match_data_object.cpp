@@ -423,7 +423,7 @@ Value MatchDataObject::ref(Env *env, Value index_value, Optional<Value> size_arg
     return group(index);
 }
 
-String MatchDataObject::dbg_inspect() const {
+String MatchDataObject::dbg_inspect(int indent) const {
     auto str = group(0);
     assert(!str.is_nil());
     return String::format("#<MatchData \"{}\">", str.as_string());

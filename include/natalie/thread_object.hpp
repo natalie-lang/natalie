@@ -199,7 +199,7 @@ public:
 
     virtual void visit_children(Visitor &) const override final;
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<ThreadObject {h} stack={h}..{h}>", this, m_end_of_stack, m_start_of_stack);
     }
 

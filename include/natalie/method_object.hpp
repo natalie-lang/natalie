@@ -49,8 +49,8 @@ public:
         visitor.visit(m_method_missing_name);
     }
 
-    virtual TM::String dbg_inspect() const override {
-        return TM::String::format("<MethodObject {h} method={}>", this, m_object.dbg_inspect());
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<MethodObject {h} method={}>", this, m_object.dbg_inspect(indent));
     }
 
 private:

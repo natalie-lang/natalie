@@ -832,9 +832,9 @@ bool Object::neq(Env *env, Value self, Value other) {
     return self.send(env, "=="_s, { other }).is_falsey();
 }
 
-String Object::dbg_inspect() const {
-    auto klass = m_klass->name();
-    return String::format("<{} {h}>", klass.value_or("Object"), this);
+String Object::dbg_inspect(int indent) const {
+    auto name = m_klass->name();
+    return String::format("<{} {h}>", name.value_or("Object"), this);
 }
 
 Value Object::enum_for(Env *env, const char *method, Args &&args) {

@@ -252,9 +252,9 @@ Value RangeObject::last(Env *env, Optional<Value> n) {
     return to_a(env).as_array()->last(env, n);
 }
 
-String RangeObject::dbg_inspect() const {
+String RangeObject::dbg_inspect(int indent) const {
     auto dots = m_exclude_end ? "..." : "..";
-    return String::format("<RangeObject {h} {}{}{}>", this, m_begin.dbg_inspect(), dots, m_end.dbg_inspect());
+    return String::format("<RangeObject {h} {}{}{}>", this, m_begin.dbg_inspect(indent), dots, m_end.dbg_inspect());
 }
 
 Value RangeObject::to_s(Env *env) {

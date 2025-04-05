@@ -49,7 +49,7 @@ public:
         visitor.visit(m_end);
     }
 
-    virtual String dbg_inspect() const override;
+    virtual String dbg_inspect(int indent = 0) const override;
 
 private:
     RangeObject(Value begin, Value end, bool exclude_end)

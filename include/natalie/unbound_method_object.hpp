@@ -56,7 +56,7 @@ public:
         visitor.visit(m_method);
     }
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<UnboundMethodObject {h} method={h}>", this, m_method);
     }
 

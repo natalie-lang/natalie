@@ -34,7 +34,7 @@ public:
     Value rand(Env *, Optional<Value>);
     Value seed() const { return Value::integer(m_seed); }
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<Random {h} seed={}>", this, m_seed);
     }
 

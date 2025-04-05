@@ -66,7 +66,7 @@ bool SymbolObject::should_be_quoted() const {
     return result < 0;
 }
 
-String SymbolObject::dbg_inspect() const {
+String SymbolObject::dbg_inspect(int indent) const {
     return String::format("<SymbolObject {h} name=\"{}\">", this, m_name);
 }
 

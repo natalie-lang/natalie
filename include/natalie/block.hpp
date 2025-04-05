@@ -59,7 +59,7 @@ public:
         visitor.visit(m_self);
     }
 
-    virtual TM::String dbg_inspect() const override {
+    virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<Block {h} fn={h}>", this, reinterpret_cast<void *>(m_fn));
     }
 

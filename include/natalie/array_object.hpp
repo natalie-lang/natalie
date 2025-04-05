@@ -213,7 +213,7 @@ public:
         }
     }
 
-    virtual String dbg_inspect() const override;
+    virtual String dbg_inspect(int indent = 0) const override;
 
     virtual bool is_large() override {
         return m_vector.capacity() >= 100;
