@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <typeinfo>
 
 namespace TM {
 
@@ -327,6 +328,10 @@ public:
         if (prefixed)
             str.prepend(uppercase ? "0X" : "0x");
         return str;
+    }
+
+    static String hex(const void *pointer, HexFormat format = HexFormat::UppercaseAndPrefixed) {
+        return hex(reinterpret_cast<long long>(pointer), format);
     }
 
     ~String() {
@@ -904,7 +909,7 @@ public:
     }
 
     /**
-     * Converts the given number and append the resulting string.
+     * Converts the given number and appends the resulting string.
      *
      * ```
      * auto str = String { "a" };
@@ -920,7 +925,7 @@ public:
     }
 
     /**
-     * Converts the given number and append the resulting string.
+     * Converts the given number and appends the resulting string.
      *
      * ```
      * auto str = String { "a" };
@@ -936,7 +941,7 @@ public:
     }
 
     /**
-     * Converts the given number and append the resulting string.
+     * Converts the given number and appends the resulting string.
      *
      * ```
      * auto str = String { "a" };
@@ -952,7 +957,7 @@ public:
     }
 
     /**
-     * Converts the given number and append the resulting string.
+     * Converts the given number and appends the resulting string.
      *
      * ```
      * auto str = String { "a" };
@@ -964,6 +969,22 @@ public:
         const int length = snprintf(NULL, 0, "%i", i);
         char buf[length + 1];
         snprintf(buf, length + 1, "%i", i);
+        append(buf);
+    }
+
+    /**
+     * Converts the given number and appends the resulting string.
+     *
+     * ```
+     * String str;
+     * str.append(1.1);
+     * assert_str_eq("1.1", str);
+     * ```
+     */
+    void append(const double d) {
+        const int length = snprintf(NULL, 0, "%g", d);
+        char buf[length + 1];
+        snprintf(buf, length + 1, "%f", d);
         append(buf);
     }
 
@@ -1595,10 +1616,24 @@ public:
     template <typename T, typename... Args>
     static void format(String &out, const char *fmt, T first, Args... rest) {
         for (const char *c = fmt; *c != 0; c++) {
-            if (*c == '{' && *(c + 1) == '}') {
-                out += first;
-                format(out, c + 2, rest...);
-                return;
+            if (*c == '{' && *(c + 1) == 'h' && *(c + 2) == '}') {
+                if constexpr (std::is_arithmetic<T>::value || std::is_pointer<T>::value) {
+                    out += hex(first, HexFormat::LowercaseAndPrefixed);
+                    format(out, c + 3, rest...);
+                    return;
+                } else {
+                    fprintf(stderr, "String::format: T is not a pointer or an arithmetic type\n");
+                    abort();
+                }
+            } else if (*c == '{' && *(c + 1) == '}') {
+                if constexpr (std::is_pointer<T>::value && !std::is_same<const char *, T>::value && !std::is_same<char *, T>::value) {
+                    fprintf(stderr, "String::format: T is a general pointer type but you didn't specify {h}\n");
+                    abort();
+                } else {
+                    out += first;
+                    format(out, c + 2, rest...);
+                    return;
+                }
             } else {
                 out.append_char(*c);
             }
