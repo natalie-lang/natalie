@@ -866,6 +866,20 @@ public:
     }
 
     /**
+     * Adds the given character at the end of the string, the given number of times.
+     *
+     * ```
+     * String str;
+     * str.append_char('o', 3);
+     * assert_str_eq("ooo", str);
+     * ```
+     */
+    void append_char(const char c, int count) {
+        for (int i = 0; i < count; i++)
+            append_char(c);
+    }
+
+    /**
      * Adds the given signed character at the end of the string.
      *
      * ```
