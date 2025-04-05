@@ -645,7 +645,7 @@ SymbolObject *Value::to_symbol(Env *env, Conversion conversion) {
     if (is_integer()) {
         if (conversion == Conversion::NullAllowed)
             return nullptr;
-        env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol nor a string", inspected(env));
     }
 
     if (is_symbol())
@@ -655,10 +655,10 @@ SymbolObject *Value::to_symbol(Env *env, Conversion conversion) {
     else if (conversion == Conversion::NullAllowed)
         return nullptr;
     else
-        env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol nor a string", inspected(env));
 }
 
-String Value::inspect_str(Env *env) {
+String Value::inspected(Env *env) {
     if (!respond_to(env, "inspect"_s))
         return String::format("#<{}:{}>", klass()->inspect_string(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));
     auto inspected = send(env, "inspect"_s);

@@ -177,7 +177,7 @@ Value ArithmeticSequenceObject::hash(Env *env) {
 Value ArithmeticSequenceObject::inspect(Env *env) {
     switch (m_origin) {
     case Origin::Range: {
-        auto range_inspect = RangeObject::create(env, m_begin, m_end, m_exclude_end)->inspect_str(env);
+        auto range_inspect = RangeObject::create(env, m_begin, m_end, m_exclude_end)->inspected(env);
         auto string = StringObject::format("(({}).{}", range_inspect, m_range_origin_method);
 
         if (has_step()) {

@@ -111,7 +111,7 @@ static void emit_value(Env *env, RangeObject *value, yaml_emitter_t &emitter, ya
 }
 
 static void emit_value(Env *env, RegexpObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    auto str = value->inspect_str(env);
+    auto str = value->inspected(env);
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)"!ruby/regexp",
         (yaml_char_t *)(str.c_str()), str.size(), 0, 0, YAML_PLAIN_SCALAR_STYLE);
     emit(env, emitter, event);

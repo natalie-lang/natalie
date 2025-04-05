@@ -274,7 +274,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Optional<Value> 
             start = IntegerMethods::convert_to_nat_int_t(env, begin_obj);
             if (start < 0) {
                 if ((size_t)(-start) > this->size())
-                    env->raise("RangeError", "{} out of range", range->inspect_str(env));
+                    env->raise("RangeError", "{} out of range", range->inspected(env));
                 start = this->size() + start;
             }
         }
@@ -530,7 +530,7 @@ Value ArrayObject::fill(Env *env, Optional<Value> obj_arg, Optional<Value> start
                 if (start < 0)
                     start += size();
                 if (start < 0)
-                    env->raise("RangeError", "{} out of range", start_obj.inspect_str(env));
+                    env->raise("RangeError", "{} out of range", start_obj.inspected(env));
             }
 
             auto end = start_obj.as_range()->end();
@@ -2077,7 +2077,7 @@ Value ArrayObject::values_at(Env *env, Args &&args) {
             } else {
                 begin = IntegerMethods::convert_to_nat_int_t(env, begin_value);
                 if (begin < -1 * (nat_int_t)(this->size())) {
-                    env->raise("RangeError", "{} out of range", arg.as_range()->inspect_str(env));
+                    env->raise("RangeError", "{} out of range", arg.as_range()->inspected(env));
                 }
                 if (begin < 0)
                     break;

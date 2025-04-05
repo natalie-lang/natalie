@@ -88,7 +88,7 @@ long ProcessModule::maxgroups() {
 Value ProcessModule::setmaxgroups(Env *env, Value val) {
     Value int_val = val.to_int(env);
     if (int_val.send(env, "positive?"_s).is_falsey())
-        env->raise("ArgumentError", "maxgroups {} should be positive", int_val.inspect_str(env));
+        env->raise("ArgumentError", "maxgroups {} should be positive", int_val.inspected(env));
     const long actual_maxgroups = sysconf(_SC_NGROUPS_MAX);
     globals::maxgroups = std::min(IntegerMethods::convert_to_native_type<long>(env, int_val), actual_maxgroups);
     return val;

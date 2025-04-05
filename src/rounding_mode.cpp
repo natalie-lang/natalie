@@ -9,7 +9,7 @@ RoundingMode rounding_mode_from_value(Env *env, Optional<Value> value_arg, Round
     if (value.is_nil())
         return default_rounding_mode;
     if (!value.is_symbol())
-        env->raise("ArgumentError", "invalid rounding mode: {}", value.inspect_str(env));
+        env->raise("ArgumentError", "invalid rounding mode: {}", value.inspected(env));
 
     auto symbol = value.as_symbol();
 

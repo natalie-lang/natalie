@@ -216,7 +216,7 @@ ClassObject *Object::singleton_class(Env *env, Value self) {
     if (self.is_module()) {
         name = String::format("#<Class:{}>", self.as_module()->inspect_string());
     } else if (self.respond_to(env, "inspect"_s)) {
-        name = String::format("#<Class:{}>", self.inspect_str(env));
+        name = String::format("#<Class:{}>", self.inspected(env));
     }
 
     ClassObject *singleton_superclass;
@@ -278,7 +278,7 @@ Value Object::const_set(Env *env, Value ns, SymbolObject *name, Value val) {
     else if (ns == GlobalEnv::the()->main_obj())
         return GlobalEnv::the()->Object()->const_set(name, val);
     else
-        env->raise("TypeError", "{} is not a class/module", ns.inspect_str(env));
+        env->raise("TypeError", "{} is not a class/module", ns.inspected(env));
 }
 
 Value Object::const_set(Env *env, Value ns, SymbolObject *name, MethodFnPtr autoload_fn, StringObject *autoload_path) {
@@ -287,7 +287,7 @@ Value Object::const_set(Env *env, Value ns, SymbolObject *name, MethodFnPtr auto
     else if (ns == GlobalEnv::the()->main_obj())
         return GlobalEnv::the()->Object()->const_set(name, autoload_fn, autoload_path);
     else
-        env->raise("TypeError", "{} is not a class/module", ns.inspect_str(env));
+        env->raise("TypeError", "{} is not a class/module", ns.inspected(env));
 }
 
 bool Object::ivar_defined(Env *env, Value self, SymbolObject *name) {
@@ -793,7 +793,7 @@ Value Object::instance_exec(Env *env, Value self, Args &&args, Block *block) {
 
 void Object::assert_not_frozen(Env *env) {
     if (is_frozen()) {
-        env->raise("FrozenError", "can't modify frozen {}: {}", klass()->inspect_string(), inspect_str(env));
+        env->raise("FrozenError", "can't modify frozen {}: {}", klass()->inspect_string(), inspected(env));
     } else if (m_type == Type::String && static_cast<StringObject *>(this)->is_chilled()) {
         if (static_cast<StringObject *>(this)->chilled() == StringObject::Chilled::String) {
             env->deprecation_warn("literal string will be frozen in the future");
@@ -807,7 +807,7 @@ void Object::assert_not_frozen(Env *env) {
 void Object::assert_not_frozen(Env *env, Value receiver) {
     if (is_frozen()) {
         auto FrozenError = GlobalEnv::the()->Object()->const_fetch("FrozenError"_s);
-        String message = String::format("can't modify frozen {}: {}", klass()->inspect_string(), inspect_str(env));
+        String message = String::format("can't modify frozen {}: {}", klass()->inspect_string(), inspected(env));
         auto kwargs = new HashObject(env, { "receiver"_s, receiver });
         auto args = Args({ new StringObject { message }, kwargs }, true);
         ExceptionObject *error = FrozenError.send(env, "new"_s, std::move(args)).as_exception();

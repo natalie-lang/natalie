@@ -226,7 +226,7 @@ public:
 
     SymbolObject *to_symbol(Env *, Conversion);
 
-    String inspect_str(Env *);
+    String inspected(Env *);
     String dbg_inspect(int indent = 0) const;
 
 private:

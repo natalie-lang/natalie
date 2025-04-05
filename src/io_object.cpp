@@ -96,7 +96,7 @@ Value IoObject::advise(Env *env, Value advice, Optional<Value> offset, Optional<
     } else if (advice == "dontneed"_s) {
         advice_i = POSIX_FADV_DONTNEED;
     } else {
-        env->raise("NotImplementedError", "Unsupported advice: {}", advice.inspect_str(env));
+        env->raise("NotImplementedError", "Unsupported advice: {}", advice.inspected(env));
     }
     if (::posix_fadvise(m_fileno, offset_i, len_i, advice_i) != 0)
         env->raise_errno();
@@ -291,7 +291,7 @@ Value IoObject::read_file(Env *env, Args &&args) {
     file->set_encoding(env, flags.external_encoding(), flags.internal_encoding());
     if (!offset.is_nil()) {
         if (offset.is_integer() && offset.integer().is_negative())
-            env->raise("ArgumentError", "negative offset {} given", offset.inspect_str(env));
+            env->raise("ArgumentError", "negative offset {} given", offset.inspected(env));
         file->set_pos(env, offset);
     }
     auto data = file->read(env, length);
@@ -667,7 +667,7 @@ void IoObject::puts(Env *env, Value val) {
         if (str.is_string()) {
             this->putstr(env, str.as_string());
         } else { // to_s did not return a string, so inspect val instead.
-            this->putstr(env, new StringObject { val.inspect_str(env) });
+            this->putstr(env, new StringObject { val.inspected(env) });
         }
     }
 }

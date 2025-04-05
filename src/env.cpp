@@ -117,7 +117,7 @@ void Env::raise_exception(ExceptionObject *exception) {
 }
 
 void Env::raise_key_error(Value receiver, Value key) {
-    auto message = new StringObject { String::format("key not found: {}", key.inspect_str(this)) };
+    auto message = new StringObject { String::format("key not found: {}", key.inspected(this)) };
     auto key_error_class = GlobalEnv::the()->Object()->const_fetch("KeyError"_s).as_class();
     ExceptionObject *exception = new ExceptionObject { key_error_class, message };
     exception->ivar_set(this, "@receiver"_s, receiver);
@@ -158,15 +158,15 @@ void Env::raise_invalid_byte_sequence_error(const EncodingObject *encoding) {
 void Env::raise_no_method_error(Value receiver, SymbolObject *name, MethodMissingReason reason) {
     String inspect_string;
     if (receiver.is_nil() || receiver.is_true() || receiver.is_false()) {
-        inspect_string = receiver.inspect_str(this);
+        inspect_string = receiver.inspected(this);
     } else if (receiver.is_integer()) {
         inspect_string = String::format("an instance of {}", receiver.klass()->inspect_string());
     } else if (receiver->is_main_object()) {
         inspect_string = "main";
     } else if (receiver.is_class()) {
-        inspect_string = String::format("class {}", receiver.inspect_str(this));
+        inspect_string = String::format("class {}", receiver.inspected(this));
     } else if (receiver.is_module()) {
-        inspect_string = String::format("module {}", receiver.inspect_str(this));
+        inspect_string = String::format("module {}", receiver.inspected(this));
     } else {
         inspect_string = String::format("an instance of {}", receiver.klass()->inspect_string());
     }
@@ -209,7 +209,7 @@ void Env::raise_not_comparable_error(Value lhs, Value rhs) {
     String lhs_class = lhs.klass()->inspect_string();
     String rhs_inspect;
     if (rhs.is_integer() || rhs.is_float() || rhs.is_falsey()) {
-        rhs_inspect = rhs.inspect_str(this);
+        rhs_inspect = rhs.inspected(this);
     } else {
         rhs_inspect = rhs.klass()->inspect_string();
     }
@@ -274,12 +274,12 @@ void Env::ensure_no_missing_keywords(HashObject *kwargs, std::initializer_list<c
     if (missing.is_empty())
         return;
     if (missing.size() == 1)
-        raise("ArgumentError", "missing keyword: {}", missing[0]->inspect_str(this));
+        raise("ArgumentError", "missing keyword: {}", missing[0]->inspected(this));
     String message { "missing keywords: " };
-    message.append(missing[0]->inspect_str(this));
+    message.append(missing[0]->inspected(this));
     for (size_t i = 1; i < missing.size(); i++) {
         message.append(", ");
-        message.append(missing[i]->inspect_str(this));
+        message.append(missing[i]->inspected(this));
     }
     raise("ArgumentError", std::move(message));
 }
@@ -289,12 +289,12 @@ void Env::ensure_no_extra_keywords(HashObject *kwargs) {
         return;
     auto it = kwargs->begin();
     if (kwargs->size() == 1)
-        raise("ArgumentError", "unknown keyword: {}", it->key.inspect_str(this));
+        raise("ArgumentError", "unknown keyword: {}", it->key.inspected(this));
     String message { "unknown keywords: " };
-    message.append(it->key.inspect_str(this));
+    message.append(it->key.inspected(this));
     for (it++; it != kwargs->end(); it++) {
         message.append(", ");
-        message.append(it->key.inspect_str(this));
+        message.append(it->key.inspected(this));
     }
     raise("ArgumentError", std::move(message));
 }

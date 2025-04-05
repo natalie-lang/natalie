@@ -722,7 +722,7 @@ Value IPSocket_addr(Env *env, Value self, Args &&args, Block *) {
     else if (reverse_lookup == "numeric"_s)
         reverse_lookup = Value::False();
     else if (!reverse_lookup.is_true() && !reverse_lookup.is_false() && reverse_lookup != "hostname"_s)
-        env->raise("ArgumentError", "invalid reverse_lookup flag: {}", reverse_lookup.inspect_str(env));
+        env->raise("ArgumentError", "invalid reverse_lookup flag: {}", reverse_lookup.inspected(env));
 
     switch (addr.ss_family) {
     case AF_INET: {
@@ -770,7 +770,7 @@ Value IPSocket_peeraddr(Env *env, Value self, Args &&args, Block *) {
     } else if (reverse_lookup == "numeric"_s) {
         reverse_lookup = Value::False();
     } else if (!reverse_lookup.is_true() && !reverse_lookup.is_false() && reverse_lookup != "hostname"_s) {
-        env->raise("ArgumentError", "invalid reverse_lookup flag: {}", reverse_lookup.inspect_str(env));
+        env->raise("ArgumentError", "invalid reverse_lookup flag: {}", reverse_lookup.inspected(env));
     }
 
     auto getsockname_result = getpeername(

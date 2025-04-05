@@ -284,7 +284,7 @@ Value EncodingObject::find(Env *env, Value name) {
                 return encoding;
         }
     }
-    env->raise("ArgumentError", "unknown encoding name - {}", name.inspect_str(env));
+    env->raise("ArgumentError", "unknown encoding name - {}", name.inspected(env));
 }
 
 // Lookup an EncodingObject by its string-name, or return null.
@@ -314,7 +314,7 @@ EncodingObject *EncodingObject::find_encoding(Env *env, Value encoding) {
 
     auto enc = EncodingObject::find_encoding_by_name(env, String("BINARY"));
     if (!enc)
-        env->raise("ArgumentError", "unknown encoding name - {}", encoding.inspect_str(env));
+        env->raise("ArgumentError", "unknown encoding name - {}", encoding.inspected(env));
 
     return enc;
 }

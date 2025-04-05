@@ -26,7 +26,7 @@ public:
         auto the_owner = owner();
         auto name = m_method_missing_name ? m_method_missing_name->string() : m_method->name();
         if (the_owner->type() == Type::Class && static_cast<ClassObject *>(the_owner)->is_singleton())
-            return StringObject::format("#<Method: {}.{}(*)>", m_object.inspect_str(env), name);
+            return StringObject::format("#<Method: {}.{}(*)>", m_object.inspected(env), name);
         else
             return StringObject::format("#<Method: {}#{}(*)>", owner()->inspect_string(), name);
     }

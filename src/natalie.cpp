@@ -576,7 +576,7 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception, Thread
     auto out = env->global_get("$stderr"_s);
 
     if (thread) {
-        auto formatted = StringObject::format("{} terminated with exception (report_on_exception is true):", thread->inspect_str(env));
+        auto formatted = StringObject::format("{} terminated with exception (report_on_exception is true):", thread->inspected(env));
         out.send(env, "puts"_s, { formatted });
     }
 
@@ -865,7 +865,7 @@ Value super(Env *env, Value self, Args &&args, Block *block) {
         if (self.is_module()) {
             env->raise("NoMethodError", "super: no superclass method '{}' for {}:{}", current_method->original_name(), self.as_module()->inspect_string(), self.klass()->inspect_string());
         } else {
-            env->raise("NoMethodError", "super: no superclass method '{}' for {}", current_method->original_name(), self.inspect_str(env));
+            env->raise("NoMethodError", "super: no superclass method '{}' for {}", current_method->original_name(), self.inspected(env));
         }
     }
     assert(super_method.method() != current_method);

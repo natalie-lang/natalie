@@ -236,7 +236,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Optional<Value> opts_arg
                 }
             }
         } else {
-            env->verbose_warn("expected true or false as ignorecase: {}", opts.inspect_str(env));
+            env->verbose_warn("expected true or false as ignorecase: {}", opts.inspected(env));
             if (opts.is_truthy())
                 options = RegexOpts::IgnoreCase;
         }

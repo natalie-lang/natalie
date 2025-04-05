@@ -51,7 +51,7 @@ bool FloatObject::eql(Value other) const {
             precision = precision_value.integer().to_nat_int_t();        \
         }                                                                \
         if (precision <= 0 && (is_nan() || is_infinity()))               \
-            env->raise("FloatDomainError", inspect_str(env));            \
+            env->raise("FloatDomainError", inspected(env));              \
                                                                          \
         if (is_infinity())                                               \
             return new FloatObject { m_double };                         \

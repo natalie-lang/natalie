@@ -1422,7 +1422,7 @@ Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, 
             else if (xml.value() == "text"_s)
                 options.xml_option = EncodeXmlOption::Text;
             else
-                env->raise("ArgumentError", "unexpected value for xml option: {}", xml.value().inspect_str(env));
+                env->raise("ArgumentError", "unexpected value for xml option: {}", xml.value().inspected(env));
         }
     }
 
@@ -1909,13 +1909,13 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
 
         // Handle negative start index.
         if (index < -str_length)
-            env->raise("RangeError", "{} out of range", range->inspect_str(env));
+            env->raise("RangeError", "{} out of range", range->inspected(env));
         if (index < 0)
             index = str_length + index;
 
         // Handle index past end of string.
         if (index > str_length)
-            env->raise("RangeError", "{} out of range", range->inspect_str(env));
+            env->raise("RangeError", "{} out of range", range->inspected(env));
 
         // Handle negative end index.
         auto end = range->end().integer();
@@ -1963,7 +1963,7 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
             auto str_actual_length = static_cast<nat_int_t>(str->length());
             str_range = args[2].as_range_or_raise(env);
             if (str_range->begin().integer() < -str_actual_length)
-                env->raise("RangeError", "{} out of range", str_range->inspect_str(env));
+                env->raise("RangeError", "{} out of range", str_range->inspected(env));
         }
 
     } else if (args.size() == 3 || args.size() == 5) {
@@ -2444,7 +2444,7 @@ Value StringObject::refeq(Env *env, Value arg1, Optional<Value> arg2, Optional<V
 
         // raises a RangeError if Range begin is greater than String size
         if (::abs(begin) >= (nat_int_t)chars->size())
-            env->raise("RangeError", "{} out of range", arg1.inspect_str(env));
+            env->raise("RangeError", "{} out of range", arg1.inspected(env));
 
         // process the begin later to eventually raise the error above
         begin = process_begin(begin);

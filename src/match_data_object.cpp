@@ -226,7 +226,7 @@ Value MatchDataObject::inspect(Env *env) {
             }
             out->append_char(':');
         }
-        out->append(this->group(i).inspect_str(env));
+        out->append(this->group(i).inspected(env));
     }
     out->append_char('>');
     return out;
@@ -341,7 +341,7 @@ ArrayObject *MatchDataObject::values_at(Env *env, Args &&args) {
         if (key.is_range()) {
             auto range = key.as_range();
             if (range->begin().is_integer() && range->begin().integer() < -static_cast<nat_int_t>(size()))
-                env->raise("RangeError", "{} out of range", range->inspect_str(env));
+                env->raise("RangeError", "{} out of range", range->inspected(env));
             auto append = ref(env, range);
             result->concat(env, { append });
             if (range->begin().is_integer()) {
