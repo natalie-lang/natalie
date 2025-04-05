@@ -46,7 +46,7 @@ Value EnvObject::to_hash(Env *env, Block *block) {
             if (!transformed.is_array() && transformed.respond_to(env, "to_ary"_s))
                 transformed = transformed.to_ary(env);
             if (!transformed.is_array())
-                env->raise("TypeError", "wrong element type {} (expected array)", transformed.klass()->inspect_str());
+                env->raise("TypeError", "wrong element type {} (expected array)", transformed.klass()->inspect_module());
             if (transformed.as_array()->size() != 2)
                 env->raise("ArgumentError", "element has wrong array length (expected 2, was {})", transformed.as_array()->size());
             name = transformed.as_array()->at(0);

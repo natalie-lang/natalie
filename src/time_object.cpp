@@ -99,7 +99,7 @@ TimeObject *TimeObject::utc(Env *env, Value year, Optional<Value> month, Optiona
         } else if (subsec.is_rational()) {
             result->m_subsec = subsec.as_rational()->div(env, Value::integer(1000000));
         } else {
-            env->raise("TypeError", "can't convert {} into an exact number", subsec.klass()->inspect_str());
+            env->raise("TypeError", "can't convert {} into an exact number", subsec.klass()->inspect_module());
         }
     }
     return result;
@@ -109,7 +109,7 @@ Value TimeObject::add(Env *env, Value other) {
     if (other.is_time()) {
         env->raise("TypeError", "time + time?");
     } else if (other.is_nil() || other.is_string() || !other.respond_to(env, "to_r"_s)) {
-        env->raise("TypeError", "can't convert {} into an exact number", other.klass()->inspect_str());
+        env->raise("TypeError", "can't convert {} into an exact number", other.klass()->inspect_module());
     }
     RationalObject *rational = to_r(env).as_rational();
     rational = rational->add(env, other.send(env, "to_r"_s).as_rational()).as_rational();
@@ -208,7 +208,7 @@ Value TimeObject::minus(Env *env, Value other) {
         return to_r(env).as_rational()->sub(env, other.as_time()->to_r(env)).as_rational()->to_f(env);
     }
     if (other.is_nil() || other.is_string() || !other.respond_to(env, "to_r"_s)) {
-        env->raise("TypeError", "can't convert {} into an exact number", other.klass()->inspect_str());
+        env->raise("TypeError", "can't convert {} into an exact number", other.klass()->inspect_module());
     }
     RationalObject *rational = to_r(env).as_rational()->sub(env, other.send(env, "to_r"_s)).as_rational();
     auto result = TimeObject::create(env, rational, m_mode);
@@ -432,7 +432,7 @@ RationalObject *TimeObject::convert_rational(Env *env, Value value) {
     } else if (value.respond_to(env, "to_int"_s)) {
         return RationalObject::create(env, value.to_int(env), Integer(1));
     } else {
-        env->raise("TypeError", "can't convert {} into an exact number", value.klass()->inspect_str());
+        env->raise("TypeError", "can't convert {} into an exact number", value.klass()->inspect_module());
     }
 }
 
@@ -444,7 +444,7 @@ Value TimeObject::convert_unit(Env *env, Value value) {
     } else if (value == "nanosecond"_s || value == "nsec"_s) {
         return Value::integer(1000000000);
     } else {
-        env->raise("ArgumentError", "unexpected unit: {}", value.inspect_str(env));
+        env->raise("ArgumentError", "unexpected unit: {}", value.inspected(env));
     }
 }
 

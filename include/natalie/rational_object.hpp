@@ -54,8 +54,8 @@ public:
         visitor.visit(m_denominator);
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<RationalObject %p>", this);
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<RationalObject {h} {}/{}>", this, m_numerator.to_string(), m_denominator.to_string());
     }
 
 private:

@@ -140,6 +140,10 @@ public:
 
     static void build_constants(Env *env, ClassObject *klass);
 
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<IoObject {h} fileno={}>", this, m_fileno);
+    }
+
 protected:
     void raise_if_closed(Env *) const;
     int write(Env *, Value);

@@ -4,7 +4,7 @@ namespace Natalie {
 
 Value ThreadGroupObject::add(Env *env, Value value) {
     if (!value.is_thread())
-        env->raise("TypeError", "wrong argument type {} (expected VM/thread)", value.klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected VM/thread)", value.klass()->inspect_module());
     auto thread = value.as_thread();
 
     std::unique_lock lock { m_mutex };

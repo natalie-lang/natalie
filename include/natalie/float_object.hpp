@@ -163,8 +163,8 @@ public:
         klass->const_set("RADIX"_s, new FloatObject { double { std::numeric_limits<double>::radix } });
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<FloatObject %p float=%f>", this, m_double);
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<FloatObject {h} float={}>", this, m_double);
     }
 
 private:

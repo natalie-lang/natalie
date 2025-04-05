@@ -45,12 +45,12 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
         if (!value)
             value = Socket->const_find(env, "SHORT_CONSTANTS"_s).value().as_hash_or_raise(env)->get(env, sym);
         if (!value)
-            env->raise_name_error(sym, "uninitialized constant {}::{}", Socket->inspect_str(), sym->string());
+            env->raise_name_error(sym, "uninitialized constant {}::{}", Socket->inspect_module(), sym->string());
         return value.value();
     } else {
         if (default_zero)
             return Value::integer(0);
-        env->raise("TypeError", "{} can't be coerced into String or Integer", name.klass()->inspect_str());
+        env->raise("TypeError", "{} can't be coerced into String or Integer", name.klass()->inspect_module());
     }
 }
 
@@ -631,7 +631,7 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args &&args, Block *block) {
             int val = 0;
             data = new StringObject { (const char *)(&val), sizeof(int) };
         } else {
-            env->raise("TypeError", "{} can't be coerced into String", data_obj.klass()->inspect_str());
+            env->raise("TypeError", "{} can't be coerced into String", data_obj.klass()->inspect_module());
         }
     } else {
         args.ensure_argc_is(env, 1);
@@ -722,7 +722,7 @@ Value IPSocket_addr(Env *env, Value self, Args &&args, Block *) {
     else if (reverse_lookup == "numeric"_s)
         reverse_lookup = Value::False();
     else if (!reverse_lookup.is_true() && !reverse_lookup.is_false() && reverse_lookup != "hostname"_s)
-        env->raise("ArgumentError", "invalid reverse_lookup flag: {}", reverse_lookup.inspect_str(env));
+        env->raise("ArgumentError", "invalid reverse_lookup flag: {}", reverse_lookup.inspected(env));
 
     switch (addr.ss_family) {
     case AF_INET: {
@@ -770,7 +770,7 @@ Value IPSocket_peeraddr(Env *env, Value self, Args &&args, Block *) {
     } else if (reverse_lookup == "numeric"_s) {
         reverse_lookup = Value::False();
     } else if (!reverse_lookup.is_true() && !reverse_lookup.is_false() && reverse_lookup != "hostname"_s) {
-        env->raise("ArgumentError", "invalid reverse_lookup flag: {}", reverse_lookup.inspect_str(env));
+        env->raise("ArgumentError", "invalid reverse_lookup flag: {}", reverse_lookup.inspected(env));
     }
 
     auto getsockname_result = getpeername(

@@ -67,7 +67,7 @@ public:
     }
 
     size_t total_allocations() const;
-    void dump() const;
+    void dump(bool only_large = false) const;
 
     template <typename F>
     auto with_gc_disabled(F func) {

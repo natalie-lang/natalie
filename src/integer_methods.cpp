@@ -287,7 +287,7 @@ bool IntegerMethods::lt(Env *env, Integer self, Value other) {
         return result.first.send(env, "<"_s, { result.second }).is_truthy();
     }
 
-    env->raise("ArgumentError", "comparison of Integer with {} failed", other.inspect_str(env));
+    env->raise("ArgumentError", "comparison of Integer with {} failed", other.inspected(env));
 }
 
 bool IntegerMethods::lte(Env *env, Integer self, Value other) {
@@ -312,7 +312,7 @@ bool IntegerMethods::lte(Env *env, Integer self, Value other) {
         return result.first.send(env, "<="_s, { result.second }).is_truthy();
     }
 
-    env->raise("ArgumentError", "comparison of Integer with {} failed", other.inspect_str(env));
+    env->raise("ArgumentError", "comparison of Integer with {} failed", other.inspected(env));
 }
 
 bool IntegerMethods::gt(Env *env, Integer self, Value other) {
@@ -337,7 +337,7 @@ bool IntegerMethods::gt(Env *env, Integer self, Value other) {
         return result.first.send(env, ">"_s, { result.second }).is_truthy();
     }
 
-    env->raise("ArgumentError", "comparison of Integer with {} failed", other.inspect_str(env));
+    env->raise("ArgumentError", "comparison of Integer with {} failed", other.inspected(env));
 }
 
 bool IntegerMethods::gte(Env *env, Integer self, Value other) {
@@ -362,7 +362,7 @@ bool IntegerMethods::gte(Env *env, Integer self, Value other) {
         return result.first.send(env, ">="_s, { result.second }).is_truthy();
     }
 
-    env->raise("ArgumentError", "comparison of Integer with {} failed", other.inspect_str(env));
+    env->raise("ArgumentError", "comparison of Integer with {} failed", other.inspected(env));
 }
 
 Value IntegerMethods::times(Env *env, Integer self, Block *block) {
@@ -488,7 +488,7 @@ Value IntegerMethods::coerce(Env *env, Value self, Value arg) {
             arg = arg.send(env, "to_f"_s);
         }
         if (!arg.is_float())
-            env->raise("TypeError", "can't convert {} into Float", arg.inspect_str(env));
+            env->raise("TypeError", "can't convert {} into Float", arg.inspected(env));
 
         ary->push(arg);
         ary->push(self.send(env, "to_f"_s));

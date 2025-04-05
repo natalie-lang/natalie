@@ -190,15 +190,13 @@ public:
     void assert_not_frozen(Env *);
     void assert_not_frozen(Env *, Value);
 
-    String inspect_str(Env *env) { return Value(this).inspect_str(env); }
+    String inspected(Env *env) { return Value(this).inspected(env); }
 
     Value enum_for(Env *env, const char *method, Args &&args = {});
 
     virtual void visit_children(Visitor &visitor) const override;
 
-    virtual String dbg_inspect() const;
-
-    virtual void gc_inspect(char *buf, size_t len) const override;
+    virtual String dbg_inspect(int indent = 0) const override;
 
 protected:
     ClassObject *m_klass { nullptr };

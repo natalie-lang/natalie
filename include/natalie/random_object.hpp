@@ -34,8 +34,8 @@ public:
     Value rand(Env *, Optional<Value>);
     Value seed() const { return Value::integer(m_seed); }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<Random %p seed=%lld>", this, m_seed);
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<Random {h} seed={}>", this, m_seed);
     }
 
     static Value new_seed(Env *env) {

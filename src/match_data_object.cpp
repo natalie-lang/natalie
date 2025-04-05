@@ -175,7 +175,7 @@ Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
     }
 
     if (!keys.is_array())
-        env->raise("TypeError", "wrong argument type {} (expected Array)", keys.klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected Array)", keys.klass()->inspect_module());
 
     auto result = new HashObject {};
     if (keys.as_array()->size() > static_cast<size_t>(onig_number_of_names(m_regexp->m_regex)))
@@ -183,7 +183,7 @@ Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
 
     for (auto name : *keys.as_array()) {
         if (!name.is_symbol())
-            env->raise("TypeError", "wrong argument type {} (expected Symbol)", name.klass()->inspect_str());
+            env->raise("TypeError", "wrong argument type {} (expected Symbol)", name.klass()->inspect_module());
         const auto &str = name.as_symbol()->string();
         auto index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
         if (index < 0)
@@ -226,7 +226,7 @@ Value MatchDataObject::inspect(Env *env) {
             }
             out->append_char(':');
         }
-        out->append(this->group(i).inspect_str(env));
+        out->append(this->group(i).inspected(env));
     }
     out->append_char('>');
     return out;
@@ -341,7 +341,7 @@ ArrayObject *MatchDataObject::values_at(Env *env, Args &&args) {
         if (key.is_range()) {
             auto range = key.as_range();
             if (range->begin().is_integer() && range->begin().integer() < -static_cast<nat_int_t>(size()))
-                env->raise("RangeError", "{} out of range", range->inspect_str(env));
+                env->raise("RangeError", "{} out of range", range->inspected(env));
             auto append = ref(env, range);
             result->concat(env, { append });
             if (range->begin().is_integer()) {
@@ -423,10 +423,20 @@ Value MatchDataObject::ref(Env *env, Value index_value, Optional<Value> size_arg
     return group(index);
 }
 
-String MatchDataObject::dbg_inspect() const {
-    auto str = group(0);
-    assert(!str.is_nil());
-    return String::format("#<MatchData \"{}\">", str.as_string()->c_str());
+String MatchDataObject::dbg_inspect(int indent) const {
+    auto str = String::format("<MatchDataObject string={} regexp={} indices=[",
+        m_string ? m_string->dbg_inspect() : "null",
+        m_regexp ? m_regexp->dbg_inspect() : "null",
+        m_region ? m_region->num_regs : -1);
+    if (m_region) {
+        for (int i = 0; i < m_region->num_regs; i++) {
+            if (i > 0)
+                str.append(", ");
+            str.append(String::format("{}..{}", m_region->beg[i], m_region->end[i]));
+        }
+    }
+    str.append("]>");
+    return str;
 }
 
 }

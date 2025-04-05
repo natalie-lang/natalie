@@ -25,7 +25,7 @@ BSearchCheckResult binary_search_check(Env *env, Value block_result) {
 
         return BSearchCheckResult::BIGGER;
     } else {
-        env->raise("TypeError", "wrong argument type {} (must be numeric, true, false or nil)", block_result.klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (must be numeric, true, false or nil)", block_result.klass()->inspect_module());
     }
 }
 

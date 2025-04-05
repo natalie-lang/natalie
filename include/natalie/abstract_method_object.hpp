@@ -24,8 +24,8 @@ public:
         visitor.visit(m_method);
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<AbstractMethodObject %p>", this);
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<AbstractMethodObject {h} method={}>", this, m_method ? m_method->dbg_inspect(indent) : "null");
     }
 
 protected:

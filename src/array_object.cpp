@@ -174,7 +174,7 @@ Value ArrayObject::inspect(Env *env) {
             if (inspected_repr.is_string())
                 out->append(inspected_repr.as_string());
             else
-                out->append_sprintf("#<%s:%#x>", inspected_repr.klass()->inspect_str().c_str(), inspected_repr.object_id());
+                out->append_sprintf("#<%s:%#x>", inspected_repr.klass()->inspect_module().c_str(), inspected_repr.object_id());
 
             if (i < size() - 1) {
                 out->append(", ");
@@ -185,16 +185,17 @@ Value ArrayObject::inspect(Env *env) {
     });
 }
 
-String ArrayObject::dbg_inspect() const {
-    String str("[");
-    size_t index = 0;
+String ArrayObject::dbg_inspect(int indent) const {
+    auto str = String::format("<ArrayObject {h} size={} data=[", this, size());
     for (size_t index = 0; index < size(); index++) {
+        str.append_char('\n');
+        str.append_char(' ', indent + 2);
         auto item = (*this)[index];
-        str.append(item.dbg_inspect());
+        str.append(item.dbg_inspect(indent + 2));
         if (index < size() - 1)
-            str.append(", ");
+            str.append_char(',');
     }
-    str.append("]");
+    str.append("]>");
     return str;
 }
 
@@ -273,7 +274,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Optional<Value> 
             start = IntegerMethods::convert_to_nat_int_t(env, begin_obj);
             if (start < 0) {
                 if ((size_t)(-start) > this->size())
-                    env->raise("RangeError", "{} out of range", range->inspect_str(env));
+                    env->raise("RangeError", "{} out of range", range->inspected(env));
                 start = this->size() + start;
             }
         }
@@ -529,7 +530,7 @@ Value ArrayObject::fill(Env *env, Optional<Value> obj_arg, Optional<Value> start
                 if (start < 0)
                     start += size();
                 if (start < 0)
-                    env->raise("RangeError", "{} out of range", start_obj.inspect_str(env));
+                    env->raise("RangeError", "{} out of range", start_obj.inspected(env));
             }
 
             auto end = start_obj.as_range()->end();
@@ -759,7 +760,7 @@ Value ArrayObject::dig(Env *env, Args &&args) {
         return val;
 
     if (!val.respond_to(env, dig))
-        env->raise("TypeError", "{} does not have #dig method", val.klass()->inspect_str());
+        env->raise("TypeError", "{} does not have #dig method", val.klass()->inspect_module());
 
     return val.send(env, dig, std::move(args));
 }
@@ -983,7 +984,7 @@ Value ArrayObject::pack(Env *env, Value directives, Optional<Value> buffer_arg) 
     if (buffer_arg) {
         auto buffer = buffer_arg.value();
         if (!buffer.is_string())
-            env->raise("TypeError", "buffer must be String, not {}", buffer.klass()->inspect_str());
+            env->raise("TypeError", "buffer must be String, not {}", buffer.klass()->inspect_module());
         return ArrayPacker::Packer { this, directives_string }.pack(env, buffer.as_string());
     } else {
         StringObject *start_buffer = new StringObject { "", Encoding::ASCII_8BIT };
@@ -1048,7 +1049,7 @@ bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
             Value zero = Value::integer(0);
             return compare.send(env, "<"_s, { zero }).is_truthy();
         } else {
-            env->raise("ArgumentError", "comparison of {} with 0 failed", compare.klass()->inspect_str());
+            env->raise("ArgumentError", "comparison of {} with 0 failed", compare.klass()->inspect_module());
         }
     } else {
         Value compare = a.send(env, "<=>"_s, { b });
@@ -1056,7 +1057,7 @@ bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
             return compare.integer() < 0;
         }
         // TODO: Ruby sometimes prints b as the value (for example for integers) and sometimes as class
-        env->raise("ArgumentError", "comparison of {} with {} failed", a.klass()->inspect_str(), b.klass()->inspect_str());
+        env->raise("ArgumentError", "comparison of {} with {} failed", a.klass()->inspect_module(), b.klass()->inspect_module());
     }
 }
 
@@ -1082,7 +1083,7 @@ bool array_sort_by_compare(Env *env, Value a, Value b, Block *block) {
     if (compare.is_integer()) {
         return compare.integer() < 0;
     }
-    env->raise("ArgumentError", "comparison of {} with {} failed", a_res.klass()->inspect_str(), b_res.klass()->inspect_str());
+    env->raise("ArgumentError", "comparison of {} with {} failed", a_res.klass()->inspect_module(), b_res.klass()->inspect_module());
 }
 
 Value ArrayObject::sort_by_in_place(Env *env, Block *block) {
@@ -1211,8 +1212,8 @@ Value ArrayObject::max(Env *env, Optional<Value> count, Block *block) {
             env->raise(
                 "ArgumentError",
                 "comparison of {} with {} failed",
-                item.klass()->inspect_str(),
-                min.klass()->inspect_str());
+                item.klass()->inspect_module(),
+                min.klass()->inspect_module());
 
         auto nat_int = IntegerMethods::convert_to_nat_int_t(env, compare);
         return nat_int > 0;
@@ -1261,8 +1262,8 @@ Value ArrayObject::min(Env *env, Optional<Value> count, Block *block) {
             env->raise(
                 "ArgumentError",
                 "comparison of {} with {} failed",
-                item.klass()->inspect_str(),
-                min.klass()->inspect_str());
+                item.klass()->inspect_module(),
+                min.klass()->inspect_module());
 
         auto nat_int = IntegerMethods::convert_to_nat_int_t(env, compare);
         return nat_int < 0;
@@ -1311,8 +1312,8 @@ Value ArrayObject::minmax(Env *env, Block *block) {
             env->raise(
                 "ArgumentError",
                 "comparison of {} with {} failed",
-                item.klass()->inspect_str(),
-                min.klass()->inspect_str());
+                item.klass()->inspect_module(),
+                min.klass()->inspect_module());
 
         auto nat_int = IntegerMethods::convert_to_nat_int_t(env, compare);
         return nat_int;
@@ -1613,7 +1614,7 @@ bool ArrayObject::intersects(Env *env, Value arg) {
 
 Value ArrayObject::union_of(Env *env, Value arg) {
     if (!arg.is_array())
-        env->raise("TypeError", "no implicit conversion of {} into Array", arg.klass()->inspect_str());
+        env->raise("TypeError", "no implicit conversion of {} into Array", arg.klass()->inspect_module());
 
     auto *result = new ArrayObject();
     auto add_value = [&result, &env](Value &val) {
@@ -2051,8 +2052,8 @@ Value ArrayObject::try_convert(Env *env, Value val) {
         return conversion;
     }
 
-    auto original_item_class_name = val.klass()->inspect_str();
-    auto new_item_class_name = conversion.klass()->inspect_str();
+    auto original_item_class_name = val.klass()->inspect_module();
+    auto new_item_class_name = conversion.klass()->inspect_module();
     env->raise(
         "TypeError",
         "can't convert {} to Array ({}#to_ary gives {})",
@@ -2076,7 +2077,7 @@ Value ArrayObject::values_at(Env *env, Args &&args) {
             } else {
                 begin = IntegerMethods::convert_to_nat_int_t(env, begin_value);
                 if (begin < -1 * (nat_int_t)(this->size())) {
-                    env->raise("RangeError", "{} out of range", arg.as_range()->inspect_str(env));
+                    env->raise("RangeError", "{} out of range", arg.as_range()->inspected(env));
                 }
                 if (begin < 0)
                     break;

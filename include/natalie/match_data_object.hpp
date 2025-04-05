@@ -65,17 +65,13 @@ public:
     ArrayObject *values_at(Env *, Args &&);
     Value ref(Env *, Value, Optional<Value> = {});
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<MatchDataObject %p>", this);
-    }
-
     virtual void visit_children(Visitor &visitor) const override final {
         Object::visit_children(visitor);
         visitor.visit(m_string);
         visitor.visit(m_regexp);
     }
 
-    virtual String dbg_inspect() const override;
+    virtual String dbg_inspect(int indent = 0) const override;
 
     /**
      * If the underlying string that this MatchDataObject references is going to

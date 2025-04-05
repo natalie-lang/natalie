@@ -26,7 +26,7 @@ Value Tempfile_initialize(Env *env, Value self, Args &&args, Block *) {
             suffix = arr->at(1).to_str(env);
     }
     if (!basename.is_string()) {
-        env->raise("ArgumentError", "unexpected prefix: {}", basename.inspect_str(env));
+        env->raise("ArgumentError", "unexpected prefix: {}", basename.inspected(env));
     }
     if (!tmpdir.is_nil()) {
         tmpdir.assert_type(env, Object::Type::String, "String");

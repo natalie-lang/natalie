@@ -8,6 +8,7 @@
 
 #include "natalie/forward.hpp"
 #include "natalie/macros.hpp"
+#include "tm/string.hpp"
 
 namespace Natalie {
 
@@ -29,20 +30,16 @@ public:
     virtual void visit_children(Visitor &) const {
     }
 
-    // only for debugging the GC
-    virtual void gc_inspect(char *buf, size_t len) const {
-        snprintf(buf, len, "<Cell %p size=%zu>", this, sizeof(*this));
-    }
-
-    // only for debugging the GC
-    virtual void gc_print() const {
-        char buf[1000];
-        gc_inspect(buf, 1000);
-        printf("%s\n", buf);
+    virtual TM::String dbg_inspect(int indent = 0) const {
+        return TM::String::format("<Cell {h} size={}>", this, sizeof(*this));
     }
 
     virtual bool is_collectible() {
         return true;
+    }
+
+    virtual bool is_large() {
+        return false;
     }
 
     bool is_marked() const {

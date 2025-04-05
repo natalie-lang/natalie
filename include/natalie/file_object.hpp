@@ -98,8 +98,8 @@ public:
 
     static StringObject *path(Env *env, Value path); // path class method
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<FileObject %p>", this);
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<FileObject {h} fileno={}>", this, fileno());
     }
 
     IoObject *as_io() { return static_cast<IoObject *>(this); }

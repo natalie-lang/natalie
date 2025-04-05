@@ -19,7 +19,7 @@ public:
         if (owner()->type() != Type::Class || obj.is_a(env, owner())) {
             return new MethodObject { obj, m_method };
         } else {
-            env->raise("TypeError", "bind argument must be an instance of {}", owner()->inspect_str());
+            env->raise("TypeError", "bind argument must be an instance of {}", owner()->inspect_module());
         }
     }
 
@@ -44,9 +44,9 @@ public:
 
     Value inspect(Env *env) {
         if (owner() != m_module_or_class) {
-            return StringObject::format("#<UnboundMethod: {}({})#{}(*)>", m_module_or_class->inspect_str(), owner()->inspect_str(), m_method->name());
+            return StringObject::format("#<UnboundMethod: {}({})#{}(*)>", m_module_or_class->inspect_module(), owner()->inspect_module(), m_method->name());
         } else {
-            return StringObject::format("#<UnboundMethod: {}#{}(*)>", owner()->inspect_str(), m_method->name());
+            return StringObject::format("#<UnboundMethod: {}#{}(*)>", owner()->inspect_module(), m_method->name());
         }
     }
 
@@ -56,8 +56,8 @@ public:
         visitor.visit(m_method);
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<UnboundMethodObject %p method=%p>", this, m_method);
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<UnboundMethodObject {h} method={h}>", this, m_method);
     }
 
 private:

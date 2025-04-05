@@ -59,7 +59,7 @@ Value ProcessModule::kill(Env *env, Args &&args) {
             env->raise("ArgumentError", "unsupported signal `SIG{}'", signame.to_s(env)->string());
         signo = IntegerMethods::convert_to_nat_int_t(env, signo_val);
     } else {
-        env->raise("ArgumentError", "bad signal type {}", signal.klass()->inspect_str());
+        env->raise("ArgumentError", "bad signal type {}", signal.klass()->inspect_module());
     }
     const auto own_pid = getpid();
     for (Value pid : *pids) {
@@ -88,7 +88,7 @@ long ProcessModule::maxgroups() {
 Value ProcessModule::setmaxgroups(Env *env, Value val) {
     Value int_val = val.to_int(env);
     if (int_val.send(env, "positive?"_s).is_falsey())
-        env->raise("ArgumentError", "maxgroups {} should be positive", int_val.inspect_str(env));
+        env->raise("ArgumentError", "maxgroups {} should be positive", int_val.inspected(env));
     const long actual_maxgroups = sysconf(_SC_NGROUPS_MAX);
     globals::maxgroups = std::min(IntegerMethods::convert_to_native_type<long>(env, int_val), actual_maxgroups);
     return val;

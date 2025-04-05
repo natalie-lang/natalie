@@ -236,7 +236,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Optional<Value> opts_arg
                 }
             }
         } else {
-            env->verbose_warn("expected true or false as ignorecase: {}", opts.inspect_str(env));
+            env->verbose_warn("expected true or false as ignorecase: {}", opts.inspected(env));
             if (opts.is_truthy())
                 options = RegexOpts::IgnoreCase;
         }
@@ -691,8 +691,8 @@ Value RegexpObject::to_s(Env *env) const {
     return out;
 }
 
-String RegexpObject::dbg_inspect() const {
-    return String::format("/{}/", m_pattern->string());
+String RegexpObject::dbg_inspect(int indent) const {
+    return String::format("<RegexpObject {h} regex=/{}/>", this, m_pattern->string());
 }
 
 }

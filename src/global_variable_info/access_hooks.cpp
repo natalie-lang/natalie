@@ -74,7 +74,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
         if (v.is_nil())
             return Value::nil();
         if (!v.is_match_data())
-            env->raise("TypeError", "wrong argument type {} (expected MatchData)", v.klass()->inspect_str());
+            env->raise("TypeError", "wrong argument type {} (expected MatchData)", v.klass()->inspect_module());
         auto match = v.as_match_data();
         env->set_last_match(match);
         return match;
@@ -82,7 +82,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
 
     Value set_stdout(Env *env, Value v, GlobalVariableInfo &) {
         if (!v.respond_to(env, "write"_s))
-            env->raise("TypeError", "$stdout must have write method, {} given", v.klass()->inspect_str());
+            env->raise("TypeError", "$stdout must have write method, {} given", v.klass()->inspect_module());
         return v;
     }
 

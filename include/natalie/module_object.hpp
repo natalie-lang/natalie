@@ -130,9 +130,8 @@ public:
 
     bool is_method_defined(Env *, Value) const;
 
-    String inspect_str() const;
+    String inspect_module() const;
     Value inspect(Env *) const;
-    String dbg_inspect() const override;
     Value name(Env *) const;
     Optional<String> name() { return m_name; }
     virtual String backtrace_name() const;
@@ -175,11 +174,8 @@ public:
 
     virtual void visit_children(Visitor &) const override final;
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        if (m_name)
-            snprintf(buf, len, "<ModuleObject %p name=%s>", this, m_name.value().c_str());
-        else
-            snprintf(buf, len, "<ModuleObject %p name=(none)>", this);
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<ModuleObject {h} name=\"{}\">", this, m_name.value_or("none"));
     }
 
 private:

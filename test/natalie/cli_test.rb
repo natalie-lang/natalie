@@ -39,8 +39,8 @@ end
 
 describe '--print-objects' do
   it 'prints objects allocated' do
-    out = ruby_exe('puts "hello world"', options: '--print-objects')
-    out.should =~ /<StringObject 0x[a-z0-9]+ str='hello world'>/
+    out = ruby_exe('puts "hello world"', args: '2>&1', options: '--print-objects')
+    out.should =~ /<StringObject 0x[a-z0-9]+ string="hello world">/
     out.should =~ /Total allocations: \d+/
   end
 end

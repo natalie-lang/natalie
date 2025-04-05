@@ -84,13 +84,13 @@ FiberObject *FiberObject::initialize(Env *env, Optional<Value> blocking_kwarg, O
 
 Value FiberObject::hash(Env *env) {
     const TM::String file_and_line { m_file && m_line ? TM::String::format(" {}:{}", *m_file, *m_line) : "" };
-    const auto hash = HashKeyHandler<String>::hash(String::format("{}{}{}", m_klass->inspect_str(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed), file_and_line));
+    const auto hash = HashKeyHandler<String>::hash(String::format("{}{}{}", m_klass->inspect_module(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed), file_and_line));
     return Value::integer(hash);
 }
 
 Value FiberObject::inspect(Env *env) {
     const TM::String file_and_line { m_file && m_line ? TM::String::format(" {}:{}", *m_file, *m_line) : "" };
-    return StringObject::format("#<{}:{}{} ({})>", m_klass->inspect_str(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed), file_and_line, status(env));
+    return StringObject::format("#<{}:{}{} ({})>", m_klass->inspect_module(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed), file_and_line, status(env));
 }
 
 bool FiberObject::is_alive() const {
@@ -120,7 +120,7 @@ Value FiberObject::ref(Env *env, Value key) {
     if (key.is_string() || key.respond_to(env, to_str))
         key = key.to_str(env)->to_sym(env);
     if (!key.is_symbol())
-        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key.klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key.klass()->inspect_module());
     auto fiber = current();
     while ((fiber->m_storage == nullptr || !fiber->m_storage->has_key(env, key)) && fiber->m_previous_fiber != nullptr)
         fiber = fiber->m_previous_fiber;
@@ -134,7 +134,7 @@ Value FiberObject::refeq(Env *env, Value key, Value value) {
     if (key.is_string() || key.respond_to(env, to_str))
         key = key.to_str(env)->to_sym(env);
     if (!key.is_symbol())
-        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key.klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key.klass()->inspect_module());
     if (current()->m_storage == nullptr)
         current()->m_storage = new HashObject {};
     if (value.is_nil()) {

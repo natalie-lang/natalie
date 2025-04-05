@@ -59,8 +59,8 @@ public:
         visitor.visit(m_self);
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<Block %p fn=%p>", this, m_fn);
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<Block {h} fn={h}>", this, reinterpret_cast<void *>(m_fn));
     }
 
 private:

@@ -51,7 +51,7 @@ bool FloatObject::eql(Value other) const {
             precision = precision_value.integer().to_nat_int_t();        \
         }                                                                \
         if (precision <= 0 && (is_nan() || is_infinity()))               \
-            env->raise("FloatDomainError", inspect_str(env));            \
+            env->raise("FloatDomainError", inspected(env));              \
                                                                          \
         if (is_infinity())                                               \
             return new FloatObject { m_double };                         \
@@ -329,7 +329,7 @@ Value FloatObject::divmod(Env *env, Value arg) {
     if (is_nan()) env->raise("FloatDomainError", "NaN");
     if (is_infinity()) env->raise("FloatDomainError", "Infinity");
 
-    if (!arg.is_numeric()) env->raise("TypeError", "{} can't be coerced into Float", arg.klass()->inspect_str());
+    if (!arg.is_numeric()) env->raise("TypeError", "{} can't be coerced into Float", arg.klass()->inspect_module());
     if (arg.is_float() && arg.as_float()->is_nan()) env->raise("FloatDomainError", "NaN");
     if (arg.is_float() && arg.as_float()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
     if (arg.is_integer() && arg.integer().is_zero()) env->raise("ZeroDivisionError", "divided by 0");
@@ -390,29 +390,29 @@ Value FloatObject::arg(Env *env) {
     }
 }
 
-#define NAT_DEFINE_FLOAT_COMPARISON_METHOD(name, op)                                                         \
-    bool FloatObject::name(Env *env, Value rhs) {                                                            \
-        Value lhs = this;                                                                                    \
-                                                                                                             \
-        if (!rhs.is_float()) {                                                                               \
-            auto coerced = Natalie::coerce(env, rhs, lhs);                                                   \
-            lhs = coerced.first;                                                                             \
-            rhs = coerced.second;                                                                            \
-        }                                                                                                    \
-                                                                                                             \
-        if (!lhs.is_float()) return lhs.send(env, SymbolObject::intern(NAT_QUOTE(op)), { rhs }).is_truthy(); \
-        if (!rhs.is_float()) {                                                                               \
-            env->raise("ArgumentError", "comparison of Float with {} failed", rhs.klass()->inspect_str());   \
-        }                                                                                                    \
-                                                                                                             \
-        if (lhs.as_float()->is_nan() || rhs.as_float()->is_nan()) {                                          \
-            return false;                                                                                    \
-        }                                                                                                    \
-                                                                                                             \
-        double lhs_d = lhs.as_float()->to_double();                                                          \
-        double rhs_d = rhs.as_float()->to_double();                                                          \
-                                                                                                             \
-        return lhs_d op rhs_d;                                                                               \
+#define NAT_DEFINE_FLOAT_COMPARISON_METHOD(name, op)                                                          \
+    bool FloatObject::name(Env *env, Value rhs) {                                                             \
+        Value lhs = this;                                                                                     \
+                                                                                                              \
+        if (!rhs.is_float()) {                                                                                \
+            auto coerced = Natalie::coerce(env, rhs, lhs);                                                    \
+            lhs = coerced.first;                                                                              \
+            rhs = coerced.second;                                                                             \
+        }                                                                                                     \
+                                                                                                              \
+        if (!lhs.is_float()) return lhs.send(env, SymbolObject::intern(NAT_QUOTE(op)), { rhs }).is_truthy();  \
+        if (!rhs.is_float()) {                                                                                \
+            env->raise("ArgumentError", "comparison of Float with {} failed", rhs.klass()->inspect_module()); \
+        }                                                                                                     \
+                                                                                                              \
+        if (lhs.as_float()->is_nan() || rhs.as_float()->is_nan()) {                                           \
+            return false;                                                                                     \
+        }                                                                                                     \
+                                                                                                              \
+        double lhs_d = lhs.as_float()->to_double();                                                           \
+        double rhs_d = rhs.as_float()->to_double();                                                           \
+                                                                                                              \
+        return lhs_d op rhs_d;                                                                                \
     }
 
 NAT_DEFINE_FLOAT_COMPARISON_METHOD(lt, <)

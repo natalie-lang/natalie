@@ -97,7 +97,7 @@ namespace ioutil {
             break;
         }
         default:
-            env->raise("TypeError", "no implicit conversion of {} into String", flags_obj.klass()->inspect_str());
+            env->raise("TypeError", "no implicit conversion of {} into String", flags_obj.klass()->inspect_module());
         }
     }
 
@@ -125,9 +125,9 @@ namespace ioutil {
         if (m_external_encoding) {
             env->raise("ArgumentError", "encoding specified twice");
         } else if (m_kwargs->has_key(env, "external_encoding"_s)) {
-            env->warn("Ignoring encoding parameter '{}', external_encoding is used", encoding.inspect_str(env));
+            env->warn("Ignoring encoding parameter '{}', external_encoding is used", encoding.inspected(env));
         } else if (m_kwargs->has_key(env, "internal_encoding"_s)) {
-            env->warn("Ignoring encoding parameter '{}', internal_encoding is used", encoding.inspect_str(env));
+            env->warn("Ignoring encoding parameter '{}', internal_encoding is used", encoding.inspected(env));
         } else if (encoding.is_encoding()) {
             m_external_encoding = encoding.as_encoding();
         } else {

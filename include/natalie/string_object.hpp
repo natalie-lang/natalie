@@ -465,15 +465,15 @@ public:
         }
     }
 
-    virtual String dbg_inspect() const override;
+    virtual String dbg_inspect(int indent = 0) const override;
 
     virtual void visit_children(Visitor &visitor) const override final {
         Object::visit_children(visitor);
         visitor.visit(m_encoding.ptr());
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<StringObject %p str='%s'>", this, m_string.c_str());
+    virtual bool is_large() override {
+        return m_string.capacity() >= 100;
     }
 
     class iterator {

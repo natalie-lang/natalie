@@ -49,11 +49,7 @@ public:
         visitor.visit(m_end);
     }
 
-    virtual String dbg_inspect() const override;
-
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<RangeObject %p>", this);
-    }
+    virtual String dbg_inspect(int indent = 0) const override;
 
 private:
     RangeObject(Value begin, Value end, bool exclude_end)

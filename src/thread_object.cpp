@@ -144,7 +144,7 @@ static Value validate_key(Env *env, Value key) {
     if (key.is_string() || key.respond_to(env, "to_str"_s))
         key = key.to_str(env)->to_sym(env);
     if (!key.is_symbol())
-        env->raise("TypeError", "{} is not a symbol", key.inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol", key.inspected(env));
     return key;
 }
 
@@ -162,7 +162,7 @@ ThreadObject *ThreadObject::current() {
 
 Value ThreadObject::thread_kill(Env *env, Value thread) {
     if (!thread.is_thread())
-        env->raise("TypeError", "wrong argument type {} (expected VM/thread)", thread.klass()->inspect_str());
+        env->raise("TypeError", "wrong argument type {} (expected VM/thread)", thread.klass()->inspect_module());
 
     return thread.as_thread()->kill(env);
 }
@@ -265,7 +265,7 @@ Value ThreadObject::to_s(Env *env) {
 
     auto formatted = String::format(
         "#<{}:{}{} {}>",
-        m_klass->inspect_str(),
+        m_klass->inspect_module(),
         String::hex(Object::object_id(this), String::HexFormat::LowercaseAndPrefixed),
         location,
         status());

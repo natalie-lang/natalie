@@ -39,8 +39,8 @@ public:
         return Value::integer(1);
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<Enumerator::ArithmeticSequence %p>", this);
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<Enumerator::ArithmeticSequence {h}>", this);
     }
 
     virtual void visit_children(Visitor &visitor) const override {

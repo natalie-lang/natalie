@@ -121,13 +121,13 @@ Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject
         = [&](Constant *constant) {
               if (search_mode == ConstLookupSearchMode::Strict && constant->is_private()) {
                   if (search_parent && search_parent != GlobalEnv::the()->Object())
-                      env->raise_name_error(name, "private constant {}::{} referenced", search_parent->inspect_str(), name->string());
+                      env->raise_name_error(name, "private constant {}::{} referenced", search_parent->inspect_module(), name->string());
                   else
                       env->raise_name_error(name, "private constant ::{} referenced", name->string());
               }
               if (constant->is_deprecated()) {
                   if (search_parent && search_parent != GlobalEnv::the()->Object())
-                      env->deprecation_warn("constant {}::{} is deprecated", search_parent->inspect_str(), name->string());
+                      env->deprecation_warn("constant {}::{} is deprecated", search_parent->inspect_module(), name->string());
                   else
                       env->deprecation_warn("constant ::{} is deprecated", name->string());
               }
@@ -259,7 +259,7 @@ Optional<Value> ModuleObject::handle_missing_constant(Env *env, Value name, Cons
         auto name_str = name.to_s(env);
         if (this == GlobalEnv::the()->Object())
             env->raise_name_error(name_str, "uninitialized constant {}", name_str->string());
-        env->raise_name_error(name_str, "uninitialized constant {}::{}", inspect_str(), name_str->string());
+        env->raise_name_error(name_str, "uninitialized constant {}::{}", inspect_module(), name_str->string());
     }
 
     return send(env, "const_missing"_s, { name });
@@ -446,7 +446,7 @@ Value ModuleObject::class_variable_get(Env *env, Value name) {
 
     auto val = cvar_get_maybe(env, name_sym);
     if (!val) {
-        env->raise_name_error(name_sym, "uninitialized class variable {} in {}", name_sym->string(), inspect_str());
+        env->raise_name_error(name_sym, "uninitialized class variable {} in {}", name_sym->string(), inspect_module());
     }
     return val.value();
 }
@@ -483,7 +483,7 @@ Value ModuleObject::remove_class_variable(Env *env, Value name) {
 
     auto val = cvar_get_maybe(env, name_sym);
     if (!val)
-        env->raise_name_error(name_sym, "uninitialized class variable {} in {}", name_sym->string(), inspect_str());
+        env->raise_name_error(name_sym, "uninitialized class variable {} in {}", name_sym->string(), inspect_module());
 
     m_class_vars.remove(name_sym);
 
@@ -597,9 +597,9 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, const 
 void ModuleObject::assert_method_defined(Env *env, SymbolObject *name, MethodInfo method_info) {
     if (!method_info.is_defined()) {
         if (type() == Type::Class)
-            env->raise_name_error(name, "undefined method `{}' for class `{}'", name->string(), inspect_str());
+            env->raise_name_error(name, "undefined method `{}' for class `{}'", name->string(), inspect_module());
         else
-            env->raise_name_error(name, "undefined method `{}' for module `{}'", name->string(), inspect_str());
+            env->raise_name_error(name, "undefined method `{}' for module `{}'", name->string(), inspect_module());
     }
 }
 
@@ -620,14 +620,14 @@ Value ModuleObject::public_instance_method(Env *env, Value name_value) {
         return new UnboundMethodObject { this, method_info.method() };
     case MethodVisibility::Protected:
         if (type() == Type::Class)
-            env->raise_name_error(name, "method `{}' for class `{}' is protected", name->string(), inspect_str());
+            env->raise_name_error(name, "method `{}' for class `{}' is protected", name->string(), inspect_module());
         else
-            env->raise_name_error(name, "method `{}' for module `{}' is protected", name->string(), inspect_str());
+            env->raise_name_error(name, "method `{}' for module `{}' is protected", name->string(), inspect_module());
     case MethodVisibility::Private:
         if (type() == Type::Class)
-            env->raise_name_error(name, "method `{}' for class `{}' is private", name->string(), inspect_str());
+            env->raise_name_error(name, "method `{}' for class `{}' is private", name->string(), inspect_module());
         else
-            env->raise_name_error(name, "method `{}' for module `{}' is private", name->string(), inspect_str());
+            env->raise_name_error(name, "method `{}' for module `{}' is private", name->string(), inspect_module());
     default:
         NAT_UNREACHABLE();
     }
@@ -734,10 +734,10 @@ bool ModuleObject::is_method_defined(Env *env, Value name_value) const {
     return !!find_method(env, name);
 }
 
-String ModuleObject::inspect_str() const {
+String ModuleObject::inspect_module() const {
     if (m_name) {
         if (owner() && owner() != GlobalEnv::the()->Object()) {
-            return String::format("{}::{}", owner()->inspect_str(), m_name.value());
+            return String::format("{}::{}", owner()->inspect_module(), m_name.value());
         } else {
             return String(m_name.value());
         }
@@ -746,18 +746,12 @@ String ModuleObject::inspect_str() const {
     } else if (type() == Type::Module && m_name) {
         return String(m_name.value());
     } else {
-        return String::format("#<{}:{}>", klass()->inspect_str(), pointer_id());
+        return String::format("#<{}:{}>", klass()->inspect_module(), pointer_id());
     }
 }
 
 Value ModuleObject::inspect(Env *env) const {
-    return new StringObject { inspect_str() };
-}
-
-String ModuleObject::dbg_inspect() const {
-    if (m_name)
-        return String::format("\"{}\"", m_name.value());
-    return Object::dbg_inspect();
+    return new StringObject { inspect_module() };
 }
 
 Value ModuleObject::name(Env *env) const {
@@ -779,7 +773,7 @@ Value ModuleObject::name(Env *env) const {
 
 String ModuleObject::backtrace_name() const {
     if (!m_name)
-        return inspect_str();
+        return inspect_module();
     return String::format("<module:{}>", m_name.value());
 }
 
@@ -910,14 +904,14 @@ Value ModuleObject::define_method(Env *env, Value name_value, Optional<Value> me
             } else if (method_value.is_unbound_method()) {
                 method = method_value.as_unbound_method()->method();
             } else {
-                env->raise("TypeError", "wrong argument type {} (expected Proc/Method/UnboundMethod)", method_value.klass()->inspect_str());
+                env->raise("TypeError", "wrong argument type {} (expected Proc/Method/UnboundMethod)", method_value.klass()->inspect_module());
             }
             ModuleObject *owner = method->owner();
             if (owner != this && owner->type() == Type::Class && !owner->is_subclass_of(this)) {
                 if (owner->as_class()->is_singleton())
                     env->raise("TypeError", "can't bind singleton method to a different class");
                 else
-                    env->raise("TypeError", "bind argument must be a subclass of {}", owner->inspect_str());
+                    env->raise("TypeError", "bind argument must be a subclass of {}", owner->inspect_module());
             }
             define_method(env, name, method->fn(), method->arity());
         }
@@ -1033,7 +1027,7 @@ Value ModuleObject::deprecate_constant(Env *env, Args &&args) {
         auto name = args[i].to_symbol(env, Value::Conversion::Strict);
         auto constant = m_constants.get(name);
         if (!constant)
-            env->raise_name_error(name, "constant {}::{} not defined", inspect_str(), name->string());
+            env->raise_name_error(name, "constant {}::{} not defined", inspect_module(), name->string());
         constant->set_deprecated(true);
     }
     return this;
@@ -1044,7 +1038,7 @@ Value ModuleObject::private_constant(Env *env, Args &&args) {
         auto name = args[i].to_symbol(env, Value::Conversion::Strict);
         auto constant = m_constants.get(name);
         if (!constant)
-            env->raise_name_error(name, "constant {}::{} not defined", inspect_str(), name->string());
+            env->raise_name_error(name, "constant {}::{} not defined", inspect_module(), name->string());
         constant->set_private(true);
     }
     return this;
@@ -1055,7 +1049,7 @@ Value ModuleObject::public_constant(Env *env, Args &&args) {
         auto name = args[i].to_symbol(env, Value::Conversion::Strict);
         auto constant = m_constants.get(name);
         if (!constant)
-            env->raise_name_error(name, "constant {}::{} not defined", inspect_str(), name->string());
+            env->raise_name_error(name, "constant {}::{} not defined", inspect_module(), name->string());
         constant->set_private(false);
     }
     return this;
@@ -1064,7 +1058,7 @@ Value ModuleObject::public_constant(Env *env, Args &&args) {
 bool ModuleObject::const_defined(Env *env, Value name_value, Optional<Value> inherited) {
     auto name = name_value.to_symbol(env, Value::Conversion::NullAllowed);
     if (!name) {
-        env->raise("TypeError", "no implicit conversion of {} to String", name_value.inspect_str(env));
+        env->raise("TypeError", "no implicit conversion of {} to String", name_value.inspected(env));
     }
     if (inherited && inherited.value().is_falsey()) {
         return !!m_constants.get(name);
@@ -1075,11 +1069,11 @@ bool ModuleObject::const_defined(Env *env, Value name_value, Optional<Value> inh
 Value ModuleObject::alias_method(Env *env, Value new_name_value, Value old_name_value) {
     auto new_name = new_name_value.to_symbol(env, Value::Conversion::NullAllowed);
     if (!new_name) {
-        env->raise("TypeError", "{} is not a symbol", new_name_value.inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol", new_name_value.inspected(env));
     }
     auto old_name = old_name_value.to_symbol(env, Value::Conversion::NullAllowed);
     if (!old_name) {
-        env->raise("TypeError", "{} is not a symbol", old_name_value.inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol", old_name_value.inspected(env));
     }
     make_method_alias(env, new_name, old_name);
     return new_name;
@@ -1090,7 +1084,7 @@ Value ModuleObject::remove_method(Env *env, Args &&args) {
         auto name = args[i].to_symbol(env, Value::Conversion::Strict);
         auto method = m_methods.get(name, env);
         if (!method)
-            env->raise_name_error(name, "method `{}' not defined in {}", name->string(), this->inspect_str());
+            env->raise_name_error(name, "method `{}' not defined in {}", name->string(), this->inspect_module());
         m_methods.remove(name, env);
     }
     return this;
@@ -1110,7 +1104,7 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
     if (name.is_string()) {
         name = name.as_string()->to_sym(env);
     } else if (!name.is_symbol()) {
-        env->raise("TypeError", "{} is not a symbol nor a string", name.inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol nor a string", name.inspected(env));
     }
 
     auto method_wrapper = [](Env *env, Value self, Args &&args, Block *block) -> Value {

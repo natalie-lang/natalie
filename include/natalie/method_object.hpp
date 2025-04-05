@@ -26,9 +26,9 @@ public:
         auto the_owner = owner();
         auto name = m_method_missing_name ? m_method_missing_name->string() : m_method->name();
         if (the_owner->type() == Type::Class && static_cast<ClassObject *>(the_owner)->is_singleton())
-            return StringObject::format("#<Method: {}.{}(*)>", m_object.inspect_str(env), name);
+            return StringObject::format("#<Method: {}.{}(*)>", m_object.inspected(env), name);
         else
-            return StringObject::format("#<Method: {}#{}(*)>", owner()->inspect_str(), name);
+            return StringObject::format("#<Method: {}#{}(*)>", owner()->inspect_module(), name);
     }
 
     virtual ProcObject *to_proc(Env *env) override {
@@ -49,8 +49,8 @@ public:
         visitor.visit(m_method_missing_name);
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<MethodObject %p method=", this);
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<MethodObject {h} method={}>", this, m_object.dbg_inspect(indent));
     }
 
 private:

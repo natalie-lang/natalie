@@ -33,7 +33,7 @@ Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
             // I'm not sure how we should handle those though (coerce via to_int or to_f?)
             if (min.is_numeric() && max.is_numeric()) {
                 if (min.send(env, ">"_s, { max }).is_true()) {
-                    env->raise("ArgumentError", "invalid argument - {}", arg.inspect_str(env));
+                    env->raise("ArgumentError", "invalid argument - {}", arg.inspected(env));
                 }
 
                 if (min.is_float() || max.is_float()) {
@@ -69,7 +69,7 @@ Value SecureRandom_random_number(Env *env, Value self, Args &&args, Block *) {
 
         auto Numeric = GlobalEnv::the()->Object()->const_fetch("Numeric"_s);
         if (!arg.is_a(env, Numeric))
-            env->raise("ArgumentError", "No implicit conversion of {} into Integer", arg.klass()->inspect_str());
+            env->raise("ArgumentError", "No implicit conversion of {} into Integer", arg.klass()->inspect_module());
 
         if (!arg.is_integer() && arg.respond_to(env, "to_int"_s))
             arg = arg.to_int(env);

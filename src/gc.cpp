@@ -227,18 +227,20 @@ size_t Heap::total_allocations() const {
     return count;
 }
 
-void Heap::dump() const {
+void Heap::dump(bool only_large) const {
     nat_int_t allocation_count = 0;
     for (auto allocator : m_allocators) {
         for (auto block_pair : *allocator) {
             auto *block = block_pair.first;
             for (auto cell : *block) {
-                cell->gc_print();
+                if (only_large && !cell->is_large())
+                    continue;
+                fprintf(stderr, "%s\n", cell->dbg_inspect().c_str());
                 allocation_count++;
             }
         }
     }
-    printf("Total allocations: %lld\n", allocation_count);
+    fprintf(stderr, "Total allocations: %lld\n", allocation_count);
 }
 
 NO_SANITIZE_ADDRESS void Heap::scan_memory(Cell::Visitor &visitor, void *start, void *end) {

@@ -61,11 +61,8 @@ public:
 
     virtual String backtrace_name() const override final;
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        if (m_name)
-            snprintf(buf, len, "<ClassObject %p name=%s>", this, m_name.value().c_str());
-        else
-            snprintf(buf, len, "<ClassObject %p name=(none)>", this);
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<ClassObject {h} name=\"{}\">", this, m_name.value_or("none"));
     }
 
 private:

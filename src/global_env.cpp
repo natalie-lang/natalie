@@ -112,9 +112,9 @@ void GlobalEnv::global_set_write_hook(Env *env, SymbolObject *name, GlobalVariab
 
     auto info = m_global_variables.get(name, env);
     if (!info)
-        env->raise("ScriptError", "Trying to add a write hook to undefined global variable {}", name->inspect_str(env));
+        env->raise("ScriptError", "Trying to add a write hook to undefined global variable {}", name->inspected(env));
     if (info->is_readonly())
-        env->raise("ScriptError", "Trying to add a write hook to readonly global variable {}", name->inspect_str(env));
+        env->raise("ScriptError", "Trying to add a write hook to readonly global variable {}", name->inspected(env));
     info->set_write_hook(write_hook);
 }
 

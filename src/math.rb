@@ -175,8 +175,8 @@ module Math
           value = KernelModule::Float(env, x).as_float();
       } catch (ExceptionObject *exception) {
           ClassObject *klass = exception->klass();
-          if (klass->inspect_str() == "ArgumentError") {
-              env->raise("TypeError", "can't convert {} into Float", x.klass()->inspect_str());
+          if (klass->inspect_module() == "ArgumentError") {
+              env->raise("TypeError", "can't convert {} into Float", x.klass()->inspect_module());
           } else {
               env->raise_exception(exception);
           }
@@ -242,8 +242,8 @@ module Math
           value = KernelModule::Float(env, x).as_float();
       } catch (ExceptionObject *exception) {
           ClassObject *klass = exception->klass();
-          if (klass->inspect_str() == "ArgumentError") {
-              env->raise("TypeError", "can't convert {} into Float", x.klass()->inspect_str());
+          if (klass->inspect_module() == "ArgumentError") {
+              env->raise("TypeError", "can't convert {} into Float", x.klass()->inspect_module());
           } else {
               env->raise_exception(exception);
           }
