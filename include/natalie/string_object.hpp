@@ -33,6 +33,12 @@ public:
         Symbol,
     };
 
+    enum class Validity {
+        Unknown,
+        Valid,
+        Invalid,
+    };
+
     StringObject(ClassObject *klass)
         : Object { Object::Type::String, klass }
         , m_encoding { EncodingObject::get(Encoding::ASCII_8BIT) } {
@@ -175,7 +181,14 @@ public:
     void set_chilled(Chilled chilled) { m_chilled = chilled; }
     void unset_chilled() { m_chilled = Chilled::None; }
 
-    bool valid_encoding() const;
+    bool valid_encoding() const {
+        if (m_validity != Validity::Unknown)
+            return m_validity == Validity::Valid;
+        auto valid = check_valid_encoding();
+        m_validity = valid ? Validity::Valid : Validity::Invalid;
+        return valid;
+    }
+
     EncodingObject *encoding() const { return m_encoding.ptr(); }
     void set_encoding(EncodingObject *encoding) { m_encoding = encoding; }
     bool is_ascii_only() const;
@@ -528,6 +541,7 @@ private:
     StringObject *expand_backrefs(Env *, StringObject *, MatchDataObject *);
     void regexp_sub(Env *, TM::String &, StringObject *, RegexpObject *, Optional<Value>, MatchDataObject **, StringObject **, size_t = 0, Block *block = nullptr);
     nat_int_t unpack_offset(Env *, Optional<Value>) const;
+    bool check_valid_encoding() const;
 
     using Object::Object;
 
@@ -540,6 +554,7 @@ private:
     String m_string {};
     NonNullPtr<EncodingObject> m_encoding;
     Chilled m_chilled { Chilled::None };
+    mutable Validity m_validity { Validity::Unknown };
 };
 
 }
