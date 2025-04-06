@@ -99,7 +99,8 @@ public:
 
     StringObject(const StringObject &other)
         : Object { other }
-        , m_encoding { other.m_encoding } {
+        , m_encoding { other.m_encoding }
+        , m_validity { other.m_validity } {
         set_str(other.c_str(), other.length());
     }
 
