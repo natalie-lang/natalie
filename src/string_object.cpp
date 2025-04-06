@@ -3048,7 +3048,9 @@ Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
             }
             result = splitter->search(env, this, last_index, region, ONIG_OPTION_NONE);
         } while (result != ONIG_MISMATCH);
-        ary->push(new StringObject { &c_str()[last_index], bytesize() - last_index, m_encoding });
+        auto part = new StringObject { &c_str()[last_index], bytesize() - last_index, m_encoding };
+        part->force_validity(m_validity);
+        ary->push(part);
     }
     onig_region_free(region, true);
     return ary;

@@ -189,6 +189,10 @@ public:
         return valid;
     }
 
+    void force_validity(Validity validity) {
+        m_validity = validity;
+    }
+
     EncodingObject *encoding() const { return m_encoding.ptr(); }
     void set_encoding(EncodingObject *encoding) { m_encoding = encoding; }
     bool is_ascii_only() const;
