@@ -189,6 +189,16 @@ public:
         return valid;
     }
 
+    void update_validity(StringObject *other) {
+        if (m_validity == Validity::Valid)
+            m_validity = other->valid_encoding() ? Validity::Valid : Validity::Invalid;
+        else
+            // NOTE: Here we assume that it's *possible* for two invalid strings
+            // to be combined in a way that produces a valid string.
+            // I'm not sure if that's really possible though!
+            m_validity = Validity::Unknown;
+    }
+
     void force_validity(Validity validity) {
         m_validity = validity;
     }

@@ -1051,7 +1051,6 @@ Value StringObject::cmp(Env *env, Value other) {
 
 Value StringObject::concat(Env *env, Args &&args) {
     assert_not_frozen(env);
-    m_validity = Validity::Unknown;
 
     StringObject *original = new StringObject(*this);
 
@@ -1091,6 +1090,7 @@ Value StringObject::concat(Env *env, Args &&args) {
         }
 
         assert_compatible_string_and_update_encoding(env, str_obj);
+        update_validity(str_obj);
 
         append(str_obj->string());
     }
@@ -4010,7 +4010,6 @@ void StringObject::append(const SymbolObject *sym) {
 }
 
 void StringObject::append(Value val) {
-    m_validity = Validity::Unknown;
     if (val.is_integer()) {
         append(val.integer().to_string());
         return;
@@ -4030,9 +4029,12 @@ void StringObject::append(Value val) {
     case Type::Nil:
         append("nil");
         break;
-    case Type::String:
+    case Type::String: {
+        auto str = val.as_string();
+        update_validity(str);
         append(val.as_string());
         break;
+    }
     case Type::Symbol:
         append(val.as_symbol());
         break;
@@ -4212,8 +4214,7 @@ Value StringObject::delete_prefix(Env *env, Value val) {
         return after_delete;
     }
 
-    StringObject *copy = duplicate(env).as_string();
-    return copy;
+    return duplicate(env);
 }
 
 Value StringObject::delete_prefix_in_place(Env *env, Value val) {
