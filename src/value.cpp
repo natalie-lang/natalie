@@ -194,8 +194,8 @@ bool Value::is_integer() const {
         return true;
     if (!is_pointer())
         return false;
-    auto ptr = reinterpret_cast<Object *>(m_value);
-    return ptr != 0x0 && reinterpret_cast<Object *>(ptr)->type() == ObjectType::BigInt;
+    auto ptr = pointer();
+    return ptr != 0x0 && ptr->type() == ObjectType::BigInt;
 }
 
 bool Value::is_frozen() const {
