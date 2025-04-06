@@ -78,6 +78,20 @@ public:
         return next_char(string, &index).first;
     }
 
+    // NOTE: This is a naiive and wasteful fallback; we should override this
+    // in each encoding where a more efficient approach is possible.
+    virtual bool check_string_valid_in_encoding(const String &string) const {
+        size_t index = 0;
+        for (;;) {
+            auto [valid, length, codepoint] = next_codepoint(string, &index);
+            if (!valid)
+                return false;
+            if (length == 0)
+                break;
+        }
+        return true;
+    }
+
     virtual StringView next_grapheme_cluster(const String &str, size_t *index) const {
         auto [_valid, view] = next_char(str, index);
         return view;

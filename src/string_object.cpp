@@ -3879,18 +3879,6 @@ Value StringObject::reverse_in_place(Env *env) {
     return this;
 }
 
-bool StringObject::check_valid_encoding() const {
-    size_t index = 0;
-    std::pair<bool, StringView> pair;
-    do {
-        pair = m_encoding->next_char(m_string, &index);
-        if (!pair.first) {
-            return false;
-        }
-    } while (!pair.second.is_empty());
-    return true;
-}
-
 bool StringObject::is_ascii_only() const {
     if (!m_encoding->is_ascii_compatible())
         return false;

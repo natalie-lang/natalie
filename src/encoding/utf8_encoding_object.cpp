@@ -295,4 +295,5 @@ nat_int_t Utf8EncodingObject::decode_codepoint(StringView &str) const {
         return -1;
     }
 }
+
 }

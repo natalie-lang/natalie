@@ -545,7 +545,10 @@ private:
     StringObject *expand_backrefs(Env *, StringObject *, MatchDataObject *);
     void regexp_sub(Env *, TM::String &, StringObject *, RegexpObject *, Optional<Value>, MatchDataObject **, StringObject **, size_t = 0, Block *block = nullptr);
     nat_int_t unpack_offset(Env *, Optional<Value>) const;
-    bool check_valid_encoding() const;
+
+    bool check_valid_encoding() const {
+        return m_encoding->check_string_valid_in_encoding(m_string);
+    }
 
     using Object::Object;
 
