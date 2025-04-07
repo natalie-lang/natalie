@@ -305,7 +305,13 @@ Value HashObject::inspect(Env *env) {
 
         for (HashKey &node : *this) {
             if (node.key.is_symbol()) {
-                StringObject *key_repr = node.key.as_symbol()->to_s(env);
+                SymbolObject *key = node.key.as_symbol();
+                StringObject *key_repr = nullptr;
+                if (key->should_be_quoted()) {
+                    key_repr = key->inspect(env)->delete_prefix(env, new StringObject { ":" }).as_string();
+                } else {
+                    key_repr = key->to_s(env);
+                }
                 out->append(key_repr);
                 out->append(": ");
             } else {
