@@ -874,8 +874,8 @@ public:
      * assert_str_eq("ooo", str);
      * ```
      */
-    void append_char(const char c, int count) {
-        for (int i = 0; i < count; i++)
+    void append_char(const char c, size_t count) {
+        for (size_t i = 0; i < count; i++)
             append_char(c);
     }
 
