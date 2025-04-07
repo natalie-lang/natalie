@@ -1,4 +1,6 @@
 class StringScanner
+  Version = '3.1.3'
+
   class Error < StandardError
   end
 
