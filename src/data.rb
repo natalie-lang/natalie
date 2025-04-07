@@ -53,6 +53,10 @@ class Data
         self.class == other.class && to_h == other.to_h
       end
 
+      define_method(:deconstruct) do
+        members.map { public_send(it) }
+      end
+
       define_singleton_method(:[]) { |*args, **kwargs| new(*args, **kwargs) }
 
       define_singleton_method(:members) { members }
