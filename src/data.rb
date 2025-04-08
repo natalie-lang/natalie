@@ -59,7 +59,8 @@ class Data
 
       define_singleton_method(:[]) { |*args, **kwargs| new(*args, **kwargs) }
 
-      define_singleton_method(:members) { members }
+      define_singleton_method(:members) { members.dup }
+      define_method(:members) { members.dup }
 
       instance_eval(&block) if block
     end
