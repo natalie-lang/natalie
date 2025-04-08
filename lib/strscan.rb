@@ -55,6 +55,10 @@ class StringScanner
     eos?
   end
 
+  def fixed_anchor?
+    @fixed_anchor
+  end
+
   def captures
     @match.captures if @matched
   end
