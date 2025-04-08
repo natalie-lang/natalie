@@ -67,7 +67,12 @@ NO_SANITIZE_ADDRESS void Heap::visit_roots(Cell::Visitor &visitor) {
 
 void Heap::collect() {
     // Only collect on the main thread for now.
-    if (!ThreadObject::current()->is_main()) return;
+    if (!ThreadObject::current()->is_main()) {
+#ifdef NAT_GC_PRINT_STATS
+        printf("GC::collect() called but not on main thread... m_free_cells=%zu m_total_cells=%zu (%zu pct)\n", m_free_cells, m_total_cells, m_free_cells * 100 / m_total_cells);
+#endif
+        return;
+    }
 
     std::lock_guard<std::recursive_mutex> gc_lock(g_gc_recursive_mutex);
 
@@ -131,22 +136,42 @@ void Heap::sweep() {
         if (is_profiled)
             NativeProfiler::the()->push(profiler_event->end_now());
     });
+
+#ifdef NAT_GC_PRINT_STATS
+    size_t live_objects = 0;
+    size_t live_objects_bytes = 0;
+    size_t dead_objects = 0;
+    size_t dead_objects_bytes = 0;
+#endif
+
     for (auto allocator : m_allocators) {
         for (auto block_pair : *allocator) {
             auto *block = block_pair.first;
             for (auto cell : *block) {
                 if (!cell->is_marked() && cell->is_collectible()) {
+#ifdef NAT_GC_PRINT_STATS
+                    dead_objects++;
+                    dead_objects_bytes += sizeof(*cell);
+#endif
                     bool had_free = block->has_free();
                     block->return_cell_to_free_list(cell);
                     if (!had_free) {
                         allocator->add_free_block(block);
                     }
                 } else {
+#ifdef NAT_GC_PRINT_STATS
+                    live_objects++;
+                    live_objects_bytes += sizeof(*cell);
+#endif
                     cell->unmark();
                 }
             }
         }
     }
+
+#ifdef NAT_GC_PRINT_STATS
+    printf("GC sweep complete. Live objects: %zu (%zu bytes); Dead objects: %zu (%zu bytes)\n", live_objects, live_objects_bytes, dead_objects, dead_objects_bytes);
+#endif
 }
 
 void *Heap::allocate(size_t size) {
