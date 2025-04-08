@@ -60,6 +60,7 @@ class Data
       define_singleton_method(:[]) { |*args, **kwargs| new(*args, **kwargs) }
 
       define_singleton_method(:members) { members }
+      define_method(:members) { members }
 
       instance_eval(&block) if block
     end
