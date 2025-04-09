@@ -29,7 +29,24 @@ class Data
       end
 
       define_method(:inspect) do
-        "#<data #{self.class}#{members.map { |member| " #{member}=#{public_send(member).inspect}" }.join(',')}>"
+        name = if self.class.to_s.start_with?('#')
+                 ''
+               else
+                 " #{self.class}"
+               end
+        if !Fiber[:__data_inspect_current]
+          Fiber.new(storage: { __data_inspect_current: [] }, &->() { inspect }).resume
+        elsif Fiber[:__data_inspect_current].include?(object_id)
+          "#<data#{name}:...>"
+        else
+          Fiber[:__data_inspect_current] << object_id
+          name = if self.class.to_s.start_with?('#')
+                   ''
+                 else
+                   " #{self.class}"
+                 end
+          "#<data#{name}#{members.map { |member| " #{member}=#{public_send(member).inspect}" }.join(',')}>"
+        end
       end
       alias_method :to_s, :inspect
 
