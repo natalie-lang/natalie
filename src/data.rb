@@ -74,6 +74,10 @@ class Data
         members.map { public_send(it) }
       end
 
+      define_method(:hash) do
+        super ^ self.class.hash
+      end
+
       define_singleton_method(:[]) { |*args, **kwargs| new(*args, **kwargs) }
 
       define_singleton_method(:members) { members.dup }
