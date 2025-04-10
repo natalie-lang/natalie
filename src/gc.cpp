@@ -155,9 +155,9 @@ void Heap::sweep() {
 #endif
                     bool had_free = block->has_free();
                     block->return_cell_to_free_list(cell);
-                    if (!had_free) {
+                    if (!had_free)
                         allocator->add_free_block(block);
-                    }
+                    m_free_cells++;
                 } else {
 #ifdef NAT_GC_PRINT_STATS
                     live_objects++;

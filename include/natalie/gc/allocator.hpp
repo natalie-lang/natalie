@@ -54,6 +54,7 @@ public:
 
     void add_free_block(HeapBlock *block) {
         m_free_blocks.push_back(block);
+        m_free_cells += block->free_count();
     }
 
     bool is_my_block(HeapBlock *candidate_block) {
