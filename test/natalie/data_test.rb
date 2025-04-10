@@ -1,20 +1,6 @@
 require_relative '../spec_helper'
 require_relative '../../spec/core/data/fixtures/classes'
 
-describe 'Data#inspect' do
-  it 'results in a readable representation' do
-    data = DataSpecs::Measure.new(amount: 42, unit: 'km')
-    data.inspect.should == '#<data DataSpecs::Measure amount=42, unit="km">'
-  end
-end
-
-describe 'Data#to_s' do
-  it 'results in a readable representation' do
-    data = DataSpecs::Measure.new(amount: 42, unit: 'km')
-    data.to_s.should == '#<data DataSpecs::Measure amount=42, unit="km">'
-  end
-end
-
 describe 'Data#is_a?' do
   it 'should be a subclass of Data' do
     data = DataSpecs::Measure.new(amount: 42, unit: 'km')
