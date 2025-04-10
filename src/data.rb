@@ -74,6 +74,29 @@ class Data
         members.map { public_send(it) }
       end
 
+      define_method(:deconstruct_keys) do |keys|
+        raise TypeError, "wrong argument type #{keys.class} (expected Array or nil)" if !keys.nil? && !keys.is_a?(Array)
+        keys = members if keys.nil?
+        next {} if keys.size > members.size
+        result = {}
+        keys.each do |key|
+          key_sym = if key.is_a?(Symbol)
+                      key
+                    elsif key.is_a?(String)
+                      key.to_sym
+                    elsif key.is_a?(Integer)
+                      members.fetch(key, nil)
+                    elsif key.respond_to?(:to_int)
+                      mebers.fetch(key.to_int, nil)
+                    else
+                      raise TypeError, "no implicit conversion of #{key.class} into Integer"
+                    end
+          break unless members.include?(key_sym)
+          result[key] = public_send(key_sym)
+        end
+        result
+      end
+
       define_method(:hash) do
         super ^ self.class.hash
       end

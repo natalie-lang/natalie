@@ -13,9 +13,11 @@ ruby_version_is "3.2" do
       klass = Data.define(:x, :y)
       d = klass.new(1, 2)
 
-      -> {
-        d.deconstruct_keys
-      }.should raise_error(ArgumentError, /wrong number of arguments \(given 0, expected 1\)/)
+      NATFIXME 'arity check in blocks', exception: SpecFailedException do
+        -> {
+          d.deconstruct_keys
+        }.should raise_error(ArgumentError, /wrong number of arguments \(given 0, expected 1\)/)
+      end
     end
 
     it "returns only specified keys" do
