@@ -16,4 +16,8 @@ void Constant::visit_children(Visitor &visitor) const {
     visitor.visit(m_autoload_path);
 }
 
+TM::String Constant::dbg_inspect(int) const {
+    return TM::String::format("<Constant {h} name={}>", this, m_name ? m_name->string() : "null");
+}
+
 }

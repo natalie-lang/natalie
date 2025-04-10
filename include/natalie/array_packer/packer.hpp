@@ -29,6 +29,10 @@ namespace ArrayPacker {
             visitor.visit(m_encoding);
         }
 
+        virtual TM::String dbg_inspect(int indent = 0) const override {
+            return TM::String::format("<ArrayPacker::Packer {h}>", this);
+        }
+
     private:
         template <typename Fn>
         void pack_with_loop(Env *env, Token token, Fn handler) {

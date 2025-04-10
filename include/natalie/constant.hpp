@@ -32,6 +32,8 @@ public:
 
     virtual void visit_children(Visitor &visitor) const override;
 
+    virtual TM::String dbg_inspect(int indent = 0) const override;
+
 private:
     SymbolObject *m_name;
     Optional<Value> m_value {};

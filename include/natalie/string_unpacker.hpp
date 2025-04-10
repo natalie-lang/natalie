@@ -28,6 +28,10 @@ public:
         visitor.visit(m_unpacked_array);
     }
 
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<StringUnpacker {h}>", this);
+    }
+
 private:
     void unpack_token(Env *env, Token &);
 

@@ -23,6 +23,10 @@ namespace ArrayPacker {
             visitor.visit(m_string_object);
         }
 
+        virtual TM::String dbg_inspect(int indent = 0) const override {
+            return TM::String::format("<ArrayPacker::StringHandler {h}>", this);
+        }
+
     private:
         void pack_with_loop(PackHandlerFn handler);
         void pack_a();

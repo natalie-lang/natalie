@@ -16,6 +16,10 @@ public:
 
     virtual void visit_children(Visitor &visitor) const override;
 
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<ThrowCatchException {h}>", this);
+    }
+
 private:
     Value m_name {};
     Optional<Value> m_value {};
