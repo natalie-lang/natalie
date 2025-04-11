@@ -116,6 +116,9 @@ public:
 
     void set_interned_strings(StringObject **, size_t);
 
+    int method_cache_version() const { return m_method_cache_version; }
+    void increment_method_cache_version() { m_method_cache_version++; }
+
     friend class SymbolObject;
 
     virtual void visit_children(Visitor &visitor) const override final;
@@ -157,6 +160,8 @@ private:
     MethodMissingReason m_method_missing_reason { MethodMissingReason::Undefined };
 
     Vector<InstanceEvalContext> m_instance_eval_contexts {};
+
+    int m_method_cache_version { 0 };
 
     bool m_rescued { false };
     bool m_verbose { false };
