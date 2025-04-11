@@ -15,6 +15,7 @@ class StringScanner
   end
 
   attr_reader :string, :matched, :pos
+  alias charpos pos
 
   def inspect
     if @pos >= @string.size
