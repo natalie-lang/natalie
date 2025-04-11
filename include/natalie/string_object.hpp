@@ -33,6 +33,12 @@ public:
         Symbol,
     };
 
+    enum class Validity {
+        Unknown,
+        Valid,
+        Invalid,
+    };
+
     StringObject(ClassObject *klass)
         : Object { Object::Type::String, klass }
         , m_encoding { EncodingObject::get(Encoding::ASCII_8BIT) } {
@@ -93,7 +99,8 @@ public:
 
     StringObject(const StringObject &other)
         : Object { other }
-        , m_encoding { other.m_encoding } {
+        , m_encoding { other.m_encoding }
+        , m_validity { other.m_validity } {
         set_str(other.c_str(), other.length());
     }
 
@@ -175,7 +182,28 @@ public:
     void set_chilled(Chilled chilled) { m_chilled = chilled; }
     void unset_chilled() { m_chilled = Chilled::None; }
 
-    bool valid_encoding() const;
+    bool valid_encoding() const {
+        if (m_validity != Validity::Unknown)
+            return m_validity == Validity::Valid;
+        auto valid = check_valid_encoding();
+        m_validity = valid ? Validity::Valid : Validity::Invalid;
+        return valid;
+    }
+
+    void update_validity(StringObject *other) {
+        if (m_validity == Validity::Valid)
+            m_validity = other->valid_encoding() ? Validity::Valid : Validity::Invalid;
+        else
+            // NOTE: Here we assume that it's *possible* for two invalid strings
+            // to be combined in a way that produces a valid string.
+            // I'm not sure if that's really possible though!
+            m_validity = Validity::Unknown;
+    }
+
+    void force_validity(Validity validity) {
+        m_validity = validity;
+    }
+
     EncodingObject *encoding() const { return m_encoding.ptr(); }
     void set_encoding(EncodingObject *encoding) { m_encoding = encoding; }
     bool is_ascii_only() const;
@@ -529,6 +557,10 @@ private:
     void regexp_sub(Env *, TM::String &, StringObject *, RegexpObject *, Optional<Value>, MatchDataObject **, StringObject **, size_t = 0, Block *block = nullptr);
     nat_int_t unpack_offset(Env *, Optional<Value>) const;
 
+    bool check_valid_encoding() const {
+        return m_encoding->check_string_valid_in_encoding(m_string);
+    }
+
     using Object::Object;
 
     using EncodeOptions = EncodingObject::EncodeOptions;
@@ -540,6 +572,7 @@ private:
     String m_string {};
     NonNullPtr<EncodingObject> m_encoding;
     Chilled m_chilled { Chilled::None };
+    mutable Validity m_validity { Validity::Unknown };
 };
 
 }

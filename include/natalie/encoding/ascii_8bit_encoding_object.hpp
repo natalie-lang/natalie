@@ -35,6 +35,8 @@ public:
     virtual bool is_ascii_compatible() const override { return true; };
 
     virtual bool is_single_byte_encoding() const override final { return true; }
+
+    virtual bool check_string_valid_in_encoding(const String &string) const override { return true; }
 };
 
 }

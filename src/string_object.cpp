@@ -970,6 +970,7 @@ Value StringObject::add(Env *env, Value arg) const {
 
 Value StringObject::append_as_bytes(Env *env, Args &&args) {
     assert_not_frozen(env);
+    m_validity = Validity::Unknown;
     String buf;
     for (size_t i = 0; i < args.size(); i++) {
         auto arg = args[i];
@@ -1089,6 +1090,7 @@ Value StringObject::concat(Env *env, Args &&args) {
         }
 
         assert_compatible_string_and_update_encoding(env, str_obj);
+        update_validity(str_obj);
 
         append(str_obj->string());
     }
@@ -1338,6 +1340,7 @@ Value StringObject::scan(Env *env, Value pattern, Block *block) {
 
 Value StringObject::setbyte(Env *env, Value index_obj, Value value_obj) {
     assert_not_frozen(env);
+    m_validity = Validity::Unknown;
 
     nat_int_t index = IntegerMethods::convert_to_nat_int_t(env, index_obj);
     nat_int_t value = IntegerMethods::convert_to_nat_int_t(env, value_obj);
@@ -1449,6 +1452,7 @@ Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, 
 
 Value StringObject::force_encoding(Env *env, Value encoding) {
     assert_not_frozen(env);
+    m_validity = Validity::Unknown;
     set_encoding(EncodingObject::find_encoding(env, encoding));
     return this;
 }
@@ -1898,6 +1902,7 @@ Value StringObject::byteslice(Env *env, Value index_obj, Optional<Value> length_
  */
 Value StringObject::bytesplice(Env *env, Args &&args) {
     assert_not_frozen(env);
+    m_validity = Validity::Unknown;
 
     nat_int_t m_length = static_cast<nat_int_t>(length());
     assert(m_length < NAT_INT_MAX); // not sure how we'd handle a string that big anyway
@@ -2323,6 +2328,13 @@ Value StringObject::ref_fast_range(Env *env, size_t begin, size_t end) const {
 }
 
 Value StringObject::ref_fast_range_endless(Env *env, size_t begin) const {
+    if (m_encoding->is_single_byte_encoding()) {
+        if (begin >= bytesize())
+            return Value::nil();
+        auto length = bytesize() - begin;
+        return new StringObject { m_string.substring(begin, length), m_encoding };
+    }
+
     size_t byte_index = 0;
     size_t char_index = 0;
     String result;
@@ -3036,7 +3048,9 @@ Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
             }
             result = splitter->search(env, this, last_index, region, ONIG_OPTION_NONE);
         } while (result != ONIG_MISMATCH);
-        ary->push(new StringObject { &c_str()[last_index], bytesize() - last_index, m_encoding });
+        auto part = new StringObject { &c_str()[last_index], bytesize() - last_index, m_encoding };
+        part->force_validity(m_validity);
+        ary->push(part);
     }
     onig_region_free(region, true);
     return ary;
@@ -3134,6 +3148,7 @@ Value StringObject::squeeze(Env *env, Args &&selectors) {
 
 Value StringObject::squeeze_in_place(Env *env, Args &&selectors) {
     assert_not_frozen(env);
+
     if (selectors.size() == 0)
         return squeeze_in_place_without_selectors(env);
 
@@ -3422,6 +3437,7 @@ Value StringObject::lstrip(Env *env) const {
 
 Value StringObject::lstrip_in_place(Env *env) {
     assert_not_frozen(env);
+
     if (length() == 0)
         return Value::nil();
 
@@ -3478,9 +3494,8 @@ Value StringObject::rstrip(Env *env) const {
     if (length() == 0)
         return new StringObject { "", m_encoding };
 
-    if (!valid_encoding()) {
+    if (!valid_encoding())
         env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s).value().as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
-    }
 
     assert(length() < NAT_INT_MAX);
     nat_int_t last_char;
@@ -3500,6 +3515,7 @@ Value StringObject::rstrip(Env *env) const {
 
 Value StringObject::rstrip_in_place(Env *env) {
     assert_not_frozen(env);
+
     if (length() == 0)
         return Value::nil();
 
@@ -3619,8 +3635,9 @@ StringObject *StringObject::capitalize(Env *env, Optional<Value> arg1, Optional<
 }
 
 Value StringObject::capitalize_in_place(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
-    auto copy = capitalize(env, arg1, arg2);
     assert_not_frozen(env);
+
+    auto copy = capitalize(env, arg1, arg2);
     if (*this == *copy) {
         return Value::nil();
     }
@@ -3659,6 +3676,7 @@ StringObject *StringObject::downcase(Env *env, Optional<Value> arg1, Optional<Va
 
 Value StringObject::downcase_in_place(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     assert_not_frozen(env);
+
     StringObject *copy = duplicate(env).as_string();
     *this = *downcase(env, arg1, arg2);
 
@@ -3746,6 +3764,7 @@ StringObject *StringObject::upcase(Env *env, Optional<Value> arg1, Optional<Valu
 
 Value StringObject::upcase_in_place(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     assert_not_frozen(env);
+
     StringObject *copy = duplicate(env).as_string();
     *this = *upcase(env, arg1, arg2);
 
@@ -3780,6 +3799,7 @@ StringObject *StringObject::swapcase(Env *env, Optional<Value> arg1, Optional<Va
 
 Value StringObject::swapcase_in_place(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     assert_not_frozen(env);
+
     StringObject *copy = duplicate(env).as_string();
     *this = *swapcase(env, arg1, arg2);
     if (*this == *copy) {
@@ -3857,17 +3877,6 @@ Value StringObject::reverse_in_place(Env *env) {
     this->assert_not_frozen(env);
     *this = *reverse(env).as_string();
     return this;
-}
-
-bool StringObject::valid_encoding() const {
-    size_t index = 0;
-    std::pair<bool, StringView> pair;
-    do {
-        pair = m_encoding->next_char(m_string, &index);
-        if (!pair.first)
-            return false;
-    } while (!pair.second.is_empty());
-    return true;
 }
 
 bool StringObject::is_ascii_only() const {
@@ -4020,9 +4029,12 @@ void StringObject::append(Value val) {
     case Type::Nil:
         append("nil");
         break;
-    case Type::String:
+    case Type::String: {
+        auto str = val.as_string();
+        update_validity(str);
         append(val.as_string());
         break;
+    }
     case Type::Symbol:
         append(val.as_symbol());
         break;
@@ -4202,12 +4214,12 @@ Value StringObject::delete_prefix(Env *env, Value val) {
         return after_delete;
     }
 
-    StringObject *copy = duplicate(env).as_string();
-    return copy;
+    return duplicate(env);
 }
 
 Value StringObject::delete_prefix_in_place(Env *env, Value val) {
     assert_not_frozen(env);
+
     StringObject *copy = duplicate(env).as_string();
     *this = *delete_prefix(env, val).as_string();
 
@@ -4243,9 +4255,8 @@ Value StringObject::delete_suffix_in_place(Env *env, Value val) {
 }
 
 Value StringObject::chop(Env *env) const {
-    if (this->is_empty()) {
+    if (this->is_empty())
         return new StringObject { "", m_encoding };
-    }
 
     auto new_str = new StringObject { m_string, m_encoding };
     new_str->chop_in_place(env);

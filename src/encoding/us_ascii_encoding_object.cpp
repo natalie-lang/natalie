@@ -1,3 +1,4 @@
+#include "natalie/encoding/us_ascii_encoding_object.hpp"
 #include "natalie.hpp"
 
 namespace Natalie {
@@ -53,6 +54,15 @@ nat_int_t UsAsciiEncodingObject::decode_codepoint(StringView &str) const {
     default:
         return -1;
     }
+}
+
+bool UsAsciiEncodingObject::check_string_valid_in_encoding(const String &string) const {
+    for (size_t i = 0; i < string.size(); i++) {
+        unsigned char codepoint = string[i];
+        if (!valid_codepoint(codepoint))
+            return false;
+    }
+    return true;
 }
 
 }
