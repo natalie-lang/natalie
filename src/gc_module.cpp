@@ -16,4 +16,9 @@ bool GCModule::enable() {
     return true;
 }
 
+Value GCModule::dump() {
+    Heap::the().dump();
+    return Value::nil();
+}
+
 }

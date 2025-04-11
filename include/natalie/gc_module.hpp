@@ -10,6 +10,7 @@ class GCModule : public Object {
 public:
     static bool disable();
     static bool enable();
+    static Value dump();
 
     static Value start(Env *env) {
 #ifndef NAT_GC_DISABLE
