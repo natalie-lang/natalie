@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/global_env.hpp"
 #include "tm/owned_ptr.hpp"
 
 namespace Natalie {
@@ -512,6 +513,9 @@ SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, Block *b
 }
 
 SymbolObject *ModuleObject::undefine_method(Env *env, SymbolObject *name) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    GlobalEnv::the()->increment_method_cache_version();
     m_methods.put(name, MethodInfo(MethodVisibility::Public), env);
     return name;
 }
@@ -541,25 +545,38 @@ void ModuleObject::methods(Env *env, ArrayObject *array, bool include_super) {
 void ModuleObject::define_method(Env *env, SymbolObject *name, Method *method, MethodVisibility visibility) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
+    GlobalEnv::the()->increment_method_cache_version();
     m_methods.put(name, MethodInfo(visibility, method), env);
 }
 
 // returns the method and sets matching_class_or_module to where the method was found
-MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObject **matching_class_or_module, const Method **after_method) const {
+MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObject **matching_class_or_module, const Method **after_method) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     MethodInfo method_info;
+    if (!after_method && m_method_cache_version == GlobalEnv::the()->method_cache_version()) {
+        method_info = m_method_cache.get(method_name, env);
+        if (method_info)
+            return method_info;
+    }
+
     if (m_included_modules.is_empty()) {
         // no included modules, just search the class/module
         // note: if there are included modules, then the module chain will include this class/module
         method_info = m_methods.get(method_name, env);
         if (method_info) {
-            if (!method_info.is_defined()) return method_info;
+            if (!method_info.is_defined()) {
+                if (!after_method)
+                    cache_method(method_name, method_info, env);
+                return method_info;
+            }
             auto method = method_info.method();
             if (after_method != nullptr && method == *after_method) {
                 *after_method = nullptr;
             } else if (after_method == nullptr || *after_method == nullptr) {
                 if (matching_class_or_module) *matching_class_or_module = m_klass;
+                if (!after_method)
+                    cache_method(method_name, method_info, env);
                 return method_info;
             }
         }
@@ -572,25 +589,33 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Module
             method_info = module->find_method(env, method_name, matching_class_or_module, after_method);
         }
         if (method_info) {
-            if (!method_info.is_defined()) return method_info;
+            if (!method_info.is_defined()) {
+                if (!after_method)
+                    cache_method(method_name, method_info, env);
+                return method_info;
+            }
             auto method = method_info.method();
             if (after_method != nullptr && method == *after_method) {
                 *after_method = nullptr;
             } else if (after_method == nullptr || *after_method == nullptr) {
                 if (matching_class_or_module) *matching_class_or_module = module;
+                if (!after_method)
+                    cache_method(method_name, method_info, env);
                 return method_info;
             }
         }
     }
 
-    if (m_superclass) {
-        return m_superclass->find_method(env, method_name, matching_class_or_module, after_method);
-    } else {
+    if (!m_superclass)
         return {};
-    }
+
+    method_info = m_superclass->find_method(env, method_name, matching_class_or_module, after_method);
+    if (!after_method)
+        cache_method(method_name, method_info, env);
+    return method_info;
 }
 
-MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, const Method *after_method) const {
+MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, const Method *after_method) {
     return find_method(env, method_name, nullptr, &after_method);
 }
 
@@ -729,7 +754,7 @@ bool ModuleObject::is_subclass_of(ModuleObject *other) {
     return false;
 }
 
-bool ModuleObject::is_method_defined(Env *env, Value name_value) const {
+bool ModuleObject::is_method_defined(Env *env, Value name_value) {
     auto name = name_value.to_symbol(env, Value::Conversion::Strict);
     return !!find_method(env, name);
 }
@@ -996,9 +1021,12 @@ void ModuleObject::set_method_visibility(Env *env, Args &&args, MethodVisibility
 }
 
 void ModuleObject::set_method_visibility(Env *env, SymbolObject *name, MethodVisibility visibility) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
     ModuleObject *matching_class_or_module = nullptr;
     auto method_info = find_method(env, name, &matching_class_or_module);
     assert_method_defined(env, name, method_info);
+    GlobalEnv::the()->increment_method_cache_version();
     m_methods.put(name, MethodInfo(visibility, method_info.method()));
 }
 
@@ -1008,11 +1036,13 @@ Value ModuleObject::module_function(Env *env, Args &&args) {
 
     if (args.size() > 0) {
         for (size_t i = 0; i < args.size(); ++i) {
+            std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
             auto name = args[i].to_symbol(env, Value::Conversion::Strict);
             auto method_info = find_method(env, name);
             assert_method_defined(env, name, method_info);
             auto method = method_info.method();
             Object::define_singleton_method(env, this, name, method->fn(), method->arity());
+            GlobalEnv::the()->increment_method_cache_version();
             m_methods.put(name, MethodInfo(MethodVisibility::Private, method));
         }
     } else {
@@ -1085,6 +1115,7 @@ Value ModuleObject::remove_method(Env *env, Args &&args) {
         auto method = m_methods.get(name, env);
         if (!method)
             env->raise_name_error(name, "method `{}' not defined in {}", name->string(), this->inspect_module());
+        GlobalEnv::the()->increment_method_cache_version();
         m_methods.remove(name, env);
     }
     return this;
@@ -1136,6 +1167,10 @@ void ModuleObject::visit_children(Visitor &visitor) const {
         visitor.visit(pair.first);
         pair.second.visit_children(visitor);
     }
+    for (auto pair : m_method_cache) {
+        visitor.visit(pair.first);
+        pair.second.visit_children(visitor);
+    }
     for (auto pair : m_class_vars) {
         visitor.visit(pair.first);
         if (pair.second)
@@ -1144,6 +1179,15 @@ void ModuleObject::visit_children(Visitor &visitor) const {
     for (auto module : m_included_modules) {
         visitor.visit(module);
     }
+}
+
+void ModuleObject::cache_method(SymbolObject *method_name, MethodInfo method_info, Env *env) {
+    if (m_method_cache_version != GlobalEnv::the()->method_cache_version()) {
+        m_method_cache.clear();
+        m_method_cache_version = GlobalEnv::the()->method_cache_version();
+    }
+
+    m_method_cache.put(method_name, method_info, env);
 }
 
 }

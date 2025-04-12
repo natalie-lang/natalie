@@ -714,7 +714,6 @@ public:
      */
     void set_size(size_t new_size) {
         assert(new_size <= m_size);
-        grow(new_size);
         m_size = new_size;
     }
 
