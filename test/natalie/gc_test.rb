@@ -36,7 +36,7 @@ describe 'GC' do
       $gc_ran.should == false
 
       GC.disable
-      10_000.times { Object.new }
+      100_000.times { Object.new }
       $gc_ran.should == false
 
       GC.enable
