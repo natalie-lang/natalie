@@ -243,6 +243,11 @@ class StringScanner
     @string[@pos..]
   end
 
+  def named_captures
+    return {} unless @match
+    @match.named_captures
+  end
+
   def matched?
     !!@matched
   end
