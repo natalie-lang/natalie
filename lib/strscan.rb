@@ -248,6 +248,10 @@ class StringScanner
     @match.named_captures
   end
 
+  def values_at(...)
+    @match&.values_at(...)
+  end
+
   def matched?
     !!@matched
   end
