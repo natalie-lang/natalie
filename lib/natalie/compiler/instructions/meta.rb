@@ -9,6 +9,8 @@ module Natalie
       AnonymousKeywordSplatSetInstruction,
       AnonymousSplatGetInstruction,
       AnonymousSplatSetInstruction,
+      ArgsPopInstruction,
+      ArgsShiftInstruction,
       ArrayConcatInstruction,
       ArrayIsEmptyInstruction,
       ArrayPopInstruction,
