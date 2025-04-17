@@ -803,6 +803,7 @@ gen.binding('Float', 'zero?', 'FloatObject', 'is_zero', argc: 0, pass_env: false
 
 gen.static_binding_as_class_method('GC', 'enable', 'GCModule', 'enable', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.static_binding_as_class_method('GC', 'disable', 'GCModule', 'disable', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.static_binding_as_class_method('GC', 'dump', 'GCModule', 'dump', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.static_binding_as_class_method('GC', 'print_stats', 'GCModule', 'print_stats', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding_as_class_method('GC', 'start', 'GCModule', 'start', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 

@@ -26,6 +26,10 @@ struct HashKey : public Cell {
         visitor.visit(key);
         visitor.visit(val);
     }
+
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<HashKey {h} key={} val={}>", this, key.dbg_inspect(), val.dbg_inspect());
+    }
 };
 
 }

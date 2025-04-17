@@ -68,8 +68,8 @@ public:
 
     void return_cell_to_free_list(const Cell *cell);
 
+    size_t free_count() const { return m_free_count; }
     size_t total_count() const { return m_total_count; }
-
     size_t used_count() const { return m_total_count - m_free_count; }
 
     class iterator {

@@ -20,6 +20,10 @@ namespace ArrayPacker {
             visitor.visit(m_source);
         }
 
+        virtual TM::String dbg_inspect(int indent = 0) const override {
+            return TM::String::format("<ArrayPacker::FloatHandler {h}>", this);
+        }
+
     private:
         void pack_d();
         void pack_d_reverse();

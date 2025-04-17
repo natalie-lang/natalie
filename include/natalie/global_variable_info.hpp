@@ -27,6 +27,10 @@ public:
 
     virtual void visit_children(Visitor &visitor) const override final;
 
+    virtual TM::String dbg_inspect(int indent = 0) const override {
+        return TM::String::format("<GlobalVariableInfo {h} value={}>", this, m_value ? m_value.value().dbg_inspect() : "none");
+    }
+
 private:
     Optional<Value> m_value {};
     bool m_readonly;
