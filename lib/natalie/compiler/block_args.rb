@@ -1,6 +1,6 @@
 module Natalie
   class Compiler
-    class Args
+    class BlockArgs
       def initialize(node:, pass:, check_args:, local_only: true)
         @node = node
         @pass = pass
@@ -10,9 +10,15 @@ module Natalie
       end
 
       def transform
-        @instructions = []
-        return transform_simply if simple?
+        if @node.nil?
+          if @check_args
+            return [CheckArgsInstruction.new(positional: 0, keywords: [])]
+          else
+            return []
+          end
+        end
 
+        @instructions = []
         do_setup
         case @node
         when Prism::MultiTargetNode
@@ -54,31 +60,6 @@ module Natalie
 
       private
 
-      def simple?
-        return true if @node.nil?
-        return false unless @node.is_a?(Prism::ParametersNode)
-        return false if @node.requireds.any? { |arg| arg.type != :required_parameter_node }
-        if @node.optionals.any? || @node.posts.any? || @node.rest || @node.keywords.any? || @node.keyword_rest
-          return false
-        end
-        return false if @node.requireds.count { |a| a.type == :required_parameter_node && a.name == :_ } > 1
-
-        true
-      end
-
-      def transform_simply
-        args = @node&.requireds || []
-
-        @instructions << CheckArgsInstruction.new(positional: args.size, keywords: []) if @check_args
-
-        args.each_with_index do |arg, index|
-          @instructions << PushArgInstruction.new(index, nil_default: false)
-          @instructions << VariableSetInstruction.new(arg.name, local_only: @local_only)
-        end
-
-        @instructions
-      end
-
       def do_setup
         min_count = minimum_arg_count
         max_count = maximum_arg_count
@@ -92,7 +73,8 @@ module Natalie
 
         @instructions << CheckRequiredKeywordsInstruction.new(required_keywords) if required_keywords.any?
 
-        @instructions << PushArgsInstruction.new(for_block: false, min_count:, max_count:, spread: false)
+        spread = args_to_array.size > 1
+        @instructions << PushArgsInstruction.new(for_block: true, min_count:, max_count:, spread:)
       end
 
       def transform_required_arg(arg)
@@ -266,7 +248,7 @@ module Natalie
 
       def transform_splat_arg(arg)
         if arg.expression
-          unless arg.expression.type == :required_parameter_node
+          unless %i[local_variable_target_node required_parameter_node].include?(arg.expression.type)
             raise "I don't know how to splat #{arg.expression.inspect}"
           end
 
