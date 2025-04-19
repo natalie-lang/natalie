@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
+gem 'fiddle'
 gem 'minitest'
 gem 'minitest-reporters'
 gem 'rake'
