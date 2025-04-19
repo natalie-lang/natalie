@@ -33,9 +33,9 @@ public:
         : m_args_original_start_index { other.m_args_original_start_index }
         , m_args_start_index { other.m_args_start_index }
         , m_args_size { other.m_args_size }
-        , m_has_keyword_hash { other.m_has_keyword_hash } {
+        , m_keyword_hash_index { other.m_keyword_hash_index } {
         other.m_moved_out = true;
-        other.m_has_keyword_hash = false;
+        other.m_keyword_hash_index = -1;
     }
 
     ~Args() {
@@ -69,7 +69,7 @@ public:
 
     Value *data() const;
 
-    bool has_keyword_hash() const { return m_has_keyword_hash; }
+    bool has_keyword_hash() const { return m_keyword_hash_index != -1; }
     HashObject *keyword_hash() const;
     HashObject *pop_keyword_hash();
     void pop_empty_keyword_hash();
@@ -84,7 +84,7 @@ private:
     size_t m_args_original_start_index { tl_current_arg_stack->size() };
     size_t m_args_start_index { tl_current_arg_stack->size() };
     size_t m_args_size { 0 };
+    ssize_t m_keyword_hash_index { -1 };
     bool m_moved_out { false };
-    bool m_has_keyword_hash { false };
 };
 };

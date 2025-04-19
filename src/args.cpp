@@ -26,21 +26,21 @@ Optional<Value> Args::maybe_at(size_t index) const {
 
 Args::Args(size_t size, const Value *data, bool has_keyword_hash)
     : m_args_size { size }
-    , m_has_keyword_hash { has_keyword_hash } {
+    , m_keyword_hash_index { has_keyword_hash ? static_cast<ssize_t>(m_args_start_index) + static_cast<ssize_t>(m_args_size) - 1 : -1 } {
     for (size_t i = 0; i < size; i++)
         tl_current_arg_stack->push(data[i]);
 }
 
 Args::Args(const TM::Vector<Value> &vec, bool has_keyword_hash)
     : m_args_size { vec.size() }
-    , m_has_keyword_hash { has_keyword_hash } {
+    , m_keyword_hash_index { has_keyword_hash ? static_cast<ssize_t>(m_args_start_index) + static_cast<ssize_t>(m_args_size) - 1 : -1 } {
     for (auto arg : vec)
         tl_current_arg_stack->push(arg);
 }
 
 Args::Args(ArrayObject *array, bool has_keyword_hash)
     : m_args_size { array->size() }
-    , m_has_keyword_hash { has_keyword_hash } {
+    , m_keyword_hash_index { has_keyword_hash ? static_cast<ssize_t>(m_args_start_index) + static_cast<ssize_t>(m_args_size) - 1 : -1 } {
     for (Value arg : *array)
         tl_current_arg_stack->push(arg);
 }
@@ -49,14 +49,14 @@ Args::Args(std::initializer_list<Value> args, bool has_keyword_hash)
     : m_args_original_start_index { tl_current_arg_stack->size() }
     , m_args_start_index { tl_current_arg_stack->size() }
     , m_args_size { args.size() }
-    , m_has_keyword_hash { has_keyword_hash } {
+    , m_keyword_hash_index { has_keyword_hash ? static_cast<ssize_t>(m_args_start_index) + static_cast<ssize_t>(m_args_size) - 1 : -1 } {
     for (Value arg : args)
         tl_current_arg_stack->push(arg);
 }
 
 Args::Args(Args &other)
     : m_args_size { other.m_args_size }
-    , m_has_keyword_hash { other.m_has_keyword_hash } {
+    , m_keyword_hash_index { other.m_keyword_hash_index } {
     for (size_t i = 0; i < other.size(); i++)
         tl_current_arg_stack->push(other[i]);
 }
@@ -141,7 +141,7 @@ Value *Args::data() const {
 }
 
 HashObject *Args::keyword_hash() const {
-    if (!m_has_keyword_hash || m_args_size == 0)
+    if (!has_keyword_hash() || m_args_size == 0)
         return nullptr;
 
     auto hash = last();
@@ -157,12 +157,12 @@ HashObject *Args::pop_keyword_hash() {
         return nullptr;
 
     m_args_size--;
-    m_has_keyword_hash = false;
+    m_keyword_hash_index = -1;
     return hash;
 }
 
 void Args::pop_empty_keyword_hash() {
-    if (!m_has_keyword_hash)
+    if (!has_keyword_hash())
         return;
     auto hash = keyword_hash();
     if (hash && hash->is_empty())
