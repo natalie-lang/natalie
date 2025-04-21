@@ -25,5 +25,6 @@
 --ignore-files=lib/uri*
 --ignore-files=spec/*
 --ignore-files=test/support/version.rb*
+--ignore-files=test/support/spec_helpers/matchers/*
 
 --plugins=plugin/trailing_comma,plugin/single_quotes,plugin/disable_auto_ternary
