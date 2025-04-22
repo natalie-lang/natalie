@@ -61,64 +61,87 @@ Args::Args(Args &other)
         tl_current_arg_stack->push(other[i]);
 }
 
-Value Args::shift() {
-    auto value = first();
+Value Args::shift(Env *env, bool include_keyword_hash) {
+    if (has_keyword_hash()) {
+        if (include_keyword_hash && m_args_size == 1)
+            return pop_keyword_hash();
+        assert(m_args_size > 1);
+    } else {
+        assert(m_args_size > 0);
+    }
+    auto value = (*tl_current_arg_stack)[m_args_start_index];
     m_args_start_index++;
     m_args_size--;
     return value;
 }
 
-Value Args::pop() {
-    auto value = last();
+Value Args::pop(Env *env, bool include_keyword_hash) {
+    size_t index;
+    if (has_keyword_hash()) {
+        if (include_keyword_hash)
+            return pop_keyword_hash();
+        assert(m_args_size > 1);
+        index = m_args_start_index + m_args_size - 2;
+    } else {
+        assert(m_args_size > 0);
+        index = m_args_start_index + m_args_size - 1;
+    }
+    auto value = (*tl_current_arg_stack)[index];
     m_args_size--;
     return value;
 }
 
-Value Args::first() const {
-    assert(m_args_size > 0);
-    return (*tl_current_arg_stack)[m_args_start_index];
+ArrayObject *Args::to_array(bool include_keyword_hash) const {
+    return new ArrayObject { size(include_keyword_hash), tl_current_arg_stack->data() + m_args_start_index };
 }
 
-Value Args::last() const {
-    assert(m_args_size > 0);
-    return (*tl_current_arg_stack)[m_args_start_index + m_args_size - 1];
-}
-
-ArrayObject *Args::to_array() const {
-    return new ArrayObject { m_args_size, tl_current_arg_stack->data() + m_args_start_index };
-}
-
-ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread) const {
-    if (m_args_size == 1 && spread) {
+ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread, bool include_keyword_hash) const {
+    auto count = size(include_keyword_hash);
+    if (count == 1 && spread) {
         auto ary = to_ary(env, at(0), true)->duplicate(env).as_array();
-        ssize_t count = ary->size();
-        if (max_count != -1 && count > max_count)
+        ssize_t ary_count = ary->size();
+        if (max_count != -1 && ary_count > max_count)
             ary->truncate(max_count);
-        else if (count < min_count)
+        else if (ary_count < min_count)
             ary->fill(env, Value::nil(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);
         return ary;
     }
-    auto len = max_count >= 0 ? std::min(m_args_size, (size_t)max_count) : m_args_size;
+    auto len = max_count >= 0 ? std::min(count, (size_t)max_count) : count;
     auto ary = new ArrayObject { len, tl_current_arg_stack->data() + m_args_start_index };
-    ssize_t count = ary->size();
-    if (count < min_count)
+    ssize_t ary_count = ary->size();
+    if (ary_count < min_count)
         ary->fill(env, Value::nil(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);
     return ary;
 }
 
-void Args::ensure_argc_is(Env *env, size_t expected, std::initializer_list<const String> keywords) const {
-    if (m_args_size != expected)
-        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}{})", m_args_size, expected, argc_error_suffix(keywords));
+void Args::ensure_argc_is(Env *env, size_t expected, bool method_has_keywords, std::initializer_list<const String> keywords) const {
+    auto count = size(!method_has_keywords);
+    if (count != expected)
+        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}{})", count, expected, argc_error_suffix(keywords));
 }
 
-void Args::ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, std::initializer_list<const String> keywords) const {
-    if (m_args_size < expected_low || m_args_size > expected_high)
-        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}..{}{})", m_args_size, expected_low, expected_high, argc_error_suffix(keywords));
+void Args::ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, bool method_has_keywords, std::initializer_list<const String> keywords) const {
+    auto count = size(!method_has_keywords);
+    if (count < expected_low || count > expected_high) {
+        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}..{}{})", count, expected_low, expected_high, argc_error_suffix(keywords));
+    }
 }
 
-void Args::ensure_argc_at_least(Env *env, size_t expected, std::initializer_list<const String> keywords) const {
-    if (m_args_size < expected)
-        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}+{})", m_args_size, expected, argc_error_suffix(keywords));
+void Args::ensure_argc_at_least(Env *env, size_t expected, bool method_has_keywords, std::initializer_list<const String> keywords) const {
+    auto count = size(!method_has_keywords);
+    if (count < expected)
+        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}+{})", count, expected, argc_error_suffix(keywords));
+}
+
+void Args::ensure_no_missing_keywords(Env *env, std::initializer_list<const String> keywords) const {
+    auto hash = keyword_hash();
+    env->ensure_no_missing_keywords(hash, keywords);
+}
+
+void Args::ensure_no_extra_keywords(Env *env) const {
+    auto hash = keyword_hash();
+    if (hash)
+        env->ensure_no_extra_keywords(hash);
 }
 
 String Args::argc_error_suffix(std::initializer_list<const String> keywords) const {
@@ -144,11 +167,7 @@ HashObject *Args::keyword_hash() const {
     if (!has_keyword_hash() || m_args_size == 0)
         return nullptr;
 
-    auto hash = last();
-    if (!hash.is_hash())
-        return nullptr;
-
-    return hash.as_hash();
+    return (*tl_current_arg_stack)[m_keyword_hash_index].as_hash();
 }
 
 HashObject *Args::pop_keyword_hash() {
@@ -174,6 +193,13 @@ Value Args::keyword_arg(Env *env, SymbolObject *name) const {
     if (!hash)
         return Value::nil();
     return hash->get(env, name).value_or(Value::nil());
+}
+
+bool Args::keyword_arg_present(Env *env, SymbolObject *name) const {
+    auto hash = keyword_hash();
+    if (!hash)
+        return false;
+    return hash->get(env, name).present();
 }
 
 }

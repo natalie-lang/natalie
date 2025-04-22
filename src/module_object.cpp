@@ -808,7 +808,7 @@ ArrayObject *ModuleObject::attr(Env *env, Args &&args) {
     if (args.size() > 1 && args[size - 1].is_boolean()) {
         env->verbose_warn("optional boolean argument is obsoleted");
         accessor = args[size - 1].is_truthy();
-        args.pop();
+        args.pop(env);
     }
     if (accessor) {
         return attr_accessor(env, Args(args));

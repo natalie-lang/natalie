@@ -45,11 +45,8 @@ public:
 
     Args &operator=(const Args &other) = delete;
 
-    Value shift();
-    Value pop();
-
-    Value first() const;
-    Value last() const;
+    Value shift(Env *env, bool include_keyword_hash = true);
+    Value pop(Env *env, bool include_keyword_hash = true);
 
     Value operator[](size_t index) const;
 
@@ -57,15 +54,22 @@ public:
     Value at(size_t index, Value default_value) const;
     Optional<Value> maybe_at(size_t index) const;
 
-    ArrayObject *to_array() const;
-    ArrayObject *to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread) const;
+    ArrayObject *to_array(bool include_keyword_hash = true) const;
+    ArrayObject *to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread, bool include_keyword_hash = true) const;
 
-    void ensure_argc_is(Env *env, size_t expected, std::initializer_list<const String> keywords = {}) const;
-    void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, std::initializer_list<const String> keywords = {}) const;
-    void ensure_argc_at_least(Env *env, size_t expected, std::initializer_list<const String> keywords = {}) const;
+    void ensure_argc_is(Env *env, size_t expected, bool method_has_keywords = false, std::initializer_list<const String> keywords = {}) const;
+    void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, bool method_has_keywords = false, std::initializer_list<const String> keywords = {}) const;
+    void ensure_argc_at_least(Env *env, size_t expected, bool method_has_keywords = false, std::initializer_list<const String> keywords = {}) const;
+    void ensure_no_missing_keywords(Env *env, std::initializer_list<const String> keywords) const;
+    void ensure_no_extra_keywords(Env *env) const;
 
     size_t start_index() const { return m_args_start_index; }
-    size_t size() const { return m_args_size; }
+
+    size_t size(bool count_keyword_hash = true) const {
+        if (has_keyword_hash())
+            return count_keyword_hash ? m_args_size : m_args_size - 1;
+        return m_args_size;
+    }
 
     Value *data() const;
 
@@ -74,6 +78,7 @@ public:
     HashObject *pop_keyword_hash();
     void pop_empty_keyword_hash();
     Value keyword_arg(Env *, SymbolObject *) const;
+    bool keyword_arg_present(Env *, SymbolObject *) const;
 
 private:
     // Args cannot be heap-allocated, because the GC is not aware of it.

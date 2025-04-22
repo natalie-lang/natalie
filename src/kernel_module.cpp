@@ -750,7 +750,7 @@ Value KernelModule::spawn(Env *env, Args &&args) {
     });
 
     if (args.size() >= 1 && (args.at(0).is_hash() || args.at(0).respond_to(env, "to_hash"_s))) {
-        auto hash = args.shift().to_hash(env);
+        auto hash = args.shift(env).to_hash(env);
         for (auto ep = environ; *ep; ep++)
             new_env.push(strdup(*ep));
         for (auto pair : *hash) {
@@ -1109,7 +1109,7 @@ Value KernelModule::public_methods(Env *env, Value self, Optional<Value> recur) 
 }
 
 Value KernelModule::public_send(Env *env, Value self, Args &&args, Block *block) {
-    auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
+    auto name = args.shift(env).to_symbol(env, Value::Conversion::Strict);
     return self.public_send(env->caller(), name, std::move(args), block);
 }
 
@@ -1153,7 +1153,7 @@ bool KernelModule::respond_to_method(Env *env, Value self, Value name_val, bool 
 }
 
 Value KernelModule::send(Env *env, Value self, Args &&args, Block *block) {
-    auto name = args.shift().to_symbol(env, Value::Conversion::Strict);
+    auto name = args.shift(env).to_symbol(env, Value::Conversion::Strict);
     return self.send(env->caller(), name, std::move(args), block);
 }
 

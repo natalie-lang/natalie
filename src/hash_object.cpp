@@ -419,7 +419,7 @@ Value HashObject::delete_key(Env *env, Value key, Block *block) {
 Value HashObject::dig(Env *env, Args &&args) {
     args.ensure_argc_at_least(env, 1);
     auto dig = "dig"_s;
-    auto idx = args.shift();
+    auto idx = args.shift(env);
     Value val = ref(env, idx);
     if (args.size() == 0)
         return val;

@@ -7,6 +7,7 @@ module Natalie
         @check_args = check_args
         @local_only = local_only
         @underscore_arg_set = false
+        @level = 0
       end
 
       def transform
@@ -16,9 +17,11 @@ module Natalie
         do_setup
         case @node
         when Prism::MultiTargetNode
-          @instructions << ArrayShiftInstruction.new
+          shift_arg
+          @level += 1
           @instructions << ToArrayInstruction.new
           transform_multi_target_arg(@node)
+          @level -= 1
           @instructions << PopInstruction.new
         when Prism::ParametersNode
           @node.requireds.each { |arg| transform_required_arg(arg) }
@@ -69,7 +72,9 @@ module Natalie
       def transform_simply
         args = @node&.requireds || []
 
-        @instructions << CheckArgsInstruction.new(positional: args.size, keywords: []) if @check_args
+        if @check_args
+          @instructions << CheckArgsInstruction.new(positional: args.size, has_keywords: false, required_keywords: [])
+        end
 
         args.each_with_index do |arg, index|
           @instructions << PushArgInstruction.new(index, nil_default: false)
@@ -80,30 +85,47 @@ module Natalie
       end
 
       def do_setup
-        min_count = minimum_arg_count
-        max_count = maximum_arg_count
-
-        @instructions << PopKeywordArgsInstruction.new if any_keyword_args?
-
         if @check_args
+          min_count = minimum_arg_count
+          max_count = maximum_arg_count
           argc = min_count == max_count ? min_count : min_count..max_count
-          @instructions << CheckArgsInstruction.new(positional: argc, keywords: required_keywords)
+          @instructions << CheckArgsInstruction.new(
+            positional: argc,
+            has_keywords: any_keyword_args?,
+            required_keywords: required_keywords,
+          )
         end
 
         @instructions << CheckRequiredKeywordsInstruction.new(required_keywords) if required_keywords.any?
+      end
 
-        @instructions << PushArgsInstruction.new(for_block: false, min_count:, max_count:, spread: false)
+      def pop_arg
+        if @level == 0
+          @instructions << ArgsPopInstruction.new(include_keyword_hash: !any_keyword_args?)
+        else
+          @instructions << ArrayPopInstruction.new
+        end
+      end
+
+      def shift_arg
+        if @level == 0
+          @instructions << ArgsShiftInstruction.new(include_keyword_hash: !any_keyword_args?)
+        else
+          @instructions << ArrayShiftInstruction.new
+        end
       end
 
       def transform_required_arg(arg)
         case arg
         when Prism::MultiTargetNode
-          @instructions << ArrayShiftInstruction.new
+          shift_arg
+          @level += 1
           @instructions << ToArrayInstruction.new
           transform_multi_target_arg(arg)
+          @level -= 1
           @instructions << PopInstruction.new
         when Prism::RequiredParameterNode, Prism::LocalVariableTargetNode
-          @instructions << ArrayShiftInstruction.new
+          shift_arg
           @instructions << variable_set(arg.name)
         else
           raise "unhandled node: #{arg.inspect}"
@@ -113,12 +135,14 @@ module Natalie
       def transform_required_post_arg(arg)
         case arg
         when Prism::MultiTargetNode
-          @instructions << ArrayPopInstruction.new
+          pop_arg
+          @level += 1
           @instructions << ToArrayInstruction.new
           transform_multi_target_arg(arg)
+          @level -= 1
           @instructions << PopInstruction.new
         when Prism::RequiredParameterNode, Prism::LocalVariableTargetNode
-          @instructions << ArrayPopInstruction.new
+          pop_arg
           @instructions << variable_set(arg.name)
         else
           raise "unhandled node: #{arg.inspect}"
@@ -127,13 +151,13 @@ module Natalie
 
       def transform_it_arg(arg)
         @instructions << VariableDeclareInstruction.new(:it)
-        @instructions << ArrayShiftInstruction.new
+        shift_arg
         @instructions << variable_set(:it)
       end
 
       def transform_numbered_arg(arg)
         arg.maximum.times do |i|
-          @instructions << ArrayShiftInstruction.new
+          shift_arg
           @instructions << variable_set(:"_#{i + 1}")
         end
       end
@@ -152,25 +176,24 @@ module Natalie
           default_value = Prism.nil_node(location: default_value.location)
         end
 
-        @instructions << ArrayIsEmptyInstruction.new
+        @instructions << ArgsEmptyInstruction.new
         @instructions << IfInstruction.new
         @instructions << @pass.transform_expression(default_value, used: true)
         @instructions << ElseInstruction.new(:if)
-        @instructions << ArrayShiftInstruction.new
+        shift_arg
         @instructions << EndInstruction.new(:if)
         @instructions << variable_set(name)
       end
 
       def transform_keyword_arg(arg)
-        swap_keyword_arg_hash_with_args_array
         case arg
         when Prism::RequiredKeywordParameterNode
-          @instructions << HashDeleteInstruction.new(arg.name)
+          @instructions << KeywordArgDeleteInstruction.new(arg.name)
           @instructions << variable_set(arg.name)
         when Prism::OptionalKeywordParameterNode
-          @instructions << HashHasKeyInstruction.new(arg.name)
+          @instructions << KeywordArgPresentInstruction.new(arg.name)
           @instructions << IfInstruction.new
-          @instructions << HashDeleteInstruction.new(arg.name)
+          @instructions << KeywordArgDeleteInstruction.new(arg.name)
           @instructions << ElseInstruction.new(:if)
           @instructions << @pass.transform_expression(arg.value, used: true)
           @instructions << EndInstruction.new(:if)
@@ -181,28 +204,28 @@ module Natalie
       end
 
       def transform_instance_variable_arg(arg)
-        @instructions << ArrayShiftInstruction.new
+        shift_arg
         @instructions << InstanceVariableSetInstruction.new(arg.name)
       end
 
       def transform_class_variable_arg(arg)
-        @instructions << ArrayShiftInstruction.new
+        shift_arg
         @instructions << ClassVariableSetInstruction.new(arg.name)
       end
 
       def transform_global_variable_arg(arg)
-        @instructions << ArrayShiftInstruction.new
+        shift_arg
         @instructions << GlobalVariableSetInstruction.new(arg.name)
       end
 
       def transform_constant_arg(arg)
-        @instructions << ArrayShiftInstruction.new
+        shift_arg
         @instructions << PushSelfInstruction.new
         @instructions << ConstSetInstruction.new(arg.name)
       end
 
       def transform_call_arg(arg)
-        @instructions << ArrayShiftInstruction.new
+        shift_arg
         @instructions.concat(@pass.transform_expression(arg.receiver, used: true))
         if arg.safe_navigation?
           @instructions << DupInstruction.new
@@ -226,7 +249,7 @@ module Natalie
       end
 
       def transform_index_arg(arg)
-        @instructions << ArrayShiftInstruction.new
+        shift_arg
         @instructions.concat(@pass.transform_expression(arg.receiver, used: true))
         @instructions << SwapInstruction.new
         arg.arguments.arguments.each do |argument|
@@ -250,6 +273,14 @@ module Natalie
         when Prism::SplatNode
           transform_splat_arg(arg)
         when Prism::RestParameterNode
+          if @level == 0
+            @instructions << PushArgsInstruction.new(
+              for_block: false,
+              min_count: 0,
+              max_count: nil,
+              include_keyword_hash: !any_keyword_args?,
+            )
+          end
           if (name = arg.name)
             @instructions << variable_set(name)
             @instructions << VariableGetInstruction.new(name)
@@ -279,11 +310,11 @@ module Natalie
       end
 
       def transform_keyword_rest_arg(arg)
-        swap_keyword_arg_hash_with_args_array
         case arg
         when Prism::NoKeywordsParameterNode
           :noop
         when Prism::KeywordRestParameterNode
+          @instructions << PopKeywordArgsInstruction.new if @level == 0
           if arg.name
             @instructions << variable_set(arg.name)
             @instructions << VariableGetInstruction.new(arg.name)
@@ -312,24 +343,8 @@ module Natalie
         VariableSetInstruction.new(name, local_only: @local_only)
       end
 
-      def swap_keyword_arg_hash_with_args_array
-        return if @keyword_arg_hash_ready
-
-        @instructions << SwapInstruction.new
-        @keyword_arg_hash_ready = true
-      end
-
-      def clean_up_keyword_args
-        if @keyword_arg_hash_ready
-          @instructions << CheckExtraKeywordsInstruction.new unless @has_keyword_rest
-          @instructions << PopInstruction.new
-        end
-        @keyword_arg_hash_ready = false
-      end
-
       def clean_up
-        clean_up_keyword_args
-        @instructions << PopInstruction.new
+        @instructions << CheckExtraKeywordsInstruction.new if any_keyword_args? && !@has_keyword_rest
       end
 
       def args_to_array
