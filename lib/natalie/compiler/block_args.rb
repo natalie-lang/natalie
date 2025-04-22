@@ -64,8 +64,6 @@ module Natalie
         min_count = minimum_arg_count
         max_count = maximum_arg_count
 
-        @instructions << PopKeywordArgsInstruction.new if any_keyword_args?
-
         if @check_args
           argc = min_count == max_count ? min_count : min_count..max_count
           @instructions << CheckArgsInstruction.new(
@@ -148,15 +146,14 @@ module Natalie
       end
 
       def transform_keyword_arg(arg)
-        swap_keyword_arg_hash_with_args_array
         case arg
         when Prism::RequiredKeywordParameterNode
-          @instructions << HashDeleteInstruction.new(arg.name)
+          @instructions << KeywordArgDeleteInstruction.new(arg.name)
           @instructions << variable_set(arg.name)
         when Prism::OptionalKeywordParameterNode
-          @instructions << HashHasKeyInstruction.new(arg.name)
+          @instructions << KeywordArgPresentKeyInstruction.new(arg.name)
           @instructions << IfInstruction.new
-          @instructions << HashDeleteInstruction.new(arg.name)
+          @instructions << KeywordArgDeleteInstruction.new(arg.name)
           @instructions << ElseInstruction.new(:if)
           @instructions << @pass.transform_expression(arg.value, used: true)
           @instructions << EndInstruction.new(:if)
@@ -265,11 +262,11 @@ module Natalie
       end
 
       def transform_keyword_rest_arg(arg)
-        swap_keyword_arg_hash_with_args_array
         case arg
         when Prism::NoKeywordsParameterNode
           :noop
         when Prism::KeywordRestParameterNode
+          @instructions << PopKeywordArgsInstruction.new
           if arg.name
             @instructions << variable_set(arg.name)
             @instructions << VariableGetInstruction.new(arg.name)
@@ -298,19 +295,8 @@ module Natalie
         VariableSetInstruction.new(name, local_only: @local_only)
       end
 
-      def swap_keyword_arg_hash_with_args_array
-        return if @keyword_arg_hash_ready
-
-        @instructions << SwapInstruction.new
-        @keyword_arg_hash_ready = true
-      end
-
       def clean_up_keyword_args
-        if @keyword_arg_hash_ready
-          @instructions << CheckExtraKeywordsInstruction.new unless @has_keyword_rest
-          @instructions << PopInstruction.new
-        end
-        @keyword_arg_hash_ready = false
+        @instructions << CheckExtraKeywordsInstruction.new if any_keyword_args? && !@has_keyword_rest
       end
 
       def clean_up
