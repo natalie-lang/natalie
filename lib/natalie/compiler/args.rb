@@ -290,7 +290,7 @@ module Natalie
       def transform_keyword_rest_arg(arg)
         swap_keyword_arg_hash_with_args_array
         case arg
-        when Prism::NoKeywordsParameterNode
+        when Prism::NoKeywordsParameterNode, Prism::ForwardingParameterNode
           :noop
         when Prism::KeywordRestParameterNode
           if arg.name
@@ -365,6 +365,7 @@ module Natalie
 
       def maximum_arg_count
         return nil if @node.is_a?(Prism::ParametersNode) && @node.rest.is_a?(Prism::RestParameterNode)
+        return nil if @node.is_a?(Prism::ParametersNode) && @node.keyword_rest.is_a?(Prism::ForwardingParameterNode)
 
         args_to_array.count do |arg|
           %i[

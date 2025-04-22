@@ -1277,7 +1277,8 @@ module Natalie
         instructions = []
 
         # special ... syntax
-        if node.is_a?(Prism::ParametersNode) && node.keyword_rest.is_a?(Prism::ForwardingParameterNode)
+        if node.is_a?(Prism::ParametersNode) && node.requireds.empty? &&
+             node.keyword_rest.is_a?(Prism::ForwardingParameterNode)
           # nothing to do
           return []
         end
