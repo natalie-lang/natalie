@@ -4,6 +4,10 @@ GEM
     ansi (1.5.0)
     builder (3.3.0)
     concurrent-ruby (1.2.2)
+    ffi (1.17.2)
+    ffi (1.17.2-arm64-darwin)
+    ffi (1.17.2-x86_64-darwin)
+    ffi (1.17.2-x86_64-linux-gnu)
     fiddle (1.1.6)
     minitest (5.25.4)
     minitest-reporters (1.7.1)
@@ -32,6 +36,7 @@ PLATFORMS
 
 DEPENDENCIES
   concurrent-ruby
+  ffi
   fiddle
   minitest
   minitest-reporters

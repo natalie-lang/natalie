@@ -1,5 +1,3 @@
-# skip-ruby
-
 require_relative '../spec_helper'
 require 'ffi'
 
