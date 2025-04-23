@@ -66,7 +66,7 @@ describe "delegation with def(x, ...)" do
       end
     RUBY
 
-    NATFIXME 'Partial delegation', exception: SpecFailedException do
+    NATFIXME 'Partial delegation', exception: ArgumentError do
       a.new.delegate(0, 1, b: 2).should == [[1], {b: 2}, nil]
     end
   end
@@ -79,7 +79,7 @@ describe "delegation with def(x, ...)" do
       end
     RUBY
 
-    NATFIXME 'Partial delegation', exception: SpecFailedException do
+    NATFIXME 'Partial delegation', exception: ArgumentError do
       a.new.delegate_block(0, 1, b: 2) { |x| x }.should == [{b: 2}, [1]]
     end
   end

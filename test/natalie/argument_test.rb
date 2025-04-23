@@ -65,12 +65,20 @@ describe 'forward args' do
     a
   end
 
+  def forward_partial(a, b, ...)
+    [a, b]
+  end
+
   it 'passes all arguments as-is' do
     foo(1, b: 2, c: 3).should == [1, 2, 3]
   end
 
   it 'passes block arguments' do
     foo(1, b: 2) { 4 }.should == [1, 2, 4]
+  end
+
+  it 'can extract arguments from the list' do
+    forward_partial(1, 2, 3, 4).should == [1, 2]
   end
 end
 
