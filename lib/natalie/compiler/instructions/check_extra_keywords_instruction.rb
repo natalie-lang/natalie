@@ -8,12 +8,11 @@ module Natalie
       end
 
       def generate(transform)
-        hash = transform.peek
-        transform.exec("env->ensure_no_extra_keywords(#{hash})")
+        transform.exec('args.ensure_no_extra_keywords(env)')
       end
 
       def execute(vm)
-        hash = vm.peek
+        hash = vm.args.last
         unknown = hash.keys
         if unknown.size == 1
           raise ArgumentError, "unknown keyword: #{unknown.first.inspect}"

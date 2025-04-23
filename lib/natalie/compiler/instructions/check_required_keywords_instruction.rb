@@ -12,14 +12,11 @@ module Natalie
       end
 
       def generate(transform)
-        hash = transform.peek
-        transform.exec(
-          "env->ensure_no_missing_keywords(#{hash}, { #{@keywords.map { |kw| kw.to_s.inspect }.join ', '} })",
-        )
+        transform.exec("args.ensure_no_missing_keywords(env, { #{@keywords.map { |kw| kw.to_s.inspect }.join ', '} })")
       end
 
       def execute(vm)
-        hash = vm.peek
+        hash = vm.args.last
         missing = @keywords.reject { |kw| hash.key? kw }
         if missing.size == 1
           raise ArgumentError, "missing keyword: #{missing.first.inspect}"

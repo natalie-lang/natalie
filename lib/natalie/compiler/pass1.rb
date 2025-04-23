@@ -1,4 +1,5 @@
 require_relative './args'
+require_relative './block_args'
 require_relative './arity'
 require_relative './base_pass'
 require_relative './const_prepper'
@@ -1293,7 +1294,11 @@ module Natalie
           end
         end
 
-        args_compiler = Args.new(node:, pass: self, check_args:, local_only:, for_block:)
+        if for_block
+          args_compiler = BlockArgs.new(node:, pass: self, check_args:, local_only:)
+        else
+          args_compiler = Args.new(node:, pass: self, check_args:, local_only:)
+        end
         instructions << args_compiler.transform
         instructions
       end

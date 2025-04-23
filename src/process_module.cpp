@@ -43,7 +43,7 @@ Value ProcessModule::clock_gettime(Env *env, Value clock_id) {
 Value ProcessModule::kill(Env *env, Args &&args) {
     env->ensure_no_extra_keywords(args.pop_keyword_hash());
     args.ensure_argc_at_least(env, 2);
-    auto signal = args.shift();
+    auto signal = args.shift(env);
     auto pids = args.to_array();
     nat_int_t signo;
     bool pid_contains_self = false;

@@ -37,11 +37,13 @@ module Natalie
         def write_source
           if build_dir
             @cpp_path = build_path('cpp')
-            FileUtils.mkdir_p(File.dirname(@cpp_path))
-            write_source_to_path(@cpp_path)
+          elsif @type == :obj
+            @cpp_path = @out_path.sub(/(\.o)?$/, '.cpp')
           else
-            write_source_to_tempfile
+            return write_source_to_tempfile
           end
+          FileUtils.mkdir_p(File.dirname(@cpp_path))
+          write_source_to_path(@cpp_path)
         end
 
         def write_source_to_tempfile
@@ -90,8 +92,8 @@ module Natalie
               cmd = compiler_command
               puts cmd if @compiler.debug == 'cc-cmd'
               out = `#{cmd} 2>&1`
-              File.unlink(@cpp_path) unless @compiler.keep_cpp? || build_dir || $? != 0
-              puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?
+              File.unlink(@cpp_path) unless @compiler.keep_cpp? || $? != 0
+              puts "cpp file path is: #{@cpp_path}" if @compiler.print_cpp_path?
               warn out if out.strip != ''
               raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
 
