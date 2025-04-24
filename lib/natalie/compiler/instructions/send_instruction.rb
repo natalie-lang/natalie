@@ -43,7 +43,14 @@ module Natalie
         @line = line
       end
 
-      attr_reader :message, :receiver_is_self, :with_block, :args_array_on_stack, :has_keyword_hash, :file, :line
+      attr_reader :message,
+                  :receiver_is_self,
+                  :with_block,
+                  :args_array_on_stack,
+                  :has_keyword_hash,
+                  :forward_args,
+                  :file,
+                  :line
 
       def with_block?
         !!@with_block
@@ -53,19 +60,18 @@ module Natalie
         s = "send #{@message.inspect}"
         s << ' to self' if @receiver_is_self
         s << ' with block' if @with_block
-        s << ' (args array on stack)' if @args_array_on_stack
-        s << ' (has keyword hash)' if @has_keyword_hash
+        s << ' (args_array_on_stack)' if @args_array_on_stack
+        s << ' (has_keyword_hash)' if @has_keyword_hash
+        s << ' (forward_args)' if @forward_args
         s
       end
 
       def generate(transform)
-        if @args_array_on_stack
-          if @forward_args
-            args_list = ["std::move(#{transform.pop})"]
-          else
-            args = "#{transform.pop}.as_array()"
-            args_list = ["Args(#{args}, #{@has_keyword_hash ? 'true' : 'false'})"]
-          end
+        if @forward_args
+          args_list = ['std::move(args)']
+        elsif @args_array_on_stack
+          args = "#{transform.pop}.as_array()"
+          args_list = ["Args(#{args}, #{@has_keyword_hash ? 'true' : 'false'})"]
         else
           arg_count = transform.pop
           raise "bad argc #{arg_count.inspect} for SendInstruction #{@message.inspect}" unless arg_count.is_a?(Integer)
@@ -107,7 +113,9 @@ module Natalie
       end
 
       def execute(vm)
-        if @args_array_on_stack
+        if @forward_args
+          args = vm.args
+        elsif @args_array_on_stack
           args = vm.pop
         else
           arg_count = vm.pop
@@ -151,9 +159,13 @@ module Natalie
       def serialize(rodata)
         position = rodata.add(@message.to_s)
         flags = 0
-        [receiver_is_self, with_block, args_array_on_stack, has_keyword_hash].each_with_index do |flag, index|
-          flags |= (1 << index) if flag
-        end
+        [
+          receiver_is_self,
+          with_block,
+          args_array_on_stack,
+          has_keyword_hash,
+          forward_args,
+        ].each_with_index { |flag, index| flags |= (1 << index) if flag }
         [instruction_number, position, flags].pack('CwC')
       end
 
@@ -165,12 +177,14 @@ module Natalie
         with_block = flags[1] == 1
         args_array_on_stack = flags[2] == 1
         has_keyword_hash = flags[3] == 1
+        forward_args = flags[4] == 1
         new(
           message,
-          receiver_is_self: receiver_is_self,
-          with_block: with_block,
-          args_array_on_stack: args_array_on_stack,
-          has_keyword_hash: has_keyword_hash,
+          receiver_is_self:,
+          with_block:,
+          args_array_on_stack:,
+          has_keyword_hash:,
+          forward_args:,
           file: '', # FIXME
           line: 0, # FIXME
         )

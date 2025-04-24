@@ -225,18 +225,11 @@ module Natalie
 
         # special ... syntax
         if args.size == 1 && args.first.type == :forwarding_arguments_node
-          instructions << PushArgsInstruction.new(
-            for_block: false,
-            min_count: nil,
-            max_count: nil,
-            spread: false,
-            to_array: false,
-          )
           return(
             {
               instructions: instructions,
               with_block_pass: !!block,
-              args_array_on_stack: true,
+              args_array_on_stack: false,
               has_keyword_hash: false,
               forward_args: true,
             }
@@ -455,18 +448,11 @@ module Natalie
 
         # special ... syntax
         if args.size == 1 && args.first.type == :forwarding_arguments_node
-          instructions << PushArgsInstruction.new(
-            for_block: false,
-            min_count: nil,
-            max_count: nil,
-            spread: false,
-            to_array: false,
-          )
           return(
             {
               instructions: instructions,
               with_block_pass: !!with_block,
-              args_array_on_stack: true,
+              args_array_on_stack: false,
               has_keyword_hash: false,
               forward_args: true,
             }
