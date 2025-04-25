@@ -13,7 +13,7 @@ module Natalie
       def to_s
         s = "check_args positional: #{@positional.inspect}"
         s << "; required_keywords: #{@required_keywords.join ', '}" if @required_keywords.any?
-        s << ' (has_keywords)' if @required_keywords.any?
+        s << ' (has_keywords)' if @has_keywords
         s << ' (args array on stack)' if @args_array_on_stack
         s
       end
