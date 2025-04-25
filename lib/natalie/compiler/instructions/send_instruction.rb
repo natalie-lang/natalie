@@ -123,7 +123,7 @@ module Natalie
           arg_count.times { args.unshift vm.pop }
         end
 
-        kwargs = args.pop if @has_keyword_hash
+        kwargs = @has_keyword_hash ? args.pop : {}
 
         receiver = vm.pop
 
