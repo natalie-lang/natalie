@@ -64,8 +64,6 @@ module Natalie
         min_count = minimum_arg_count
         max_count = maximum_arg_count
 
-        @instructions << PopKeywordArgsInstruction.new if any_keyword_args?
-
         if @check_args
           argc = min_count == max_count ? min_count : min_count..max_count
           @instructions << CheckArgsInstruction.new(
@@ -75,7 +73,15 @@ module Natalie
           )
         end
 
-        @instructions << CheckRequiredKeywordsInstruction.new(required_keywords) if required_keywords.any?
+        if any_keyword_args?
+          @instructions << CheckKeywordArgsInstruction.new(
+            required_keywords:,
+            optional_keywords:,
+            keyword_rest: keyword_rest_type,
+          )
+        end
+
+        @instructions << PopKeywordArgsInstruction.new if any_keyword_args?
 
         spread = args_to_array.size > 1
         @instructions << PushArgsInstruction.new(for_block: true, min_count:, max_count:, spread:)
@@ -306,10 +312,7 @@ module Natalie
       end
 
       def clean_up_keyword_args
-        if @keyword_arg_hash_ready
-          @instructions << CheckExtraKeywordsInstruction.new unless @has_keyword_rest
-          @instructions << PopInstruction.new
-        end
+        @instructions << PopInstruction.new if @keyword_arg_hash_ready
         @keyword_arg_hash_ready = false
       end
 
@@ -365,10 +368,37 @@ module Natalie
         @node.keywords.filter_map { |arg| arg.name if arg.type == :required_keyword_parameter_node }
       end
 
+      def optional_keywords
+        return [] unless @node.is_a?(Prism::ParametersNode)
+
+        @node.keywords.filter_map { |arg| arg.name if arg.type == :optional_keyword_parameter_node }
+      end
+
+      def keyword_rest_type
+        return :none unless @node.is_a?(Prism::ParametersNode)
+
+        case @node.keyword_rest&.type
+        when :no_keywords_parameter_node
+          :forbidden
+        when :keyword_rest_parameter_node, :forwarding_parameter_node
+          :present
+        when nil
+          :none
+        else
+          raise "unhandled keyword rest type: #{@node.keyword_rest.type}"
+        end
+      end
+
+      def has_keyword_rest?
+        return false unless @node.is_a?(Prism::ParametersNode)
+
+        !!@node.keyword_rest
+      end
+
       def any_keyword_args?
         return false unless @node.is_a?(Prism::ParametersNode)
 
-        @node.keywords.any? || !!@node.keyword_rest
+        @node.keywords.any? || has_keyword_rest?
       end
     end
   end
