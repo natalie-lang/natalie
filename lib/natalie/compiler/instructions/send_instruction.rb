@@ -123,6 +123,8 @@ module Natalie
           arg_count.times { args.unshift vm.pop }
         end
 
+        kwargs = args.pop if @has_keyword_hash
+
         receiver = vm.pop
 
         if args.empty? && %i[public private protected].include?(@message)
@@ -140,7 +142,7 @@ module Natalie
         old_last_match = vm.global_variables[:$~]
         vm.with_self(receiver) do
           block = vm.pop if @with_block
-          result = receiver.send(method, @message, *args, &block)
+          result = receiver.send(method, @message, *args, **kwargs, &block)
           vm.push result
         end
         vm.global_variables[:$~] = $~ if $~ != old_last_match

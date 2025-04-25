@@ -29,24 +29,37 @@ module Natalie
       end
 
       def execute(vm)
-        raise 'todo'
-        # missing = @keywords.reject { |kw| hash.key? kw }
-        # if missing.size == 1
-        #   raise ArgumentError, "missing keyword: #{missing.first.inspect}"
-        # elsif missing.any?
-        #   raise ArgumentError, "missing keywords: #{missing.map(&:inspect).join ', '}"
-        # end
+        kwargs = vm.kwargs || {}
+
+        missing = @required_keywords.reject { |kw| kwargs.key?(kw) }
+        if missing.size == 1
+          raise ArgumentError, "missing keyword: #{missing.first.inspect}"
+        elsif missing.any?
+          raise ArgumentError, "missing keywords: #{missing.map(&:inspect).join ', '}"
+        end
+
+        raise ArgumentError, 'no keywords accepted' if kwargs.any? && @keyword_rest == :forbidden
+
+        return if @keyword_rest == :present
+        extra = kwargs.keys - @required_keywords - @optional_keywords
+        if extra.size == 1
+          raise ArgumentError, "unknown keyword: #{extra.first.inspect}"
+        elsif missing.any?
+          raise ArgumentError, "unknown keywords: #{extra.map(&:inspect).join ', '}"
+        end
       end
 
       def serialize(rodata)
-        rest_type = { none: 0, present: 1, forbidden: 2 }.fetch(@keyword_rest)
-        bytecode = [instruction_number, @required_keywords.size, @optional_keywords.size, rest_type].pack('CwwC')
+        bytecode = [instruction_number].pack('C')
         [@required_keywords, @optional_keywords].each do |keywords|
+          bytecode << [keywords.size].pack('w')
           keywords.each do |keyword|
             position = rodata.add(keyword.to_s)
             bytecode << [position].pack('w')
           end
         end
+        rest_type = { none: 0, present: 1, forbidden: 2 }.fetch(@keyword_rest)
+        bytecode << [rest_type].pack('C')
         bytecode
       end
 

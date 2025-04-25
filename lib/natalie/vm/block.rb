@@ -25,10 +25,10 @@ module Natalie
 
       def to_proc
         @lambda ||=
-          lambda do |*args|
+          lambda do |*args, **kwargs|
             vm.with_self(@captured_self) do
               scope = { vars: {}, parent: @parent_scope }
-              vm.push_call(name: nil, return_ip: vm.ip, args: args, scope: scope, block: @captured_block)
+              vm.push_call(name: nil, return_ip: vm.ip, args:, kwargs:, scope:, block: @captured_block)
               vm.ip = @ip
               begin
                 vm.run
