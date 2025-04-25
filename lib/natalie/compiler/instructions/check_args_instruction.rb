@@ -3,15 +3,17 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class CheckArgsInstruction < BaseInstruction
-      def initialize(positional:, keywords:, args_array_on_stack: false)
+      def initialize(positional:, has_keywords:, required_keywords:, args_array_on_stack: false)
         @positional = positional
-        @keywords = keywords
+        @has_keywords = has_keywords
+        @required_keywords = required_keywords
         @args_array_on_stack = args_array_on_stack
       end
 
       def to_s
         s = "check_args positional: #{@positional.inspect}"
-        s << "; keywords: #{@keywords.join ', '}" if @keywords.any?
+        s << "; required_keywords: #{@required_keywords.join ', '}" if @required_keywords.any?
+        s << ' (has_keywords)' if @required_keywords.any?
         s << ' (args array on stack)' if @args_array_on_stack
         s
       end
@@ -19,12 +21,14 @@ module Natalie
       def generate(transform)
         case @positional
         when Integer
-          transform.exec("args.ensure_argc_is(env, #{@positional}, #{cpp_keywords})")
+          transform.exec("args.ensure_argc_is(env, #{@positional}, #{@has_keywords}, #{cpp_keywords})")
         when Range
           if @positional.end
-            transform.exec("args.ensure_argc_between(env, #{@positional.begin}, #{@positional.end}, #{cpp_keywords})")
+            transform.exec(
+              "args.ensure_argc_between(env, #{@positional.begin}, #{@positional.end}, #{@has_keywords}, #{cpp_keywords})",
+            )
           else
-            transform.exec("args.ensure_argc_at_least(env, #{@positional.begin}, #{cpp_keywords})")
+            transform.exec("args.ensure_argc_at_least(env, #{@positional.begin}, #{@has_keywords}, #{cpp_keywords})")
           end
         else
           raise "unknown CheckArgsInstruction @positional type: #{@positional.inspect}"
@@ -32,6 +36,7 @@ module Natalie
       end
 
       def execute(vm)
+        raise 'todo'
         case @positional
         when Integer
           if vm.args.size != @positional
@@ -49,6 +54,7 @@ module Natalie
       end
 
       def serialize(rodata)
+        raise 'todo'
         needs_positional_range = @positional.is_a?(Range) && !@positional.end.nil?
         has_positional_splat = @positional.is_a?(Range) && @positional.end.nil?
         flags = 0
@@ -56,14 +62,14 @@ module Natalie
           @args_array_on_stack,
           needs_positional_range,
           has_positional_splat,
-          @keywords.any?,
+          @required_keywords.any?,
         ].each_with_index { |flag, index| flags |= (1 << index) if flag }
         positional = @positional.is_a?(Range) ? @positional.first : @positional
         bytecode = [instruction_number, flags, positional].pack('CCw')
         bytecode << [@positional.last].pack('w') if needs_positional_range
-        if @keywords.any?
-          bytecode << [@keywords.size].pack('w')
-          @keywords.each do |keyword|
+        if @required_keywords.any?
+          bytecode << [@required_keywords.size].pack('w')
+          @required_keywords.each do |keyword|
             position = rodata.add(keyword.to_s)
             bytecode << [position].pack('w')
           end
@@ -72,6 +78,7 @@ module Natalie
       end
 
       def self.deserialize(io, rodata)
+        raise 'todo'
         flags = io.getbyte
         args_array_on_stack = flags[0] == 1
         needs_positional_range = flags[1] == 1
@@ -97,14 +104,14 @@ module Natalie
       private
 
       def cpp_keywords
-        "{ #{@keywords.map { |kw| kw.to_s.inspect }.join ', '} }"
+        "{ #{@required_keywords.map { |kw| kw.to_s.inspect }.join ', '} }"
       end
 
       def error_suffix
-        if @keywords.size == 1
-          "; required keyword: #{@keywords.first}"
-        elsif @keywords.any?
-          "; required keywords: #{@keywords.join ', '}"
+        if @required_keywords.size == 1
+          "; required keyword: #{@required_keywords.first}"
+        elsif @required_keywords.any?
+          "; required keywords: #{@required_keywords.join ', '}"
         end
       end
     end

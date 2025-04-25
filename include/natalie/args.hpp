@@ -60,12 +60,24 @@ public:
     ArrayObject *to_array() const;
     ArrayObject *to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread) const;
 
-    void ensure_argc_is(Env *env, size_t expected, std::initializer_list<const String> keywords = {}) const;
-    void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, std::initializer_list<const String> keywords = {}) const;
-    void ensure_argc_at_least(Env *env, size_t expected, std::initializer_list<const String> keywords = {}) const;
+    void ensure_argc_is(Env *env, size_t expected, bool has_keywords = false, std::initializer_list<const String> keywords = {}) const;
+    void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, bool has_keywords = false, std::initializer_list<const String> keywords = {}) const;
+    void ensure_argc_at_least(Env *env, size_t expected, bool has_keywords = false, std::initializer_list<const String> keywords = {}) const;
+
+    enum class KeywordRestType {
+        None,
+        Present, // **kwargs
+        Forbidden // **nil
+    };
+    void check_keyword_args(Env *env, std::initializer_list<SymbolObject *> required_keywords, std::initializer_list<SymbolObject *> optional_keywords, KeywordRestType keyword_rest_type) const;
 
     size_t start_index() const { return m_args_start_index; }
-    size_t size() const { return m_args_size; }
+
+    size_t size(bool include_keywords = true) const {
+        if (has_keyword_hash())
+            return include_keywords ? m_args_size : m_args_size - 1;
+        return m_args_size;
+    }
 
     Value *data() const;
 

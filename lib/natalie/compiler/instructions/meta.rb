@@ -24,6 +24,7 @@ module Natalie
       CatchInstruction,
       CheckArgsInstruction,
       CheckExtraKeywordsInstruction,
+      CheckKeywordArgsInstruction,
       CheckRequiredKeywordsInstruction,
       ClassVariableGetInstruction,
       ClassVariableSetInstruction,

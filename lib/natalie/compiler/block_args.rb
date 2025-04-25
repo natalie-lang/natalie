@@ -12,7 +12,7 @@ module Natalie
       def transform
         if @node.nil?
           if @check_args
-            return [CheckArgsInstruction.new(positional: 0, keywords: [])]
+            return [CheckArgsInstruction.new(positional: 0, has_keywords: false, required_keywords: [])]
           else
             return []
           end
@@ -68,7 +68,11 @@ module Natalie
 
         if @check_args
           argc = min_count == max_count ? min_count : min_count..max_count
-          @instructions << CheckArgsInstruction.new(positional: argc, keywords: required_keywords)
+          @instructions << CheckArgsInstruction.new(
+            positional: argc,
+            has_keywords: any_keyword_args?,
+            required_keywords:,
+          )
         end
 
         @instructions << CheckRequiredKeywordsInstruction.new(required_keywords) if required_keywords.any?
