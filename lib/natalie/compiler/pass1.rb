@@ -1,4 +1,5 @@
 require_relative './args'
+require_relative './block_args'
 require_relative './arity'
 require_relative './base_pass'
 require_relative './const_prepper'
@@ -224,18 +225,11 @@ module Natalie
 
         # special ... syntax
         if args.size == 1 && args.first.type == :forwarding_arguments_node
-          instructions << PushArgsInstruction.new(
-            for_block: false,
-            min_count: nil,
-            max_count: nil,
-            spread: false,
-            to_array: false,
-          )
           return(
             {
               instructions: instructions,
               with_block_pass: !!block,
-              args_array_on_stack: true,
+              args_array_on_stack: false,
               has_keyword_hash: false,
               forward_args: true,
             }
@@ -454,18 +448,11 @@ module Natalie
 
         # special ... syntax
         if args.size == 1 && args.first.type == :forwarding_arguments_node
-          instructions << PushArgsInstruction.new(
-            for_block: false,
-            min_count: nil,
-            max_count: nil,
-            spread: false,
-            to_array: false,
-          )
           return(
             {
               instructions: instructions,
               with_block_pass: !!with_block,
-              args_array_on_stack: true,
+              args_array_on_stack: false,
               has_keyword_hash: false,
               forward_args: true,
             }
@@ -1268,11 +1255,7 @@ module Natalie
       def transform_defn_args(node, used:, for_block: false, check_args: true, local_only: true)
         return [] unless used
 
-        locals = []
-        if node.is_a?(Prism::BlockParametersNode)
-          locals = node.locals.map(&:name)
-          node = node.parameters
-        end
+        node = node.parameters if node.is_a?(Prism::BlockParametersNode)
 
         instructions = []
 
@@ -1293,7 +1276,11 @@ module Natalie
           end
         end
 
-        args_compiler = Args.new(node:, pass: self, check_args:, local_only:, for_block:)
+        if for_block
+          args_compiler = BlockArgs.new(node:, pass: self, check_args:, local_only:)
+        else
+          args_compiler = Args.new(node:, pass: self, check_args:, local_only:)
+        end
         instructions << args_compiler.transform
         instructions
       end
