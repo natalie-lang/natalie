@@ -15,20 +15,21 @@ module Natalie
         "#<#{self.class.name}:0x#{object_id.to_s(16)}>"
       end
 
-      def call(*args)
-        to_proc.call(*args)
+      def call(*args, **kwargs)
+        to_proc.call(*args, **kwargs)
       end
 
-      def [](*args)
-        to_proc.call(*args)
+      def [](*args, **kwargs)
+        to_proc.call(*args, **kwargs)
       end
 
       def to_proc
         @lambda ||=
-          lambda do |*args|
+          lambda do |*args, **kwargs|
             vm.with_self(@captured_self) do
               scope = { vars: {}, parent: @parent_scope }
-              vm.push_call(name: nil, return_ip: vm.ip, args: args, scope: scope, block: @captured_block)
+              args << kwargs if kwargs.any?
+              vm.push_call(name: nil, return_ip: vm.ip, args:, kwargs:, scope:, block: @captured_block)
               vm.ip = @ip
               begin
                 vm.run

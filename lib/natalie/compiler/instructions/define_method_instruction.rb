@@ -45,9 +45,10 @@ module Natalie
         start_ip = vm.ip
         vm.skip_block_of_instructions(expected_label: :define_method)
         name = @name
-        klass.define_method(name) do |*args, &block|
+        klass.define_method(name) do |*args, **kwargs, &block|
           scope = { vars: {} }
-          vm.push_call(name: name, return_ip: vm.ip, args: args, scope: scope, block: block)
+          args << kwargs if kwargs.any?
+          vm.push_call(name:, return_ip: vm.ip, args:, kwargs:, scope:, block: block)
           vm.ip = start_ip
           vm.with_self(self) do
             begin

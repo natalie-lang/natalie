@@ -44,9 +44,9 @@ class Command
           end
       end
     rescue Timeout::Error
-      raise TimeoutError.new("execution expired running: #{full_command}", out: out.join("\n"))
+      raise TimeoutError.new("execution expired running: #{full_command}", out: out.join)
     end
-    raise Error.new("command failed with status #{status} running: #{full_command}", out: out.join("\n")) if status != 0
+    raise Error.new("command failed with status #{status} running: #{full_command}", out: out.join) if status != 0
     out.join("\n")
   end
 

@@ -60,8 +60,8 @@ module Natalie
       @stack.pop
     end
 
-    def push_call(name:, return_ip:, args:, scope:, block:)
-      @call_stack.push(name: name, return_ip: return_ip, args: args, scope: scope, block: block)
+    def push_call(name:, return_ip:, args:, kwargs:, scope:, block:)
+      @call_stack.push(name:, return_ip:, args:, kwargs:, scope:, block:)
     end
 
     def pop_call
@@ -74,6 +74,12 @@ module Natalie
       raise 'out of call stack' if @call_stack.empty?
 
       @call_stack.last[:args]
+    end
+
+    def kwargs
+      raise 'out of call stack' if @call_stack.empty?
+
+      @call_stack.last[:kwargs]
     end
 
     def scope
