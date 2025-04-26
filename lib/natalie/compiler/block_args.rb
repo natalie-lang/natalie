@@ -83,7 +83,7 @@ module Natalie
 
         @instructions << PopKeywordArgsInstruction.new if any_keyword_args?
 
-        @instructions << PushArgsInstruction.new(for_block: true, min_count:, max_count:, spread: spread?)
+        @instructions << PushArgsInstruction.new(for_block: true, min_count:, max_count:, autosplat: autosplat?)
       end
 
       def transform_required_arg(arg)
@@ -322,9 +322,8 @@ module Natalie
 
       # given this block: { |a, b| ... }
       # and this yielder: yield [1, 2]
-      # ...we want the array to "spread" across the arguments
-      # This is called "autosplat" in the specs.
-      def spread?
+      # ...we want the array to automatically splat across the arguments
+      def autosplat?
         args_to_array.size > 1
       end
 

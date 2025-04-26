@@ -88,8 +88,8 @@ ArrayObject *Args::to_array() const {
     return new ArrayObject { m_args_size, tl_current_arg_stack->data() + m_args_start_index };
 }
 
-ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread) const {
-    if (m_args_size == 1 && spread) {
+ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool autosplat) const {
+    if (m_args_size == 1 && autosplat) {
         auto ary = to_ary(env, at(0), true)->duplicate(env).as_array();
         ssize_t count = ary->size();
         if (max_count != -1 && count > max_count)

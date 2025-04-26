@@ -104,7 +104,7 @@ module Natalie
 
         @instructions << PopKeywordArgsInstruction.new if any_keyword_args?
 
-        @instructions << PushArgsInstruction.new(for_block: false, min_count:, max_count:, spread: false)
+        @instructions << PushArgsInstruction.new(for_block: false, min_count:, max_count:, autosplat: false)
       end
 
       def transform_required_arg(arg)

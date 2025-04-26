@@ -58,7 +58,7 @@ public:
     Optional<Value> maybe_at(size_t index) const;
 
     ArrayObject *to_array() const;
-    ArrayObject *to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread) const;
+    ArrayObject *to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool autosplat) const;
 
     void ensure_argc_is(Env *env, size_t expected, bool has_keywords = false, std::initializer_list<const String> keywords = {}) const;
     void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, bool has_keywords = false, std::initializer_list<const String> keywords = {}) const;
