@@ -244,9 +244,7 @@ describe "A Proc" do
     end
 
     it 'does not autosplat keyword arguments' do
-      NATFIXME 'it does not autosplat keyword arguments', exception: SpecFailedException do
-        @p.call([1, {a: 1}]).should == [[[1, {a: 1}]], {}]
-      end
+      @p.call([1, {a: 1}]).should == [[[1, {a: 1}]], {}]
     end
   end
 

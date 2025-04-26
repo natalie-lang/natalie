@@ -135,19 +135,13 @@ describe "Keyword arguments" do
 
       empty = {}
       m.(**empty).should == [[], {}]
-      NATFIXME 'it works with proc { |*args, **kwargs| }', exception: SpecFailedException do
-        m.(empty).should == [[{}], {}]
-      end
+      m.(empty).should == [[{}], {}]
 
       m.(a: 1).should == [[], {a: 1}]
-      NATFIXME 'it works with proc { |*args, **kwargs| }', exception: SpecFailedException do
-        m.({a: 1}).should == [[{a: 1}], {}]
-      end
+      m.({a: 1}).should == [[{a: 1}], {}]
 
       # no autosplatting for |*args, **kwargs|
-      NATFIXME 'it works with proc { |*args, **kwargs| }', exception: SpecFailedException do
-        m.([1, 2]).should == [[[1, 2]], {}]
-      end
+      m.([1, 2]).should == [[[1, 2]], {}]
     end
 
     it "works with -> (*args, **kwargs) {}" do
@@ -157,14 +151,10 @@ describe "Keyword arguments" do
 
       empty = {}
       m.(**empty).should == [[], {}]
-      NATFIXME 'it works with -> (*args, **kwargs) {}', exception: SpecFailedException do
-        m.(empty).should == [[{}], {}]
-      end
+      m.(empty).should == [[{}], {}]
 
       m.(a: 1).should == [[], {a: 1}]
-      NATFIXME 'it works with -> (*args, **kwargs) {}', exception: SpecFailedException do
-        m.({a: 1}).should == [[{a: 1}], {}]
-      end
+      m.({a: 1}).should == [[{a: 1}], {}]
     end
 
     it "works with (...)" do

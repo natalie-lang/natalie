@@ -64,15 +64,11 @@ describe "A block yielded a single" do
 
     ruby_version_is "3.2" do
       it "does not autosplat single argument to required arguments when a keyword rest argument is present" do
-        NATFIXME 'does not autosplat single argument to required arguments when a keyword rest argument is present', exception: SpecFailedException do
-          m([1, 2]) { |a, **k| [a, k] }.should == [[1, 2], {}]
-        end
+        m([1, 2]) { |a, **k| [a, k] }.should == [[1, 2], {}]
       end
 
       it "does not autosplat single argument to required arguments when keyword arguments are present" do
-        NATFIXME 'does not autosplat single argument to required arguments when keyword arguments are present', exception: SpecFailedException do
-          m([1, 2]) { |a, b: :b, c: :c| [a, b, c] }.should == [[1, 2], :b, :c]
-        end
+        m([1, 2]) { |a, b: :b, c: :c| [a, b, c] }.should == [[1, 2], :b, :c]
       end
 
       it "raises error when required keyword arguments are present" do
@@ -105,26 +101,12 @@ describe "A block yielded a single" do
     end
 
     it "does not treat final Hash as keyword arguments and does not autosplat" do
-      NATFIXME 'does not treat final Hash as keyword arguments and does not autosplat', exception: SpecFailedException do
-        result = m(["a" => 1, a: 10]) { |a=nil, **b| [a, b] }
-        result.should == [[{"a" => 1, a: 10}], {}]
-      end
+      result = m(["a" => 1, a: 10]) { |a=nil, **b| [a, b] }
+      result.should == [[{"a" => 1, a: 10}], {}]
     end
 
     it "does not call #to_hash on final argument to get keyword arguments and does not autosplat" do
-      NATFIXME 'does not call #to_hash on final argument to get keyword arguments and does not autosplat', exception: SpecFailedException do
-        suppress_keyword_warning do
-          obj = mock("coerce block keyword arguments")
-          obj.should_not_receive(:to_hash)
-
-          result = m([obj]) { |a=nil, **b| [a, b] }
-          result.should == [[obj], {}]
-        end
-      end
-    end
-
-    it "does not call #to_hash on the argument when optional argument and keyword argument accepted and does not autosplat" do
-      NATFIXME 'does not call #to_hash on the argument when optional argument and keyword argument accepted and does not autosplat', exception: SpecFailedException do
+      suppress_keyword_warning do
         obj = mock("coerce block keyword arguments")
         obj.should_not_receive(:to_hash)
 
@@ -133,22 +115,26 @@ describe "A block yielded a single" do
       end
     end
 
+    it "does not call #to_hash on the argument when optional argument and keyword argument accepted and does not autosplat" do
+      obj = mock("coerce block keyword arguments")
+      obj.should_not_receive(:to_hash)
+
+      result = m([obj]) { |a=nil, **b| [a, b] }
+      result.should == [[obj], {}]
+    end
+
     describe "when non-symbol keys are in a keyword arguments Hash" do
       it "does not separate non-symbol keys and symbol keys and does not autosplat" do
-        NATFIXME 'does not separate non-symbol keys and symbol keys and does not autosplat', exception: SpecFailedException do
-          suppress_keyword_warning do
-            result = m(["a" => 10, b: 2]) { |a=nil, **b| [a, b] }
-            result.should == [[{"a" => 10, b: 2}], {}]
-          end
+        suppress_keyword_warning do
+          result = m(["a" => 10, b: 2]) { |a=nil, **b| [a, b] }
+          result.should == [[{"a" => 10, b: 2}], {}]
         end
       end
     end
 
     it "does not treat hashes with string keys as keyword arguments and does not autosplat" do
-      NATFIXME 'does not treat hashes with string keys as keyword arguments and does not autosplat', exception: SpecFailedException do
-        result = m(["a" => 10]) { |a = nil, **b| [a, b] }
-        result.should == [[{"a" => 10}], {}]
-      end
+      result = m(["a" => 10]) { |a = nil, **b| [a, b] }
+      result.should == [[{"a" => 10}], {}]
     end
 
     it "does not call #to_hash on the last element if keyword arguments are present" do

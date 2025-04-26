@@ -83,8 +83,7 @@ module Natalie
 
         @instructions << PopKeywordArgsInstruction.new if any_keyword_args?
 
-        spread = args_to_array.size > 1
-        @instructions << PushArgsInstruction.new(for_block: true, min_count:, max_count:, spread:)
+        @instructions << PushArgsInstruction.new(for_block: true, min_count:, max_count:, spread: spread?)
       end
 
       def transform_required_arg(arg)
@@ -321,15 +320,21 @@ module Natalie
         @instructions << PopInstruction.new
       end
 
+      # given this block: { |a, b| ... }
+      # and this yielder: yield [1, 2]
+      # ...we want the array to "spread" across the arguments
+      # This is called "autosplat" in the specs.
+      def spread?
+        args_to_array.size > 1
+      end
+
       def args_to_array
         @args_to_array ||=
           case @node
           when nil
             []
           when Prism::ParametersNode
-            (
-              @node.requireds + [@node.rest] + @node.optionals + @node.posts + @node.keywords + [@node.keyword_rest]
-            ).compact
+            (@node.requireds + [@node.rest] + @node.optionals + @node.posts).compact
           when Prism::NumberedParametersNode
             @node.maximum.times.map { |i| Prism::RequiredParameterNode.new(nil, nil, @node.location, 0, :"_#{i + 1}") }
           when Prism::ItParametersNode

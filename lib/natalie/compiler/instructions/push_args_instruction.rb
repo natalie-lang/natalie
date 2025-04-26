@@ -32,7 +32,7 @@ module Natalie
       end
 
       def execute(vm)
-        if @for_block && @max_count > 1 && vm.args.size == 1
+        if @for_block && @max_count && @max_count > 1 && vm.args.size == 1
           if vm.args.first.is_a?(Array)
             vm.push(vm.args.first.dup)
           elsif vm.args.first.respond_to?(:to_ary)

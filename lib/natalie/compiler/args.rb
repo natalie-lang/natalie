@@ -346,9 +346,7 @@ module Natalie
           when nil
             []
           when Prism::ParametersNode
-            (
-              @node.requireds + [@node.rest] + @node.optionals + @node.posts + @node.keywords + [@node.keyword_rest]
-            ).compact
+            (@node.requireds + [@node.rest] + @node.optionals + @node.posts).compact
           when Prism::NumberedParametersNode
             @node.maximum.times.map { |i| Prism::RequiredParameterNode.new(nil, nil, @node.location, 0, :"_#{i + 1}") }
           when Prism::ItParametersNode
