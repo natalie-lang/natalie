@@ -3,30 +3,33 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class SuperInstruction < BaseInstruction
-      def initialize(args_array_on_stack:, with_block:, has_keyword_hash: false)
+      def initialize(args_array_on_stack:, with_block:, has_keyword_hash: false, forward_args: false)
         @args_array_on_stack = args_array_on_stack
         @with_block = with_block
         @has_keyword_hash = has_keyword_hash
+        @forward_args = forward_args
       end
 
       def to_s
         s = 'super'
-        s << ' with block' if @with_block
-        s << ' (args array on stack)' if @args_array_on_stack
+        s << ' (with_block)' if @with_block
+        s << ' (args_array_on_stack)' if @args_array_on_stack
+        s << ' (forward_args)' if @forward_args
         s
       end
 
       def generate(transform)
-        if @args_array_on_stack
-          args = "#{transform.pop}.as_array()"
-          arg_count = "#{args}->size()"
-          args_array_on_stack = "#{args}->data()"
+        if @forward_args
+          args =
+            'Args(args.original_size(), &tl_current_arg_stack->data()[args.original_start_index()], args.has_keyword_hash())'
+        elsif @args_array_on_stack
+          ary = "#{transform.pop}.as_array()"
+          args = "Args(#{ary}->size(), #{ary}->data(), #{@has_keyword_hash})"
         else
           arg_count = transform.pop
           args = []
           arg_count.times { args.unshift transform.pop }
-          args_array_on_stack = transform.temp('args')
-          transform.exec "Value #{args_array_on_stack}[] = { #{args.join(', ')} };"
+          args = "Args({ #{args.join(', ')} }, #{@has_keyword_hash})"
         end
 
         receiver = transform.pop
@@ -37,13 +40,14 @@ module Natalie
         current_method_block = 'block'
         block = @with_block ? "to_block(env, #{transform.pop})" : current_method_block
 
-        transform.exec_and_push :super,
-                                "super(env, #{receiver}, Args(#{arg_count}, #{args_array_on_stack}, #{@has_keyword_hash ? 'true' : 'false'}), #{block})"
+        transform.exec_and_push :super, "super(env, #{receiver}, #{args}, #{block})"
       end
 
       def execute(vm)
         args =
-          if @args_array_on_stack
+          if @forward_args
+            vm.original_args.dup
+          elsif @args_array_on_stack
             vm.pop
           else
             arg_count = vm.pop

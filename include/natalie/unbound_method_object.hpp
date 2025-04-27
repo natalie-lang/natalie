@@ -31,7 +31,7 @@ public:
 
     Value bind_call(Env *env, Args &&args, Block *block) {
         args.ensure_argc_at_least(env, 1);
-        auto obj = args.shift();
+        auto obj = args.shift(env, true);
         return bind_call(env, obj, std::move(args), block);
     }
 

@@ -115,15 +115,16 @@ module Natalie
       def execute(vm)
         if @forward_args
           args = vm.args
+          kwargs = args.pop if vm.kwargs.any?
         elsif @args_array_on_stack
           args = vm.pop
+          kwargs = @has_keyword_hash ? args.pop : {}
         else
           arg_count = vm.pop
           args = []
           arg_count.times { args.unshift vm.pop }
+          kwargs = @has_keyword_hash ? args.pop : {}
         end
-
-        kwargs = @has_keyword_hash ? args.pop : {}
 
         receiver = vm.pop
 
