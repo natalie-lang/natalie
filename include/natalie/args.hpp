@@ -32,6 +32,7 @@ public:
         : m_args_start_index { other.m_args_start_index }
         , m_args_original_start_index { other.m_args_original_start_index }
         , m_args_size { other.m_args_size }
+        , m_args_original_size { other.m_args_original_size }
         , m_keyword_hash_index { other.m_keyword_hash_index } {
         other.m_moved_out = true;
         other.m_keyword_hash_index = -1;
@@ -58,6 +59,10 @@ public:
 
     ArrayObject *to_array(bool include_keyword_hash = true) const;
     ArrayObject *to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool autosplat, bool include_keyword_hash = true) const;
+
+    Args copy() const {
+        return Args(size(), data(), has_keyword_hash());
+    }
 
     void ensure_argc_is(Env *env, size_t expected, bool has_keywords = false, std::initializer_list<const String> keywords = {}) const;
     void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, bool has_keywords = false, std::initializer_list<const String> keywords = {}) const;
