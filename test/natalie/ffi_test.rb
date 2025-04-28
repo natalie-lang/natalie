@@ -20,6 +20,7 @@ module TestStubs
   attach_function :test_ulong, [:ulong], :ulong
   attach_function :test_ulong_long, [:ulong_long], :ulong_long
   attach_function :test_size_t, [:size_t], :size_t
+  attach_function :test_int64, [:int64], :int64
   attach_function :test_string, [], :string
   attach_function :test_string_arg, [:string], :size_t
   attach_function :test_enum_call, [:char], :test_enum
@@ -187,6 +188,10 @@ describe 'FFI' do
 
   it 'can pass and return size_t' do
     TestStubs.test_size_t(3).should == 3
+  end
+
+  it 'can pass and return int64_t' do
+    TestStubs.test_int64(1 << 62).should == 1 << 62
   end
 
   it 'can return a string' do

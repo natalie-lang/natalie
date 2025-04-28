@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 bool test_bool(bool arg) {
@@ -35,6 +36,10 @@ unsigned long long test_ulong_long(unsigned long long arg) {
 }
 
 size_t test_size_t(size_t arg) {
+    return arg;
+}
+
+int64_t test_int64(int64_t arg) {
     return arg;
 }
 

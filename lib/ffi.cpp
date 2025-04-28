@@ -134,6 +134,8 @@ static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
         return &ffi_type_pointer;
     } else if (type_sym == "size_t"_s) {
         return &ffi_type_uint64;
+    } else if (type_sym == "int64"_s) {
+        return &ffi_type_sint64;
     } else if (type_sym == "string"_s) {
         return &ffi_type_pointer;
     } else if (type_sym == "void"_s) {
@@ -166,6 +168,7 @@ typedef union {
     unsigned int uint;
     unsigned long ulong;
     uint64_t u64;
+    int64_t s64;
     double double_;
 } FFI_Library_call_arg_slot;
 
@@ -194,6 +197,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     auto ulong_long_sym = "ulong_long"_s;
     auto pointer_sym = "pointer"_s;
     auto size_t_sym = "size_t"_s;
+    auto int64_sym = "int64"_s;
     auto string_sym = "string"_s;
     auto void_sym = "void"_s;
 
@@ -234,6 +238,13 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
                 arg_values[i].u64 = 0;
             else
                 arg_values[i].u64 = size;
+            arg_pointers[i] = &(arg_values[i].u64);
+        } else if (type == int64_sym) {
+            auto size = val.integer_or_raise(env).to_nat_int_t();
+            if (size < 0 || (int64_t)size > std::numeric_limits<int64_t>::max())
+                arg_values[i].s64 = 0;
+            else
+                arg_values[i].s64 = size;
             arg_pointers[i] = &(arg_values[i].u64);
         } else if (type == string_sym) {
             auto str = val.to_str(env);
@@ -299,6 +310,9 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
         return pointer;
     } else if (return_type == size_t_sym || return_type == ulong_long_sym) {
         assert((uint64_t)result <= std::numeric_limits<nat_int_t>::max());
+        return Value::integer((nat_int_t)result);
+    } else if (return_type == int64_sym) {
+        assert((int64_t)result <= std::numeric_limits<nat_int_t>::max());
         return Value::integer((nat_int_t)result);
     } else if (return_type == string_sym) {
         return new StringObject { reinterpret_cast<const char *>(result) };
