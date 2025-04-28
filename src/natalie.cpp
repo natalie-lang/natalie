@@ -960,7 +960,7 @@ void gc_signal_handler(int signal, siginfo_t *, void *ucontext) {
         memcpy(ctx, ucontext, sizeof(ucontext_t));
         thread->set_suspend_status(ThreadObject::SuspendStatus::Suspended);
 
-#if defined(__x86_64__)
+#if defined(__x86_64__) && !defined(__APPLE__)
         thread->set_end_of_stack(reinterpret_cast<void *>(ctx->uc_mcontext.gregs[REG_RSP]));
 #endif
 
