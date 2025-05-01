@@ -113,7 +113,7 @@ describe :yaml_load_unsafe, shared: true do
 
   describe "with iso8601 timestamp" do
     it "computes the microseconds" do
-      NATFIXME 'Implement YAML.unsafe_load', exception: NoMethodError, message: /undefined method [`']usec'/ do
+      NATFIXME 'Implement YAML.unsafe_load', exception: NoMethodError, message: "undefined method 'usec' for an instance of String" do
         [ [YAML.send(@method, "2011-03-22t23:32:11.2233+01:00"),   223300],
           [YAML.send(@method, "2011-03-22t23:32:11.0099+01:00"),   9900],
           [YAML.send(@method, "2011-03-22t23:32:11.000076+01:00"), 76]
@@ -122,7 +122,7 @@ describe :yaml_load_unsafe, shared: true do
     end
 
     it "rounds values smaller than 1 usec to 0 " do
-      NATFIXME 'Implement YAML.unsafe_load', exception: NoMethodError, message: /undefined method [`']usec'/ do
+      NATFIXME 'Implement YAML.unsafe_load', exception: NoMethodError, message: "undefined method 'usec' for an instance of String" do
         YAML.send(@method, "2011-03-22t23:32:11.000000342222+01:00").usec.should == 0
       end
     end
