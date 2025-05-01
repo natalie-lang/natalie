@@ -39,8 +39,8 @@ module FFI
         enum[enum_name] = enum_value
       end
 
-      @enums ||= {}
-      @enums[name] = enum.invert
+      @ffi_enums ||= {}
+      @ffi_enums[name] = enum.invert
     end
   end
 
