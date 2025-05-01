@@ -177,10 +177,9 @@ Value TimeObject::inspect(Env *env) {
         if (length > 9) {
             string->truncate(9);
         } else if (length < 9) {
-            nat_int_t n;
-            for (n = 9 - length - 1; n >= 0; n--) {
-                string->prepend_char(env, '0');
-            }
+            TM::String string_with_prefix(9 - length, '0');
+            string_with_prefix.append(string->string());
+            string->set_str(string_with_prefix.c_str(), string_with_prefix.size());
         }
         result->append_char('.');
         result->append(strip_zeroes(string));
