@@ -11,14 +11,14 @@ describe :strftime_date, shared: true do
 
   # Per conversion specifier, not combining
   it "should be able to print the full day name" do
-    NATFIXME 'it should be able to print the full day name', exception: SpecFailedException do
+    NATFIXME 'it should be able to print the full day name', condition: !@d2000_4_6.is_a?(Time), exception: SpecFailedException do
       @d2000_4_6.strftime("%A").should == "Thursday"
       @d2009_9_18.strftime('%A').should == 'Friday'
     end
   end
 
   it "should be able to print the short day name" do
-    NATFIXME 'it should be able to print the short day name', exception: SpecFailedException do
+    NATFIXME 'it should be able to print the short day name', condition: !@d2000_4_6.is_a?(Time), exception: SpecFailedException do
       @d2000_4_6.strftime("%a").should == "Thu"
       @d2009_9_18.strftime('%a').should == 'Fri'
     end
@@ -57,9 +57,11 @@ describe :strftime_date, shared: true do
   end
 
   it "should be able to print the commercial year with only two digits" do
-    NATFIXME 'it should be able to print the commercial year with only two digits', exception: SpecFailedException do
+    NATFIXME 'it should be able to print the commercial year with only two digits', condition: !@d2000_4_6.is_a?(Time), exception: SpecFailedException do
       @d2000_4_6.strftime("%g").should == "00"
-      @d200_4_6.strftime("%g").should == "00"
+      NATFIXME 'fails on MacOS', condition: RUBY_PLATFORM.include?('darwin'), exception: SpecFailedException do
+        @d200_4_6.strftime("%g").should == "00"
+      end
     end
   end
 
@@ -72,7 +74,7 @@ describe :strftime_date, shared: true do
   end
 
   it "should be able to print the julian day with leading zeroes" do
-    NATFIXME 'it should be able to print the julian day with leading zeroes', exception: SpecFailedException do
+    NATFIXME 'it should be able to print the julian day with leading zeroes', condition: !@d2000_4_6.is_a?(Time), exception: SpecFailedException do
       @d2000_4_6.strftime("%j").should == "097"
       @d2009_9_18.strftime('%j').should == '261'
     end
@@ -123,7 +125,7 @@ describe :strftime_date, shared: true do
   end
 
   it "should be able to show the week number with the week starting on Sunday (%U) and Monday (%W)" do
-    NATFIXME 'it should be able to show the week number with the week starting on Sunday (%U) and Monday (%W)', exception: SpecFailedException do
+    NATFIXME 'it should be able to show the week number with the week starting on Sunday (%U) and Monday (%W)', condition: !@d2000_4_6.is_a?(Time), exception: SpecFailedException do
       @d2000_4_6.strftime("%U").should == "14"  # Thursday
       @d2000_4_6.strftime("%W").should == "14"
 
@@ -179,13 +181,13 @@ describe :strftime_date, shared: true do
 
   it "should be able to show the commercial week day" do
     @d2000_4_9.strftime("%u").should == "7"
-    NATFIXME 'it should be able to show the commercial week day', exception: SpecFailedException do
+    NATFIXME 'it should be able to show the commercial week day', condition: !@d2000_4_10.is_a?(Time), exception: SpecFailedException do
       @d2000_4_10.strftime("%u").should == "1"
     end
   end
 
   it "should be able to show the commercial week with %V" do
-    NATFIXME 'it should be able to show the commercial week with %V', exception: SpecFailedException do
+    NATFIXME 'it should be able to show the commercial week with %V', condition: !@d2000_4_9.is_a?(Time), exception: SpecFailedException do
       @d2000_4_9.strftime("%V").should == "14"
       @d2000_4_10.strftime("%V").should == "15"
     end
@@ -195,7 +197,7 @@ describe :strftime_date, shared: true do
 
   it "should be able to show the week day" do
     @d2000_4_9.strftime("%w").should == "0"
-    NATFIXME 'it should be able to show the week day', exception: SpecFailedException do
+    NATFIXME 'it should be able to show the week day', condition: !@d2000_4_10.is_a?(Time), exception: SpecFailedException do
       @d2000_4_10.strftime("%w").should == "1"
       @d2009_9_18.strftime('%w').should == '5'
     end
@@ -221,7 +223,7 @@ describe :strftime_date, shared: true do
 
   # Combining conversion specifiers
   it "should be able to print the date in full" do
-    NATFIXME 'it should be able to print the date in full', exception: SpecFailedException do
+    NATFIXME 'it should be able to print the date in full', condition: !@d2000_4_6.is_a?(Time), exception: SpecFailedException do
       @d2000_4_6.strftime("%c").should == "Thu Apr  6 00:00:00 2000"
     end
     @d2000_4_6.strftime("%c").should == @d2000_4_6.strftime('%a %b %e %H:%M:%S %Y')
