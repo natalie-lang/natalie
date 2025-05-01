@@ -177,6 +177,10 @@ public:
         m_string.set_str(str, length);
     }
 
+    void set_str(String &&str) {
+        m_string = std::move(str);
+    }
+
     bool is_chilled() const { return m_chilled != Chilled::None; }
     Chilled chilled() const { return m_chilled; }
     void set_chilled(Chilled chilled) { m_chilled = chilled; }

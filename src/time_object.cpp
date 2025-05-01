@@ -179,7 +179,7 @@ Value TimeObject::inspect(Env *env) {
         } else if (length < 9) {
             TM::String string_with_prefix(9 - length, '0');
             string_with_prefix.append(string->string());
-            string->set_str(string_with_prefix.c_str(), string_with_prefix.size());
+            string->set_str(std::move(string_with_prefix));
         }
         result->append_char('.');
         result->append(strip_zeroes(string));
