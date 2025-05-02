@@ -16,10 +16,11 @@ module FFI
       @ffi_typedefs[name] = FFI::FunctionType.new(param_types, return_type)
     end
 
-    def enum(name, values)
-      if !name.is_a?(Symbol) || !values.is_a?(Array)
+    def enum(*args)
+      if args.size != 2 || !args[0].is_a?(Symbol) || !args[1].is_a?(Array)
         raise ArgumentError, "invalid enum call, only `enum :name, [:value1, :value...]' is supported"
       end
+      name, values = args
 
       enum = {}
       i = 0
