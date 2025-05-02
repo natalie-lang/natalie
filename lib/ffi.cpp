@@ -148,7 +148,7 @@ static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
                 return &ffi_type_pointer;
             }
         }
-        auto enums = self->ivar_get(env, "@enums"_s);
+        auto enums = self->ivar_get(env, "@ffi_enums"_s);
         if (!enums.is_nil()) {
             auto hash = enums.as_hash_or_raise(env);
             if (hash->has_key(env, type_sym)) {
@@ -271,7 +271,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             arg_values[i].u64 = ulong_long;
             arg_pointers[i] = &(arg_values[i].u64);
         } else {
-            auto enums = self->ivar_get(env, "@enums"_s);
+            auto enums = self->ivar_get(env, "@ffi_enums"_s);
             if (!enums.is_nil() && enums.as_hash_or_raise(env)->has_key(env, type)) {
                 auto enum_values = enums.as_hash()->ref(env, type);
                 auto mapped_value = enum_values.send(env, "key"_s, { val });
@@ -319,7 +319,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     } else if (return_type == void_sym) {
         return Value::nil();
     } else {
-        auto enums = self->ivar_get(env, "@enums"_s);
+        auto enums = self->ivar_get(env, "@ffi_enums"_s);
         if (!enums.is_nil()) {
             auto hash = enums.as_hash_or_raise(env);
             if (hash->has_key(env, return_type)) {
