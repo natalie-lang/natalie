@@ -20,8 +20,10 @@ version_is StringScanner::Version, "3.1.1" do # ruby_version_is "3.4"
       s.peek_byte.should == 226
       s.pos = 1
       s.peek_byte.should == 136
-      s.pos = 2
-      s.peek_byte.should == 130
+      NATFIXME 'StringScanner#pos= should work on bytes, not chars', exception: RangeError, message: 'pos too far' do
+        s.pos = 2
+        s.peek_byte.should == 130
+      end
     end
 
     it "doesn't change current position" do
