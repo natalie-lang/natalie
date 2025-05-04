@@ -7,6 +7,51 @@ module FFI
   class NotFoundError < LoadError
   end
 
+  class Enum
+    attr_reader :symbol_map
+
+    def initialize(values)
+      @symbol_map = {}
+      i = 0
+      while i < values.size
+        name = values[i]
+        raise TypeError, "expected Symbol, got #{enum_name.class}" unless name.is_a?(Symbol)
+        i += 1
+        value =
+          if values[i].is_a?(Integer)
+            i += 1
+            values[i - 1]
+          elsif !@symbol_map.empty?
+            @symbol_map.values.last + 1
+          else
+            0
+          end
+        @symbol_map[name] = value
+      end
+      @symbol_map.freeze
+    end
+
+    alias to_h symbol_map
+    alias to_hash symbol_map
+
+    def symbols
+      @symbol_map.keys
+    end
+
+    # NATFIXME: What is this second argument?
+    def from_native(native, _)
+      @symbol_map.invert.fetch(native, native)
+    end
+
+    # NATFIXME: What is this second argument?
+    def to_native(symbol, _)
+      @symbol_map.fetch(symbol) do
+        raise ArgumentError, "invalid enum value, #{symbol.inspect}" unless symbol.is_a?(Integer)
+        symbol
+      end
+    end
+  end
+
   module Library
     __bind_method__ :ffi_lib, :FFI_Library_ffi_lib
     __bind_method__ :attach_function, :FFI_Library_attach_function
@@ -21,27 +66,8 @@ module FFI
         raise ArgumentError, "invalid enum call, only `enum :name, [:value1, :value...]' is supported"
       end
       name, values = args
-
-      enum = {}
-      i = 0
-      while i < values.size
-        enum_name = values[i]
-        raise TypeError, "expected Symbol, got #{enum_name.class}" unless enum_name.is_a?(Symbol)
-        i += 1
-        enum_value =
-          if values[i].is_a?(Integer)
-            i += 1
-            values[i - 1]
-          elsif !enum.empty?
-            enum.values.last + 1
-          else
-            0
-          end
-        enum[enum_name] = enum_value
-      end
-
       @ffi_enums ||= {}
-      @ffi_enums[name] = enum.invert
+      @ffi_enums[name] = FFI::Enum.new(values)
     end
   end
 
