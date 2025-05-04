@@ -62,12 +62,13 @@ module FFI
     end
 
     def enum(*args)
-      if args.size != 2 || !args[0].is_a?(Symbol) || !args[1].is_a?(Array)
-        raise ArgumentError, "invalid enum call, only `enum :name, [:value1, :value...]' is supported"
+      if args.size == 2 && args[0].is_a?(Symbol) && args[1].is_a?(Array)
+        name, values = args
+        @ffi_enums ||= {}
+        @ffi_enums[name] = FFI::Enum.new(values)
+      else
+        FFI::Enum.new(args)
       end
-      name, values = args
-      @ffi_enums ||= {}
-      @ffi_enums[name] = FFI::Enum.new(values)
     end
   end
 
