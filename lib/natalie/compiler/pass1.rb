@@ -358,7 +358,7 @@ module Natalie
           ]
         end
 
-        if node.ensure_clause
+        if node.ensure_clause&.statements
           raise_call = Prism.call_node(receiver: nil, name: :raise, location: node.ensure_clause.location)
           instructions.unshift(TryInstruction.new(discard_catch_result: true))
           instructions += [
