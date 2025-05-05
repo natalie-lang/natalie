@@ -181,6 +181,10 @@ class StringScanner
     peek(length)
   end
 
+  def peek_byte
+    @string.bytes[@pos]
+  end
+
   def scan_full(pattern, advance_pointer_p, return_string_p)
     pattern = /#{Regexp.quote(pattern)}/ if pattern.is_a?(String)
     raise TypeError, "wrong argument type #{pattern.class.name} (expected Regexp)" unless pattern.is_a?(Regexp)
