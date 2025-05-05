@@ -114,6 +114,11 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
 }
 
 static ffi_type *get_ffi_type(Env *env, Value self, Value type) {
+    auto enum_class = fetch_nested_const({ "FFI"_s, "Enum"_s }).as_class();
+    if (type.is_a(env, enum_class)) {
+        return &ffi_type_sint32;
+    }
+
     type.assert_type(env, Object::Type::Symbol, "Symbol");
     auto type_sym = type.as_symbol();
     if (type_sym == "bool"_s) {
@@ -178,7 +183,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     assert(cif);
 
     auto arg_types = env->outer()->var_get("arg_types", 1).as_array();
-    auto return_type = env->outer()->var_get("return_type", 2).as_symbol();
+    auto return_type = env->outer()->var_get("return_type", 2);
 
     Value fn_obj = env->outer()->var_get("fn", 4);
     auto fn = (void (*)())fn_obj.as_void_p()->void_ptr();
@@ -272,21 +277,18 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             arg_pointers[i] = &(arg_values[i].u64);
         } else {
             auto enums = self->ivar_get(env, "@ffi_enums"_s);
-            if (!enums.is_nil() && enums.as_hash_or_raise(env)->has_key(env, type)) {
-                auto enum_values = enums.as_hash()->ref(env, type);
-                auto mapped_value = enum_values.send(env, "key"_s, { val });
-                if (mapped_value.is_nil() && val.is_integer())
-                    mapped_value = val;
-                if (mapped_value.is_nil()) {
-                    env->raise("ArgumentError", "invalid enum value, {}", val.inspected(env));
-                } else {
-                    const auto int_val = mapped_value.integer_or_raise(env).to_nat_int_t();
-                    if (int_val < std::numeric_limits<int32_t>::min() || int_val > std::numeric_limits<int32_t>::max())
-                        arg_values[i].s32 = 0;
-                    else
-                        arg_values[i].s32 = static_cast<int32_t>(int_val);
-                    arg_pointers[i] = &(arg_values[i].s32);
-                }
+            if (!enums.is_nil() && enums.as_hash_or_raise(env)->has_key(env, type))
+                type = enums.as_hash()->ref(env, type);
+
+            auto enum_class = fetch_nested_const({ "FFI"_s, "Enum"_s }).as_class();
+            if (type.is_a(env, enum_class)) {
+                auto mapped_value = type.send(env, "to_native"_s, { val, Value::nil() });
+                const auto int_val = mapped_value.integer_or_raise(env).to_nat_int_t();
+                if (int_val < std::numeric_limits<int32_t>::min() || int_val > std::numeric_limits<int32_t>::max())
+                    arg_values[i].s32 = 0;
+                else
+                    arg_values[i].s32 = static_cast<int32_t>(int_val);
+                arg_pointers[i] = &(arg_values[i].s32);
             } else {
                 env->raise("StandardError", "I don't yet know how to handle argument type {} (arg {})", type.inspected(env), (int)i);
             }
@@ -319,16 +321,20 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     } else if (return_type == void_sym) {
         return Value::nil();
     } else {
+        auto enum_class = fetch_nested_const({ "FFI"_s, "Enum"_s }).as_class();
+        if (return_type.is_a(env, enum_class)) {
+            auto return_type_obj = Value::integer(static_cast<int32_t>(result));
+            return return_type.send(env, "from_native"_s, { return_type_obj, Value::nil() });
+        }
         auto enums = self->ivar_get(env, "@ffi_enums"_s);
         if (!enums.is_nil()) {
             auto hash = enums.as_hash_or_raise(env);
             if (hash->has_key(env, return_type)) {
-                hash = hash->ref(env, return_type).as_hash_or_raise(env);
                 auto return_type_obj = Value::integer(static_cast<int32_t>(result));
-                return hash->fetch(env, return_type_obj, return_type_obj, nullptr);
+                return hash->ref(env, return_type).send(env, "from_native"_s, { return_type_obj, Value::nil() });
             }
         }
-        env->raise("StandardError", "I don't yet know how to handle return type {}", return_type->string());
+        env->raise("StandardError", "I don't yet know how to handle return type {}", return_type.inspected(env));
     }
 }
 
@@ -337,7 +343,7 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     auto name = args.at(0).to_symbol(env, Value::Conversion::Strict);
     auto arg_types = args.at(1);
     arg_types.assert_type(env, Object::Type::Array, "Array");
-    auto return_type = args.at(2).to_symbol(env, Value::Conversion::Strict);
+    auto return_type = args.at(2);
     // dbg("attach_function {v} {v} {v}", name, arg_types, return_type);
 
     auto arg_types_array = arg_types.as_array();
