@@ -19,13 +19,11 @@ ruby_version_is "3.2" do
     end
 
     it "does not need explicit `require 'set'`" do
-      NATFIXME 'No autoload in Natalie', exception: SpecFailedException do
-        output = ruby_exe(<<~RUBY, options: '--disable-gems', args: '2>&1')
-          puts [1, 2, 3].to_set
-        RUBY
+      output = ruby_exe(<<~RUBY, options: '--disable-gems', args: '2>&1')
+        puts [1, 2, 3].to_set
+      RUBY
 
-        output.chomp.should == "#<Set: {1, 2, 3}>"
-      end
+      output.chomp.should == "#<Set: {1, 2, 3}>"
     end
   end
 end
