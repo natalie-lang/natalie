@@ -351,6 +351,15 @@ describe 'ensure' do
     result.should == 3
   end
 
+  it 'can be empty' do
+    result =
+      begin
+        1
+      ensure
+      end
+    result.should == 1
+  end
+
   it 'works in modifier form' do
     x =
       begin
