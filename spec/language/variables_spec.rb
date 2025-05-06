@@ -354,6 +354,9 @@ describe "Multiple assignment" do
         SINGLE_RHS_1, SINGLE_RHS_2 = 1
         [SINGLE_RHS_1, SINGLE_RHS_2].should == [1, nil]
       end
+    ensure
+      VariableSpecs.send(:remove_const, :SINGLE_RHS_1)
+      VariableSpecs.send(:remove_const, :SINGLE_RHS_2)
     end
   end
 
@@ -368,11 +371,22 @@ describe "Multiple assignment" do
       a.should == []
     end
 
-    it "calls #to_a to convert nil to an empty Array" do
-      nil.should_receive(:to_a).and_return([])
+    ruby_version_is "3.5" do
+      it "converts nil to empty array without calling a method" do
+        nil.should_not_receive(:to_a)
 
-      (*a = *nil).should == []
-      a.should == []
+        (*a = *nil).should == []
+        a.should == []
+      end
+    end
+
+    ruby_version_is ""..."3.5"  do
+      it "calls #to_a to convert nil to an empty Array" do
+        nil.should_receive(:to_a).and_return([])
+
+        (*a = *nil).should == []
+        a.should == []
+      end
     end
 
     it "does not call #to_a on an Array" do
@@ -604,6 +618,8 @@ describe "Multiple assignment" do
         (*SINGLE_SPLATTED_RHS) = *1
         SINGLE_SPLATTED_RHS.should == [1]
       end
+    ensure
+      VariableSpecs.send(:remove_const, :SINGLE_SPLATTED_RHS)
     end
   end
 
@@ -814,6 +830,9 @@ describe "Multiple assignment" do
         MRHS_VALUES_1.should == 1
         MRHS_VALUES_2.should == 2
       end
+    ensure
+      VariableSpecs.send(:remove_const, :MRHS_VALUES_1)
+      VariableSpecs.send(:remove_const, :MRHS_VALUES_2)
     end
 
     it "assigns all RHS values as an array to a single LHS constant" do
@@ -821,6 +840,8 @@ describe "Multiple assignment" do
         MRHS_VALUES = 1, 2, 3
         MRHS_VALUES.should == [1, 2, 3]
       end
+    ensure
+      VariableSpecs.send(:remove_const, :MRHS_VALUES)
     end
   end
 

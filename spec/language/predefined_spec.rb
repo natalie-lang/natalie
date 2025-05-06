@@ -567,12 +567,39 @@ describe "Predefined global $/" do
     $VERBOSE = @verbose
   end
 
-  it "can be assigned a String" do
-    str = "abc"
-    $/ = str
-    $/.should equal(str)
+  ruby_version_is ""..."3.5" do
+    it "can be assigned a String" do
+      str = +"abc"
+      $/ = str
+      $/.should equal(str)
+    end
   end
 
+  ruby_version_is "3.5" do
+    it "makes a new frozen String from the assigned String" do
+      string_subclass = Class.new(String)
+      str = string_subclass.new("abc")
+      str.instance_variable_set(:@ivar, 1)
+      $/ = str
+      $/.should.frozen?
+      $/.should be_an_instance_of(String)
+      $/.should_not.instance_variable_defined?(:@ivar)
+      $/.should == str
+    end
+
+    it "makes a new frozen String if it's not frozen" do
+      str = +"abc"
+      $/ = str
+      $/.should.frozen?
+      $/.should == str
+    end
+
+    it "assigns the given String if it's frozen and has no instance variables" do
+      str = "abc".freeze
+      $/ = str
+      $/.should equal(str)
+    end
+  end
   it "can be assigned nil" do
     $/ = nil
     $/.should be_nil
@@ -616,10 +643,38 @@ describe "Predefined global $-0" do
     $VERBOSE = @verbose
   end
 
-  it "can be assigned a String" do
-    str = "abc"
-    $-0 = str
-    $-0.should equal(str)
+  ruby_version_is ""..."3.5" do
+    it "can be assigned a String" do
+      str = +"abc"
+      $-0 = str
+      $-0.should equal(str)
+    end
+  end
+
+  ruby_version_is "3.5" do
+    it "makes a new frozen String from the assigned String" do
+      string_subclass = Class.new(String)
+      str = string_subclass.new("abc")
+      str.instance_variable_set(:@ivar, 1)
+      $-0 = str
+      $-0.should.frozen?
+      $-0.should be_an_instance_of(String)
+      $-0.should_not.instance_variable_defined?(:@ivar)
+      $-0.should == str
+    end
+
+    it "makes a new frozen String if it's not frozen" do
+      str = +"abc"
+      $-0 = str
+      $-0.should.frozen?
+      $-0.should == str
+    end
+
+    it "assigns the given String if it's frozen and has no instance variables" do
+      str = "abc".freeze
+      $-0 = str
+      $-0.should equal(str)
+    end
   end
 
   it "can be assigned nil" do
@@ -1382,7 +1437,7 @@ describe "$LOAD_PATH.resolve_feature_path" do
     NATFIXME 'Implement $LOAD_PATH', exception: NoMethodError, message: /undefined method [`']resolve_feature_path' for nil/ do
       extension, path = $LOAD_PATH.resolve_feature_path('set')
       extension.should == :rb
-      path.should.end_with?('/set.rb')
+      path.should.end_with?('/pp.rb')
     end
   end
 

@@ -5,15 +5,15 @@ require_relative 'fixtures/classes'
 
 describe "String#to_f" do
   it "treats leading characters of self as a floating point number" do
-   "123.45e1".to_f.should == 1234.5
-   "45.67 degrees".to_f.should == 45.67
-   "0".to_f.should == 0.0
+    "123.45e1".to_f.should == 1234.5
+    "45.67 degrees".to_f.should == 45.67
+    "0".to_f.should == 0.0
 
-   ".5".to_f.should == 0.5
-   ".5e1".to_f.should == 5.0
-   "5.".to_f.should == 5.0
-   "5e".to_f.should == 5.0
-   "5E".to_f.should == 5.0
+    ".5".to_f.should == 0.5
+    ".5e1".to_f.should == 5.0
+    "5.".to_f.should == 5.0
+    "5e".to_f.should == 5.0
+    "5E".to_f.should == 5.0
   end
 
   it "treats special float value strings as characters" do
@@ -120,13 +120,11 @@ describe "String#to_f" do
     "\3771.2".b.to_f.should == 0
   end
 
-  ruby_version_is "3.2" do
-    it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
-      NATFIXME 'Add encoder to to UTF-16', exception: SpecFailedException, message: /code converter not found \(UTF-8 to UTF-16\)/ do
-        -> {
-          '1.2'.encode("UTF-16").to_f
-        }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
-      end
+  it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
+    NATFIXME 'Add encoder to to UTF-16', exception: SpecFailedException, message: /code converter not found \(UTF-8 to UTF-16\)/ do
+      -> {
+        '1.2'.encode("UTF-16").to_f
+      }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
     end
   end
 end
