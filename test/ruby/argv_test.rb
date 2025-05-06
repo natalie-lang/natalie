@@ -19,6 +19,6 @@ describe 'ARGV' do
   end
 
   it 'stops consuming flags when a file path is found' do
-    expect(`#{NAT_BINARY} -r set test/support/print_args.rb -c foo`.strip).must_equal '["-c", "foo"]'
+    expect(`#{NAT_BINARY} test/support/print_args.rb -c foo`.strip).must_equal '["-c", "foo"]'
   end
 end
