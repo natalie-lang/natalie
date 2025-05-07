@@ -38,9 +38,6 @@ describe "BasicObject#instance_exec" do
 
   it "only binds the exec to the receiver" do
     f = Object.new
-    # To implement this we may need something similar to GlobalEnv::is_instance_evaling
-    # to make define_method on the singleton class instead?
-    # maybe its the same behavior for instance_eval actually?
     f.instance_exec do
       def foo
         1

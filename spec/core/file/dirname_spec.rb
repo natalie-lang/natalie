@@ -63,19 +63,19 @@ describe "File.dirname" do
   end
 
   it "returns all the components of filename except the last one (edge cases on all platforms)" do
-      File.dirname("").should == "."
-      File.dirname(".").should == "."
-      File.dirname("./").should == "."
-      File.dirname("./b/./").should == "./b"
-      File.dirname("..").should == "."
-      File.dirname("../").should == "."
-      File.dirname("/").should == "/"
-      File.dirname("/.").should == "/"
-      File.dirname("/foo/").should == "/"
-      File.dirname("/foo/.").should == "/foo"
-      File.dirname("/foo/./").should == "/foo"
-      File.dirname("/foo/../.").should == "/foo/.."
-      File.dirname("foo/../").should == "foo"
+    File.dirname("").should == "."
+    File.dirname(".").should == "."
+    File.dirname("./").should == "."
+    File.dirname("./b/./").should == "./b"
+    File.dirname("..").should == "."
+    File.dirname("../").should == "."
+    File.dirname("/").should == "/"
+    File.dirname("/.").should == "/"
+    File.dirname("/foo/").should == "/"
+    File.dirname("/foo/.").should == "/foo"
+    File.dirname("/foo/./").should == "/foo"
+    File.dirname("/foo/../.").should == "/foo/.."
+    File.dirname("foo/../").should == "foo"
   end
 
   platform_is_not :windows do
