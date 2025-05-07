@@ -117,7 +117,7 @@ describe "Hash#transform_keys!" do
     end
 
     it "raises a FrozenError on hash argument" do
-     ->{ @hash.transform_keys!({ a: :A, b: :B, c: :C }) }.should raise_error(FrozenError)
+      ->{ @hash.transform_keys!({ a: :A, b: :B, c: :C }) }.should raise_error(FrozenError)
     end
 
     context "when no block is given" do
