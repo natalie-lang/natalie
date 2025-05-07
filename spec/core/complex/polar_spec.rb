@@ -11,22 +11,20 @@ describe "Complex.polar" do
     ->{ Complex.polar(nil, nil) }.should raise_error(TypeError)
   end
 
-  ruby_bug "#19004", ""..."3.2" do
-    it "computes the real values of the real & imaginary parts from the polar form" do
-      NATFIXME 'Support Complex.polar with imaginary float input', exception: RangeError, message: /can't convert .* to Float/ do
-        a = Complex.polar(1.0+0.0i, Math::PI/2+0.0i)
-        a.real.should be_close(0.0, TOLERANCE)
-        a.imag.should be_close(1.0, TOLERANCE)
-        a.real.real?.should be_true
-        a.imag.real?.should be_true
-      end
-
-      b = Complex.polar(1+0.0i)
-      b.real.should be_close(1.0, TOLERANCE)
-      b.imag.should be_close(0.0, TOLERANCE)
-      b.real.real?.should be_true
-      b.imag.real?.should be_true
+  it "computes the real values of the real & imaginary parts from the polar form" do
+    NATFIXME 'Support Complex.polar with imaginary float input', exception: RangeError, message: /can't convert .* to Float/ do
+      a = Complex.polar(1.0+0.0i, Math::PI/2+0.0i)
+      a.real.should be_close(0.0, TOLERANCE)
+      a.imag.should be_close(1.0, TOLERANCE)
+      a.real.real?.should be_true
+      a.imag.real?.should be_true
     end
+
+    b = Complex.polar(1+0.0i)
+    b.real.should be_close(1.0, TOLERANCE)
+    b.imag.should be_close(0.0, TOLERANCE)
+    b.real.real?.should be_true
+    b.imag.real?.should be_true
   end
 end
 

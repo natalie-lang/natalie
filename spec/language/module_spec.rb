@@ -26,22 +26,17 @@ describe "The module keyword" do
   it "reopens an existing module" do
     module ModuleSpecs; Reopened = true; end
     ModuleSpecs::Reopened.should be_true
+  ensure
+    ModuleSpecs.send(:remove_const, :Reopened)
   end
 
-  ruby_version_is '3.2' do
-    it "does not reopen a module included in Object" do
-      module IncludedModuleSpecs; Reopened = true; end
-      NATFIXME 'does not reopen a module included in Object', exception: SpecFailedException do
-        ModuleSpecs::IncludedInObject::IncludedModuleSpecs.should_not == Object::IncludedModuleSpecs
-      end
+  it "does not reopen a module included in Object" do
+    module IncludedModuleSpecs; Reopened = true; end
+    NATFIXME 'does not reopen a module included in Object', exception: SpecFailedException do
+      ModuleSpecs::IncludedInObject::IncludedModuleSpecs.should_not == Object::IncludedModuleSpecs
     end
-  end
-
-  ruby_version_is ''...'3.2' do
-    it "reopens a module included in Object" do
-      module IncludedModuleSpecs; Reopened = true; end
-      ModuleSpecs::IncludedInObject::IncludedModuleSpecs::Reopened.should be_true
-    end
+  ensure
+    IncludedModuleSpecs.send(:remove_const, :Reopened)
   end
 
   it "raises a TypeError if the constant is a Class" do
@@ -78,6 +73,8 @@ describe "Assigning an anonymous module to a constant" do
 
     ::ModuleSpecs_CS1 = mod
     mod.name.should == "ModuleSpecs_CS1"
+  ensure
+    Object.send(:remove_const, :ModuleSpecs_CS1)
   end
 
   it "sets the name of a module scoped by an anonymous module" do
@@ -102,5 +99,7 @@ describe "Assigning an anonymous module to a constant" do
       c.name.should == "ModuleSpecs_CS2::B::C"
     end
     d.name.should == "ModuleSpecs_CS2::D"
+  ensure
+    Object.send(:remove_const, :ModuleSpecs_CS2)
   end
 end

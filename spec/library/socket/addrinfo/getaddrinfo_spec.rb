@@ -83,21 +83,17 @@ describe 'Addrinfo.getaddrinfo' do
     end
   end
 
-  platform_is_not :'solaris2.10' do # i386-solaris
-    it 'sets a custom socket protocol of the Addrinfo instances' do
-      NATFIXME 'it sets a custom socket protocol of the Addrinfo instances', exception: SpecFailedException do
-        array = Addrinfo.getaddrinfo('127.0.0.1', 80, nil, nil, Socket::IPPROTO_UDP)
+  it 'sets a custom socket protocol of the Addrinfo instances' do
+    NATFIXME 'it sets a custom socket protocol of the Addrinfo instances', exception: SpecFailedException do
+      array = Addrinfo.getaddrinfo('127.0.0.1', 80, nil, nil, Socket::IPPROTO_UDP)
 
-        array[0].protocol.should == Socket::IPPROTO_UDP
-      end
+      array[0].protocol.should == Socket::IPPROTO_UDP
     end
   end
 
-  platform_is_not :solaris do
-    it 'sets the canonical name when AI_CANONNAME is given as a flag' do
-      array = Addrinfo.getaddrinfo('localhost', 80, nil, nil, nil, Socket::AI_CANONNAME)
+  it 'sets the canonical name when AI_CANONNAME is given as a flag' do
+    array = Addrinfo.getaddrinfo('localhost', 80, nil, nil, nil, Socket::AI_CANONNAME)
 
-      array[0].canonname.should be_an_instance_of(String)
-    end
+    array[0].canonname.should be_an_instance_of(String)
   end
 end
