@@ -53,7 +53,7 @@ Value GlobalEnv::global_set(Env *env, SymbolObject *name, Optional<Value> val, b
     auto info = m_global_variables.get(name, env);
     if (info) {
         if (!readonly && info->is_readonly())
-            env->raise_name_error(name, "{} is a read only variable", name->string());
+            env->raise_name_error(name, "{} is a read-only variable", name->string());
         if (readonly)
             assert(info->is_readonly()); // changing a global to read-only is not anticipated.
         if (val)
