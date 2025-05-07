@@ -1,6 +1,7 @@
 # -*- encoding: binary -*-
 
 require_relative '../spec_helper'
+require_relative 'fixtures/class_with_class_variable'
 
 # TODO: rewrite these horrid specs. it "are..." seriously?!
 
@@ -25,6 +26,11 @@ describe "Ruby character strings" do
 
   it "interpolate global variables just with the # character" do
     "#$ip".should == 'xxx'
+  end
+
+  it "interpolate class variables just with the # character" do
+    object = StringSpecs::ClassWithClassVariable.new
+    object.foo.should == 'xxx'
   end
 
   it "allows underscore as part of a variable name in a simple interpolation" do
@@ -254,7 +260,7 @@ end
 
 describe "Ruby String interpolation" do
   it "permits an empty expression" do
-    s = "#{}"
+    s = "#{}" # rubocop:disable Lint/EmptyInterpolation
     s.should.empty?
     s.should_not.frozen?
   end
@@ -286,7 +292,7 @@ describe "Ruby String interpolation" do
 
   it "creates a non-frozen String" do
     code = <<~'RUBY'
-    "a#{6*7}c"
+      "a#{6*7}c"
     RUBY
     NATFIXME 'eval() only works on static strings', exception: TypeError, message: 'eval() only works on static strings' do
       eval(code).should_not.frozen?
@@ -295,8 +301,8 @@ describe "Ruby String interpolation" do
 
   it "creates a non-frozen String when # frozen-string-literal: true is used" do
     code = <<~'RUBY'
-    # frozen-string-literal: true
-    "a#{6*7}c"
+      # frozen-string-literal: true
+      "a#{6*7}c"
     RUBY
     NATFIXME 'eval() only works on static strings', exception: TypeError, message: 'eval() only works on static strings' do
       eval(code).should_not.frozen?
