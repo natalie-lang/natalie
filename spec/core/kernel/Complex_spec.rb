@@ -191,7 +191,7 @@ describe "Kernel.Complex()" do
         n2 = mock_numeric("n2")
         n3 = mock_numeric("n3")
         n4 = mock_numeric("n4")
-        NATFIXME 'when passed Numerics n1 and n2 and at least one responds to #real? with false', exception: ArgumentError, message: 'comparison of MockNumeric with 0 failed' do
+        NATFIXME 'when passed Numerics n1 and n2 and at least one responds to #real? with false', exception: SpecFailedException, message: 'comparison of MockNumeric with 0 failed' do
           n1.should_receive(:real?).any_number_of_times.and_return(r1)
           n2.should_receive(:real?).any_number_of_times.and_return(r2)
           n2.should_receive(:*).with(Complex(0, 1)).and_return(n3)
