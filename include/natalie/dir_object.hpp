@@ -37,6 +37,7 @@ public:
         return Value::nil();
     }
 
+    Value chdir_instance(Env *env, Block *block);
     Value children(Env *env); // for internal use
     Value close(Env *env);
     Value each(Env *env, Block *block);
