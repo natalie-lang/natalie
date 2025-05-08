@@ -62,7 +62,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
         if (v.is_nil())
             return Value::nil();
         if (!v.is_string())
-            env->raise("TypeError", "value must be String");
+            env->raise("TypeError", "value of {} must be String", info.name());
         return v.as_string();
     }
 

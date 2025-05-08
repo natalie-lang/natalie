@@ -738,21 +738,15 @@ describe "Predefined global $/" do
     obj = mock("$/ value")
     obj.should_not_receive(:to_str)
 
-    NATFIXME 'Include name of global in error message', exception: SpecFailedException, message: /but the message was/ do
-      -> { $/ = obj }.should raise_error(TypeError, 'value of $/ must be String')
-    end
+    -> { $/ = obj }.should raise_error(TypeError, 'value of $/ must be String')
   end
 
   it "raises a TypeError if assigned an Integer" do
-    NATFIXME 'Include name of global in error message', exception: SpecFailedException, message: /but the message was/ do
-      -> { $/ = 1 }.should raise_error(TypeError, 'value of $/ must be String')
-    end
+    -> { $/ = 1 }.should raise_error(TypeError, 'value of $/ must be String')
   end
 
   it "raises a TypeError if assigned a boolean" do
-    NATFIXME 'Include name of global in error message', exception: SpecFailedException, message: /but the message was/ do
-      -> { $/ = true }.should raise_error(TypeError, 'value of $/ must be String')
-    end
+    -> { $/ = true }.should raise_error(TypeError, 'value of $/ must be String')
   end
 end
 
@@ -869,16 +863,12 @@ describe "Predefined global $\\" do
     obj = mock("$\\ value")
     obj.should_not_receive(:to_str)
 
-    NATFIXME 'Include name of global in error message', exception: SpecFailedException, message: /but the message was/ do
-      -> { $\ = obj }.should raise_error(TypeError, 'value of $\ must be String')
-    end
+    -> { $\ = obj }.should raise_error(TypeError, 'value of $\ must be String')
   end
 
   it "raises a TypeError if assigned not String" do
-    NATFIXME 'Include name of global in error message', exception: SpecFailedException, message: /but the message was/ do
-      -> { $\ = 1 }.should raise_error(TypeError, 'value of $\ must be String')
-      -> { $\ = true }.should raise_error(TypeError, 'value of $\ must be String')
-    end
+    -> { $\ = 1 }.should raise_error(TypeError, 'value of $\ must be String')
+    -> { $\ = true }.should raise_error(TypeError, 'value of $\ must be String')
   end
 end
 
