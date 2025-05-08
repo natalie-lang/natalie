@@ -16,7 +16,12 @@ Optional<Value> GlobalVariableInfo::object(Env *env) {
     return m_value;
 }
 
+const String &GlobalVariableInfo::name() const {
+    return m_name->string();
+}
+
 void GlobalVariableInfo::visit_children(Visitor &visitor) const {
+    visitor.visit(m_name);
     if (m_value)
         visitor.visit(m_value.value());
 }

@@ -59,7 +59,7 @@ Value GlobalEnv::global_set(Env *env, SymbolObject *name, Optional<Value> val, b
         if (val)
             info->set_object(env, val.value());
     } else {
-        auto info = new GlobalVariableInfo { val, readonly };
+        auto info = new GlobalVariableInfo { name, val, readonly };
         m_global_variables.put(name, info, env);
     }
     return val.value_or(Value::nil());
