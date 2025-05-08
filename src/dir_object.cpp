@@ -146,6 +146,12 @@ Value DirObject::chdir(Env *env, Optional<Value> path_arg, Block *block) {
     return result;
 }
 
+Value DirObject::chdir_instance(Env *env, Block *block) {
+    if (!m_path)
+        return Value::nil();
+    return chdir(env, Optional<Value> { m_path }, block);
+}
+
 Value DirObject::children(Env *env) {
     if (!m_dir) env->raise("IOError", "closed directory");
     struct dirent *dirp;

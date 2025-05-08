@@ -145,10 +145,8 @@ ruby_version_is '3.3' do
 
     it "changes the current working directory to self" do
       dir = Dir.new(DirSpecs.mock_dir)
-      NATFIXME 'Implement Dir#chdir', exception: NoMethodError, message: "undefined method 'chdir' for an instance of Dir" do
-        dir.chdir
-        Dir.pwd.should == DirSpecs.mock_dir
-      end
+      dir.chdir
+      Dir.pwd.should == DirSpecs.mock_dir
     ensure
       dir.close
     end
@@ -157,11 +155,9 @@ ruby_version_is '3.3' do
       dir = Dir.new(DirSpecs.mock_dir)
       pwd_in_block = nil
 
-      NATFIXME 'Implement Dir#chdir', exception: NoMethodError, message: "undefined method 'chdir' for an instance of Dir" do
-        dir.chdir { pwd_in_block = Dir.pwd }
+      dir.chdir { pwd_in_block = Dir.pwd }
 
-        pwd_in_block.should == DirSpecs.mock_dir
-      end
+      pwd_in_block.should == DirSpecs.mock_dir
       Dir.pwd.should == @original
     ensure
       dir.close
@@ -169,18 +165,14 @@ ruby_version_is '3.3' do
 
     it "returns 0 when successfully changing directory" do
       dir = Dir.new(DirSpecs.mock_dir)
-      NATFIXME 'Implement Dir#chdir', exception: NoMethodError, message: "undefined method 'chdir' for an instance of Dir" do
-        dir.chdir.should == 0
-      end
+      dir.chdir.should == 0
     ensure
       dir.close
     end
 
     it "returns the value of the block when a block is given" do
       dir = Dir.new(DirSpecs.mock_dir)
-      NATFIXME 'Implement Dir#chdir', exception: NoMethodError, message: "undefined method 'chdir' for an instance of Dir" do
-        dir.chdir { :block_value }.should == :block_value
-      end
+      dir.chdir { :block_value }.should == :block_value
     ensure
       dir.close
     end
@@ -196,16 +188,16 @@ ruby_version_is '3.3' do
 
         dir2 = Dir.new(dir_name2)
 
-        NATFIXME 'Implement Dir#chdir', exception: NoMethodError, message: "undefined method 'chdir' for an instance of Dir" do
-          begin
-            Dir.chdir(dir_name1) do
+        begin
+          Dir.chdir(dir_name1) do
+            NATFIXME 'it does not raise an Errno::ENOENT if the original directory no longer exists', exception: Errno::ENOENT do
               dir2.chdir { Dir.unlink dir_name1 }
             end
-            Dir.pwd.should == @original
-          ensure
-            Dir.unlink dir_name1 if Dir.exist?(dir_name1)
-            Dir.unlink dir_name2 if Dir.exist?(dir_name2)
           end
+          Dir.pwd.should == @original
+        ensure
+          Dir.unlink dir_name1 if Dir.exist?(dir_name1)
+          Dir.unlink dir_name2 if Dir.exist?(dir_name2)
         end
       ensure
         dir2.close
