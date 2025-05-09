@@ -47,14 +47,24 @@ module Natalie
 
       def transform_attr_assign_arg(receiver, message, args_node = nil)
         args = args_node&.arguments || []
+        args_array_on_stack = args.size == 1 && args[0].type == :splat_node
         shift_or_pop_next_arg
         @instructions << @pass.transform_expression(receiver, used: true)
-        args.each { |arg| @instructions << @pass.transform_expression(arg, used: true) } if args.any?
+        @instructions.push(CreateArrayInstruction.new(count: 0)) if args_array_on_stack
+        args&.each do |arg|
+          @instructions << @pass.transform_expression(arg, used: true)
+          @instructions.push(ArrayConcatInstruction.new) if args_array_on_stack
+        end
         @instructions << MoveRelInstruction.new(args.size + 1) # move value after args
-        @instructions << PushArgcInstruction.new(args.size + 1)
+        if args_array_on_stack
+          @instructions << ArrayPushInstruction.new
+        else
+          @instructions << PushArgcInstruction.new(args.size + 1)
+        end
         @instructions << SendInstruction.new(
           message,
           receiver_is_self: receiver.is_a?(Prism::SelfNode),
+          args_array_on_stack:,
           with_block: false,
           file: @file,
           line: @line,
