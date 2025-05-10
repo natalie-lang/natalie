@@ -1,6 +1,5 @@
 #include "natalie.hpp"
 #include "natalie/integer_methods.hpp"
-#include <string.h>
 
 namespace Natalie {
 

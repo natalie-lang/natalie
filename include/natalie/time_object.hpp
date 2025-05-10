@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string.h>
 #include <time.h>
 
 #include "natalie/forward.hpp"
@@ -21,6 +22,18 @@ public:
 
     TimeObject(ClassObject *klass)
         : Object { Object::Type::Time, klass } { }
+
+    TimeObject(const TimeObject &other)
+        : Object { other }
+        , m_integer { other.m_integer }
+        , m_mode { other.m_mode }
+        , m_subsec { other.m_subsec }
+        , m_time { other.m_time } {
+        if (other.m_zone) {
+            m_zone = strdup(other.m_zone);
+            m_time.tm_zone = m_zone;
+        }
+    }
 
     ~TimeObject() {
         free(m_zone);
