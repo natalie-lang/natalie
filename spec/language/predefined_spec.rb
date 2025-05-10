@@ -380,28 +380,28 @@ describe "Predefined global $!" do
     outer = StandardError.new 'outer'
     inner = StandardError.new 'inner'
 
-    NATFIXME 'should be set to the value of $! before the begin after a successful rescue within an ensure', exception: SpecFailedException do
+    begin
       begin
+        raise outer
+      ensure
+        $!.should == outer
+
+        # nested rescue
         begin
-          raise outer
+          $!.should == outer
+          raise inner
+        rescue
+          $!.should == inner
         ensure
           $!.should == outer
-
-          # nested rescue
-          begin
-            $!.should == outer
-            raise inner
-          rescue
-            $!.should == inner
-          ensure
-            $!.should == outer
-          end
-          $!.should == outer
         end
-        flunk "outer should be raised after the ensure"
-      rescue
         $!.should == outer
       end
+      flunk "outer should be raised after the ensure"
+    rescue
+      $!.should == outer
+    end
+    NATFIXME 'should be set to the value of $! before the begin after a successful rescue within an ensure', exception: SpecFailedException do
       $!.should == nil
     end
   end
@@ -410,30 +410,30 @@ describe "Predefined global $!" do
     outer = StandardError.new 'outer'
     inner = StandardError.new 'inner'
 
-    NATFIXME 'should be set to the new exception after a throwing rescue', exception: SpecFailedException do
-      begin
-        raise outer
-      rescue
-        $!.should == outer
+    begin
+      raise outer
+    rescue
+      $!.should == outer
 
+      begin
+        # nested rescue
         begin
-          # nested rescue
-          begin
-            $!.should == outer
-            raise inner
-          rescue # the throwing rescue
-            $!.should == inner
-            raise inner
-          ensure
-            $!.should == inner
-          end
-        rescue # do not make the exception fail the example
+          $!.should == outer
+          raise inner
+        rescue # the throwing rescue
+          $!.should == inner
+          raise inner
+        ensure
           $!.should == inner
         end
+      rescue # do not make the exception fail the example
+        $!.should == inner
+      end
+      NATFIXME 'should be set to the new exception after a throwing rescue', exception: SpecFailedException do
         $!.should == outer
       end
-      $!.should == nil
     end
+    $!.should == nil
   end
 
   describe "in bodies without ensure" do
@@ -484,41 +484,41 @@ describe "Predefined global $!" do
 
     it "should not be cleared when an exception is not rescued" do
       e = StandardError.new
-      NATFIXME 'should not be cleared when an exception is not rescued', exception: SpecFailedException do
+      begin
         begin
           begin
-            begin
-              raise e
-            rescue TypeError
-              flunk
-            end
-          ensure
-            $!.should == e
+            raise e
+          rescue TypeError
+            flunk
           end
-        rescue
+        ensure
           $!.should == e
         end
+      rescue
+        $!.should == e
+      end
+      NATFIXME 'should not be cleared when an exception is not rescued', exception: SpecFailedException do
         $!.should == nil
       end
     end
 
     it "should not be cleared when an exception is rescued and rethrown" do
       e = StandardError.new 'foo'
-      NATFIXME 'should not be cleared when an exception is rescued and rethrown', exception: SpecFailedException do
+      begin
         begin
           begin
-            begin
-              raise e
-            rescue => e
-              $!.should == e
-              raise e
-            end
-          ensure
+            raise e
+          rescue => e
             $!.should == e
+            raise e
           end
-        rescue
+        ensure
           $!.should == e
         end
+      rescue
+        $!.should == e
+      end
+      NATFIXME 'should not be cleared when an exception is rescued and rethrown', exception: SpecFailedException do
         $!.should == nil
       end
     end
@@ -621,10 +621,10 @@ describe "Predefined global $@" do
   end
 
   it "is not read-only" do
-    NATFIXME '$@ is not readonly', exception: NameError, message: '$@ is a read-only variable' do
-      begin
-        raise
-      rescue
+    begin
+      raise
+    rescue
+      NATFIXME '$@ is not readonly', exception: NameError, message: '$@ is a read-only variable' do
         $@ = []
         $@.should == []
       end
