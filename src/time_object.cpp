@@ -1,20 +1,23 @@
 #include "natalie.hpp"
 #include "natalie/integer_methods.hpp"
-#include <string.h>
 
 namespace Natalie {
 
-TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit) {
+TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit, ClassObject *klass) {
+    if (time.is_a(env, GlobalEnv::the()->Time()))
+        return KernelModule::dup(env, time).as_time();
     RationalObject *rational = convert_rational(env, time);
     if (subsec) {
         auto scale = convert_unit(env, unit.value_or("microsecond"_s));
         rational = rational->add(env, convert_rational(env, subsec.value())->div(env, scale)).as_rational();
     }
-    return create(env, rational, Mode::Localtime);
+    return create(env, rational, Mode::Localtime, klass);
 }
 
-TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit, Optional<Value> in) {
-    auto result = at(env, time, subsec, unit);
+TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit, Optional<Value> in, ClassObject *klass) {
+    if (time.is_a(env, GlobalEnv::the()->Time()) && subsec)
+        env->raise("TypeError", "can't convert {} into an exact number", time->klass()->inspected(env));
+    auto result = at(env, time, subsec, unit, klass);
     if (in) {
         result->m_time.tm_gmtoff = normalize_timezone(env, in.value());
         result->m_zone = strdup("UTC");
@@ -68,11 +71,15 @@ TimeObject *TimeObject::initialize(Env *env, Optional<Value> year, Optional<Valu
     }
 }
 
-TimeObject *TimeObject::now(Env *env, Optional<Value> in) {
+TimeObject *TimeObject::now(Env *env, Optional<Value> in, ClassObject *klass) {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
     struct tm time = *localtime(&ts.tv_sec);
-    TimeObject *result = new TimeObject {};
+    TimeObject *result;
+    if (klass)
+        result = new TimeObject { klass };
+    else
+        result = new TimeObject {};
     result->m_time = time;
     result->m_mode = Mode::Localtime;
     result->m_integer = ts.tv_sec;
@@ -447,10 +454,14 @@ Value TimeObject::convert_unit(Env *env, Value value) {
     }
 }
 
-TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode) {
+TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode, ClassObject *klass) {
     Integer integer;
     RationalObject *subseconds;
-    TimeObject *result = new TimeObject {};
+    TimeObject *result;
+    if (klass)
+        result = new TimeObject { klass };
+    else
+        result = new TimeObject {};
     if (rational->send(env, "<"_s, { Value::integer(0) }).is_true()) {
         auto floor = rational->floor(env);
         integer = floor.send(env, "to_i"_s).integer();

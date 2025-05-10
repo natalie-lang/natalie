@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string.h>
 #include <time.h>
 
 #include "natalie/forward.hpp"
@@ -22,16 +23,28 @@ public:
     TimeObject(ClassObject *klass)
         : Object { Object::Type::Time, klass } { }
 
+    TimeObject(const TimeObject &other)
+        : Object { other }
+        , m_integer { other.m_integer }
+        , m_mode { other.m_mode }
+        , m_subsec { other.m_subsec }
+        , m_time { other.m_time } {
+        if (other.m_zone) {
+            m_zone = strdup(other.m_zone);
+            m_time.tm_zone = m_zone;
+        }
+    }
+
     ~TimeObject() {
         free(m_zone);
     }
 
-    static TimeObject *at(Env *, Value, Optional<Value> = {}, Optional<Value> = {});
-    static TimeObject *at(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value> in);
+    static TimeObject *at(Env *, Value, Optional<Value> = {}, Optional<Value> = {}, ClassObject *klass = nullptr);
+    static TimeObject *at(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value> in, ClassObject *klass = nullptr);
     static TimeObject *create(Env *);
     static TimeObject *initialize(Env *, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value> in);
     static TimeObject *local(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>);
-    static TimeObject *now(Env *, Optional<Value> in = {});
+    static TimeObject *now(Env *, Optional<Value> in = {}, ClassObject *klass = nullptr);
     static TimeObject *utc(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>);
 
     Value add(Env *, Value);
@@ -78,7 +91,7 @@ public:
 private:
     static RationalObject *convert_rational(Env *, Value);
     static Value convert_unit(Env *, Value);
-    static TimeObject *create(Env *, RationalObject *, Mode);
+    static TimeObject *create(Env *, RationalObject *, Mode, ClassObject * = nullptr);
 
     static nat_int_t normalize_month(Env *, Value val);
     static nat_int_t normalize_field(Env *, Value val);

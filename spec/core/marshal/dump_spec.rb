@@ -994,9 +994,7 @@ describe "Marshal.dump" do
     end
 
     it "raises TypeError with an anonymous Time subclass" do
-      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
-        -> { Marshal.dump(Class.new(Time).now) }.should raise_error(TypeError)
-      end
+      -> { Marshal.dump(Class.new(Time).now) }.should raise_error(TypeError)
     end
   end
 
