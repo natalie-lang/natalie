@@ -48,6 +48,14 @@ class AttrAssign
   attr_accessor :foo
 end
 
+class MultiAssign
+  attr_reader :values
+
+  def []=(x, y, z)
+    @values = { x:, y:, z: }
+  end
+end
+
 module ConstantHolder
 end
 
@@ -414,6 +422,15 @@ describe 'assignment' do
     @t.should == 2
     $u.should == 3
     Apple.should == 4
+  end
+
+  it 'support multiple assignments with splat arrays of multiple arguments' do
+    ma1 = MultiAssign.new
+    ma2 = MultiAssign.new
+    arr = [3, 4]
+    ma1[*[1, 2]], ma2[*arr] = :a, :b
+    ma1.values.should == { x: 1, y: 2, z: :a }
+    ma2.values.should == { x: 3, y: 4, z: :b }
   end
 
   it 'does not destructure another type of object' do

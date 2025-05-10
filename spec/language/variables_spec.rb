@@ -343,10 +343,8 @@ describe "Multiple assignment" do
 
       # with splatted argument
       a = []
-      NATFIXME 'it assigns indexed elements with splatted argument', exception: TypeError, message: 'no implicit conversion of Array into Integer' do
-        a[*[1]], a[*[2]] = 1, 2
-        a.should == [nil, 1, 2]
-      end
+      a[*[1]], a[*[2]] = 1, 2
+      a.should == [nil, 1, 2]
     end
 
     it "assigns constants" do
