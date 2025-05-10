@@ -26,23 +26,19 @@ describe "Time#dup" do
     c = Class.new(Time)
     t = c.now
 
-    NATFIXME 'Time#now should preserve subclass', exception: SpecFailedException do
-      t.should be_an_instance_of(c)
-      t.dup.should be_an_instance_of(c)
-    end
+    t.should be_an_instance_of(c)
+    t.dup.should be_an_instance_of(c)
   end
 
   it "returns a clone of Time instance" do
     c = Time.dup
     t = c.now
 
-    NATFIXME 'Time#now should preserve subclass', exception: SpecFailedException do
-      t.should be_an_instance_of(c)
-      t.should_not be_an_instance_of(Time)
+    t.should be_an_instance_of(c)
+    t.should_not be_an_instance_of(Time)
 
-      t.dup.should be_an_instance_of(c)
-      t.dup.should_not be_an_instance_of(Time)
-    end
+    t.dup.should be_an_instance_of(c)
+    t.dup.should_not be_an_instance_of(Time)
   end
 
   it "does not copy frozen status from the original" do

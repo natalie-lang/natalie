@@ -72,11 +72,15 @@ TimeObject *TimeObject::initialize(Env *env, Optional<Value> year, Optional<Valu
     }
 }
 
-TimeObject *TimeObject::now(Env *env, Optional<Value> in) {
+TimeObject *TimeObject::now(Env *env, Optional<Value> in, ClassObject *klass) {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
     struct tm time = *localtime(&ts.tv_sec);
-    TimeObject *result = new TimeObject {};
+    TimeObject *result;
+    if (klass)
+        result = new TimeObject { klass };
+    else
+        result = new TimeObject {};
     result->m_time = time;
     result->m_mode = Mode::Localtime;
     result->m_integer = ts.tv_sec;

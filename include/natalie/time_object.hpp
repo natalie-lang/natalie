@@ -31,7 +31,7 @@ public:
     static TimeObject *create(Env *);
     static TimeObject *initialize(Env *, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value> in);
     static TimeObject *local(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>);
-    static TimeObject *now(Env *, Optional<Value> in = {});
+    static TimeObject *now(Env *, Optional<Value> in = {}, ClassObject *klass = nullptr);
     static TimeObject *utc(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>);
 
     Value add(Env *, Value);

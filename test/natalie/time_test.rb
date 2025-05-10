@@ -91,6 +91,13 @@ describe 'Time' do
     end
   end
 
+  describe '.now' do
+    it 'preserves the class it is called on' do
+      c = Class.new(Time)
+      c.now.should be_an_instance_of(c)
+    end
+  end
+
   describe '.utc' do
     context 'with nil arguments' do
       it 'returns a time' do
