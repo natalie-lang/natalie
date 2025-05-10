@@ -50,36 +50,28 @@ describe "Time.at" do
   describe "passed Time" do
     it "creates a new time object with the value given by time" do
       t = Time.now
-      NATFIXME 'Support Time instance argument', exception: TypeError, message: "can't convert Time into an exact number" do
-        Time.at(t).inspect.should == t.inspect
-      end
+      Time.at(t).inspect.should == t.inspect
     end
 
     it "creates a dup time object with the value given by time" do
       t1 = Time.new
-      NATFIXME 'Support Time instance argument', exception: TypeError, message: "can't convert Time into an exact number" do
-        t2 = Time.at(t1)
-        t1.should_not equal t2
-      end
+      t2 = Time.at(t1)
+      t1.should_not equal t2
     end
 
     it "returns a UTC time if the argument is UTC" do
       t = Time.now.getgm
-      NATFIXME 'Support Time instance argument', exception: TypeError, message: "can't convert Time into an exact number" do
-        Time.at(t).should.utc?
-      end
+      Time.at(t).should.utc?
     end
 
     it "returns a non-UTC time if the argument is non-UTC" do
       t = Time.now
-      NATFIXME 'Support Time instance argument', exception: TypeError, message: "can't convert Time into an exact number" do
-        Time.at(t).should_not.utc?
-      end
+      Time.at(t).should_not.utc?
     end
 
     it "returns a subclass instance" do
       c = Class.new(Time)
-      NATFIXME 'Support Time instance argument', exception: TypeError, message: "can't convert Time into an exact number" do
+      NATFIXME 'Preserve class (issue in Time#dup', exception: SpecFailedException do
         t = c.at(Time.now)
         t.should be_an_instance_of(c)
       end

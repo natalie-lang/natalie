@@ -646,6 +646,8 @@ Value Object::duplicate(Env *env) const {
         return new StringObject { *static_cast<const StringObject *>(this) };
     case Object::Type::Symbol:
         return SymbolObject::intern(static_cast<const SymbolObject *>(this)->string());
+    case Object::Type::Time:
+        return new TimeObject { *static_cast<const TimeObject *>(this) };
     case Object::Type::True:
         return Value::True();
     case Object::Type::UnboundMethod:

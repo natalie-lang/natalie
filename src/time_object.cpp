@@ -5,6 +5,8 @@
 namespace Natalie {
 
 TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit, ClassObject *klass) {
+    if (time.is_a(env, GlobalEnv::the()->Time()))
+        return KernelModule::dup(env, time).as_time();
     RationalObject *rational = convert_rational(env, time);
     if (subsec) {
         auto scale = convert_unit(env, unit.value_or("microsecond"_s));
@@ -14,6 +16,8 @@ TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optiona
 }
 
 TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit, Optional<Value> in, ClassObject *klass) {
+    if (time.is_a(env, GlobalEnv::the()->Time()) && subsec)
+        env->raise("TypeError", "can't convert {} into an exact number", time->klass()->inspected(env));
     auto result = at(env, time, subsec, unit, klass);
     if (in) {
         result->m_time.tm_gmtoff = normalize_timezone(env, in.value());
