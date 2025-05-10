@@ -85,13 +85,10 @@ Value GlobalEnv::global_alias(Env *env, SymbolObject *new_name, SymbolObject *ol
 ArrayObject *GlobalEnv::global_list(Env *env) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    auto result = new ArrayObject { m_global_variables.size() + 2 };
+    auto result = new ArrayObject { m_global_variables.size() };
     for (const auto &[key, _] : m_global_variables) {
         result->push(key);
     }
-    // $! and $@ are handled compile time in Natalie
-    result->push("$!"_s);
-    result->push("$@"_s);
     return result;
 }
 
