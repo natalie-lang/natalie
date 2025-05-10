@@ -4,17 +4,17 @@
 
 namespace Natalie {
 
-TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit) {
+TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit, ClassObject *klass) {
     RationalObject *rational = convert_rational(env, time);
     if (subsec) {
         auto scale = convert_unit(env, unit.value_or("microsecond"_s));
         rational = rational->add(env, convert_rational(env, subsec.value())->div(env, scale)).as_rational();
     }
-    return create(env, rational, Mode::Localtime);
+    return create(env, rational, Mode::Localtime, klass);
 }
 
-TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit, Optional<Value> in) {
-    auto result = at(env, time, subsec, unit);
+TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit, Optional<Value> in, ClassObject *klass) {
+    auto result = at(env, time, subsec, unit, klass);
     if (in) {
         result->m_time.tm_gmtoff = normalize_timezone(env, in.value());
         result->m_zone = strdup("UTC");
@@ -447,10 +447,14 @@ Value TimeObject::convert_unit(Env *env, Value value) {
     }
 }
 
-TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode) {
+TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode, ClassObject *klass) {
     Integer integer;
     RationalObject *subseconds;
-    TimeObject *result = new TimeObject {};
+    TimeObject *result;
+    if (klass)
+        result = new TimeObject { klass };
+    else
+        result = new TimeObject {};
     if (rational->send(env, "<"_s, { Value::integer(0) }).is_true()) {
         auto floor = rational->floor(env);
         integer = floor.send(env, "to_i"_s).integer();

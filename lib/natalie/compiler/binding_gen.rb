@@ -1470,7 +1470,7 @@ gen.binding('Thread::Mutex', 'synchronize', 'Thread::MutexObject', 'synchronize'
 gen.binding('Thread::Mutex', 'try_lock', 'Thread::MutexObject', 'try_lock', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Thread::Mutex', 'unlock', 'Thread::MutexObject', 'unlock', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
-gen.static_binding_as_class_method('Time', 'at', 'TimeObject', 'at', argc: 1..3, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Value)
+gen.static_binding_as_class_method('Time', 'at', 'TimeObject', 'at', argc: 1..3, kwargs: [:in], pass_env: true, pass_klass: true, pass_block: false, return_type: :Value)
 gen.static_binding_as_class_method('Time', 'local', 'TimeObject', 'local', argc: 1..7, pass_env: true, pass_block: false, aliases: ['mktime'], return_type: :Value)
 gen.static_binding_as_class_method('Time', 'new', 'TimeObject', 'initialize', argc: 0..7, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding_as_class_method('Time', 'now', 'TimeObject', 'now', argc: 0, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Value)

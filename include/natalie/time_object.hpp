@@ -26,8 +26,8 @@ public:
         free(m_zone);
     }
 
-    static TimeObject *at(Env *, Value, Optional<Value> = {}, Optional<Value> = {});
-    static TimeObject *at(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value> in);
+    static TimeObject *at(Env *, Value, Optional<Value> = {}, Optional<Value> = {}, ClassObject *klass = nullptr);
+    static TimeObject *at(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value> in, ClassObject *klass = nullptr);
     static TimeObject *create(Env *);
     static TimeObject *initialize(Env *, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value> in);
     static TimeObject *local(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>);
@@ -78,7 +78,7 @@ public:
 private:
     static RationalObject *convert_rational(Env *, Value);
     static Value convert_unit(Env *, Value);
-    static TimeObject *create(Env *, RationalObject *, Mode);
+    static TimeObject *create(Env *, RationalObject *, Mode, ClassObject * = nullptr);
 
     static nat_int_t normalize_month(Env *, Value val);
     static nat_int_t normalize_field(Env *, Value val);
