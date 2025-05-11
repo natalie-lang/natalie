@@ -30,7 +30,9 @@ describe :time_params, shared: true do
   end
 
   it "raises a TypeError if the year is nil" do
-    -> { Time.send(@method, nil) }.should raise_error(TypeError)
+    NATFIXME "Implement Time.#{@method}", exception: SpecFailedException, message: /but instead raised nothing/ do
+      -> { Time.send(@method, nil) }.should raise_error(TypeError)
+    end
   end
 
   it "accepts nil month, day, hour, minute, and second" do
@@ -140,7 +142,9 @@ describe :time_params, shared: true do
   end
 
   it "accepts various year ranges" do
-    Time.send(@method, 1801, 12, 31, 23, 59, 59).wday.should == 4
+    NATFIXME 'Incorrect result on MacOS', condition: RUBY_PLATFORM.include?('darwin'), exception: SpecFailedException do
+      Time.send(@method, 1801, 12, 31, 23, 59, 59).wday.should == 4
+    end
     Time.send(@method, 3000, 12, 31, 23, 59, 59).wday.should == 3
   end
 
@@ -189,21 +193,27 @@ describe :time_params, shared: true do
 
   it "returns subclass instances" do
     c = Class.new(Time)
-    c.send(@method, 2008, "12").should be_an_instance_of(c)
+    NATFIXME "Implement Time.#{@method}", exception: SpecFailedException do
+      c.send(@method, 2008, "12").should be_an_instance_of(c)
+    end
   end
 end
 
 describe :time_params_10_arg, shared: true do
   it "handles string arguments" do
-    Time.send(@method, "1", "15", "20", "1", "1", "2000", :ignored, :ignored,
-              :ignored, :ignored).should ==
-      Time.send(@method, 1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored)
+    NATFIXME "Implement Time.#{@method}", exception: ArgumentError, message: 'wrong number of arguments (given 10, expected 1..7)' do
+      Time.send(@method, "1", "15", "20", "1", "1", "2000", :ignored, :ignored,
+                :ignored, :ignored).should ==
+        Time.send(@method, 1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored)
+    end
   end
 
   it "handles float arguments" do
-    Time.send(@method, 1.0, 15.0, 20.0, 1.0, 1.0, 2000.0, :ignored, :ignored,
-              :ignored, :ignored).should ==
-      Time.send(@method, 1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored)
+    NATFIXME "Implement Time.#{@method}", exception: ArgumentError, message: 'wrong number of arguments (given 10, expected 1..7)' do
+      Time.send(@method, 1.0, 15.0, 20.0, 1.0, 1.0, 2000.0, :ignored, :ignored,
+                :ignored, :ignored).should ==
+        Time.send(@method, 1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored)
+    end
   end
 
   it "raises an ArgumentError for out of range values" do
@@ -240,9 +250,11 @@ describe :time_params_microseconds, shared: true do
   end
 
   it "handles fractional microseconds as a Float" do
-    t = Time.send(@method, 2000, 1, 1, 20, 15, 1, 1.75)
-    t.usec.should == 1
-    t.nsec.should == 1750
+    NATFIXME "Implement Time.#{@method}", exception: TypeError, message: "can't convert Float into an exact number" do
+      t = Time.send(@method, 2000, 1, 1, 20, 15, 1, 1.75)
+      t.usec.should == 1
+      t.nsec.should == 1750
+    end
   end
 
   it "handles fractional microseconds as a Rational" do
