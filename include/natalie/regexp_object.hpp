@@ -59,12 +59,12 @@ public:
         onig_free(m_regex);
     }
 
-    static Value compile(Env *env, Value pattern, Optional<Value> flags = {}, Optional<ClassObject *> klass = {}) {
+    static Value compile(Env *env, ClassObject *klass, Value pattern, Optional<Value> flags = {}) {
         if (!klass)
             klass = GlobalEnv::the()->Regexp();
         RegexpObject *regexp;
         if (klass)
-            regexp = new RegexpObject { klass.value() };
+            regexp = new RegexpObject { klass };
         else
             regexp = new RegexpObject;
         if (flags)

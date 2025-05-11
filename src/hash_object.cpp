@@ -235,7 +235,7 @@ Value HashObject::initialize(Env *env, Optional<Value> default_arg, Optional<Val
 }
 
 // Hash[]
-Value HashObject::square_new(Env *env, Args &&args, ClassObject *klass) {
+Value HashObject::square_new(Env *env, ClassObject *klass, Args &&args) {
     if (args.size() == 0) {
         return new HashObject { klass };
     } else if (args.size() == 1) {

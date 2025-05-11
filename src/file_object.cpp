@@ -737,14 +737,14 @@ Value FileObject::utime(Env *env, Args &&args) {
     } else if (args[0].is_time()) {
         atime = args[0].as_time();
     } else {
-        atime = TimeObject::at(env, args[0]);
+        atime = TimeObject::at(env, GlobalEnv::the()->Time(), args[0]);
     }
     if (args[1].is_nil()) {
         mtime = TimeObject::create(env);
     } else if (args[1].is_time()) {
         mtime = args[1].as_time();
     } else {
-        mtime = TimeObject::at(env, args[1]);
+        mtime = TimeObject::at(env, GlobalEnv::the()->Time(), args[1]);
     }
 
     struct timeval ubuf[2], *ubufp = nullptr;

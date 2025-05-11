@@ -3,7 +3,7 @@
 
 namespace Natalie {
 
-TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit, ClassObject *klass) {
+TimeObject *TimeObject::at(Env *env, ClassObject *klass, Value time, Optional<Value> subsec, Optional<Value> unit) {
     if (time.is_a(env, GlobalEnv::the()->Time()))
         return KernelModule::dup(env, time).as_time();
     RationalObject *rational = convert_rational(env, time);
@@ -11,13 +11,13 @@ TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optiona
         auto scale = convert_unit(env, unit.value_or("microsecond"_s));
         rational = rational->add(env, convert_rational(env, subsec.value())->div(env, scale)).as_rational();
     }
-    return create(env, rational, Mode::Localtime, klass);
+    return create(env, klass, rational, Mode::Localtime);
 }
 
-TimeObject *TimeObject::at(Env *env, Value time, Optional<Value> subsec, Optional<Value> unit, Optional<Value> in, ClassObject *klass) {
+TimeObject *TimeObject::at(Env *env, ClassObject *klass, Value time, Optional<Value> subsec, Optional<Value> unit, Optional<Value> in) {
     if (time.is_a(env, GlobalEnv::the()->Time()) && subsec)
         env->raise("TypeError", "can't convert {} into an exact number", time->klass()->inspected(env));
-    auto result = at(env, time, subsec, unit, klass);
+    auto result = at(env, klass, time, subsec, unit);
     if (in) {
         result->m_time.tm_gmtoff = normalize_timezone(env, in.value());
         result->m_zone = strdup("UTC");
@@ -39,18 +39,18 @@ TimeObject *TimeObject::local(Env *env, Value year, Optional<Value> month, Optio
 }
 
 TimeObject *TimeObject::create(Env *env) {
-    return now(env);
+    return now(env, nullptr);
 }
 
 // Time.new
 TimeObject *TimeObject::initialize(Env *env, Optional<Value> year, Optional<Value> month, Optional<Value> mday, Optional<Value> hour, Optional<Value> min, Optional<Value> sec, Optional<Value> tmzone, Optional<Value> in) {
     if (!year)
-        return now(env);
+        return now(env, nullptr);
 
     if (year.value().is_nil()) {
         env->raise("TypeError", "Year cannot be nil");
     } else {
-        auto result = now(env);
+        auto result = now(env, nullptr);
         result->build_time(env, year.value(), month, mday, hour, min, sec);
         int seconds = mktime(&result->m_time);
         result->m_integer = seconds;
@@ -71,7 +71,7 @@ TimeObject *TimeObject::initialize(Env *env, Optional<Value> year, Optional<Valu
     }
 }
 
-TimeObject *TimeObject::now(Env *env, Optional<Value> in, ClassObject *klass) {
+TimeObject *TimeObject::now(Env *env, ClassObject *klass, Optional<Value> in) {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
     struct tm time = *localtime(&ts.tv_sec);
@@ -120,7 +120,7 @@ Value TimeObject::add(Env *env, Value other) {
     }
     RationalObject *rational = to_r(env).as_rational();
     rational = rational->add(env, other.send(env, "to_r"_s).as_rational()).as_rational();
-    auto result = TimeObject::create(env, rational, m_mode);
+    auto result = TimeObject::create(env, GlobalEnv::the()->Time(), rational, m_mode);
     if (is_utc(env)) { // preserve utc-offset for result if a utc-time
         result->m_time.tm_gmtoff = utc_offset(env).integer().to_nat_int_t();
     }
@@ -217,7 +217,7 @@ Value TimeObject::minus(Env *env, Value other) {
         env->raise("TypeError", "can't convert {} into an exact number", other.klass()->inspect_module());
     }
     RationalObject *rational = to_r(env).as_rational()->sub(env, other.send(env, "to_r"_s)).as_rational();
-    auto result = TimeObject::create(env, rational, m_mode);
+    auto result = TimeObject::create(env, GlobalEnv::the()->Time(), rational, m_mode);
     if (is_utc(env)) { // preserve utc-offset for result if a utc-time
         result->m_time.tm_gmtoff = utc_offset(env).integer().to_nat_int_t();
     }
@@ -454,7 +454,7 @@ Value TimeObject::convert_unit(Env *env, Value value) {
     }
 }
 
-TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode, ClassObject *klass) {
+TimeObject *TimeObject::create(Env *env, ClassObject *klass, RationalObject *rational, Mode mode) {
     Integer integer;
     RationalObject *subseconds;
     TimeObject *result;

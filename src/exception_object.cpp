@@ -75,10 +75,10 @@ Value ExceptionObject::initialize(Env *env, Optional<Value> message) {
 }
 
 // static exception
-Value ExceptionObject::exception(Env *env, Optional<Value> message, Optional<ClassObject *> klass) {
+Value ExceptionObject::exception(Env *env, ClassObject *klass, Optional<Value> message) {
     ExceptionObject *exc = nullptr;
     if (klass)
-        exc = new ExceptionObject { klass.value() };
+        exc = new ExceptionObject { klass };
     else
         exc = new ExceptionObject;
     return exc->initialize(env, message);
