@@ -1216,7 +1216,7 @@ void IoObject::select_read(Env *env, timeval *timeout) const {
     assert(ret != -1);
 }
 
-Value IoObject::pipe(Env *env, Optional<Value> external_encoding, Optional<Value> internal_encoding, Block *block, ClassObject *klass) {
+Value IoObject::pipe(Env *env, ClassObject *klass, Optional<Value> external_encoding, Optional<Value> internal_encoding, Block *block) {
     int pipefd[2];
     if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
         env->raise_errno();
@@ -1236,7 +1236,7 @@ Value IoObject::pipe(Env *env, Optional<Value> external_encoding, Optional<Value
     return block->run(env, { pipes }, nullptr);
 }
 
-Value IoObject::popen(Env *env, Args &&args, Block *block, ClassObject *klass) {
+Value IoObject::popen(Env *env, ClassObject *klass, Args &&args, Block *block) {
     if (args.has_keyword_hash())
         env->raise("NotImplementedError", "IO.popen with keyword arguments is not yet supported");
     if (args.size() > 2)

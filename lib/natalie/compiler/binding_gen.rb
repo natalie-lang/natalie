@@ -211,11 +211,11 @@ class BindingGen
 
       [
         pass_env? ? 'env' : nil,
+        pass_klass? ? 'self.as_class()' : nil,
         self_arg,
         *args,
         *kwargs,
         pass_block? ? 'block' : nil,
-        pass_klass? ? 'self.as_class()' : nil,
       ].compact.join(', ')
     end
 

@@ -98,7 +98,7 @@ public:
         return *this;
     }
 
-    static Value square_new(Env *, Args &&args, ClassObject *klass);
+    static Value square_new(Env *, ClassObject *klass, Args &&args);
 
     static Value size_fn(Env *env, Value self, Args &&, Block *) {
         return self.as_hash()->size(env);

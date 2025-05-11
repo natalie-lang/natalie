@@ -1281,7 +1281,7 @@ size_t StringObject::char_count(Env *env) const {
 
 Value StringObject::scan(Env *env, Value pattern, Block *block) {
     if (!pattern.is_regexp())
-        pattern = RegexpObject::compile(env, RegexpObject::quote(env, pattern.to_str(env)));
+        pattern = RegexpObject::compile(env, GlobalEnv::the()->Regexp(), RegexpObject::quote(env, pattern.to_str(env)));
     pattern.assert_type(env, Type::Regexp, "Regexp");
 
     auto regexp = pattern.as_regexp();

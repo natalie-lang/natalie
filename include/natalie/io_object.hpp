@@ -78,8 +78,8 @@ public:
     int lineno(Env *) const;
     Value ltlt(Env *, Value);
     Value pid(Env *) const;
-    static Value pipe(Env *, Optional<Value>, Optional<Value>, Block *, ClassObject *);
-    static Value popen(Env *, Args &&, Block *, ClassObject *);
+    static Value pipe(Env *, ClassObject *, Optional<Value>, Optional<Value>, Block *);
+    static Value popen(Env *, ClassObject *, Args &&, Block *);
     int pos(Env *);
     Value pread(Env *, Value, Value, Optional<Value> = {});
     Value putc(Env *, Value);

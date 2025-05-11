@@ -59,7 +59,7 @@ public:
         , m_vector { std::move(other) } { }
 
     // Array[]
-    static Value square_new(Env *env, Args &&args, ClassObject *klass) {
+    static Value square_new(Env *env, ClassObject *klass, Args &&args) {
         return new ArrayObject { args.size(), args.data(), klass };
     }
 

@@ -152,14 +152,14 @@ Value FileStatObject::comparison(Env *env, Value other) const {
 Value FileStatObject::atime(Env *env) const {
     Value sec = Value::integer(fstatus.st_atim.tv_sec);
     Value ns = Value::integer(fstatus.st_atim.tv_nsec);
-    return TimeObject::at(env, sec, ns, Value("nanosecond"_s));
+    return TimeObject::at(env, GlobalEnv::the()->Time(), sec, ns, Value("nanosecond"_s));
 }
 
 Value FileStatObject::birthtime(Env *env) const {
 #if defined(__FreeBSD__) or defined(__NetBSD__) or defined(__APPLE__)
     Value sec = Value::integer(fstatus.st_birthtimespec.tv_sec);
     Value ns = Value::integer(fstatus.st_birthtimespec.tv_nsec);
-    return TimeObject::at(env, sec, ns, Value("nanosecond"_s));
+    return TimeObject::at(env, GlobalEnv::the()->Time(), sec, ns, Value("nanosecond"_s));
 #else
     env->raise("NotImplementedError", "birthtime not supported on this platform");
 #endif
@@ -168,13 +168,13 @@ Value FileStatObject::birthtime(Env *env) const {
 Value FileStatObject::ctime(Env *env) const {
     Value sec = Value::integer(fstatus.st_ctim.tv_sec);
     Value ns = Value::integer(fstatus.st_ctim.tv_nsec);
-    return TimeObject::at(env, sec, ns, Value("nanosecond"_s));
+    return TimeObject::at(env, GlobalEnv::the()->Time(), sec, ns, Value("nanosecond"_s));
 }
 
 Value FileStatObject::mtime(Env *env) const {
     Value sec = Value::integer(fstatus.st_mtim.tv_sec);
     Value ns = Value::integer(fstatus.st_mtim.tv_nsec);
-    return TimeObject::at(env, sec, ns, Value("nanosecond"_s));
+    return TimeObject::at(env, GlobalEnv::the()->Time(), sec, ns, Value("nanosecond"_s));
 }
 
 }
