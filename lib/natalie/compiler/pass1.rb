@@ -787,6 +787,15 @@ module Natalie
             options = when_statement.conditions
             body = when_statement.statements&.body
 
+            options.map! do |option|
+              if option.type == :splat_node
+                array = Prism.call_node(receiver: option.expression, name: :to_a, location: option.location)
+                Prism.call_node(receiver: array, name: :any?, location: option.location)
+              else
+                option
+              end
+            end
+
             options =
               options[1..].reduce(options[0]) do |prev, option|
                 Prism.or_node(left: prev, right: option, location: prev.location)

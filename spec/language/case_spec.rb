@@ -501,13 +501,11 @@ describe "The 'case'-construct with no target expression" do
   end
 
   it "expands arrays to lists of values" do
-    NATFIXME 'expands arrays to lists of values', exception: SpecFailedException do
-      case
-      when *[false]
-        "foo"
-      when *[true]
-        "bar"
-      end.should == "bar"
-    end
+    case
+    when *[false]
+      "foo"
+    when *[true]
+      "bar"
+    end.should == "bar"
   end
 end
