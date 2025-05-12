@@ -15,13 +15,11 @@ describe "The END keyword" do
   end
 
   it "warns when END is used in a method" do
-    NATFIXME 'it warns when END is used in a method', exception: SpecFailedException do
-      ruby_exe(<<~ruby, args: "2>&1").should =~ /warning: END in method; use at_exit/
-        def foo
-          END { }
-        end
-      ruby
-    end
+    ruby_exe(<<~ruby, args: "2>&1").should =~ /warning: END in method; use at_exit/
+      def foo
+        END { }
+      end
+    ruby
   end
 
   context "END blocks and at_exit callbacks are mixed" do

@@ -2292,9 +2292,13 @@ module Natalie
       end
 
       def transform_post_execution_node(node, used:)
-        instructions = [
-          DefineBlockInstruction.new(arity: 0),
-          transform_expression(node.statements, used: true),
+        instructions = [DefineBlockInstruction.new(arity: 0)]
+        if node.statements
+          instructions << transform_expression(node.statements, used: true)
+        else
+          instructions << PushNilInstruction.new
+        end
+        instructions.append(
           EndInstruction.new(:define_block),
           PushSelfInstruction.new,
           PushArgcInstruction.new(0),
@@ -2305,7 +2309,7 @@ module Natalie
             file: @file.path,
             line: node.location.start_line,
           ),
-        ]
+        )
         instructions << PopInstruction.new unless used
         instructions
       end
