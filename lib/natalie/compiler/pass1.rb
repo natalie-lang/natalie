@@ -2824,8 +2824,7 @@ module Natalie
       end
 
       def compile_time_warning(warning, location = "#{@file.path}:#{warning.location.start_line}")
-        return nil unless warning.level == :default
-        CompileTimeWarn.new("#{location}: warning: #{warning.message}")
+        CompileTimeWarn.new("#{location}: warning: #{warning.message}", level: warning.level)
       end
 
       class << self
