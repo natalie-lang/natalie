@@ -206,11 +206,9 @@ describe "The defined? keyword when called with a method name" do
     end
 
     it "warns about the void context when parsing it" do
-      NATFIXME 'detect void context', exception: SpecFailedException do
-        -> {
-          eval "defined?(DefinedSpecs.side_effects / 2); 42"
-        }.should complain(/warning: possibly useless use of defined\? in void context/, verbose: true)
-      end
+      -> {
+        eval "defined?(DefinedSpecs.side_effects / 2); 42"
+      }.should complain(/warning: possibly useless use of defined\? in void context/, verbose: true)
     end
   end
 end

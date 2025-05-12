@@ -433,18 +433,16 @@ describe "The 'case'-construct" do
 
   ruby_version_is "3.4" do
     it "warns if there are identical when clauses" do
-      NATFIXME 'it warns if there are identical when clauses', exception: SpecFailedException do
-        -> {
-          eval <<~RUBY
-            case 1
-            when 2
-              :foo
-            when 2
-              :bar
-            end
-          RUBY
-        }.should complain(/warning: 'when' clause on line \d+ duplicates 'when' clause on line \d+ and is ignored/, verbose: true)
-      end
+      -> {
+        eval <<~RUBY
+          case 1
+          when 2
+            :foo
+          when 2
+            :bar
+          end
+        RUBY
+      }.should complain(/warning: 'when' clause on line \d+ duplicates 'when' clause on line \d+ and is ignored/, verbose: true)
     end
   end
 end
