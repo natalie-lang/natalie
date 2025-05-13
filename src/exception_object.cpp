@@ -43,7 +43,7 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
         } else if (arg.is_exception()) {
             return arg.as_exception();
         } else if (!arg.is_class()) {
-            env->raise("TypeError", "exception klass/object expected");
+            env->raise("TypeError", "exception class/object expected");
         }
     }
 
@@ -52,12 +52,15 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
         exception_args.push(message.value());
 
     ExceptionObject *exception;
-    if (klass.value().is_class())
-        exception = _new(env, klass.value().as_class(), { std::move(exception_args), false }, nullptr).as_exception();
-    else if (klass.value().is_exception())
+    if (klass.value().is_class()) {
+        auto possible_exception = _new(env, klass.value().as_class(), { std::move(exception_args), false }, nullptr);
+        if (!possible_exception.is_exception())
+            env->raise("TypeError", "exception object expected");
+        exception = possible_exception.as_exception();
+    } else if (klass.value().is_exception())
         exception = klass.value().as_exception();
     else
-        env->raise("TypeError", "exception klass/object expected");
+        env->raise("TypeError", "exception class/object expected");
 
     if (accept_cause && cause && cause.value().is_exception())
         exception->set_cause(cause.value().as_exception());

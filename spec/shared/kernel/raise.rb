@@ -71,33 +71,24 @@ describe :kernel_raise, shared: true do
   end
 
   it "raises a TypeError when passed a non-Exception object" do
-    NATFIXME 'it raises a TypeError when passed a non-Exception object', exception: SpecFailedException, message: /but the message was/ do
-      -> { @object.raise(Object.new) }.should raise_error(TypeError, "exception class/object expected")
-      -> { @object.raise(Object.new, "message") }.should raise_error(TypeError, "exception class/object expected")
-      -> { @object.raise(Object.new, "message", []) }.should raise_error(TypeError, "exception class/object expected")
-    end
+    -> { @object.raise(Object.new) }.should raise_error(TypeError, "exception class/object expected")
+    -> { @object.raise(Object.new, "message") }.should raise_error(TypeError, "exception class/object expected")
+    -> { @object.raise(Object.new, "message", []) }.should raise_error(TypeError, "exception class/object expected")
   end
 
   it "raises a TypeError when passed true" do
-    NATFIXME 'it raises a TypeError when passed true', exception: SpecFailedException, message: /but the message was/ do
-      -> { @object.raise(true) }.should raise_error(TypeError, "exception class/object expected")
-    end
+    -> { @object.raise(true) }.should raise_error(TypeError, "exception class/object expected")
   end
 
   it "raises a TypeError when passed false" do
-    NATFIXME 'it raises a TypeError when passed false', exception: SpecFailedException, message: /but the message was/ do
-      -> { @object.raise(false) }.should raise_error(TypeError, "exception class/object expected")
-    end
+    -> { @object.raise(false) }.should raise_error(TypeError, "exception class/object expected")
   end
 
   it "raises a TypeError when passed nil" do
-    NATFIXME 'it raises a TypeError when passed nil', exception: SpecFailedException, message: /but the message was/ do
-      -> { @object.raise(nil) }.should raise_error(TypeError, "exception class/object expected")
-    end
+    -> { @object.raise(nil) }.should raise_error(TypeError, "exception class/object expected")
   end
 
-  # NATFIXME: This crashes: const: Assertion `is_exception()' failed.
-  xit "raises TypeError when passed a non-Exception object but it responds to #exception method that doesn't return an instance of Exception class" do
+  it "raises TypeError when passed a non-Exception object but it responds to #exception method that doesn't return an instance of Exception class" do
     e = Object.new
     def e.exception
       Array
