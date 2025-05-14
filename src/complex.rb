@@ -251,6 +251,10 @@ class Complex
   def self.polar(abs, arg = 0)
     raise TypeError, 'not a real' if abs.nil? || arg.nil?
 
+    if arg.is_a?(Complex) && arg.imaginary.is_a?(Numeric) && arg.imaginary.zero?
+      arg = arg.real
+    end
+
     # real = rcosθ
     real = abs * Math.cos(arg)
 
