@@ -26,6 +26,7 @@ describe 'GC' do
       create_object
       $gc_ran.should == false
       GC.start
+      GC.start
       $gc_ran.should == true
     end
   end
