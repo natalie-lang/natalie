@@ -1,5 +1,8 @@
 class SystemCallError < StandardError
   def initialize(msg = nil, errno = nil, location = nil)
+    if msg.nil? && errno.nil?
+      msg = SystemCallError::ERRORS.values.filter_map { |(number, message)| message if number == self::Errno }.first
+    end
     intmsg = location ? "#{msg} @ #{location}" : msg
     super(intmsg)
     @errno = errno
