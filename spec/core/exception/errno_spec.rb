@@ -6,9 +6,7 @@ describe "Errno::EINVAL.new" do
     exc = Errno::EINVAL.new
     exc.should be_an_instance_of(Errno::EINVAL)
     exc.errno.should == Errno::EINVAL::Errno
-    NATFIXME 'it can be called with no arguments', exception: SpecFailedException do
-      exc.message.should == "Invalid argument"
-    end
+    exc.message.should == "Invalid argument"
   end
 
   it "accepts an optional custom message" do
