@@ -124,6 +124,7 @@ void GlobalEnv::set_interned_strings(StringObject **interned_strings, const size
 }
 
 void GlobalEnv::visit_children(Visitor &visitor) const {
+    Cell::visit_children(visitor);
     for (auto pair : m_global_variables) {
         visitor.visit(pair.first);
         visitor.visit(pair.second);

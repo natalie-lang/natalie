@@ -381,6 +381,7 @@ Env *Env::non_block_env() {
 }
 
 void Env::visit_children(Visitor &visitor) const {
+    Cell::visit_children(visitor);
     visitor.visit(m_vars);
     visitor.visit(m_outer);
     visitor.visit(m_block);

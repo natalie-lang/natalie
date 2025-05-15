@@ -145,7 +145,7 @@ def verify_visited(id, member)
   klass = @classes.fetch(id)
   type = member.fetch(:type)
   @seen_members = {}
-  if garbage_collected?(type)
+  if garbage_collected?(type) && klass[:name] != 'Natalie::Heap'
     if (method_lines = klass[:visit_children_method])
       name = member.fetch(:name)
       visits_directly = method_lines.grep(/^\s*visitor\.visit\(&?#{name}/).any?
@@ -171,7 +171,7 @@ def verify_visits_superclass(id)
   if (superclass_id = klass.dig(:superclass, :id)) && klass[:visit_children_method]
     superclass = @classes[superclass_id]
     superclass_name_without_namespace = superclass[:name].split('::').last
-    if class_name != 'Natalie::Object' && superclass[:name] != 'Natalie::Cell' &&
+    if class_name != 'Natalie::Object' &&
          klass[:visit_children_method].grep(/#{superclass_name_without_namespace}::visit_children\(visitor\)/).empty?
       @errors << "#{class_name}'s visit_children() method does not call #{superclass[:name]}::visit_children()!"
     end
