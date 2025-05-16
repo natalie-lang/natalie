@@ -20,6 +20,7 @@ namespace ArrayPacker {
         using PackHandlerFn = void (StringHandler::*)();
 
         virtual void visit_children(Visitor &visitor) const override {
+            Cell::visit_children(visitor);
             visitor.visit(m_string_object);
         }
 

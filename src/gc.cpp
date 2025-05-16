@@ -1,6 +1,3 @@
-#include <signal.h>
-#include <stdexcept>
-
 #include "natalie.hpp"
 
 extern "C" void GC_disable() {

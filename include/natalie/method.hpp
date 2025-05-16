@@ -79,6 +79,7 @@ public:
     const Optional<size_t> &get_line() const { return m_line; }
 
     virtual void visit_children(Visitor &visitor) const override final {
+        Cell::visit_children(visitor);
         visitor.visit(m_owner);
         visitor.visit(m_env);
         if (m_self)

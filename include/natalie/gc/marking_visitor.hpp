@@ -11,7 +11,7 @@ public:
     virtual void visit(Value val) override final;
 
     virtual void visit(const Cell *cell) override final {
-        if (!cell || cell->is_marked()) return;
+        if (!cell || cell->is_visited()) return;
         m_stack.push(cell);
     }
 

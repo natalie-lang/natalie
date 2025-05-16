@@ -21,6 +21,7 @@ struct HashKey : public Cell {
     bool removed { false };
 
     virtual void visit_children(Visitor &visitor) const override final {
+        Cell::visit_children(visitor);
         visitor.visit(prev);
         visitor.visit(next);
         visitor.visit(key);

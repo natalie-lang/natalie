@@ -25,6 +25,7 @@ namespace ArrayPacker {
         StringObject *pack(Env *env, StringObject *buffer);
 
         virtual void visit_children(Visitor &visitor) const override {
+            Cell::visit_children(visitor);
             visitor.visit(m_source);
             visitor.visit(m_encoding);
         }
