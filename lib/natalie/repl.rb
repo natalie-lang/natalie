@@ -136,8 +136,16 @@ GC.disable
 
 LibNat.init
 
+prompt = 'nat> '
+lines = []
+
+reset_lines = lambda do
+  lines = []
+  prompt = 'nat> '
+end
+
 loop do
-  line = Linenoise.readline('nat> ')
+  line = Linenoise.readline(prompt)
   break if line.nil?
 
   next if line.strip.empty?
@@ -145,15 +153,27 @@ loop do
   Linenoise.add_history(line)
 
   source_path = '(repl)'
-  parser = Natalie::Parser.new(line.strip, source_path, locals: vars.keys)
+  lines << line.strip
+  parser = Natalie::Parser.new(lines.join("\n"), source_path, locals: vars.keys)
   ast =
     begin
       parser.ast
     rescue Natalie::Parser::ParseError => e
+      # If the error is due to an unexpected end-of-input, we can ignore it
+      # and continue to read more lines.
+      # This is useful for multi-line input, like class and module definitions, do blocks, etc.
+      if e.message.include?('unexpected end-of-input')
+        prompt = 'nat* '
+        next
+      end
+
+      reset_lines.call
       puts e.message
       puts e.backtrace
       next
     end
+
+  reset_lines.call
 
   compiler = Natalie::Compiler.new(ast: ast, path: source_path, encoding: parser.encoding)
   compiler.repl = true
