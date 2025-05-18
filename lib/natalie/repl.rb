@@ -139,10 +139,11 @@ LibNat.init
 prompt = 'nat> '
 lines = []
 
-reset_lines = lambda do
-  lines = []
-  prompt = 'nat> '
-end
+reset_lines =
+  lambda do
+    lines = []
+    prompt = 'nat> '
+  end
 
 loop do
   line = Linenoise.readline(prompt)
