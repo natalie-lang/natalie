@@ -1,9 +1,27 @@
 class SystemCallError < StandardError
-  def initialize(msg = nil, errno = nil, location = nil)
-    if msg.nil? && errno.nil?
-      msg = SystemCallError::ERRORS.values.filter_map { |(number, message)| message if number == self::Errno }.first
+  def initialize(*args)
+    if self.class == SystemCallError
+      raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0..3)" if args.size > 3
+      msg, errno, location = args
+    else
+      raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0..2)" if args.size > 2
+      msg, location = args
+      errno = self.class::Errno
     end
-    intmsg = location ? "#{msg} @ #{location}" : msg
+    if !errno.is_a?(Integer) && errno.respond_to?(:to_int)
+      errno_int = errno.to_int
+      unless errno_int.is_a?(Integer)
+        raise TypeError, "can't convert #{errno.class} to Integer (#{errno.class}#to_int gives #{errno_int.class})"
+      end
+      errno = errno_int
+    end
+    unless errno.is_a?(Integer)
+      raise TypeError, "no implicit conversion of #{errno.class} into Integer"
+    end
+    intmsg = SystemCallError::ERRORS.values.filter_map { |(number, message)| message if number == errno }.first
+    intmsg ||= "Unknown error #{errno}"
+    intmsg = "#{intmsg} @ #{location}" if location
+    intmsg = "#{intmsg} - #{msg}" if msg
     super(intmsg)
     @errno = errno
   end
@@ -27,7 +45,7 @@ class SystemCallError < StandardError
     if klass_name
       message = num_message_pair.fetch(1)
       message = "#{message} - #{detail}" if detail
-      Errno.const_get(klass_name).new(message, num, location)
+      Errno.const_get(klass_name).new(message, location)
     else
       new("Unknown error #{num}")
     end

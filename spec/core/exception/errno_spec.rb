@@ -13,18 +13,14 @@ describe "Errno::EINVAL.new" do
     exc = Errno::EINVAL.new('custom message')
     exc.should be_an_instance_of(Errno::EINVAL)
     exc.errno.should == Errno::EINVAL::Errno
-    NATFIXME 'it accepts an optional custom message', exception: SpecFailedException do
-      exc.message.should == "Invalid argument - custom message"
-    end
+    exc.message.should == "Invalid argument - custom message"
   end
 
   it "accepts an optional custom message and location" do
     exc = Errno::EINVAL.new('custom message', 'location')
     exc.should be_an_instance_of(Errno::EINVAL)
-    NATFIXME 'it accepts an optional custom message and location', exception: SpecFailedException do
-      exc.errno.should == Errno::EINVAL::Errno
-      exc.message.should == "Invalid argument @ location - custom message"
-    end
+    exc.errno.should == Errno::EINVAL::Errno
+    exc.message.should == "Invalid argument @ location - custom message"
   end
 end
 
@@ -72,8 +68,6 @@ describe "Errno::ENOENT" do
     c = Class.new(Errno::ENOENT)
     raise c, "custom message"
   rescue => e
-    NATFIXME 'it lets subclasses inherit the default error message', exception: SpecFailedException do
-      e.message.should == "No such file or directory - custom message"
-    end
+    e.message.should == "No such file or directory - custom message"
   end
 end
