@@ -1,5 +1,13 @@
 class SystemCallError < StandardError
-  def initialize(msg = nil, errno = self::Errno, location = nil)
+  def initialize(*args)
+    if self.class == SystemCallError
+      raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0..3)" if args.size > 3
+      msg, errno, location = args
+    else
+      raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0..2)" if args.size > 2
+      msg, location = args
+      errno = self.class::Errno
+    end
     if !errno.is_a?(Integer) && errno.respond_to?(:to_int)
       errno_int = errno.to_int
       unless errno_int.is_a?(Integer)
@@ -37,7 +45,7 @@ class SystemCallError < StandardError
     if klass_name
       message = num_message_pair.fetch(1)
       message = "#{message} - #{detail}" if detail
-      Errno.const_get(klass_name).new(message, num, location)
+      Errno.const_get(klass_name).new(message, location)
     else
       new("Unknown error #{num}")
     end
