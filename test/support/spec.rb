@@ -720,21 +720,22 @@ class ComplainExpectation
   end
 end
 
-class YAMLExpectation
+class YAMLMatcher
   def initialize(expected)
     @expected = expected
   end
 
-  def match(subject)
-    if prepare_yaml(subject) != @expected
-      raise SpecFailedException, "#{subject.inspect} should be equal to #{@expected.inspect}"
-    end
+  def matches?(subject)
+    @subject = prepare_yaml(subject)
+    @subject == @expected
   end
 
-  def inverted_match(subject)
-    if prepare_yaml(subject) == @expected
-      raise SpecFailedException, "#{subject.inspect} should not be equal to #{@expected.inspect}"
-    end
+  def failure_message
+    ["#{@subject.inspect}", "should be equal to #{@expected.inspect}"]
+  end
+
+  def negative_failure_message
+    ["#{@subject.inspect}", "should not be equal to #{@expected.inspect}"]
   end
 
   private
@@ -1224,7 +1225,7 @@ class Object
   end
 
   def match_yaml(expected)
-    YAMLExpectation.new(expected)
+    Expectation.new(YAMLMatcher.new(expected))
   end
 
   def should_receive(message)
