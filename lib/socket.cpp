@@ -903,8 +903,12 @@ Value UNIXSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 3);
     const auto size = IntegerMethods::convert_to_nat_int_t(env, args[0]);
     const auto flags = IntegerMethods::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
-    if (args.size() > 2)
-        env->raise("NotImplementedError", "NATFIXME: Support output buffer argument");
+    StringObject *result = nullptr;
+    if (args.size() > 2) {
+        result = args[2].to_str(env);
+    } else {
+        result = new StringObject { "", Encoding::ASCII_8BIT };
+    }
 
     TM::String buf { static_cast<size_t>(size), '\0' };
     struct sockaddr_un addr { };
@@ -921,12 +925,14 @@ Value UNIXSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     if (static_cast<size_t>(recvfrom_result) < buf.size())
         buf.truncate(recvfrom_result);
 
+    result->set_str(std::move(buf));
+
     auto unixaddress = new ArrayObject {
         new StringObject { "AF_UNIX" },
         new StringObject { addr.sun_path }
     };
     return new ArrayObject {
-        new StringObject { std::move(buf), Encoding::ASCII_8BIT },
+        result,
         unixaddress
     };
 }
