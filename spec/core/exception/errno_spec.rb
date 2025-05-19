@@ -17,9 +17,9 @@ describe "Errno::EINVAL.new" do
   end
 
   it "accepts an optional custom message and location" do
-    exc = Errno::EINVAL.new('custom message', 'location')
-    exc.should be_an_instance_of(Errno::EINVAL)
-    NATFIXME 'it accepts an optional custom message and location', exception: SpecFailedException do
+    NATFIXME 'remove errno argument in subclasses', exception: TypeError, message: 'no implicit conversion of String into Integer' do
+      exc = Errno::EINVAL.new('custom message', 'location')
+      exc.should be_an_instance_of(Errno::EINVAL)
       exc.errno.should == Errno::EINVAL::Errno
       exc.message.should == "Invalid argument @ location - custom message"
     end

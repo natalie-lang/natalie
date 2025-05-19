@@ -20,4 +20,27 @@ describe 'Errno' do
     exc = SystemCallError.new(nil, -1)
     exc.message.should == 'Unknown error -1'
   end
+
+  it 'converts objects with #to_int' do
+    errno = mock('errno')
+    errno.should_receive(:to_int).and_return(1)
+    exc = SystemCallError.new(nil, errno)
+    exc.message.should == SystemCallError.new(nil, 1).message
+  end
+
+  it 'raises a TypeError if the errno cannot be converted with #to_int' do
+    -> { SystemCallError.new(nil, :errno) }.should raise_error(
+                 TypeError,
+                 'no implicit conversion of Symbol into Integer',
+               )
+  end
+
+  it 'raises a TypeError if the conversion with #to_int does not result in an Integer' do
+    errno = mock('errno')
+    errno.should_receive(:to_int).and_return(:not_an_int)
+    -> { SystemCallError.new(nil, errno) }.should raise_error(
+                 TypeError,
+                 "can't convert MockObject to Integer (MockObject#to_int gives Symbol)",
+               )
+  end
 end

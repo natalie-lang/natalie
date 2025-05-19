@@ -1,5 +1,15 @@
 class SystemCallError < StandardError
   def initialize(msg = nil, errno = self::Errno, location = nil)
+    if !errno.is_a?(Integer) && errno.respond_to?(:to_int)
+      errno_int = errno.to_int
+      unless errno_int.is_a?(Integer)
+        raise TypeError, "can't convert #{errno.class} to Integer (#{errno.class}#to_int gives #{errno_int.class})"
+      end
+      errno = errno_int
+    end
+    unless errno.is_a?(Integer)
+      raise TypeError, "no implicit conversion of #{errno.class} into Integer"
+    end
     intmsg = SystemCallError::ERRORS.values.filter_map { |(number, message)| message if number == errno }.first
     intmsg ||= "Unknown error #{errno}"
     intmsg = "#{intmsg} @ #{location}" if location
