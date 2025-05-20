@@ -1624,6 +1624,37 @@ Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
     return self;
 }
 
+Value TCPSocket_gethostbyname(Env *env, Value self, Args &&args, Block *) {
+    args.ensure_argc_is(env, 1);
+    env->warn("TCPSocket.gethostbyname is deprecated; use Addrinfo.getaddrinfo instead.");
+    auto name = args[0].to_str(env);
+    if (strlen(name->c_str()) < name->bytesize())
+        env->raise("ArgumentError", "string contains null byte");
+    auto hostent = gethostbyname(name->c_str());
+    if (!hostent) {
+        auto Socket_ResolutionError = fetch_nested_const({ "Socket"_s, "ResolutionError"_s }).as_class_or_raise(env);
+        env->raise(Socket_ResolutionError, "getaddrinfo: Name or service not known");
+    }
+    auto aliases = new ArrayObject;
+    for (auto ptr = hostent->h_aliases; *ptr != nullptr; ptr++) {
+        aliases->push(new StringObject { *ptr, Encoding::ASCII_8BIT });
+    }
+    auto result = new ArrayObject {
+        new StringObject { hostent->h_name, Encoding::ASCII_8BIT },
+        aliases,
+        Value::integer(hostent->h_addrtype),
+    };
+    for (auto ptr = hostent->h_addr_list; *ptr != nullptr; ptr++) {
+        char ipaddr[INET6_ADDRSTRLEN] = { 0 };
+        if (hostent->h_length == 4)
+            inet_ntop(AF_INET, *ptr, ipaddr, INET6_ADDRSTRLEN);
+        else
+            inet_ntop(AF_INET6, *ptr, ipaddr, INET6_ADDRSTRLEN);
+        result->push(new StringObject { ipaddr, Encoding::ASCII_8BIT });
+    }
+    return result;
+}
+
 Value TCPServer_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 1, 2);
     auto hostname = args.at(0);

@@ -68,6 +68,10 @@ end
 
 class TCPSocket < IPSocket
   __bind_method__ :initialize, :TCPSocket_initialize
+
+  class << self
+    __bind_method__ :gethostbyname, :TCPSocket_gethostbyname
+  end
 end
 
 class TCPServer < TCPSocket
@@ -134,6 +138,9 @@ class Socket < BasicSocket
     UNIX: AF_UNIX,
     V6ONLY: IPV6_V6ONLY,
   }.freeze
+
+  class ResolutionError < SocketError
+  end
 
   class Option
     def initialize(family, level, optname, data)
