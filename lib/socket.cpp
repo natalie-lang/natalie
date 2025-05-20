@@ -226,7 +226,7 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
 Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 1, 4);
     auto sockaddr = args.at(0);
-    auto afamily = Socket_const_get(env, args.at(1, Value::nil()), true);
+    auto pfamily = Socket_const_get(env, args.at(1, Value::nil()), true);
     auto socktype = Socket_const_get(env, args.at(2, Value::nil()), true);
     auto protocol = args.at(3, Value::integer(0));
 
@@ -241,13 +241,13 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
     Optional<Value> port;
     StringObject *host = nullptr;
 
-    if (!afamily)
+    if (!pfamily)
         self->ivar_set(env, "@pfamily"_s, Value::integer(PF_UNSPEC));
 
     if (sockaddr.is_string()) {
-        afamily = Addrinfo_sockaddr_family(env, sockaddr.as_string());
+        pfamily = Addrinfo_sockaddr_family(env, sockaddr.as_string());
 
-        switch (afamily) {
+        switch (pfamily) {
         case AF_UNIX:
             unix_path = GlobalEnv::the()->Object()->const_fetch("Socket"_s).send(env, "unpack_sockaddr_un"_s, { sockaddr }).as_string_or_raise(env);
             break;
@@ -264,10 +264,10 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         // initialized with array like ["AF_INET", 49429, "hal", "192.168.0.128"]
         //                          or ["AF_UNIX", "/tmp/sock"]
         auto ary = sockaddr.as_array();
-        afamily = Socket_const_get(env, ary->ref(env, Value::integer(0)), true);
-        self->ivar_set(env, "@afamily"_s, Value::integer(afamily));
-        self->ivar_set(env, "@pfamily"_s, Value::integer(afamily));
-        switch (afamily) {
+        pfamily = Socket_const_get(env, ary->ref(env, Value::integer(0)), true);
+        self->ivar_set(env, "@afamily"_s, Value::integer(pfamily));
+        self->ivar_set(env, "@pfamily"_s, Value::integer(pfamily));
+        switch (pfamily) {
         case AF_UNIX:
             unix_path = ary->ref(env, Value::integer(1)).as_string();
             break;
@@ -284,7 +284,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         socktype_hack = true;
     }
 
-    if (afamily == AF_UNIX) {
+    if (pfamily == PF_UNIX) {
         assert(unix_path);
         self->ivar_set(env, "@afamily"_s, Value::integer(AF_UNIX));
         self->ivar_set(env, "@unix_path"_s, unix_path);
@@ -299,8 +299,8 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         struct addrinfo hints { };
         struct addrinfo *getaddrinfo_result = nullptr;
 
-        if (afamily)
-            hints.ai_family = afamily;
+        if (pfamily)
+            hints.ai_family = pfamily;
         else
             hints.ai_family = PF_UNSPEC;
 
@@ -361,7 +361,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         if (self->ivar_get(env, "@socktype"_s).is_nil())
             self->ivar_set(env, "@socktype"_s, Value::integer(getaddrinfo_result->ai_socktype));
 
-        if (getaddrinfo_result->ai_family != afamily)
+        if (getaddrinfo_result->ai_family != pfamily)
             env->raise("SocketError", "getaddrinfo: Address family for hostname not supported");
 
         switch (getaddrinfo_result->ai_family) {
