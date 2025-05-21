@@ -2,6 +2,7 @@ require 'ffi'
 require 'fileutils'
 require 'linenoise'
 require 'natalie/inline'
+require 'pp'
 require 'tempfile'
 
 LIBNAT_PATH = File.expand_path("../../build/libnat.#{RbConfig::CONFIG['SOEXT']}", __dir__)
