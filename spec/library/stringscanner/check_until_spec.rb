@@ -32,10 +32,8 @@ describe "StringScanner#check_until" do
 
   version_is StringScanner::Version, "3.1.1" do # ruby_version_is "3.4"
     it "searches a substring in the rest part of a string if given a String" do
-      NATFIXME 'Support String argument', exception: TypeError, message: 'wrong argument type String (expected Regexp)' do
-        @s.check_until("a").should == "This is a"
-        @s.pos.should == 0
-      end
+      @s.check_until("a").should == "This is a"
+      @s.pos.should == 0
     end
 
     # https://github.com/ruby/strscan/issues/131
@@ -53,11 +51,13 @@ describe "StringScanner#check_until" do
 
     version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
       it "sets the last match result if given a String" do
-        NATFIXME 'Support String argument', exception: TypeError, message: 'wrong argument type String (expected Regexp)' do
-          @s.check_until("a")
+        @s.check_until("a")
 
+        NATFIXME 'it sets the last match result if given a String', exception: SpecFailedException do
           @s.pre_match.should == "This is "
-          @s.matched.should == "a"
+        end
+        @s.matched.should == "a"
+        NATFIXME 'it sets the last match result if given a String', exception: SpecFailedException do
           @s.post_match.should == " test"
         end
       end
@@ -93,27 +93,21 @@ describe "StringScanner#check_until" do
         end
         version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4.3"
           it "raises IndexError when matching succeeded" do
-            NATFIXME 'Support String argument', exception: TypeError, message: 'wrong argument type String (expected Regexp)' do
-              @s.check_until("This")
-              @s.should.matched?
-              -> { @s[:a] }.should raise_error(IndexError)
-            end
+            @s.check_until("This")
+            @s.should.matched?
+            -> { @s[:a] }.should raise_error(IndexError)
           end
         end
 
         it "returns nil when matching failed" do
-          NATFIXME 'Support String argument', exception: TypeError, message: 'wrong argument type String (expected Regexp)' do
-            @s.check_until("2008")
-            @s.should_not.matched?
-            @s[:a].should be_nil
-          end
+          @s.check_until("2008")
+          @s.should_not.matched?
+          @s[:a].should be_nil
         end
 
         it "returns a matching substring when given Integer index" do
-          NATFIXME 'Support String argument', exception: TypeError, message: 'wrong argument type String (expected Regexp)' do
-            @s.check_until("This")
-            @s[0].should == "This"
-          end
+          @s.check_until("This")
+          @s[0].should == "This"
         end
 
         # https://github.com/ruby/strscan/issues/135
@@ -136,11 +130,9 @@ describe "StringScanner#check_until" do
             @s.should.matched?
             @s[:a].should == "This"
 
-            NATFIXME 'Support String argument', exception: TypeError, message: 'wrong argument type String (expected Regexp)' do
-              @s.check_until("This")
-              @s.should.matched?
-              -> { @s[:a] }.should raise_error(IndexError)
-            end
+            @s.check_until("This")
+            @s.should.matched?
+            -> { @s[:a] }.should raise_error(IndexError)
           end
         end
       end
