@@ -83,6 +83,7 @@ class StringScanner
     start = @pos
     until (matched = check(pattern))
       @pos += 1
+      return nil if @pos >= @string.size
     end
     @pos += matched.size
     accumulated = @string[start...@pos]

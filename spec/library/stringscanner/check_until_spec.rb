@@ -72,8 +72,7 @@ describe "StringScanner#check_until" do
         @s[:a].should == "This"
       end
 
-      # NATFIXME: Timeout
-      xit "returns nil when matching failed" do
+      it "returns nil when matching failed" do
         @s.check_until(/(?<a>2008)/)
         @s.should_not.matched?
         @s[:a].should be_nil
