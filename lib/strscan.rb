@@ -79,10 +79,15 @@ class StringScanner
   end
 
   def check_until(pattern)
-    raise TypeError, "wrong argument type #{pattern.class.name} (expected Regexp)" unless pattern.is_a?(Regexp)
+    unless pattern.is_a?(Regexp)
+      pattern = pattern.to_str if !pattern.is_a?(String) && pattern.respond_to?(:to_str)
+      raise TypeError, "no implicit conversion of #{pattern.class} into String" unless pattern.is_a?(String)
+      pattern = Regexp.new(Regexp.quote(pattern))
+    end
     start = @pos
     until (matched = check(pattern))
       @pos += 1
+      return nil if @pos >= @string.size
     end
     @pos += matched.size
     accumulated = @string[start...@pos]
