@@ -308,6 +308,8 @@ Value DirObject::home(Env *env, Optional<Value> username_arg) {
 }
 bool DirObject::is_empty(Env *env, Value dirname) {
     dirname.assert_type(env, Object::Type::String, "String");
+    if (strlen(dirname.as_string()->c_str()) != dirname.as_string()->bytesize())
+        env->raise("ArgumentError", "path name contains null byte");
     auto dir_cstr = dirname.as_string()->c_str();
     std::error_code ec;
     auto st = std::filesystem::symlink_status(dir_cstr, ec);

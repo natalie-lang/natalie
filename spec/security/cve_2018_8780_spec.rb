@@ -24,11 +24,9 @@ describe "CVE-2018-8780 is resisted by" do
   end
 
   it "Dir.empty? by raising an exception when there is a NUL byte" do
-    NATFIXME 'Dir.empty? by raising an exception when there is a NUL byte', exception: SpecFailedException do
-      -> {
-        Dir.empty?(@root+"\0")
-      }.should raise_error(ArgumentError, /(path name|string) contains null byte/)
-    end
+    -> {
+      Dir.empty?(@root+"\0")
+    }.should raise_error(ArgumentError, /(path name|string) contains null byte/)
   end
 
   it "Dir.children by raising an exception when there is a NUL byte" do
