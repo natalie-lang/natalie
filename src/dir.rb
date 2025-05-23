@@ -35,7 +35,7 @@ class Dir
       end
       return unless File.directory?(base)
 
-      raise ArgumentError, 'path name contains null byte' if patterns.any? { |pat| pat.include?("\0") }
+      raise ArgumentError, 'nul-separated glob pattern' if patterns.any? { |pat| pat.include?("\0") }
 
       follow_symlinks = patterns.grep(/(\A|[^*])\*#{File::SEPARATOR}/).any?
       start_with_dot = patterns.grep(/\A\./).any?

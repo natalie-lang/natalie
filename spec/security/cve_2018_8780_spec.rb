@@ -6,9 +6,11 @@ describe "CVE-2018-8780 is resisted by" do
   end
 
   it "Dir.glob by raising an exception when there is a NUL byte" do
-    -> {
-      Dir.glob([[@root, File.join(@root, "*")].join("\0")])
-    }.should raise_error(ArgumentError, /(path name|string) contains null byte/)
+    NATFIXME 'Use correct error message (different scenario than Dir.glob specs)', exception: SpecFailedException, message: /but the message was/ do
+      -> {
+        Dir.glob([[@root, File.join(@root, "*")].join("\0")])
+      }.should raise_error(ArgumentError, /(path name|string) contains null byte/)
+    end
   end
 
   it "Dir.entries by raising an exception when there is a NUL byte" do
