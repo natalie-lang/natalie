@@ -471,30 +471,30 @@ describe "The rescue keyword" do
 
   it "only accepts Module or Class in rescue clauses" do
     rescuer = 42
-    -> {
-      begin
-        raise "error"
-      rescue rescuer
-      end
-    }.should raise_error(TypeError) { |e|
-      NATFIXME 'it only accepts Module or Class in rescue clauses', exception: SpecFailedException do
-        e.message.should =~ /class or module required for rescue clause/
-      end
-    }
+    NATFIXME 'it only accepts Module or Class in rescue clauses', exception: SpecFailedException, message: /but instead raised/ do
+      -> {
+        begin
+          raise "error"
+        rescue rescuer
+        end
+      }.should raise_error(TypeError) { |e|
+          e.message.should =~ /class or module required for rescue clause/
+      }
+    end
   end
 
   it "only accepts Module or Class in splatted rescue clauses" do
     rescuer = [42]
-    -> {
-      begin
-        raise "error"
-      rescue *rescuer
-      end
-    }.should raise_error(TypeError) { |e|
-      NATFIXME 'it only accepts Module or Class in splatted rescue clauses', exception: SpecFailedException do
-        e.message.should =~ /class or module required for rescue clause/
-      end
-    }
+    NATFIXME 'it only accepts Module or Class in splatted rescue clauses', exception: SpecFailedException, message: /but instead raised/ do
+      -> {
+        begin
+          raise "error"
+        rescue *rescuer
+        end
+      }.should raise_error(TypeError) { |e|
+          e.message.should =~ /class or module required for rescue clause/
+      }
+    end
   end
 
   it "evaluates rescue expressions only when needed" do

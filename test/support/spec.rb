@@ -912,23 +912,10 @@ class RaiseErrorExpectation
   end
 
   def match(subject)
-    if @block
-      # given a block, we rescue everything!
-
-      begin
-        subject.call
-      rescue Exception => e
-        @block.call(e)
-      else
-        raise SpecFailedException, "#{subject.inspect} should have raised an error, but instead raised nothing"
-      end
-
-      return
-    end
-
     begin
       subject.call
     rescue @klass => e
+      @block.call(e) if @block
       if @message.nil?
         nil # good
       elsif @message == e.message
@@ -1528,7 +1515,7 @@ class Object
     raise NotImplementedError, "Invalid fd #{fd.inspect}"
   end
 
-  def raise_error(klass = StandardError, message = nil, &block)
+  def raise_error(klass = Exception, message = nil, &block)
     RaiseErrorExpectation.new(klass, message, &block)
   end
 
