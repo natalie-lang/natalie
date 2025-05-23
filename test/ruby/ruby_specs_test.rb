@@ -8,6 +8,8 @@ describe 'ruby/spec' do
   parallelize_me!
 
   def spec_timeout(path)
+    return ENV['SPEC_TIMEOUT'].to_i if ENV['SPEC_TIMEOUT']
+
     case path
     when %r{core/(thread|conditionvariable)}
       480
