@@ -849,7 +849,6 @@ Value Object::enum_for(Env *env, const char *method, Args &&args) {
 }
 
 void Object::visit_children(Visitor &visitor) const {
-    Cell::visit_children(visitor);
     visitor.visit(m_klass);
     visitor.visit(m_singleton_class);
     if (m_ivars) {

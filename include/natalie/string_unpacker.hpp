@@ -22,7 +22,6 @@ public:
     Value unpack1(Env *env);
 
     virtual void visit_children(Visitor &visitor) const override {
-        Cell::visit_children(visitor);
         visitor.visit(m_source);
         if (m_unpacked_value)
             visitor.visit(m_unpacked_value.value());
