@@ -1847,7 +1847,9 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args &&args, Block *) {
 Value UNIXSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
 
-    auto path = args.at(0);
+    auto path = args.at(0).to_str(env);
+    if (*path->c_str() != 0 && strlen(path->c_str()) != path->bytesize())
+        env->raise("ArgumentError", "path name contains null byte");
 
     auto fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (fd == -1)
@@ -1877,7 +1879,10 @@ Value UNIXSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
 
 Value UNIXServer_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 1);
-    auto path = args.at(0);
+
+    auto path = args.at(0).to_str(env);
+    if (*path->c_str() != 0 && strlen(path->c_str()) != path->bytesize())
+        env->raise("ArgumentError", "path name contains null byte");
 
     auto fd = socket(AF_UNIX, SOCK_STREAM, 0);
 
