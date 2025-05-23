@@ -49,7 +49,6 @@ public:
     void copy_fn_pointer_to_method(Method *);
 
     virtual void visit_children(Visitor &visitor) const override final {
-        Cell::visit_children(visitor);
         visitor.visit(m_env);
         visitor.visit(m_calling_env);
         visitor.visit(m_self);
