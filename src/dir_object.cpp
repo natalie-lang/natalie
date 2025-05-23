@@ -30,6 +30,8 @@ Value DirObject::open(Env *env, Value path, Optional<Value> encoding_kwarg, Bloc
 
 Value DirObject::initialize(Env *env, Value path, Optional<Value> encoding_kwarg) {
     path = ioutil::convert_using_to_path(env, path);
+    if (strlen(path.as_string()->c_str()) != path.as_string()->bytesize())
+        env->raise("ArgumentError", "path name contains null byte");
     m_dir = ::opendir(path.as_string()->c_str());
     if (!m_dir) env->raise_errno();
     if (encoding_kwarg && !encoding_kwarg.value().is_nil()) {
