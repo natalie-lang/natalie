@@ -1522,6 +1522,8 @@ Value ArrayObject::hash(Env *env) {
 Value ArrayObject::insert(Env *env, Args &&args) {
     this->assert_not_frozen(env);
 
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
     if (args.size() == 1)
         return this;
 
