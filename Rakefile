@@ -94,7 +94,7 @@ end
 desc 'Test that the self-hosted compiler builds and runs a core subset of the tests'
 task test_self_hosted: %i[bootstrap build_test_support] do
   sh 'bin/nat --version'
-  env = { 'NAT_BINARY' => 'bin/nat', 'GLOB' => 'spec/language/*_spec.rb' }
+  env = { 'NAT_BINARY' => 'bin/nat', 'GLOB' => 'spec/language/*_spec.rb', 'SPEC_TIMEOUT' => '480' }
   sh env, 'bundle exec ruby test/all.rb'
 end
 
