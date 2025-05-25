@@ -196,7 +196,8 @@ class Runner
     case options[:debug]
     when 'gdb', 'lldb', 'strace'
       compiler.compile
-      exec(options[:debug], out.path)
+      flags = options[:debug] == 'gdb' ? %w[-x test/gdb-signals.gdb] : []
+      exec(options[:debug], *flags, out.path)
     when 'callgrind'
       callgrind_out = Tempfile.create('callgrind.out')
       callgrind_out.close
