@@ -113,7 +113,7 @@ public:
     }
 
     /**
-     * Constructs a new String with the single given charater.
+     * Constructs a new String with the single given character.
      *
      * ```
      * auto str = String { 'x' };
