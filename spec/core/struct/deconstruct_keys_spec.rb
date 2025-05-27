@@ -82,15 +82,35 @@ describe "Struct#deconstruct_keys" do
     obj.deconstruct_keys(nil).should == {x: 1, y: 2}
   end
 
+  it "tries to convert a key with #to_int if index is not a String nor a Symbol, but responds to #to_int" do
+    struct = Struct.new(:x, :y)
+    s = struct.new(1, 2)
+
+    key = mock("to_int")
+    key.should_receive(:to_int).and_return(1)
+
+    s.deconstruct_keys([key]).should == { key => 2 }
+  end
+
+  it "raises a TypeError if the conversion with #to_int does not return an Integer" do
+    struct = Struct.new(:x, :y)
+    s = struct.new(1, 2)
+
+    key = mock("to_int")
+    key.should_receive(:to_int).and_return("not an Integer")
+
+    -> {
+      s.deconstruct_keys([key])
+    }.should raise_error(TypeError, /can't convert MockObject to Integer/)
+  end
+
   it "raises TypeError if index is not a String, a Symbol and not convertible to Integer" do
     struct = Struct.new(:x, :y)
     s = struct.new(1, 2)
 
-    NATFIXME 'it raises TypeError if index is not a String, a Symbol and not convertible to Integer', exception: SpecFailedException do
-      -> {
-        s.deconstruct_keys([0, []])
-      }.should raise_error(TypeError, "no implicit conversion of Array into Integer")
-    end
+    -> {
+      s.deconstruct_keys([0, []])
+    }.should raise_error(TypeError, "no implicit conversion of Array into Integer")
   end
 
   it "raise TypeError if passed anything except nil or array" do

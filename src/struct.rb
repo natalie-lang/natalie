@@ -78,19 +78,29 @@ class Struct
 
         define_method(:deconstruct) { attrs.map { |attr| send(attr) } }
 
-        define_method :deconstruct_keys do |arg|
-          if arg.nil?
-            arg = attrs
-          elsif !arg.is_a?(Array)
-            raise TypeError, "wrong argument type #{arg.class} (expected Array or nil)"
+        define_method :deconstruct_keys do |keys|
+          raise TypeError, "wrong argument type #{keys.class} (expected Array or nil)" if !keys.nil? && !keys.is_a?(Array)
+          keys = members if keys.nil?
+          next {} if keys.size > members.size
+          result = {}
+          keys.each do |key|
+            key_sym = if key.is_a?(Symbol)
+                        key
+                      elsif key.is_a?(String)
+                        key.to_sym
+                      elsif key.is_a?(Integer)
+                        members.fetch(key, nil)
+                      elsif key.respond_to?(:to_int)
+                        int_key = key.to_int
+                        raise TypeError, "can't convert #{key.class} to Integer (#{key.class}#to_int gives #{int_key.class})" unless int_key.is_a?(Integer)
+                        members.fetch(int_key, nil)
+                      else
+                        raise TypeError, "no implicit conversion of #{key.class} into Integer"
+                      end
+            break unless members.include?(key_sym)
+            result[key] = public_send(key_sym)
           end
-
-          if arg.size > attrs.size
-            {}
-          else
-            arg = arg.take_while { |key| key.is_a?(Integer) ? key < attrs.size : attrs.include?(key.to_sym) }
-            arg.each_with_object({}) { |key, memo| memo[key] = self[key] }
-          end
+          result
         end
 
         define_method :dup do
