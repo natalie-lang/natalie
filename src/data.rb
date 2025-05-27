@@ -87,7 +87,7 @@ class Data
                     elsif key.is_a?(Integer)
                       members.fetch(key, nil)
                     elsif key.respond_to?(:to_int)
-                      mebers.fetch(key.to_int, nil)
+                      members.fetch(key.to_int, nil)
                     else
                       raise TypeError, "no implicit conversion of #{key.class} into Integer"
                     end
