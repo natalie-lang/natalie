@@ -86,6 +86,30 @@ describe "Data#deconstruct" do
     d.deconstruct_keys(nil).should == {x: 1, y: 2}
   end
 
+  it "tries to convert a key with #to_int if index is not a String nor a Symbol, but responds to #to_int" do
+    klass = Data.define(:x, :y)
+    d = klass.new(1, 2)
+
+    key = mock("to_int")
+    key.should_receive(:to_int).and_return(1)
+
+    d.deconstruct_keys([key]).should == { key => 2 }
+  end
+
+  it "raises a TypeError if the conversion with #to_int does not return an Integer" do
+    klass = Data.define(:x, :y)
+    d = klass.new(1, 2)
+
+    NATFIXME 'it raises a TypeError if the conversion with #to_int does not return an Integer', exception: SpecFailedException do
+      key = mock("to_int")
+      key.should_receive(:to_int).and_return("not an Integer")
+
+      -> {
+        d.deconstruct_keys([key])
+      }.should raise_error(TypeError, /can't convert MockObject to Integer/)
+    end
+  end
+
   it "raises TypeError if index is not a String, a Symbol and not convertible to Integer " do
     klass = Data.define(:x, :y)
     d = klass.new(1, 2)
