@@ -20,3 +20,12 @@ describe 'Data#members' do
     members1.should_not equal(members2)
   end
 end
+
+describe 'Data#deconstruct_keys' do
+  it 'converts arguments with #to_int' do
+    key = mock('key')
+    key.should_receive(:to_int).and_return(1)
+    data = DataSpecs::Measure.new(amount: 42, unit: 'km')
+    data.deconstruct_keys([key]).should == { key => 'km' }
+  end
+end
