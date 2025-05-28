@@ -61,7 +61,7 @@ Value Zlib_deflate_initialize(Env *env, Value self, Args &&args, Block *) {
 
     auto stream = new z_stream {};
     self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_deflate_stream_cleanup));
-    self->ivar_set(env, "@result"_s, new StringObject("", Encoding::ASCII_8BIT));
+    self->ivar_set(env, "@result"_s, StringObject::create("", Encoding::ASCII_8BIT));
     auto in = new unsigned char[ZLIB_BUF_SIZE];
     self->ivar_set(env, "@in"_s, new VoidPObject(in, Zlib_buffer_cleanup));
     auto out = new unsigned char[ZLIB_BUF_SIZE];
@@ -195,7 +195,7 @@ Value Zlib_inflate_initialize(Env *env, Value self, Args &&args, Block *) {
 
     auto stream = new z_stream {};
     self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_inflate_stream_cleanup));
-    self->ivar_set(env, "@result"_s, new StringObject("", Encoding::ASCII_8BIT));
+    self->ivar_set(env, "@result"_s, StringObject::create("", Encoding::ASCII_8BIT));
     auto in = new unsigned char[ZLIB_BUF_SIZE];
     self->ivar_set(env, "@in"_s, new VoidPObject(in, Zlib_buffer_cleanup));
     auto out = new unsigned char[ZLIB_BUF_SIZE];
@@ -299,7 +299,7 @@ Value Zlib_inflate_close(Env *env, Value self, Args &&args, Block *) {
 
 Value Zlib_adler32(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 2);
-    auto string = args.at(0, new StringObject { "", Encoding::ASCII_8BIT }).to_str(env);
+    auto string = args.at(0, StringObject::create("", Encoding::ASCII_8BIT)).to_str(env);
     auto checksum = args.at(1, Value::integer(1)).to_int(env);
     IntegerMethods::assert_fixnum(env, checksum);
     const nat_int_t result = adler32_z(checksum.to_nat_int_t(), reinterpret_cast<const Bytef *>(string->c_str()), string->bytesize());
@@ -333,5 +333,5 @@ Value Zlib_crc_table(Env *env, Value self, Args &&args, Block *) {
 
 Value Zlib_zlib_version(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
-    return new StringObject { ZLIB_VERSION, Encoding::ASCII_8BIT };
+    return StringObject::create(ZLIB_VERSION, Encoding::ASCII_8BIT);
 }

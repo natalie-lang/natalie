@@ -286,8 +286,8 @@ Value HashObject::inspect(Env *env) {
 
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
-            return new StringObject("{...}");
-        StringObject *out = new StringObject { "{" };
+            return StringObject::create("{...}");
+        StringObject *out = StringObject::create("{");
         size_t last_index = size() - 1;
         size_t index = 0;
 
@@ -297,7 +297,7 @@ Value HashObject::inspect(Env *env) {
             if (obj.respond_to(env, "to_s"_s))
                 obj = obj.send(env, "to_s"_s);
             else
-                obj = new StringObject("?");
+                obj = StringObject::create("?");
             if (!obj.is_string())
                 obj = StringObject::format("#<{}:{}>", obj.klass()->inspect_module(), String::hex(object_id(obj), String::HexFormat::LowercaseAndPrefixed));
             return obj.as_string();
@@ -308,7 +308,7 @@ Value HashObject::inspect(Env *env) {
                 SymbolObject *key = node.key.as_symbol();
                 StringObject *key_repr = nullptr;
                 if (key->should_be_quoted()) {
-                    key_repr = key->inspect(env)->delete_prefix(env, new StringObject { ":" }).as_string();
+                    key_repr = key->inspect(env)->delete_prefix(env, StringObject::create(":")).as_string();
                 } else {
                     key_repr = key->to_s(env);
                 }

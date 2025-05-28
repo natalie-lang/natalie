@@ -20,7 +20,7 @@ Value NilMethods::rationalize(const Value self, const Optional<Value>) {
 
 Value NilMethods::to_s(const Value) {
     if (!s_string)
-        s_string = new StringObject { "" };
+        s_string = StringObject::create("");
     return s_string;
 }
 
@@ -49,7 +49,7 @@ Value NilMethods::to_r(const Value) {
 }
 
 Value NilMethods::inspect(const Value) {
-    return new StringObject { "nil" };
+    return StringObject::create("nil");
 }
 
 }

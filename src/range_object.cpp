@@ -124,9 +124,9 @@ Optional<Value> RangeObject::iterate_over_string_range(Env *env, Function &&func
 
     while ((current = iterator.next()).present()) {
         if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
-            func(new StringObject { current.value() });
+            func(StringObject::create(current.value()));
         } else {
-            Optional<Value> result = func(new StringObject { current.value() });
+            Optional<Value> result = func(StringObject::create(current.value()));
             if (result)
                 return result;
         }
@@ -214,7 +214,7 @@ Value RangeObject::inspect(Env *env) {
     if (m_exclude_end) {
         if (m_end.is_nil()) {
             if (m_begin.is_nil()) {
-                return new StringObject { "nil...nil" };
+                return StringObject::create("nil...nil");
             } else {
                 return StringObject::format("{}...", m_begin.inspected(env));
             }
@@ -228,7 +228,7 @@ Value RangeObject::inspect(Env *env) {
     } else {
         if (m_end.is_nil()) {
             if (m_begin.is_nil()) {
-                return new StringObject { "nil..nil" };
+                return StringObject::create("nil..nil");
             } else {
                 return StringObject::format("{}..", m_begin.inspected(env));
             }

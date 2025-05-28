@@ -1,7 +1,5 @@
 #pragma once
 
-#include <utility>
-
 #include "natalie/class_object.hpp"
 #include "natalie/float_object.hpp"
 #include "natalie/forward.hpp"
@@ -58,7 +56,7 @@ public:
         if (integer.is_negative())
             env->raise("ArgumentError", "negative string size (or size too big)");
         if (integer.is_zero())
-            return new StringObject { "", Encoding::ASCII_8BIT };
+            return StringObject::create("", Encoding::ASCII_8BIT);
 
         size_t length = (size_t)integer.to_nat_int_t();
         char buffer[length];
@@ -69,7 +67,7 @@ public:
 #else
         arc4random_buf(buffer, length);
 #endif
-        return new StringObject { buffer, length, Encoding::ASCII_8BIT };
+        return StringObject::create(buffer, length, Encoding::ASCII_8BIT);
     }
 
 private:

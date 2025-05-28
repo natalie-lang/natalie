@@ -28,7 +28,7 @@ Value Linenoise_get_history(Env *env, Value self, Args &&args, Block *) {
     auto ary = new ArrayObject {};
     if (history) {
         for (int i = 0; i < history_len; i++)
-            ary->push(new StringObject { history[i] });
+            ary->push(StringObject::create(history[i]));
     }
 
     return ary;
@@ -58,7 +58,7 @@ Value Linenoise_readline(Env *env, Value self, Args &&args, Block *) {
     if (!line)
         return Value::nil();
 
-    return new StringObject { line };
+    return StringObject::create(line);
 }
 
 Value Linenoise_save_history(Env *env, Value self, Args &&args, Block *) {
@@ -73,7 +73,7 @@ Value Linenoise_save_history(Env *env, Value self, Args &&args, Block *) {
 static void completion_callback(const char *edit_buffer, linenoiseCompletions *completions) {
     Env e {};
     auto proc = GlobalEnv::the()->Object()->const_fetch("Linenoise"_s).as_module()->ivar_get(&e, "@completion_callback"_s).as_proc();
-    auto edit_buffer_string = new StringObject { edit_buffer };
+    auto edit_buffer_string = StringObject::create(edit_buffer);
     auto env = proc->env();
     auto ary = proc->send(env, "call"_s, { edit_buffer_string }).as_array_or_raise(env);
     for (auto &completion : *ary)
@@ -99,7 +99,7 @@ static void free_hints_callback(void *hint) {
 static char *hints_callback(const char *buf, int *color, int *bold) {
     Env e {};
     auto proc = GlobalEnv::the()->Object()->const_fetch("Linenoise"_s).as_module()->ivar_get(&e, "@hints_callback"_s).as_proc();
-    auto buf_string = new StringObject { buf };
+    auto buf_string = StringObject::create(buf);
     auto env = proc->env();
 
     auto ret = proc->send(env, "call"_s, { buf_string });
@@ -133,7 +133,7 @@ Value Linenoise_set_hints_callback(Env *env, Value self, Args &&args, Block *) {
 static const char *highlight_callback(const char *edit_buffer, int *length) {
     Env e {};
     auto proc = GlobalEnv::the()->Object()->const_fetch("Linenoise"_s).as_module()->ivar_get(&e, "@highlight_callback"_s).as_proc();
-    auto edit_buffer_string = new StringObject { edit_buffer };
+    auto edit_buffer_string = StringObject::create(edit_buffer);
     auto env = proc->env();
     auto string = proc->send(env, "call"_s, { edit_buffer_string }).as_string_or_raise(env);
     *length = string->length();

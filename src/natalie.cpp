@@ -2,7 +2,6 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_variable_info/access_hooks.hpp"
 #include "natalie/value.hpp"
-#include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
 #include <sys/wait.h>
@@ -449,7 +448,7 @@ Env *build_top_env() {
     env->global_set("$stderr"_s, _stderr);
     Object->const_set("STDERR"_s, _stderr);
 
-    env->global_set("$/"_s, new StringObject { "\n", 1 });
+    env->global_set("$/"_s, StringObject::create("\n", 1));
     GlobalEnv::the()->global_set_write_hook(env, "$/"_s, GlobalVariableAccessHooks::WriteHooks::as_string_or_raise);
     env->global_alias("$-0"_s, "$/"_s);
 
@@ -493,11 +492,11 @@ Env *build_top_env() {
     Object->const_set("ENV"_s, ENV);
     ENV->extend_once(env, Enumerable);
 
-    auto RUBY_VERSION = new StringObject { "3.4.0" };
+    auto RUBY_VERSION = StringObject::create("3.4.0");
     RUBY_VERSION->freeze();
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
 
-    Value RUBY_COPYRIGHT = new StringObject { "natalie - Copyright (c) 2025 Tim Morgan and contributors" };
+    Value RUBY_COPYRIGHT = StringObject::create("natalie - Copyright (c) 2025 Tim Morgan and contributors");
     RUBY_COPYRIGHT->freeze();
     Object->const_set("RUBY_COPYRIGHT"_s, RUBY_COPYRIGHT);
 
@@ -506,22 +505,22 @@ Env *build_top_env() {
     RUBY_DESCRIPTION->freeze();
     Object->const_set("RUBY_DESCRIPTION"_s, RUBY_DESCRIPTION);
 
-    Value RUBY_ENGINE = new StringObject { "natalie" };
+    Value RUBY_ENGINE = StringObject::create("natalie");
     RUBY_ENGINE->freeze();
     Object->const_set("RUBY_ENGINE"_s, RUBY_ENGINE);
 
     Value RUBY_PATCHLEVEL = Value::integer(-1);
     Object->const_set("RUBY_PATCHLEVEL"_s, RUBY_PATCHLEVEL);
 
-    StringObject *RUBY_PLATFORM = new StringObject { ruby_platform };
+    StringObject *RUBY_PLATFORM = StringObject::create(ruby_platform);
     RUBY_PLATFORM->freeze();
     Object->const_set("RUBY_PLATFORM"_s, RUBY_PLATFORM);
 
-    Value RUBY_RELEASE_DATE = new StringObject { ruby_release_date };
+    Value RUBY_RELEASE_DATE = StringObject::create(ruby_release_date);
     RUBY_RELEASE_DATE->freeze();
     Object->const_set("RUBY_RELEASE_DATE"_s, RUBY_RELEASE_DATE);
 
-    Value RUBY_REVISION = new StringObject { ruby_revision };
+    Value RUBY_REVISION = StringObject::create(ruby_revision);
     RUBY_REVISION->freeze();
     Object->const_set("RUBY_REVISION"_s, RUBY_REVISION);
 
@@ -585,7 +584,7 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception, Thread
     if (exception->backtrace()) {
         ArrayObject *backtrace = exception->backtrace()->to_ruby_array();
         if (backtrace->size() > 0) {
-            out.send(env, "puts"_s, { new StringObject { "Traceback (most recent call last):" } });
+            out.send(env, "puts"_s, { StringObject::create("Traceback (most recent call last):") });
             for (int i = backtrace->size() - 1; i > 0; i--) {
                 auto line = backtrace->at(i).as_string_or_raise(env);
                 auto formatted = StringObject::format("        {}: from {}", i, line->string());

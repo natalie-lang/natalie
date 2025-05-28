@@ -32,7 +32,7 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
 
     if (!klass) {
         klass = find_top_level_const(env, "RuntimeError"_s);
-        message = new StringObject { "" };
+        message = StringObject::create("");
     }
 
     if (!message) {
@@ -106,15 +106,15 @@ Value ExceptionObject::inspect(Env *env) {
     auto msgstr = send(env, "to_s"_s);
     msgstr.assert_type(env, Object::Type::String, "String");
     if (msgstr.as_string()->is_empty())
-        return new StringObject { klassname };
-    if (msgstr.as_string()->include(env, new StringObject { "\n" }))
+        return StringObject::create(klassname);
+    if (msgstr.as_string()->include(env, StringObject::create("\n")))
         return StringObject::format("#<{}: {}>", klassname, klassname);
     return StringObject::format("#<{}: {}>", klassname, msgstr);
 }
 
 StringObject *ExceptionObject::to_s(Env *env) {
     if (m_message.is_nil()) {
-        return new StringObject { m_klass->inspect_module() };
+        return StringObject::create(m_klass->inspect_module());
     } else if (m_message.is_string()) {
         return m_message.as_string();
     }

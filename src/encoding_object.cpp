@@ -13,10 +13,10 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         return str;
 
     ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s).as_class();
-    StringObject temp_string = StringObject("", (EncodingObject *)this);
+    auto temp_string = StringObject::create("", (EncodingObject *)this);
 
     if (options.xml_option == EncodeXmlOption::Attr)
-        temp_string.append_char('"');
+        temp_string->append_char('"');
 
     size_t index = 0;
     auto string = str->string();
@@ -31,19 +31,19 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
             break;
         case EncodeNewlineOption::Cr:
             if (c == '\n') {
-                temp_string.append_char('\r');
+                temp_string->append_char('\r');
                 continue;
             }
             break;
         case EncodeNewlineOption::Crlf:
             if (c == '\n') {
-                temp_string.append("\r\n");
+                temp_string->append("\r\n");
                 continue;
             }
             break;
         case EncodeNewlineOption::Universal:
             if (c == '\r') {
-                temp_string.append("\n");
+                temp_string->append("\n");
                 if (str->peek_char(index) == "\n")
                     index++;
                 continue;
@@ -57,16 +57,16 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         case EncodeXmlOption::Attr:
             switch (c) {
             case '&':
-                temp_string.append("&amp;");
+                temp_string->append("&amp;");
                 continue;
             case '<':
-                temp_string.append("&lt;");
+                temp_string->append("&lt;");
                 continue;
             case '>':
-                temp_string.append("&gt;");
+                temp_string->append("&gt;");
                 continue;
             case '"':
-                temp_string.append("&quot;");
+                temp_string->append("&quot;");
                 continue;
             default:
                 break;
@@ -75,13 +75,13 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         case EncodeXmlOption::Text:
             switch (c) {
             case '&':
-                temp_string.append("&amp;");
+                temp_string->append("&amp;");
                 continue;
             case '<':
-                temp_string.append("&lt;");
+                temp_string->append("&lt;");
                 continue;
             case '>':
-                temp_string.append("&gt;");
+                temp_string->append("&gt;");
                 continue;
             default:
                 break;
@@ -89,7 +89,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         }
 
         auto handle_fallback = [&](nat_int_t cpt) {
-            auto ch = new StringObject { orig_encoding->encode_codepoint(cpt) };
+            auto ch = StringObject::create(orig_encoding->encode_codepoint(cpt));
             Value result = Value::nil();
             if (options.fallback_option.respond_to(env, "[]"_s)) {
                 result = options.fallback_option.send(env, "[]"_s, { ch });
@@ -117,7 +117,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                     env->raise("ArgumentError", "too big fallback string");
                 }
             }
-            temp_string.append(result_str);
+            temp_string->append(result_str);
         };
 
         auto source_codepoint = valid ? c : -1;
@@ -129,7 +129,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                 env->raise_invalid_byte_sequence_error(this);
             case EncodeInvalidOption::Replace:
                 if (options.replace_option) {
-                    temp_string.append(options.replace_option);
+                    temp_string->append(options.replace_option);
                     continue;
                 }
                 if (is_single_byte_encoding())
@@ -171,7 +171,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                 case EncodeXmlOption::Attr:
                 case EncodeXmlOption::Text:
                     auto entity = String::format("&#x{};", String::hex(unicode_codepoint, String::HexFormat::Uppercase));
-                    temp_string.append(entity);
+                    temp_string->append(entity);
                     continue;
                 }
 
@@ -198,7 +198,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                 env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s).value().as_class(), message);
             case EncodeUndefOption::Replace:
                 if (options.replace_option) {
-                    temp_string.append(options.replace_option);
+                    temp_string->append(options.replace_option);
                     continue;
                 }
                 if (is_single_byte_encoding())
@@ -209,13 +209,13 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         }
 
         auto destination_char_obj = encode_codepoint(destination_codepoint);
-        temp_string.append(destination_char_obj);
+        temp_string->append(destination_char_obj);
     }
 
     if (options.xml_option == EncodeXmlOption::Attr)
-        temp_string.append_char('"');
+        temp_string->append_char('"');
 
-    str->set_str(temp_string.string().c_str(), temp_string.string().length());
+    str->set_str(temp_string->string().c_str(), temp_string->string().length());
     str->set_encoding(EncodingObject::get(num()));
     return str;
 }
@@ -349,21 +349,21 @@ EncodingObject::EncodingObject(Encoding num, std::initializer_list<const String>
 }
 
 Value EncodingObject::name(Env *env) {
-    return new StringObject { m_names[0] };
+    return StringObject::create(m_names[0]);
 }
 
 const StringObject *EncodingObject::name() const {
-    return new StringObject { m_names[0] };
+    return StringObject::create(m_names[0]);
 }
 
 ArrayObject *EncodingObject::names(Env *env) const {
     auto array = new ArrayObject { m_names.size() };
     for (const auto &name : m_names)
-        array->push(new StringObject { name });
-    if (this == s_locale) array->push(new StringObject { "locale" });
-    if (this == s_default_external) array->push(new StringObject { "external" });
-    if (this == s_filesystem) array->push(new StringObject { "filesystem" });
-    if (this == s_default_internal) array->push(new StringObject { "internal" });
+        array->push(StringObject::create(name));
+    if (this == s_locale) array->push(StringObject::create("locale"));
+    if (this == s_default_external) array->push(StringObject::create("external"));
+    if (this == s_filesystem) array->push(StringObject::create("filesystem"));
+    if (this == s_default_internal) array->push(StringObject::create("internal"));
     return array;
 }
 
@@ -397,7 +397,7 @@ std::tuple<bool, int, nat_int_t> EncodingObject::next_codepoint(const String &st
 Value EncodingObject::locale_charmap() {
     auto codeset = ::nl_langinfo(CODESET);
     assert(codeset);
-    return new StringObject { codeset, Encoding::US_ASCII };
+    return StringObject::create(codeset, Encoding::US_ASCII);
 }
 
 void EncodingObject::initialize_defaults(Env *env) {

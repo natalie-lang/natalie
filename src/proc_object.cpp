@@ -84,7 +84,7 @@ Value ProcObject::source_location() {
     assert(m_block);
     auto file = m_block->env()->file();
     if (file == nullptr) return Value::nil();
-    return new ArrayObject { new StringObject { file }, Value::integer(static_cast<nat_int_t>(m_block->env()->line())) };
+    return new ArrayObject { StringObject::create(file), Value::integer(static_cast<nat_int_t>(m_block->env()->line())) };
 }
 
 StringObject *ProcObject::to_s(Env *env) {
@@ -97,7 +97,7 @@ StringObject *ProcObject::to_s(Env *env) {
     if (m_block->self().is_symbol())
         suffix.append(String::format(" (&:{})", m_block->self().as_symbol()->string()));
     auto str = String::format("#<{}:{}{}>", m_klass->inspect_module(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed), suffix);
-    return new StringObject { std::move(str), Encoding::ASCII_8BIT };
+    return StringObject::create(std::move(str), Encoding::ASCII_8BIT);
 }
 
 }

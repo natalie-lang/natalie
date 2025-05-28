@@ -5,7 +5,6 @@
 #include "natalie/class_object.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
-#include "natalie/integer_methods.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/object.hpp"
 #include "natalie/string_object.hpp"
@@ -52,7 +51,7 @@ public:
 
     RegexpObject(Env *env, const String pattern, int options = 0, EncodingObject *encoding = nullptr)
         : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
-        initialize_internal(env, new StringObject(pattern), options, encoding);
+        initialize_internal(env, StringObject::create(pattern), options, encoding);
     }
 
     virtual ~RegexpObject() {

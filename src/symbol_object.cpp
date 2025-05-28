@@ -28,19 +28,19 @@ ArrayObject *SymbolObject::all_symbols(Env *env) {
 StringObject *SymbolObject::to_s(Env *env) {
     StringObject *result = nullptr;
     if (m_encoding == nullptr) {
-        result = new StringObject { m_name };
+        result = StringObject::create(m_name);
     } else {
-        result = new StringObject { m_name, m_encoding };
+        result = StringObject::create(m_name, m_encoding);
     }
     result->set_chilled(StringObject::Chilled::Symbol);
     return result;
 }
 
 StringObject *SymbolObject::inspect(Env *env) {
-    StringObject *string = new StringObject { ":" };
+    StringObject *string = StringObject::create(":");
 
     if (should_be_quoted()) {
-        StringObject *quoted = StringObject { m_name }.inspect(env);
+        auto quoted = StringObject::create(m_name)->inspect(env);
         string->append(quoted);
     } else {
         string->append(m_name);

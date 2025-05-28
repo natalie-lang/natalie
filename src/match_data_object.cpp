@@ -95,7 +95,7 @@ Value MatchDataObject::group(int index) const {
 
     const char *str = &m_string->c_str()[m_region->beg[index]];
     size_t length = m_region->end[index] - m_region->beg[index];
-    return new StringObject { str, length, m_string->encoding() };
+    return StringObject::create(str, length, m_string->encoding());
 }
 
 Value MatchDataObject::offset(Env *env, Value n) {
@@ -200,7 +200,7 @@ bool MatchDataObject::eq(Env *env, Value other) const {
 }
 
 Value MatchDataObject::inspect(Env *env) {
-    StringObject *out = new StringObject { "#<MatchData" };
+    StringObject *out = StringObject::create("#<MatchData");
     const auto names_size = static_cast<size_t>(onig_number_of_names(m_regexp->m_regex));
     // NATFIXME: TM::StringView would work too, but we need a constructor from char *
     auto names = TM::Vector<TM::Optional<TM::String>> { names_size };
@@ -274,7 +274,7 @@ Value MatchDataObject::named_captures(Env *env, Optional<Value> symbolize_names_
             if ((static_cast<named_captures_data *>(data))->symbolize_names) {
                 key = SymbolObject::intern(reinterpret_cast<const char *>(name), length, RegexpObject::onig_encoding_to_ruby_encoding(regex->enc));
             } else {
-                key = new StringObject { reinterpret_cast<const char *>(name), length, RegexpObject::onig_encoding_to_ruby_encoding(regex->enc) };
+                key = StringObject::create(reinterpret_cast<const char *>(name), length, RegexpObject::onig_encoding_to_ruby_encoding(regex->enc));
             }
             Value value = Value::nil();
             for (int i = groups_size - 1; i >= 0; i--) {
@@ -303,9 +303,9 @@ Value MatchDataObject::post_match(Env *env) {
 
     auto length = m_string->bytesize() - m_region->end[0];
     if (length == 0)
-        return new StringObject { "", m_string->encoding() };
+        return StringObject::create("", m_string->encoding());
 
-    return new StringObject { m_string->string().substring(m_region->end[0], length), m_string->encoding() };
+    return StringObject::create(m_string->string().substring(m_region->end[0], length), m_string->encoding());
 }
 
 Value MatchDataObject::pre_match(Env *env) {
@@ -314,9 +314,9 @@ Value MatchDataObject::pre_match(Env *env) {
 
     auto length = m_region->beg[0];
     if (length == 0)
-        return new StringObject { "", m_string->encoding() };
+        return StringObject::create("", m_string->encoding());
 
-    return new StringObject { m_string->string().substring(0, length), m_string->encoding() };
+    return StringObject::create(m_string->string().substring(0, length), m_string->encoding());
 }
 
 Value MatchDataObject::regexp() const {

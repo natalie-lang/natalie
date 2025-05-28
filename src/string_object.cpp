@@ -4,7 +4,6 @@
 #include "natalie/crypt.h"
 #include "natalie/integer_methods.hpp"
 #include "natalie/number_parser.hpp"
-#include "natalie/object_type.hpp"
 #include "natalie/string_unpacker.hpp"
 #include "string.h"
 
@@ -67,7 +66,7 @@ static auto character_class_handler(Env *env, Args &&args) {
                 if (last_character.cmp(next_value) == 1)
                     env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character, next_value);
 
-                auto range = RangeObject::create(env, new StringObject { last_character }, new StringObject { next_value }, false);
+                auto range = RangeObject::create(env, StringObject::create(last_character), StringObject::create(next_value), false);
                 auto all_chars = range->to_a(env).as_array();
                 for (auto character : *all_chars) {
                     auto character_string = character.as_string()->string();
@@ -150,7 +149,7 @@ Value StringObject::each_char(Env *env, Block *block) {
     }
 
     for (auto c : *this) {
-        Value args[] = { new StringObject { c, m_encoding } };
+        Value args[] = { StringObject::create(c, m_encoding) };
         block->run(env, Args(1, args), nullptr);
     }
     return this;
@@ -159,14 +158,14 @@ Value StringObject::each_char(Env *env, Block *block) {
 Value StringObject::chars(Env *env, Block *block) {
     if (block) {
         for (auto c : *this) {
-            auto str = new StringObject { c, m_encoding };
+            auto str = StringObject::create(c, m_encoding);
             block->run(env, Args({ str }), nullptr);
         }
         return this;
     }
     ArrayObject *ary = new ArrayObject {};
     for (auto c : *this)
-        ary->push(new StringObject { c, m_encoding });
+        ary->push(StringObject::create(c, m_encoding));
     return ary;
 }
 
@@ -231,7 +230,7 @@ Value StringObject::each_grapheme_cluster(Env *env, Block *block) {
         auto view = m_encoding->next_grapheme_cluster(m_string, &index);
         if (view.is_empty())
             break;
-        Value args[] = { new StringObject { view, m_encoding } };
+        Value args[] = { StringObject::create(view, m_encoding) };
         block->run(env, Args(1, args), nullptr);
     }
     return this;
@@ -247,7 +246,7 @@ Value StringObject::grapheme_clusters(Env *env, Block *block) {
         auto view = m_encoding->next_grapheme_cluster(m_string, &index);
         if (view.is_empty())
             break;
-        ary->push(new StringObject { view, m_encoding });
+        ary->push(StringObject::create(view, m_encoding));
     }
     return ary;
 }
@@ -293,11 +292,11 @@ Value StringObject::center(Env *env, Value length, Optional<Value> pad_arg) {
     result.prepend(create_padding(pad, left_split));
     result.append(create_padding(pad, right_split));
 
-    return new StringObject { result, m_encoding };
+    return StringObject::create(result, m_encoding);
 }
 
 Value StringObject::chomp(Env *env, Optional<Value> record_separator) const {
-    auto new_str = new StringObject { m_string, m_encoding };
+    auto new_str = StringObject::create(m_string, m_encoding);
     new_str->chomp_in_place(env, record_separator);
     return new_str;
 }
@@ -433,11 +432,11 @@ Value StringObject::chomp_in_place(Env *env, Optional<Value> record_separator) {
 
 Value StringObject::chr(Env *env) {
     if (this->is_empty()) {
-        return new StringObject { "", m_encoding };
+        return StringObject::create("", m_encoding);
     }
     size_t index = 0;
     auto c = next_char(&index);
-    return new StringObject { c, m_encoding };
+    return StringObject::create(c, m_encoding);
 }
 
 SymbolObject *StringObject::to_symbol(Env *env) const {
@@ -449,7 +448,7 @@ Value StringObject::to_sym(Env *env) const {
 }
 
 Value StringObject::tr(Env *env, Value from_value, Value to_value) const {
-    auto copy = new StringObject { m_string, m_encoding };
+    auto copy = StringObject::create(m_string, m_encoding);
     copy->tr_in_place(env, from_value, to_value);
     return copy;
 }
@@ -608,7 +607,7 @@ StringObject *StringObject::inspect(Env *env) const {
 
     out.append_char('"');
 
-    return new StringObject { std::move(out) };
+    return StringObject::create(std::move(out));
 }
 
 String StringObject::dbg_inspect(int indent) const {
@@ -617,7 +616,7 @@ String StringObject::dbg_inspect(int indent) const {
 
 StringObject *StringObject::successive(Env *env) {
     auto str = m_string.successive();
-    return new StringObject { str, m_encoding };
+    return StringObject::create(str, m_encoding);
 }
 
 StringObject *StringObject::successive_in_place(Env *env) {
@@ -630,14 +629,14 @@ StringObject *StringObject::to_s() {
     if (m_klass == GlobalEnv::the()->String()) {
         return this;
     } else {
-        return new StringObject { m_string, m_encoding };
+        return StringObject::create(m_string, m_encoding);
     }
 }
 
 bool StringObject::internal_start_with(Env *env, Value needle) {
     if (needle.is_regexp()) {
         needle = needle.as_regexp()->to_s(env);
-        needle.as_string()->prepend(env, { new StringObject { "\\A" } });
+        needle.as_string()->prepend(env, { StringObject::create("\\A") });
         needle = new RegexpObject { env, needle.as_string()->string() };
         return needle.as_regexp()->match(env, this).is_truthy();
     }
@@ -663,7 +662,7 @@ bool StringObject::end_with(Env *env, Value needle) const {
     needle.assert_type(env, Object::Type::String, "String");
     if (length() < needle.as_string()->length())
         return false;
-    auto from_end = new StringObject { c_str() + length() - needle.as_string()->length() };
+    auto from_end = StringObject::create(c_str() + length() - needle.as_string()->length());
     nat_int_t i = from_end->index_int(env, needle, 0);
     return i == 0;
 }
@@ -962,7 +961,7 @@ Value StringObject::ltlt(Env *env, Value arg) {
 
 Value StringObject::add(Env *env, Value arg) const {
     StringObject *str = arg.to_str(env);
-    StringObject *new_string = new StringObject { m_string, m_encoding };
+    StringObject *new_string = StringObject::create(m_string, m_encoding);
     Value args[] = { str };
     new_string->concat(env, Args(1, args));
     return new_string;
@@ -1001,7 +1000,7 @@ Value StringObject::mul(Env *env, Value arg) const {
         for (nat_int_t i = 0; i < nat_int; i++)
             new_string.replace_bytes(i * length(), length(), string());
     }
-    return new StringObject { std::move(new_string), m_encoding };
+    return StringObject::create(std::move(new_string), m_encoding);
 }
 
 Value StringObject::clear(Env *env) {
@@ -1052,7 +1051,7 @@ Value StringObject::cmp(Env *env, Value other) {
 Value StringObject::concat(Env *env, Args &&args) {
     assert_not_frozen(env);
 
-    StringObject *original = new StringObject(*this);
+    StringObject *original = StringObject::create(*this);
 
     for (size_t i = 0; i < args.size(); i++) {
         auto arg = args[i];
@@ -1124,11 +1123,11 @@ Value StringObject::crypt(Env *env, Value salt) {
     if (!crypted)
         env->raise_errno();
 
-    return new StringObject { crypted };
+    return StringObject::create(crypted);
 }
 
 Value StringObject::delete_str(Env *env, Args &&selectors) {
-    auto dup = new StringObject { m_string, m_encoding };
+    auto dup = StringObject::create(m_string, m_encoding);
     auto result = dup->delete_in_place(env, std::move(selectors));
     if (result.is_nil())
         return dup;
@@ -1207,7 +1206,7 @@ Value StringObject::ord(Env *env) const {
 Value StringObject::prepend(Env *env, Args &&args) {
     assert_not_frozen(env);
 
-    StringObject *original = new StringObject(*this);
+    StringObject *original = StringObject::create(*this);
 
     String appendable;
     for (size_t i = 0; i < args.size(); i++) {
@@ -1236,7 +1235,7 @@ Value StringObject::prepend(Env *env, Args &&args) {
 }
 
 Value StringObject::b(Env *env) const {
-    return new StringObject { m_string, Encoding::ASCII_8BIT };
+    return StringObject::create(m_string, Encoding::ASCII_8BIT);
 }
 
 Value StringObject::bytes(Env *env, Block *block) {
@@ -1631,7 +1630,7 @@ Value StringObject::ref(Env *env, Value index_obj, Optional<Value> length_arg) {
             // Shortcut here before doing anything else to return an empty
             // string if the index is right at the end of the string.
             if (index == count)
-                return new StringObject { "", m_encoding };
+                return StringObject::create("", m_encoding);
 
             // If the index is negative, then we know at this point that it's
             // only negative within one length of the string. So just make it
@@ -1664,7 +1663,7 @@ Value StringObject::ref(Env *env, Value index_obj, Optional<Value> length_arg) {
         // string if the index is right at the end of the string.
         auto count = static_cast<nat_int_t>(char_count(env));
         if (begin == count)
-            return new StringObject { "", m_encoding };
+            return StringObject::create("", m_encoding);
 
         // Now, we're going to do some bounds checks on the beginning of the
         // range. If it's too far outside, we'll return nil.
@@ -1688,7 +1687,7 @@ Value StringObject::ref(Env *env, Value index_obj, Optional<Value> length_arg) {
         // Now, we're going to do some bounds checks on the ending of the range.
         // If it's too negative, we'll return nil.
         if (end + count < 0)
-            return new StringObject { "", m_encoding };
+            return StringObject::create("", m_encoding);
 
         // If the ending is negative, we know it's within one length of the
         // string, so we'll add that here to make it a valid positive index.
@@ -1718,7 +1717,7 @@ Value StringObject::ref(Env *env, Value index_obj, Optional<Value> length_arg) {
         // If the index object is a string, then we return the string if it is
         // found as a substring of this string.
         if (m_string.find(index_obj.as_string()->m_string) != -1)
-            return new StringObject { index_obj.as_string()->m_string, index_obj.as_string()->m_encoding };
+            return StringObject::create(index_obj.as_string()->m_string, index_obj.as_string()->m_encoding);
 
         // Otherwise we return nil.
         return Value::nil();
@@ -1752,7 +1751,7 @@ Value StringObject::ref(Env *env, Value index_obj, Optional<Value> length_arg) {
             // Shortcut here before doing anything else to return an empty
             // string if the index is right at the end of the string.
             if (index == count)
-                return new StringObject { "", m_encoding };
+                return StringObject::create("", m_encoding);
 
             nat_int_t end = index + length > count ? count : index + length;
             return ref_fast_range(env, index, end);
@@ -1783,7 +1782,7 @@ Value StringObject::byteslice(Env *env, Value index_obj, Optional<Value> length_
         // return an empty string.
         nat_int_t index = IntegerMethods::convert_to_nat_int_t(env, index_obj);
         if (index == m_length)
-            return new StringObject("", m_encoding);
+            return StringObject::create("", m_encoding);
 
         // Next, we're going to get the length that was passed in and make sure
         // that it's not negative. If it is, or the index is too far out of
@@ -1802,7 +1801,7 @@ Value StringObject::byteslice(Env *env, Value index_obj, Optional<Value> length_
         // Finally, we'll determine the length of the substring and create a new
         // string with those bounds.
         nat_int_t s_length = index + length >= m_length ? m_length - index : length;
-        return new StringObject { m_string.substring(index, s_length), m_encoding };
+        return StringObject::create(m_string.substring(index, s_length), m_encoding);
     }
 
     if (index_obj.is_range()) {
@@ -1824,7 +1823,7 @@ Value StringObject::byteslice(Env *env, Value index_obj, Optional<Value> length_
         // Shortcut here before doing anything else to return an empty
         // string if the index is right at the end of the string.
         if (begin == m_length)
-            return new StringObject { "", m_encoding };
+            return StringObject::create("", m_encoding);
 
         // Now, we're going to do some bounds checks on the beginning of the
         // range. If it's too far outside, we'll return nil.
@@ -1839,7 +1838,7 @@ Value StringObject::byteslice(Env *env, Value index_obj, Optional<Value> length_
         // Now, we're going to shortcut here if the range is endless since we
         // already have all of the information we need.
         if (end_obj.is_nil())
-            return new StringObject { m_string.substring(begin), m_encoding };
+            return StringObject::create(m_string.substring(begin), m_encoding);
 
         // If it's not endless, then we'll go ahead and grab the ending now by
         // converting to an integer and asserting it fits into a fixnum.
@@ -1848,7 +1847,7 @@ Value StringObject::byteslice(Env *env, Value index_obj, Optional<Value> length_
         // Now, we're going to do some bounds checks on the ending of the range.
         // If it's too negative, we'll return nil.
         if (end + m_length < 0)
-            return new StringObject { "", m_encoding };
+            return StringObject::create("", m_encoding);
 
         // If the ending is negative, we know it's within one length of the
         // string, so we'll add that here to make it a valid positive index.
@@ -1863,13 +1862,13 @@ Value StringObject::byteslice(Env *env, Value index_obj, Optional<Value> length_
         // Make sure we have a valid range here, otherwise return an empty
         // string.
         if (begin > end)
-            return new StringObject { "", m_encoding };
+            return StringObject::create("", m_encoding);
 
         // Finally, we can return the substring.
         if (end >= m_length) {
-            return new StringObject { m_string.substring(begin), m_encoding };
+            return StringObject::create(m_string.substring(begin), m_encoding);
         } else {
-            return new StringObject { m_string.substring(begin, end - begin), m_encoding };
+            return StringObject::create(m_string.substring(begin, end - begin), m_encoding);
         }
     }
 
@@ -1889,7 +1888,7 @@ Value StringObject::byteslice(Env *env, Value index_obj, Optional<Value> length_
         index += m_length;
 
     // Finally, access the index in the string.
-    return new StringObject { m_string.at(index), m_encoding };
+    return StringObject::create(m_string.at(index), m_encoding);
 }
 
 /**
@@ -2072,7 +2071,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Optional<Value> le
         // string if the index is right at the end of the string.
         auto count = static_cast<nat_int_t>(char_count(env));
         if (begin == count)
-            return new StringObject { "", m_encoding };
+            return StringObject::create("", m_encoding);
 
         // Now, we're going to do some bounds checks on the beginning of the
         // range. If it's too far outside, we'll return nil.
@@ -2095,7 +2094,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Optional<Value> le
         // Now, we're going to do some bounds checks on the ending of the range.
         // If it's too negative, we'll return an empty string.
         if (end + count < 0)
-            return new StringObject { "", m_encoding };
+            return StringObject::create("", m_encoding);
 
         // If the ending is negative, we know it's within one length of the
         // string, so we'll add that here to make it a valid positive index.
@@ -2148,7 +2147,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Optional<Value> le
         // Clone out the matched string for our result first before we mutate
         // the source string.
         ssize_t matched_length = end_byte_index - start_byte_index;
-        Value result = new StringObject(&m_string[start_byte_index], static_cast<size_t>(matched_length), m_encoding);
+        Value result = StringObject::create(&m_string[start_byte_index], static_cast<size_t>(matched_length), m_encoding);
 
         if (matched_length != 0) {
             // Make sure we back up the match data's source string, since we're
@@ -2178,7 +2177,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Optional<Value> le
         memmove(&m_string[start_byte_index], &m_string[end_byte_index], byte_length - end_byte_index);
         m_string.truncate(byte_length - end_byte_index + start_byte_index);
 
-        return new StringObject { index_obj.as_string()->m_string, index_obj.as_string()->m_encoding };
+        return StringObject::create(index_obj.as_string()->m_string, index_obj.as_string()->m_encoding);
     } else {
         // First, attempt to convert the index object into an integer, and
         // make sure it fits into a fixnum.
@@ -2197,7 +2196,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Optional<Value> le
             // Shortcut here before doing anything else to return an empty
             // string if the index is right at the end of the string.
             if (index == count || length == 0)
-                return new StringObject { "", m_encoding };
+                return StringObject::create("", m_encoding);
 
             // If the index is negative, then we know at this point that it's
             // only negative within one length of the string. So just make it
@@ -2238,7 +2237,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Optional<Value> le
             char_index++;
         } while (!c.is_empty());
 
-        Value result = new StringObject { c.clone(), m_encoding };
+        Value result = StringObject::create(c.clone(), m_encoding);
         memmove(&m_string[prev_byte_index], &m_string[prev_byte_index + 1], byte_length - prev_byte_index);
         m_string.truncate(byte_length - 1);
         return result;
@@ -2279,7 +2278,7 @@ Value StringObject::ref_slice_range_in_place(size_t begin, size_t end) {
 
     memmove(&m_string[0] + start_byte_index, &m_string[0] + prev_byte_index, byte_length - prev_byte_index);
     m_string.truncate(byte_length - prev_byte_index + start_byte_index);
-    return new StringObject { result, m_encoding };
+    return StringObject::create(result, m_encoding);
 }
 
 Value StringObject::ref_fast_index(Env *env, size_t index) const {
@@ -2289,7 +2288,7 @@ Value StringObject::ref_fast_index(Env *env, size_t index) const {
     do {
         c = next_char(&byte_index);
         if (!c.is_empty() && char_index == (size_t)index)
-            return new StringObject { c, m_encoding };
+            return StringObject::create(c, m_encoding);
         char_index++;
     } while (!c.is_empty());
     return Value::nil();
@@ -2302,7 +2301,7 @@ Value StringObject::ref_fast_range(Env *env, size_t begin, size_t end) const {
         if (end > bytesize())
             end = bytesize();
         auto length = end - begin;
-        return new StringObject { m_string.substring(begin, length), m_encoding };
+        return StringObject::create(m_string.substring(begin, length), m_encoding);
     }
 
     size_t byte_index = 0;
@@ -2314,7 +2313,7 @@ Value StringObject::ref_fast_range(Env *env, size_t begin, size_t end) const {
         c = next_char(&byte_index);
         if (!c.is_empty()) {
             if (char_index >= (size_t)end)
-                return new StringObject { result, m_encoding };
+                return StringObject::create(result, m_encoding);
             else if (char_index >= (size_t)begin) {
                 char_added = true;
                 result.append(c.clone());
@@ -2323,7 +2322,7 @@ Value StringObject::ref_fast_range(Env *env, size_t begin, size_t end) const {
         char_index++;
     } while (!c.is_empty());
     if (char_index > (size_t)begin || char_added)
-        return new StringObject { result, m_encoding };
+        return StringObject::create(result, m_encoding);
     return Value::nil();
 }
 
@@ -2332,7 +2331,7 @@ Value StringObject::ref_fast_range_endless(Env *env, size_t begin) const {
         if (begin >= bytesize())
             return Value::nil();
         auto length = bytesize() - begin;
-        return new StringObject { m_string.substring(begin, length), m_encoding };
+        return StringObject::create(m_string.substring(begin, length), m_encoding);
     }
 
     size_t byte_index = 0;
@@ -2352,7 +2351,7 @@ Value StringObject::ref_fast_range_endless(Env *env, size_t begin) const {
         return Value::nil();
     for (; byte_index < m_string.length(); byte_index++)
         result.append_char(m_string[byte_index]);
-    return new StringObject { result, m_encoding };
+    return StringObject::create(result, m_encoding);
 }
 
 size_t StringObject::byte_index_to_char_index(ArrayObject *chars, size_t byte_index) {
@@ -2556,7 +2555,7 @@ Value StringObject::sub(Env *env, Value find, Optional<Value> replacement_value,
             out.append(m_string.substring(byte_index));
     }
 
-    return new StringObject { out, m_encoding };
+    return StringObject::create(out, m_encoding);
 }
 
 Value StringObject::sub_in_place(Env *env, Value find, Optional<Value> replacement_value, Block *block) {
@@ -2607,7 +2606,7 @@ Value StringObject::gsub(Env *env, Value find, Optional<Value> replacement_value
         }
     } while (match);
 
-    return new StringObject { out, m_encoding };
+    return StringObject::create(out, m_encoding);
 }
 
 Value StringObject::gsub_in_place(Env *env, Value find, Optional<Value> replacement_value, Block *block) {
@@ -2693,7 +2692,7 @@ void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_stri
 StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDataObject *match) {
     const char *c_str = str->c_str();
     size_t len = strlen(c_str);
-    StringObject *expanded = new StringObject { "" };
+    StringObject *expanded = StringObject::create("");
     for (size_t i = 0; i < len; i++) {
         auto c = c_str[i];
         switch (c) {
@@ -2994,7 +2993,7 @@ Value StringObject::undump(Env *env) const {
     it++;
     if (it != end())
         env->raise("RuntimeError", "invalid dumped string");
-    return new StringObject { std::move(result), m_encoding };
+    return StringObject::create(std::move(result), m_encoding);
 }
 
 nat_int_t StringObject::unpack_offset(Env *env, Optional<Value> offset_arg) const {
@@ -3034,21 +3033,21 @@ Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
     OnigRegion *region = onig_region_new();
     int result = splitter->search(env, this, 0, region, ONIG_OPTION_NONE);
     if (result == ONIG_MISMATCH) {
-        ary->push(new StringObject { m_string, m_encoding });
+        ary->push(StringObject::create(m_string, m_encoding));
     } else {
         do {
             index = region->beg[0];
             len = region->end[0] - region->beg[0];
-            ary->push(new StringObject { &c_str()[last_index], index - last_index, m_encoding });
+            ary->push(StringObject::create(&c_str()[last_index], index - last_index, m_encoding));
             last_index = index + len;
             if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                ary->push(new StringObject { &c_str()[last_index], bytesize() - last_index, m_encoding });
+                ary->push(StringObject::create(&c_str()[last_index], bytesize() - last_index, m_encoding));
                 onig_region_free(region, true);
                 return ary;
             }
             result = splitter->search(env, this, last_index, region, ONIG_OPTION_NONE);
         } while (result != ONIG_MISMATCH);
-        auto part = new StringObject { &c_str()[last_index], bytesize() - last_index, m_encoding };
+        auto part = StringObject::create(&c_str()[last_index], bytesize() - last_index, m_encoding);
         part->force_validity(m_validity);
         ary->push(part);
     }
@@ -3063,19 +3062,19 @@ Value StringObject::split(Env *env, StringObject *splitstr, int max_count) {
     assert(splitlen > 0);
     nat_int_t index = index_int(env, splitstr, 0);
     if (index == -1) {
-        ary->push(new StringObject { m_string, m_encoding });
+        ary->push(StringObject::create(m_string, m_encoding));
     } else {
         do {
             size_t u_index = static_cast<size_t>(index);
-            ary->push(new StringObject { &c_str()[last_index], u_index - last_index, m_encoding });
+            ary->push(StringObject::create(&c_str()[last_index], u_index - last_index, m_encoding));
             last_index = u_index + splitlen;
             if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                ary->push(new StringObject { &c_str()[last_index], bytesize() - last_index, m_encoding });
+                ary->push(StringObject::create(&c_str()[last_index], bytesize() - last_index, m_encoding));
                 return ary;
             }
             index = index_int(env, splitstr, last_index);
         } while (index != -1);
-        ary->push(new StringObject { &c_str()[last_index], bytesize() - last_index, m_encoding });
+        ary->push(StringObject::create(&c_str()[last_index], bytesize() - last_index, m_encoding));
     }
     return ary;
 }
@@ -3105,7 +3104,7 @@ Value StringObject::split(Env *env, Optional<Value> splitter_arg, Optional<Value
     if (length() == 0) {
         return ary;
     } else if (max_count == 1 || splitter.is_nil()) {
-        ary->push(new StringObject { m_string, m_encoding });
+        ary->push(StringObject::create(m_string, m_encoding));
     } else if (splitter.is_regexp()) {
         // special empty-split-regexp case, just return characters
         if (splitter.as_regexp()->pattern()->is_empty()) {
@@ -3141,7 +3140,7 @@ Value StringObject::split(Env *env, Optional<Value> splitter_arg, Optional<Value
 }
 
 Value StringObject::squeeze(Env *env, Args &&selectors) {
-    auto copy = new StringObject { m_string, m_encoding };
+    auto copy = StringObject::create(m_string, m_encoding);
     copy->squeeze_in_place(env, std::move(selectors));
     return copy;
 }
@@ -3278,12 +3277,12 @@ void StringObject::each_line(Env *env, Optional<Value> separator_arg, Optional<V
     }
 
     if (separator.is_nil())
-        separator = new StringObject { "" };
+        separator = StringObject::create("");
 
     bool paragraph_mode = false;
     if (separator.as_string()->is_empty()) {
         paragraph_mode = true;
-        separator = new StringObject { "\n\n" };
+        separator = StringObject::create("\n\n");
     }
 
     const auto chomp = chomp_arg ? chomp_arg.value().is_truthy() : false;
@@ -3298,7 +3297,7 @@ void StringObject::each_line(Env *env, Optional<Value> separator_arg, Optional<V
             auto length = bytesize() - last_index;
             if (length == 0)
                 break;
-            auto out = new StringObject { ptr, bytesize() - last_index, encoding() };
+            auto out = StringObject::create(ptr, bytesize() - last_index, encoding());
             callback(out);
             break;
         }
@@ -3315,7 +3314,7 @@ void StringObject::each_line(Env *env, Optional<Value> separator_arg, Optional<V
             }
         }
 
-        auto out = new StringObject { ptr, length, encoding() };
+        auto out = StringObject::create(ptr, length, encoding());
 
         if (chomp)
             out->chomp_in_place(env, separator);
@@ -3368,12 +3367,12 @@ Value StringObject::ljust(Env *env, Value length_obj, Optional<Value> pad_arg) c
     if (pad_arg)
         padstr = pad_arg.value().to_str(env);
     else
-        padstr = new StringObject { " " };
+        padstr = StringObject::create(" ");
 
     if (padstr->string().is_empty())
         env->raise("ArgumentError", "zero width padding");
 
-    StringObject *copy = new StringObject { m_string, m_encoding };
+    StringObject *copy = StringObject::create(m_string, m_encoding);
     while (copy->length() < length) {
         bool truncate = copy->length() + padstr->length() > length;
         copy->append(padstr);
@@ -3386,7 +3385,7 @@ Value StringObject::ljust(Env *env, Value length_obj, Optional<Value> pad_arg) c
 
 Value StringObject::strip(Env *env) const {
     if (length() == 0)
-        return new StringObject { "", m_encoding };
+        return StringObject::create("", m_encoding);
     assert(length() < NAT_INT_MAX);
     nat_int_t first_char, last_char;
     nat_int_t len = static_cast<nat_int_t>(length());
@@ -3401,10 +3400,10 @@ Value StringObject::strip(Env *env) const {
             break;
     }
     if (last_char < 0) {
-        return new StringObject { "", m_encoding };
+        return StringObject::create("", m_encoding);
     } else {
         size_t new_length = static_cast<size_t>(last_char - first_char + 1);
-        return new StringObject { c_str() + first_char, new_length, m_encoding };
+        return StringObject::create(c_str() + first_char, new_length, m_encoding);
     }
 }
 
@@ -3418,7 +3417,7 @@ Value StringObject::strip_in_place(Env *env) {
 
 Value StringObject::lstrip(Env *env) const {
     if (length() == 0)
-        return new StringObject { "", m_encoding };
+        return StringObject::create("", m_encoding);
     assert(length() < NAT_INT_MAX);
     nat_int_t first_char;
     nat_int_t len = static_cast<nat_int_t>(length());
@@ -3428,10 +3427,10 @@ Value StringObject::lstrip(Env *env) const {
             break;
     }
     if (first_char == len) {
-        return new StringObject { "", m_encoding };
+        return StringObject::create("", m_encoding);
     } else {
         size_t new_length = static_cast<size_t>(len - first_char);
-        return new StringObject { c_str() + first_char, new_length, m_encoding };
+        return StringObject::create(c_str() + first_char, new_length, m_encoding);
     }
 }
 
@@ -3466,12 +3465,12 @@ Value StringObject::rjust(Env *env, Value length_obj, Optional<Value> pad_arg) c
     if (pad_arg)
         padstr = pad_arg.value().to_str(env);
     else
-        padstr = new StringObject { " " };
+        padstr = StringObject::create(" ");
 
     if (padstr->string().is_empty())
         env->raise("ArgumentError", "zero width padding");
 
-    StringObject *padding = new StringObject { "", m_encoding };
+    StringObject *padding = StringObject::create("", m_encoding);
     size_t padding_length = length < this->length() ? 0 : length - this->length();
 
     while (padding->length() < padding_length) {
@@ -3482,7 +3481,7 @@ Value StringObject::rjust(Env *env, Value length_obj, Optional<Value> pad_arg) c
         }
     }
 
-    StringObject *str_with_padding = new StringObject { "", m_encoding };
+    StringObject *str_with_padding = StringObject::create("", m_encoding);
     StringObject *copy = duplicate(env).as_string();
     str_with_padding->append(padding);
     str_with_padding->append(copy);
@@ -3492,7 +3491,7 @@ Value StringObject::rjust(Env *env, Value length_obj, Optional<Value> pad_arg) c
 
 Value StringObject::rstrip(Env *env) const {
     if (length() == 0)
-        return new StringObject { "", m_encoding };
+        return StringObject::create("", m_encoding);
 
     if (!valid_encoding())
         env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s).value().as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
@@ -3506,10 +3505,10 @@ Value StringObject::rstrip(Env *env) const {
             break;
     }
     if (last_char < 0) {
-        return new StringObject { "", m_encoding };
+        return StringObject::create("", m_encoding);
     } else {
         size_t new_length = static_cast<size_t>(last_char + 1);
-        return new StringObject { c_str(), new_length, m_encoding };
+        return StringObject::create(c_str(), new_length, m_encoding);
     }
 }
 
@@ -3617,7 +3616,7 @@ Value StringObject::is_casecmp(Env *env, Value other) {
 
 StringObject *StringObject::capitalize(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     auto flags = check_case_options(env, arg1, arg2);
-    auto str = new StringObject { "", m_encoding };
+    auto str = StringObject::create("", m_encoding);
     bool first_char = true;
     nat_int_t result[3] = {};
     uint8_t length = 0;
@@ -3647,7 +3646,7 @@ Value StringObject::capitalize_in_place(Env *env, Optional<Value> arg1, Optional
 
 StringObject *StringObject::downcase(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     auto flags = check_case_options(env, arg1, arg2, true);
-    auto str = new StringObject { "", m_encoding };
+    auto str = StringObject::create("", m_encoding);
     nat_int_t result[3] = {};
     for (StringView c : *this) {
         auto codepoint = m_encoding->decode_codepoint(c);
@@ -3746,12 +3745,12 @@ Value StringObject::dump(Env *env) {
     if (!m_encoding->is_ascii_compatible())
         out.append_sprintf(".force_encoding(\"%s\")", m_encoding->name()->c_str());
 
-    return new StringObject { std::move(out), m_encoding };
+    return StringObject::create(std::move(out), m_encoding);
 }
 
 StringObject *StringObject::upcase(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     auto flags = check_case_options(env, arg1, arg2);
-    auto str = new StringObject { "", m_encoding };
+    auto str = StringObject::create("", m_encoding);
     nat_int_t result[3] = {};
     for (StringView c : *this) {
         auto codepoint = m_encoding->decode_codepoint(c);
@@ -3777,7 +3776,7 @@ Value StringObject::upcase_in_place(Env *env, Optional<Value> arg1, Optional<Val
 StringObject *StringObject::swapcase(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
     // currently not doing anything with the returned flags
     check_case_options(env, arg1, arg2);
-    auto str = new StringObject { "", m_encoding };
+    auto str = StringObject::create("", m_encoding);
     for (StringView c : *this) {
         nat_int_t codept = m_encoding->decode_codepoint(c);
         if (codept >= 'a' && codept <= 'z') {
@@ -3812,7 +3811,7 @@ Value StringObject::uplus(Env *env) {
     if (this->is_frozen()) {
         return this->duplicate(env);
     } else if (is_chilled()) {
-        return new StringObject { *this };
+        return StringObject::create(*this);
     } else {
         return this;
     }
@@ -3855,14 +3854,14 @@ Value StringObject::upto(Env *env, Value other, Optional<Value> exclusive_arg, B
         if (current.value().length() > string->length())
             return this;
 
-        block->run(env, { new StringObject(current.value(), m_encoding) }, nullptr);
+        block->run(env, { StringObject::create(current.value(), m_encoding) }, nullptr);
     }
 
     return this;
 }
 
 Value StringObject::reverse(Env *env) {
-    auto str = new StringObject { "", m_encoding };
+    auto str = StringObject::create("", m_encoding);
     if (length() == 0)
         return str;
     auto characters = chars(env).as_array();
@@ -4210,7 +4209,7 @@ Value StringObject::delete_prefix(Env *env, Value val) {
     auto arg_len = val.as_string()->length();
 
     if (start_with(env, { val })) {
-        auto after_delete = new StringObject { c_str() + arg_len, length() - arg_len, m_encoding };
+        auto after_delete = StringObject::create(c_str() + arg_len, length() - arg_len, m_encoding);
         return after_delete;
     }
 
@@ -4236,7 +4235,7 @@ Value StringObject::delete_suffix(Env *env, Value val) {
     auto arg_len = val.as_string()->length();
 
     if (end_with(env, val)) {
-        return new StringObject { c_str(), length() - arg_len, m_encoding };
+        return StringObject::create(c_str(), length() - arg_len, m_encoding);
     }
 
     return duplicate(env).as_string();
@@ -4256,9 +4255,9 @@ Value StringObject::delete_suffix_in_place(Env *env, Value val) {
 
 Value StringObject::chop(Env *env) const {
     if (this->is_empty())
-        return new StringObject { "", m_encoding };
+        return StringObject::create("", m_encoding);
 
-    auto new_str = new StringObject { m_string, m_encoding };
+    auto new_str = StringObject::create(m_string, m_encoding);
     new_str->chop_in_place(env);
     return new_str;
 }
@@ -4294,19 +4293,19 @@ Value StringObject::partition(Env *env, Value val) {
         ssize_t end_byte_index;
 
         if (match_result.is_nil()) {
-            return new ArrayObject { new StringObject(*this), new StringObject("", m_encoding), new StringObject("", m_encoding) };
+            return new ArrayObject { StringObject::create(*this), StringObject::create("", m_encoding), StringObject::create("", m_encoding) };
         } else {
             start_byte_index = match_result.as_match_data()->beg_byte_index(0);
             end_byte_index = match_result.as_match_data()->end_byte_index(0);
-            ary->push(new StringObject(m_string.substring(0, start_byte_index), m_encoding));
+            ary->push(StringObject::create(m_string.substring(0, start_byte_index), m_encoding));
         }
 
-        ary->push(new StringObject(m_string.substring(start_byte_index, end_byte_index - start_byte_index), m_encoding));
+        ary->push(StringObject::create(m_string.substring(start_byte_index, end_byte_index - start_byte_index), m_encoding));
 
         auto last_val_index = start_byte_index + (end_byte_index - start_byte_index);
         auto last_char_index = m_string.length() - 1;
         if (last_val_index < static_cast<long>(last_char_index)) {
-            ary->push(new StringObject(m_string.substring(end_byte_index, m_string.length() - end_byte_index), m_encoding));
+            ary->push(StringObject::create(m_string.substring(end_byte_index, m_string.length() - end_byte_index), m_encoding));
             return ary;
         }
     } else {
@@ -4318,9 +4317,9 @@ Value StringObject::partition(Env *env, Value val) {
         auto query_idx = m_string.find(query);
 
         if (query_idx == -1) {
-            return new ArrayObject { new StringObject { m_string, m_encoding }, new StringObject("", m_encoding), new StringObject("", m_encoding) };
+            return new ArrayObject { StringObject::create(m_string, m_encoding), StringObject::create("", m_encoding), StringObject::create("", m_encoding) };
         } else {
-            ary->push(new StringObject(m_string.substring(0, query_idx), m_encoding));
+            ary->push(StringObject::create(m_string.substring(0, query_idx), m_encoding));
         }
 
         ary->push(val);
@@ -4328,12 +4327,12 @@ Value StringObject::partition(Env *env, Value val) {
         auto last_val_index = query_idx + query.length();
         auto last_char_index = m_string.length() - 1;
         if (last_val_index < last_char_index) {
-            ary->push(new StringObject(m_string.substring(query_idx + 1, last_char_index - query_idx), m_encoding));
+            ary->push(StringObject::create(m_string.substring(query_idx + 1, last_char_index - query_idx), m_encoding));
             return ary;
         }
     }
 
-    ary->push(new StringObject("", m_encoding));
+    ary->push(StringObject::create("", m_encoding));
     return ary;
 }
 

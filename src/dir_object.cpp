@@ -62,7 +62,7 @@ Value DirObject::read(Env *env) {
     struct dirent *dirp;
     dirp = ::readdir(m_dir);
     if (!dirp) return Value::nil();
-    return new StringObject { dirp->d_name, m_encoding };
+    return StringObject::create(dirp->d_name, m_encoding);
 }
 
 Value DirObject::tell(Env *env) {
@@ -90,7 +90,7 @@ nat_int_t DirObject::set_pos(Env *env, Value position) {
 }
 
 StringObject *DirObject::inspect(Env *env) {
-    StringObject *out = new StringObject { "#<" };
+    StringObject *out = StringObject::create("#<");
     out->append(klass()->inspect_module());
     out->append(":");
     out->append(path(env));
@@ -115,7 +115,7 @@ Value DirObject::chdir(Env *env, Optional<Value> path_arg, Block *block) {
         if (!path_str)
             env->raise("ArgumentError", "HOME/LOGDIR not set");
 
-        path = new StringObject { path_str };
+        path = StringObject::create(path_str);
     } else {
         path = ioutil::convert_using_to_path(env, path_arg.value());
     }
@@ -161,7 +161,7 @@ Value DirObject::children(Env *env) {
     while ((dirp = ::readdir(m_dir))) {
         auto name = String(dirp->d_name);
         if (name != "." && name != "..") {
-            ary->push(new StringObject { dirp->d_name, m_encoding });
+            ary->push(StringObject::create(dirp->d_name, m_encoding));
         }
     }
     if (ary->is_empty()) return Value::nil();
@@ -174,7 +174,7 @@ Value DirObject::entries(Env *env) {
     struct dirent *dirp;
     ArrayObject *ary = new ArrayObject {};
     while ((dirp = ::readdir(m_dir))) {
-        ary->push(new StringObject { dirp->d_name, m_encoding });
+        ary->push(StringObject::create(dirp->d_name, m_encoding));
     }
     if (ary->is_empty()) return Value::nil();
     return ary;
@@ -188,7 +188,7 @@ Value DirObject::each(Env *env, Block *block) {
     if (!m_dir) env->raise("IOError", "closed directory");
     struct dirent *dirp;
     while ((dirp = ::readdir(m_dir))) {
-        Value args[] = { new StringObject { dirp->d_name, m_encoding } };
+        Value args[] = { StringObject::create(dirp->d_name, m_encoding) };
         block->run(env, Args(1, args), nullptr);
     }
     return this;
@@ -204,7 +204,7 @@ Value DirObject::each_child(Env *env, Block *block) {
     while ((dirp = ::readdir(m_dir))) {
         auto name = String(dirp->d_name);
         if (name != "." && name != "..") {
-            Value args[] = { new StringObject { name, m_encoding } };
+            Value args[] = { StringObject::create(name, m_encoding) };
             block->run(env, Args(1, args), nullptr);
         }
     }
@@ -274,7 +274,7 @@ Value DirObject::pwd(Env *env) {
     errno = ec.value();
     if (errno)
         env->raise_errno();
-    return new StringObject { path.c_str() };
+    return StringObject::create(path.c_str());
 }
 
 Value DirObject::rmdir(Env *env, Value path) {
@@ -293,17 +293,17 @@ Value DirObject::home(Env *env, Optional<Value> username_arg) {
         pw = getpwnam(username.as_string()->c_str());
         if (!pw)
             env->raise("ArgumentError", "user {} doesn't exist", username.as_string()->c_str());
-        return new StringObject { pw->pw_dir };
+        return StringObject::create(pw->pw_dir);
     } else {
         // no argument version
-        Value home_str = new StringObject { "HOME" };
+        Value home_str = StringObject::create("HOME");
         Value home_dir = GlobalEnv::the()->Object()->const_fetch("ENV"_s).send(env, "[]"_s, { home_str });
         if (!home_dir.is_nil())
             return home_dir->duplicate(env);
         struct passwd *pw;
         pw = getpwuid(getuid());
         assert(pw);
-        return new StringObject { pw->pw_dir };
+        return StringObject::create(pw->pw_dir);
     }
 }
 bool DirObject::is_empty(Env *env, Value dirname) {

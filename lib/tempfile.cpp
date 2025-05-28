@@ -13,10 +13,10 @@ Value Tempfile_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 0, 2);
     auto basename = args.at(0, Value::nil());
     auto tmpdir = args.at(1, Value::nil());
-    auto suffix = new StringObject { "" };
+    auto suffix = StringObject::create("");
 
     if (basename.is_nil()) {
-        basename = new StringObject { "" };
+        basename = StringObject::create("");
     } else if (!basename.is_string() && basename.respond_to(env, "to_str"_s)) {
         basename = basename.to_str(env);
     } else if (basename.is_array()) {
