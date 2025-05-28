@@ -155,7 +155,8 @@ loop do
   Linenoise.add_history(line)
 
   source_path = '(repl)'
-  lines << line.strip
+  line = line.strip if line.start_with?('nat> ') # Allow indented input on subsequent lines
+  lines << line
   parser = Natalie::Parser.new(lines.join("\n"), source_path, locals: vars.keys)
   ast =
     begin
@@ -164,7 +165,9 @@ loop do
       # If the error is due to an unexpected end-of-input, we can ignore it
       # and continue to read more lines.
       # This is useful for multi-line input, like class and module definitions, do blocks, etc.
-      if e.message.include?('unexpected end-of-input')
+      message = e.message
+      if message.include?('unexpected end-of-input') || message.include?('unterminated heredoc') ||
+           message.include?('unterminated string')
         prompt = 'nat* '
         next
       end
