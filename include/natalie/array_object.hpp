@@ -147,6 +147,7 @@ public:
     bool eq(Env *, Value);
     bool eql(Env *, Value);
     Value fetch(Env *, Value, Optional<Value>, Block *);
+    Value fetch_values(Env *, Args &&, Block *);
     Value fill(Env *, Optional<Value>, Optional<Value>, Optional<Value>, Block *);
     Value first(Env *, Optional<Value>);
     Value flatten(Env *, Optional<Value>);
