@@ -1746,6 +1746,15 @@ Value ArrayObject::fetch(Env *env, Value arg_index, Optional<Value> default_valu
     return value;
 }
 
+Value ArrayObject::fetch_values(Env *env, Args &&args, Block *block) {
+    const auto size = args.size();
+    auto result = new ArrayObject { size };
+    for (size_t i = 0; i < size; i++) {
+        result->push(fetch(env, args[i], {}, block));
+    }
+    return result;
+}
+
 Value ArrayObject::find_index(Env *env, Optional<Value> object, Block *block, bool search_reverse) {
     if (object && block) env->warn("given block not used");
     assert(size() <= NAT_INT_MAX);
