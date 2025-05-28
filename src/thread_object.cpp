@@ -3,7 +3,6 @@
 #include <signal.h>
 
 #include "natalie.hpp"
-#include "natalie/integer_methods.hpp"
 #include "natalie/thread/mutex_object.hpp"
 #include "natalie/thread_object.hpp"
 
@@ -270,7 +269,7 @@ Value ThreadObject::to_s(Env *env) {
         location,
         status());
 
-    return new StringObject { formatted, Encoding::ASCII_8BIT };
+    return StringObject::create(formatted, Encoding::ASCII_8BIT);
 }
 
 Value ThreadObject::status(Env *env) {
@@ -280,7 +279,7 @@ Value ThreadObject::status(Env *env) {
             return Value::nil();
         return Value::False();
     }
-    return new StringObject { status_string };
+    return StringObject::create(status_string);
 }
 
 String ThreadObject::status() {
@@ -471,7 +470,7 @@ Value ThreadObject::value(Env *env) {
 Value ThreadObject::name(Env *env) {
     if (!m_name)
         return Value::nil();
-    return new StringObject { *m_name };
+    return StringObject::create(*m_name);
 }
 
 Value ThreadObject::set_name(Env *env, Value name) {

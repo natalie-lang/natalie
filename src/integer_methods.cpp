@@ -6,7 +6,7 @@ namespace Natalie {
 
 Value IntegerMethods::to_s(Env *env, Integer self, Optional<Value> base_value) {
     if (self == 0)
-        return new StringObject { "0" };
+        return StringObject::create("0");
 
     nat_int_t base = 10;
     if (base_value) {
@@ -18,9 +18,9 @@ Value IntegerMethods::to_s(Env *env, Integer self, Optional<Value> base_value) {
     }
 
     if (base == 10)
-        return new StringObject { self.to_string(), Encoding::US_ASCII };
+        return StringObject::create(self.to_string(), Encoding::US_ASCII);
 
-    auto str = new StringObject { "", Encoding::US_ASCII };
+    auto str = StringObject::create("", Encoding::US_ASCII);
     auto num = self;
     bool negative = false;
     if (num < 0) {
@@ -569,7 +569,7 @@ Value IntegerMethods::chr(Env *env, Integer self, Optional<Value> encoding_arg) 
     }
 
     auto encoded = encoding_obj->encode_codepoint(self.to_nat_int_t());
-    return new StringObject { encoded, encoding_obj };
+    return StringObject::create(encoded, encoding_obj);
 }
 
 Value IntegerMethods::sqrt(Env *env, Value arg) {
@@ -577,7 +577,7 @@ Value IntegerMethods::sqrt(Env *env, Value arg) {
 
     if (argument < 0) {
         auto domain_error = fetch_nested_const({ "Math"_s, "DomainError"_s });
-        auto message = new StringObject { "Numerical argument is out of domain - \"isqrt\"" };
+        auto message = StringObject::create("Numerical argument is out of domain - \"isqrt\"");
         auto exception = new ExceptionObject { domain_error.as_class(), message };
         env->raise_exception(exception);
     }

@@ -27,7 +27,7 @@ module Natalie
           transform.top(fn, fn_code)
         end
         transform.exec(
-          "Object::const_set(env, self, #{transform.intern(@name)}, #{fn}, new StringObject(#{@path.inspect}))",
+          "Object::const_set(env, self, #{transform.intern(@name)}, #{fn}, StringObject::create(#{@path.inspect}))",
         )
         transform.push_nil
       end

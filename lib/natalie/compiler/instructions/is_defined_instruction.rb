@@ -23,7 +23,7 @@ module Natalie
         transform.with_same_scope(body) do |t|
           code << 'try {'
           code << t.transform
-          code << "#{result} = new StringObject(#{@type.inspect})"
+          code << "#{result} = StringObject::create(#{@type.inspect})"
           code << "#{result}->freeze()"
           code << '} catch (ExceptionObject *) {'
           code << "#{result} = Value::nil()"

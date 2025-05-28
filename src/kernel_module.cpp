@@ -3,7 +3,6 @@
 #include "natalie/thread_object.hpp"
 #include "natalie/throw_catch_exception.hpp"
 
-#include <errno.h>
 #include <fcntl.h>
 #include <spawn.h>
 #include <stdio.h>
@@ -71,14 +70,14 @@ Value KernelModule::backtick(Env *env, Value command) {
     auto result = fgets(buf, NAT_SHELL_READ_BYTES, process);
     StringObject *out;
     if (result) {
-        out = new StringObject { buf };
+        out = StringObject::create(buf);
         while (1) {
             result = fgets(buf, NAT_SHELL_READ_BYTES, process);
             if (!result) break;
             out->append(buf);
         }
     } else {
-        out = new StringObject {};
+        out = StringObject::create();
     }
     int status = pclose2(process, pid);
     set_status_object(env, pid, status);
@@ -335,7 +334,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
         return error();
     default: {
         if (real_start != nullptr && real_end != nullptr) {
-            auto tmp = new StringObject { real_start, static_cast<size_t>(real_end - real_start + 1) };
+            auto tmp = StringObject::create(real_start, static_cast<size_t>(real_end - real_start + 1));
             switch (real_type) {
             case Type::Integer:
                 new_real = Integer(env, tmp);
@@ -354,7 +353,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
         if (imag_start != nullptr && imag_end != nullptr) {
             if (polar)
                 imag_start++; // skip '@'
-            auto tmp = new StringObject { imag_start, static_cast<size_t>(imag_end - imag_start + 1) };
+            auto tmp = StringObject::create(imag_start, static_cast<size_t>(imag_end - imag_start + 1));
             switch (imag_type) {
             case Type::Integer:
                 new_imag = Integer(env, tmp);
@@ -391,9 +390,9 @@ Value KernelModule::cur_dir(Env *env) {
     if (env->file() == nullptr) {
         env->raise("RuntimeError", "could not get current directory");
     } else if (strcmp(env->file(), "-e") == 0) {
-        return new StringObject { "." };
+        return StringObject::create(".");
     } else {
-        Value relative = new StringObject { env->file() };
+        Value relative = StringObject::create(env->file());
         StringObject *absolute = FileObject::expand_path(env, relative).as_string();
         size_t last_slash = 0;
         bool found = false;
@@ -419,7 +418,7 @@ Value KernelModule::exit(Env *env, Optional<Value> status_arg) {
         }
     }
 
-    ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s).as_class(), new StringObject { "exit" } };
+    ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s).as_class(), StringObject::create("exit") };
     exception->ivar_set(env, "@status"_s, status.to_int(env));
     env->raise_exception(exception);
     return Value::nil();
@@ -537,7 +536,7 @@ Value KernelModule::gets(Env *env) {
     char buf[2048];
     if (!fgets(buf, 2048, stdin))
         return Value::nil();
-    return new StringObject { buf };
+    return StringObject::create(buf);
 }
 
 Value KernelModule::get_usage(Env *env) {
@@ -546,20 +545,20 @@ Value KernelModule::get_usage(Env *env) {
         return Value::nil();
 
     HashObject *hash = new HashObject {};
-    hash->put(env, new StringObject { "maxrss" }, Value::integer(usage.ru_maxrss));
-    hash->put(env, new StringObject { "ixrss" }, Value::integer(usage.ru_ixrss));
-    hash->put(env, new StringObject { "idrss" }, Value::integer(usage.ru_idrss));
-    hash->put(env, new StringObject { "isrss" }, Value::integer(usage.ru_isrss));
-    hash->put(env, new StringObject { "minflt" }, Value::integer(usage.ru_minflt));
-    hash->put(env, new StringObject { "majflt" }, Value::integer(usage.ru_majflt));
-    hash->put(env, new StringObject { "nswap" }, Value::integer(usage.ru_nswap));
-    hash->put(env, new StringObject { "inblock" }, Value::integer(usage.ru_inblock));
-    hash->put(env, new StringObject { "oublock" }, Value::integer(usage.ru_oublock));
-    hash->put(env, new StringObject { "msgsnd" }, Value::integer(usage.ru_msgsnd));
-    hash->put(env, new StringObject { "msgrcv" }, Value::integer(usage.ru_msgrcv));
-    hash->put(env, new StringObject { "nsignals" }, Value::integer(usage.ru_nsignals));
-    hash->put(env, new StringObject { "nvcsw" }, Value::integer(usage.ru_nvcsw));
-    hash->put(env, new StringObject { "nivcsw" }, Value::integer(usage.ru_nivcsw));
+    hash->put(env, StringObject::create("maxrss"), Value::integer(usage.ru_maxrss));
+    hash->put(env, StringObject::create("ixrss"), Value::integer(usage.ru_ixrss));
+    hash->put(env, StringObject::create("idrss"), Value::integer(usage.ru_idrss));
+    hash->put(env, StringObject::create("isrss"), Value::integer(usage.ru_isrss));
+    hash->put(env, StringObject::create("minflt"), Value::integer(usage.ru_minflt));
+    hash->put(env, StringObject::create("majflt"), Value::integer(usage.ru_majflt));
+    hash->put(env, StringObject::create("nswap"), Value::integer(usage.ru_nswap));
+    hash->put(env, StringObject::create("inblock"), Value::integer(usage.ru_inblock));
+    hash->put(env, StringObject::create("oublock"), Value::integer(usage.ru_oublock));
+    hash->put(env, StringObject::create("msgsnd"), Value::integer(usage.ru_msgsnd));
+    hash->put(env, StringObject::create("msgrcv"), Value::integer(usage.ru_msgrcv));
+    hash->put(env, StringObject::create("nsignals"), Value::integer(usage.ru_nsignals));
+    hash->put(env, StringObject::create("nvcsw"), Value::integer(usage.ru_nvcsw));
+    hash->put(env, StringObject::create("nivcsw"), Value::integer(usage.ru_nivcsw));
     return hash;
 }
 
@@ -983,7 +982,7 @@ Value KernelModule::initialize_copy(Env *env, Value self, Value object) {
 
 Value KernelModule::inspect(Env *env, Value value) {
     if (value.is_module() && value.as_module()->name())
-        return new StringObject { value.as_module()->name().value() };
+        return StringObject::create(value.as_module()->name().value());
     else
         return StringObject::format("#<{}:{}>", value.klass()->inspect_module(), value->pointer_id());
 }

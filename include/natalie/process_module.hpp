@@ -176,7 +176,7 @@ private:
         }
         if (rlimit_symbol) {
             Value(rlimit_symbol).assert_type(env, Object::Type::Symbol, "Symbol");
-            StringObject *rlimit_str = new StringObject { "RLIMIT_" };
+            StringObject *rlimit_str = StringObject::create("RLIMIT_");
             rlimit_str->append(rlimit_symbol->string());
             rlimit_symbol = rlimit_str->to_symbol(env);
             auto ProcessMod = GlobalEnv::the()->Object()->const_fetch("Process"_s).as_module();

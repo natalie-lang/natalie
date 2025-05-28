@@ -6,140 +6,140 @@ namespace Natalie {
 
 Value SignalModule::list(Env *env) {
     return new HashObject { env, {
-                                     new StringObject { "EXIT" },
+                                     StringObject::create("EXIT"),
                                      Value::integer(static_cast<nat_int_t>(0)),
-                                     new StringObject { "HUP" },
+                                     StringObject::create("HUP"),
                                      Value::integer(static_cast<nat_int_t>(SIGHUP)),
-                                     new StringObject { "INT" },
+                                     StringObject::create("INT"),
                                      Value::integer(static_cast<nat_int_t>(SIGINT)),
-                                     new StringObject { "QUIT" },
+                                     StringObject::create("QUIT"),
                                      Value::integer(static_cast<nat_int_t>(SIGQUIT)),
-                                     new StringObject { "ILL" },
+                                     StringObject::create("ILL"),
                                      Value::integer(static_cast<nat_int_t>(SIGILL)),
 #ifdef SIGTRAP
-                                     new StringObject { "TRAP" },
+                                     StringObject::create("TRAP"),
                                      Value::integer(static_cast<nat_int_t>(SIGTRAP)),
 #endif
-                                     new StringObject { "ABRT" },
+                                     StringObject::create("ABRT"),
                                      Value::integer(static_cast<nat_int_t>(SIGABRT)),
 #ifdef SIGIOT
-                                     new StringObject { "IOT" },
+                                     StringObject::create("IOT"),
                                      Value::integer(static_cast<nat_int_t>(SIGIOT)),
 #endif
 #ifdef SIGEMT
-                                     new StringObject { "EMT" },
+                                     StringObject::create("EMT"),
                                      Value::integer(static_cast<nat_int_t>(SIGEMT)),
 #endif
-                                     new StringObject { "FPE" },
+                                     StringObject::create("FPE"),
                                      Value::integer(static_cast<nat_int_t>(SIGFPE)),
-                                     new StringObject { "KILL" },
+                                     StringObject::create("KILL"),
                                      Value::integer(static_cast<nat_int_t>(SIGKILL)),
 #ifdef SIGBUS
-                                     new StringObject { "BUS" },
+                                     StringObject::create("BUS"),
                                      Value::integer(static_cast<nat_int_t>(SIGBUS)),
 #endif
-                                     new StringObject { "SEGV" },
+                                     StringObject::create("SEGV"),
                                      Value::integer(static_cast<nat_int_t>(SIGSEGV)),
-                                     new StringObject { "SYS" },
+                                     StringObject::create("SYS"),
                                      Value::integer(static_cast<nat_int_t>(SIGSYS)),
-                                     new StringObject { "PIPE" },
+                                     StringObject::create("PIPE"),
                                      Value::integer(static_cast<nat_int_t>(SIGPIPE)),
-                                     new StringObject { "ALRM" },
+                                     StringObject::create("ALRM"),
                                      Value::integer(static_cast<nat_int_t>(SIGALRM)),
-                                     new StringObject { "TERM" },
+                                     StringObject::create("TERM"),
                                      Value::integer(static_cast<nat_int_t>(SIGTERM)),
 #ifdef SIGURG
-                                     new StringObject { "URG" },
+                                     StringObject::create("URG"),
                                      Value::integer(static_cast<nat_int_t>(SIGURG)),
 #endif
-                                     new StringObject { "STOP" },
+                                     StringObject::create("STOP"),
                                      Value::integer(static_cast<nat_int_t>(SIGSTOP)),
-                                     new StringObject { "TSTP" },
+                                     StringObject::create("TSTP"),
                                      Value::integer(static_cast<nat_int_t>(SIGTSTP)),
-                                     new StringObject { "CONT" },
+                                     StringObject::create("CONT"),
                                      Value::integer(static_cast<nat_int_t>(SIGCONT)),
-                                     new StringObject { "CHLD" },
+                                     StringObject::create("CHLD"),
                                      Value::integer(static_cast<nat_int_t>(SIGCHLD)),
-                                     new StringObject { "CLD" },
+                                     StringObject::create("CLD"),
 #ifdef SIGCLD
                                      Value::integer(static_cast<nat_int_t>(SIGCLD)),
 #else
                                      Value::integer(static_cast<nat_int_t>(SIGCHLD)),
 #endif
-                                     new StringObject { "TTIN" },
+                                     StringObject::create("TTIN"),
                                      Value::integer(static_cast<nat_int_t>(SIGTTIN)),
-                                     new StringObject { "TTOU" },
+                                     StringObject::create("TTOU"),
                                      Value::integer(static_cast<nat_int_t>(SIGTTOU)),
 #ifdef SIGIO
-                                     new StringObject { "IO" },
+                                     StringObject::create("IO"),
                                      Value::integer(static_cast<nat_int_t>(SIGIO)),
 #endif
 #ifdef SIGXCPU
-                                     new StringObject { "XCPU" },
+                                     StringObject::create("XCPU"),
                                      Value::integer(static_cast<nat_int_t>(SIGXCPU)),
 #endif
 #ifdef SIGXFSZ
-                                     new StringObject { "XFSZ" },
+                                     StringObject::create("XFSZ"),
                                      Value::integer(static_cast<nat_int_t>(SIGXFSZ)),
 #endif
 #ifdef SIGVTALRM
-                                     new StringObject { "VTALRM" },
+                                     StringObject::create("VTALRM"),
                                      Value::integer(static_cast<nat_int_t>(SIGVTALRM)),
 #endif
 #ifdef SIGPROF
-                                     new StringObject { "PROF" },
+                                     StringObject::create("PROF"),
                                      Value::integer(static_cast<nat_int_t>(SIGPROF)),
 #endif
 #ifdef SIGWINCH
-                                     new StringObject { "WINCH" },
+                                     StringObject::create("WINCH"),
                                      Value::integer(static_cast<nat_int_t>(SIGWINCH)),
 #endif
-                                     new StringObject { "USR1" },
+                                     StringObject::create("USR1"),
                                      Value::integer(static_cast<nat_int_t>(SIGUSR1)),
-                                     new StringObject { "USR2" },
+                                     StringObject::create("USR2"),
                                      Value::integer(static_cast<nat_int_t>(SIGUSR2)),
 #ifdef SIGLOST
-                                     new StringObject { "LOST" },
+                                     StringObject::create("LOST"),
                                      Value::integer(static_cast<nat_int_t>(SIGLOST)),
 #endif
 #ifdef SIGMSG
-                                     new StringObject { "MSG" },
+                                     StringObject::create("MSG"),
                                      Value::integer(static_cast<nat_int_t>(SIGMSG)),
 #endif
 #ifdef SIGPWR
-                                     new StringObject { "PWR" },
+                                     StringObject::create("PWR"),
                                      Value::integer(static_cast<nat_int_t>(SIGPWR)),
 #endif
 #ifdef SIGPOLL
-                                     new StringObject { "POLL" },
+                                     StringObject::create("POLL"),
                                      Value::integer(static_cast<nat_int_t>(SIGPOLL)),
 #endif
 #ifdef SIGDANGER
-                                     new StringObject { "DANGER" },
+                                     StringObject::create("DANGER"),
                                      Value::integer(static_cast<nat_int_t>(SIGDANGER)),
 #endif
 #ifdef SIGMIGRATE
-                                     new StringObject { "MIGRATE" },
+                                     StringObject::create("MIGRATE"),
                                      Value::integer(static_cast<nat_int_t>(SIGMIGRATE)),
 #endif
 #ifdef SIGPRE
-                                     new StringObject { "PRE" },
+                                     StringObject::create("PRE"),
                                      Value::integer(static_cast<nat_int_t>(SIGPRE)),
 #endif
 #ifdef SIGGRANT
-                                     new StringObject { "GRANT" },
+                                     StringObject::create("GRANT"),
                                      Value::integer(static_cast<nat_int_t>(SIGGRANT)),
 #endif
 #ifdef SIGRETRACT
-                                     new StringObject { "RETRACT" },
+                                     StringObject::create("RETRACT"),
                                      Value::integer(static_cast<nat_int_t>(SIGRETRACT)),
 #ifdef SIGSOUND
 #endif
-                                     new StringObject { "SOUND" },
+                                     StringObject::create("SOUND"),
                                      Value::integer(static_cast<nat_int_t>(SIGSOUND)),
 #endif
 #ifdef SIGINFO
-                                     new StringObject { "INFO" },
+                                     StringObject::create("INFO"),
                                      Value::integer(static_cast<nat_int_t>(SIGINFO)),
 #endif
                                  } };

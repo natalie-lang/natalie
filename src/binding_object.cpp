@@ -4,7 +4,7 @@
 namespace Natalie {
 
 Value BindingObject::source_location() const {
-    auto file = new StringObject { m_env.file() };
+    auto file = StringObject::create(m_env.file());
     auto line = Value::integer(m_env.line());
     return new ArrayObject { file, line };
 }

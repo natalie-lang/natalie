@@ -31,7 +31,7 @@ Value FileStatObject::ftype() const {
     } else {
         ft = "unknown";
     }
-    return new StringObject { ft };
+    return StringObject::create(ft);
 }
 
 bool FileStatObject::is_blockdev() const {

@@ -360,7 +360,7 @@ Value IoObject::read(Env *env, Optional<Value> count_arg, Optional<Value> buffer
     if (count_arg && !count_arg.value().is_nil()) {
         const auto count = IntegerMethods::convert_to_native_type<size_t>(env, count_arg.value());
         if (m_read_buffer.size() >= count) {
-            auto result = new StringObject { m_read_buffer.c_str(), static_cast<size_t>(count), Encoding::ASCII_8BIT };
+            auto result = StringObject::create(m_read_buffer.c_str(), static_cast<size_t>(count), Encoding::ASCII_8BIT);
             m_read_buffer = String { m_read_buffer.c_str() + count, m_read_buffer.size() - count };
             return result;
         }
@@ -377,14 +377,14 @@ Value IoObject::read(Env *env, Optional<Value> count_arg, Optional<Value> buffer
             if (count == 0) {
                 if (!buffer.is_nil())
                     return buffer;
-                return new StringObject { "", 0, Encoding::ASCII_8BIT };
+                return StringObject::create("", 0, Encoding::ASCII_8BIT);
             }
             return Value::nil();
         } else if (!buffer.is_nil()) {
             buffer.as_string()->set_str(buf.c_str(), static_cast<size_t>(bytes_read));
             return buffer;
         } else {
-            return new StringObject { std::move(buf), Encoding::ASCII_8BIT };
+            return StringObject::create(std::move(buf), Encoding::ASCII_8BIT);
         }
     }
     char buf[NAT_READ_BYTES + 1];
@@ -393,15 +393,15 @@ Value IoObject::read(Env *env, Optional<Value> count_arg, Optional<Value> buffer
     if (!buffer.is_nil()) {
         str = buffer.as_string();
     } else if (m_external_encoding != nullptr) {
-        str = new StringObject { "", m_external_encoding };
+        str = StringObject::create("", m_external_encoding);
     } else {
-        str = new StringObject {};
+        str = StringObject::create();
     }
     if (bytes_read < 0) {
         throw_unless_readable(env, this);
     } else if (bytes_read == 0) {
         str->clear(env);
-        str->prepend(env, { new StringObject { std::move(m_read_buffer) } });
+        str->prepend(env, { StringObject::create(std::move(m_read_buffer)) });
         m_read_buffer.clear();
         return str;
     } else {
@@ -414,7 +414,7 @@ Value IoObject::read(Env *env, Optional<Value> count_arg, Optional<Value> buffer
         buf[bytes_read] = 0;
         str->append(buf, bytes_read);
     }
-    str->prepend(env, { new StringObject { std::move(m_read_buffer) } });
+    str->prepend(env, { StringObject::create(std::move(m_read_buffer)) });
     m_read_buffer.clear();
     return str;
 }
@@ -438,7 +438,7 @@ Value IoObject::binmode(Env *env) {
 }
 
 Value IoObject::copy_stream(Env *env, Value src, Value dst, Optional<Value> src_length, Optional<Value> src_offset) {
-    Value data = new StringObject {};
+    Value data = StringObject::create();
     if (src.is_io() || src.respond_to(env, "to_io"_s)) {
         auto src_io = src.to_io(env);
         if (!is_readable(src_io->fileno(env)))
@@ -528,7 +528,7 @@ Value IoObject::write_nonblock(Env *env, Value obj, Optional<Value> exception_kw
 
 Value IoObject::gets(Env *env, Optional<Value> sep_arg, Optional<Value> limit_arg, Optional<Value> chomp) {
     raise_if_closed(env);
-    auto line = new StringObject {};
+    auto line = StringObject::create();
     Value sep = Value::nil();
     if (sep_arg && !sep_arg.value().is_nil()) {
         sep = sep_arg.value();
@@ -538,7 +538,7 @@ Value IoObject::gets(Env *env, Optional<Value> sep_arg, Optional<Value> limit_ar
         } else {
             sep = sep.to_str(env);
             if (sep.as_string()->is_empty())
-                sep = new StringObject { "\n\n" };
+                sep = StringObject::create("\n\n");
         }
     }
 
@@ -561,7 +561,7 @@ Value IoObject::gets(Env *env, Optional<Value> sep_arg, Optional<Value> limit_ar
         Value chunk;
 
         if (m_read_buffer.find(sep_string) != -1) {
-            chunk = new StringObject { m_read_buffer };
+            chunk = StringObject::create(m_read_buffer);
         } else {
             chunk = read(env, limit);
             if (chunk.is_nil()) {
@@ -595,7 +595,7 @@ Value IoObject::gets(Env *env, Optional<Value> sep_arg, Optional<Value> limit_ar
 Value IoObject::get_path() const {
     if (m_path == nullptr)
         return Value::nil();
-    return new StringObject { *m_path };
+    return StringObject::create(*m_path);
 }
 
 Value IoObject::pid(Env *env) const {
@@ -619,7 +619,7 @@ Value IoObject::pread(Env *env, Value count, Value offset, Optional<Value> out_a
         env->raise_errno();
     if (bytes_read == 0) {
         if (count_int == 0)
-            return new StringObject { std::move(buf) };
+            return StringObject::create(std::move(buf));
         env->raise("EOFError", "end of file reached");
     }
     buf.truncate(bytes_read);
@@ -628,7 +628,7 @@ Value IoObject::pread(Env *env, Value count, Value offset, Optional<Value> out_a
         out_string->set_str(buf.c_str(), buf.size());
         return out_string;
     }
-    return new StringObject { std::move(buf) };
+    return StringObject::create(std::move(buf));
 }
 
 Value IoObject::putc(Env *env, Value val) {
@@ -647,7 +647,7 @@ void IoObject::putstr(Env *env, StringObject *str) {
     String sstr = str->string();
     send(env, "write"_s, Args({ str }));
     if (sstr.size() == 0 || (sstr.size() > 0 && !sstr.ends_with("\n"))) {
-        send(env, "write"_s, Args({ new StringObject { "\n" } }));
+        send(env, "write"_s, Args({ StringObject::create("\n") }));
     }
 }
 
@@ -667,14 +667,14 @@ void IoObject::puts(Env *env, Value val) {
         if (str.is_string()) {
             this->putstr(env, str.as_string());
         } else { // to_s did not return a string, so inspect val instead.
-            this->putstr(env, new StringObject { val.inspected(env) });
+            this->putstr(env, StringObject::create(val.inspected(env)));
         }
     }
 }
 
 Value IoObject::puts(Env *env, Args &&args) {
     if (args.size() == 0) {
-        send(env, "write"_s, Args({ new StringObject { "\n" } }));
+        send(env, "write"_s, Args({ StringObject::create("\n") }));
     } else {
         for (size_t i = 0; i < args.size(); i++) {
             this->puts(env, args[i]);
@@ -801,7 +801,7 @@ Value IoObject::set_encoding(Env *env, Optional<Value> ext_arg, Optional<Value> 
     if (int_enc.is_nil() && ext_arg && (ext_enc.is_string() || ext_enc.respond_to(env, "to_str"_s))) {
         ext_enc = ext_enc.to_str(env);
         if (ext_enc.as_string()->include(":")) {
-            Value colon = new StringObject { ":" };
+            Value colon = StringObject::create(":");
             auto encsplit = ext_enc.to_str(env)->split(env, colon).as_array();
             ext_enc = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(0)));
             int_enc = encsplit->ref(env, Value::integer(static_cast<nat_int_t>(1)));
@@ -1245,7 +1245,7 @@ Value IoObject::popen(Env *env, ClassObject *klass, Args &&args, Block *block) {
     auto command = args.at(0).to_str(env);
     if (*command->c_str() == '-')
         env->raise("NotImplementedError", "IO.popen with \"-\" to fork is not yet supported");
-    auto type = args.at(1, new StringObject { "r" }).to_str(env);
+    auto type = args.at(1, StringObject::create("r")).to_str(env);
     pid_t pid;
     auto fileptr = popen2(command->c_str(), type->c_str(), pid);
     if (!fileptr)

@@ -4,7 +4,6 @@
 #include <iostream>
 
 #include "natalie.hpp"
-#include "natalie/object_type.hpp"
 #include "tm/owned_ptr.hpp"
 
 using namespace Natalie;
@@ -29,7 +28,7 @@ static void *dlopen_wrapper(Env *env, const String &name) {
             static const auto so_ext = [&] {
                 auto RbConfig = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s).as_module();
                 auto CONFIG = RbConfig->const_fetch("CONFIG"_s).as_hash_or_raise(env);
-                auto SO_EXT = CONFIG->fetch(env, new StringObject { "SOEXT" }).as_string_or_raise(env);
+                auto SO_EXT = CONFIG->fetch(env, StringObject::create("SOEXT")).as_string_or_raise(env);
                 return String::format(".{}", SO_EXT->string());
             }();
             if (!name.begins_with('/') && !name.ends_with(so_ext)) {
@@ -92,7 +91,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
             }
         }
         if (!handle) {
-            auto error = new StringObject;
+            auto error = StringObject::create();
             for (auto name2 : *name.as_array())
                 error->append_sprintf("Could not open library '%s': %s.\n", name2.as_string()->string().c_str(), dlerror());
             error->chomp_in_place(env);
@@ -317,7 +316,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
         assert((int64_t)result <= std::numeric_limits<nat_int_t>::max());
         return Value::integer((nat_int_t)result);
     } else if (return_type == string_sym) {
-        return new StringObject { reinterpret_cast<const char *>(result) };
+        return StringObject::create(reinterpret_cast<const char *>(result));
     } else if (return_type == void_sym) {
         return Value::nil();
     } else {
@@ -432,10 +431,10 @@ Value FFI_Pointer_read_string(Env *env, Value self, Args &&args, Block *) {
         auto length = args.at(0).integer_or_raise(env).to_nat_int_t();
         if (length < 0 || (size_t)length > std::numeric_limits<size_t>::max())
             env->raise("ArgumentError", "length out of range");
-        return new StringObject { (char *)address, (size_t)length, Encoding::ASCII_8BIT };
+        return StringObject::create((char *)address, (size_t)length, Encoding::ASCII_8BIT);
     }
 
-    return new StringObject { (char *)address, Encoding::ASCII_8BIT };
+    return StringObject::create((char *)address, Encoding::ASCII_8BIT);
 }
 
 Value FFI_Pointer_to_obj(Env *env, Value self, Args &&args, Block *) {

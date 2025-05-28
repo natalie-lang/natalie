@@ -1,6 +1,5 @@
 #include "natalie.hpp"
 #include "natalie/env.hpp"
-#include "tm/vector.hpp"
 
 #include <assert.h>
 #include <fcntl.h>
@@ -16,14 +15,14 @@ static Value env_size(Env *env, Value self, Args &&, Block *) {
 
 static inline StringObject *string_with_default_encoding(const char *str) {
     if (EncodingObject::default_internal())
-        return new StringObject { str, EncodingObject::default_internal() };
-    return new StringObject { str };
+        return StringObject::create(str, EncodingObject::default_internal());
+    return StringObject::create(str);
 }
 
 static inline StringObject *string_with_default_encoding(const char *str, size_t len) {
     if (EncodingObject::default_internal())
-        return new StringObject { str, len, EncodingObject::default_internal() };
-    return new StringObject { str, len };
+        return StringObject::create(str, len, EncodingObject::default_internal());
+    return StringObject::create(str, len);
 }
 
 Value EnvObject::inspect(Env *env) {
@@ -83,7 +82,7 @@ Value EnvObject::delete_key(Env *env, Value name, Block *block) {
     auto namestr = name.to_str(env);
     char *value = getenv(namestr->c_str());
     if (value) {
-        auto value_obj = new StringObject { value };
+        auto value_obj = StringObject::create(value);
         ::unsetenv(namestr->c_str());
         return value_obj;
     } else if (block) {
@@ -149,7 +148,7 @@ Value EnvObject::assoc(Env *env, Value name) {
     auto namestr = name.to_str(env);
     char *value = getenv(namestr->c_str());
     if (value) {
-        StringObject *valuestr = new StringObject { value };
+        StringObject *valuestr = StringObject::create(value);
         return new ArrayObject { { namestr, valuestr } };
     } else {
         return Value::nil();
@@ -189,7 +188,7 @@ Value EnvObject::fetch(Env *env, Value name, Optional<Value> default_arg, Block 
     name.assert_type(env, Object::Type::String, "String");
     char *value = getenv(name.as_string()->c_str());
     if (value) {
-        return new StringObject { value };
+        return StringObject::create(value);
     } else if (block) {
         if (default_arg)
             env->warn("block supersedes default value argument");
@@ -234,7 +233,7 @@ Value EnvObject::key(Env *env, Value value) {
         const char *eq = strchr(pair, '=');
         assert(eq);
         if (needle == eq + 1)
-            return new StringObject { pair, static_cast<size_t>(eq - pair) };
+            return StringObject::create(pair, static_cast<size_t>(eq - pair));
 
         pair = *(environ + i);
     }
@@ -262,7 +261,7 @@ Value EnvObject::has_value(Env *env, Value name) {
 }
 
 Value EnvObject::to_s() const {
-    return new StringObject { "ENV" };
+    return StringObject::create("ENV");
 }
 
 Value EnvObject::rehash() const {
@@ -394,7 +393,7 @@ Value EnvObject::slice(Env *env, Args &&args) {
 
         const char *value = getenv(namestr->c_str());
         if (value != nullptr) {
-            result->put(env, name, new StringObject { value });
+            result->put(env, name, StringObject::create(value));
         }
     }
     return result;

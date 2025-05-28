@@ -261,9 +261,9 @@ module Natalie
               encoding_object = "EncodingObject::get(Encoding::#{enum})"
               new_string =
                 if str.empty?
-                  "#{interned_strings_var_name}[#{index}] = new StringObject(#{encoding_object});"
+                  "#{interned_strings_var_name}[#{index}] = StringObject::create(#{encoding_object});"
                 else
-                  "#{interned_strings_var_name}[#{index}] = new StringObject(#{string_to_cpp(str)}, #{str.bytesize}, #{encoding_object});"
+                  "#{interned_strings_var_name}[#{index}] = StringObject::create(#{string_to_cpp(str)}, #{str.bytesize}, #{encoding_object});"
                 end
               [new_string, "#{interned_strings_var_name}[#{index}]->freeze();"]
             end
@@ -272,7 +272,7 @@ module Natalie
         def init_dollar_zero_global
           return unless @type == :main
 
-          "env->global_set(\"$0\"_s, new StringObject { #{@backend.compiler_context[:source_path].inspect} });"
+          "env->global_set(\"$0\"_s, StringObject::create(#{@backend.compiler_context[:source_path].inspect}));"
         end
 
         def symbols_var_name

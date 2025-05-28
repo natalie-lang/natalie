@@ -196,7 +196,7 @@ void StringUnpacker::unpack_token(Env *env, Token &token) {
 
 void StringUnpacker::unpack_A(Token &token) {
     if (at_end()) {
-        append(new StringObject("", Encoding::ASCII_8BIT));
+        append(StringObject::create("", Encoding::ASCII_8BIT));
         return;
     }
 
@@ -218,12 +218,12 @@ void StringUnpacker::unpack_A(Token &token) {
         }
     }
 
-    append(new StringObject(out, Encoding::ASCII_8BIT));
+    append(StringObject::create(out, Encoding::ASCII_8BIT));
 }
 
 void StringUnpacker::unpack_a(Token &token) {
     if (at_end()) {
-        append(new StringObject("", Encoding::ASCII_8BIT));
+        append(StringObject::create("", Encoding::ASCII_8BIT));
         return;
     }
 
@@ -234,7 +234,7 @@ void StringUnpacker::unpack_a(Token &token) {
         return true;
     });
 
-    append(new StringObject(out, Encoding::ASCII_8BIT));
+    append(StringObject::create(out, Encoding::ASCII_8BIT));
 }
 
 void StringUnpacker::unpack_B(Token &token) {
@@ -248,7 +248,7 @@ void StringUnpacker::unpack_B(Token &token) {
         return c << 1;
     });
 
-    append(new StringObject { out, Encoding::US_ASCII });
+    append(StringObject::create(out, Encoding::US_ASCII));
 }
 
 void StringUnpacker::unpack_C(Token &token) {
@@ -292,7 +292,7 @@ void StringUnpacker::unpack_b(Token &token) {
         return c >> 1;
     });
 
-    append(new StringObject { out, Encoding::US_ASCII });
+    append(StringObject::create(out, Encoding::US_ASCII));
 }
 
 void StringUnpacker::unpack_H(Token &token) {
@@ -304,7 +304,7 @@ void StringUnpacker::unpack_H(Token &token) {
             out.append_sprintf("%x", c & 0x0F);
     });
 
-    append(new StringObject { out, Encoding::US_ASCII });
+    append(StringObject::create(out, Encoding::US_ASCII));
 }
 
 void StringUnpacker::unpack_h(Token &token) {
@@ -316,7 +316,7 @@ void StringUnpacker::unpack_h(Token &token) {
             out.append_sprintf("%x", c >> 4);
     });
 
-    append(new StringObject { out, Encoding::US_ASCII });
+    append(StringObject::create(out, Encoding::US_ASCII));
 }
 
 void StringUnpacker::unpack_M(Env *env, Token &token) {
@@ -367,7 +367,7 @@ void StringUnpacker::unpack_M(Env *env, Token &token) {
         out.append_char(c);
     }
 
-    append(new StringObject(out, Encoding::ASCII_8BIT));
+    append(StringObject::create(out, Encoding::ASCII_8BIT));
 }
 
 void StringUnpacker::unpack_m(Env *env, Token &token) {
@@ -433,7 +433,7 @@ void StringUnpacker::unpack_m(Env *env, Token &token) {
             env->raise("ArgumentError", "invalid base64");
     }
 
-    append(new StringObject(out, Encoding::ASCII_8BIT));
+    append(StringObject::create(out, Encoding::ASCII_8BIT));
 }
 
 void StringUnpacker::unpack_P(Token &token) {
@@ -444,7 +444,7 @@ void StringUnpacker::unpack_P(Token &token) {
 
     const char *p = *(const char **)pointer();
     const size_t size = std::min(static_cast<size_t>(token.count), strlen(p));
-    append(new StringObject(p, size));
+    append(StringObject::create(p, size));
     m_index += sizeof(uintptr_t);
 }
 
@@ -454,7 +454,7 @@ void StringUnpacker::unpack_p() {
         return;
     }
 
-    append(new StringObject(*(const char **)pointer()));
+    append(StringObject::create(*(const char **)pointer()));
     m_index += sizeof(uintptr_t);
 }
 
@@ -532,7 +532,7 @@ void StringUnpacker::unpack_u(Token &token) {
             continue;
     }
 
-    append(new StringObject(out, Encoding::ASCII_8BIT));
+    append(StringObject::create(out, Encoding::ASCII_8BIT));
 }
 
 void StringUnpacker::unpack_w(Env *env, Token &token) {
@@ -604,7 +604,7 @@ void StringUnpacker::unpack_x(Env *env, Token &token) {
 
 void StringUnpacker::unpack_Z(Token &token) {
     if (at_end()) {
-        append(new StringObject("", Encoding::ASCII_8BIT));
+        append(StringObject::create("", Encoding::ASCII_8BIT));
         return;
     }
 
@@ -620,7 +620,7 @@ void StringUnpacker::unpack_Z(Token &token) {
     if (token.count > 0 && (ssize_t)consumed < token.count)
         m_index += (token.count - consumed);
 
-    append(new StringObject(out, Encoding::ASCII_8BIT));
+    append(StringObject::create(out, Encoding::ASCII_8BIT));
 }
 
 void StringUnpacker::unpack_at(Env *env, Token &token) {

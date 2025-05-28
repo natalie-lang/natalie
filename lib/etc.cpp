@@ -14,13 +14,13 @@ Value group_to_struct(Env *env, Value self, struct group *grp) {
     auto grpstruct = etc_group.send(env, "new"_s, {});
     // It is possible more fields could be set, but these
     // are the ones required by POSIX
-    grpstruct.send(env, "name="_s, { new StringObject { grp->gr_name } });
-    grpstruct.send(env, "passwd="_s, { new StringObject { grp->gr_passwd } });
+    grpstruct.send(env, "name="_s, { StringObject::create(grp->gr_name) });
+    grpstruct.send(env, "passwd="_s, { StringObject::create(grp->gr_passwd) });
     grpstruct.send(env, "gid="_s, { Value::integer(grp->gr_gid) });
     auto mem_ary = new ArrayObject {};
     char **memptr = grp->gr_mem;
     for (char *member_name = *memptr; member_name; member_name = *++memptr) {
-        auto memstr = new StringObject { member_name };
+        auto memstr = StringObject::create(member_name);
         mem_ary->push(Value(memstr));
     }
     grpstruct.send(env, "mem="_s, { mem_ary });
@@ -32,13 +32,13 @@ Value passwd_to_struct(Env *env, Value self, struct passwd *pwd) {
     auto pwdstruct = etc_passwd.send(env, "new"_s, {});
     // It is possible more fields could be set, but these
     // are the ones required by POSIX
-    pwdstruct.send(env, "name="_s, { new StringObject { pwd->pw_name } });
+    pwdstruct.send(env, "name="_s, { StringObject::create(pwd->pw_name) });
     pwdstruct.send(env, "uid="_s, { Value::integer(pwd->pw_uid) });
     pwdstruct.send(env, "gid="_s, { Value::integer(pwd->pw_gid) });
-    pwdstruct.send(env, "dir="_s, { new StringObject { pwd->pw_dir } });
-    pwdstruct.send(env, "gecos="_s, { new StringObject { pwd->pw_gecos } });
-    pwdstruct.send(env, "passwd="_s, { new StringObject { pwd->pw_passwd } });
-    pwdstruct.send(env, "shell="_s, { new StringObject { pwd->pw_shell } });
+    pwdstruct.send(env, "dir="_s, { StringObject::create(pwd->pw_dir) });
+    pwdstruct.send(env, "gecos="_s, { StringObject::create(pwd->pw_gecos) });
+    pwdstruct.send(env, "passwd="_s, { StringObject::create(pwd->pw_passwd) });
+    pwdstruct.send(env, "shell="_s, { StringObject::create(pwd->pw_shell) });
     return pwdstruct;
 }
 
@@ -58,7 +58,7 @@ Value Etc_confstr(Env *env, Value self, Args &&args, Block *) {
     TM::String buf(size - 1, '\0');
     if (!::confstr(name, &buf[0], size))
         env->raise_errno();
-    return new StringObject { std::move(buf) };
+    return StringObject::create(std::move(buf));
 }
 
 Value Etc_endgrent(Env *env, Value self, Args &&args, Block *_block) {
@@ -109,7 +109,7 @@ Value Etc_getlogin(Env *env, Value self, Args &&args, Block *_block) {
     char *login = ::getlogin();
     if (!login) login = ::getenv("USER");
     if (!login) return Value::nil();
-    return new StringObject { login, EncodingObject::locale() };
+    return StringObject::create(login, EncodingObject::locale());
 }
 
 Value Etc_getpwent(Env *env, Value self, Args &&args, Block *_block) {
@@ -181,9 +181,9 @@ Value Etc_systmpdir(Env *env, Value, Args &&args, Block *) {
     // https://forums.developer.apple.com/forums/thread/71382
     char buf[PATH_MAX + 1];
     const auto len = confstr(_CS_DARWIN_USER_TEMP_DIR, buf, PATH_MAX);
-    return new StringObject { buf, len, Encoding::ASCII_8BIT };
+    return StringObject::create(buf, len, Encoding::ASCII_8BIT);
 #else
-    return new StringObject { "/tmp", Encoding::ASCII_8BIT };
+    return StringObject::create("/tmp", Encoding::ASCII_8BIT);
 #endif
 }
 
@@ -195,10 +195,10 @@ Value Etc_uname(Env *env, Value, Args &&args, Block *) {
         env->raise_errno();
 
     auto result = new HashObject;
-    result->put(env, SymbolObject::intern("sysname"), new StringObject { buf.sysname });
-    result->put(env, SymbolObject::intern("nodename"), new StringObject { buf.nodename });
-    result->put(env, SymbolObject::intern("release"), new StringObject { buf.release });
-    result->put(env, SymbolObject::intern("version"), new StringObject { buf.version });
-    result->put(env, SymbolObject::intern("machine"), new StringObject { buf.machine });
+    result->put(env, SymbolObject::intern("sysname"), StringObject::create(buf.sysname));
+    result->put(env, SymbolObject::intern("nodename"), StringObject::create(buf.nodename));
+    result->put(env, SymbolObject::intern("release"), StringObject::create(buf.release));
+    result->put(env, SymbolObject::intern("version"), StringObject::create(buf.version));
+    result->put(env, SymbolObject::intern("machine"), StringObject::create(buf.machine));
     return result;
 }

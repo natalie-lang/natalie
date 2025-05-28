@@ -776,7 +776,7 @@ String ModuleObject::inspect_module() const {
 }
 
 Value ModuleObject::inspect(Env *env) const {
-    return new StringObject { inspect_module() };
+    return StringObject::create(inspect_module());
 }
 
 Value ModuleObject::name(Env *env) const {
@@ -790,7 +790,7 @@ Value ModuleObject::name(Env *env) const {
                 name.prepend(owner_name.value());
             }
         }
-        return new StringObject { name };
+        return StringObject::create(name);
     } else {
         return Value::nil();
     }

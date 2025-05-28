@@ -94,7 +94,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::String:
-        obj = new StringObject { klass };
+        obj = StringObject::create(klass);
         break;
 
     case Object::Type::Thread:
@@ -499,7 +499,7 @@ Value Object::main_obj_define_method(Env *env, Value name, Optional<Value> proc_
 }
 
 Value Object::main_obj_inspect(Env *) {
-    return new StringObject { "main" };
+    return StringObject::create("main");
 }
 
 void Object::private_method(Env *env, SymbolObject *name) {
@@ -643,7 +643,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Regexp:
         return new RegexpObject { env, *static_cast<const RegexpObject *>(this) };
     case Object::Type::String:
-        return new StringObject { *static_cast<const StringObject *>(this) };
+        return StringObject::create(*static_cast<const StringObject *>(this));
     case Object::Type::Symbol:
         return SymbolObject::intern(static_cast<const SymbolObject *>(this)->string());
     case Object::Type::Time:
@@ -739,7 +739,7 @@ const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
 Value Object::defined_obj(Env *env, SymbolObject *name, bool strict) {
     const char *result = defined(env, name, strict);
     if (result) {
-        return new StringObject { result };
+        return StringObject::create(result);
     } else {
         return Value::nil();
     }
@@ -811,7 +811,7 @@ void Object::assert_not_frozen(Env *env, Value receiver) {
         auto FrozenError = GlobalEnv::the()->Object()->const_fetch("FrozenError"_s);
         String message = String::format("can't modify frozen {}: {}", klass()->inspect_module(), inspected(env));
         auto kwargs = new HashObject(env, { "receiver"_s, receiver });
-        auto args = Args({ new StringObject { message }, kwargs }, true);
+        auto args = Args({ StringObject::create(message), kwargs }, true);
         ExceptionObject *error = FrozenError.send(env, "new"_s, std::move(args)).as_exception();
         env->raise_exception(error);
     }

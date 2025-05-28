@@ -176,7 +176,7 @@ module Marshal
             if (sign) {
                 string.prepend_char('-');
             }
-            self.send(env, "write_string_bytes"_s, { new StringObject { string, Encoding::US_ASCII } });
+            self.send(env, "write_string_bytes"_s, { StringObject::create(string, Encoding::US_ASCII) });
         END
       end
     end

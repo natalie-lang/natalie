@@ -44,8 +44,8 @@ class Fiddle
       ptr_obj.assert_type(env, Object::Type::VoidP, "VoidP");
       auto ptr = (const char *)ptr_obj.as_void_p()->void_ptr();
       if (!len.is_nil())
-        return new StringObject { ptr, (size_t)len.integer().to_nat_int_t() };
-      return new StringObject { ptr };
+        return StringObject::create(ptr, (size_t)len.integer().to_nat_int_t());
+      return StringObject::create(ptr);
     END
   end
 

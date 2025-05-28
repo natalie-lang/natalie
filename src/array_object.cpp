@@ -7,7 +7,6 @@
 #include <natalie/array_packer/packer.hpp>
 #include <natalie/string_object.hpp>
 #include <natalie/symbol_object.hpp>
-#include <random>
 #include <tm/hashmap.hpp>
 #include <tm/recursion_guard.hpp>
 
@@ -154,12 +153,12 @@ Value ArrayObject::inspect(Env *env) {
 
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
-            return new StringObject { "[...]" };
+            return StringObject::create("[...]");
 
         if (is_empty())
-            return new StringObject { "[]", Encoding::US_ASCII };
+            return StringObject::create("[]", Encoding::US_ASCII);
 
-        StringObject *out = new StringObject { "[" };
+        StringObject *out = StringObject::create("[");
         for (size_t i = 0; i < size(); i++) {
             Value obj = (*this)[i];
 
@@ -913,7 +912,7 @@ Value ArrayObject::join(Env *env, Optional<Value> joiner_arg) {
         if (is_recursive)
             env->raise("ArgumentError", "recursive array join");
         if (size() == 0) {
-            return (Value) new StringObject { "", Encoding::US_ASCII };
+            return (Value)StringObject::create("", Encoding::US_ASCII);
         } else {
             Value joiner;
             if (joiner_arg && !joiner_arg.value().is_nil())
@@ -921,12 +920,12 @@ Value ArrayObject::join(Env *env, Optional<Value> joiner_arg) {
             else
                 joiner = env->global_get("$,"_s);
             if (joiner.is_nil())
-                joiner = new StringObject { "" };
+                joiner = StringObject::create("");
 
             if (!joiner.is_string())
                 joiner = joiner.to_str(env);
 
-            StringObject *out = new StringObject {};
+            StringObject *out = StringObject::create();
             for (size_t i = 0; i < size(); i++) {
                 Value item = (*this)[i];
                 out->append(_subjoin(env, item, joiner));
@@ -979,7 +978,7 @@ Value ArrayObject::pack(Env *env, Value directives, Optional<Value> buffer_arg) 
 
     auto directives_string = directives.as_string()->string();
     if (directives_string.is_empty())
-        return new StringObject { "", Encoding::US_ASCII };
+        return StringObject::create("", Encoding::US_ASCII);
 
     if (buffer_arg) {
         auto buffer = buffer_arg.value();
@@ -987,7 +986,7 @@ Value ArrayObject::pack(Env *env, Value directives, Optional<Value> buffer_arg) 
             env->raise("TypeError", "buffer must be String, not {}", buffer.klass()->inspect_module());
         return ArrayPacker::Packer { this, directives_string }.pack(env, buffer.as_string());
     } else {
-        StringObject *start_buffer = new StringObject { "", Encoding::ASCII_8BIT };
+        StringObject *start_buffer = StringObject::create("", Encoding::ASCII_8BIT);
         return ArrayPacker::Packer { this, directives_string }.pack(env, start_buffer);
     }
 }

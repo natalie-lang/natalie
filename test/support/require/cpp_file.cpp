@@ -3,7 +3,7 @@
 using namespace Natalie;
 
 Value defn_cpp_file(Env *env, Value self, Args &&, Block *block) {
-    return new StringObject { "cpp_file" };
+    return StringObject::create("cpp_file");
 }
 
 Value init_cpp_file(Env *env, Value self) {

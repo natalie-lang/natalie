@@ -125,7 +125,7 @@ public:
 
     Value get_path() const;
     void set_path(StringObject *path) { m_path = path; }
-    void set_path(String path) { m_path = new StringObject { path }; }
+    void set_path(String path) { m_path = StringObject::create(path); }
 
     Value external_encoding() const {
         if (!m_external_encoding)

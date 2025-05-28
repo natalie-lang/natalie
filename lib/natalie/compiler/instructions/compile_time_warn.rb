@@ -27,7 +27,7 @@ module Natalie
           transform.exec '      return false'
           transform.exec '    }'
         end
-        transform.exec "    self.send(env, \"warn\"_s, { new StringObject { #{string_to_cpp(message)} } })"
+        transform.exec "    self.send(env, \"warn\"_s, { StringObject::create(#{string_to_cpp(message)}) })"
         transform.exec '    return true'
         transform.exec '}()'
       end
