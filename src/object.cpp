@@ -62,7 +62,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::File:
-        obj = new FileObject { klass };
+        obj = FileObject::create(klass);
         break;
 
     case Object::Type::MatchData:

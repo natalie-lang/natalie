@@ -40,7 +40,7 @@ Value Tempfile_initialize(Env *env, Value self, Args &&args, Block *) {
     if (fileno == -1)
         env->raise_errno();
 
-    auto file = new FileObject {};
+    auto file = FileObject::create();
     file->initialize(env, Args({ Value::integer(fileno), kwargs }, true), nullptr);
     file->set_path(path);
 

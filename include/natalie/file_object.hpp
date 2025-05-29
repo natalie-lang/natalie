@@ -5,22 +5,21 @@
 #include <sys/stat.h>
 
 #include "natalie/forward.hpp"
-#include "natalie/integer_methods.hpp"
 #include "natalie/io_object.hpp"
-#include "natalie/regexp_object.hpp"
 #include "natalie/string_object.hpp"
 #include "natalie/symbol_object.hpp"
-#include "tm/defer.hpp"
 
 namespace Natalie {
 
 class FileObject : public IoObject {
 public:
-    FileObject()
-        : FileObject { GlobalEnv::the()->Object()->const_fetch("File"_s).as_class() } { }
+    static FileObject *create() {
+        return new FileObject();
+    }
 
-    FileObject(ClassObject *klass)
-        : IoObject { Object::Type::File, klass } { }
+    static FileObject *create(ClassObject *klass) {
+        return new FileObject(klass);
+    }
 
     Value initialize(Env *, Args &&, Block *);
 
@@ -103,6 +102,13 @@ public:
     }
 
     IoObject *as_io() { return static_cast<IoObject *>(this); }
+
+private:
+    FileObject()
+        : FileObject { GlobalEnv::the()->Object()->const_fetch("File"_s).as_class() } { }
+
+    FileObject(ClassObject *klass)
+        : IoObject { Object::Type::File, klass } { }
 };
 
 }
