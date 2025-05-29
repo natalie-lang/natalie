@@ -17,19 +17,20 @@ namespace Natalie {
 
 class IoObject : public Object {
 public:
-    IoObject()
-        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s).as_class() } { }
+    static IoObject *create() {
+        return new IoObject();
+    }
 
-    IoObject(ClassObject *klass)
-        : Object { Object::Type::Io, klass } { }
+    static IoObject *create(ClassObject *klass) {
+        return new IoObject(klass);
+    }
 
-    IoObject(Type type, ClassObject *klass)
-        : Object { type, klass } { }
+    static IoObject *create(Type type, ClassObject *klass) {
+        return new IoObject(type, klass);
+    }
 
-    IoObject(int fileno)
-        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s).as_class() }
-        , m_sync { fileno == STDERR_FILENO } {
-        set_fileno(fileno);
+    static IoObject *create(int fileno) {
+        return new IoObject(fileno);
     }
 
     virtual ~IoObject() override {
@@ -145,6 +146,21 @@ public:
     }
 
 protected:
+    IoObject()
+        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s).as_class() } { }
+
+    IoObject(ClassObject *klass)
+        : Object { Object::Type::Io, klass } { }
+
+    IoObject(Type type, ClassObject *klass)
+        : Object { type, klass } { }
+
+    IoObject(int fileno)
+        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s).as_class() }
+        , m_sync { fileno == STDERR_FILENO } {
+        set_fileno(fileno);
+    }
+
     void raise_if_closed(Env *) const;
     int write(Env *, Value);
 

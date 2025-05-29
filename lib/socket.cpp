@@ -152,7 +152,7 @@ static Value Server_accept(Env *env, Value self, SymbolObject *klass, sockaddr_s
         return fd;
 
     auto Socket = find_top_level_const(env, klass).as_class_or_raise(env);
-    auto socket = new IoObject { Socket };
+    auto socket = IoObject::create(Socket);
     socket->set_fileno(IntegerMethods::convert_to_native_type<int>(env, fd));
     socket->set_close_on_exec(env, Value::True());
     socket->set_nonblock(env, true);
