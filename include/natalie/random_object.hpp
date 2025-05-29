@@ -77,7 +77,7 @@ private:
     Value generate_random(double min, double max) {
         assert(m_generator);
         std::uniform_real_distribution<double> random_number(min, max);
-        return new FloatObject { random_number(*m_generator) };
+        return FloatObject::create(random_number(*m_generator));
     }
 
     Value generate_random(nat_int_t min, nat_int_t max) {

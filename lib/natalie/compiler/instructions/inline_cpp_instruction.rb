@@ -86,7 +86,7 @@ module Natalie
           lambda do |value, type|
             case type
             when 'double'
-              "Value(new FloatObject { #{value} })"
+              "Value(FloatObject::create(#{value}))"
             when 'Value'
               value
             else

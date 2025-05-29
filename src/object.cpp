@@ -627,7 +627,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::False:
         return Value::False();
     case Object::Type::Float:
-        return new FloatObject { *static_cast<const FloatObject *>(this) };
+        return FloatObject::create(*static_cast<const FloatObject *>(this));
     case Object::Type::Hash:
         return new HashObject { env, *static_cast<const HashObject *>(this) };
     case Object::Type::Module:

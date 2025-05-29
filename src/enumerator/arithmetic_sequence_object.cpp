@@ -65,7 +65,7 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
         if (!exclude_end())
             step_count += 1;
     } else {
-        auto a = n.send(env, "+"_s, { n.send(env, "*"_s, { new FloatObject { std::numeric_limits<double>::epsilon() } }) });
+        auto a = n.send(env, "+"_s, { n.send(env, "*"_s, { FloatObject::create(std::numeric_limits<double>::epsilon()) }) });
         auto b = a.send(env, "floor"_s).integer();
         step_count = b + 1;
     }

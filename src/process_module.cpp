@@ -37,7 +37,7 @@ Value ProcessModule::clock_gettime(Env *env, Value clock_id) {
         env->raise_errno();
 
     double result = static_cast<double>(tp.tv_sec) + tp.tv_nsec / static_cast<double>(1000000000);
-    return new FloatObject { result };
+    return FloatObject::create(result);
 }
 
 Value ProcessModule::kill(Env *env, Args &&args) {
@@ -101,7 +101,7 @@ Value ProcessModule::times(Env *env) {
     if (getrusage(RUSAGE_CHILDREN, &rusage_children) == -1)
         env->raise_errno();
     auto tv_to_float = [](const timeval tv) {
-        return new FloatObject { static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) / 1e6 };
+        return FloatObject::create(static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) / 1e6);
     };
     auto utime = tv_to_float(rusage_self.ru_utime);
     auto stime = tv_to_float(rusage_self.ru_stime);

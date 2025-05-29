@@ -37,7 +37,7 @@ Value NilMethods::to_h(const Value) {
 }
 
 Value NilMethods::to_f(const Value) {
-    return new FloatObject { 0.0 };
+    return FloatObject::create(0.0);
 }
 
 Value NilMethods::to_i(const Value) {

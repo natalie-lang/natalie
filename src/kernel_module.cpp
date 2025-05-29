@@ -691,7 +691,7 @@ RationalObject *KernelModule::Rational(Env *env, double arg) {
     auto y = IntegerMethods::pow(env, radix, power).integer();
 
     int exponent;
-    FloatObject *significand = new FloatObject { std::frexp(arg, &exponent) };
+    FloatObject *significand = FloatObject::create(std::frexp(arg, &exponent));
     auto x = significand->mul(env, y).as_float()->to_i(env).integer();
 
     class Integer two(2);
