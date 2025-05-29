@@ -58,7 +58,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Io:
-        obj = new IoObject { klass };
+        obj = IoObject::create(klass);
         break;
 
     case Object::Type::File:
