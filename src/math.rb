@@ -186,7 +186,7 @@ module Math
       }
       int exponent;
       auto significand = std::frexp(value->to_double(), &exponent);
-      return new ArrayObject { { new FloatObject { significand }, Value::integer(exponent) } };
+      return new ArrayObject { { FloatObject::create(significand), Value::integer(exponent) } };
     END
 
     __function__('::tgamma', ['double'], 'double')
@@ -260,7 +260,7 @@ module Math
       }
       int sign = 1;
       auto v = ::lgamma_r(value->to_double(), &sign);
-      return new ArrayObject { {  new FloatObject { v }, Value::integer(sign) } };
+      return new ArrayObject { {  Value(FloatObject::create(v)), Value::integer(sign) } };
     END
 
     __function__('::log10', ['double'], 'double')

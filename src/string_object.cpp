@@ -3984,8 +3984,8 @@ void StringObject::append(unsigned int i) {
 }
 
 void StringObject::append(double d) {
-    auto f = FloatObject(d);
-    m_string.append(f.to_s().as_string()->string());
+    auto f = FloatObject::create(d);
+    m_string.append(f->to_s().as_string()->string());
 }
 
 void StringObject::append(const FloatObject *f) {
@@ -4196,7 +4196,7 @@ Value StringObject::convert_float() {
     double value = strtod(string.c_str(), &endptr);
 
     if (endptr[0] == '\0') {
-        return new FloatObject { value };
+        return FloatObject::create(value);
     } else {
         return Value::nil();
     }

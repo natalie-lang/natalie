@@ -302,7 +302,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     } else if (return_type == char_sym) {
         return Value::integer(result);
     } else if (return_type == double_sym) {
-        return new FloatObject { *reinterpret_cast<double *>(&result) };
+        return FloatObject::create(*reinterpret_cast<double *>(&result));
     } else if (return_type == int_sym || return_type == uint_sym || return_type == ulong_sym) {
         return Value::integer(result);
     } else if (return_type == pointer_sym) {

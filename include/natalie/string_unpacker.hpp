@@ -74,7 +74,7 @@ private:
                 }
                 m_index += sizeof(T);
                 double double_val = double(*(T *)out.c_str());
-                auto fltobj = new FloatObject { double_val };
+                auto fltobj = FloatObject::create(double_val);
                 append(fltobj);
             }
             consumed++;

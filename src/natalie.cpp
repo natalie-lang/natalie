@@ -95,8 +95,8 @@ Env *build_top_env() {
 
     ModuleObject *Math = new ModuleObject { "Math" };
     Object->const_set("Math"_s, Math);
-    Math->const_set("E"_s, new FloatObject { M_E });
-    Math->const_set("PI"_s, new FloatObject { M_PI });
+    Math->const_set("E"_s, FloatObject::create(M_E));
+    Math->const_set("PI"_s, FloatObject::create(M_PI));
 
     ModuleObject *Signal = new ModuleObject { "Signal" };
     Object->const_set("Signal"_s, Signal);
