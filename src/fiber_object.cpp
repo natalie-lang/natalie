@@ -187,7 +187,7 @@ NO_SANITIZE_ADDRESS Value FiberObject::resume(Env *env, Args args) {
     } else if (fiber_args.size() == 1) {
         return fiber_args.at(0);
     } else {
-        return new ArrayObject { fiber_args.size(), fiber_args.data() };
+        return ArrayObject::create(fiber_args.size(), fiber_args.data());
     }
 }
 
@@ -277,7 +277,7 @@ NO_SANITIZE_ADDRESS Value FiberObject::yield(Env *env, Args args) {
     } else if (fiber_args.size() == 1) {
         return fiber_args.at(0);
     } else {
-        return new ArrayObject { fiber_args.size(), fiber_args.data() };
+        return ArrayObject::create(fiber_args.size(), fiber_args.data());
     }
 }
 

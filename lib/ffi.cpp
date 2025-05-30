@@ -105,7 +105,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
     auto handle_ptr = new VoidPObject { handle, [](auto p) { dlclose(p->void_ptr()); } };
     auto libs = self->ivar_get(env, "@ffi_libs"_s);
     if (libs.is_nil())
-        libs = self->ivar_set(env, "@ffi_libs"_s, new ArrayObject);
+        libs = self->ivar_set(env, "@ffi_libs"_s, ArrayObject::create());
     auto DynamicLibrary = fetch_nested_const({ "FFI"_s, "DynamicLibrary"_s });
     auto lib = DynamicLibrary.send(env, "new"_s, { name, handle_ptr });
     libs.as_array()->push(lib);

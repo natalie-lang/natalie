@@ -25,7 +25,7 @@ Value NilMethods::to_s(const Value) {
 }
 
 Value NilMethods::to_a(const Value) {
-    return new ArrayObject {};
+    return ArrayObject::create();
 }
 
 Value NilMethods::to_c(const Value) {

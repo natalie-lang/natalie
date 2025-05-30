@@ -476,7 +476,7 @@ Value IntegerMethods::size(Env *env, Integer self) {
 }
 
 Value IntegerMethods::coerce(Env *env, Value self, Value arg) {
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = ArrayObject::create();
     if (arg.is_integer()) {
         ary->push(arg);
         ary->push(self);

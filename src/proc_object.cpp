@@ -84,7 +84,7 @@ Value ProcObject::source_location() {
     assert(m_block);
     auto file = m_block->env()->file();
     if (file == nullptr) return Value::nil();
-    return new ArrayObject { StringObject::create(file), Value::integer(static_cast<nat_int_t>(m_block->env()->line())) };
+    return ArrayObject::create({ StringObject::create(file), Value::integer(static_cast<nat_int_t>(m_block->env()->line())) });
 }
 
 StringObject *ProcObject::to_s(Env *env) {

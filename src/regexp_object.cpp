@@ -549,7 +549,7 @@ Value RegexpObject::named_captures(Env *env) const {
             auto named_captures = (static_cast<named_captures_data *>(data))->named_captures;
             const size_t length = name_end - name;
             auto key = StringObject::create(reinterpret_cast<const char *>(name), length, onig_encoding_to_ruby_encoding(regex->enc));
-            auto values = new ArrayObject { static_cast<size_t>(groups_size) };
+            auto values = ArrayObject::create(static_cast<size_t>(groups_size));
             for (size_t i = 0; i < static_cast<size_t>(groups_size); i++)
                 values->push(Value::integer(groups[i]));
             named_captures->put(env, key, values);
@@ -561,9 +561,9 @@ Value RegexpObject::named_captures(Env *env) const {
 
 Value RegexpObject::names() const {
     if (!m_regex)
-        return new ArrayObject {};
+        return ArrayObject::create();
 
-    auto names = new ArrayObject { static_cast<size_t>(onig_number_of_names(m_regex)) };
+    auto names = ArrayObject::create(static_cast<size_t>(onig_number_of_names(m_regex)));
     onig_foreach_name(
         m_regex,
         [](const UChar *name, const UChar *name_end, int, int *, regex_t *regex, void *data) -> int {

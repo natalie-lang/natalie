@@ -25,7 +25,7 @@ Value Linenoise_get_history(Env *env, Value self, Args &&args, Block *) {
     char **history = nullptr;
     int history_len = linenoiseHistoryGet(&history);
 
-    auto ary = new ArrayObject {};
+    auto ary = ArrayObject::create();
     if (history) {
         for (int i = 0; i < history_len; i++)
             ary->push(StringObject::create(history[i]));

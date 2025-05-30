@@ -106,7 +106,7 @@ public:
         if (result < 0) env->raise_errno();
         auto curlim = Value::integer((nat_int_t)(rlim.rlim_cur));
         auto maxlim = Value::integer((nat_int_t)(rlim.rlim_max));
-        return new ArrayObject { curlim, maxlim };
+        return ArrayObject::create({ curlim, maxlim });
     }
 
     static int getsid(Env *env, Optional<Value> pid = {}) {

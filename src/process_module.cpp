@@ -23,7 +23,7 @@ Value ProcessModule::groups(Env *env) {
     size = getgroups(size, list);
     if (size < 0)
         env->raise_errno();
-    auto result = new ArrayObject { static_cast<size_t>(size) };
+    auto result = ArrayObject::create(static_cast<size_t>(size));
     for (size_t i = 0; i < static_cast<size_t>(size); i++) {
         result->push(Value::integer(list[i]));
     }

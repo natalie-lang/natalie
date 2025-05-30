@@ -17,7 +17,7 @@ Value group_to_struct(Env *env, Value self, struct group *grp) {
     grpstruct.send(env, "name="_s, { StringObject::create(grp->gr_name) });
     grpstruct.send(env, "passwd="_s, { StringObject::create(grp->gr_passwd) });
     grpstruct.send(env, "gid="_s, { Value::integer(grp->gr_gid) });
-    auto mem_ary = new ArrayObject {};
+    auto mem_ary = ArrayObject::create();
     char **memptr = grp->gr_mem;
     for (char *member_name = *memptr; member_name; member_name = *++memptr) {
         auto memstr = StringObject::create(member_name);

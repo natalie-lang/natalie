@@ -222,7 +222,7 @@ Value ArithmeticSequenceObject::last(Env *env, Optional<Value> n) {
 
         IntegerMethods::assert_fixnum(env, n_as_int);
 
-        auto array = new ArrayObject { (size_t)count.to_nat_int_t() };
+        auto array = ArrayObject::create((size_t)count.to_nat_int_t());
 
         auto _begin = maybe_to_f(env, m_begin);
         auto last = _begin.send(env, "+"_s, { step().send(env, "*"_s, { steps }) });

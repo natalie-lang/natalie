@@ -32,7 +32,7 @@ Value ThreadGroupObject::enclose() {
 }
 
 ArrayObject *ThreadGroupObject::list() {
-    auto result = new ArrayObject { m_threads.size() };
+    auto result = ArrayObject::create(m_threads.size());
     for (auto thread : m_threads)
         result->push(thread);
     return result;

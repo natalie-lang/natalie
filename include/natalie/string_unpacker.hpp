@@ -202,7 +202,7 @@ private:
             m_unpacked_value = value;
         } else {
             if (!m_unpacked_array) {
-                m_unpacked_array = new ArrayObject {};
+                m_unpacked_array = ArrayObject::create();
                 m_unpacked_array->push(m_unpacked_value.value());
             }
             m_unpacked_array->push(value);
@@ -213,8 +213,8 @@ private:
         if (m_unpacked_array)
             return m_unpacked_array;
         else if (m_unpacked_value)
-            return new ArrayObject { m_unpacked_value.value() };
-        return new ArrayObject {};
+            return ArrayObject::create({ m_unpacked_value.value() });
+        return ArrayObject::create();
     }
 
     const StringObject *m_source;

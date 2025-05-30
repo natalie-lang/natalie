@@ -429,7 +429,7 @@ Env *build_top_env() {
     File->include_once(env, FileConstants);
     IO->include_once(env, FileConstants);
 
-    env->global_set("$NAT_at_exit_handlers"_s, new ArrayObject {});
+    env->global_set("$NAT_at_exit_handlers"_s, ArrayObject::create());
 
     auto main_obj = new Natalie::Object {};
     GlobalEnv::the()->set_main_obj(main_obj);
@@ -468,7 +468,7 @@ Env *build_top_env() {
 
     GlobalEnv::the()->global_set_read_hook(env, "$$"_s, true, GlobalVariableAccessHooks::ReadHooks::getpid);
 
-    env->global_set("$\""_s, new ArrayObject {}, true);
+    env->global_set("$\""_s, ArrayObject::create(), true);
     env->global_alias("$LOADED_FEATURES"_s, "$\""_s);
 
     env->global_set("$?"_s, Value::nil(), true);
@@ -534,7 +534,7 @@ Env *build_top_env() {
 
 Value splat(Env *env, Value obj) {
     if (obj.is_array()) {
-        return new ArrayObject { *obj.as_array() };
+        return ArrayObject::create(*obj.as_array());
     } else {
         return to_ary(env, obj, false);
     }
@@ -666,7 +666,7 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
         }
     }
 
-    return new ArrayObject { obj };
+    return ArrayObject::create({ obj });
 }
 
 Value to_ary_for_masgn(Env *env, Value obj) {
@@ -688,7 +688,7 @@ Value to_ary_for_masgn(Env *env, Value obj) {
         }
     }
 
-    return new ArrayObject { obj };
+    return ArrayObject::create({ obj });
 }
 
 void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {

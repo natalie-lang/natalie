@@ -593,7 +593,7 @@ Value KernelModule::p(Env *env, Args &&args) {
         puts(env, { arg });
         return args[0];
     } else {
-        ArrayObject *result = new ArrayObject { args.size() };
+        ArrayObject *result = ArrayObject::create(args.size());
         Vector<Value> puts_args(args.size());
         for (size_t i = 0; i < args.size(); i++) {
             result->push(args[i]);
@@ -1010,7 +1010,7 @@ Value KernelModule::instance_variable_set(Env *env, Value self, Value name_val, 
 
 Value KernelModule::instance_variables(Env *env, Value self) {
     if (!self.has_instance_variables())
-        return new ArrayObject;
+        return ArrayObject::create();
 
     return self->instance_variables(env);
 }
@@ -1079,7 +1079,7 @@ Value KernelModule::methods(Env *env, Value self, Optional<Value> regular_val) {
     if (self->singleton_class())
         return self->singleton_class()->instance_methods(env, Value::False());
     else
-        return new ArrayObject {};
+        return ArrayObject::create();
 }
 
 bool KernelModule::neqtilde(Env *env, Value self, Value other) {

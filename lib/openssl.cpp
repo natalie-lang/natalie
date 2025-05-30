@@ -255,7 +255,7 @@ Value OpenSSL_Cipher_update(Env *env, Value self, Args &&args, Block *) {
 }
 
 Value OpenSSL_Cipher_ciphers(Env *env, Value self, Args &&args, Block *) {
-    auto result = new ArrayObject {};
+    auto result = ArrayObject::create();
     OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_CIPHER_METH, OpenSSL_Cipher_ciphers_add_cipher, result);
     return result;
 }
@@ -1246,10 +1246,10 @@ Value OpenSSL_X509_Name_to_a(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s).as_void_p()->void_ptr());
     const size_t size = X509_NAME_entry_count(name);
-    auto result = new ArrayObject { size };
+    auto result = ArrayObject::create(size);
     for (size_t i = 0; i < size; i++) {
         X509_NAME_ENTRY *name_entry = X509_NAME_get_entry(name, i);
-        auto entry_result = new ArrayObject { 3 };
+        auto entry_result = ArrayObject::create(3);
 
         ASN1_OBJECT *obj = X509_NAME_ENTRY_get_object(name_entry);
         if (!obj)

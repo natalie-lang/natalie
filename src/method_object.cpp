@@ -32,7 +32,7 @@ Value MethodObject::source_location() {
     if (!method->get_file())
         return Value::nil();
 
-    return new ArrayObject { StringObject::create(method->get_file().value()), Value::integer(static_cast<nat_int_t>(method->get_line().value())) };
+    return ArrayObject::create({ StringObject::create(method->get_file().value()), Value::integer(static_cast<nat_int_t>(method->get_line().value())) });
 }
 
 Value MethodObject::unbind(Env *env) {

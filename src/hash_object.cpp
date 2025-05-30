@@ -527,7 +527,7 @@ Value HashObject::each(Env *env, Block *block) {
     set_is_iterating(true);
     Defer no_longer_iterating([&]() { set_is_iterating(false); });
     for (HashKey &node : *this) {
-        auto ary = new ArrayObject { { node.key, node.val } };
+        auto ary = ArrayObject::create({ node.key, node.val });
         Value block_args[1] = { ary };
         block->run(env, Args(1, block_args), nullptr);
     }
@@ -565,9 +565,9 @@ Value HashObject::fetch(Env *env, Value key, Optional<Value> default_value, Bloc
 }
 
 Value HashObject::fetch_values(Env *env, Args &&args, Block *block) {
-    if (args.size() == 0) return new ArrayObject;
+    if (args.size() == 0) return ArrayObject::create();
 
-    auto array = new ArrayObject { args.size() };
+    auto array = ArrayObject::create(args.size());
     for (size_t i = 0; i < args.size(); ++i) {
         array->push(fetch(env, args[i], {}, block));
     }
@@ -575,7 +575,7 @@ Value HashObject::fetch_values(Env *env, Args &&args, Block *block) {
 }
 
 Value HashObject::keys(Env *env) {
-    ArrayObject *array = new ArrayObject { size() };
+    ArrayObject *array = ArrayObject::create(size());
     for (HashKey &node : *this) {
         array->push(node.key);
     }
@@ -632,7 +632,7 @@ Value HashObject::to_h(Env *env, Block *block) {
 }
 
 Value HashObject::values(Env *env) {
-    ArrayObject *array = new ArrayObject { size() };
+    ArrayObject *array = ArrayObject::create(size());
     for (HashKey &node : *this) {
         array->push(node.val);
     }
