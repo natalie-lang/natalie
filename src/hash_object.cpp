@@ -167,25 +167,19 @@ Natalie::HashKey *HashObject::key_list_append(Env *env, Value key, nat_int_t has
     if (m_key_list) {
         HashKey *first = m_key_list;
         HashKey *last = m_key_list->prev;
-        HashKey *new_last = new HashKey {};
-        new_last->key = key;
-        new_last->val = val;
+        HashKey *new_last = HashKey::create(key, val, hash);
         // <first> ... <last> <new_last> -|
         // ^______________________________|
         new_last->prev = last;
         new_last->next = first;
-        new_last->hash = hash;
         new_last->removed = false;
         first->prev = new_last;
         last->next = new_last;
         return new_last;
     } else {
-        HashKey *node = new HashKey {};
-        node->key = key;
-        node->val = val;
+        HashKey *node = HashKey::create(key, val, hash);
         node->prev = node;
         node->next = node;
-        node->hash = hash;
         node->removed = false;
         m_key_list = node;
         return node;
