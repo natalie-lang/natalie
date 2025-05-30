@@ -316,7 +316,7 @@ static Value load_scalar(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
 }
 
 static Value load_array(Env *env, yaml_parser_t &parser) {
-    auto result = new ArrayObject {};
+    auto result = ArrayObject::create();
     while (true) {
         yaml_token_t token;
         Defer token_deleter { [&token]() { yaml_token_delete(&token); } };

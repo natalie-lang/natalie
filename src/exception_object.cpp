@@ -175,7 +175,7 @@ Value ExceptionObject::set_backtrace(Env *env, Value backtrace) {
         }
         m_backtrace_value = backtrace.as_array();
     } else if (backtrace.is_string()) {
-        m_backtrace_value = new ArrayObject { backtrace };
+        m_backtrace_value = ArrayObject::create({ backtrace });
     } else if (backtrace.is_nil()) {
         m_backtrace_value = nullptr;
         return Value::nil();

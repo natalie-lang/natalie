@@ -320,7 +320,7 @@ EncodingObject *EncodingObject::find_encoding(Env *env, Value encoding) {
 }
 
 ArrayObject *EncodingObject::list(Env *) {
-    auto ary = new ArrayObject { EncodingCount };
+    auto ary = ArrayObject::create(EncodingCount);
     for (auto encoding : s_encoding_list)
         ary->push(encoding);
     // dbg("size {} enccnt {}", ary->size(), EncodingCount);
@@ -332,7 +332,7 @@ ArrayObject *EncodingObject::name_list(Env *env) {
     size_t size = 0;
     for (const auto &encoding : s_encoding_list)
         size += encoding->m_names.size();
-    auto ary = new ArrayObject { size };
+    auto ary = ArrayObject::create(size);
     for (const auto encoding : s_encoding_list)
         ary->concat(*encoding->names(env));
     return ary;
@@ -357,7 +357,7 @@ const StringObject *EncodingObject::name() const {
 }
 
 ArrayObject *EncodingObject::names(Env *env) const {
-    auto array = new ArrayObject { m_names.size() };
+    auto array = ArrayObject::create(m_names.size());
     for (const auto &name : m_names)
         array->push(StringObject::create(name));
     if (this == s_locale) array->push(StringObject::create("locale"));

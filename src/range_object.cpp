@@ -161,7 +161,7 @@ Value RangeObject::to_a(Env *env) {
     if (m_end.is_nil())
         env->raise("RangeError", "cannot convert endless range to an array");
 
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = ArrayObject::create();
     iterate_over_range(env, [&](Value item) {
         ary->push(item);
     });
@@ -195,7 +195,7 @@ Value RangeObject::first(Env *env, Optional<Value> n) {
             env->raise("ArgumentError", "negative array size (or size too big)");
         }
 
-        ArrayObject *ary = new ArrayObject { (size_t)count };
+        ArrayObject *ary = ArrayObject::create((size_t)count);
         iterate_over_range(env, [&](Value item) -> Optional<Value> {
             if (count == 0) return n.value();
 

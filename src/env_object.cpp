@@ -149,7 +149,7 @@ Value EnvObject::assoc(Env *env, Value name) {
     char *value = getenv(namestr->c_str());
     if (value) {
         StringObject *valuestr = StringObject::create(value);
-        return new ArrayObject { { namestr, valuestr } };
+        return ArrayObject::create({ namestr, valuestr });
     } else {
         return Value::nil();
     }
@@ -163,7 +163,7 @@ Value EnvObject::rassoc(Env *env, Value value) {
     auto name = key(env, value);
     if (name.is_nil())
         return Value::nil();
-    return new ArrayObject { name, value };
+    return ArrayObject::create({ name, value });
 }
 
 Value EnvObject::ref(Env *env, Value name) {
@@ -368,7 +368,7 @@ Value EnvObject::shift() {
     auto name = string_with_default_encoding(pair, static_cast<size_t>(eq - pair));
     auto value = string_with_default_encoding(getenv(name->c_str()));
     unsetenv(name->c_str());
-    return new ArrayObject { name, value };
+    return ArrayObject::create({ name, value });
 }
 
 Value EnvObject::invert(Env *env) {
@@ -428,7 +428,7 @@ Value EnvObject::values(Env *env) {
 }
 
 Value EnvObject::values_at(Env *env, Args &&args) {
-    auto result = new ArrayObject { args.size() };
+    auto result = ArrayObject::create(args.size());
     for (size_t i = 0; i < args.size(); i++) {
         result->push(ref(env, args[i]));
     }

@@ -13,7 +13,7 @@ namespace {
 
 Value MatchDataObject::array(int start) {
     auto size = (size_t)(m_region->num_regs - start);
-    auto array = new ArrayObject { size };
+    auto array = ArrayObject::create(size);
     for (int i = start; i < m_region->num_regs; i++) {
         array->push(group(i));
     }
@@ -43,9 +43,9 @@ Value MatchDataObject::byteoffset(Env *env, Value n) {
     auto begin = m_region->beg[index];
     auto end = m_region->end[index];
     if (begin == -1)
-        return new ArrayObject { Value::nil(), Value::nil() };
+        return ArrayObject::create({ Value::nil(), Value::nil() });
 
-    return new ArrayObject { Value::integer(begin), Value::integer(end) };
+    return ArrayObject::create({ Value::integer(begin), Value::integer(end) });
 }
 
 ssize_t MatchDataObject::beg_byte_index(size_t index) const {
@@ -106,7 +106,7 @@ Value MatchDataObject::offset(Env *env, Value n) {
     ssize_t begin = m_region->beg[index];
     ssize_t end = m_region->end[index];
     if (begin == -1)
-        return new ArrayObject { Value::nil(), Value::nil() };
+        return ArrayObject::create({ Value::nil(), Value::nil() });
 
     size_t current_byte_index = 0;
     size_t current_char_index = 0;
@@ -125,7 +125,7 @@ Value MatchDataObject::offset(Env *env, Value n) {
     }
     size_t end_char_index = current_char_index;
 
-    return new ArrayObject { Value::integer(begin_char_index), Value::integer(end_char_index) };
+    return ArrayObject::create({ Value::integer(begin_char_index), Value::integer(end_char_index) });
 }
 
 Value MatchDataObject::begin(Env *env, Value start) const {
@@ -293,7 +293,7 @@ Value MatchDataObject::named_captures(Env *env, Optional<Value> symbolize_names_
 
 Value MatchDataObject::names() const {
     if (!m_regexp)
-        return new ArrayObject {};
+        return ArrayObject::create();
     return m_regexp->names();
 }
 
@@ -335,7 +335,7 @@ Value MatchDataObject::to_s(Env *env) const {
 }
 
 ArrayObject *MatchDataObject::values_at(Env *env, Args &&args) {
-    auto result = new ArrayObject {};
+    auto result = ArrayObject::create();
     for (size_t i = 0; i < args.size(); i++) {
         auto key = args[i];
         if (key.is_range()) {
@@ -377,10 +377,10 @@ Value MatchDataObject::ref(Env *env, Value index_value, Optional<Value> size_arg
         if (range->exclude_end())
             last--;
         if (last < first)
-            return new ArrayObject {};
+            return ArrayObject::create();
         if (first + static_cast<nat_int_t>(size()) <= 0)
             return Value::nil();
-        auto result = new ArrayObject {};
+        auto result = ArrayObject::create();
         if (last >= static_cast<nat_int_t>(size())) last = size() - 1;
         for (auto i = first; i <= last; i++) {
             auto next_result = group(i);
@@ -406,13 +406,13 @@ Value MatchDataObject::ref(Env *env, Value index_value, Optional<Value> size_arg
         if (size < 0)
             return Value::nil();
         if (size == 0)
-            return new ArrayObject {};
+            return ArrayObject::create();
 
         auto first_result = group(index);
         if (first_result.is_nil())
             return Value::nil();
 
-        auto result = new ArrayObject { first_result };
+        auto result = ArrayObject::create({ first_result });
         for (auto i = index + 1; i < index + size; i++) {
             auto next_result = group(i);
             if (next_result.is_nil()) break;

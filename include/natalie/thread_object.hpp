@@ -93,7 +93,7 @@ public:
     void set_exception(ExceptionObject *exception) { m_exception = exception; }
     ExceptionObject *exception() { return m_exception; }
 
-    ArrayObject *args() { return new ArrayObject(m_args.size(), m_args.data()); }
+    ArrayObject *args() { return ArrayObject::create(m_args.size(), m_args.data()); }
     Block *block() { return m_block; }
 
     bool is_alive() const {

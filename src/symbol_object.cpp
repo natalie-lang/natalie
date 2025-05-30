@@ -18,7 +18,7 @@ SymbolObject *SymbolObject::intern(const String &name, EncodingObject *encoding)
 }
 
 ArrayObject *SymbolObject::all_symbols(Env *env) {
-    ArrayObject *array = new ArrayObject(s_symbols.size());
+    ArrayObject *array = ArrayObject::create(s_symbols.size());
     for (auto pair : s_symbols) {
         array->push(pair.second);
     }

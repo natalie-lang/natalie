@@ -157,7 +157,7 @@ Value DirObject::chdir_instance(Env *env, Block *block) {
 Value DirObject::children(Env *env) {
     if (!m_dir) env->raise("IOError", "closed directory");
     struct dirent *dirp;
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = ArrayObject::create();
     while ((dirp = ::readdir(m_dir))) {
         auto name = String(dirp->d_name);
         if (name != "." && name != "..") {
@@ -172,7 +172,7 @@ Value DirObject::children(Env *env) {
 Value DirObject::entries(Env *env) {
     if (!m_dir) env->raise("IOError", "closed directory");
     struct dirent *dirp;
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = ArrayObject::create();
     while ((dirp = ::readdir(m_dir))) {
         ary->push(StringObject::create(dirp->d_name, m_encoding));
     }

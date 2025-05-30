@@ -324,7 +324,7 @@ Value Zlib_crc32(Env *env, Value self, Args &&args, Block *) {
 
 Value Zlib_crc_table(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
-    auto res = new ArrayObject { 256 };
+    auto res = ArrayObject::create({ 256 });
     auto table = get_crc_table();
     for (size_t i = 0; i < 256; i++)
         res->push(Value::integer(static_cast<nat_int_t>(table[i])));

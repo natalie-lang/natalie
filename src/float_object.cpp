@@ -181,7 +181,7 @@ Value FloatObject::cmp(Env *env, Value rhs) {
 }
 
 Value FloatObject::coerce(Env *env, Value arg) {
-    ArrayObject *ary = new ArrayObject { 2 };
+    ArrayObject *ary = ArrayObject::create(2);
     if (arg.is_integer())
         ary->push(FloatObject::create(arg.integer().to_double()));
     else if (arg.is_float())
@@ -336,10 +336,7 @@ Value FloatObject::divmod(Env *env, Value arg) {
     Value division = div(env, arg);
     Value modulus = mod(env, arg);
 
-    return new ArrayObject {
-        f_to_i_or_bigint(::floor(division.as_float()->to_double())),
-        modulus
-    };
+    return ArrayObject::create({ f_to_i_or_bigint(::floor(division.as_float()->to_double())), modulus });
 }
 
 Value FloatObject::pow(Env *env, Value rhs) {

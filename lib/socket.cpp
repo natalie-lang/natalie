@@ -214,7 +214,7 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
     }
     Defer freeinfo { [&res] { freeaddrinfo(res); } };
 
-    auto output = new ArrayObject {};
+    auto output = ArrayObject::create();
     for (struct addrinfo *rp = res; rp != nullptr; rp = rp->ai_next) {
         auto entry = self.send(env, "new"_s, { StringObject::create(reinterpret_cast<const char *>(rp->ai_addr), rp->ai_addrlen) });
         if (rp->ai_canonname)
@@ -410,10 +410,10 @@ Value Addrinfo_getnameinfo(Env *env, Value self, Args &&args, Block *) {
             env->raise_errno();
         env->raise("SocketError", "getnameinfo: {}", gai_strerror(res));
     }
-    return new ArrayObject {
+    return ArrayObject::create({
         StringObject::create(hbuf, Encoding::ASCII_8BIT),
         StringObject::create(sbuf, Encoding::ASCII_8BIT),
-    };
+    });
 }
 
 Value Addrinfo_to_sockaddr(Env *env, Value self, Args &&args, Block *block) {
@@ -761,7 +761,7 @@ Value IPSocket_addr(Env *env, Value self, Args &&args, Block *) {
         NAT_NOT_YET_IMPLEMENTED("IPSocket#addr for family %d", addr.ss_family);
     }
 
-    return new ArrayObject({ family, port, host, ip });
+    return ArrayObject::create({ family, port, host, ip });
 }
 
 Value IPSocket_peeraddr(Env *env, Value self, Args &&args, Block *) {
@@ -821,7 +821,7 @@ Value IPSocket_peeraddr(Env *env, Value self, Args &&args, Block *) {
         NAT_NOT_YET_IMPLEMENTED("IPSocket#addr for family %d", addr.ss_family);
     }
 
-    return new ArrayObject({ family, port, host, ip });
+    return ArrayObject::create({ family, port, host, ip });
 }
 
 Value IPSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
@@ -861,10 +861,10 @@ Value IPSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
         // Some issue, which means we should replace the ipaddr info
         ipaddr_info = Value::nil();
     }
-    return new ArrayObject {
+    return ArrayObject::create({
         StringObject::create(std::move(buf), Encoding::ASCII_8BIT),
         ipaddr_info,
-    };
+    });
 }
 
 Value UNIXSocket_addr(Env *env, Value self, Args &&args, Block *block) {
@@ -880,10 +880,8 @@ Value UNIXSocket_addr(Env *env, Value self, Args &&args, Block *block) {
     if (getsockname_result == -1)
         env->raise_errno();
 
-    return new ArrayObject {
-        StringObject::create("AF_UNIX"),
-        StringObject::create(addr.sun_path)
-    };
+    return ArrayObject::create({ StringObject::create("AF_UNIX"),
+        StringObject::create(addr.sun_path) });
 }
 
 Value UNIXSocket_peeraddr(Env *env, Value self, Args &&args, Block *block) {
@@ -899,10 +897,8 @@ Value UNIXSocket_peeraddr(Env *env, Value self, Args &&args, Block *block) {
     if (getsockname_result == -1)
         env->raise_errno();
 
-    return new ArrayObject {
-        StringObject::create("AF_UNIX"),
-        StringObject::create(addr.sun_path)
-    };
+    return ArrayObject::create({ StringObject::create("AF_UNIX"),
+        StringObject::create(addr.sun_path) });
 }
 
 Value UNIXSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
@@ -933,14 +929,8 @@ Value UNIXSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
 
     result->set_str(std::move(buf));
 
-    auto unixaddress = new ArrayObject {
-        StringObject::create("AF_UNIX"),
-        StringObject::create(addr.sun_path)
-    };
-    return new ArrayObject {
-        result,
-        unixaddress
-    };
+    auto unixaddress = ArrayObject::create({ StringObject::create("AF_UNIX"), StringObject::create(addr.sun_path) });
+    return ArrayObject::create({ result, unixaddress });
 }
 
 Value UNIXSocket_pair(Env *env, Value self, Args &&args, Block *block) {
@@ -953,10 +943,8 @@ Value UNIXSocket_pair(Env *env, Value self, Args &&args, Block *block) {
     if (socketpair(AF_UNIX, type, protocol, fd) < 0)
         env->raise_errno();
 
-    return new ArrayObject {
-        self.send(env, "for_fd"_s, { Value::integer(fd[0]) }),
-        self.send(env, "for_fd"_s, { Value::integer(fd[1]) })
-    };
+    return ArrayObject::create({ self.send(env, "for_fd"_s, { Value::integer(fd[0]) }),
+        self.send(env, "for_fd"_s, { Value::integer(fd[1]) }) });
 }
 
 Value Socket_initialize(Env *env, Value self, Args &&args, Block *block) {
@@ -989,7 +977,7 @@ static Value Socket_accept(Env *env, Value socket, sockaddr_storage &addr, sockl
             Value::integer(0),
         });
 
-    return new ArrayObject { socket, addrinfo };
+    return ArrayObject::create({ socket, addrinfo });
 }
 
 Value Socket_accept(Env *env, Value self, bool blocking = true, bool exception = false) {
@@ -1189,10 +1177,10 @@ Value Socket_recvfrom(Env *env, Value self, Args &&args, Block *) {
         env->raise_errno();
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
     auto addrinfo = StringObject::create(reinterpret_cast<const char *>(&src_addr), addrlen, Encoding::ASCII_8BIT);
-    return new ArrayObject {
+    return ArrayObject::create({
         StringObject::create(buf, static_cast<size_t>(res), Encoding::ASCII_8BIT),
         Addrinfo.send(env, "new"_s, { addrinfo }),
-    };
+    });
 }
 
 Value Socket_sysaccept(Env *env, Value self, Args &&args, Block *block) {
@@ -1213,10 +1201,8 @@ Value Socket_pair(Env *env, Value self, Args &&args, Block *block) {
     if (socketpair(domain, type, protocol, fd) < 0)
         env->raise_errno();
 
-    return new ArrayObject {
-        self.send(env, "for_fd"_s, { Value::integer(fd[0]) }),
-        self.send(env, "for_fd"_s, { Value::integer(fd[1]) })
-    };
+    return ArrayObject::create({ self.send(env, "for_fd"_s, { Value::integer(fd[0]) }),
+        self.send(env, "for_fd"_s, { Value::integer(fd[1]) }) });
 }
 
 Value Socket_pack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
@@ -1283,7 +1269,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args &&args, Block *block)
             env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
         auto host = sockaddr.send(env, "ip_address"_s);
         auto port = sockaddr.send(env, "ip_port"_s);
-        return new ArrayObject { port, host };
+        return ArrayObject::create({ port, host });
     }
 
     sockaddr.assert_type(env, Object::Type::String, "String");
@@ -1311,7 +1297,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args &&args, Block *block)
         auto result = inet_ntop(AF_INET6, &in->sin6_addr, host_buf, INET6_ADDRSTRLEN);
         if (!result)
             env->raise_errno();
-        auto ary = new ArrayObject;
+        auto ary = ArrayObject::create();
         port = Value::integer(ntohs(in->sin6_port));
         host = StringObject::create(host_buf);
         break;
@@ -1321,7 +1307,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args &&args, Block *block)
         env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
     }
 
-    auto ary = new ArrayObject;
+    auto ary = ArrayObject::create();
     ary->push(port);
     ary->push(host);
     return ary;
@@ -1449,10 +1435,10 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
 
     Defer freeinfo([&result] { freeaddrinfo(result); });
 
-    auto ary = new ArrayObject;
+    auto ary = ArrayObject::create();
 
     do {
-        auto addr = new ArrayObject;
+        auto addr = ArrayObject::create();
         addr->push(StringObject::create(Socket_family_to_string(result->ai_family)));
         addr->push(Value::integer(Socket_getaddrinfo_result_port(result)));
         if (reverse_lookup.is_truthy())
@@ -1507,7 +1493,7 @@ Value Socket_s_getifaddrs(Env *env, Value, Args &&args, Block *) {
         auto addrinfo_str = StringObject::create(reinterpret_cast<const char *>(addr), len);
         return Object::_new(env, Addrinfo, { addrinfo_str }, nullptr);
     };
-    auto result = new ArrayObject;
+    auto result = ArrayObject::create();
     for (ifaddrs *it = ifa; it != nullptr; it = it->ifa_next) {
         auto ifaddr = Object::allocate(env, Ifaddr, {}, nullptr);
         auto name = StringObject::create(it->ifa_name);
@@ -1611,7 +1597,7 @@ Value Socket_Option_linger(Env *env, Value self, Args &&, Block *) {
     auto l = (struct linger *)data->c_str();
     auto on_off = bool_object(l->l_onoff != 0);
     auto linger = Value::integer(l->l_linger);
-    return new ArrayObject({ on_off, linger });
+    return ArrayObject::create({ on_off, linger });
 }
 
 Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
@@ -1687,15 +1673,15 @@ Value TCPSocket_gethostbyname(Env *env, Value self, Args &&args, Block *) {
         auto Socket_ResolutionError = fetch_nested_const({ "Socket"_s, "ResolutionError"_s }).as_class_or_raise(env);
         env->raise(Socket_ResolutionError, "getaddrinfo: Name or service not known");
     }
-    auto aliases = new ArrayObject;
+    auto aliases = ArrayObject::create();
     for (auto ptr = hostent->h_aliases; *ptr != nullptr; ptr++) {
         aliases->push(StringObject::create(*ptr, Encoding::ASCII_8BIT));
     }
-    auto result = new ArrayObject {
+    auto result = ArrayObject::create({
         StringObject::create(hostent->h_name, Encoding::ASCII_8BIT),
         aliases,
         Value::integer(hostent->h_addrtype),
-    };
+    });
     for (auto ptr = hostent->h_addr_list; *ptr != nullptr; ptr++) {
         char ipaddr[INET6_ADDRSTRLEN] = { 0 };
         if (hostent->h_length == 4)
@@ -1863,12 +1849,10 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args &&args, Block *) {
         if (!ntop_result)
             env->raise_errno();
         auto ip = StringObject::create(host_buf);
-        sender_inet_addr = new ArrayObject {
-            StringObject::create("AF_INET"),
+        sender_inet_addr = ArrayObject::create({ StringObject::create("AF_INET"),
             Value::integer(ntohs(addr_in->sin_port)),
             ip,
-            ip
-        };
+            ip });
         break;
     }
     case AF_INET6: {
@@ -1878,22 +1862,18 @@ Value UDPSocket_recvfrom_nonblock(Env *env, Value self, Args &&args, Block *) {
         if (!ntop_result)
             env->raise_errno();
         auto ip = StringObject::create(host_buf);
-        sender_inet_addr = new ArrayObject {
-            StringObject::create("AF_INET6"),
+        sender_inet_addr = ArrayObject::create({ StringObject::create("AF_INET6"),
             Value::integer(ntohs(addr_in6->sin6_port)),
             ip,
-            ip
-        };
+            ip });
         break;
     }
     default:
         NAT_NOT_YET_IMPLEMENTED("UDPSocket#recvfrom_nonblock for family %d", addr.ss_family);
     }
     buffer->set_str(buf, recvfrom_result);
-    return new ArrayObject {
-        buffer,
-        sender_inet_addr
-    };
+    return ArrayObject::create({ buffer,
+        sender_inet_addr });
 }
 
 Value UNIXSocket_initialize(Env *env, Value self, Args &&args, Block *block) {

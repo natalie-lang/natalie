@@ -163,7 +163,7 @@ Value StringObject::chars(Env *env, Block *block) {
         }
         return this;
     }
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = ArrayObject::create();
     for (auto c : *this)
         ary->push(StringObject::create(c, m_encoding));
     return ary;
@@ -207,7 +207,7 @@ Value StringObject::codepoints(Env *env, Block *block) {
     if (!this->valid_encoding())
         env->raise_invalid_byte_sequence_error(m_encoding.ptr());
 
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = ArrayObject::create();
     for (;;) {
         auto [valid, length, codepoint] = m_encoding->next_codepoint(m_string, &index);
         if (!valid)
@@ -240,7 +240,7 @@ Value StringObject::grapheme_clusters(Env *env, Block *block) {
     if (block)
         return each_grapheme_cluster(env, block);
 
-    auto ary = new ArrayObject {};
+    auto ary = ArrayObject::create();
     size_t index = 0;
     for (;;) {
         auto view = m_encoding->next_grapheme_cluster(m_string, &index);
@@ -1242,7 +1242,7 @@ Value StringObject::bytes(Env *env, Block *block) {
     if (block) {
         return each_byte(env, block);
     }
-    ArrayObject *ary = new ArrayObject { length() };
+    ArrayObject *ary = ArrayObject::create(length());
     for (size_t i = 0; i < length(); ++i) {
         unsigned char c = m_string[i];
         ary->push(Value::integer(c));
@@ -1284,7 +1284,7 @@ Value StringObject::scan(Env *env, Value pattern, Block *block) {
     pattern.assert_type(env, Type::Regexp, "Regexp");
 
     auto regexp = pattern.as_regexp();
-    auto ary = new ArrayObject {};
+    auto ary = ArrayObject::create();
     size_t byte_index = 0;
     size_t new_byte_index = 0;
     size_t total_size = m_string.size();
@@ -3012,7 +3012,7 @@ Value StringObject::unpack(Env *env, Value format, Optional<Value> offset_kwarg)
     auto format_string = format.to_str(env)->string();
     auto offset = unpack_offset(env, offset_kwarg);
     if (offset == (nat_int_t)bytesize())
-        return new ArrayObject({ Value::nil() });
+        return ArrayObject::create({ Value::nil() });
     auto unpacker = new StringUnpacker { this, format_string, offset };
     return unpacker->unpack(env);
 }
@@ -3027,7 +3027,7 @@ Value StringObject::unpack1(Env *env, Value format, Optional<Value> offset_kwarg
 }
 
 Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = ArrayObject::create();
     size_t last_index = 0;
     size_t index, len;
     OnigRegion *region = onig_region_new();
@@ -3056,7 +3056,7 @@ Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
 }
 
 Value StringObject::split(Env *env, StringObject *splitstr, int max_count) {
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = ArrayObject::create();
     size_t last_index = 0;
     size_t splitlen = splitstr->length();
     assert(splitlen > 0);
@@ -3087,7 +3087,7 @@ Value StringObject::split(Env *env, StringObject *splitstr, int max_count) {
 Value StringObject::split(Env *env, Optional<Value> splitter_arg, Optional<Value> max_count_arg) {
     assert_valid_encoding(env);
 
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = ArrayObject::create();
     if (!splitter_arg || splitter_arg.value().is_nil()) {
         auto field_sep = env->global_get("$;"_s);
         if (!field_sep.is_nil()) {
@@ -3351,7 +3351,7 @@ Value StringObject::lines(Env *env, Optional<Value> separator, Optional<Value> c
     if (block)
         return each_line(env, separator, chomp, block);
 
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = ArrayObject::create();
     each_line(env, separator, chomp, [&](StringObject *part) -> Value {
         ary->push(part);
         return this;
@@ -4284,7 +4284,7 @@ Value StringObject::chop_in_place(Env *env) {
 }
 
 Value StringObject::partition(Env *env, Value val) {
-    auto ary = new ArrayObject;
+    auto ary = ArrayObject::create();
 
     if (val.is_regexp()) {
         auto match_result = val.as_regexp()->match(env, this);
@@ -4293,7 +4293,7 @@ Value StringObject::partition(Env *env, Value val) {
         ssize_t end_byte_index;
 
         if (match_result.is_nil()) {
-            return new ArrayObject { StringObject::create(*this), StringObject::create("", m_encoding), StringObject::create("", m_encoding) };
+            return ArrayObject::create({ StringObject::create(*this), StringObject::create("", m_encoding), StringObject::create("", m_encoding) });
         } else {
             start_byte_index = match_result.as_match_data()->beg_byte_index(0);
             end_byte_index = match_result.as_match_data()->end_byte_index(0);
@@ -4317,7 +4317,7 @@ Value StringObject::partition(Env *env, Value val) {
         auto query_idx = m_string.find(query);
 
         if (query_idx == -1) {
-            return new ArrayObject { StringObject::create(m_string, m_encoding), StringObject::create("", m_encoding), StringObject::create("", m_encoding) };
+            return ArrayObject::create({ StringObject::create(m_string, m_encoding), StringObject::create("", m_encoding), StringObject::create("", m_encoding) });
         } else {
             ary->push(StringObject::create(m_string.substring(0, query_idx), m_encoding));
         }

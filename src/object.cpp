@@ -25,7 +25,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Array:
-        obj = new ArrayObject {};
+        obj = ArrayObject::create();
         obj->m_klass = klass;
         break;
 
@@ -371,9 +371,9 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
 
 Value Object::instance_variables(Env *env) {
     if (m_type == Type::Float || !m_ivars)
-        return new ArrayObject;
+        return ArrayObject::create();
 
-    ArrayObject *ary = new ArrayObject { m_ivars->size() };
+    ArrayObject *ary = ArrayObject::create(m_ivars->size());
     for (auto pair : *m_ivars)
         ary->push(pair.first);
     return ary;
@@ -612,7 +612,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
 Value Object::duplicate(Env *env) const {
     switch (m_type) {
     case Object::Type::Array:
-        return new ArrayObject { *static_cast<const ArrayObject *>(this) };
+        return ArrayObject::create(*static_cast<const ArrayObject *>(this));
     case Object::Type::Class: {
         auto out = new ClassObject { *static_cast<const ClassObject *>(this) };
         auto s_class = singleton_class();

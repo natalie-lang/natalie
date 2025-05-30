@@ -2,7 +2,7 @@
 
 namespace Natalie {
 ArrayObject *Backtrace::to_ruby_array() {
-    ArrayObject *generated = new ArrayObject { m_items.size() };
+    ArrayObject *generated = ArrayObject::create(m_items.size());
     for (auto item : m_items) {
         generated->push(StringObject::format("{}:{}:in '{}'", item.file, item.line, item.source_location));
     }
@@ -10,7 +10,7 @@ ArrayObject *Backtrace::to_ruby_array() {
 }
 
 ArrayObject *Backtrace::to_ruby_backtrace_locations_array() {
-    ArrayObject *generated = new ArrayObject { m_items.size() };
+    ArrayObject *generated = ArrayObject::create(m_items.size());
     for (auto item : m_items) {
         generated->push(new Thread::Backtrace::LocationObject { item.source_location, item.file, item.line });
     }

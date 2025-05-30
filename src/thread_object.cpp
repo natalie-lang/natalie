@@ -535,7 +535,7 @@ Value ThreadObject::keys(Env *env) {
     if (m_current_fiber)
         hash = m_current_fiber->thread_storage();
     if (!hash)
-        return new ArrayObject {};
+        return ArrayObject::create();
     return hash->keys(env);
 }
 
@@ -586,13 +586,13 @@ Value ThreadObject::thread_variable_set(Env *env, Value key, Value value) {
 
 Value ThreadObject::thread_variables(Env *env) const {
     if (!m_thread_variables)
-        return new ArrayObject;
+        return ArrayObject::create();
     return m_thread_variables->keys(env);
 }
 
 Value ThreadObject::list(Env *env) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-    auto ary = new ArrayObject { s_list.size() };
+    auto ary = ArrayObject::create(s_list.size());
     for (auto thread : s_list) {
         if (thread->m_status != ThreadObject::Status::Dead)
             ary->push(thread);

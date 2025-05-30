@@ -322,12 +322,12 @@ Value IoObject::write_file(Env *env, Args &&args) {
     FileObject *file = nullptr;
 
     if (kwargs && kwargs->has_key(env, "open_args"_s)) {
-        auto next_args = new ArrayObject { filename };
+        auto next_args = ArrayObject::create({ filename });
         next_args->concat(*kwargs->fetch(env, "open_args"_s).to_ary(env));
         auto open_args_has_kw = next_args->last().is_hash();
         file = _new(env, File, Args(next_args, open_args_has_kw), nullptr).as_file();
     } else {
-        auto next_args = new ArrayObject { filename, mode };
+        auto next_args = ArrayObject::create({ filename, mode });
         if (!perm.is_nil())
             next_args->push(perm);
         if (kwargs)
@@ -963,10 +963,10 @@ Value IoObject::wait(Env *env, Args &&args) {
             events = WAIT_READABLE;
     }
 
-    auto read_ios = new ArrayObject {};
+    auto read_ios = ArrayObject::create();
     if (events & WAIT_READABLE)
         read_ios->push(this);
-    auto write_ios = new ArrayObject {};
+    auto write_ios = ArrayObject::create();
     if (events & WAIT_WRITABLE)
         write_ios->push(this);
     auto select_result = IoObject::select(env, Value(read_ios), Value(write_ios), {}, timeout);
@@ -1080,7 +1080,7 @@ static fd_set create_fd_set(Env *env, ArrayObject *ios, int *nfds) {
 };
 
 static ArrayObject *create_output_fds(Env *env, fd_set *fds, ArrayObject *ios) {
-    auto result = new ArrayObject {};
+    auto result = ArrayObject::create();
 
     if (!ios)
         return result;
@@ -1105,9 +1105,9 @@ Value IoObject::select(Env *env, Value read_ios, Optional<Value> write_ios, Opti
         timeout_ptr = &timeout_tv;
     }
 
-    auto read_ios_ary = !read_ios.is_nil() ? read_ios.to_ary(env) : new ArrayObject {};
-    auto write_ios_ary = write_ios && !write_ios.value().is_nil() ? write_ios.value().to_ary(env) : new ArrayObject {};
-    auto error_ios_ary = error_ios && !error_ios.value().is_nil() ? error_ios.value().to_ary(env) : new ArrayObject {};
+    auto read_ios_ary = !read_ios.is_nil() ? read_ios.to_ary(env) : ArrayObject::create();
+    auto write_ios_ary = write_ios && !write_ios.value().is_nil() ? write_ios.value().to_ary(env) : ArrayObject::create();
+    auto error_ios_ary = error_ios && !error_ios.value().is_nil() ? error_ios.value().to_ary(env) : ArrayObject::create();
 
     auto wake_pipe_fileno = ThreadObject::wake_pipe_read_fileno();
 
@@ -1164,7 +1164,7 @@ Value IoObject::select(Env *env, Value read_ios, Optional<Value> write_ios, Opti
     auto readable_ios = create_output_fds(env, &read_fds, read_ios_ary);
     auto writeable_ios = create_output_fds(env, &write_fds, write_ios_ary);
     auto errorable_ios = create_output_fds(env, &error_fds, error_ios_ary);
-    return new ArrayObject { readable_ios, writeable_ios, errorable_ios };
+    return ArrayObject::create({ readable_ios, writeable_ios, errorable_ios });
 }
 
 void IoObject::select_read(Env *env, timeval *timeout) const {
@@ -1224,7 +1224,7 @@ Value IoObject::pipe(Env *env, ClassObject *klass, Optional<Value> external_enco
     auto io_read = _new(env, klass, { Value::integer(pipefd[0]) }, nullptr);
     auto io_write = _new(env, klass, { Value::integer(pipefd[1]) }, nullptr);
     io_read.as_io()->set_encoding(env, external_encoding, internal_encoding);
-    auto pipes = new ArrayObject { io_read, io_write };
+    auto pipes = ArrayObject::create({ io_read, io_write });
 
     if (!block)
         return pipes;
