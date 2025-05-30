@@ -90,7 +90,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Regexp:
-        obj = new RegexpObject { klass };
+        obj = RegexpObject::create(klass);
         break;
 
     case Object::Type::String:
@@ -641,7 +641,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Rational:
         return new RationalObject { *static_cast<const RationalObject *>(this) };
     case Object::Type::Regexp:
-        return new RegexpObject { env, *static_cast<const RegexpObject *>(this) };
+        return RegexpObject::create(env, *static_cast<const RegexpObject *>(this));
     case Object::Type::String:
         return StringObject::create(*static_cast<const StringObject *>(this));
     case Object::Type::Symbol:

@@ -201,7 +201,7 @@ Value RegexpObject::regexp_union(Env *env, Args &&args) {
             out.append(quoted.as_string()->string());
         }
     }
-    return new RegexpObject { env, out };
+    return RegexpObject::create(env, out);
 }
 
 Value RegexpObject::initialize(Env *env, Value pattern, Optional<Value> opts_arg) {

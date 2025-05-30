@@ -33,25 +33,24 @@ enum RegexOpts {
 
 class RegexpObject : public Object {
 public:
-    RegexpObject()
-        : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } { }
-
-    RegexpObject(ClassObject *klass)
-        : Object { Object::Type::Regexp, klass } { }
-
-    RegexpObject(Env *env, const RegexpObject &other)
-        : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
-        initialize_internal(env, other.m_pattern, other.m_options);
+    static RegexpObject *create() {
+        return new RegexpObject();
     }
 
-    RegexpObject(Env *env, const StringObject *pattern, int options = 0, EncodingObject *encoding = nullptr)
-        : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
-        initialize_internal(env, pattern, options, encoding);
+    static RegexpObject *create(ClassObject *klass) {
+        return new RegexpObject(klass);
     }
 
-    RegexpObject(Env *env, const String pattern, int options = 0, EncodingObject *encoding = nullptr)
-        : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
-        initialize_internal(env, StringObject::create(pattern), options, encoding);
+    static RegexpObject *create(Env *env, const RegexpObject &other) {
+        return new RegexpObject(env, other);
+    }
+
+    static RegexpObject *create(Env *env, const StringObject *pattern, int options = 0, EncodingObject *encoding = nullptr) {
+        return new RegexpObject(env, pattern, options, encoding);
+    }
+
+    static RegexpObject *create(Env *env, const String pattern, int options = 0, EncodingObject *encoding = nullptr) {
+        return new RegexpObject(env, pattern, options, encoding);
     }
 
     virtual ~RegexpObject() {
@@ -198,6 +197,27 @@ public:
     }
 
 private:
+    RegexpObject()
+        : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } { }
+
+    RegexpObject(ClassObject *klass)
+        : Object { Object::Type::Regexp, klass } { }
+
+    RegexpObject(Env *env, const RegexpObject &other)
+        : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
+        initialize_internal(env, other.m_pattern, other.m_options);
+    }
+
+    RegexpObject(Env *env, const StringObject *pattern, int options = 0, EncodingObject *encoding = nullptr)
+        : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
+        initialize_internal(env, pattern, options, encoding);
+    }
+
+    RegexpObject(Env *env, const String pattern, int options = 0, EncodingObject *encoding = nullptr)
+        : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
+        initialize_internal(env, StringObject::create(pattern), options, encoding);
+    }
+
     friend MatchDataObject;
 
     regex_t *m_regex { nullptr };
