@@ -144,7 +144,7 @@ StringView StringObject::next_char(Env *env, size_t *index) const {
 
 Value StringObject::each_char(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, StringObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, StringObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each_char"_s }, size_block);
     }
 
@@ -171,7 +171,7 @@ Value StringObject::chars(Env *env, Block *block) {
 
 Value StringObject::each_codepoint(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, StringObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, StringObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each_codepoint"_s }, size_block);
     }
 
@@ -221,7 +221,7 @@ Value StringObject::codepoints(Env *env, Block *block) {
 
 Value StringObject::each_grapheme_cluster(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, StringObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, StringObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each_grapheme_cluster"_s }, size_block);
     }
 
@@ -1252,7 +1252,7 @@ Value StringObject::bytes(Env *env, Block *block) {
 
 Value StringObject::each_byte(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, StringObject::bytesize_fn, 0 };
+        Block *size_block = Block::create(*env, this, StringObject::bytesize_fn, 0);
         return send(env, "enum_for"_s, { "each_byte"_s }, size_block);
     }
 

@@ -830,7 +830,7 @@ SymbolObject *ModuleObject::attr_reader(Env *env, Value obj) {
     auto name = obj.to_symbol(env, Value::Conversion::Strict);
     OwnedPtr<Env> block_env { new Env {} };
     block_env->var_set("name", 0, true, name);
-    Block *attr_block = new Block { std::move(block_env), this, ModuleObject::attr_reader_block_fn, 0 };
+    Block *attr_block = Block::create(std::move(block_env), this, ModuleObject::attr_reader_block_fn, 0);
     define_method(env, name, attr_block);
     return name;
 }
@@ -856,7 +856,7 @@ SymbolObject *ModuleObject::attr_writer(Env *env, Value obj) {
     auto method_name = SymbolObject::intern(TM::String::format("{}=", name->string()));
     OwnedPtr<Env> block_env { new Env {} };
     block_env->var_set("name", 0, true, name);
-    Block *attr_block = new Block { std::move(block_env), this, ModuleObject::attr_writer_block_fn, 1 };
+    Block *attr_block = Block::create(std::move(block_env), this, ModuleObject::attr_writer_block_fn, 1);
     define_method(env, method_name, attr_block);
     return method_name;
 }
@@ -1150,7 +1150,7 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
     OwnedPtr<Env> inner_env { new Env { *env } };
     inner_env->var_set("old_method", 1, true, instance_method(env, name));
     undef_method(env, { name });
-    define_method(env, name.as_symbol(), new Block { std::move(inner_env), this, method_wrapper, -1 });
+    define_method(env, name.as_symbol(), Block::create(std::move(inner_env), this, method_wrapper, -1));
 
     return Value::nil();
 }

@@ -390,7 +390,7 @@ Value HashObject::replace(Env *env, Value other) {
 
 Value HashObject::delete_if(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, HashObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, HashObject::size_fn, 0);
         return send(env, "enum_for"_s, { "delete_if"_s }, size_block);
     }
 
@@ -519,7 +519,7 @@ bool HashObject::lt(Env *env, Value other) {
 
 Value HashObject::each(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, HashObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, HashObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
 
@@ -584,7 +584,7 @@ Value HashObject::keys(Env *env) {
 
 Value HashObject::keep_if(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, HashObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, HashObject::size_fn, 0);
         return send(env, "enum_for"_s, { "keep_if"_s }, size_block);
     }
 
