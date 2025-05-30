@@ -764,7 +764,7 @@ Value OpenSSL_X509_Certificate_not_after(Env *env, Value self, Args &&args, Bloc
 
     auto Time = find_top_level_const(env, "Time"_s).as_class();
     time_t time_since_epoch = mktime(&tm);
-    auto kwargs = new HashObject { env, { "in"_s, Value::integer(0) } };
+    auto kwargs = HashObject::create(env, { "in"_s, Value::integer(0) });
     return Time->send(env, "at"_s, Args { { Value::integer(time_since_epoch), kwargs }, true });
 }
 
@@ -802,7 +802,7 @@ Value OpenSSL_X509_Certificate_not_before(Env *env, Value self, Args &&args, Blo
 
     auto Time = find_top_level_const(env, "Time"_s).as_class();
     time_t time_since_epoch = mktime(&tm);
-    auto kwargs = new HashObject { env, { "in"_s, Value::integer(0) } };
+    auto kwargs = HashObject::create(env, { "in"_s, Value::integer(0) });
     return Time->send(env, "at"_s, Args { { Value::integer(time_since_epoch), kwargs }, true });
 }
 
@@ -964,7 +964,7 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_is(env, 1);
     auto pass = args.at(0).to_str(env);
-    if (!kwargs) kwargs = new HashObject {};
+    if (!kwargs) kwargs = HashObject::create();
     env->ensure_no_missing_keywords(kwargs, { "salt", "iterations", "length", "hash" });
     auto salt = kwargs->remove(env, "salt"_s).value().to_str(env);
     auto iterations = kwargs->remove(env, "iterations"_s).value().to_int(env);

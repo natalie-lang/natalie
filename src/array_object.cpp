@@ -1395,7 +1395,7 @@ Value ArrayObject::uniq(Env *env, Block *block) {
 Value ArrayObject::uniq_in_place(Env *env, Block *block) {
     this->assert_not_frozen(env);
 
-    auto hash = new HashObject {};
+    auto hash = HashObject::create();
     for (auto item : *this) {
         Value key = item;
         if (block) {

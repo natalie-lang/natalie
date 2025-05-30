@@ -124,7 +124,7 @@ Value IoObject::binread(Env *env, Value filename, Optional<Value> length, Option
 Value IoObject::binwrite(Env *env, Args &&args) {
     auto kwargs = args.pop_keyword_hash();
     if (!kwargs)
-        kwargs = new HashObject {};
+        kwargs = HashObject::create();
     kwargs->put(env, "binmode"_s, Value::True());
     auto args_array = args.to_array();
     args_array->push(kwargs);

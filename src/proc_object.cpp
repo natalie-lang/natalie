@@ -64,7 +64,7 @@ Value ProcObject::gtgt(Env *env, Value other) {
 
 Value ProcObject::ruby2_keywords(Env *env) {
     auto block_wrapper = [](Env *env, Value self, Args &&args, Block *block) -> Value {
-        auto kwargs = args.has_keyword_hash() ? args.pop_keyword_hash() : new HashObject;
+        auto kwargs = args.has_keyword_hash() ? args.pop_keyword_hash() : HashObject::create();
         auto new_args = args.to_array_for_block(env, 0, -1, true);
         if (!kwargs->is_empty())
             new_args->push(HashObject::ruby2_keywords_hash(env, kwargs));

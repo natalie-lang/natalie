@@ -3332,7 +3332,7 @@ Value StringObject::each_line(Env *env, Optional<Value> separator_arg, Optional<
             args.push(separator_arg.value());
         auto do_chomp = chomp ? chomp.value().is_truthy() : false;
         if (do_chomp) {
-            auto hash = new HashObject {};
+            auto hash = HashObject::create();
             hash->put(env, "chomp"_s, chomp.value_or(Value::False()));
             args.push(hash);
         }

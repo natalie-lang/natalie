@@ -21,7 +21,7 @@ module Natalie
         end
         items_temp = transform.temp('items')
         transform.exec("Value #{items_temp}[] = { #{items.join(', ')} };")
-        transform.exec_and_push(:hash, "Value(new HashObject(env, #{items.size}, #{items_temp}))")
+        transform.exec_and_push(:hash, "Value(HashObject::create(env, #{items.size}, #{items_temp}))")
       end
 
       def execute(vm)

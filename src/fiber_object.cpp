@@ -136,7 +136,7 @@ Value FiberObject::refeq(Env *env, Value key, Value value) {
     if (!key.is_symbol())
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key.klass()->inspect_module());
     if (current()->m_storage == nullptr)
-        current()->m_storage = new HashObject {};
+        current()->m_storage = HashObject::create();
     if (value.is_nil()) {
         current()->m_storage->remove(env, key);
     } else {
@@ -352,7 +352,7 @@ void FiberObject::set_args(size_t arg_size, Value *arg_data) {
 
 HashObject *FiberObject::ensure_thread_storage() {
     if (!m_thread_storage)
-        m_thread_storage = new HashObject {};
+        m_thread_storage = HashObject::create();
     return m_thread_storage;
 }
 }

@@ -194,7 +194,7 @@ Value Etc_uname(Env *env, Value, Args &&args, Block *) {
     if (uname(&buf) < 0)
         env->raise_errno();
 
-    auto result = new HashObject;
+    auto result = HashObject::create();
     result->put(env, SymbolObject::intern("sysname"), StringObject::create(buf.sysname));
     result->put(env, SymbolObject::intern("nodename"), StringObject::create(buf.nodename));
     result->put(env, SymbolObject::intern("release"), StringObject::create(buf.release));

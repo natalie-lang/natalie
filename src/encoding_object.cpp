@@ -221,7 +221,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
 }
 
 HashObject *EncodingObject::aliases(Env *env) {
-    auto aliases = new HashObject();
+    auto aliases = HashObject::create();
     for (auto encoding : *list(env)) {
         auto enc = encoding.as_encoding();
         const auto names = enc->names(env);

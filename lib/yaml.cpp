@@ -337,7 +337,7 @@ static Value load_array(Env *env, yaml_parser_t &parser) {
 }
 
 static Value load_hash(Env *env, yaml_parser_t &parser) {
-    auto result = new HashObject {};
+    auto result = HashObject::create();
     while (true) {
         yaml_token_t token;
         Defer token_deleter { [&token]() { yaml_token_delete(&token); } };

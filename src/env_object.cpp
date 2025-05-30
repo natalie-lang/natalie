@@ -30,7 +30,7 @@ Value EnvObject::inspect(Env *env) {
 }
 
 Value EnvObject::to_hash(Env *env, Block *block) {
-    HashObject *hash = new HashObject {};
+    HashObject *hash = HashObject::create();
     size_t i = 1;
     char *pair = *environ;
     if (!pair) return hash;
@@ -386,7 +386,7 @@ Value EnvObject::slice(Env *env, Args &&args) {
     if (args.has_keyword_hash())
         env->raise("TypeError", "no implicit conversion of Hash into String");
 
-    auto result = new HashObject;
+    auto result = HashObject::create();
     for (size_t i = 0; i < args.size(); i++) {
         auto name = args[i];
         auto namestr = name.to_str(env);
