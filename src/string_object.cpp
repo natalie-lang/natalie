@@ -637,7 +637,7 @@ bool StringObject::internal_start_with(Env *env, Value needle) {
     if (needle.is_regexp()) {
         needle = needle.as_regexp()->to_s(env);
         needle.as_string()->prepend(env, { StringObject::create("\\A") });
-        needle = new RegexpObject { env, needle.as_string()->string() };
+        needle = RegexpObject::create(env, needle.as_string()->string());
         return needle.as_regexp()->match(env, this).is_truthy();
     }
 
@@ -1172,9 +1172,9 @@ Value StringObject::eqtilde(Env *env, Value other) {
 Value StringObject::match(Env *env, Value other, Optional<Value> index_arg, Block *block) {
     if (!other.is_regexp()) {
         if (other.is_string()) {
-            other = new RegexpObject { env, other.as_string()->string() };
+            other = RegexpObject::create(env, other.as_string()->string());
         } else if (other.respond_to(env, "to_str"_s)) {
-            other = new RegexpObject { env, other.to_str(env)->string() };
+            other = RegexpObject::create(env, other.to_str(env)->string());
         } else if (other.respond_to(env, "=~"_s)) {
             return other.send(env, "=~"_s, { this });
         }
@@ -2538,7 +2538,7 @@ Value StringObject::sub(Env *env, Value find, Optional<Value> replacement_value,
     if (find.is_string() || find.respond_to(env, "to_str"_s)) {
         const auto pattern = RegexpObject::quote(env, find.to_str(env)).as_string()->string();
         const int options = 0;
-        find = new RegexpObject { env, pattern, options };
+        find = RegexpObject::create(env, pattern, options);
     }
     if (!find.is_regexp())
         env->raise("TypeError", "wrong argument type {} (expected Regexp)", find.klass()->inspect_module());
@@ -2576,7 +2576,7 @@ Value StringObject::gsub(Env *env, Value find, Optional<Value> replacement_value
     if (find.is_string() || find.respond_to(env, "to_str"_s)) {
         const auto pattern = RegexpObject::quote(env, find.to_str(env)).as_string()->string();
         const int options = 0;
-        find = new RegexpObject { env, pattern, options };
+        find = RegexpObject::create(env, pattern, options);
     }
     if (!find.is_regexp())
         env->raise("TypeError", "wrong argument type {} (expected Regexp)", find.klass()->inspect_module());
@@ -3095,7 +3095,7 @@ Value StringObject::split(Env *env, Optional<Value> splitter_arg, Optional<Value
             splitter_arg = field_sep;
         }
     }
-    Value splitter = splitter_arg.value_or([&env]() { return new RegexpObject { env, "\\s+" }; });
+    Value splitter = splitter_arg.value_or([&env]() { return RegexpObject::create(env, "\\s+"); });
 
     int max_count = 0;
     if (max_count_arg)

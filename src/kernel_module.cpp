@@ -796,7 +796,7 @@ Value KernelModule::spawn(Env *env, Args &&args) {
                 const_cast<char *const *>(cmd),
                 new_env.is_empty() ? environ : new_env.data());
         } else {
-            auto splitter = new RegexpObject { env, "\\s+" };
+            auto splitter = RegexpObject::create(env, "\\s+");
             auto split = arg->split(env, splitter, 0).as_array();
             const char *cmd[split->size() + 1];
             for (size_t i = 0; i < split->size(); i++) {
