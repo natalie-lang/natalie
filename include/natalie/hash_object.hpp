@@ -1,7 +1,6 @@
 #pragma once
 
 #include <assert.h>
-#include <mutex>
 
 #include "natalie/block.hpp"
 #include "natalie/class_object.hpp"
@@ -13,6 +12,10 @@
 namespace Natalie {
 
 struct HashKey : public Cell {
+    static HashKey *create(Value key, Value val, size_t hash) {
+        return new HashKey { key, val, hash };
+    }
+
     HashKey *prev { nullptr };
     HashKey *next { nullptr };
     Value key;
@@ -31,6 +34,13 @@ struct HashKey : public Cell {
     virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<HashKey {h} key={} val={}>", this, key.dbg_inspect(), val.dbg_inspect());
     }
+
+    HashKey() { }
+
+    HashKey(Value key, Value val, size_t hash)
+        : key { key }
+        , val { val }
+        , hash { hash } { }
 };
 
 }
