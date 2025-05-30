@@ -182,7 +182,7 @@ Value DirObject::entries(Env *env) {
 
 Value DirObject::each(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, DirObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, DirObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
     if (!m_dir) env->raise("IOError", "closed directory");
@@ -196,7 +196,7 @@ Value DirObject::each(Env *env, Block *block) {
 
 Value DirObject::each_child(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, DirObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, DirObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each_child"_s }, size_block);
     }
     if (!m_dir) env->raise("IOError", "closed directory");

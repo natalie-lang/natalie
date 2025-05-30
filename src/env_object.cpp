@@ -70,7 +70,7 @@ size_t EnvObject::size() const {
 
 Value EnvObject::delete_if(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, env_size, 0 };
+        Block *size_block = Block::create(*env, this, env_size, 0);
         return send(env, "enum_for"_s, { "delete_if"_s }, size_block);
     }
 
@@ -109,7 +109,7 @@ Value EnvObject::each(Env *env, Block *block) {
         return this;
     } else {
         auto envhash = to_hash(env, nullptr);
-        Block *size_block = new Block { *env, envhash.as_hash(), HashObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, envhash.as_hash(), HashObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
 }
@@ -124,7 +124,7 @@ Value EnvObject::each_key(Env *env, Block *block) {
         return this;
     } else {
         auto envhash = to_hash(env, nullptr);
-        Block *size_block = new Block { *env, envhash.as_hash(), HashObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, envhash.as_hash(), HashObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each_key"_s }, size_block);
     }
 }
@@ -139,7 +139,7 @@ Value EnvObject::each_value(Env *env, Block *block) {
         return this;
     } else {
         auto envhash = to_hash(env, nullptr);
-        Block *size_block = new Block { *env, envhash.as_hash(), HashObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, envhash.as_hash(), HashObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each_value"_s }, size_block);
     }
 }
@@ -215,7 +215,7 @@ Value EnvObject::refeq(Env *env, Value name, Value value) {
 
 Value EnvObject::keep_if(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, env_size, 0 };
+        Block *size_block = Block::create(*env, this, env_size, 0);
         return send(env, "enum_for"_s, { "keep_if"_s }, size_block);
     }
 
@@ -284,7 +284,7 @@ Value EnvObject::clone(Env *env) {
 
 Value EnvObject::reject(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, env_size, 0 };
+        Block *size_block = Block::create(*env, this, env_size, 0);
         return send(env, "enum_for"_s, { "reject"_s }, size_block);
     }
 
@@ -293,7 +293,7 @@ Value EnvObject::reject(Env *env, Block *block) {
 
 Value EnvObject::reject_in_place(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, env_size, 0 };
+        Block *size_block = Block::create(*env, this, env_size, 0);
         return send(env, "enum_for"_s, { "reject!"_s }, size_block);
     }
 
@@ -328,7 +328,7 @@ Value EnvObject::replace(Env *env, Value hash) {
 
 Value EnvObject::select(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, env_size, 0 };
+        Block *size_block = Block::create(*env, this, env_size, 0);
         return send(env, "enum_for"_s, { "select"_s }, size_block);
     }
 
@@ -337,7 +337,7 @@ Value EnvObject::select(Env *env, Block *block) {
 
 Value EnvObject::select_in_place(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, env_size, 0 };
+        Block *size_block = Block::create(*env, this, env_size, 0);
         return send(env, "enum_for"_s, { "select!"_s }, size_block);
     }
 

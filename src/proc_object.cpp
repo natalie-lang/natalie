@@ -45,7 +45,7 @@ Value ProcObject::ltlt(Env *env, Value other) {
         env->raise("TypeError", "callable object is expected");
 
     env->var_set("other", 0, true, other);
-    auto block = new Block { *env, this, compose_ltlt, -1 };
+    auto block = Block::create(*env, this, compose_ltlt, -1);
     if (other.is_proc() && other.as_proc()->is_lambda())
         block->set_type(Block::BlockType::Lambda);
     return new ProcObject { block };
@@ -56,7 +56,7 @@ Value ProcObject::gtgt(Env *env, Value other) {
         env->raise("TypeError", "callable object is expected");
 
     env->var_set("other", 0, true, other);
-    auto block = new Block { *env, this, compose_gtgt, -1 };
+    auto block = Block::create(*env, this, compose_gtgt, -1);
     if (is_lambda())
         block->set_type(Block::BlockType::Lambda);
     return new ProcObject { block };
@@ -75,7 +75,7 @@ Value ProcObject::ruby2_keywords(Env *env) {
 
     OwnedPtr<Env> inner_env { new Env { *env } };
     inner_env->var_set("old_block", 1, true, new ProcObject { m_block });
-    m_block = new Block { std::move(inner_env), this, block_wrapper, -1 };
+    m_block = Block::create(std::move(inner_env), this, block_wrapper, -1);
 
     return this;
 }
