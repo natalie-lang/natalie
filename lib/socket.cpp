@@ -1643,7 +1643,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
     self.as_io()->set_nonblock(env, true);
     Args new_args = { sockaddr };
     if (connect_timeout) {
-        auto new_kwargs = new HashObject { env, { "connect_timeout"_s, *connect_timeout } };
+        auto new_kwargs = HashObject::create(env, { "connect_timeout"_s, *connect_timeout });
         Socket_connect(env, self, Args({ sockaddr, new_kwargs }, true), nullptr);
     } else {
         Socket_connect(env, self, { sockaddr }, nullptr);
@@ -1921,7 +1921,7 @@ Value UNIXServer_initialize(Env *env, Value self, Args &&args, Block *block) {
     if (fd == -1)
         env->raise_errno();
 
-    auto kwargs = new HashObject { env, { "path"_s, path } };
+    auto kwargs = HashObject::create(env, { "path"_s, path });
     self.as_io()->initialize(env, Args({ Value::integer(fd), kwargs }, true), block);
     self.as_io()->binmode(env);
     self->ivar_set(env, "@do_not_reverse_lookup"_s, find_top_level_const(env, "BasicSocket"_s).send(env, "do_not_reverse_lookup"_s));

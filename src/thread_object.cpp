@@ -516,7 +516,7 @@ Value ThreadObject::fetch(Env *env, Value key, Optional<Value> default_value, Bl
     if (m_current_fiber)
         hash = m_current_fiber->thread_storage();
     if (!hash)
-        hash = new HashObject {};
+        hash = HashObject::create();
     return hash->fetch(env, key, default_value, block);
 }
 
@@ -576,7 +576,7 @@ Value ThreadObject::thread_variable_set(Env *env, Value key, Value value) {
         env->raise("FrozenError", "can't modify frozen thread locals");
     key = validate_key(env, key);
     if (!m_thread_variables)
-        m_thread_variables = new HashObject;
+        m_thread_variables = HashObject::create();
     if (value.is_nil()) {
         m_thread_variables->delete_key(env, key, nullptr);
         return value;

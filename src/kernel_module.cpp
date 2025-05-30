@@ -544,7 +544,7 @@ Value KernelModule::get_usage(Env *env) {
     if (getrusage(RUSAGE_SELF, &usage) != 0)
         return Value::nil();
 
-    HashObject *hash = new HashObject {};
+    HashObject *hash = HashObject::create();
     hash->put(env, StringObject::create("maxrss"), Value::integer(usage.ru_maxrss));
     hash->put(env, StringObject::create("ixrss"), Value::integer(usage.ru_ixrss));
     hash->put(env, StringObject::create("idrss"), Value::integer(usage.ru_idrss));
@@ -571,7 +571,7 @@ Value KernelModule::Hash(Env *env, Value value) {
         return value;
 
     if (value.is_nil() || (value.is_array() && value.as_array()->is_empty()))
-        return new HashObject;
+        return HashObject::create();
 
     return value.to_hash(env);
 }

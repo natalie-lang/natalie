@@ -538,9 +538,9 @@ bool RegexpObject::has_match(Env *env, Value other, Optional<Value> start) {
 
 Value RegexpObject::named_captures(Env *env) const {
     if (!m_regex)
-        return new HashObject {};
+        return HashObject::create();
 
-    auto named_captures = new HashObject {};
+    auto named_captures = HashObject::create();
     named_captures_data data { env, named_captures };
     onig_foreach_name(
         m_regex,

@@ -9,7 +9,7 @@ Value init_tempfile(Env *env, Value self) {
 Value Tempfile_initialize(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     if (!kwargs)
-        kwargs = new HashObject {};
+        kwargs = HashObject::create();
     args.ensure_argc_between(env, 0, 2);
     auto basename = args.at(0, Value::nil());
     auto tmpdir = args.at(1, Value::nil());

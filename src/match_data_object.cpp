@@ -166,7 +166,7 @@ Value MatchDataObject::end(Env *env, Value end) const {
 
 Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
     if (keys.is_nil()) {
-        auto result = new HashObject {};
+        auto result = HashObject::create();
         for (auto name : *names().as_array()) {
             auto value = ref(env, name);
             result->put(env, name.as_string()->to_sym(env), value);
@@ -177,7 +177,7 @@ Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
     if (!keys.is_array())
         env->raise("TypeError", "wrong argument type {} (expected Array)", keys.klass()->inspect_module());
 
-    auto result = new HashObject {};
+    auto result = HashObject::create();
     if (keys.as_array()->size() > static_cast<size_t>(onig_number_of_names(m_regexp->m_regex)))
         return result;
 
@@ -259,9 +259,9 @@ Value MatchDataObject::match_length(Env *env, Value index) {
 
 Value MatchDataObject::named_captures(Env *env, Optional<Value> symbolize_names_kwarg) const {
     if (!m_regexp)
-        return new HashObject {};
+        return HashObject::create();
 
-    auto named_captures = new HashObject {};
+    auto named_captures = HashObject::create();
     named_captures_data data { this, env, named_captures, symbolize_names_kwarg && symbolize_names_kwarg.value().is_truthy() };
     onig_foreach_name(
         m_regexp->m_regex,

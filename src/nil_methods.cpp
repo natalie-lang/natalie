@@ -33,7 +33,7 @@ Value NilMethods::to_c(const Value) {
 }
 
 Value NilMethods::to_h(const Value) {
-    return new HashObject {};
+    return HashObject::create();
 }
 
 Value NilMethods::to_f(const Value) {

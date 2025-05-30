@@ -54,7 +54,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Hash:
-        obj = new HashObject { klass };
+        obj = HashObject::create(klass);
         break;
 
     case Object::Type::Io:
@@ -629,7 +629,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Float:
         return FloatObject::create(*static_cast<const FloatObject *>(this));
     case Object::Type::Hash:
-        return new HashObject { env, *static_cast<const HashObject *>(this) };
+        return HashObject::create(env, *static_cast<const HashObject *>(this));
     case Object::Type::Module:
         return new ModuleObject { *static_cast<const ModuleObject *>(this) };
     case Object::Type::Object:
@@ -680,7 +680,7 @@ Value Object::clone(Env *env, Optional<Value> freeze_arg) {
     }
 
     if (freeze_arg) {
-        auto keyword_hash = new HashObject {};
+        auto keyword_hash = HashObject::create();
         keyword_hash->put(env, "freeze"_s, freeze_arg.value());
         auto args = Args({ this, keyword_hash }, true);
         duplicate.send(env, "initialize_clone"_s, std::move(args));
@@ -810,7 +810,7 @@ void Object::assert_not_frozen(Env *env, Value receiver) {
     if (is_frozen()) {
         auto FrozenError = GlobalEnv::the()->Object()->const_fetch("FrozenError"_s);
         String message = String::format("can't modify frozen {}: {}", klass()->inspect_module(), inspected(env));
-        auto kwargs = new HashObject(env, { "receiver"_s, receiver });
+        auto kwargs = HashObject::create(env, { "receiver"_s, receiver });
         auto args = Args({ StringObject::create(message), kwargs }, true);
         ExceptionObject *error = FrozenError.send(env, "new"_s, std::move(args)).as_exception();
         env->raise_exception(error);
