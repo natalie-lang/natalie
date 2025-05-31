@@ -184,7 +184,7 @@ namespace {
 FloatObject *NumberParser::string_to_f(TM::NonNullPtr<const StringObject> str) {
     FloatParser float_parser { str->string() };
     float_parser.parse();
-    return new FloatObject { float_parser.result(false).value_or(0.0) };
+    return FloatObject::create(float_parser.result(false).value_or(0.0));
 }
 
 }

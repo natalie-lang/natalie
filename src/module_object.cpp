@@ -327,7 +327,7 @@ Value ModuleObject::remove_const(Env *env, Value name) {
 }
 
 Value ModuleObject::constants(Env *env, Optional<Value> inherit) const {
-    auto ary = new ArrayObject;
+    auto ary = ArrayObject::create();
     for (auto pair : m_constants)
         ary->push(pair.first);
     if (!inherit || inherit.value().is_truthy()) {
@@ -461,7 +461,7 @@ Value ModuleObject::class_variable_set(Env *env, Value name, Value value) {
 ArrayObject *ModuleObject::class_variables(Optional<Value> inherit) const {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    auto result = new ArrayObject {};
+    auto result = ArrayObject::create();
     for (auto [cvar, _] : m_class_vars)
         result->push(cvar);
     if (singleton_class()) {
@@ -660,7 +660,7 @@ Value ModuleObject::public_instance_method(Env *env, Value name_value) {
 
 Value ModuleObject::instance_methods(Env *env, Optional<Value> include_super_value, std::function<bool(MethodVisibility)> predicate) {
     bool include_super = !include_super_value || include_super_value.value().is_truthy();
-    ArrayObject *array = new ArrayObject {};
+    ArrayObject *array = ArrayObject::create();
     methods(env, array, include_super);
     array->select_in_place([this, env, predicate](Value &name_value) -> bool {
         auto name = name_value.as_symbol();
@@ -698,7 +698,7 @@ ArrayObject *ModuleObject::ancestors(Env *env) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     ModuleObject *klass = this;
-    ArrayObject *ancestors = new ArrayObject {};
+    ArrayObject *ancestors = ArrayObject::create();
     do {
         if (klass->included_modules().is_empty()) {
             // note: if there are included modules, then they will include this klass
@@ -776,7 +776,7 @@ String ModuleObject::inspect_module() const {
 }
 
 Value ModuleObject::inspect(Env *env) const {
-    return new StringObject { inspect_module() };
+    return StringObject::create(inspect_module());
 }
 
 Value ModuleObject::name(Env *env) const {
@@ -790,7 +790,7 @@ Value ModuleObject::name(Env *env) const {
                 name.prepend(owner_name.value());
             }
         }
-        return new StringObject { name };
+        return StringObject::create(name);
     } else {
         return Value::nil();
     }
@@ -818,7 +818,7 @@ ArrayObject *ModuleObject::attr(Env *env, Args &&args) {
 }
 
 ArrayObject *ModuleObject::attr_reader(Env *env, Args &&args) {
-    auto ary = new ArrayObject { args.size() };
+    auto ary = ArrayObject::create(args.size());
     for (size_t i = 0; i < args.size(); i++) {
         auto name = attr_reader(env, args[i]);
         ary->push(name);
@@ -830,7 +830,7 @@ SymbolObject *ModuleObject::attr_reader(Env *env, Value obj) {
     auto name = obj.to_symbol(env, Value::Conversion::Strict);
     OwnedPtr<Env> block_env { new Env {} };
     block_env->var_set("name", 0, true, name);
-    Block *attr_block = new Block { std::move(block_env), this, ModuleObject::attr_reader_block_fn, 0 };
+    Block *attr_block = Block::create(std::move(block_env), this, ModuleObject::attr_reader_block_fn, 0);
     define_method(env, name, attr_block);
     return name;
 }
@@ -843,7 +843,7 @@ Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args &&args, Bloc
 }
 
 ArrayObject *ModuleObject::attr_writer(Env *env, Args &&args) {
-    auto ary = new ArrayObject { args.size() };
+    auto ary = ArrayObject::create(args.size());
     for (size_t i = 0; i < args.size(); i++) {
         auto name = attr_writer(env, args[i]);
         ary->push(name);
@@ -856,7 +856,7 @@ SymbolObject *ModuleObject::attr_writer(Env *env, Value obj) {
     auto method_name = SymbolObject::intern(TM::String::format("{}=", name->string()));
     OwnedPtr<Env> block_env { new Env {} };
     block_env->var_set("name", 0, true, name);
-    Block *attr_block = new Block { std::move(block_env), this, ModuleObject::attr_writer_block_fn, 1 };
+    Block *attr_block = Block::create(std::move(block_env), this, ModuleObject::attr_writer_block_fn, 1);
     define_method(env, method_name, attr_block);
     return method_name;
 }
@@ -871,7 +871,7 @@ Value ModuleObject::attr_writer_block_fn(Env *env, Value self, Args &&args, Bloc
 }
 
 ArrayObject *ModuleObject::attr_accessor(Env *env, Args &&args) {
-    auto ary = new ArrayObject { args.size() * 2 };
+    auto ary = ArrayObject::create(args.size() * 2);
     for (size_t i = 0; i < args.size(); i++) {
         ary->push(attr_reader(env, args[i]));
         ary->push(attr_writer(env, args[i]));
@@ -894,7 +894,7 @@ void ModuleObject::included_modules(Env *env, ArrayObject *modules) {
 }
 
 Value ModuleObject::included_modules(Env *env) {
-    ArrayObject *modules = new ArrayObject {};
+    ArrayObject *modules = ArrayObject::create();
     included_modules(env, modules);
     return modules;
 }
@@ -1139,7 +1139,7 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
     }
 
     auto method_wrapper = [](Env *env, Value self, Args &&args, Block *block) -> Value {
-        auto kwargs = args.has_keyword_hash() ? args.pop_keyword_hash() : new HashObject;
+        auto kwargs = args.has_keyword_hash() ? args.pop_keyword_hash() : HashObject::create();
         auto new_args = args.to_array_for_block(env, 0, -1, true);
         if (!kwargs->is_empty())
             new_args->push(HashObject::ruby2_keywords_hash(env, kwargs));
@@ -1150,7 +1150,7 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
     OwnedPtr<Env> inner_env { new Env { *env } };
     inner_env->var_set("old_method", 1, true, instance_method(env, name));
     undef_method(env, { name });
-    define_method(env, name.as_symbol(), new Block { std::move(inner_env), this, method_wrapper, -1 });
+    define_method(env, name.as_symbol(), Block::create(std::move(inner_env), this, method_wrapper, -1));
 
     return Value::nil();
 }

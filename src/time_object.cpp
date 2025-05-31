@@ -254,7 +254,7 @@ Value TimeObject::subsec(Env *) {
 
 Value TimeObject::to_a(Env *env) const {
     auto dstval = bool_object(isdst(env));
-    return new ArrayObject { sec(env), min(env), hour(env), mday(env), month(env), year(env), wday(env), yday(env), dstval, zone(env) };
+    return ArrayObject::create({ sec(env), min(env), hour(env), mday(env), month(env), year(env), wday(env), yday(env), dstval, zone(env) });
 }
 
 Value TimeObject::to_f(Env *env) {
@@ -548,7 +548,7 @@ Value TimeObject::build_string(Env *, const char *format) {
     int maxsize = 32;
     char buffer[maxsize];
     auto length = ::strftime(buffer, maxsize, format, &m_time);
-    return new StringObject { buffer, length, Encoding::US_ASCII };
+    return StringObject::create(buffer, length, Encoding::US_ASCII);
 }
 
 Value TimeObject::strip_zeroes(StringObject *string) {
@@ -561,10 +561,10 @@ Value TimeObject::strip_zeroes(StringObject *string) {
             break;
     }
     if (last_char < 0) {
-        return new StringObject {};
+        return StringObject::create();
     } else {
         size_t new_length = static_cast<size_t>(last_char + 1);
-        return new StringObject { c_str, new_length };
+        return StringObject::create(c_str, new_length);
     }
 }
 
@@ -574,9 +574,9 @@ Value TimeObject::zone(Env *env) const {
         return Value::nil();
     }
     if (is_utc(env)) {
-        return new StringObject { "UTC", Encoding::US_ASCII };
+        return StringObject::create("UTC", Encoding::US_ASCII);
     }
-    return new StringObject { m_zone, Encoding::US_ASCII };
+    return StringObject::create(m_zone, Encoding::US_ASCII);
 }
 
 }

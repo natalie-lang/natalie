@@ -9,14 +9,14 @@ Value init_tempfile(Env *env, Value self) {
 Value Tempfile_initialize(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     if (!kwargs)
-        kwargs = new HashObject {};
+        kwargs = HashObject::create();
     args.ensure_argc_between(env, 0, 2);
     auto basename = args.at(0, Value::nil());
     auto tmpdir = args.at(1, Value::nil());
-    auto suffix = new StringObject { "" };
+    auto suffix = StringObject::create("");
 
     if (basename.is_nil()) {
-        basename = new StringObject { "" };
+        basename = StringObject::create("");
     } else if (!basename.is_string() && basename.respond_to(env, "to_str"_s)) {
         basename = basename.to_str(env);
     } else if (basename.is_array()) {
@@ -40,7 +40,7 @@ Value Tempfile_initialize(Env *env, Value self, Args &&args, Block *) {
     if (fileno == -1)
         env->raise_errno();
 
-    auto file = new FileObject {};
+    auto file = FileObject::create();
     file->initialize(env, Args({ Value::integer(fileno), kwargs }, true), nullptr);
     file->set_path(path);
 

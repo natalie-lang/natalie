@@ -3,7 +3,6 @@
 #include <signal.h>
 
 #include "natalie.hpp"
-#include "natalie/integer_methods.hpp"
 #include "natalie/thread/mutex_object.hpp"
 #include "natalie/thread_object.hpp"
 
@@ -270,7 +269,7 @@ Value ThreadObject::to_s(Env *env) {
         location,
         status());
 
-    return new StringObject { formatted, Encoding::ASCII_8BIT };
+    return StringObject::create(formatted, Encoding::ASCII_8BIT);
 }
 
 Value ThreadObject::status(Env *env) {
@@ -280,7 +279,7 @@ Value ThreadObject::status(Env *env) {
             return Value::nil();
         return Value::False();
     }
-    return new StringObject { status_string };
+    return StringObject::create(status_string);
 }
 
 String ThreadObject::status() {
@@ -471,7 +470,7 @@ Value ThreadObject::value(Env *env) {
 Value ThreadObject::name(Env *env) {
     if (!m_name)
         return Value::nil();
-    return new StringObject { *m_name };
+    return StringObject::create(*m_name);
 }
 
 Value ThreadObject::set_name(Env *env, Value name) {
@@ -517,7 +516,7 @@ Value ThreadObject::fetch(Env *env, Value key, Optional<Value> default_value, Bl
     if (m_current_fiber)
         hash = m_current_fiber->thread_storage();
     if (!hash)
-        hash = new HashObject {};
+        hash = HashObject::create();
     return hash->fetch(env, key, default_value, block);
 }
 
@@ -536,7 +535,7 @@ Value ThreadObject::keys(Env *env) {
     if (m_current_fiber)
         hash = m_current_fiber->thread_storage();
     if (!hash)
-        return new ArrayObject {};
+        return ArrayObject::create();
     return hash->keys(env);
 }
 
@@ -577,7 +576,7 @@ Value ThreadObject::thread_variable_set(Env *env, Value key, Value value) {
         env->raise("FrozenError", "can't modify frozen thread locals");
     key = validate_key(env, key);
     if (!m_thread_variables)
-        m_thread_variables = new HashObject;
+        m_thread_variables = HashObject::create();
     if (value.is_nil()) {
         m_thread_variables->delete_key(env, key, nullptr);
         return value;
@@ -587,13 +586,13 @@ Value ThreadObject::thread_variable_set(Env *env, Value key, Value value) {
 
 Value ThreadObject::thread_variables(Env *env) const {
     if (!m_thread_variables)
-        return new ArrayObject;
+        return ArrayObject::create();
     return m_thread_variables->keys(env);
 }
 
 Value ThreadObject::list(Env *env) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-    auto ary = new ArrayObject { s_list.size() };
+    auto ary = ArrayObject::create(s_list.size());
     for (auto thread : s_list) {
         if (thread->m_status != ThreadObject::Status::Dead)
             ary->push(thread);

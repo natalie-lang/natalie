@@ -17,20 +17,13 @@ public:
         Method
     };
 
-    Block(Env &env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc)
-        : m_fn { fn }
-        , m_arity { arity }
-        , m_env { new Env(env) }
-        , m_self { self }
-        , m_type { type } { }
+    static Block *create(Env &env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc) {
+        return new Block(env, self, fn, arity, type);
+    }
 
-    // Keep the TM:: namespace, ffi-clang (used in gc_lint) gets confused otherwise
-    Block(TM::OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc)
-        : m_fn { fn }
-        , m_arity { arity }
-        , m_env { env.release() }
-        , m_self { self }
-        , m_type { type } { }
+    static Block *create(TM::OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc) {
+        return new Block(std::move(env), self, fn, arity, type);
+    }
 
     Value run(Env *env, Args &&args = {}, Block *block = nullptr);
 
@@ -65,6 +58,20 @@ public:
     }
 
 private:
+    Block(Env &env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc)
+        : m_fn { fn }
+        , m_arity { arity }
+        , m_env { new Env(env) }
+        , m_self { self }
+        , m_type { type } { }
+
+    Block(OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc)
+        : m_fn { fn }
+        , m_arity { arity }
+        , m_env { env.release() }
+        , m_self { self }
+        , m_type { type } { }
+
     MethodFnPtr m_fn;
     int m_arity { 0 };
     Env *m_env { nullptr };

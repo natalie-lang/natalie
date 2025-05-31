@@ -66,19 +66,19 @@ Value RationalObject::cmp(Env *env, Value other) {
 
 Value RationalObject::coerce(Env *env, Value other) {
     if (other.is_integer()) {
-        return new ArrayObject { new RationalObject(other.integer(), Value::integer(1)), this };
+        return ArrayObject::create({ new RationalObject(other.integer(), Value::integer(1)), this });
     } else if (other.is_float()) {
-        return new ArrayObject { other, this->to_f(env) };
+        return ArrayObject::create({ other, this->to_f(env) });
     } else if (other.is_rational()) {
-        return new ArrayObject { other, this };
+        return ArrayObject::create({ other, this });
     } else if (other.is_complex()) {
         auto complex = other.as_complex();
         if (complex->imaginary().integer().is_zero()) {
             auto a = new RationalObject { complex->real(), Value::integer(1) };
             auto b = new ComplexObject(this);
-            return new ArrayObject { a, b };
+            return ArrayObject::create({ a, b });
         } else {
-            return new ArrayObject { other, new ComplexObject(this) };
+            return ArrayObject::create({ other, new ComplexObject(this) });
         }
     }
 
@@ -160,7 +160,7 @@ Value RationalObject::inspect(Env *env) {
 }
 
 Value RationalObject::marshal_dump(Env *env) {
-    return new ArrayObject { m_numerator, m_denominator };
+    return ArrayObject::create({ m_numerator, m_denominator });
 }
 
 Value RationalObject::mul(Env *env, Value other) {

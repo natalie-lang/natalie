@@ -25,7 +25,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Array:
-        obj = new ArrayObject {};
+        obj = ArrayObject::create();
         obj->m_klass = klass;
         break;
 
@@ -54,15 +54,15 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Hash:
-        obj = new HashObject { klass };
+        obj = HashObject::create(klass);
         break;
 
     case Object::Type::Io:
-        obj = new IoObject { klass };
+        obj = IoObject::create(klass);
         break;
 
     case Object::Type::File:
-        obj = new FileObject { klass };
+        obj = FileObject::create(klass);
         break;
 
     case Object::Type::MatchData:
@@ -90,11 +90,11 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Regexp:
-        obj = new RegexpObject { klass };
+        obj = RegexpObject::create(klass);
         break;
 
     case Object::Type::String:
-        obj = new StringObject { klass };
+        obj = StringObject::create(klass);
         break;
 
     case Object::Type::Thread:
@@ -371,9 +371,9 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
 
 Value Object::instance_variables(Env *env) {
     if (m_type == Type::Float || !m_ivars)
-        return new ArrayObject;
+        return ArrayObject::create();
 
-    ArrayObject *ary = new ArrayObject { m_ivars->size() };
+    ArrayObject *ary = ArrayObject::create(m_ivars->size());
     for (auto pair : *m_ivars)
         ary->push(pair.first);
     return ary;
@@ -499,7 +499,7 @@ Value Object::main_obj_define_method(Env *env, Value name, Optional<Value> proc_
 }
 
 Value Object::main_obj_inspect(Env *) {
-    return new StringObject { "main" };
+    return StringObject::create("main");
 }
 
 void Object::private_method(Env *env, SymbolObject *name) {
@@ -612,7 +612,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
 Value Object::duplicate(Env *env) const {
     switch (m_type) {
     case Object::Type::Array:
-        return new ArrayObject { *static_cast<const ArrayObject *>(this) };
+        return ArrayObject::create(*static_cast<const ArrayObject *>(this));
     case Object::Type::Class: {
         auto out = new ClassObject { *static_cast<const ClassObject *>(this) };
         auto s_class = singleton_class();
@@ -627,9 +627,9 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::False:
         return Value::False();
     case Object::Type::Float:
-        return new FloatObject { *static_cast<const FloatObject *>(this) };
+        return FloatObject::create(*static_cast<const FloatObject *>(this));
     case Object::Type::Hash:
-        return new HashObject { env, *static_cast<const HashObject *>(this) };
+        return HashObject::create(env, *static_cast<const HashObject *>(this));
     case Object::Type::Module:
         return new ModuleObject { *static_cast<const ModuleObject *>(this) };
     case Object::Type::Object:
@@ -641,9 +641,9 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Rational:
         return new RationalObject { *static_cast<const RationalObject *>(this) };
     case Object::Type::Regexp:
-        return new RegexpObject { env, *static_cast<const RegexpObject *>(this) };
+        return RegexpObject::create(env, *static_cast<const RegexpObject *>(this));
     case Object::Type::String:
-        return new StringObject { *static_cast<const StringObject *>(this) };
+        return StringObject::create(*static_cast<const StringObject *>(this));
     case Object::Type::Symbol:
         return SymbolObject::intern(static_cast<const SymbolObject *>(this)->string());
     case Object::Type::Time:
@@ -680,7 +680,7 @@ Value Object::clone(Env *env, Optional<Value> freeze_arg) {
     }
 
     if (freeze_arg) {
-        auto keyword_hash = new HashObject {};
+        auto keyword_hash = HashObject::create();
         keyword_hash->put(env, "freeze"_s, freeze_arg.value());
         auto args = Args({ this, keyword_hash }, true);
         duplicate.send(env, "initialize_clone"_s, std::move(args));
@@ -739,7 +739,7 @@ const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
 Value Object::defined_obj(Env *env, SymbolObject *name, bool strict) {
     const char *result = defined(env, name, strict);
     if (result) {
-        return new StringObject { result };
+        return StringObject::create(result);
     } else {
         return Value::nil();
     }
@@ -810,8 +810,8 @@ void Object::assert_not_frozen(Env *env, Value receiver) {
     if (is_frozen()) {
         auto FrozenError = GlobalEnv::the()->Object()->const_fetch("FrozenError"_s);
         String message = String::format("can't modify frozen {}: {}", klass()->inspect_module(), inspected(env));
-        auto kwargs = new HashObject(env, { "receiver"_s, receiver });
-        auto args = Args({ new StringObject { message }, kwargs }, true);
+        auto kwargs = HashObject::create(env, { "receiver"_s, receiver });
+        auto args = Args({ StringObject::create(message), kwargs }, true);
         ExceptionObject *error = FrozenError.send(env, "new"_s, std::move(args)).as_exception();
         env->raise_exception(error);
     }

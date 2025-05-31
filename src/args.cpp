@@ -85,7 +85,7 @@ Value Args::last() const {
 }
 
 ArrayObject *Args::to_array() const {
-    return new ArrayObject { m_args_size, tl_current_arg_stack->data() + m_args_start_index };
+    return ArrayObject::create(m_args_size, tl_current_arg_stack->data() + m_args_start_index);
 }
 
 ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool autosplat) const {
@@ -99,7 +99,7 @@ ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_c
         return ary;
     }
     auto len = max_count >= 0 ? std::min(m_args_size, (size_t)max_count) : m_args_size;
-    auto ary = new ArrayObject { len, tl_current_arg_stack->data() + m_args_start_index };
+    auto ary = ArrayObject::create(len, tl_current_arg_stack->data() + m_args_start_index);
     ssize_t count = ary->size();
     if (count < min_count)
         ary->fill(env, Value::nil(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);

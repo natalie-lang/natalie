@@ -425,9 +425,9 @@ module Kernel
               // dumb hack to fix -NAN on some systems
               dbl *= -1;
               if (snprintf(buf, 100, fmt, dbl) > 0)
-                  return new StringObject { buf };
+                  return StringObject::create(buf);
           } else {
-              return new StringObject { buf };
+              return StringObject::create(buf);
           }
       }
       env->raise("ArgumentError", "could not format value");

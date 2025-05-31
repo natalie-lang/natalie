@@ -37,11 +37,11 @@ module Natalie
           encoding_object = "EncodingObject::get(Encoding::#{enum})"
           name =
             if @string.empty?
-              transform.exec_and_push(:string, "Value(new StringObject(#{encoding_object}))")
+              transform.exec_and_push(:string, "Value(StringObject::create(#{encoding_object}))")
             else
               transform.exec_and_push(
                 :string,
-                "Value(new StringObject(#{string_to_cpp(@string)}, (size_t)#{@bytesize}, #{encoding_object}))",
+                "Value(StringObject::create(#{string_to_cpp(@string)}, (size_t)#{@bytesize}, #{encoding_object}))",
               )
             end
           transform.exec("#{name}.as_string()->set_chilled(StringObject::Chilled::String)") if chilled?

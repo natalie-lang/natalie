@@ -16,51 +16,45 @@ using namespace TM;
 
 class ArrayObject : public Object {
 public:
-    ArrayObject()
-        : Object { Object::Type::Array, GlobalEnv::the()->Array() } { }
-
-    ArrayObject(ClassObject *klass)
-        : Object { Object::Type::Array, klass } { }
-
-    ArrayObject(size_t initial_capacity)
-        : ArrayObject {} {
-        m_vector.set_capacity(initial_capacity);
+    static ArrayObject *create() {
+        return new ArrayObject;
     }
 
-    ArrayObject(std::initializer_list<Value> list);
-
-    ArrayObject(const ArrayObject &other)
-        : Object { other }
-        , m_vector { other.m_vector } { }
-
-    ArrayObject &operator=(ArrayObject &&other) {
-        Object::operator=(std::move(other));
-        m_vector = std::move(other.m_vector);
-        return *this;
+    static ArrayObject *create(ClassObject *klass) {
+        return new ArrayObject(klass);
     }
 
-    ArrayObject(size_t argc, const Value *args)
-        : ArrayObject { argc, args, GlobalEnv::the()->Array() } { }
-
-    ArrayObject(size_t argc, const Value *args, ClassObject *klass)
-        : Object { Object::Type::Array, klass } {
-        m_vector.set_capacity(argc);
-        for (size_t i = 0; i < argc; i++) {
-            push(args[i]);
-        }
+    static ArrayObject *create(size_t initial_capacity) {
+        return new ArrayObject(initial_capacity);
     }
 
-    ArrayObject(const Vector<Value> &other)
-        : Object { Object::Type::Array, GlobalEnv::the()->Array() }
-        , m_vector { other } { }
+    static ArrayObject *create(std::initializer_list<Value> list) {
+        return new ArrayObject(list);
+    }
 
-    ArrayObject(Vector<Value> &&other)
-        : Object { Object::Type::Array, GlobalEnv::the()->Array() }
-        , m_vector { std::move(other) } { }
+    static ArrayObject *create(const ArrayObject &other) {
+        return new ArrayObject(other);
+    }
+
+    static ArrayObject *create(size_t argc, const Value *args) {
+        return new ArrayObject(argc, args);
+    }
+
+    static ArrayObject *create(size_t argc, const Value *args, ClassObject *klass) {
+        return new ArrayObject(argc, args, klass);
+    }
+
+    static ArrayObject *create(const Vector<Value> &other) {
+        return new ArrayObject(other);
+    }
+
+    static ArrayObject *create(Vector<Value> &&other) {
+        return new ArrayObject(std::move(other));
+    }
 
     // Array[]
     static Value square_new(Env *env, ClassObject *klass, Args &&args) {
-        return new ArrayObject { args.size(), args.data(), klass };
+        return ArrayObject::create(args.size(), args.data(), klass);
     }
 
     static Value size_fn(Env *, Value self, Args &&, Block *) {
@@ -221,6 +215,48 @@ public:
     }
 
 private:
+    ArrayObject()
+        : Object { Object::Type::Array, GlobalEnv::the()->Array() } { }
+
+    ArrayObject(ClassObject *klass)
+        : Object { Object::Type::Array, klass } { }
+
+    ArrayObject(size_t initial_capacity)
+        : ArrayObject {} {
+        m_vector.set_capacity(initial_capacity);
+    }
+
+    ArrayObject(std::initializer_list<Value> list);
+
+    ArrayObject(const ArrayObject &other)
+        : Object { other }
+        , m_vector { other.m_vector } { }
+
+    ArrayObject &operator=(ArrayObject &&other) {
+        Object::operator=(std::move(other));
+        m_vector = std::move(other.m_vector);
+        return *this;
+    }
+
+    ArrayObject(size_t argc, const Value *args)
+        : ArrayObject { argc, args, GlobalEnv::the()->Array() } { }
+
+    ArrayObject(size_t argc, const Value *args, ClassObject *klass)
+        : Object { Object::Type::Array, klass } {
+        m_vector.set_capacity(argc);
+        for (size_t i = 0; i < argc; i++) {
+            push(args[i]);
+        }
+    }
+
+    ArrayObject(const Vector<Value> &other)
+        : Object { Object::Type::Array, GlobalEnv::the()->Array() }
+        , m_vector { other } { }
+
+    ArrayObject(Vector<Value> &&other)
+        : Object { Object::Type::Array, GlobalEnv::the()->Array() }
+        , m_vector { std::move(other) } { }
+
     Vector<Value> m_vector {};
 
     nat_int_t _resolve_index(nat_int_t) const;

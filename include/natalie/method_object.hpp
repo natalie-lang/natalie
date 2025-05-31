@@ -32,7 +32,7 @@ public:
     }
 
     virtual ProcObject *to_proc(Env *env) override {
-        auto block = new Block { *env, m_object, m_method->fn(), m_method->arity(), Block::BlockType::Method };
+        auto block = Block::create(*env, m_object, m_method->fn(), m_method->arity(), Block::BlockType::Method);
         return new ProcObject { block };
     }
 

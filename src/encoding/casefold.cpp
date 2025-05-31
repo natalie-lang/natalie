@@ -2868,213 +2868,213 @@ Value EncodingObject::casefold_common(nat_int_t codepoint) {
 Value EncodingObject::casefold_full(nat_int_t codepoint) {
     switch (codepoint) {
     case 0x00DF:
-        return new ArrayObject({ Value::integer(0x0073), Value::integer(0x0073) });
+        return ArrayObject::create({ Value::integer(0x0073), Value::integer(0x0073) });
     case 0x0130:
-        return new ArrayObject({ Value::integer(0x0069), Value::integer(0x0307) });
+        return ArrayObject::create({ Value::integer(0x0069), Value::integer(0x0307) });
     case 0x0149:
-        return new ArrayObject({ Value::integer(0x02BC), Value::integer(0x006E) });
+        return ArrayObject::create({ Value::integer(0x02BC), Value::integer(0x006E) });
     case 0x01F0:
-        return new ArrayObject({ Value::integer(0x006A), Value::integer(0x030C) });
+        return ArrayObject::create({ Value::integer(0x006A), Value::integer(0x030C) });
     case 0x0390:
-        return new ArrayObject({ Value::integer(0x03B9), Value::integer(0x0308), Value::integer(0x0301) });
+        return ArrayObject::create({ Value::integer(0x03B9), Value::integer(0x0308), Value::integer(0x0301) });
     case 0x03B0:
-        return new ArrayObject({ Value::integer(0x03C5), Value::integer(0x0308), Value::integer(0x0301) });
+        return ArrayObject::create({ Value::integer(0x03C5), Value::integer(0x0308), Value::integer(0x0301) });
     case 0x0587:
-        return new ArrayObject({ Value::integer(0x0565), Value::integer(0x0582) });
+        return ArrayObject::create({ Value::integer(0x0565), Value::integer(0x0582) });
     case 0x1E96:
-        return new ArrayObject({ Value::integer(0x0068), Value::integer(0x0331) });
+        return ArrayObject::create({ Value::integer(0x0068), Value::integer(0x0331) });
     case 0x1E97:
-        return new ArrayObject({ Value::integer(0x0074), Value::integer(0x0308) });
+        return ArrayObject::create({ Value::integer(0x0074), Value::integer(0x0308) });
     case 0x1E98:
-        return new ArrayObject({ Value::integer(0x0077), Value::integer(0x030A) });
+        return ArrayObject::create({ Value::integer(0x0077), Value::integer(0x030A) });
     case 0x1E99:
-        return new ArrayObject({ Value::integer(0x0079), Value::integer(0x030A) });
+        return ArrayObject::create({ Value::integer(0x0079), Value::integer(0x030A) });
     case 0x1E9A:
-        return new ArrayObject({ Value::integer(0x0061), Value::integer(0x02BE) });
+        return ArrayObject::create({ Value::integer(0x0061), Value::integer(0x02BE) });
     case 0x1E9E:
-        return new ArrayObject({ Value::integer(0x0073), Value::integer(0x0073) });
+        return ArrayObject::create({ Value::integer(0x0073), Value::integer(0x0073) });
     case 0x1F50:
-        return new ArrayObject({ Value::integer(0x03C5), Value::integer(0x0313) });
+        return ArrayObject::create({ Value::integer(0x03C5), Value::integer(0x0313) });
     case 0x1F52:
-        return new ArrayObject({ Value::integer(0x03C5), Value::integer(0x0313), Value::integer(0x0300) });
+        return ArrayObject::create({ Value::integer(0x03C5), Value::integer(0x0313), Value::integer(0x0300) });
     case 0x1F54:
-        return new ArrayObject({ Value::integer(0x03C5), Value::integer(0x0313), Value::integer(0x0301) });
+        return ArrayObject::create({ Value::integer(0x03C5), Value::integer(0x0313), Value::integer(0x0301) });
     case 0x1F56:
-        return new ArrayObject({ Value::integer(0x03C5), Value::integer(0x0313), Value::integer(0x0342) });
+        return ArrayObject::create({ Value::integer(0x03C5), Value::integer(0x0313), Value::integer(0x0342) });
     case 0x1F80:
-        return new ArrayObject({ Value::integer(0x1F00), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F00), Value::integer(0x03B9) });
     case 0x1F81:
-        return new ArrayObject({ Value::integer(0x1F01), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F01), Value::integer(0x03B9) });
     case 0x1F82:
-        return new ArrayObject({ Value::integer(0x1F02), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F02), Value::integer(0x03B9) });
     case 0x1F83:
-        return new ArrayObject({ Value::integer(0x1F03), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F03), Value::integer(0x03B9) });
     case 0x1F84:
-        return new ArrayObject({ Value::integer(0x1F04), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F04), Value::integer(0x03B9) });
     case 0x1F85:
-        return new ArrayObject({ Value::integer(0x1F05), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F05), Value::integer(0x03B9) });
     case 0x1F86:
-        return new ArrayObject({ Value::integer(0x1F06), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F06), Value::integer(0x03B9) });
     case 0x1F87:
-        return new ArrayObject({ Value::integer(0x1F07), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F07), Value::integer(0x03B9) });
     case 0x1F88:
-        return new ArrayObject({ Value::integer(0x1F00), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F00), Value::integer(0x03B9) });
     case 0x1F89:
-        return new ArrayObject({ Value::integer(0x1F01), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F01), Value::integer(0x03B9) });
     case 0x1F8A:
-        return new ArrayObject({ Value::integer(0x1F02), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F02), Value::integer(0x03B9) });
     case 0x1F8B:
-        return new ArrayObject({ Value::integer(0x1F03), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F03), Value::integer(0x03B9) });
     case 0x1F8C:
-        return new ArrayObject({ Value::integer(0x1F04), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F04), Value::integer(0x03B9) });
     case 0x1F8D:
-        return new ArrayObject({ Value::integer(0x1F05), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F05), Value::integer(0x03B9) });
     case 0x1F8E:
-        return new ArrayObject({ Value::integer(0x1F06), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F06), Value::integer(0x03B9) });
     case 0x1F8F:
-        return new ArrayObject({ Value::integer(0x1F07), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F07), Value::integer(0x03B9) });
     case 0x1F90:
-        return new ArrayObject({ Value::integer(0x1F20), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F20), Value::integer(0x03B9) });
     case 0x1F91:
-        return new ArrayObject({ Value::integer(0x1F21), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F21), Value::integer(0x03B9) });
     case 0x1F92:
-        return new ArrayObject({ Value::integer(0x1F22), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F22), Value::integer(0x03B9) });
     case 0x1F93:
-        return new ArrayObject({ Value::integer(0x1F23), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F23), Value::integer(0x03B9) });
     case 0x1F94:
-        return new ArrayObject({ Value::integer(0x1F24), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F24), Value::integer(0x03B9) });
     case 0x1F95:
-        return new ArrayObject({ Value::integer(0x1F25), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F25), Value::integer(0x03B9) });
     case 0x1F96:
-        return new ArrayObject({ Value::integer(0x1F26), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F26), Value::integer(0x03B9) });
     case 0x1F97:
-        return new ArrayObject({ Value::integer(0x1F27), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F27), Value::integer(0x03B9) });
     case 0x1F98:
-        return new ArrayObject({ Value::integer(0x1F20), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F20), Value::integer(0x03B9) });
     case 0x1F99:
-        return new ArrayObject({ Value::integer(0x1F21), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F21), Value::integer(0x03B9) });
     case 0x1F9A:
-        return new ArrayObject({ Value::integer(0x1F22), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F22), Value::integer(0x03B9) });
     case 0x1F9B:
-        return new ArrayObject({ Value::integer(0x1F23), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F23), Value::integer(0x03B9) });
     case 0x1F9C:
-        return new ArrayObject({ Value::integer(0x1F24), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F24), Value::integer(0x03B9) });
     case 0x1F9D:
-        return new ArrayObject({ Value::integer(0x1F25), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F25), Value::integer(0x03B9) });
     case 0x1F9E:
-        return new ArrayObject({ Value::integer(0x1F26), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F26), Value::integer(0x03B9) });
     case 0x1F9F:
-        return new ArrayObject({ Value::integer(0x1F27), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F27), Value::integer(0x03B9) });
     case 0x1FA0:
-        return new ArrayObject({ Value::integer(0x1F60), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F60), Value::integer(0x03B9) });
     case 0x1FA1:
-        return new ArrayObject({ Value::integer(0x1F61), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F61), Value::integer(0x03B9) });
     case 0x1FA2:
-        return new ArrayObject({ Value::integer(0x1F62), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F62), Value::integer(0x03B9) });
     case 0x1FA3:
-        return new ArrayObject({ Value::integer(0x1F63), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F63), Value::integer(0x03B9) });
     case 0x1FA4:
-        return new ArrayObject({ Value::integer(0x1F64), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F64), Value::integer(0x03B9) });
     case 0x1FA5:
-        return new ArrayObject({ Value::integer(0x1F65), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F65), Value::integer(0x03B9) });
     case 0x1FA6:
-        return new ArrayObject({ Value::integer(0x1F66), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F66), Value::integer(0x03B9) });
     case 0x1FA7:
-        return new ArrayObject({ Value::integer(0x1F67), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F67), Value::integer(0x03B9) });
     case 0x1FA8:
-        return new ArrayObject({ Value::integer(0x1F60), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F60), Value::integer(0x03B9) });
     case 0x1FA9:
-        return new ArrayObject({ Value::integer(0x1F61), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F61), Value::integer(0x03B9) });
     case 0x1FAA:
-        return new ArrayObject({ Value::integer(0x1F62), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F62), Value::integer(0x03B9) });
     case 0x1FAB:
-        return new ArrayObject({ Value::integer(0x1F63), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F63), Value::integer(0x03B9) });
     case 0x1FAC:
-        return new ArrayObject({ Value::integer(0x1F64), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F64), Value::integer(0x03B9) });
     case 0x1FAD:
-        return new ArrayObject({ Value::integer(0x1F65), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F65), Value::integer(0x03B9) });
     case 0x1FAE:
-        return new ArrayObject({ Value::integer(0x1F66), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F66), Value::integer(0x03B9) });
     case 0x1FAF:
-        return new ArrayObject({ Value::integer(0x1F67), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F67), Value::integer(0x03B9) });
     case 0x1FB2:
-        return new ArrayObject({ Value::integer(0x1F70), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F70), Value::integer(0x03B9) });
     case 0x1FB3:
-        return new ArrayObject({ Value::integer(0x03B1), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x03B1), Value::integer(0x03B9) });
     case 0x1FB4:
-        return new ArrayObject({ Value::integer(0x03AC), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x03AC), Value::integer(0x03B9) });
     case 0x1FB6:
-        return new ArrayObject({ Value::integer(0x03B1), Value::integer(0x0342) });
+        return ArrayObject::create({ Value::integer(0x03B1), Value::integer(0x0342) });
     case 0x1FB7:
-        return new ArrayObject({ Value::integer(0x03B1), Value::integer(0x0342), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x03B1), Value::integer(0x0342), Value::integer(0x03B9) });
     case 0x1FBC:
-        return new ArrayObject({ Value::integer(0x03B1), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x03B1), Value::integer(0x03B9) });
     case 0x1FC2:
-        return new ArrayObject({ Value::integer(0x1F74), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F74), Value::integer(0x03B9) });
     case 0x1FC3:
-        return new ArrayObject({ Value::integer(0x03B7), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x03B7), Value::integer(0x03B9) });
     case 0x1FC4:
-        return new ArrayObject({ Value::integer(0x03AE), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x03AE), Value::integer(0x03B9) });
     case 0x1FC6:
-        return new ArrayObject({ Value::integer(0x03B7), Value::integer(0x0342) });
+        return ArrayObject::create({ Value::integer(0x03B7), Value::integer(0x0342) });
     case 0x1FC7:
-        return new ArrayObject({ Value::integer(0x03B7), Value::integer(0x0342), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x03B7), Value::integer(0x0342), Value::integer(0x03B9) });
     case 0x1FCC:
-        return new ArrayObject({ Value::integer(0x03B7), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x03B7), Value::integer(0x03B9) });
     case 0x1FD2:
-        return new ArrayObject({ Value::integer(0x03B9), Value::integer(0x0308), Value::integer(0x0300) });
+        return ArrayObject::create({ Value::integer(0x03B9), Value::integer(0x0308), Value::integer(0x0300) });
     case 0x1FD3:
-        return new ArrayObject({ Value::integer(0x03B9), Value::integer(0x0308), Value::integer(0x0301) });
+        return ArrayObject::create({ Value::integer(0x03B9), Value::integer(0x0308), Value::integer(0x0301) });
     case 0x1FD6:
-        return new ArrayObject({ Value::integer(0x03B9), Value::integer(0x0342) });
+        return ArrayObject::create({ Value::integer(0x03B9), Value::integer(0x0342) });
     case 0x1FD7:
-        return new ArrayObject({ Value::integer(0x03B9), Value::integer(0x0308), Value::integer(0x0342) });
+        return ArrayObject::create({ Value::integer(0x03B9), Value::integer(0x0308), Value::integer(0x0342) });
     case 0x1FE2:
-        return new ArrayObject({ Value::integer(0x03C5), Value::integer(0x0308), Value::integer(0x0300) });
+        return ArrayObject::create({ Value::integer(0x03C5), Value::integer(0x0308), Value::integer(0x0300) });
     case 0x1FE3:
-        return new ArrayObject({ Value::integer(0x03C5), Value::integer(0x0308), Value::integer(0x0301) });
+        return ArrayObject::create({ Value::integer(0x03C5), Value::integer(0x0308), Value::integer(0x0301) });
     case 0x1FE4:
-        return new ArrayObject({ Value::integer(0x03C1), Value::integer(0x0313) });
+        return ArrayObject::create({ Value::integer(0x03C1), Value::integer(0x0313) });
     case 0x1FE6:
-        return new ArrayObject({ Value::integer(0x03C5), Value::integer(0x0342) });
+        return ArrayObject::create({ Value::integer(0x03C5), Value::integer(0x0342) });
     case 0x1FE7:
-        return new ArrayObject({ Value::integer(0x03C5), Value::integer(0x0308), Value::integer(0x0342) });
+        return ArrayObject::create({ Value::integer(0x03C5), Value::integer(0x0308), Value::integer(0x0342) });
     case 0x1FF2:
-        return new ArrayObject({ Value::integer(0x1F7C), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x1F7C), Value::integer(0x03B9) });
     case 0x1FF3:
-        return new ArrayObject({ Value::integer(0x03C9), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x03C9), Value::integer(0x03B9) });
     case 0x1FF4:
-        return new ArrayObject({ Value::integer(0x03CE), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x03CE), Value::integer(0x03B9) });
     case 0x1FF6:
-        return new ArrayObject({ Value::integer(0x03C9), Value::integer(0x0342) });
+        return ArrayObject::create({ Value::integer(0x03C9), Value::integer(0x0342) });
     case 0x1FF7:
-        return new ArrayObject({ Value::integer(0x03C9), Value::integer(0x0342), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x03C9), Value::integer(0x0342), Value::integer(0x03B9) });
     case 0x1FFC:
-        return new ArrayObject({ Value::integer(0x03C9), Value::integer(0x03B9) });
+        return ArrayObject::create({ Value::integer(0x03C9), Value::integer(0x03B9) });
     case 0xFB00:
-        return new ArrayObject({ Value::integer(0x0066), Value::integer(0x0066) });
+        return ArrayObject::create({ Value::integer(0x0066), Value::integer(0x0066) });
     case 0xFB01:
-        return new ArrayObject({ Value::integer(0x0066), Value::integer(0x0069) });
+        return ArrayObject::create({ Value::integer(0x0066), Value::integer(0x0069) });
     case 0xFB02:
-        return new ArrayObject({ Value::integer(0x0066), Value::integer(0x006C) });
+        return ArrayObject::create({ Value::integer(0x0066), Value::integer(0x006C) });
     case 0xFB03:
-        return new ArrayObject({ Value::integer(0x0066), Value::integer(0x0066), Value::integer(0x0069) });
+        return ArrayObject::create({ Value::integer(0x0066), Value::integer(0x0066), Value::integer(0x0069) });
     case 0xFB04:
-        return new ArrayObject({ Value::integer(0x0066), Value::integer(0x0066), Value::integer(0x006C) });
+        return ArrayObject::create({ Value::integer(0x0066), Value::integer(0x0066), Value::integer(0x006C) });
     case 0xFB05:
-        return new ArrayObject({ Value::integer(0x0073), Value::integer(0x0074) });
+        return ArrayObject::create({ Value::integer(0x0073), Value::integer(0x0074) });
     case 0xFB06:
-        return new ArrayObject({ Value::integer(0x0073), Value::integer(0x0074) });
+        return ArrayObject::create({ Value::integer(0x0073), Value::integer(0x0074) });
     case 0xFB13:
-        return new ArrayObject({ Value::integer(0x0574), Value::integer(0x0576) });
+        return ArrayObject::create({ Value::integer(0x0574), Value::integer(0x0576) });
     case 0xFB14:
-        return new ArrayObject({ Value::integer(0x0574), Value::integer(0x0565) });
+        return ArrayObject::create({ Value::integer(0x0574), Value::integer(0x0565) });
     case 0xFB15:
-        return new ArrayObject({ Value::integer(0x0574), Value::integer(0x056B) });
+        return ArrayObject::create({ Value::integer(0x0574), Value::integer(0x056B) });
     case 0xFB16:
-        return new ArrayObject({ Value::integer(0x057E), Value::integer(0x0576) });
+        return ArrayObject::create({ Value::integer(0x057E), Value::integer(0x0576) });
     case 0xFB17:
-        return new ArrayObject({ Value::integer(0x0574), Value::integer(0x056D) });
+        return ArrayObject::create({ Value::integer(0x0574), Value::integer(0x056D) });
     }
     return casefold_common(codepoint);
 }

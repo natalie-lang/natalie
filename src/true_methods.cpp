@@ -16,7 +16,7 @@ bool TrueMethods::xor_method(const Env *env, const Value, const Value other) {
 
 Value TrueMethods::to_s(const Env *env, const Value) {
     if (!s_string)
-        s_string = new StringObject { "true" };
+        s_string = StringObject::create("true");
     return s_string;
 }
 

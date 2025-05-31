@@ -333,6 +333,13 @@ task :docker_test_perf do
        "natalie_clang_#{ruby_version_string} test_perf"
 end
 
+task docker_gc_stress_test: :docker_build_clang do
+  sh "docker run #{docker_run_flags} " \
+       '--rm ' \
+       '--entrypoint bash ' \
+       "natalie_clang_#{ruby_version_string} -c 'bin/natalie test/gc_stress_test.rb; status=$?; echo; echo $status; exit $status'"
+end
+
 task docker_tidy: :docker_build_clang do
   sh "docker run #{docker_run_flags} --rm --entrypoint rake natalie_clang_#{ruby_version_string} tidy"
 end

@@ -39,118 +39,72 @@ public:
         Invalid,
     };
 
-    StringObject(ClassObject *klass)
-        : Object { Object::Type::String, klass }
-        , m_encoding { EncodingObject::get(Encoding::ASCII_8BIT) } {
-        assert(m_encoding);
+    static StringObject *create(ClassObject *klass) {
+        return new StringObject(klass);
     }
 
-    StringObject()
-        : StringObject { "" } { }
-
-    StringObject(NonNullPtr<EncodingObject> encoding)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { encoding } {
-        assert(m_encoding);
-        set_str("", 0);
+    static StringObject *create() {
+        return new StringObject();
     }
 
-    StringObject(const char *str)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { EncodingObject::get(Encoding::UTF_8) } {
-        assert(m_encoding);
-        set_str(str);
+    static StringObject *create(NonNullPtr<EncodingObject> encoding) {
+        return new StringObject(encoding);
     }
 
-    StringObject(const char *str, NonNullPtr<EncodingObject> encoding)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { encoding } {
-        assert(m_encoding);
-        set_str(str);
+    static StringObject *create(const char *str) {
+        return new StringObject(str);
     }
 
-    StringObject(const char *str, Encoding encoding)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { EncodingObject::get(encoding) } {
-        assert(m_encoding);
-        set_str(str);
+    static StringObject *create(const char *str, NonNullPtr<EncodingObject> encoding) {
+        return new StringObject(str, encoding);
     }
 
-    StringObject(const char *str, size_t length)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { EncodingObject::get(Encoding::UTF_8) } {
-        assert(m_encoding);
-        set_str(str, length);
+    static StringObject *create(const char *str, Encoding encoding) {
+        return new StringObject(str, encoding);
     }
 
-    StringObject(const char *str, size_t length, NonNullPtr<EncodingObject> encoding)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { encoding } {
-        assert(m_encoding);
-        set_str(str, length);
+    static StringObject *create(const char *str, size_t length) {
+        return new StringObject(str, length);
     }
 
-    StringObject(const char *str, size_t length, Encoding encoding)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { EncodingObject::get(encoding) } {
-        assert(m_encoding);
-        set_str(str, length);
+    static StringObject *create(const char *str, size_t length, NonNullPtr<EncodingObject> encoding) {
+        return new StringObject(str, length, encoding);
     }
 
-    StringObject(const StringObject &other)
-        : Object { other }
-        , m_encoding { other.m_encoding }
-        , m_validity { other.m_validity } {
-        set_str(other.c_str(), other.length());
+    static StringObject *create(const char *str, size_t length, Encoding encoding) {
+        return new StringObject(str, length, encoding);
     }
 
-    StringObject(const String &str)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { EncodingObject::get(Encoding::UTF_8) } {
-        assert(m_encoding);
-        m_string = str;
+    static StringObject *create(const StringObject &other) {
+        return new StringObject(other);
     }
 
-    StringObject(String &&str)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { EncodingObject::get(Encoding::UTF_8) } {
-        assert(m_encoding);
-        m_string = std::move(str);
+    static StringObject *create(const String &str) {
+        return new StringObject(str);
     }
 
-    StringObject(const String &str, NonNullPtr<EncodingObject> encoding)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { encoding } {
-        assert(m_encoding);
-        m_string = str;
+    static StringObject *create(String &&str) {
+        return new StringObject(std::move(str));
     }
 
-    StringObject(String &&str, NonNullPtr<EncodingObject> encoding)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { encoding } {
-        assert(m_encoding);
-        m_string = std::move(str);
+    static StringObject *create(const String &str, NonNullPtr<EncodingObject> encoding) {
+        return new StringObject(str, encoding);
     }
 
-    StringObject(const String &str, Encoding encoding)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { EncodingObject::get(encoding) } {
-        assert(m_encoding);
-        m_string = str;
+    static StringObject *create(String &&str, NonNullPtr<EncodingObject> encoding) {
+        return new StringObject(std::move(str), encoding);
     }
 
-    StringObject(String &&str, Encoding encoding)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { EncodingObject::get(encoding) } {
-        assert(m_encoding);
-        m_string = std::move(str);
+    static StringObject *create(const String &str, Encoding encoding) {
+        return new StringObject(str, encoding);
     }
 
-    StringObject(const StringView &str, NonNullPtr<EncodingObject> encoding)
-        : Object { Object::Type::String, GlobalEnv::the()->String() }
-        , m_encoding { encoding } {
-        assert(m_encoding);
-        m_string = str.clone();
+    static StringObject *create(String &&str, Encoding encoding) {
+        return new StringObject(std::move(str), encoding);
+    }
+
+    static StringObject *create(const StringView &str, NonNullPtr<EncodingObject> encoding) {
+        return new StringObject(str, encoding);
     }
 
     const String &string() const { return m_string; }
@@ -557,6 +511,120 @@ public:
     }
 
 private:
+    StringObject(ClassObject *klass)
+        : Object { Object::Type::String, klass }
+        , m_encoding { EncodingObject::get(Encoding::ASCII_8BIT) } {
+        assert(m_encoding);
+    }
+
+    StringObject()
+        : StringObject { "" } { }
+
+    StringObject(NonNullPtr<EncodingObject> encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { encoding } {
+        assert(m_encoding);
+        set_str("", 0);
+    }
+
+    StringObject(const char *str)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(Encoding::UTF_8) } {
+        assert(m_encoding);
+        set_str(str);
+    }
+
+    StringObject(const char *str, NonNullPtr<EncodingObject> encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { encoding } {
+        assert(m_encoding);
+        set_str(str);
+    }
+
+    StringObject(const char *str, Encoding encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(encoding) } {
+        assert(m_encoding);
+        set_str(str);
+    }
+
+    StringObject(const char *str, size_t length)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(Encoding::UTF_8) } {
+        assert(m_encoding);
+        set_str(str, length);
+    }
+
+    StringObject(const char *str, size_t length, NonNullPtr<EncodingObject> encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { encoding } {
+        assert(m_encoding);
+        set_str(str, length);
+    }
+
+    StringObject(const char *str, size_t length, Encoding encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(encoding) } {
+        assert(m_encoding);
+        set_str(str, length);
+    }
+
+    StringObject(const StringObject &other)
+        : Object { other }
+        , m_encoding { other.m_encoding }
+        , m_validity { other.m_validity } {
+        set_str(other.c_str(), other.length());
+    }
+
+    StringObject(const String &str)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(Encoding::UTF_8) } {
+        assert(m_encoding);
+        m_string = str;
+    }
+
+    StringObject(String &&str)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(Encoding::UTF_8) } {
+        assert(m_encoding);
+        m_string = std::move(str);
+    }
+
+    StringObject(const String &str, NonNullPtr<EncodingObject> encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { encoding } {
+        assert(m_encoding);
+        m_string = str;
+    }
+
+    StringObject(String &&str, NonNullPtr<EncodingObject> encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { encoding } {
+        assert(m_encoding);
+        m_string = std::move(str);
+    }
+
+    StringObject(const String &str, Encoding encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(encoding) } {
+        assert(m_encoding);
+        m_string = str;
+    }
+
+    StringObject(String &&str, Encoding encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(encoding) } {
+        assert(m_encoding);
+        m_string = std::move(str);
+    }
+
+    StringObject(const StringView &str, NonNullPtr<EncodingObject> encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { encoding } {
+        assert(m_encoding);
+        m_string = str.clone();
+    }
+
     StringObject *expand_backrefs(Env *, StringObject *, MatchDataObject *);
     void regexp_sub(Env *, TM::String &, StringObject *, RegexpObject *, Optional<Value>, MatchDataObject **, StringObject **, size_t = 0, Block *block = nullptr);
     nat_int_t unpack_offset(Env *, Optional<Value>) const;
