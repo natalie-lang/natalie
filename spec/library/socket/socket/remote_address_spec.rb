@@ -31,9 +31,7 @@ describe 'Socket#remote_address' do
       end
 
       it 'uses PF_INET as the protocol family' do
-        NATFIXME 'uses PF_INET as the protocol family', exception: SpecFailedException do
-          @client.remote_address.pfamily.should == family
-        end
+        @client.remote_address.pfamily.should == family
       end
 
       it 'uses SOCK_STREAM as the socket type' do

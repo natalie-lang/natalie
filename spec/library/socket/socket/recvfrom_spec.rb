@@ -75,9 +75,7 @@ describe 'Socket#recvfrom' do
           end
 
           it 'uses PF_INET as the protocol family' do
-            NATFIXME 'it uses PF_INET as the protocol family', exception: SpecFailedException do
-              @addr.pfamily.should == family
-            end
+            @addr.pfamily.should == family
           end
 
           it 'uses 0 as the protocol' do

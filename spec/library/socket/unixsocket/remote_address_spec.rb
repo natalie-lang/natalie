@@ -26,9 +26,7 @@ with_feature :unix_socket do
       end
 
       it 'uses PF_UNIX as the protocol family' do
-        NATFIXME 'uses PF_UNIX as the protocol family', exception: SpecFailedException do
-          @client.remote_address.pfamily.should == Socket::PF_UNIX
-        end
+        @client.remote_address.pfamily.should == Socket::PF_UNIX
       end
 
       it 'uses SOCK_STREAM as the socket type' do

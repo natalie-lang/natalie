@@ -45,9 +45,7 @@ describe 'Socket#connect_address' do
     end
 
     it 'uses PF_INET as the address family' do
-      NATFIXME 'uses PF_INET as the address family', exception: SpecFailedException do
-        @sock.connect_address.pfamily.should == Socket::PF_INET
-      end
+      @sock.connect_address.pfamily.should == Socket::PF_INET
     end
 
     it 'uses SOCK_STREAM as the socket type' do
@@ -91,9 +89,7 @@ describe 'Socket#connect_address' do
       end
 
       it 'uses PF_INET6 as the address family' do
-        NATFIXME 'uses PF_INET6 as the address family', exception: SpecFailedException do
-          @sock.connect_address.pfamily.should == Socket::PF_INET6
-        end
+        @sock.connect_address.pfamily.should == Socket::PF_INET6
       end
 
       it 'uses SOCK_STREAM as the socket type' do
@@ -155,9 +151,7 @@ describe 'Socket#connect_address' do
       end
 
       it 'uses PF_UNIX as the protocol family' do
-        NATFIXME 'uses PF_UNIX as the protocol family', exception: SpecFailedException do
-          @sock.connect_address.pfamily.should == Socket::PF_UNIX
-        end
+        @sock.connect_address.pfamily.should == Socket::PF_UNIX
       end
 
       it 'uses SOCK_STREAM as the socket type' do

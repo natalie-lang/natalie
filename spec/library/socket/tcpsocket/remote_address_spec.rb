@@ -32,9 +32,7 @@ describe 'TCPSocket#remote_address' do
         end
 
         it 'uses PF_INET as the protocol family' do
-          NATFIXME 'uses PF_INET as the protocol family', exception: SpecFailedException do
-            @sock.remote_address.pfamily.should == family
-          end
+          @sock.remote_address.pfamily.should == family
         end
 
         it 'uses SOCK_STREAM as the socket type' do
