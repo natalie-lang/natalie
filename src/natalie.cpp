@@ -431,7 +431,7 @@ Env *build_top_env() {
 
     env->global_set("$NAT_at_exit_handlers"_s, ArrayObject::create());
 
-    auto main_obj = new Natalie::Object {};
+    auto main_obj = Object::create();
     GlobalEnv::the()->set_main_obj(main_obj);
 
     Value _stdin = IoObject::create(STDIN_FILENO);

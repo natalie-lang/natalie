@@ -42,7 +42,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Enumerator:
-        obj = new Object { klass };
+        obj = Object::create(klass);
         break;
 
     case Object::Type::Exception:
@@ -74,7 +74,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Object:
-        obj = new Object { klass };
+        obj = Object::create(klass);
         break;
 
     case Object::Type::Proc:
@@ -633,7 +633,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Module:
         return new ModuleObject { *static_cast<const ModuleObject *>(this) };
     case Object::Type::Object:
-        return new Object { *this };
+        return Object::create(*this);
     case Object::Type::Proc:
         return new ProcObject { *static_cast<const ProcObject *>(this) };
     case Object::Type::Range:

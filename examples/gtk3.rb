@@ -102,7 +102,7 @@ module Gtk3
       arg_spread(env, args, "i", &type);
       GtkWidget *gtk_window = gtk_window_new((GtkWindowType)type);
       ClassObject *Window = self->const_fetch("Window"_s).as_class();
-      Object *window_wrapper = new Object { Window };
+      Object *window_wrapper = Object::create(Window);
       Object *ptr = new VoidPObject { gtk_window };
       window_wrapper->ivar_set(env, "@_ptr"_s, ptr);
       return window_wrapper;
@@ -131,7 +131,7 @@ module Gtk3
       arg_spread(env, args, "ii", &orientation, &spacing);
       GtkWidget *gtk_box = gtk_box_new((GtkOrientation)orientation, spacing);
       ClassObject *Box = self->const_fetch("Box"_s).as_class();
-      Object *box_wrapper = new Object { Box };
+      Object *box_wrapper = Object::create(Box);
       Object *ptr = new VoidPObject { gtk_box };
       box_wrapper->ivar_set(env, "@_ptr"_s, ptr);
       return box_wrapper;
@@ -151,7 +151,7 @@ module Gtk3
       arg_spread(env, args, "s", &filename);
       GtkWidget *gtk_image = gtk_image_new_from_file(filename);
       ClassObject *Image = self->const_fetch("Image"_s).as_class();
-      Object *image_wrapper = new Object { Image };
+      Object *image_wrapper = Object::create(Image);
       Object *ptr = new VoidPObject { gtk_image };
       image_wrapper->ivar_set(env, "@_ptr"_s, ptr);
       return image_wrapper;
@@ -195,7 +195,7 @@ module Gtk3
           gtk_label = gtk_label_new(text);
       }
       ClassObject *Label = self->const_fetch("Label"_s).as_class();
-      Object *label_wrapper = new Object { Label };
+      Object *label_wrapper = Object::create(Label);
       Object *ptr = new VoidPObject { gtk_label };
       label_wrapper->ivar_set(env, "@_ptr"_s, ptr);
       return label_wrapper;
@@ -216,7 +216,7 @@ module Gtk3
       arg_spread(env, args, "s", &label);
       GtkWidget *gtk_button = gtk_button_new_with_label(label);
       ClassObject *Button = self->const_fetch("Button"_s).as_class();
-      Object *button_wrapper = new Object { Button };
+      Object *button_wrapper = Object::create(Button);
       Object *ptr = new VoidPObject { gtk_button };
       button_wrapper->ivar_set(env, "@_ptr"_s, ptr);
       return button_wrapper;

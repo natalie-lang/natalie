@@ -121,7 +121,7 @@ Value KernelModule::caller_locations(Env *env, Optional<Value> start_arg, Option
 Value KernelModule::catch_method(Env *env, Optional<Value> name_arg, Block *block) {
     if (!block)
         env->raise("LocalJumpError", "no block given");
-    auto name = name_arg.value_or([]() { return new Object; });
+    auto name = name_arg.value_or([]() { return Object::create(); });
 
     try {
         Env block_env { env };

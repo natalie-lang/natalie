@@ -91,7 +91,7 @@ class Fiddle
       auto fn = (void* (*)())symbol;
       auto result = fn();
       auto pointer_class = self.klass()->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict).value().as_class();
-      auto pointer_obj = new Object { Object::Type::Object, pointer_class };
+      auto pointer_obj = Object::create(Object::Type::Object, pointer_class);
       auto pointer_ptr = new VoidPObject { result };
       pointer_obj->ivar_set(env, "@ptr"_s, pointer_ptr);
       return pointer_obj;
@@ -109,7 +109,7 @@ class Fiddle
       else
           p1_ptr = (void*)(p1.object());
       auto result = fn(p1_ptr);
-      auto pointer_obj = new Object { Object::Type::Object, pointer_class };
+      auto pointer_obj = Object::create(Object::Type::Object, pointer_class);
       auto pointer_ptr = new VoidPObject { result };
       pointer_obj->ivar_set(env, "@ptr"_s, pointer_ptr);
       return pointer_obj;
