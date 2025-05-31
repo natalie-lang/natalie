@@ -31,9 +31,7 @@ describe 'Addrinfo.getaddrinfo' do
     it 'sets the protocol family of the Addrinfo instances' do
       array = Addrinfo.getaddrinfo(ip_address, 80)
 
-      NATFIXME 'it sets the protocol family of the Addrinfo instances', exception: SpecFailedException do
-        array[0].pfamily.should == family
-      end
+      array[0].pfamily.should == family
     end
   end
 
@@ -41,9 +39,7 @@ describe 'Addrinfo.getaddrinfo' do
     it 'sets a custom protocol family of the Addrinfo instances' do
       array = Addrinfo.getaddrinfo('::1', 80, Socket::PF_INET6)
 
-      NATFIXME 'it sets a custom protocol family of the Addrinfo instances', exception: SpecFailedException do
-        array[0].pfamily.should == Socket::PF_INET6
-      end
+      array[0].pfamily.should == Socket::PF_INET6
     end
 
     it 'sets a corresponding address family based on a custom protocol family' do

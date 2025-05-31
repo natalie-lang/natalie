@@ -18,9 +18,7 @@ describe :socket_local_remote_address, shared: true do
     end
 
     it 'uses PF_INET as the protocol family' do
-      NATFIXME 'uses PF_INET as the protocol family', exception: SpecFailedException do
-        @addr.pfamily.should == Socket::PF_INET
-      end
+      @addr.pfamily.should == Socket::PF_INET
     end
 
     it 'uses SOCK_STREAM as the socket type' do
@@ -89,9 +87,7 @@ describe :socket_local_remote_address, shared: true do
       end
 
       it 'uses PF_INET6 as the protocol family' do
-        NATFIXME 'uses PF_INET6 as the protocol family', exception: SpecFailedException do
-          @addr.pfamily.should == Socket::PF_INET6
-        end
+        @addr.pfamily.should == Socket::PF_INET6
       end
 
       it 'uses SOCK_STREAM as the socket type' do
@@ -163,9 +159,7 @@ describe :socket_local_remote_address, shared: true do
       end
 
       it 'uses PF_UNIX as the protocol family' do
-        NATFIXME 'uses PF_UNIX as the protocol family', exception: SpecFailedException do
-          @addr.pfamily.should == Socket::PF_UNIX
-        end
+        @addr.pfamily.should == Socket::PF_UNIX
       end
 
       it 'uses SOCK_STREAM as the socket type' do
@@ -231,9 +225,7 @@ describe :socket_local_remote_address, shared: true do
     end
 
     it 'uses the correct protocol family' do
-      NATFIXME 'uses the correct protocol family', exception: SpecFailedException do
-        @addr.pfamily.should == Socket::PF_INET
-      end
+      @addr.pfamily.should == Socket::PF_INET
     end
 
     it 'uses SOCK_DGRAM as the socket type' do
