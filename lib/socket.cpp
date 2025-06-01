@@ -226,9 +226,10 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
 Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_between(env, 1, 4);
     auto sockaddr = args.at(0);
-    auto afamily = Socket_const_get(env, args.at(1, Value::nil()), true);
+    auto pfamily = Socket_const_get(env, args.at(1, Value::nil()), true);
     auto socktype = Socket_const_get(env, args.at(2, Value::nil()), true);
     auto protocol = args.at(3, Value::integer(0));
+    auto afamily = AF_UNSPEC;
 
     self->ivar_set(env, "@protocol"_s, protocol);
     self->ivar_set(env, "@socktype"_s, Value::integer(socktype));
@@ -241,7 +242,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
     Optional<Value> port;
     StringObject *host = nullptr;
 
-    if (!afamily)
+    if (!pfamily)
         self->ivar_set(env, "@pfamily"_s, Value::integer(PF_UNSPEC));
 
     if (sockaddr.is_string()) {
@@ -258,6 +259,10 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
             host = ary->at(1).as_string_or_raise(env);
             break;
         }
+
+        if (args.size() < 2)
+            pfamily = afamily;
+        self->ivar_set(env, "@pfamily"_s, Value::integer(pfamily));
     }
 
     if (sockaddr.is_array()) {
@@ -284,7 +289,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         socktype_hack = true;
     }
 
-    if (afamily == AF_UNIX) {
+    if (afamily == PF_UNIX) {
         assert(unix_path);
         self->ivar_set(env, "@afamily"_s, Value::integer(AF_UNIX));
         self->ivar_set(env, "@unix_path"_s, unix_path);
@@ -302,7 +307,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         if (afamily)
             hints.ai_family = afamily;
         else
-            hints.ai_family = PF_UNSPEC;
+            hints.ai_family = AF_UNSPEC;
 
         if (protocol.is_integer())
             hints.ai_protocol = (unsigned short)protocol.integer().to_nat_int_t();

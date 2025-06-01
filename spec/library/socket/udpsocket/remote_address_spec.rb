@@ -37,9 +37,7 @@ describe 'UDPSocket#remote_address' do
         end
 
         it 'uses the correct protocol family' do
-          NATFIXME 'uses the correct protocol family', exception: SpecFailedException do
-            @sock.remote_address.pfamily.should == family
-          end
+          @sock.remote_address.pfamily.should == family
         end
 
         it 'uses SOCK_DGRAM as the socket type' do
