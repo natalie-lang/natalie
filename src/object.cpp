@@ -651,7 +651,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::True:
         return Value::True();
     case Object::Type::UnboundMethod:
-        return new UnboundMethodObject { *static_cast<const UnboundMethodObject *>(this) };
+        return UnboundMethodObject::create(*static_cast<const UnboundMethodObject *>(this));
     case Object::Type::MatchData:
         return new MatchDataObject { *static_cast<const MatchDataObject *>(this) };
     default:

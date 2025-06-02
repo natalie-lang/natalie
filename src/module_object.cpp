@@ -632,7 +632,7 @@ Value ModuleObject::instance_method(Env *env, Value name_value) {
     auto name = name_value.to_symbol(env, Value::Conversion::Strict);
     auto method_info = find_method(env, name);
     assert_method_defined(env, name, method_info);
-    return new UnboundMethodObject { this, method_info.method() };
+    return UnboundMethodObject::create(this, method_info.method());
 }
 
 Value ModuleObject::public_instance_method(Env *env, Value name_value) {
@@ -642,7 +642,7 @@ Value ModuleObject::public_instance_method(Env *env, Value name_value) {
 
     switch (method_info.visibility()) {
     case MethodVisibility::Public:
-        return new UnboundMethodObject { this, method_info.method() };
+        return UnboundMethodObject::create(this, method_info.method());
     case MethodVisibility::Protected:
         if (type() == Type::Class)
             env->raise_name_error(name, "method `{}' for class `{}' is protected", name->string(), inspect_module());
