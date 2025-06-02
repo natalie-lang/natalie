@@ -1058,13 +1058,13 @@ Value KernelModule::method(Env *env, Value self, Value name) {
             if (respond_to_missing.method()->call(env, self, { name_symbol, Value::True() }, nullptr).is_truthy()) {
                 auto method_missing = module->find_method(env, "method_missing"_s);
                 if (method_missing.is_defined()) {
-                    return new MethodObject { self, method_missing.method(), name_symbol };
+                    return MethodObject::create(self, method_missing.method(), name_symbol);
                 }
             }
         }
         env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspected(env), self.klass()->inspect_module());
     }
-    return new MethodObject { self, method_info.method() };
+    return MethodObject::create(self, method_info.method());
 }
 
 Value KernelModule::methods(Env *env, Value self, Optional<Value> regular_val) {
