@@ -99,7 +99,7 @@ static Value OpenSSL_BN_new(Env *env, const ASN1_INTEGER *asn1) {
         OpenSSL_raise_error(env, "ASN1_INTEGER_to_BN");
     auto BN = fetch_nested_const({ "OpenSSL"_s, "BN"_s }).as_class();
     auto bn = Object::allocate(env, BN, {}, nullptr);
-    bn->ivar_set(env, "@bn"_s, new VoidPObject { value, OpenSSL_BN_cleanup });
+    bn->ivar_set(env, "@bn"_s, VoidPObject::create(value, OpenSSL_BN_cleanup));
     return bn;
 }
 
@@ -114,7 +114,7 @@ static Value OpenSSL_PKey_new(Env *env, EVP_PKEY *value) {
     if (!klass)
         env->raise("NotImplementedError", "No support for used key type");
     auto pkey = Object::allocate(env, klass, {}, nullptr);
-    pkey->ivar_set(env, "@pkey"_s, new VoidPObject { copy, OpenSSL_PKEY_cleanup });
+    pkey->ivar_set(env, "@pkey"_s, VoidPObject::create(copy, OpenSSL_PKEY_cleanup));
     return pkey;
 }
 
@@ -124,7 +124,7 @@ static Value OpenSSL_X509_Name_new(Env *env, const X509_NAME *value) {
         OpenSSL_raise_error(env, "X509_NAME_dup");
     auto Name = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Name"_s }).as_class();
     auto name = Object::allocate(env, Name, {}, nullptr);
-    name->ivar_set(env, "@name"_s, new VoidPObject { copy, OpenSSL_X509_NAME_cleanup });
+    name->ivar_set(env, "@name"_s, VoidPObject::create(copy, OpenSSL_X509_NAME_cleanup));
     return name;
 }
 
@@ -158,7 +158,7 @@ Value OpenSSL_Cipher_initialize(Env *env, Value self, Args &&args, Block *) {
         EVP_CIPHER_CTX_free(ctx);
         OpenSSL_Cipher_raise_error(env, "EVP_EncryptInit_ex");
     }
-    self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_CIPHER_CTX_cleanup });
+    self->ivar_set(env, "@ctx"_s, VoidPObject::create(ctx, OpenSSL_CIPHER_CTX_cleanup));
 
     return self;
 }
@@ -290,7 +290,7 @@ Value OpenSSL_Digest_initialize(Env *env, Value self, Args &&args, Block *) {
         OpenSSL_raise_error(env, "EVP_DigestInit_ex");
 
     self->ivar_set(env, "@name"_s, name.as_string()->upcase(env));
-    self->ivar_set(env, "@mdctx"_s, new VoidPObject { mdctx, OpenSSL_MD_CTX_cleanup });
+    self->ivar_set(env, "@mdctx"_s, VoidPObject::create(mdctx, OpenSSL_MD_CTX_cleanup));
 
     if (args.size() == 2)
         OpenSSL_Digest_update(env, self, { args[1] }, nullptr);
@@ -373,7 +373,7 @@ Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args &&args, Block
     SSL_CTX_set_options(ctx, SSL_OP_NO_COMPRESSION | SSL_OP_ENABLE_MIDDLEBOX_COMPAT);
     if (!ctx)
         OpenSSL_SSL_raise_error(env, "SSL_CTX_new");
-    self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_SSL_CTX_cleanup });
+    self->ivar_set(env, "@ctx"_s, VoidPObject::create(ctx, OpenSSL_SSL_CTX_cleanup));
     self->ivar_set(env, "@verify_hostname"_s, Value::False());
     self->ivar_set(env, "@verify_mode"_s, Value::integer(0));
     return self;
@@ -534,7 +534,7 @@ Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args &&args, Block 
         OpenSSL_SSL_raise_error(env, "SSL_new");
     self->ivar_set(env, "@context"_s, context);
     self->ivar_set(env, "@io"_s, io);
-    self->ivar_set(env, "@ssl"_s, new VoidPObject { ssl, OpenSSL_SSL_cleanup });
+    self->ivar_set(env, "@ssl"_s, VoidPObject::create(ssl, OpenSSL_SSL_cleanup));
     return self;
 }
 
@@ -651,7 +651,7 @@ Value OpenSSL_PKey_RSA_initialize(Env *env, Value self, Args &&args, Block *) {
             OpenSSL_raise_error(env, "EVP_PKEY_new");
     }
 
-    self->ivar_set(env, "@pkey"_s, new VoidPObject { pkey, OpenSSL_PKEY_cleanup });
+    self->ivar_set(env, "@pkey"_s, VoidPObject::create(pkey, OpenSSL_PKEY_cleanup));
     return self;
 }
 
@@ -718,7 +718,7 @@ Value OpenSSL_X509_Certificate_initialize(Env *env, Value self, Args &&args, Blo
     X509 *x509 = X509_new();
     if (!x509)
         OpenSSL_raise_error(env, "X509_new");
-    self->ivar_set(env, "@x509"_s, new VoidPObject { x509, OpenSSL_X509_cleanup });
+    self->ivar_set(env, "@x509"_s, VoidPObject::create(x509, OpenSSL_X509_cleanup));
 
     self.send(env, "serial="_s, { Value::integer(0) });
 
@@ -1130,7 +1130,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
     auto bn = BN_secure_new();
     if (!bn)
         OpenSSL_raise_error(env, "BN_secure_new");
-    self->ivar_set(env, "@bn"_s, new VoidPObject { bn, OpenSSL_BN_cleanup });
+    self->ivar_set(env, "@bn"_s, VoidPObject::create(bn, OpenSSL_BN_cleanup));
 
     auto arg = args.at(0, Value::nil());
     if (arg.is_a(env, self.klass())) {
@@ -1225,7 +1225,7 @@ Value OpenSSL_X509_Name_initialize(Env *env, Value self, Args &&args, Block *) {
     X509_NAME *name = X509_NAME_new();
     if (!name)
         OpenSSL_X509_Name_raise_error(env, "X509_NAME_new");
-    self->ivar_set(env, "@name"_s, new VoidPObject { name, OpenSSL_X509_NAME_cleanup });
+    self->ivar_set(env, "@name"_s, VoidPObject::create(name, OpenSSL_X509_NAME_cleanup));
     if (args.size() > 0) {
         HashObject *lookup = self.klass()->const_fetch("OBJECT_TYPE_TEMPLATE"_s).as_hash();
         if (args.size() >= 2 && !args.at(1).is_nil())
@@ -1315,7 +1315,7 @@ Value OpenSSL_X509_Store_initialize(Env *env, Value self, Args &&args, Block *) 
     X509_STORE *store = X509_STORE_new();
     if (!store)
         OpenSSL_X509_Store_raise_error(env, "X509_STORE_new");
-    self->ivar_set(env, "@store"_s, new VoidPObject { store, OpenSSL_X509_STORE_cleanup });
+    self->ivar_set(env, "@store"_s, VoidPObject::create(store, OpenSSL_X509_STORE_cleanup));
     return self;
 }
 

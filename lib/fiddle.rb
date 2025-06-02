@@ -22,7 +22,7 @@ class Fiddle
           auto dl_error = self.klass()->const_find(env, "DLError"_s, Object::ConstLookupSearchMode::NotStrict).value().as_class();
           env->raise(dl_error, "{}", dlerror());
       }
-      auto handle_ptr = new VoidPObject { handle };
+      auto handle_ptr = VoidPObject::create(handle);
       self->ivar_set(env, "@ptr"_s, handle_ptr);
       return self;
     END
@@ -92,7 +92,7 @@ class Fiddle
       auto result = fn();
       auto pointer_class = self.klass()->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict).value().as_class();
       auto pointer_obj = Object::create(Object::Type::Object, pointer_class);
-      auto pointer_ptr = new VoidPObject { result };
+      auto pointer_ptr = VoidPObject::create(result);
       pointer_obj->ivar_set(env, "@ptr"_s, pointer_ptr);
       return pointer_obj;
     END
@@ -110,7 +110,7 @@ class Fiddle
           p1_ptr = (void*)(p1.object());
       auto result = fn(p1_ptr);
       auto pointer_obj = Object::create(Object::Type::Object, pointer_class);
-      auto pointer_ptr = new VoidPObject { result };
+      auto pointer_ptr = VoidPObject::create(result);
       pointer_obj->ivar_set(env, "@ptr"_s, pointer_ptr);
       return pointer_obj;
     END
