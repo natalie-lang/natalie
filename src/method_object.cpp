@@ -37,9 +37,9 @@ Value MethodObject::source_location() {
 
 Value MethodObject::unbind(Env *env) {
     if (m_object->singleton_class()) {
-        return new UnboundMethodObject { m_object->singleton_class(), m_method };
+        return UnboundMethodObject::create(m_object->singleton_class(), m_method);
     } else {
-        return new UnboundMethodObject { m_object.klass(), m_method };
+        return UnboundMethodObject::create(m_object.klass(), m_method);
     }
 }
 
