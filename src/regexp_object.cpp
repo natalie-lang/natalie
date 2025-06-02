@@ -490,7 +490,7 @@ Value RegexpObject::match_at_byte_offset(Env *env, StringObject *str, size_t byt
     int result = search(env, str, byte_index, region, ONIG_OPTION_NONE);
 
     if (result >= 0) {
-        auto match = new MatchDataObject { region, str, this };
+        auto match = MatchDataObject::create(region, str, this);
         caller_env->set_last_match(match);
 
         return match;
