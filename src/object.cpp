@@ -66,7 +66,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::MatchData:
-        obj = new MatchDataObject { klass };
+        obj = MatchDataObject::create(klass);
         break;
 
     case Object::Type::Module:
@@ -653,7 +653,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::UnboundMethod:
         return UnboundMethodObject::create(*static_cast<const UnboundMethodObject *>(this));
     case Object::Type::MatchData:
-        return new MatchDataObject { *static_cast<const MatchDataObject *>(this) };
+        return MatchDataObject::create(*static_cast<const MatchDataObject *>(this));
     default:
         fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->inspect_module().c_str(), static_cast<int>(m_type));
         abort();

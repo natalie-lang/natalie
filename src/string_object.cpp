@@ -696,7 +696,7 @@ static Value byteindex_regexp_needle(Env *env, const StringObject *haystack, Reg
         return Value::nil();
     }
 
-    auto match = new MatchDataObject { region, haystack, needle };
+    auto match = MatchDataObject::create(region, haystack, needle);
     env->caller()->set_last_match(match);
     auto byte_index = region->beg[0];
     return Value::integer(byte_index);
@@ -821,7 +821,7 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
             return -1;
         }
 
-        auto match = new MatchDataObject { region, this, needle.as_regexp() };
+        auto match = MatchDataObject::create(region, this, needle.as_regexp());
         env->caller()->set_last_match(match);
         return region->beg[0];
     }
@@ -903,7 +903,7 @@ nat_int_t StringObject::rindex_int(Env *env, Value needle, size_t byte_start) co
             return -1;
         }
 
-        auto match = new MatchDataObject { region, this, needle_regexp };
+        auto match = MatchDataObject::create(region, this, needle_regexp);
         env->caller()->set_last_match(match);
         return region->beg[0];
     }

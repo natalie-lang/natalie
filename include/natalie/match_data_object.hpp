@@ -14,17 +14,21 @@ namespace Natalie {
 
 class MatchDataObject : public Object {
 public:
-    MatchDataObject()
-        : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch("MatchData"_s).as_class() } { }
+    static MatchDataObject *create() {
+        return new MatchDataObject {};
+    }
 
-    MatchDataObject(ClassObject *klass)
-        : Object { Object::Type::MatchData, klass } { }
+    static MatchDataObject *create(ClassObject *klass) {
+        return new MatchDataObject { klass };
+    }
 
-    MatchDataObject(OnigRegion *region, const StringObject *string, RegexpObject *regexp)
-        : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch("MatchData"_s).as_class() }
-        , m_region { region }
-        , m_string { StringObject::create(*string) }
-        , m_regexp { regexp } { }
+    static MatchDataObject *create(OnigRegion *region, const StringObject *string, RegexpObject *regexp) {
+        return new MatchDataObject { region, string, regexp };
+    }
+
+    static MatchDataObject *create(const MatchDataObject &other) {
+        return new MatchDataObject { other };
+    }
 
     virtual ~MatchDataObject() override {
         onig_region_free(m_region, true);
@@ -83,6 +87,26 @@ public:
     }
 
 private:
+    MatchDataObject()
+        : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch("MatchData"_s).as_class() } { }
+
+    MatchDataObject(ClassObject *klass)
+        : Object { Object::Type::MatchData, klass } { }
+
+    MatchDataObject(OnigRegion *region, const StringObject *string, RegexpObject *regexp)
+        : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch("MatchData"_s).as_class() }
+        , m_region { region }
+        , m_string { StringObject::create(*string) }
+        , m_regexp { regexp } { }
+
+    MatchDataObject(const MatchDataObject &other)
+        : Object { other }
+        , m_region { other.m_region }
+        , m_string { other.m_string }
+        , m_regexp { other.m_regexp } {
+        onig_region_copy(m_region, other.m_region);
+    }
+
     OnigRegion *m_region { nullptr };
     StringObject *m_string { nullptr };
     RegexpObject *m_regexp { nullptr };
