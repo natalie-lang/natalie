@@ -118,7 +118,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::VoidP:
-        obj = new VoidPObject { klass };
+        obj = VoidPObject::create(klass);
         break;
 
     case Object::Type::FileStat:

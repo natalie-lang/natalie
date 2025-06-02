@@ -102,7 +102,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
         if (!handle)
             env->raise("LoadError", "Could not open library '{}': {}.", name.as_string()->c_str(), dlerror());
     }
-    auto handle_ptr = new VoidPObject { handle, [](auto p) { dlclose(p->void_ptr()); } };
+    auto handle_ptr = VoidPObject::create(handle, [](auto p) { dlclose(p->void_ptr()); });
     auto libs = self->ivar_get(env, "@ffi_libs"_s);
     if (libs.is_nil())
         libs = self->ivar_set(env, "@ffi_libs"_s, ArrayObject::create());
@@ -352,13 +352,12 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     for (size_t i = 0; i < arg_count; ++i) {
         ffi_args[i] = get_ffi_type(env, self, arg_types_array->at(i));
     }
-    auto ffi_args_obj = new VoidPObject {
+    auto ffi_args_obj = VoidPObject::create(
         ffi_args,
         [](auto p) {
             auto ary = (ffi_type **)p->void_ptr();
             delete[] ary;
-        }
-    };
+        });
 
     auto libs = self->ivar_get(env, "@ffi_libs"_s);
     auto lib = libs.as_array()->first(); // what do we do if there is more than one?
@@ -392,11 +391,11 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
         env->raise("LoadError", "There was an error preparing the FFI call data structure: {}", (int)status);
 
     OwnedPtr<Env> block_env { new Env {} };
-    block_env->var_set("cif", 0, true, new VoidPObject { cif, [](auto p) { delete (ffi_cif *)p->void_ptr(); } });
+    block_env->var_set("cif", 0, true, VoidPObject::create(cif, [](auto p) { delete (ffi_cif *)p->void_ptr(); }));
     block_env->var_set("arg_types", 1, true, arg_types_array);
     block_env->var_set("return_type", 2, true, return_type);
     block_env->var_set("ffi_args", 3, true, ffi_args_obj);
-    block_env->var_set("fn", 4, true, new VoidPObject { fn });
+    block_env->var_set("fn", 4, true, VoidPObject::create(fn));
     Block *block = Block::create(std::move(block_env), self, FFI_Library_fn_call_block, 0);
     Object::define_singleton_method(env, self, name, block);
 
@@ -531,7 +530,7 @@ Value FFI_Pointer_initialize(Env *env, Value self, Args &&args, Block *) {
         address = args.at(0);
     }
 
-    auto ptr_obj = new VoidPObject {
+    auto ptr_obj = VoidPObject::create(
         (void *)address.integer_or_raise(env).to_nat_int_t(),
         [](auto p) {
             Env e;
@@ -539,8 +538,7 @@ Value FFI_Pointer_initialize(Env *env, Value self, Args &&args, Block *) {
                 free(p->void_ptr());
                 p->set_void_ptr(nullptr);
             }
-        }
-    };
+        });
     ptr_obj->ivar_set(env, "@autorelease"_s, Value::False());
 
     self->ivar_set(env, "@ptr"_s, ptr_obj);

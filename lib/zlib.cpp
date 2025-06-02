@@ -60,12 +60,12 @@ Value Zlib_deflate_initialize(Env *env, Value self, Args &&args, Block *) {
     auto strategy = args.at(3, Zlib->const_fetch("DEFAULT_STRATEGY"_s)).integer_or_raise(env);
 
     auto stream = new z_stream {};
-    self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_deflate_stream_cleanup));
+    self->ivar_set(env, "@stream"_s, VoidPObject::create(stream, Zlib_deflate_stream_cleanup));
     self->ivar_set(env, "@result"_s, StringObject::create("", Encoding::ASCII_8BIT));
     auto in = new unsigned char[ZLIB_BUF_SIZE];
-    self->ivar_set(env, "@in"_s, new VoidPObject(in, Zlib_buffer_cleanup));
+    self->ivar_set(env, "@in"_s, VoidPObject::create(in, Zlib_buffer_cleanup));
     auto out = new unsigned char[ZLIB_BUF_SIZE];
-    self->ivar_set(env, "@out"_s, new VoidPObject(out, Zlib_buffer_cleanup));
+    self->ivar_set(env, "@out"_s, VoidPObject::create(out, Zlib_buffer_cleanup));
     self->ivar_set(env, "@closed"_s, Value::False());
 
     int ret = deflateInit2(stream,
@@ -194,12 +194,12 @@ Value Zlib_inflate_initialize(Env *env, Value self, Args &&args, Block *) {
     auto window_bits = args.at(0, fetch_nested_const({ "Zlib"_s, "MAX_WBITS"_s })).integer_or_raise(env);
 
     auto stream = new z_stream {};
-    self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_inflate_stream_cleanup));
+    self->ivar_set(env, "@stream"_s, VoidPObject::create(stream, Zlib_inflate_stream_cleanup));
     self->ivar_set(env, "@result"_s, StringObject::create("", Encoding::ASCII_8BIT));
     auto in = new unsigned char[ZLIB_BUF_SIZE];
-    self->ivar_set(env, "@in"_s, new VoidPObject(in, Zlib_buffer_cleanup));
+    self->ivar_set(env, "@in"_s, VoidPObject::create(in, Zlib_buffer_cleanup));
     auto out = new unsigned char[ZLIB_BUF_SIZE];
-    self->ivar_set(env, "@out"_s, new VoidPObject(out, Zlib_buffer_cleanup));
+    self->ivar_set(env, "@out"_s, VoidPObject::create(out, Zlib_buffer_cleanup));
     self->ivar_set(env, "@closed"_s, Value::False());
 
     int ret = inflateInit2(stream, (int)window_bits.to_nat_int_t());
@@ -324,7 +324,7 @@ Value Zlib_crc32(Env *env, Value self, Args &&args, Block *) {
 
 Value Zlib_crc_table(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
-    auto res = ArrayObject::create({ 256 });
+    auto res = ArrayObject::create(256);
     auto table = get_crc_table();
     for (size_t i = 0; i < 256; i++)
         res->push(Value::integer(static_cast<nat_int_t>(table[i])));
