@@ -81,9 +81,9 @@ Value ExceptionObject::initialize(Env *env, Optional<Value> message) {
 Value ExceptionObject::exception(Env *env, ClassObject *klass, Optional<Value> message) {
     ExceptionObject *exc = nullptr;
     if (klass)
-        exc = new ExceptionObject { klass };
+        exc = ExceptionObject::create(klass);
     else
-        exc = new ExceptionObject;
+        exc = ExceptionObject::create();
     return exc->initialize(env, message);
 }
 

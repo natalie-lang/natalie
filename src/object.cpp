@@ -46,7 +46,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Exception:
-        obj = new ExceptionObject { klass };
+        obj = ExceptionObject::create(klass);
         break;
 
     case Object::Type::Fiber:
@@ -623,7 +623,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Complex:
         return ComplexObject::create(*static_cast<const ComplexObject *>(this));
     case Object::Type::Exception:
-        return new ExceptionObject { *static_cast<const ExceptionObject *>(this) };
+        return ExceptionObject::create(*static_cast<const ExceptionObject *>(this));
     case Object::Type::False:
         return Value::False();
     case Object::Type::Float:
