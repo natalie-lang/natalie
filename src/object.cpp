@@ -122,7 +122,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::FileStat:
-        obj = new FileStatObject { klass };
+        obj = FileStatObject::create(klass);
         break;
 
     case Object::Type::Binding:

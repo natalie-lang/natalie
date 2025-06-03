@@ -23,16 +23,20 @@ namespace Natalie {
 
 class FileStatObject : public Object {
 public:
-    FileStatObject()
-        : Object { Object::Type::FileStat,
-            GlobalEnv::the()->Object()->const_fetch("File"_s).as_class()->const_fetch("Stat"_s).as_class() } { }
-    FileStatObject(ClassObject *klass)
-        : Object { Object::Type::FileStat, klass } { }
+    static FileStatObject *create() {
+        return new FileStatObject();
+    }
 
-    FileStatObject(struct stat status)
-        : Object { Object::Type::FileStat,
-            GlobalEnv::the()->Object()->const_fetch("File"_s).as_class()->const_fetch("Stat"_s).as_class() } {
-        fstatus = status;
+    static FileStatObject *create(ClassObject *klass) {
+        return new FileStatObject(klass);
+    }
+
+    static FileStatObject *create(struct stat status) {
+        return new FileStatObject(status);
+    }
+
+    static FileStatObject *create(const FileStatObject &other) {
+        return new FileStatObject(other);
     }
 
     Value initialize(Env *, Value);
@@ -74,6 +78,23 @@ public:
     Value gid() const;
 
 private:
+    FileStatObject()
+        : Object { Object::Type::FileStat,
+            GlobalEnv::the()->Object()->const_fetch("File"_s).as_class()->const_fetch("Stat"_s).as_class() } { }
+
+    FileStatObject(ClassObject *klass)
+        : Object { Object::Type::FileStat, klass } { }
+
+    FileStatObject(struct stat status)
+        : Object { Object::Type::FileStat,
+            GlobalEnv::the()->Object()->const_fetch("File"_s).as_class()->const_fetch("Stat"_s).as_class() } {
+        fstatus = status;
+    }
+
+    FileStatObject(const FileStatObject &other)
+        : Object { other }
+        , fstatus { other.fstatus } { }
+
     struct stat fstatus;
 };
 
