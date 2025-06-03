@@ -86,7 +86,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Range:
-        obj = new RangeObject { klass };
+        obj = RangeObject::create(klass);
         break;
 
     case Object::Type::Regexp:
@@ -637,7 +637,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Proc:
         return new ProcObject { *static_cast<const ProcObject *>(this) };
     case Object::Type::Range:
-        return new RangeObject { *static_cast<const RangeObject *>(this) };
+        return RangeObject::create(*static_cast<const RangeObject *>(this));
     case Object::Type::Rational:
         return RationalObject::create(*static_cast<const RationalObject *>(this));
     case Object::Type::Regexp:
