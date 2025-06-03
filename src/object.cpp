@@ -30,7 +30,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Class:
-        obj = new ClassObject { klass };
+        obj = ClassObject::create(klass);
         break;
 
     case Object::Type::Complex:
@@ -70,7 +70,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Module:
-        obj = new ModuleObject { klass };
+        obj = ModuleObject::create(klass);
         break;
 
     case Object::Type::Object:
@@ -225,7 +225,7 @@ ClassObject *Object::singleton_class(Env *env, Value self) {
     } else {
         singleton_superclass = self->m_klass;
     }
-    auto new_singleton_class = new ClassObject { singleton_superclass };
+    auto new_singleton_class = ClassObject::create(singleton_superclass);
     if (self->is_frozen()) new_singleton_class->freeze();
     singleton_superclass->initialize_subclass_without_checks(new_singleton_class, env, name);
     self->set_singleton_class(new_singleton_class);
@@ -614,7 +614,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Array:
         return ArrayObject::create(*static_cast<const ArrayObject *>(this));
     case Object::Type::Class: {
-        auto out = new ClassObject { *static_cast<const ClassObject *>(this) };
+        auto out = ClassObject::create(*static_cast<const ClassObject *>(this));
         auto s_class = singleton_class();
         if (s_class)
             out->set_singleton_class(s_class->clone(env).as_class());
@@ -631,7 +631,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Hash:
         return HashObject::create(env, *static_cast<const HashObject *>(this));
     case Object::Type::Module:
-        return new ModuleObject { *static_cast<const ModuleObject *>(this) };
+        return ModuleObject::create(*static_cast<const ModuleObject *>(this));
     case Object::Type::Object:
         return Object::create(*this);
     case Object::Type::Proc:

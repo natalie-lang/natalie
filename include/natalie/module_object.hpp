@@ -20,23 +20,24 @@ using namespace TM;
 
 class ModuleObject : public Object {
 public:
-    ModuleObject();
-    ModuleObject(const char *);
-    ModuleObject(Type, ClassObject *);
+    static ModuleObject *create() {
+        return new ModuleObject();
+    }
 
-    ModuleObject(ClassObject *klass)
-        : ModuleObject { Type::Module, klass } { }
+    static ModuleObject *create(const char *name) {
+        return new ModuleObject(name);
+    }
 
-    ModuleObject(const ModuleObject &other)
-        : Object { other.type(), other.klass() }
-        , m_constants { other.m_constants }
-        , m_superclass { other.m_superclass }
-        , m_owner { other.m_owner }
-        , m_methods { other.m_methods }
-        , m_class_vars { other.m_class_vars } {
-        for (ModuleObject *module : const_cast<ModuleObject &>(other).m_included_modules) {
-            m_included_modules.push(module);
-        }
+    static ModuleObject *create(Type type, ClassObject *klass) {
+        return new ModuleObject(type, klass);
+    }
+
+    static ModuleObject *create(ClassObject *klass) {
+        return new ModuleObject(klass);
+    }
+
+    static ModuleObject *create(const ModuleObject &other) {
+        return new ModuleObject(other);
     }
 
     Object &operator=(Object &&other) = delete;
@@ -186,6 +187,25 @@ private:
     void cache_method(SymbolObject *, MethodInfo, Env *);
 
 protected:
+    ModuleObject();
+    ModuleObject(const char *);
+    ModuleObject(Type, ClassObject *);
+
+    ModuleObject(ClassObject *klass)
+        : ModuleObject { Type::Module, klass } { }
+
+    ModuleObject(const ModuleObject &other)
+        : Object { other.type(), other.klass() }
+        , m_constants { other.m_constants }
+        , m_superclass { other.m_superclass }
+        , m_owner { other.m_owner }
+        , m_methods { other.m_methods }
+        , m_class_vars { other.m_class_vars } {
+        for (ModuleObject *module : const_cast<ModuleObject &>(other).m_included_modules) {
+            m_included_modules.push(module);
+        }
+    }
+
     Constant *find_constant(Env *, SymbolObject *, ModuleObject **, ConstLookupSearchMode = ConstLookupSearchMode::Strict);
 
     TM::Hashmap<SymbolObject *, Constant *> m_constants {};

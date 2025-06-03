@@ -59,7 +59,7 @@ module Natalie
         code << "    env->raise(\"TypeError\", \"#{@name} is not a module\");"
         code << '  }'
         code << '} else {'
-        code << "  #{mod} = new ModuleObject(#{@name.to_s.inspect})"
+        code << "  #{mod} = ModuleObject::create(#{@name.to_s.inspect})"
         code << "  Object::const_set(env, #{namespace}, #{transform.intern(@name)}, #{mod})"
         code << '}'
         code << "#{mod}.as_module()->eval_body(env, #{fn})"
