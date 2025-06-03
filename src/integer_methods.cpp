@@ -147,7 +147,7 @@ Value IntegerMethods::pow(Env *env, Integer self, Integer arg) {
     // NATFIXME: If a negative number is passed we want to return a Rational
     if (arg < 0) {
         auto denominator = Natalie::pow(self, -arg);
-        return new RationalObject { Value::integer(1), denominator };
+        return RationalObject::create(Value::integer(1), denominator);
     }
 
     if (arg == 0)
