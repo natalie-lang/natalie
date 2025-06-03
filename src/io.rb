@@ -1,4 +1,6 @@
 class IO
+  class TimeoutError < IOError; end
+
   class << self
     alias for_fd new
 

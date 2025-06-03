@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
+#include <poll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -1089,8 +1090,12 @@ Value Socket_is_closed(Env *env, Value self, Args &&args, Block *block) {
 }
 
 Value Socket_connect(Env *env, Value self, Args &&args, Block *block) {
+    auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_is(env, 1);
     auto remote_sockaddr = args.at(0);
+    auto connect_timeout = kwargs ? kwargs->remove(env, "connect_timeout"_s) : Optional<Value> {};
+    env->ensure_no_extra_keywords(kwargs);
+
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
     if (remote_sockaddr.is_a(env, Addrinfo)) {
         remote_sockaddr = remote_sockaddr.to_s(env);
@@ -1102,8 +1107,44 @@ Value Socket_connect(Env *env, Value self, Args &&args, Block *block) {
     socklen_t len = remote_sockaddr.as_string()->bytesize();
 
     auto result = connect(self.as_io()->fileno(), addr, len);
-    if (result == -1)
-        env->raise_errno();
+    if (result == -1) {
+        if (errno != EINPROGRESS)
+            env->raise_errno();
+
+        int option_value = 0;
+        socklen_t option_len = sizeof(option_value);
+        if (getsockopt(self.as_io()->fileno(), SOL_SOCKET, SO_ERROR, &option_value, &option_len) == -1)
+            env->raise_errno();
+        if (option_value) {
+            errno = option_value;
+            env->raise_errno();
+        }
+
+        // We can't connect directly, wait for the timeout (if given)
+        pollfd fds = { self.as_io()->fileno(), POLLIN | POLLOUT, 0 };
+        int timeout = -1;
+        if (connect_timeout && !connect_timeout.value().is_nil()) {
+            const auto timeout_f = connect_timeout.value().to_f(env)->to_double();
+            if (timeout_f < 0)
+                env->raise("ArgumentError", "time interval must not be negative");
+            timeout = timeout_f * 1000;
+        }
+        for (;;) {
+            result = poll(&fds, 1, timeout);
+            if (result == -1 && errno == EINTR) {
+                // Interrupted by a signal -- probably the GC stopping the world.
+                // Try again.
+            } else if (result == -1) {
+                env->raise_errno();
+            } else if (result == 0) {
+                auto TimeoutError = fetch_nested_const({ "IO"_s, "TimeoutError"_s });
+                auto error = Object::_new(env, TimeoutError, { new StringObject { "Connect timed out!" } }, nullptr).as_exception();
+                env->raise_exception(error);
+            } else {
+                break;
+            }
+        }
+    }
 
     return Value::integer(0);
 }
@@ -1581,7 +1622,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
     auto port = args.at(1);
     auto local_host = args.at(2, Value::nil());
     auto local_port = args.at(3, Value::nil());
-    auto connect_timeout = kwargs ? kwargs->remove(env, "connect_timeout"_s) : Value::nil();
+    auto connect_timeout = kwargs ? kwargs->remove(env, "connect_timeout"_s) : Optional<Value> {};
     env->ensure_no_extra_keywords(kwargs);
 
     auto domain = AF_INET;
@@ -1613,8 +1654,14 @@ Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
     }
 
     auto sockaddr = Socket.send(env, "pack_sockaddr_in"_s, { port, host });
-    Socket_connect(env, self, { sockaddr }, nullptr);
     self.as_io()->set_nonblock(env, true);
+    Args new_args = { sockaddr };
+    if (connect_timeout) {
+        auto new_kwargs = new HashObject { env, { "connect_timeout"_s, *connect_timeout } };
+        Socket_connect(env, self, Args({ sockaddr, new_kwargs }, true), nullptr);
+    } else {
+        Socket_connect(env, self, { sockaddr }, nullptr);
+    }
     self->ivar_set(env, "@do_not_reverse_lookup"_s, find_top_level_const(env, "BasicSocket"_s).send(env, "do_not_reverse_lookup"_s));
 
     if (block) {
