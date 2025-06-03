@@ -50,7 +50,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Fiber:
-        obj = new FiberObject { klass };
+        obj = FiberObject::create(klass);
         break;
 
     case Object::Type::Hash:
