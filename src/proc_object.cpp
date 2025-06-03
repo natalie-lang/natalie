@@ -48,7 +48,7 @@ Value ProcObject::ltlt(Env *env, Value other) {
     auto block = Block::create(*env, this, compose_ltlt, -1);
     if (other.is_proc() && other.as_proc()->is_lambda())
         block->set_type(Block::BlockType::Lambda);
-    return new ProcObject { block };
+    return ProcObject::create(block);
 }
 
 Value ProcObject::gtgt(Env *env, Value other) {
@@ -59,7 +59,7 @@ Value ProcObject::gtgt(Env *env, Value other) {
     auto block = Block::create(*env, this, compose_gtgt, -1);
     if (is_lambda())
         block->set_type(Block::BlockType::Lambda);
-    return new ProcObject { block };
+    return ProcObject::create(block);
 }
 
 Value ProcObject::ruby2_keywords(Env *env) {
@@ -74,7 +74,7 @@ Value ProcObject::ruby2_keywords(Env *env) {
     };
 
     OwnedPtr<Env> inner_env { new Env { *env } };
-    inner_env->var_set("old_block", 1, true, new ProcObject { m_block });
+    inner_env->var_set("old_block", 1, true, ProcObject::create(m_block));
     m_block = Block::create(std::move(inner_env), this, block_wrapper, -1);
 
     return this;

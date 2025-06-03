@@ -78,7 +78,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Proc:
-        obj = new ProcObject { klass };
+        obj = ProcObject::create(klass);
         break;
 
     case Object::Type::Random:
@@ -635,7 +635,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Object:
         return Object::create(*this);
     case Object::Type::Proc:
-        return new ProcObject { *static_cast<const ProcObject *>(this) };
+        return ProcObject::create(*static_cast<const ProcObject *>(this));
     case Object::Type::Range:
         return RangeObject::create(*static_cast<const RangeObject *>(this));
     case Object::Type::Rational:

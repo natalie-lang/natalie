@@ -55,7 +55,7 @@ Value KernelModule::abort_method(Env *env, Optional<Value> message_arg) {
 Value KernelModule::at_exit(Env *env, Block *block) {
     ArrayObject *at_exit_handlers = env->global_get("$NAT_at_exit_handlers"_s).as_array();
     env->ensure_block_given(block);
-    Value proc = new ProcObject { block };
+    Value proc = ProcObject::create(block);
     at_exit_handlers->push(proc);
     return proc;
 }
@@ -579,7 +579,7 @@ Value KernelModule::Hash(Env *env, Value value) {
 Value KernelModule::lambda(Env *env, Block *block) {
     if (block) {
         block->set_type(Block::BlockType::Lambda);
-        return new ProcObject { block };
+        return ProcObject::create(block);
     } else {
         env->raise("ArgumentError", "tried to create Proc object without a block");
     }
@@ -616,7 +616,7 @@ Value KernelModule::print(Env *env, Args &&args) {
 
 Value KernelModule::proc(Env *env, Block *block) {
     if (block)
-        return new ProcObject { block };
+        return ProcObject::create(block);
     else
         env->raise("ArgumentError", "tried to create Proc object without a block");
 }
