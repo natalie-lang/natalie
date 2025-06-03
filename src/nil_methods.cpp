@@ -29,7 +29,7 @@ Value NilMethods::to_a(const Value) {
 }
 
 Value NilMethods::to_c(const Value) {
-    return new ComplexObject { Value::integer(0) };
+    return ComplexObject::create(Value::integer(0));
 }
 
 Value NilMethods::to_h(const Value) {

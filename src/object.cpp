@@ -34,7 +34,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Complex:
-        obj = new ComplexObject { klass };
+        obj = ComplexObject::create(klass);
         break;
 
     case Object::Type::Dir:
@@ -621,7 +621,7 @@ Value Object::duplicate(Env *env) const {
         return out;
     }
     case Object::Type::Complex:
-        return new ComplexObject { *static_cast<const ComplexObject *>(this) };
+        return ComplexObject::create(*static_cast<const ComplexObject *>(this));
     case Object::Type::Exception:
         return new ExceptionObject { *static_cast<const ExceptionObject *>(this) };
     case Object::Type::False:

@@ -177,7 +177,7 @@ Value IntegerMethods::pow(Env *env, Integer self, Value arg) {
         return pow(env, self, arg.integer());
 
     if ((arg.is_float() || arg.is_rational()) && self < 0) {
-        auto comp = new ComplexObject { self };
+        auto comp = ComplexObject::create(self);
         return comp->send(env, "**"_s, { arg });
     }
 

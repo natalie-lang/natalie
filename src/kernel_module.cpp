@@ -147,7 +147,7 @@ Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, boo
         return real;
 
     if (real.is_complex() && imaginary.value().is_complex())
-        return real.send(env, "+"_s, { imaginary.value().send(env, "*"_s, { new ComplexObject { Value::integer(0), Value::integer(1) } }) });
+        return real.send(env, "+"_s, { imaginary.value().send(env, "*"_s, { ComplexObject::create(Value::integer(0), Value::integer(1)) }) });
 
     auto is_numeric = [&env](Value val) -> bool {
         if (val.is_numeric() || val.is_rational() || val.is_complex())
@@ -160,9 +160,9 @@ Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, boo
 
     if (is_numeric(real)) {
         if (!imaginary) {
-            return new ComplexObject { real };
+            return ComplexObject::create(real);
         } else if (is_numeric(imaginary.value())) {
-            return new ComplexObject { real, imaginary.value() };
+            return ComplexObject::create(real, imaginary.value());
         }
     }
 
@@ -180,7 +180,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
     };
     if (!input->is_ascii_only()) {
         if (string_to_c)
-            return new ComplexObject { Value::integer(0) };
+            return ComplexObject::create(Value::integer(0));
         return error();
     }
     enum class State {
@@ -330,7 +330,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
     switch (state) {
     case State::Start:
         if (string_to_c)
-            return new ComplexObject { Value::integer(0), Value::integer(0) };
+            return ComplexObject::create(Value::integer(0), Value::integer(0));
         return error();
     default: {
         if (real_start != nullptr && real_end != nullptr) {
@@ -373,7 +373,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             auto Complex = GlobalEnv::the()->Object()->const_get(env, "Complex"_s);
             return Complex.send(env, "polar"_s, { new_real, new_imag });
         }
-        return new ComplexObject { new_real, new_imag };
+        return ComplexObject::create(new_real, new_imag);
     }
     }
 }
