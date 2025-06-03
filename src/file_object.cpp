@@ -625,7 +625,7 @@ Value FileObject::lstat(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
     int result = ::lstat(path.as_string()->c_str(), &sb);
     if (result < 0) env->raise_errno(path.as_string());
-    return new FileStatObject { sb };
+    return FileStatObject::create(sb);
 }
 
 // instance method
@@ -633,7 +633,7 @@ Value FileObject::lstat(Env *env) const {
     struct stat sb;
     int result = ::stat(get_path().as_string()->c_str(), &sb);
     if (result < 0) env->raise_errno();
-    return new FileStatObject { sb };
+    return FileStatObject::create(sb);
 }
 
 Value FileObject::lutime(Env *env, Args &&args) {
@@ -691,7 +691,7 @@ Value FileObject::stat(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
     int result = ::stat(path.as_string()->c_str(), &sb);
     if (result < 0) env->raise_errno(path.as_string());
-    return new FileStatObject { sb };
+    return FileStatObject::create(sb);
 }
 
 // class methods

@@ -864,7 +864,7 @@ Value IoObject::stat(Env *env) const {
     auto file_desc = fileno(env); // current file descriptor
     int result = ::fstat(file_desc, &sb);
     if (result < 0) env->raise_errno();
-    return new FileStatObject { sb };
+    return FileStatObject::create(sb);
 }
 
 Value IoObject::sysopen(Env *env, Value path, Optional<Value> flags_obj, Optional<Value> perm) {
