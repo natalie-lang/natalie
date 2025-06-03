@@ -75,10 +75,10 @@ Value RationalObject::coerce(Env *env, Value other) {
         auto complex = other.as_complex();
         if (complex->imaginary().integer().is_zero()) {
             auto a = RationalObject::create(complex->real(), Value::integer(1));
-            auto b = new ComplexObject(this);
+            auto b = ComplexObject::create(this);
             return ArrayObject::create({ a, b });
         } else {
-            return ArrayObject::create({ other, new ComplexObject(this) });
+            return ArrayObject::create({ other, ComplexObject::create(this) });
         }
     }
 

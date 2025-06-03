@@ -343,7 +343,7 @@ Value FloatObject::pow(Env *env, Value rhs) {
     Value lhs = this;
 
     if ((rhs.is_float() || rhs.is_rational()) && to_double() < 0) {
-        auto comp = new ComplexObject { this };
+        auto comp = ComplexObject::create(this);
         return comp->send(env, "**"_s, { rhs });
     }
 
