@@ -180,7 +180,7 @@ void ThreadObject::prepare_main_thread() {
     auto thread = new ThreadObject;
     thread->m_status = ThreadObject::Status::Active;
     thread->m_suspend_status = ThreadObject::SuspendStatus::Running;
-    thread->m_current_fiber = thread->m_main_fiber = new FiberObject;
+    thread->m_current_fiber = thread->m_main_fiber = FiberObject::create();
     tl_current_arg_stack = &thread->m_current_fiber->m_args_stack;
     s_main = thread;
     tl_current_thread = thread;
@@ -199,7 +199,7 @@ void ThreadObject::finish_main_thread_setup(Env *env, void *start_of_stack) {
 
 void ThreadObject::build_main_fiber() {
     if (!m_main_fiber)
-        m_main_fiber = m_current_fiber = new FiberObject;
+        m_main_fiber = m_current_fiber = FiberObject::create();
     tl_current_arg_stack = &m_current_fiber->m_args_stack;
     m_main_fiber->m_start_of_stack = m_start_of_stack;
     m_main_fiber->m_thread = this;
