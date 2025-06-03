@@ -18,11 +18,17 @@ using namespace TM;
 
 class RandomObject : public Object {
 public:
-    RandomObject(ClassObject *klass)
-        : Object { Object::Type::Random, klass } { }
+    static RandomObject *create() {
+        return new RandomObject();
+    }
 
-    RandomObject()
-        : Object { Object::Type::Random, GlobalEnv::the()->Random() } { }
+    static RandomObject *create(ClassObject *klass) {
+        return new RandomObject(klass);
+    }
+
+    static RandomObject *create(const RandomObject &other) {
+        return new RandomObject(other);
+    }
 
     ~RandomObject() { delete m_generator; }
 
@@ -71,6 +77,17 @@ public:
     }
 
 private:
+    RandomObject()
+        : Object { Object::Type::Random, GlobalEnv::the()->Random() } { }
+
+    RandomObject(ClassObject *klass)
+        : Object { Object::Type::Random, klass } { }
+
+    RandomObject(const RandomObject &other)
+        : Object { other }
+        , m_seed { other.m_seed }
+        , m_generator { new std::mt19937(*other.m_generator) } { }
+
     nat_int_t m_seed;
     std::mt19937 *m_generator { nullptr };
 

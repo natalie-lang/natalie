@@ -82,7 +82,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Random:
-        obj = new RandomObject { klass };
+        obj = RandomObject::create(klass);
         break;
 
     case Object::Type::Range:
