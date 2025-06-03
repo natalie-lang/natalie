@@ -17,22 +17,16 @@ public:
         UTC
     };
 
-    TimeObject()
-        : Object { Object::Type::Time, GlobalEnv::the()->Time() } { }
+    static TimeObject *create() {
+        return new TimeObject;
+    }
 
-    TimeObject(ClassObject *klass)
-        : Object { Object::Type::Time, klass } { }
+    static TimeObject *create(ClassObject *klass) {
+        return new TimeObject { klass };
+    }
 
-    TimeObject(const TimeObject &other)
-        : Object { other }
-        , m_integer { other.m_integer }
-        , m_mode { other.m_mode }
-        , m_subsec { other.m_subsec }
-        , m_time { other.m_time } {
-        if (other.m_zone) {
-            m_zone = strdup(other.m_zone);
-            m_time.tm_zone = m_zone;
-        }
+    static TimeObject *create(const TimeObject &other) {
+        return new TimeObject { other };
     }
 
     ~TimeObject() {
@@ -89,6 +83,24 @@ public:
     }
 
 private:
+    TimeObject()
+        : Object { Object::Type::Time, GlobalEnv::the()->Time() } { }
+
+    TimeObject(ClassObject *klass)
+        : Object { Object::Type::Time, klass } { }
+
+    TimeObject(const TimeObject &other)
+        : Object { other }
+        , m_integer { other.m_integer }
+        , m_mode { other.m_mode }
+        , m_subsec { other.m_subsec }
+        , m_time { other.m_time } {
+        if (other.m_zone) {
+            m_zone = strdup(other.m_zone);
+            m_time.tm_zone = m_zone;
+        }
+    }
+
     static RationalObject *convert_rational(Env *, Value);
     static Value convert_unit(Env *, Value);
     static TimeObject *create(Env *, ClassObject *, RationalObject *, Mode);

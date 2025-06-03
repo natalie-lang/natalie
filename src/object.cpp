@@ -114,7 +114,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Time:
-        obj = new TimeObject { klass };
+        obj = TimeObject::create(klass);
         break;
 
     case Object::Type::VoidP:
@@ -647,7 +647,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Symbol:
         return SymbolObject::intern(static_cast<const SymbolObject *>(this)->string());
     case Object::Type::Time:
-        return new TimeObject { *static_cast<const TimeObject *>(this) };
+        return TimeObject::create(*static_cast<const TimeObject *>(this));
     case Object::Type::True:
         return Value::True();
     case Object::Type::UnboundMethod:
