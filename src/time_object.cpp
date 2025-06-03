@@ -27,7 +27,7 @@ TimeObject *TimeObject::at(Env *env, ClassObject *klass, Value time, Optional<Va
 }
 
 TimeObject *TimeObject::local(Env *env, Value year, Optional<Value> month, Optional<Value> mday, Optional<Value> hour, Optional<Value> min, Optional<Value> sec, Optional<Value> usec) {
-    TimeObject *result = new TimeObject {};
+    TimeObject *result = TimeObject::create();
     result->build_time(env, year, month, mday, hour, min, sec);
     int seconds = mktime(&result->m_time);
     result->m_mode = Mode::Localtime;
@@ -77,9 +77,9 @@ TimeObject *TimeObject::now(Env *env, ClassObject *klass, Optional<Value> in) {
     struct tm time = *localtime(&ts.tv_sec);
     TimeObject *result;
     if (klass)
-        result = new TimeObject { klass };
+        result = TimeObject::create(klass);
     else
-        result = new TimeObject {};
+        result = TimeObject::create();
     result->m_time = time;
     result->m_mode = Mode::Localtime;
     result->m_integer = ts.tv_sec;
@@ -90,7 +90,7 @@ TimeObject *TimeObject::now(Env *env, ClassObject *klass, Optional<Value> in) {
 }
 
 TimeObject *TimeObject::utc(Env *env, Value year, Optional<Value> month, Optional<Value> mday, Optional<Value> hour, Optional<Value> min, Optional<Value> sec, Optional<Value> subsec_arg) {
-    TimeObject *result = new TimeObject {};
+    TimeObject *result = TimeObject::create();
     result->build_time(env, year, month, mday, hour, min, sec);
     result->m_time.tm_gmtoff = 0;
     int seconds = timegm(&result->m_time);
@@ -459,9 +459,9 @@ TimeObject *TimeObject::create(Env *env, ClassObject *klass, RationalObject *rat
     RationalObject *subseconds;
     TimeObject *result;
     if (klass)
-        result = new TimeObject { klass };
+        result = TimeObject::create(klass);
     else
-        result = new TimeObject {};
+        result = TimeObject::create();
     if (rational->send(env, "<"_s, { Value::integer(0) }).is_true()) {
         auto floor = rational->floor(env);
         integer = floor.send(env, "to_i"_s).integer();
