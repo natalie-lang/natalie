@@ -578,7 +578,7 @@ Value IntegerMethods::sqrt(Env *env, Value arg) {
     if (argument < 0) {
         auto domain_error = fetch_nested_const({ "Math"_s, "DomainError"_s });
         auto message = StringObject::create("Numerical argument is out of domain - \"isqrt\"");
-        auto exception = new ExceptionObject { domain_error.as_class(), message };
+        auto exception = ExceptionObject::create(domain_error.as_class(), message);
         env->raise_exception(exception);
     }
 

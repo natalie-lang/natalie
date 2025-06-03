@@ -340,7 +340,7 @@ Value ThreadObject::kill(Env *env) {
 
     m_status = Status::Aborting;
 
-    auto exception = new ExceptionObject { thread_kill_class(env) };
+    auto exception = ExceptionObject::create(thread_kill_class(env));
 
     if (m_exception) {
         // An pending exception was already raised on this thread,

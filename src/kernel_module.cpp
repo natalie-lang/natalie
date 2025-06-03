@@ -418,7 +418,7 @@ Value KernelModule::exit(Env *env, Optional<Value> status_arg) {
         }
     }
 
-    ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s).as_class(), StringObject::create("exit") };
+    ExceptionObject *exception = ExceptionObject::create(find_top_level_const(env, "SystemExit"_s).as_class(), StringObject::create("exit"));
     exception->ivar_set(env, "@status"_s, status.to_int(env));
     env->raise_exception(exception);
     return Value::nil();
