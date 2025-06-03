@@ -179,7 +179,7 @@ Value Linenoise_set_multi_line(Env *env, Value self, Args &&args, Block *) {
 }
 
 Value init_linenoise(Env *env, Value self) {
-    auto Linenoise = new ModuleObject { "Linenoise" };
+    auto Linenoise = ModuleObject::create("Linenoise");
     GlobalEnv::the()->Object()->const_set("Linenoise"_s, Linenoise);
 
     Object::define_singleton_method(env, Linenoise, "add_history"_s, Linenoise_add_history, 1);

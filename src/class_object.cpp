@@ -16,7 +16,7 @@ Value ClassObject::initialize(Env *env, Optional<Value> superclass_arg, Block *b
 ClassObject *ClassObject::subclass(Env *env, String name, Type object_type) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ClassObject *subclass = new ClassObject { klass() };
+    ClassObject *subclass = ClassObject::create(klass());
     initialize_subclass(subclass, env, name, object_type);
     return subclass;
 }
@@ -35,7 +35,7 @@ void ClassObject::initialize_subclass_without_checks(ClassObject *subclass, Env 
         if (!name.is_empty())
             singleton_name = String::format("#<Class:{}>", name);
         auto my_singleton_class = singleton_class();
-        ClassObject *singleton = new ClassObject { my_singleton_class };
+        ClassObject *singleton = ClassObject::create(my_singleton_class);
         my_singleton_class->initialize_subclass_without_checks(singleton, env, singleton_name, my_singleton_class->object_type());
         subclass->set_singleton_class(singleton);
     }
@@ -60,14 +60,12 @@ ClassObject *ClassObject::bootstrap_class_class(Env *env) {
 }
 
 ClassObject *ClassObject::bootstrap_basic_object(Env *env, ClassObject *Class) {
-    ClassObject *BasicObject = new ClassObject {
-        reinterpret_cast<ClassObject *>(-1)
-    };
+    ClassObject *BasicObject = ClassObject::create();
     BasicObject->m_klass = Class;
     BasicObject->m_superclass = nullptr;
     BasicObject->m_is_initialized = true;
     BasicObject->set_name("BasicObject");
-    auto singleton = new ClassObject { Class };
+    auto singleton = ClassObject::create(Class);
     Class->initialize_subclass_without_checks(singleton, env, "#<Class:BasicObject>");
     BasicObject->set_singleton_class(singleton);
     return BasicObject;

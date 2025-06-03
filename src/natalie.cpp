@@ -36,19 +36,19 @@ Env *build_top_env() {
     global_env->set_Module(Module);
     Object->const_set("Module"_s, Module);
     Class->set_superclass_DANGEROUSLY(Module);
-    auto class_singleton_class = new ClassObject { Module->singleton_class() };
+    auto class_singleton_class = ClassObject::create(Module->singleton_class());
     Module->singleton_class()->initialize_subclass_without_checks(class_singleton_class, env, "#<Class:Class>");
     Class->set_singleton_class(class_singleton_class);
 
-    ModuleObject *Kernel = new ModuleObject { "Kernel" };
+    ModuleObject *Kernel = ModuleObject::create("Kernel");
     Object->const_set("Kernel"_s, Kernel);
     Object->include_once(env, Kernel);
 
-    ModuleObject *Comparable = new ModuleObject { "Comparable" };
+    ModuleObject *Comparable = ModuleObject::create("Comparable");
     Object->const_set("Comparable"_s, Comparable);
     Symbol->include_once(env, Comparable);
 
-    ModuleObject *Enumerable = new ModuleObject { "Enumerable" };
+    ModuleObject *Enumerable = ModuleObject::create("Enumerable");
     Object->const_set("Enumerable"_s, Enumerable);
 
     ClassObject *Enumerator = Object->subclass(env, "Enumerator", Object::Type::Enumerator);
@@ -93,12 +93,12 @@ Env *build_top_env() {
     global_env->set_Rational(Rational);
     Object->const_set("Rational"_s, Rational);
 
-    ModuleObject *Math = new ModuleObject { "Math" };
+    ModuleObject *Math = ModuleObject::create("Math");
     Object->const_set("Math"_s, Math);
     Math->const_set("E"_s, FloatObject::create(M_E));
     Math->const_set("PI"_s, FloatObject::create(M_PI));
 
-    ModuleObject *Signal = new ModuleObject { "Signal" };
+    ModuleObject *Signal = ModuleObject::create("Signal");
     Object->const_set("Signal"_s, Signal);
 
     ClassObject *String = Object->subclass(env, "String", Object::Type::String);
@@ -125,7 +125,7 @@ Env *build_top_env() {
     Object->const_set("Random"_s, Random);
     Random->const_set("DEFAULT"_s, RandomObject::create()->initialize(env));
 
-    ModuleObject *RandomFormatter = new ModuleObject { "Formatter" };
+    ModuleObject *RandomFormatter = ModuleObject::create("Formatter");
     Random->const_set("Formatter"_s, RandomFormatter);
     Random->extend_once(env, RandomFormatter);
 
@@ -163,7 +163,7 @@ Env *build_top_env() {
     Object->const_set("File"_s, File);
     File->include_once(env, Enumerable);
 
-    ModuleObject *FileTest = new ModuleObject { "FileTest" };
+    ModuleObject *FileTest = ModuleObject::create("FileTest");
     Object->const_set("FileTest"_s, FileTest);
 
     ClassObject *FileStat = Object->subclass(env, "Stat", Object::Type::FileStat);
@@ -380,19 +380,19 @@ Env *build_top_env() {
     // Must set defaults after the encodings are defined above.
     EncodingObject::initialize_defaults(env);
 
-    ModuleObject *Process = new ModuleObject { "Process" };
+    ModuleObject *Process = ModuleObject::create("Process");
     Object->const_set("Process"_s, Process);
-    Value ProcessSys = new ModuleObject { "Sys" };
+    Value ProcessSys = ModuleObject::create("Sys");
     Process->const_set("Sys"_s, ProcessSys);
-    Value ProcessUID = new ModuleObject { "UID" };
+    Value ProcessUID = ModuleObject::create("UID");
     Process->const_set("UID"_s, ProcessUID);
-    Value ProcessGID = new ModuleObject { "GID" };
+    Value ProcessGID = ModuleObject::create("GID");
     Process->const_set("GID"_s, ProcessGID);
 
     ClassObject *Thread = Object->subclass(env, "Thread", Object::Type::Thread);
     Object->const_set("Thread"_s, Thread);
 
-    ModuleObject *ThreadBacktrace = new ModuleObject { "Backtrace" };
+    ModuleObject *ThreadBacktrace = ModuleObject::create("Backtrace");
     Thread->const_set("Backtrace"_s, ThreadBacktrace);
 
     ClassObject *ThreadBacktraceLocation = Object->subclass(env, "Location", Object::Type::ThreadBacktraceLocation);
@@ -418,7 +418,7 @@ Env *build_top_env() {
     ClassObject *UnboundMethod = Object->subclass(env, "UnboundMethod", Object::Type::UnboundMethod);
     Object->const_set("UnboundMethod"_s, UnboundMethod);
 
-    ModuleObject *FileConstants = new ModuleObject { "Constants" };
+    ModuleObject *FileConstants = ModuleObject::create("Constants");
     File->const_set("Constants"_s, FileConstants);
 
     // Build File Constants after Encodings are defined since some
@@ -524,7 +524,7 @@ Env *build_top_env() {
     RUBY_REVISION->freeze();
     Object->const_set("RUBY_REVISION"_s, RUBY_REVISION);
 
-    ModuleObject *GC = new ModuleObject { "GC" };
+    ModuleObject *GC = ModuleObject::create("GC");
     Object->const_set("GC"_s, GC);
 
     init_bindings(env);

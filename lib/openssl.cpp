@@ -1050,7 +1050,7 @@ Value init_openssl(Env *env, Value self) {
     if (lookup_OpenSSL) {
         OpenSSL = lookup_OpenSSL.value().as_module();
     } else {
-        OpenSSL = new ModuleObject { "OpenSSL" };
+        OpenSSL = ModuleObject::create("OpenSSL");
         GlobalEnv::the()->Object()->const_set("OpenSSL"_s, OpenSSL);
     }
 
@@ -1117,7 +1117,7 @@ Value init_openssl(Env *env, Value self) {
     if (lookup_KDF) {
         KDF = lookup_KDF.value();
     } else {
-        KDF = new ModuleObject { "KDF" };
+        KDF = ModuleObject::create("KDF");
         OpenSSL->const_set("KDF"_s, KDF);
     }
     Object::define_singleton_method(env, KDF, "pbkdf2_hmac"_s, OpenSSL_KDF_pbkdf2_hmac, -1);
