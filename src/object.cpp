@@ -639,7 +639,7 @@ Value Object::duplicate(Env *env) const {
     case Object::Type::Range:
         return new RangeObject { *static_cast<const RangeObject *>(this) };
     case Object::Type::Rational:
-        return new RationalObject { *static_cast<const RationalObject *>(this) };
+        return RationalObject::create(*static_cast<const RationalObject *>(this));
     case Object::Type::Regexp:
         return RegexpObject::create(env, *static_cast<const RegexpObject *>(this));
     case Object::Type::String:

@@ -655,7 +655,7 @@ Value KernelModule::Rational(Env *env, Value x, Optional<Value> y_arg, bool exce
         return Rational(env, x.as_float()->to_double() / y.as_float()->to_double());
     } else {
         if (x.is_integer()) {
-            return new RationalObject { x.integer(), Value::integer(1) };
+            return RationalObject::create(x.integer(), Value::integer(1));
         }
 
         if (!exception)

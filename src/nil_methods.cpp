@@ -45,7 +45,7 @@ Value NilMethods::to_i(const Value) {
 }
 
 Value NilMethods::to_r(const Value) {
-    return new RationalObject { Value::integer(0), Value::integer(1) };
+    return RationalObject::create(Value::integer(0), Value::integer(1));
 }
 
 Value NilMethods::inspect(const Value) {
