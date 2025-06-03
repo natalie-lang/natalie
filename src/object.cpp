@@ -38,7 +38,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Dir:
-        obj = new DirObject { klass };
+        obj = DirObject::create(klass);
         break;
 
     case Object::Type::Enumerator:
