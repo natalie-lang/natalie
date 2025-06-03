@@ -23,6 +23,22 @@ describe "FrozenError#receiver" do
   end
 end
 
+describe "FrozenError#message" do
+  it "includes a receiver" do
+    object = Object.new
+    object.freeze
+
+    NATFIXME 'FrozenError#message includes a receiver', exception: SpecFailedException do
+      -> {
+        def object.x; end
+      }.should raise_error(FrozenError, "can't modify frozen object: #{object}")
+    end
+
+    object = [].freeze
+    -> { object << nil }.should raise_error(FrozenError, "can't modify frozen Array: []")
+  end
+end
+
 describe "Modifying a frozen object" do
   context "#inspect is redefined and modifies the object" do
     # NATFIXME: This breaks execution

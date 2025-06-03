@@ -108,7 +108,7 @@ describe "An instance method" do
       end
     }.should raise_error(FrozenError) { |e|
       NATFIXME 'correct casing in message', exception: SpecFailedException do
-        e.message.should.start_with? "can't modify frozen module"
+        e.message.should == "can't modify frozen module: #{e.receiver}"
       end
     }
 
@@ -119,7 +119,7 @@ describe "An instance method" do
       end
     }.should raise_error(FrozenError){ |e|
       NATFIXME 'correct message', exception: SpecFailedException do
-        e.message.should.start_with? "can't modify frozen class"
+        e.message.should == "can't modify frozen class: #{e.receiver}"
       end
     }
   end
@@ -297,24 +297,28 @@ describe "A singleton method definition" do
   it "raises FrozenError with the correct class name" do
     obj = Object.new
     obj.freeze
-    -> { def obj.foo; end }.should raise_error(FrozenError){ |e|
-      NATFIXME 'correct casing in message', exception: SpecFailedException do
-        e.message.should.start_with? "can't modify frozen object"
-      end
-    }
+    NATFIXME 'correct casing in message', exception: SpecFailedException do
+      -> { def obj.foo; end }.should raise_error(FrozenError, "can't modify frozen object: #{obj}")
+    end
 
+    obj = Object.new
     c = obj.singleton_class
-    -> { def c.foo; end }.should raise_error(FrozenError){ |e|
-      NATFIXME 'correct message', exception: SpecFailedException do
-        e.message.should.start_with? "can't modify frozen Class"
-      end
-    }
+    c.singleton_class.freeze
+    NATFIXME 'correct message', exception: SpecFailedException do
+      -> { def c.foo; end }.should raise_error(FrozenError, "can't modify frozen Class: #{c}")
+    end
+
+    c = Class.new
+    c.freeze
+    NATFIXME 'correct message', exception: SpecFailedException do
+      -> { def c.foo; end }.should raise_error(FrozenError, "can't modify frozen Class: #{c}")
+    end
 
     m = Module.new
     m.freeze
-    -> { def m.foo; end }.should raise_error(FrozenError){ |e|
-      e.message.should.start_with? "can't modify frozen Module"
-    }
+    NATFIXME 'correct message', exception: SpecFailedException do
+      -> { def m.foo; end }.should raise_error(FrozenError, "can't modify frozen Module: #{m}")
+    end
   end
 end
 
@@ -548,6 +552,8 @@ describe "A nested method definition" do
 
     obj = DefSpecNested.new
     obj.inherited_method.should == obj
+  ensure
+    DefSpecNested.send(:remove_const, :TARGET)
   end
 
   # See http://yugui.jp/articles/846#label-3
@@ -571,6 +577,8 @@ describe "A nested method definition" do
       DefSpecNested.should_not have_instance_method :arg_method
       DefSpecNested.should_not have_instance_method :body_method
     end
+  ensure
+    DefSpecNested.send(:remove_const, :OBJ)
   end
 
   it "creates an instance method inside Class.new" do

@@ -1,4 +1,4 @@
-# -*- encoding: binary -*-
+# encoding: binary
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 require_relative 'fixtures/marshal_data'
@@ -249,10 +249,11 @@ describe "Marshal.dump" do
       end
     end
 
-    it "dumps a class with multibyte characters in name" do
-      NATFIXME 'eval', exception: TypeError, message: 'eval() only works on static strings' do
+    ruby_version_is "3.5" do
+      it "dumps a class with multibyte characters in name" do
         source_object = eval("MarshalSpec::MultibyteぁあぃいClass".dup.force_encoding(Encoding::UTF_8))
-        Marshal.dump(source_object).should == "\x04\bc,MarshalSpec::Multibyte\xE3\x81\x81\xE3\x81\x82\xE3\x81\x83\xE3\x81\x84Class"
+        Marshal.dump(source_object).should == "\x04\bIc,MarshalSpec::Multibyte\xE3\x81\x81\xE3\x81\x82\xE3\x81\x83\xE3\x81\x84Class\x06:\x06ET"
+        Marshal.load(Marshal.dump(source_object)) == source_object
       end
     end
 
@@ -282,10 +283,11 @@ describe "Marshal.dump" do
       end
     end
 
-    it "dumps a module with multibyte characters in name" do
-      NATFIXME 'eval', exception: TypeError, message: 'eval() only works on static strings' do
+    ruby_version_is "3.5" do
+      it "dumps a module with multibyte characters in name" do
         source_object = eval("MarshalSpec::MultibyteけげこごModule".dup.force_encoding(Encoding::UTF_8))
-        Marshal.dump(source_object).should == "\x04\bm-MarshalSpec::Multibyte\xE3\x81\x91\xE3\x81\x92\xE3\x81\x93\xE3\x81\x94Module"
+        Marshal.dump(source_object).should == "\x04\bIm-MarshalSpec::Multibyte\xE3\x81\x91\xE3\x81\x92\xE3\x81\x93\xE3\x81\x94Module\x06:\x06ET"
+        Marshal.load(Marshal.dump(source_object)) == source_object
       end
     end
 
@@ -962,10 +964,11 @@ describe "Marshal.dump" do
       end
     end
 
-    it "dumps a Time subclass with multibyte characters in name" do
-      NATFIXME 'eval', exception: TypeError, message: 'eval() only works on static strings' do
+    ruby_version_is "3.5" do
+      it "dumps a Time subclass with multibyte characters in name" do
         source_object = eval("MarshalSpec::MultibyteぁあぃいTime".dup.force_encoding(Encoding::UTF_8))
-        Marshal.dump(source_object).should == "\x04\bc+MarshalSpec::Multibyte\xE3\x81\x81\xE3\x81\x82\xE3\x81\x83\xE3\x81\x84Time"
+        Marshal.dump(source_object).should == "\x04\bIc+MarshalSpec::Multibyte\xE3\x81\x81\xE3\x81\x82\xE3\x81\x83\xE3\x81\x84Time\x06:\x06ET"
+        Marshal.load(Marshal.dump(source_object)) == source_object
       end
     end
 

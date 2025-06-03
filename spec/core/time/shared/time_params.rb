@@ -30,7 +30,7 @@ describe :time_params, shared: true do
   end
 
   it "raises a TypeError if the year is nil" do
-    NATFIXME "Implement Time.#{@method}", exception: SpecFailedException, message: /but instead raised nothing/ do
+    NATFIXME 'Implement Time.utc', condition: @method == :utc, exception: SpecFailedException, message: /but instead raised nothing/ do
       -> { Time.send(@method, nil) }.should raise_error(TypeError)
     end
   end
@@ -125,13 +125,17 @@ describe :time_params, shared: true do
   it "handles fractional seconds as a Float" do
     t = Time.send(@method, 2000, 1, 1, 20, 15, 1.75)
     t.sec.should == 1
-    t.usec.should == 750000
+    NATFIXME 'it handles fractional seconds as a Float', condition: @method == :new, exception: SpecFailedException do
+      t.usec.should == 750000
+    end
   end
 
   it "handles fractional seconds as a Rational" do
     t = Time.send(@method, 2000, 1, 1, 20, 15, Rational(99, 10))
     t.sec.should == 9
-    t.usec.should == 900000
+    NATFIXME 'it handles fractional seconds as a Rational', condition: @method == :new, exception: SpecFailedException do
+      t.usec.should == 900000
+    end
   end
 
   it "handles years from 0 as such" do
@@ -181,6 +185,10 @@ describe :time_params, shared: true do
     -> {
       Time.send(@method, 2008, 12, 31, 23, 59, -1)
     }.should raise_error(ArgumentError, "argument out of range")
+  end
+
+  it "raises ArgumentError when given 8 arguments" do
+    -> { Time.send(@method, *[0]*8) }.should raise_error(ArgumentError)
   end
 
   it "raises ArgumentError when given 9 arguments" do

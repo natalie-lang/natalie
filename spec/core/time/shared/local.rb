@@ -1,16 +1,20 @@
 describe :time_local, shared: true do
   it "creates a time based on given values, interpreted in the local time zone" do
     with_timezone("PST", -8) do
-      Time.send(@method, 2000, "jan", 1, 20, 15, 1).to_a.should ==
-        [1, 15, 20, 1, 1, 2000, 6, 1, false, "PST"]
+      NATFIXME 'it creates a time based on given values, interpreted in the local time zone', exception: SpecFailedException do
+        Time.send(@method, 2000, "jan", 1, 20, 15, 1).to_a.should ==
+          [1, 15, 20, 1, 1, 2000, 6, 1, false, "PST"]
+      end
     end
   end
 
   platform_is_not :windows do
     it "uses the 'CET' timezone with TZ=Europe/Amsterdam in 1970" do
       with_timezone("Europe/Amsterdam") do
-        Time.send(@method, 1970, 5, 16).to_a.should ==
-          [0, 0, 0, 16, 5, 1970, 6, 136, false, "CET"]
+        NATFIXME "it uses the 'CET' timezone with TZ=Europe/Amsterdam in 1970", exception: SpecFailedException do
+          Time.send(@method, 1970, 5, 16).to_a.should ==
+            [0, 0, 0, 16, 5, 1970, 6, 136, false, "CET"]
+        end
       end
     end
   end

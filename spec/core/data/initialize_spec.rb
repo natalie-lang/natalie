@@ -60,4 +60,19 @@ describe "Data#initialize" do
       e.message.should.include?("unknown keyword: :system")
     }
   end
+
+  it "supports super from a subclass" do
+    NATFIXME 'it supports super from a subclass', exception: ArgumentError, message: /missing keywords/ do
+      ms = DataSpecs::MeasureSubclass.new(amount: 1, unit: "km")
+
+      ms.amount.should == 1
+      ms.unit.should == "km"
+    end
+  end
+
+  it "supports Data with no fields" do
+    NATFIXME 'it supports Data with no fields', exception: SpecFailedException do
+      -> { DataSpecs::Empty.new }.should_not raise_error
+    end
+  end
 end
