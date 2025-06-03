@@ -777,7 +777,7 @@ Value StringObject::byterindex(Env *env, Value needle_obj, Optional<Value> offse
     return byteindex_string_needle(env, this, needle, offset, true);
 }
 
-Value StringObject::index(Env *env, Value needle, Optional<Value> offset) {
+Value StringObject::index(Env *env, Value needle, Optional<Value> offset) const {
     int offset_i = offset ? IntegerMethods::convert_to_int(env, offset.value()) : 0;
     int len = char_count(env);
     if (offset_i < -1 * len) {
@@ -790,7 +790,7 @@ Value StringObject::index(Env *env, Value needle, Optional<Value> offset) {
     return index(env, needle, ::abs(offset_i));
 }
 
-Value StringObject::index(Env *env, Value needle, size_t start) {
+Value StringObject::index(Env *env, Value needle, size_t start) const {
     auto byte_start = char_index_to_byte_index(start);
     if (byte_start == -1)
         return Value::nil();
@@ -801,7 +801,7 @@ Value StringObject::index(Env *env, Value needle, size_t start) {
     return IntegerMethods::from_size_t(env, char_index);
 }
 
-nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) {
+nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) const {
     if (needle.is_regexp()) {
         // FIXME: use byteindex_regexp_needle shared code
         if (needle.as_regexp()->pattern()->is_empty())

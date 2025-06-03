@@ -274,9 +274,9 @@ public:
     Value byteindex(Env *, Value, Optional<Value> = {}) const;
     Value byterindex(Env *, Value, Optional<Value> = {}) const;
 
-    Value index(Env *, Value, Optional<Value>);
-    Value index(Env *, Value, size_t start);
-    nat_int_t index_int(Env *, Value, size_t byte_start);
+    Value index(Env *, Value, Optional<Value>) const;
+    Value index(Env *, Value, size_t start) const;
+    nat_int_t index_int(Env *, Value, size_t byte_start) const;
 
     Value rindex(Env *, Value, Optional<Value> = {}) const;
     Value rindex(Env *, Value, size_t) const;
