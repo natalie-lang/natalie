@@ -120,11 +120,13 @@ describe "String#to_f" do
     "\3771.2".b.to_f.should == 0
   end
 
-  it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
-    NATFIXME 'Add encoder to to UTF-16', exception: SpecFailedException, message: /code converter not found \(UTF-8 to UTF-16\)/ do
-      -> {
-        '1.2'.encode("UTF-16").to_f
-      }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
+  ruby_version_is "3.2.3" do
+    it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
+      NATFIXME 'Add encoder to to UTF-16', exception: SpecFailedException, message: /code converter not found \(UTF-8 to UTF-16\)/ do
+        -> {
+          '1.2'.encode("UTF-16").to_f
+        }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
+      end
     end
   end
 end
