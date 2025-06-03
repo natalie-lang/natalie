@@ -13,29 +13,27 @@ namespace Natalie {
 
 class ProcObject : public Object {
 public:
-    ProcObject()
-        : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch("Proc"_s).as_class() } { }
-
-    ProcObject(ClassObject *klass)
-        : Object { Object::Type::Proc, klass } { }
-
-    ProcObject(Block *block, nat_int_t break_point = 0)
-        : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch("Proc"_s).as_class() }
-        , m_block { block }
-        , m_break_point { break_point } {
-        assert(m_block);
+    static ProcObject *create() {
+        return new ProcObject();
     }
 
-    ProcObject(const ProcObject &other)
-        : Object { other }
-        , m_block { other.m_block }
-        , m_break_point { other.m_break_point } { }
+    static ProcObject *create(ClassObject *klass) {
+        return new ProcObject(klass);
+    }
+
+    static ProcObject *create(Block *block, nat_int_t break_point = 0) {
+        return new ProcObject(block, break_point);
+    }
+
+    static ProcObject *create(const ProcObject &other) {
+        return new ProcObject(other);
+    }
 
     static Value from_block_maybe(Block *block) {
         if (!block) {
             return Value::nil();
         }
-        return new ProcObject { block };
+        return ProcObject::create(block);
     }
 
     Value initialize(Env *, Block *);
@@ -69,6 +67,24 @@ public:
     }
 
 private:
+    ProcObject()
+        : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch("Proc"_s).as_class() } { }
+
+    ProcObject(ClassObject *klass)
+        : Object { Object::Type::Proc, klass } { }
+
+    ProcObject(Block *block, nat_int_t break_point = 0)
+        : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch("Proc"_s).as_class() }
+        , m_block { block }
+        , m_break_point { break_point } {
+        assert(m_block);
+    }
+
+    ProcObject(const ProcObject &other)
+        : Object { other }
+        , m_block { other.m_block }
+        , m_break_point { other.m_break_point } { }
+
     Block *m_block { nullptr };
     nat_int_t m_break_point { 0 };
 };

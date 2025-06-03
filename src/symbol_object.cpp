@@ -129,7 +129,7 @@ ProcObject *SymbolObject::to_proc(Env *env) {
     OwnedPtr<Env> block_env { new Env {} };
     block_env->var_set("name", 0, true, this);
     Block *proc_block = Block::create(std::move(block_env), this, SymbolObject::to_proc_block_fn, -2, Block::BlockType::Lambda);
-    return new ProcObject { proc_block };
+    return ProcObject::create(proc_block);
 }
 
 Value SymbolObject::to_proc_block_fn(Env *env, Value self_value, Args &&args, Block *block) {

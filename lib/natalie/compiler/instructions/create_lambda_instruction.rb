@@ -32,7 +32,7 @@ module Natalie
           [
             "auto #{block_temp} = #{block}",
             "#{block_temp}->set_type(Block::BlockType::Lambda)",
-            "Value(new ProcObject(#{block_temp}, #{@break_point || 0}))",
+            "Value(ProcObject::create(#{block_temp}, #{@break_point || 0}))",
           ],
         )
       end

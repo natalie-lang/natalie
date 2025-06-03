@@ -221,7 +221,7 @@ Value HashObject::initialize(Env *env, Optional<Value> default_arg, Optional<Val
         if (default_arg) {
             env->raise("ArgumentError", "wrong number of arguments (given 1, expected 0)");
         }
-        set_default_proc(new ProcObject { block });
+        set_default_proc(ProcObject::create(block));
     } else {
         set_default(env, default_arg.value_or(Value::nil()));
     }
