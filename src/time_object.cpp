@@ -39,6 +39,7 @@ TimeObject *TimeObject::local(Env *env, Value year, Optional<Value> month, Optio
 }
 
 TimeObject *TimeObject::create(Env *env) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
     return now(env, nullptr);
 }
 

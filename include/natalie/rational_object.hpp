@@ -8,10 +8,12 @@ namespace Natalie {
 class RationalObject : public Object {
 public:
     static RationalObject *create(Value numerator, Value denominator) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new RationalObject { numerator, denominator };
     }
 
     static RationalObject *create(const RationalObject &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new RationalObject { other };
     }
 

@@ -36,22 +36,27 @@ public:
     };
 
     static Object *create() {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new Object();
     }
 
     static Object *create(ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new Object(klass);
     }
 
     static Object *create(Type type) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new Object(type);
     }
 
     static Object *create(Type type, ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new Object(type, klass);
     }
 
     static Object *create(const Object &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new Object(other);
     }
 

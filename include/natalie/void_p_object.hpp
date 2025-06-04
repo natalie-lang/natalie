@@ -13,10 +13,12 @@ namespace Natalie {
 class VoidPObject : public Object {
 public:
     static VoidPObject *create(void *ptr) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new VoidPObject { ptr };
     }
 
     static VoidPObject *create(void *ptr, std::function<void(VoidPObject *)> cleanup_fn) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new VoidPObject { ptr, cleanup_fn };
     }
 

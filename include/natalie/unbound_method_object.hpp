@@ -8,10 +8,12 @@ namespace Natalie {
 class UnboundMethodObject : public AbstractMethodObject {
 public:
     static UnboundMethodObject *create(ModuleObject *module_or_class, Method *method) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new UnboundMethodObject { module_or_class, method };
     }
 
     static UnboundMethodObject *create(const UnboundMethodObject &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new UnboundMethodObject { other };
     }
 

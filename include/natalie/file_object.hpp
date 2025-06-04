@@ -14,10 +14,12 @@ namespace Natalie {
 class FileObject : public IoObject {
 public:
     static FileObject *create() {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FileObject();
     }
 
     static FileObject *create(ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FileObject(klass);
     }
 
