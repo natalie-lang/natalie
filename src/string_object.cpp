@@ -440,7 +440,7 @@ Value StringObject::chr(Env *env) {
 }
 
 SymbolObject *StringObject::to_symbol(Env *env) const {
-    return SymbolObject::intern_with_lock(m_string, m_encoding.ptr());
+    return SymbolObject::intern(m_string, m_encoding.ptr());
 }
 
 Value StringObject::to_sym(Env *env) const {

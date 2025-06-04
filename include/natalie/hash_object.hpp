@@ -13,6 +13,7 @@ namespace Natalie {
 
 struct HashKey : public Cell {
     static HashKey *create(Value key, Value val, size_t hash) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new HashKey { key, val, hash };
     }
 
@@ -60,22 +61,27 @@ namespace Natalie {
 class HashObject : public Object {
 public:
     static HashObject *create() {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new HashObject();
     }
 
     static HashObject *create(ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new HashObject(klass);
     }
 
     static HashObject *create(Env *env, std::initializer_list<Value> items) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new HashObject(env, items);
     }
 
     static HashObject *create(Env *env, size_t argc, Value *items) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new HashObject(env, argc, items);
     }
 
     static HashObject *create(Env *env, const HashObject &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new HashObject(env, other);
     }
 

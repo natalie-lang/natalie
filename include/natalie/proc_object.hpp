@@ -18,14 +18,17 @@ public:
     }
 
     static ProcObject *create(ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ProcObject(klass);
     }
 
     static ProcObject *create(Block *block, nat_int_t break_point = 0) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ProcObject(block, break_point);
     }
 
     static ProcObject *create(const ProcObject &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ProcObject(other);
     }
 

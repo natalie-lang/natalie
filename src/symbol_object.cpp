@@ -9,6 +9,7 @@ SymbolObject *SymbolObject::intern(const char *name, const size_t length, Encodi
 }
 
 SymbolObject *SymbolObject::intern(const String &name, EncodingObject *encoding) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
     SymbolObject *symbol = s_symbols.get(name);
     if (symbol)
         return symbol;

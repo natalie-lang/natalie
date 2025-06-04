@@ -16,39 +16,49 @@ namespace Natalie {
 class FloatObject : public Object {
 public:
     static FloatObject *nan() {
-        if (!s_nan)
+        if (!s_nan) {
+            std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
             s_nan = new FloatObject { 0.0 / 0.0 };
+        }
         return s_nan;
     }
     static FloatObject *create(double number) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FloatObject { number };
     }
 
     static FloatObject *create(nat_int_t number) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FloatObject { number };
     }
 
     static FloatObject *create(const FloatObject &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FloatObject { other };
     }
 
     static FloatObject *positive_infinity(Env *env) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FloatObject { std::numeric_limits<double>::infinity() };
     }
 
     static FloatObject *negative_infinity(Env *env) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FloatObject { -std::numeric_limits<double>::infinity() };
     }
 
     static FloatObject *max(Env *env) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FloatObject { DBL_MAX };
     }
 
     static FloatObject *neg_max(Env *env) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FloatObject { -DBL_MAX };
     }
 
     static FloatObject *min(Env *env) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FloatObject { DBL_MIN };
     }
 

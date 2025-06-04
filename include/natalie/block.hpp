@@ -18,10 +18,12 @@ public:
     };
 
     static Block *create(Env &env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new Block(env, self, fn, arity, type);
     }
 
     static Block *create(TM::OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new Block(std::move(env), self, fn, arity, type);
     }
 

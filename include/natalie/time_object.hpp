@@ -18,14 +18,17 @@ public:
     };
 
     static TimeObject *create() {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new TimeObject;
     }
 
     static TimeObject *create(ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new TimeObject { klass };
     }
 
     static TimeObject *create(const TimeObject &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new TimeObject { other };
     }
 

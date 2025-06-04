@@ -19,14 +19,17 @@ using namespace TM;
 class RandomObject : public Object {
 public:
     static RandomObject *create() {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new RandomObject();
     }
 
     static RandomObject *create(ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new RandomObject(klass);
     }
 
     static RandomObject *create(const RandomObject &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new RandomObject(other);
     }
 

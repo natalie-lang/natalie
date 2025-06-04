@@ -21,22 +21,27 @@ using namespace TM;
 class ModuleObject : public Object {
 public:
     static ModuleObject *create() {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ModuleObject();
     }
 
     static ModuleObject *create(const char *name) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ModuleObject(name);
     }
 
     static ModuleObject *create(Type type, ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ModuleObject(type, klass);
     }
 
     static ModuleObject *create(ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ModuleObject(klass);
     }
 
     static ModuleObject *create(const ModuleObject &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ModuleObject(other);
     }
 

@@ -17,38 +17,47 @@ using namespace TM;
 class ArrayObject : public Object {
 public:
     static ArrayObject *create() {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ArrayObject;
     }
 
     static ArrayObject *create(ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ArrayObject(klass);
     }
 
     static ArrayObject *create(size_t initial_capacity) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ArrayObject(initial_capacity);
     }
 
     static ArrayObject *create(std::initializer_list<Value> list) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ArrayObject(list);
     }
 
     static ArrayObject *create(const ArrayObject &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ArrayObject(other);
     }
 
     static ArrayObject *create(size_t argc, const Value *args) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ArrayObject(argc, args);
     }
 
     static ArrayObject *create(size_t argc, const Value *args, ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ArrayObject(argc, args, klass);
     }
 
     static ArrayObject *create(const Vector<Value> &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ArrayObject(other);
     }
 
     static ArrayObject *create(Vector<Value> &&other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new ArrayObject(std::move(other));
     }
 
