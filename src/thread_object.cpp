@@ -177,7 +177,7 @@ bool ThreadObject::is_stopped() const {
 
 void ThreadObject::prepare_main_thread() {
     assert(!s_main); // can only be built once
-    auto thread = new ThreadObject;
+    auto thread = ThreadObject::create();
     thread->m_status = ThreadObject::Status::Active;
     thread->m_suspend_status = ThreadObject::SuspendStatus::Running;
     thread->m_current_fiber = thread->m_main_fiber = FiberObject::create();

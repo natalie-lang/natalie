@@ -47,14 +47,17 @@ public:
         Suspended,
     };
 
-    ThreadObject()
-        : Object { Object::Type::Thread, GlobalEnv::the()->Object()->const_fetch("Thread"_s).as_class() } { }
+    static ThreadObject *create() {
+        return new ThreadObject;
+    }
 
-    ThreadObject(ClassObject *klass)
-        : Object { Object::Type::Thread, klass } { }
+    static ThreadObject *create(ClassObject *klass) {
+        return new ThreadObject(klass);
+    }
 
-    ThreadObject(ClassObject *klass, Block *block)
-        : Object { Object::Type::Thread, klass } { }
+    static ThreadObject *create(ClassObject *klass, Block *block) {
+        return new ThreadObject(klass, block);
+    }
 
     virtual ~ThreadObject() {
         free(m_context);
@@ -266,6 +269,15 @@ public:
     static void wake_up_the_world();
 
 private:
+    ThreadObject()
+        : Object { Object::Type::Thread, GlobalEnv::the()->Object()->const_fetch("Thread"_s).as_class() } { }
+
+    ThreadObject(ClassObject *klass)
+        : Object { Object::Type::Thread, klass } { }
+
+    ThreadObject(ClassObject *klass, Block *block)
+        : Object { Object::Type::Thread, klass } { }
+
     void wait_until_running() const;
 
     void visit_children_from_stack(Visitor &) const;
