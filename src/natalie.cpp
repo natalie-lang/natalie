@@ -2,7 +2,6 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_variable_info/access_hooks.hpp"
 #include "natalie/value.hpp"
-#include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
 #include <sys/wait.h>
@@ -11,7 +10,7 @@ namespace Natalie {
 
 Env *build_top_env() {
     auto *global_env = GlobalEnv::the();
-    auto *env = new Env {};
+    auto *env = Env::create();
     global_env->set_main_env(env);
 
     ClassObject *Class = ClassObject::bootstrap_class_class(env);
@@ -37,19 +36,19 @@ Env *build_top_env() {
     global_env->set_Module(Module);
     Object->const_set("Module"_s, Module);
     Class->set_superclass_DANGEROUSLY(Module);
-    auto class_singleton_class = new ClassObject { Module->singleton_class() };
+    auto class_singleton_class = ClassObject::create(Module->singleton_class());
     Module->singleton_class()->initialize_subclass_without_checks(class_singleton_class, env, "#<Class:Class>");
     Class->set_singleton_class(class_singleton_class);
 
-    ModuleObject *Kernel = new ModuleObject { "Kernel" };
+    ModuleObject *Kernel = ModuleObject::create("Kernel");
     Object->const_set("Kernel"_s, Kernel);
     Object->include_once(env, Kernel);
 
-    ModuleObject *Comparable = new ModuleObject { "Comparable" };
+    ModuleObject *Comparable = ModuleObject::create("Comparable");
     Object->const_set("Comparable"_s, Comparable);
     Symbol->include_once(env, Comparable);
 
-    ModuleObject *Enumerable = new ModuleObject { "Enumerable" };
+    ModuleObject *Enumerable = ModuleObject::create("Enumerable");
     Object->const_set("Enumerable"_s, Enumerable);
 
     ClassObject *Enumerator = Object->subclass(env, "Enumerator", Object::Type::Enumerator);
@@ -94,12 +93,12 @@ Env *build_top_env() {
     global_env->set_Rational(Rational);
     Object->const_set("Rational"_s, Rational);
 
-    ModuleObject *Math = new ModuleObject { "Math" };
+    ModuleObject *Math = ModuleObject::create("Math");
     Object->const_set("Math"_s, Math);
-    Math->const_set("E"_s, new FloatObject { M_E });
-    Math->const_set("PI"_s, new FloatObject { M_PI });
+    Math->const_set("E"_s, FloatObject::create(M_E));
+    Math->const_set("PI"_s, FloatObject::create(M_PI));
 
-    ModuleObject *Signal = new ModuleObject { "Signal" };
+    ModuleObject *Signal = ModuleObject::create("Signal");
     Object->const_set("Signal"_s, Signal);
 
     ClassObject *String = Object->subclass(env, "String", Object::Type::String);
@@ -124,9 +123,9 @@ Env *build_top_env() {
     ClassObject *Random = Object->subclass(env, "Random", Object::Type::Random);
     global_env->set_Random(Random);
     Object->const_set("Random"_s, Random);
-    Random->const_set("DEFAULT"_s, (new RandomObject)->initialize(env));
+    Random->const_set("DEFAULT"_s, RandomObject::create()->initialize(env));
 
-    ModuleObject *RandomFormatter = new ModuleObject { "Formatter" };
+    ModuleObject *RandomFormatter = ModuleObject::create("Formatter");
     Random->const_set("Formatter"_s, RandomFormatter);
     Random->extend_once(env, RandomFormatter);
 
@@ -164,7 +163,7 @@ Env *build_top_env() {
     Object->const_set("File"_s, File);
     File->include_once(env, Enumerable);
 
-    ModuleObject *FileTest = new ModuleObject { "FileTest" };
+    ModuleObject *FileTest = ModuleObject::create("FileTest");
     Object->const_set("FileTest"_s, FileTest);
 
     ClassObject *FileStat = Object->subclass(env, "Stat", Object::Type::FileStat);
@@ -381,19 +380,19 @@ Env *build_top_env() {
     // Must set defaults after the encodings are defined above.
     EncodingObject::initialize_defaults(env);
 
-    ModuleObject *Process = new ModuleObject { "Process" };
+    ModuleObject *Process = ModuleObject::create("Process");
     Object->const_set("Process"_s, Process);
-    Value ProcessSys = new ModuleObject { "Sys" };
+    Value ProcessSys = ModuleObject::create("Sys");
     Process->const_set("Sys"_s, ProcessSys);
-    Value ProcessUID = new ModuleObject { "UID" };
+    Value ProcessUID = ModuleObject::create("UID");
     Process->const_set("UID"_s, ProcessUID);
-    Value ProcessGID = new ModuleObject { "GID" };
+    Value ProcessGID = ModuleObject::create("GID");
     Process->const_set("GID"_s, ProcessGID);
 
     ClassObject *Thread = Object->subclass(env, "Thread", Object::Type::Thread);
     Object->const_set("Thread"_s, Thread);
 
-    ModuleObject *ThreadBacktrace = new ModuleObject { "Backtrace" };
+    ModuleObject *ThreadBacktrace = ModuleObject::create("Backtrace");
     Thread->const_set("Backtrace"_s, ThreadBacktrace);
 
     ClassObject *ThreadBacktraceLocation = Object->subclass(env, "Location", Object::Type::ThreadBacktraceLocation);
@@ -419,7 +418,7 @@ Env *build_top_env() {
     ClassObject *UnboundMethod = Object->subclass(env, "UnboundMethod", Object::Type::UnboundMethod);
     Object->const_set("UnboundMethod"_s, UnboundMethod);
 
-    ModuleObject *FileConstants = new ModuleObject { "Constants" };
+    ModuleObject *FileConstants = ModuleObject::create("Constants");
     File->const_set("Constants"_s, FileConstants);
 
     // Build File Constants after Encodings are defined since some
@@ -430,26 +429,26 @@ Env *build_top_env() {
     File->include_once(env, FileConstants);
     IO->include_once(env, FileConstants);
 
-    env->global_set("$NAT_at_exit_handlers"_s, new ArrayObject {});
+    env->global_set("$NAT_at_exit_handlers"_s, ArrayObject::create());
 
-    auto main_obj = new Natalie::Object {};
+    auto main_obj = Object::create();
     GlobalEnv::the()->set_main_obj(main_obj);
 
-    Value _stdin = new IoObject { STDIN_FILENO };
+    Value _stdin = IoObject::create(STDIN_FILENO);
     env->global_set("$stdin"_s, _stdin);
     Object->const_set("STDIN"_s, _stdin);
 
-    Value _stdout = new IoObject { STDOUT_FILENO };
+    Value _stdout = IoObject::create(STDOUT_FILENO);
     env->global_set("$stdout"_s, _stdout);
     GlobalEnv::the()->global_set_write_hook(env, "$stdout"_s, GlobalVariableAccessHooks::WriteHooks::set_stdout);
     env->global_alias("$>"_s, "$stdout"_s);
     Object->const_set("STDOUT"_s, _stdout);
 
-    Value _stderr = new IoObject { STDERR_FILENO };
+    Value _stderr = IoObject::create(STDERR_FILENO);
     env->global_set("$stderr"_s, _stderr);
     Object->const_set("STDERR"_s, _stderr);
 
-    env->global_set("$/"_s, new StringObject { "\n", 1 });
+    env->global_set("$/"_s, StringObject::create("\n", 1));
     GlobalEnv::the()->global_set_write_hook(env, "$/"_s, GlobalVariableAccessHooks::WriteHooks::as_string_or_raise);
     env->global_alias("$-0"_s, "$/"_s);
 
@@ -469,7 +468,7 @@ Env *build_top_env() {
 
     GlobalEnv::the()->global_set_read_hook(env, "$$"_s, true, GlobalVariableAccessHooks::ReadHooks::getpid);
 
-    env->global_set("$\""_s, new ArrayObject {}, true);
+    env->global_set("$\""_s, ArrayObject::create(), true);
     env->global_alias("$LOADED_FEATURES"_s, "$\""_s);
 
     env->global_set("$?"_s, Value::nil(), true);
@@ -493,11 +492,11 @@ Env *build_top_env() {
     Object->const_set("ENV"_s, ENV);
     ENV->extend_once(env, Enumerable);
 
-    auto RUBY_VERSION = new StringObject { "3.4.0" };
+    auto RUBY_VERSION = StringObject::create("3.4.0");
     RUBY_VERSION->freeze();
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
 
-    Value RUBY_COPYRIGHT = new StringObject { "natalie - Copyright (c) 2025 Tim Morgan and contributors" };
+    Value RUBY_COPYRIGHT = StringObject::create("natalie - Copyright (c) 2025 Tim Morgan and contributors");
     RUBY_COPYRIGHT->freeze();
     Object->const_set("RUBY_COPYRIGHT"_s, RUBY_COPYRIGHT);
 
@@ -506,26 +505,26 @@ Env *build_top_env() {
     RUBY_DESCRIPTION->freeze();
     Object->const_set("RUBY_DESCRIPTION"_s, RUBY_DESCRIPTION);
 
-    Value RUBY_ENGINE = new StringObject { "natalie" };
+    Value RUBY_ENGINE = StringObject::create("natalie");
     RUBY_ENGINE->freeze();
     Object->const_set("RUBY_ENGINE"_s, RUBY_ENGINE);
 
     Value RUBY_PATCHLEVEL = Value::integer(-1);
     Object->const_set("RUBY_PATCHLEVEL"_s, RUBY_PATCHLEVEL);
 
-    StringObject *RUBY_PLATFORM = new StringObject { ruby_platform };
+    StringObject *RUBY_PLATFORM = StringObject::create(ruby_platform);
     RUBY_PLATFORM->freeze();
     Object->const_set("RUBY_PLATFORM"_s, RUBY_PLATFORM);
 
-    Value RUBY_RELEASE_DATE = new StringObject { ruby_release_date };
+    Value RUBY_RELEASE_DATE = StringObject::create(ruby_release_date);
     RUBY_RELEASE_DATE->freeze();
     Object->const_set("RUBY_RELEASE_DATE"_s, RUBY_RELEASE_DATE);
 
-    Value RUBY_REVISION = new StringObject { ruby_revision };
+    Value RUBY_REVISION = StringObject::create(ruby_revision);
     RUBY_REVISION->freeze();
     Object->const_set("RUBY_REVISION"_s, RUBY_REVISION);
 
-    ModuleObject *GC = new ModuleObject { "GC" };
+    ModuleObject *GC = ModuleObject::create("GC");
     Object->const_set("GC"_s, GC);
 
     init_bindings(env);
@@ -535,7 +534,7 @@ Env *build_top_env() {
 
 Value splat(Env *env, Value obj) {
     if (obj.is_array()) {
-        return new ArrayObject { *obj.as_array() };
+        return ArrayObject::create(*obj.as_array());
     } else {
         return to_ary(env, obj, false);
     }
@@ -585,7 +584,7 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception, Thread
     if (exception->backtrace()) {
         ArrayObject *backtrace = exception->backtrace()->to_ruby_array();
         if (backtrace->size() > 0) {
-            out.send(env, "puts"_s, { new StringObject { "Traceback (most recent call last):" } });
+            out.send(env, "puts"_s, { StringObject::create("Traceback (most recent call last):") });
             for (int i = backtrace->size() - 1; i > 0; i--) {
                 auto line = backtrace->at(i).as_string_or_raise(env);
                 auto formatted = StringObject::format("        {}: from {}", i, line->string());
@@ -667,7 +666,7 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
         }
     }
 
-    return new ArrayObject { obj };
+    return ArrayObject::create({ obj });
 }
 
 Value to_ary_for_masgn(Env *env, Value obj) {
@@ -689,7 +688,7 @@ Value to_ary_for_masgn(Env *env, Value obj) {
         }
     }
 
-    return new ArrayObject { obj };
+    return ArrayObject::create({ obj });
 }
 
 void arg_spread(Env *env, const Args &args, const char *arrangement, ...) {

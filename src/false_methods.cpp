@@ -12,7 +12,7 @@ bool FalseMethods::or_method(const Env *env, const Value, const Value other) {
 
 Value FalseMethods::to_s(const Env *env, const Value) {
     if (!s_string)
-        s_string = new StringObject { "false" };
+        s_string = StringObject::create("false");
     return s_string;
 }
 

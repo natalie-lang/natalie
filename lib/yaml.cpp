@@ -1,5 +1,4 @@
 #include "natalie.hpp"
-#include "natalie/integer_methods.hpp"
 #include <yaml.h>
 
 using namespace Natalie;
@@ -40,9 +39,9 @@ static void emit_value(Env *env, ExceptionObject *value, yaml_emitter_t &emitter
         0, YAML_ANY_MAPPING_STYLE);
     emit(env, emitter, event);
 
-    emit_value(env, new StringObject { "message" }, emitter, event);
+    emit_value(env, StringObject::create("message"), emitter, event);
     emit_value(env, value->message(env), emitter, event);
-    emit_value(env, new StringObject { "backtrace" }, emitter, event);
+    emit_value(env, StringObject::create("backtrace"), emitter, event);
     emit_value(env, value->backtrace(env), emitter, event);
 
     yaml_mapping_end_event_initialize(&event);
@@ -98,11 +97,11 @@ static void emit_value(Env *env, RangeObject *value, yaml_emitter_t &emitter, ya
         0, YAML_BLOCK_MAPPING_STYLE);
     emit(env, emitter, event);
 
-    emit_value(env, new StringObject { "begin" }, emitter, event);
+    emit_value(env, StringObject::create("begin"), emitter, event);
     emit_value(env, value->begin(), emitter, event);
-    emit_value(env, new StringObject { "end" }, emitter, event);
+    emit_value(env, StringObject::create("end"), emitter, event);
     emit_value(env, value->end(), emitter, event);
-    emit_value(env, new StringObject { "excl" }, emitter, event);
+    emit_value(env, StringObject::create("excl"), emitter, event);
     auto exclude_end = bool_object(value->exclude_end());
     emit_value(env, exclude_end, emitter, event);
 
@@ -189,7 +188,7 @@ static void emit_object_value(Env *env, Value value, yaml_emitter_t &emitter, ya
 
     auto ivars = value->instance_variables(env).as_array();
     for (auto ivar : *ivars) {
-        auto name = ivar.to_s(env)->delete_prefix(env, new StringObject { "@" });
+        auto name = ivar.to_s(env)->delete_prefix(env, StringObject::create("@"));
         auto val = value->ivar_get(env, ivar.as_symbol());
         emit_value(env, name, emitter, event);
         emit_value(env, val, emitter, event);
@@ -286,14 +285,14 @@ Value YAML_dump(Env *env, Value self, Args &&args, Block *) {
         return args.at(1);
     }
 
-    return new StringObject { std::move(buf) };
+    return StringObject::create(std::move(buf));
 }
 
 static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token);
 
 static Value load_scalar(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
     const auto &scalar = token.data.scalar;
-    Value result = new StringObject { (char *)(scalar.value), scalar.length };
+    Value result = StringObject::create((char *)(scalar.value), scalar.length);
 
     // Quoted must be a String
     if (scalar.style == YAML_SINGLE_QUOTED_SCALAR_STYLE || scalar.style == YAML_DOUBLE_QUOTED_SCALAR_STYLE)
@@ -317,7 +316,7 @@ static Value load_scalar(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
 }
 
 static Value load_array(Env *env, yaml_parser_t &parser) {
-    auto result = new ArrayObject {};
+    auto result = ArrayObject::create();
     while (true) {
         yaml_token_t token;
         Defer token_deleter { [&token]() { yaml_token_delete(&token); } };
@@ -338,7 +337,7 @@ static Value load_array(Env *env, yaml_parser_t &parser) {
 }
 
 static Value load_hash(Env *env, yaml_parser_t &parser) {
-    auto result = new HashObject {};
+    auto result = HashObject::create();
     while (true) {
         yaml_token_t token;
         Defer token_deleter { [&token]() { yaml_token_delete(&token); } };

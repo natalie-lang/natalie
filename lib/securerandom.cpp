@@ -6,7 +6,7 @@ using namespace Natalie;
 static Value generate_random(double min, double max) {
     std::random_device rd;
     std::uniform_real_distribution<double> random_number(min, max);
-    return new FloatObject { random_number(rd) };
+    return FloatObject::create(random_number(rd));
 }
 
 static Value generate_random(nat_int_t min, nat_int_t max) {

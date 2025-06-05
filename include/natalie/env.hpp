@@ -18,6 +18,21 @@ extern thread_local ExceptionObject *tl_current_exception;
 
 class Env : public Cell {
 public:
+    static Env *create() {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new Env;
+    }
+
+    static Env *create(Env *outer) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new Env { outer };
+    }
+
+    static Env *create(const Env &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new Env { other };
+    }
+
     Env() { }
 
     Env(Env *outer)

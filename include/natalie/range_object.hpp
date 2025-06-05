@@ -13,11 +13,17 @@ namespace Natalie {
 
 class RangeObject : public Object {
 public:
-    RangeObject()
-        : Object { Object::Type::Range, GlobalEnv::the()->Object()->const_fetch("Range"_s).as_class() } { }
+    static RangeObject *create() {
+        return new RangeObject();
+    }
 
-    RangeObject(ClassObject *klass)
-        : Object { Object::Type::Range, klass } { }
+    static RangeObject *create(ClassObject *klass) {
+        return new RangeObject(klass);
+    }
+
+    static RangeObject *create(const RangeObject &other) {
+        return new RangeObject(other);
+    }
 
     static RangeObject *create(Env *, Value, Value, bool);
 
@@ -52,6 +58,18 @@ public:
     virtual String dbg_inspect(int indent = 0) const override;
 
 private:
+    RangeObject()
+        : Object { Object::Type::Range, GlobalEnv::the()->Object()->const_fetch("Range"_s).as_class() } { }
+
+    RangeObject(ClassObject *klass)
+        : Object { Object::Type::Range, klass } { }
+
+    RangeObject(const RangeObject &other)
+        : Object { other }
+        , m_begin { other.m_begin }
+        , m_end { other.m_end }
+        , m_exclude_end { other.m_exclude_end } { }
+
     RangeObject(Value begin, Value end, bool exclude_end)
         : Object { Object::Type::Range, GlobalEnv::the()->Object()->const_fetch("Range"_s).as_class() }
         , m_begin { begin }

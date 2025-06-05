@@ -3,7 +3,6 @@
 #include <signal.h>
 
 #include "natalie.hpp"
-#include "natalie/integer_methods.hpp"
 #include "natalie/thread/mutex_object.hpp"
 #include "natalie/thread_object.hpp"
 
@@ -178,10 +177,10 @@ bool ThreadObject::is_stopped() const {
 
 void ThreadObject::prepare_main_thread() {
     assert(!s_main); // can only be built once
-    auto thread = new ThreadObject;
+    auto thread = ThreadObject::create();
     thread->m_status = ThreadObject::Status::Active;
     thread->m_suspend_status = ThreadObject::SuspendStatus::Running;
-    thread->m_current_fiber = thread->m_main_fiber = new FiberObject;
+    thread->m_current_fiber = thread->m_main_fiber = FiberObject::create();
     tl_current_arg_stack = &thread->m_current_fiber->m_args_stack;
     s_main = thread;
     tl_current_thread = thread;
@@ -200,7 +199,7 @@ void ThreadObject::finish_main_thread_setup(Env *env, void *start_of_stack) {
 
 void ThreadObject::build_main_fiber() {
     if (!m_main_fiber)
-        m_main_fiber = m_current_fiber = new FiberObject;
+        m_main_fiber = m_current_fiber = FiberObject::create();
     tl_current_arg_stack = &m_current_fiber->m_args_stack;
     m_main_fiber->m_start_of_stack = m_start_of_stack;
     m_main_fiber->m_thread = this;
@@ -270,7 +269,7 @@ Value ThreadObject::to_s(Env *env) {
         location,
         status());
 
-    return new StringObject { formatted, Encoding::ASCII_8BIT };
+    return StringObject::create(formatted, Encoding::ASCII_8BIT);
 }
 
 Value ThreadObject::status(Env *env) {
@@ -280,7 +279,7 @@ Value ThreadObject::status(Env *env) {
             return Value::nil();
         return Value::False();
     }
-    return new StringObject { status_string };
+    return StringObject::create(status_string);
 }
 
 String ThreadObject::status() {
@@ -341,7 +340,7 @@ Value ThreadObject::kill(Env *env) {
 
     m_status = Status::Aborting;
 
-    auto exception = new ExceptionObject { thread_kill_class(env) };
+    auto exception = ExceptionObject::create(thread_kill_class(env));
 
     if (m_exception) {
         // An pending exception was already raised on this thread,
@@ -471,7 +470,7 @@ Value ThreadObject::value(Env *env) {
 Value ThreadObject::name(Env *env) {
     if (!m_name)
         return Value::nil();
-    return new StringObject { *m_name };
+    return StringObject::create(*m_name);
 }
 
 Value ThreadObject::set_name(Env *env, Value name) {
@@ -517,7 +516,7 @@ Value ThreadObject::fetch(Env *env, Value key, Optional<Value> default_value, Bl
     if (m_current_fiber)
         hash = m_current_fiber->thread_storage();
     if (!hash)
-        hash = new HashObject {};
+        hash = HashObject::create();
     return hash->fetch(env, key, default_value, block);
 }
 
@@ -536,7 +535,7 @@ Value ThreadObject::keys(Env *env) {
     if (m_current_fiber)
         hash = m_current_fiber->thread_storage();
     if (!hash)
-        return new ArrayObject {};
+        return ArrayObject::create();
     return hash->keys(env);
 }
 
@@ -577,7 +576,7 @@ Value ThreadObject::thread_variable_set(Env *env, Value key, Value value) {
         env->raise("FrozenError", "can't modify frozen thread locals");
     key = validate_key(env, key);
     if (!m_thread_variables)
-        m_thread_variables = new HashObject;
+        m_thread_variables = HashObject::create();
     if (value.is_nil()) {
         m_thread_variables->delete_key(env, key, nullptr);
         return value;
@@ -587,13 +586,13 @@ Value ThreadObject::thread_variable_set(Env *env, Value key, Value value) {
 
 Value ThreadObject::thread_variables(Env *env) const {
     if (!m_thread_variables)
-        return new ArrayObject;
+        return ArrayObject::create();
     return m_thread_variables->keys(env);
 }
 
 Value ThreadObject::list(Env *env) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-    auto ary = new ArrayObject { s_list.size() };
+    auto ary = ArrayObject::create(s_list.size());
     for (auto thread : s_list) {
         if (thread->m_status != ThreadObject::Status::Dead)
             ary->push(thread);

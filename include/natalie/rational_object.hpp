@@ -1,25 +1,18 @@
 #pragma once
 
 #include "natalie/forward.hpp"
-#include "natalie/integer_methods.hpp"
 #include "natalie/object.hpp"
 
 namespace Natalie {
 
 class RationalObject : public Object {
 public:
-    RationalObject(Value numerator, Value denominator)
-        : Object { Object::Type::Rational, GlobalEnv::the()->Object()->const_fetch("Rational"_s).as_class() }
-        , m_numerator { numerator.integer() }
-        , m_denominator { denominator.integer() } {
-        freeze();
+    static RationalObject *create(Value numerator, Value denominator) {
+        return new RationalObject { numerator, denominator };
     }
 
-    RationalObject(const RationalObject &other)
-        : Object { Object::Type::Rational, GlobalEnv::the()->Object()->const_fetch("Rational"_s).as_class() }
-        , m_numerator { other.m_numerator }
-        , m_denominator { other.m_denominator } {
-        freeze();
+    static RationalObject *create(const RationalObject &other) {
+        return new RationalObject { other };
     }
 
     static RationalObject *create(Env *env, Integer numerator, Integer denominator);
@@ -59,6 +52,20 @@ public:
     }
 
 private:
+    RationalObject(Value numerator, Value denominator)
+        : Object { Object::Type::Rational, GlobalEnv::the()->Object()->const_fetch("Rational"_s).as_class() }
+        , m_numerator { numerator.integer() }
+        , m_denominator { denominator.integer() } {
+        freeze();
+    }
+
+    RationalObject(const RationalObject &other)
+        : Object { Object::Type::Rational, GlobalEnv::the()->Object()->const_fetch("Rational"_s).as_class() }
+        , m_numerator { other.m_numerator }
+        , m_denominator { other.m_denominator } {
+        freeze();
+    }
+
     Integer m_numerator;
     Integer m_denominator;
 };

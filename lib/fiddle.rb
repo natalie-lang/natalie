@@ -22,7 +22,7 @@ class Fiddle
           auto dl_error = self.klass()->const_find(env, "DLError"_s, Object::ConstLookupSearchMode::NotStrict).value().as_class();
           env->raise(dl_error, "{}", dlerror());
       }
-      auto handle_ptr = new VoidPObject { handle };
+      auto handle_ptr = VoidPObject::create(handle);
       self->ivar_set(env, "@ptr"_s, handle_ptr);
       return self;
     END
@@ -44,8 +44,8 @@ class Fiddle
       ptr_obj.assert_type(env, Object::Type::VoidP, "VoidP");
       auto ptr = (const char *)ptr_obj.as_void_p()->void_ptr();
       if (!len.is_nil())
-        return new StringObject { ptr, (size_t)len.integer().to_nat_int_t() };
-      return new StringObject { ptr };
+        return StringObject::create(ptr, (size_t)len.integer().to_nat_int_t());
+      return StringObject::create(ptr);
     END
   end
 
@@ -91,8 +91,8 @@ class Fiddle
       auto fn = (void* (*)())symbol;
       auto result = fn();
       auto pointer_class = self.klass()->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict).value().as_class();
-      auto pointer_obj = new Object { Object::Type::Object, pointer_class };
-      auto pointer_ptr = new VoidPObject { result };
+      auto pointer_obj = Object::create(Object::Type::Object, pointer_class);
+      auto pointer_ptr = VoidPObject::create(result);
       pointer_obj->ivar_set(env, "@ptr"_s, pointer_ptr);
       return pointer_obj;
     END
@@ -109,8 +109,8 @@ class Fiddle
       else
           p1_ptr = (void*)(p1.object());
       auto result = fn(p1_ptr);
-      auto pointer_obj = new Object { Object::Type::Object, pointer_class };
-      auto pointer_ptr = new VoidPObject { result };
+      auto pointer_obj = Object::create(Object::Type::Object, pointer_class);
+      auto pointer_ptr = VoidPObject::create(result);
       pointer_obj->ivar_set(env, "@ptr"_s, pointer_ptr);
       return pointer_obj;
     END

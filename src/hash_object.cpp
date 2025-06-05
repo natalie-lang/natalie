@@ -167,25 +167,19 @@ Natalie::HashKey *HashObject::key_list_append(Env *env, Value key, nat_int_t has
     if (m_key_list) {
         HashKey *first = m_key_list;
         HashKey *last = m_key_list->prev;
-        HashKey *new_last = new HashKey {};
-        new_last->key = key;
-        new_last->val = val;
+        HashKey *new_last = HashKey::create(key, val, hash);
         // <first> ... <last> <new_last> -|
         // ^______________________________|
         new_last->prev = last;
         new_last->next = first;
-        new_last->hash = hash;
         new_last->removed = false;
         first->prev = new_last;
         last->next = new_last;
         return new_last;
     } else {
-        HashKey *node = new HashKey {};
-        node->key = key;
-        node->val = val;
+        HashKey *node = HashKey::create(key, val, hash);
         node->prev = node;
         node->next = node;
-        node->hash = hash;
         node->removed = false;
         m_key_list = node;
         return node;
@@ -227,7 +221,7 @@ Value HashObject::initialize(Env *env, Optional<Value> default_arg, Optional<Val
         if (default_arg) {
             env->raise("ArgumentError", "wrong number of arguments (given 1, expected 0)");
         }
-        set_default_proc(new ProcObject { block });
+        set_default_proc(ProcObject::create(block));
     } else {
         set_default(env, default_arg.value_or(Value::nil()));
     }
@@ -237,13 +231,13 @@ Value HashObject::initialize(Env *env, Optional<Value> default_arg, Optional<Val
 // Hash[]
 Value HashObject::square_new(Env *env, ClassObject *klass, Args &&args) {
     if (args.size() == 0) {
-        return new HashObject { klass };
+        return HashObject::create(klass);
     } else if (args.size() == 1) {
         Value value = args[0];
         if (!value.is_hash() && value.respond_to(env, "to_hash"_s))
             value = value.to_hash(env);
         if (value.is_hash()) {
-            auto hash = new HashObject { env, *value.as_hash() };
+            auto hash = HashObject::create(env, *value.as_hash());
             hash->m_default_proc = nullptr;
             hash->m_default_value = Value::nil();
             hash->m_klass = klass;
@@ -252,7 +246,7 @@ Value HashObject::square_new(Env *env, ClassObject *klass, Args &&args) {
             if (!value.is_array() && value.respond_to(env, "to_ary"_s))
                 value = value.to_ary(env);
             if (value.is_array()) {
-                HashObject *hash = new HashObject { klass };
+                HashObject *hash = HashObject::create(klass);
                 for (auto &pair : *value.as_array()) {
                     if (!pair.is_array()) {
                         env->raise("ArgumentError", "wrong element in array to Hash[]");
@@ -272,7 +266,7 @@ Value HashObject::square_new(Env *env, ClassObject *klass, Args &&args) {
     if (args.size() % 2 != 0) {
         env->raise("ArgumentError", "odd number of arguments for Hash");
     }
-    HashObject *hash = new HashObject { klass };
+    HashObject *hash = HashObject::create(klass);
     for (size_t i = 0; i < args.size(); i += 2) {
         Value key = args[i];
         Value value = args[i + 1];
@@ -286,8 +280,8 @@ Value HashObject::inspect(Env *env) {
 
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
-            return new StringObject("{...}");
-        StringObject *out = new StringObject { "{" };
+            return StringObject::create("{...}");
+        StringObject *out = StringObject::create("{");
         size_t last_index = size() - 1;
         size_t index = 0;
 
@@ -297,7 +291,7 @@ Value HashObject::inspect(Env *env) {
             if (obj.respond_to(env, "to_s"_s))
                 obj = obj.send(env, "to_s"_s);
             else
-                obj = new StringObject("?");
+                obj = StringObject::create("?");
             if (!obj.is_string())
                 obj = StringObject::format("#<{}:{}>", obj.klass()->inspect_module(), String::hex(object_id(obj), String::HexFormat::LowercaseAndPrefixed));
             return obj.as_string();
@@ -308,7 +302,7 @@ Value HashObject::inspect(Env *env) {
                 SymbolObject *key = node.key.as_symbol();
                 StringObject *key_repr = nullptr;
                 if (key->should_be_quoted()) {
-                    key_repr = key->inspect(env)->delete_prefix(env, new StringObject { ":" }).as_string();
+                    key_repr = key->inspect(env)->delete_prefix(env, StringObject::create(":")).as_string();
                 } else {
                     key_repr = key->to_s(env);
                 }
@@ -364,7 +358,7 @@ Value HashObject::refeq(Env *env, Value key, Value val) {
 Value HashObject::rehash(Env *env) {
     assert_not_frozen(env);
 
-    auto copy = new HashObject { env, *this };
+    auto copy = HashObject::create(env, *this);
     HashObject::operator=(std::move(*copy));
 
     return this;
@@ -390,7 +384,7 @@ Value HashObject::replace(Env *env, Value other) {
 
 Value HashObject::delete_if(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, HashObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, HashObject::size_fn, 0);
         return send(env, "enum_for"_s, { "delete_if"_s }, size_block);
     }
 
@@ -519,7 +513,7 @@ bool HashObject::lt(Env *env, Value other) {
 
 Value HashObject::each(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, HashObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, HashObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
 
@@ -527,7 +521,7 @@ Value HashObject::each(Env *env, Block *block) {
     set_is_iterating(true);
     Defer no_longer_iterating([&]() { set_is_iterating(false); });
     for (HashKey &node : *this) {
-        auto ary = new ArrayObject { { node.key, node.val } };
+        auto ary = ArrayObject::create({ node.key, node.val });
         Value block_args[1] = { ary };
         block->run(env, Args(1, block_args), nullptr);
     }
@@ -535,7 +529,7 @@ Value HashObject::each(Env *env, Block *block) {
 }
 
 Value HashObject::except(Env *env, Args &&args) {
-    HashObject *new_hash = new HashObject {};
+    HashObject *new_hash = HashObject::create();
     for (auto &node : *this) {
         new_hash->put(env, node.key, node.val);
     }
@@ -565,9 +559,9 @@ Value HashObject::fetch(Env *env, Value key, Optional<Value> default_value, Bloc
 }
 
 Value HashObject::fetch_values(Env *env, Args &&args, Block *block) {
-    if (args.size() == 0) return new ArrayObject;
+    if (args.size() == 0) return ArrayObject::create();
 
-    auto array = new ArrayObject { args.size() };
+    auto array = ArrayObject::create(args.size());
     for (size_t i = 0; i < args.size(); ++i) {
         array->push(fetch(env, args[i], {}, block));
     }
@@ -575,7 +569,7 @@ Value HashObject::fetch_values(Env *env, Args &&args, Block *block) {
 }
 
 Value HashObject::keys(Env *env) {
-    ArrayObject *array = new ArrayObject { size() };
+    ArrayObject *array = ArrayObject::create(size());
     for (HashKey &node : *this) {
         array->push(node.key);
     }
@@ -584,7 +578,7 @@ Value HashObject::keys(Env *env) {
 
 Value HashObject::keep_if(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, HashObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, HashObject::size_fn, 0);
         return send(env, "enum_for"_s, { "keep_if"_s }, size_block);
     }
 
@@ -610,7 +604,7 @@ Value HashObject::to_h(Env *env, Block *block) {
         }
     }
 
-    auto copy = new HashObject {};
+    auto copy = HashObject::create();
     Value block_args[2];
     set_is_iterating(true);
     Defer no_longer_iterating([&]() { set_is_iterating(false); });
@@ -632,7 +626,7 @@ Value HashObject::to_h(Env *env, Block *block) {
 }
 
 Value HashObject::values(Env *env) {
-    ArrayObject *array = new ArrayObject { size() };
+    ArrayObject *array = ArrayObject::create(size());
     for (HashKey &node : *this) {
         array->push(node.val);
     }
@@ -717,7 +711,7 @@ Value HashObject::merge_in_place(Env *env, Args &&args, Block *block) {
 }
 
 Value HashObject::slice(Env *env, Args &&args) {
-    auto new_hash = new HashObject {};
+    auto new_hash = HashObject::create();
     for (size_t i = 0; i < args.size(); i++) {
         Value key = args[i];
         auto value = this->get(env, key);
@@ -741,7 +735,7 @@ void HashObject::visit_children(Visitor &visitor) const {
 }
 
 Value HashObject::compact(Env *env) {
-    auto new_hash = new HashObject {};
+    auto new_hash = HashObject::create();
     new_hash->m_default_value = m_default_value;
     new_hash->m_default_proc = m_default_proc;
     new_hash->m_is_comparing_by_identity = m_is_comparing_by_identity;

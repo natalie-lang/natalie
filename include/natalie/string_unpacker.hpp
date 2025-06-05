@@ -22,7 +22,6 @@ public:
     Value unpack1(Env *env);
 
     virtual void visit_children(Visitor &visitor) const override {
-        Cell::visit_children(visitor);
         visitor.visit(m_source);
         if (m_unpacked_value)
             visitor.visit(m_unpacked_value.value());
@@ -74,7 +73,7 @@ private:
                 }
                 m_index += sizeof(T);
                 double double_val = double(*(T *)out.c_str());
-                auto fltobj = new FloatObject { double_val };
+                auto fltobj = FloatObject::create(double_val);
                 append(fltobj);
             }
             consumed++;
@@ -202,7 +201,7 @@ private:
             m_unpacked_value = value;
         } else {
             if (!m_unpacked_array) {
-                m_unpacked_array = new ArrayObject {};
+                m_unpacked_array = ArrayObject::create();
                 m_unpacked_array->push(m_unpacked_value.value());
             }
             m_unpacked_array->push(value);
@@ -213,8 +212,8 @@ private:
         if (m_unpacked_array)
             return m_unpacked_array;
         else if (m_unpacked_value)
-            return new ArrayObject { m_unpacked_value.value() };
-        return new ArrayObject {};
+            return ArrayObject::create({ m_unpacked_value.value() });
+        return ArrayObject::create();
     }
 
     const StringObject *m_source;

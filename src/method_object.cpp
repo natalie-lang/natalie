@@ -32,14 +32,14 @@ Value MethodObject::source_location() {
     if (!method->get_file())
         return Value::nil();
 
-    return new ArrayObject { new StringObject { method->get_file().value() }, Value::integer(static_cast<nat_int_t>(method->get_line().value())) };
+    return ArrayObject::create({ StringObject::create(method->get_file().value()), Value::integer(static_cast<nat_int_t>(method->get_line().value())) });
 }
 
 Value MethodObject::unbind(Env *env) {
     if (m_object->singleton_class()) {
-        return new UnboundMethodObject { m_object->singleton_class(), m_method };
+        return UnboundMethodObject::create(m_object->singleton_class(), m_method);
     } else {
-        return new UnboundMethodObject { m_object.klass(), m_method };
+        return UnboundMethodObject::create(m_object.klass(), m_method);
     }
 }
 

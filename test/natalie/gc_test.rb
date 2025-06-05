@@ -11,13 +11,13 @@ describe 'GC' do
     # the object is collected by the GC, so we can use that to
     # test that it did indeed run.
     __inline__ <<~END
-      ptr_var = new VoidPObject {
+      ptr_var = VoidPObject::create(
           nullptr,
           [](auto p) {
               Env e {};
               GlobalEnv::the()->global_set(&e, "$gc_ran"_s, Value::True());
           }
-      };
+      );
     END
   end
 
@@ -25,7 +25,6 @@ describe 'GC' do
     it 'collects unreachable objects' do
       create_object
       $gc_ran.should == false
-      GC.start
       GC.start
       $gc_ran.should == true
     end

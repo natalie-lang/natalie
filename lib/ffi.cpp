@@ -4,7 +4,6 @@
 #include <iostream>
 
 #include "natalie.hpp"
-#include "natalie/object_type.hpp"
 #include "tm/owned_ptr.hpp"
 
 using namespace Natalie;
@@ -29,7 +28,7 @@ static void *dlopen_wrapper(Env *env, const String &name) {
             static const auto so_ext = [&] {
                 auto RbConfig = GlobalEnv::the()->Object()->const_fetch("RbConfig"_s).as_module();
                 auto CONFIG = RbConfig->const_fetch("CONFIG"_s).as_hash_or_raise(env);
-                auto SO_EXT = CONFIG->fetch(env, new StringObject { "SOEXT" }).as_string_or_raise(env);
+                auto SO_EXT = CONFIG->fetch(env, StringObject::create("SOEXT")).as_string_or_raise(env);
                 return String::format(".{}", SO_EXT->string());
             }();
             if (!name.begins_with('/') && !name.ends_with(so_ext)) {
@@ -92,7 +91,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
             }
         }
         if (!handle) {
-            auto error = new StringObject;
+            auto error = StringObject::create();
             for (auto name2 : *name.as_array())
                 error->append_sprintf("Could not open library '%s': %s.\n", name2.as_string()->string().c_str(), dlerror());
             error->chomp_in_place(env);
@@ -103,10 +102,10 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args &&args, Block *) {
         if (!handle)
             env->raise("LoadError", "Could not open library '{}': {}.", name.as_string()->c_str(), dlerror());
     }
-    auto handle_ptr = new VoidPObject { handle, [](auto p) { dlclose(p->void_ptr()); } };
+    auto handle_ptr = VoidPObject::create(handle, [](auto p) { dlclose(p->void_ptr()); });
     auto libs = self->ivar_get(env, "@ffi_libs"_s);
     if (libs.is_nil())
-        libs = self->ivar_set(env, "@ffi_libs"_s, new ArrayObject);
+        libs = self->ivar_set(env, "@ffi_libs"_s, ArrayObject::create());
     auto DynamicLibrary = fetch_nested_const({ "FFI"_s, "DynamicLibrary"_s });
     auto lib = DynamicLibrary.send(env, "new"_s, { name, handle_ptr });
     libs.as_array()->push(lib);
@@ -303,7 +302,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
     } else if (return_type == char_sym) {
         return Value::integer(result);
     } else if (return_type == double_sym) {
-        return new FloatObject { *reinterpret_cast<double *>(&result) };
+        return FloatObject::create(*reinterpret_cast<double *>(&result));
     } else if (return_type == int_sym || return_type == uint_sym || return_type == ulong_sym) {
         return Value::integer(result);
     } else if (return_type == pointer_sym) {
@@ -317,7 +316,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
         assert((int64_t)result <= std::numeric_limits<nat_int_t>::max());
         return Value::integer((nat_int_t)result);
     } else if (return_type == string_sym) {
-        return new StringObject { reinterpret_cast<const char *>(result) };
+        return StringObject::create(reinterpret_cast<const char *>(result));
     } else if (return_type == void_sym) {
         return Value::nil();
     } else {
@@ -353,13 +352,12 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     for (size_t i = 0; i < arg_count; ++i) {
         ffi_args[i] = get_ffi_type(env, self, arg_types_array->at(i));
     }
-    auto ffi_args_obj = new VoidPObject {
+    auto ffi_args_obj = VoidPObject::create(
         ffi_args,
         [](auto p) {
             auto ary = (ffi_type **)p->void_ptr();
             delete[] ary;
-        }
-    };
+        });
 
     auto libs = self->ivar_get(env, "@ffi_libs"_s);
     auto lib = libs.as_array()->first(); // what do we do if there is more than one?
@@ -392,13 +390,13 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     if (status != FFI_OK)
         env->raise("LoadError", "There was an error preparing the FFI call data structure: {}", (int)status);
 
-    OwnedPtr<Env> block_env { new Env {} };
-    block_env->var_set("cif", 0, true, new VoidPObject { cif, [](auto p) { delete (ffi_cif *)p->void_ptr(); } });
+    OwnedPtr<Env> block_env { Env::create() };
+    block_env->var_set("cif", 0, true, VoidPObject::create(cif, [](auto p) { delete (ffi_cif *)p->void_ptr(); }));
     block_env->var_set("arg_types", 1, true, arg_types_array);
     block_env->var_set("return_type", 2, true, return_type);
     block_env->var_set("ffi_args", 3, true, ffi_args_obj);
-    block_env->var_set("fn", 4, true, new VoidPObject { fn });
-    Block *block = new Block { std::move(block_env), self, FFI_Library_fn_call_block, 0 };
+    block_env->var_set("fn", 4, true, VoidPObject::create(fn));
+    Block *block = Block::create(std::move(block_env), self, FFI_Library_fn_call_block, 0);
     Object::define_singleton_method(env, self, name, block);
 
     return Value::nil();
@@ -432,10 +430,10 @@ Value FFI_Pointer_read_string(Env *env, Value self, Args &&args, Block *) {
         auto length = args.at(0).integer_or_raise(env).to_nat_int_t();
         if (length < 0 || (size_t)length > std::numeric_limits<size_t>::max())
             env->raise("ArgumentError", "length out of range");
-        return new StringObject { (char *)address, (size_t)length, Encoding::ASCII_8BIT };
+        return StringObject::create((char *)address, (size_t)length, Encoding::ASCII_8BIT);
     }
 
-    return new StringObject { (char *)address, Encoding::ASCII_8BIT };
+    return StringObject::create((char *)address, Encoding::ASCII_8BIT);
 }
 
 Value FFI_Pointer_to_obj(Env *env, Value self, Args &&args, Block *) {
@@ -532,7 +530,7 @@ Value FFI_Pointer_initialize(Env *env, Value self, Args &&args, Block *) {
         address = args.at(0);
     }
 
-    auto ptr_obj = new VoidPObject {
+    auto ptr_obj = VoidPObject::create(
         (void *)address.integer_or_raise(env).to_nat_int_t(),
         [](auto p) {
             Env e;
@@ -540,8 +538,7 @@ Value FFI_Pointer_initialize(Env *env, Value self, Args &&args, Block *) {
                 free(p->void_ptr());
                 p->set_void_ptr(nullptr);
             }
-        }
-    };
+        });
     ptr_obj->ivar_set(env, "@autorelease"_s, Value::False());
 
     self->ivar_set(env, "@ptr"_s, ptr_obj);

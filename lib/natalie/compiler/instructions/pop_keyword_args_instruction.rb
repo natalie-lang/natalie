@@ -10,7 +10,7 @@ module Natalie
       def generate(transform)
         transform.exec_and_push(
           :keyword_args_hash,
-          'args.has_keyword_hash() ? args.pop_keyword_hash() : new HashObject',
+          'args.has_keyword_hash() ? args.pop_keyword_hash() : HashObject::create()',
         )
       end
 

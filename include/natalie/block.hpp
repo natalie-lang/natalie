@@ -17,20 +17,15 @@ public:
         Method
     };
 
-    Block(Env &env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc)
-        : m_fn { fn }
-        , m_arity { arity }
-        , m_env { new Env(env) }
-        , m_self { self }
-        , m_type { type } { }
+    static Block *create(Env &env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new Block(env, self, fn, arity, type);
+    }
 
-    // Keep the TM:: namespace, ffi-clang (used in gc_lint) gets confused otherwise
-    Block(TM::OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc)
-        : m_fn { fn }
-        , m_arity { arity }
-        , m_env { env.release() }
-        , m_self { self }
-        , m_type { type } { }
+    static Block *create(TM::OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new Block(std::move(env), self, fn, arity, type);
+    }
 
     Value run(Env *env, Args &&args = {}, Block *block = nullptr);
 
@@ -54,7 +49,6 @@ public:
     void copy_fn_pointer_to_method(Method *);
 
     virtual void visit_children(Visitor &visitor) const override final {
-        Cell::visit_children(visitor);
         visitor.visit(m_env);
         visitor.visit(m_calling_env);
         visitor.visit(m_self);
@@ -65,6 +59,20 @@ public:
     }
 
 private:
+    Block(Env &env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc)
+        : m_fn { fn }
+        , m_arity { arity }
+        , m_env { Env::create(env) }
+        , m_self { self }
+        , m_type { type } { }
+
+    Block(OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc)
+        : m_fn { fn }
+        , m_arity { arity }
+        , m_env { env.release() }
+        , m_self { self }
+        , m_type { type } { }
+
     MethodFnPtr m_fn;
     int m_arity { 0 };
     Env *m_env { nullptr };

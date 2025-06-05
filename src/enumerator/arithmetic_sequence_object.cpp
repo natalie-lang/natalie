@@ -13,7 +13,7 @@ ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, cons
     , m_exclude_end { exclude_end } {
     auto Enumerator = GlobalEnv::the()->Object()->const_fetch("Enumerator"_s).as_module();
     auto method_info = Enumerator->find_method(env, "initialize"_s);
-    method_info.method()->call(env, this, {}, new Block { *env, this, enum_block, 1 });
+    method_info.method()->call(env, this, {}, Block::create(*env, this, enum_block, 1));
 }
 
 ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, Value begin, Value end, Value step, bool exclude_end)
@@ -65,7 +65,7 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
         if (!exclude_end())
             step_count += 1;
     } else {
-        auto a = n.send(env, "+"_s, { n.send(env, "*"_s, { new FloatObject { std::numeric_limits<double>::epsilon() } }) });
+        auto a = n.send(env, "+"_s, { n.send(env, "*"_s, { FloatObject::create(std::numeric_limits<double>::epsilon()) }) });
         auto b = a.send(env, "floor"_s).integer();
         step_count = b + 1;
     }
@@ -222,7 +222,7 @@ Value ArithmeticSequenceObject::last(Env *env, Optional<Value> n) {
 
         IntegerMethods::assert_fixnum(env, n_as_int);
 
-        auto array = new ArrayObject { (size_t)count.to_nat_int_t() };
+        auto array = ArrayObject::create((size_t)count.to_nat_int_t());
 
         auto _begin = maybe_to_f(env, m_begin);
         auto last = _begin.send(env, "+"_s, { step().send(env, "*"_s, { steps }) });

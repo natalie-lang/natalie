@@ -31,7 +31,7 @@ module Natalie
         # we have to include all methods in this case
         include_all = receiver == 'self'
         transform.exec(
-          "if (!#{receiver}.respond_to(env, #{transform.intern(@message)}, #{include_all})) throw new ExceptionObject",
+          "if (!#{receiver}.respond_to(env, #{transform.intern(@message)}, #{include_all})) throw ExceptionObject::create()",
         )
         transform.push_nil
       end

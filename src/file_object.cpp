@@ -70,9 +70,9 @@ Value FileObject::initialize(Env *env, Args &&args, Block *block) {
 
 Value FileObject::absolute_path(Env *env, Value path, Optional<Value> dir_arg) {
     path = ioutil::convert_using_to_path(env, path);
-    if (path.as_string()->start_with(env, { new StringObject { "/" } }))
+    if (path.as_string()->start_with(env, { StringObject::create("/") }))
         return path;
-    if ((!dir_arg || dir_arg.value().is_nil()) && path.as_string()->eq(env, new StringObject { "~" }))
+    if ((!dir_arg || dir_arg.value().is_nil()) && path.as_string()->eq(env, StringObject::create("~")))
         return path;
 
     auto File = GlobalEnv::the()->Object()->const_fetch("File"_s);
@@ -141,7 +141,7 @@ Value FileObject::expand_path(Env *env, Value path, Optional<Value> dir_arg) {
     }
 
     if (fs_path.string().empty())
-        return new StringObject { std::filesystem::current_path().c_str() };
+        return StringObject::create(std::filesystem::current_path().c_str());
 
     if (fs_path.is_relative()) {
         try {
@@ -163,7 +163,7 @@ Value FileObject::expand_path(Env *env, Value path, Optional<Value> dir_arg) {
     if (!default_external->is_compatible_with(target_encoding))
         target_encoding->raise_compatibility_error(env, default_external);
 
-    auto expanded_string = new StringObject { expanded.c_str(), path_string_object->encoding() };
+    auto expanded_string = StringObject::create(expanded.c_str(), path_string_object->encoding());
     if (expanded_string->length() > 1 && expanded_string->string().last_char() == '/')
         expanded_string->truncate(expanded_string->length() - 1);
 
@@ -231,7 +231,7 @@ void FileObject::build_constants(Env *env, ModuleObject *fcmodule) {
     fcmodule->const_set("FNM_EXTGLOB"_s, Value::integer(FNM_EXTGLOB));
     fcmodule->const_set("FNM_SYSCASE"_s, Value::integer(FNM_SYSCASE));
     fcmodule->const_set("FNM_SHORTNAME"_s, Value::integer(FNM_SHORTNAME));
-    Value null_file = new StringObject { "/dev/null", Encoding::US_ASCII };
+    Value null_file = StringObject::create("/dev/null", Encoding::US_ASCII);
     null_file->freeze();
     fcmodule->const_set("NULL"_s, null_file);
 }
@@ -557,21 +557,21 @@ Value FileObject::ftype(Env *env, Value path) {
     }
     switch (st.type()) {
     case std::filesystem::file_type::regular:
-        return new StringObject { "file" };
+        return StringObject::create("file");
     case std::filesystem::file_type::directory:
-        return new StringObject { "directory" };
+        return StringObject::create("directory");
     case std::filesystem::file_type::symlink:
-        return new StringObject { "link" };
+        return StringObject::create("link");
     case std::filesystem::file_type::block:
-        return new StringObject { "blockSpecial" };
+        return StringObject::create("blockSpecial");
     case std::filesystem::file_type::character:
-        return new StringObject { "characterSpecial" };
+        return StringObject::create("characterSpecial");
     case std::filesystem::file_type::fifo:
-        return new StringObject { "fifo" };
+        return StringObject::create("fifo");
     case std::filesystem::file_type::socket:
-        return new StringObject { "socket" };
+        return StringObject::create("socket");
     default:
-        return new StringObject { "unknown" };
+        return StringObject::create("unknown");
     }
 }
 
@@ -599,7 +599,7 @@ Value FileObject::readlink(Env *env, Value filename) {
         if (size < 0)
             env->raise_errno();
         if (static_cast<size_t>(size) < buf.size())
-            return new StringObject { buf.c_str(), static_cast<size_t>(size) };
+            return StringObject::create(buf.c_str(), static_cast<size_t>(size));
         buf = TM::String(buf.size() * 2, '\0');
     }
 }
@@ -614,7 +614,7 @@ Value FileObject::realpath(Env *env, Value pathname, Optional<Value> dir_arg) {
     resolved_filepath = ::realpath(pathname.as_string()->c_str(), nullptr);
     if (!resolved_filepath)
         env->raise_errno();
-    auto outstr = new StringObject { resolved_filepath };
+    auto outstr = StringObject::create(resolved_filepath);
     free(resolved_filepath);
     return outstr;
 }
@@ -625,7 +625,7 @@ Value FileObject::lstat(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
     int result = ::lstat(path.as_string()->c_str(), &sb);
     if (result < 0) env->raise_errno(path.as_string());
-    return new FileStatObject { sb };
+    return FileStatObject::create(sb);
 }
 
 // instance method
@@ -633,7 +633,7 @@ Value FileObject::lstat(Env *env) const {
     struct stat sb;
     int result = ::stat(get_path().as_string()->c_str(), &sb);
     if (result < 0) env->raise_errno();
-    return new FileStatObject { sb };
+    return FileStatObject::create(sb);
 }
 
 Value FileObject::lutime(Env *env, Args &&args) {
@@ -691,7 +691,7 @@ Value FileObject::stat(Env *env, Value path) {
     path = ioutil::convert_using_to_path(env, path);
     int result = ::stat(path.as_string()->c_str(), &sb);
     if (result < 0) env->raise_errno(path.as_string());
-    return new FileStatObject { sb };
+    return FileStatObject::create(sb);
 }
 
 // class methods

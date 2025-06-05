@@ -124,9 +124,9 @@ Optional<Value> RangeObject::iterate_over_string_range(Env *env, Function &&func
 
     while ((current = iterator.next()).present()) {
         if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
-            func(new StringObject { current.value() });
+            func(StringObject::create(current.value()));
         } else {
-            Optional<Value> result = func(new StringObject { current.value() });
+            Optional<Value> result = func(StringObject::create(current.value()));
             if (result)
                 return result;
         }
@@ -161,7 +161,7 @@ Value RangeObject::to_a(Env *env) {
     if (m_end.is_nil())
         env->raise("RangeError", "cannot convert endless range to an array");
 
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = ArrayObject::create();
     iterate_over_range(env, [&](Value item) {
         ary->push(item);
     });
@@ -170,7 +170,7 @@ Value RangeObject::to_a(Env *env) {
 
 Value RangeObject::each(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, RangeObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, RangeObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
 
@@ -195,7 +195,7 @@ Value RangeObject::first(Env *env, Optional<Value> n) {
             env->raise("ArgumentError", "negative array size (or size too big)");
         }
 
-        ArrayObject *ary = new ArrayObject { (size_t)count };
+        ArrayObject *ary = ArrayObject::create((size_t)count);
         iterate_over_range(env, [&](Value item) -> Optional<Value> {
             if (count == 0) return n.value();
 
@@ -214,7 +214,7 @@ Value RangeObject::inspect(Env *env) {
     if (m_exclude_end) {
         if (m_end.is_nil()) {
             if (m_begin.is_nil()) {
-                return new StringObject { "nil...nil" };
+                return StringObject::create("nil...nil");
             } else {
                 return StringObject::format("{}...", m_begin.inspected(env));
             }
@@ -228,7 +228,7 @@ Value RangeObject::inspect(Env *env) {
     } else {
         if (m_end.is_nil()) {
             if (m_begin.is_nil()) {
-                return new StringObject { "nil..nil" };
+                return StringObject::create("nil..nil");
             } else {
                 return StringObject::format("{}..", m_begin.inspected(env));
             }

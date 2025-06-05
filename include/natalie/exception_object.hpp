@@ -13,20 +13,20 @@ namespace Natalie {
 
 class ExceptionObject : public Object {
 public:
-    ExceptionObject()
-        : Object { Object::Type::Exception, GlobalEnv::the()->Object()->const_fetch("Exception"_s).as_class() } { }
+    static ExceptionObject *create() {
+        return new ExceptionObject();
+    }
 
-    ExceptionObject(ClassObject *klass)
-        : Object { Object::Type::Exception, klass } { }
+    static ExceptionObject *create(ClassObject *klass) {
+        return new ExceptionObject(klass);
+    }
 
-    ExceptionObject(ClassObject *klass, Value message)
-        : Object { Object::Type::Exception, klass }
-        , m_message { message } { }
+    static ExceptionObject *create(ClassObject *klass, Value message) {
+        return new ExceptionObject(klass, message);
+    }
 
-    ExceptionObject(Env *env, ExceptionObject &other)
-        : Object { other } {
-        m_message = other.m_message;
-        m_backtrace = other.m_backtrace;
+    static ExceptionObject *create(const ExceptionObject &other) {
+        return new ExceptionObject(other);
     }
 
     static ExceptionObject *create_for_raise(Env *env, Args &&args, ExceptionObject *current_exception, bool accept_cause);
@@ -68,6 +68,24 @@ public:
     void set_break_point(nat_int_t break_point) { m_break_point = break_point; }
 
 private:
+    ExceptionObject()
+        : Object { Object::Type::Exception, GlobalEnv::the()->Object()->const_fetch("Exception"_s).as_class() } { }
+
+    ExceptionObject(ClassObject *klass)
+        : Object { Object::Type::Exception, klass } { }
+
+    ExceptionObject(ClassObject *klass, Value message)
+        : Object { Object::Type::Exception, klass }
+        , m_message { message } { }
+
+    ExceptionObject(const ExceptionObject &other)
+        : Object { other }
+        , m_message { other.m_message }
+        , m_backtrace { other.m_backtrace }
+        , m_backtrace_value { other.m_backtrace_value }
+        , m_backtrace_locations { other.m_backtrace_locations }
+        , m_cause { other.m_cause } { }
+
     ArrayObject *generate_backtrace();
 
     Value m_message { Value::nil() };

@@ -114,7 +114,7 @@ module FFI
 
     def self.new_env
       __inline__ <<~END
-        auto e = new Env { env->caller() };
+        auto e = Env::create(env->caller());
         return self.send(env, "new"_s, { Value::integer((uintptr_t)e) });
       END
     end

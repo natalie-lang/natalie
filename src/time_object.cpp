@@ -27,7 +27,7 @@ TimeObject *TimeObject::at(Env *env, ClassObject *klass, Value time, Optional<Va
 }
 
 TimeObject *TimeObject::local(Env *env, Value year, Optional<Value> month, Optional<Value> mday, Optional<Value> hour, Optional<Value> min, Optional<Value> sec, Optional<Value> usec) {
-    TimeObject *result = new TimeObject {};
+    TimeObject *result = TimeObject::create();
     result->build_time(env, year, month, mday, hour, min, sec);
     int seconds = mktime(&result->m_time);
     result->m_mode = Mode::Localtime;
@@ -39,6 +39,7 @@ TimeObject *TimeObject::local(Env *env, Value year, Optional<Value> month, Optio
 }
 
 TimeObject *TimeObject::create(Env *env) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
     return now(env, nullptr);
 }
 
@@ -77,9 +78,9 @@ TimeObject *TimeObject::now(Env *env, ClassObject *klass, Optional<Value> in) {
     struct tm time = *localtime(&ts.tv_sec);
     TimeObject *result;
     if (klass)
-        result = new TimeObject { klass };
+        result = TimeObject::create(klass);
     else
-        result = new TimeObject {};
+        result = TimeObject::create();
     result->m_time = time;
     result->m_mode = Mode::Localtime;
     result->m_integer = ts.tv_sec;
@@ -90,7 +91,7 @@ TimeObject *TimeObject::now(Env *env, ClassObject *klass, Optional<Value> in) {
 }
 
 TimeObject *TimeObject::utc(Env *env, Value year, Optional<Value> month, Optional<Value> mday, Optional<Value> hour, Optional<Value> min, Optional<Value> sec, Optional<Value> subsec_arg) {
-    TimeObject *result = new TimeObject {};
+    TimeObject *result = TimeObject::create();
     result->build_time(env, year, month, mday, hour, min, sec);
     result->m_time.tm_gmtoff = 0;
     int seconds = timegm(&result->m_time);
@@ -254,7 +255,7 @@ Value TimeObject::subsec(Env *) {
 
 Value TimeObject::to_a(Env *env) const {
     auto dstval = bool_object(isdst(env));
-    return new ArrayObject { sec(env), min(env), hour(env), mday(env), month(env), year(env), wday(env), yday(env), dstval, zone(env) };
+    return ArrayObject::create({ sec(env), min(env), hour(env), mday(env), month(env), year(env), wday(env), yday(env), dstval, zone(env) });
 }
 
 Value TimeObject::to_f(Env *env) {
@@ -459,9 +460,9 @@ TimeObject *TimeObject::create(Env *env, ClassObject *klass, RationalObject *rat
     RationalObject *subseconds;
     TimeObject *result;
     if (klass)
-        result = new TimeObject { klass };
+        result = TimeObject::create(klass);
     else
-        result = new TimeObject {};
+        result = TimeObject::create();
     if (rational->send(env, "<"_s, { Value::integer(0) }).is_true()) {
         auto floor = rational->floor(env);
         integer = floor.send(env, "to_i"_s).integer();
@@ -548,7 +549,7 @@ Value TimeObject::build_string(Env *, const char *format) {
     int maxsize = 32;
     char buffer[maxsize];
     auto length = ::strftime(buffer, maxsize, format, &m_time);
-    return new StringObject { buffer, length, Encoding::US_ASCII };
+    return StringObject::create(buffer, length, Encoding::US_ASCII);
 }
 
 Value TimeObject::strip_zeroes(StringObject *string) {
@@ -561,10 +562,10 @@ Value TimeObject::strip_zeroes(StringObject *string) {
             break;
     }
     if (last_char < 0) {
-        return new StringObject {};
+        return StringObject::create();
     } else {
         size_t new_length = static_cast<size_t>(last_char + 1);
-        return new StringObject { c_str, new_length };
+        return StringObject::create(c_str, new_length);
     }
 }
 
@@ -574,9 +575,9 @@ Value TimeObject::zone(Env *env) const {
         return Value::nil();
     }
     if (is_utc(env)) {
-        return new StringObject { "UTC", Encoding::US_ASCII };
+        return StringObject::create("UTC", Encoding::US_ASCII);
     }
-    return new StringObject { m_zone, Encoding::US_ASCII };
+    return StringObject::create(m_zone, Encoding::US_ASCII);
 }
 
 }

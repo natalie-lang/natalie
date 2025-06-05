@@ -9,6 +9,7 @@ SymbolObject *SymbolObject::intern(const char *name, const size_t length, Encodi
 }
 
 SymbolObject *SymbolObject::intern(const String &name, EncodingObject *encoding) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
     SymbolObject *symbol = s_symbols.get(name);
     if (symbol)
         return symbol;
@@ -18,7 +19,7 @@ SymbolObject *SymbolObject::intern(const String &name, EncodingObject *encoding)
 }
 
 ArrayObject *SymbolObject::all_symbols(Env *env) {
-    ArrayObject *array = new ArrayObject(s_symbols.size());
+    ArrayObject *array = ArrayObject::create(s_symbols.size());
     for (auto pair : s_symbols) {
         array->push(pair.second);
     }
@@ -28,19 +29,19 @@ ArrayObject *SymbolObject::all_symbols(Env *env) {
 StringObject *SymbolObject::to_s(Env *env) {
     StringObject *result = nullptr;
     if (m_encoding == nullptr) {
-        result = new StringObject { m_name };
+        result = StringObject::create(m_name);
     } else {
-        result = new StringObject { m_name, m_encoding };
+        result = StringObject::create(m_name, m_encoding);
     }
     result->set_chilled(StringObject::Chilled::Symbol);
     return result;
 }
 
 StringObject *SymbolObject::inspect(Env *env) {
-    StringObject *string = new StringObject { ":" };
+    StringObject *string = StringObject::create(":");
 
     if (should_be_quoted()) {
-        StringObject *quoted = StringObject { m_name }.inspect(env);
+        auto quoted = StringObject::create(m_name)->inspect(env);
         string->append(quoted);
     } else {
         string->append(m_name);
@@ -126,10 +127,10 @@ Value SymbolObject::is_casecmp(Env *env, Value other) {
 }
 
 ProcObject *SymbolObject::to_proc(Env *env) {
-    OwnedPtr<Env> block_env { new Env {} };
+    OwnedPtr<Env> block_env { Env::create() };
     block_env->var_set("name", 0, true, this);
-    Block *proc_block = new Block { std::move(block_env), this, SymbolObject::to_proc_block_fn, -2, Block::BlockType::Lambda };
-    return new ProcObject { proc_block };
+    Block *proc_block = Block::create(std::move(block_env), this, SymbolObject::to_proc_block_fn, -2, Block::BlockType::Lambda);
+    return ProcObject::create(proc_block);
 }
 
 Value SymbolObject::to_proc_block_fn(Env *env, Value self_value, Args &&args, Block *block) {

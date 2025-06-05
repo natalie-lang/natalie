@@ -6,7 +6,7 @@ namespace Natalie {
 
 Value IntegerMethods::to_s(Env *env, Integer self, Optional<Value> base_value) {
     if (self == 0)
-        return new StringObject { "0" };
+        return StringObject::create("0");
 
     nat_int_t base = 10;
     if (base_value) {
@@ -18,9 +18,9 @@ Value IntegerMethods::to_s(Env *env, Integer self, Optional<Value> base_value) {
     }
 
     if (base == 10)
-        return new StringObject { self.to_string(), Encoding::US_ASCII };
+        return StringObject::create(self.to_string(), Encoding::US_ASCII);
 
-    auto str = new StringObject { "", Encoding::US_ASCII };
+    auto str = StringObject::create("", Encoding::US_ASCII);
     auto num = self;
     bool negative = false;
     if (num < 0) {
@@ -43,14 +43,14 @@ Value IntegerMethods::to_s(Env *env, Integer self, Optional<Value> base_value) {
 }
 
 Value IntegerMethods::to_f(Integer self) {
-    return new FloatObject { self.to_double() };
+    return FloatObject::create(self.to_double());
 }
 
 Value IntegerMethods::add(Env *env, Integer self, Value arg) {
     if (arg.is_integer()) {
         return self + arg.integer();
     } else if (arg.is_float()) {
-        return new FloatObject { self + arg.as_float()->to_double() };
+        return FloatObject::create(self + arg.as_float()->to_double());
     } else if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         if (!lhs.is_integer())
@@ -67,7 +67,7 @@ Value IntegerMethods::sub(Env *env, Integer self, Value arg) {
         return self - arg.integer();
     } else if (arg.is_float()) {
         double result = self.to_double() - arg.as_float()->to_double();
-        return new FloatObject { result };
+        return FloatObject::create(result);
     } else if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         if (!lhs.is_integer())
@@ -82,7 +82,7 @@ Value IntegerMethods::sub(Env *env, Integer self, Value arg) {
 Value IntegerMethods::mul(Env *env, Integer self, Value arg) {
     if (arg.is_float()) {
         double result = self.to_double() * arg.as_float()->to_double();
-        return new FloatObject { result };
+        return FloatObject::create(result);
     } else if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         if (!lhs.is_integer())
@@ -103,7 +103,7 @@ Value IntegerMethods::div(Env *env, Integer self, Value arg) {
         double result = self / arg.as_float()->to_double();
         if (isnan(result))
             return FloatObject::nan();
-        return new FloatObject { result };
+        return FloatObject::create(result);
     } else if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
         if (!lhs.is_integer())
@@ -122,7 +122,7 @@ Value IntegerMethods::div(Env *env, Integer self, Value arg) {
 Value IntegerMethods::mod(Env *env, Integer self, Value arg) {
     Integer argument;
     if (arg.is_float()) {
-        auto f = new FloatObject { self.to_double() };
+        auto f = FloatObject::create(self.to_double());
         return f->mod(env, arg);
     } else if (!arg.is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, arg, self);
@@ -147,7 +147,7 @@ Value IntegerMethods::pow(Env *env, Integer self, Integer arg) {
     // NATFIXME: If a negative number is passed we want to return a Rational
     if (arg < 0) {
         auto denominator = Natalie::pow(self, -arg);
-        return new RationalObject { Value::integer(1), denominator };
+        return RationalObject::create(Value::integer(1), denominator);
     }
 
     if (arg == 0)
@@ -177,12 +177,12 @@ Value IntegerMethods::pow(Env *env, Integer self, Value arg) {
         return pow(env, self, arg.integer());
 
     if ((arg.is_float() || arg.is_rational()) && self < 0) {
-        auto comp = new ComplexObject { self };
+        auto comp = ComplexObject::create(self);
         return comp->send(env, "**"_s, { arg });
     }
 
     if (arg.is_float()) {
-        auto f = new FloatObject { self.to_double() };
+        auto f = FloatObject::create(self.to_double());
         return f->pow(env, arg);
     }
 
@@ -476,7 +476,7 @@ Value IntegerMethods::size(Env *env, Integer self) {
 }
 
 Value IntegerMethods::coerce(Env *env, Value self, Value arg) {
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = ArrayObject::create();
     if (arg.is_integer()) {
         ary->push(arg);
         ary->push(self);
@@ -569,7 +569,7 @@ Value IntegerMethods::chr(Env *env, Integer self, Optional<Value> encoding_arg) 
     }
 
     auto encoded = encoding_obj->encode_codepoint(self.to_nat_int_t());
-    return new StringObject { encoded, encoding_obj };
+    return StringObject::create(encoded, encoding_obj);
 }
 
 Value IntegerMethods::sqrt(Env *env, Value arg) {
@@ -577,8 +577,8 @@ Value IntegerMethods::sqrt(Env *env, Value arg) {
 
     if (argument < 0) {
         auto domain_error = fetch_nested_const({ "Math"_s, "DomainError"_s });
-        auto message = new StringObject { "Numerical argument is out of domain - \"isqrt\"" };
-        auto exception = new ExceptionObject { domain_error.as_class(), message };
+        auto message = StringObject::create("Numerical argument is out of domain - \"isqrt\"");
+        auto exception = ExceptionObject::create(domain_error.as_class(), message);
         env->raise_exception(exception);
     }
 
