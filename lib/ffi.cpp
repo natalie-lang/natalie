@@ -390,7 +390,7 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     if (status != FFI_OK)
         env->raise("LoadError", "There was an error preparing the FFI call data structure: {}", (int)status);
 
-    OwnedPtr<Env> block_env { new Env {} };
+    OwnedPtr<Env> block_env { Env::create() };
     block_env->var_set("cif", 0, true, VoidPObject::create(cif, [](auto p) { delete (ffi_cif *)p->void_ptr(); }));
     block_env->var_set("arg_types", 1, true, arg_types_array);
     block_env->var_set("return_type", 2, true, return_type);

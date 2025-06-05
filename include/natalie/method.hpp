@@ -25,7 +25,7 @@ public:
         : m_name { std::move(name) }
         , m_owner { owner }
         , m_arity { block->arity() }
-        , m_env { new Env(*block->env()) } {
+        , m_env { Env::create(*block->env()) } {
         assert(m_env);
         block->copy_fn_pointer_to_method(this);
 
