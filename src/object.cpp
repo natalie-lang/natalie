@@ -98,7 +98,7 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Thread:
-        obj = new ThreadObject { klass };
+        obj = ThreadObject::create(klass);
         break;
 
     case Object::Type::ThreadBacktraceLocation:
