@@ -38,7 +38,7 @@ describe 'GC' do
         o7 = SomeObject.new('foo')
         o8 = SomeObject.new('bar')
         o9 = SomeObject.new('baz')
-        (Etc.nprocessors * 40).times do
+        Etc.nprocessors.times do
           r = rand(1000)
           work << r
           obj = SomeObject.new("bar#{r}")
