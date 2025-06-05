@@ -10,7 +10,7 @@ namespace Natalie {
 
 Env *build_top_env() {
     auto *global_env = GlobalEnv::the();
-    auto *env = new Env {};
+    auto *env = Env::create();
     global_env->set_main_env(env);
 
     ClassObject *Class = ClassObject::bootstrap_class_class(env);

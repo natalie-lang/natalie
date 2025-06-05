@@ -62,7 +62,7 @@ private:
     Block(Env &env, Value self, MethodFnPtr fn, int arity, BlockType type = BlockType::Proc)
         : m_fn { fn }
         , m_arity { arity }
-        , m_env { new Env(env) }
+        , m_env { Env::create(env) }
         , m_self { self }
         , m_type { type } { }
 

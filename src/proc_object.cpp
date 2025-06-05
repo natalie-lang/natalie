@@ -73,7 +73,7 @@ Value ProcObject::ruby2_keywords(Env *env) {
         return old_block->call(env, std::move(new_args), block);
     };
 
-    OwnedPtr<Env> inner_env { new Env { *env } };
+    OwnedPtr<Env> inner_env { Env::create(*env) };
     inner_env->var_set("old_block", 1, true, ProcObject::create(m_block));
     m_block = Block::create(std::move(inner_env), this, block_wrapper, -1);
 
