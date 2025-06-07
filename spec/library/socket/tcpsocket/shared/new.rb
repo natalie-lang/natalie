@@ -15,11 +15,9 @@ describe :tcpsocket_new, shared: true do
   end
 
   it 'raises IO::TimeoutError with :connect_timeout when no server is listening on the given address' do
-    NATFIXME 'Add IO::TimeoutError', exception: NameError, message: 'uninitialized constant IO::TimeoutError' do
-      -> {
-        TCPSocket.send(@method, "192.0.2.1", 80, connect_timeout: 0)
-      }.should raise_error(IO::TimeoutError)
-    end
+    -> {
+      TCPSocket.send(@method, "192.0.2.1", 80, connect_timeout: 0)
+    }.should raise_error(IO::TimeoutError)
   rescue Errno::ENETUNREACH
     # In the case all network interfaces down.
     # raise_error cannot deal with multiple expected exceptions
