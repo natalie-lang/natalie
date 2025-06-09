@@ -18,13 +18,28 @@ end
 
 JOBS = Etc.nprocessors * 4
 
+class AtomicCounter
+  def initialize
+    @mutex = Mutex.new
+    @count = 0
+  end
+
+  def increment
+    @mutex.synchronize { @count += 1 }
+  end
+
+  def value
+    @mutex.synchronize { @count }
+  end
+end
+
 describe 'GC' do
   it 'does not crash' do
     work = []
     hash = {}
     objects = []
     data = []
-    complete = 0
+    complete = AtomicCounter.new
     pool = ThreadPool.new(Etc.nprocessors)
     JOBS.times do
       pool.schedule do
@@ -56,13 +71,15 @@ describe 'GC' do
         work << o7.inspect
         work << o8.inspect
         work << o9.inspect
-        complete += 1
+        complete.increment
       end
     end
     sleep 0.1 while work.empty?
-    while complete < JOBS
+    last_complete = nil
+    while (complete_value = complete.value) < JOBS
       GC.start
-      puts "#{complete} of #{JOBS} complete"
+      puts "#{complete_value} of #{JOBS} complete" if complete_value != last_complete
+      last_complete = complete_value
     end
     pool.shutdown
   end
