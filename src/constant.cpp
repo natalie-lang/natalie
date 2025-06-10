@@ -10,7 +10,6 @@ void Constant::autoload(Env *env, Value self) {
 }
 
 void Constant::visit_children(Visitor &visitor) const {
-    Cell::visit_children(visitor);
     visitor.visit(m_name);
     if (m_value)
         visitor.visit(m_value.value());

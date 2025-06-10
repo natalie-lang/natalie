@@ -18,7 +18,6 @@ public:
     virtual ~ManagedVector() { }
 
     virtual void visit_children(Visitor &visitor) const override final {
-        Cell::visit_children(visitor);
         for (auto it = TM::Vector<T>::begin(); it != TM::Vector<T>::end(); ++it) {
             visitor.visit(*it);
         }

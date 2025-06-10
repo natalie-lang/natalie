@@ -6,13 +6,12 @@ namespace Natalie {
 
 class MethodObject : public AbstractMethodObject {
 public:
-    MethodObject(Value object, Method *method)
-        : AbstractMethodObject { Object::Type::Method, GlobalEnv::the()->Object()->const_fetch("Method"_s).as_class(), method }
-        , m_object { object } { }
+    static MethodObject *create(Value object, Method *method) {
+        return new MethodObject { object, method };
+    }
 
-    MethodObject(Value object, Method *method, SymbolObject *method_missing_name)
-        : MethodObject { object, method } {
-        m_method_missing_name = method_missing_name;
+    static MethodObject *create(Value object, Method *method, SymbolObject *method_missing_name) {
+        return new MethodObject { object, method, method_missing_name };
     }
 
     Value unbind(Env *);
@@ -32,8 +31,8 @@ public:
     }
 
     virtual ProcObject *to_proc(Env *env) override {
-        auto block = new Block { *env, m_object, m_method->fn(), m_method->arity(), Block::BlockType::Method };
-        return new ProcObject { block };
+        auto block = Block::create(*env, m_object, m_method->fn(), m_method->arity(), Block::BlockType::Method);
+        return ProcObject::create(block);
     }
 
     Value call(Env *env, Args &&args, Block *block) {
@@ -54,6 +53,15 @@ public:
     }
 
 private:
+    MethodObject(Value object, Method *method)
+        : AbstractMethodObject { Object::Type::Method, GlobalEnv::the()->Object()->const_fetch("Method"_s).as_class(), method }
+        , m_object { object } { }
+
+    MethodObject(Value object, Method *method, SymbolObject *method_missing_name)
+        : MethodObject { object, method } {
+        m_method_missing_name = method_missing_name;
+    }
+
     Value m_object;
     SymbolObject *m_method_missing_name { nullptr };
 };

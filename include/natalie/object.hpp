@@ -35,24 +35,30 @@ public:
         ConstMissing,
     };
 
-    Object()
-        : m_klass { GlobalEnv::the()->Object() } { }
-
-    Object(ClassObject *klass)
-        : m_klass { klass } {
-        assert(klass);
+    static Object *create() {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new Object();
     }
 
-    Object(Type type)
-        : m_type { type } { }
-
-    Object(Type type, ClassObject *klass)
-        : m_klass { klass }
-        , m_type { type } {
-        assert(klass);
+    static Object *create(ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new Object(klass);
     }
 
-    Object(const Object &);
+    static Object *create(Type type) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new Object(type);
+    }
+
+    static Object *create(Type type, ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new Object(type, klass);
+    }
+
+    static Object *create(const Object &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new Object(other);
+    }
 
     Object &operator=(const Object &) = delete;
 
@@ -199,6 +205,25 @@ public:
     virtual String dbg_inspect(int indent = 0) const override;
 
 protected:
+    Object()
+        : m_klass { GlobalEnv::the()->Object() } { }
+
+    Object(ClassObject *klass)
+        : m_klass { klass } {
+        assert(klass);
+    }
+
+    Object(Type type)
+        : m_type { type } { }
+
+    Object(Type type, ClassObject *klass)
+        : m_klass { klass }
+        , m_type { type } {
+        assert(klass);
+    }
+
+    Object(const Object &);
+
     ClassObject *m_klass { nullptr };
 
 private:

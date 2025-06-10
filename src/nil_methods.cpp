@@ -20,24 +20,24 @@ Value NilMethods::rationalize(const Value self, const Optional<Value>) {
 
 Value NilMethods::to_s(const Value) {
     if (!s_string)
-        s_string = new StringObject { "" };
+        s_string = StringObject::create("");
     return s_string;
 }
 
 Value NilMethods::to_a(const Value) {
-    return new ArrayObject {};
+    return ArrayObject::create();
 }
 
 Value NilMethods::to_c(const Value) {
-    return new ComplexObject { Value::integer(0) };
+    return ComplexObject::create(Value::integer(0));
 }
 
 Value NilMethods::to_h(const Value) {
-    return new HashObject {};
+    return HashObject::create();
 }
 
 Value NilMethods::to_f(const Value) {
-    return new FloatObject { 0.0 };
+    return FloatObject::create(0.0);
 }
 
 Value NilMethods::to_i(const Value) {
@@ -45,11 +45,11 @@ Value NilMethods::to_i(const Value) {
 }
 
 Value NilMethods::to_r(const Value) {
-    return new RationalObject { Value::integer(0), Value::integer(1) };
+    return RationalObject::create(Value::integer(0), Value::integer(1));
 }
 
 Value NilMethods::inspect(const Value) {
-    return new StringObject { "nil" };
+    return StringObject::create("nil");
 }
 
 }

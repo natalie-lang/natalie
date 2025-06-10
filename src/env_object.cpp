@@ -1,6 +1,5 @@
 #include "natalie.hpp"
 #include "natalie/env.hpp"
-#include "tm/vector.hpp"
 
 #include <assert.h>
 #include <fcntl.h>
@@ -16,14 +15,14 @@ static Value env_size(Env *env, Value self, Args &&, Block *) {
 
 static inline StringObject *string_with_default_encoding(const char *str) {
     if (EncodingObject::default_internal())
-        return new StringObject { str, EncodingObject::default_internal() };
-    return new StringObject { str };
+        return StringObject::create(str, EncodingObject::default_internal());
+    return StringObject::create(str);
 }
 
 static inline StringObject *string_with_default_encoding(const char *str, size_t len) {
     if (EncodingObject::default_internal())
-        return new StringObject { str, len, EncodingObject::default_internal() };
-    return new StringObject { str, len };
+        return StringObject::create(str, len, EncodingObject::default_internal());
+    return StringObject::create(str, len);
 }
 
 Value EnvObject::inspect(Env *env) {
@@ -31,7 +30,7 @@ Value EnvObject::inspect(Env *env) {
 }
 
 Value EnvObject::to_hash(Env *env, Block *block) {
-    HashObject *hash = new HashObject {};
+    HashObject *hash = HashObject::create();
     size_t i = 1;
     char *pair = *environ;
     if (!pair) return hash;
@@ -71,7 +70,7 @@ size_t EnvObject::size() const {
 
 Value EnvObject::delete_if(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, env_size, 0 };
+        Block *size_block = Block::create(*env, this, env_size, 0);
         return send(env, "enum_for"_s, { "delete_if"_s }, size_block);
     }
 
@@ -83,7 +82,7 @@ Value EnvObject::delete_key(Env *env, Value name, Block *block) {
     auto namestr = name.to_str(env);
     char *value = getenv(namestr->c_str());
     if (value) {
-        auto value_obj = new StringObject { value };
+        auto value_obj = StringObject::create(value);
         ::unsetenv(namestr->c_str());
         return value_obj;
     } else if (block) {
@@ -110,7 +109,7 @@ Value EnvObject::each(Env *env, Block *block) {
         return this;
     } else {
         auto envhash = to_hash(env, nullptr);
-        Block *size_block = new Block { *env, envhash.as_hash(), HashObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, envhash.as_hash(), HashObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
 }
@@ -125,7 +124,7 @@ Value EnvObject::each_key(Env *env, Block *block) {
         return this;
     } else {
         auto envhash = to_hash(env, nullptr);
-        Block *size_block = new Block { *env, envhash.as_hash(), HashObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, envhash.as_hash(), HashObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each_key"_s }, size_block);
     }
 }
@@ -140,7 +139,7 @@ Value EnvObject::each_value(Env *env, Block *block) {
         return this;
     } else {
         auto envhash = to_hash(env, nullptr);
-        Block *size_block = new Block { *env, envhash.as_hash(), HashObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, envhash.as_hash(), HashObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each_value"_s }, size_block);
     }
 }
@@ -149,8 +148,8 @@ Value EnvObject::assoc(Env *env, Value name) {
     auto namestr = name.to_str(env);
     char *value = getenv(namestr->c_str());
     if (value) {
-        StringObject *valuestr = new StringObject { value };
-        return new ArrayObject { { namestr, valuestr } };
+        StringObject *valuestr = StringObject::create(value);
+        return ArrayObject::create({ namestr, valuestr });
     } else {
         return Value::nil();
     }
@@ -164,7 +163,7 @@ Value EnvObject::rassoc(Env *env, Value value) {
     auto name = key(env, value);
     if (name.is_nil())
         return Value::nil();
-    return new ArrayObject { name, value };
+    return ArrayObject::create({ name, value });
 }
 
 Value EnvObject::ref(Env *env, Value name) {
@@ -189,7 +188,7 @@ Value EnvObject::fetch(Env *env, Value name, Optional<Value> default_arg, Block 
     name.assert_type(env, Object::Type::String, "String");
     char *value = getenv(name.as_string()->c_str());
     if (value) {
-        return new StringObject { value };
+        return StringObject::create(value);
     } else if (block) {
         if (default_arg)
             env->warn("block supersedes default value argument");
@@ -216,7 +215,7 @@ Value EnvObject::refeq(Env *env, Value name, Value value) {
 
 Value EnvObject::keep_if(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, env_size, 0 };
+        Block *size_block = Block::create(*env, this, env_size, 0);
         return send(env, "enum_for"_s, { "keep_if"_s }, size_block);
     }
 
@@ -234,7 +233,7 @@ Value EnvObject::key(Env *env, Value value) {
         const char *eq = strchr(pair, '=');
         assert(eq);
         if (needle == eq + 1)
-            return new StringObject { pair, static_cast<size_t>(eq - pair) };
+            return StringObject::create(pair, static_cast<size_t>(eq - pair));
 
         pair = *(environ + i);
     }
@@ -262,7 +261,7 @@ Value EnvObject::has_value(Env *env, Value name) {
 }
 
 Value EnvObject::to_s() const {
-    return new StringObject { "ENV" };
+    return StringObject::create("ENV");
 }
 
 Value EnvObject::rehash() const {
@@ -285,7 +284,7 @@ Value EnvObject::clone(Env *env) {
 
 Value EnvObject::reject(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, env_size, 0 };
+        Block *size_block = Block::create(*env, this, env_size, 0);
         return send(env, "enum_for"_s, { "reject"_s }, size_block);
     }
 
@@ -294,7 +293,7 @@ Value EnvObject::reject(Env *env, Block *block) {
 
 Value EnvObject::reject_in_place(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, env_size, 0 };
+        Block *size_block = Block::create(*env, this, env_size, 0);
         return send(env, "enum_for"_s, { "reject!"_s }, size_block);
     }
 
@@ -329,7 +328,7 @@ Value EnvObject::replace(Env *env, Value hash) {
 
 Value EnvObject::select(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, env_size, 0 };
+        Block *size_block = Block::create(*env, this, env_size, 0);
         return send(env, "enum_for"_s, { "select"_s }, size_block);
     }
 
@@ -338,7 +337,7 @@ Value EnvObject::select(Env *env, Block *block) {
 
 Value EnvObject::select_in_place(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, env_size, 0 };
+        Block *size_block = Block::create(*env, this, env_size, 0);
         return send(env, "enum_for"_s, { "select!"_s }, size_block);
     }
 
@@ -369,7 +368,7 @@ Value EnvObject::shift() {
     auto name = string_with_default_encoding(pair, static_cast<size_t>(eq - pair));
     auto value = string_with_default_encoding(getenv(name->c_str()));
     unsetenv(name->c_str());
-    return new ArrayObject { name, value };
+    return ArrayObject::create({ name, value });
 }
 
 Value EnvObject::invert(Env *env) {
@@ -387,14 +386,14 @@ Value EnvObject::slice(Env *env, Args &&args) {
     if (args.has_keyword_hash())
         env->raise("TypeError", "no implicit conversion of Hash into String");
 
-    auto result = new HashObject;
+    auto result = HashObject::create();
     for (size_t i = 0; i < args.size(); i++) {
         auto name = args[i];
         auto namestr = name.to_str(env);
 
         const char *value = getenv(namestr->c_str());
         if (value != nullptr) {
-            result->put(env, name, new StringObject { value });
+            result->put(env, name, StringObject::create(value));
         }
     }
     return result;
@@ -429,7 +428,7 @@ Value EnvObject::values(Env *env) {
 }
 
 Value EnvObject::values_at(Env *env, Args &&args) {
-    auto result = new ArrayObject { args.size() };
+    auto result = ArrayObject::create(args.size());
     for (size_t i = 0; i < args.size(); i++) {
         result->push(ref(env, args[i]));
     }

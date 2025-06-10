@@ -45,10 +45,10 @@ Value ProcObject::ltlt(Env *env, Value other) {
         env->raise("TypeError", "callable object is expected");
 
     env->var_set("other", 0, true, other);
-    auto block = new Block { *env, this, compose_ltlt, -1 };
+    auto block = Block::create(*env, this, compose_ltlt, -1);
     if (other.is_proc() && other.as_proc()->is_lambda())
         block->set_type(Block::BlockType::Lambda);
-    return new ProcObject { block };
+    return ProcObject::create(block);
 }
 
 Value ProcObject::gtgt(Env *env, Value other) {
@@ -56,15 +56,15 @@ Value ProcObject::gtgt(Env *env, Value other) {
         env->raise("TypeError", "callable object is expected");
 
     env->var_set("other", 0, true, other);
-    auto block = new Block { *env, this, compose_gtgt, -1 };
+    auto block = Block::create(*env, this, compose_gtgt, -1);
     if (is_lambda())
         block->set_type(Block::BlockType::Lambda);
-    return new ProcObject { block };
+    return ProcObject::create(block);
 }
 
 Value ProcObject::ruby2_keywords(Env *env) {
     auto block_wrapper = [](Env *env, Value self, Args &&args, Block *block) -> Value {
-        auto kwargs = args.has_keyword_hash() ? args.pop_keyword_hash() : new HashObject;
+        auto kwargs = args.has_keyword_hash() ? args.pop_keyword_hash() : HashObject::create();
         auto new_args = args.to_array_for_block(env, 0, -1, true);
         if (!kwargs->is_empty())
             new_args->push(HashObject::ruby2_keywords_hash(env, kwargs));
@@ -73,9 +73,9 @@ Value ProcObject::ruby2_keywords(Env *env) {
         return old_block->call(env, std::move(new_args), block);
     };
 
-    OwnedPtr<Env> inner_env { new Env { *env } };
-    inner_env->var_set("old_block", 1, true, new ProcObject { m_block });
-    m_block = new Block { std::move(inner_env), this, block_wrapper, -1 };
+    OwnedPtr<Env> inner_env { Env::create(*env) };
+    inner_env->var_set("old_block", 1, true, ProcObject::create(m_block));
+    m_block = Block::create(std::move(inner_env), this, block_wrapper, -1);
 
     return this;
 }
@@ -84,7 +84,7 @@ Value ProcObject::source_location() {
     assert(m_block);
     auto file = m_block->env()->file();
     if (file == nullptr) return Value::nil();
-    return new ArrayObject { new StringObject { file }, Value::integer(static_cast<nat_int_t>(m_block->env()->line())) };
+    return ArrayObject::create({ StringObject::create(file), Value::integer(static_cast<nat_int_t>(m_block->env()->line())) });
 }
 
 StringObject *ProcObject::to_s(Env *env) {
@@ -97,7 +97,7 @@ StringObject *ProcObject::to_s(Env *env) {
     if (m_block->self().is_symbol())
         suffix.append(String::format(" (&:{})", m_block->self().as_symbol()->string()));
     auto str = String::format("#<{}:{}{}>", m_klass->inspect_module(), String::hex(object_id(this), String::HexFormat::LowercaseAndPrefixed), suffix);
-    return new StringObject { std::move(str), Encoding::ASCII_8BIT };
+    return StringObject::create(std::move(str), Encoding::ASCII_8BIT);
 }
 
 }

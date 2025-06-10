@@ -1,7 +1,5 @@
 #pragma once
 
-#include <utility>
-
 #include "natalie/class_object.hpp"
 #include "natalie/float_object.hpp"
 #include "natalie/forward.hpp"
@@ -20,11 +18,20 @@ using namespace TM;
 
 class RandomObject : public Object {
 public:
-    RandomObject(ClassObject *klass)
-        : Object { Object::Type::Random, klass } { }
+    static RandomObject *create() {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new RandomObject();
+    }
 
-    RandomObject()
-        : Object { Object::Type::Random, GlobalEnv::the()->Random() } { }
+    static RandomObject *create(ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new RandomObject(klass);
+    }
+
+    static RandomObject *create(const RandomObject &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new RandomObject(other);
+    }
 
     ~RandomObject() { delete m_generator; }
 
@@ -58,7 +65,7 @@ public:
         if (integer.is_negative())
             env->raise("ArgumentError", "negative string size (or size too big)");
         if (integer.is_zero())
-            return new StringObject { "", Encoding::ASCII_8BIT };
+            return StringObject::create("", Encoding::ASCII_8BIT);
 
         size_t length = (size_t)integer.to_nat_int_t();
         char buffer[length];
@@ -69,17 +76,28 @@ public:
 #else
         arc4random_buf(buffer, length);
 #endif
-        return new StringObject { buffer, length, Encoding::ASCII_8BIT };
+        return StringObject::create(buffer, length, Encoding::ASCII_8BIT);
     }
 
 private:
+    RandomObject()
+        : Object { Object::Type::Random, GlobalEnv::the()->Random() } { }
+
+    RandomObject(ClassObject *klass)
+        : Object { Object::Type::Random, klass } { }
+
+    RandomObject(const RandomObject &other)
+        : Object { other }
+        , m_seed { other.m_seed }
+        , m_generator { new std::mt19937(*other.m_generator) } { }
+
     nat_int_t m_seed;
     std::mt19937 *m_generator { nullptr };
 
     Value generate_random(double min, double max) {
         assert(m_generator);
         std::uniform_real_distribution<double> random_number(min, max);
-        return new FloatObject { random_number(*m_generator) };
+        return FloatObject::create(random_number(*m_generator));
     }
 
     Value generate_random(nat_int_t min, nat_int_t max) {

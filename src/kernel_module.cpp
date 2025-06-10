@@ -3,7 +3,6 @@
 #include "natalie/thread_object.hpp"
 #include "natalie/throw_catch_exception.hpp"
 
-#include <errno.h>
 #include <fcntl.h>
 #include <spawn.h>
 #include <stdio.h>
@@ -56,7 +55,7 @@ Value KernelModule::abort_method(Env *env, Optional<Value> message_arg) {
 Value KernelModule::at_exit(Env *env, Block *block) {
     ArrayObject *at_exit_handlers = env->global_get("$NAT_at_exit_handlers"_s).as_array();
     env->ensure_block_given(block);
-    Value proc = new ProcObject { block };
+    Value proc = ProcObject::create(block);
     at_exit_handlers->push(proc);
     return proc;
 }
@@ -71,14 +70,14 @@ Value KernelModule::backtick(Env *env, Value command) {
     auto result = fgets(buf, NAT_SHELL_READ_BYTES, process);
     StringObject *out;
     if (result) {
-        out = new StringObject { buf };
+        out = StringObject::create(buf);
         while (1) {
             result = fgets(buf, NAT_SHELL_READ_BYTES, process);
             if (!result) break;
             out->append(buf);
         }
     } else {
-        out = new StringObject {};
+        out = StringObject::create();
     }
     int status = pclose2(process, pid);
     set_status_object(env, pid, status);
@@ -122,7 +121,7 @@ Value KernelModule::caller_locations(Env *env, Optional<Value> start_arg, Option
 Value KernelModule::catch_method(Env *env, Optional<Value> name_arg, Block *block) {
     if (!block)
         env->raise("LocalJumpError", "no block given");
-    auto name = name_arg.value_or([]() { return new Object; });
+    auto name = name_arg.value_or([]() { return Object::create(); });
 
     try {
         Env block_env { env };
@@ -148,7 +147,7 @@ Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, boo
         return real;
 
     if (real.is_complex() && imaginary.value().is_complex())
-        return real.send(env, "+"_s, { imaginary.value().send(env, "*"_s, { new ComplexObject { Value::integer(0), Value::integer(1) } }) });
+        return real.send(env, "+"_s, { imaginary.value().send(env, "*"_s, { ComplexObject::create(Value::integer(0), Value::integer(1)) }) });
 
     auto is_numeric = [&env](Value val) -> bool {
         if (val.is_numeric() || val.is_rational() || val.is_complex())
@@ -161,9 +160,9 @@ Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, boo
 
     if (is_numeric(real)) {
         if (!imaginary) {
-            return new ComplexObject { real };
+            return ComplexObject::create(real);
         } else if (is_numeric(imaginary.value())) {
-            return new ComplexObject { real, imaginary.value() };
+            return ComplexObject::create(real, imaginary.value());
         }
     }
 
@@ -181,7 +180,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
     };
     if (!input->is_ascii_only()) {
         if (string_to_c)
-            return new ComplexObject { Value::integer(0) };
+            return ComplexObject::create(Value::integer(0));
         return error();
     }
     enum class State {
@@ -331,11 +330,11 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
     switch (state) {
     case State::Start:
         if (string_to_c)
-            return new ComplexObject { Value::integer(0), Value::integer(0) };
+            return ComplexObject::create(Value::integer(0), Value::integer(0));
         return error();
     default: {
         if (real_start != nullptr && real_end != nullptr) {
-            auto tmp = new StringObject { real_start, static_cast<size_t>(real_end - real_start + 1) };
+            auto tmp = StringObject::create(real_start, static_cast<size_t>(real_end - real_start + 1));
             switch (real_type) {
             case Type::Integer:
                 new_real = Integer(env, tmp);
@@ -354,7 +353,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
         if (imag_start != nullptr && imag_end != nullptr) {
             if (polar)
                 imag_start++; // skip '@'
-            auto tmp = new StringObject { imag_start, static_cast<size_t>(imag_end - imag_start + 1) };
+            auto tmp = StringObject::create(imag_start, static_cast<size_t>(imag_end - imag_start + 1));
             switch (imag_type) {
             case Type::Integer:
                 new_imag = Integer(env, tmp);
@@ -374,7 +373,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             auto Complex = GlobalEnv::the()->Object()->const_get(env, "Complex"_s);
             return Complex.send(env, "polar"_s, { new_real, new_imag });
         }
-        return new ComplexObject { new_real, new_imag };
+        return ComplexObject::create(new_real, new_imag);
     }
     }
 }
@@ -391,9 +390,9 @@ Value KernelModule::cur_dir(Env *env) {
     if (env->file() == nullptr) {
         env->raise("RuntimeError", "could not get current directory");
     } else if (strcmp(env->file(), "-e") == 0) {
-        return new StringObject { "." };
+        return StringObject::create(".");
     } else {
-        Value relative = new StringObject { env->file() };
+        Value relative = StringObject::create(env->file());
         StringObject *absolute = FileObject::expand_path(env, relative).as_string();
         size_t last_slash = 0;
         bool found = false;
@@ -419,7 +418,7 @@ Value KernelModule::exit(Env *env, Optional<Value> status_arg) {
         }
     }
 
-    ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s).as_class(), new StringObject { "exit" } };
+    ExceptionObject *exception = ExceptionObject::create(find_top_level_const(env, "SystemExit"_s).as_class(), StringObject::create("exit"));
     exception->ivar_set(env, "@status"_s, status.to_int(env));
     env->raise_exception(exception);
     return Value::nil();
@@ -537,7 +536,7 @@ Value KernelModule::gets(Env *env) {
     char buf[2048];
     if (!fgets(buf, 2048, stdin))
         return Value::nil();
-    return new StringObject { buf };
+    return StringObject::create(buf);
 }
 
 Value KernelModule::get_usage(Env *env) {
@@ -545,21 +544,21 @@ Value KernelModule::get_usage(Env *env) {
     if (getrusage(RUSAGE_SELF, &usage) != 0)
         return Value::nil();
 
-    HashObject *hash = new HashObject {};
-    hash->put(env, new StringObject { "maxrss" }, Value::integer(usage.ru_maxrss));
-    hash->put(env, new StringObject { "ixrss" }, Value::integer(usage.ru_ixrss));
-    hash->put(env, new StringObject { "idrss" }, Value::integer(usage.ru_idrss));
-    hash->put(env, new StringObject { "isrss" }, Value::integer(usage.ru_isrss));
-    hash->put(env, new StringObject { "minflt" }, Value::integer(usage.ru_minflt));
-    hash->put(env, new StringObject { "majflt" }, Value::integer(usage.ru_majflt));
-    hash->put(env, new StringObject { "nswap" }, Value::integer(usage.ru_nswap));
-    hash->put(env, new StringObject { "inblock" }, Value::integer(usage.ru_inblock));
-    hash->put(env, new StringObject { "oublock" }, Value::integer(usage.ru_oublock));
-    hash->put(env, new StringObject { "msgsnd" }, Value::integer(usage.ru_msgsnd));
-    hash->put(env, new StringObject { "msgrcv" }, Value::integer(usage.ru_msgrcv));
-    hash->put(env, new StringObject { "nsignals" }, Value::integer(usage.ru_nsignals));
-    hash->put(env, new StringObject { "nvcsw" }, Value::integer(usage.ru_nvcsw));
-    hash->put(env, new StringObject { "nivcsw" }, Value::integer(usage.ru_nivcsw));
+    HashObject *hash = HashObject::create();
+    hash->put(env, StringObject::create("maxrss"), Value::integer(usage.ru_maxrss));
+    hash->put(env, StringObject::create("ixrss"), Value::integer(usage.ru_ixrss));
+    hash->put(env, StringObject::create("idrss"), Value::integer(usage.ru_idrss));
+    hash->put(env, StringObject::create("isrss"), Value::integer(usage.ru_isrss));
+    hash->put(env, StringObject::create("minflt"), Value::integer(usage.ru_minflt));
+    hash->put(env, StringObject::create("majflt"), Value::integer(usage.ru_majflt));
+    hash->put(env, StringObject::create("nswap"), Value::integer(usage.ru_nswap));
+    hash->put(env, StringObject::create("inblock"), Value::integer(usage.ru_inblock));
+    hash->put(env, StringObject::create("oublock"), Value::integer(usage.ru_oublock));
+    hash->put(env, StringObject::create("msgsnd"), Value::integer(usage.ru_msgsnd));
+    hash->put(env, StringObject::create("msgrcv"), Value::integer(usage.ru_msgrcv));
+    hash->put(env, StringObject::create("nsignals"), Value::integer(usage.ru_nsignals));
+    hash->put(env, StringObject::create("nvcsw"), Value::integer(usage.ru_nvcsw));
+    hash->put(env, StringObject::create("nivcsw"), Value::integer(usage.ru_nivcsw));
     return hash;
 }
 
@@ -572,7 +571,7 @@ Value KernelModule::Hash(Env *env, Value value) {
         return value;
 
     if (value.is_nil() || (value.is_array() && value.as_array()->is_empty()))
-        return new HashObject;
+        return HashObject::create();
 
     return value.to_hash(env);
 }
@@ -580,7 +579,7 @@ Value KernelModule::Hash(Env *env, Value value) {
 Value KernelModule::lambda(Env *env, Block *block) {
     if (block) {
         block->set_type(Block::BlockType::Lambda);
-        return new ProcObject { block };
+        return ProcObject::create(block);
     } else {
         env->raise("ArgumentError", "tried to create Proc object without a block");
     }
@@ -594,7 +593,7 @@ Value KernelModule::p(Env *env, Args &&args) {
         puts(env, { arg });
         return args[0];
     } else {
-        ArrayObject *result = new ArrayObject { args.size() };
+        ArrayObject *result = ArrayObject::create(args.size());
         Vector<Value> puts_args(args.size());
         for (size_t i = 0; i < args.size(); i++) {
             result->push(args[i]);
@@ -617,7 +616,7 @@ Value KernelModule::print(Env *env, Args &&args) {
 
 Value KernelModule::proc(Env *env, Block *block) {
     if (block)
-        return new ProcObject { block };
+        return ProcObject::create(block);
     else
         env->raise("ArgumentError", "tried to create Proc object without a block");
 }
@@ -656,7 +655,7 @@ Value KernelModule::Rational(Env *env, Value x, Optional<Value> y_arg, bool exce
         return Rational(env, x.as_float()->to_double() / y.as_float()->to_double());
     } else {
         if (x.is_integer()) {
-            return new RationalObject { x.integer(), Value::integer(1) };
+            return RationalObject::create(x.integer(), Value::integer(1));
         }
 
         if (!exception)
@@ -692,7 +691,7 @@ RationalObject *KernelModule::Rational(Env *env, double arg) {
     auto y = IntegerMethods::pow(env, radix, power).integer();
 
     int exponent;
-    FloatObject *significand = new FloatObject { std::frexp(arg, &exponent) };
+    FloatObject *significand = FloatObject::create(std::frexp(arg, &exponent));
     auto x = significand->mul(env, y).as_float()->to_i(env).integer();
 
     class Integer two(2);
@@ -797,7 +796,7 @@ Value KernelModule::spawn(Env *env, Args &&args) {
                 const_cast<char *const *>(cmd),
                 new_env.is_empty() ? environ : new_env.data());
         } else {
-            auto splitter = new RegexpObject { env, "\\s+" };
+            auto splitter = RegexpObject::create(env, "\\s+");
             auto split = arg->split(env, splitter, 0).as_array();
             const char *cmd[split->size() + 1];
             for (size_t i = 0; i < split->size(); i++) {
@@ -983,7 +982,7 @@ Value KernelModule::initialize_copy(Env *env, Value self, Value object) {
 
 Value KernelModule::inspect(Env *env, Value value) {
     if (value.is_module() && value.as_module()->name())
-        return new StringObject { value.as_module()->name().value() };
+        return StringObject::create(value.as_module()->name().value());
     else
         return StringObject::format("#<{}:{}>", value.klass()->inspect_module(), value->pointer_id());
 }
@@ -1011,7 +1010,7 @@ Value KernelModule::instance_variable_set(Env *env, Value self, Value name_val, 
 
 Value KernelModule::instance_variables(Env *env, Value self) {
     if (!self.has_instance_variables())
-        return new ArrayObject;
+        return ArrayObject::create();
 
     return self->instance_variables(env);
 }
@@ -1028,7 +1027,7 @@ Value KernelModule::loop(Env *env, Value self, Block *block) {
         auto infinity_fn = [](Env *env, Value, Args &&, Block *) -> Value {
             return FloatObject::positive_infinity(env);
         };
-        auto size_block = new Block { *env, self, infinity_fn, 0 };
+        auto size_block = Block::create(*env, self, infinity_fn, 0);
         return self.send(env, "enum_for"_s, { "loop"_s }, size_block);
     }
 
@@ -1059,13 +1058,13 @@ Value KernelModule::method(Env *env, Value self, Value name) {
             if (respond_to_missing.method()->call(env, self, { name_symbol, Value::True() }, nullptr).is_truthy()) {
                 auto method_missing = module->find_method(env, "method_missing"_s);
                 if (method_missing.is_defined()) {
-                    return new MethodObject { self, method_missing.method(), name_symbol };
+                    return MethodObject::create(self, method_missing.method(), name_symbol);
                 }
             }
         }
         env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspected(env), self.klass()->inspect_module());
     }
-    return new MethodObject { self, method_info.method() };
+    return MethodObject::create(self, method_info.method());
 }
 
 Value KernelModule::methods(Env *env, Value self, Optional<Value> regular_val) {
@@ -1080,7 +1079,7 @@ Value KernelModule::methods(Env *env, Value self, Optional<Value> regular_val) {
     if (self->singleton_class())
         return self->singleton_class()->instance_methods(env, Value::False());
     else
-        return new ArrayObject {};
+        return ArrayObject::create();
 }
 
 bool KernelModule::neqtilde(Env *env, Value self, Value other) {

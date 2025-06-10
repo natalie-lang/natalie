@@ -1,6 +1,5 @@
 #include "natalie.hpp"
 
-#include <stdio.h>
 #include <stdlib.h>
 
 using namespace Natalie;
@@ -15,7 +14,7 @@ Value Dir_mktmpdir(Env *env, Value self, Args &&args, Block *) {
         env->raise_errno();
     close(fh);
     unlink(tmpdir.c_str());
-    auto result = new StringObject { std::move(tmpdir) };
+    auto result = StringObject::create(std::move(tmpdir));
     self->send(env, "mkdir"_s, { result });
     return result;
 }
@@ -25,7 +24,7 @@ Value Dir_tmpdir(Env *env, Value self, Args &&args, Block *) {
 
     const auto tmpdir = getenv("TMPDIR");
     if (tmpdir)
-        return new StringObject { tmpdir, Encoding::ASCII_8BIT };
+        return StringObject::create(tmpdir, Encoding::ASCII_8BIT);
     return find_top_level_const(env, "Etc"_s).send(env, "systmpdir"_s, std::move(args));
 }
 

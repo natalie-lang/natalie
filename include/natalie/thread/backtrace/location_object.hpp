@@ -3,7 +3,6 @@
 #include "natalie/forward.hpp"
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
-#include "natalie/thread_object.hpp"
 
 namespace Natalie {
 
@@ -17,8 +16,8 @@ public:
 
     LocationObject(const String &source_location, const String &file, const size_t line)
         : Object { Object::Type::ThreadBacktraceLocation, GlobalEnv::the()->Object()->const_fetch("Thread"_s).as_class()->const_fetch("Backtrace"_s).as_module()->const_fetch("Location"_s).as_class() }
-        , m_source_location { new StringObject { source_location } }
-        , m_file { new StringObject { file } }
+        , m_source_location { StringObject::create(source_location) }
+        , m_file { StringObject::create(file) }
         , m_line { Value::integer(line) } { }
 
     Value absolute_path(Env *) const;

@@ -18,11 +18,6 @@ public:
     static SymbolObject *intern(const char *, size_t, EncodingObject * = nullptr);
     static SymbolObject *intern(const String &, EncodingObject * = nullptr);
 
-    static SymbolObject *intern_with_lock(const String &name, EncodingObject *encoding = nullptr) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return intern(name, encoding);
-    }
-
     static ArrayObject *all_symbols(Env *);
     StringObject *to_s(Env *);
     SymbolObject *to_sym(Env *env) { return this; }
@@ -126,7 +121,7 @@ private:
 };
 
 [[nodiscard]] __attribute__((always_inline)) inline SymbolObject *operator"" _s(const char *cstring, size_t) {
-    return SymbolObject::intern_with_lock(cstring);
+    return SymbolObject::intern(cstring);
 }
 
 }

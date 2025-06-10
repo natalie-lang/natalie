@@ -16,13 +16,13 @@ RationalObject *RationalObject::create(Env *env, Integer numerator, Integer deno
     numerator = numerator / gcd;
     denominator = denominator / gcd;
 
-    return new RationalObject { numerator, denominator };
+    return RationalObject::create(numerator, denominator);
 }
 
 Value RationalObject::add(Env *env, Value other) {
     if (other.is_integer()) {
         auto numerator = m_numerator + (m_denominator * other.integer());
-        return new RationalObject { numerator, m_denominator };
+        return RationalObject::create(numerator, m_denominator);
     } else if (other.is_float()) {
         return this->to_f(env).as_float()->add(env, other);
     } else if (other.is_rational()) {
@@ -45,7 +45,7 @@ Value RationalObject::cmp(Env *env, Value other) {
     if (other.is_integer()) {
         if (m_denominator == 1)
             return IntegerMethods::cmp(env, m_numerator, other.integer());
-        other = new RationalObject { other.integer(), Value::integer(1) };
+        other = RationalObject::create(other.integer(), Value::integer(1));
     }
     if (other.is_rational()) {
         auto rational = other.as_rational();
@@ -66,19 +66,19 @@ Value RationalObject::cmp(Env *env, Value other) {
 
 Value RationalObject::coerce(Env *env, Value other) {
     if (other.is_integer()) {
-        return new ArrayObject { new RationalObject(other.integer(), Value::integer(1)), this };
+        return ArrayObject::create({ RationalObject::create(other.integer(), Value::integer(1)), this });
     } else if (other.is_float()) {
-        return new ArrayObject { other, this->to_f(env) };
+        return ArrayObject::create({ other, this->to_f(env) });
     } else if (other.is_rational()) {
-        return new ArrayObject { other, this };
+        return ArrayObject::create({ other, this });
     } else if (other.is_complex()) {
         auto complex = other.as_complex();
         if (complex->imaginary().integer().is_zero()) {
-            auto a = new RationalObject { complex->real(), Value::integer(1) };
-            auto b = new ComplexObject(this);
-            return new ArrayObject { a, b };
+            auto a = RationalObject::create(complex->real(), Value::integer(1));
+            auto b = ComplexObject::create(this);
+            return ArrayObject::create({ a, b });
         } else {
-            return new ArrayObject { other, new ComplexObject(this) };
+            return ArrayObject::create({ other, ComplexObject::create(this) });
         }
     }
 
@@ -160,12 +160,12 @@ Value RationalObject::inspect(Env *env) {
 }
 
 Value RationalObject::marshal_dump(Env *env) {
-    return new ArrayObject { m_numerator, m_denominator };
+    return ArrayObject::create({ m_numerator, m_denominator });
 }
 
 Value RationalObject::mul(Env *env, Value other) {
     if (other.is_integer())
-        other = new RationalObject { other.integer(), Value::integer(1) };
+        other = RationalObject::create(other.integer(), Value::integer(1));
 
     if (other.is_rational()) {
         auto num1 = other.as_rational()->numerator(env).integer();
@@ -236,7 +236,7 @@ Value RationalObject::pow(Env *env, Value other) {
 Value RationalObject::sub(Env *env, Value other) {
     if (other.is_integer()) {
         auto numerator = m_numerator - m_denominator * other.integer();
-        return new RationalObject { numerator, m_denominator };
+        return RationalObject::create(numerator, m_denominator);
     } else if (other.is_float()) {
         return this->to_f(env).as_float()->sub(env, other);
     } else if (other.is_rational()) {

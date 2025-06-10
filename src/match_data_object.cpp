@@ -13,7 +13,7 @@ namespace {
 
 Value MatchDataObject::array(int start) {
     auto size = (size_t)(m_region->num_regs - start);
-    auto array = new ArrayObject { size };
+    auto array = ArrayObject::create(size);
     for (int i = start; i < m_region->num_regs; i++) {
         array->push(group(i));
     }
@@ -43,9 +43,9 @@ Value MatchDataObject::byteoffset(Env *env, Value n) {
     auto begin = m_region->beg[index];
     auto end = m_region->end[index];
     if (begin == -1)
-        return new ArrayObject { Value::nil(), Value::nil() };
+        return ArrayObject::create({ Value::nil(), Value::nil() });
 
-    return new ArrayObject { Value::integer(begin), Value::integer(end) };
+    return ArrayObject::create({ Value::integer(begin), Value::integer(end) });
 }
 
 ssize_t MatchDataObject::beg_byte_index(size_t index) const {
@@ -95,7 +95,7 @@ Value MatchDataObject::group(int index) const {
 
     const char *str = &m_string->c_str()[m_region->beg[index]];
     size_t length = m_region->end[index] - m_region->beg[index];
-    return new StringObject { str, length, m_string->encoding() };
+    return StringObject::create(str, length, m_string->encoding());
 }
 
 Value MatchDataObject::offset(Env *env, Value n) {
@@ -106,7 +106,7 @@ Value MatchDataObject::offset(Env *env, Value n) {
     ssize_t begin = m_region->beg[index];
     ssize_t end = m_region->end[index];
     if (begin == -1)
-        return new ArrayObject { Value::nil(), Value::nil() };
+        return ArrayObject::create({ Value::nil(), Value::nil() });
 
     size_t current_byte_index = 0;
     size_t current_char_index = 0;
@@ -125,7 +125,7 @@ Value MatchDataObject::offset(Env *env, Value n) {
     }
     size_t end_char_index = current_char_index;
 
-    return new ArrayObject { Value::integer(begin_char_index), Value::integer(end_char_index) };
+    return ArrayObject::create({ Value::integer(begin_char_index), Value::integer(end_char_index) });
 }
 
 Value MatchDataObject::begin(Env *env, Value start) const {
@@ -166,7 +166,7 @@ Value MatchDataObject::end(Env *env, Value end) const {
 
 Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
     if (keys.is_nil()) {
-        auto result = new HashObject {};
+        auto result = HashObject::create();
         for (auto name : *names().as_array()) {
             auto value = ref(env, name);
             result->put(env, name.as_string()->to_sym(env), value);
@@ -177,7 +177,7 @@ Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
     if (!keys.is_array())
         env->raise("TypeError", "wrong argument type {} (expected Array)", keys.klass()->inspect_module());
 
-    auto result = new HashObject {};
+    auto result = HashObject::create();
     if (keys.as_array()->size() > static_cast<size_t>(onig_number_of_names(m_regexp->m_regex)))
         return result;
 
@@ -200,7 +200,7 @@ bool MatchDataObject::eq(Env *env, Value other) const {
 }
 
 Value MatchDataObject::inspect(Env *env) {
-    StringObject *out = new StringObject { "#<MatchData" };
+    StringObject *out = StringObject::create("#<MatchData");
     const auto names_size = static_cast<size_t>(onig_number_of_names(m_regexp->m_regex));
     // NATFIXME: TM::StringView would work too, but we need a constructor from char *
     auto names = TM::Vector<TM::Optional<TM::String>> { names_size };
@@ -259,9 +259,9 @@ Value MatchDataObject::match_length(Env *env, Value index) {
 
 Value MatchDataObject::named_captures(Env *env, Optional<Value> symbolize_names_kwarg) const {
     if (!m_regexp)
-        return new HashObject {};
+        return HashObject::create();
 
-    auto named_captures = new HashObject {};
+    auto named_captures = HashObject::create();
     named_captures_data data { this, env, named_captures, symbolize_names_kwarg && symbolize_names_kwarg.value().is_truthy() };
     onig_foreach_name(
         m_regexp->m_regex,
@@ -274,7 +274,7 @@ Value MatchDataObject::named_captures(Env *env, Optional<Value> symbolize_names_
             if ((static_cast<named_captures_data *>(data))->symbolize_names) {
                 key = SymbolObject::intern(reinterpret_cast<const char *>(name), length, RegexpObject::onig_encoding_to_ruby_encoding(regex->enc));
             } else {
-                key = new StringObject { reinterpret_cast<const char *>(name), length, RegexpObject::onig_encoding_to_ruby_encoding(regex->enc) };
+                key = StringObject::create(reinterpret_cast<const char *>(name), length, RegexpObject::onig_encoding_to_ruby_encoding(regex->enc));
             }
             Value value = Value::nil();
             for (int i = groups_size - 1; i >= 0; i--) {
@@ -293,7 +293,7 @@ Value MatchDataObject::named_captures(Env *env, Optional<Value> symbolize_names_
 
 Value MatchDataObject::names() const {
     if (!m_regexp)
-        return new ArrayObject {};
+        return ArrayObject::create();
     return m_regexp->names();
 }
 
@@ -303,9 +303,9 @@ Value MatchDataObject::post_match(Env *env) {
 
     auto length = m_string->bytesize() - m_region->end[0];
     if (length == 0)
-        return new StringObject { "", m_string->encoding() };
+        return StringObject::create("", m_string->encoding());
 
-    return new StringObject { m_string->string().substring(m_region->end[0], length), m_string->encoding() };
+    return StringObject::create(m_string->string().substring(m_region->end[0], length), m_string->encoding());
 }
 
 Value MatchDataObject::pre_match(Env *env) {
@@ -314,9 +314,9 @@ Value MatchDataObject::pre_match(Env *env) {
 
     auto length = m_region->beg[0];
     if (length == 0)
-        return new StringObject { "", m_string->encoding() };
+        return StringObject::create("", m_string->encoding());
 
-    return new StringObject { m_string->string().substring(0, length), m_string->encoding() };
+    return StringObject::create(m_string->string().substring(0, length), m_string->encoding());
 }
 
 Value MatchDataObject::regexp() const {
@@ -335,7 +335,7 @@ Value MatchDataObject::to_s(Env *env) const {
 }
 
 ArrayObject *MatchDataObject::values_at(Env *env, Args &&args) {
-    auto result = new ArrayObject {};
+    auto result = ArrayObject::create();
     for (size_t i = 0; i < args.size(); i++) {
         auto key = args[i];
         if (key.is_range()) {
@@ -377,10 +377,10 @@ Value MatchDataObject::ref(Env *env, Value index_value, Optional<Value> size_arg
         if (range->exclude_end())
             last--;
         if (last < first)
-            return new ArrayObject {};
+            return ArrayObject::create();
         if (first + static_cast<nat_int_t>(size()) <= 0)
             return Value::nil();
-        auto result = new ArrayObject {};
+        auto result = ArrayObject::create();
         if (last >= static_cast<nat_int_t>(size())) last = size() - 1;
         for (auto i = first; i <= last; i++) {
             auto next_result = group(i);
@@ -406,13 +406,13 @@ Value MatchDataObject::ref(Env *env, Value index_value, Optional<Value> size_arg
         if (size < 0)
             return Value::nil();
         if (size == 0)
-            return new ArrayObject {};
+            return ArrayObject::create();
 
         auto first_result = group(index);
         if (first_result.is_nil())
             return Value::nil();
 
-        auto result = new ArrayObject { first_result };
+        auto result = ArrayObject::create({ first_result });
         for (auto i = index + 1; i < index + size; i++) {
             auto next_result = group(i);
             if (next_result.is_nil()) break;

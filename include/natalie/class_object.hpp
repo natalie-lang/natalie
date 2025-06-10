@@ -14,17 +14,17 @@ namespace Natalie {
 
 class ClassObject : public ModuleObject {
 public:
-    ClassObject()
-        : ClassObject { GlobalEnv::the()->Class() } { }
+    static ClassObject *create() {
+        return new ClassObject();
+    }
 
-    ClassObject(ClassObject *klass)
-        : ModuleObject { Object::Type::Class, klass } { }
+    static ClassObject *create(ClassObject *klass) {
+        return new ClassObject(klass);
+    }
 
-    ClassObject(const ClassObject &other)
-        : ModuleObject { other }
-        , m_object_type { other.m_object_type }
-        , m_is_singleton { other.m_is_singleton }
-        , m_is_initialized { other.m_is_initialized } { }
+    static ClassObject *create(const ClassObject &other) {
+        return new ClassObject(other);
+    }
 
     ClassObject *superclass(Env *env) override {
         if (!m_is_initialized)
@@ -64,6 +64,19 @@ public:
     virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<ClassObject {h} name=\"{}\">", this, m_name.value_or("none"));
     }
+
+protected:
+    ClassObject()
+        : ClassObject { GlobalEnv::the()->Class() } { }
+
+    ClassObject(ClassObject *klass)
+        : ModuleObject { Object::Type::Class, klass } { }
+
+    ClassObject(const ClassObject &other)
+        : ModuleObject { other }
+        , m_object_type { other.m_object_type }
+        , m_is_singleton { other.m_is_singleton }
+        , m_is_initialized { other.m_is_initialized } { }
 
 private:
     Type m_object_type { Type::Object };

@@ -87,17 +87,17 @@ String Env::build_code_location_name() {
 }
 
 void Env::raise(ClassObject *klass, StringObject *message) {
-    ExceptionObject *exception = new ExceptionObject { klass, message };
+    ExceptionObject *exception = ExceptionObject::create(klass, message);
     this->raise_exception(exception);
 }
 
 void Env::raise(ClassObject *klass, String message) {
-    raise(klass, new StringObject(std::move(message)));
+    raise(klass, StringObject::create(std::move(message)));
 }
 
 void Env::raise(const char *class_name, String message) {
     ClassObject *klass = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern(class_name)).as_class();
-    ExceptionObject *exception = new ExceptionObject { klass, new StringObject { std::move(message) } };
+    ExceptionObject *exception = ExceptionObject::create(klass, StringObject::create(std::move(message)));
     this->raise_exception(exception);
 }
 
@@ -117,18 +117,18 @@ void Env::raise_exception(ExceptionObject *exception) {
 }
 
 void Env::raise_key_error(Value receiver, Value key) {
-    auto message = new StringObject { String::format("key not found: {}", key.inspected(this)) };
+    auto message = StringObject::create(String::format("key not found: {}", key.inspected(this)));
     auto key_error_class = GlobalEnv::the()->Object()->const_fetch("KeyError"_s).as_class();
-    ExceptionObject *exception = new ExceptionObject { key_error_class, message };
+    ExceptionObject *exception = ExceptionObject::create(key_error_class, message);
     exception->ivar_set(this, "@receiver"_s, receiver);
     exception->ivar_set(this, "@key"_s, key);
     this->raise_exception(exception);
 }
 
 void Env::raise_local_jump_error(Value exit_value, LocalJumpErrorType type, nat_int_t break_point) {
-    auto message = new StringObject { type == LocalJumpErrorType::Return ? "unexpected return" : "break from proc-closure" };
+    auto message = StringObject::create(type == LocalJumpErrorType::Return ? "unexpected return" : "break from proc-closure");
     auto lje_class = find_top_level_const(this, "LocalJumpError"_s).as_class();
-    ExceptionObject *exception = new ExceptionObject { lje_class, message };
+    ExceptionObject *exception = ExceptionObject::create(lje_class, message);
     exception->set_local_jump_error_type(type);
     exception->ivar_set(this, "@exit_value"_s, exit_value);
     if (break_point != 0)
@@ -185,7 +185,7 @@ void Env::raise_no_method_error(Value receiver, SymbolObject *name, MethodMissin
         NAT_UNREACHABLE();
     }
     auto NoMethodError = find_top_level_const(this, "NoMethodError"_s).as_class();
-    ExceptionObject *exception = new ExceptionObject { NoMethodError, new StringObject { std::move(message) } };
+    ExceptionObject *exception = ExceptionObject::create(NoMethodError, StringObject::create(std::move(message)));
     exception->ivar_set(this, "@receiver"_s, receiver);
     exception->ivar_set(this, "@name"_s, name);
     this->raise_exception(exception);
@@ -193,14 +193,14 @@ void Env::raise_no_method_error(Value receiver, SymbolObject *name, MethodMissin
 
 void Env::raise_name_error(SymbolObject *name, String message) {
     auto NameError = find_top_level_const(this, "NameError"_s).as_class();
-    ExceptionObject *exception = new ExceptionObject { NameError, new StringObject { std::move(message) } };
+    ExceptionObject *exception = ExceptionObject::create(NameError, StringObject::create(std::move(message)));
     exception->ivar_set(this, "@name"_s, name);
     this->raise_exception(exception);
 }
 
 void Env::raise_name_error(StringObject *name, String message) {
     auto NameError = find_top_level_const(this, "NameError"_s).as_class();
-    ExceptionObject *exception = new ExceptionObject { NameError, new StringObject { std::move(message) } };
+    ExceptionObject *exception = ExceptionObject::create(NameError, StringObject::create(std::move(message)));
     exception->ivar_set(this, "@name"_s, name);
     this->raise_exception(exception);
 }
@@ -220,7 +220,7 @@ void Env::raise_not_comparable_error(Value lhs, Value rhs) {
 
 void Env::raise_type_error(const Value obj, const char *expected) {
     if (obj.is_nil()) {
-        auto lowercase_expected = new StringObject { expected };
+        auto lowercase_expected = StringObject::create(expected);
         lowercase_expected->downcase_in_place(this);
         raise("TypeError", "no implicit conversion from nil to {}", lowercase_expected->string());
     } else {
@@ -253,7 +253,7 @@ void Env::warn(String message) {
         message = String::format("{}:{}: {}", m_file, m_line, message);
     }
 
-    _stderr.send(this, "puts"_s, { new StringObject { std::move(message) } });
+    _stderr.send(this, "puts"_s, { StringObject::create(std::move(message)) });
 }
 
 void Env::ensure_block_given(Block *block) {
@@ -381,7 +381,6 @@ Env *Env::non_block_env() {
 }
 
 void Env::visit_children(Visitor &visitor) const {
-    Cell::visit_children(visitor);
     visitor.visit(m_vars);
     visitor.visit(m_outer);
     visitor.visit(m_block);

@@ -99,7 +99,7 @@ static Value OpenSSL_BN_new(Env *env, const ASN1_INTEGER *asn1) {
         OpenSSL_raise_error(env, "ASN1_INTEGER_to_BN");
     auto BN = fetch_nested_const({ "OpenSSL"_s, "BN"_s }).as_class();
     auto bn = Object::allocate(env, BN, {}, nullptr);
-    bn->ivar_set(env, "@bn"_s, new VoidPObject { value, OpenSSL_BN_cleanup });
+    bn->ivar_set(env, "@bn"_s, VoidPObject::create(value, OpenSSL_BN_cleanup));
     return bn;
 }
 
@@ -114,7 +114,7 @@ static Value OpenSSL_PKey_new(Env *env, EVP_PKEY *value) {
     if (!klass)
         env->raise("NotImplementedError", "No support for used key type");
     auto pkey = Object::allocate(env, klass, {}, nullptr);
-    pkey->ivar_set(env, "@pkey"_s, new VoidPObject { copy, OpenSSL_PKEY_cleanup });
+    pkey->ivar_set(env, "@pkey"_s, VoidPObject::create(copy, OpenSSL_PKEY_cleanup));
     return pkey;
 }
 
@@ -124,7 +124,7 @@ static Value OpenSSL_X509_Name_new(Env *env, const X509_NAME *value) {
         OpenSSL_raise_error(env, "X509_NAME_dup");
     auto Name = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Name"_s }).as_class();
     auto name = Object::allocate(env, Name, {}, nullptr);
-    name->ivar_set(env, "@name"_s, new VoidPObject { copy, OpenSSL_X509_NAME_cleanup });
+    name->ivar_set(env, "@name"_s, VoidPObject::create(copy, OpenSSL_X509_NAME_cleanup));
     return name;
 }
 
@@ -142,7 +142,7 @@ Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args &&args, Blo
 
 static void OpenSSL_Cipher_ciphers_add_cipher(const OBJ_NAME *cipher_meth, void *arg) {
     auto result = static_cast<ArrayObject *>(arg);
-    result->push(new StringObject { cipher_meth->name });
+    result->push(StringObject::create(cipher_meth->name));
 }
 
 Value OpenSSL_Cipher_initialize(Env *env, Value self, Args &&args, Block *) {
@@ -158,7 +158,7 @@ Value OpenSSL_Cipher_initialize(Env *env, Value self, Args &&args, Block *) {
         EVP_CIPHER_CTX_free(ctx);
         OpenSSL_Cipher_raise_error(env, "EVP_EncryptInit_ex");
     }
-    self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_CIPHER_CTX_cleanup });
+    self->ivar_set(env, "@ctx"_s, VoidPObject::create(ctx, OpenSSL_CIPHER_CTX_cleanup));
 
     return self;
 }
@@ -196,7 +196,7 @@ Value OpenSSL_Cipher_final(Env *env, Value self, Args &&args, Block *) {
     if (!EVP_CipherFinal_ex(ctx, reinterpret_cast<unsigned char *>(&buf[0]), &size))
         OpenSSL_Cipher_raise_error(env, "EVP_CipherFinal_ex");
     buf.truncate(size);
-    return new StringObject { std::move(buf), Encoding::ASCII_8BIT };
+    return StringObject::create(std::move(buf), Encoding::ASCII_8BIT);
 }
 
 Value OpenSSL_Cipher_iv_set(Env *env, Value self, Args &&args, Block *) {
@@ -251,11 +251,11 @@ Value OpenSSL_Cipher_update(Env *env, Value self, Args &&args, Block *) {
     if (!EVP_CipherUpdate(ctx, reinterpret_cast<unsigned char *>(&buf[0]), &size, reinterpret_cast<const unsigned char *>(data->c_str()), data->bytesize()))
         OpenSSL_Cipher_raise_error(env, "EVP_CipherUpdate");
     buf.truncate(size);
-    return new StringObject { std::move(buf), Encoding::ASCII_8BIT };
+    return StringObject::create(std::move(buf), Encoding::ASCII_8BIT);
 }
 
 Value OpenSSL_Cipher_ciphers(Env *env, Value self, Args &&args, Block *) {
-    auto result = new ArrayObject {};
+    auto result = ArrayObject::create();
     OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_CIPHER_METH, OpenSSL_Cipher_ciphers_add_cipher, result);
     return result;
 }
@@ -290,7 +290,7 @@ Value OpenSSL_Digest_initialize(Env *env, Value self, Args &&args, Block *) {
         OpenSSL_raise_error(env, "EVP_DigestInit_ex");
 
     self->ivar_set(env, "@name"_s, name.as_string()->upcase(env));
-    self->ivar_set(env, "@mdctx"_s, new VoidPObject { mdctx, OpenSSL_MD_CTX_cleanup });
+    self->ivar_set(env, "@mdctx"_s, VoidPObject::create(mdctx, OpenSSL_MD_CTX_cleanup));
 
     if (args.size() == 2)
         OpenSSL_Digest_update(env, self, { args[1] }, nullptr);
@@ -342,7 +342,7 @@ Value OpenSSL_Digest_digest(Env *env, Value self, Args &&args, Block *) {
     if (args.size() == 1)
         OpenSSL_Digest_reset(env, self, {}, nullptr);
 
-    return new StringObject { reinterpret_cast<const char *>(buf), md_len, Encoding::ASCII_8BIT };
+    return StringObject::create(reinterpret_cast<const char *>(buf), md_len, Encoding::ASCII_8BIT);
 }
 
 Value OpenSSL_Digest_digest_length(Env *env, Value self, Args &&args, Block *) {
@@ -364,7 +364,7 @@ Value OpenSSL_HMAC_digest(Env *env, Value self, Args &&args, Block *) {
     auto res = HMAC(evp_md, key->c_str(), key->bytesize(), reinterpret_cast<const unsigned char *>(data->c_str()), data->bytesize(), md, &md_len);
     if (!res)
         OpenSSL_raise_error(env, "HMAC");
-    return new StringObject { reinterpret_cast<const char *>(md), md_len };
+    return StringObject::create(reinterpret_cast<const char *>(md), md_len);
 }
 
 Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args &&args, Block *) {
@@ -373,7 +373,7 @@ Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args &&args, Block
     SSL_CTX_set_options(ctx, SSL_OP_NO_COMPRESSION | SSL_OP_ENABLE_MIDDLEBOX_COMPAT);
     if (!ctx)
         OpenSSL_SSL_raise_error(env, "SSL_CTX_new");
-    self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_SSL_CTX_cleanup });
+    self->ivar_set(env, "@ctx"_s, VoidPObject::create(ctx, OpenSSL_SSL_CTX_cleanup));
     self->ivar_set(env, "@verify_hostname"_s, Value::False());
     self->ivar_set(env, "@verify_mode"_s, Value::integer(0));
     return self;
@@ -534,7 +534,7 @@ Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args &&args, Block 
         OpenSSL_SSL_raise_error(env, "SSL_new");
     self->ivar_set(env, "@context"_s, context);
     self->ivar_set(env, "@io"_s, io);
-    self->ivar_set(env, "@ssl"_s, new VoidPObject { ssl, OpenSSL_SSL_cleanup });
+    self->ivar_set(env, "@ssl"_s, VoidPObject::create(ssl, OpenSSL_SSL_cleanup));
     return self;
 }
 
@@ -602,7 +602,7 @@ Value OpenSSL_SSL_SSLSocket_read(Env *env, Value self, Args &&args, Block *) {
     TM::String buf(buf_size, '\0');
     StringObject *result;
     if (args.at(1, Value::nil()).is_nil()) {
-        result = new StringObject {};
+        result = StringObject::create();
     } else {
         result = args[1].to_str(env);
         result->clear(env);
@@ -651,7 +651,7 @@ Value OpenSSL_PKey_RSA_initialize(Env *env, Value self, Args &&args, Block *) {
             OpenSSL_raise_error(env, "EVP_PKEY_new");
     }
 
-    self->ivar_set(env, "@pkey"_s, new VoidPObject { pkey, OpenSSL_PKEY_cleanup });
+    self->ivar_set(env, "@pkey"_s, VoidPObject::create(pkey, OpenSSL_PKEY_cleanup));
     return self;
 }
 
@@ -676,7 +676,7 @@ Value OpenSSL_PKey_RSA_export(Env *env, Value self, Args &&args, Block *) {
     auto size = BIO_get_mem_data(bio, &data);
     if (size <= 0)
         OpenSSL_raise_error(env, "BIO_get_mem_data");
-    return new StringObject { data, static_cast<size_t>(size) };
+    return StringObject::create(data, static_cast<size_t>(size));
 }
 
 Value OpenSSL_PKey_RSA_is_private(Env *env, Value self, Args &&args, Block *) {
@@ -707,7 +707,7 @@ Value OpenSSL_PKey_RSA_public_key(Env *env, Value self, Args &&args, Block *) {
     const auto size = BIO_get_mem_data(bio, &data);
     if (size <= 0)
         OpenSSL_raise_error(env, "BIO_get_mem_data");
-    auto pem = new StringObject { data, static_cast<size_t>(size) };
+    auto pem = StringObject::create(data, static_cast<size_t>(size));
     return Object::_new(env, self.klass(), { pem }, nullptr);
 }
 
@@ -718,7 +718,7 @@ Value OpenSSL_X509_Certificate_initialize(Env *env, Value self, Args &&args, Blo
     X509 *x509 = X509_new();
     if (!x509)
         OpenSSL_raise_error(env, "X509_new");
-    self->ivar_set(env, "@x509"_s, new VoidPObject { x509, OpenSSL_X509_cleanup });
+    self->ivar_set(env, "@x509"_s, VoidPObject::create(x509, OpenSSL_X509_cleanup));
 
     self.send(env, "serial="_s, { Value::integer(0) });
 
@@ -764,7 +764,7 @@ Value OpenSSL_X509_Certificate_not_after(Env *env, Value self, Args &&args, Bloc
 
     auto Time = find_top_level_const(env, "Time"_s).as_class();
     time_t time_since_epoch = mktime(&tm);
-    auto kwargs = new HashObject { env, { "in"_s, Value::integer(0) } };
+    auto kwargs = HashObject::create(env, { "in"_s, Value::integer(0) });
     return Time->send(env, "at"_s, Args { { Value::integer(time_since_epoch), kwargs }, true });
 }
 
@@ -802,7 +802,7 @@ Value OpenSSL_X509_Certificate_not_before(Env *env, Value self, Args &&args, Blo
 
     auto Time = find_top_level_const(env, "Time"_s).as_class();
     time_t time_since_epoch = mktime(&tm);
-    auto kwargs = new HashObject { env, { "in"_s, Value::integer(0) } };
+    auto kwargs = HashObject::create(env, { "in"_s, Value::integer(0) });
     return Time->send(env, "at"_s, Args { { Value::integer(time_since_epoch), kwargs }, true });
 }
 
@@ -964,7 +964,7 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_is(env, 1);
     auto pass = args.at(0).to_str(env);
-    if (!kwargs) kwargs = new HashObject {};
+    if (!kwargs) kwargs = HashObject::create();
     env->ensure_no_missing_keywords(kwargs, { "salt", "iterations", "length", "hash" });
     auto salt = kwargs->remove(env, "salt"_s).value().to_str(env);
     auto iterations = kwargs->remove(env, "iterations"_s).value().to_int(env);
@@ -993,7 +993,7 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args &&args, Block *) {
         OpenSSL_raise_error(env, "PKCS5_PBKDF2_HMAC", KDFError.as_class());
     }
 
-    return new StringObject { reinterpret_cast<char *>(out), out_size, Encoding::ASCII_8BIT };
+    return StringObject::create(reinterpret_cast<char *>(out), out_size, Encoding::ASCII_8BIT);
 }
 
 Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
@@ -1039,7 +1039,7 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
         OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError.as_class());
     }
 
-    return new StringObject { reinterpret_cast<const char *>(out), outlen };
+    return StringObject::create(reinterpret_cast<const char *>(out), outlen);
 }
 
 Value init_openssl(Env *env, Value self) {
@@ -1050,7 +1050,7 @@ Value init_openssl(Env *env, Value self) {
     if (lookup_OpenSSL) {
         OpenSSL = lookup_OpenSSL.value().as_module();
     } else {
-        OpenSSL = new ModuleObject { "OpenSSL" };
+        OpenSSL = ModuleObject::create("OpenSSL");
         GlobalEnv::the()->Object()->const_set("OpenSSL"_s, OpenSSL);
     }
 
@@ -1058,12 +1058,11 @@ Value init_openssl(Env *env, Value self) {
     const auto openssl_version_major = static_cast<nat_int_t>((OPENSSL_VERSION_NUMBER >> 28) & 0xFF);
     const auto openssl_version_minor = static_cast<nat_int_t>((OPENSSL_VERSION_NUMBER >> 20) & 0xFF);
     const auto openssl_version_patchlevel = static_cast<nat_int_t>((OPENSSL_VERSION_NUMBER >> 12) & 0xFF);
-    StringObject *VERSION = new StringObject {
-        TM::String::format("{}.{}.{}", openssl_version_major, openssl_version_minor, openssl_version_patchlevel)
-    };
+    StringObject *VERSION = StringObject::create(
+        TM::String::format("{}.{}.{}", openssl_version_major, openssl_version_minor, openssl_version_patchlevel));
     OpenSSL->const_set("VERSION"_s, VERSION);
 
-    OpenSSL->const_set("OPENSSL_VERSION"_s, new StringObject { OPENSSL_VERSION_TEXT });
+    OpenSSL->const_set("OPENSSL_VERSION"_s, StringObject::create(OPENSSL_VERSION_TEXT));
     OpenSSL->const_set("OPENSSL_VERSION_NUMBER"_s, Value::integer(OPENSSL_VERSION_NUMBER));
     Object::define_singleton_method(env, OpenSSL, "fixed_length_secure_compare"_s, OpenSSL_fixed_length_secure_compare, 2);
 
@@ -1118,7 +1117,7 @@ Value init_openssl(Env *env, Value self) {
     if (lookup_KDF) {
         KDF = lookup_KDF.value();
     } else {
-        KDF = new ModuleObject { "KDF" };
+        KDF = ModuleObject::create("KDF");
         OpenSSL->const_set("KDF"_s, KDF);
     }
     Object::define_singleton_method(env, KDF, "pbkdf2_hmac"_s, OpenSSL_KDF_pbkdf2_hmac, -1);
@@ -1131,7 +1130,7 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args &&args, Block *) {
     auto bn = BN_secure_new();
     if (!bn)
         OpenSSL_raise_error(env, "BN_secure_new");
-    self->ivar_set(env, "@bn"_s, new VoidPObject { bn, OpenSSL_BN_cleanup });
+    self->ivar_set(env, "@bn"_s, VoidPObject::create(bn, OpenSSL_BN_cleanup));
 
     auto arg = args.at(0, Value::nil());
     if (arg.is_a(env, self.klass())) {
@@ -1195,7 +1194,7 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args &&args, Block *) {
     if (RAND_bytes(buf, num) != 1)
         OpenSSL_raise_error(env, "RAND_bytes");
 
-    return new StringObject { reinterpret_cast<char *>(buf), static_cast<size_t>(num), Encoding::ASCII_8BIT };
+    return StringObject::create(reinterpret_cast<char *>(buf), static_cast<size_t>(num), Encoding::ASCII_8BIT);
 }
 
 Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args &&args, Block *) {
@@ -1226,7 +1225,7 @@ Value OpenSSL_X509_Name_initialize(Env *env, Value self, Args &&args, Block *) {
     X509_NAME *name = X509_NAME_new();
     if (!name)
         OpenSSL_X509_Name_raise_error(env, "X509_NAME_new");
-    self->ivar_set(env, "@name"_s, new VoidPObject { name, OpenSSL_X509_NAME_cleanup });
+    self->ivar_set(env, "@name"_s, VoidPObject::create(name, OpenSSL_X509_NAME_cleanup));
     if (args.size() > 0) {
         HashObject *lookup = self.klass()->const_fetch("OBJECT_TYPE_TEMPLATE"_s).as_hash();
         if (args.size() >= 2 && !args.at(1).is_nil())
@@ -1247,10 +1246,10 @@ Value OpenSSL_X509_Name_to_a(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s).as_void_p()->void_ptr());
     const size_t size = X509_NAME_entry_count(name);
-    auto result = new ArrayObject { size };
+    auto result = ArrayObject::create(size);
     for (size_t i = 0; i < size; i++) {
         X509_NAME_ENTRY *name_entry = X509_NAME_get_entry(name, i);
-        auto entry_result = new ArrayObject { 3 };
+        auto entry_result = ArrayObject::create(3);
 
         ASN1_OBJECT *obj = X509_NAME_ENTRY_get_object(name_entry);
         if (!obj)
@@ -1261,12 +1260,12 @@ Value OpenSSL_X509_Name_to_a(Env *env, Value self, Args &&args, Block *) {
         const char *sn = OBJ_nid2sn(nid);
         if (!sn)
             OpenSSL_X509_Name_raise_error(env, "OBJ_nid2sn");
-        entry_result->push(new StringObject { sn });
+        entry_result->push(StringObject::create(sn));
 
         ASN1_STRING *data = X509_NAME_ENTRY_get_data(name_entry);
         if (!data)
             OpenSSL_X509_Name_raise_error(env, "X509_NAME_ENTRY_get_data");
-        entry_result->push(new StringObject { reinterpret_cast<const char *>(ASN1_STRING_get0_data(data)), static_cast<size_t>(ASN1_STRING_length(data)) });
+        entry_result->push(StringObject::create(reinterpret_cast<const char *>(ASN1_STRING_get0_data(data)), static_cast<size_t>(ASN1_STRING_length(data))));
 
         entry_result->push(Value::integer(ASN1_STRING_type(data)));
 
@@ -1283,7 +1282,7 @@ Value OpenSSL_X509_Name_to_s(Env *env, Value self, Args &&args, Block *) {
         char *str = X509_NAME_oneline(name, nullptr, 0);
         if (!str)
             OpenSSL_X509_Name_raise_error(env, "X509_NAME_oneline");
-        auto result = new StringObject { str };
+        auto result = StringObject::create(str);
         free(str);
         return result;
     }
@@ -1298,7 +1297,7 @@ Value OpenSSL_X509_Name_to_s(Env *env, Value self, Args &&args, Block *) {
     auto size = BIO_get_mem_data(bio, &mem);
     if (size < 0)
         OpenSSL_X509_Name_raise_error(env, "BIO_get_mem_data");
-    return new StringObject { mem, static_cast<size_t>(size) };
+    return StringObject::create(mem, static_cast<size_t>(size));
 }
 
 Value OpenSSL_X509_Name_cmp(Env *env, Value self, Args &&args, Block *) {
@@ -1316,7 +1315,7 @@ Value OpenSSL_X509_Store_initialize(Env *env, Value self, Args &&args, Block *) 
     X509_STORE *store = X509_STORE_new();
     if (!store)
         OpenSSL_X509_Store_raise_error(env, "X509_STORE_new");
-    self->ivar_set(env, "@store"_s, new VoidPObject { store, OpenSSL_X509_STORE_cleanup });
+    self->ivar_set(env, "@store"_s, VoidPObject::create(store, OpenSSL_X509_STORE_cleanup));
     return self;
 }
 
@@ -1364,6 +1363,6 @@ Value OpenSSL_X509_Store_verify(Env *env, Value self, Args &&args, Block *) {
     const auto verify = X509_verify_cert(ctx) != 0;
     const auto error = X509_STORE_CTX_get_error(ctx);
     self->ivar_set(env, "@error"_s, Value::integer(error));
-    self->ivar_set(env, "@error_string"_s, new StringObject { X509_verify_cert_error_string(error), Encoding::ASCII_8BIT });
+    self->ivar_set(env, "@error_string"_s, StringObject::create(X509_verify_cert_error_string(error), Encoding::ASCII_8BIT));
     return bool_object(verify);
 }

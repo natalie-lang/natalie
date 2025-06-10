@@ -1,7 +1,6 @@
 #pragma once
 
 #include <assert.h>
-#include <mutex>
 
 #include "natalie/block.hpp"
 #include "natalie/class_object.hpp"
@@ -13,6 +12,11 @@
 namespace Natalie {
 
 struct HashKey : public Cell {
+    static HashKey *create(Value key, Value val, size_t hash) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new HashKey { key, val, hash };
+    }
+
     HashKey *prev { nullptr };
     HashKey *next { nullptr };
     Value key;
@@ -21,7 +25,6 @@ struct HashKey : public Cell {
     bool removed { false };
 
     virtual void visit_children(Visitor &visitor) const override final {
-        Cell::visit_children(visitor);
         visitor.visit(prev);
         visitor.visit(next);
         visitor.visit(key);
@@ -31,6 +34,13 @@ struct HashKey : public Cell {
     virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<HashKey {h} key={} val={}>", this, key.dbg_inspect(), val.dbg_inspect());
     }
+
+    HashKey() { }
+
+    HashKey(Value key, Value val, size_t hash)
+        : key { key }
+        , val { val }
+        , hash { hash } { }
 };
 
 }
@@ -49,54 +59,29 @@ namespace Natalie {
 
 class HashObject : public Object {
 public:
-    HashObject()
-        : HashObject { GlobalEnv::the()->Hash() } { }
-
-    HashObject(Env *env, std::initializer_list<Value> items)
-        : HashObject {} {
-        assert(items.size() % 2 == 0);
-        for (auto it = items.begin(); it != items.end(); it++) {
-            auto key = *it;
-            it++;
-            auto value = *it;
-            put(env, key, value);
-        }
+    static HashObject *create() {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new HashObject();
     }
 
-    HashObject(Env *env, size_t argc, Value *items)
-        : HashObject {} {
-        assert(argc % 2 == 0);
-        for (size_t i = 0; i < argc; i += 2) {
-            auto key = items[i];
-            auto value = items[i + 1];
-            put(env, key, value);
-        }
+    static HashObject *create(ClassObject *klass) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new HashObject(klass);
     }
 
-    HashObject(ClassObject *klass)
-        : Object { Object::Type::Hash, klass }
-        , m_default_value { Value::nil() } { }
-
-    HashObject(Env *env, const HashObject &other)
-        : Object { other }
-        , m_is_comparing_by_identity { other.m_is_comparing_by_identity }
-        , m_default_value { other.m_default_value }
-        , m_default_proc { other.m_default_proc } {
-        for (auto node : other) {
-            put(env, node.key, node.val);
-        }
+    static HashObject *create(Env *env, std::initializer_list<Value> items) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new HashObject(env, items);
     }
 
-    HashObject &operator=(HashObject &&other) {
-        Object::operator=(std::move(other));
-        m_hashmap.clear();
-        m_hashmap = std::move(other.m_hashmap);
-        m_key_list = other.m_key_list;
-        m_is_comparing_by_identity = other.m_is_comparing_by_identity;
-        m_default_value = other.m_default_value;
-        m_default_proc = other.m_default_proc;
-        other.m_key_list = nullptr;
-        return *this;
+    static HashObject *create(Env *env, size_t argc, Value *items) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new HashObject(env, argc, items);
+    }
+
+    static HashObject *create(Env *env, const HashObject &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new HashObject(env, other);
     }
 
     static Value square_new(Env *, ClassObject *klass, Args &&args);
@@ -228,6 +213,56 @@ public:
     }
 
 private:
+    HashObject()
+        : HashObject { GlobalEnv::the()->Hash() } { }
+
+    HashObject(Env *env, std::initializer_list<Value> items)
+        : HashObject {} {
+        assert(items.size() % 2 == 0);
+        for (auto it = items.begin(); it != items.end(); it++) {
+            auto key = *it;
+            it++;
+            auto value = *it;
+            put(env, key, value);
+        }
+    }
+
+    HashObject(Env *env, size_t argc, Value *items)
+        : HashObject {} {
+        assert(argc % 2 == 0);
+        for (size_t i = 0; i < argc; i += 2) {
+            auto key = items[i];
+            auto value = items[i + 1];
+            put(env, key, value);
+        }
+    }
+
+    HashObject(ClassObject *klass)
+        : Object { Object::Type::Hash, klass }
+        , m_default_value { Value::nil() } { }
+
+    HashObject(Env *env, const HashObject &other)
+        : Object { other }
+        , m_is_comparing_by_identity { other.m_is_comparing_by_identity }
+        , m_default_value { other.m_default_value }
+        , m_default_proc { other.m_default_proc } {
+        for (auto node : other) {
+            put(env, node.key, node.val);
+        }
+    }
+
+    HashObject &operator=(HashObject &&other) {
+        Object::operator=(std::move(other));
+        m_hashmap.clear();
+        m_hashmap = std::move(other.m_hashmap);
+        m_key_list = other.m_key_list;
+        m_is_comparing_by_identity = other.m_is_comparing_by_identity;
+        m_default_value = other.m_default_value;
+        m_default_proc = other.m_default_proc;
+        other.m_key_list = nullptr;
+        return *this;
+    }
+
     void key_list_remove_node(HashKey *);
     HashKey *key_list_append(Env *, Value, nat_int_t, Value);
     nat_int_t generate_key_hash(Env *, Value) const;

@@ -67,14 +67,14 @@ int main(int argc, char *argv[]) {
 #endif
 
     if (argc > 0) {
-        Value exe = new StringObject { argv[0] };
+        Value exe = StringObject::create(argv[0]);
         env->global_set("$exe"_s, exe);
     }
 
-    ArrayObject *ARGV = new ArrayObject { (size_t)argc };
+    ArrayObject *ARGV = ArrayObject::create((size_t)argc);
     GlobalEnv::the()->Object()->const_set("ARGV"_s, ARGV);
     for (int i = 1; i < argc; i++) {
-        ARGV->push(new StringObject { argv[i] });
+        ARGV->push(StringObject::create(argv[i]));
     }
 
     Value result = Value::nil();

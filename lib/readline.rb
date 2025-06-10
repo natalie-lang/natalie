@@ -12,7 +12,7 @@ module Readline
 
       std::string line;
       std::getline(std::cin, line);
-      return new StringObject { line.c_str() };
+      return StringObject::create(line.c_str());
     END
   end
 end

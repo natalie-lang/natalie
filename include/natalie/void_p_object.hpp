@@ -3,8 +3,6 @@
 #include <assert.h>
 #include <functional>
 
-#include "natalie/class_object.hpp"
-#include "natalie/encoding_object.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
@@ -14,16 +12,17 @@ namespace Natalie {
 
 class VoidPObject : public Object {
 public:
+    static VoidPObject *create(void *ptr) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new VoidPObject { ptr };
+    }
+
+    static VoidPObject *create(void *ptr, std::function<void(VoidPObject *)> cleanup_fn) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new VoidPObject { ptr, cleanup_fn };
+    }
+
     using CleanupFnPtr = std::function<void(VoidPObject *)>;
-
-    VoidPObject(void *ptr)
-        : Object { Object::Type::VoidP, GlobalEnv::the()->Object() }
-        , m_void_ptr { ptr } { }
-
-    VoidPObject(void *ptr, CleanupFnPtr cleanup_fn)
-        : Object { Object::Type::VoidP, GlobalEnv::the()->Object() }
-        , m_void_ptr { ptr }
-        , m_cleanup_fn { cleanup_fn } { }
 
     virtual ~VoidPObject() override {
         // FIXME: Allocating an object here can cause the GC to deadlock,
@@ -40,6 +39,15 @@ public:
     Optional<CleanupFnPtr> cleanup_fn() { return m_cleanup_fn; }
 
 private:
+    VoidPObject(void *ptr)
+        : Object { Object::Type::VoidP, GlobalEnv::the()->Object() }
+        , m_void_ptr { ptr } { }
+
+    VoidPObject(void *ptr, CleanupFnPtr cleanup_fn)
+        : Object { Object::Type::VoidP, GlobalEnv::the()->Object() }
+        , m_void_ptr { ptr }
+        , m_cleanup_fn { cleanup_fn } { }
+
     void *m_void_ptr { nullptr };
     Optional<CleanupFnPtr> m_cleanup_fn;
 };

@@ -19,11 +19,17 @@ namespace Natalie {
 class DirObject : public Object {
 
 public:
-    DirObject()
-        : Object { Object::Type::Dir, GlobalEnv::the()->Object()->const_fetch("Dir"_s).as_class() } { }
+    static DirObject *create() {
+        return new DirObject();
+    }
 
-    DirObject(ClassObject *klass)
-        : Object { Object::Type::Dir, klass } { }
+    static DirObject *create(ClassObject *klass) {
+        return new DirObject(klass);
+    }
+
+    static DirObject *create(const DirObject &other) {
+        return new DirObject(other);
+    }
 
     virtual ~DirObject();
 
@@ -69,6 +75,18 @@ public:
     static Value foreach (Env *env, Value path, Optional<Value> encoding, Block * block);
 
 private:
+    DirObject()
+        : Object { Object::Type::Dir, GlobalEnv::the()->Object()->const_fetch("Dir"_s).as_class() } { }
+
+    DirObject(ClassObject *klass)
+        : Object { Object::Type::Dir, klass } { }
+
+    DirObject(const DirObject &other)
+        : Object { other }
+        , m_dir { other.m_dir }
+        , m_path { other.m_path }
+        , m_encoding { other.m_encoding } { }
+
     DIR *m_dir { nullptr };
     StringObject *m_path { nullptr };
     EncodingObject *m_encoding { nullptr };

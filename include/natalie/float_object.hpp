@@ -7,7 +7,6 @@
 #include "natalie/class_object.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
-#include "natalie/integer_methods.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
@@ -16,41 +15,50 @@ namespace Natalie {
 
 class FloatObject : public Object {
 public:
-    FloatObject(double number)
-        : Object { Object::Type::Float, GlobalEnv::the()->Float() }
-        , m_double { number } { }
-
-    FloatObject(nat_int_t number)
-        : Object { Object::Type::Float, GlobalEnv::the()->Float() }
-        , m_double { static_cast<double>(number) } { }
-
-    FloatObject(const FloatObject &other)
-        : Object { Object::Type::Float, other.klass() }
-        , m_double { other.m_double } { }
-
     static FloatObject *nan() {
-        if (!s_nan)
+        if (!s_nan) {
+            std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
             s_nan = new FloatObject { 0.0 / 0.0 };
+        }
         return s_nan;
+    }
+    static FloatObject *create(double number) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new FloatObject { number };
+    }
+
+    static FloatObject *create(nat_int_t number) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new FloatObject { number };
+    }
+
+    static FloatObject *create(const FloatObject &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new FloatObject { other };
     }
 
     static FloatObject *positive_infinity(Env *env) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FloatObject { std::numeric_limits<double>::infinity() };
     }
 
     static FloatObject *negative_infinity(Env *env) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FloatObject { -std::numeric_limits<double>::infinity() };
     }
 
     static FloatObject *max(Env *env) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FloatObject { DBL_MAX };
     }
 
     static FloatObject *neg_max(Env *env) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FloatObject { -DBL_MAX };
     }
 
     static FloatObject *min(Env *env) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new FloatObject { DBL_MIN };
     }
 
@@ -141,26 +149,26 @@ public:
     bool gte(Env *, Value);
 
     Value uminus() const {
-        return new FloatObject { -m_double };
+        return FloatObject::create(-m_double);
     }
 
     Value uplus() const {
-        return new FloatObject { m_double };
+        return FloatObject::create(m_double);
     }
 
     static void build_constants(Env *env, ClassObject *klass) {
-        klass->const_set("DIG"_s, new FloatObject { double { DBL_DIG } });
-        klass->const_set("EPSILON"_s, new FloatObject { std::numeric_limits<double>::epsilon() });
+        klass->const_set("DIG"_s, FloatObject::create(double { DBL_DIG }));
+        klass->const_set("EPSILON"_s, FloatObject::create(std::numeric_limits<double>::epsilon()));
         klass->const_set("INFINITY"_s, FloatObject::positive_infinity(env));
-        klass->const_set("MANT_DIG"_s, new FloatObject { double { DBL_MANT_DIG } });
+        klass->const_set("MANT_DIG"_s, FloatObject::create(double { DBL_MANT_DIG }));
         klass->const_set("MAX"_s, FloatObject::max(env));
-        klass->const_set("MAX_10_EXP"_s, new FloatObject { double { DBL_MAX_10_EXP } });
-        klass->const_set("MAX_EXP"_s, new FloatObject { double { DBL_MAX_EXP } });
+        klass->const_set("MAX_10_EXP"_s, FloatObject::create(double { DBL_MAX_10_EXP }));
+        klass->const_set("MAX_EXP"_s, FloatObject::create(double { DBL_MAX_EXP }));
         klass->const_set("MIN"_s, FloatObject::min(env));
-        klass->const_set("MIN_10_EXP"_s, new FloatObject { double { DBL_MIN_10_EXP } });
-        klass->const_set("MIN_EXP"_s, new FloatObject { double { DBL_MIN_EXP } });
+        klass->const_set("MIN_10_EXP"_s, FloatObject::create(double { DBL_MIN_10_EXP }));
+        klass->const_set("MIN_EXP"_s, FloatObject::create(double { DBL_MIN_EXP }));
         klass->const_set("NAN"_s, FloatObject::nan());
-        klass->const_set("RADIX"_s, new FloatObject { double { std::numeric_limits<double>::radix } });
+        klass->const_set("RADIX"_s, FloatObject::create(double { std::numeric_limits<double>::radix }));
     }
 
     virtual TM::String dbg_inspect(int indent = 0) const override {
@@ -168,6 +176,18 @@ public:
     }
 
 private:
+    FloatObject(double number)
+        : Object { Object::Type::Float, GlobalEnv::the()->Float() }
+        , m_double { number } { }
+
+    FloatObject(nat_int_t number)
+        : Object { Object::Type::Float, GlobalEnv::the()->Float() }
+        , m_double { static_cast<double>(number) } { }
+
+    FloatObject(const FloatObject &other)
+        : Object { Object::Type::Float, other.klass() }
+        , m_double { other.m_double } { }
+
     inline static FloatObject *s_nan { nullptr };
 
     double m_double { 0.0 };

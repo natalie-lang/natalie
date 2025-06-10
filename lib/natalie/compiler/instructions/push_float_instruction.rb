@@ -21,7 +21,7 @@ module Natalie
             transform.push('Value(FloatObject::negative_infinity(env))')
           end
         else
-          transform.push("Value(new FloatObject(#{@float}))")
+          transform.push("Value(FloatObject::create(#{@float}))")
         end
       end
 

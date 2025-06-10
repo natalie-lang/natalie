@@ -25,80 +25,80 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Array:
-        obj = new ArrayObject {};
+        obj = ArrayObject::create();
         obj->m_klass = klass;
         break;
 
     case Object::Type::Class:
-        obj = new ClassObject { klass };
+        obj = ClassObject::create(klass);
         break;
 
     case Object::Type::Complex:
-        obj = new ComplexObject { klass };
+        obj = ComplexObject::create(klass);
         break;
 
     case Object::Type::Dir:
-        obj = new DirObject { klass };
+        obj = DirObject::create(klass);
         break;
 
     case Object::Type::Enumerator:
-        obj = new Object { klass };
+        obj = Object::create(klass);
         break;
 
     case Object::Type::Exception:
-        obj = new ExceptionObject { klass };
+        obj = ExceptionObject::create(klass);
         break;
 
     case Object::Type::Fiber:
-        obj = new FiberObject { klass };
+        obj = FiberObject::create(klass);
         break;
 
     case Object::Type::Hash:
-        obj = new HashObject { klass };
+        obj = HashObject::create(klass);
         break;
 
     case Object::Type::Io:
-        obj = new IoObject { klass };
+        obj = IoObject::create(klass);
         break;
 
     case Object::Type::File:
-        obj = new FileObject { klass };
+        obj = FileObject::create(klass);
         break;
 
     case Object::Type::MatchData:
-        obj = new MatchDataObject { klass };
+        obj = MatchDataObject::create(klass);
         break;
 
     case Object::Type::Module:
-        obj = new ModuleObject { klass };
+        obj = ModuleObject::create(klass);
         break;
 
     case Object::Type::Object:
-        obj = new Object { klass };
+        obj = Object::create(klass);
         break;
 
     case Object::Type::Proc:
-        obj = new ProcObject { klass };
+        obj = ProcObject::create(klass);
         break;
 
     case Object::Type::Random:
-        obj = new RandomObject { klass };
+        obj = RandomObject::create(klass);
         break;
 
     case Object::Type::Range:
-        obj = new RangeObject { klass };
+        obj = RangeObject::create(klass);
         break;
 
     case Object::Type::Regexp:
-        obj = new RegexpObject { klass };
+        obj = RegexpObject::create(klass);
         break;
 
     case Object::Type::String:
-        obj = new StringObject { klass };
+        obj = StringObject::create(klass);
         break;
 
     case Object::Type::Thread:
-        obj = new ThreadObject { klass };
+        obj = ThreadObject::create(klass);
         break;
 
     case Object::Type::ThreadBacktraceLocation:
@@ -114,15 +114,15 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Time:
-        obj = new TimeObject { klass };
+        obj = TimeObject::create(klass);
         break;
 
     case Object::Type::VoidP:
-        obj = new VoidPObject { klass };
+        obj = VoidPObject::create(klass);
         break;
 
     case Object::Type::FileStat:
-        obj = new FileStatObject { klass };
+        obj = FileStatObject::create(klass);
         break;
 
     case Object::Type::Binding:
@@ -225,7 +225,7 @@ ClassObject *Object::singleton_class(Env *env, Value self) {
     } else {
         singleton_superclass = self->m_klass;
     }
-    auto new_singleton_class = new ClassObject { singleton_superclass };
+    auto new_singleton_class = ClassObject::create(singleton_superclass);
     if (self->is_frozen()) new_singleton_class->freeze();
     singleton_superclass->initialize_subclass_without_checks(new_singleton_class, env, name);
     self->set_singleton_class(new_singleton_class);
@@ -371,9 +371,9 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
 
 Value Object::instance_variables(Env *env) {
     if (m_type == Type::Float || !m_ivars)
-        return new ArrayObject;
+        return ArrayObject::create();
 
-    ArrayObject *ary = new ArrayObject { m_ivars->size() };
+    ArrayObject *ary = ArrayObject::create(m_ivars->size());
     for (auto pair : *m_ivars)
         ary->push(pair.first);
     return ary;
@@ -499,7 +499,7 @@ Value Object::main_obj_define_method(Env *env, Value name, Optional<Value> proc_
 }
 
 Value Object::main_obj_inspect(Env *) {
-    return new StringObject { "main" };
+    return StringObject::create("main");
 }
 
 void Object::private_method(Env *env, SymbolObject *name) {
@@ -612,48 +612,48 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
 Value Object::duplicate(Env *env) const {
     switch (m_type) {
     case Object::Type::Array:
-        return new ArrayObject { *static_cast<const ArrayObject *>(this) };
+        return ArrayObject::create(*static_cast<const ArrayObject *>(this));
     case Object::Type::Class: {
-        auto out = new ClassObject { *static_cast<const ClassObject *>(this) };
+        auto out = ClassObject::create(*static_cast<const ClassObject *>(this));
         auto s_class = singleton_class();
         if (s_class)
             out->set_singleton_class(s_class->clone(env).as_class());
         return out;
     }
     case Object::Type::Complex:
-        return new ComplexObject { *static_cast<const ComplexObject *>(this) };
+        return ComplexObject::create(*static_cast<const ComplexObject *>(this));
     case Object::Type::Exception:
-        return new ExceptionObject { *static_cast<const ExceptionObject *>(this) };
+        return ExceptionObject::create(*static_cast<const ExceptionObject *>(this));
     case Object::Type::False:
         return Value::False();
     case Object::Type::Float:
-        return new FloatObject { *static_cast<const FloatObject *>(this) };
+        return FloatObject::create(*static_cast<const FloatObject *>(this));
     case Object::Type::Hash:
-        return new HashObject { env, *static_cast<const HashObject *>(this) };
+        return HashObject::create(env, *static_cast<const HashObject *>(this));
     case Object::Type::Module:
-        return new ModuleObject { *static_cast<const ModuleObject *>(this) };
+        return ModuleObject::create(*static_cast<const ModuleObject *>(this));
     case Object::Type::Object:
-        return new Object { *this };
+        return Object::create(*this);
     case Object::Type::Proc:
-        return new ProcObject { *static_cast<const ProcObject *>(this) };
+        return ProcObject::create(*static_cast<const ProcObject *>(this));
     case Object::Type::Range:
-        return new RangeObject { *static_cast<const RangeObject *>(this) };
+        return RangeObject::create(*static_cast<const RangeObject *>(this));
     case Object::Type::Rational:
-        return new RationalObject { *static_cast<const RationalObject *>(this) };
+        return RationalObject::create(*static_cast<const RationalObject *>(this));
     case Object::Type::Regexp:
-        return new RegexpObject { env, *static_cast<const RegexpObject *>(this) };
+        return RegexpObject::create(env, *static_cast<const RegexpObject *>(this));
     case Object::Type::String:
-        return new StringObject { *static_cast<const StringObject *>(this) };
+        return StringObject::create(*static_cast<const StringObject *>(this));
     case Object::Type::Symbol:
         return SymbolObject::intern(static_cast<const SymbolObject *>(this)->string());
     case Object::Type::Time:
-        return new TimeObject { *static_cast<const TimeObject *>(this) };
+        return TimeObject::create(*static_cast<const TimeObject *>(this));
     case Object::Type::True:
         return Value::True();
     case Object::Type::UnboundMethod:
-        return new UnboundMethodObject { *static_cast<const UnboundMethodObject *>(this) };
+        return UnboundMethodObject::create(*static_cast<const UnboundMethodObject *>(this));
     case Object::Type::MatchData:
-        return new MatchDataObject { *static_cast<const MatchDataObject *>(this) };
+        return MatchDataObject::create(*static_cast<const MatchDataObject *>(this));
     default:
         fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->inspect_module().c_str(), static_cast<int>(m_type));
         abort();
@@ -680,7 +680,7 @@ Value Object::clone(Env *env, Optional<Value> freeze_arg) {
     }
 
     if (freeze_arg) {
-        auto keyword_hash = new HashObject {};
+        auto keyword_hash = HashObject::create();
         keyword_hash->put(env, "freeze"_s, freeze_arg.value());
         auto args = Args({ this, keyword_hash }, true);
         duplicate.send(env, "initialize_clone"_s, std::move(args));
@@ -739,7 +739,7 @@ const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
 Value Object::defined_obj(Env *env, SymbolObject *name, bool strict) {
     const char *result = defined(env, name, strict);
     if (result) {
-        return new StringObject { result };
+        return StringObject::create(result);
     } else {
         return Value::nil();
     }
@@ -810,8 +810,8 @@ void Object::assert_not_frozen(Env *env, Value receiver) {
     if (is_frozen()) {
         auto FrozenError = GlobalEnv::the()->Object()->const_fetch("FrozenError"_s);
         String message = String::format("can't modify frozen {}: {}", klass()->inspect_module(), inspected(env));
-        auto kwargs = new HashObject(env, { "receiver"_s, receiver });
-        auto args = Args({ new StringObject { message }, kwargs }, true);
+        auto kwargs = HashObject::create(env, { "receiver"_s, receiver });
+        auto args = Args({ StringObject::create(message), kwargs }, true);
         ExceptionObject *error = FrozenError.send(env, "new"_s, std::move(args)).as_exception();
         env->raise_exception(error);
     }
@@ -849,7 +849,6 @@ Value Object::enum_for(Env *env, const char *method, Args &&args) {
 }
 
 void Object::visit_children(Visitor &visitor) const {
-    Cell::visit_children(visitor);
     visitor.visit(m_klass);
     visitor.visit(m_singleton_class);
     if (m_ivars) {

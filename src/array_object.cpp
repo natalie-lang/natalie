@@ -7,7 +7,6 @@
 #include <natalie/array_packer/packer.hpp>
 #include <natalie/string_object.hpp>
 #include <natalie/symbol_object.hpp>
-#include <random>
 #include <tm/hashmap.hpp>
 #include <tm/recursion_guard.hpp>
 
@@ -29,7 +28,7 @@ Value ArrayObject::initialize(Env *env, Optional<Value> size_arg, Optional<Value
         env->verbose_warn("given block not used");
 
     if (!size_arg)
-        return initialize_copy(env, new ArrayObject);
+        return initialize_copy(env, ArrayObject::create());
 
     auto size = size_arg.value();
 
@@ -88,7 +87,7 @@ ArrayObject *ArrayObject::to_a() {
     if (klass() == GlobalEnv::the()->Array()) {
         return this;
     } else {
-        return new ArrayObject { m_vector };
+        return ArrayObject::create(m_vector);
     }
 }
 
@@ -154,12 +153,12 @@ Value ArrayObject::inspect(Env *env) {
 
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
-            return new StringObject { "[...]" };
+            return StringObject::create("[...]");
 
         if (is_empty())
-            return new StringObject { "[]", Encoding::US_ASCII };
+            return StringObject::create("[]", Encoding::US_ASCII);
 
-        StringObject *out = new StringObject { "[" };
+        StringObject *out = StringObject::create("[");
         for (size_t i = 0; i < size(); i++) {
             Value obj = (*this)[i];
 
@@ -208,7 +207,7 @@ Value ArrayObject::ltlt(Env *env, Value arg) {
 Value ArrayObject::add(Env *env, Value other) {
     ArrayObject *other_array = other.to_ary(env);
 
-    ArrayObject *new_array = new ArrayObject { m_vector };
+    ArrayObject *new_array = ArrayObject::create(m_vector);
     new_array->concat(*other_array);
     return new_array;
 }
@@ -216,7 +215,7 @@ Value ArrayObject::add(Env *env, Value other) {
 Value ArrayObject::sub(Env *env, Value other) {
     ArrayObject *other_array = other.to_ary(env);
 
-    ArrayObject *new_array = new ArrayObject {};
+    ArrayObject *new_array = ArrayObject::create();
     for (auto &item : *this) {
         int found = 0;
         for (auto &compare_item : *other_array) {
@@ -253,7 +252,7 @@ Value ArrayObject::ref(Env *env, Value index_obj, Optional<Value> size) {
         }
     }
 
-    ArrayObject *copy = new ArrayObject { *this };
+    ArrayObject *copy = ArrayObject::create(*this);
     return copy->slice_in_place(env, index_obj, size);
 }
 
@@ -451,7 +450,7 @@ bool ArrayObject::eql(Env *env, Value other) {
 
 Value ArrayObject::each(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, ArrayObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
 
@@ -464,7 +463,7 @@ Value ArrayObject::each(Env *env, Block *block) {
 
 Value ArrayObject::each_index(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, ArrayObject::size_fn, 0);
         return send(env, "enum_for"_s, { "each_index"_s }, size_block);
     }
 
@@ -478,18 +477,18 @@ Value ArrayObject::each_index(Env *env, Block *block) {
 
 Value ArrayObject::map(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, ArrayObject::size_fn, 0);
         return send(env, "enum_for"_s, { "map"_s }, size_block);
     }
 
-    ArrayObject *copy = new ArrayObject { m_vector };
+    ArrayObject *copy = ArrayObject::create(m_vector);
     copy->map_in_place(env, block);
     return copy;
 }
 
 Value ArrayObject::map_in_place(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, ArrayObject::size_fn, 0);
         return send(env, "enum_for"_s, { "map!"_s }, size_block);
     }
 
@@ -596,13 +595,13 @@ Value ArrayObject::first(Env *env, Optional<Value> n) {
 
     size_t end = std::min(size(), (size_t)n_value);
     if (end == 0)
-        return new ArrayObject {};
+        return ArrayObject::create();
     auto array = m_vector.slice(0, end);
-    return new ArrayObject { std::move(array) };
+    return ArrayObject::create(std::move(array));
 }
 
 Value ArrayObject::flatten(Env *env, Optional<Value> depth) {
-    ArrayObject *copy = new ArrayObject { m_vector };
+    ArrayObject *copy = ArrayObject::create(m_vector);
     copy->flatten_in_place(env, depth);
     return copy;
 }
@@ -661,7 +660,7 @@ bool ArrayObject::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayObje
             visited.set(array_item);
 
             // use a copy so we avoid altering the content of nested arrays
-            ArrayObject *copy = new ArrayObject { *array_item };
+            ArrayObject *copy = ArrayObject::create(*array_item);
 
             copy->_flatten_in_place(env, depth - 1, visited);
             for (size_t j = 0; j < copy->size(); ++j) {
@@ -691,7 +690,7 @@ Value ArrayObject::delete_at(Env *env, Value n) {
 
 Value ArrayObject::delete_if(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, ArrayObject::size_fn, 0);
         return send(env, "enum_for"_s, { "delete_if"_s }, size_block);
     }
 
@@ -739,7 +738,7 @@ Value ArrayObject::delete_item(Env *env, Value target, Block *block) {
 }
 
 Value ArrayObject::difference(Env *env, Args &&args) {
-    Value last = new ArrayObject { m_vector };
+    Value last = ArrayObject::create(m_vector);
 
     for (size_t i = 0; i < args.size(); i++) {
         last = last.as_array()->sub(env, args[i]);
@@ -772,7 +771,7 @@ Value ArrayObject::drop(Env *env, Value n) {
         env->raise("ArgumentError", "attempt to drop negative size");
 
     auto array = m_vector.slice(n_value, 0);
-    return new ArrayObject { std::move(array) };
+    return ArrayObject::create(std::move(array));
 }
 
 Value ArrayObject::drop_while(Env *env, Block *block) {
@@ -791,7 +790,7 @@ Value ArrayObject::drop_while(Env *env, Block *block) {
     }
 
     auto array = m_vector.slice(i, 0);
-    return new ArrayObject { std::move(array) };
+    return ArrayObject::create(std::move(array));
 }
 
 Value ArrayObject::last(Env *env, Optional<Value> n) {
@@ -812,7 +811,7 @@ Value ArrayObject::last(Env *env, Optional<Value> n) {
     size_t start = std::max(static_cast<nat_int_t>(0), signed_size - n_value);
 
     auto array = m_vector.slice(start, 0);
-    return new ArrayObject { std::move(array) };
+    return ArrayObject::create(std::move(array));
 }
 
 bool ArrayObject::include(Env *env, Value item) {
@@ -850,9 +849,9 @@ Value ArrayObject::shift(Env *env, Optional<Value> count) {
         shift_count = count_signed;
 
         if (shift_count == 0) {
-            return new ArrayObject {};
+            return ArrayObject::create();
         }
-        result = new ArrayObject { m_vector.slice(0, shift_count) };
+        result = ArrayObject::create(m_vector.slice(0, shift_count));
     } else {
         result = m_vector[0];
     }
@@ -863,14 +862,14 @@ Value ArrayObject::shift(Env *env, Optional<Value> count) {
 }
 
 Value ArrayObject::sort(Env *env, Block *block) {
-    ArrayObject *copy = new ArrayObject { m_vector };
+    ArrayObject *copy = ArrayObject::create(m_vector);
     copy->sort_in_place(env, block);
     return copy;
 }
 
 Value ArrayObject::keep_if(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, ArrayObject::size_fn, 0);
         return send(env, "enum_for"_s, { "keep_if"_s }, size_block);
     }
 
@@ -913,7 +912,7 @@ Value ArrayObject::join(Env *env, Optional<Value> joiner_arg) {
         if (is_recursive)
             env->raise("ArgumentError", "recursive array join");
         if (size() == 0) {
-            return (Value) new StringObject { "", Encoding::US_ASCII };
+            return (Value)StringObject::create("", Encoding::US_ASCII);
         } else {
             Value joiner;
             if (joiner_arg && !joiner_arg.value().is_nil())
@@ -921,12 +920,12 @@ Value ArrayObject::join(Env *env, Optional<Value> joiner_arg) {
             else
                 joiner = env->global_get("$,"_s);
             if (joiner.is_nil())
-                joiner = new StringObject { "" };
+                joiner = StringObject::create("");
 
             if (!joiner.is_string())
                 joiner = joiner.to_str(env);
 
-            StringObject *out = new StringObject {};
+            StringObject *out = StringObject::create();
             for (size_t i = 0; i < size(); i++) {
                 Value item = (*this)[i];
                 out->append(_subjoin(env, item, joiner));
@@ -979,7 +978,7 @@ Value ArrayObject::pack(Env *env, Value directives, Optional<Value> buffer_arg) 
 
     auto directives_string = directives.as_string()->string();
     if (directives_string.is_empty())
-        return new StringObject { "", Encoding::US_ASCII };
+        return StringObject::create("", Encoding::US_ASCII);
 
     if (buffer_arg) {
         auto buffer = buffer_arg.value();
@@ -987,7 +986,7 @@ Value ArrayObject::pack(Env *env, Value directives, Optional<Value> buffer_arg) 
             env->raise("TypeError", "buffer must be String, not {}", buffer.klass()->inspect_module());
         return ArrayPacker::Packer { this, directives_string }.pack(env, buffer.as_string());
     } else {
-        StringObject *start_buffer = new StringObject { "", Encoding::ASCII_8BIT };
+        StringObject *start_buffer = StringObject::create("", Encoding::ASCII_8BIT);
         return ArrayPacker::Packer { this, directives_string }.pack(env, start_buffer);
     }
 }
@@ -1023,7 +1022,7 @@ Value ArrayObject::pop(Env *env, Optional<Value> count) {
         if (c > (nat_int_t)size())
             c = (nat_int_t)size();
 
-        auto pops = new ArrayObject { (size_t)c };
+        auto pops = ArrayObject::create((size_t)c);
         for (nat_int_t i = 0; i < c; ++i)
             pops->m_vector.push_front(m_vector.pop());
 
@@ -1088,7 +1087,7 @@ bool array_sort_by_compare(Env *env, Value a, Value b, Block *block) {
 
 Value ArrayObject::sort_by_in_place(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, ArrayObject::size_fn, 0);
         return send(env, "enum_for"_s, { "sort_by!"_s }, size_block);
     }
 
@@ -1103,18 +1102,18 @@ Value ArrayObject::sort_by_in_place(Env *env, Block *block) {
 
 Value ArrayObject::select(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, ArrayObject::size_fn, 0);
         return send(env, "enum_for"_s, { "select"_s }, size_block);
     }
 
-    ArrayObject *copy = new ArrayObject { m_vector };
+    ArrayObject *copy = ArrayObject::create(m_vector);
     copy->select_in_place(env, block);
     return copy;
 }
 
 Value ArrayObject::select_in_place(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, ArrayObject::size_fn, 0);
         return send(env, "enum_for"_s, { "select!"_s }, size_block);
     }
 
@@ -1150,18 +1149,18 @@ bool ArrayObject::select_in_place(std::function<bool(Value &)> predicate) {
 
 Value ArrayObject::reject(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, ArrayObject::size_fn, 0);
         return send(env, "enum_for"_s, { "reject"_s }, size_block);
     }
 
-    ArrayObject *copy = new ArrayObject { m_vector };
+    ArrayObject *copy = ArrayObject::create(m_vector);
     copy->reject_in_place(env, block);
     return copy;
 }
 
 Value ArrayObject::reject_in_place(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, ArrayObject::size_fn, 0);
         return send(env, "enum_for"_s, { "reject!"_s }, size_block);
     }
 
@@ -1247,7 +1246,7 @@ Value ArrayObject::max(Env *env, Optional<Value> count, Block *block) {
     }
     if (has_implicit_count)
         return maxes[0];
-    return new ArrayObject { maxes.slice(0, c) };
+    return ArrayObject::create(maxes.slice(0, c));
 }
 
 Value ArrayObject::min(Env *env, Optional<Value> count, Block *block) {
@@ -1297,12 +1296,12 @@ Value ArrayObject::min(Env *env, Optional<Value> count, Block *block) {
     }
     if (has_implicit_count)
         return mins[0];
-    return new ArrayObject { mins.slice(0, c) };
+    return ArrayObject::create(mins.slice(0, c));
 }
 
 Value ArrayObject::minmax(Env *env, Block *block) {
     if (m_vector.size() == 0)
-        return new ArrayObject { Value::nil(), Value::nil() };
+        return ArrayObject::create({ Value::nil(), Value::nil() });
 
     auto compare = [&](Value item, Value min) -> nat_int_t {
         Value block_args[] = { item, min };
@@ -1328,7 +1327,7 @@ Value ArrayObject::minmax(Env *env, Block *block) {
         if (!min || compare(item, min.value()) < 0)
             min = item;
     }
-    return new ArrayObject { min.value(), max.value() };
+    return ArrayObject::create({ min.value(), max.value() });
 }
 
 Value ArrayObject::multiply(Env *env, Value factor) {
@@ -1343,7 +1342,7 @@ Value ArrayObject::multiply(Env *env, Value factor) {
     if (times < 0)
         env->raise("ArgumentError", "negative argument");
 
-    auto accumulator = new ArrayObject { times * size() };
+    auto accumulator = ArrayObject::create(times * size());
 
     for (nat_int_t i = 0; i < times; ++i)
         accumulator->push_splat(env, this);
@@ -1352,7 +1351,7 @@ Value ArrayObject::multiply(Env *env, Value factor) {
 }
 
 Value ArrayObject::compact(Env *env) {
-    auto ary = new ArrayObject {};
+    auto ary = ArrayObject::create();
     for (auto item : *this) {
         if (item.is_nil()) continue;
         ary->push(item);
@@ -1388,7 +1387,7 @@ Value ArrayObject::cycle(Env *env, Optional<Value> count, Block *block) {
 }
 
 Value ArrayObject::uniq(Env *env, Block *block) {
-    ArrayObject *copy = new ArrayObject { m_vector };
+    ArrayObject *copy = ArrayObject::create(m_vector);
     copy->uniq_in_place(env, block);
     return copy;
 }
@@ -1396,7 +1395,7 @@ Value ArrayObject::uniq(Env *env, Block *block) {
 Value ArrayObject::uniq_in_place(Env *env, Block *block) {
     this->assert_not_frozen(env);
 
-    auto hash = new HashObject {};
+    auto hash = HashObject::create();
     for (auto item : *this) {
         Value key = item;
         if (block) {
@@ -1522,6 +1521,8 @@ Value ArrayObject::hash(Env *env) {
 Value ArrayObject::insert(Env *env, Args &&args) {
     this->assert_not_frozen(env);
 
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
     if (args.size() == 1)
         return this;
 
@@ -1569,7 +1570,7 @@ bool ArrayObject::include_eql(Env *env, Value arg) {
 }
 
 Value ArrayObject::intersection(Env *env, Args &&args) {
-    auto *result = new ArrayObject { m_vector };
+    auto *result = ArrayObject::create(m_vector);
     result->uniq_in_place(env, nullptr);
 
     TM::Vector<ArrayObject *> arrays;
@@ -1583,7 +1584,7 @@ Value ArrayObject::intersection(Env *env, Args &&args) {
     }
 
     if (result->is_empty()) return result;
-    if (arrays.size() != args.size()) return new ArrayObject;
+    if (arrays.size() != args.size()) return ArrayObject::create();
 
     for (size_t i = 0; i < result->size(); ++i) {
         auto &item = result->at(i);
@@ -1616,7 +1617,7 @@ Value ArrayObject::union_of(Env *env, Value arg) {
     if (!arg.is_array())
         env->raise("TypeError", "no implicit conversion of {} into Array", arg.klass()->inspect_module());
 
-    auto *result = new ArrayObject();
+    auto *result = ArrayObject::create();
     auto add_value = [&result, &env](Value &val) {
         if (!result->include(env, val)) {
             result->push(val);
@@ -1636,7 +1637,7 @@ Value ArrayObject::union_of(Env *env, Value arg) {
 }
 
 Value ArrayObject::union_of(Env *env, Args &&args) {
-    auto *result = new ArrayObject { m_vector };
+    auto *result = ArrayObject::create(m_vector);
 
     // TODO: we probably want to make | call this instead of this way for optimization
     for (size_t i = 0; i < args.size(); i++) {
@@ -1656,14 +1657,14 @@ Value ArrayObject::unshift(Env *env, Args &&args) {
 }
 
 Value ArrayObject::reverse(Env *env) {
-    ArrayObject *copy = new ArrayObject { m_vector };
+    ArrayObject *copy = ArrayObject::create(m_vector);
     copy->reverse_in_place(env);
     return copy;
 }
 
 Value ArrayObject::reverse_each(Env *env, Block *block) {
     if (!block) {
-        Block *size_block = new Block { *env, this, ArrayObject::size_fn, 0 };
+        Block *size_block = Block::create(*env, this, ArrayObject::size_fn, 0);
         return send(env, "enum_for"_s, { "reverse_each"_s }, size_block);
     }
 
@@ -1813,9 +1814,9 @@ Value ArrayObject::product(Env *env, Args &&args, Block *block) {
         number_of_combinations *= item->size();
     }
 
-    ArrayObject *products = new ArrayObject { number_of_combinations };
+    ArrayObject *products = ArrayObject::create(number_of_combinations);
     for (size_t iteration = 0; iteration < number_of_combinations; ++iteration) {
-        ArrayObject *product = new ArrayObject { arrays.size() };
+        ArrayObject *product = ArrayObject::create(arrays.size());
         size_t remaining_iterations = iteration;
         size_t block_size = number_of_combinations;
 
@@ -1842,7 +1843,7 @@ Value ArrayObject::product(Env *env, Args &&args, Block *block) {
 }
 
 Value ArrayObject::rotate(Env *env, Optional<Value> val) {
-    ArrayObject *copy = new ArrayObject { m_vector };
+    ArrayObject *copy = ArrayObject::create(m_vector);
     copy->rotate_in_place(env, val);
     return copy;
 }
@@ -1924,7 +1925,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Optional<Value> siz
             return Value::nil();
 
         if (start == (nat_int_t)m_vector.size())
-            return new ArrayObject {};
+            return ArrayObject::create();
 
         return _slice_in_place(start, _resolve_index(start) + length, true);
     }
@@ -1994,7 +1995,7 @@ Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_
         return Value::nil();
 
     if (start == (nat_int_t)m_vector.size())
-        return new ArrayObject {};
+        return ArrayObject::create();
 
     start = _resolve_index(start);
 
@@ -2015,7 +2016,7 @@ Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_
     if (length < 0)
         return Value::nil();
 
-    ArrayObject *newArr = new ArrayObject();
+    ArrayObject *newArr = ArrayObject::create();
     if (length == 0) {
         return newArr;
     }
@@ -2111,7 +2112,7 @@ Value ArrayObject::values_at(Env *env, Args &&args) {
         }
     }
 
-    auto accumulator = new ArrayObject { indices.size() };
+    auto accumulator = ArrayObject::create(indices.size());
     for (auto index : indices) {
         auto resolved_index = _resolve_index(index);
         if (resolved_index < 0 || static_cast<size_t>(resolved_index) >= m_vector.size()) {

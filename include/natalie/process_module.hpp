@@ -106,7 +106,7 @@ public:
         if (result < 0) env->raise_errno();
         auto curlim = Value::integer((nat_int_t)(rlim.rlim_cur));
         auto maxlim = Value::integer((nat_int_t)(rlim.rlim_max));
-        return new ArrayObject { curlim, maxlim };
+        return ArrayObject::create({ curlim, maxlim });
     }
 
     static int getsid(Env *env, Optional<Value> pid = {}) {
@@ -176,7 +176,7 @@ private:
         }
         if (rlimit_symbol) {
             Value(rlimit_symbol).assert_type(env, Object::Type::Symbol, "Symbol");
-            StringObject *rlimit_str = new StringObject { "RLIMIT_" };
+            StringObject *rlimit_str = StringObject::create("RLIMIT_");
             rlimit_str->append(rlimit_symbol->string());
             rlimit_symbol = rlimit_str->to_symbol(env);
             auto ProcessMod = GlobalEnv::the()->Object()->const_fetch("Process"_s).as_module();

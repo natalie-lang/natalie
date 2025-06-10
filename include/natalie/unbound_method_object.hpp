@@ -7,17 +7,19 @@ namespace Natalie {
 
 class UnboundMethodObject : public AbstractMethodObject {
 public:
-    UnboundMethodObject(ModuleObject *module_or_class, Method *method)
-        : AbstractMethodObject { Object::Type::UnboundMethod, GlobalEnv::the()->Object()->const_fetch("UnboundMethod"_s).as_class(), method }
-        , m_module_or_class { module_or_class } { }
+    static UnboundMethodObject *create(ModuleObject *module_or_class, Method *method) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new UnboundMethodObject { module_or_class, method };
+    }
 
-    UnboundMethodObject(const UnboundMethodObject &other)
-        : AbstractMethodObject { Object::Type::UnboundMethod, GlobalEnv::the()->Object()->const_fetch("UnboundMethod"_s).as_class(), other.m_method }
-        , m_module_or_class { other.m_module_or_class } { }
+    static UnboundMethodObject *create(const UnboundMethodObject &other) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new UnboundMethodObject { other };
+    }
 
     Value bind(Env *env, Value obj) {
         if (owner()->type() != Type::Class || obj.is_a(env, owner())) {
-            return new MethodObject { obj, m_method };
+            return MethodObject::create(obj, m_method);
         } else {
             env->raise("TypeError", "bind argument must be an instance of {}", owner()->inspect_module());
         }
@@ -61,6 +63,14 @@ public:
     }
 
 private:
+    UnboundMethodObject(ModuleObject *module_or_class, Method *method)
+        : AbstractMethodObject { Object::Type::UnboundMethod, GlobalEnv::the()->Object()->const_fetch("UnboundMethod"_s).as_class(), method }
+        , m_module_or_class { module_or_class } { }
+
+    UnboundMethodObject(const UnboundMethodObject &other)
+        : AbstractMethodObject { Object::Type::UnboundMethod, GlobalEnv::the()->Object()->const_fetch("UnboundMethod"_s).as_class(), other.m_method }
+        , m_module_or_class { other.m_module_or_class } { }
+
     ModuleObject *m_module_or_class { nullptr };
 };
 

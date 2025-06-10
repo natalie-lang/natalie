@@ -85,7 +85,7 @@ Value GlobalEnv::global_alias(Env *env, SymbolObject *new_name, SymbolObject *ol
 ArrayObject *GlobalEnv::global_list(Env *env) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    auto result = new ArrayObject { m_global_variables.size() };
+    auto result = ArrayObject::create(m_global_variables.size());
     for (const auto &[key, _] : m_global_variables) {
         result->push(key);
     }
@@ -124,7 +124,6 @@ void GlobalEnv::set_interned_strings(StringObject **interned_strings, const size
 }
 
 void GlobalEnv::visit_children(Visitor &visitor) const {
-    Cell::visit_children(visitor);
     for (auto pair : m_global_variables) {
         visitor.visit(pair.first);
         visitor.visit(pair.second);

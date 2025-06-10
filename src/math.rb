@@ -186,7 +186,7 @@ module Math
       }
       int exponent;
       auto significand = std::frexp(value->to_double(), &exponent);
-      return new ArrayObject { { new FloatObject { significand }, Value::integer(exponent) } };
+      return ArrayObject::create({ FloatObject::create(significand), Value::integer(exponent) });
     END
 
     __function__('::tgamma', ['double'], 'double')
@@ -249,18 +249,18 @@ module Math
           }
       }
       if (value->is_positive_infinity()) {
-        return new ArrayObject { {  Value(FloatObject::positive_infinity(env)), Value::integer(1) } };
+        return ArrayObject::create({ Value(FloatObject::positive_infinity(env)), Value::integer(1) });
       } else if (value->is_negative_infinity()) {
         auto DomainError = Object::const_fetch(self, "DomainError"_s).as_class();
         env->raise(DomainError, "Numerical argument is out of domain");
       } else if (value->is_positive_zero()) {
-        return new ArrayObject { {  Value(FloatObject::positive_infinity(env)), Value::integer(1) } };
+        return ArrayObject::create({ Value(FloatObject::positive_infinity(env)), Value::integer(1) });
       } else if (value->is_negative_zero()) {
-        return new ArrayObject { {  Value(FloatObject::positive_infinity(env)), Value::integer(-1) } };
+        return ArrayObject::create({ Value(FloatObject::positive_infinity(env)), Value::integer(-1) });
       }
       int sign = 1;
       auto v = ::lgamma_r(value->to_double(), &sign);
-      return new ArrayObject { {  new FloatObject { v }, Value::integer(sign) } };
+      return ArrayObject::create({ Value(FloatObject::create(v)), Value::integer(sign) });
     END
 
     __function__('::log10', ['double'], 'double')

@@ -39,11 +39,13 @@ public:
         Terminated,
     };
 
-    FiberObject()
-        : Object { Object::Type::Fiber, GlobalEnv::the()->Object()->const_fetch("Fiber"_s).as_class() } { }
+    static FiberObject *create() {
+        return new FiberObject();
+    }
 
-    FiberObject(ClassObject *klass)
-        : Object { Object::Type::Fiber, klass } { }
+    static FiberObject *create(ClassObject *klass) {
+        return new FiberObject(klass);
+    }
 
     ~FiberObject() {
         if (!m_coroutine) {
@@ -147,6 +149,12 @@ public:
 #endif
 
 private:
+    FiberObject()
+        : Object { Object::Type::Fiber, GlobalEnv::the()->Object()->const_fetch("Fiber"_s).as_class() } { }
+
+    FiberObject(ClassObject *klass)
+        : Object { Object::Type::Fiber, klass } { }
+
     friend Args;
     friend ThreadObject;
 

@@ -162,7 +162,7 @@ Value RegexpObject::quote(Env *env, Value string) {
         encoding = EncodingObject::get(Encoding::US_ASCII);
     else if (str->valid_encoding())
         encoding = str->encoding();
-    return new StringObject { std::move(out), encoding };
+    return StringObject::create(std::move(out), encoding);
 }
 
 Value RegexpObject::try_convert(Env *env, Value value) {
@@ -201,7 +201,7 @@ Value RegexpObject::regexp_union(Env *env, Args &&args) {
             out.append(quoted.as_string()->string());
         }
     }
-    return new RegexpObject { env, out };
+    return RegexpObject::create(env, out);
 }
 
 Value RegexpObject::initialize(Env *env, Value pattern, Optional<Value> opts_arg) {
@@ -425,7 +425,7 @@ void RegexpObject::initialize_internal(Env *env, const StringObject *pattern, in
 Value RegexpObject::inspect(Env *env) {
     if (!is_initialized())
         return KernelModule::inspect(env, this);
-    StringObject *out = new StringObject { "/" };
+    StringObject *out = StringObject::create("/");
     auto str = pattern();
     size_t len = str->length();
     regexp_stringify(str->string(), 0, len, out);
@@ -490,7 +490,7 @@ Value RegexpObject::match_at_byte_offset(Env *env, StringObject *str, size_t byt
     int result = search(env, str, byte_index, region, ONIG_OPTION_NONE);
 
     if (result >= 0) {
-        auto match = new MatchDataObject { region, str, this };
+        auto match = MatchDataObject::create(region, str, this);
         caller_env->set_last_match(match);
 
         return match;
@@ -538,9 +538,9 @@ bool RegexpObject::has_match(Env *env, Value other, Optional<Value> start) {
 
 Value RegexpObject::named_captures(Env *env) const {
     if (!m_regex)
-        return new HashObject {};
+        return HashObject::create();
 
-    auto named_captures = new HashObject {};
+    auto named_captures = HashObject::create();
     named_captures_data data { env, named_captures };
     onig_foreach_name(
         m_regex,
@@ -548,8 +548,8 @@ Value RegexpObject::named_captures(Env *env) const {
             auto env = (static_cast<named_captures_data *>(data))->env;
             auto named_captures = (static_cast<named_captures_data *>(data))->named_captures;
             const size_t length = name_end - name;
-            auto key = new StringObject { reinterpret_cast<const char *>(name), length, onig_encoding_to_ruby_encoding(regex->enc) };
-            auto values = new ArrayObject { static_cast<size_t>(groups_size) };
+            auto key = StringObject::create(reinterpret_cast<const char *>(name), length, onig_encoding_to_ruby_encoding(regex->enc));
+            auto values = ArrayObject::create(static_cast<size_t>(groups_size));
             for (size_t i = 0; i < static_cast<size_t>(groups_size); i++)
                 values->push(Value::integer(groups[i]));
             named_captures->put(env, key, values);
@@ -561,15 +561,15 @@ Value RegexpObject::named_captures(Env *env) const {
 
 Value RegexpObject::names() const {
     if (!m_regex)
-        return new ArrayObject {};
+        return ArrayObject::create();
 
-    auto names = new ArrayObject { static_cast<size_t>(onig_number_of_names(m_regex)) };
+    auto names = ArrayObject::create(static_cast<size_t>(onig_number_of_names(m_regex)));
     onig_foreach_name(
         m_regex,
         [](const UChar *name, const UChar *name_end, int, int *, regex_t *regex, void *data) -> int {
             auto names = static_cast<ArrayObject *>(data);
             const size_t length = name_end - name;
-            names->push(new StringObject { reinterpret_cast<const char *>(name), length, onig_encoding_to_ruby_encoding(regex->enc) });
+            names->push(StringObject::create(reinterpret_cast<const char *>(name), length, onig_encoding_to_ruby_encoding(regex->enc)));
             return 0;
         },
         names);
@@ -603,12 +603,12 @@ long RegexpObject::search(Env *env, const StringObject *string_obj, long start, 
 Value RegexpObject::source(Env *env) const {
     assert_initialized(env);
     assert(m_pattern);
-    return new StringObject(*m_pattern);
+    return StringObject::create(*m_pattern);
 }
 
 Value RegexpObject::to_s(Env *env) const {
     assert_initialized(env);
-    StringObject *out = new StringObject { "(" };
+    StringObject *out = StringObject::create("(");
 
     auto is_m = options() & RegexOpts::MultiLine;
     auto is_i = options() & RegexOpts::IgnoreCase;

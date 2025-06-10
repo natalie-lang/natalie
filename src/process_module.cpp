@@ -23,7 +23,7 @@ Value ProcessModule::groups(Env *env) {
     size = getgroups(size, list);
     if (size < 0)
         env->raise_errno();
-    auto result = new ArrayObject { static_cast<size_t>(size) };
+    auto result = ArrayObject::create(static_cast<size_t>(size));
     for (size_t i = 0; i < static_cast<size_t>(size); i++) {
         result->push(Value::integer(list[i]));
     }
@@ -37,7 +37,7 @@ Value ProcessModule::clock_gettime(Env *env, Value clock_id) {
         env->raise_errno();
 
     double result = static_cast<double>(tp.tv_sec) + tp.tv_nsec / static_cast<double>(1000000000);
-    return new FloatObject { result };
+    return FloatObject::create(result);
 }
 
 Value ProcessModule::kill(Env *env, Args &&args) {
@@ -53,7 +53,7 @@ Value ProcessModule::kill(Env *env, Args &&args) {
     if (signal.is_integer()) {
         signo = IntegerMethods::convert_to_nat_int_t(env, signal);
     } else if (signal.is_string() || signal.respond_to(env, "to_str"_s)) {
-        auto signame = signal.to_str(env)->delete_prefix(env, new StringObject { "SIG" });
+        auto signame = signal.to_str(env)->delete_prefix(env, StringObject::create("SIG"));
         auto signo_val = SignalModule::list(env).as_hash()->ref(env, signame);
         if (signo_val.is_nil())
             env->raise("ArgumentError", "unsupported signal `SIG{}'", signame.to_s(env)->string());
@@ -101,7 +101,7 @@ Value ProcessModule::times(Env *env) {
     if (getrusage(RUSAGE_CHILDREN, &rusage_children) == -1)
         env->raise_errno();
     auto tv_to_float = [](const timeval tv) {
-        return new FloatObject { static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) / 1e6 };
+        return FloatObject::create(static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) / 1e6);
     };
     auto utime = tv_to_float(rusage_self.ru_utime);
     auto stime = tv_to_float(rusage_self.ru_stime);

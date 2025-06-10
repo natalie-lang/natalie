@@ -25,7 +25,7 @@ public:
         : m_name { std::move(name) }
         , m_owner { owner }
         , m_arity { block->arity() }
-        , m_env { new Env(*block->env()) } {
+        , m_env { Env::create(*block->env()) } {
         assert(m_env);
         block->copy_fn_pointer_to_method(this);
 
@@ -79,7 +79,6 @@ public:
     const Optional<size_t> &get_line() const { return m_line; }
 
     virtual void visit_children(Visitor &visitor) const override final {
-        Cell::visit_children(visitor);
         visitor.visit(m_owner);
         visitor.visit(m_env);
         if (m_self)

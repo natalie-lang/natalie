@@ -23,12 +23,12 @@ module Natalie
         if @once
           transform.exec_and_push(
             :regexp,
-            "Value([&]() { static auto result = new RegexpObject(env, #{string}.as_string()->string(), #{@options}, #{encoding}); return result; }())",
+            "Value([&]() { static auto result = RegexpObject::create(env, #{string}.as_string()->string(), #{@options}, #{encoding}); return result; }())",
           )
         else
           transform.exec_and_push(
             :regexp,
-            "Value(new RegexpObject(env, #{string}.as_string()->string(), #{@options}, #{encoding}))",
+            "Value(RegexpObject::create(env, #{string}.as_string()->string(), #{@options}, #{encoding}))",
           )
         end
       end
