@@ -437,7 +437,7 @@ public:
 
     template <typename... Args>
     static StringObject *format(const char *fmt, Args... args) {
-        auto out = new StringObject;
+        auto out = StringObject::create();
         format(out, fmt, args...);
         return out;
     }
