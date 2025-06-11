@@ -143,7 +143,13 @@ module Natalie
         old_last_match = vm.global_variables[:$~]
         vm.with_self(receiver) do
           block = vm.pop if @with_block
-          result = receiver.send(method, @message, *args, **kwargs, &block)
+          begin
+            result = receiver.send(method, @message, *args, **kwargs, &block)
+          rescue StandardError => e
+            # TODO: use actual call stack locations
+            e.set_backtrace("#{@file}:#{@line}")
+            raise e
+          end
           vm.push result
         end
         vm.global_variables[:$~] = $~ if $~ != old_last_match
