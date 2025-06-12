@@ -1129,6 +1129,16 @@ Value Socket_connect(Env *env, Value self, Args &&args, Block *block) {
                 auto error = Object::_new(env, TimeoutError, { StringObject::create("Connect timed out!") }, nullptr).as_exception();
                 env->raise_exception(error);
             } else {
+                // poll() can return a positive value even if the socket is not writable.
+                // We need to check the socket options to see if it really is writable.
+                int option_value = 0;
+                socklen_t option_len = sizeof(option_value);
+                if (getsockopt(self.as_io()->fileno(), SOL_SOCKET, SO_ERROR, &option_value, &option_len) == -1)
+                    env->raise_errno();
+                if (option_value) {
+                    errno = option_value;
+                    env->raise_errno();
+                }
                 break;
             }
         }

@@ -33,9 +33,7 @@ describe 'TCPSocket#initialize' do
   SocketSpecs.each_ip_protocol do |family, ip_address|
     describe 'when no server is listening on the given address' do
       it 'raises Errno::ECONNREFUSED' do
-        NATFIXME 'fails on MacOS', condition: RUBY_PLATFORM.include?('darwin'), exception: SpecFailedException do
-          -> { TCPSocket.new(ip_address, 666) }.should raise_error(Errno::ECONNREFUSED)
-        end
+        -> { TCPSocket.new(ip_address, 666) }.should raise_error(Errno::ECONNREFUSED)
       end
     end
 
