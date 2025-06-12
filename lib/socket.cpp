@@ -1437,21 +1437,22 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
 
     auto ary = ArrayObject::create();
 
+    struct addrinfo *info = result;
     do {
         auto addr = ArrayObject::create();
-        addr->push(StringObject::create(Socket_family_to_string(result->ai_family)));
-        addr->push(Value::integer(Socket_getaddrinfo_result_port(result)));
+        addr->push(StringObject::create(Socket_family_to_string(info->ai_family)));
+        addr->push(Value::integer(Socket_getaddrinfo_result_port(info)));
         if (reverse_lookup.is_truthy())
-            addr->push(StringObject::create(Socket_reverse_lookup_address(env, result->ai_addr)));
+            addr->push(StringObject::create(Socket_reverse_lookup_address(env, info->ai_addr)));
         else
-            addr->push(StringObject::create(Socket_getaddrinfo_result_host(result)));
-        addr->push(StringObject::create(Socket_getaddrinfo_result_host(result)));
-        addr->push(Value::integer(result->ai_family));
-        addr->push(Value::integer(result->ai_socktype));
-        addr->push(Value::integer(result->ai_protocol));
+            addr->push(StringObject::create(Socket_getaddrinfo_result_host(info)));
+        addr->push(StringObject::create(Socket_getaddrinfo_result_host(info)));
+        addr->push(Value::integer(info->ai_family));
+        addr->push(Value::integer(info->ai_socktype));
+        addr->push(Value::integer(info->ai_protocol));
         ary->push(addr);
-        result = result->ai_next;
-    } while (result);
+        info = info->ai_next;
+    } while (info);
 
     return ary;
 }
