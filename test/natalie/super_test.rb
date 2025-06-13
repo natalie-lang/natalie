@@ -56,6 +56,10 @@ class Greeter
   def greet_with_keyword(value:)
     value
   end
+
+  def greet_with_keyword_implicitly(value:)
+    value
+  end
 end
 
 class PirateGreeter < Greeter
@@ -106,6 +110,10 @@ class PirateGreeter < Greeter
 
   def greet_with_keyword
     super(value: 'ARRRRR')
+  end
+
+  def greet_with_keyword_implicitly(value:)
+    [super, super]
   end
 end
 
@@ -184,5 +192,6 @@ describe 'super' do
   it 'works with keyword arguments' do
     greeter = PirateGreeter.new
     greeter.greet_with_keyword.should == 'ARRRRR'
+    greeter.greet_with_keyword_implicitly(value: 'YEAH').should == %w[YEAH YEAH]
   end
 end
