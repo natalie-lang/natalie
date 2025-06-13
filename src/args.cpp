@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include <initializer_list>
 
 namespace Natalie {
 
@@ -46,9 +47,7 @@ Args::Args(ArrayObject *array, bool has_keyword_hash)
 }
 
 Args::Args(std::initializer_list<Value> args, bool has_keyword_hash)
-    : m_args_original_start_index { tl_current_arg_stack->size() }
-    , m_args_start_index { tl_current_arg_stack->size() }
-    , m_args_size { args.size() }
+    : m_args_size { args.size() }
     , m_keyword_hash_index { has_keyword_hash ? static_cast<ssize_t>(m_args_start_index) + static_cast<ssize_t>(m_args_size) - 1 : -1 } {
     for (Value arg : args)
         tl_current_arg_stack->push(arg);
@@ -61,15 +60,32 @@ Args::Args(Args &other)
         tl_current_arg_stack->push(other[i]);
 }
 
-Value Args::shift() {
-    auto value = first();
+Value Args::shift(Env *env, bool include_keyword_hash) {
+    if (has_keyword_hash()) {
+        if (include_keyword_hash && m_args_size == 1)
+            return pop_keyword_hash();
+        assert(m_args_size > 1);
+    } else {
+        assert(m_args_size > 0);
+    }
+    auto value = (*tl_current_arg_stack)[m_args_start_index];
     m_args_start_index++;
     m_args_size--;
     return value;
 }
 
-Value Args::pop() {
-    auto value = last();
+Value Args::pop(Env *env, bool include_keyword_hash) {
+    size_t index;
+    if (has_keyword_hash()) {
+        if (include_keyword_hash)
+            return pop_keyword_hash();
+        assert(m_args_size > 1);
+        index = m_args_start_index + m_args_size - 2;
+    } else {
+        assert(m_args_size > 0);
+        index = m_args_start_index + m_args_size - 1;
+    }
+    auto value = (*tl_current_arg_stack)[index];
     m_args_size--;
     return value;
 }
@@ -84,24 +100,25 @@ Value Args::last() const {
     return (*tl_current_arg_stack)[m_args_start_index + m_args_size - 1];
 }
 
-ArrayObject *Args::to_array() const {
-    return ArrayObject::create(m_args_size, tl_current_arg_stack->data() + m_args_start_index);
+ArrayObject *Args::to_array(bool include_keyword_hash) const {
+    return ArrayObject::create(size(include_keyword_hash), tl_current_arg_stack->data() + m_args_start_index);
 }
 
-ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool autosplat) const {
-    if (m_args_size == 1 && autosplat) {
+ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread, bool include_keyword_hash) const {
+    auto count = size(include_keyword_hash);
+    if (count == 1 && spread) {
         auto ary = to_ary(env, at(0), true)->duplicate(env).as_array();
-        ssize_t count = ary->size();
-        if (max_count != -1 && count > max_count)
+        ssize_t ary_count = ary->size();
+        if (max_count != -1 && ary_count > max_count)
             ary->truncate(max_count);
-        else if (count < min_count)
+        else if (ary_count < min_count)
             ary->fill(env, Value::nil(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);
         return ary;
     }
-    auto len = max_count >= 0 ? std::min(m_args_size, (size_t)max_count) : m_args_size;
+    auto len = max_count >= 0 ? std::min(count, (size_t)max_count) : count;
     auto ary = ArrayObject::create(len, tl_current_arg_stack->data() + m_args_start_index);
-    ssize_t count = ary->size();
-    if (count < min_count)
+    ssize_t ary_count = ary->size();
+    if (ary_count < min_count)
         ary->fill(env, Value::nil(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);
     return ary;
 }
@@ -237,4 +254,32 @@ Value Args::keyword_arg(Env *env, SymbolObject *name) const {
     return hash->get(env, name).value_or(Value::nil());
 }
 
+bool Args::keyword_arg_present(Env *env, SymbolObject *name) const {
+    auto hash = keyword_hash();
+    if (!hash)
+        return false;
+    return hash->get(env, name).present();
+}
+
+HashObject *Args::keyword_arg_rest(Env *env, std::initializer_list<SymbolObject *> without) const {
+    auto hash = keyword_hash();
+    if (!hash)
+        return HashObject::create();
+
+    auto should_exclude = [&](SymbolObject *name) {
+        for (auto &key : without) {
+            if (key == name)
+                return true;
+        }
+        return false;
+    };
+
+    HashObject *new_hash = HashObject::create();
+    for (auto &node : *hash) {
+        if (node.key.is_symbol() && should_exclude(node.key.as_symbol()))
+            continue;
+        new_hash->put(env, node.key, node.val);
+    }
+    return new_hash;
+}
 }

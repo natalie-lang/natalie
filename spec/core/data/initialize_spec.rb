@@ -62,12 +62,10 @@ describe "Data#initialize" do
   end
 
   it "supports super from a subclass" do
-    NATFIXME 'it supports super from a subclass', exception: ArgumentError, message: /missing keywords/ do
-      ms = DataSpecs::MeasureSubclass.new(amount: 1, unit: "km")
+    ms = DataSpecs::MeasureSubclass.new(amount: 1, unit: "km")
 
-      ms.amount.should == 1
-      ms.unit.should == "km"
-    end
+    ms.amount.should == 1
+    ms.unit.should == "km"
   end
 
   it "supports Data with no fields" do

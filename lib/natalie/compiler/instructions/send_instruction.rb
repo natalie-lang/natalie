@@ -115,15 +115,16 @@ module Natalie
       def execute(vm)
         if @forward_args
           args = vm.args
+          kwargs = args.pop if vm.kwargs.any?
         elsif @args_array_on_stack
           args = vm.pop
+          kwargs = @has_keyword_hash ? args.pop : {}
         else
           arg_count = vm.pop
           args = []
           arg_count.times { args.unshift vm.pop }
+          kwargs = @has_keyword_hash ? args.pop : {}
         end
-
-        kwargs = @has_keyword_hash ? args.pop : {}
 
         receiver = vm.pop
 
@@ -142,7 +143,13 @@ module Natalie
         old_last_match = vm.global_variables[:$~]
         vm.with_self(receiver) do
           block = vm.pop if @with_block
-          result = receiver.send(method, @message, *args, **kwargs, &block)
+          begin
+            result = receiver.send(method, @message, *args, **kwargs, &block)
+          rescue StandardError => e
+            # TODO: use actual call stack locations
+            e.set_backtrace("#{@file}:#{@line}")
+            raise e
+          end
           vm.push result
         end
         vm.global_variables[:$~] = $~ if $~ != old_last_match

@@ -750,7 +750,7 @@ Value ArrayObject::difference(Env *env, Args &&args) {
 Value ArrayObject::dig(Env *env, Args &&args) {
     args.ensure_argc_at_least(env, 1);
     auto dig = "dig"_s;
-    auto idx = args.shift();
+    auto idx = args.shift(env, true);
     Value val = ref(env, idx);
     if (args.size() == 0)
         return val;

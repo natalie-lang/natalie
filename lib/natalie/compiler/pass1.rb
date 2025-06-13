@@ -1388,8 +1388,7 @@ module Natalie
         end
 
         instructions << PushSelfInstruction.new
-        instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
-        instructions << SuperInstruction.new(args_array_on_stack: true, with_block: with_block)
+        instructions << SuperInstruction.new(forward_args: true, args_array_on_stack: true, with_block:)
 
         instructions << PopInstruction.new unless used
         instructions
