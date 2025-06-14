@@ -92,15 +92,7 @@ module Natalie
           type: i.label,
         }
       end
-
       def process_end_while(_)
-        @env = @env.fetch(:outer)
-      end
-
-      def process_with_main(i)
-        @env = i.env || { vars: {}, outer: @env, main: true, type: i.label }
-      end
-      def process_end_with_main(_)
         @env = @env.fetch(:outer)
       end
     end
