@@ -37,14 +37,14 @@ module Natalie
         env = @env
         env = env[:outer] while env[:hoist]
 
-        unless env[:block]
+        unless env.fetch(:type) == :define_block
           # ReturnInstruction inside anything else is OK.
           return
         end
 
         # get the top-most block in the method
         top_block_env = env
-        while top_block_env[:hoist] || (top_block_env.dig(:outer, :block) && !top_block_env[:lambda])
+        while top_block_env[:hoist] || (top_block_env.dig(:outer, :type) == :define_block && !top_block_env[:lambda])
           top_block_env = top_block_env[:outer]
         end
 

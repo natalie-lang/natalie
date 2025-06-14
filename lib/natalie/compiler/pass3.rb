@@ -32,8 +32,8 @@ module Natalie
 
       def transform_break(instruction)
         env = @env
-        env = env[:outer] while env[:hoist] && !env[:while]
-        raise 'unexpected env for break' unless env[:block] || env[:while]
+        env = env[:outer] while env[:hoist] && env[:type] != :while
+        raise 'unexpected env for break' unless %i[define_block while].include?(env.fetch(:type))
         unless (break_point = env[:has_break])
           break_point = @instructions.next_break_point
           env[:has_break] = break_point

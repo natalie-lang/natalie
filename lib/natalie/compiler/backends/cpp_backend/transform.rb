@@ -89,7 +89,7 @@ module Natalie
               var = env.dig(:vars, name)
               return depth, var
             end
-            if env[:block] && !local_only && (outer = env.fetch(:outer))
+            if env.fetch(:type) == :define_block && !local_only && (outer = env.fetch(:outer))
               env = outer
               depth += 1
             else
