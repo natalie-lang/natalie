@@ -54,18 +54,14 @@ describe 'Addrinfo.getaddrinfo' do
       array    = Addrinfo.getaddrinfo('127.0.0.1', 80)
       possible = [Socket::SOCK_STREAM, Socket::SOCK_DGRAM]
 
-      NATFIXME 'it sets the default socket type of the Addrinfo instances', exception: SpecFailedException do
-        possible.should include(array[0].socktype)
-      end
+      possible.should include(array[0].socktype)
     end
   end
 
   it 'sets a custom socket type of the Addrinfo instances' do
     array = Addrinfo.getaddrinfo('127.0.0.1', 80, nil, Socket::SOCK_DGRAM)
 
-    NATFIXME 'it sets a custom socket type of the Addrinfo instances', exception: SpecFailedException do
-      array[0].socktype.should == Socket::SOCK_DGRAM
-    end
+    array[0].socktype.should == Socket::SOCK_DGRAM
   end
 
   platform_is_not :windows do
