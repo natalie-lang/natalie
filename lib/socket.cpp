@@ -261,8 +261,6 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
             break;
         }
 
-        if (args.size() < 2)
-            pfamily = afamily;
         self->ivar_set(env, "@pfamily"_s, Value::integer(pfamily));
     }
 
