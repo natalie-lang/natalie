@@ -1313,7 +1313,6 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args &&args, Block *block)
         break;
     }
     default:
-        fprintf(stderr, "family: %i\n", family);
         env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
     }
 
