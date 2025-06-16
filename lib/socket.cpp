@@ -216,7 +216,7 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
 
     auto output = ArrayObject::create();
     for (struct addrinfo *rp = res; rp != nullptr; rp = rp->ai_next) {
-        auto entry = self.send(env, "new"_s, { StringObject::create(reinterpret_cast<const char *>(rp->ai_addr), rp->ai_addrlen) });
+        auto entry = self.send(env, "new"_s, { StringObject::create(reinterpret_cast<const char *>(rp->ai_addr), rp->ai_addrlen, Encoding::ASCII_8BIT) });
         if (rp->ai_canonname)
             entry->ivar_set(env, "@canonname"_s, StringObject::create(rp->ai_canonname));
         output->push(entry);
