@@ -69,18 +69,14 @@ describe 'Addrinfo.getaddrinfo' do
       array    = Addrinfo.getaddrinfo('127.0.0.1', 80)
       possible = [Socket::IPPROTO_TCP, Socket::IPPROTO_UDP]
 
-      NATFIXME 'it sets the default socket protocol of the Addrinfo instances', exception: SpecFailedException do
-        possible.should include(array[0].protocol)
-      end
+      possible.should include(array[0].protocol)
     end
   end
 
   it 'sets a custom socket protocol of the Addrinfo instances' do
-    NATFIXME 'it sets a custom socket protocol of the Addrinfo instances', exception: SpecFailedException do
-      array = Addrinfo.getaddrinfo('127.0.0.1', 80, nil, nil, Socket::IPPROTO_UDP)
+    array = Addrinfo.getaddrinfo('127.0.0.1', 80, nil, nil, Socket::IPPROTO_UDP)
 
-      array[0].protocol.should == Socket::IPPROTO_UDP
-    end
+    array[0].protocol.should == Socket::IPPROTO_UDP
   end
 
   it 'sets the canonical name when AI_CANONNAME is given as a flag' do
