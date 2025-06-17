@@ -69,9 +69,7 @@ describe 'Socket#recvfrom' do
           end
 
           it 'uses SOCK_DGRAM as the socket type' do
-            NATFIXME 'it uses SOCK_DGRAM as the socket type', exception: SpecFailedException do
-              @addr.socktype.should == Socket::SOCK_DGRAM
-            end
+            @addr.socktype.should == Socket::SOCK_DGRAM
           end
 
           it 'uses PF_INET as the protocol family' do

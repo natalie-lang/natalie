@@ -1187,9 +1187,13 @@ Value Socket_recvfrom(Env *env, Value self, Args &&args, Block *) {
         env->raise_errno();
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
     auto addrinfo = StringObject::create(reinterpret_cast<const char *>(&src_addr), addrlen, Encoding::ASCII_8BIT);
+    int socktype = 0;
+    socklen_t socktype_len = sizeof(socktype);
+    if (getsockopt(self.as_io()->fileno(), SOL_SOCKET, SO_TYPE, &socktype, &socktype_len) == -1)
+        env->raise_errno();
     return ArrayObject::create({
         StringObject::create(buf, static_cast<size_t>(res), Encoding::ASCII_8BIT),
-        Addrinfo.send(env, "new"_s, { addrinfo, Value::integer(family) }),
+        Addrinfo.send(env, "new"_s, { addrinfo, Value::integer(family), Value::integer(socktype) }),
     });
 }
 
