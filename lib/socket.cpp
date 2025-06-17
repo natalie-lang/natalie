@@ -1189,7 +1189,7 @@ Value Socket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     auto addrinfo = StringObject::create(reinterpret_cast<const char *>(&src_addr), addrlen, Encoding::ASCII_8BIT);
     return ArrayObject::create({
         StringObject::create(buf, static_cast<size_t>(res), Encoding::ASCII_8BIT),
-        Addrinfo.send(env, "new"_s, { addrinfo }),
+        Addrinfo.send(env, "new"_s, { addrinfo, Value::integer(family) }),
     });
 }
 
