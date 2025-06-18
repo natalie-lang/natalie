@@ -524,8 +524,13 @@ Value BasicSocket_local_address(Env *env, Value self, Args &&args, Block *) {
 
     auto packed = StringObject::create(reinterpret_cast<const char *>(&addr), addr_len, Encoding::ASCII_8BIT);
 
+    int socktype = 0;
+    socklen_t socktype_len = sizeof(socktype);
+    if (getsockopt(self.as_io()->fileno(), SOL_SOCKET, SO_TYPE, &socktype, &socktype_len) == -1)
+        env->raise_errno();
+
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
-    return Addrinfo.send(env, "new"_s, { packed, Value::integer(addr.ss_family) });
+    return Addrinfo.send(env, "new"_s, { packed, Value::integer(addr.ss_family), Value::integer(socktype) });
 }
 
 static ssize_t blocking_recv(Env *env, IoObject *io, char *buf, size_t len, int flags) {

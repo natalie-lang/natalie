@@ -23,9 +23,7 @@ describe 'Socket#local_address' do
     end
 
     it 'uses SOCK_STREAM as the socket type' do
-      NATFIXME 'uses SOCK_STREAM as the socket type', exception: SpecFailedException do
-        @sock.local_address.socktype.should == Socket::SOCK_STREAM
-      end
+      @sock.local_address.socktype.should == Socket::SOCK_STREAM
     end
 
     it 'uses 0.0.0.0 as the IP address' do

@@ -49,9 +49,7 @@ describe 'Socket#connect_address' do
     end
 
     it 'uses SOCK_STREAM as the socket type' do
-      NATFIXME 'uses SOCK_STREAM as the socket type', exception: SpecFailedException do
-        @sock.connect_address.socktype.should == Socket::SOCK_STREAM
-      end
+      @sock.connect_address.socktype.should == Socket::SOCK_STREAM
     end
 
     it 'uses 0 as the protocol' do
@@ -93,9 +91,7 @@ describe 'Socket#connect_address' do
       end
 
       it 'uses SOCK_STREAM as the socket type' do
-        NATFIXME 'uses SOCK_STREAM as the socket type', exception: SpecFailedException do
-          @sock.connect_address.socktype.should == Socket::SOCK_STREAM
-        end
+        @sock.connect_address.socktype.should == Socket::SOCK_STREAM
       end
 
       it 'uses 0 as the protocol' do
@@ -155,9 +151,7 @@ describe 'Socket#connect_address' do
       end
 
       it 'uses SOCK_STREAM as the socket type' do
-        NATFIXME 'uses SOCK_STREAM as the socket type', exception: SpecFailedException do
-          @sock.connect_address.socktype.should == Socket::SOCK_STREAM
-        end
+        @sock.connect_address.socktype.should == Socket::SOCK_STREAM
       end
 
       it 'uses 0 as the protocol' do

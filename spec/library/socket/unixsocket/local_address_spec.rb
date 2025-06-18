@@ -32,9 +32,7 @@ with_feature :unix_socket do
       end
 
       it 'uses SOCK_STREAM as the socket type' do
-        NATFIXME 'uses SOCK_STREAM as the socket type', exception: SpecFailedException do
-          @client.local_address.socktype.should == Socket::SOCK_STREAM
-        end
+        @client.local_address.socktype.should == Socket::SOCK_STREAM
       end
 
       platform_is_not :aix do
@@ -73,9 +71,7 @@ with_feature :unix_socket do
       end
 
       it 'uses SOCK_STREAM as the socket type' do
-        NATFIXME 'uses SOCK_STREAM as the socket type', exception: SpecFailedException do
-          @sock.local_address.socktype.should == Socket::SOCK_STREAM
-        end
+        @sock.local_address.socktype.should == Socket::SOCK_STREAM
       end
 
       it 'raises SocketError for #ip_address' do
