@@ -28,10 +28,8 @@ describe 'Addrinfo#connect' do
 
     it 'accepts a Hash of options' do
       addr = Addrinfo.tcp(ip_address, @port)
-      NATFIXME 'Support hash arguments', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
-        @socket = addr.connect(timeout: 2)
-        @socket.should be_an_instance_of(Socket)
-      end
+      @socket = addr.connect(timeout: 2)
+      @socket.should be_an_instance_of(Socket)
     end
   end
 end
