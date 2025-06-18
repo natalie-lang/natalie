@@ -18,9 +18,7 @@ describe "Addrinfo#initialize" do
       end
 
       it "returns the Socket::UNSPEC pfamily" do
-        NATFIXME 'This should return PF_UNSPEC' do
-          @addrinfo.pfamily.should == Socket::PF_UNSPEC
-        end
+        @addrinfo.pfamily.should == Socket::PF_UNSPEC
       end
 
       it 'returns AF_INET as the default address family' do
@@ -582,9 +580,7 @@ describe "Addrinfo#initialize" do
       end
 
       it 'returns an Addrinfo with the correct protocol family' do
-        NATFIXME 'This should return PF_UNSPEC' do
-          Addrinfo.new(@sockaddr).pfamily.should == Socket::PF_UNSPEC
-        end
+        Addrinfo.new(@sockaddr).pfamily.should == Socket::PF_UNSPEC
       end
 
       it 'returns an Addrinfo with the correct address family' do
