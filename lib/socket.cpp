@@ -511,9 +511,26 @@ Value BasicSocket_getsockopt(Env *env, Value self, Args &&args, Block *block) {
 
 Value BasicSocket_local_address(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
-    auto packed = self.send(env, "getsockname"_s);
+
+    sockaddr_storage addr {};
+    socklen_t addr_len = sizeof(addr);
+
+    auto getsockname_result = getsockname(
+        self.as_io()->fileno(),
+        reinterpret_cast<sockaddr *>(&addr),
+        &addr_len);
+    if (getsockname_result == -1)
+        env->raise_errno();
+
+    auto packed = StringObject::create(reinterpret_cast<const char *>(&addr), addr_len, Encoding::ASCII_8BIT);
+
+    int socktype = 0;
+    socklen_t socktype_len = sizeof(socktype);
+    if (getsockopt(self.as_io()->fileno(), SOL_SOCKET, SO_TYPE, &socktype, &socktype_len) == -1)
+        env->raise_errno();
+
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
-    return Addrinfo.send(env, "new"_s, { packed });
+    return Addrinfo.send(env, "new"_s, { packed, Value::integer(addr.ss_family), Value::integer(socktype) });
 }
 
 static ssize_t blocking_recv(Env *env, IoObject *io, char *buf, size_t len, int flags) {
@@ -588,6 +605,30 @@ Value BasicSocket_recv_nonblock(Env *env, Value self, Args &&args, Block *) {
 
     buffer->set_str(charbuf, recvfrom_result);
     return buffer;
+}
+
+Value BasicSocket_remote_address(Env *env, Value self, Args &&args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    sockaddr_storage addr {};
+    socklen_t addr_len = sizeof(addr);
+
+    auto getsockname_result = getpeername(
+        self.as_io()->fileno(),
+        reinterpret_cast<sockaddr *>(&addr),
+        &addr_len);
+    if (getsockname_result == -1)
+        env->raise_errno();
+
+    auto packed = StringObject::create(reinterpret_cast<const char *>(&addr), addr_len, Encoding::ASCII_8BIT);
+
+    int socktype = 0;
+    socklen_t socktype_len = sizeof(socktype);
+    if (getsockopt(self.as_io()->fileno(), SOL_SOCKET, SO_TYPE, &socktype, &socktype_len) == -1)
+        env->raise_errno();
+
+    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
+    return Addrinfo.send(env, "new"_s, { packed, Value::integer(addr.ss_family), Value::integer(socktype) });
 }
 
 Value BasicSocket_send(Env *env, Value self, Args &&args, Block *) {

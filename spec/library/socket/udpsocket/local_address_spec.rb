@@ -41,9 +41,7 @@ describe 'UDPSocket#local_address' do
         end
 
         it 'uses SOCK_DGRAM as the socket type' do
-          NATFIXME 'uses SOCK_DGRAM as the socket type', exception: SpecFailedException do
-            @sock.local_address.socktype.should == Socket::SOCK_DGRAM
-          end
+          @sock.local_address.socktype.should == Socket::SOCK_DGRAM
         end
 
         it 'uses the correct IP address' do
