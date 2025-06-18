@@ -3,18 +3,25 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class DefineBlockInstruction < BaseInstruction
-      def initialize(arity:)
+      def initialize(arity:, for_lambda: false)
         @arity = arity
+        @for_lambda = for_lambda
       end
 
       def has_body?
         true
       end
 
+      def for_lambda?
+        !!@for_lambda
+      end
+
       attr_reader :arity
 
       def to_s
-        'define_block'
+        s = 'define_block'
+        s << ' (for_lambda)' if @for_lambda
+        s
       end
 
       def generate(transform)
@@ -37,12 +44,13 @@ module Natalie
       end
 
       def serialize(_)
-        [instruction_number, arity].pack('Cw')
+        [instruction_number, arity, @for_lambda ? 1 : 0].pack('CwC')
       end
 
       def self.deserialize(io, _)
         arity = io.read_ber_integer
-        new(arity: arity)
+        for_lambda = io.getbool
+        new(arity:, for_lambda:)
       end
     end
   end

@@ -395,12 +395,12 @@ module Natalie
         end
       end
 
-      def transform_block_node(node, used:, is_lambda:)
-        arity = Arity.new(node.parameters, is_proc: !is_lambda).arity
+      def transform_block_node(node, used:, for_lambda:)
+        arity = Arity.new(node.parameters, is_proc: !for_lambda).arity
 
         instructions = []
-        instructions << DefineBlockInstruction.new(arity: arity)
-        if is_lambda
+        instructions << DefineBlockInstruction.new(arity:, for_lambda:)
+        if for_lambda
           instructions << transform_block_args_for_lambda(node.parameters, used: true)
         else
           instructions << transform_block_args(node.parameters, used: true)
@@ -495,7 +495,7 @@ module Natalie
         # block handling
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
-          instructions << transform_expression(node.block, used: true, is_lambda: is_lambda_call?(node))
+          instructions << transform_expression(node.block, used: true, for_lambda: is_lambda_call?(node))
         elsif node.block.is_a?(Prism::BlockArgumentNode)
           with_block = true
           instructions << transform_expression(node.block, used: true)
@@ -1381,7 +1381,7 @@ module Natalie
         # block handling
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
-          instructions << transform_expression(node.block, used: true, is_lambda: is_lambda_call?(node))
+          instructions << transform_expression(node.block, used: true, for_lambda: is_lambda_call?(node))
         elsif node.block.is_a?(Prism::BlockArgumentNode)
           with_block = true
           instructions << transform_expression(node.block, used: true)
@@ -2010,7 +2010,7 @@ module Natalie
       alias transform_keyword_hash_node transform_hash_node
 
       def transform_lambda_node(node, used:)
-        instructions = track_scope(node) { transform_block_node(node, used: true, is_lambda: true) }
+        instructions = track_scope(node) { transform_block_node(node, used: true, for_lambda: true) }
         instructions << CreateLambdaInstruction.new(file: @file.path, line: node.location.start_line)
         instructions << PopInstruction.new unless used
         instructions
@@ -2595,7 +2595,7 @@ module Natalie
         # block handling
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
-          instructions << transform_expression(node.block, used: true, is_lambda: is_lambda_call?(node))
+          instructions << transform_expression(node.block, used: true, for_lambda: is_lambda_call?(node))
         elsif node.block.is_a?(Prism::BlockArgumentNode)
           with_block = true
           instructions << transform_expression(node.block, used: true)
