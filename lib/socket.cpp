@@ -607,6 +607,30 @@ Value BasicSocket_recv_nonblock(Env *env, Value self, Args &&args, Block *) {
     return buffer;
 }
 
+Value BasicSocket_remote_address(Env *env, Value self, Args &&args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    sockaddr_storage addr {};
+    socklen_t addr_len = sizeof(addr);
+
+    auto getsockname_result = getpeername(
+        self.as_io()->fileno(),
+        reinterpret_cast<sockaddr *>(&addr),
+        &addr_len);
+    if (getsockname_result == -1)
+        env->raise_errno();
+
+    auto packed = StringObject::create(reinterpret_cast<const char *>(&addr), addr_len, Encoding::ASCII_8BIT);
+
+    int socktype = 0;
+    socklen_t socktype_len = sizeof(socktype);
+    if (getsockopt(self.as_io()->fileno(), SOL_SOCKET, SO_TYPE, &socktype, &socktype_len) == -1)
+        env->raise_errno();
+
+    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
+    return Addrinfo.send(env, "new"_s, { packed, Value::integer(addr.ss_family), Value::integer(socktype) });
+}
+
 Value BasicSocket_send(Env *env, Value self, Args &&args, Block *) {
     // send(mesg, flags [, dest_sockaddr]) => numbytes_sent
     args.ensure_argc_between(env, 2, 3);

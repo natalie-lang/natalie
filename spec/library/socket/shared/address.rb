@@ -22,9 +22,7 @@ describe :socket_local_remote_address, shared: true do
     end
 
     it 'uses SOCK_STREAM as the socket type' do
-      NATFIXME 'uses SOCK_STREAM as the socket type', condition: @object.to_s.include?('remote_address'), exception: SpecFailedException do
-        @addr.socktype.should == Socket::SOCK_STREAM
-      end
+      @addr.socktype.should == Socket::SOCK_STREAM
     end
 
     it 'uses the correct IP address' do
@@ -57,8 +55,7 @@ describe :socket_local_remote_address, shared: true do
 
     it 'can be used to connect to the server' do
       skip if @method == :local_address
-      # Linux throws Errno::ESOCKTNOSUPPORT, MacOS throws Errno::EPROTONOSUPPORT
-      NATFIXME 'Support this socket type in Addrinfo#connect', exception: SystemCallError do
+      NATFIXME 'Skip does not work', condition: @method == :local_address, exception: SystemCallError do
         b = @addr.connect
         begin
           b.remote_address.to_s.should == @addr.to_s
@@ -91,9 +88,7 @@ describe :socket_local_remote_address, shared: true do
       end
 
       it 'uses SOCK_STREAM as the socket type' do
-        NATFIXME 'uses SOCK_STREAM as the socket type', condition: @object.to_s.include?('remote_address'), exception: SpecFailedException do
-          @addr.socktype.should == Socket::SOCK_STREAM
-        end
+        @addr.socktype.should == Socket::SOCK_STREAM
       end
 
       it 'uses the correct IP address' do
@@ -126,8 +121,7 @@ describe :socket_local_remote_address, shared: true do
 
       it 'can be used to connect to the server' do
         skip if @method == :local_address
-        # Linux throws Errno::ESOCKTNOSUPPORT, MacOS throws Errno::EPROTONOSUPPORT
-        NATFIXME 'Support IPv6 in Addrinfo#connect', exception: SystemCallError do
+        NATFIXME 'Skip does not work', condition: @method == :local_address, exception: SystemCallError do
           b = @addr.connect
           begin
             b.remote_address.to_s.should == @addr.to_s
@@ -163,9 +157,7 @@ describe :socket_local_remote_address, shared: true do
       end
 
       it 'uses SOCK_STREAM as the socket type' do
-        NATFIXME 'uses SOCK_STREAM as the socket type', condition: @object.to_s.include?('remote_address'), exception: SpecFailedException do
-          @addr.socktype.should == Socket::SOCK_STREAM
-        end
+        @addr.socktype.should == Socket::SOCK_STREAM
       end
 
       it 'uses the correct socket path' do
@@ -194,8 +186,7 @@ describe :socket_local_remote_address, shared: true do
 
       it 'can be used to connect to the server' do
         skip if @method == :local_address
-        # Linux throws Errno::ESOCKTNOSUPPORT, MacOS throws Errno::EPROTONOSUPPORT
-        NATFIXME 'Support this socket type in Addrinfo#connect', exception: SystemCallError do
+        NATFIXME 'Skip does not work', condition: @method == :local_address, exception: SystemCallError do
           b = @addr.connect
           begin
             b.remote_address.to_s.should == @addr.to_s
@@ -229,9 +220,7 @@ describe :socket_local_remote_address, shared: true do
     end
 
     it 'uses SOCK_DGRAM as the socket type' do
-      NATFIXME 'it uses SOCK_DGRAM as the socket type', condition: @object.to_s.include?('remote_address'), exception: SpecFailedException do
-        @addr.socktype.should == Socket::SOCK_DGRAM
-      end
+      @addr.socktype.should == Socket::SOCK_DGRAM
     end
 
     it 'uses the correct IP address' do
@@ -255,14 +244,11 @@ describe :socket_local_remote_address, shared: true do
     end
 
     it 'can be used to connect to the peer' do
-      # Linux throws Errno::ESOCKTNOSUPPORT, MacOS throws Errno::EPROTONOSUPPORT
-      NATFIXME 'Support this socket type in Addrinfo#connect', condition: @object.to_s.include?('remote_address'), exception: SystemCallError do
-        b = @addr.connect
-        begin
-          b.remote_address.to_s.should == @addr.to_s
-        ensure
-          b.close
-        end
+      b = @addr.connect
+      begin
+        b.remote_address.to_s.should == @addr.to_s
+      ensure
+        b.close
       end
     end
   end

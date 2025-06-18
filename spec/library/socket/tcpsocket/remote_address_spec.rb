@@ -36,9 +36,7 @@ describe 'TCPSocket#remote_address' do
         end
 
         it 'uses SOCK_STREAM as the socket type' do
-          NATFIXME 'uses SOCK_STREAM as the socket type', exception: SpecFailedException do
-            @sock.remote_address.socktype.should == Socket::SOCK_STREAM
-          end
+          @sock.remote_address.socktype.should == Socket::SOCK_STREAM
         end
 
         it 'uses the correct IP address' do
