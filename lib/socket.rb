@@ -303,9 +303,9 @@ class Addrinfo
     socket
   end
 
-  def connect
+  def connect(timeout: nil)
     socket = Socket.new(afamily, socktype, protocol)
-    socket.connect(to_sockaddr)
+    socket.connect(to_sockaddr, connect_timeout: timeout)
     if block_given?
       begin
         yield socket
