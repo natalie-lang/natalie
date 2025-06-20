@@ -11,11 +11,12 @@ namespace Natalie {
 
 class Method : public Cell {
 public:
-    Method(TM::String &&name, ModuleObject *owner, MethodFnPtr fn, int arity, const char *file = nullptr, size_t line = 0)
+    Method(TM::String &&name, ModuleObject *owner, MethodFnPtr fn, int arity, int break_point = 0, const char *file = nullptr, size_t line = 0)
         : m_name { std::move(name) }
         , m_owner { owner }
         , m_fn { fn }
         , m_arity { arity }
+        , m_break_point { break_point }
         , m_file { file ? Optional<String>(file) : Optional<String>() }
         , m_line { line ? Optional<size_t>(line) : Optional<size_t>() } {
         assert(fn);
@@ -38,8 +39,8 @@ public:
         }
     }
 
-    Method(const TM::String &name, ModuleObject *owner, MethodFnPtr fn, int arity, const char *file = nullptr, size_t line = 0)
-        : Method(TM::String(name), owner, fn, arity, file, line) { }
+    Method(const TM::String &name, ModuleObject *owner, MethodFnPtr fn, int arity, int break_point = 0, const char *file = nullptr, size_t line = 0)
+        : Method(TM::String(name), owner, fn, arity, break_point, file, line) { }
 
     Method(const TM::String &name, ModuleObject *owner, Block *block)
         : Method(TM::String(name), owner, block) { }
@@ -50,6 +51,7 @@ public:
         method->m_env = other->m_env;
         method->m_file = other->m_file;
         method->m_line = other->m_line;
+        method->m_break_point = other->m_break_point;
         method->set_original_method(other);
         return method;
     }
@@ -97,6 +99,7 @@ private:
     MethodFnPtr m_fn;
     Optional<Value> m_self {};
     int m_arity { 0 };
+    int m_break_point { 0 };
     Optional<String> m_file {};
     Optional<size_t> m_line {};
     Env *m_env { nullptr };

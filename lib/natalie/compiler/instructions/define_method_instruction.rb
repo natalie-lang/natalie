@@ -3,9 +3,10 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class DefineMethodInstruction < BaseInstruction
-      def initialize(name:, arity:, file:, line:)
+      def initialize(name:, arity:, file:, line:, break_point: nil)
         @name = name
         @arity = arity
+        @break_point = break_point
 
         # source location info
         @file = file
@@ -17,9 +18,12 @@ module Natalie
       end
 
       attr_reader :name, :arity, :file, :line
+      attr_accessor :break_point
 
       def to_s
-        "define_method #{@name}"
+        s = "define_method #{@name}"
+        s << " (break point: #{break_point})" if break_point
+        s
       end
 
       def generate(transform)
@@ -36,7 +40,9 @@ module Natalie
           body << '}'
           transform.top(fn, body)
         end
-        transform.exec("Object::define_method(env, #{klass}, #{transform.intern(@name)}, #{fn}, #{@arity})")
+        transform.exec(
+          "Object::define_method(env, #{klass}, #{transform.intern(@name)}, #{fn}, #{@arity}, #{@break_point.to_i})",
+        )
       end
 
       def execute(vm)
@@ -71,18 +77,21 @@ module Natalie
         raise NotImplementedError, 'Methods with more than 127 arguments are not supported' if @arity > 127
 
         position = rodata.add(@name.to_s)
-        [instruction_number, position, @arity].pack('Cwc')
+        [instruction_number, position, @arity, @break_point.to_i].pack('CwcC')
       end
 
       def self.deserialize(io, rodata)
         position = io.read_ber_integer
         name = rodata.get(position, convert: :to_sym)
         arity = io.read(1).unpack1('c')
+        break_point = io.read_ber_integer
+        break_point = nil if break_point.zero?
         new(
           name:,
           arity:,
           file: '', # FIXME
           line: 0, # FIXME
+          break_point:,
         )
       end
     end

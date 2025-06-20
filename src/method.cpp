@@ -30,6 +30,16 @@ Value Method::call(Env *env, Value self, Args &&args, Block *block) const {
         }
     };
 
+    if (m_break_point) {
+        try {
+            return call_fn(std::move(args));
+        } catch (ExceptionObject *exception) {
+            if (exception->is_local_jump_error_with_break_point(m_break_point))
+                return exception->send(env, "exit_value"_s);
+            throw exception;
+        }
+    }
+
     return call_fn(std::move(args));
 }
 }

@@ -41,7 +41,6 @@ module Natalie
         @env = i.env || { vars: {}, outer: @env, type: i.label, for_lambda: i.for_lambda? }
       end
       def process_end_define_block(_)
-        @env[:lambda] = true if @instructions[@ip + 1].is_a?(CreateLambdaInstruction)
         @env = @env.fetch(:outer)
       end
 
