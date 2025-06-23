@@ -343,10 +343,7 @@ class Date
       time.tm_mday = IntegerMethods::convert_to_int(env, self->ivar_get(env, "@mday"_s));
       time.tm_gmtoff = 0;
       time.tm_isdst = 0;
-      int maxsize = 32;
-      char buffer[maxsize];
-      auto length = ::strftime(buffer, maxsize, format_var.as_string()->c_str(), &time);
-      return StringObject::create(buffer, length, format_var.as_string()->encoding());
+      return TimeObject::build_string(&time, format_var.as_string()->c_str(), format_var.as_string()->encoding()->num());
     END
   end
 
