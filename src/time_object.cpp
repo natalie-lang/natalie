@@ -242,7 +242,7 @@ Value TimeObject::sec(Env *) const {
 }
 
 Value TimeObject::strftime(Env *env, Value format) {
-    return build_string(env, format.as_string()->c_str());
+    return build_string(env, format.as_string()->c_str(), format.as_string()->encoding()->num());
 }
 
 Value TimeObject::subsec(Env *) {
@@ -545,11 +545,11 @@ void TimeObject::set_subsec(Env *, RationalObject *subsec) {
         m_subsec = subsec;
 }
 
-Value TimeObject::build_string(Env *, const char *format) {
+Value TimeObject::build_string(Env *, const char *format, Encoding encoding) {
     int maxsize = 32;
     char buffer[maxsize];
     auto length = ::strftime(buffer, maxsize, format, &m_time);
-    return StringObject::create(buffer, length, Encoding::US_ASCII);
+    return StringObject::create(buffer, length, encoding);
 }
 
 Value TimeObject::strip_zeroes(StringObject *string) {

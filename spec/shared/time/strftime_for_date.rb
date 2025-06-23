@@ -300,9 +300,7 @@ describe :strftime_date, shared: true do
   it "passes the format string's encoding to the result string" do
     result = @new_date[2010,3,8].strftime("%d. März %Y")
 
-    NATFIXME "it passes the format string's encoding to the result string", exception: SpecFailedException do
-      result.encoding.should == Encoding::UTF_8
-    end
+    result.encoding.should == Encoding::UTF_8
     result.should == "08. März 2010"
   end
 end
