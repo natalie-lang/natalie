@@ -827,8 +827,14 @@ Value KernelModule::spawn(Env *env, Args &&args) {
             new_env.is_empty() ? environ : new_env.data());
     }
 
-    if (result != 0)
+    if (result != 0) {
+// MacOS posix_spawnp(2) can return a non-zero value without setting errno.
+// We need to set errno manually to ensure that the error is reported correctly.
+#ifdef __APPLE__
+        errno = result;
+#endif
         env->raise_errno();
+    }
 
     return Value::integer(pid);
 }
