@@ -814,9 +814,7 @@ describe "Process.spawn" do
   unless File.executable?(__FILE__) # Some FS (e.g. vboxfs) locate all files executable
     platform_is_not :windows do
       it "raises an Errno::EACCES when the file does not have execute permissions" do
-        NATFIXME 'Raised the wrong error on macos', condition: RUBY_PLATFORM.include?('darwin'), exception: SpecFailedException do
-          -> { Process.spawn __FILE__ }.should raise_error(Errno::EACCES)
-        end
+        -> { Process.spawn __FILE__ }.should raise_error(Errno::EACCES)
       end
     end
 
@@ -830,11 +828,9 @@ describe "Process.spawn" do
   end
 
   it "raises an Errno::EACCES or Errno::EISDIR when passed a directory" do
-    NATFIXME 'Raised the wrong error on macos', condition: RUBY_PLATFORM.include?('darwin'), exception: SpecFailedException do
-      -> { Process.spawn __dir__ }.should raise_error(SystemCallError) { |e|
-        [Errno::EACCES, Errno::EISDIR].should include(e.class)
-      }
-    end
+    -> { Process.spawn __dir__ }.should raise_error(SystemCallError) { |e|
+      [Errno::EACCES, Errno::EISDIR].should include(e.class)
+    }
   end
 
   it "raises an ArgumentError when passed a string key in options" do
