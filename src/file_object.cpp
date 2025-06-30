@@ -551,10 +551,8 @@ Value FileObject::ftype(Env *env, Value path) {
     std::error_code ec;
     // use symlink_status instead of status bc we do not want to follow symlinks
     auto st = std::filesystem::symlink_status(path.as_string()->c_str(), ec);
-    if (ec) {
-        errno = ec.value();
-        env->raise_errno();
-    }
+    if (ec)
+        env->raise_errno(ec.value());
     switch (st.type()) {
     case std::filesystem::file_type::regular:
         return StringObject::create("file");

@@ -1142,10 +1142,8 @@ Value Socket_connect(Env *env, Value self, Args &&args, Block *block) {
         socklen_t option_len = sizeof(option_value);
         if (getsockopt(self.as_io()->fileno(), SOL_SOCKET, SO_ERROR, &option_value, &option_len) == -1)
             env->raise_errno();
-        if (option_value) {
-            errno = option_value;
-            env->raise_errno();
-        }
+        if (option_value)
+            env->raise_errno(option_value);
 
         // We can't connect directly, wait for the timeout (if given)
         pollfd fds = { self.as_io()->fileno(), POLLIN | POLLOUT, 0 };
@@ -1174,10 +1172,8 @@ Value Socket_connect(Env *env, Value self, Args &&args, Block *block) {
                 socklen_t option_len = sizeof(option_value);
                 if (getsockopt(self.as_io()->fileno(), SOL_SOCKET, SO_ERROR, &option_value, &option_len) == -1)
                     env->raise_errno();
-                if (option_value) {
-                    errno = option_value;
-                    env->raise_errno();
-                }
+                if (option_value)
+                    env->raise_errno(option_value);
                 break;
             }
         }

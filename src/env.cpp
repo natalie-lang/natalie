@@ -144,6 +144,12 @@ void Env::raise_errno() {
     raise_exception(error);
 }
 
+void Env::raise_errno(int err) {
+    auto SystemCallError = find_top_level_const(this, "SystemCallError"_s);
+    ExceptionObject *error = SystemCallError.send(this, "exception"_s, { Value::integer(err) }).as_exception();
+    raise_exception(error);
+}
+
 void Env::raise_errno(StringObject *detail) {
     auto SystemCallError = find_top_level_const(this, "SystemCallError"_s);
     ExceptionObject *error = SystemCallError.send(this, "exception"_s, { detail, Value::integer(errno) }).as_exception();
