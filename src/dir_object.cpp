@@ -101,9 +101,8 @@ StringObject *DirObject::inspect(Env *env) {
 void change_current_path(Env *env, std::filesystem::path path) {
     std::error_code ec;
     std::filesystem::current_path(path, ec);
-    errno = ec.value();
-    if (errno)
-        env->raise_errno();
+    if (ec)
+        env->raise_errno(ec.value());
 }
 
 Value DirObject::chdir(Env *env, Optional<Value> path_arg, Block *block) {
@@ -122,8 +121,8 @@ Value DirObject::chdir(Env *env, Optional<Value> path_arg, Block *block) {
 
     std::error_code ec;
     auto old_path = std::filesystem::current_path(ec);
-    errno = ec.value();
-    if (errno) env->raise_errno();
+    if (ec)
+        env->raise_errno(ec.value());
 
     auto new_path = std::filesystem::path { path.to_str(env)->c_str() };
     change_current_path(env, new_path);
@@ -271,9 +270,8 @@ Value DirObject::mkdir(Env *env, Value path, Optional<Value> mode) {
 Value DirObject::pwd(Env *env) {
     std::error_code ec;
     auto path = std::filesystem::current_path(ec);
-    errno = ec.value();
-    if (errno)
-        env->raise_errno();
+    if (ec)
+        env->raise_errno(ec.value());
     return StringObject::create(path.c_str());
 }
 
@@ -313,10 +311,8 @@ bool DirObject::is_empty(Env *env, Value dirname) {
     auto dir_cstr = dirname.as_string()->c_str();
     std::error_code ec;
     auto st = std::filesystem::symlink_status(dir_cstr, ec);
-    if (ec) {
-        errno = ec.value();
-        env->raise_errno();
-    }
+    if (ec)
+        env->raise_errno(ec.value());
     if (st.type() != std::filesystem::file_type::directory)
         return false;
     const std::filesystem::path dirpath { dir_cstr };

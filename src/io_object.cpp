@@ -33,8 +33,8 @@ static void throw_unless_readable(Env *env, const IoObject *const self) {
     const auto old_errno = errno;
     if (!is_readable(self->fileno(env)))
         env->raise("IOError", "not opened for reading");
-    errno = old_errno; // errno may have been changed by fcntl, revert to the old value
-    env->raise_errno();
+    // errno may have been changed by fcntl, revert to the old value
+    env->raise_errno(old_errno);
 }
 
 static void throw_unless_writable(Env *env, const IoObject *const self) {
@@ -42,8 +42,8 @@ static void throw_unless_writable(Env *env, const IoObject *const self) {
     const auto old_errno = errno;
     if (!is_writable(self->fileno(env)))
         env->raise("IOError", "not opened for writing");
-    errno = old_errno; // errno may have been changed by fcntl, revert to the old value
-    env->raise_errno();
+    // errno may have been changed by fcntl, revert to the old value
+    env->raise_errno(old_errno);
 }
 
 Value IoObject::initialize(Env *env, Args &&args, Block *block) {
@@ -58,10 +58,8 @@ Value IoObject::initialize(Env *env, Args &&args, Block *block) {
     if (actual_flags < 0)
         env->raise_errno();
     if (wanted_flags.has_mode()) {
-        if ((flags_is_readable(wanted_flags.flags()) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags.flags()) && !flags_is_writable(actual_flags))) {
-            errno = EINVAL;
-            env->raise_errno();
-        }
+        if ((flags_is_readable(wanted_flags.flags()) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags.flags()) && !flags_is_writable(actual_flags)))
+            env->raise_errno(EINVAL);
     }
     set_fileno(fileno);
     set_encoding(env, wanted_flags.external_encoding(), wanted_flags.internal_encoding());
