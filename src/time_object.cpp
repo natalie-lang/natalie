@@ -129,7 +129,7 @@ Value TimeObject::add(Env *env, Value other) {
 }
 
 Value TimeObject::asctime(Env *env) {
-    return build_string(env, "%a %b %e %T %Y");
+    return build_string(&m_time, "%a %b %e %T %Y");
 }
 
 Value TimeObject::cmp(Env *env, Value other) {
@@ -177,7 +177,7 @@ Value TimeObject::hour(Env *) const {
 }
 
 Value TimeObject::inspect(Env *env) {
-    StringObject *result = build_string(env, "%Y-%m-%d %H:%M:%S").as_string();
+    StringObject *result = build_string(&m_time, "%Y-%m-%d %H:%M:%S").as_string();
     if (m_subsec) {
         auto integer = m_subsec.value().as_rational()->mul(env, Value::integer(1000000000)).as_rational()->to_i(env);
         auto string = integer.to_s(env);
@@ -242,7 +242,7 @@ Value TimeObject::sec(Env *) const {
 }
 
 Value TimeObject::strftime(Env *env, Value format) {
-    return build_string(env, format.as_string()->c_str(), format.as_string()->encoding()->num());
+    return build_string(&m_time, format.as_string()->c_str(), format.as_string()->encoding()->num());
 }
 
 Value TimeObject::subsec(Env *) {
@@ -276,9 +276,9 @@ Value TimeObject::to_r(Env *env) {
 
 Value TimeObject::to_s(Env *env) {
     if (m_time.tm_gmtoff) {
-        return build_string(env, "%Y-%m-%d %H:%M:%S %z");
+        return build_string(&m_time, "%Y-%m-%d %H:%M:%S %z");
     } else {
-        return build_string(env, "%Y-%m-%d %H:%M:%S UTC");
+        return build_string(&m_time, "%Y-%m-%d %H:%M:%S UTC");
     }
 }
 
@@ -545,10 +545,10 @@ void TimeObject::set_subsec(Env *, RationalObject *subsec) {
         m_subsec = subsec;
 }
 
-Value TimeObject::build_string(Env *, const char *format, Encoding encoding) {
+Value TimeObject::build_string(const tm *time, const char *format, Encoding encoding) {
     int maxsize = 32;
     char buffer[maxsize];
-    auto length = ::strftime(buffer, maxsize, format, &m_time);
+    auto length = ::strftime(buffer, maxsize, format, time);
     return StringObject::create(buffer, length, encoding);
 }
 

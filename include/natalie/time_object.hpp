@@ -74,6 +74,8 @@ public:
     Value year(Env *) const;
     Value zone(Env *) const;
 
+    static Value build_string(const tm *, const char *, Encoding = Encoding::US_ASCII);
+
     virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);
         visitor.visit(m_integer);
@@ -113,7 +115,6 @@ private:
     static nat_int_t normalize_field(Env *, Value val, nat_int_t minval, nat_int_t maxval);
     static nat_int_t normalize_timezone(Env *, Value val);
 
-    Value build_string(Env *, const char *, Encoding = Encoding::US_ASCII);
     void build_time(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>);
     void set_subsec(Env *, long);
     void set_subsec(Env *, Integer);
