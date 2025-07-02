@@ -32,20 +32,27 @@ module Natalie
         end
 
         # get the enclosing lambda or method
+        # also mark every block in case it becomes a method later
         until env.fetch(:type) == :define_method || (env.fetch(:type) == :define_block && env[:for_lambda])
+          env[:has_return] = true if env.fetch(:type) == :define_block
           env = env[:outer]
-          return if env.nil? # top-level return, nothing to do
+          break if env.nil?
           env = env[:outer] while env[:hoist]
         end
 
         # create a new break point and attach to env
-        unless (break_point = env[:return_break_point])
-          break_point = @instructions.next_break_point
-          env[:return_break_point] = break_point
-          if env[:for_lambda]
-            # gotta save the break point for the CreateLambdaInstruction coming up
-            @create_lambda_break_point = break_point
+        if env
+          unless (break_point = env[:return_break_point])
+            break_point = @instructions.next_break_point
+            env[:return_break_point] = break_point
+            if env[:for_lambda]
+              # gotta save the break point for the CreateLambdaInstruction coming up
+              @create_lambda_break_point = break_point
+            end
           end
+        else
+          # special signal for any block converted to a method
+          break_point = -1
         end
 
         # convert ReturnInstruction to BreakInstruction
@@ -66,6 +73,10 @@ module Natalie
 
         instruction.break_point = @create_lambda_break_point
         @create_lambda_break_point = nil
+      end
+
+      def transform_end_define_block(instruction)
+        instruction.matching_instruction.has_return = true if @env[:has_return]
       end
 
       class << self

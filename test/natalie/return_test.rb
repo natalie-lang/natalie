@@ -39,7 +39,7 @@ describe 'return' do
     foo.should == 1
   end
 
-  it 'can return from a begin in a deeply nested loop' do
+  it 'can return without being rescued' do
     def foo
       loop do
         begin
@@ -179,5 +179,22 @@ describe 'return' do
       result
     end
     bar.should == 9
+  end
+
+  it 'can return from a block inside a dynamically-defined method' do
+    define_method(:foo) { 1.tap { return 10 } }
+    foo.should == 10
+
+    1.tap { define_method(:bar) { 1.tap { return 11 } } }
+    bar.should == 11
+
+    def define_it(name, &block)
+      define_method(name, &block)
+    end
+    define_it(:baz) { 1.tap { return 12 } }
+    baz.should == 12
+
+    define_it(:buz, &proc { 1.tap { return 13 } })
+    buz.should == 13
   end
 end

@@ -30,6 +30,9 @@ public:
         assert(m_env);
         block->copy_fn_pointer_to_method(this);
 
+        if (block->has_return())
+            m_break_point = -1;
+
         if (block->is_from_method())
             m_self = block->self();
 
