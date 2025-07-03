@@ -13,7 +13,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         return str;
 
     ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s).as_class();
-    auto temp_string = StringObject::create("", (EncodingObject *)this);
+    auto temp_string = StringObject::create("", num());
 
     if (options.xml_option == EncodeXmlOption::Attr)
         temp_string->append_char('"');
