@@ -532,11 +532,12 @@ Value BasicSocket_getsockopt(Env *env, Value self, Args &&args, Block *block) {
     auto family = addr.sa_family;
 
     socklen_t len = 1024;
-    char buf[len];
-    auto result = getsockopt(self.as_io()->fileno(), level, optname, &buf, &len);
+    auto buf = new char[len];
+    auto result = getsockopt(self.as_io()->fileno(), level, optname, buf, &len);
     if (result == -1)
         env->raise_errno();
-    auto data = StringObject::create(buf, len, Encoding::ASCII_8BIT);
+    String str { std::move(buf), len };
+    auto data = StringObject::create(std::move(str), Encoding::ASCII_8BIT);
     auto Option = fetch_nested_const({ "Socket"_s, "Option"_s });
     return Option.send(env, "new"_s, { Value::integer(family), Value::integer(level), Value::integer(optname), data });
 }
@@ -591,7 +592,7 @@ Value BasicSocket_recv(Env *env, Value self, Args &&args, Block *) {
     Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
 
-    char buf[maxlen];
+    auto buf = new char[maxlen];
     auto bytes = blocking_recv(env, self.as_io(), buf, static_cast<size_t>(maxlen), static_cast<int>(flags));
     if (bytes == -1)
         env->raise_errno();
@@ -599,7 +600,8 @@ Value BasicSocket_recv(Env *env, Value self, Args &&args, Block *) {
     if (outbuf.is_string())
         outbuf.as_string()->set_str(buf, bytes);
 
-    return StringObject::create(buf, static_cast<size_t>(bytes));
+    String str { std::move(buf), static_cast<size_t>(bytes) };
+    return StringObject::create(std::move(str));
 }
 
 Value BasicSocket_recv_nonblock(Env *env, Value self, Args &&args, Block *) {
@@ -1234,7 +1236,7 @@ Value Socket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     if (!args.at(1, Value::nil()).is_nil())
         flags = IntegerMethods::convert_to_native_type<int>(env, args.at(1));
 
-    char buf[maxlen];
+    auto buf = new char[maxlen];
     sockaddr_storage src_addr;
     memset(&src_addr, 0, sizeof(src_addr));
     socklen_t addrlen = sizeof(src_addr);
@@ -1260,8 +1262,9 @@ Value Socket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     socklen_t socktype_len = sizeof(socktype);
     if (getsockopt(self.as_io()->fileno(), SOL_SOCKET, SO_TYPE, &socktype, &socktype_len) == -1)
         env->raise_errno();
+    String str { std::move(buf), static_cast<size_t>(res) };
     return ArrayObject::create({
-        StringObject::create(buf, static_cast<size_t>(res), Encoding::ASCII_8BIT),
+        StringObject::create(std::move(str), Encoding::ASCII_8BIT),
         Addrinfo.send(env, "new"_s, { addrinfo, Value::integer(family), Value::integer(socktype) }),
     });
 }
