@@ -4023,7 +4023,7 @@ void StringObject::append(Value val) {
         append("false");
         break;
     case Type::Float:
-        append(val.is_float());
+        append(val.as_float());
         break;
     case Type::Nil:
         append("nil");
