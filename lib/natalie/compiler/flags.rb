@@ -27,6 +27,7 @@ module Natalie
         -DNAT_GC_GUARD
         -Wno-vla-cxx-extension
         -Wno-unknown-warning-option
+        -Wsign-promo
       ].freeze
 
       SANITIZE_FLAG = "-fsanitize=#{ENV.fetch('NAT_SANITIZE_FLAG_VALUE', 'address')}".freeze
