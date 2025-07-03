@@ -14,13 +14,27 @@ module Natalie
       end
 
       def generate(transform)
-        code = "bool_object(exception->is_local_jump_error_with_break_point(#{@break_point}))"
-        transform.exec_and_push(:match_exception_result, code)
+        value = transform.temp('break_value')
+        code = [
+          "Value #{value} = Value::nil()",
+          "if (exception->is_local_jump_error_with_break_point(#{@break_point})) {",
+          "#{value} = exception->ivar_get(env, \"@exit_value\"_s)",
+          '} else {',
+          'throw exception',
+          '}',
+        ]
+        transform.exec(code)
+        transform.push(value)
       end
 
       def execute(vm)
         exception = vm.global_variables[:$!]
-        vm.push(exception.instance_variable_get(:@break_point) == @break_point)
+        if exception.instance_variable_get(:@break_point) == @break_point
+          value = exception.instance_variable_get(:@exit_value)
+          vm.push(value)
+        else
+          raise exception
+        end
       end
     end
   end
