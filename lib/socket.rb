@@ -275,7 +275,8 @@ class Addrinfo
     __bind_method__ :getaddrinfo, :Addrinfo_getaddrinfo
 
     def ip(ip)
-      Addrinfo.new(Socket.pack_sockaddr_in(0, ip), nil, nil, Socket::IPPROTO_IP)
+      packed = Socket.pack_sockaddr_in(0, ip)
+      Addrinfo.new(packed, Addrinfo.new(packed).afamily, nil, Socket::IPPROTO_IP)
     end
 
     def tcp(ip, port)
