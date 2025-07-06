@@ -285,7 +285,8 @@ class Addrinfo
     end
 
     def udp(ip, port)
-      Addrinfo.new(Socket.pack_sockaddr_in(port, ip), nil, Socket::SOCK_DGRAM, Socket::IPPROTO_UDP)
+      packed = Socket.pack_sockaddr_in(port, ip)
+      Addrinfo.new(packed, Addrinfo.new(packed).afamily, Socket::SOCK_DGRAM, Socket::IPPROTO_UDP)
     end
 
     def unix(path, socktype = Socket::SOCK_STREAM)
