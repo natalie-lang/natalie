@@ -20,9 +20,7 @@ describe 'Addrinfo.tcp' do
     end
 
     it 'sets the protocol family' do
-      NATFIXME 'it sets the protocol family', exception: SpecFailedException do
-        Addrinfo.tcp(ip_address, 80).pfamily.should == family
-      end
+      Addrinfo.tcp(ip_address, 80).pfamily.should == family
     end
 
     it 'sets the socket type' do

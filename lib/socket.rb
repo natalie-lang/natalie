@@ -280,7 +280,8 @@ class Addrinfo
     end
 
     def tcp(ip, port)
-      Addrinfo.new(Socket.pack_sockaddr_in(port, ip), nil, Socket::SOCK_STREAM, Socket::IPPROTO_TCP)
+      packed = Socket.pack_sockaddr_in(port, ip)
+      Addrinfo.new(packed, Addrinfo.new(packed).afamily, Socket::SOCK_STREAM, Socket::IPPROTO_TCP)
     end
 
     def udp(ip, port)
