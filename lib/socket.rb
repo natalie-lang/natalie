@@ -290,7 +290,7 @@ class Addrinfo
     end
 
     def unix(path, socktype = Socket::SOCK_STREAM)
-      Addrinfo.new(Socket.pack_sockaddr_un(path), nil, socktype)
+      Addrinfo.new(Socket.pack_sockaddr_un(path), Socket::PF_UNIX, socktype)
     end
   end
 
