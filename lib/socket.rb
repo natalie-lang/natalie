@@ -275,19 +275,22 @@ class Addrinfo
     __bind_method__ :getaddrinfo, :Addrinfo_getaddrinfo
 
     def ip(ip)
-      Addrinfo.new(Socket.pack_sockaddr_in(0, ip), nil, nil, Socket::IPPROTO_IP)
+      packed = Socket.pack_sockaddr_in(0, ip)
+      Addrinfo.new(packed, Addrinfo.new(packed).afamily, nil, Socket::IPPROTO_IP)
     end
 
     def tcp(ip, port)
-      Addrinfo.new(Socket.pack_sockaddr_in(port, ip), nil, Socket::SOCK_STREAM, Socket::IPPROTO_TCP)
+      packed = Socket.pack_sockaddr_in(port, ip)
+      Addrinfo.new(packed, Addrinfo.new(packed).afamily, Socket::SOCK_STREAM, Socket::IPPROTO_TCP)
     end
 
     def udp(ip, port)
-      Addrinfo.new(Socket.pack_sockaddr_in(port, ip), nil, Socket::SOCK_DGRAM, Socket::IPPROTO_UDP)
+      packed = Socket.pack_sockaddr_in(port, ip)
+      Addrinfo.new(packed, Addrinfo.new(packed).afamily, Socket::SOCK_DGRAM, Socket::IPPROTO_UDP)
     end
 
     def unix(path, socktype = Socket::SOCK_STREAM)
-      Addrinfo.new(Socket.pack_sockaddr_un(path), nil, socktype)
+      Addrinfo.new(Socket.pack_sockaddr_un(path), Socket::PF_UNIX, socktype)
     end
   end
 
