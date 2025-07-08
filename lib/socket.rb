@@ -400,6 +400,38 @@ class Addrinfo
     end
   end
 
+  def marshal_dump
+    afamily =
+      Socket
+        .constants
+        .grep(/^AF_/)
+        .grep_v(/^AF_LOCAL$/)
+        .to_h { [Socket.const_get(it), it.to_s] }
+        .fetch(self.afamily, self.afamily)
+    addr =
+      if ip?
+        [ip_address, ip_port.to_s]
+      elsif unix?
+        unix_path
+      end
+    pfamily =
+      Socket
+        .constants
+        .grep(/^PF_/)
+        .grep_v(/^PF_LOCAL$/)
+        .to_h { [Socket.const_get(it), it.to_s] }
+        .fetch(self.pfamily, self.pfamily)
+    socktype =
+      Socket.constants.grep(/^SOCK_/).to_h { [Socket.const_get(it), it.to_s] }.fetch(self.socktype, self.socktype)
+    protocol =
+      if ip?
+        Socket.constants.grep(/^IPPROTO/).to_h { [Socket.const_get(it), it.to_s] }.fetch(self.protocol, self.protocol)
+      else
+        self.protocol
+      end
+    [afamily, addr, pfamily, socktype, protocol, canonname, canonname]
+  end
+
   def unix?
     afamily == Socket::AF_UNIX
   end
