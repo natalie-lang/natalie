@@ -932,10 +932,7 @@ public:
      * ```
      */
     void append(const size_t i) {
-        const int length = snprintf(NULL, 0, "%zu", i);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%zu", i);
-        append(buf);
+        append_snprintf("%zu", i);
     }
 
     /**
@@ -948,10 +945,7 @@ public:
      * ```
      */
     void append(const ssize_t i) {
-        const int length = snprintf(NULL, 0, "%zd", i);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%zd", i);
-        append(buf);
+        append_snprintf("%zd", i);
     }
 
     /**
@@ -964,10 +958,7 @@ public:
      * ```
      */
     void append(const long long i) {
-        const int length = snprintf(NULL, 0, "%lli", i);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%lli", i);
-        append(buf);
+        append_snprintf("%lli", i);
     }
 
     /**
@@ -980,10 +971,7 @@ public:
      * ```
      */
     void append(const int i) {
-        const int length = snprintf(NULL, 0, "%i", i);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%i", i);
-        append(buf);
+        append_snprintf("%i", i);
     }
 
     /**
@@ -996,10 +984,7 @@ public:
      * ```
      */
     void append(const double d) {
-        const int length = snprintf(NULL, 0, "%g", d);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%f", d);
-        append(buf);
+        append_snprintf("%g", d);
     }
 
     /**
@@ -1977,6 +1962,18 @@ protected:
             grow(m_capacity * STRING_GROW_FACTOR);
         } else {
             grow(min_capacity);
+        }
+    }
+
+    template <typename T>
+    void append_snprintf(const char *fmt, const T i) {
+        const int length = snprintf(nullptr, 0, fmt, i);
+        if (length > 0) {
+            const size_t total_length = m_length + length;
+            grow_at_least(total_length);
+            snprintf(m_str + m_length, length + 1, fmt, i);
+            m_str[total_length] = '\0';
+            m_length = total_length;
         }
     }
 
