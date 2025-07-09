@@ -432,6 +432,21 @@ class Addrinfo
     [afamily, addr, pfamily, socktype, protocol, canonname, canonname]
   end
 
+  def marshal_load(data)
+    @afamily = data[0].is_a?(String) ? Socket.const_get(data[0].to_sym) : data[0]
+    @pfamily = data[2].is_a?(String) ? Socket.const_get(data[2].to_sym) : data[2]
+    @socktype = data[3].is_a?(String) ? Socket.const_get(data[3].to_sym) : data[3]
+    @protocol = data[4].is_a?(String) ? Socket.const_get(data[4].to_sym) : data[4]
+    if ip?
+      @ip_address = data[1][0]
+      @ip_port = Integer(data[1][1])
+      @canonname = data[5]
+    elsif unix?
+      @unix_path = data[1]
+    end
+    self
+  end
+
   def unix?
     afamily == Socket::AF_UNIX
   end
