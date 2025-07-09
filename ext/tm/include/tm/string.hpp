@@ -154,10 +154,7 @@ public:
      * ```
      */
     String(const long long number) {
-        const int length = snprintf(NULL, 0, "%lli", number);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%lli", number);
-        set_str(buf);
+        append_snprintf("%lli", number);
     }
 
     /**
@@ -170,10 +167,7 @@ public:
      */
 
     String(const unsigned long long number) {
-        const int length = snprintf(NULL, 0, "%llu", number);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%llu", number);
-        set_str(buf);
+        append_snprintf("%llu", number);
     }
 
     /**
@@ -187,10 +181,7 @@ public:
      * ```
      */
     String(const long int number) {
-        const int length = snprintf(NULL, 0, "%li", number);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%li", number);
-        set_str(buf);
+        append_snprintf("%li", number);
     }
 
     /**
@@ -202,10 +193,7 @@ public:
      * ```
      */
     String(const int number) {
-        const int length = snprintf(NULL, 0, "%d", number);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%d", number);
-        set_str(buf);
+        append_snprintf("%d", number);
     }
 
     /**
@@ -217,10 +205,7 @@ public:
      * ```
      */
     String(const unsigned long number) {
-        const int length = snprintf(NULL, 0, "%lu", number);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%lu", number);
-        set_str(buf);
+        append_snprintf("%lu", number);
     }
 
     /**
@@ -232,10 +217,7 @@ public:
      * ```
      */
     String(const unsigned int number) {
-        const int length = snprintf(NULL, 0, "%u", number);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%u", number);
-        set_str(buf);
+        append_snprintf("%u", number);
     }
 
     /**
