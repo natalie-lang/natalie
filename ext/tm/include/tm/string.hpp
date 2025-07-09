@@ -1947,13 +1947,13 @@ protected:
         }
     }
 
-    template <typename T>
-    void append_snprintf(const char *fmt, const T i) {
-        const int length = snprintf(nullptr, 0, fmt, i);
+    template <typename... T>
+    void append_snprintf(const char *fmt, T &&...i) {
+        const int length = snprintf(nullptr, 0, fmt, std::forward<T>(i)...);
         if (length > 0) {
             const size_t total_length = m_length + length;
             grow_at_least(total_length);
-            snprintf(m_str + m_length, length + 1, fmt, i);
+            snprintf(m_str + m_length, length + 1, fmt, std::forward<T>(i)...);
             m_str[total_length] = '\0';
             m_length = total_length;
         }
