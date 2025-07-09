@@ -237,10 +237,7 @@ public:
      * ```
      */
     String(const double number, const int precision = 4) {
-        const int length = snprintf(NULL, 0, "%.*f", precision, number);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%.*f", precision, number);
-        set_str(buf);
+        append_snprintf("%.*f", precision, number);
     }
 
     /**
