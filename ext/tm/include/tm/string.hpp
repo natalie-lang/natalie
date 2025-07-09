@@ -694,10 +694,15 @@ public:
      * ```
      */
     void prepend(long long i) {
-        const int length = snprintf(NULL, 0, "%lli", i);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%lli", i);
-        prepend(buf);
+        const int length = snprintf(nullptr, 0, "%lli", i);
+        if (length > 0) {
+            grow_at_least(m_length + length);
+            const auto first_char = m_str[0];
+            memmove(m_str + length, m_str, m_length + 1); // 1 extra for null terminator
+            snprintf(m_str, length + 1, "%lli", i);
+            m_str[length] = first_char; // Overwrite null byte of snprintf
+            m_length += length;
+        }
     }
 
     /**
