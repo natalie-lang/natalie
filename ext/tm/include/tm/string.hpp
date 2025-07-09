@@ -299,13 +299,9 @@ public:
     static String hex(const long long number, HexFormat format = HexFormat::UppercaseAndPrefixed) {
         const bool uppercase = format == HexFormat::UppercaseAndPrefixed || format == HexFormat::Uppercase;
         const bool prefixed = format == HexFormat::UppercaseAndPrefixed || format == HexFormat::LowercaseAndPrefixed;
-        const char *format_str = uppercase ? "%llX" : "%llx";
-        const int length = snprintf(NULL, 0, format_str, number);
-        char buf[length + 1];
-        snprintf(buf, length + 1, format_str, number);
-        auto str = String(buf);
-        if (prefixed)
-            str.prepend(uppercase ? "0X" : "0x");
+        const char *format_str = prefixed ? (uppercase ? "0X%llX" : "0x%llx") : (uppercase ? "%llX" : "%llx");
+        String str {};
+        str.append_snprintf(format_str, number);
         return str;
     }
 
