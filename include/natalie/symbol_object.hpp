@@ -120,8 +120,8 @@ private:
     EncodingObject *m_encoding = nullptr;
 };
 
-[[nodiscard]] __attribute__((always_inline)) inline SymbolObject *operator""_s(const char *cstring, size_t) {
-    return SymbolObject::intern(cstring);
+[[nodiscard]] __attribute__((always_inline)) inline SymbolObject *operator""_s(const char *cstring, size_t length) {
+    return SymbolObject::intern({ cstring, length });
 }
 
 }
