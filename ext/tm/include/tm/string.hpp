@@ -1033,11 +1033,13 @@ public:
     void append_vsprintf(const char *const format, va_list args) {
         va_list args_copy;
         va_copy(args_copy, args);
-        const int fmt_length = vsnprintf(nullptr, 0, format, args_copy);
+        const int length = vsnprintf(nullptr, 0, format, args_copy);
         va_end(args_copy);
-        char buf[fmt_length + 1];
-        vsnprintf(buf, fmt_length + 1, format, args);
-        append(buf);
+        if (length > 0) {
+            grow_at_least(m_length + length);
+            vsnprintf(m_str + m_length, length + 1, format, args);
+            m_length += length;
+        }
     }
 
     /**
