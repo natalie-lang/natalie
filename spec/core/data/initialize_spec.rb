@@ -73,4 +73,54 @@ describe "Data#initialize" do
       -> { DataSpecs::Empty.new }.should_not raise_error
     end
   end
+
+  it "can be overridden" do
+    ScratchPad.record []
+
+    measure_class = Data.define(:amount, :unit) do
+      def initialize(*, **)
+        super
+        ScratchPad << :initialize
+      end
+    end
+
+    NATFIXME 'it can be overridden', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+      measure_class.new(42, "m")
+      ScratchPad.recorded.should == [:initialize]
+    end
+  end
+
+  context "when it is overridden" do
+    it "is called with keyword arguments when given positional arguments" do
+      ScratchPad.clear
+      NATFIXME 'it is called with keyword arguments when given positional arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+        DataSpecs::DataWithOverriddenInitialize.new(42, "m")
+        ScratchPad.recorded.should == [:initialize, [], {amount: 42, unit: "m"}]
+      end
+    end
+
+    it "is called with keyword arguments when given keyword arguments" do
+      ScratchPad.clear
+      NATFIXME 'it is called with keyword arguments when given keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+        DataSpecs::DataWithOverriddenInitialize.new(amount: 42, unit: "m")
+        ScratchPad.recorded.should == [:initialize, [], {amount: 42, unit: "m"}]
+      end
+    end
+
+    it "is called with keyword arguments when given alternative positional arguments" do
+      ScratchPad.clear
+      NATFIXME 'it is called with keyword arguments when given alternative positional arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 0)' do
+        DataSpecs::DataWithOverriddenInitialize[42, "m"]
+        ScratchPad.recorded.should == [:initialize, [], {amount: 42, unit: "m"}]
+      end
+    end
+
+    it "is called with keyword arguments when given alternative keyword arguments" do
+      ScratchPad.clear
+      NATFIXME 'it is called with keyword arguments when given alternative keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+        DataSpecs::DataWithOverriddenInitialize[amount: 42, unit: "m"]
+        ScratchPad.recorded.should == [:initialize, [], {amount: 42, unit: "m"}]
+      end
+    end
+  end
 end
