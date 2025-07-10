@@ -32,4 +32,32 @@ describe "Data#with" do
       }.should raise_error(ArgumentError, "wrong number of arguments (given 2, expected 0)")
     end
   end
+
+  it "does not depend on the Data.new method" do
+    subclass = Class.new(DataSpecs::Measure)
+    data = subclass.new(amount: 42, unit: "km")
+
+    def subclass.new(*)
+      raise "Data.new is called"
+    end
+
+    NATFIXME 'it does not depend on the Data.new method', exception: RuntimeError, message: 'Data.new is called' do
+      data_copy = data.with(unit: "m")
+      data_copy.amount.should == 42
+      data_copy.unit.should == "m"
+    end
+  end
+
+  ruby_version_is "3.3" do
+    it "calls #initialize" do
+      NATFIXME 'it calls #initialize', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+        data = DataSpecs::DataWithOverriddenInitialize.new(42, "m")
+        ScratchPad.clear
+
+        data.with(amount: 0)
+
+        ScratchPad.recorded.should == [:initialize, [], {amount: 0, unit: "m"}]
+      end
+    end
+  end
 end
