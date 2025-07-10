@@ -237,10 +237,7 @@ public:
      * ```
      */
     String(const double number, const int precision = 4) {
-        const int length = snprintf(NULL, 0, "%.*f", precision, number);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%.*f", precision, number);
-        set_str(buf);
+        append_snprintf("%.*f", precision, number);
     }
 
     /**
@@ -302,13 +299,9 @@ public:
     static String hex(const long long number, HexFormat format = HexFormat::UppercaseAndPrefixed) {
         const bool uppercase = format == HexFormat::UppercaseAndPrefixed || format == HexFormat::Uppercase;
         const bool prefixed = format == HexFormat::UppercaseAndPrefixed || format == HexFormat::LowercaseAndPrefixed;
-        const char *format_str = uppercase ? "%llX" : "%llx";
-        const int length = snprintf(NULL, 0, format_str, number);
-        char buf[length + 1];
-        snprintf(buf, length + 1, format_str, number);
-        auto str = String(buf);
-        if (prefixed)
-            str.prepend(uppercase ? "0X" : "0x");
+        const char *format_str = prefixed ? (uppercase ? "0X%llX" : "0x%llx") : (uppercase ? "%llX" : "%llx");
+        String str {};
+        str.append_snprintf(format_str, number);
         return str;
     }
 
@@ -701,10 +694,15 @@ public:
      * ```
      */
     void prepend(long long i) {
-        const int length = snprintf(NULL, 0, "%lli", i);
-        char buf[length + 1];
-        snprintf(buf, length + 1, "%lli", i);
-        prepend(buf);
+        const int length = snprintf(nullptr, 0, "%lli", i);
+        if (length > 0) {
+            grow_at_least(m_length + length);
+            const auto first_char = m_str[0];
+            memmove(m_str + length, m_str, m_length + 1); // 1 extra for null terminator
+            snprintf(m_str, length + 1, "%lli", i);
+            m_str[length] = first_char; // Overwrite null byte of snprintf
+            m_length += length;
+        }
     }
 
     /**
@@ -1035,11 +1033,13 @@ public:
     void append_vsprintf(const char *const format, va_list args) {
         va_list args_copy;
         va_copy(args_copy, args);
-        const int fmt_length = vsnprintf(nullptr, 0, format, args_copy);
+        const int length = vsnprintf(nullptr, 0, format, args_copy);
         va_end(args_copy);
-        char buf[fmt_length + 1];
-        vsnprintf(buf, fmt_length + 1, format, args);
-        append(buf);
+        if (length > 0) {
+            grow_at_least(m_length + length);
+            vsnprintf(m_str + m_length, length + 1, format, args);
+            m_length += length;
+        }
     }
 
     /**
@@ -1947,13 +1947,13 @@ protected:
         }
     }
 
-    template <typename T>
-    void append_snprintf(const char *fmt, const T i) {
-        const int length = snprintf(nullptr, 0, fmt, i);
+    template <typename... T>
+    void append_snprintf(const char *fmt, T &&...i) {
+        const int length = snprintf(nullptr, 0, fmt, std::forward<T>(i)...);
         if (length > 0) {
             const size_t total_length = m_length + length;
             grow_at_least(total_length);
-            snprintf(m_str + m_length, length + 1, fmt, i);
+            snprintf(m_str + m_length, length + 1, fmt, std::forward<T>(i)...);
             m_str[total_length] = '\0';
             m_length = total_length;
         }
