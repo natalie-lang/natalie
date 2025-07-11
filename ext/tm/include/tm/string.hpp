@@ -246,7 +246,7 @@ public:
      * ```
      * auto buf = new char[12];
      * strncpy(buf, "hello world", 12);
-     * auto str = String::create_and_take_ownership(buf, 11);
+     * auto str = String(std::move(buf), 11);
      * assert_eq(11, str.size());
      * assert_str_eq("hello world", str);
      *
@@ -258,14 +258,11 @@ public:
      * str = String {};
      * ```
      */
-    static String create_and_take_ownership(char *buf, const size_t length) {
-        String result;
-        auto old_m_str = result.m_str;
-        result.m_str = buf;
-        result.m_length = length;
-        result.m_capacity = length;
-        delete[] old_m_str;
-        return result;
+    String(char *&&str, const size_t length)
+        : m_str { str }
+        , m_length { length }
+        , m_capacity { length } {
+        assert(str);
     }
 
     enum class HexFormat {
