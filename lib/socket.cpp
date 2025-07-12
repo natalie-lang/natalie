@@ -445,6 +445,40 @@ Value BasicSocket_s_for_fd(Env *env, Value self, Args &&args, Block *block) {
     return sock;
 }
 
+Value BasicSocket_close_read(Env *env, Value self, Args &&args, Block *) {
+    args.ensure_argc_is(env, 0);
+    if (self.as_io()->is_closed())
+        env->raise("IOError", "closed stream");
+    auto read_closed = self->ivar_get(env, "@read_closed"_s);
+    if (read_closed.is_truthy())
+        return Value::nil();
+    auto write_closed = self->ivar_get(env, "@write_closed"_s);
+    if (write_closed.is_truthy()) {
+        self.send(env, "close"_s);
+    } else {
+        shutdown(self.as_io()->fileno(), SHUT_RD);
+    }
+    self->ivar_set(env, "@read_closed"_s, Value::True());
+    return Value::nil();
+}
+
+Value BasicSocket_close_write(Env *env, Value self, Args &&args, Block *) {
+    args.ensure_argc_is(env, 0);
+    if (self.as_io()->is_closed())
+        env->raise("IOError", "closed stream");
+    auto write_closed = self->ivar_get(env, "@write_closed"_s);
+    if (write_closed.is_truthy())
+        return Value::nil();
+    auto read_closed = self->ivar_get(env, "@read_closed"_s);
+    if (read_closed.is_truthy()) {
+        self.send(env, "close"_s);
+    } else {
+        shutdown(self.as_io()->fileno(), SHUT_WR);
+    }
+    self->ivar_set(env, "@write_closed"_s, Value::True());
+    return Value::nil();
+}
+
 Value BasicSocket_getpeername(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 0);
 
