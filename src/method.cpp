@@ -30,6 +30,28 @@ Value Method::call(Env *env, Value self, Args &&args, Block *block) const {
         }
     };
 
+    // For a block converted to a method, catch any LocalJumpErrorType::Return
+    if (m_break_point == -1) {
+        try {
+            return call_fn(std::move(args));
+        } catch (ExceptionObject *exception) {
+            if (exception->local_jump_error_type() == LocalJumpErrorType::Return)
+                return exception->send(env, "exit_value"_s);
+            throw exception;
+        }
+    }
+
+    // For a regular method with a non-local jump, catch a LocalJumpError with matching breakpoint
+    if (m_break_point > 0) {
+        try {
+            return call_fn(std::move(args));
+        } catch (ExceptionObject *exception) {
+            if (exception->is_local_jump_error_with_break_point(m_break_point))
+                return exception->send(env, "exit_value"_s);
+            throw exception;
+        }
+    }
+
     return call_fn(std::move(args));
 }
 }

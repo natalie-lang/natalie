@@ -10,9 +10,9 @@ module Natalie
       def initialize(instructions, compiler_context:)
         super()
         @compiler_context = compiler_context
-        env = { vars: compiler_context[:vars], outer: nil }
-        @instructions = InstructionManager.new(instructions, env: env)
-        EnvBuilder.new(@instructions, env: env).process
+        env = { vars: compiler_context[:vars], outer: nil, type: :top }
+        @instructions = InstructionManager.new(instructions, env:)
+        EnvBuilder.new(@instructions, env:).process
       end
 
       def transform
@@ -79,7 +79,7 @@ module Natalie
             return var
           end
 
-          if env[:block] && !local_only && (outer = env.fetch(:outer))
+          if env.fetch(:type) == :define_block && !local_only && (outer = env.fetch(:outer))
             env = outer
             capturing = true
             env = env.fetch(:outer) while env[:hoist]
@@ -120,13 +120,13 @@ module Natalie
               env = instruction.env
               e = env
               vars = e[:vars].keys.sort.map { |v| "#{v} (mine)" }
-              while (e[:hoist] || e[:block]) && (e = e.fetch(:outer))
+              while (e[:hoist] || e.fetch(:type) == :define_block) && (e = e.fetch(:outer))
                 vars += e[:vars].keys.sort
               end
               puts
               puts '== SCOPE ' \
                      "vars=[#{vars.join(', ')}] " \
-                     "#{env[:block] ? 'is_block ' : ''}" \
+                     "#{env.fetch(:type) == :define_block ? 'is_block ' : ''}" \
                      '=='
             end
             puts desc unless instruction.is_a?(EndInstruction)

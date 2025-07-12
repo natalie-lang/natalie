@@ -3,18 +3,27 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class DefineBlockInstruction < BaseInstruction
-      def initialize(arity:)
+      def initialize(arity:, for_lambda: false, has_return: false)
         @arity = arity
+        @for_lambda = for_lambda
+        @has_return = has_return
       end
 
       def has_body?
         true
       end
 
+      def for_lambda? = !!@for_lambda
+      def has_return? = !!@has_return
+
       attr_reader :arity
+      attr_accessor :has_return
 
       def to_s
-        'define_block'
+        s = 'define_block'
+        s << ' (for_lambda)' if for_lambda?
+        s << ' (has_return)' if has_return?
+        s
       end
 
       def generate(transform)
@@ -27,7 +36,7 @@ module Natalie
           body << '}'
           transform.top(fn, body)
         end
-        transform.push("Block::create(*env, self, #{fn}, #{@arity})")
+        transform.push("Block::create(*env, self, #{fn}, #{@arity}, #{has_return?})")
       end
 
       def execute(vm)
@@ -37,12 +46,14 @@ module Natalie
       end
 
       def serialize(_)
-        [instruction_number, arity].pack('Cw')
+        [instruction_number, arity, for_lambda? ? 1 : 0, has_return? ? 1 : 0].pack('CwCC')
       end
 
       def self.deserialize(io, _)
         arity = io.read_ber_integer
-        new(arity: arity)
+        for_lambda = io.getbool
+        has_return = io.getbool
+        new(arity:, for_lambda:, has_return:)
       end
     end
   end

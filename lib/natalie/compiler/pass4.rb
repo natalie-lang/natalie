@@ -9,12 +9,6 @@ module Natalie
       def initialize(instructions, **)
         super()
         @instructions = instructions
-
-        # We have to match each break point with the appropriate SendInstruction or
-        # CreateLambdaInstruction. Since method calls are chainable, the next
-        # instruction is not necessarily the one that goes with the break point.
-        # Thus, a stack is needed.
-        @break_point_stack = []
       end
 
       def transform
@@ -29,82 +23,60 @@ module Natalie
       private
 
       def transform_return(instruction)
-        unless instruction.env
-          # we just now added the ReturnInstruction, so it's fine :-)
-          return
-        end
-
         env = @env
         env = env[:outer] while env[:hoist]
 
-        unless env[:block]
-          # ReturnInstruction inside anything else is OK.
+        unless env.fetch(:type) == :define_block
+          # ReturnInstruction inside anything else is OK as-is.
           return
         end
 
-        # get the top-most block in the method
-        top_block_env = env
-        while top_block_env[:hoist] || (top_block_env.dig(:outer, :block) && !top_block_env[:lambda])
-          top_block_env = top_block_env[:outer]
+        # get the enclosing lambda or method
+        # also mark every block in case it becomes a method later
+        until env.fetch(:type) == :define_method || (env.fetch(:type) == :define_block && env[:for_lambda])
+          env[:has_return] = true if env.fetch(:type) == :define_block
+          env = env[:outer]
+          break if env.nil?
+          env = env[:outer] while env[:hoist]
         end
 
-        unless (break_point = top_block_env[:has_return])
-          break_point = @instructions.next_break_point
-          top_block_env[:has_return] = break_point
+        # create a new break point and attach to env
+        if env
+          unless (break_point = env[:return_break_point])
+            break_point = @instructions.next_break_point
+            env[:return_break_point] = break_point
+            if env[:for_lambda]
+              # gotta save the break point for the CreateLambdaInstruction coming up
+              @create_lambda_break_point = break_point
+            end
+          end
+        else
+          # special signal for any block converted to a method
+          break_point = -1
         end
 
+        # convert ReturnInstruction to BreakInstruction
         break_instruction = BreakInstruction.new(type: :return)
         break_instruction.break_point = break_point
         @instructions.replace_current([break_instruction])
       end
 
+      def transform_end_define_method(instruction)
+        define_method_instruction = instruction.matching_instruction
+        if define_method_instruction.env[:return_break_point]
+          define_method_instruction.break_point = @env[:return_break_point]
+        end
+      end
+
       def transform_create_lambda(instruction)
-        return unless (break_point = @break_point_stack.pop)
+        return unless @create_lambda_break_point
 
-        instruction.break_point = break_point
+        instruction.break_point = @create_lambda_break_point
+        @create_lambda_break_point = nil
       end
 
-      def transform_end_define_block(_)
-        @break_point_stack << @env[:has_return]
-      end
-
-      def transform_send(instruction)
-        return unless instruction.with_block?
-        return unless (break_point = @break_point_stack.pop)
-
-        try_instruction = TryInstruction.new
-
-        @instructions.replace_current(
-          [
-            try_instruction,
-            instruction,
-            CatchInstruction.new,
-            MatchBreakPointInstruction.new(break_point),
-            IfInstruction.new,
-            GlobalVariableGetInstruction.new(:$!),
-            PushArgcInstruction.new(0),
-            SendInstruction.new(
-              :exit_value,
-              receiver_is_self: false,
-              with_block: false,
-              file: instruction.file,
-              line: instruction.line,
-            ),
-            ReturnInstruction.new,
-            ElseInstruction.new(:if),
-            PushSelfInstruction.new,
-            PushArgcInstruction.new(0),
-            SendInstruction.new(
-              :raise,
-              receiver_is_self: true,
-              with_block: false,
-              file: instruction.file,
-              line: instruction.line,
-            ),
-            EndInstruction.new(:if),
-            EndInstruction.new(:try),
-          ],
-        )
+      def transform_end_define_block(instruction)
+        instruction.matching_instruction.has_return = true if @env[:has_return]
       end
 
       class << self

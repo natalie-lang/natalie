@@ -111,7 +111,7 @@ public:
     Value remove_class_variable(Env *, Value);
 
     Value define_method(Env *, Value, Optional<Value>, Block *);
-    SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int);
+    SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, int = 0);
     SymbolObject *define_method(Env *, SymbolObject *, Block *);
     SymbolObject *undefine_method(Env *, SymbolObject *);
 
