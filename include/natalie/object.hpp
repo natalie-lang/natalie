@@ -121,11 +121,11 @@ public:
     virtual Optional<Value> cvar_get_maybe(Env *, SymbolObject *);
     virtual Value cvar_set(Env *, SymbolObject *, Value);
 
-    static SymbolObject *define_method(Env *, Value, SymbolObject *, MethodFnPtr, int);
+    static SymbolObject *define_method(Env *, Value, SymbolObject *, MethodFnPtr, int, int = 0);
     static SymbolObject *define_method(Env *, Value, SymbolObject *, Block *);
     static SymbolObject *undefine_method(Env *, Value, SymbolObject *);
 
-    static SymbolObject *define_singleton_method(Env *, Value, SymbolObject *, MethodFnPtr, int);
+    static SymbolObject *define_singleton_method(Env *, Value, SymbolObject *, MethodFnPtr, int, int = 0);
     static SymbolObject *define_singleton_method(Env *, Value, SymbolObject *, Block *);
     static SymbolObject *undefine_singleton_method(Env *, Value, SymbolObject *);
 

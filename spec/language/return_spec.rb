@@ -252,9 +252,7 @@ describe "The return keyword" do
     end
 
     it "stops at the method when the return is used directly" do
-      NATFIXME 'it stops at the method when the return is used directly', exception: SpecFailedException do
-        ReturnSpecs::DefineMethod.new.outer.should == :good
-      end
+      ReturnSpecs::DefineMethod.new.outer.should == :good
     end
   end
 
