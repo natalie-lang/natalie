@@ -28,8 +28,11 @@ static inline bool is_writable(const int fd) {
     return flags_is_writable(fcntl(fd, F_GETFL));
 }
 
-static void throw_unless_readable(Env *env, const IoObject *const self) {
+static void throw_unless_readable(Env *env, IoObject *const self) {
     // read(2) assigns EBADF to errno if not readable, we want an IOError instead
+    auto read_closed = self->ivar_get(env, "@read_closed"_s);
+    if (read_closed.is_truthy())
+        env->raise("IOError", "not opened for reading");
     const auto old_errno = errno;
     if (!is_readable(self->fileno(env)))
         env->raise("IOError", "not opened for reading");
@@ -37,8 +40,11 @@ static void throw_unless_readable(Env *env, const IoObject *const self) {
     env->raise_errno(old_errno);
 }
 
-static void throw_unless_writable(Env *env, const IoObject *const self) {
+static void throw_unless_writable(Env *env, IoObject *const self) {
     // write(2) assigns EBADF to errno if not writable, we want an IOError instead
+    auto write_closed = self->ivar_get(env, "@write_closed"_s);
+    if (write_closed.is_truthy())
+        env->raise("IOError", "not opened for writing");
     const auto old_errno = errno;
     if (!is_writable(self->fileno(env)))
         env->raise("IOError", "not opened for writing");
