@@ -7,8 +7,10 @@ require_relative 'platform_guard'
 require_relative 'version'
 require_relative 'spec_helpers/fs'
 require_relative 'spec_helpers/io'
+require_relative 'spec_helpers/matchers'
 require_relative 'spec_helpers/mock_to_path'
 require_relative 'spec_helpers/tmp'
+require_relative 'spec_utils/format'
 require_relative 'spec_utils/warnings'
 require_relative 'nat_binary'
 require 'tempfile'
@@ -19,9 +21,6 @@ class NatalieFixMeException < SpecFailedException
 end
 class UnknownFormatterException < StandardError
 end
-
-TOLERANCE = 0.00003
-TIME_TOLERANCE = 20.0
 
 FORMATTERS = %w[default yaml spec]
 
@@ -532,356 +531,44 @@ class Matcher
   undef_method :equal?
 end
 
-class BeNilExpectation
+class Expectation
+  def initialize(matcher)
+    @matcher = matcher
+  end
+
   def match(subject)
-    raise SpecFailedException, subject.inspect + ' should be nil' if subject != nil
+    raise SpecFailedException, @matcher.failure_message.join(' ') unless @matcher.matches?(subject)
   end
 
   def inverted_match(subject)
-    raise SpecFailedException, subject.inspect + ' should not be nil' if subject == nil
+    raise SpecFailedException, @matcher.negative_failure_message.join(' ') if @matcher.matches?(subject)
   end
 end
 
-class BeKindOfExpectation
-  def initialize(klass)
-    @klass = klass
-  end
-
-  def match(subject)
-    if !(@klass === subject)
-      raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should be a kind of #{@klass}"
-    end
-  end
-
-  def inverted_match(subject)
-    if @klass === subject
-      raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should not be a kind of #{@klass}"
-    end
-  end
-end
-
-class BeInstanceOfExpectation
-  def initialize(klass)
-    @klass = klass
-  end
-
-  def match(subject)
-    if !subject.instance_of?(@klass)
-      raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should be an instance of #{@klass}"
-    end
-  end
-
-  def inverted_match(subject)
-    if subject.instance_of?(@klass)
-      raise SpecFailedException, "#{subject.inspect} (#{subject.class}) should not be an instance of #{@klass}"
-    end
-  end
-end
-
-class BeAncestorOfExpectation
-  def initialize(klass)
-    @klass = klass
-  end
-
-  def match(subject)
-    unless @klass.ancestors.include?(subject)
-      raise SpecFailedException, subject.inspect + ' should be an ancestor of ' + @klass.inspect
-    end
-  end
-
-  def inverted_match(subject)
-    if @klass.ancestors.include?(subject)
-      raise SpecFailedException, subject.inspect + ' should not to be an ancestor of ' + @klass.inspect
-    end
-  end
-end
-
-class BlockCallerExpectation
-  def match(subject)
-    raise SpecFailedException, subject.inspect + ' should have blocked, but it did not' unless check(subject)
-  end
-
-  def inverted_match(subject)
-    raise SpecFailedException, subject.inspect + ' should have not have blocked, but it did' if check(subject)
-  end
-
-  private
-
-  # I borrowed this from https://github.com/ruby/mspec/blob/master/lib/mspec/matchers/block_caller.rb
-  # Copyright (c) 2008 Engine Yard, Inc. All rights reserved.
-  # Licensed Under the MIT license.
-  def check(subject)
-    t = Thread.new { subject.call }
-
-    loop do
-      case t.status
-      when 'sleep' # blocked
-        t.kill
-        t.join
-        return true
-      when false # terminated normally, so never blocked
-        t.join
-        return false
-      when nil # terminated exceptionally
-        t.value
-      else
-        Thread.pass
-      end
-    end
-  end
-end
-
-class EqlExpectation
-  def initialize(other)
-    @other = other
-  end
-
-  def match(subject)
-    if !subject.eql?(@other)
-      raise SpecFailedException, subject.inspect + ' should be eql (same type) to ' + @other.inspect
-    end
-  end
-
-  def inverted_match(subject)
-    if subject.eql?(@other)
-      raise SpecFailedException, subject.inspect + ' should not be eql (same type) to ' + @other.inspect
-    end
-  end
-end
-
-class BeEmptyExpectation
-  def match(subject)
-    raise SpecFailedException, subject.inspect + ' should be empty but has size ' + subject.length if !subject.empty?
-  end
-
-  def inverted_match(subject)
-    raise SpecFailedException, subject.inspect + ' should not be empty' if subject.empty?
-  end
-end
-
-class EqualExpectation
-  def initialize(other)
-    @other = other
-  end
-
-  def match(subject)
-    raise SpecFailedException, subject.inspect + ' should be equal to ' + @other.inspect if !subject.equal?(@other)
-  end
-
-  def inverted_match(subject)
-    raise SpecFailedException, subject.inspect + ' should not be equal to ' + @other.inspect if subject.equal?(@other)
-  end
-end
-
-# Largely taken from
-# https://github.com/ruby/ruby/blob/master/spec/mspec/lib/mspec/matchers/equal_element.rb#L76
-class EqualElementExpectation
-  def initialize(element, attributes = nil, content = nil, options = {})
-    @element = element
-    @attributes = attributes
-    @content = content
-    @options = options
-  end
-
-  def match(subject)
-    @actual = subject
-    unless matches?
-      raise SpecFailedException,
-            "Expected #{@actual} to be a '#{@element}' element with #{attributes_for_failure_message} and #{content_for_failure_message}"
-    end
-  end
-
-  def inverted_match(subject)
-    @actual = subject
-    if matches?
-      raise SpecFailedException "Expected #{@actual} not to be a '#{@element}' element with #{attributes_for_failure_message} and #{content_for_failure_message}"
-    end
-  end
-
-  private
-
-  def matches?
-    actual = @actual
-    matched = true
-
-    if @options[:not_closed]
-      matched &&= actual =~ /^#{Regexp.quote('<' + @element)}.*#{Regexp.quote('>' + (@content || ''))}$/
-    else
-      matched &&= actual =~ /^#{Regexp.quote('<' + @element)}/
-      matched &&= actual =~ /#{Regexp.quote('</' + @element + '>')}$/
-      matched &&= actual =~ /#{Regexp.quote('>' + @content + '</')}/ if @content
-    end
-
-    if @attributes
-      if @attributes.empty?
-        matched &&= actual.scan(/\w+\=\"(.*)\"/).size == 0
-      else
-        @attributes.each do |key, value|
-          if value == true
-            matched &&= (actual.scan(/#{Regexp.quote(key)}(\s|>)/).size == 1)
-          else
-            matched &&= (actual.scan(%Q{ #{key}="#{value}"}).size == 1)
-          end
-        end
-      end
-    end
-
-    !!matched
-  end
-
-  def attributes_for_failure_message
-    if @attributes
-      if @attributes.empty?
-        'no attributes'
-      else
-        @attributes.inject([]) { |memo, n| memo << %Q{#{n[0]}="#{n[1]}"} }.join(' ')
-      end
-    else
-      'any attributes'
-    end
-  end
-
-  def content_for_failure_message
-    if @content
-      if @content.empty?
-        'no content'
-      else
-        "#{@content.inspect} as content"
-      end
-    else
-      'any content'
-    end
-  end
-end
-
-class TrueFalseExpectation
-  def match(subject)
-    raise SpecFailedException, subject.inspect + ' should be true or false' unless subject == true || subject == false
-  end
-
-  def inverted_match(subject)
-    raise SpecFailedException, subject.inspect + ' should not be true or false' if subject == true || subject == false
-  end
-end
-
-class BeCloseExpectation
-  def initialize(target, tolerance = TOLERANCE)
-    @target = target
-    @tolerance = tolerance
-  end
-
-  def match(subject)
-    if (subject - @target).abs > @tolerance
-      raise SpecFailedException, "#{subject.inspect} should be within #{@tolerance} of #{@target}"
-    end
-  end
-
-  def inverted_match(subject)
-    if (subject - @target).abs <= @tolerance
-      raise SpecFailedException, "#{subject.inspect} should not be within #{@tolerance} of #{@target}"
-    end
-  end
-end
-
-class BeComputedByExpectation
-  def initialize(method, args)
-    @method = method
-    @args = args
-  end
-
-  def match(subject)
-    subject.each do |(target, *args, expected)|
-      actual = target.send(@method, *(@args + args))
-      if actual != expected
-        expected_bits =
-          if expected.methods.include?(:bytes)
-            expected.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(' ')
-          else
-            expected.inspect
-          end
-
-        actual_bits =
-          actual.methods.include?(:bytes) ? actual.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(' ') : actual.inspect
-
-        raise SpecFailedException, "#{target.inspect} should compute to #{expected_bits}, but it was #{actual_bits}"
-      end
-    end
-  end
-
-  def inverted_match(subject)
-    subject.each do |target, expected|
-      actual = target.send(@method, *@args)
-      if actual == expected
-        expected_bits = expected.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(' ')
-        raise SpecFailedException, "#{target.inspect} should not compute to #{expected_bits}"
-      end
-    end
-  end
-
-  private
-
-  # TODO: Add % formatting to Natalie :-)
-  def lzpad(str, length)
-    str = '0' + str until str.length == length
-    str
-  end
-end
-
-class BeNanExpectation
-  def match(subject)
-    raise SpecFailedException, "#{subject.inspect} should be NaN" if !subject.nan?
-  end
-
-  def inverted_match(subject)
-    raise SpecFailedException, "#{subject.inspect} should not be NaN" if subject.nan?
-  end
-end
-
-class BeInfinityExpectation
-  def initialize(sign_of_infinity)
-    @sign_of_infinity = sign_of_infinity
-  end
-
-  def match(subject)
-    unless expected_infinity?(subject)
-      raise SpecFailedException, "#{subject.inspect} should be #{'-' if negative?}Infinity"
-    end
-  end
-
-  private
-
-  def expected_infinity?(subject)
-    subject.kind_of?(Float) && subject.infinite? == @sign_of_infinity
-  end
-
-  def negative?
-    @sign_of_infinity == -1
-  end
-end
-
-class OutputExpectation
+class OutputMatcher
   def initialize(expected_out, expected_err)
     @expected_out = expected_out
     @expected_err = expected_err
   end
 
-  def match(subject)
-    actual_out, actual_err = capture_output { subject.call }
-    if @expected_out && !(@expected_out === actual_out)
-      raise SpecFailedException,
-            "expected $stdout to get #{@expected_out.inspect} but it got #{actual_out.inspect} instead"
-    elsif @expected_err && !(@expected_err === actual_err)
-      raise SpecFailedException,
-            "expected $stderr to get #{@expected_err.inspect} but it got #{actual_err.inspect} instead"
+  def matches?(subject)
+    @actual_out, @actual_err = capture_output { subject.call }
+    (@expected_out && (@expected_out === @actual_out)) || (@expected_err && (@expected_err === actual_err))
+  end
+
+  def failure_message
+    if @expected_out && !(@expected_out === @actual_out)
+      ["expected $stdout to get #{@expected_out.inspect}", "but it got #{actual[$stdout].inspect} instead"]
+    elsif @expected_err && !(@expected_err === @actual_err)
+      ["expected $stderr to get #{@expected_err.inspect}", "but it got #{actual[$stderr].inspect} instead"]
     end
   end
 
-  def inverted_match(subject)
-    actual_out, actual_err = capture_output { subject.call }
-    if @expected_out && @expected_out === actual_out
-      raise SpecFailedException, "expected $stdout not to get #{@expected_out.inspect} but it did"
-    elsif @expected_err && @expected_err === actual_err
-      raise SpecFailedException, "expected $stderr not to get #{@expected_err.inspect} but it did"
+  def negative_failure_message
+    if @expected_out && @expected_out === @actual_out
+      ["expected $stdout not to get #{@expected_out.inspect}", "but it did"]
+    elsif @expected_err && @expected_err === @actual_err
+      ["expected $stderr not to get #{@expected_err.inspect}", "but it did"]
     end
   end
 
@@ -1020,21 +707,22 @@ class ComplainExpectation
   end
 end
 
-class YAMLExpectation
+class YAMLMatcher
   def initialize(expected)
     @expected = expected
   end
 
-  def match(subject)
-    if prepare_yaml(subject) != @expected
-      raise SpecFailedException, "#{subject.inspect} should be equal to #{@expected.inspect}"
-    end
+  def matches?(subject)
+    @subject = prepare_yaml(subject)
+    @subject == @expected
   end
 
-  def inverted_match(subject)
-    if prepare_yaml(subject) == @expected
-      raise SpecFailedException, "#{subject.inspect} should not be equal to #{@expected.inspect}"
-    end
+  def failure_message
+    ["#{@subject.inspect}", "should be equal to #{@expected.inspect}"]
+  end
+
+  def negative_failure_message
+    ["#{@subject.inspect}", "should not be equal to #{@expected.inspect}"]
   end
 
   private
@@ -1430,88 +1118,88 @@ class Object
   end
 
   def be_nil
-    BeNilExpectation.new
+    Expectation.new(BeNilMatcher.new)
   end
 
   def be_nan
-    BeNanExpectation.new
+    Expectation.new(BeNaNMatcher.new)
   end
 
   def be_negative_zero
-    EqlExpectation.new(-0.0)
+    Expectation.new(EqlMatcher.new(-0.0))
   end
 
   def be_positive_zero
-    EqlExpectation.new(0.0)
+    Expectation.new(EqlMatcher.new(0.0))
   end
 
   def be_positive_infinity
-    BeInfinityExpectation.new(1)
+    Expectation.new(InfinityMatcher.new(1))
   end
 
   def be_negative_infinity
-    BeInfinityExpectation.new(-1)
+    Expectation.new(InfinityMatcher.new(-1))
   end
 
   def be_true
-    EqualExpectation.new(true)
+    Expectation.new(BeTrueMatcher.new)
   end
 
   def be_false
-    EqualExpectation.new(false)
+    Expectation.new(BeFalseMatcher.new)
   end
 
   def be_true_or_false
-    TrueFalseExpectation.new()
+    Expectation.new(BeTrueOrFalseMatcher.new)
   end
 
   def be_close(target, tolerance)
-    BeCloseExpectation.new(target, tolerance)
+    Expectation.new(BeCloseMatcher.new(target, tolerance))
   end
 
   def be_computed_by(method, *args)
-    BeComputedByExpectation.new(method, args)
+    Expectation.new(BeComputedByMatcher.new(method, *args))
   end
 
   def be_kind_of(klass)
-    BeKindOfExpectation.new(klass)
+    Expectation.new(BeKindOfMatcher.new(klass))
   end
 
   def be_an_instance_of(klass)
-    BeInstanceOfExpectation.new(klass)
+    Expectation.new(BeAnInstanceOfMatcher.new(klass))
   end
 
   def be_ancestor_of(klass)
-    BeAncestorOfExpectation.new(klass)
+    Expectation.new(BeAncestorOfMatcher.new(klass))
   end
 
   def block_caller
-    BlockCallerExpectation.new
+    Expectation.new(BlockingMatcher.new)
   end
 
   def eql(other)
-    EqlExpectation.new(other)
+    Expectation.new(EqlMatcher.new(other))
   end
 
   def be_empty()
-    BeEmptyExpectation.new
+    Expectation.new(BeEmptyMatcher.new)
   end
 
   def equal(other)
-    EqualExpectation.new(other)
+    Expectation.new(EqualMatcher.new(other))
   end
 
   def equal_element(*args)
-    EqualElementExpectation.new(*args)
+    Expectation.new(EqualElementMatcher.new(*args))
   end
 
   def output(expected_stdout = nil, expected_stderr = nil)
-    OutputExpectation.new(expected_stdout, expected_stderr)
+    Expectation.new(OutputMatcher.new(expected_stdout, expected_stderr))
   end
 
   def output_to_fd(expected, fd = STDOUT)
-    return OutputExpectation.new(expected, nil) if fd == $stdout
-    return OutputExpectation.new(nil, expected) if fd == $stderr
+    return Expectation.new(OutputMatcher.new(expected, nil)) if fd == $stdout
+    return Expectation.new(OutputMatcher.new(nil, expected)) if fd == $stderr
     raise NotImplementedError, "Invalid fd #{fd.inspect}"
   end
 
@@ -1524,7 +1212,7 @@ class Object
   end
 
   def match_yaml(expected)
-    YAMLExpectation.new(expected)
+    Expectation.new(YAMLMatcher.new(expected))
   end
 
   def should_receive(message)
