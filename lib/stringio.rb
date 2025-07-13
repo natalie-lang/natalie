@@ -283,6 +283,7 @@ class StringIO
     @index += length
 
     if out_string
+      result.force_encoding(out_string.encoding)
       out_string.replace(result)
     else
       result = result.encode(encoding) if encoding
