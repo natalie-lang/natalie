@@ -597,8 +597,10 @@ Value BasicSocket_recv(Env *env, Value self, Args &&args, Block *) {
     if (bytes == -1)
         env->raise_errno();
 
-    if (outbuf.is_string())
+    if (outbuf.is_string()) {
         outbuf.as_string()->set_str(buf, bytes);
+        return outbuf;
+    }
 
     String str { std::move(buf), static_cast<size_t>(bytes) };
     return StringObject::create(std::move(str));
