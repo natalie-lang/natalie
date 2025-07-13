@@ -68,7 +68,7 @@ public:
             return StringObject::create("", Encoding::ASCII_8BIT);
 
         size_t length = (size_t)integer.to_nat_int_t();
-        char buffer[length];
+        auto buffer = new char[length];
 #ifdef __linux__
         auto result = getrandom(buffer, length, 0);
         if (result == -1)
@@ -76,7 +76,8 @@ public:
 #else
         arc4random_buf(buffer, length);
 #endif
-        return StringObject::create(buffer, length, Encoding::ASCII_8BIT);
+        TM::String str { std::move(buffer), length };
+        return StringObject::create(std::move(str), Encoding::ASCII_8BIT);
     }
 
 private:
