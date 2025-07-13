@@ -88,9 +88,7 @@ describe "BasicSocket#recv" do
     client = @server.accept
     buffer = +"foo"
     begin
-      NATFIXME 'Return the buffer argument Value', exception: SpecFailedException do
-        client.recv(4, 0, buffer).should.equal?(buffer)
-      end
+      client.recv(4, 0, buffer).should.equal?(buffer)
     ensure
       client.close
     end
