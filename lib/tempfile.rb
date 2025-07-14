@@ -16,6 +16,19 @@ class Tempfile
         new(*args, **kwargs, &block).instance_variable_get(:@tmpfile)
       end
     end
+
+    def open(*args, **kwargs)
+      if block_given?
+        begin
+          tempfile = new(*args, **kwargs)
+          yield(tempfile)
+        ensure
+          tempfile.close
+        end
+      else
+        new(*args, **kwargs)
+      end
+    end
   end
 
   __bind_method__ :initialize, :Tempfile_initialize

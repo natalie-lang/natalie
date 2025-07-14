@@ -12,17 +12,21 @@ describe "Tempfile#open" do
   end
 
   it "reopens self" do
-    @tempfile.close
-    @tempfile.open
-    @tempfile.closed?.should be_false
+    NATFIXME 'Tempfile#open not yet implemented', exception: NoMethodError, message: "private method 'open' called for an instance of Tempfile" do
+      @tempfile.close
+      @tempfile.open
+      @tempfile.closed?.should be_false
+    end
   end
 
   it "reopens self in read and write mode and does not truncate" do
-    @tempfile.open
-    @tempfile.puts("Another Test!")
+    NATFIXME 'Tempfile#open not yet implemented', exception: NoMethodError, message: "private method 'open' called for an instance of Tempfile" do
+      @tempfile.open
+      @tempfile.puts("Another Test!")
 
-    @tempfile.open
-    @tempfile.readline.should == "Another Test!\n"
+      @tempfile.open
+      @tempfile.readline.should == "Another Test!\n"
+    end
   end
 end
 
@@ -46,7 +50,9 @@ describe "Tempfile.open" do
     Tempfile.open("specs", Dir.tmpdir, encoding: "IBM037:IBM037", binmode: true) do |tempfile|
       @tempfile = tempfile
       tempfile.external_encoding.should == Encoding.find("IBM037")
-      tempfile.binmode?.should be_true
+      NATFIXME 'issue with combination of encoding and binmode in File.new', exception: SpecFailedException do
+        tempfile.binmode?.should be_true
+      end
     end
   end
 
