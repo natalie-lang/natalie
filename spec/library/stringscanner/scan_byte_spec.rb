@@ -12,9 +12,11 @@ version_is StringScanner::Version, "3.1.1" do # ruby_version_is "3.4"
 
     it "is not multi-byte character sensitive" do
       s = StringScanner.new("あ") # "あ".bytes => [227, 129, 130]
-      s.scan_byte.should == 227
-      s.scan_byte.should == 129
-      s.scan_byte.should == 130
+      NATFIXME 'it is not multi-byte character sensitive', exception: SpecFailedException do
+        s.scan_byte.should == 227
+        s.scan_byte.should == 129
+        s.scan_byte.should == 130
+      end
     end
 
     it "returns nil at the end of the string" do

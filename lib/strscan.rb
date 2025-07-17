@@ -206,6 +206,10 @@ class StringScanner
     @matched = scan(/./)
   end
 
+  def scan_byte
+    get_byte&.ord
+  end
+
   def getch
     c = @string.chars[@pos]
     @prev_pos = @pos
