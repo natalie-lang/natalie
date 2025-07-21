@@ -206,7 +206,7 @@ Value IoObject::getbyte(Env *env) {
 
 Value IoObject::getc(Env *env) {
     raise_if_closed(env);
-    auto line = gets(env);
+    auto line = gets(env, Value::integer(1024));
     if (line.is_nil())
         return line;
     auto line_str = line.as_string();
