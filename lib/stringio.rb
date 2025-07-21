@@ -316,6 +316,11 @@ class StringIO
     gets(...)
   end
 
+  def readpartial(...)
+    raise EOFError, 'end of file reached' if eof?
+    read(...)
+  end
+
   def rewind
     @lineno = 0
     @index = 0
