@@ -81,10 +81,8 @@ describe "StringIO#readpartial" do
 
   it "clears and returns the given buffer if the length argument is 0" do
     buffer = +"existing content"
-    NATFIXME 'The same issue with StringIO#read, specs might need to be shared', exception: SpecFailedException do
-      @string.readpartial(0, buffer).should == buffer
-      buffer.should == ""
-    end
+    @string.readpartial(0, buffer).should == buffer
+    buffer.should == ""
   end
 
   version_is StringIO::VERSION, "3.1.2" do # ruby_version_is "3.4"

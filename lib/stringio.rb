@@ -274,7 +274,10 @@ class StringIO
 
       raise ArgumentError, "negative length #{length} given" if length < 0
 
-      return +'' if length == 0
+      if length == 0
+        return out_string.clear if out_string
+        return +''
+      end
       return nil if eof?
 
       encoding = Encoding::BINARY
