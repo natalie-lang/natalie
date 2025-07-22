@@ -23,6 +23,13 @@ describe 'StringIO' do
         buffer.to_str.should == 'foobar'
       end
 
+      it 'clears the buffer on an empty read' do
+        buffer = +'buffer'
+        io = StringIO.new('foobar')
+        io.read(0, buffer).should equal(buffer)
+        buffer.should == ''
+      end
+
       it 'raises a TypeError if the buffer is not a String and does not respond to to_str' do
         buffer = mock('')
         io = StringIO.new('foobar')
