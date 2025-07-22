@@ -334,9 +334,10 @@ class StringIO
     gets(...)
   end
 
-  def readpartial(...)
-    raise EOFError, 'end of file reached' if eof?
-    read(...)
+  def readpartial(length = nil, out_string = nil)
+    result = read(length, out_string)
+    raise EOFError, 'end of file reached' if result.nil?
+    result
   end
 
   def rewind

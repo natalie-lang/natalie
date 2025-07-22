@@ -56,9 +56,7 @@ describe "StringIO#readpartial" do
     buffer = +'hello'
     @string.readpartial(100)
     -> { @string.readpartial(1, buffer) }.should raise_error(EOFError)
-    NATFIXME 'The same issue with StringIO#read, specs might need to be shared', exception: SpecFailedException do
-      buffer.should be_empty
-    end
+    buffer.should be_empty
   end
 
   it "raises IOError if the stream is closed" do
