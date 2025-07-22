@@ -277,8 +277,10 @@ class StringIO
       if length == 0
         return out_string.clear if out_string
         return +''
+      elsif eof?
+        out_string.clear if out_string
+        return nil
       end
-      return nil if eof?
 
       encoding = Encoding::BINARY
     else
