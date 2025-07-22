@@ -38,6 +38,12 @@ describe 'StringIO' do
                      "can't convert MockObject to String (MockObject#to_str gives Symbol)",
                    )
       end
+
+      it 'raises an error if no bytes could be read' do
+        buffer = mock('')
+        io = StringIO.new('foobar')
+        -> { io.read(0, buffer) }.should raise_error(TypeError, 'no implicit conversion of MockObject into String')
+      end
     end
   end
 end
