@@ -268,9 +268,15 @@ class StringIO
 
     encoding = nil
     if length
-      length = length.to_int if !length.is_a?(Integer) && length.respond_to?(:to_int)
-
-      raise TypeError, "no implicit conversion of #{length.class} into Integer" unless length.is_a? Integer
+      if !length.is_a?(Integer) && length.respond_to?(:to_int)
+        new_length = length.to_int
+        unless new_length.is_a?(Integer)
+          raise TypeError, "can't convert #{length.class} to Integer (#{length.class}#to_int gives #{new_length.class})"
+        end
+        length = new_length
+      else
+        raise TypeError, "no implicit conversion of #{length.class} into Integer" unless length.is_a? Integer
+      end
 
       raise ArgumentError, "negative length #{length} given" if length < 0
 
