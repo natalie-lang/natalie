@@ -13,6 +13,23 @@ describe 'StringIO' do
   end
 
   describe '#read' do
+    context 'with a size' do
+      it 'raises a TypeError if the size is not an Integer' do
+        io = StringIO.new('foobar')
+        -> { io.read(:symbol) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      end
+
+      it 'raises a TypeError if the size is not an Integer and #to_int does not return an Integer' do
+        size = mock('to_int')
+        size.should_receive(:to_int).and_return(:symbol)
+        io = StringIO.new('foobar')
+        -> { io.read(size) }.should raise_error(
+                     TypeError,
+                     "can't convert MockObject to Integer (MockObject#to_int gives Symbol)",
+                   )
+      end
+    end
+
     context 'with a buffer' do
       it 'tries to convert a buffer argument with #to_str' do
         buffer = mock('to_str')
