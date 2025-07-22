@@ -253,28 +253,46 @@ class StringIO
   def read(length = nil, out_string = nil)
     __assert_not_read_closed
 
+    if out_string
+      if !out_string.is_a?(String) && out_string.respond_to?(:to_str)
+        new_out_string = out_string.to_str
+        unless new_out_string.is_a?(String)
+          raise TypeError,
+                "can't convert #{out_string.class} to String (#{out_string.class}#to_str gives #{new_out_string.class})"
+        end
+        out_string = new_out_string
+      else
+        raise TypeError, "no implicit conversion of #{out_string.class} into String" unless out_string.is_a? String
+      end
+    end
+
     encoding = nil
     if length
-      length = length.to_int if !length.is_a?(Integer) && length.respond_to?(:to_int)
-
-      raise TypeError, "no implicit conversion of #{length.class} into Integer" unless length.is_a? Integer
+      if !length.is_a?(Integer) && length.respond_to?(:to_int)
+        new_length = length.to_int
+        unless new_length.is_a?(Integer)
+          raise TypeError, "can't convert #{length.class} to Integer (#{length.class}#to_int gives #{new_length.class})"
+        end
+        length = new_length
+      else
+        raise TypeError, "no implicit conversion of #{length.class} into Integer" unless length.is_a? Integer
+      end
 
       raise ArgumentError, "negative length #{length} given" if length < 0
 
-      return +'' if length == 0
-      return nil if eof?
+      if length == 0
+        return out_string.clear if out_string
+        return +''
+      elsif eof?
+        out_string.clear if out_string
+        return nil
+      end
 
       encoding = Encoding::BINARY
     else
       return +'' if eof?
 
       length = @string.length - @index
-    end
-
-    if out_string
-      out_string = out_string.to_str if !out_string.is_a?(String) && out_string.respond_to?(:to_str)
-
-      raise TypeError, "no implicit conversion of #{out_string.class} into String" unless out_string.is_a? String
     end
 
     length = @string.length - @index if @index + length > @string.length
@@ -316,9 +334,10 @@ class StringIO
     gets(...)
   end
 
-  def readpartial(...)
-    raise EOFError, 'end of file reached' if eof?
-    read(...)
+  def readpartial(length = nil, out_string = nil)
+    result = read(length, out_string)
+    raise EOFError, 'end of file reached' if result.nil?
+    result
   end
 
   def rewind
