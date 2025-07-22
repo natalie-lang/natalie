@@ -272,9 +272,16 @@ class StringIO
     end
 
     if out_string
-      out_string = out_string.to_str if !out_string.is_a?(String) && out_string.respond_to?(:to_str)
-
-      raise TypeError, "no implicit conversion of #{out_string.class} into String" unless out_string.is_a? String
+      if !out_string.is_a?(String) && out_string.respond_to?(:to_str)
+        new_out_string = out_string.to_str
+        unless new_out_string.is_a?(String)
+          raise TypeError,
+                "can't convert #{out_string.class} to String (#{out_string.class}#to_str gives #{new_out_string.class})"
+        end
+        out_string = new_out_string
+      else
+        raise TypeError, "no implicit conversion of #{out_string.class} into String" unless out_string.is_a? String
+      end
     end
 
     length = @string.length - @index if @index + length > @string.length
