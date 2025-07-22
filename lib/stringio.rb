@@ -253,6 +253,19 @@ class StringIO
   def read(length = nil, out_string = nil)
     __assert_not_read_closed
 
+    if out_string
+      if !out_string.is_a?(String) && out_string.respond_to?(:to_str)
+        new_out_string = out_string.to_str
+        unless new_out_string.is_a?(String)
+          raise TypeError,
+                "can't convert #{out_string.class} to String (#{out_string.class}#to_str gives #{new_out_string.class})"
+        end
+        out_string = new_out_string
+      else
+        raise TypeError, "no implicit conversion of #{out_string.class} into String" unless out_string.is_a? String
+      end
+    end
+
     encoding = nil
     if length
       length = length.to_int if !length.is_a?(Integer) && length.respond_to?(:to_int)
@@ -269,19 +282,6 @@ class StringIO
       return +'' if eof?
 
       length = @string.length - @index
-    end
-
-    if out_string
-      if !out_string.is_a?(String) && out_string.respond_to?(:to_str)
-        new_out_string = out_string.to_str
-        unless new_out_string.is_a?(String)
-          raise TypeError,
-                "can't convert #{out_string.class} to String (#{out_string.class}#to_str gives #{new_out_string.class})"
-        end
-        out_string = new_out_string
-      else
-        raise TypeError, "no implicit conversion of #{out_string.class} into String" unless out_string.is_a? String
-      end
     end
 
     length = @string.length - @index if @index + length > @string.length
