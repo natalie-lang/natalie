@@ -30,6 +30,15 @@ describe 'StringIO' do
         buffer.should == ''
       end
 
+      it 'clears the buffer on an EOF read' do
+        buffer = +'buffer'
+        io = StringIO.new('foobar')
+        io.read
+        io.should.eof?
+        io.read(100, buffer).should be_nil
+        buffer.should == ''
+      end
+
       it 'raises a TypeError if the buffer is not a String and does not respond to to_str' do
         buffer = mock('')
         io = StringIO.new('foobar')
