@@ -7,40 +7,54 @@ describe "StringIO#readlines when passed [separator]" do
   end
 
   it "returns an Array containing lines based on the passed separator" do
-    @io.readlines(">").should == ["this>", "is>", "an>", "example"]
+    NATFIXME 'support arguments', exception: ArgumentError do
+      @io.readlines(">").should == ["this>", "is>", "an>", "example"]
+    end
   end
 
   it "updates self's position based on the number of read bytes" do
-    @io.readlines(">")
-    @io.pos.should eql(18)
+    NATFIXME 'support arguments', exception: ArgumentError do
+      @io.readlines(">")
+      @io.pos.should eql(18)
+    end
   end
 
   it "updates self's lineno based on the number of read lines" do
-    @io.readlines(">")
-    @io.lineno.should eql(4)
+    NATFIXME 'support arguments', exception: ArgumentError do
+      @io.readlines(">")
+      @io.lineno.should eql(4)
+    end
   end
 
   it "does not change $_" do
     $_ = "test"
-    @io.readlines(">")
+    NATFIXME 'support arguments', exception: ArgumentError do
+      @io.readlines(">")
+    end
     $_.should == "test"
   end
 
   it "returns an Array containing all paragraphs when the passed separator is an empty String" do
     io = StringIO.new("this is\n\nan example")
-    io.readlines("").should == ["this is\n\n", "an example"]
+    NATFIXME 'support arguments', exception: ArgumentError do
+      io.readlines("").should == ["this is\n\n", "an example"]
+    end
   end
 
   it "returns the remaining content as one line starting at the current position when passed nil" do
     io = StringIO.new("this is\n\nan example")
     io.pos = 5
-    io.readlines(nil).should == ["is\n\nan example"]
+    NATFIXME 'support arguments', exception: ArgumentError do
+      io.readlines(nil).should == ["is\n\nan example"]
+    end
   end
 
   it "tries to convert the passed separator to a String using #to_str" do
     obj = mock('to_str')
-    obj.stub!(:to_str).and_return(">")
-    @io.readlines(obj).should == ["this>", "is>", "an>", "example"]
+    NATFIXME 'support arguments', exception: ArgumentError do
+      obj.stub!(:to_str).and_return(">")
+      @io.readlines(obj).should == ["this>", "is>", "an>", "example"]
+    end
   end
 end
 
@@ -71,7 +85,9 @@ describe "StringIO#readlines when passed no argument" do
 
   it "does not change $_" do
     $_ = "test"
-    @io.readlines(">")
+    NATFIXME 'support arguments', exception: ArgumentError do
+      @io.readlines(">")
+    end
     $_.should == "test"
   end
 
@@ -95,7 +111,9 @@ end
 describe "StringIO#readlines when passed [chomp]" do
   it "returns the data read without a trailing newline character" do
     io = StringIO.new("this>is\nan>example\r\n")
-    io.readlines(chomp: true).should == ["this>is", "an>example"]
+    NATFIXME 'support arguments', exception: ArgumentError do
+      io.readlines(chomp: true).should == ["this>is", "an>example"]
+    end
   end
 end
 
@@ -105,7 +123,9 @@ describe "StringIO#readlines when passed [limit]" do
   end
 
   it "returns the data read until the limit is met" do
-    @io.readlines(4).should == ["a b ", "c d ", "e\n", "1 2 ", "3 4 ", "5"]
+    NATFIXME 'support arguments', exception: ArgumentError do
+      @io.readlines(4).should == ["a b ", "c d ", "e\n", "1 2 ", "3 4 ", "5"]
+    end
   end
 
   it "raises ArgumentError when limit is 0" do
@@ -113,6 +133,8 @@ describe "StringIO#readlines when passed [limit]" do
   end
 
   it "ignores it when the limit is negative" do
-    @io.readlines(-4).should == ["a b c d e\n", "1 2 3 4 5"]
+    NATFIXME 'support arguments', exception: ArgumentError do
+      @io.readlines(-4).should == ["a b c d e\n", "1 2 3 4 5"]
+    end
   end
 end
