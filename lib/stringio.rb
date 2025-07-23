@@ -334,11 +334,11 @@ class StringIO
     gets(...)
   end
 
-  def readlines(...)
+  def readlines(separator = $/, limit = nil, chomp: false)
     __assert_not_read_closed
 
     lines = []
-    lines << gets(...) until eof?
+    lines << __next_line(separator, limit, chomp:, accept_limit_zero: false) until eof?
     lines
   end
 
@@ -558,7 +558,7 @@ class StringIO
     end
   end
 
-  private def __next_line(separator, limit, chomp: false)
+  private def __next_line(separator, limit, chomp: false, accept_limit_zero: true)
     return if eof?
 
     limit = limit.to_int if limit && !limit.is_a?(Integer)
@@ -580,8 +580,12 @@ class StringIO
     limit = nil if limit&.negative?
 
     if limit == 0
-      @lineno += 1
-      return +''
+      if accept_limit_zero
+        @lineno += 1
+        return +''
+      else
+        raise ArgumentError, 'invalid limit: 0 for readlines'
+      end
     end
 
     separator = "\n\n" if separator == ''
