@@ -334,6 +334,14 @@ class StringIO
     gets(...)
   end
 
+  def readlines(...)
+    __assert_not_read_closed
+
+    lines = []
+    lines << gets(...) until eof?
+    lines
+  end
+
   def readpartial(length = nil, out_string = nil)
     result = read(length, out_string)
     raise EOFError, 'end of file reached' if result.nil?
