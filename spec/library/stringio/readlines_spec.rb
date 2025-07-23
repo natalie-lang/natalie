@@ -95,9 +95,7 @@ end
 describe "StringIO#readlines when passed [chomp]" do
   it "returns the data read without a trailing newline character" do
     io = StringIO.new("this>is\nan>example\r\n")
-    NATFIXME 'it returns the data read without a trailing newline character', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      io.readlines(chomp: true).should == ["this>is", "an>example"]
-    end
+    io.readlines(chomp: true).should == ["this>is", "an>example"]
   end
 end
 
