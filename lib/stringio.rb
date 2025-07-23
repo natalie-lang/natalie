@@ -334,11 +334,11 @@ class StringIO
     gets(...)
   end
 
-  def readlines
+  def readlines(...)
     __assert_not_read_closed
 
     lines = []
-    lines << gets until eof?
+    lines << gets(...) until eof?
     lines
   end
 

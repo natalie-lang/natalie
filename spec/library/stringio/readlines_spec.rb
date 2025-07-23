@@ -7,51 +7,45 @@ describe "StringIO#readlines when passed [separator]" do
   end
 
   it "returns an Array containing lines based on the passed separator" do
-    NATFIXME 'support arguments', exception: ArgumentError do
+    NATFIXME 'it returns an Array containing lines based on the passed separator', exception: SpecFailedException do
       @io.readlines(">").should == ["this>", "is>", "an>", "example"]
     end
   end
 
   it "updates self's position based on the number of read bytes" do
-    NATFIXME 'support arguments', exception: ArgumentError do
-      @io.readlines(">")
-      @io.pos.should eql(18)
-    end
+    @io.readlines(">")
+    @io.pos.should eql(18)
   end
 
   it "updates self's lineno based on the number of read lines" do
-    NATFIXME 'support arguments', exception: ArgumentError do
-      @io.readlines(">")
+    @io.readlines(">")
+    NATFIXME "it updates self's lineno based on the number of read lines", exception: SpecFailedException do
       @io.lineno.should eql(4)
     end
   end
 
   it "does not change $_" do
     $_ = "test"
-    NATFIXME 'support arguments', exception: ArgumentError do
-      @io.readlines(">")
+    @io.readlines(">")
+    NATFIXME 'it does not change $_', exception: SpecFailedException do
+      $_.should == "test"
     end
-    $_.should == "test"
   end
 
   it "returns an Array containing all paragraphs when the passed separator is an empty String" do
     io = StringIO.new("this is\n\nan example")
-    NATFIXME 'support arguments', exception: ArgumentError do
-      io.readlines("").should == ["this is\n\n", "an example"]
-    end
+    io.readlines("").should == ["this is\n\n", "an example"]
   end
 
   it "returns the remaining content as one line starting at the current position when passed nil" do
     io = StringIO.new("this is\n\nan example")
     io.pos = 5
-    NATFIXME 'support arguments', exception: ArgumentError do
-      io.readlines(nil).should == ["is\n\nan example"]
-    end
+    io.readlines(nil).should == ["is\n\nan example"]
   end
 
   it "tries to convert the passed separator to a String using #to_str" do
     obj = mock('to_str')
-    NATFIXME 'support arguments', exception: ArgumentError do
+    NATFIXME 'it tries to convert the passed separator to a String using #to_str', exception: SpecFailedException do
       obj.stub!(:to_str).and_return(">")
       @io.readlines(obj).should == ["this>", "is>", "an>", "example"]
     end
@@ -85,10 +79,10 @@ describe "StringIO#readlines when passed no argument" do
 
   it "does not change $_" do
     $_ = "test"
-    NATFIXME 'support arguments', exception: ArgumentError do
-      @io.readlines(">")
+    @io.readlines(">")
+    NATFIXME 'it does not change $_', exception: SpecFailedException do
+      $_.should == "test"
     end
-    $_.should == "test"
   end
 
   it "returns an empty Array when self is at the end" do
@@ -111,9 +105,7 @@ end
 describe "StringIO#readlines when passed [chomp]" do
   it "returns the data read without a trailing newline character" do
     io = StringIO.new("this>is\nan>example\r\n")
-    NATFIXME 'support arguments', exception: ArgumentError do
-      io.readlines(chomp: true).should == ["this>is", "an>example"]
-    end
+    io.readlines(chomp: true).should == ["this>is", "an>example"]
   end
 end
 
@@ -123,18 +115,18 @@ describe "StringIO#readlines when passed [limit]" do
   end
 
   it "returns the data read until the limit is met" do
-    NATFIXME 'support arguments', exception: ArgumentError do
+    NATFIXME 'it returns the data read until the limit is met', exception: SpecFailedException do
       @io.readlines(4).should == ["a b ", "c d ", "e\n", "1 2 ", "3 4 ", "5"]
     end
   end
 
   it "raises ArgumentError when limit is 0" do
-    -> { @io.readlines(0) }.should raise_error(ArgumentError)
+    NATFIXME 'it raises ArgumentError when limit is 0', exception: SpecFailedException do
+      -> { @io.readlines(0) }.should raise_error(ArgumentError)
+    end
   end
 
   it "ignores it when the limit is negative" do
-    NATFIXME 'support arguments', exception: ArgumentError do
-      @io.readlines(-4).should == ["a b c d e\n", "1 2 3 4 5"]
-    end
+    @io.readlines(-4).should == ["a b c d e\n", "1 2 3 4 5"]
   end
 end
