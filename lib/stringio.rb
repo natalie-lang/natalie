@@ -334,11 +334,11 @@ class StringIO
     gets(...)
   end
 
-  def readlines(...)
+  def readlines(separator = $/, limit = nil)
     __assert_not_read_closed
 
     lines = []
-    lines << gets(...) until eof?
+    lines << __next_line(separator, limit) until eof?
     lines
   end
 

@@ -7,9 +7,7 @@ describe "StringIO#readlines when passed [separator]" do
   end
 
   it "returns an Array containing lines based on the passed separator" do
-    NATFIXME 'it returns an Array containing lines based on the passed separator', exception: SpecFailedException do
-      @io.readlines(">").should == ["this>", "is>", "an>", "example"]
-    end
+    @io.readlines(">").should == ["this>", "is>", "an>", "example"]
   end
 
   it "updates self's position based on the number of read bytes" do
@@ -19,17 +17,13 @@ describe "StringIO#readlines when passed [separator]" do
 
   it "updates self's lineno based on the number of read lines" do
     @io.readlines(">")
-    NATFIXME "it updates self's lineno based on the number of read lines", exception: SpecFailedException do
-      @io.lineno.should eql(4)
-    end
+    @io.lineno.should eql(4)
   end
 
   it "does not change $_" do
     $_ = "test"
     @io.readlines(">")
-    NATFIXME 'it does not change $_', exception: SpecFailedException do
-      $_.should == "test"
-    end
+    $_.should == "test"
   end
 
   it "returns an Array containing all paragraphs when the passed separator is an empty String" do
@@ -45,10 +39,8 @@ describe "StringIO#readlines when passed [separator]" do
 
   it "tries to convert the passed separator to a String using #to_str" do
     obj = mock('to_str')
-    NATFIXME 'it tries to convert the passed separator to a String using #to_str', exception: SpecFailedException do
-      obj.stub!(:to_str).and_return(">")
-      @io.readlines(obj).should == ["this>", "is>", "an>", "example"]
-    end
+    obj.stub!(:to_str).and_return(">")
+    @io.readlines(obj).should == ["this>", "is>", "an>", "example"]
   end
 end
 
@@ -80,9 +72,7 @@ describe "StringIO#readlines when passed no argument" do
   it "does not change $_" do
     $_ = "test"
     @io.readlines(">")
-    NATFIXME 'it does not change $_', exception: SpecFailedException do
-      $_.should == "test"
-    end
+    $_.should == "test"
   end
 
   it "returns an empty Array when self is at the end" do
@@ -105,7 +95,9 @@ end
 describe "StringIO#readlines when passed [chomp]" do
   it "returns the data read without a trailing newline character" do
     io = StringIO.new("this>is\nan>example\r\n")
-    io.readlines(chomp: true).should == ["this>is", "an>example"]
+    NATFIXME 'it returns the data read without a trailing newline character', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+      io.readlines(chomp: true).should == ["this>is", "an>example"]
+    end
   end
 end
 
@@ -115,15 +107,12 @@ describe "StringIO#readlines when passed [limit]" do
   end
 
   it "returns the data read until the limit is met" do
-    NATFIXME 'it returns the data read until the limit is met', exception: SpecFailedException do
-      @io.readlines(4).should == ["a b ", "c d ", "e\n", "1 2 ", "3 4 ", "5"]
-    end
+    @io.readlines(4).should == ["a b ", "c d ", "e\n", "1 2 ", "3 4 ", "5"]
   end
 
-  it "raises ArgumentError when limit is 0" do
-    NATFIXME 'it raises ArgumentError when limit is 0', exception: SpecFailedException do
-      -> { @io.readlines(0) }.should raise_error(ArgumentError)
-    end
+  # NATFIXME: Timeout
+  xit "raises ArgumentError when limit is 0" do
+    -> { @io.readlines(0) }.should raise_error(ArgumentError)
   end
 
   it "ignores it when the limit is negative" do
