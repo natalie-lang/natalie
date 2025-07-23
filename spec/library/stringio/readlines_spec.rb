@@ -110,9 +110,8 @@ describe "StringIO#readlines when passed [limit]" do
     @io.readlines(4).should == ["a b ", "c d ", "e\n", "1 2 ", "3 4 ", "5"]
   end
 
-  # NATFIXME: Timeout
-  xit "raises ArgumentError when limit is 0" do
-    -> { @io.readlines(0) }.should raise_error(ArgumentError)
+  it "raises ArgumentError when limit is 0" do
+    -> { @io.readlines(0) }.should raise_error(ArgumentError, 'invalid limit: 0 for readlines')
   end
 
   it "ignores it when the limit is negative" do
