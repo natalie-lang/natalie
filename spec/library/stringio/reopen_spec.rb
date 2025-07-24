@@ -31,12 +31,16 @@ describe "StringIO#reopen when passed [Object, Integer]" do
   end
 
   it "raises a TypeError when the passed Object can't be converted to a String" do
-    -> { @io.reopen(Object.new, IO::RDWR) }.should raise_error(TypeError)
+    NATFIXME "it raises a TypeError when the passed Object can't be converted to a String", exception: SpecFailedException do
+      -> { @io.reopen(Object.new, IO::RDWR) }.should raise_error(TypeError)
+    end
   end
 
   it "raises an Errno::EACCES when trying to reopen self with a frozen String in write-mode" do
-    -> { @io.reopen("burn".freeze, IO::WRONLY) }.should raise_error(Errno::EACCES)
-    -> { @io.reopen("burn".freeze, IO::WRONLY | IO::APPEND) }.should raise_error(Errno::EACCES)
+    NATFIXME 'it raises an Errno::EACCES when trying to reopen self with a frozen String in write-mode', exception: SpecFailedException do
+      -> { @io.reopen("burn".freeze, IO::WRONLY) }.should raise_error(Errno::EACCES)
+      -> { @io.reopen("burn".freeze, IO::WRONLY | IO::APPEND) }.should raise_error(Errno::EACCES)
+    end
   end
 
   it "raises a FrozenError when trying to reopen self with a frozen String in truncate-mode" do
@@ -68,7 +72,9 @@ describe "StringIO#reopen when passed [Object, Object]" do
     @io.reopen(+"reopened, another", "w+")
     @io.closed_read?.should be_false
     @io.closed_write?.should be_false
-    @io.string.should == ""
+    NATFIXME 'it should be truncated when using mode "w+"', exception: SpecFailedException do
+      @io.string.should == ""
+    end
 
     @io.reopen(+"reopened, another time", "r+")
     @io.closed_read?.should be_false
@@ -78,7 +84,9 @@ describe "StringIO#reopen when passed [Object, Object]" do
 
   it "truncates the passed String when opened in truncate mode" do
     @io.reopen(str = +"reopened", "w")
-    str.should == ""
+    NATFIXME 'it truncates the passed String when opened in truncate mode', exception: SpecFailedException do
+      str.should == ""
+    end
   end
 
   it "tries to convert the passed Object to a String using #to_str" do
@@ -89,7 +97,9 @@ describe "StringIO#reopen when passed [Object, Object]" do
   end
 
   it "raises a TypeError when the passed Object can't be converted to a String using #to_str" do
-    -> { @io.reopen(Object.new, "r") }.should raise_error(TypeError)
+    NATFIXME "it raises a TypeError when the passed Object can't be converted to a String using #to_str", exception: SpecFailedException do
+      -> { @io.reopen(Object.new, "r") }.should raise_error(TypeError)
+    end
   end
 
   it "resets self's position to 0" do
@@ -114,10 +124,12 @@ describe "StringIO#reopen when passed [Object, Object]" do
   end
 
   it "raises an Errno::EACCES error when trying to reopen self with a frozen String in write-mode" do
-    -> { @io.reopen("burn".freeze, 'w') }.should raise_error(Errno::EACCES)
-    -> { @io.reopen("burn".freeze, 'w+') }.should raise_error(Errno::EACCES)
-    -> { @io.reopen("burn".freeze, 'a') }.should raise_error(Errno::EACCES)
-    -> { @io.reopen("burn".freeze, "r+") }.should raise_error(Errno::EACCES)
+    NATFIXME 'it raises an Errno::EACCES error when trying to reopen self with a frozen String in write-mode', exception: SpecFailedException do
+      -> { @io.reopen("burn".freeze, 'w') }.should raise_error(Errno::EACCES)
+      -> { @io.reopen("burn".freeze, 'w+') }.should raise_error(Errno::EACCES)
+      -> { @io.reopen("burn".freeze, 'a') }.should raise_error(Errno::EACCES)
+      -> { @io.reopen("burn".freeze, "r+") }.should raise_error(Errno::EACCES)
+    end
   end
 
   it "does not raise IOError if a frozen string is passed in read mode" do
@@ -161,20 +173,26 @@ describe "StringIO#reopen when passed [Object]" do
   end
 
   it "raises a TypeError when passed an Object that can't be converted to a StringIO" do
-    -> { @io.reopen(Object.new) }.should raise_error(TypeError)
+    NATFIXME "it raises a TypeError when passed an Object that can't be converted to a StringIO", exception: SpecFailedException do
+      -> { @io.reopen(Object.new) }.should raise_error(TypeError)
+    end
   end
 
   it "does not try to convert the passed Object to a String using #to_str" do
     obj = mock("not to_str")
-    obj.should_not_receive(:to_str)
-    -> { @io.reopen(obj) }.should raise_error(TypeError)
+    NATFIXME 'it does not try to convert the passed Object to a String using #to_str', exception: SpecFailedException do
+      obj.should_not_receive(:to_str)
+      -> { @io.reopen(obj) }.should raise_error(TypeError)
+    end
   end
 
   it "tries to convert the passed Object to a StringIO using #to_strio" do
     obj = mock("to_strio")
-    obj.should_receive(:to_strio).and_return(StringIO.new(+"to_strio"))
-    @io.reopen(obj)
-    @io.string.should == "to_strio"
+    NATFIXME 'it tries to convert the passed Object to a StringIO using #to_strio', exception: NoMethodError, message: "undefined method 'to_str' for an instance of MockObject" do
+      obj.should_receive(:to_strio).and_return(StringIO.new(+"to_strio"))
+      @io.reopen(obj)
+      @io.string.should == "to_strio"
+    end
   end
 end
 
@@ -185,21 +203,27 @@ describe "StringIO#reopen when passed no arguments" do
 
   it "resets self's mode to read-write" do
     @io.close
-    @io.reopen
-    @io.closed_read?.should be_false
-    @io.closed_write?.should be_false
+    NATFIXME 'support calls with no arguments', exception: ArgumentError, message: /wrong number of arguments/ do
+      @io.reopen
+      @io.closed_read?.should be_false
+      @io.closed_write?.should be_false
+    end
   end
 
   it "resets self's position to 0" do
     @io.read(5)
-    @io.reopen
-    @io.pos.should eql(0)
+    NATFIXME 'support calls with no arguments', exception: ArgumentError, message: /wrong number of arguments/ do
+      @io.reopen
+      @io.pos.should eql(0)
+    end
   end
 
   it "resets self's line number to 0" do
     @io.gets
-    @io.reopen
-    @io.lineno.should eql(0)
+    NATFIXME 'support calls with no arguments', exception: ArgumentError, message: /wrong number of arguments/ do
+      @io.reopen
+      @io.lineno.should eql(0)
+    end
   end
 end
 
@@ -228,24 +252,30 @@ describe "StringIO#reopen" do
 
   it "reopens and truncate when reopened in write mode" do
     @io.reopen(+'goodbye', 'wb').should == @io
-    @io.string.should == ''
-    @io << 'x'
-    @io.string.should == 'x'
+    NATFIXME 'it reopens and truncate when reopened in write mode', exception: SpecFailedException do
+      @io.string.should == ''
+      @io << 'x'
+      @io.string.should == 'x'
+    end
   end
 
   it "truncates the given string, not a copy" do
     str = +'goodbye'
     @io.reopen(str, 'w')
-    @io.string.should == ''
-    str.should == ''
+    NATFIXME 'it truncates the given string, not a copy', exception: SpecFailedException do
+      @io.string.should == ''
+      str.should == ''
+    end
   end
 
   it "does not truncate the content even when the StringIO argument is in the truncate mode" do
     orig_io = StringIO.new(+"Original StringIO", IO::RDWR|IO::TRUNC)
     orig_io.write("BLAH") # make sure the content is not empty
 
-    @io.reopen(orig_io)
-    @io.string.should == "BLAH"
+    NATFIXME 'support StringIO argument', exception: NoMethodError, message: "undefined method 'to_str' for an instance of StringIO" do
+      @io.reopen(orig_io)
+      @io.string.should == "BLAH"
+    end
   end
 
 end

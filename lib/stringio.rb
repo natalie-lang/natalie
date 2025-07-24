@@ -348,6 +348,49 @@ class StringIO
     result
   end
 
+  def reopen(string, mode = 'r+')
+    string = string.to_str unless string.is_a?(String)
+    @string = string
+    @index = 0
+    @lineno = 0
+
+    unless mode
+      if string.frozen?
+        mode = 'r'
+      else
+        mode = 'r+'
+      end
+    end
+
+    if mode.is_a?(Integer)
+      if (mode & IO::TRUNC) == IO::TRUNC
+        @string.clear
+        mode &= ~IO::TRUNC
+      end
+
+      if (mode & IO::APPEND) == IO::APPEND
+        @index = string.size - 1
+        mode &= ~IO::APPEND
+      end
+
+      case mode
+      when IO::RDONLY
+        mode = 'r'
+      when IO::WRONLY
+        mode = 'w'
+      when IO::RDWR
+        mode = 'r+'
+      end
+    end
+
+    mode = mode.to_str unless mode.is_a? String
+    @mode = mode
+
+    __set_closed
+
+    self
+  end
+
   def rewind
     @lineno = 0
     @index = 0
