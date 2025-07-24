@@ -203,27 +203,21 @@ describe "StringIO#reopen when passed no arguments" do
 
   it "resets self's mode to read-write" do
     @io.close
-    NATFIXME 'support calls with no arguments', exception: ArgumentError, message: /wrong number of arguments/ do
-      @io.reopen
-      @io.closed_read?.should be_false
-      @io.closed_write?.should be_false
-    end
+    @io.reopen
+    @io.closed_read?.should be_false
+    @io.closed_write?.should be_false
   end
 
   it "resets self's position to 0" do
     @io.read(5)
-    NATFIXME 'support calls with no arguments', exception: ArgumentError, message: /wrong number of arguments/ do
-      @io.reopen
-      @io.pos.should eql(0)
-    end
+    @io.reopen
+    @io.pos.should eql(0)
   end
 
   it "resets self's line number to 0" do
     @io.gets
-    NATFIXME 'support calls with no arguments', exception: ArgumentError, message: /wrong number of arguments/ do
-      @io.reopen
-      @io.lineno.should eql(0)
-    end
+    @io.reopen
+    @io.lineno.should eql(0)
   end
 end
 

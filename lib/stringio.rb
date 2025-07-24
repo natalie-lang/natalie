@@ -317,7 +317,12 @@ class StringIO
     result
   end
 
-  def reopen(string, mode = 'r+')
+  def reopen(string = nil, mode = 'r+')
+    if string.nil?
+      string = +''
+      mode = 'r+'
+    end
+
     string = string.to_str unless string.is_a?(String)
     @string = string
     @index = 0
