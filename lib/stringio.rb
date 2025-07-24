@@ -317,17 +317,35 @@ class StringIO
     result
   end
 
-  def reopen(string = nil, mode = 'r+')
+  def reopen(
+    string = nil,
+    mode = (
+      no_mode_argument = true
+      'r+'
+    )
+  )
     if string.nil?
       string = +''
       mode = 'r+'
     end
 
-    string = string.to_str unless string.is_a?(String)
-    @string = string
-    @index = 0
-    @lineno = 0
-    __set_mode(mode)
+    if no_mode_argument
+      string = string.to_strio if !string.is_a?(String) && !string.is_a?(StringIO) && string.respond_to?(:to_strio)
+    else
+      string = string.to_str unless string.is_a?(String)
+    end
+
+    if string.is_a?(StringIO)
+      @string = string.instance_variable_get(:@string)
+      @index = string.instance_variable_get(:@index)
+      @lineno = string.instance_variable_get(:@lineno)
+      @mode = string.instance_variable_get(:@mode)
+    else
+      @string = string
+      @index = 0
+      @lineno = 0
+      __set_mode(mode)
+    end
     __set_closed
 
     self

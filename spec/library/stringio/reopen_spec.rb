@@ -188,11 +188,9 @@ describe "StringIO#reopen when passed [Object]" do
 
   it "tries to convert the passed Object to a StringIO using #to_strio" do
     obj = mock("to_strio")
-    NATFIXME 'it tries to convert the passed Object to a StringIO using #to_strio', exception: NoMethodError, message: "undefined method 'to_str' for an instance of MockObject" do
-      obj.should_receive(:to_strio).and_return(StringIO.new(+"to_strio"))
-      @io.reopen(obj)
-      @io.string.should == "to_strio"
-    end
+    obj.should_receive(:to_strio).and_return(StringIO.new(+"to_strio"))
+    @io.reopen(obj)
+    @io.string.should == "to_strio"
   end
 end
 
@@ -266,10 +264,8 @@ describe "StringIO#reopen" do
     orig_io = StringIO.new(+"Original StringIO", IO::RDWR|IO::TRUNC)
     orig_io.write("BLAH") # make sure the content is not empty
 
-    NATFIXME 'support StringIO argument', exception: NoMethodError, message: "undefined method 'to_str' for an instance of StringIO" do
-      @io.reopen(orig_io)
-      @io.string.should == "BLAH"
-    end
+    @io.reopen(orig_io)
+    @io.string.should == "BLAH"
   end
 
 end
