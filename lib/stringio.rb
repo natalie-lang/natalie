@@ -20,7 +20,7 @@ class StringIO
     end
   end
 
-  private def initialize(string = nil, arg_mode = nil, mode: nil, binmode: nil, textmode: nil)
+  private def initialize(string = nil, arg_mode = nil, mode: arg_mode, binmode: nil, textmode: nil)
     if string.nil?
       string = ''.dup.force_encoding(Encoding.default_external)
     elsif !string.is_a?(String)
@@ -31,38 +31,7 @@ class StringIO
     @index = 0
     @lineno = 0
 
-    mode ||= arg_mode
-    unless mode
-      if string.frozen?
-        mode = 'r'
-      else
-        mode = 'r+'
-      end
-    end
-
-    if mode.is_a?(Integer)
-      if (mode & IO::TRUNC) == IO::TRUNC
-        @string.clear
-        mode &= ~IO::TRUNC
-      end
-
-      if (mode & IO::APPEND) == IO::APPEND
-        @index = string.size - 1
-        mode &= ~IO::APPEND
-      end
-
-      case mode
-      when IO::RDONLY
-        mode = 'r'
-      when IO::WRONLY
-        mode = 'w'
-      when IO::RDWR
-        mode = 'r+'
-      end
-    end
-
-    mode = mode.to_str unless mode.is_a? String
-    @mode = mode
+    __set_mode(mode)
 
     if !binmode.nil?
       if @mode.include?('b')
@@ -353,39 +322,7 @@ class StringIO
     @string = string
     @index = 0
     @lineno = 0
-
-    unless mode
-      if string.frozen?
-        mode = 'r'
-      else
-        mode = 'r+'
-      end
-    end
-
-    if mode.is_a?(Integer)
-      if (mode & IO::TRUNC) == IO::TRUNC
-        @string.clear
-        mode &= ~IO::TRUNC
-      end
-
-      if (mode & IO::APPEND) == IO::APPEND
-        @index = string.size - 1
-        mode &= ~IO::APPEND
-      end
-
-      case mode
-      when IO::RDONLY
-        mode = 'r'
-      when IO::WRONLY
-        mode = 'w'
-      when IO::RDWR
-        mode = 'r+'
-      end
-    end
-
-    mode = mode.to_str unless mode.is_a? String
-    @mode = mode
-
+    __set_mode(mode)
     __set_closed
 
     self
@@ -599,6 +536,40 @@ class StringIO
       @read_closed = true
       @write_closed = false
     end
+  end
+
+  private def __set_mode(mode)
+    unless mode
+      if string.frozen?
+        mode = 'r'
+      else
+        mode = 'r+'
+      end
+    end
+
+    if mode.is_a?(Integer)
+      if (mode & IO::TRUNC) == IO::TRUNC
+        @string.clear
+        mode &= ~IO::TRUNC
+      end
+
+      if (mode & IO::APPEND) == IO::APPEND
+        @index = string.size - 1
+        mode &= ~IO::APPEND
+      end
+
+      case mode
+      when IO::RDONLY
+        mode = 'r'
+      when IO::WRONLY
+        mode = 'w'
+      when IO::RDWR
+        mode = 'r+'
+      end
+    end
+
+    mode = mode.to_str unless mode.is_a? String
+    @mode = mode
   end
 
   private def __next_line(separator, limit, chomp: false, accept_limit_zero: true)
