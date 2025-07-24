@@ -330,7 +330,18 @@ class StringIO
     end
 
     if no_mode_argument
-      string = string.to_strio if !string.is_a?(String) && !string.is_a?(StringIO) && string.respond_to?(:to_strio)
+      if !string.is_a?(String) && !string.is_a?(StringIO) && string.respond_to?(:to_strio)
+        new_string = string.to_strio
+        unless new_string.is_a?(StringIO)
+          raise TypeError,
+                "can't convert #{string.class} to StringIO (#{string.class}#to_strio gives #{new_string.class})"
+        end
+        string = new_string
+      else
+        if !string.is_a?(String) && !string.is_a?(StringIO)
+          raise TypeError, "can't convert #{string.class} into StringIO"
+        end
+      end
     elsif !string.is_a?(String)
       if string.respond_to?(:to_str)
         new_string = string.to_str

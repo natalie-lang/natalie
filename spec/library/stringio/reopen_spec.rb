@@ -169,17 +169,13 @@ describe "StringIO#reopen when passed [Object]" do
   end
 
   it "raises a TypeError when passed an Object that can't be converted to a StringIO" do
-    NATFIXME "it raises a TypeError when passed an Object that can't be converted to a StringIO", exception: SpecFailedException do
-      -> { @io.reopen(Object.new) }.should raise_error(TypeError)
-    end
+    -> { @io.reopen(Object.new) }.should raise_error(TypeError)
   end
 
   it "does not try to convert the passed Object to a String using #to_str" do
     obj = mock("not to_str")
-    NATFIXME 'it does not try to convert the passed Object to a String using #to_str', exception: SpecFailedException do
-      obj.should_not_receive(:to_str)
-      -> { @io.reopen(obj) }.should raise_error(TypeError)
-    end
+    obj.should_not_receive(:to_str)
+    -> { @io.reopen(obj) }.should raise_error(TypeError)
   end
 
   it "tries to convert the passed Object to a StringIO using #to_strio" do
