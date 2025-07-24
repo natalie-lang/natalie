@@ -20,7 +20,7 @@ class StringIO
     end
   end
 
-  private def initialize(string = nil, arg_mode = nil, mode: nil, binmode: nil, textmode: nil)
+  private def initialize(string = nil, arg_mode = nil, mode: arg_mode, binmode: nil, textmode: nil)
     if string.nil?
       string = ''.dup.force_encoding(Encoding.default_external)
     elsif !string.is_a?(String)
@@ -31,38 +31,7 @@ class StringIO
     @index = 0
     @lineno = 0
 
-    mode ||= arg_mode
-    unless mode
-      if string.frozen?
-        mode = 'r'
-      else
-        mode = 'r+'
-      end
-    end
-
-    if mode.is_a?(Integer)
-      if (mode & IO::TRUNC) == IO::TRUNC
-        @string.clear
-        mode &= ~IO::TRUNC
-      end
-
-      if (mode & IO::APPEND) == IO::APPEND
-        @index = string.size - 1
-        mode &= ~IO::APPEND
-      end
-
-      case mode
-      when IO::RDONLY
-        mode = 'r'
-      when IO::WRONLY
-        mode = 'w'
-      when IO::RDWR
-        mode = 'r+'
-      end
-    end
-
-    mode = mode.to_str unless mode.is_a? String
-    @mode = mode
+    __set_mode(mode)
 
     if !binmode.nil?
       if @mode.include?('b')
@@ -348,6 +317,59 @@ class StringIO
     result
   end
 
+  def reopen(
+    string = nil,
+    mode = (
+      no_mode_argument = true
+      'r+'
+    )
+  )
+    if string.nil?
+      string = +''
+      mode = 'r+'
+    end
+
+    if no_mode_argument
+      if !string.is_a?(String) && !string.is_a?(StringIO) && string.respond_to?(:to_strio)
+        new_string = string.to_strio
+        unless new_string.is_a?(StringIO)
+          raise TypeError,
+                "can't convert #{string.class} to StringIO (#{string.class}#to_strio gives #{new_string.class})"
+        end
+        string = new_string
+      else
+        if !string.is_a?(String) && !string.is_a?(StringIO)
+          raise TypeError, "can't convert #{string.class} into StringIO"
+        end
+      end
+    elsif !string.is_a?(String)
+      if string.respond_to?(:to_str)
+        new_string = string.to_str
+        unless new_string.is_a?(String)
+          raise TypeError, "can't convert #{string.class} to String (#{string.class}#to_str gives #{new_string.class})"
+        end
+        string = new_string
+      else
+        raise TypeError, "no implicit conversion of #{string.class} into String" unless string.is_a?(String)
+      end
+    end
+
+    if string.is_a?(StringIO)
+      @string = string.instance_variable_get(:@string)
+      @index = string.instance_variable_get(:@index)
+      @lineno = string.instance_variable_get(:@lineno)
+      @mode = string.instance_variable_get(:@mode)
+    else
+      @string = string
+      @index = 0
+      @lineno = 0
+      __set_mode(mode)
+    end
+    __set_closed
+
+    self
+  end
+
   def rewind
     @lineno = 0
     @index = 0
@@ -556,6 +578,40 @@ class StringIO
       @read_closed = true
       @write_closed = false
     end
+  end
+
+  private def __set_mode(mode)
+    unless mode
+      if string.frozen?
+        mode = 'r'
+      else
+        mode = 'r+'
+      end
+    end
+
+    if mode.is_a?(Integer)
+      if (mode & IO::TRUNC) == IO::TRUNC
+        @string.clear
+        mode &= ~IO::TRUNC
+      end
+
+      if (mode & IO::APPEND) == IO::APPEND
+        @index = string.size - 1
+        mode &= ~IO::APPEND
+      end
+
+      case mode
+      when IO::RDONLY
+        mode = 'r'
+      when IO::WRONLY
+        mode = 'w'
+      when IO::RDWR
+        mode = 'r+'
+      end
+    end
+
+    mode = mode.to_str unless mode.is_a? String
+    @mode = mode
   end
 
   private def __next_line(separator, limit, chomp: false, accept_limit_zero: true)

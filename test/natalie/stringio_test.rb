@@ -79,4 +79,43 @@ describe 'StringIO' do
       end
     end
   end
+
+  describe '#reopen' do
+    context 'with a single argument' do
+      it 'raises a TypeError if the argument is not a StringIO and does not respond to to_strio' do
+        io = StringIO.new('foobar')
+        -> { io.reopen(Object.new) }.should raise_error(TypeError, "can't convert Object into StringIO")
+      end
+
+      it 'raises a TypeError if the argument is not a StringIO and #to_strio does not return a StringIO' do
+        to_strio = mock('to_strio')
+        to_strio.should_receive(:to_strio).and_return(:symbol)
+        io = StringIO.new('foobar')
+        -> { io.reopen(to_strio) }.should raise_error(
+                     TypeError,
+                     "can't convert MockObject to StringIO (MockObject#to_strio gives Symbol)",
+                   )
+      end
+    end
+
+    context 'with two arguments' do
+      it 'raises a TypeError if the argument is not a String and does not respond to to_str' do
+        io = StringIO.new('foobar')
+        -> { io.reopen(Object.new, IO::RDWR) }.should raise_error(
+                     TypeError,
+                     'no implicit conversion of Object into String',
+                   )
+      end
+
+      it 'raises a TypeError if the argument is not a String and #to_str does not return a String' do
+        to_str = mock('to_str')
+        to_str.should_receive(:to_str).and_return(:symbol)
+        io = StringIO.new('foobar')
+        -> { io.reopen(to_str, IO::RDWR) }.should raise_error(
+                     TypeError,
+                     "can't convert MockObject to String (MockObject#to_str gives Symbol)",
+                   )
+      end
+    end
+  end
 end
