@@ -31,9 +31,7 @@ describe "StringIO#reopen when passed [Object, Integer]" do
   end
 
   it "raises a TypeError when the passed Object can't be converted to a String" do
-    NATFIXME "it raises a TypeError when the passed Object can't be converted to a String", exception: SpecFailedException do
-      -> { @io.reopen(Object.new, IO::RDWR) }.should raise_error(TypeError)
-    end
+    -> { @io.reopen(Object.new, IO::RDWR) }.should raise_error(TypeError)
   end
 
   it "raises an Errno::EACCES when trying to reopen self with a frozen String in write-mode" do
@@ -97,9 +95,7 @@ describe "StringIO#reopen when passed [Object, Object]" do
   end
 
   it "raises a TypeError when the passed Object can't be converted to a String using #to_str" do
-    NATFIXME "it raises a TypeError when the passed Object can't be converted to a String using #to_str", exception: SpecFailedException do
-      -> { @io.reopen(Object.new, "r") }.should raise_error(TypeError)
-    end
+    -> { @io.reopen(Object.new, "r") }.should raise_error(TypeError)
   end
 
   it "resets self's position to 0" do
