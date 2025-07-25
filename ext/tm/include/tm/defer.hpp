@@ -25,11 +25,15 @@ public:
         : m_callback { std::forward<F>(callback) } { }
 
     ~Defer() {
-        m_callback();
+        if (m_enabled)
+            m_callback();
     }
+
+    void disable() { m_enabled = false; }
 
 private:
     F m_callback;
+    bool m_enabled { true };
 };
 
 }
