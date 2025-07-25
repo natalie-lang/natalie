@@ -24,7 +24,6 @@ TESTS =
     Dir[
       'spec/language/*_spec.rb',
       'test/natalie/**/*_test.rb',
-      # fixed:
       'spec/core/kernel/Float_spec.rb',
       'spec/core/kernel/srand_spec.rb',
       'spec/core/process/spawn_spec.rb',
