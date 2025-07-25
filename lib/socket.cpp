@@ -533,9 +533,11 @@ Value BasicSocket_getsockopt(Env *env, Value self, Args &&args, Block *block) {
 
     socklen_t len = 1024;
     auto buf = new char[len];
+    Defer delete_buf([&buf]() { delete[] buf; });
     auto result = getsockopt(self.as_io()->fileno(), level, optname, buf, &len);
     if (result == -1)
         env->raise_errno();
+    delete_buf.disable();
     String str { std::move(buf), len };
     auto data = StringObject::create(std::move(str), Encoding::ASCII_8BIT);
     auto Option = fetch_nested_const({ "Socket"_s, "Option"_s });
@@ -593,6 +595,8 @@ Value BasicSocket_recv(Env *env, Value self, Args &&args, Block *) {
     ThreadObject::set_current_sleeping(true);
 
     auto buf = new char[maxlen];
+    Defer delete_buf([&buf]() { delete[] buf; });
+
     auto bytes = blocking_recv(env, self.as_io(), buf, static_cast<size_t>(maxlen), static_cast<int>(flags));
     if (bytes == -1)
         env->raise_errno();
@@ -602,6 +606,7 @@ Value BasicSocket_recv(Env *env, Value self, Args &&args, Block *) {
         return outbuf;
     }
 
+    delete_buf.disable();
     String str { std::move(buf), static_cast<size_t>(bytes) };
     return StringObject::create(std::move(str));
 }
@@ -1239,6 +1244,8 @@ Value Socket_recvfrom(Env *env, Value self, Args &&args, Block *) {
         flags = IntegerMethods::convert_to_native_type<int>(env, args.at(1));
 
     auto buf = new char[maxlen];
+    Defer delete_buf([&buf]() { delete[] buf; });
+
     sockaddr_storage src_addr;
     memset(&src_addr, 0, sizeof(src_addr));
     socklen_t addrlen = sizeof(src_addr);
@@ -1264,6 +1271,7 @@ Value Socket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     socklen_t socktype_len = sizeof(socktype);
     if (getsockopt(self.as_io()->fileno(), SOL_SOCKET, SO_TYPE, &socktype, &socktype_len) == -1)
         env->raise_errno();
+    delete_buf.disable();
     String str { std::move(buf), static_cast<size_t>(res) };
     return ArrayObject::create({
         StringObject::create(std::move(str), Encoding::ASCII_8BIT),
