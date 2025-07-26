@@ -86,7 +86,7 @@ describe 'Module' do
   end
 
   describe '#constants' do
-    it 'retursn an array of constant names' do
+    it 'returns an array of constant names' do
       M3.constants.sort.should == %i[A M3A]
     end
   end
