@@ -465,7 +465,7 @@ describe 'string' do
       s.sub(/bogus/, '').should == 'tim is ok'
     end
 
-    it 'substitues back references' do
+    it 'substitutes back references' do
       '0b1101011'.sub(/0b([01]+)/, 'the binary number is \1').should == 'the binary number is 1101011'
       'abc'.sub(/([a-z]+)/, '\0def').should == 'abcdef'
     end
