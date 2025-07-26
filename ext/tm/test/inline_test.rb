@@ -15,8 +15,8 @@ def comments_for_path(path)
         line: cursor.location.line,
       }
     end
-    next :recurse 
-  end 
+    next :recurse
+  end
   comments
 end
 
