@@ -1739,15 +1739,6 @@ Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
     }
     self->ivar_set(env, "@do_not_reverse_lookup"_s, find_top_level_const(env, "BasicSocket"_s).send(env, "do_not_reverse_lookup"_s));
 
-    if (block) {
-        try {
-            block->run(env, { self }, nullptr);
-            Socket_close(env, self, {}, nullptr);
-        } catch (ExceptionObject *exception) {
-            Socket_close(env, self, {}, nullptr);
-        }
-    }
-
     return self;
 }
 
