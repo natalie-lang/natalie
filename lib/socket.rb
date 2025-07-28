@@ -68,8 +68,10 @@ end
 class TCPSocket < IPSocket
   __bind_method__ :initialize, :TCPSocket_initialize
 
-  class << self
-    __bind_method__ :gethostbyname, :TCPSocket_gethostbyname
+  def self.gethostbyname(hostname)
+    warn('TCPSocket.gethostbyname is deprecated; use Addrinfo.getaddrinfo instead.')
+    result = Addrinfo.getaddrinfo(hostname, nil, :AF_UNSPEC, :SOCK_STREAM, Socket::IPPROTO_TCP)
+    [hostname, [], result[0].afamily, *result.map(&:ip_address)]
   end
 end
 

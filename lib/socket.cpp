@@ -210,7 +210,8 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
     if (s != 0) {
         if (s == EAI_SYSTEM)
             env->raise_errno();
-        env->raise("SocketError", "getaddrinfo: {}", gai_strerror(s));
+        auto Socket_ResolutionError = fetch_nested_const({ "Socket"_s, "ResolutionError"_s }).as_class_or_raise(env);
+        env->raise(Socket_ResolutionError, "getaddrinfo: {}", gai_strerror(s));
     }
     Defer freeinfo { [&res] { freeaddrinfo(res); } };
 
@@ -1740,37 +1741,6 @@ Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
     self->ivar_set(env, "@do_not_reverse_lookup"_s, find_top_level_const(env, "BasicSocket"_s).send(env, "do_not_reverse_lookup"_s));
 
     return self;
-}
-
-Value TCPSocket_gethostbyname(Env *env, Value self, Args &&args, Block *) {
-    args.ensure_argc_is(env, 1);
-    env->warn("TCPSocket.gethostbyname is deprecated; use Addrinfo.getaddrinfo instead.");
-    auto name = args[0].to_str(env);
-    if (strlen(name->c_str()) < name->bytesize())
-        env->raise("ArgumentError", "string contains null byte");
-    auto hostent = gethostbyname(name->c_str());
-    if (!hostent) {
-        auto Socket_ResolutionError = fetch_nested_const({ "Socket"_s, "ResolutionError"_s }).as_class_or_raise(env);
-        env->raise(Socket_ResolutionError, "getaddrinfo: Name or service not known");
-    }
-    auto aliases = ArrayObject::create();
-    for (auto ptr = hostent->h_aliases; *ptr != nullptr; ptr++) {
-        aliases->push(StringObject::create(*ptr, Encoding::ASCII_8BIT));
-    }
-    auto result = ArrayObject::create({
-        StringObject::create(hostent->h_name, Encoding::ASCII_8BIT),
-        aliases,
-        Value::integer(hostent->h_addrtype),
-    });
-    for (auto ptr = hostent->h_addr_list; *ptr != nullptr; ptr++) {
-        char ipaddr[INET6_ADDRSTRLEN] = { 0 };
-        if (hostent->h_length == 4)
-            inet_ntop(AF_INET, *ptr, ipaddr, INET6_ADDRSTRLEN);
-        else
-            inet_ntop(AF_INET6, *ptr, ipaddr, INET6_ADDRSTRLEN);
-        result->push(StringObject::create(ipaddr, Encoding::ASCII_8BIT));
-    }
-    return result;
 }
 
 Value TCPServer_initialize(Env *env, Value self, Args &&args, Block *block) {
