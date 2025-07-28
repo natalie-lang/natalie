@@ -13,9 +13,7 @@ describe 'TCPSocket#initialize' do
 
     after :each do
       if @socket
-        NATFIXME 'Trying to write to a closed stream', exception: IOError, message: 'closed stream' do
-          @socket.write "QUIT"
-        end
+        @socket.write "QUIT"
         @socket.close
       end
       @server.shutdown
