@@ -219,21 +219,17 @@ Value *Args::data() const {
 }
 
 HashObject *Args::keyword_hash() const {
-    if (!has_keyword_hash() || m_args_size == 0)
+    if (!has_keyword_hash())
         return nullptr;
 
-    auto hash = last();
-    if (!hash.is_hash())
-        return nullptr;
-
-    return hash.as_hash();
+    return (*tl_current_arg_stack)[m_keyword_hash_index].as_hash();
 }
 
 HashObject *Args::pop_keyword_hash() {
-    auto hash = keyword_hash();
-    if (!hash)
+    if (!has_keyword_hash())
         return nullptr;
 
+    auto hash = keyword_hash();
     m_args_size--;
     m_keyword_hash_index = -1;
     return hash;
@@ -242,15 +238,19 @@ HashObject *Args::pop_keyword_hash() {
 void Args::pop_empty_keyword_hash() {
     if (!has_keyword_hash())
         return;
+
     auto hash = keyword_hash();
-    if (hash && hash->is_empty())
-        pop_keyword_hash();
+    if (hash->is_empty()) {
+        m_args_size--;
+        m_keyword_hash_index = -1;
+    }
 }
 
 Value Args::keyword_arg(Env *env, SymbolObject *name) const {
     auto hash = keyword_hash();
     if (!hash)
         return Value::nil();
+
     return hash->get(env, name).value_or(Value::nil());
 }
 
@@ -258,6 +258,7 @@ bool Args::keyword_arg_present(Env *env, SymbolObject *name) const {
     auto hash = keyword_hash();
     if (!hash)
         return false;
+
     return hash->get(env, name).present();
 }
 
