@@ -14,6 +14,11 @@ module Natalie
       end
 
       def generate(transform)
+        if @count.zero?
+          transform.exec_and_push(:hash, 'Value(HashObject::create())')
+          return
+        end
+
         items = []
         @count.times do
           items.unshift(transform.pop)
