@@ -210,7 +210,8 @@ Value Addrinfo_getaddrinfo(Env *env, Value self, Args &&args, Block *block) {
     if (s != 0) {
         if (s == EAI_SYSTEM)
             env->raise_errno();
-        env->raise("SocketError", "getaddrinfo: {}", gai_strerror(s));
+        auto Socket_ResolutionError = fetch_nested_const({ "Socket"_s, "ResolutionError"_s }).as_class_or_raise(env);
+        env->raise(Socket_ResolutionError, "getaddrinfo: {}", gai_strerror(s));
     }
     Defer freeinfo { [&res] { freeaddrinfo(res); } };
 
