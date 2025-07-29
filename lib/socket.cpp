@@ -563,8 +563,17 @@ Value BasicSocket_local_address(Env *env, Value self, Args &&args, Block *) {
     if (getsockopt(self.as_io()->fileno(), SOL_SOCKET, SO_TYPE, &socktype, &socktype_len) == -1)
         env->raise_errno();
 
+    int protocol = 0;
+    if (addr.ss_family == AF_INET || addr.ss_family == AF_INET6) {
+        if (socktype == SOCK_STREAM) {
+            protocol = IPPROTO_TCP;
+        } else if (socktype == SOCK_DGRAM) {
+            protocol = IPPROTO_UDP;
+        }
+    }
+
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
-    return Addrinfo.send(env, "new"_s, { packed, Value::integer(addr.ss_family), Value::integer(socktype) });
+    return Addrinfo.send(env, "new"_s, { packed, Value::integer(addr.ss_family), Value::integer(socktype), Value::integer(protocol) });
 }
 
 static ssize_t blocking_recv(Env *env, IoObject *io, char *buf, size_t len, int flags) {
@@ -665,8 +674,17 @@ Value BasicSocket_remote_address(Env *env, Value self, Args &&args, Block *) {
     if (getsockopt(self.as_io()->fileno(), SOL_SOCKET, SO_TYPE, &socktype, &socktype_len) == -1)
         env->raise_errno();
 
+    int protocol = 0;
+    if (addr.ss_family == AF_INET || addr.ss_family == AF_INET6) {
+        if (socktype == SOCK_STREAM) {
+            protocol = IPPROTO_TCP;
+        } else if (socktype == SOCK_DGRAM) {
+            protocol = IPPROTO_UDP;
+        }
+    }
+
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
-    return Addrinfo.send(env, "new"_s, { packed, Value::integer(addr.ss_family), Value::integer(socktype) });
+    return Addrinfo.send(env, "new"_s, { packed, Value::integer(addr.ss_family), Value::integer(socktype), Value::integer(protocol) });
 }
 
 Value BasicSocket_send(Env *env, Value self, Args &&args, Block *) {
