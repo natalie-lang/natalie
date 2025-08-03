@@ -882,15 +882,11 @@ describe "Predefined global $," do
   end
 
   it "raises TypeError if assigned a non-String" do
-    NATFIXME 'raises TypeError if assigned a non-String', exception: SpecFailedException do
-      -> { $, = Object.new }.should raise_error(TypeError, 'value of $, must be String')
-    end
+    -> { $, = Object.new }.should raise_error(TypeError, 'value of $, must be String')
   end
 
   it "warns if assigned non-nil" do
-    NATFIXME 'warns if assigned non-nil', exception: SpecFailedException do
-      -> { $, = "_" }.should complain(/warning: [`']\$,' is deprecated/)
-    end
+    -> { $, = "_" }.should complain(/warning: [`']\$,' is deprecated/)
   end
 end
 
@@ -927,9 +923,7 @@ describe "Predefined global $;" do
   end
 
   it "warns if assigned non-nil" do
-    NATFIXME 'Implement $;', exception: SpecFailedException do
-      -> { $; = "_" }.should complain(/warning: [`']\$;' is deprecated/)
-    end
+    -> { $; = "_" }.should complain(/warning: [`']\$;' is deprecated/)
   end
 end
 

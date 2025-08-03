@@ -17,6 +17,8 @@ namespace GlobalVariableAccessHooks::ReadHooks {
 
 namespace GlobalVariableAccessHooks::WriteHooks {
     Value as_string_or_raise(Env *, Value, GlobalVariableInfo &);
+    Value as_string_or_raise_and_deprecated(Env *, Value, GlobalVariableInfo &);
+    Value deprecated(Env *, Value, GlobalVariableInfo &);
     Value to_int(Env *, Value, GlobalVariableInfo &);
     Value last_match(Env *, Value, GlobalVariableInfo &);
     Value set_stdout(Env *, Value, GlobalVariableInfo &);
