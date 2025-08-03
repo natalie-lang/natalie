@@ -1005,7 +1005,7 @@ gen.module_function_binding('Kernel', 'String', 'KernelModule', 'String', argc: 
 gen.module_function_binding('Kernel', 'test', 'KernelModule', 'test', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
 gen.module_function_binding('Kernel', 'throw', 'KernelModule', 'throw_method', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding_as_instance_method('Kernel', 'class', 'KernelModule', 'klass_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
-gen.static_binding_as_instance_method('Kernel', 'define_singleton_method', 'KernelModule', 'define_singleton_method', argc: 1, pass_env: true, pass_block: true, return_type: :Value)
+gen.static_binding_as_instance_method('Kernel', 'define_singleton_method', 'KernelModule', 'define_singleton_method', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
 gen.static_binding_as_instance_method('Kernel', 'dup', 'KernelModule', 'dup', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding_as_instance_method('Kernel', '===', 'KernelModule', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
 gen.static_binding_as_instance_method('Kernel', '!~', 'KernelModule', 'neqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
