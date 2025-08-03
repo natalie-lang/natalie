@@ -72,7 +72,7 @@ public:
         return self;
     }
 
-    static Value define_singleton_method(Env *env, Value self, Value name, Block *block);
+    static Value define_singleton_method(Env *env, Value self, Value name, Optional<Value> arg_block, Block *block);
     static Value dup(Env *env, Value self);
     static Value dup_better(Env *env, Value self); // This will eventually replace `dup`.
     static Value extend(Env *, Value, Args &&);

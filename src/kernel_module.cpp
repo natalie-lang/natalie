@@ -908,8 +908,21 @@ Value KernelModule::klass_obj(Env *env, Value self) {
         return Value::nil();
 }
 
-Value KernelModule::define_singleton_method(Env *env, Value self, Value name, Block *block) {
-    env->ensure_block_given(block);
+Value KernelModule::define_singleton_method(Env *env, Value self, Value name, Optional<Value> arg_block, Block *block) {
+    if (arg_block) {
+        auto next_block = arg_block.value();
+        if (next_block.is_proc()) {
+            block = next_block.as_proc()->block();
+        } else if (next_block.is_method()) {
+            block = next_block.as_method()->to_proc(env)->block();
+        } else if (next_block.is_unbound_method()) {
+            block = next_block.as_unbound_method()->bind(env, self)->to_proc(env)->block();
+        } else {
+            env->raise("TypeError", "wrong argument type {} (expected Proc/Method/UnboundMethod", next_block.klass()->inspected(env));
+        }
+    } else {
+        env->ensure_block_given(block);
+    }
     SymbolObject *name_obj = name.to_symbol(env, Value::Conversion::Strict);
     Object::define_singleton_method(env, self, name_obj, block);
     return name_obj;
