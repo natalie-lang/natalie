@@ -15,11 +15,7 @@ describe "The __FILE__ pseudo-variable" do
 
   ruby_version_is "3.3" do
     it "equals (eval at __FILE__:__LINE__) inside an eval" do
-      NATFIXME 'include the line and wrap with "(eval)"', exception: SpecFailedException do
-        eval("__FILE__").should == "(eval at #{__FILE__}:#{__LINE__})"
-      end
-      # NATFIXME: Actual behaviour:
-      eval("__FILE__").should == __FILE__
+      eval("__FILE__").should == "(eval at #{__FILE__}:#{__LINE__})"
     end
   end
 end
