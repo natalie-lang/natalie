@@ -40,7 +40,7 @@ describe "Warning.warn" do
     ruby_exe(code, args: "2>&1").should == %Q[A WARNING!\nwarning from stderr\n]
   end
 
-  xit "is called by parser warnings" do
+  it "is called by parser warnings" do
     Warning.should_receive(:warn)
     verbose = $VERBOSE
     $VERBOSE = false
