@@ -24,6 +24,7 @@ TOLERANCE = 0.00003
 TIME_TOLERANCE = 20.0
 
 FORMATTERS = %w[default yaml spec]
+CODE_LOADING_DIR = File.realpath(File.join(__dir__, '../../spec/fixtures/code'))
 
 @formatter_name = ARGV[ARGV.index('-f') + 1] if ARGV.include?('-f')
 
