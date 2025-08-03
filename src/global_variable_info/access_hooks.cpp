@@ -66,6 +66,11 @@ namespace GlobalVariableAccessHooks::WriteHooks {
         return v.as_string();
     }
 
+    Value as_string_or_raise_and_deprecated(Env *env, Value v, GlobalVariableInfo &info) {
+        v = as_string_or_raise(env, v, info);
+        return deprecated(env, v, info);
+    }
+
     Value deprecated(Env *env, Value v, GlobalVariableInfo &info) {
         if (!v.is_nil())
             env->deprecation_warn("'{}' is deprecated", info.name());

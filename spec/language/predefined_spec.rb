@@ -882,9 +882,7 @@ describe "Predefined global $," do
   end
 
   it "raises TypeError if assigned a non-String" do
-    NATFIXME 'raises TypeError if assigned a non-String', exception: SpecFailedException do
-      -> { $, = Object.new }.should raise_error(TypeError, 'value of $, must be String')
-    end
+    -> { $, = Object.new }.should raise_error(TypeError, 'value of $, must be String')
   end
 
   it "warns if assigned non-nil" do
