@@ -457,6 +457,7 @@ Env *build_top_env() {
 
     env->global_set("$;"_s, Value::nil());
     env->global_alias("$-F"_s, "$;"_s);
+    GlobalEnv::the()->global_set_write_hook(env, "$;"_s, GlobalVariableAccessHooks::WriteHooks::deprecated);
 
     env->global_set("$DEBUG"_s, Value::False());
     env->global_alias("$-d"_s, "$DEBUG"_s);

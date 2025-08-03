@@ -927,9 +927,7 @@ describe "Predefined global $;" do
   end
 
   it "warns if assigned non-nil" do
-    NATFIXME 'Implement $;', exception: SpecFailedException do
-      -> { $; = "_" }.should complain(/warning: [`']\$;' is deprecated/)
-    end
+    -> { $; = "_" }.should complain(/warning: [`']\$;' is deprecated/)
   end
 end
 

@@ -2,9 +2,7 @@ require_relative '../../spec_helper'
 
 describe "Warning.[]=" do
   it "emits and suppresses warnings for :deprecated" do
-    NATFIXME 'Warning for $; is deprecated', exception: SpecFailedException do
-      ruby_exe('Warning[:deprecated] = true; $; = ""', args: "2>&1").should =~ /is deprecated/
-    end
+    ruby_exe('Warning[:deprecated] = true; $; = ""', args: "2>&1").should =~ /is deprecated/
     ruby_exe('Warning[:deprecated] = false; $; = ""', args: "2>&1").should == ""
   end
 
