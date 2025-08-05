@@ -172,14 +172,14 @@ public:
      *
      * ```
      * auto obj = Thing(1);
-     * auto opt = Optional<Thing>(obj);
+     * const auto opt = Optional<Thing>(obj);
      * assert_eq(obj, opt.value());
      * ```
      *
      * This method aborts if the value not present.
      *
      * ```should_abort
-     * auto opt = Optional<Thing>();
+     * const auto opt = Optional<Thing>();
      * opt.value();
      * ```
      */
@@ -255,6 +255,26 @@ public:
      * ```
      */
     T operator*() {
+        assert(m_present);
+        return m_value;
+    }
+    /**
+     * Returns a reference to the underlying value.
+     *
+     * ```
+     * auto obj = Thing(1);
+     * const auto opt = Optional<Thing>(obj);
+     * assert_eq(obj, *opt);
+     * ```
+     *
+     * This method aborts if the value not present.
+     *
+     * ```should_abort
+     * const auto opt = Optional<Thing>();
+     * *opt;
+     * ```
+     */
+    T const &operator*() const {
         assert(m_present);
         return m_value;
     }
