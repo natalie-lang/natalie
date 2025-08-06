@@ -45,4 +45,23 @@ class Time
   def _dump(depth = -1)
     raise NotImplementedError, 'Implement Time#_dump'
   end
+
+  def deconstruct_keys(keys)
+    output = {
+      year:,
+      month:,
+      day:,
+      yday:,
+      wday:,
+      hour:,
+      min:,
+      sec:,
+      subsec:,
+      dst: dst?,
+      zone:,
+    }
+    return output if keys.nil?
+    raise TypeError, "wrong argument type #{keys.class} (expected Array or nil)" unless keys.is_a?(Array)
+    output.slice(*keys)
+  end
 end

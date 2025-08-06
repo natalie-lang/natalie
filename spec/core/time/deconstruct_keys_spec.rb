@@ -5,12 +5,20 @@ describe "Time#deconstruct_keys" do
     d = Time.utc(2022, 10, 5, 13, 30)
     res = { year: 2022, month: 10, day: 5, yday: 278, wday: 3, hour: 13,
             min: 30, sec: 0, subsec: 0, dst: false, zone: "UTC" }
-    d.deconstruct_keys(nil).should == res
+    NATFIXME 'Fix Time#zone', exception: SpecFailedException do
+      d.deconstruct_keys(nil).should == res
+    end
+    # NATFIXME: Actual behaviour
+    d.deconstruct_keys(nil).should == res.merge({ zone: nil })
   end
 
   it "returns only specified keys" do
     d = Time.utc(2022, 10, 5, 13, 39)
-    d.deconstruct_keys([:zone, :subsec]).should == { zone: "UTC", subsec: 0 }
+    NATFIXME 'Fix Time#zone', exception: SpecFailedException do
+      d.deconstruct_keys([:zone, :subsec]).should == { zone: "UTC", subsec: 0 }
+    end
+    # NATFIXME: Actual behaviour
+    d.deconstruct_keys([:zone, :subsec]).should == { zone: nil, subsec: 0 }
   end
 
   it "requires one argument" do
