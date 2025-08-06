@@ -146,8 +146,8 @@ Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, boo
     if (real.is_complex() && !imaginary)
         return real;
 
-    if (real.is_complex() && imaginary.value().is_complex())
-        return real.send(env, "+"_s, { imaginary.value().send(env, "*"_s, { ComplexObject::create(Value::integer(0), Value::integer(1)) }) });
+    if (real.is_complex() && imaginary->is_complex())
+        return real.send(env, "+"_s, { imaginary->send(env, "*"_s, { ComplexObject::create(Value::integer(0), Value::integer(1)) }) });
 
     auto is_numeric = [&env](Value val) -> bool {
         if (val.is_numeric() || val.is_rational() || val.is_complex())
@@ -411,9 +411,9 @@ Value KernelModule::cur_dir(Env *env) {
 Value KernelModule::exit(Env *env, Optional<Value> status_arg) {
     auto status = Value::integer(0);
     if (status_arg) {
-        if (status_arg.value().is_false()) {
+        if (status_arg->is_false()) {
             status = Value::integer(1);
-        } else if (status_arg.value().is_integer()) {
+        } else if (status_arg->is_integer()) {
             status = status_arg.value();
         }
     }
@@ -432,7 +432,7 @@ Value KernelModule::exit_bang(Env *env, Optional<Value> status) {
 Value KernelModule::Integer(Env *env, Value value, Optional<Value> base, Optional<Value> exception) {
     nat_int_t base_int = 0; // default to zero if unset
     if (base)
-        base_int = base.value().to_int(env).to_nat_int_t();
+        base_int = base->to_int(env).to_nat_int_t();
     return Integer(env, value, base_int, exception_argument_to_bool(env, exception));
 }
 
@@ -632,7 +632,7 @@ Value KernelModule::raise(Env *env, Args &&args) {
 }
 
 Value KernelModule::Rational(Env *env, Value x, Optional<Value> y, Optional<Value> exception) {
-    return Rational(env, x, y, exception ? exception.value().is_true() : true);
+    return Rational(env, x, y, exception ? exception->is_true() : true);
 }
 
 Value KernelModule::Rational(Env *env, Value x, Optional<Value> y_arg, bool exception) {
@@ -710,7 +710,7 @@ Value KernelModule::sleep(Env *env, Optional<Value> length_arg) {
         return FiberObject::scheduler().send(env, "kernel_sleep"_s, { length });
     }
 
-    if (!length_arg || length_arg.value().is_nil())
+    if (!length_arg || length_arg->is_nil())
         return ThreadObject::current()->sleep(env, -1.0);
 
     auto length = length_arg.value();
@@ -1085,7 +1085,7 @@ Value KernelModule::method(Env *env, Value self, Value name) {
 }
 
 Value KernelModule::methods(Env *env, Value self, Optional<Value> regular_val) {
-    bool regular = regular_val ? regular_val.value().is_truthy() : true;
+    bool regular = regular_val ? regular_val->is_truthy() : true;
     if (regular) {
         if (self->singleton_class()) {
             return self->singleton_class()->instance_methods(env, Value::True());
@@ -1136,7 +1136,7 @@ Value KernelModule::remove_instance_variable(Env *env, Value self, Value name_va
 }
 
 bool KernelModule::respond_to_method(Env *env, Value self, Value name_val, Optional<Value> include_all_val) {
-    bool include_all = include_all_val ? include_all_val.value().is_truthy() : false;
+    bool include_all = include_all_val ? include_all_val->is_truthy() : false;
     return respond_to_method(env, self, name_val, include_all);
 }
 

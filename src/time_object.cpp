@@ -32,8 +32,8 @@ TimeObject *TimeObject::local(Env *env, Value year, Optional<Value> month, Optio
     int seconds = mktime(&result->m_time);
     result->m_mode = Mode::Localtime;
     result->m_integer = seconds;
-    if (usec && usec.value().is_integer()) {
-        result->set_subsec(env, usec.value().integer());
+    if (usec && usec->is_integer()) {
+        result->set_subsec(env, usec->integer());
     }
     return result;
 }
@@ -48,7 +48,7 @@ TimeObject *TimeObject::initialize(Env *env, Optional<Value> year, Optional<Valu
     if (!year)
         return now(env, nullptr);
 
-    if (year.value().is_nil()) {
+    if (year->is_nil()) {
         env->raise("TypeError", "Year cannot be nil");
     } else {
         auto result = now(env, nullptr);
@@ -162,7 +162,7 @@ bool TimeObject::eql(Env *env, Value other) {
     if (other.is_time()) {
         auto time = other.as_time();
         if (m_integer == time->m_integer) {
-            if (m_subsec && time->m_subsec && m_subsec.value().as_rational()->eq(env, time->m_subsec.value())) {
+            if (m_subsec && time->m_subsec && m_subsec->as_rational()->eq(env, time->m_subsec.value())) {
                 return true;
             } else if (!m_subsec && !time->m_subsec) {
                 return true;
@@ -179,7 +179,7 @@ Value TimeObject::hour(Env *) const {
 Value TimeObject::inspect(Env *env) {
     StringObject *result = build_string(&m_time, "%Y-%m-%d %H:%M:%S").as_string();
     if (m_subsec) {
-        auto integer = m_subsec.value().as_rational()->mul(env, Value::integer(1000000000)).as_rational()->to_i(env);
+        auto integer = m_subsec->as_rational()->mul(env, Value::integer(1000000000)).as_rational()->to_i(env);
         auto string = integer.to_s(env);
         auto length = string->length();
         if (length > 9) {
@@ -231,7 +231,7 @@ Value TimeObject::month(Env *) const {
 
 Value TimeObject::nsec(Env *env) {
     if (m_subsec) {
-        return m_subsec.value().as_rational()->mul(env, Value::integer(1000000000)).as_rational()->to_i(env);
+        return m_subsec->as_rational()->mul(env, Value::integer(1000000000)).as_rational()->to_i(env);
     } else {
         return Value::integer(0);
     }
@@ -261,7 +261,7 @@ Value TimeObject::to_a(Env *env) const {
 Value TimeObject::to_f(Env *env) {
     Value result = IntegerMethods::to_f(m_integer);
     if (m_subsec) {
-        result = result.as_float()->add(env, m_subsec.value().as_rational());
+        result = result.as_float()->add(env, m_subsec->as_rational());
     }
     return result;
 }
@@ -269,7 +269,7 @@ Value TimeObject::to_f(Env *env) {
 Value TimeObject::to_r(Env *env) {
     Value result = RationalObject::create(env, m_integer, Integer(1));
     if (m_subsec) {
-        result = result.as_rational()->add(env, m_subsec.value().as_rational());
+        result = result.as_rational()->add(env, m_subsec->as_rational());
     }
     return result;
 }
@@ -288,7 +288,7 @@ Value TimeObject::to_utc(Env *env) {
 
 Value TimeObject::usec(Env *env) {
     if (m_subsec) {
-        return m_subsec.value().as_rational()->mul(env, Value::integer(1000000)).as_rational()->to_i(env);
+        return m_subsec->as_rational()->mul(env, Value::integer(1000000)).as_rational()->to_i(env);
     } else {
         return Value::integer(0);
     }
@@ -505,7 +505,7 @@ void TimeObject::build_time(Env *env, Value year, Optional<Value> month, Optiona
     if (min) {
         m_time.tm_min = TimeObject::normalize_field(env, min.value(), 0, 59);
     }
-    if (sec_arg && !sec_arg.value().is_nil()) {
+    if (sec_arg && !sec_arg->is_nil()) {
         auto sec = sec_arg.value();
         if (sec.is_string()) {
             // ensure base10 conversion for case of "01" input

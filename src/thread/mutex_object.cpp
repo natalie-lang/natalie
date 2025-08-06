@@ -28,7 +28,7 @@ Value MutexObject::lock(Env *env) {
 }
 
 Value MutexObject::sleep(Env *env, Optional<Value> timeout_arg) {
-    if (!timeout_arg || timeout_arg.value().is_nil()) {
+    if (!timeout_arg || timeout_arg->is_nil()) {
         ThreadObject::current()->sleep(env, -1.0, this);
         lock(env);
         return this;

@@ -480,7 +480,7 @@ bool HashObject::gte(Env *env, Value other) {
 
     for (auto &node : *other_hash) {
         auto value = get(env, node.key);
-        if (!value || value.value().send(env, "=="_s, { node.val }).is_false()) {
+        if (!value || value->send(env, "=="_s, { node.val }).is_false()) {
             return false;
         }
     }
@@ -498,7 +498,7 @@ bool HashObject::lte(Env *env, Value other) {
 
     for (auto &node : *this) {
         auto value = other_hash->get(env, node.key);
-        if (!value || value.value().send(env, "=="_s, { node.val }).is_false()) {
+        if (!value || value->send(env, "=="_s, { node.val }).is_false()) {
             return false;
         }
     }

@@ -305,12 +305,12 @@ Value StringObject::chomp_in_place(Env *env, Optional<Value> record_separator) {
     assert_not_frozen(env);
 
     // When passed nil, return nil
-    if (record_separator && record_separator.value().is_nil())
+    if (record_separator && record_separator->is_nil())
         return Value::nil();
 
     // When passed a non nil object, call to_str();
-    if (record_separator && !record_separator.value().is_string())
-        record_separator = Value(record_separator.value().to_str(env));
+    if (record_separator && !record_separator->is_string())
+        record_separator = Value(record_separator->to_str(env));
 
     if (is_empty()) { // if this is an empty string, return nil
         return Value::nil();
@@ -371,9 +371,9 @@ Value StringObject::chomp_in_place(Env *env, Optional<Value> record_separator) {
         }
     }
 
-    record_separator.value().assert_type(env, Object::Type::String, "String");
+    record_separator->assert_type(env, Object::Type::String, "String");
 
-    const String rs = record_separator.value().as_string()->m_string;
+    const String rs = record_separator->as_string()->m_string;
     size_t rs_len = rs.length();
 
     // when passed empty string remove trailing \n and \r\n but not \r
@@ -936,7 +936,7 @@ nat_int_t StringObject::rindex_int(Env *env, Value needle, size_t byte_start) co
 
 Value StringObject::initialize(Env *env, Optional<Value> arg, Optional<Value> encoding, Optional<Value> capacity) {
     if (arg)
-        initialize_copy(env, arg.value().to_str(env));
+        initialize_copy(env, arg->to_str(env));
     if (encoding)
         force_encoding(env, encoding.value());
     if (capacity) {
@@ -1395,7 +1395,7 @@ Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, 
 
         auto invalid = kwargs->remove(env, "invalid"_s);
         if (invalid) {
-            if (invalid.value().is_nil())
+            if (invalid->is_nil())
                 options.invalid_option = EncodeInvalidOption::Raise;
             else if (invalid.value() == "replace"_s)
                 options.invalid_option = EncodeInvalidOption::Replace;
@@ -1403,18 +1403,18 @@ Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, 
 
         auto undef = kwargs->remove(env, "undef"_s);
         if (undef) {
-            if (!undef || undef.value().is_nil())
+            if (!undef || undef->is_nil())
                 options.undef_option = EncodeUndefOption::Raise;
             else if (undef.value() == "replace"_s)
                 options.undef_option = EncodeUndefOption::Replace;
         }
 
         auto replace = kwargs->remove(env, "replace"_s);
-        if (replace && !replace.value().is_nil())
-            options.replace_option = replace.value().as_string_or_raise(env)->encode(env, dst_encoding).as_string_or_raise(env);
+        if (replace && !replace->is_nil())
+            options.replace_option = replace->as_string_or_raise(env)->encode(env, dst_encoding).as_string_or_raise(env);
 
         auto fallback = kwargs->remove(env, "fallback"_s);
-        if (fallback && !fallback.value().is_nil())
+        if (fallback && !fallback->is_nil())
             options.fallback_option = fallback.value();
 
         auto xml = kwargs->remove(env, "xml"_s);
@@ -1424,7 +1424,7 @@ Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, 
             else if (xml.value() == "text"_s)
                 options.xml_option = EncodeXmlOption::Text;
             else
-                env->raise("ArgumentError", "unexpected value for xml option: {}", xml.value().inspected(env));
+                env->raise("ArgumentError", "unexpected value for xml option: {}", xml->inspected(env));
         }
     }
 
@@ -1440,7 +1440,7 @@ Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, 
     EncodingObject *dst_encoding_obj = find_encoding(dst_encoding);
     EncodingObject *src_encoding_obj = find_encoding(src_encoding);
     if (!dst_encoding_obj || !src_encoding_obj) {
-        auto klass = m_encoding->klass()->const_find(env, "ConverterNotFoundError"_s).value().as_class();
+        auto klass = m_encoding->klass()->const_find(env, "ConverterNotFoundError"_s)->as_class();
         auto to_name = dst_encoding.to_s(env)->string();
         auto from_name = src_encoding.to_s(env)->string();
         env->raise(klass, "code converter not found ({} to {})", from_name, to_name);
@@ -2120,7 +2120,7 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Optional<Value> le
         // captures or the name of a group. If it's not a string, make sure
         // we attempt to convert it into an integer _before_ we return nil
         // if there we no match result.
-        if (length_obj && !length_obj.value().is_string())
+        if (length_obj && !length_obj->is_string())
             capture = IntegerMethods::convert_to_nat_int_t(env, length_obj.value());
 
         // If the match failed, return nil. Note that this must happen after
@@ -2513,7 +2513,7 @@ Value StringObject::refeq(Env *env, Value arg1, Optional<Value> arg2, Optional<V
     if (end > (nat_int_t)chars->size())
         chars_to_be_removed = chars->size() - begin;
 
-    auto string = value.value().to_str(env);
+    auto string = value->to_str(env);
     auto arg_chars = string->chars(env).as_array();
     size_t new_length = arg_chars->size() + (chars->size() - chars_to_be_removed);
 
@@ -2644,10 +2644,10 @@ void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_stri
     HashObject *replacement_hash = nullptr;
     StringObject *replacement_str = nullptr;
     if (replacement_arg) {
-        if (replacement_arg.value().is_hash()) {
-            replacement_hash = replacement_arg.value().as_hash();
+        if (replacement_arg->is_hash()) {
+            replacement_hash = replacement_arg->as_hash();
         } else {
-            replacement_str = replacement_arg.value().to_str(env);
+            replacement_str = replacement_arg->to_str(env);
         }
         block = nullptr;
     }
@@ -2786,7 +2786,7 @@ Value StringObject::to_i(Env *env, Optional<Value> base_obj) const {
 
     int base = 10;
     if (base_obj) {
-        base = base_obj.value().to_int(env).to_nat_int_t();
+        base = base_obj->to_int(env).to_nat_int_t();
 
         if (base < 0 || base == 1 || base > 36) {
             env->raise("ArgumentError", "invalid radix {}", base);
@@ -2999,7 +2999,7 @@ Value StringObject::undump(Env *env) const {
 nat_int_t StringObject::unpack_offset(Env *env, Optional<Value> offset_arg) const {
     nat_int_t offset = -1;
     if (offset_arg) {
-        offset = offset_arg.value().to_int(env).to_nat_int_t();
+        offset = offset_arg->to_int(env).to_nat_int_t();
         if (offset < 0)
             env->raise("ArgumentError", "offset can't be negative");
         else if (offset > (nat_int_t)bytesize())
@@ -3088,7 +3088,7 @@ Value StringObject::split(Env *env, Optional<Value> splitter_arg, Optional<Value
     assert_valid_encoding(env);
 
     ArrayObject *ary = ArrayObject::create();
-    if (!splitter_arg || splitter_arg.value().is_nil()) {
+    if (!splitter_arg || splitter_arg->is_nil()) {
         auto field_sep = env->global_get("$;"_s);
         if (!field_sep.is_nil()) {
             env->warn("$; is set to non-nil value, but the output was {}", field_sep.klass()->inspect_module());
@@ -3285,7 +3285,7 @@ void StringObject::each_line(Env *env, Optional<Value> separator_arg, Optional<V
         separator = StringObject::create("\n\n");
     }
 
-    const auto chomp = chomp_arg ? chomp_arg.value().is_truthy() : false;
+    const auto chomp = chomp_arg ? chomp_arg->is_truthy() : false;
     auto separator_length = separator.as_string()->length();
 
     size_t last_index = 0;
@@ -3330,7 +3330,7 @@ Value StringObject::each_line(Env *env, Optional<Value> separator_arg, Optional<
         Vector<Value> args(1);
         if (separator_arg)
             args.push(separator_arg.value());
-        auto do_chomp = chomp ? chomp.value().is_truthy() : false;
+        auto do_chomp = chomp ? chomp->is_truthy() : false;
         if (do_chomp) {
             auto hash = HashObject::create();
             hash->put(env, "chomp"_s, chomp.value_or(Value::False()));
@@ -3365,7 +3365,7 @@ Value StringObject::ljust(Env *env, Value length_obj, Optional<Value> pad_arg) c
 
     StringObject *padstr;
     if (pad_arg)
-        padstr = pad_arg.value().to_str(env);
+        padstr = pad_arg->to_str(env);
     else
         padstr = StringObject::create(" ");
 
@@ -3463,7 +3463,7 @@ Value StringObject::rjust(Env *env, Value length_obj, Optional<Value> pad_arg) c
 
     StringObject *padstr;
     if (pad_arg)
-        padstr = pad_arg.value().to_str(env);
+        padstr = pad_arg->to_str(env);
     else
         padstr = StringObject::create(" ");
 
@@ -3494,7 +3494,7 @@ Value StringObject::rstrip(Env *env) const {
         return StringObject::create("", m_encoding);
 
     if (!valid_encoding())
-        env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s).value().as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
+        env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s)->as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
 
     assert(length() < NAT_INT_MAX);
     nat_int_t last_char;
@@ -3519,7 +3519,7 @@ Value StringObject::rstrip_in_place(Env *env) {
         return Value::nil();
 
     if (!valid_encoding())
-        env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s).value().as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
+        env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s)->as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
 
     assert(length() < NAT_INT_MAX);
     nat_int_t last_char;
@@ -3851,7 +3851,7 @@ Value StringObject::upto(Env *env, Value other, Optional<Value> exclusive_arg, B
 
     TM::Optional<TM::String> current;
     while ((current = iterator.next()).present()) {
-        if (current.value().length() > string->length())
+        if (current->length() > string->length())
             return this;
 
         block->run(env, { StringObject::create(current.value(), m_encoding) }, nullptr);
@@ -4341,7 +4341,7 @@ Value StringObject::sum(Env *env, Optional<Value> val) {
     int sum = 0;
 
     if (val)
-        base = val.value().to_int(env).to_nat_int_t();
+        base = val->to_int(env).to_nat_int_t();
 
     for (size_t i = 0; i < length(); ++i) {
         sum += m_string[i];

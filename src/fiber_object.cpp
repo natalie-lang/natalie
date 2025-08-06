@@ -46,12 +46,12 @@ FiberObject *FiberObject::initialize(Env *env, Optional<Value> blocking_kwarg, O
     m_block = block;
 
     if (blocking_kwarg)
-        m_blocking = blocking_kwarg.value().is_truthy();
+        m_blocking = blocking_kwarg->is_truthy();
 
     m_file = env->file();
     m_line = env->line();
 
-    if (storage_kwarg && !storage_kwarg.value().is_nil()) {
+    if (storage_kwarg && !storage_kwarg->is_nil()) {
         auto storage = storage_kwarg.value();
         if (!storage.is_hash())
             env->raise("TypeError", "storage must be a hash");

@@ -212,7 +212,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Optional<Value> opts_arg
 
     if (pattern.is_regexp()) {
         auto other = pattern.as_regexp();
-        if (opts_arg && !opts_arg.value().is_nil())
+        if (opts_arg && !opts_arg->is_nil())
             env->warn("flags ignored");
         initialize_internal(env, other->m_pattern, other->options());
         return this;
@@ -518,8 +518,8 @@ bool RegexpObject::has_match(Env *env, Value other, Optional<Value> start) {
     StringObject *str_obj = other.as_string();
 
     nat_int_t start_index = 0;
-    if (start && start.value().is_integer())
-        start_index = start.value().integer().to_nat_int_t();
+    if (start && start->is_integer())
+        start_index = start->integer().to_nat_int_t();
     if (start_index < 0)
         start_index += str_obj->length();
 

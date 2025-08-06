@@ -518,9 +518,9 @@ Value ArrayObject::fill(Env *env, Optional<Value> obj_arg, Optional<Value> start
     nat_int_t start = 0;
     nat_int_t max = size();
 
-    if (start_arg && !start_arg.value().is_nil()) {
+    if (start_arg && !start_arg->is_nil()) {
         auto start_obj = start_arg.value();
-        if (!length_arg && start_arg.value().is_range()) {
+        if (!length_arg && start_arg->is_range()) {
 
             Value begin = start_obj.as_range()->begin();
             if (!begin.is_nil()) {
@@ -550,7 +550,7 @@ Value ArrayObject::fill(Env *env, Optional<Value> obj_arg, Optional<Value> start
             if (start < 0)
                 start = 0;
 
-            if (length_arg && !length_arg.value().is_nil()) {
+            if (length_arg && !length_arg->is_nil()) {
                 auto length = IntegerMethods::convert_to_nat_int_t(env, length_arg.value());
                 if (length >= 2LL << 60)
                     env->raise("ArgumentError", "argument too big");
@@ -915,7 +915,7 @@ Value ArrayObject::join(Env *env, Optional<Value> joiner_arg) {
             return (Value)StringObject::create("", Encoding::US_ASCII);
         } else {
             Value joiner;
-            if (joiner_arg && !joiner_arg.value().is_nil())
+            if (joiner_arg && !joiner_arg->is_nil())
                 joiner = joiner_arg.value();
             else
                 joiner = env->global_get("$,"_s);
@@ -1218,7 +1218,7 @@ Value ArrayObject::max(Env *env, Optional<Value> count, Block *block) {
         return nat_int > 0;
     };
 
-    auto has_implicit_count = !count || count.value().is_nil();
+    auto has_implicit_count = !count || count->is_nil();
     size_t c;
 
     if (has_implicit_count) {
@@ -1268,7 +1268,7 @@ Value ArrayObject::min(Env *env, Optional<Value> count, Block *block) {
         return nat_int < 0;
     };
 
-    auto has_implicit_count = !count || count.value().is_nil();
+    auto has_implicit_count = !count || count->is_nil();
     size_t c;
 
     if (has_implicit_count) {
@@ -1894,7 +1894,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Optional<Value> siz
     Integer size_int;
     if (size) {
         index_obj = index_obj.to_int(env);
-        size_int = size.value().to_int(env);
+        size_int = size->to_int(env);
         IntegerMethods::assert_fixnum(env, size_int);
     }
 

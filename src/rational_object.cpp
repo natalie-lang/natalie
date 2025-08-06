@@ -282,9 +282,9 @@ Value RationalObject::truncate(Env *env, Optional<Value> ndigits_arg) {
     nat_int_t digits = 0;
 
     if (ndigits_arg) {
-        if (!ndigits_arg.value().is_integer())
+        if (!ndigits_arg->is_integer())
             env->raise("TypeError", "not an integer");
-        digits = ndigits_arg.value().integer().to_nat_int_t();
+        digits = ndigits_arg->integer().to_nat_int_t();
     }
 
     if (digits == 0)
