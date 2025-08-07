@@ -125,6 +125,7 @@ class Struct
         end
 
         define_method :[]= do |key, value|
+          raise FrozenError, "can't modify frozen #{self.class}: #{self}" if frozen?
           case key
           when String, Symbol
             raise NameError, "no member '#{key}' in struct" unless attrs.include?(key.to_sym)
@@ -210,7 +211,10 @@ class Struct
 
         object.define_singleton_method(attr) { values[idx] }
 
-        object.define_singleton_method(:"#{attr}=") { |value| values[idx] = value }
+        object.define_singleton_method(:"#{attr}=") do |value|
+          raise FrozenError, "can't modify frozen #{self.class}: #{self}" if frozen?
+          values[idx] = value
+        end
       end
       object.__send__(:initialize, *args)
     end
