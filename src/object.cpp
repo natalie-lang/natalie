@@ -152,7 +152,7 @@ Value Object::_new(Env *env, Value klass_value, Args &&args, Block *block) {
     if (!obj)
         NAT_UNREACHABLE();
 
-    obj.value().send(env, "initialize"_s, std::move(args), block);
+    obj->send(env, "initialize"_s, std::move(args), block);
     return obj.value();
 }
 
@@ -590,7 +590,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     if (visibility >= visibility_at_least)
         return method_info.method();
 
-    if (visibility == MethodVisibility::Protected && sent_from && sent_from.value().is_a(env, klass))
+    if (visibility == MethodVisibility::Protected && sent_from && sent_from->is_a(env, klass))
         return method_info.method();
 
     switch (visibility) {

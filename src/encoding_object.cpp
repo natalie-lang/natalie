@@ -103,7 +103,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                     String::hex(cpt, String::HexFormat::Uppercase),
                     orig_encoding->name(),
                     name());
-                env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s).value().as_class(), message);
+                env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
             }
 
             auto result_str = result.to_str(env);
@@ -156,7 +156,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                     String::hex(source_codepoint, String::HexFormat::Uppercase),
                     orig_encoding->name());
             }
-            env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s).value().as_class(), message);
+            env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
         }
 
         auto destination_codepoint = from_unicode_codepoint(unicode_codepoint);
@@ -195,7 +195,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                     hex.append_sprintf("%04X", source_codepoint);
                     message = StringObject::format("U+{} from UTF-8 to {}", hex, name());
                 }
-                env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s).value().as_class(), message);
+                env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
             case EncodeUndefOption::Replace:
                 if (options.replace_option) {
                     temp_string->append(options.replace_option);

@@ -18,13 +18,13 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
     if (!klass && !message && cause)
         env->raise("ArgumentError", "only cause is given with no arguments");
 
-    if (klass && klass.value().is_class() && !message)
-        return _new(env, klass.value().as_class(), {}, nullptr).as_exception_or_raise(env);
+    if (klass && klass->is_class() && !message)
+        return _new(env, klass->as_class(), {}, nullptr).as_exception_or_raise(env);
 
-    if (klass && !klass.value().is_class() && klass.value().respond_to(env, "exception"_s)) {
+    if (klass && !klass->is_class() && klass->respond_to(env, "exception"_s)) {
         Vector<Value> args;
         if (message) args.push(message.value());
-        klass = klass.value().send(env, "exception"_s, std::move(args));
+        klass = klass->send(env, "exception"_s, std::move(args));
     }
 
     if (!klass && current_exception)
@@ -52,18 +52,18 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
         exception_args.push(message.value());
 
     ExceptionObject *exception;
-    if (klass.value().is_class()) {
-        auto possible_exception = _new(env, klass.value().as_class(), { std::move(exception_args), false }, nullptr);
+    if (klass->is_class()) {
+        auto possible_exception = _new(env, klass->as_class(), { std::move(exception_args), false }, nullptr);
         if (!possible_exception.is_exception())
             env->raise("TypeError", "exception object expected");
         exception = possible_exception.as_exception();
-    } else if (klass.value().is_exception())
-        exception = klass.value().as_exception();
+    } else if (klass->is_exception())
+        exception = klass->as_exception();
     else
         env->raise("TypeError", "exception class/object expected");
 
-    if (accept_cause && cause && cause.value().is_exception())
-        exception->set_cause(cause.value().as_exception());
+    if (accept_cause && cause && cause->is_exception())
+        exception->set_cause(cause->as_exception());
 
     if (backtrace)
         exception->set_backtrace(env, backtrace.value());

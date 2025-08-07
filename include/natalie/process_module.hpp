@@ -111,7 +111,7 @@ public:
 
     static int getsid(Env *env, Optional<Value> pid = {}) {
         pid_t pidnum;
-        if (!pid || pid.value().is_nil()) {
+        if (!pid || pid->is_nil()) {
             pidnum = 0;
         } else {
             pidnum = IntegerMethods::convert_to_nat_int_t(env, pid.value());
@@ -181,7 +181,7 @@ private:
             rlimit_symbol = rlimit_str->to_symbol(env);
             auto ProcessMod = GlobalEnv::the()->Object()->const_fetch("Process"_s).as_module();
             auto rlimval = ProcessMod->const_get(rlimit_symbol);
-            if (!rlimval || !rlimval.value().is_integer()) {
+            if (!rlimval || !rlimval->is_integer()) {
                 env->raise("ArgumentError", "invalid resource {}", rlimit_symbol->string());
             }
             val = rlimval.value();

@@ -34,7 +34,7 @@ Value DirObject::initialize(Env *env, Value path, Optional<Value> encoding_kwarg
         env->raise("ArgumentError", "path name contains null byte");
     m_dir = ::opendir(path.as_string()->c_str());
     if (!m_dir) env->raise_errno();
-    if (encoding_kwarg && !encoding_kwarg.value().is_nil()) {
+    if (encoding_kwarg && !encoding_kwarg->is_nil()) {
         m_encoding = EncodingObject::find_encoding(env, encoding_kwarg.value());
     } else {
         m_encoding = EncodingObject::filesystem();
@@ -283,7 +283,7 @@ Value DirObject::rmdir(Env *env, Value path) {
 }
 
 Value DirObject::home(Env *env, Optional<Value> username_arg) {
-    if (username_arg && !username_arg.value().is_nil()) {
+    if (username_arg && !username_arg->is_nil()) {
         auto username = username_arg.value();
         username.assert_type(env, Object::Type::String, "String");
         // lookup home-dir for username

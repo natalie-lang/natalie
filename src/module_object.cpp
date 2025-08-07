@@ -92,7 +92,7 @@ Value ModuleObject::const_get(Env *env, Value name, Optional<Value> inherited) {
     auto symbol = name.to_symbol(env, Value::Conversion::Strict);
     auto constant = const_get(symbol);
     if (!constant) {
-        if (inherited && inherited.value().is_falsey())
+        if (inherited && inherited->is_falsey())
             env->raise("NameError", "uninitialized constant {}", symbol->string());
         return send(env, "const_missing"_s, { name });
     }
@@ -330,7 +330,7 @@ Value ModuleObject::constants(Env *env, Optional<Value> inherit) const {
     auto ary = ArrayObject::create();
     for (auto pair : m_constants)
         ary->push(pair.first);
-    if (!inherit || inherit.value().is_truthy()) {
+    if (!inherit || inherit->is_truthy()) {
         for (ModuleObject *module : m_included_modules) {
             if (module != this) {
                 ary->concat(*module->constants(env, inherit).as_array());
@@ -468,7 +468,7 @@ ArrayObject *ModuleObject::class_variables(Optional<Value> inherit) const {
         for (auto [cvar, _] : singleton_class()->m_class_vars)
             result->push(cvar);
     }
-    if (inherit && inherit.value().is_truthy() && m_superclass)
+    if (inherit && inherit->is_truthy() && m_superclass)
         result->concat(*m_superclass->class_variables(inherit));
     return result;
 }
@@ -659,7 +659,7 @@ Value ModuleObject::public_instance_method(Env *env, Value name_value) {
 }
 
 Value ModuleObject::instance_methods(Env *env, Optional<Value> include_super_value, std::function<bool(MethodVisibility)> predicate) {
-    bool include_super = !include_super_value || include_super_value.value().is_truthy();
+    bool include_super = !include_super_value || include_super_value->is_truthy();
     ArrayObject *array = ArrayObject::create();
     methods(env, array, include_super);
     array->select_in_place([this, env, predicate](Value &name_value) -> bool {
@@ -1090,7 +1090,7 @@ bool ModuleObject::const_defined(Env *env, Value name_value, Optional<Value> inh
     if (!name) {
         env->raise("TypeError", "no implicit conversion of {} to String", name_value.inspected(env));
     }
-    if (inherited && inherited.value().is_falsey()) {
+    if (inherited && inherited->is_falsey()) {
         return !!m_constants.get(name);
     }
     return const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::None).present();

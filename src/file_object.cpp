@@ -72,11 +72,11 @@ Value FileObject::absolute_path(Env *env, Value path, Optional<Value> dir_arg) {
     path = ioutil::convert_using_to_path(env, path);
     if (path.as_string()->start_with(env, { StringObject::create("/") }))
         return path;
-    if ((!dir_arg || dir_arg.value().is_nil()) && path.as_string()->eq(env, StringObject::create("~")))
+    if ((!dir_arg || dir_arg->is_nil()) && path.as_string()->eq(env, StringObject::create("~")))
         return path;
 
     auto File = GlobalEnv::the()->Object()->const_fetch("File"_s);
-    auto dir = dir_arg && !dir_arg.value().is_nil() ? dir_arg.value() : DirObject::pwd(env);
+    auto dir = dir_arg && !dir_arg->is_nil() ? dir_arg.value() : DirObject::pwd(env);
     return File.send(env, "join"_s, { dir, path });
 }
 
@@ -133,7 +133,7 @@ Value FileObject::expand_path(Env *env, Value path, Optional<Value> dir_arg) {
     path_string = expand_tilde(std::move(path_string));
 
     auto fs_path = std::filesystem::path(path_string.c_str());
-    if (fs_path.is_relative() && dir_arg && !dir_arg.value().is_nil()) {
+    if (fs_path.is_relative() && dir_arg && !dir_arg->is_nil()) {
         auto dir = dir_arg.value();
         dir = ioutil::convert_using_to_path(env, dir);
         path_string = expand_tilde(String::format("{}/{}", dir.as_string()->string(), path_string));
@@ -488,8 +488,8 @@ nat_int_t FileObject::link(Env *env, Value from, Value to) {
 nat_int_t FileObject::mkfifo(Env *env, Value path, Optional<Value> mode_arg) {
     mode_t mode = 0666;
     if (mode_arg) {
-        mode_arg.value().assert_integer(env);
-        mode = (mode_t)mode_arg.value().integer().to_nat_int_t();
+        mode_arg->assert_integer(env);
+        mode = (mode_t)mode_arg->integer().to_nat_int_t();
     }
     path = ioutil::convert_using_to_path(env, path);
     int result = ::mkfifo(path.as_string()->c_str(), mode);

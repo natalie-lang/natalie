@@ -262,7 +262,7 @@ Value MatchDataObject::named_captures(Env *env, Optional<Value> symbolize_names_
         return HashObject::create();
 
     auto named_captures = HashObject::create();
-    named_captures_data data { this, env, named_captures, symbolize_names_kwarg && symbolize_names_kwarg.value().is_truthy() };
+    named_captures_data data { this, env, named_captures, symbolize_names_kwarg && symbolize_names_kwarg->is_truthy() };
     onig_foreach_name(
         m_regexp->m_regex,
         [](const UChar *name, const UChar *name_end, int groups_size, int *groups, regex_t *regex, void *data) -> int {
@@ -394,7 +394,7 @@ Value MatchDataObject::ref(Env *env, Value index_value, Optional<Value> size_arg
     } else {
         index = IntegerMethods::convert_to_nat_int_t(env, index_value);
     }
-    if (size_arg && !size_arg.value().is_nil()) {
+    if (size_arg && !size_arg->is_nil()) {
         auto size_value = size_arg.value();
         nat_int_t size;
         if (size_value.is_integer()) {

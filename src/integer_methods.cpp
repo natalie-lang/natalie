@@ -207,10 +207,10 @@ Value IntegerMethods::powmod(Env *env, Integer self, Value exponent, Optional<Va
     if (!mod)
         return powd;
 
-    if (!mod.value().is_integer())
+    if (!mod->is_integer())
         env->raise("TypeError", "2nd argument not allowed unless all arguments are integers");
 
-    auto modi = mod.value().integer();
+    auto modi = mod->integer();
     if (modi.is_zero())
         env->raise("ZeroDivisionError", "cannot divide by zero");
 
@@ -500,9 +500,9 @@ Value IntegerMethods::ceil(Env *env, Integer self, Optional<Value> arg) {
     if (!arg)
         return self;
 
-    arg.value().assert_integer(env);
+    arg->assert_integer(env);
 
-    auto precision = arg.value().integer().to_nat_int_t();
+    auto precision = arg->integer().to_nat_int_t();
     if (precision >= 0)
         return self;
 
@@ -516,9 +516,9 @@ Value IntegerMethods::floor(Env *env, Integer self, Optional<Value> arg) {
     if (!arg)
         return self;
 
-    arg.value().assert_integer(env);
+    arg->assert_integer(env);
 
-    auto precision = arg.value().integer().to_nat_int_t();
+    auto precision = arg->integer().to_nat_int_t();
     if (precision >= 0)
         return self;
 
@@ -699,7 +699,7 @@ Value IntegerMethods::ref(Env *env, Integer self, Value offset_obj, Optional<Val
 
         Optional<nat_int_t> size;
         if (size_obj) {
-            auto size_integer = size_obj.value().to_int(env);
+            auto size_integer = size_obj->to_int(env);
             if (size_integer.is_bignum())
                 env->raise("RangeError", "shift width too big");
 

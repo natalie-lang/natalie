@@ -211,7 +211,7 @@ Value ArithmeticSequenceObject::last(Env *env, Optional<Value> n) {
     auto steps = step_count(env);
 
     if (n) {
-        auto n_as_int = n.value().to_int(env);
+        auto n_as_int = n->to_int(env);
         Integer count = n_as_int;
 
         if (count < 0)
