@@ -46,7 +46,10 @@ class Set
 
   def ==(other)
     return true if eql?(other)
-    return @data == other.instance_variable_get(:@data) if other.class == self.class
+    if other.class == self.class
+      return false if compare_by_identity? != other.compare_by_identity?
+      return @data == other.instance_variable_get(:@data)
+    end
     return other.all? { |element| @data.include?(element) } if other.is_a?(Set) && self.size == other.size
     false
   end
@@ -173,7 +176,7 @@ class Set
   end
 
   def eql?(other)
-    self.class == other.class && @data == other.instance_variable_get(:@data)
+    self.class == other.class && compare_by_identity? == other.compare_by_identity? && @data == other.instance_variable_get(:@data)
   end
 
   def flatten_merge(other, ids = Set.new)

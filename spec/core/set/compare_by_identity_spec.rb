@@ -128,9 +128,7 @@ describe "Set#compare_by_identity" do
 
   it "is not equal to set what does not compare by identity" do
     Set.new([1, 2]).should == Set.new([1, 2])
-    NATFIXME 'Should not be ==', exception: SpecFailedException do
-      Set.new([1, 2]).should_not == Set.new([1, 2]).compare_by_identity
-    end
+    Set.new([1, 2]).should_not == Set.new([1, 2]).compare_by_identity
   end
 end
 
