@@ -38,9 +38,7 @@ describe "Struct anonymous class instance methods" do
     car = StructClasses::Car.new('Ford', 'Ranger')
     car.freeze
 
-    NATFIXME 'writer methods raise a FrozenError on a frozen struct', exception: SpecFailedException do
-      -> { car.model = 'Escape' }.should raise_error(FrozenError)
-    end
+    -> { car.model = 'Escape' }.should raise_error(FrozenError)
   end
 end
 
