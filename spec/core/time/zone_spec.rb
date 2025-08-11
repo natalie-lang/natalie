@@ -65,12 +65,8 @@ describe "Time#zone" do
   end
 
   it "returns UTC when called on a UTC time" do
-    NATFIXME 'Implement Time#utc', exception: NoMethodError, message: "undefined method 'utc' for an instance of Time" do
-      Time.now.utc.zone.should == "UTC"
-    end
-    NATFIXME 'Implement Time#gmtime', exception: NoMethodError, message: "undefined method 'gmtime' for an instance of Time" do
-      Time.now.gmtime.zone.should == "UTC"
-    end
+    Time.now.utc.zone.should == "UTC"
+    Time.now.gmtime.zone.should == "UTC"
     NATFIXME 'Should return the time zone', exception: SpecFailedException, message: /nil should be == to / do
       Time.now.getgm.zone.should == "UTC"
       Time.now.getutc.zone.should == "UTC"

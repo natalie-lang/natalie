@@ -7,19 +7,15 @@ describe "Time#dup" do
   end
 
   it "copies the gmt state flag" do
-    NATFIXME 'Implement Time#gmtime', exception: NoMethodError, message: "undefined method 'gmtime' for an instance of Time" do
-      Time.now.gmtime.dup.should.gmt?
-    end
+    Time.now.gmtime.dup.should.gmt?
   end
 
   it "returns an independent Time object" do
     t = Time.now
     t2 = t.dup
-    NATFIXME 'Implement Time#gmtime', exception: NoMethodError, message: "undefined method 'gmtime' for an instance of Time" do
-      t.gmtime
+    t.gmtime
 
-      t2.should_not.gmt?
-    end
+    t2.should_not.gmt?
   end
 
   it "returns a subclass instance" do

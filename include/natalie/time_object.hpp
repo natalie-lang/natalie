@@ -48,6 +48,7 @@ public:
     Value asctime(Env *);
     Value cmp(Env *, Value);
     bool eql(Env *, Value);
+    Value gmtime(Env *);
     Value hour(Env *) const;
     Value inspect(Env *);
     bool isdst(Env *) const { return m_time.tm_isdst > 0; }

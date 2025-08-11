@@ -172,6 +172,21 @@ bool TimeObject::eql(Env *env, Value other) {
     return false;
 }
 
+Value TimeObject::gmtime(Env *env) {
+    if (is_utc(env))
+        return this;
+    if (is_frozen())
+        env->raise("FrozenError", "blaap");
+    auto next_obj = to_utc(env).as_time();
+    m_integer = next_obj->m_integer;
+    m_mode = next_obj->m_mode;
+    m_subsec = next_obj->m_subsec;
+    m_time = next_obj->m_time;
+    free(m_zone);
+    m_zone = strdup("UTC");
+    return this;
+}
+
 Value TimeObject::hour(Env *) const {
     return Value::integer(m_time.tm_hour);
 }
@@ -473,7 +488,7 @@ TimeObject *TimeObject::create(Env *env, ClassObject *klass, RationalObject *rat
     }
     time_t seconds = (time_t)integer.to_nat_int_t();
     if (mode == Mode::UTC) {
-        result->m_time = *gmtime(&seconds);
+        result->m_time = *::gmtime(&seconds);
     } else {
         result->m_time = *localtime(&seconds);
     }

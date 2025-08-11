@@ -7,9 +7,7 @@ describe :time_gmt_offset, shared: true do
 
   it "returns 0 when the date is UTC" do
     with_timezone("AST", 3) do
-      NATFIXME 'Implement Time#utc', exception: NoMethodError, message: /undefined method [`']utc'/ do
-        Time.new.utc.send(@method).should == 0
-      end
+      Time.new.utc.send(@method).should == 0
     end
   end
 

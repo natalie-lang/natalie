@@ -1233,8 +1233,8 @@ describe :marshal_load, shared: true do
     end
 
     it "keeps UTC zone" do
-      NATFIXME 'Implement Time#utc', exception: NoMethodError, message: "undefined method 'utc' for an instance of Time" do
-        t = Time.now.utc
+      t = Time.now.utc
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError do
         t2 = Marshal.send(@method, Marshal.dump(t))
         t2.should.utc?
       end

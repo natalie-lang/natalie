@@ -1482,6 +1482,7 @@ gen.binding('Time', '<=>', 'TimeObject', 'cmp', argc: 1, pass_env: true, pass_bl
 gen.binding('Time', 'asctime', 'TimeObject', 'asctime', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Time', 'eql?', 'TimeObject', 'eql', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Time', 'getutc', 'TimeObject', 'to_utc', argc: 0, pass_env: true, pass_block: false, aliases: ['getgm'], return_type: :Value)
+gen.binding('Time', 'gmtime', 'TimeObject', 'gmtime', argc: 0, pass_env: true, pass_block: false, aliases: ['utc'], return_type: :Value)
 gen.binding('Time', 'gmtoff', 'TimeObject', 'utc_offset', argc: 0, pass_env: true, pass_block: false, aliases: %w[gmt_offset utc_offset], return_type: :Value)
 gen.binding('Time', 'isdst', 'TimeObject', 'isdst', argc: 0, pass_env: true, pass_block: false, aliases: ['dst?'], return_type: :bool)
 gen.binding('Time', 'hour', 'TimeObject', 'hour', argc: 0, pass_env: true, pass_block: false, return_type: :Value)

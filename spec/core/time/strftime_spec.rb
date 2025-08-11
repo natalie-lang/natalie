@@ -88,8 +88,8 @@ describe "Time#strftime" do
       time.strftime("%-z").should == "-0000"
     end
 
-    NATFIXME 'Implement Time#utc', exception: NoMethodError, message: "undefined method 'utc' for an instance of Time" do
-      time = Time.new(2022, 1, 1, 0, 0, 0, "+03:00").utc
+    time = Time.new(2022, 1, 1, 0, 0, 0, "+03:00").utc
+    NATFIXME 'Implement Time#utc', exception: SpecFailedException do
       time.strftime("%-z").should == "-0000"
     end
   end
@@ -102,7 +102,7 @@ describe "Time#strftime" do
   end
 
   it "works correctly with width, _ and 0 flags, and :" do
-    NATFIXME 'Implement Time#utc', exception: NoMethodError, message: "undefined method 'utc' for an instance of Time" do
+    NATFIXME 'Implement Time#utc', exception: SpecFailedException do
       Time.now.utc.strftime("%-_10z").should == "      -000"
       Time.now.utc.strftime("%-10z").should == "-000000000"
       Time.now.utc.strftime("%-010:z").should == "-000000:00"

@@ -6,19 +6,15 @@ require_relative 'shared/time_params'
 describe "Time#utc?" do
   it "returns true only if time represents a time in UTC (GMT)" do
     Time.now.utc?.should == false
-    NATFIXME 'Implement Time#utc', exception: NoMethodError, message: "undefined method 'utc' for an instance of Time" do
-      Time.now.utc.utc?.should == true
-    end
+    Time.now.utc.utc?.should == true
   end
 
   it "treats time as UTC what was created in different ways" do
-    NATFIXME 'Implement Time#utc', exception: NoMethodError, message: "undefined method 'utc' for an instance of Time" do
-      Time.now.utc.utc?.should == true
-      Time.now.gmtime.utc?.should == true
-      Time.now.getgm.utc?.should == true
-      Time.now.getutc.utc?.should == true
-      Time.utc(2022).utc?.should == true
-    end
+    Time.now.utc.utc?.should == true
+    Time.now.gmtime.utc?.should == true
+    Time.now.getgm.utc?.should == true
+    Time.now.getutc.utc?.should == true
+    Time.utc(2022).utc?.should == true
   end
 
   it "does treat time with 'UTC' offset as UTC" do
