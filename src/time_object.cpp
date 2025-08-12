@@ -317,6 +317,39 @@ Value TimeObject::wday(Env *) const {
     return Value::integer(m_time.tm_wday);
 }
 
+Value TimeObject::xmlschema(Env *env, Optional<Value> fraction_digits) const {
+    auto result = build_string(&m_time, "%04Y-%m-%dT%H:%M:%S").as_string();
+    if (fraction_digits) {
+        auto digits = IntegerMethods::convert_to_native_type<size_t>(env, fraction_digits->to_int(env));
+        if (digits > 0) {
+            StringObject *subsec;
+            if (m_subsec) {
+                subsec = m_subsec->as_rational()->mul(env, Value::integer(1000000000)).as_rational()->to_i(env).to_s(env);
+            } else {
+                subsec = StringObject::create("0");
+            };
+            auto length = subsec->length();
+            if (length > digits) {
+                subsec->truncate(digits);
+            } else if (length < digits) {
+                subsec = subsec->send(env, "ljust"_s, { Value::integer(digits), StringObject::create("0") }).as_string();
+            }
+            result->append_char('.');
+            result->append(subsec);
+        }
+    }
+    if (m_time.tm_gmtoff) {
+        char buffer[7];
+        ::strftime(buffer, 7, "%z", &m_time);
+        memmove(buffer + 4, buffer + 3, 3);
+        buffer[3] = ':';
+        result->append(buffer);
+    } else {
+        result->append_char('Z');
+    }
+    return result;
+}
+
 Value TimeObject::yday(Env *) const {
     return Value::integer(m_time.tm_yday + 1);
 }

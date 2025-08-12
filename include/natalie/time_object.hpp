@@ -71,6 +71,7 @@ public:
     Value usec(Env *);
     Value utc_offset(Env *) const;
     Value wday(Env *) const;
+    Value xmlschema(Env *, Optional<Value> = {}) const;
     Value yday(Env *) const;
     Value year(Env *) const;
     Value zone(Env *) const;
