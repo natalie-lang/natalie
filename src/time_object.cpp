@@ -330,8 +330,9 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
     nat_int_t minsec = 60; // seconds in an minute
     nat_int_t hoursec = 3600; // seconds in an hour
 
-    if (val.is_string()) {
-        auto str = val.as_string()->string();
+    static const auto to_str = "to_str"_s;
+    if (val.is_string() || val.respond_to(env, to_str)) {
+        auto str = val.to_str(env)->string();
         auto ssize = str.size();
         if (str == "UTC") {
             return 0;
@@ -369,7 +370,8 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
         // any fall-through of the above ugly logic
         env->raise("ArgumentError", "\"+HH:MM\", \"-HH:MM\", \"UTC\" or \"A\"..\"I\",\"K\"..\"Z\" expected for utc_offset: {}", str);
     }
-    if (val.is_integer() || val.respond_to(env, "to_int"_s)) {
+    static const auto to_int = "to_int"_s;
+    if (val.is_integer() || val.respond_to(env, to_int)) {
         auto seconds = val.to_int(env).to_nat_int_t();
         if (seconds > hoursec * -24 && seconds < hoursec * 24) {
             return seconds;

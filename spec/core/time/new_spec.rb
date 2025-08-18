@@ -104,10 +104,8 @@ describe "Time.new with a utc_offset argument" do
     it "coerces using #to_str" do
       o = mock('string')
       with_timezone("PST", -8) do
-        NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-          o.should_receive(:to_str).and_return("+05:30")
-          Time.new(2000, 1, 1, 0, 0, 0, o).utc_offset.should == 19800
-        end
+        o.should_receive(:to_str).and_return("+05:30")
+        Time.new(2000, 1, 1, 0, 0, 0, o).utc_offset.should == 19800
       end
     end
   end
