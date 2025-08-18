@@ -388,8 +388,7 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val, NonNullPtr<SymbolO
         }
         env->raise("ArgumentError", "utc_offset out of range");
     }
-    // NATFIXME: Should allow timezone argument
-    env->raise("NotImplementedError", "Not implemented for non String/Integer arg");
+    env->raise("TypeError", "can't convert {} into an exact number", val.klass()->inspected(env));
 }
 
 nat_int_t TimeObject::normalize_field(Env *env, Value val) {

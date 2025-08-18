@@ -101,11 +101,9 @@ describe "Time.now" do
         time
       end
 
-      NATFIXME 'Support Timezone objects', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-        -> {
-          Time.now(in: zone)
-        }.should raise_error(TypeError, /can't convert Object into an exact number/)
-      end
+      -> {
+        Time.now(in: zone)
+      }.should raise_error(TypeError, /can't convert Object into an exact number/)
     end
 
     it "does not raise exception if timezone does not implement #local_to_utc method" do

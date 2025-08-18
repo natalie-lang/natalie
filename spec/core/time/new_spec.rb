@@ -154,7 +154,7 @@ describe "Time.new with a utc_offset argument" do
 
   it "returns a local Time if the argument is nil" do
     with_timezone("PST", -8) do
-      NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
+      NATFIXME 'nil should be local time, but unavailable in caller', exception: TypeError, message: "can't convert NilClass into an exact number" do
         t = Time.new(2000, 1, 1, 0, 0, 0, nil)
         t.utc_offset.should == -28800
         t.zone.should == "PST"
@@ -236,11 +236,9 @@ describe "Time.new with a timezone argument" do
       time
     end
 
-    NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-      -> {
-        Time.new(2000, 1, 1, 12, 0, 0, zone)
-      }.should raise_error(TypeError, /can't convert Object into an exact number/)
-    end
+    -> {
+      Time.new(2000, 1, 1, 12, 0, 0, zone)
+    }.should raise_error(TypeError, /can't convert Object into an exact number/)
   end
 
   it "does not raise exception if timezone does not implement #utc_to_local method" do
@@ -440,11 +438,9 @@ describe "Time.new with a timezone argument" do
 
     it "does not call .find_timezone if passed any not string/numeric/timezone timezone argument" do
       [Object.new, [], {}, :"some zone"].each do |zone|
-        NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-          -> {
-            TimeSpecs::TimeWithFindTimezone.new(2000, 1, 1, 12, 0, 0, zone)
-          }.should raise_error(TypeError, /can't convert \w+ into an exact number/)
-        end
+        -> {
+          TimeSpecs::TimeWithFindTimezone.new(2000, 1, 1, 12, 0, 0, zone)
+        }.should raise_error(TypeError, /can't convert \w+ into an exact number/)
       end
     end
   end
