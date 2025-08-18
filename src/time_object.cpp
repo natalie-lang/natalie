@@ -19,7 +19,8 @@ TimeObject *TimeObject::at(Env *env, ClassObject *klass, Value time, Optional<Va
         env->raise("TypeError", "can't convert {} into an exact number", time->klass()->inspected(env));
     auto result = at(env, klass, time, subsec, unit);
     if (in) {
-        result->m_time.tm_gmtoff = normalize_timezone(env, in.value());
+        static const auto utc_to_local = "utc_to_local"_s;
+        result->m_time.tm_gmtoff = normalize_timezone(env, in.value(), utc_to_local);
         result->m_zone = strdup("UTC");
         result->m_time.tm_zone = result->m_zone;
     }
@@ -56,13 +57,14 @@ TimeObject *TimeObject::initialize(Env *env, Optional<Value> year, Optional<Valu
         int seconds = mktime(&result->m_time);
         result->m_integer = seconds;
         result->m_subsec = Optional<Value>();
-        if (tmzone && in) {
-            env->raise("ArgumentError", "cannot specify zone and in:");
-        } else if (tmzone) {
-            result->m_time.tm_gmtoff = normalize_timezone(env, tmzone.value());
+        static const auto local_to_utc = "local_to_utc"_s;
+        if (tmzone && in && !tmzone->is_nil() && !in->is_nil()) {
+            env->raise("ArgumentError", "timezone argument given as positional and keyword arguments");
+        } else if (tmzone && !tmzone->is_nil()) {
+            result->m_time.tm_gmtoff = normalize_timezone(env, tmzone.value(), local_to_utc);
             result->m_mode = Mode::UTC;
-        } else if (in) {
-            result->m_time.tm_gmtoff = normalize_timezone(env, in.value());
+        } else if (in && !in->is_nil()) {
+            result->m_time.tm_gmtoff = normalize_timezone(env, in.value(), local_to_utc);
             result->m_mode = Mode::UTC;
         } else {
             result->m_mode = Mode::Localtime;
@@ -85,8 +87,10 @@ TimeObject *TimeObject::now(Env *env, ClassObject *klass, Optional<Value> in) {
     result->m_mode = Mode::Localtime;
     result->m_integer = ts.tv_sec;
     result->set_subsec(env, ts.tv_nsec);
-    if (in)
-        result->m_time.tm_gmtoff = normalize_timezone(env, in.value());
+    if (in) {
+        static const auto utc_to_local = "utc_to_local"_s;
+        result->m_time.tm_gmtoff = normalize_timezone(env, in.value(), utc_to_local);
+    }
     return result;
 }
 
@@ -326,12 +330,13 @@ Value TimeObject::year(Env *) const {
 }
 
 // utc-offset and military timezone decoding
-nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
+nat_int_t TimeObject::normalize_timezone(Env *env, Value val, NonNullPtr<SymbolObject> tzobj) {
     nat_int_t minsec = 60; // seconds in an minute
     nat_int_t hoursec = 3600; // seconds in an hour
 
-    if (val.is_string()) {
-        auto str = val.as_string()->string();
+    static const auto to_str = "to_str"_s;
+    if (val.is_string() || val.respond_to(env, to_str)) {
+        auto str = val.to_str(env)->string();
         auto ssize = str.size();
         if (str == "UTC") {
             return 0;
@@ -369,15 +374,21 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
         // any fall-through of the above ugly logic
         env->raise("ArgumentError", "\"+HH:MM\", \"-HH:MM\", \"UTC\" or \"A\"..\"I\",\"K\"..\"Z\" expected for utc_offset: {}", str);
     }
-    if (val.is_integer() || val.respond_to(env, "to_int"_s)) {
+    if (tzobj && val.respond_to(env, tzobj.ptr())) {
+        val = val.send(env, tzobj.ptr(), { Value::integer(0) });
+        static const auto local_to_utc = "local_to_utc"_s;
+        if (tzobj == local_to_utc)
+            val = IntegerMethods::sub(env, 0, val);
+    }
+    static const auto to_int = "to_int"_s;
+    if (val.is_integer() || val.respond_to(env, to_int)) {
         auto seconds = val.to_int(env).to_nat_int_t();
         if (seconds > hoursec * -24 && seconds < hoursec * 24) {
             return seconds;
         }
         env->raise("ArgumentError", "utc_offset out of range");
     }
-    // NATFIXME: Should allow timezone argument
-    env->raise("NotImplementedError", "Not implemented for non String/Integer arg");
+    env->raise("TypeError", "can't convert {} into an exact number", val.klass()->inspected(env));
 }
 
 nat_int_t TimeObject::normalize_field(Env *env, Value val) {

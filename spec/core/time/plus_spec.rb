@@ -61,9 +61,9 @@ describe "Time#+" do
   context "zone is a timezone object" do
     it "preserves time zone" do
       zone = TimeSpecs::Timezone.new(offset: (5*3600+30*60))
-      NATFIXME 'Implement time zones', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-        time = Time.new(2012, 1, 1, 12, 0, 0, zone) + 1
+      time = Time.new(2012, 1, 1, 12, 0, 0, zone) + 1
 
+      NATFIXME 'Save timezone object as Time#zone', exception: SpecFailedException do
         time.zone.should == zone
       end
     end

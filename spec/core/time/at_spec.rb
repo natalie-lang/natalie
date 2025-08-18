@@ -270,20 +270,22 @@ describe "Time.at" do
 
     it "could be a timezone object" do
       zone = TimeSpecs::TimezoneWithName.new(name: "Asia/Colombo")
-      NATFIXME 'Support timezone objects', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-        time = Time.at(@epoch_time, in: zone)
+      time = Time.at(@epoch_time, in: zone)
 
-        time.utc_offset.should == 5*3600+30*60
+      time.utc_offset.should == 5*3600+30*60
+      NATFIXME 'Save timezone object as Time#zone', exception: SpecFailedException do
         time.zone.should == zone
-        time.to_i.should == @epoch_time
-
-        zone = TimeSpecs::TimezoneWithName.new(name: "PST")
-        time = Time.at(@epoch_time, in: zone)
-
-        time.utc_offset.should == -9*60*60
-        time.zone.should == zone
-        time.to_i.should == @epoch_time
       end
+      time.to_i.should == @epoch_time
+
+      zone = TimeSpecs::TimezoneWithName.new(name: "PST")
+      time = Time.at(@epoch_time, in: zone)
+
+      time.utc_offset.should == -9*60*60
+      NATFIXME 'Save timezone object as Time#zone', exception: SpecFailedException do
+        time.zone.should == zone
+      end
+      time.to_i.should == @epoch_time
     end
 
     it "raises ArgumentError if format is invalid" do

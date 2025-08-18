@@ -104,10 +104,8 @@ describe "Time.new with a utc_offset argument" do
     it "coerces using #to_str" do
       o = mock('string')
       with_timezone("PST", -8) do
-        NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-          o.should_receive(:to_str).and_return("+05:30")
-          Time.new(2000, 1, 1, 0, 0, 0, o).utc_offset.should == 19800
-        end
+        o.should_receive(:to_str).and_return("+05:30")
+        Time.new(2000, 1, 1, 0, 0, 0, o).utc_offset.should == 19800
       end
     end
   end
@@ -156,9 +154,9 @@ describe "Time.new with a utc_offset argument" do
 
   it "returns a local Time if the argument is nil" do
     with_timezone("PST", -8) do
-      NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-        t = Time.new(2000, 1, 1, 0, 0, 0, nil)
-        t.utc_offset.should == -28800
+      t = Time.new(2000, 1, 1, 0, 0, 0, nil)
+      t.utc_offset.should == -28800
+      NATFIXME 'Fix Time#zone', exception: SpecFailedException do
         t.zone.should == "PST"
       end
     end
@@ -210,14 +208,14 @@ end
 describe "Time.new with a timezone argument" do
   it "returns a Time in the timezone" do
     zone = TimeSpecs::Timezone.new(offset: (5*3600+30*60))
-    NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-      time = Time.new(2000, 1, 1, 12, 0, 0, zone)
+    time = Time.new(2000, 1, 1, 12, 0, 0, zone)
 
+    NATFIXME 'Save timezone object as Time#zone', exception: SpecFailedException do
       time.zone.should == zone
-      time.utc_offset.should == 5*3600+30*60
-      time.wday.should == 6
-      time.yday.should == 1
     end
+    time.utc_offset.should == 5*3600+30*60
+    time.wday.should == 6
+    time.yday.should == 1
   end
 
   it "accepts timezone argument that must have #local_to_utc and #utc_to_local methods" do
@@ -229,9 +227,7 @@ describe "Time.new with a timezone argument" do
       time
     end
 
-    NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-      Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
-    end
+    Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
   end
 
   it "raises TypeError if timezone does not implement #local_to_utc method" do
@@ -240,11 +236,9 @@ describe "Time.new with a timezone argument" do
       time
     end
 
-    NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-      -> {
-        Time.new(2000, 1, 1, 12, 0, 0, zone)
-      }.should raise_error(TypeError, /can't convert Object into an exact number/)
-    end
+    -> {
+      Time.new(2000, 1, 1, 12, 0, 0, zone)
+    }.should raise_error(TypeError, /can't convert Object into an exact number/)
   end
 
   it "does not raise exception if timezone does not implement #utc_to_local method" do
@@ -253,9 +247,7 @@ describe "Time.new with a timezone argument" do
       time
     end
 
-    NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-      Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
-    end
+    Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
   end
 
   # The result also should be a Time or Time-like object (not necessary to be the same class)
@@ -268,7 +260,7 @@ describe "Time.new with a timezone argument" do
         time - 60 * 60 # - 1 hour
       end
 
-      NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
+      NATFIXME 'it could be Time instance', exception: NoMethodError, message: "undefined method 'year' for an instance of Integer" do
         Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
         Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 60*60
       end
@@ -282,7 +274,7 @@ describe "Time.new with a timezone argument" do
         Class.new(Time).utc(time.year, time.mon, time.day, time.hour, t.min, t.sec)
       end
 
-      NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
+      NATFIXME 'it could be Time subclass instance', exception: NoMethodError, message: "undefined method 'year' for an instance of Integer" do
         Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
         Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 60*60
       end
@@ -296,7 +288,7 @@ describe "Time.new with a timezone argument" do
         obj
       end
 
-      NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
+      NATFIXME 'it could be any object with #to_i method', exception: TypeError, message: 'no implicit conversion of Object into Integer' do
         Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
         Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 60*60
       end
@@ -307,7 +299,7 @@ describe "Time.new with a timezone argument" do
       def zone.local_to_utc(time)
         Struct.new(:to_i, :zone, :utc_offset).new(time.to_i, 'America/New_York', -5*60*60)
       end
-      NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
+      NATFIXME "it could have any #zone and #utc_offset because they are ignored if it isn't an instance of Time", exception: TypeError, message: /no implicit conversion .* into Integer/ do
         Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 0
       end
 
@@ -315,7 +307,7 @@ describe "Time.new with a timezone argument" do
       def zone.local_to_utc(time)
         Struct.new(:to_i, :zone, :utc_offset).new(time.to_i, 'Asia/Tokyo', 9*60*60)
       end
-      NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
+      NATFIXME "it could have any #zone and #utc_offset because they are ignored if it isn't an instance of Time", exception: TypeError, message: /no implicit conversion .* into Integer/ do
         Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 0
       end
     end
@@ -325,7 +317,7 @@ describe "Time.new with a timezone argument" do
       def zone.local_to_utc(t)
         Time.new(t.year, t.mon, t.mday, t.hour, t.min, t.sec, 9*60*60)
       end
-      NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
+      NATFIXME 'it cannot have arbitrary #utc_offset if it is an instance of Time', exception: NoMethodError, message: /undefined method 'year' for an instance of Integer/ do
         Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 9*60*60
       end
     end
@@ -336,7 +328,7 @@ describe "Time.new with a timezone argument" do
         Time.utc(t.year, t.mon, t.day + 1, t.hour, t.min, t.sec)
       end
 
-      NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
+      NATFIXME 'it raises ArgumentError if difference between argument and result is too large', exception: SpecFailedException do
         -> {
           Time.new(2000, 1, 1, 12, 0, 0, zone)
         }.should raise_error(ArgumentError, "utc_offset out of range")
@@ -352,10 +344,8 @@ describe "Time.new with a timezone argument" do
   # The sub-second attributes are fixed as 0, and utc_offset, zone, isdst, and their aliases are same as a Time object in UTC
   describe "Time-like argument of #utc_to_local and #local_to_utc methods" do
     before do
-      NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-        @obj = TimeSpecs::TimeLikeArgumentRecorder.result
-        @obj.should_not == nil
-      end
+      @obj = TimeSpecs::TimeLikeArgumentRecorder.result
+      @obj.should_not == nil
     end
 
     it "implements subset of Time methods" do
@@ -370,7 +360,7 @@ describe "Time.new with a timezone argument" do
     end
 
     it "has attribute values the same as a Time object in UTC" do
-      NATFIXME 'Support Timezone argument', exception: NoMethodError, message: /for nil/ do
+      NATFIXME 'Support Timezone argument', exception: NoMethodError, message: /undefined method 'usec' for an instance of Integer/ do
         @obj.usec.should == 0
         @obj.nsec.should == 0
         @obj.subsec.should == 0
@@ -387,8 +377,8 @@ describe "Time.new with a timezone argument" do
   context "#name method" do
     it "uses the optional #name method for marshaling" do
       zone = TimeSpecs::TimezoneWithName.new(name: "Asia/Colombo")
-      NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-        time = Time.new(2000, 1, 1, 12, 0, 0, zone)
+      time = Time.new(2000, 1, 1, 12, 0, 0, zone)
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError, message: 'Implement Time#_dump' do
         time_loaded = Marshal.load(Marshal.dump(time))
 
         time_loaded.zone.should == "Asia/Colombo"
@@ -398,9 +388,9 @@ describe "Time.new with a timezone argument" do
 
     it "cannot marshal Time if #name method isn't implemented" do
       zone = TimeSpecs::Timezone.new(offset: (5*3600+30*60))
-      NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-        time = Time.new(2000, 1, 1, 12, 0, 0, zone)
+      time = Time.new(2000, 1, 1, 12, 0, 0, zone)
 
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError, message: 'Implement Time#_dump' do
         -> {
           Marshal.dump(time)
         }.should raise_error(NoMethodError, /undefined method [`']name' for/)
@@ -410,9 +400,9 @@ describe "Time.new with a timezone argument" do
 
   it "the #abbr method is used by '%Z' in #strftime" do
     zone = TimeSpecs::TimezoneWithAbbr.new(name: "Asia/Colombo")
-    NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
       time = Time.new(2000, 1, 1, 12, 0, 0, zone)
 
+    NATFIXME 'Support Timezone argument', exception: SpecFailedException do
       time.strftime("%Z").should == "MMT"
     end
   end
@@ -423,9 +413,9 @@ describe "Time.new with a timezone argument" do
   # the necessary methods mentioned above.
   context "subject's class implements .find_timezone method" do
     it "calls .find_timezone to build a time object at loading marshaled data" do
-      NATFIXME 'Support timezone name arguments', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-        zone = TimeSpecs::TimezoneWithName.new(name: "Asia/Colombo")
-        time = TimeSpecs::TimeWithFindTimezone.new(2000, 1, 1, 12, 0, 0, zone)
+      zone = TimeSpecs::TimezoneWithName.new(name: "Asia/Colombo")
+      time = TimeSpecs::TimeWithFindTimezone.new(2000, 1, 1, 12, 0, 0, zone)
+      NATFIXME 'Implement Time#_dump', exception: NotImplementedError, message: 'Implement Time#_dump' do
         time_loaded = Marshal.load(Marshal.dump(time))
 
         time_loaded.zone.should be_kind_of TimeSpecs::TimezoneWithName
@@ -448,11 +438,9 @@ describe "Time.new with a timezone argument" do
 
     it "does not call .find_timezone if passed any not string/numeric/timezone timezone argument" do
       [Object.new, [], {}, :"some zone"].each do |zone|
-        NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-          -> {
-            TimeSpecs::TimeWithFindTimezone.new(2000, 1, 1, 12, 0, 0, zone)
-          }.should raise_error(TypeError, /can't convert \w+ into an exact number/)
-        end
+        -> {
+          TimeSpecs::TimeWithFindTimezone.new(2000, 1, 1, 12, 0, 0, zone)
+        }.should raise_error(TypeError, /can't convert \w+ into an exact number/)
       end
     end
   end
@@ -493,16 +481,18 @@ describe "Time.new with a timezone argument" do
 
     it "could be a timezone object" do
       zone = TimeSpecs::TimezoneWithName.new(name: "Asia/Colombo")
-      NATFIXME 'Support Timezone argument', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-        time = Time.new(2000, 1, 1, 12, 0, 0, in: zone)
+      time = Time.new(2000, 1, 1, 12, 0, 0, in: zone)
 
-        time.utc_offset.should == 5*3600+30*60
+      time.utc_offset.should == 5*3600+30*60
+      NATFIXME 'Save timezone object as Time#zone', exception: SpecFailedException do
         time.zone.should == zone
+      end
 
-        zone = TimeSpecs::TimezoneWithName.new(name: "PST")
-        time = Time.new(2000, 1, 1, 12, 0, 0, in: zone)
+      zone = TimeSpecs::TimezoneWithName.new(name: "PST")
+      time = Time.new(2000, 1, 1, 12, 0, 0, in: zone)
 
-        time.utc_offset.should == -9*60*60
+      time.utc_offset.should == -9*60*60
+      NATFIXME 'Save timezone object as Time#zone', exception: SpecFailedException do
         time.zone.should == zone
       end
     end
@@ -531,11 +521,9 @@ describe "Time.new with a timezone argument" do
     end
 
     it "raises ArgumentError if two offset arguments are given" do
-      NATFIXME 'it raises ArgumentError if two offset arguments are given', exception: SpecFailedException, message: /but the message was "cannot specify zone and in:"/ do
-        -> {
-          Time.new(2000, 1, 1, 12, 0, 0, "+05:00", in: "+05:00")
-        }.should raise_error(ArgumentError, "timezone argument given as positional and keyword arguments")
-      end
+      -> {
+        Time.new(2000, 1, 1, 12, 0, 0, "+05:00", in: "+05:00")
+      }.should raise_error(ArgumentError, "timezone argument given as positional and keyword arguments")
     end
   end
 
