@@ -114,7 +114,7 @@ private:
     static nat_int_t normalize_month(Env *, Value val);
     static nat_int_t normalize_field(Env *, Value val);
     static nat_int_t normalize_field(Env *, Value val, nat_int_t minval, nat_int_t maxval);
-    static nat_int_t normalize_timezone(Env *, Value val, SymbolObject * = nullptr);
+    static nat_int_t normalize_timezone(Env *, Value val, NonNullPtr<SymbolObject>);
 
     void build_time(Env *, Value, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>, Optional<Value>);
     void set_subsec(Env *, long);

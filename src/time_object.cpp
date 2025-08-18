@@ -57,13 +57,14 @@ TimeObject *TimeObject::initialize(Env *env, Optional<Value> year, Optional<Valu
         int seconds = mktime(&result->m_time);
         result->m_integer = seconds;
         result->m_subsec = Optional<Value>();
+        static const auto local_to_utc = "local_to_utc"_s;
         if (tmzone && in) {
             env->raise("ArgumentError", "cannot specify zone and in:");
         } else if (tmzone) {
-            result->m_time.tm_gmtoff = normalize_timezone(env, tmzone.value());
+            result->m_time.tm_gmtoff = normalize_timezone(env, tmzone.value(), local_to_utc);
             result->m_mode = Mode::UTC;
         } else if (in) {
-            result->m_time.tm_gmtoff = normalize_timezone(env, in.value());
+            result->m_time.tm_gmtoff = normalize_timezone(env, in.value(), local_to_utc);
             result->m_mode = Mode::UTC;
         } else {
             result->m_mode = Mode::Localtime;
@@ -329,7 +330,7 @@ Value TimeObject::year(Env *) const {
 }
 
 // utc-offset and military timezone decoding
-nat_int_t TimeObject::normalize_timezone(Env *env, Value val, SymbolObject *tzobj) {
+nat_int_t TimeObject::normalize_timezone(Env *env, Value val, NonNullPtr<SymbolObject> tzobj) {
     nat_int_t minsec = 60; // seconds in an minute
     nat_int_t hoursec = 3600; // seconds in an hour
 
@@ -373,8 +374,11 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val, SymbolObject *tzob
         // any fall-through of the above ugly logic
         env->raise("ArgumentError", "\"+HH:MM\", \"-HH:MM\", \"UTC\" or \"A\"..\"I\",\"K\"..\"Z\" expected for utc_offset: {}", str);
     }
-    if (tzobj && val.respond_to(env, tzobj)) {
-        val = val.send(env, tzobj, { Value::integer(0) });
+    if (tzobj && val.respond_to(env, tzobj.ptr())) {
+        val = val.send(env, tzobj.ptr(), { Value::integer(0) });
+        static const auto local_to_utc = "local_to_utc"_s;
+        if (tzobj == local_to_utc)
+            val = IntegerMethods::sub(env, 0, val);
     }
     static const auto to_int = "to_int"_s;
     if (val.is_integer() || val.respond_to(env, to_int)) {
