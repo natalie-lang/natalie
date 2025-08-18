@@ -19,7 +19,8 @@ TimeObject *TimeObject::at(Env *env, ClassObject *klass, Value time, Optional<Va
         env->raise("TypeError", "can't convert {} into an exact number", time->klass()->inspected(env));
     auto result = at(env, klass, time, subsec, unit);
     if (in) {
-        result->m_time.tm_gmtoff = normalize_timezone(env, in.value());
+        static const auto utc_to_local = "utc_to_local"_s;
+        result->m_time.tm_gmtoff = normalize_timezone(env, in.value(), utc_to_local);
         result->m_zone = strdup("UTC");
         result->m_time.tm_zone = result->m_zone;
     }
@@ -326,7 +327,7 @@ Value TimeObject::year(Env *) const {
 }
 
 // utc-offset and military timezone decoding
-nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
+nat_int_t TimeObject::normalize_timezone(Env *env, Value val, SymbolObject *tzobj) {
     nat_int_t minsec = 60; // seconds in an minute
     nat_int_t hoursec = 3600; // seconds in an hour
 
@@ -369,6 +370,9 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
         }
         // any fall-through of the above ugly logic
         env->raise("ArgumentError", "\"+HH:MM\", \"-HH:MM\", \"UTC\" or \"A\"..\"I\",\"K\"..\"Z\" expected for utc_offset: {}", str);
+    }
+    if (tzobj && val.respond_to(env, tzobj)) {
+        val = val.send(env, tzobj, { Value::integer(0) });
     }
     static const auto to_int = "to_int"_s;
     if (val.is_integer() || val.respond_to(env, to_int)) {
