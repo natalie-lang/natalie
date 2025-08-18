@@ -416,6 +416,9 @@ bool FileObject::is_grpowned(Env *env, Value path) {
     auto size = getgroups(0, nullptr);
     if (size < 0)
         env->raise_errno();
+    // clang-tidy raises an error for `list[size]` with possible `size == 0`
+    if (size == 0)
+        return false;
     gid_t list[size];
     size = getgroups(size, list);
     if (size < 0)
