@@ -3539,7 +3539,7 @@ Value StringObject::rstrip_in_place(Env *env) {
 
 // This implements checking the case-fold options passed into arguments like
 // downcase, upcase, casecmp, etc and sets a bitfield enum.
-CaseMapType StringObject::check_case_options(Env *env, Value arg1, Value arg2, bool downcase) {
+uint8_t StringObject::check_case_options(Env *env, Value arg1, Value arg2, bool downcase) {
     SymbolObject *turk = "turkic"_s;
     SymbolObject *lith = "lithuanian"_s;
     // return for zero arg case
