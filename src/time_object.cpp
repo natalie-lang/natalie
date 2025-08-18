@@ -58,12 +58,12 @@ TimeObject *TimeObject::initialize(Env *env, Optional<Value> year, Optional<Valu
         result->m_integer = seconds;
         result->m_subsec = Optional<Value>();
         static const auto local_to_utc = "local_to_utc"_s;
-        if (tmzone && in) {
-            env->raise("ArgumentError", "cannot specify zone and in:");
-        } else if (tmzone) {
+        if (tmzone && in && !tmzone->is_nil() && !in->is_nil()) {
+            env->raise("ArgumentError", "timezone argument given as positional and keyword arguments");
+        } else if (tmzone && !tmzone->is_nil()) {
             result->m_time.tm_gmtoff = normalize_timezone(env, tmzone.value(), local_to_utc);
             result->m_mode = Mode::UTC;
-        } else if (in) {
+        } else if (in && !in->is_nil()) {
             result->m_time.tm_gmtoff = normalize_timezone(env, in.value(), local_to_utc);
             result->m_mode = Mode::UTC;
         } else {

@@ -154,9 +154,9 @@ describe "Time.new with a utc_offset argument" do
 
   it "returns a local Time if the argument is nil" do
     with_timezone("PST", -8) do
-      NATFIXME 'nil should be local time, but unavailable in caller', exception: TypeError, message: "can't convert NilClass into an exact number" do
-        t = Time.new(2000, 1, 1, 0, 0, 0, nil)
-        t.utc_offset.should == -28800
+      t = Time.new(2000, 1, 1, 0, 0, 0, nil)
+      t.utc_offset.should == -28800
+      NATFIXME 'Fix Time#zone', exception: SpecFailedException do
         t.zone.should == "PST"
       end
     end
@@ -521,11 +521,9 @@ describe "Time.new with a timezone argument" do
     end
 
     it "raises ArgumentError if two offset arguments are given" do
-      NATFIXME 'it raises ArgumentError if two offset arguments are given', exception: SpecFailedException, message: /but the message was "cannot specify zone and in:"/ do
-        -> {
-          Time.new(2000, 1, 1, 12, 0, 0, "+05:00", in: "+05:00")
-        }.should raise_error(ArgumentError, "timezone argument given as positional and keyword arguments")
-      end
+      -> {
+        Time.new(2000, 1, 1, 12, 0, 0, "+05:00", in: "+05:00")
+      }.should raise_error(ArgumentError, "timezone argument given as positional and keyword arguments")
     end
   end
 
