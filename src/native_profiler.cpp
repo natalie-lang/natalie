@@ -55,6 +55,7 @@ void NativeProfiler::dump() {
     auto path = String::format("{}/profile-{}.json", cwd.c_str(), seconds.count());
 
     FILE *fp = fopen(path.c_str(), "w+");
+    assert(fp);
 
     fprintf(fp, "[");
     for (size_t i = 0; i < m_events.size(); ++i) {
