@@ -18,13 +18,6 @@ namespace Natalie {
 
 using namespace TM;
 
-inline CaseMapType operator|(CaseMapType a, CaseMapType b) {
-    return static_cast<CaseMapType>(static_cast<int>(a) | static_cast<int>(b));
-}
-inline CaseMapType operator^(CaseMapType a, CaseMapType b) {
-    return static_cast<CaseMapType>(static_cast<int>(a) ^ static_cast<int>(b));
-}
-
 class StringObject : public Object {
 public:
     enum class Chilled {
@@ -426,8 +419,8 @@ public:
     ssize_t char_index_to_byte_index(ssize_t, bool = false) const;
     ssize_t byte_index_to_char_index(size_t) const;
 
-    static CaseMapType check_case_options(Env *env, Value arg1, Value arg2, bool downcase = false);
-    static CaseMapType check_case_options(Env *env, Optional<Value> arg1, Optional<Value> arg2, bool downcase = false) {
+    static uint8_t check_case_options(Env *env, Value arg1, Value arg2, bool downcase = false);
+    static uint8_t check_case_options(Env *env, Optional<Value> arg1, Optional<Value> arg2, bool downcase = false) {
         return check_case_options(env, arg1.value_or(Value::nil()), arg2.value_or(Value::nil()), downcase);
     }
 

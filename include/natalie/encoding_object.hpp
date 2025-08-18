@@ -14,7 +14,7 @@
 
 namespace Natalie {
 
-enum CaseMapType {
+enum CaseMapType : uint8_t {
     CaseMapFull = 0,
     CaseMapAscii = 1,
     CaseMapTurkicAzeri = 2,
@@ -165,9 +165,9 @@ public:
     static EncodingObject *find_encoding(Env *env, Value encoding);
 
     // must pass a buffer of nat_int_t to this function; uint8_t return is number of codepoints written
-    static uint8_t codepoint_to_lowercase(nat_int_t codepoint, nat_int_t result[], CaseMapType flags = CaseMapFull);
-    static uint8_t codepoint_to_uppercase(nat_int_t codepoint, nat_int_t result[], CaseMapType flags = CaseMapFull);
-    static uint8_t codepoint_to_titlecase(nat_int_t codepoint, nat_int_t result[], CaseMapType flags = CaseMapFull);
+    static uint8_t codepoint_to_lowercase(nat_int_t codepoint, nat_int_t result[], uint8_t flags = CaseMapFull);
+    static uint8_t codepoint_to_uppercase(nat_int_t codepoint, nat_int_t result[], uint8_t flags = CaseMapFull);
+    static uint8_t codepoint_to_titlecase(nat_int_t codepoint, nat_int_t result[], uint8_t flags = CaseMapFull);
 
     static void init_special_casing_map();
     static SpecialCasingEntry find_special_casing_map_entry(nat_int_t codepoint);

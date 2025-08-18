@@ -52,9 +52,10 @@ Value FileObject::initialize(Env *env, Args &&args, Block *block) {
             flags_obj.assert_type(env, Object::Type::String, "String");
             flags_str = flags_obj.as_string()->string();
         }
+        // NATFIXME: Rewrite fdopen to use fcntl(fileno, F_GETFL), parse flags and match
         FILE *fptr = ::fdopen(fileno, flags_str.c_str());
         if (fptr == nullptr) env->raise_errno();
-        set_fileno(fileno);
+        set_fileno(fileno); // NOLINT: We should close fptr without closing the fileno
     } else {
         filename = ioutil::convert_using_to_path(env, filename);
         int fileno = ::open(filename.as_string()->c_str(), flags.flags(), modenum);
@@ -416,6 +417,9 @@ bool FileObject::is_grpowned(Env *env, Value path) {
     auto size = getgroups(0, nullptr);
     if (size < 0)
         env->raise_errno();
+    // clang-tidy raises an error for `list[size]` with possible `size == 0`
+    if (size == 0)
+        return false;
     gid_t list[size];
     size = getgroups(size, list);
     if (size < 0)
