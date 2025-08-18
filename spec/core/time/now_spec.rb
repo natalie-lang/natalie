@@ -39,17 +39,19 @@ describe "Time.now" do
     end
 
     it "could be a timezone object" do
-      NATFIXME 'Support Timezone objects', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-        zone = TimeSpecs::TimezoneWithName.new(name: "Asia/Colombo")
-        time = Time.now(in: zone)
+      zone = TimeSpecs::TimezoneWithName.new(name: "Asia/Colombo")
+      time = Time.now(in: zone)
 
-        time.utc_offset.should == 5*3600+30*60
+      time.utc_offset.should == 5*3600+30*60
+      NATFIXME 'Save timezone object as Time#zone', exception: SpecFailedException do
         time.zone.should == zone
+      end
 
-        zone = TimeSpecs::TimezoneWithName.new(name: "PST")
-        time = Time.now(in: zone)
+      zone = TimeSpecs::TimezoneWithName.new(name: "PST")
+      time = Time.now(in: zone)
 
-        time.utc_offset.should == -9*60*60
+      time.utc_offset.should == -9*60*60
+      NATFIXME 'Save timezone object as Time#zone', exception: SpecFailedException do
         time.zone.should == zone
       end
     end
@@ -112,9 +114,7 @@ describe "Time.now" do
         time
       end
 
-      NATFIXME 'Support Timezone objects', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-        Time.now(in: zone).should be_kind_of(Time)
-      end
+      Time.now(in: zone).should be_kind_of(Time)
     end
 
     # The result also should be a Time or Time-like object (not necessary to be the same class)
@@ -127,7 +127,7 @@ describe "Time.now" do
           time + 60 * 60 # + 1 hour
         end
 
-        NATFIXME 'Support Timezone objects', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
+        NATFIXME 'Support Timezone objects', exception: NoMethodError, message: /undefined method 'year' for an instance of Integer/ do
           Time.now(in: zone).should be_kind_of(Time)
           Time.now(in: zone).utc_offset.should == 3600
         end
@@ -142,7 +142,7 @@ describe "Time.now" do
           Class.new(Time).new(time.year, time.mon, time.day, time.hour, time.min, time.sec, time.utc_offset)
         end
 
-        NATFIXME 'Support Timezone objects', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
+        NATFIXME 'Support Timezone objects', exception: NoMethodError, message: /undefined method 'year' for an instance of Integer/ do
           Time.now(in: zone).should be_kind_of(Time)
           Time.now(in: zone).utc_offset.should == 3600
         end
@@ -154,10 +154,8 @@ describe "Time.now" do
           time.to_i + 60*60
         end
 
-        NATFIXME 'Support Timezone objects', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
-          Time.now(in: zone).should be_kind_of(Time)
-          Time.now(in: zone).utc_offset.should == 60*60
-        end
+        Time.now(in: zone).should be_kind_of(Time)
+        Time.now(in: zone).utc_offset.should == 60*60
       end
 
       it "could have any #zone and #utc_offset because they are ignored" do
@@ -166,7 +164,7 @@ describe "Time.now" do
           Struct.new(:year, :mon, :mday, :hour, :min, :sec, :isdst, :to_i, :zone, :utc_offset) # rubocop:disable Lint/StructNewOverride
                 .new(t.year, t.mon, t.mday, t.hour, t.min, t.sec, t.isdst, t.to_i, 'America/New_York', -5*60*60)
         end
-        NATFIXME 'Support Timezone objects', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
+        NATFIXME 'Support Timezone objects', exception: NoMethodError, message: /undefined method 'year' for an instance of Integer/ do
           Time.now(in: zone).utc_offset.should == 0
 
           zone = Object.new
@@ -192,7 +190,7 @@ describe "Time.now" do
           Time.utc(time.year, time.mon, time.day, time.hour, time.min, time.sec, time.utc_offset)
         end
 
-        NATFIXME 'Support Timezone objects', exception: NotImplementedError, message: 'Not implemented for non String/Integer arg' do
+        NATFIXME 'it raises ArgumentError if difference between argument and result is too large', exception: SpecFailedException, message: /undefined method 'year' for an instance of Integer/ do
           -> {
             Time.now(in: zone)
           }.should raise_error(ArgumentError, "utc_offset out of range")

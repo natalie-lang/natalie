@@ -86,8 +86,10 @@ TimeObject *TimeObject::now(Env *env, ClassObject *klass, Optional<Value> in) {
     result->m_mode = Mode::Localtime;
     result->m_integer = ts.tv_sec;
     result->set_subsec(env, ts.tv_nsec);
-    if (in)
-        result->m_time.tm_gmtoff = normalize_timezone(env, in.value());
+    if (in) {
+        static const auto utc_to_local = "utc_to_local"_s;
+        result->m_time.tm_gmtoff = normalize_timezone(env, in.value(), utc_to_local);
+    }
     return result;
 }
 
