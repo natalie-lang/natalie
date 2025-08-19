@@ -21,6 +21,8 @@ describe "Time#utc?" do
     Time.new(2022, 1, 1, 0, 0, 0, "UTC").utc?.should == true
     NATFIXME 'Implement Time#localtime', exception: NoMethodError, message: "undefined method 'localtime' for an instance of Time" do
       Time.now.localtime("UTC").utc?.should == true
+    end
+    NATFIXME "it does treat time with 'UTC' offset as UTC", exception: SpecFailedException do
       Time.at(Time.now, in: 'UTC').utc?.should == true
     end
 
