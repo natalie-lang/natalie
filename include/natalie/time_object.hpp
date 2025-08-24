@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <string.h>
 #include <time.h>
 
@@ -121,6 +122,8 @@ private:
     void set_subsec(Env *, Integer);
     void set_subsec(Env *, RationalObject *);
     Value strip_zeroes(StringObject *);
+
+    static inline std::mutex s_tz_env_mutex;
 
     Integer m_integer;
     Mode m_mode;

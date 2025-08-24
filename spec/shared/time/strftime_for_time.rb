@@ -121,27 +121,19 @@ describe :strftime_time, shared: true do
     end
 
     it "formats a local time with positive UTC offset as '+HHMM'" do
-      NATFIXME 'fails on MacOS', condition: RUBY_PLATFORM.include?('darwin'), exception: SpecFailedException do
-        @new_time_in_zone["CET", 1, 2005].strftime("%z").should == "+0100"
-      end
+      @new_time_in_zone["CET", 1, 2005].strftime("%z").should == "+0100"
     end
 
     it "formats a local time with negative UTC offset as '-HHMM'" do
-      NATFIXME 'fails on MacOS', condition: RUBY_PLATFORM.include?('darwin'), exception: SpecFailedException do
-        @new_time_in_zone["PST", -8, 2005].strftime("%z").should == "-0800"
-      end
+      @new_time_in_zone["PST", -8, 2005].strftime("%z").should == "-0800"
     end
 
     it "formats a time with fixed positive offset as '+HHMM'" do
-      NATFIXME 'fails on MacOS', condition: RUBY_PLATFORM.include?('darwin'), exception: SpecFailedException do
-        @new_time_with_offset[2012, 1, 1, 0, 0, 0, 3660].strftime("%z").should == "+0101"
-      end
+      @new_time_with_offset[2012, 1, 1, 0, 0, 0, 3660].strftime("%z").should == "+0101"
     end
 
     it "formats a time with fixed negative offset as '-HHMM'" do
-      NATFIXME 'fails on MacOS', condition: RUBY_PLATFORM.include?('darwin'), exception: SpecFailedException do
-        @new_time_with_offset[2012, 1, 1, 0, 0, 0, -3660].strftime("%z").should == "-0101"
-      end
+      @new_time_with_offset[2012, 1, 1, 0, 0, 0, -3660].strftime("%z").should == "-0101"
     end
 
     it "formats a time with fixed offset as '+/-HH:MM' with ':' specifier" do
