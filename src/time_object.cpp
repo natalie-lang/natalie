@@ -574,7 +574,43 @@ void TimeObject::set_subsec(Env *, RationalObject *subsec) {
 Value TimeObject::build_string(const tm *time, const char *format, Encoding encoding) {
     int maxsize = 32;
     auto buffer = new char[maxsize];
+
+// strftime(3) on MacOS ignores tm_gmtoff member of the broken-down time structure
+// and always uses the current timezone settings.
+// We set the TZ environment variable to account for the timezone offset.
+#ifdef __APPLE__
+    nat_int_t minsec = 60; // seconds in an minute
+    nat_int_t hoursec = 3600; // seconds in an hour
+    size_t length = 0;
+    size_t tz_buffer_size = 10;
+    // The TZ environment variable sign is flipped compared to the tm_gmtoff sign
+    char tz_sign = time->tm_gmtoff >= 0 ? '-' : '+';
+    char tz_buffer[tz_buffer_size];
+    char *tz_env_original = nullptr;
+    int tz_hour = std::abs(time->tm_gmtoff) / hoursec;
+    int tz_min = (std::abs(time->tm_gmtoff) % hoursec) / minsec;
+
+    {
+        std::lock_guard<std::mutex> lock(s_tz_env_mutex);
+
+        tz_env_original = getenv("TZ");
+        if (tz_env_original)
+            tz_env_original = strdup(tz_env_original);
+
+        snprintf(tz_buffer, tz_buffer_size, "UTC%c%02d:%02d", tz_sign, tz_hour, tz_min);
+        setenv("TZ", tz_buffer, 1);
+        length = ::strftime(buffer, maxsize, format, time);
+
+        if (tz_env_original) {
+            setenv("TZ", tz_env_original, 1);
+            free(tz_env_original);
+        } else {
+            unsetenv("TZ");
+        }
+    }
+#else
     auto length = ::strftime(buffer, maxsize, format, time);
+#endif
     String str { std::move(buffer), length };
     return StringObject::create(std::move(str), encoding);
 }

@@ -582,9 +582,7 @@ describe "Time.new with a timezone argument" do
     end
 
     it "returns Time of Jan 1 for string with just year in timezone specified with in keyword argument" do
-      NATFIXME 'Fails on MacOS', condition: RUBY_PLATFORM.include?('darwin'), exception: SpecFailedException do
-        Time.new("2021", in: "+17:00").to_s.should == "2021-01-01 00:00:00 +1700"
-      end
+      Time.new("2021", in: "+17:00").to_s.should == "2021-01-01 00:00:00 +1700"
     end
 
     it "converts precision keyword argument into Integer if is not nil" do
