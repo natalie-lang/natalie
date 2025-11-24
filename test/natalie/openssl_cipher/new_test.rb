@@ -16,11 +16,22 @@ describe 'OpenSSL::Cipher.new' do
     OpenSSL::Cipher.new(name).should be_kind_of(OpenSSL::Cipher)
   end
 
-  it 'raises a RuntimeError when created with a non valid cipher name' do
-    -> { OpenSSL::Cipher.new('sea-652-cbc') }.should raise_error(
-                 RuntimeError,
-                 'unsupported cipher algorithm (sea-652-cbc)',
-               )
+  ruby_version_is ''...'4.0' do
+    it 'raises a RuntimeError when created with a non valid cipher name' do
+      -> { OpenSSL::Cipher.new('sea-652-cbc') }.should raise_error(
+                   RuntimeError,
+                   'unsupported cipher algorithm (sea-652-cbc)',
+                 )
+    end
+  end
+
+  ruby_version_is '4.0' do
+    it 'raises a CipherError when created with a non valid cipher name' do
+      -> { OpenSSL::Cipher.new('sea-652-cbc') }.should raise_error(
+                   OpenSSL::Cipher::CipherError,
+                   /^unsupported cipher algorithm: sea-652-cbc:/,
+                 )
+    end
   end
 
   it 'raises a TypeError when the name is not a String and canont be coerced into a String' do
