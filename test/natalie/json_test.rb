@@ -40,8 +40,18 @@ describe 'JSON' do
       JSON.parse('"\uF600"').should == ''
       -> { JSON.parse(%("foo\nbar")) }.should raise_error(JSON::ParserError)
       -> { JSON.parse('"\u00"') }.should raise_error(JSON::ParserError)
-      # not valid according to Spec, but Ruby does this:
-      JSON.parse('"\y"').should == 'y'
+    end
+
+    ruby_version_is ''...'4.0' do
+      it 'parses a string that is invalid according to the spec' do
+        JSON.parse('"\y"').should == 'y'
+      end
+    end
+
+    ruby_version_is '4.0' do
+      it 'does not parse a string that is invalid according to the spec' do
+        -> { JSON.parse('"\y"') }.should raise_error(JSON::ParserError)
+      end
     end
 
     it 'parses arrays' do
