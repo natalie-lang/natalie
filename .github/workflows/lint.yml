@@ -18,7 +18,7 @@ jobs:
   clang-tidy:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: checkout submodules
         run: git submodule update --init --recursive
       - name: run clang-tidy
@@ -26,7 +26,7 @@ jobs:
   gc-lint:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: checkout submodules
         run: git submodule update --init --recursive
       - name: run gc-lint
