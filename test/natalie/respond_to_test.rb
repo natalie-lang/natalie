@@ -24,15 +24,31 @@ describe 'Kernel#respond_to?' do
     end
   end
 
-  it 'is used by BasicObject#allocate' do
-    [true, 1].each do |truthy_value|
-      RespondToTest.should_receive(:respond_to?).with(:allocate, true).and_return(truthy_value)
-      -> { RespondToTest.allocate }.should_not raise_error
-    end
+  ruby_version_is ''...'4.0' do
+    it 'is used by BasicObject#allocate' do
+      [true, 1].each do |truthy_value|
+        RespondToTest.should_receive(:respond_to?).with(:allocate, true).and_return(truthy_value)
+        -> { RespondToTest.allocate }.should_not raise_error
+      end
 
-    [false, nil].each do |falsey_value|
-      RespondToTest.should_receive(:respond_to?).with(:allocate, true).and_return(falsey_value)
-      -> { RespondToTest.allocate }.should raise_error(TypeError, /calling RespondToTest.allocate is prohibited/)
+      [false, nil].each do |falsey_value|
+        RespondToTest.should_receive(:respond_to?).with(:allocate, true).and_return(falsey_value)
+        -> { RespondToTest.allocate }.should raise_error(TypeError, /calling RespondToTest.allocate is prohibited/)
+      end
+    end
+  end
+
+  ruby_version_is '4.0' do
+    it 'is not used by BasicObject#allocate' do
+      [true, 1].each do |truthy_value|
+        RespondToTest.should_not_receive(:respond_to?)
+        -> { RespondToTest.allocate }.should_not raise_error
+      end
+
+      [false, nil].each do |falsey_value|
+        RespondToTest.should_not_receive(:respond_to?)
+        -> { RespondToTest.allocate }.should_not raise_error
+      end
     end
   end
 
