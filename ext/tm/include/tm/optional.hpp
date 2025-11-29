@@ -245,6 +245,9 @@ public:
      * auto obj = Thing(1);
      * auto opt = Optional<Thing>(obj);
      * assert_eq(obj, *opt);
+     *
+     * *opt = Thing(2);
+     * assert_eq(2, opt->value());
      * ```
      *
      * This method aborts if the value not present.
