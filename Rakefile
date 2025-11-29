@@ -489,7 +489,7 @@ file 'build/onigmo/lib/libonigmo.a' do
     sh autogen.sh && \
     ./configure --with-pic --prefix #{build_dir} && \
     git apply #{patch_path} && \
-    make -j && \
+    make -j CFLAGS="-std=gnu17" && \
     make install
   SH
 end
