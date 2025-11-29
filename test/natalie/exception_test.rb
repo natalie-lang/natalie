@@ -9,6 +9,8 @@ end
 describe 'Errno' do
   it 'should use a default message for unknown error numbers' do
     errno = Errno.constants.map { Errno.const_get(_1)::Errno }.max + 1
+    # NATFIXME: This error should be defined, but MRI doesn't appear to have it
+    errno += 1 if errno == 107 && RUBY_PLATFORM.include?('darwin')
     exc = SystemCallError.new(nil, errno)
     exc.message.should =~ /Unknown error:? #{errno}/
 
