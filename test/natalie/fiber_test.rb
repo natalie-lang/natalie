@@ -62,6 +62,10 @@ describe 'Scheduler' do
     required_methods.each do |missing_method|
       scheduler = Object.new
       required_methods.difference([missing_method]).each { |method| scheduler.define_singleton_method(method) {} }
+      ruby_version_is '4.0' do
+        # Scheduler#fiber_interrupt is not an error but a warning
+        def scheduler.fiber_interrupt() end
+      end
 
       -> { Fiber.set_scheduler(scheduler) }.should raise_error(
                    ArgumentError,
@@ -70,8 +74,31 @@ describe 'Scheduler' do
     end
   end
 
+  ruby_version_is ''...'4.0' do
+    it 'does not if Scheduler#fiber_interrupt is not defined' do
+      required_methods = %i[block unblock kernel_sleep io_wait]
+      scheduler = Object.new
+      required_methods.each { |method| scheduler.define_singleton_method(method) {} }
+
+      -> { Fiber.set_scheduler(scheduler) }.should_not complain(/Scheduler should implement #fiber_interrupt/)
+    end
+  end
+
+  ruby_version_is '4.0' do
+    it 'complains if Scheduler#fiber_interrupt is not defined' do
+      required_methods = %i[block unblock kernel_sleep io_wait]
+      scheduler = Object.new
+      required_methods.each { |method| scheduler.define_singleton_method(method) {} }
+
+      -> { Fiber.set_scheduler(scheduler) }.should complain(/Scheduler should implement #fiber_interrupt/)
+    end
+  end
+
   it 'can set and get the scheduler' do
     required_methods = %i[block unblock kernel_sleep io_wait]
+    ruby_version_is '4.0' do
+      required_methods << :fiber_interrupt
+    end
     scheduler = Object.new
     required_methods.each { |method| scheduler.define_singleton_method(method) {} }
     Fiber.set_scheduler(scheduler)
@@ -80,6 +107,9 @@ describe 'Scheduler' do
 
   it 'can remove the scheduler' do
     required_methods = %i[block unblock kernel_sleep io_wait]
+    ruby_version_is '4.0' do
+      required_methods << :fiber_interrupt
+    end
     scheduler = Object.new
     required_methods.each { |method| scheduler.define_singleton_method(method) {} }
     Fiber.set_scheduler(scheduler)

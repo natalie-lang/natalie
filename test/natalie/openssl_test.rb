@@ -279,13 +279,26 @@ describe 'OpenSSL::X509::Certificate' do
       cert.sign(key, 'SHA256')
     end
 
-    it 'raises a CertificateError when required settings are missing' do
-      key = OpenSSL::PKey::RSA.new(2048)
-      cert = OpenSSL::X509::Certificate.new
-      -> { cert.sign(key, OpenSSL::Digest.new('SHA256')) }.should raise_error(
-                   OpenSSL::X509::CertificateError,
-                   'internal error',
-                 )
+    ruby_version_is ''...'4.0' do
+      it 'raises a CertificateError when required settings are missing' do
+        key = OpenSSL::PKey::RSA.new(2048)
+        cert = OpenSSL::X509::Certificate.new
+        -> { cert.sign(key, OpenSSL::Digest.new('SHA256')) }.should raise_error(
+                     OpenSSL::X509::CertificateError,
+                     'internal error',
+                   )
+      end
+    end
+
+    ruby_version_is '4.0' do
+      it 'raises a CertificateError when required settings are missing' do
+        key = OpenSSL::PKey::RSA.new(2048)
+        cert = OpenSSL::X509::Certificate.new
+        -> { cert.sign(key, OpenSSL::Digest.new('SHA256')) }.should raise_error(
+                     OpenSSL::X509::CertificateError,
+                     'X509_sign: internal error',
+                   )
+      end
     end
 
     it 'does not convert a PEM key export into a PKey' do
@@ -313,13 +326,26 @@ describe 'OpenSSL::X509::Certificate' do
                  )
     end
 
-    it 'does not convert a Symbol into a Digest class' do
-      key = OpenSSL::PKey::RSA.new(2048)
-      cert = OpenSSL::X509::Certificate.new
-      -> { cert.sign(key, :SHA256) }.should raise_error(
-                   TypeError,
-                   'wrong argument type Symbol (expected OpenSSL/Digest)',
-                 )
+    ruby_version_is ''...'4.0' do
+      it 'does not convert a Symbol into a Digest class' do
+        key = OpenSSL::PKey::RSA.new(2048)
+        cert = OpenSSL::X509::Certificate.new
+        -> { cert.sign(key, :SHA256) }.should raise_error(
+                     TypeError,
+                     'wrong argument type Symbol (expected OpenSSL/Digest)',
+                   )
+      end
+    end
+
+    ruby_version_is '4.0' do
+      it 'does not convert a Symbol into a Digest class' do
+        key = OpenSSL::PKey::RSA.new(2048)
+        cert = OpenSSL::X509::Certificate.new
+        -> { cert.sign(key, :SHA256) }.should raise_error(
+                     TypeError,
+                     'no implicit conversion of Symbol into String'
+                   )
+      end
     end
   end
 

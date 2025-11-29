@@ -40,4 +40,6 @@ class Scheduler
   end
   def unblock(blocker, fiber)
   end
+  def fiber_interrupt(fiber, exception)
+  end
 end
