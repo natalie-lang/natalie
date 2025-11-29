@@ -341,10 +341,7 @@ describe 'OpenSSL::X509::Certificate' do
       it 'does not convert a Symbol into a Digest class' do
         key = OpenSSL::PKey::RSA.new(2048)
         cert = OpenSSL::X509::Certificate.new
-        -> { cert.sign(key, :SHA256) }.should raise_error(
-                     TypeError,
-                     'no implicit conversion of Symbol into String'
-                   )
+        -> { cert.sign(key, :SHA256) }.should raise_error(TypeError, 'no implicit conversion of Symbol into String')
       end
     end
   end

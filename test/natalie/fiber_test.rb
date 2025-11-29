@@ -64,7 +64,8 @@ describe 'Scheduler' do
       required_methods.difference([missing_method]).each { |method| scheduler.define_singleton_method(method) {} }
       ruby_version_is '4.0' do
         # Scheduler#fiber_interrupt is not an error but a warning
-        def scheduler.fiber_interrupt() end
+        def scheduler.fiber_interrupt()
+        end
       end
 
       -> { Fiber.set_scheduler(scheduler) }.should raise_error(
