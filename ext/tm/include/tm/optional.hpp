@@ -257,10 +257,11 @@ public:
      * *opt;
      * ```
      */
-    T operator*() {
+    T &operator*() {
         assert(m_present);
         return m_value;
     }
+
     /**
      * Returns a reference to the underlying value.
      *
