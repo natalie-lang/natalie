@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <functional>
+#include <string.h>
 #include <utility>
 
 namespace TM {
@@ -19,8 +20,9 @@ public:
      * ```
      */
     Optional(const T &value)
-        : m_present { true }
-        , m_value { value } { }
+        : m_present { true } {
+        new (m_value) T { value };
+    }
 
     /**
      * Constructs a new Optional with a value.
@@ -32,8 +34,9 @@ public:
      * ```
      */
     Optional(T &&value)
-        : m_present { true }
-        , m_value { std::move(value) } { }
+        : m_present { true } {
+        new (m_value) T { std::move(value) };
+    }
 
     /**
      * Constructs a new Optional without a value.
@@ -60,7 +63,7 @@ public:
     Optional(const Optional &other)
         : m_present { other.m_present } {
         if (m_present)
-            m_value = other.m_value;
+            *reinterpret_cast<T *>(m_value) = *reinterpret_cast<const T *>(other.m_value);
     }
 
     /**
@@ -74,11 +77,11 @@ public:
      * assert_eq(obj, opt2.value());
      * ```
      */
-    Optional(Optional &&other)
-        : m_present { other.m_present } {
+    Optional(Optional &&other) {
+        m_present = other.m_present;
         if (m_present) {
-            m_value = std::move(other.m_value);
-            other.m_present = false;
+            *reinterpret_cast<T *>(m_value) = std::move(*reinterpret_cast<T *>(other.m_value));
+            other.clear();
         }
     }
 
@@ -100,9 +103,11 @@ public:
      * ```
      */
     Optional<T> &operator=(const Optional<T> &other) {
+        if (m_present)
+            clear();
         m_present = other.m_present;
         if (m_present)
-            m_value = other.m_value;
+            *reinterpret_cast<T *>(m_value) = *reinterpret_cast<const T *>(other.m_value);
         return *this;
     }
 
@@ -120,10 +125,12 @@ public:
      * ```
      */
     Optional<T> &operator=(Optional<T> &&other) {
+        if (m_present)
+            clear();
         m_present = other.m_present;
         if (m_present) {
-            m_value = std::move(other.m_value);
-            other.m_present = false;
+            *reinterpret_cast<T *>(m_value) = std::move(*reinterpret_cast<const T *>(other.m_value));
+            other.clear();
         }
         return *this;
     }
@@ -140,8 +147,10 @@ public:
      * ```
      */
     Optional<T> &operator=(T &&value) {
+        if (m_present)
+            clear();
         m_present = true;
-        m_value = std::move(value);
+        *reinterpret_cast<T *>(m_value) = std::move(value);
         return *this;
     }
 
@@ -163,7 +172,7 @@ public:
      */
     T &value() {
         assert(m_present);
-        return m_value;
+        return *reinterpret_cast<T *>(m_value);
     }
 
     /**
@@ -184,7 +193,7 @@ public:
      */
     T const &value() const {
         assert(m_present);
-        return m_value;
+        return *reinterpret_cast<const T *>(m_value);
     }
 
     /**
@@ -232,7 +241,7 @@ public:
      */
     T value_or(std::function<T()> fallback) const {
         if (present())
-            return value();
+            return *reinterpret_cast<const T *>(m_value);
         else
             return fallback();
     }
@@ -258,7 +267,7 @@ public:
      */
     T &operator*() {
         assert(m_present);
-        return m_value;
+        return *reinterpret_cast<T *>(m_value);
     }
 
     /**
@@ -279,7 +288,7 @@ public:
      */
     T const &operator*() const {
         assert(m_present);
-        return m_value;
+        return *reinterpret_cast<const T *>(m_value);
     }
 
     /**
@@ -300,7 +309,7 @@ public:
      */
     T *operator->() {
         assert(m_present);
-        return &m_value;
+        return reinterpret_cast<T *>(m_value);
     }
 
     /**
@@ -321,7 +330,7 @@ public:
      */
     T const *operator->() const {
         assert(m_present);
-        return &m_value;
+        return reinterpret_cast<const T *>(m_value);
     }
 
     /**
@@ -334,7 +343,13 @@ public:
      * assert_not(opt);
      * ```
      */
-    void clear() { m_present = false; }
+    void clear() {
+        if (m_present) {
+            reinterpret_cast<T *>(m_value)->~T();
+            memset(m_value, 0, sizeof(m_value));
+        }
+        m_present = false;
+    }
 
     /**
      * Returns true if the Optional contains a value.
@@ -363,7 +378,7 @@ public:
 private:
     bool m_present;
 
-    T m_value {};
+    alignas(T) unsigned char m_value[sizeof(T)] {};
 };
 
 }
