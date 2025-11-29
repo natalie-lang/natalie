@@ -18,7 +18,7 @@ jobs:
   output:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - name: diff output
@@ -36,7 +36,7 @@ jobs:
           - group2
           - group3
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - name: run tests
@@ -57,7 +57,7 @@ jobs:
           - group3
           - group4
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - name: install ruby
@@ -93,7 +93,7 @@ jobs:
   self-hosted:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - name: build and partially test self-hosted binary
@@ -101,7 +101,7 @@ jobs:
   asan:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - name: Fix kernel mmap rnd bits for ASan
@@ -114,7 +114,7 @@ jobs:
   gc_stress_test:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - name: Run stress test
