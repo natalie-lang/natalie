@@ -40,7 +40,11 @@ describe "Regexps with encoding modifiers" do
 
   it "warns when using /n with a match string with non-ASCII characters and an encoding other than ASCII-8BIT" do
     NATFIXME 'it warns when using /n with a match string with non-ASCII characters and an encoding other than ASCII-8BIT', exception: SpecFailedException do
-      -> { /./n.match("\303\251".dup.force_encoding('utf-8')) }.should complain(%r{historical binary regexp match /.../n against UTF-8 string})
+      -> {
+        eval <<~RUBY
+        /./n.match("\303\251".dup.force_encoding('utf-8'))
+        RUBY
+      }.should complain(%r{historical binary regexp match /.../n against UTF-8 string})
     end
   end
 

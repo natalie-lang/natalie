@@ -232,7 +232,7 @@ describe "Pattern matching" do
       #case {a: 0, b: 1}
       #in a: 1, b: 1
       #end
-    #}.should raise_error(NoMatchingPatternError, /\{:a=>0, :b=>1\}/)
+    #}.should raise_error(NoMatchingPatternError, error_pattern)
   end
 
   xit "raises NoMatchingPatternError if no pattern matches and evaluates the expression only once" do
@@ -496,7 +496,7 @@ describe "Pattern matching" do
           #in [0, 0] | [0, a]
           #end
         #RUBY
-      #}.should raise_error(SyntaxError, /illegal variable in alternative pattern/)
+      #}.should raise_error(SyntaxError)
     end
 
     xit "support underscore prefixed variables in alternation" do

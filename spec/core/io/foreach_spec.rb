@@ -14,36 +14,38 @@ describe "IO.foreach" do
     IO.foreach(@name) { $..should == @count += 1 }
   end
 
-  describe "when the filename starts with |" do
-    it "gets data from the standard out of the subprocess" do
-      cmd = "|sh -c 'echo hello;echo line2'"
-      platform_is :windows do
-        cmd = "|cmd.exe /C echo hello&echo line2"
-      end
-
-      NATFIXME 'Implement pipe in IO.foreach', exception: NotImplementedError, message: 'no support for pipe in IO.foreach' do
-        suppress_warning do # https://bugs.ruby-lang.org/issues/19630
-          IO.foreach(cmd) { |l| ScratchPad << l }
+  ruby_version_is ""..."4.0" do
+    describe "when the filename starts with |" do
+      it "gets data from the standard out of the subprocess" do
+        cmd = "|sh -c 'echo hello;echo line2'"
+        platform_is :windows do
+          cmd = "|cmd.exe /C echo hello&echo line2"
         end
-        ScratchPad.recorded.should == ["hello\n", "line2\n"]
-      end
-    end
 
-    platform_is_not :windows do
-      it "gets data from a fork when passed -" do
         NATFIXME 'Implement pipe in IO.foreach', exception: NotImplementedError, message: 'no support for pipe in IO.foreach' do
-          parent_pid = $$
-
           suppress_warning do # https://bugs.ruby-lang.org/issues/19630
-            IO.foreach("|-") { |l| ScratchPad << l }
+            IO.foreach(cmd) { |l| ScratchPad << l }
           end
+          ScratchPad.recorded.should == ["hello\n", "line2\n"]
+        end
+      end
 
-          if $$ == parent_pid
-            ScratchPad.recorded.should == ["hello\n", "from a fork\n"]
-          else # child
-            puts "hello"
-            puts "from a fork"
-            exit!
+      platform_is_not :windows do
+        it "gets data from a fork when passed -" do
+          NATFIXME 'Implement pipe in IO.foreach', exception: NotImplementedError, message: 'no support for pipe in IO.foreach' do
+            parent_pid = $$
+
+            suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+              IO.foreach("|-") { |l| ScratchPad << l }
+            end
+
+            if $$ == parent_pid
+              ScratchPad.recorded.should == ["hello\n", "from a fork\n"]
+            else # child
+              puts "hello"
+              puts "from a fork"
+              exit!
+            end
           end
         end
       end

@@ -562,7 +562,7 @@ describe "Regexp with character classes" do
     "\u{16EE}".match(/[[:word:]]/).to_a.should == ["\u{16EE}"]
   end
 
-  ruby_bug "#19417", ""..."3.5" do
+  ruby_bug "#19417", ""..."3.4.6" do
     it "matches Unicode join control characters with [[:word:]]" do
       NATFIXME 'it matches Unicode join control characters with [[:word:]]', exception: SpecFailedException do
         "\u{200C}".match(/[[:word:]]/).to_a.should == ["\u{200C}"]

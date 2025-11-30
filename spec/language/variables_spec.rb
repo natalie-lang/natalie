@@ -369,7 +369,7 @@ describe "Multiple assignment" do
       a.should == []
     end
 
-    ruby_version_is "3.5" do
+    ruby_version_is "4.0" do
       it "converts nil to empty array without calling a method" do
         nil.should_not_receive(:to_a)
 
@@ -378,7 +378,7 @@ describe "Multiple assignment" do
       end
     end
 
-    ruby_version_is ""..."3.5"  do
+    ruby_version_is ""..."4.0"  do
       it "calls #to_a to convert nil to an empty Array" do
         nil.should_receive(:to_a).and_return([])
 

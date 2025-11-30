@@ -55,12 +55,12 @@ describe "Proc#source_location" do
   end
 
   it "works even if the proc was created on the same line" do
-    ruby_version_is(""..."3.5") do
+    ruby_version_is(""..."4.0") do
       proc { true }.source_location.should == [__FILE__, __LINE__]
       Proc.new { true }.source_location.should == [__FILE__, __LINE__]
       -> { true }.source_location.should == [__FILE__, __LINE__]
     end
-    ruby_version_is("3.5") do
+    ruby_version_is("4.0") do
       proc { true }.source_location.should == [__FILE__, __LINE__, 11, __LINE__, 19]
       Proc.new { true }.source_location.should == [__FILE__, __LINE__, 15, __LINE__, 23]
       -> { true }.source_location.should == [__FILE__, __LINE__, 8, __LINE__, 17]
@@ -102,13 +102,13 @@ describe "Proc#source_location" do
   it "works for eval with a given line" do
     proc = eval('-> {}', nil, "foo", 100)
     location = proc.source_location
-    NATFIXME 'Support arguments in eval', exception: SpecFailedException do
-      ruby_version_is(""..."3.5") do
+    ruby_version_is(""..."4.0") do
+      NATFIXME 'Support arguments in eval', exception: SpecFailedException do
         location.should == ["foo", 100]
       end
-      ruby_version_is("3.5") do
-        location.should == ["foo", 100, 2, 100, 5]
-      end
+    end
+    ruby_version_is("4.0") do
+      location.should == ["foo", 100, 2, 100, 5]
     end
   end
 end

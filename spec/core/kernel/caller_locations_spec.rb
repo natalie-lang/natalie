@@ -88,7 +88,7 @@ describe 'Kernel#caller_locations' do
       end
     end
 
-    ruby_version_is "3.4"..."3.5" do
+    ruby_version_is "3.4"..."4.0" do
       it "includes core library methods defined in Ruby" do
         file, line = Kernel.instance_method(:tap).source_location
         file.should.start_with?('<internal:')
@@ -100,7 +100,7 @@ describe 'Kernel#caller_locations' do
       end
     end
 
-    ruby_version_is "3.5" do
+    ruby_version_is "4.0" do
       it "does not include core library methods defined in Ruby" do
         file, line = Kernel.instance_method(:tap).source_location
         file.should.start_with?('<internal:')

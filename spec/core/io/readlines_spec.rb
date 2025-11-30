@@ -174,50 +174,52 @@ describe "IO.readlines" do
     $_.should == "test"
   end
 
-  describe "when passed a string that starts with a |" do
-    it "gets data from the standard out of the subprocess" do
-      NATFIXME 'Implement pipe in IO.readlines', exception: NotImplementedError, message: 'no support for pipe in IO.readlines' do
-        cmd = "|sh -c 'echo hello;echo line2'"
-        platform_is :windows do
-          cmd = "|cmd.exe /C echo hello&echo line2"
-        end
-
-        lines = nil
-        suppress_warning do # https://bugs.ruby-lang.org/issues/19630
-          lines = IO.readlines(cmd)
-        end
-        lines.should == ["hello\n", "line2\n"]
-      end
-    end
-
-    platform_is_not :windows do
-      it "gets data from a fork when passed -" do
+  ruby_version_is ""..."4.0" do
+    describe "when passed a string that starts with a |" do
+      it "gets data from the standard out of the subprocess" do
         NATFIXME 'Implement pipe in IO.readlines', exception: NotImplementedError, message: 'no support for pipe in IO.readlines' do
+          cmd = "|sh -c 'echo hello;echo line2'"
+          platform_is :windows do
+            cmd = "|cmd.exe /C echo hello&echo line2"
+          end
+
           lines = nil
           suppress_warning do # https://bugs.ruby-lang.org/issues/19630
-            lines = IO.readlines("|-")
+            lines = IO.readlines(cmd)
           end
+          lines.should == ["hello\n", "line2\n"]
+        end
+      end
 
-          if lines # parent
-            lines.should == ["hello\n", "from a fork\n"]
-          else
-            puts "hello"
-            puts "from a fork"
-            exit!
+      platform_is_not :windows do
+        it "gets data from a fork when passed -" do
+          NATFIXME 'Implement pipe in IO.readlines', exception: NotImplementedError, message: 'no support for pipe in IO.readlines' do
+            lines = nil
+            suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+              lines = IO.readlines("|-")
+            end
+
+            if lines # parent
+              lines.should == ["hello\n", "from a fork\n"]
+            else
+              puts "hello"
+              puts "from a fork"
+              exit!
+            end
           end
         end
       end
     end
-  end
 
-  ruby_version_is "3.3" do
-    # https://bugs.ruby-lang.org/issues/19630
-    it "warns about deprecation given a path with a pipe" do
-      cmd = "|echo ok"
-      NATFIXME 'Implement pipe in IO.readlines', exception: NotImplementedError, message: 'no support for pipe in IO.readlines' do
-        -> {
-          IO.readlines(cmd)
-        }.should complain(/IO process creation with a leading '\|'/)
+    ruby_version_is "3.3" do
+      # https://bugs.ruby-lang.org/issues/19630
+      it "warns about deprecation given a path with a pipe" do
+        cmd = "|echo ok"
+        NATFIXME 'Implement pipe in IO.readlines', exception: NotImplementedError, message: 'no support for pipe in IO.readlines' do
+          -> {
+            IO.readlines(cmd)
+          }.should complain(/IO process creation with a leading '\|'/)
+        end
       end
     end
   end

@@ -238,7 +238,7 @@ describe "IO.write" do
       end
     end
 
-    ruby_version_is "3.3" do
+    ruby_version_is "3.3"..."4.0" do
       # https://bugs.ruby-lang.org/issues/19630
       it "warns about deprecation given a path with a pipe" do
         NATFIXME 'Implement pipe in IO.write', exception: NotImplementedError, message: 'no support for pipe in IO.write' do
