@@ -60,6 +60,9 @@ module CGI::Util
   #   string = CGI.unescapeURIComponent("%27Stop%21%27+said%20Fred")
   #      # => "'Stop!'+said Fred"
   def unescapeURIComponent(string, encoding = @@accept_charset)
+    # NATALIE ruby converts this in a c extension
+    __inline__ 'string_var = string_var.to_str2(env)'
+    # END NATALIE
     str = string.b
     str.gsub!(/((?:%[0-9a-fA-F]{2})+)/) do |m|
       [m.delete('%')].pack('H*')
@@ -192,7 +195,7 @@ module CGI::Util
   def escapeElement(string, *elements)
     elements = elements[0] if elements[0].kind_of?(Array)
     unless elements.empty?
-      string.gsub(/<\/?(?:#{elements.join("|")})(?!\w)(?:.|\n)*?>/i) do
+      string.gsub(/<\/?(?:#{elements.join("|")})\b[^<>]*+>?/im) do
         CGI.escapeHTML($&)
       end
     else
@@ -212,7 +215,7 @@ module CGI::Util
   def unescapeElement(string, *elements)
     elements = elements[0] if elements[0].kind_of?(Array)
     unless elements.empty?
-      string.gsub(/&lt;\/?(?:#{elements.join("|")})(?!\w)(?:.|\n)*?&gt;/i) do
+      string.gsub(/&lt;\/?(?:#{elements.join("|")})\b(?>[^&]+|&(?![gl]t;)\w+;)*(?:&gt;)?/im) do
         unescapeHTML($&)
       end
     else
