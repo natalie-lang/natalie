@@ -51,11 +51,6 @@ class StringScanner
     @pos >= @string.size
   end
 
-  def empty?
-    warn('warning: StringScanner#empty? is obsolete; use #eos? instead') if $VERBOSE
-    eos?
-  end
-
   def fixed_anchor?
     @fixed_anchor
   end
@@ -181,11 +176,6 @@ class StringScanner
     @string.bytes[@pos...(@pos + length)].map(&:chr).join
   end
 
-  def peep(length)
-    warn('warning: StringScanner#peep is obsolete; use #peek instead') if $VERBOSE
-    peek(length)
-  end
-
   def peek_byte
     @string.bytes[@pos]
   end
@@ -215,11 +205,6 @@ class StringScanner
     @prev_pos = @pos
     @pos += 1
     @matched = c
-  end
-
-  def getbyte
-    warn('warning: StringScanner#getbyte is obsolete; use #get_byte instead') if $VERBOSE
-    get_byte
   end
 
   def [](index)
@@ -298,11 +283,6 @@ class StringScanner
     rest.size
   end
 
-  def restsize
-    warn('warning: StringScanner#restsize is obsolete; use #rest_size instead') if $VERBOSE
-    rest_size
-  end
-
   def rest?
     @pos < @string.size
   end
@@ -319,11 +299,6 @@ class StringScanner
 
   def terminate
     @pos = @string.size
-  end
-
-  def clear
-    warn('warning: StringScanner#clear is obsolete; use #terminate instead') if $VERBOSE
-    terminate
   end
 
   def self.must_C_version
