@@ -4,6 +4,7 @@ test/tmp
 coverage-report
 .cache
 bin/nat
+Gemfile.lock
 /rubyspec_temp
 /master
 .bundle

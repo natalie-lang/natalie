@@ -38,7 +38,7 @@ COPY .gitmodules .gitmodules
 COPY .clang-tidy .clang-tidy
 RUN git submodule update --init --recursive
 
-COPY Gemfile Gemfile.lock /natalie/
+COPY Gemfile /natalie/
 RUN bundle install
 
 ARG CC=gcc

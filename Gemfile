@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gem 'ffi'
 gem 'fiddle'
-gem 'minitest'
+gem 'minitest', '~> 5.0'
 gem 'minitest-reporters'
 gem 'rake'
 
