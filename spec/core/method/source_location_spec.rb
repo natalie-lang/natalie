@@ -113,13 +113,13 @@ describe "Method#source_location" do
       eval('def self.m; end', nil, "foo", 100)
     end
     location = c.method(:m).source_location
-    NATFIXME 'works for eval with a given line', exception: SpecFailedException do
-      ruby_version_is(""..."3.5") do
+    ruby_version_is(""..."4.0") do
+      NATFIXME 'works for eval with a given line', exception: SpecFailedException do
         location.should == ["foo", 100]
       end
-      ruby_version_is("3.5") do
-        location.should == ["foo", 100, 0, 100, 15]
-      end
+    end
+    ruby_version_is("4.0") do
+      location.should == ["foo", 100, 0, 100, 15]
     end
   end
 

@@ -116,6 +116,12 @@ describe "Kernel#warn" do
       end
     end
 
+    it "doesn't show the caller when the uplevel is `nil`" do
+      w = KernelSpecs::WarnInNestedCall.new
+
+      -> { w.f4("foo", nil) }.should output(nil, "foo\n")
+    end
+
     guard -> { Kernel.instance_method(:tap).source_location } do
       it "skips <internal: core library methods defined in Ruby" do
         file, line = Kernel.instance_method(:tap).source_location

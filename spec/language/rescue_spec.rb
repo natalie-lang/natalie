@@ -136,10 +136,14 @@ describe "The rescue keyword" do
 
     it 'captures successfully at the top-level' do
       ScratchPad.record []
+      loaded_features = $".dup
+      begin
+        require_relative 'fixtures/rescue/top_level'
 
-      require_relative 'fixtures/rescue/top_level'
-
-      ScratchPad.recorded.should == ["message"]
+        ScratchPad.recorded.should == ["message"]
+      ensure
+        $".replace loaded_features
+      end
     end
   end
 
@@ -478,7 +482,7 @@ describe "The rescue keyword" do
         rescue rescuer
         end
       }.should raise_error(TypeError) { |e|
-          e.message.should =~ /class or module required for rescue clause/
+        e.message.should =~ /class or module required for rescue clause/
       }
     end
   end
@@ -492,7 +496,7 @@ describe "The rescue keyword" do
         rescue *rescuer
         end
       }.should raise_error(TypeError) { |e|
-          e.message.should =~ /class or module required for rescue clause/
+        e.message.should =~ /class or module required for rescue clause/
       }
     end
   end

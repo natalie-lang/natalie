@@ -143,7 +143,7 @@ describe :kernel_raise, shared: true do
     end
   end
 
-  ruby_version_is "3.5" do
+  ruby_version_is "4.0" do
     it "allows cause keyword argument" do
       cause = StandardError.new("original error")
       result = nil
@@ -274,7 +274,7 @@ describe :kernel_raise, shared: true do
 end
 
 describe :kernel_raise_across_contexts, shared: true do
-  ruby_version_is "3.5" do
+  ruby_version_is "4.0" do
     describe "with cause keyword argument" do
       it "uses the cause from the calling context" do
         original_cause = nil

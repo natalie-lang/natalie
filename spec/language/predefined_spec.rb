@@ -1,4 +1,5 @@
 require_relative '../spec_helper'
+require_relative '../core/exception/shared/set_backtrace'
 require 'stringio'
 
 # The following tables are excerpted from Programming Ruby: The Pragmatic Programmer's Guide'
@@ -631,6 +632,18 @@ describe "Predefined global $@" do
     end
   end
 
+  # NATFIXME $@ is a read-only variable
+  #it_behaves_like :exception_set_backtrace, -> backtrace {
+    #exception = nil
+    #begin
+      #raise
+    #rescue
+      #$@ = backtrace
+      #exception = $!
+    #end
+    #exception
+  #}
+
   it "cannot be assigned when there is no a rescued exception" do
     NATFIXME 'it cannot be assigned when there is no a rescued exception', exception: SpecFailedException, message: /should have raised ArgumentError,/ do
       -> {
@@ -687,7 +700,7 @@ describe "Predefined global $/" do
     $VERBOSE = @verbose
   end
 
-  ruby_version_is ""..."3.5" do
+  ruby_version_is ""..."4.0" do
     it "can be assigned a String" do
       str = +"abc"
       $/ = str
@@ -695,7 +708,7 @@ describe "Predefined global $/" do
     end
   end
 
-  ruby_version_is "3.5" do
+  ruby_version_is "4.0" do
     it "makes a new frozen String from the assigned String" do
       string_subclass = Class.new(String)
       str = string_subclass.new("abc")
@@ -763,7 +776,7 @@ describe "Predefined global $-0" do
     $VERBOSE = @verbose
   end
 
-  ruby_version_is ""..."3.5" do
+  ruby_version_is ""..."4.0" do
     it "can be assigned a String" do
       str = +"abc"
       $-0 = str
@@ -771,7 +784,7 @@ describe "Predefined global $-0" do
     end
   end
 
-  ruby_version_is "3.5" do
+  ruby_version_is "4.0" do
     it "makes a new frozen String from the assigned String" do
       string_subclass = Class.new(String)
       str = string_subclass.new("abc")
@@ -978,7 +991,6 @@ describe "Predefined global $_" do
     end
 
     Thread.pass until running
-
     NATFIXME 'thread-local $_', exception: SpecFailedException do
       $_.should be_nil
     end
@@ -1093,8 +1105,14 @@ describe "Execution variable $:" do
     skip "no sense in ruby itself" if MSpecScript.instance_variable_defined?(:@testing_ruby)
 
     NATFIXME 'it default $LOAD_PATH entries until sitelibdir included have @gem_prelude_index set', exception: SpecFailedException do
-      $:.should.include?(RbConfig::CONFIG['sitelibdir'])
-      idx = $:.index(RbConfig::CONFIG['sitelibdir'])
+      if platform_is :windows
+        # See https://github.com/ruby/setup-ruby/pull/762#issuecomment-2917460440
+        $:.should.find { |e| File.realdirpath(e) == RbConfig::CONFIG['sitelibdir'] }
+        idx = $:.index { |e| File.realdirpath(e) == RbConfig::CONFIG['sitelibdir'] }
+      else
+        $:.should.include?(RbConfig::CONFIG['sitelibdir'])
+        idx = $:.index(RbConfig::CONFIG['sitelibdir'])
+      end
 
       $:[idx..-1].all? { |p| p.instance_variable_defined?(:@gem_prelude_index) }.should be_true
       $:[0...idx].all? { |p| !p.instance_variable_defined?(:@gem_prelude_index) }.should be_true

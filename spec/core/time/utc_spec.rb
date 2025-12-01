@@ -59,12 +59,20 @@ describe "Time#utc?" do
     NATFIXME 'it does not treat time with +00:00 offset as UTC', exception: SpecFailedException do
       Time.new(2022, 1, 1, 0, 0, 0, "+00:00").utc?.should == false
     end
+    NATFIXME 'Implement Time#localtime', exception: NoMethodError, message: "undefined method 'localtime' for an instance of Time" do
+      Time.now.localtime("+00:00").utc?.should == false
+    end
+    Time.at(Time.now, in: "+00:00").utc?.should == false
   end
 
   it "does not treat time with 0 offset as UTC" do
     NATFIXME 'it does not treat time with 0 offset as UTC', exception: SpecFailedException do
       Time.new(2022, 1, 1, 0, 0, 0, 0).utc?.should == false
     end
+    NATFIXME 'Implement Time#localtime', exception: NoMethodError, message: "undefined method 'localtime' for an instance of Time" do
+      Time.now.localtime(0).utc?.should == false
+    end
+    Time.at(Time.now, in: 0).utc?.should == false
   end
 end
 

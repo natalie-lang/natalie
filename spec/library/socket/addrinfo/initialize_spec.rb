@@ -569,23 +569,21 @@ describe "Addrinfo#initialize" do
     end
   end
 
-  with_feature :unix_socket do
-    describe 'using separate arguments for a Unix socket' do
-      before do
-        @sockaddr = Socket.pack_sockaddr_un('socket')
-      end
+  describe 'using separate arguments for a Unix socket' do
+    before do
+      @sockaddr = Socket.pack_sockaddr_un('socket')
+    end
 
-      it 'returns an Addrinfo with the correct unix path' do
-        Addrinfo.new(@sockaddr).unix_path.should == 'socket'
-      end
+    it 'returns an Addrinfo with the correct unix path' do
+      Addrinfo.new(@sockaddr).unix_path.should == 'socket'
+    end
 
-      it 'returns an Addrinfo with the correct protocol family' do
-        Addrinfo.new(@sockaddr).pfamily.should == Socket::PF_UNSPEC
-      end
+    it 'returns an Addrinfo with the correct protocol family' do
+      Addrinfo.new(@sockaddr).pfamily.should == Socket::PF_UNSPEC
+    end
 
-      it 'returns an Addrinfo with the correct address family' do
-        Addrinfo.new(@sockaddr).afamily.should == Socket::AF_UNIX
-      end
+    it 'returns an Addrinfo with the correct address family' do
+      Addrinfo.new(@sockaddr).afamily.should == Socket::AF_UNIX
     end
   end
 end
