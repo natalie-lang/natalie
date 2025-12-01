@@ -1,4 +1,4 @@
-ARG IMAGE=ruby:3.1
+ARG IMAGE=ruby:3.4
 FROM $IMAGE
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build-essential clang libclang-dev
@@ -16,7 +16,7 @@ ENV CC=$CC
 ARG CXX=g++
 ENV CXX=$CXX
 
-ENV LLVM_CONFIG=/usr/lib/llvm-14/bin/llvm-config
+ENV LLVM_CONFIG=/usr/lib/llvm-19/bin/llvm-config
 
 COPY Rakefile Rakefile
 COPY include include
