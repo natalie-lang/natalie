@@ -254,14 +254,10 @@ describe :kernel_float, shared: true do
 
     it "does not accept _ before, after or inside the 0x prefix" do
       -> { @object.send(:Float, "_0x10") }.should raise_error(ArgumentError)
-      NATFIXME 'it does not accept _ inside the 0x prefix', exception: SpecFailedException, message: /but instead raised nothing/ do
-        -> { @object.send(:Float, "0_x10") }.should raise_error(ArgumentError)
-      end
+      -> { @object.send(:Float, "0_x10") }.should raise_error(ArgumentError)
       -> { @object.send(:Float, "0x_10") }.should raise_error(ArgumentError)
       @object.send(:Float, "_0x10", exception: false).should be_nil
-      NATFIXME 'it does not accept _ inside the 0x prefix', exception: SpecFailedException do
-        @object.send(:Float, "0_x10", exception: false).should be_nil
-      end
+      @object.send(:Float, "0_x10", exception: false).should be_nil
       @object.send(:Float, "0x_10", exception: false).should be_nil
     end
 
