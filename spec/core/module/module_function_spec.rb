@@ -123,7 +123,7 @@ describe "Module#module_function with specific method names" do
   end
 
   it "can make accessible private methods" do # JRUBY-4214
-    NATFIXME 'module_function + require', exception: NameError, message: "undefined method `require'" do
+    NATFIXME 'module_function + require', exception: NameError, message: "undefined method 'require'" do
       m = Module.new do
         module_function :require
       end

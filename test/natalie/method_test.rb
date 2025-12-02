@@ -648,7 +648,7 @@ describe 'method with keyword args' do
     it 'raises an error when the class method is not defined' do
       class Foo
       end
-      -> { Foo.not_a_method }.should raise_error(NoMethodError, "undefined method `not_a_method' for class Foo")
+      -> { Foo.not_a_method }.should raise_error(NoMethodError, "undefined method 'not_a_method' for class Foo")
     end
 
     it 'raises an error when the module method is not defined' do

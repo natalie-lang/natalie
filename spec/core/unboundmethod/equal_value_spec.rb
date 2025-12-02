@@ -132,8 +132,7 @@ describe "UnboundMethod#==" do
       end
     end
 
-    # NATFIXME: It looks like we still use the old style `' quotes for the name here
-    NATFIXME 'It cannot find the new method', exception: NameError, message: "undefined method `new' for class `Class'" do
+    NATFIXME 'It cannot find the new method', exception: NameError, message: "undefined method 'new' for class 'Class'" do
       c.method(:new).should == Class.instance_method(:new).bind(c)
     end
   end
