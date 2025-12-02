@@ -4169,6 +4169,8 @@ Value StringObject::convert_float() {
 
     if (m_string[0] == '0' && (m_string[1] == 'x' || m_string[1] == 'X') && m_string[2] == '_')
         return Value::nil();
+    if (m_string[0] == '0' && m_string[1] == '_' && (m_string[2] == 'x' || m_string[2] == 'X'))
+        return Value::nil();
 
     if (!check_underscores('p') || !check_underscores('e'))
         return Value::nil();
