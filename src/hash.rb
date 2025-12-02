@@ -62,7 +62,11 @@ class Hash
   def reject(&block)
     return enum_for(:reject) { size } unless block_given?
 
-    dup.tap { |new_hash| new_hash.reject!(&block) }
+    result = {}
+    result.compare_by_identity if compare_by_identity?
+    each_with_object(result) do |(key, value), hash|
+      hash[key] = value unless block.call(key, value)
+    end
   end
 
   def reject!(&block)
@@ -84,7 +88,11 @@ class Hash
   def select(&block)
     return enum_for(:select) { size } unless block_given?
 
-    dup.tap { |new_hash| new_hash.select!(&block) }
+    result = {}
+    result.compare_by_identity if compare_by_identity?
+    each_with_object(result) do |(key, value), hash|
+      hash[key] = value if block.call(key, value)
+    end
   end
   alias filter select
 
@@ -162,7 +170,8 @@ class Hash
   def transform_values
     return enum_for(:transform_values) { size } unless block_given?
 
-    new_hash = {}
+    new_hash = Hash.new(capacity: size)
+    new_hash.compare_by_identity if compare_by_identity?
     each { |key, value| new_hash[key] = yield(value) }
     new_hash
   end

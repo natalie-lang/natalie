@@ -58,9 +58,7 @@ describe "Hash#transform_values" do
   it "retains compare_by_identity flag" do
     h = { a: 9, c: 4 }.compare_by_identity
     h2 = h.transform_values(&:succ)
-    NATFIXME 'it retains compare_by_identity flag', exception: SpecFailedException do
-      h2.compare_by_identity?.should == true
-    end
+    h2.compare_by_identity?.should == true
   end
 end
 

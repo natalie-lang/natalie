@@ -240,6 +240,7 @@ Value HashObject::square_new(Env *env, ClassObject *klass, Args &&args) {
             auto hash = HashObject::create(env, *value.as_hash());
             hash->m_default_proc = nullptr;
             hash->m_default_value = Value::nil();
+            hash->m_is_comparing_by_identity = false;
             hash->m_klass = klass;
             return hash;
         } else {
@@ -530,6 +531,8 @@ Value HashObject::each(Env *env, Block *block) {
 
 Value HashObject::except(Env *env, Args &&args) {
     HashObject *new_hash = HashObject::create();
+    if (is_comparing_by_identity())
+        new_hash->m_is_comparing_by_identity = true;
     for (auto &node : *this) {
         new_hash->put(env, node.key, node.val);
     }
@@ -712,6 +715,8 @@ Value HashObject::merge_in_place(Env *env, Args &&args, Block *block) {
 
 Value HashObject::slice(Env *env, Args &&args) {
     auto new_hash = HashObject::create();
+    if (is_comparing_by_identity())
+        new_hash->m_is_comparing_by_identity = true;
     for (size_t i = 0; i < args.size(); i++) {
         Value key = args[i];
         auto value = this->get(env, key);
