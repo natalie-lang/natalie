@@ -166,7 +166,8 @@ class Hash
   def transform_values
     return enum_for(:transform_values) { size } unless block_given?
 
-    new_hash = {}
+    new_hash = Hash.new(capacity: size)
+    new_hash.compare_by_identity if compare_by_identity?
     each { |key, value| new_hash[key] = yield(value) }
     new_hash
   end
