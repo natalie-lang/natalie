@@ -531,6 +531,8 @@ Value HashObject::each(Env *env, Block *block) {
 
 Value HashObject::except(Env *env, Args &&args) {
     HashObject *new_hash = HashObject::create();
+    if (is_comparing_by_identity())
+        new_hash->m_is_comparing_by_identity = true;
     for (auto &node : *this) {
         new_hash->put(env, node.key, node.val);
     }
