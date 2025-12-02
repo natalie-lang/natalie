@@ -62,7 +62,11 @@ class Hash
   def reject(&block)
     return enum_for(:reject) { size } unless block_given?
 
-    dup.tap { |new_hash| new_hash.reject!(&block) }
+    result = {}
+    result.compare_by_identity if compare_by_identity?
+    each_with_object(result) do |(key, value), hash|
+      hash[key] = value unless block.call(key, value)
+    end
   end
 
   def reject!(&block)
