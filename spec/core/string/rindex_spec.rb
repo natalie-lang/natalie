@@ -207,7 +207,7 @@ describe "String#rindex with String" do
   end
 
   it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
-    NATFIXME 'Implement ISO-2022-JP', exception: ArgumentError, message: 'unknown encoding name - "ISO-2022-JP"' do
+    NATFIXME 'Implement ISO-2022-JP', exception: ArgumentError, message: 'unknown encoding name - ISO-2022-JP' do
       str = 'abc'.dup.force_encoding("ISO-2022-JP")
       pattern = 'b'.dup.force_encoding("EUC-JP")
 

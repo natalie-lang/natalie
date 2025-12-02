@@ -44,9 +44,7 @@ describe "CGI.unescapeURIComponent" do
   end
 
   it "raises ArgumentError if specified encoding is unknown" do
-    NATFIXME 'Fix error message', exception: SpecFailedException, message: /but the message was/ do
-      -> { CGI.unescapeURIComponent("ABC", "ISO-JOKE-1") }.should raise_error(ArgumentError, "unknown encoding name - ISO-JOKE-1")
-    end
+    -> { CGI.unescapeURIComponent("ABC", "ISO-JOKE-1") }.should raise_error(ArgumentError, "unknown encoding name - ISO-JOKE-1")
   end
 
   ruby_version_is ""..."4.0" do

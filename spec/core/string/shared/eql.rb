@@ -37,7 +37,7 @@ describe :string_eql_value, shared: true do
   end
 
   it "returns true when comparing 2 empty strings but one is not ASCII-compatible" do
-    NATFIXME 'Implement ISO-2022-JP', exception: ArgumentError, message: 'unknown encoding name - "iso-2022-jp"' do
+    NATFIXME 'Implement ISO-2022-JP', exception: ArgumentError, message: 'unknown encoding name - iso-2022-jp' do
       "".send(@method, "".dup.force_encoding('iso-2022-jp')).should == true
     end
   end
