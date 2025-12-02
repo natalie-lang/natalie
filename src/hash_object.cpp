@@ -240,6 +240,7 @@ Value HashObject::square_new(Env *env, ClassObject *klass, Args &&args) {
             auto hash = HashObject::create(env, *value.as_hash());
             hash->m_default_proc = nullptr;
             hash->m_default_value = Value::nil();
+            hash->m_is_comparing_by_identity = false;
             hash->m_klass = klass;
             return hash;
         } else {

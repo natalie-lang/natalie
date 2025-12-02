@@ -120,12 +120,10 @@ describe "Hash.[]" do
   ruby_version_is '3.3' do
     it "does not retain compare_by_identity flag" do
       hash = { a: 1 }.compare_by_identity
-      NATFIXME 'it does not retain compare_by_identity flag', exception: SpecFailedException do
-        Hash[hash].compare_by_identity?.should == false
+      Hash[hash].compare_by_identity?.should == false
 
-        hash = {}.compare_by_identity
-        Hash[hash].compare_by_identity?.should == false
-      end
+      hash = {}.compare_by_identity
+      Hash[hash].compare_by_identity?.should == false
     end
   end
 end
