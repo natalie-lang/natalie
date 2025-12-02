@@ -115,7 +115,7 @@ describe :string_encode, shared: true do
     end
 
     it "replaces invalid characters when replacing Emacs-Mule encoded strings" do
-      NATFIXME 'need Emacs_Mule encoding', exception: ArgumentError, message: 'unknown encoding name - "Emacs-Mule"' do
+      NATFIXME 'need Emacs_Mule encoding', exception: ArgumentError, message: 'unknown encoding name - Emacs-Mule' do
         got = [0x80].pack('C').force_encoding('Emacs-Mule').send(@method, invalid: :replace)
 
         got.should == "?".encode('Emacs-Mule')

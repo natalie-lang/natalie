@@ -581,7 +581,7 @@ end
 describe "IO.read with BOM" do
   it "reads a file without a bom" do
     name = fixture __FILE__, "no_bom_UTF-8.txt"
-    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|utf-8"' do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - BOM|utf-8' do
       result = File.read(name, mode: "rb:BOM|utf-8")
       result.force_encoding("binary").should == "UTF-8\n"
     end
@@ -589,7 +589,7 @@ describe "IO.read with BOM" do
 
   it "reads a file with a utf-8 bom" do
     name = fixture __FILE__, "bom_UTF-8.txt"
-    NATFIXME 'BOM UTF-16 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|utf-16le"' do
+    NATFIXME 'BOM UTF-16 encoding', exception: ArgumentError, message: 'unknown encoding name - BOM|utf-16le' do
       result = File.read(name, mode: "rb:BOM|utf-16le")
       result.force_encoding("binary").should == "UTF-8\n"
     end
@@ -597,7 +597,7 @@ describe "IO.read with BOM" do
 
   it "reads a file with a utf-16le bom" do
     name = fixture __FILE__, "bom_UTF-16LE.txt"
-    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|utf-8"' do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - BOM|utf-8' do
       result = File.read(name, mode: "rb:BOM|utf-8")
       result.force_encoding("binary").should == "U\x00T\x00F\x00-\x001\x006\x00L\x00E\x00\n\x00"
     end
@@ -605,7 +605,7 @@ describe "IO.read with BOM" do
 
   it "reads a file with a utf-16be bom" do
     name = fixture __FILE__, "bom_UTF-16BE.txt"
-    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|utf-8"' do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - BOM|utf-8' do
       result = File.read(name, mode: "rb:BOM|utf-8")
       result.force_encoding("binary").should == "\x00U\x00T\x00F\x00-\x001\x006\x00B\x00E\x00\n"
     end
@@ -613,7 +613,7 @@ describe "IO.read with BOM" do
 
   it "reads a file with a utf-32le bom" do
     name = fixture __FILE__, "bom_UTF-32LE.txt"
-    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|utf-8"' do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - BOM|utf-8' do
       result = File.read(name, mode: "rb:BOM|utf-8")
       result.force_encoding("binary").should == "U\x00\x00\x00T\x00\x00\x00F\x00\x00\x00-\x00\x00\x003\x00\x00\x002\x00\x00\x00L\x00\x00\x00E\x00\x00\x00\n\x00\x00\x00"
     end
@@ -621,7 +621,7 @@ describe "IO.read with BOM" do
 
   it "reads a file with a utf-32be bom" do
     name = fixture __FILE__, "bom_UTF-32BE.txt"
-    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|utf-8"' do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - BOM|utf-8' do
       result = File.read(name, mode: "rb:BOM|utf-8")
       result.force_encoding("binary").should == "\x00\x00\x00U\x00\x00\x00T\x00\x00\x00F\x00\x00\x00-\x00\x00\x003\x00\x00\x002\x00\x00\x00B\x00\x00\x00E\x00\x00\x00\n"
     end

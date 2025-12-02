@@ -77,7 +77,7 @@ describe "String#<=> with String" do
   end
 
   it "returns 0 when comparing 2 empty strings but one is not ASCII-compatible" do
-    NATFIXME 'Implement ISO-2022-JP', exception: ArgumentError, message: 'unknown encoding name - "iso-2022-jp"' do
+    NATFIXME 'Implement ISO-2022-JP', exception: ArgumentError, message: 'unknown encoding name - iso-2022-jp' do
       ("" <=> "".dup.force_encoding('iso-2022-jp')).should == 0
     end
   end

@@ -152,7 +152,7 @@ describe "IO.pipe" do
   end
 
   it "accepts 'bom|' prefix for external encoding" do
-    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|UTF-8"' do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - BOM|UTF-8' do
       IO.pipe("BOM|UTF-8") do |r, w|
         r.external_encoding.should == Encoding::UTF_8
         r.internal_encoding.should be_nil
@@ -168,7 +168,7 @@ describe "IO.pipe" do
   end
 
   it "accepts 'bom|' prefix for external encoding when specifying 'external:internal'" do
-    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|UTF-8"' do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - BOM|UTF-8' do
       IO.pipe("BOM|UTF-8:ISO-8859-1") do |r, w|
         r.external_encoding.should == Encoding::UTF_8
         r.internal_encoding.should == Encoding::ISO_8859_1
@@ -184,7 +184,7 @@ describe "IO.pipe" do
   end
 
   it "accepts an options Hash with one String encoding argument" do
-    NATFIXME 'keyword arguments', exception: ArgumentError, message: 'unknown encoding name - "BOM|UTF-8:ISO-8859-1"' do
+    NATFIXME 'keyword arguments', exception: ArgumentError, message: 'unknown encoding name - BOM|UTF-8:ISO-8859-1' do
       IO.pipe("BOM|UTF-8:ISO-8859-1", invalid: :replace) do |r, w|
         r.external_encoding.should == Encoding::UTF_8
         r.internal_encoding.should == Encoding::ISO_8859_1

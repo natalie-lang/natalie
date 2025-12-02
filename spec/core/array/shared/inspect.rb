@@ -88,7 +88,7 @@ describe :array_inspect, shared: true do
     end
 
     it "use US-ASCII encoding if the default external encoding is not ascii compatible" do
-      NATFIXME 'Add UTF-32 encoding alias', exception: ArgumentError, message: /unknown encoding name - "UTF-32"/ do
+      NATFIXME 'Add UTF-32 encoding alias', exception: ArgumentError, message: /unknown encoding name - UTF-32/ do
         Encoding.default_external = Encoding.find('UTF-32')
 
         utf8 = "utf8".encode("UTF-8")
