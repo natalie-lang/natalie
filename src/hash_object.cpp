@@ -712,6 +712,8 @@ Value HashObject::merge_in_place(Env *env, Args &&args, Block *block) {
 
 Value HashObject::slice(Env *env, Args &&args) {
     auto new_hash = HashObject::create();
+    if (is_comparing_by_identity())
+        new_hash->m_is_comparing_by_identity = true;
     for (size_t i = 0; i < args.size(); i++) {
         Value key = args[i];
         auto value = this->get(env, key);
