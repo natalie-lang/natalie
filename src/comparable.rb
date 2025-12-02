@@ -47,7 +47,7 @@ module Comparable
       end
     elsif args.first.is_a?(Range)
       range = args.first
-      raise ArgumentError, 'cannot clamp with an exclusive range' if range.exclude_end?
+      raise ArgumentError, 'cannot clamp with an exclusive range' if !range.end.nil? && range.exclude_end?
       clamp(range.begin, range.end)
     elsif args.length == 1
       raise TypeError, "wrong argument type #{args.first.inspect} (expected Range)"

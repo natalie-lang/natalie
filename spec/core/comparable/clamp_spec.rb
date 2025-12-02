@@ -119,9 +119,7 @@ describe 'Comparable#clamp' do
       one = ComparableSpecs::WithOnlyCompareDefined.new(1)
       c = ComparableSpecs::Weird.new(2)
 
-      NATFIXME 'it works with exclusive range', exception: ArgumentError, message: 'cannot clamp with an exclusive range' do
-        c.clamp(one...).should equal(c)
-      end
+      c.clamp(one...).should equal(c)
     end
   end
 
@@ -186,9 +184,7 @@ describe 'Comparable#clamp' do
     it 'works with exclusive range' do
       c = ComparableSpecs::Weird.new(2)
 
-      NATFIXME 'it works with exclusive range', exception: ArgumentError, message: 'cannot clamp with an exclusive range' do
-        c.clamp(nil...nil).should equal(c)
-      end
+      c.clamp(nil...nil).should equal(c)
     end
   end
 end
