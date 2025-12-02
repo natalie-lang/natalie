@@ -88,7 +88,11 @@ class Hash
   def select(&block)
     return enum_for(:select) { size } unless block_given?
 
-    dup.tap { |new_hash| new_hash.select!(&block) }
+    result = {}
+    result.compare_by_identity if compare_by_identity?
+    each_with_object(result) do |(key, value), hash|
+      hash[key] = value if block.call(key, value)
+    end
   end
   alias filter select
 
