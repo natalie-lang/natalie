@@ -274,7 +274,7 @@ module ModuleSpecs
     module_function :foo2
   end
 
-  NATFIXME 'Implement Module.nesting', exception: NoMethodError, message: /undefined method [`']nesting'/ do
+  NATFIXME 'Implement Module.nesting', exception: NoMethodError, message: /undefined method 'nesting'/ do
     module Nesting
       @tests = {}
       def self.[](name); @tests[name]; end
@@ -644,7 +644,7 @@ class Object
   def module_specs_public_method_on_object_for_kernel_private; end
 end
 
-NATFIXME 'Allow Kernel to change access modifier of Object instance method', exception: NameError, message: "undefined method `module_specs_public_method_on_object' for module `Kernel'" do
+NATFIXME 'Allow Kernel to change access modifier of Object instance method', exception: NameError, message: "undefined method 'module_specs_public_method_on_object' for module 'Kernel'" do
   module Kernel
     def module_specs_public_method_on_kernel; end
 
@@ -656,6 +656,6 @@ NATFIXME 'Allow Kernel to change access modifier of Object instance method', exc
   end
 end
 
-NATFIXME 'Implement Module.nesting', exception: NoMethodError, message: /undefined method [`']nesting'/ do
+NATFIXME 'Implement Module.nesting', exception: NoMethodError, message: /undefined method 'nesting'/ do
   ModuleSpecs::Nesting[:root_level] = Module.nesting
 end

@@ -622,9 +622,9 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, const 
 void ModuleObject::assert_method_defined(Env *env, SymbolObject *name, MethodInfo method_info) {
     if (!method_info.is_defined()) {
         if (type() == Type::Class)
-            env->raise_name_error(name, "undefined method `{}' for class `{}'", name->string(), inspect_module());
+            env->raise_name_error(name, "undefined method '{}' for class '{}'", name->string(), inspect_module());
         else
-            env->raise_name_error(name, "undefined method `{}' for module `{}'", name->string(), inspect_module());
+            env->raise_name_error(name, "undefined method '{}' for module '{}'", name->string(), inspect_module());
     }
 }
 
