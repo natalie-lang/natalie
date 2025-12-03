@@ -45,14 +45,14 @@ module Comparable
       else
         self
       end
-    elsif args.first.is_a?(Range)
+    elsif args.length == 1 && args.first.is_a?(Range)
       range = args.first
       raise ArgumentError, 'cannot clamp with an exclusive range' if !range.end.nil? && range.exclude_end?
       clamp(range.begin, range.end)
     elsif args.length == 1
       raise TypeError, "wrong argument type #{args.first.inspect} (expected Range)"
     else
-      raise ArgumentError, "wrong number of arguments (given #{args.length.size}, expected 1..2)"
+      raise ArgumentError, "wrong number of arguments (given #{args.length}, expected 1..2)"
     end
   end
 end
