@@ -33,14 +33,14 @@ module Comparable
     if args.length == 2
       min, max = args
 
-      if !min.nil?
+      if !min.nil? && !max.nil?
         compared = min <=> max
         raise ArgumentError, 'min argument must be smaller than max argument' if compared.nil? || compared > 0
       end
 
       if !min.nil? && self < min
         min
-      elsif self > max
+      elsif !max.nil? && self > max
         max
       else
         self
