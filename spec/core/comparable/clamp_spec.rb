@@ -76,16 +76,34 @@ describe 'Comparable#clamp' do
     -> { c.clamp(one...two) }.should raise_error(ArgumentError)
   end
 
+  context 'with nil as the max argument' do
+    it 'returns min argument if less than it' do
+      one = ComparableSpecs::WithOnlyCompareDefined.new(1)
+      zero = ComparableSpecs::WithOnlyCompareDefined.new(0)
+      c = ComparableSpecs::Weird.new(0)
+
+      c.clamp(one, nil).should equal(one)
+      c.clamp(zero, nil).should equal(c)
+    end
+
+    it 'always returns self if greater than min argument' do
+      one = ComparableSpecs::WithOnlyCompareDefined.new(1)
+      two = ComparableSpecs::WithOnlyCompareDefined.new(2)
+      c = ComparableSpecs::Weird.new(2)
+
+      c.clamp(one, nil).should equal(c)
+      c.clamp(two, nil).should equal(c)
+    end
+  end
+
   context 'with endless range' do
     it 'returns minimum value of the range parameters if less than it' do
       one = ComparableSpecs::WithOnlyCompareDefined.new(1)
       zero = ComparableSpecs::WithOnlyCompareDefined.new(0)
       c = ComparableSpecs::Weird.new(0)
 
-      NATFIXME 'it returns minimum value of the range parameters if less than it', exception: NoMethodError, message: "undefined method 'value' for nil" do
-        c.clamp(one..).should equal(one)
-        c.clamp(zero..).should equal(c)
-      end
+      c.clamp(one..).should equal(one)
+      c.clamp(zero..).should equal(c)
     end
 
     it 'always returns self if greater than minimum value of the range parameters' do
@@ -93,19 +111,33 @@ describe 'Comparable#clamp' do
       two = ComparableSpecs::WithOnlyCompareDefined.new(2)
       c = ComparableSpecs::Weird.new(2)
 
-      NATFIXME 'it always returns self if greater than minimum value of the range parameters', exception: NoMethodError, message: "undefined method 'value' for nil" do
-        c.clamp(one..).should equal(c)
-        c.clamp(two..).should equal(c)
-      end
+      c.clamp(one..).should equal(c)
+      c.clamp(two..).should equal(c)
     end
 
     it 'works with exclusive range' do
       one = ComparableSpecs::WithOnlyCompareDefined.new(1)
       c = ComparableSpecs::Weird.new(2)
 
-      NATFIXME 'it works with exclusive range', exception: ArgumentError, message: 'cannot clamp with an exclusive range' do
-        c.clamp(one...).should equal(c)
-      end
+      c.clamp(one...).should equal(c)
+    end
+  end
+
+  context 'with nil as the min argument' do
+    it 'returns max argument if greater than it' do
+      one = ComparableSpecs::WithOnlyCompareDefined.new(1)
+      c = ComparableSpecs::Weird.new(2)
+
+      c.clamp(nil, one).should equal(one)
+    end
+
+    it 'always returns self if less than max argument' do
+      one = ComparableSpecs::WithOnlyCompareDefined.new(1)
+      zero = ComparableSpecs::WithOnlyCompareDefined.new(0)
+      c = ComparableSpecs::Weird.new(0)
+
+      c.clamp(nil, one).should equal(c)
+      c.clamp(nil, zero).should equal(c)
     end
   end
 
@@ -114,9 +146,7 @@ describe 'Comparable#clamp' do
       one = ComparableSpecs::WithOnlyCompareDefined.new(1)
       c = ComparableSpecs::Weird.new(2)
 
-      NATFIXME 'it returns maximum value of the range parameters if greater than it', exception: ArgumentError, message: 'min argument must be smaller than max argument' do
-        c.clamp(..one).should equal(one)
-      end
+      c.clamp(..one).should equal(one)
     end
 
     it 'always returns self if less than maximum value of the range parameters' do
@@ -124,10 +154,8 @@ describe 'Comparable#clamp' do
       zero = ComparableSpecs::WithOnlyCompareDefined.new(0)
       c = ComparableSpecs::Weird.new(0)
 
-      NATFIXME 'it always returns self if less than maximum value of the range parameters', exception: ArgumentError, message: 'min argument must be smaller than max argument' do
-        c.clamp(..one).should equal(c)
-        c.clamp(..zero).should equal(c)
-      end
+      c.clamp(..one).should equal(c)
+      c.clamp(..zero).should equal(c)
     end
 
     it 'raises an Argument error if the range parameter is exclusive' do
@@ -138,21 +166,25 @@ describe 'Comparable#clamp' do
     end
   end
 
+  context 'with nil as the min and the max argument' do
+    it 'always returns self' do
+      c = ComparableSpecs::Weird.new(1)
+
+      c.clamp(nil, nil).should equal(c)
+    end
+  end
+
   context 'with beginless-and-endless range' do
     it 'always returns self' do
       c = ComparableSpecs::Weird.new(1)
 
-      NATFIXME 'it always returns self', exception: NoMethodError, message: "undefined method 'value' for nil" do
-        c.clamp(nil..nil).should equal(c)
-      end
+      c.clamp(nil..nil).should equal(c)
     end
 
     it 'works with exclusive range' do
       c = ComparableSpecs::Weird.new(2)
 
-      NATFIXME 'it works with exclusive range', exception: ArgumentError, message: 'cannot clamp with an exclusive range' do
-        c.clamp(nil...nil).should equal(c)
-      end
+      c.clamp(nil...nil).should equal(c)
     end
   end
 end

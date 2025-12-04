@@ -33,24 +33,26 @@ module Comparable
     if args.length == 2
       min, max = args
 
-      compared = min <=> max
-      raise ArgumentError, 'min argument must be smaller than max argument' if compared.nil? || compared > 0
+      if !min.nil? && !max.nil?
+        compared = min <=> max
+        raise ArgumentError, 'min argument must be smaller than max argument' if compared.nil? || compared > 0
+      end
 
-      if self < min
+      if !min.nil? && self < min
         min
-      elsif self > max
+      elsif !max.nil? && self > max
         max
       else
         self
       end
-    elsif args.first.is_a?(Range)
+    elsif args.length == 1 && args.first.is_a?(Range)
       range = args.first
-      raise ArgumentError, 'cannot clamp with an exclusive range' if range.exclude_end?
+      raise ArgumentError, 'cannot clamp with an exclusive range' if !range.end.nil? && range.exclude_end?
       clamp(range.begin, range.end)
     elsif args.length == 1
       raise TypeError, "wrong argument type #{args.first.inspect} (expected Range)"
     else
-      raise ArgumentError, "wrong number of arguments (given #{args.length.size}, expected 1..2)"
+      raise ArgumentError, "wrong number of arguments (given #{args.length}, expected 1..2)"
     end
   end
 end
