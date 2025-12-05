@@ -2,7 +2,11 @@ class SystemCallError < StandardError
   def initialize(*args)
     if self.class == SystemCallError
       raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0..3)" if args.size > 3
-      msg, errno, location = args
+      msg, errno, location = if args.size == 1
+                               ["Unknown error #{args[0]}", args[0]]
+                             else
+                               args
+                             end
     else
       raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0..2)" if args.size > 2
       msg, location = args

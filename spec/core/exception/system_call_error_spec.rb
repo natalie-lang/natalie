@@ -37,36 +37,32 @@ describe "SystemCallError.new" do
   end
 
   it "accepts single Integer argument as errno" do
-    NATFIXME 'it accepts single Integer argument as errno', exception: TypeError, message: 'no implicit conversion of NilClass into Integer' do
-      SystemCallError.new(-2**24).errno.should == -2**24
-      SystemCallError.new(-1).errno.should == -1
-      SystemCallError.new(0).errno.should == 0
-      SystemCallError.new(@last_known_errno).errno.should == @last_known_errno
-      SystemCallError.new(@unknown_errno).errno.should == @unknown_errno
-      SystemCallError.new(2**24).errno.should == 2**24
-    end
+    SystemCallError.new(-2**24).errno.should == -2**24
+    SystemCallError.new(-1).errno.should == -1
+    SystemCallError.new(0).errno.should == 0
+    SystemCallError.new(@last_known_errno).errno.should == @last_known_errno
+    SystemCallError.new(@unknown_errno).errno.should == @unknown_errno
+    SystemCallError.new(2**24).errno.should == 2**24
   end
 
   it "constructs a SystemCallError for an unknown error number" do
-    NATFIXME 'it constructs a SystemCallError for an unknown error number', exception: TypeError, message: 'no implicit conversion of NilClass into Integer' do
-      SystemCallError.new(-2**24).should be_an_instance_of(SystemCallError)
-      SystemCallError.new(-1).should be_an_instance_of(SystemCallError)
-      SystemCallError.new(@unknown_errno).should be_an_instance_of(SystemCallError)
-      SystemCallError.new(2**24).should be_an_instance_of(SystemCallError)
-    end
+    SystemCallError.new(-2**24).should be_an_instance_of(SystemCallError)
+    SystemCallError.new(-1).should be_an_instance_of(SystemCallError)
+    SystemCallError.new(@unknown_errno).should be_an_instance_of(SystemCallError)
+    SystemCallError.new(2**24).should be_an_instance_of(SystemCallError)
   end
 
   it "constructs the appropriate Errno class" do
-    NATFIXME 'it constructs the appropriate Errno class', exception: TypeError, message: 'no implicit conversion of NilClass into Integer' do
-      e = SystemCallError.new(@example_errno)
-      e.should be_kind_of(SystemCallError)
+    e = SystemCallError.new(@example_errno)
+    e.should be_kind_of(SystemCallError)
+    NATFIXME 'it constructs the appropriate Errno class', exception: SpecFailedException, message: /Invalid argument - Unknown error \d+/ do
       e.should be_an_instance_of(@example_errno_class)
     end
   end
 
   it "sets an error message corresponding to an appropriate Errno class" do
-    NATFIXME 'it sets an error message corresponding to an appropriate Errno class', exception: TypeError, message: 'no implicit conversion of NilClass into Integer' do
-      e = SystemCallError.new(@example_errno)
+    e = SystemCallError.new(@example_errno)
+    NATFIXME 'it sets an error message corresponding to an appropriate Errno class', exception: SpecFailedException, message: /Invalid argument - Unknown error \d+/ do
       e.message.should == 'Invalid argument'
     end
   end
@@ -115,9 +111,7 @@ describe "SystemCallError.new" do
   end
 
   it "sets an 'unknown error' message when an unknown error number" do
-    NATFIXME "it sets an 'unknown error' message when an unknown error number", exception: TypeError, message: 'no implicit conversion of NilClass into Integer' do
-      SystemCallError.new(-1).message.should =~ @some_human_readable
-    end
+    SystemCallError.new(-1).message.should =~ @some_human_readable
   end
 
   it "adds a custom error message to an 'unknown error' message when an unknown error number and a custom message specified" do
@@ -145,7 +139,7 @@ end
 
 describe "SystemCallError#errno" do
   it "returns nil when no errno given" do
-    NATFIXME 'it returns nil when no errno given', exception: TypeError, message: 'no implicit conversion of NilClass into Integer' do
+    NATFIXME 'it returns nil when no errno given', exception: TypeError, message: 'no implicit conversion of String into Integer' do
       SystemCallError.new("message").errno.should == nil
     end
   end
@@ -162,14 +156,12 @@ end
 
 describe "SystemCallError#message" do
   it "returns the default message when no message is given" do
-    NATFIXME 'it returns the default message when no message is given', exception: TypeError, message: 'no implicit conversion of NilClass into Integer' do
-      SystemCallError.new(2**28).message.should =~ @some_human_readable
-    end
+    SystemCallError.new(2**28).message.should =~ @some_human_readable
   end
 
   it "returns the message given as an argument to new" do
     SystemCallError.new("message", 1).message.should =~ /message/
-    NATFIXME 'it returns the message given as an argument to new', exception: TypeError, message: 'no implicit conversion of NilClass into Integer' do
+    NATFIXME 'it returns the message given as an argument to new', exception: TypeError, message: 'no implicit conversion of String into Integer' do
       SystemCallError.new("XXX").message.should =~ /XXX/
     end
   end
