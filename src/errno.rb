@@ -420,7 +420,13 @@ module Errno
 end
 
 SystemCallError::ERRORS.each do |name, (number, _desc)|
-  klass = Class.new(SystemCallError)
-  klass.const_set(:Errno, number)
-  Errno.const_set(name, klass)
+  first_name, = SystemCallError::ERRORS.find { |_name, (number2, _desc)| number == number2 }
+  if first_name != name
+    klass = Errno.const_get(first_name)
+    Errno.const_set(name, klass)
+  else
+    klass = Class.new(SystemCallError)
+    klass.const_set(:Errno, number)
+    Errno.const_set(name, klass)
+  end
 end

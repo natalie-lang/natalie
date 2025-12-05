@@ -38,9 +38,7 @@ describe "Errno::EAGAIN" do
   # From http://jira.codehaus.org/browse/JRUBY-4747
   it "is the same class as Errno::EWOULDBLOCK if they represent the same errno value" do
     if Errno::EAGAIN::Errno == Errno::EWOULDBLOCK::Errno
-      NATFIXME 'it is the same class as Errno::EWOULDBLOCK if they represent the same errno value', exception: SpecFailedException do
-        Errno::EAGAIN.should == Errno::EWOULDBLOCK
-      end
+      Errno::EAGAIN.should == Errno::EWOULDBLOCK
     else
       Errno::EAGAIN.should_not == Errno::EWOULDBLOCK
     end
@@ -54,9 +52,7 @@ describe "Errno::ENOTSUP" do
 
   it "is the same class as Errno::EOPNOTSUPP if they represent the same errno value" do
     if Errno::ENOTSUP::Errno == Errno::EOPNOTSUPP::Errno
-      NATFIXME 'it is the same class as Errno::EOPNOTSUPP if they represent the same errno value', exception: SpecFailedException do
-        Errno::ENOTSUP.should == Errno::EOPNOTSUPP
-      end
+      Errno::ENOTSUP.should == Errno::EOPNOTSUPP
     else
       Errno::ENOTSUP.should_not == Errno::EOPNOTSUPP
     end
