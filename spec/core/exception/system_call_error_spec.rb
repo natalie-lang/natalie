@@ -31,9 +31,7 @@ describe "SystemCallError.new" do
   end
 
   it "requires at least one argument" do
-    NATFIXME 'it requires at least one argument', exception: SpecFailedException, message: /but instead raised/ do
-      -> { SystemCallError.new }.should raise_error(ArgumentError)
-    end
+    -> { SystemCallError.new }.should raise_error(ArgumentError)
   end
 
   it "accepts single Integer argument as errno" do
