@@ -221,6 +221,11 @@ describe 'FFI' do
                )
   end
 
+  it 'does not allow for embedded nulls' do
+    str = "foo\x00bar".b
+    -> { TestStubs.test_string_arg(str) }.should raise_error(ArgumentError, 'string contains null byte')
+  end
+
   it 'can return enum values' do
     TestStubs.test_enum_call('a'.ord).should == :A
     TestStubs.test_enum_call('b'.ord).should == :B
