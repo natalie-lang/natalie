@@ -252,6 +252,8 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args &&args, Block 
             arg_pointers[i] = &(arg_values[i].u64);
         } else if (type == string_sym) {
             auto str = val.to_str(env);
+            if (str->string().find('\0') != -1)
+                env->raise("ArgumentError", "string contains null byte");
             arg_values[i].vp = (void *)str->c_str();
             arg_pointers[i] = &(arg_values[i].vp);
         } else if (type == double_sym) {
