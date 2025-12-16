@@ -267,18 +267,16 @@ describe "The alias keyword" do
   end
 
   it "defines the method on the aliased class when the original method is from a parent class" do
-    NATFIXME 'defines the method on the aliased class when the original method is from a parent class', exception: SpecFailedException do
-      parent = Class.new do
-        def parent_method
-        end
+    parent = Class.new do
+      def parent_method
       end
-      child = Class.new(parent) do
-        alias parent_method_alias parent_method
-      end
-
-      child.instance_method(:parent_method_alias).owner.should == child
-      child.instance_methods(false).should include(:parent_method_alias)
     end
+    child = Class.new(parent) do
+      alias parent_method_alias parent_method
+    end
+
+    child.instance_method(:parent_method_alias).owner.should == child
+    child.instance_methods(false).should include(:parent_method_alias)
   end
 end
 

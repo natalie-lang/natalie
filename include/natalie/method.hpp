@@ -48,8 +48,8 @@ public:
     Method(const TM::String &name, ModuleObject *owner, Block *block)
         : Method(TM::String(name), owner, block) { }
 
-    static Method *from_other(const TM::String &name, Method *other) {
-        auto method = new Method { name, other->owner(), other->fn(), other->arity() };
+    static Method *from_other(const TM::String &name, ModuleObject *owner, Method *other) {
+        auto method = new Method { name, owner, other->fn(), other->arity() };
         method->m_self = other->m_self;
         method->m_env = other->m_env;
         method->m_file = other->m_file;
