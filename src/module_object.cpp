@@ -349,7 +349,7 @@ void ModuleObject::make_method_alias(Env *env, SymbolObject *new_name, SymbolObj
     assert_method_defined(env, old_name, method_info);
 
     auto old_method = method_info.method();
-    auto new_method = Method::from_other(new_name->string(), old_method);
+    auto new_method = Method::from_other(new_name->string(), this, old_method);
     define_method(env, new_name, new_method, method_info.visibility());
 };
 
