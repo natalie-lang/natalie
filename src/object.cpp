@@ -262,6 +262,9 @@ Optional<Value> Object::const_find_with_autoload(Env *env, Value ns, Value self,
     if (ns.is_module())
         return ns.as_module()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
 
+    if (search_mode == ConstLookupSearchMode::Strict)
+        env->raise("TypeError", "{} is not a class/module", ns.inspected(env));
+
     return ns.klass()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
 }
 

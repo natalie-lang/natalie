@@ -231,12 +231,10 @@ describe "Literal (A::X) constant resolution" do
   end
 
   it "raises a TypeError if a non-class or non-module qualifier is given" do
-    NATFIXME 'raises a TypeError if a non-class or non-module qualifier is given', exception: SpecFailedException do
-      -> { CS_CONST1::CS_CONST }.should raise_error(TypeError)
-      -> { 1::CS_CONST         }.should raise_error(TypeError)
-      -> { "mod"::CS_CONST     }.should raise_error(TypeError)
-      -> { false::CS_CONST     }.should raise_error(TypeError)
-    end
+    -> { CS_CONST1::CS_CONST }.should raise_error(TypeError)
+    -> { 1::CS_CONST         }.should raise_error(TypeError)
+    -> { "mod"::CS_CONST     }.should raise_error(TypeError)
+    -> { false::CS_CONST     }.should raise_error(TypeError)
   end
 end
 
