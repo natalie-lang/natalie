@@ -11,7 +11,7 @@ module Prism
   # Create a CallNode with the optionally given values.
   def self.call_node(receiver:, name:, location:, arguments: [], block: nil, flags: 0)
     arguments = ArgumentsNode.new(nil, nil, location, 0, arguments)
-    CallNode.new(nil, nil, location, flags, receiver, nil, name, nil, nil, arguments, nil, block)
+    CallNode.new(nil, nil, location, flags, receiver, nil, name, nil, nil, arguments, nil, nil, block)
   end
 
   # Create a ConstantReadNode with the optionally given values.

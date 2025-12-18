@@ -98,7 +98,21 @@ module Natalie
               [Prism::StringNode.new(nil, nil, node.location, 0, nil, nil, nil, 'stringio')],
             )
           require_node =
-            Prism::CallNode.new(nil, nil, node.location, 0, nil, nil, :require, nil, nil, require_arguments, nil, nil)
+            Prism::CallNode.new(
+              nil,
+              nil,
+              node.location,
+              0,
+              nil,
+              nil,
+              :require,
+              nil,
+              nil,
+              require_arguments,
+              nil,
+              nil,
+              nil,
+            )
           data_loc += transform_expression(require_node, used: false).flatten
           data_loc += [
             PushSelfInstruction.new,
