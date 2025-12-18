@@ -68,11 +68,9 @@ describe "A constant on a metaclass" do
   end
 
   it "cannot be accessed via object::CONST" do
-    NATFIXME 'Raise correct exception', exception: SpecFailedException, message: /NameError: uninitialized constant CONST/ do
-      -> do
-        @object::CONST
-      end.should raise_error(TypeError)
-    end
+    -> do
+      @object::CONST
+    end.should raise_error(TypeError)
   end
 
   it "raises a NameError for anonymous_module::CONST" do

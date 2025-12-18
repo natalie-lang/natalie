@@ -120,11 +120,9 @@ describe "A constant on a singleton class" do
   end
 
   it "cannot be accessed via object::CONST" do
-    NATFIXME 'cannot be accessed via object::CONST', exception: SpecFailedException do
-      -> do
-        @object::CONST
-      end.should raise_error(TypeError)
-    end
+    -> do
+      @object::CONST
+    end.should raise_error(TypeError)
   end
 
   it "raises a NameError for anonymous_module::CONST" do
