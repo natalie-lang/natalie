@@ -1587,10 +1587,9 @@ public:
      * ```
      *
      * A floating point in hex mode is floored to the integer value.
-     * ```
+     * ```should_abort
      * float f = 10.5;
-     * auto str = String::format("{h}", f);
-     * assert_str_eq("0xa", str);
+     * String::format("{h}", f);
      * ```
      */
     template <typename... Args>
@@ -1610,7 +1609,7 @@ public:
     static void format(String &out, const char *fmt, T first, Args... rest) {
         for (const char *c = fmt; *c != 0; c++) {
             if (*c == '{' && *(c + 1) == 'h' && *(c + 2) == '}') {
-                if constexpr (std::is_arithmetic<T>::value || std::is_pointer<T>::value) {
+                if constexpr (std::is_integral<T>::value || std::is_pointer<T>::value) {
                     out += hex(first, HexFormat::LowercaseAndPrefixed);
                     format(out, c + 3, rest...);
                     return;
