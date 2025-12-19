@@ -1609,7 +1609,7 @@ public:
     static void format(String &out, const char *fmt, T first, Args... rest) {
         for (const char *c = fmt; *c != 0; c++) {
             if (*c == '{' && *(c + 1) == 'h' && *(c + 2) == '}') {
-                if constexpr (std::is_integral<T>::value || std::is_pointer<T>::value) {
+                if constexpr (std::is_integral_v<T> || std::is_pointer_v<T>) {
                     out += hex(first, HexFormat::LowercaseAndPrefixed);
                     format(out, c + 3, rest...);
                     return;
@@ -1618,7 +1618,7 @@ public:
                     abort();
                 }
             } else if (*c == '{' && *(c + 1) == '}') {
-                if constexpr (std::is_pointer<T>::value && !std::is_same<const char *, T>::value && !std::is_same<char *, T>::value) {
+                if constexpr (std::is_pointer_v<T> && !std::is_same_v<const char *, T> && !std::is_same_v<char *, T>) {
                     fprintf(stderr, "String::format: T is a general pointer type but you didn't specify {h}\n");
                     abort();
                 } else {
