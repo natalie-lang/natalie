@@ -1577,6 +1577,21 @@ public:
      * auto str = String::format("{} {}orld {}", cstr, c, num);
      * assert_str_eq("hello world 999", str);
      * ```
+     *
+     * Using `{h}`, an integral value or a pointer can be displayed as hex
+     * ```
+     * void *ptr = nullptr;
+     * int i = 255;
+     * auto str = String::format("Pointer = {h}, Integer = {h}", ptr, i);
+     * assert_str_eq("Pointer = 0x0, Integer = 0xff", str);
+     * ```
+     *
+     * A floating point in hex mode is floored to the integer value.
+     * ```
+     * float f = 10.5;
+     * auto str = String::format("{h}", f);
+     * assert_str_eq("0xa", str);
+     * ```
      */
     template <typename... Args>
     static String format(const char *const fmt, Args... args) {
