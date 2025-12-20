@@ -108,7 +108,7 @@ Value ModuleObject::const_fetch(SymbolObject *name) const {
     return constant.value();
 }
 
-Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject **found_in_module, ConstLookupSearchMode search_mode) {
+Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject **found_in_module, ConstLookupSearchMode search_mode, bool search_parent_ns) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     ModuleObject *search_parent = nullptr;
@@ -142,7 +142,7 @@ Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject
         return constant;
     }
 
-    if (search_mode == ConstLookupSearchMode::NotStrict) {
+    if (search_parent_ns && search_mode == ConstLookupSearchMode::NotStrict) {
         // first search in parent namespaces (not including global, i.e. Object namespace)
         search_parent = this;
         ModuleObject *found = nullptr;
@@ -192,7 +192,7 @@ Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject
             search_parent = search_parent->m_superclass;
             if (!valid_search_module(search_parent))
                 break;
-            constant = search_parent->find_constant(env, name, &found, search_mode);
+            constant = search_parent->find_constant(env, name, &found, search_mode, false);
         } while (!constant);
 
         if (constant) {

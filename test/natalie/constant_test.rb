@@ -58,6 +58,19 @@ class TheClass < TheSuperclass
   end
 end
 
+module ModuleD
+  CONST_IN_MODULE_D = :module_d
+
+  class TheSuperClass2
+  end
+end
+
+class TheClass2 < ModuleD::TheSuperClass2
+  def superclass_ns_const
+    CONST_IN_MODULE_D
+  end
+end
+
 describe 'constants' do
   it 'finds the constant at the top level' do
     FOO.should == 1
@@ -96,6 +109,10 @@ describe 'constants' do
 
   it 'finds constants in a mixin when resolved from a subclass' do
     TheClass.new.mixin_constant.should == :mixin
+  end
+
+  it 'does not find the constant in the superclass namespace' do
+    -> { TheClass2.new.superclass_ns_const }.should raise_error(NameError)
   end
 
   it 'raises NameError for missing const' do

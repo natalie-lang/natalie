@@ -211,7 +211,7 @@ protected:
         }
     }
 
-    Constant *find_constant(Env *, SymbolObject *, ModuleObject **, ConstLookupSearchMode = ConstLookupSearchMode::Strict);
+    Constant *find_constant(Env *, SymbolObject *, ModuleObject **, ConstLookupSearchMode = ConstLookupSearchMode::Strict, bool search_parent_ns = true);
 
     TM::Hashmap<SymbolObject *, Constant *> m_constants {};
     Optional<String> m_name {};
