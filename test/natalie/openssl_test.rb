@@ -132,9 +132,18 @@ describe 'OpenSSL::X509::Certificate' do
       # cert.not_after.should == Time.new(2023, 12, 31, 23, 0, 0, 0)
     end
 
-    it 'has no default value' do
-      cert = OpenSSL::X509::Certificate.new
-      cert.not_after.should be_nil
+    ruby_version_is ''...'4.0' do
+      it 'has no default value' do
+        cert = OpenSSL::X509::Certificate.new
+        cert.not_after.should be_nil
+      end
+    end
+
+    ruby_version_is '4.0' do
+      it 'raises an ASN1Error when requested' do
+        cert = OpenSSL::X509::Certificate.new
+        -> { cert.not_after }.should raise_error(OpenSSL::ASN1::ASN1Error, 'ASN1_TIME_to_tm')
+      end
     end
 
     it 'cannot be set with String' do
@@ -181,9 +190,18 @@ describe 'OpenSSL::X509::Certificate' do
       # cert.not_before.should == Time.new(2023, 12, 31, 23, 0, 0, 0)
     end
 
-    it 'has no default value' do
-      cert = OpenSSL::X509::Certificate.new
-      cert.not_before.should be_nil
+    ruby_version_is ''...'4.0' do
+      it 'has no default value' do
+        cert = OpenSSL::X509::Certificate.new
+        cert.not_before.should be_nil
+      end
+    end
+
+    ruby_version_is '4.0' do
+      it 'raises an ASN1Error when requested' do
+        cert = OpenSSL::X509::Certificate.new
+        -> { cert.not_before }.should raise_error(OpenSSL::ASN1::ASN1Error, 'ASN1_TIME_to_tm')
+      end
     end
 
     it 'cannot be set with String' do
