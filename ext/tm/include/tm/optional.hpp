@@ -108,6 +108,8 @@ public:
      * ```
      */
     Optional<T> &operator=(const Optional<T> &other) {
+        if (this == &other)
+            return *this;
         if (m_present)
             clear();
         m_present = other.m_present;
@@ -130,6 +132,8 @@ public:
      * ```
      */
     Optional<T> &operator=(Optional<T> &&other) {
+        if (this == &other)
+            return *this;
         if (m_present)
             clear();
         m_present = other.m_present;
