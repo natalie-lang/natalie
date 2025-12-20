@@ -80,8 +80,13 @@ public:
     Optional(Optional &&other) {
         m_present = other.m_present;
         if (m_present) {
-            *reinterpret_cast<T *>(m_value) = std::move(*reinterpret_cast<T *>(other.m_value));
-            other.clear();
+            if constexpr (std::is_trivially_copyable_v<T>) {
+                memcpy(m_value, other.m_value, sizeof(m_value));
+                other.clear_after_trivial_copy();
+            } else {
+                *reinterpret_cast<T *>(m_value) = std::move(*reinterpret_cast<T *>(other.m_value));
+                other.clear();
+            }
         }
     }
 
@@ -129,8 +134,13 @@ public:
             clear();
         m_present = other.m_present;
         if (m_present) {
-            *reinterpret_cast<T *>(m_value) = std::move(*reinterpret_cast<const T *>(other.m_value));
-            other.clear();
+            if constexpr (std::is_trivially_copyable_v<T>) {
+                memcpy(m_value, other.m_value, sizeof(m_value));
+                other.clear_after_trivial_copy();
+            } else {
+                *reinterpret_cast<T *>(m_value) = std::move(*reinterpret_cast<const T *>(other.m_value));
+                other.clear();
+            }
         }
         return *this;
     }
@@ -376,6 +386,11 @@ public:
     bool present() const { return m_present; }
 
 private:
+    void clear_after_trivial_copy() {
+        m_present = false;
+        memset(m_value, 0, sizeof(m_value));
+    }
+
     bool m_present;
 
     alignas(T) unsigned char m_value[sizeof(T)] {};
