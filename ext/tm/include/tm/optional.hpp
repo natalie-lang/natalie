@@ -2,7 +2,6 @@
 
 #include <assert.h>
 #include <functional>
-#include <stdio.h>
 #include <utility>
 
 namespace TM {
