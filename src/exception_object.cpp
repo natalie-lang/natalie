@@ -62,8 +62,11 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
     else
         env->raise("TypeError", "exception class/object expected");
 
-    if (accept_cause && cause && cause->is_exception())
+    if (accept_cause && cause && !cause->is_nil()) {
+        if (!cause->is_exception())
+            env->raise("TypeError", "exception object expected");
         exception->set_cause(cause->as_exception());
+    }
 
     if (backtrace)
         exception->set_backtrace(env, backtrace.value());
