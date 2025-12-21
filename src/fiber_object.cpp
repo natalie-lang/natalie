@@ -207,8 +207,8 @@ Value FiberObject::set_scheduler(Env *env, Value scheduler) {
     if (scheduler.is_nil()) {
         ThreadObject::current()->set_fiber_scheduler(Value::nil());
     } else {
-        TM::Vector<TM::String> required_methods { "block", "unblock", "kernel_sleep", "io_wait" };
-        for (const auto &required_method : required_methods) {
+        const char *required_methods[] { "block", "unblock", "kernel_sleep", "io_wait" };
+        for (const auto *required_method : required_methods) {
             if (!scheduler.respond_to(env, SymbolObject::intern(required_method)))
                 env->raise("ArgumentError", "Scheduler must implement #{}", required_method);
         }
