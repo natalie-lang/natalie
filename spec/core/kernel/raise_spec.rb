@@ -52,9 +52,7 @@ describe "Kernel#raise" do
   end
 
   it "raises an ArgumentError when given cause is not an instance of Exception" do
-    NATFIXME 'it raises an ArgumentError when given cause is not an instance of Exception', exception: SpecFailedException, message: /but instead raised/ do
-      -> { raise "message", cause: Object.new }.should raise_error(TypeError, "exception object expected")
-    end
+    -> { raise "message", cause: Object.new }.should raise_error(TypeError, "exception object expected")
   end
 
   it "doesn't raise an ArgumentError when given cause is nil" do
