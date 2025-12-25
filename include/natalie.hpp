@@ -95,6 +95,7 @@
 #include "natalie/integer_methods.hpp"
 #include "natalie/io_object.hpp"
 #include "natalie/kernel_module.hpp"
+#include "natalie/lexical_scope.hpp"
 #include "natalie/local_jump_error_type.hpp"
 #include "natalie/match_data_object.hpp"
 #include "natalie/method.hpp"

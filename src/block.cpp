@@ -8,6 +8,7 @@ Value Block::run(Env *env, Args &&args, Block *block) {
     Env e { m_env };
     e.set_caller(env);
     e.set_this_block(this);
+    e.set_lexical_scope(m_env->lexical_scope());
     args.pop_empty_keyword_hash();
     auto fiber = Natalie::FiberObject::current();
     Value result;

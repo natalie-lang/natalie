@@ -45,6 +45,7 @@ module Natalie
 
         mod = transform.temp('module')
         mod_found = transform.temp('module_found')
+        lexical_scope = transform.temp('lexical_scope')
         namespace = transform.pop
         search_mode = private? ? 'StrictPrivate' : 'Strict'
 
@@ -62,7 +63,9 @@ module Natalie
         code << "  #{mod} = ModuleObject::create(#{@name.to_s.inspect})"
         code << "  Object::const_set(env, #{namespace}, #{transform.intern(@name)}, #{mod})"
         code << '}'
-        code << "#{mod}.as_module()->eval_body(env, #{fn})"
+        code << "static LexicalScope #{lexical_scope} { nullptr, nullptr };"
+        code << "#{lexical_scope} = LexicalScope { env->lexical_scope(), #{mod}.as_module() };"
+        code << "#{mod}.as_module()->eval_body(env, &#{lexical_scope}, #{fn})"
 
         transform.exec_and_push(:result_of_define_module, code)
       end

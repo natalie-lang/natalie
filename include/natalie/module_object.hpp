@@ -8,6 +8,7 @@
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
+#include "natalie/lexical_scope.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/method_info.hpp"
 #include "natalie/method_visibility.hpp"
@@ -77,7 +78,7 @@ public:
     void make_method_alias(Env *, SymbolObject *, SymbolObject *);
     void method_alias(Env *, SymbolObject *, SymbolObject *);
 
-    Value eval_body(Env *, Value (*)(Env *, Value));
+    Value eval_body(Env *, LexicalScope *, Value (*)(Env *, Value));
 
     Optional<String> name() const {
         return m_name;
@@ -111,6 +112,7 @@ public:
     Value remove_class_variable(Env *, Value);
 
     Value define_method(Env *, Value, Optional<Value>, Block *);
+    SymbolObject *define_method(Env *, SymbolObject *, LexicalScope *, MethodFnPtr, int, int = 0);
     SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, int = 0);
     SymbolObject *define_method(Env *, SymbolObject *, Block *);
     SymbolObject *undefine_method(Env *, SymbolObject *);

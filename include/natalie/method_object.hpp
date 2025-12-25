@@ -31,7 +31,7 @@ public:
     }
 
     virtual ProcObject *to_proc(Env *env) override {
-        auto block = Block::create(*env, m_object, m_method->fn(), m_method->arity(), false, Block::BlockType::Method);
+        auto block = Block::create(*env, m_object, m_method->lexical_scope(), m_method->fn(), m_method->arity(), false, Block::BlockType::Method);
         return ProcObject::create(block);
     }
 

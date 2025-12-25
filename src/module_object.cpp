@@ -361,8 +361,9 @@ void ModuleObject::method_alias(Env *env, SymbolObject *new_name, SymbolObject *
     make_method_alias(env, new_name, old_name);
 }
 
-Value ModuleObject::eval_body(Env *env, Value (*fn)(Env *, Value)) {
+Value ModuleObject::eval_body(Env *env, LexicalScope *lexical_scope, Value (*fn)(Env *, Value)) {
     Env body_env {};
+    body_env.set_lexical_scope(lexical_scope);
     body_env.set_caller(env);
     body_env.set_module(this);
     Value result = fn(&body_env, this);
@@ -491,9 +492,9 @@ Value ModuleObject::remove_class_variable(Env *env, Value name) {
     return val.value();
 }
 
-SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, int break_point) {
+SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, int break_point) {
     assert_not_frozen(env, this);
-    Method *method = new Method { name->string(), this, fn, arity, break_point, env->file(), env->line() };
+    Method *method = new Method { name->string(), this, lexical_scope, fn, arity, break_point, env->file(), env->line() };
     auto visibility = m_method_visibility;
     if (name == "initialize"_s)
         visibility = MethodVisibility::Private;
@@ -501,6 +502,10 @@ SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFn
     if (m_module_function)
         Object::define_singleton_method(env, this, name, fn, arity);
     return name;
+}
+
+SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, int break_point) {
+    return define_method(env, name, env->lexical_scope(), fn, arity, break_point);
 }
 
 SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, Block *block) {
@@ -938,7 +943,7 @@ Value ModuleObject::define_method(Env *env, Value name_value, Optional<Value> me
                 else
                     env->raise("TypeError", "bind argument must be a subclass of {}", owner->inspect_module());
             }
-            define_method(env, name, method->fn(), method->arity());
+            define_method(env, name, method->lexical_scope(), method->fn(), method->arity());
         }
     } else if (block) {
         define_method(env, name, block);

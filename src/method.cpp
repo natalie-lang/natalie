@@ -11,6 +11,7 @@ Value Method::call(Env *env, Value self, Args &&args, Block *block) const {
     Env e { closure_env };
     e.set_caller(env);
     e.set_method(this);
+    e.set_lexical_scope(m_lexical_scope);
     e.set_file(env->file());
     e.set_line(env->line());
     e.set_block(block);
