@@ -70,11 +70,9 @@ describe "Range#max" do
   end
 
   it "raises for an exclusive beginless non Integer range" do
-  NATFIXME 'Fix error message', exception: SpecFailedException, message: /but the message was/ do
-      -> {
-        (...1.0).max
-      }.should raise_error(TypeError, 'cannot exclude non Integer end value')
-    end
+    -> {
+      (...1.0).max
+    }.should raise_error(TypeError, 'cannot exclude non Integer end value')
   end
 end
 

@@ -66,7 +66,10 @@ class Range
 
     max =
       if exclude_end?
-        raise TypeError, 'cannot exclude end value with non Integer begin value' unless self.begin
+        unless self.begin
+          raise TypeError, 'cannot exclude non Integer end value' unless self.end.is_a?(Integer)
+          raise TypeError, 'cannot exclude end value with non Integer begin value'
+        end
 
         if self.end.is_a?(Integer)
           self.end - 1
