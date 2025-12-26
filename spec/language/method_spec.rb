@@ -1236,16 +1236,14 @@ context "when passing **nil into a method that accepts keyword arguments" do
 
   ruby_version_is "3.4" do
     it "expands nil using ** into {}" do
-      NATFIXME 'it expands nil using ** into {}', exception: TypeError, message: 'no implicit conversion of nil into Hash' do
-        def m(**kw) kw; end
+      def m(**kw) kw; end
 
-        h = nil
-        m(**h).should == {}
-        m(a: 1, **h).should == {a: 1}
+      h = nil
+      m(**h).should == {}
+      m(a: 1, **h).should == {a: 1}
 
-        m(**nil).should == {}
-        m(a: 1, **nil).should == {a: 1}
-      end
+      m(**nil).should == {}
+      m(a: 1, **nil).should == {a: 1}
     end
   end
 end

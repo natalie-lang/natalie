@@ -160,14 +160,12 @@ describe "Hash literal" do
 
   ruby_version_is "3.4" do
     it "expands nil using ** into {}" do
-      NATFIXME 'it expands nil using ** into {}', exception: TypeError, message: 'no implicit conversion of nil into Hash' do
-        h = nil
-        {**h}.should == {}
-        {a: 1, **h}.should == {a: 1}
+      h = nil
+      {**h}.should == {}
+      {a: 1, **h}.should == {a: 1}
 
-        {**nil}.should == {}
-        {a: 1, **nil}.should == {a: 1}
-      end
+      {**nil}.should == {}
+      {a: 1, **nil}.should == {a: 1}
     end
   end
 
