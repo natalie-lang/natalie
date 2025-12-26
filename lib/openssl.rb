@@ -70,6 +70,9 @@ module OpenSSL
   end
 
   module ASN1
+    class ASN1Error < OpenSSLError
+    end
+
     __constant__('EOC', 'int', 'V_ASN1_EOC')
     __constant__('BOOLEAN', 'int', 'V_ASN1_BOOLEAN')
     __constant__('INTEGER', 'int', 'V_ASN1_INTEGER')

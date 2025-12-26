@@ -4,12 +4,17 @@
 require 'natalie/inline'
 # END NATALIE
 
+# :stopdoc
 class CGI
-  module Util; end
-  include Util
-  extend Util
+  module Escape; end
+  include Escape
+  extend Escape
+  module EscapeExt; end # :nodoc:
 end
-module CGI::Util
+# :startdoc:
+
+# Escape/unescape for CGI, HTML, URI.
+module CGI::Escape
   @@accept_charset = Encoding::UTF_8 unless defined?(@@accept_charset)
 
   # URL-encode a string into application/x-www-form-urlencoded.
@@ -104,14 +109,6 @@ module CGI::Util
     end
   end
 
-  # TruffleRuby runs the pure-Ruby variant faster, do not use the C extension there
-  unless RUBY_ENGINE == 'truffleruby'
-    begin
-      require 'cgi/escape'
-    rescue LoadError
-    end
-  end
-
   # Unescape a string that has been HTML-escaped
   #   CGI.unescapeHTML("Usage: foo &quot;bar&quot; &lt;baz&gt;")
   #      # => "Usage: foo \"bar\" <baz>"
@@ -175,9 +172,18 @@ module CGI::Util
 
   # Synonym for CGI.escapeHTML(str)
   alias escape_html escapeHTML
+  alias h escapeHTML
 
   # Synonym for CGI.unescapeHTML(str)
   alias unescape_html unescapeHTML
+
+  # TruffleRuby runs the pure-Ruby variant faster, do not use the C extension there
+  unless RUBY_ENGINE == 'truffleruby'
+    begin
+      require 'cgi/escape.so'
+    rescue LoadError
+    end
+  end
 
   # Escape only the tags of certain HTML elements in +string+.
   #
@@ -229,41 +235,4 @@ module CGI::Util
   # Synonym for CGI.unescapeElement(str)
   alias unescape_element unescapeElement
 
-  # Format a +Time+ object as a String using the format specified by RFC 1123.
-  #
-  #   CGI.rfc1123_date(Time.now)
-  #     # Sat, 01 Jan 2000 00:00:00 GMT
-  def rfc1123_date(time)
-    time.getgm.strftime("%a, %d %b %Y %T GMT")
-  end
-
-  # Prettify (indent) an HTML string.
-  #
-  # +string+ is the HTML string to indent.  +shift+ is the indentation
-  # unit to use; it defaults to two spaces.
-  #
-  #   print CGI.pretty("<HTML><BODY></BODY></HTML>")
-  #     # <HTML>
-  #     #   <BODY>
-  #     #   </BODY>
-  #     # </HTML>
-  #
-  #   print CGI.pretty("<HTML><BODY></BODY></HTML>", "\t")
-  #     # <HTML>
-  #     #         <BODY>
-  #     #         </BODY>
-  #     # </HTML>
-  #
-  def pretty(string, shift = "  ")
-    lines = string.gsub(/(?!\A)<.*?>/m, "\n\\0").gsub(/<.*?>(?!\n)/m, "\\0\n")
-    end_pos = 0
-    while end_pos = lines.index(/^<\/(\w+)/, end_pos)
-      element = $1.dup
-      start_pos = lines.rindex(/^\s*<#{element}/i, end_pos)
-      lines[start_pos ... end_pos] = "__" + lines[start_pos ... end_pos].gsub(/\n(?!\z)/, "\n" + shift) + "__"
-    end
-    lines.gsub(/^((?:#{Regexp::quote(shift)})*)__(?=<\/?\w)/, '\1')
-  end
-
-  alias h escapeHTML
 end

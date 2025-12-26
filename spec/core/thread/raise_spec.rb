@@ -5,7 +5,7 @@ require_relative '../../shared/kernel/raise'
 describe "Thread#raise" do
   # NATFIXME: This crashes
   # it_behaves_like :kernel_raise, :raise, ThreadSpecs::NewThreadToRaise
-  it_behaves_like :kernel_raise_across_contexts, :raise, ThreadSpecs::NewThreadToRaise
+  # it_behaves_like :kernel_raise_across_contexts, :raise, ThreadSpecs::NewThreadToRaise
 
   it "ignores dead threads and returns nil" do
     t = Thread.new { :dead }

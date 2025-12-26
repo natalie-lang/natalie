@@ -212,6 +212,8 @@ Value FiberObject::set_scheduler(Env *env, Value scheduler) {
             if (!scheduler.respond_to(env, SymbolObject::intern(required_method)))
                 env->raise("ArgumentError", "Scheduler must implement #{}", required_method);
         }
+        if (!scheduler.respond_to(env, "fiber_interrupt"_s))
+            env->warn("Scheduler should implement #fiber_interrupt");
         ThreadObject::current()->set_fiber_scheduler(scheduler);
     }
     return scheduler;

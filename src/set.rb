@@ -97,6 +97,7 @@ class Set
   alias map! collect!
 
   def compare_by_identity
+    raise FrozenError, "can't modify frozen Set: #{self}" if frozen? && !compare_by_identity?
     @data.compare_by_identity
     self
   end
@@ -145,7 +146,7 @@ class Set
 
     if block.arity == 2
       # Tuples that match the block. Matching has to be done both ways.
-      tuples = to_a.product(to_a).select(&block).to_set
+      tuples = to_a.product(to_a).reject { |x, y| x.equal?(y) }.select(&block).to_set
       tuples = tuples.select { |x, y| x < y && tuples.include?([y, x]) }
 
       # Group the tuples into groups of related values
@@ -221,10 +222,10 @@ class Set
     if !Fiber[:__set_inspect_current]
       Fiber.new(storage: { __set_inspect_current: [] }, &method(:inspect)).resume
     elsif Fiber[:__set_inspect_current].include?(object_id)
-      '#<Set: {...}>'
+      'Set[...]'
     else
       Fiber[:__set_inspect_current] << object_id
-      "#<Set: {#{map(&:inspect).join(', ')}}>"
+      "Set[#{map(&:inspect).join(', ')}]"
     end
   end
   alias to_s inspect
@@ -278,7 +279,8 @@ class Set
   end
 
   def pretty_print_cycle(pp)
-    pp.text('#<Set: {...}>')
+    name = self.class.name
+    pp.text(empty? ? "#{name}[]" : "#{name}[...]")
   end
 
   def proper_subset?(other)
@@ -363,7 +365,8 @@ class Set
 end
 
 module Enumerable
-  def to_set(klass = Set, &block)
+  def to_set(klass = (klass_not_given = true; Set), &block)
+    warn('passing arguments to Enumerable#to_set is deprecated') unless klass_not_given
     if block
       klass.new(map(&block))
     else

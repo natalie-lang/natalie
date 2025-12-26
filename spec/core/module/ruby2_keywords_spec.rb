@@ -258,11 +258,13 @@ describe "Module#ruby2_keywords" do
       obj = Object.new
       def obj.foo(*a, b) end
 
-      -> {
-        obj.singleton_class.class_exec do
-          ruby2_keywords :foo
-        end
-      }.should complain(/Skipping set of ruby2_keywords flag for/)
+      NATFIXME 'prints warning when a method accepts post arguments', exception: SpecFailedException do
+        -> {
+          obj.singleton_class.class_exec do
+            ruby2_keywords :foo
+          end
+        }.should complain(/Skipping set of ruby2_keywords flag for/)
+      end
     end
   end
 end

@@ -11,7 +11,7 @@ describe 'built-in constants' do
 
   describe 'RUBY_VERSION' do
     it 'returns the version Natalie tries to be compatible with' do
-      RUBY_VERSION.should =~ /^3\.\d+\.\d+$/
+      RUBY_VERSION.should =~ /^4\.\d+\.\d+$/
     end
   end
 
