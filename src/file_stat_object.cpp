@@ -161,7 +161,7 @@ Value FileStatObject::birthtime(Env *env) const {
     Value ns = Value::integer(fstatus.st_birthtimespec.tv_nsec);
     return TimeObject::at(env, GlobalEnv::the()->Time(), sec, ns, Value("nanosecond"_s));
 #else
-    env->raise("NotImplementedError", "birthtime not supported on this platform");
+    env->raise("NotImplementedError", "birthtime() function is unimplemented");
 #endif
 }
 

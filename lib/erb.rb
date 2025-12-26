@@ -1,5 +1,5 @@
 class ERB
 end
 
-require 'cgi/util'
+require 'cgi/escape'
 require 'erb/util'

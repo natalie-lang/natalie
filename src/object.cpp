@@ -160,9 +160,6 @@ Value Object::allocate(Env *env, Value klass_value, Args &&args, Block *block) {
     args.ensure_argc_is(env, 0);
 
     ClassObject *klass = klass_value.as_class();
-    if (!klass->respond_to(env, "allocate"_s))
-        env->raise("TypeError", "calling {}.allocate is prohibited", klass->inspect_module());
-
     Optional<Value> obj;
     switch (klass->object_type()) {
     case Object::Type::Proc:
@@ -751,9 +748,12 @@ Value Object::defined_obj(Env *env, SymbolObject *name, bool strict) {
 ProcObject *Object::to_proc(Env *env) {
     auto to_proc_symbol = "to_proc"_s;
     if (respond_to(env, to_proc_symbol)) {
-        return send(env, to_proc_symbol).as_proc();
+        auto result = send(env, to_proc_symbol);
+        if (!result.is_proc())
+            env->raise("TypeError", "can't convert {} to Proc ({}#to_proc gives {})", m_klass->inspect_module(), m_klass->inspect_module(), result.klass()->inspected(env));
+        return result.as_proc();
     } else {
-        env->raise("TypeError", "wrong argument type {} (expected Proc)", m_klass->inspect_module());
+        env->raise("TypeError", "no implicit conversion of {} into Proc", m_klass->inspect_module());
     }
 }
 

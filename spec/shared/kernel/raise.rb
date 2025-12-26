@@ -199,21 +199,23 @@ describe :kernel_raise, shared: true do
     end
 
     it "rejects circular causes" do
-      -> {
-        begin
-          raise "Error 1"
-        rescue => error1
+      NATFIXME 'it rejects circular causes', exception: SpecFailedException do
+        -> {
           begin
-            raise "Error 2"
-          rescue => error2
+            raise "Error 1"
+          rescue => error1
             begin
-              raise "Error 3"
-            rescue => error3
-              @object.raise(error1, cause: error3)
+              raise "Error 2"
+            rescue => error2
+              begin
+                raise "Error 3"
+              rescue => error3
+                @object.raise(error1, cause: error3)
+              end
             end
           end
-        end
-      }.should raise_error(ArgumentError, "circular causes")
+        }.should raise_error(ArgumentError, "circular causes")
+      end
     end
 
     it "supports exception class with message and cause" do

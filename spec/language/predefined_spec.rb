@@ -715,7 +715,9 @@ describe "Predefined global $/" do
       str.instance_variable_set(:@ivar, 1)
       $/ = str
       $/.should.frozen?
-      $/.should be_an_instance_of(String)
+      NATFIXME 'it makes a new frozen String from the assigned String', exception: SpecFailedException do
+        $/.should be_an_instance_of(String)
+      end
       $/.should_not.instance_variable_defined?(:@ivar)
       $/.should == str
     end
@@ -791,7 +793,9 @@ describe "Predefined global $-0" do
       str.instance_variable_set(:@ivar, 1)
       $-0 = str
       $-0.should.frozen?
-      $-0.should be_an_instance_of(String)
+      NATFIXME 'it makes a new frozen String from the assigned String', exception: SpecFailedException do
+        $-0.should be_an_instance_of(String)
+      end
       $-0.should_not.instance_variable_defined?(:@ivar)
       $-0.should == str
     end

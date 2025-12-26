@@ -364,7 +364,7 @@ Value ThreadObject::raise(Env *env, Args &&args) {
     if (m_status == Status::Dead)
         return Value::nil();
 
-    auto exception = ExceptionObject::create_for_raise(env, std::move(args), nullptr, false);
+    auto exception = ExceptionObject::create_for_raise(env, std::move(args), nullptr);
 
     if (is_current())
         env->raise_exception(exception);

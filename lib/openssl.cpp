@@ -63,7 +63,17 @@ static void OpenSSL_X509_STORE_cleanup(VoidPObject *self) {
 static void OpenSSL_raise_error(Env *env, const char *func, ClassObject *klass = nullptr) {
     if (!klass)
         klass = fetch_nested_const({ "OpenSSL"_s, "OpenSSLError"_s }).as_class();
-    env->raise(klass, "{}: {}", func, ERR_reason_error_string(ERR_get_error()));
+    const auto error_string = ERR_reason_error_string(ERR_get_error());
+    if (error_string == nullptr) {
+        env->raise(klass, func);
+    } else {
+        env->raise(klass, "{}: {}", func, error_string);
+    }
+}
+
+static void OpenSSL_ASN1_raise_error(Env *env, const char *func) {
+    auto ASN1Error = fetch_nested_const({ "OpenSSL"_s, "ASN1"_s, "ASN1Error"_s }).as_class();
+    OpenSSL_raise_error(env, func, ASN1Error);
 }
 
 static void OpenSSL_Cipher_raise_error(Env *env, const char *func) {
@@ -149,8 +159,10 @@ Value OpenSSL_Cipher_initialize(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_is(env, 1);
     auto name = args[0].to_str(env);
     const EVP_CIPHER *cipher = EVP_get_cipherbyname(name->c_str());
-    if (!cipher)
-        env->raise("RuntimeError", "unsupported cipher algorithm ({})", name->string());
+    if (!cipher) {
+        auto CipherError = fetch_nested_const({ "OpenSSL"_s, "Cipher"_s, "CipherError"_s }).as_class();
+        env->raise(CipherError, "unsupported cipher algorithm: {}: unsupported", name->string());
+    }
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     if (!ctx)
         OpenSSL_Cipher_raise_error(env, "EVP_CIPHER_CTX");
@@ -279,7 +291,7 @@ Value OpenSSL_Digest_initialize(Env *env, Value self, Args &&args, Block *) {
     if (name.is_a(env, digest_klass))
         name = name.send(env, "name"_s);
     if (!name.is_string())
-        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/Digest)", name.klass()->inspect_module());
+        name = name.to_str(env);
 
     const EVP_MD *md = EVP_get_digestbyname(name.as_string()->c_str());
     if (!md)
@@ -760,7 +772,7 @@ Value OpenSSL_X509_Certificate_not_after(Env *env, Value self, Args &&args, Bloc
         OpenSSL_raise_error(env, "X509_get0_notAfter");
     tm tm;
     if (!ASN1_TIME_to_tm(time, &tm))
-        return Value::nil();
+        OpenSSL_ASN1_raise_error(env, "ASN1_TIME_to_tm");
 
     auto Time = find_top_level_const(env, "Time"_s).as_class();
     time_t time_since_epoch = mktime(&tm);
@@ -798,7 +810,7 @@ Value OpenSSL_X509_Certificate_not_before(Env *env, Value self, Args &&args, Blo
         OpenSSL_raise_error(env, "X509_get0_notBefore");
     tm tm;
     if (!ASN1_TIME_to_tm(time, &tm))
-        return Value::nil();
+        OpenSSL_ASN1_raise_error(env, "ASN1_TIME_to_tm");
 
     auto Time = find_top_level_const(env, "Time"_s).as_class();
     time_t time_since_epoch = mktime(&tm);
@@ -904,7 +916,7 @@ Value OpenSSL_X509_Certificate_sign(Env *env, Value self, Args &&args, Block *) 
     if (!X509_sign(x509, pkey, md)) {
         ERR_get_error(); // This error is not disclosed to the user
         auto CertificateError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "CertificateError"_s }).as_class();
-        env->raise(CertificateError, "internal error");
+        env->raise(CertificateError, "X509_sign: internal error");
     }
 
     return self;

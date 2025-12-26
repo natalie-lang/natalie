@@ -29,7 +29,7 @@ public:
         return new ExceptionObject(other);
     }
 
-    static ExceptionObject *create_for_raise(Env *env, Args &&args, ExceptionObject *current_exception, bool accept_cause);
+    static ExceptionObject *create_for_raise(Env *env, Args &&args, ExceptionObject *current_exception);
 
     void set_message(Value message) { m_message = message; }
 

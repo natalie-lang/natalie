@@ -114,12 +114,12 @@ describe "Method#source_location" do
     end
     location = c.method(:m).source_location
     ruby_version_is(""..."4.0") do
-      NATFIXME 'works for eval with a given line', exception: SpecFailedException do
-        location.should == ["foo", 100]
-      end
+      location.should == ["foo", 100]
     end
     ruby_version_is("4.0") do
-      location.should == ["foo", 100, 0, 100, 15]
+      NATFIXME 'works for eval with a given line', exception: SpecFailedException do
+        location.should == ["foo", 100, 0, 100, 15]
+      end
     end
   end
 

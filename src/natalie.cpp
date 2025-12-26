@@ -496,7 +496,7 @@ Env *build_top_env() {
     Object->const_set("ENV"_s, ENV);
     ENV->extend_once(env, Enumerable);
 
-    auto RUBY_VERSION = StringObject::create("3.4.7");
+    auto RUBY_VERSION = StringObject::create("4.0.0");
     RUBY_VERSION->freeze();
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
 

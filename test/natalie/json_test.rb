@@ -50,7 +50,7 @@ describe 'JSON' do
 
     ruby_version_is '4.0' do
       it 'does not parse a string that is invalid according to the spec' do
-        -> { JSON.parse('"\y"') }.should raise_error(JSON::ParserError)
+        -> { JSON.parse('"\y"') }.should raise_error(JSON::ParserError, /invalid escape character in string: '\\y/)
       end
     end
 

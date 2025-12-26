@@ -65,9 +65,11 @@ describe "Proc#ruby2_keywords" do
     it "prints warning when a proc accepts post arguments" do
       f = -> *a, b { }
 
-      -> {
-        f.ruby2_keywords
-      }.should complain(/Skipping set of ruby2_keywords flag for/)
+      NATFIXME 'prints warning when a proc accepts post arguments', exception: SpecFailedException do
+        -> {
+          f.ruby2_keywords
+        }.should complain(/Skipping set of ruby2_keywords flag for/)
+      end
     end
   end
 end

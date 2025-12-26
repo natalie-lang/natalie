@@ -210,6 +210,7 @@ module JSON
               raise ParserError, 'incomplete unicode escape' if escaped.size != 4
               str << escaped.to_i(16).chr(Encoding::UTF_8)
             else
+              raise JSON::ParserError, "invalid escape character in string: '\\#{c2}"
               str << c2
             end
           when "\n"

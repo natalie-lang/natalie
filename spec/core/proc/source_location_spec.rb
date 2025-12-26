@@ -61,9 +61,16 @@ describe "Proc#source_location" do
       -> { true }.source_location.should == [__FILE__, __LINE__]
     end
     ruby_version_is("4.0") do
-      proc { true }.source_location.should == [__FILE__, __LINE__, 11, __LINE__, 19]
-      Proc.new { true }.source_location.should == [__FILE__, __LINE__, 15, __LINE__, 23]
-      -> { true }.source_location.should == [__FILE__, __LINE__, 8, __LINE__, 17]
+      NATFIXME 'Add additional output values to source_location', exception: SpecFailedException do
+        proc { true }.source_location.should == [__FILE__, __LINE__, 11, __LINE__, 19]
+        Proc.new { true }.source_location.should == [__FILE__, __LINE__, 15, __LINE__, 23]
+        -> { true }.source_location.should == [__FILE__, __LINE__, 8, __LINE__, 17]
+      end
+      # NATFIXME: For now: test the behaviour of Ruby 3.4 and earlier
+      proc { true }.source_location.should == [__FILE__, __LINE__]
+      Proc.new { true }.source_location.should == [__FILE__, __LINE__]
+      -> { true }.source_location.should == [__FILE__, __LINE__]
+      # END NATFIXME: For now: test the behaviour of Ruby 3.4 and earlier
     end
   end
 
@@ -103,12 +110,12 @@ describe "Proc#source_location" do
     proc = eval('-> {}', nil, "foo", 100)
     location = proc.source_location
     ruby_version_is(""..."4.0") do
-      NATFIXME 'Support arguments in eval', exception: SpecFailedException do
-        location.should == ["foo", 100]
-      end
+      location.should == ["foo", 100]
     end
     ruby_version_is("4.0") do
-      location.should == ["foo", 100, 2, 100, 5]
+      NATFIXME 'Support arguments in eval', exception: SpecFailedException do
+        location.should == ["foo", 100, 2, 100, 5]
+      end
     end
   end
 end

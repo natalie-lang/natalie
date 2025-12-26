@@ -2,9 +2,9 @@
 
 namespace Natalie {
 
-ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, ExceptionObject *current_exception, bool accept_cause) {
+ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, ExceptionObject *current_exception) {
     auto kwargs = args.pop_keyword_hash();
-    auto cause = accept_cause && kwargs ? kwargs->remove(env, "cause"_s) : Optional<Value>();
+    auto cause = kwargs ? kwargs->remove(env, "cause"_s) : Optional<Value>();
     args.ensure_argc_between(env, 0, 3);
     auto klass = args.maybe_at(0);
     auto message = args.maybe_at(1);
@@ -62,7 +62,7 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args &&args, Except
     else
         env->raise("TypeError", "exception class/object expected");
 
-    if (accept_cause && cause && !cause->is_nil()) {
+    if (cause && !cause->is_nil()) {
         if (!cause->is_exception())
             env->raise("TypeError", "exception object expected");
         exception->set_cause(cause->as_exception());
