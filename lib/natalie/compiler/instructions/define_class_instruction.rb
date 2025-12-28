@@ -65,9 +65,8 @@ module Natalie
         code << "  #{klass} = Object::subclass(env, #{superclass}, #{@name.to_s.inspect})"
         code << "  Object::const_set(env, #{namespace}, #{transform.intern(@name)}, #{klass})"
         code << '}'
-        code << "static LexicalScope #{lexical_scope} { nullptr, nullptr };"
-        code << "#{lexical_scope} = LexicalScope { env->lexical_scope(), #{klass}.as_module() };"
-        code << "#{klass}.as_class()->eval_body(env, &#{lexical_scope}, #{fn})"
+        code << "auto #{lexical_scope} = new LexicalScope { env->lexical_scope(), #{klass}.as_module() };"
+        code << "#{klass}.as_class()->eval_body(env, #{lexical_scope}, #{fn})"
 
         transform.exec_and_push(:result_of_define_class, code)
       end

@@ -63,9 +63,8 @@ module Natalie
         code << "  #{mod} = ModuleObject::create(#{@name.to_s.inspect})"
         code << "  Object::const_set(env, #{namespace}, #{transform.intern(@name)}, #{mod})"
         code << '}'
-        code << "static LexicalScope #{lexical_scope} { nullptr, nullptr };"
-        code << "#{lexical_scope} = LexicalScope { env->lexical_scope(), #{mod}.as_module() };"
-        code << "#{mod}.as_module()->eval_body(env, &#{lexical_scope}, #{fn})"
+        code << "auto #{lexical_scope} = new LexicalScope { env->lexical_scope(), #{mod}.as_module() };"
+        code << "#{mod}.as_module()->eval_body(env, #{lexical_scope}, #{fn})"
 
         transform.exec_and_push(:result_of_define_module, code)
       end
