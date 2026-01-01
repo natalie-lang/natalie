@@ -819,7 +819,7 @@ const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
             if (m_type == Type::Module || m_type == Type::Class)
                 obj = static_cast<ModuleObject *>(this)->const_get(name);
         } else {
-            obj = m_klass->const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::None);
+            obj = Object::const_find(env, m_klass, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::None);
         }
         if (obj) return "constant";
     } else if (name->is_global_name()) {

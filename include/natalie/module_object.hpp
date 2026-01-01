@@ -61,8 +61,6 @@ public:
     Value is_autoload(Env *, Value) const;
 
     Optional<Value> handle_missing_constant(Env *, Value, ConstLookupFailureMode);
-    Optional<Value> const_find_with_autoload(Env *, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
-    Optional<Value> const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
 
     Constant *get_constant(SymbolObject *name, ModuleObject **found_in_module) {
         auto constant = m_constants.get(name);
@@ -220,8 +218,6 @@ protected:
             m_included_modules.push(module);
         }
     }
-
-    Constant *find_constant(Env *, SymbolObject *, ModuleObject **, ConstLookupSearchMode = ConstLookupSearchMode::Strict);
 
     TM::Hashmap<SymbolObject *, Constant *> m_constants {};
     Optional<String> m_name {};

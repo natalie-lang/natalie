@@ -42,9 +42,9 @@ Value Socket_const_name_to_i(Env *env, Value self, Args &&args, Block *) {
     if (name.is_string() || name.is_symbol()) {
         auto sym = name.to_symbol(env, Value::Conversion::Strict);
         auto Socket = find_top_level_const(env, "Socket"_s).as_module();
-        auto value = Socket->const_find(env, sym, Object::ConstLookupSearchMode::Strict, Object::ConstLookupFailureMode::None);
+        auto value = Object::const_find(env, Socket, sym, Object::ConstLookupSearchMode::Strict, Object::ConstLookupFailureMode::None);
         if (!value)
-            value = Socket->const_find(env, "SHORT_CONSTANTS"_s).value().as_hash_or_raise(env)->get(env, sym);
+            value = Object::const_find(env, Socket, "SHORT_CONSTANTS"_s).value().as_hash_or_raise(env)->get(env, sym);
         if (!value)
             env->raise_name_error(sym, "uninitialized constant {}::{}", Socket->inspect_module(), sym->string());
         return value.value();
