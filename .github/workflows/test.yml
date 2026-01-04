@@ -40,8 +40,6 @@ jobs:
         with:
           submodules: true
       - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.4'
       - name: run tests
         env:
           NAT_BUILD_MODE: debug
@@ -63,8 +61,6 @@ jobs:
         with:
           submodules: true
       - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.4'
       - name: install build tools
         run: brew install --force --overwrite autoconf automake libtool pkg-config
       - name: install openssl

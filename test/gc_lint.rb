@@ -26,7 +26,7 @@ require 'bundler/inline'
 
 gemfile do
   source 'https://rubygems.org'
-  gem 'nokogiri', '~> 1.18.0'
+  gem 'nokogiri', '~> 1.19.0'
 end
 
 @locations = {}

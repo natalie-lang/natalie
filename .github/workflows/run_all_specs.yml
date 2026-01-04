@@ -16,8 +16,6 @@ jobs:
         with:
           submodules: true
       - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.4'
       - run: rake docker_test_all_ruby_spec_nightly
         env:
           STATS_API_SECRET: ${{ secrets.STATS_API_SECRET }}

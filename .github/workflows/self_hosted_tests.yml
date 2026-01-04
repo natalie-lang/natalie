@@ -12,8 +12,6 @@ jobs:
         with:
           submodules: true
       - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.4'
       - name: get commit count
         run: echo "NEW_COMMIT_COUNT=$(git log --oneline --since '25 hours ago' | wc -l)" >> $GITHUB_ENV
       - name: run tests

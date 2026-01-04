@@ -22,8 +22,6 @@ jobs:
         with:
           submodules: true
       - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.4'
       - name: Get relevant SHA (PR)
         if: ${{ github.event_name == 'pull_request' }}
         shell: bash
