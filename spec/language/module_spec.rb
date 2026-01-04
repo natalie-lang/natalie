@@ -31,12 +31,38 @@ describe "The module keyword" do
   end
 
   it "does not reopen a module included in Object" do
-    module IncludedModuleSpecs; Reopened = true; end
-    NATFIXME 'does not reopen a module included in Object', exception: SpecFailedException do
-      ModuleSpecs::IncludedInObject::IncludedModuleSpecs.should_not == Object::IncludedModuleSpecs
+    NATFIXME 'it does not reopen a module included in Object', exception: SpecFailedException do
+      ruby_exe(<<~RUBY).should == "false"
+        module IncludedInObject
+          module IncludedModule; end
+        end
+        class Object
+          include IncludedInObject
+        end
+        module IncludedModule; end
+        print IncludedInObject::IncludedModule == Object::IncludedModule
+      RUBY
     end
-  ensure
-    IncludedModuleSpecs.send(:remove_const, :Reopened)
+  end
+
+  it "does not reopen a module included in non-Object modules" do
+    NATFIXME 'it does not reopen a module included in non-Object modules', exception: SpecFailedException do
+      ruby_exe(<<~RUBY).should == "false/false"
+        module Included
+          module IncludedModule; end
+        end
+        module M
+          include Included
+          module IncludedModule; end
+        end
+        class C
+          include Included
+          module IncludedModule; end
+        end
+        print Included::IncludedModule == M::IncludedModule, "/",
+              Included::IncludedModule == C::IncludedModule
+      RUBY
+    end
   end
 
   it "raises a TypeError if the constant is a Class" do

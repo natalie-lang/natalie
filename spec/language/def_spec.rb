@@ -107,9 +107,8 @@ describe "An instance method" do
         def foo; end
       end
     }.should raise_error(FrozenError) { |e|
-      NATFIXME 'correct casing in message', exception: SpecFailedException do
-        e.message.should == "can't modify frozen module: #{e.receiver}"
-      end
+      msg_class = ruby_version_is("4.0") ? "Module" : "module"
+      e.message.should == "can't modify frozen #{msg_class}: #{e.receiver}"
     }
 
     -> {
@@ -118,9 +117,8 @@ describe "An instance method" do
         def foo; end
       end
     }.should raise_error(FrozenError){ |e|
-      NATFIXME 'correct message', exception: SpecFailedException do
-        e.message.should == "can't modify frozen class: #{e.receiver}"
-      end
+      msg_class = ruby_version_is("4.0") ? "Class" : "class"
+      e.message.should == "can't modify frozen #{msg_class}: #{e.receiver}"
     }
   end
 end
@@ -298,7 +296,8 @@ describe "A singleton method definition" do
     obj = Object.new
     obj.freeze
     NATFIXME 'correct casing in message', exception: SpecFailedException do
-      -> { def obj.foo; end }.should raise_error(FrozenError, "can't modify frozen object: #{obj}")
+      msg_class = ruby_version_is("4.0") ? "Object" : "object"
+      -> { def obj.foo; end }.should raise_error(FrozenError, "can't modify frozen #{msg_class}: #{obj}")
     end
 
     obj = Object.new

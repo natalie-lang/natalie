@@ -37,4 +37,53 @@ describe "File.path" do
     path.should_receive(:to_path).and_return("abc")
     File.path(path).should == "abc"
   end
+
+  it "raises TypeError when #to_path result is not a string" do
+    path = mock("path")
+    path.should_receive(:to_path).and_return(nil)
+    -> { File.path(path) }.should raise_error TypeError
+
+    path = mock("path")
+    path.should_receive(:to_path).and_return(42)
+    -> { File.path(path) }.should raise_error TypeError
+  end
+
+  it "raises ArgumentError for string argument contains NUL character" do
+    NATFIXME 'it raises ArgumentError for string argument contains NUL character', exception: SpecFailedException do
+      -> { File.path("\0") }.should raise_error ArgumentError
+      -> { File.path("a\0") }.should raise_error ArgumentError
+      -> { File.path("a\0c") }.should raise_error ArgumentError
+    end
+  end
+
+  it "raises ArgumentError when #to_path result contains NUL character" do
+    NATFIXME 'it raises ArgumentError when #to_path result contains NUL character', exception: SpecFailedException do
+      path = mock("path")
+      path.should_receive(:to_path).and_return("\0")
+      -> { File.path(path) }.should raise_error ArgumentError
+
+      path = mock("path")
+      path.should_receive(:to_path).and_return("a\0")
+      -> { File.path(path) }.should raise_error ArgumentError
+
+      path = mock("path")
+      path.should_receive(:to_path).and_return("a\0c")
+      -> { File.path(path) }.should raise_error ArgumentError
+    end
+  end
+
+  it "raises Encoding::CompatibilityError for ASCII-incompatible string argument" do
+    path = "abc".encode(Encoding::UTF_32BE)
+    NATFIXME 'it raises Encoding::CompatibilityError for ASCII-incompatible string argument', exception: SpecFailedException, message: /but instead raised nothing/ do
+      -> { File.path(path) }.should raise_error Encoding::CompatibilityError
+    end
+  end
+
+  it "raises Encoding::CompatibilityError when #to_path result is ASCII-incompatible" do
+    NATFIXME 'it raises Encoding::CompatibilityError for ASCII-incompatible string argument', exception: SpecFailedException, message: /but instead raised nothing/ do
+      path = mock("path")
+      path.should_receive(:to_path).and_return("abc".encode(Encoding::UTF_32BE))
+      -> { File.path(path) }.should raise_error Encoding::CompatibilityError
+    end
+  end
 end
