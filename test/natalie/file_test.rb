@@ -100,6 +100,14 @@ describe 'File' do
     end
   end
 
+  describe '.realpath' do
+    it 'does not change the arguments' do
+      path = +'file_test.rb'
+      File.realpath(path, __dir__)
+      path.should == 'file_test.rb'
+    end
+  end
+
   describe '#read' do
     it 'reads the entire file' do
       f = File.new('test/support/file.txt')
