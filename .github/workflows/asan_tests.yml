@@ -11,6 +11,9 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: true
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
       - name: fix kernel mmap rnd bits for ASan
         run: sudo sysctl vm.mmap_rnd_bits=28
       - name: get commit count

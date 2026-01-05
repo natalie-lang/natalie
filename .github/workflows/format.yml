@@ -19,10 +19,12 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
       - name: install dependencies
         run: |
-          sudo apt-get install -y -q ruby clang-format build-essential
-          sudo gem install bundler
+          sudo apt-get install -y -q clang-format build-essential
           bundle config set --local path vendor/bundle
           bundle install
       - name: format
