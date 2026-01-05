@@ -609,6 +609,7 @@ Value FileObject::readlink(Env *env, Value filename) {
 Value FileObject::realpath(Env *env, Value pathname, Optional<Value> dir_arg) {
     pathname = ioutil::convert_using_to_path(env, pathname);
     if (dir_arg) {
+        pathname = KernelModule::dup(env, pathname);
         pathname.as_string()->prepend_char(env, '/');
         pathname.as_string()->prepend(env, { ioutil::convert_using_to_path(env, dir_arg.value()) });
     }
