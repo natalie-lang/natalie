@@ -70,7 +70,7 @@ jobs:
           brew link -f --overwrite ruby@3.4
       - name: check ruby
         run: |
-          export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
+          export PATH="/opt/homebrew/opt/ruby@3.4/bin:$PATH"
           which ruby
           ruby --version
           which bundle
@@ -87,7 +87,7 @@ jobs:
           PKG_CONFIG_PATH: /usr/local/opt/openssl@3/lib/pkgconfig:/opt/homebrew/opt/openssl@3/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig:/opt/homebrew/opt/libffi/lib/pkgconfig
           NAT_BUILD_MODE: release
         run: |
-          export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
+          export PATH="/opt/homebrew/opt/ruby@3.4/bin:$PATH"
           export GLOB=$(ruby spec/support/split_specs.rb 4 ${{ matrix.group }})
           rake test
   self-hosted:
