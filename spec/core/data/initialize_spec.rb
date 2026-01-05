@@ -122,5 +122,17 @@ describe "Data#initialize" do
         ScratchPad.recorded.should == [:initialize, [], {amount: 42, unit: "m"}]
       end
     end
+
+    # See https://github.com/ruby/psych/pull/765
+    it "can be deserialized by calling Data.instance_method(:initialize)" do
+      NATFIXME 'it can be deserialized by calling Data.instance_method(:initialize)', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+        d1 = DataSpecs::Area.new(width: 2, height: 3)
+        d1.area.should == 6
+
+        d2 = DataSpecs::Area.allocate
+        Data.instance_method(:initialize).bind_call(d2, **d1.to_h)
+        d2.should == d1
+      end
+    end
   end
 end

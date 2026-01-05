@@ -78,12 +78,70 @@ describe "Kernel.Rational" do
   end
 
   describe "when passed a Complex" do
-    it "returns a Rational from the real part if the imaginary part is 0" do
-      Rational(Complex(1, 0)).should == Rational(1)
+    context "[Complex]" do
+      it "returns a Rational from the real part if the imaginary part is 0" do
+        Rational(Complex(1, 0)).should == Rational(1)
+      end
+
+      it "raises a RangeError if the imaginary part is not 0" do
+        -> { Rational(Complex(1, 2)) }.should raise_error(RangeError, "can't convert 1+2i into Rational")
+      end
     end
 
-    it "raises a RangeError if the imaginary part is not 0" do
-      -> { Rational(Complex(1, 2)) }.should raise_error(RangeError)
+    context "[Numeric, Complex]" do
+      it "uses the real part if the imaginary part is 0" do
+        Rational(1, Complex(2, 0)).should == Rational(1, 2)
+      end
+
+      it "divides a numerator by the Complex denominator if the imaginary part is not 0" do
+        NATFIXME 'it divides a numerator by the Complex denominator if the imaginary part is not 0', exception: RangeError, message: "can't convert (2+1i) to Float" do
+          Rational(1, Complex(2, 1)).should == Complex(2/5r, -1/5r)
+        end
+      end
+    end
+  end
+
+  context "when passed neither a Numeric nor a String" do
+    it "converts to Rational with #to_r method" do
+      obj = Object.new
+      def obj.to_r; 1/2r; end
+
+      Rational(obj).should == 1/2r
+    end
+
+    it "tries to convert to Integer with #to_int method if it does not respond to #to_r" do
+      obj = Object.new
+      def obj.to_int; 1; end
+
+      NATFIXME 'it tries to convert to Integer with #to_int method if it does not respond to #to_r', exception: TypeError, message: "can't convert Object into Float" do
+        Rational(obj).should == 1r
+      end
+    end
+
+    it "raises TypeError if it neither responds to #to_r nor #to_int method" do
+      NATFIXME 'it raises TypeError if it neither responds to #to_r nor #to_int method', exception: SpecFailedException do
+        -> { Rational([]) }.should raise_error(TypeError, "can't convert Array into Rational")
+        -> { Rational({}) }.should raise_error(TypeError, "can't convert Hash into Rational")
+        -> { Rational(nil) }.should raise_error(TypeError, "can't convert nil into Rational")
+      end
+    end
+
+    it "swallows exception raised in #to_int method" do
+      object = Object.new
+      def object.to_int() raise NoMethodError; end
+
+      -> { Rational(object) }.should raise_error(TypeError)
+      -> { Rational(object, 1) }.should raise_error(TypeError)
+      -> { Rational(1, object) }.should raise_error(TypeError)
+    end
+
+    it "raises TypeError if #to_r does not return Rational" do
+      NATFIXME 'it raises TypeError if #to_r does not return Rational', exception: SpecFailedException do
+        obj = Object.new
+        def obj.to_r; []; end
+
+        -> { Rational(obj) }.should raise_error(TypeError, "can't convert Object to Rational (Object#to_r gives Array)")
+      end
     end
   end
 
@@ -93,11 +151,15 @@ describe "Kernel.Rational" do
   end
 
   it "raises a TypeError if the first argument is nil" do
-    -> { Rational(nil) }.should raise_error(TypeError)
+    NATFIXME 'Fix error message', exception: SpecFailedException, message: /but the message was/ do
+      -> { Rational(nil) }.should raise_error(TypeError, "can't convert nil into Rational")
+    end
   end
 
   it "raises a TypeError if the second argument is nil" do
-    -> { Rational(1, nil) }.should raise_error(TypeError)
+    NATFIXME 'Fix error message', exception: SpecFailedException, message: /but the message was/ do
+      -> { Rational(1, nil) }.should raise_error(TypeError, "can't convert nil into Rational")
+    end
   end
 
   it "raises a TypeError if the first argument is a Symbol" do
@@ -114,6 +176,18 @@ describe "Kernel.Rational" do
         Rational(:sym, exception: false).should == nil
         Rational("abc", exception: false).should == nil
       end
+
+      it "swallows an exception raised in #to_r" do
+        obj = Object.new
+        def obj.to_r; raise; end
+        Rational(obj, exception: false).should == nil
+      end
+
+      it "swallows an exception raised in #to_int" do
+        obj = Object.new
+        def obj.to_int; raise; end
+        Rational(obj, exception: false).should == nil
+      end
     end
 
     describe "and [non-Numeric, Numeric]" do
@@ -121,12 +195,36 @@ describe "Kernel.Rational" do
         Rational(:sym, 1, exception: false).should == nil
         Rational("abc", 1, exception: false).should == nil
       end
+
+      it "swallows an exception raised in #to_r" do
+        obj = Object.new
+        def obj.to_r; raise; end
+        Rational(obj, 1, exception: false).should == nil
+      end
+
+      it "swallows an exception raised in #to_int" do
+        obj = Object.new
+        def obj.to_int; raise; end
+        Rational(obj, 1, exception: false).should == nil
+      end
     end
 
     describe "and [anything, non-Numeric]" do
       it "swallows an error" do
         Rational(:sym, :sym, exception: false).should == nil
         Rational("abc", :sym, exception: false).should == nil
+      end
+
+      it "swallows an exception raised in #to_r" do
+        obj = Object.new
+        def obj.to_r; raise; end
+        Rational(obj, obj, exception: false).should == nil
+      end
+
+      it "swallows an exception raised in #to_int" do
+        obj = Object.new
+        def obj.to_int; raise; end
+        Rational(obj, obj, exception: false).should == nil
       end
     end
 

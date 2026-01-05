@@ -763,6 +763,12 @@ describe "Predefined global $/" do
   it "raises a TypeError if assigned a boolean" do
     -> { $/ = true }.should raise_error(TypeError, 'value of $/ must be String')
   end
+
+  it "warns if assigned non-nil" do
+    NATFIXME 'it warns if assigned non-nil', exception: SpecFailedException, message: /but the output was ""/ do
+      -> { $/ = "_" }.should complain(/warning: (?:non-nil )?[`']\$\/' is deprecated/)
+    end
+  end
 end
 
 describe "Predefined global $-0" do
@@ -848,6 +854,12 @@ describe "Predefined global $-0" do
       -> { $-0 = true }.should raise_error(TypeError, 'value of $-0 must be String')
     end
   end
+
+  it "warns if assigned non-nil" do
+    NATFIXME 'it warns if assigned non-nil', exception: SpecFailedException, message: /but the output was ""/ do
+      -> { $-0 = "_" }.should complain(/warning: (?:non-nil )?[`']\$-0' is deprecated/)
+    end
+  end
 end
 
 describe "Predefined global $\\" do
@@ -887,6 +899,12 @@ describe "Predefined global $\\" do
     -> { $\ = 1 }.should raise_error(TypeError, 'value of $\ must be String')
     -> { $\ = true }.should raise_error(TypeError, 'value of $\ must be String')
   end
+
+  it "warns if assigned non-nil" do
+    NATFIXME 'it warns if assigned non-nil', exception: SpecFailedException, message: /but the output was ""/ do
+      -> { $\ = "_" }.should complain(/warning: (?:non-nil )?[`']\$\\' is deprecated/)
+    end
+  end
 end
 
 describe "Predefined global $," do
@@ -903,7 +921,7 @@ describe "Predefined global $," do
   end
 
   it "warns if assigned non-nil" do
-    -> { $, = "_" }.should complain(/warning: [`']\$,' is deprecated/)
+    -> { $, = "_" }.should complain(/warning: (?:non-nil )?[`']\$,' is deprecated/)
   end
 end
 
@@ -940,7 +958,7 @@ describe "Predefined global $;" do
   end
 
   it "warns if assigned non-nil" do
-    -> { $; = "_" }.should complain(/warning: [`']\$;' is deprecated/)
+    -> { $; = "_" }.should complain(/warning: (?:non-nil )?[`']\$;' is deprecated/)
   end
 end
 

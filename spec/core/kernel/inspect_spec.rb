@@ -59,5 +59,38 @@ describe "Kernel#inspect" do
         inspected.should == "#<Object:0x00>"
       end
     end
+
+    it "displays all instance variables if #instance_variables_to_inspect returns nil" do
+      NATFIXME 'Support Object#instance_variables_to_inspect', exception: SpecFailedException do
+        obj = Object.new
+        obj.instance_eval do
+          @host = "localhost"
+          @user = "root"
+          @password = "hunter2"
+        end
+        obj.singleton_class.class_eval do
+          private def instance_variables_to_inspect = nil
+        end
+
+        inspected = obj.inspect.sub(/^#<Object:0x[0-9a-f]+/, '#<Object:0x00')
+        inspected.should ==  %{#<Object:0x00 @host="localhost", @user="root", @password="hunter2">}
+      end
+    end
+
+    it "raises an error if #instance_variables_to_inspect returns an invalid value" do
+      NATFIXME 'Support Object#instance_variables_to_inspect', exception: SpecFailedException do
+        obj = Object.new
+        obj.instance_eval do
+          @host = "localhost"
+          @user = "root"
+          @password = "hunter2"
+        end
+        obj.singleton_class.class_eval do
+          private def instance_variables_to_inspect = {}
+        end
+
+        ->{ obj.inspect }.should raise_error(TypeError, "Expected #instance_variables_to_inspect to return an Array or nil, but it returned Hash")
+      end
+    end
   end
 end

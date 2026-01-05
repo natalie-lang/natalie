@@ -29,9 +29,11 @@ describe "FrozenError#message" do
     object.freeze
 
     NATFIXME 'FrozenError#message includes a receiver', exception: SpecFailedException do
+      msg_class = ruby_version_is("4.0") ? "Object" : "object"
+
       -> {
         def object.x; end
-      }.should raise_error(FrozenError, "can't modify frozen object: #{object}")
+      }.should raise_error(FrozenError, "can't modify frozen #{msg_class}: #{object}")
     end
 
     object = [].freeze
