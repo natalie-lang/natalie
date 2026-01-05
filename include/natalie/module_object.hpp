@@ -48,6 +48,8 @@ public:
 
     Object &operator=(Object &&other) = delete;
 
+    static Value nesting(Env *);
+
     Value initialize(Env *, Block *);
 
     Value include(Env *, Args &&args);

@@ -15,6 +15,16 @@ ModuleObject::ModuleObject(const char *name)
 ModuleObject::ModuleObject(Type type, ClassObject *klass)
     : Object { type, klass } { }
 
+Value ModuleObject::nesting(Env *env) {
+    auto ary = ArrayObject::create();
+
+    auto caller = env->caller(); // we want the lexical scope of the caller; not Module.nesting method itself
+    for (auto lexical_scope = caller->lexical_scope(); lexical_scope; lexical_scope = lexical_scope->parent())
+        ary->push(lexical_scope->module());
+
+    return ary;
+}
+
 Value ModuleObject::initialize(Env *env, Block *block) {
     if (block) {
         Value self = this;
