@@ -4,7 +4,7 @@
 namespace Natalie {
 TM::Optional<TM::String> StringUptoIterator::next() {
     auto peeked = peek();
-    if (peeked.present())
+    if (peeked.has_value())
         m_current = peeked.value();
     return peeked;
 }
@@ -14,7 +14,7 @@ TM::Optional<TM::String> StringUptoIterator::peek() const {
         return {};
 
     TM::String result;
-    if (m_current.present()) {
+    if (m_current.has_value()) {
         auto current = m_current.value();
         if (m_treat_as_integer) {
             result = TM::String((Integer(current) + 1).to_nat_int_t());
@@ -43,7 +43,7 @@ bool StringUptoIterator::to_reached() const {
     if (!m_has_to)
         return false;
 
-    if (!m_current.present())
+    if (!m_current.has_value())
         return false;
 
     if (m_treat_as_integer) {

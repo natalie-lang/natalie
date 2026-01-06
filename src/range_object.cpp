@@ -122,7 +122,7 @@ Optional<Value> RangeObject::iterate_over_string_range(Env *env, Function &&func
     auto end = m_end.as_string()->string();
     auto iterator = StringUptoIterator(m_begin.as_string()->string(), end, m_exclude_end);
 
-    while ((current = iterator.next()).present()) {
+    while ((current = iterator.next()).has_value()) {
         if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
             func(StringObject::create(current.value()));
         } else {
@@ -144,7 +144,7 @@ Optional<Value> RangeObject::iterate_over_symbol_range(Env *env, Function &&func
     auto end = m_end.as_symbol()->string();
     auto iterator = StringUptoIterator(m_begin.as_symbol()->string(), end, m_exclude_end);
 
-    while ((current = iterator.next()).present()) {
+    while ((current = iterator.next()).has_value()) {
         if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
             func(SymbolObject::intern(current.value()));
         } else {
@@ -327,7 +327,7 @@ bool RangeObject::include(Env *env, Value arg) {
         return {};
     });
 
-    return found_item.present();
+    return found_item.has_value();
 }
 
 Value RangeObject::bsearch(Env *env, Block *block) {

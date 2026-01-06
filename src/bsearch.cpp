@@ -58,7 +58,7 @@ Value binary_search_integer(Env *env, nat_int_t left, nat_int_t right, Block *bl
         return block->run(env, { Value::integer(middle) }, nullptr);
     });
 
-    if (!result.present())
+    if (!result.has_value())
         return Value::nil();
 
     if (exclude_end && result.value() == right)
@@ -92,7 +92,7 @@ Value binary_search_float(Env *env, double left, double right, Block *block, boo
         return block->run(env, { FloatObject::create(integer_to_double(middle)) }, nullptr);
     });
 
-    if (!result.present())
+    if (!result.has_value())
         return Value::nil();
 
     if (exclude_end && result.value() == right_int)

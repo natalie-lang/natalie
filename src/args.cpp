@@ -258,7 +258,7 @@ bool Args::keyword_arg_present(Env *env, SymbolObject *name) const {
     auto hash = keyword_hash();
     if (!hash)
         return false;
-    return hash->get(env, name).present();
+    return hash->get(env, name).has_value();
 }
 
 HashObject *Args::keyword_arg_rest(Env *env, std::initializer_list<SymbolObject *> without) const {

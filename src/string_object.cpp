@@ -3850,7 +3850,7 @@ Value StringObject::upto(Env *env, Value other, Optional<Value> exclusive_arg, B
     }
 
     TM::Optional<TM::String> current;
-    while ((current = iterator.next()).present()) {
+    while ((current = iterator.next()).has_value()) {
         if (current->length() > string->length())
             return this;
 

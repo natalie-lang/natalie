@@ -20,7 +20,7 @@ Value Value::integer(TM::String &&str) {
     if (is_profiled) {                                                                  \
         auto classnameOf = [](Value val) -> String {                                    \
             auto maybe_classname = val.klass()->name();                                 \
-            if (maybe_classname.present())                                              \
+            if (maybe_classname.has_value())                                            \
                 return maybe_classname.value();                                         \
             else                                                                        \
                 return String("Anonymous");                                             \

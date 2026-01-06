@@ -1466,7 +1466,7 @@ Value ArrayObject::bsearch_index(Env *env, Block *block) {
         return block->run(env, { (*this)[middle] }, nullptr);
     });
 
-    if (!result.present())
+    if (!result.has_value())
         return Value::nil();
 
     return Value::integer(result.value());

@@ -678,7 +678,7 @@ Value HashObject::hash(Env *env) {
 }
 
 bool HashObject::has_key(Env *env, Value key) {
-    return get(env, key).present();
+    return get(env, key).has_value();
 }
 
 bool HashObject::has_value(Env *env, Value value) {
