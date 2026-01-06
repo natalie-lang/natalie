@@ -288,6 +288,20 @@ module Math
       __call__('::log10', x)
     end
 
+    __function__('::log1p', ['double'], 'double')
+
+    def log1p(x)
+      raise TypeError, "can't convert String into Float" if x.is_a?(String)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      raise DomainError, 'Numerical argument is out of domain - log1p' if x < 0
+      __call__('::log1p', x)
+    end
+
     __function__('::log2', ['double'], 'double')
 
     def log2(x)
@@ -470,6 +484,10 @@ module Math
 
   def log10(x)
     Math.log10(x)
+  end
+
+  def log1p(x)
+    Math.log1p(x)
   end
 
   def log2(x)
