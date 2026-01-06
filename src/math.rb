@@ -266,6 +266,7 @@ module Math
     __function__('::log10', ['double'], 'double')
 
     def log10(x)
+      raise TypeError, "can't convert String into Float" if x.is_a?(String)
       begin
         x = Float(x)
       rescue ArgumentError
