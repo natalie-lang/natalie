@@ -169,6 +169,18 @@ module Math
       __call__('::exp', x)
     end
 
+    __function__('::expm1', ['double'], 'double')
+
+    def expm1(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      __call__('::expm1', x)
+    end
+
     __define_method__ :frexp, [:x], <<-END
       FloatObject *value;
       try {
@@ -430,6 +442,10 @@ module Math
 
   def exp(x)
     Math.exp(x)
+  end
+
+  def expm1(x)
+    Math.expm1(x)
   end
 
   def frexp(x)
