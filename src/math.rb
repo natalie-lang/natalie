@@ -169,6 +169,18 @@ module Math
       __call__('::exp', x)
     end
 
+    __function__('::expm1', ['double'], 'double')
+
+    def expm1(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      __call__('::expm1', x)
+    end
+
     __define_method__ :frexp, [:x], <<-END
       FloatObject *value;
       try {
@@ -275,6 +287,20 @@ module Math
       return Float::NAN if x.nan?
       raise DomainError, 'Numerical argument is out of domain' if x < 0
       __call__('::log10', x)
+    end
+
+    __function__('::log1p', ['double'], 'double')
+
+    def log1p(x)
+      raise TypeError, "can't convert String into Float" if x.is_a?(String)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      raise DomainError, 'Numerical argument is out of domain - log1p' if x < 0
+      __call__('::log1p', x)
     end
 
     __function__('::log2', ['double'], 'double')
@@ -433,6 +459,10 @@ module Math
     Math.exp(x)
   end
 
+  def expm1(x)
+    Math.expm1(x)
+  end
+
   def frexp(x)
     Math.frexp(x)
   end
@@ -455,6 +485,10 @@ module Math
 
   def log10(x)
     Math.log10(x)
+  end
+
+  def log1p(x)
+    Math.log1p(x)
   end
 
   def log2(x)
