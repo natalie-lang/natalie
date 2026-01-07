@@ -33,9 +33,7 @@ ruby_version_is "4.0" do
     end
 
     it "raises a TypeError if the argument is nil" do
-      NATFIXME 'Use correct error message', exception: SpecFailedException, message: /but the message was/ do
-        -> { Math.log1p(nil) }.should raise_error(TypeError, "can't convert nil into Float")
-      end
+      -> { Math.log1p(nil) }.should raise_error(TypeError, "can't convert nil into Float")
     end
 
     it "accepts any argument that can be coerced with Float()" do
