@@ -20,7 +20,7 @@ public:
      * ```
      */
     Optional(const T &value)
-        : m_present { true }
+        : m_has_value { true }
         , m_value { value } { }
 
     /**
@@ -33,7 +33,7 @@ public:
      * ```
      */
     Optional(T &&value)
-        : m_present { true }
+        : m_has_value { true }
         , m_value { std::move(value) } { }
 
     /**
@@ -45,7 +45,7 @@ public:
      * ```
      */
     Optional()
-        : m_present { false } { }
+        : m_has_value { false } { }
 
     /**
      * Copies the given Optional.
@@ -59,8 +59,8 @@ public:
      * ```
      */
     Optional(const Optional &other)
-        : m_present { other.m_present } {
-        if (m_present)
+        : m_has_value { other.m_has_value } {
+        if (m_has_value)
             m_value = other.m_value;
     }
 
@@ -76,10 +76,10 @@ public:
      * ```
      */
     Optional(Optional &&other)
-        : m_present { other.m_present } {
-        if (m_present) {
+        : m_has_value { other.m_has_value } {
+        if (m_has_value) {
             m_value = std::move(other.m_value);
-            other.m_present = false;
+            other.m_has_value = false;
         }
     }
 
@@ -101,8 +101,8 @@ public:
      * ```
      */
     Optional<T> &operator=(const Optional<T> &other) {
-        m_present = other.m_present;
-        if (m_present)
+        m_has_value = other.m_has_value;
+        if (m_has_value)
             m_value = other.m_value;
         return *this;
     }
@@ -121,10 +121,10 @@ public:
      * ```
      */
     Optional<T> &operator=(Optional<T> &&other) {
-        m_present = other.m_present;
-        if (m_present) {
+        m_has_value = other.m_has_value;
+        if (m_has_value) {
             m_value = std::move(other.m_value);
-            other.m_present = false;
+            other.m_has_value = false;
         }
         return *this;
     }
@@ -141,7 +141,7 @@ public:
      * ```
      */
     Optional<T> &operator=(T &&value) {
-        m_present = true;
+        m_has_value = true;
         m_value = std::move(value);
         return *this;
     }
@@ -163,7 +163,7 @@ public:
      * ```
      */
     T &value() {
-        assert(m_present);
+        assert(m_has_value);
         return m_value;
     }
 
@@ -184,7 +184,7 @@ public:
      * ```
      */
     T const &value() const {
-        assert(m_present);
+        assert(m_has_value);
         return m_value;
     }
 
@@ -207,7 +207,7 @@ public:
      * ```
      */
     T const &value_or(const T &fallback) const {
-        if (present())
+        if (has_value())
             return value();
         else
             return fallback;
@@ -232,7 +232,7 @@ public:
      * ```
      */
     T value_or(std::function<T()> fallback) const {
-        if (present())
+        if (has_value())
             return value();
         else
             return fallback();
@@ -258,7 +258,7 @@ public:
      * ```
      */
     T &operator*() {
-        assert(m_present);
+        assert(m_has_value);
         return m_value;
     }
 
@@ -279,7 +279,7 @@ public:
      * ```
      */
     T const &operator*() const {
-        assert(m_present);
+        assert(m_has_value);
         return m_value;
     }
 
@@ -300,7 +300,7 @@ public:
      * ```
      */
     T *operator->() {
-        assert(m_present);
+        assert(m_has_value);
         return &m_value;
     }
 
@@ -321,7 +321,7 @@ public:
      * ```
      */
     T const *operator->() const {
-        assert(m_present);
+        assert(m_has_value);
         return &m_value;
     }
 
@@ -335,7 +335,7 @@ public:
      * assert_not(opt);
      * ```
      */
-    void clear() { m_present = false; }
+    void clear() { m_has_value = false; }
 
     /**
      * Returns true if the Optional contains a value.
@@ -347,7 +347,7 @@ public:
      * assert_not(opt2);
      * ```
      */
-    operator bool() const { return m_present; }
+    operator bool() const { return m_has_value; }
 
     /**
      * Returns true if the Optional contains a value.
@@ -355,14 +355,14 @@ public:
      * ```
      * auto opt1 = Optional<Thing>(Thing(1));
      * auto opt2 = Optional<Thing>();
-     * assert(opt1.present());
-     * assert_not(opt2.present());
+     * assert(opt1.has_value());
+     * assert_not(opt2.has_value());
      * ```
      */
-    bool present() const { return m_present; }
+    bool has_value() const { return m_has_value; }
 
 private:
-    bool m_present;
+    bool m_has_value;
 
     T m_value {};
 };

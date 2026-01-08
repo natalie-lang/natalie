@@ -296,7 +296,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
 
     } else {
         assert(host);
-        assert(port.present());
+        assert(port.has_value());
 
         if (host->is_empty())
             host = StringObject::create("0.0.0.0");

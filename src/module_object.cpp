@@ -439,7 +439,7 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
 bool ModuleObject::class_variable_defined(Env *env, Value name) {
     auto *name_sym = name.to_symbol(env, Value::Conversion::Strict);
 
-    return cvar_get_maybe(env, name_sym).present();
+    return cvar_get_maybe(env, name_sym).has_value();
 }
 
 Value ModuleObject::class_variable_get(Env *env, Value name) {
@@ -1093,7 +1093,7 @@ bool ModuleObject::const_defined(Env *env, Value name_value, Optional<Value> inh
     if (inherited && inherited->is_falsey()) {
         return !!m_constants.get(name);
     }
-    return const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::None).present();
+    return const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::None).has_value();
 }
 
 Value ModuleObject::alias_method(Env *env, Value new_name_value, Value old_name_value) {

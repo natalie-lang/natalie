@@ -648,7 +648,7 @@ Value IntegerMethods::ref(Env *env, Integer self, Value offset_obj, Optional<Val
     auto from_offset_and_size = [self, env](Optional<nat_int_t> offset_or_empty, Optional<nat_int_t> size_or_empty = {}) -> Value {
         auto offset = offset_or_empty.value_or(0);
 
-        if (!size_or_empty.present() && offset < 0)
+        if (!size_or_empty.has_value() && offset < 0)
             return Value::integer(0);
 
         auto size = size_or_empty.value_or(1);
@@ -662,7 +662,7 @@ Value IntegerMethods::ref(Env *env, Integer self, Value offset_obj, Optional<Val
         if (size >= 0)
             result = result & ((1 << size) - 1);
 
-        if (result != 0 && !offset_or_empty.present())
+        if (result != 0 && !offset_or_empty.has_value())
             env->raise("ArgumentError", "The beginless range for Integer#[] results in infinity");
 
         return result;

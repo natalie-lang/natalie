@@ -63,7 +63,7 @@ private:
     static Value enum_block(Env *, Value, Args &&, Block *);
 
     bool ascending(Env *env) {
-        if (!m_ascending.present())
+        if (!m_ascending.has_value())
             m_ascending = calculate_ascending(env);
         return m_ascending.value();
     }
@@ -71,7 +71,7 @@ private:
     Integer calculate_step_count(Env *);
     Value iterate(Env *, std::function<Value(Value)>);
     Integer step_count(Env *env) {
-        if (!m_step_count.present())
+        if (!m_step_count.has_value())
             m_step_count = calculate_step_count(env);
         return m_step_count.value();
     }
