@@ -500,8 +500,11 @@ Value KernelModule::Float(Env *env, Value value, bool exception) {
             return result;
         }
     }
-    if (exception)
+    if (exception) {
+        if (value.is_nil() || value.is_true() || value.is_false())
+            env->raise("TypeError", "can't convert {} into Float", value.inspected(env));
         env->raise("TypeError", "can't convert {} into Float", value.klass()->inspect_module());
+    }
 
     return Value::nil();
 }

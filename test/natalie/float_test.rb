@@ -54,5 +54,11 @@ describe 'float' do
         end
       end
     end
+
+    it 'does not show the class in TypeError for singleton objects' do
+      -> { Float(nil) }.should raise_error(TypeError, "can't convert nil into Float")
+      -> { Float(true) }.should raise_error(TypeError, "can't convert true into Float")
+      -> { Float(false) }.should raise_error(TypeError, "can't convert false into Float")
+    end
   end
 end
