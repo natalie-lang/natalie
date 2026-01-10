@@ -46,6 +46,7 @@ module Natalie
 
         klass = transform.temp('class')
         klass_found = transform.temp('class_found')
+        lexical_scope = transform.temp('lexical_scope')
         namespace = transform.pop
         superclass = transform.pop
         search_mode = private? ? 'StrictPrivate' : 'Strict'
@@ -64,7 +65,8 @@ module Natalie
         code << "  #{klass} = Object::subclass(env, #{superclass}, #{@name.to_s.inspect})"
         code << "  Object::const_set(env, #{namespace}, #{transform.intern(@name)}, #{klass})"
         code << '}'
-        code << "#{klass}.as_class()->eval_body(env, #{fn})"
+        code << "auto #{lexical_scope} = new LexicalScope { env->lexical_scope(), #{klass}.as_module() };"
+        code << "#{klass}.as_class()->eval_body(env, #{lexical_scope}, #{fn})"
 
         transform.exec_and_push(:result_of_define_class, code)
       end

@@ -393,6 +393,7 @@ void Env::visit_children(Visitor &visitor) const {
     visitor.visit(m_this_block);
     visitor.visit(m_caller);
     visitor.visit(m_method);
+    visitor.visit(m_lexical_scope);
     visitor.visit(m_module);
     if (m_match)
         visitor.visit(m_match.value());

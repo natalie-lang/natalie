@@ -1440,7 +1440,7 @@ Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, 
     EncodingObject *dst_encoding_obj = find_encoding(dst_encoding);
     EncodingObject *src_encoding_obj = find_encoding(src_encoding);
     if (!dst_encoding_obj || !src_encoding_obj) {
-        auto klass = m_encoding->klass()->const_find(env, "ConverterNotFoundError"_s)->as_class();
+        auto klass = Object::const_find(env, m_encoding->klass(), "ConverterNotFoundError"_s)->as_class();
         auto to_name = dst_encoding.to_s(env)->string();
         auto from_name = src_encoding.to_s(env)->string();
         env->raise(klass, "code converter not found ({} to {})", from_name, to_name);
@@ -3494,7 +3494,7 @@ Value StringObject::rstrip(Env *env) const {
         return StringObject::create("", m_encoding);
 
     if (!valid_encoding())
-        env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s)->as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
+        env->raise(Object::const_find(env, m_encoding->klass(), "CompatibilityError"_s)->as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
 
     assert(length() < NAT_INT_MAX);
     nat_int_t last_char;
@@ -3519,7 +3519,7 @@ Value StringObject::rstrip_in_place(Env *env) {
         return Value::nil();
 
     if (!valid_encoding())
-        env->raise(m_encoding->klass()->const_find(env, "CompatibilityError"_s)->as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
+        env->raise(Object::const_find(env, m_encoding->klass(), "CompatibilityError"_s)->as_class(), "invalid byte sequence in {}", m_encoding->name()->string());
 
     assert(length() < NAT_INT_MAX);
     nat_int_t last_char;

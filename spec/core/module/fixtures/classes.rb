@@ -274,43 +274,40 @@ module ModuleSpecs
     module_function :foo2
   end
 
-  NATFIXME 'Implement Module.nesting', exception: NoMethodError, message: /undefined method 'nesting'/ do
-    module Nesting
-      @tests = {}
-      def self.[](name); @tests[name]; end
-      def self.[]=(name, val); @tests[name] = val; end
-      def self.meta; class << self; self; end; end
+  module Nesting
+    @tests = {}
+    def self.[](name); @tests[name]; end
+    def self.[]=(name, val); @tests[name] = val; end
+    def self.meta; class << self; self; end; end
 
-      Nesting[:basic] = Module.nesting
+    Nesting[:basic] = Module.nesting
 
-      module ::ModuleSpecs
-        Nesting[:open_first_level] = Module.nesting
-      end
+    module ::ModuleSpecs
+      Nesting[:open_first_level] = Module.nesting
+    end
 
-      class << self
-        Nesting[:open_meta] = Module.nesting
-      end
+    class << self
+      Nesting[:open_meta] = Module.nesting
+    end
 
-      def self.called_from_module_method
+    def self.called_from_module_method
+      Module.nesting
+    end
+
+    class NestedClass
+      Nesting[:nest_class] = Module.nesting
+
+      def self.called_from_class_method
         Module.nesting
       end
 
-      class NestedClass
-        Nesting[:nest_class] = Module.nesting
-
-        def self.called_from_class_method
-          Module.nesting
-        end
-
-        def called_from_inst_method
-          Module.nesting
-        end
+      def called_from_inst_method
+        Module.nesting
       end
-
     end
-
-    Nesting[:first_level] = Module.nesting
   end
+
+  Nesting[:first_level] = Module.nesting
 
   module InstanceMethMod
     def bar(); :bar; end
@@ -656,6 +653,4 @@ NATFIXME 'Allow Kernel to change access modifier of Object instance method', exc
   end
 end
 
-NATFIXME 'Implement Module.nesting', exception: NoMethodError, message: /undefined method 'nesting'/ do
-  ModuleSpecs::Nesting[:root_level] = Module.nesting
-end
+ModuleSpecs::Nesting[:root_level] = Module.nesting

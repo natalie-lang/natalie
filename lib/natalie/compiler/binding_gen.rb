@@ -1077,6 +1077,7 @@ gen.binding('Method', 'source_location', 'MethodObject', 'source_location', argc
 gen.binding('Method', 'to_proc', 'MethodObject', 'to_proc', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Method', 'unbind', 'MethodObject', 'unbind', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
+gen.static_binding_as_class_method('Module', 'nesting', 'ModuleObject', 'nesting', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Module', 'initialize', 'ModuleObject', 'initialize', argc: 0, pass_env: true, pass_block: true, return_type: :Value, visibility: :private)
 gen.binding('Module', '===', 'ModuleObject', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Module', 'alias_method', 'ModuleObject', 'alias_method', argc: 2, pass_env: true, pass_block: false, return_type: :Value)

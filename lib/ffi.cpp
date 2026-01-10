@@ -398,6 +398,7 @@ Value FFI_Library_attach_function(Env *env, Value self, Args &&args, Block *) {
     block_env->var_set("return_type", 2, true, return_type);
     block_env->var_set("ffi_args", 3, true, ffi_args_obj);
     block_env->var_set("fn", 4, true, VoidPObject::create(fn));
+    block_env->set_lexical_scope(env->lexical_scope()); // TODO RPJ - not sure about this - work out lexical scope here
     Block *block = Block::create(std::move(block_env), self, FFI_Library_fn_call_block, 0);
     Object::define_singleton_method(env, self, name, block);
 

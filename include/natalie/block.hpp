@@ -22,6 +22,11 @@ public:
         return new Block(env, self, fn, arity, has_return, type);
     }
 
+    static Block *create(Env &env, Value self, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, bool has_return = false, BlockType type = BlockType::Proc) {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        return new Block(env, self, lexical_scope, fn, arity, has_return, type);
+    }
+
     static Block *create(TM::OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, bool has_return = false, BlockType type = BlockType::Proc) {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
         return new Block(std::move(env), self, fn, arity, has_return, type);
@@ -48,6 +53,8 @@ public:
     }
     Value self() const { return m_self; }
 
+    LexicalScope *lexical_scope() const { return m_env->lexical_scope(); }
+
     void copy_fn_pointer_to_method(Method *);
 
     virtual void visit_children(Visitor &visitor) const override final {
@@ -68,6 +75,17 @@ private:
         , m_env { Env::create(env) }
         , m_self { self }
         , m_type { type } { }
+
+    Block(Env &env, Value self, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, bool has_return, BlockType type = BlockType::Proc)
+        : m_fn { fn }
+        , m_arity { arity }
+        , m_has_return { has_return }
+        , m_env { Env::create(env) }
+        , m_self { self }
+        , m_type { type } {
+
+        m_env->set_lexical_scope(lexical_scope);
+    }
 
     Block(OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, bool has_return, BlockType type = BlockType::Proc)
         : m_fn { fn }

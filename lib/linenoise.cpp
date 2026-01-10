@@ -182,19 +182,27 @@ Value init_linenoise(Env *env, Value self) {
     auto Linenoise = ModuleObject::create("Linenoise");
     GlobalEnv::the()->Object()->const_set("Linenoise"_s, Linenoise);
 
-    Object::define_singleton_method(env, Linenoise, "add_history"_s, Linenoise_add_history, 1);
-    Object::define_singleton_method(env, Linenoise, "clear_screen"_s, Linenoise_clear_screen, 0);
-    Object::define_singleton_method(env, Linenoise, "completion_callback="_s, Linenoise_set_completion_callback, 1);
-    Object::define_singleton_method(env, Linenoise, "highlight_callback="_s, Linenoise_set_highlight_callback, 1);
-    Object::define_singleton_method(env, Linenoise, "hints_callback="_s, Linenoise_set_hints_callback, 1);
-    Object::define_singleton_method(env, Linenoise, "history"_s, Linenoise_get_history, 0);
-    Object::define_singleton_method(env, Linenoise, "history="_s, Linenoise_set_history, 1);
-    Object::define_singleton_method(env, Linenoise, "history_max_len="_s, Linenoise_set_history_max_len, 1);
-    Object::define_singleton_method(env, Linenoise, "load_history"_s, Linenoise_load_history, 1);
-    Object::define_singleton_method(env, Linenoise, "multi_line"_s, Linenoise_get_multi_line, 0);
-    Object::define_singleton_method(env, Linenoise, "multi_line="_s, Linenoise_set_multi_line, 1);
-    Object::define_singleton_method(env, Linenoise, "readline"_s, Linenoise_readline, 1);
-    Object::define_singleton_method(env, Linenoise, "save_history"_s, Linenoise_save_history, 1);
+    static LexicalScope linenoise_lexical_scope { nullptr, nullptr };
+    linenoise_lexical_scope = LexicalScope(nullptr, Linenoise);
+
+    Env linenoise_env {};
+    linenoise_env.set_lexical_scope(&linenoise_lexical_scope);
+    linenoise_env.set_caller(env);
+    linenoise_env.set_module(Linenoise);
+
+    Object::define_singleton_method(&linenoise_env, Linenoise, "add_history"_s, Linenoise_add_history, 1);
+    Object::define_singleton_method(&linenoise_env, Linenoise, "clear_screen"_s, Linenoise_clear_screen, 0);
+    Object::define_singleton_method(&linenoise_env, Linenoise, "completion_callback="_s, Linenoise_set_completion_callback, 1);
+    Object::define_singleton_method(&linenoise_env, Linenoise, "highlight_callback="_s, Linenoise_set_highlight_callback, 1);
+    Object::define_singleton_method(&linenoise_env, Linenoise, "hints_callback="_s, Linenoise_set_hints_callback, 1);
+    Object::define_singleton_method(&linenoise_env, Linenoise, "history"_s, Linenoise_get_history, 0);
+    Object::define_singleton_method(&linenoise_env, Linenoise, "history="_s, Linenoise_set_history, 1);
+    Object::define_singleton_method(&linenoise_env, Linenoise, "history_max_len="_s, Linenoise_set_history_max_len, 1);
+    Object::define_singleton_method(&linenoise_env, Linenoise, "load_history"_s, Linenoise_load_history, 1);
+    Object::define_singleton_method(&linenoise_env, Linenoise, "multi_line"_s, Linenoise_get_multi_line, 0);
+    Object::define_singleton_method(&linenoise_env, Linenoise, "multi_line="_s, Linenoise_set_multi_line, 1);
+    Object::define_singleton_method(&linenoise_env, Linenoise, "readline"_s, Linenoise_readline, 1);
+    Object::define_singleton_method(&linenoise_env, Linenoise, "save_history"_s, Linenoise_save_history, 1);
 
     return Value::nil();
 }

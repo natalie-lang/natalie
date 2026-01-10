@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include "natalie/constant.hpp"
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
@@ -100,7 +101,9 @@ public:
 
     void extend_once(Env *, ModuleObject *);
 
+    static Optional<Value> const_find(Env *, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
     static Optional<Value> const_find_with_autoload(Env *, Value, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
+
     static Value const_fetch(Value, SymbolObject *);
     static Value const_set(Env *, Value, SymbolObject *, Value);
     static Value const_set(Env *, Value, SymbolObject *, MethodFnPtr, StringObject *);
@@ -228,6 +231,12 @@ protected:
 
 private:
     static Optional<Value> create(Env *, ClassObject *);
+
+    static Constant *find_constant_in_lexical_scope(Env *, SymbolObject *, ModuleObject **);
+    static ModuleObject *get_scope_module(Env *, Value, ConstLookupSearchMode);
+    static ModuleObject *get_scope_module_else_object_class(Env *, Value, ConstLookupSearchMode);
+    static void check_valid(Env *, Constant *, ModuleObject *, SymbolObject *, ConstLookupSearchMode);
+    static Constant *find_constant(Env *, Value, SymbolObject *, ConstLookupSearchMode, ModuleObject **);
 
     Type m_type { Type::Object };
     ClassObject *m_singleton_class { nullptr };
