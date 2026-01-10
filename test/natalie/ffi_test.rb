@@ -280,6 +280,16 @@ describe 'FFI' do
     libm.pow(2.0, 3.0).should == 8.0
   end
 
+  it 'has a Library::LIBC constant' do
+    libc =
+      Module.new do
+        extend FFI::Library
+        ffi_lib FFI::Library::LIBC
+        attach_function :abs, [:int], :int # Random LibC function
+      end
+    libc.abs(-13).should == 13
+  end
+
   it 'supports enums as constants' do
     libtest =
       Module.new do

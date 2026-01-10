@@ -3,12 +3,35 @@
 #include <fstream>
 #include <iostream>
 
+#ifndef __APPLE__
+#include <gnu/lib-names.h>
+#endif
+
 #include "natalie.hpp"
 #include "tm/owned_ptr.hpp"
 
 using namespace Natalie;
 
 Value init_ffi(Env *env, Value self) {
+    auto FFI = GlobalEnv::the()->Object()->const_get("FFI"_s);
+    if (!FFI) {
+        FFI = ModuleObject::create("FFI");
+        GlobalEnv::the()->Object()->const_set("FFI"_s, FFI.value());
+    }
+    auto Library = FFI->as_module()->const_get("Library"_s);
+    if (!Library) {
+        Library = ModuleObject::create("Library");
+        FFI->as_module()->const_set("Library"_s, Library.value());
+    }
+    auto LIBC = Library->as_module()->const_get("LIBC"_s);
+    if (!LIBC) {
+#ifdef __APPLE__
+        LIBC = StringObject::create("libc.dylib");
+#else
+        LIBC = StringObject::create(LIBC_SO);
+#endif
+        Library->as_module()->const_set("LIBC"_s, LIBC.value());
+    }
     return Value::nil();
 }
 
