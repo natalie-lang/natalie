@@ -1045,11 +1045,17 @@ describe "Anonymous block forwarding" do
   end
 end
 
-describe "`it` calls without arguments in a block with no ordinary parameters" do
+describe "`it` calls without arguments in a block" do
   ruby_version_is "3.3"..."3.4" do
     it "emits a deprecation warning" do
       -> {
         eval "proc { it }"
+      }.should complain(/warning: `it` calls without arguments will refer to the first block param in Ruby 3.4; use it\(\) or self.it/)
+    end
+
+    it "emits a deprecation warning if numbered parameters are used" do
+      -> {
+        eval "proc { it; _1 }"
       }.should complain(/warning: `it` calls without arguments will refer to the first block param in Ruby 3.4; use it\(\) or self.it/)
     end
 
@@ -1062,21 +1068,48 @@ describe "`it` calls without arguments in a block with no ordinary parameters" d
       -> { eval "proc { |**| it }" }.should_not complain
       -> { eval "proc { |&block| it }" }.should_not complain
       -> { eval "proc { |&| it }" }.should_not complain
+      -> { eval "proc { || it }" }.should_not complain
     end
 
     it "does not emit a deprecation warning when `it` calls with arguments" do
       -> { eval "proc { it(42) }" }.should_not complain
+      -> { eval "proc { it 42 }" }.should_not complain
+    end
+
+    it "does not emit a deprecation warning when `it` calls with a block" do
+      -> { eval "proc { it {} }" }.should_not complain
+    end
+
+    it "does not emit a deprecation warning when a local variable inside the block named `it` exists" do
+      -> { eval "proc { it = 42; it }" }.should_not complain
     end
 
     it "does not emit a deprecation warning when `it` calls with explicit empty arguments list" do
       -> { eval "proc { it() }" }.should_not complain
     end
+
+    it "calls the method `it` if defined" do
+      o = Object.new
+      def o.it
+        21
+      end
+      suppress_warning do
+        o.instance_eval("proc { it * 2 }").call(1).should == 42
+      end
+    end
   end
 end
 
-describe "if `it` is defined outside of a block" do
-  it "treats `it` as a captured variable" do
+# Duplicates specs in language/it_parameter_spec.rb
+# Need them here to run on Ruby versions prior 3.4
+# TODO: remove when the minimal supported Ruby version is 3.4
+describe "if `it` is defined as a variable" do
+  it "treats `it` as a captured variable if defined outside of a block" do
     it = 5
     proc { it }.call(0).should == 5
+  end
+
+  it "treats `it` as a local variable if defined inside of a block" do
+    proc { it = 5; it }.call(0).should == 5
   end
 end
