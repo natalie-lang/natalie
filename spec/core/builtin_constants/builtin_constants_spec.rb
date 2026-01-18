@@ -89,9 +89,7 @@ end
 ruby_version_is "4.0" do
   describe "Ruby" do
     it "is a Module" do
-      NATFIXME 'Implement Ruby constant', exception: NameError, message: 'uninitialized constant Ruby' do
-        Ruby.should.instance_of?(Module)
-      end
+      Ruby.should.instance_of?(Module)
     end
   end
 
