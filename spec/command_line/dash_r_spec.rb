@@ -17,11 +17,8 @@ describe "The -r command line option" do
     $?.should_not.success?
     NATFIXME 'Natalie does not execute code before encountering a syntax error', exception: SpecFailedException do
       out.should include("REQUIRED")
+      out.should include("SyntaxError")
     end
-
-    # it's tempting not to rely on error message and rely only on exception class name,
-    # but CRuby before 3.2 doesn't print class name for syntax error
-    out.should include_any_of("syntax error", "SyntaxError")
   end
 
   it "does not require the file if the main script file does not exist" do

@@ -366,7 +366,7 @@ end
 
 module Enumerable
   def to_set(klass = (klass_not_given = true; Set), &block)
-    warn('passing arguments to Enumerable#to_set is deprecated') unless klass_not_given
+    warn('warning: passing arguments to Enumerable#to_set is deprecated') unless klass_not_given
     if block
       klass.new(map(&block))
     else
