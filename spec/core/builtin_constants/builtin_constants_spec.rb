@@ -48,15 +48,11 @@ end
 
 describe "RUBY_ENGINE_VERSION" do
   it "is a String" do
-    NATFIXME 'Add RUBY_ENGINE_VERSION constant', exception: NameError, message: 'uninitialized constant RUBY_ENGINE_VERSION' do
-      RUBY_ENGINE_VERSION.should be_kind_of(String)
-    end
+    RUBY_ENGINE_VERSION.should be_kind_of(String)
   end
 
   it "is frozen" do
-    NATFIXME 'Add RUBY_ENGINE_VERSION constant', exception: NameError, message: 'uninitialized constant RUBY_ENGINE_VERSION' do
-      RUBY_ENGINE_VERSION.should.frozen?
-    end
+    RUBY_ENGINE_VERSION.should.frozen?
   end
 end
 

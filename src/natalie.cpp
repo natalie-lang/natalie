@@ -513,6 +513,10 @@ Env *build_top_env() {
     RUBY_ENGINE->freeze();
     Object->const_set("RUBY_ENGINE"_s, RUBY_ENGINE);
 
+    Value RUBY_ENGINE_VERSION = StringObject::create("0.1");
+    RUBY_ENGINE_VERSION->freeze();
+    Object->const_set("RUBY_ENGINE_VERSION"_s, RUBY_ENGINE_VERSION);
+
     Value RUBY_PATCHLEVEL = Value::integer(-1);
     Object->const_set("RUBY_PATCHLEVEL"_s, RUBY_PATCHLEVEL);
 
