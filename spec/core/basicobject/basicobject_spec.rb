@@ -14,9 +14,7 @@ describe "BasicObject" do
   end
 
   it "does not define built-in constants (according to const_defined?)" do
-    NATFIXME 'does not define built-in constants (according to const_defined?)', exception: SpecFailedException do
-      BasicObject.const_defined?(:Kernel).should be_false
-    end
+    BasicObject.const_defined?(:Kernel).should be_false
   end
 
   it "does not define built-in constants (according to defined?)" do

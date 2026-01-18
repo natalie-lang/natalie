@@ -1066,6 +1066,14 @@ Value init_openssl(Env *env, Value self) {
         GlobalEnv::the()->Object()->const_set("OpenSSL"_s, OpenSSL);
     }
 
+    static LexicalScope openssl_lexical_scope = { nullptr, nullptr };
+    openssl_lexical_scope = LexicalScope { nullptr, OpenSSL };
+
+    Env openssl_env {};
+    openssl_env.set_lexical_scope(&openssl_lexical_scope);
+    openssl_env.set_caller(env);
+    openssl_env.set_module(OpenSSL);
+
     // OpenSSL < 3.0 does not have a OPENSSL_VERSION_STR
     const auto openssl_version_major = static_cast<nat_int_t>((OPENSSL_VERSION_NUMBER >> 28) & 0xFF);
     const auto openssl_version_minor = static_cast<nat_int_t>((OPENSSL_VERSION_NUMBER >> 20) & 0xFF);
@@ -1076,7 +1084,7 @@ Value init_openssl(Env *env, Value self) {
 
     OpenSSL->const_set("OPENSSL_VERSION"_s, StringObject::create(OPENSSL_VERSION_TEXT));
     OpenSSL->const_set("OPENSSL_VERSION_NUMBER"_s, Value::integer(OPENSSL_VERSION_NUMBER));
-    Object::define_singleton_method(env, OpenSSL, "fixed_length_secure_compare"_s, OpenSSL_fixed_length_secure_compare, 2);
+    Object::define_singleton_method(&openssl_env, OpenSSL, "fixed_length_secure_compare"_s, OpenSSL_fixed_length_secure_compare, 2);
 
     Value Cipher;
     auto lookup_Cipher = OpenSSL->const_get("Cipher"_s);
@@ -1086,17 +1094,26 @@ Value init_openssl(Env *env, Value self) {
         Cipher = GlobalEnv::the()->Object()->subclass(env, "Cipher");
         OpenSSL->const_set("Cipher"_s, Cipher);
     }
-    Object::define_method(env, Cipher, "initialize"_s, OpenSSL_Cipher_initialize, 1);
-    Object::define_method(env, Cipher, "block_size"_s, OpenSSL_Cipher_block_size, 0);
-    Object::define_method(env, Cipher, "decrypt"_s, OpenSSL_Cipher_decrypt, 0);
-    Object::define_method(env, Cipher, "encrypt"_s, OpenSSL_Cipher_encrypt, 0);
-    Object::define_method(env, Cipher, "final"_s, OpenSSL_Cipher_final, 0);
-    Object::define_method(env, Cipher, "iv="_s, OpenSSL_Cipher_iv_set, 1);
-    Object::define_method(env, Cipher, "iv_len"_s, OpenSSL_Cipher_iv_len, 0);
-    Object::define_method(env, Cipher, "key="_s, OpenSSL_Cipher_key_set, 1);
-    Object::define_method(env, Cipher, "key_len"_s, OpenSSL_Cipher_key_len, 0);
-    Object::define_method(env, Cipher, "update"_s, OpenSSL_Cipher_update, 1);
-    Object::define_singleton_method(env, Cipher, "ciphers"_s, OpenSSL_Cipher_ciphers, 0);
+
+    static LexicalScope cipher_lexical_scope = { nullptr, nullptr };
+    cipher_lexical_scope = LexicalScope { &openssl_lexical_scope, Cipher.as_module() };
+
+    Env cipher_env {};
+    cipher_env.set_lexical_scope(&cipher_lexical_scope);
+    cipher_env.set_caller(&openssl_env);
+    cipher_env.set_module(Cipher.as_module());
+
+    Object::define_method(&cipher_env, Cipher, "initialize"_s, OpenSSL_Cipher_initialize, 1);
+    Object::define_method(&cipher_env, Cipher, "block_size"_s, OpenSSL_Cipher_block_size, 0);
+    Object::define_method(&cipher_env, Cipher, "decrypt"_s, OpenSSL_Cipher_decrypt, 0);
+    Object::define_method(&cipher_env, Cipher, "encrypt"_s, OpenSSL_Cipher_encrypt, 0);
+    Object::define_method(&cipher_env, Cipher, "final"_s, OpenSSL_Cipher_final, 0);
+    Object::define_method(&cipher_env, Cipher, "iv="_s, OpenSSL_Cipher_iv_set, 1);
+    Object::define_method(&cipher_env, Cipher, "iv_len"_s, OpenSSL_Cipher_iv_len, 0);
+    Object::define_method(&cipher_env, Cipher, "key="_s, OpenSSL_Cipher_key_set, 1);
+    Object::define_method(&cipher_env, Cipher, "key_len"_s, OpenSSL_Cipher_key_len, 0);
+    Object::define_method(&cipher_env, Cipher, "update"_s, OpenSSL_Cipher_update, 1);
+    Object::define_singleton_method(&cipher_env, Cipher, "ciphers"_s, OpenSSL_Cipher_ciphers, 0);
 
     Value Digest;
     auto lookup_Digest = OpenSSL->const_get("Digest"_s);
@@ -1106,13 +1123,22 @@ Value init_openssl(Env *env, Value self) {
         Digest = GlobalEnv::the()->Object()->subclass(env, "Digest");
         OpenSSL->const_set("Digest"_s, Digest);
     }
-    Object::define_method(env, Digest, "initialize"_s, OpenSSL_Digest_initialize, -1);
-    Object::define_method(env, Digest, "block_length"_s, OpenSSL_Digest_block_length, 0);
-    Object::define_method(env, Digest, "digest"_s, OpenSSL_Digest_digest, -1);
-    Object::define_method(env, Digest, "digest_length"_s, OpenSSL_Digest_digest_length, 0);
-    Object::define_method(env, Digest, "reset"_s, OpenSSL_Digest_reset, 0);
-    Object::define_method(env, Digest, "update"_s, OpenSSL_Digest_update, 1);
-    Object::define_method(env, Digest, "<<"_s, OpenSSL_Digest_update, 1);
+
+    static LexicalScope digest_lexical_scope = { nullptr, nullptr };
+    digest_lexical_scope = LexicalScope { &openssl_lexical_scope, Digest.as_module() };
+
+    Env digest_env {};
+    digest_env.set_lexical_scope(&digest_lexical_scope);
+    digest_env.set_caller(&openssl_env);
+    digest_env.set_module(Digest.as_module());
+
+    Object::define_method(&digest_env, Digest, "initialize"_s, OpenSSL_Digest_initialize, -1);
+    Object::define_method(&digest_env, Digest, "block_length"_s, OpenSSL_Digest_block_length, 0);
+    Object::define_method(&digest_env, Digest, "digest"_s, OpenSSL_Digest_digest, -1);
+    Object::define_method(&digest_env, Digest, "digest_length"_s, OpenSSL_Digest_digest_length, 0);
+    Object::define_method(&digest_env, Digest, "reset"_s, OpenSSL_Digest_reset, 0);
+    Object::define_method(&digest_env, Digest, "update"_s, OpenSSL_Digest_update, 1);
+    Object::define_method(&digest_env, Digest, "<<"_s, OpenSSL_Digest_update, 1);
 
     Value HMAC;
     auto lookup_HMAC = OpenSSL->const_get("HMAC"_s);
@@ -1122,7 +1148,16 @@ Value init_openssl(Env *env, Value self) {
         HMAC = GlobalEnv::the()->Object()->subclass(env, "HMAC");
         OpenSSL->const_set("HMAC"_s, HMAC);
     }
-    Object::define_singleton_method(env, HMAC, "digest"_s, OpenSSL_HMAC_digest, 3);
+
+    static LexicalScope hmac_lexical_scope = { nullptr, nullptr };
+    hmac_lexical_scope = LexicalScope { &openssl_lexical_scope, HMAC.as_module() };
+
+    Env hmac_env {};
+    hmac_env.set_lexical_scope(&hmac_lexical_scope);
+    hmac_env.set_caller(&openssl_env);
+    hmac_env.set_module(HMAC.as_module());
+
+    Object::define_singleton_method(&hmac_env, HMAC, "digest"_s, OpenSSL_HMAC_digest, 3);
 
     Value KDF;
     auto lookup_KDF = OpenSSL->const_get("KDF"_s);
@@ -1132,8 +1167,17 @@ Value init_openssl(Env *env, Value self) {
         KDF = ModuleObject::create("KDF");
         OpenSSL->const_set("KDF"_s, KDF);
     }
-    Object::define_singleton_method(env, KDF, "pbkdf2_hmac"_s, OpenSSL_KDF_pbkdf2_hmac, -1);
-    Object::define_singleton_method(env, KDF, "scrypt"_s, OpenSSL_KDF_scrypt, -1);
+
+    static LexicalScope kdf_lexical_scope = { nullptr, nullptr };
+    kdf_lexical_scope = LexicalScope { &openssl_lexical_scope, KDF.as_module() };
+
+    Env kdf_env {};
+    kdf_env.set_lexical_scope(&kdf_lexical_scope);
+    kdf_env.set_caller(&openssl_env);
+    kdf_env.set_module(KDF.as_module());
+
+    Object::define_singleton_method(&kdf_env, KDF, "pbkdf2_hmac"_s, OpenSSL_KDF_pbkdf2_hmac, -1);
+    Object::define_singleton_method(&kdf_env, KDF, "scrypt"_s, OpenSSL_KDF_scrypt, -1);
 
     return Value::nil();
 }

@@ -95,6 +95,7 @@
 #include "natalie/integer_methods.hpp"
 #include "natalie/io_object.hpp"
 #include "natalie/kernel_module.hpp"
+#include "natalie/lexical_scope.hpp"
 #include "natalie/local_jump_error_type.hpp"
 #include "natalie/match_data_object.hpp"
 #include "natalie/method.hpp"
@@ -184,7 +185,7 @@ Value super(Env *, Value, Args &&, Block *);
 void clean_up_and_exit(int status);
 
 inline Value find_top_level_const(Env *env, SymbolObject *name) {
-    return GlobalEnv::the()->Object()->const_find(env, name).value();
+    return Object::const_find(env, GlobalEnv::the()->Object(), name).value();
 }
 
 inline Value fetch_nested_const(std::initializer_list<SymbolObject *> names) {

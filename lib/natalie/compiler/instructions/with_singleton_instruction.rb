@@ -22,10 +22,16 @@ module Natalie
           transform.top(fn, fn_code)
         end
         obj = transform.pop
-        transform.exec_and_push(
-          :result_of_with_singleton,
-          "Object::singleton_class(env, #{obj})->eval_body(env, #{fn})",
-        )
+
+        singleton_class = transform.temp('singleton_class')
+        lexical_scope = transform.temp('lexical_scope')
+
+        code = []
+        code << "Value #{singleton_class} = Object::singleton_class(env, #{obj});"
+        code << "auto #{lexical_scope} = new LexicalScope { env->lexical_scope(), #{singleton_class}.as_module() };"
+        code << "#{singleton_class}.as_class()->eval_body(env, #{lexical_scope}, #{fn});"
+
+        transform.exec_and_push(:result_of_with_singleton, code)
       end
 
       def execute(vm)

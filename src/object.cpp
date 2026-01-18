@@ -247,22 +247,120 @@ void Object::extend_once(Env *env, ModuleObject *module) {
     singleton_class(env, this)->include_once(env, module);
 }
 
-Optional<Value> Object::const_find_with_autoload(Env *env, Value ns, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
-    if (GlobalEnv::the()->instance_evaling()) {
-        auto context = GlobalEnv::the()->current_instance_eval_context();
-        if (context.caller_env->module()) {
-            // We want to search the constant in the context in which instance_eval was called
-            return context.caller_env->module()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
+Constant *Object::find_constant_in_lexical_scope(Env *env, SymbolObject *name, ModuleObject **found_in_module) {
+    Constant *constant = nullptr;
+    for (auto lexical_scope = env->lexical_scope(); lexical_scope; lexical_scope = lexical_scope->parent()) {
+        auto module = lexical_scope->module();
+        constant = module->get_constant(name, found_in_module);
+        if (constant)
+            break;
+    }
+    return constant;
+}
+
+ModuleObject *Object::get_scope_module(Env *env, Value ns, ConstLookupSearchMode search_mode) {
+    ModuleObject *scope_module = nullptr;
+    if (search_mode == ConstLookupSearchMode::NotStrict) {
+        if (env->lexical_scope())
+            scope_module = env->lexical_scope()->module();
+    } else {
+        if (ns.is_module()) {
+            scope_module = ns.as_module();
+        } else {
+            if (search_mode == ConstLookupSearchMode::Strict)
+                env->raise("TypeError", "{} is not a class/module", ns.inspected(env));
+            // TODO RPJ - only for special case of "main" object? Seems like this should be neater.
+            scope_module = ns.klass();
+        }
+    }
+    return scope_module;
+}
+
+ModuleObject *Object::get_scope_module_else_object_class(Env *env, Value ns, ConstLookupSearchMode search_mode) {
+    auto scope_module = get_scope_module(env, ns, search_mode);
+    if (!scope_module)
+        scope_module = GlobalEnv::the()->Object();
+    return scope_module;
+}
+
+void Object::check_valid(Env *env, Constant *constant, ModuleObject *scope_module, SymbolObject *name, ConstLookupSearchMode search_mode) {
+    if (search_mode == ConstLookupSearchMode::Strict && constant->is_private()) {
+        if (scope_module && scope_module != GlobalEnv::the()->Object())
+            env->raise_name_error(name, "private constant {}::{} referenced", scope_module->inspect_module(), name->string());
+        else
+            env->raise_name_error(name, "private constant ::{} referenced", name->string());
+    }
+    if (constant->is_deprecated()) {
+        if (scope_module && scope_module != GlobalEnv::the()->Object())
+            env->deprecation_warn("constant {}::{} is deprecated", scope_module->inspect_module(), name->string());
+        else
+            env->deprecation_warn("constant ::{} is deprecated", name->string());
+    }
+}
+
+Constant *Object::find_constant(Env *env, Value ns, SymbolObject *name, ConstLookupSearchMode search_mode, ModuleObject **found_in_module) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    Constant *constant = nullptr;
+
+    // 1. search in lexical scope, unless constant is explicitly scoped
+    if (search_mode == ConstLookupSearchMode::NotStrict)
+        constant = find_constant_in_lexical_scope(env, name, found_in_module);
+
+    // 2. search in superclass hierarchy (excluding Object and above); but only in included modules for class/module defn
+    if (!constant) {
+        auto scope_module = get_scope_module(env, ns, search_mode);
+        bool include_object = search_mode == ConstLookupSearchMode::Strict && (scope_module == GlobalEnv::the()->Object() || scope_module == GlobalEnv::the()->BasicObject());
+
+        if (scope_module) {
+            if (search_mode == ConstLookupSearchMode::StrictPrivate)
+                constant = scope_module->find_constant_in_modules(env, name, found_in_module);
+            else
+                constant = scope_module->find_constant_in_class_hierarchy(env, name, include_object, found_in_module);
         }
     }
 
-    if (ns.is_module())
-        return ns.as_module()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
+    // 3. search in Object class and its class hierarchy
+    if (!constant)
+        if (search_mode == ConstLookupSearchMode::NotStrict)
+            constant = GlobalEnv::the()->Object()->find_constant_in_class_hierarchy(env, name, true, found_in_module);
 
-    if (search_mode == ConstLookupSearchMode::Strict)
-        env->raise("TypeError", "{} is not a class/module", ns.inspected(env));
+    if (constant) {
+        auto scope_module = get_scope_module_else_object_class(env, ns, search_mode);
+        check_valid(env, constant, scope_module, name, search_mode);
+    }
 
-    return ns.klass()->const_find_with_autoload(env, self, name, search_mode, failure_mode);
+    return constant;
+}
+
+Optional<Value> Object::const_find(Env *env, Value ns, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+    ModuleObject *found_in_module = nullptr;
+    auto constant = find_constant(env, ns, name, search_mode, &found_in_module);
+
+    if (!constant) {
+        auto scope_module = get_scope_module_else_object_class(env, ns, search_mode);
+        return scope_module->handle_missing_constant(env, name, failure_mode);
+    }
+
+    return constant->value();
+}
+
+Optional<Value> Object::const_find_with_autoload(Env *env, Value ns, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+    ModuleObject *found_in_module = nullptr;
+    auto constant = find_constant(env, ns, name, search_mode, &found_in_module);
+
+    if (!constant) {
+        auto scope_module = get_scope_module_else_object_class(env, ns, search_mode);
+        return scope_module->handle_missing_constant(env, name, failure_mode);
+    }
+
+    if (constant->needs_load()) {
+        assert(found_in_module);
+        found_in_module->remove_const(name);
+        constant->autoload(env, self);
+    }
+
+    return const_find(env, ns, name, search_mode, failure_mode);
 }
 
 Value Object::const_fetch(Value ns, SymbolObject *name) {
@@ -721,7 +819,7 @@ const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
             if (m_type == Type::Module || m_type == Type::Class)
                 obj = static_cast<ModuleObject *>(this)->const_get(name);
         } else {
-            obj = m_klass->const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::None);
+            obj = Object::const_find(env, m_klass, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::None);
         }
         if (obj) return "constant";
     } else if (name->is_global_name()) {

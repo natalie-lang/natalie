@@ -6,6 +6,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
+#include "natalie/lexical_scope.hpp"
 #include "natalie/local_jump_error_type.hpp"
 #include "natalie/managed_vector.hpp"
 #include "natalie/value.hpp"
@@ -46,6 +47,7 @@ public:
         , m_file { other.m_file }
         , m_line { other.m_line }
         , m_method { other.m_method }
+        , m_lexical_scope { other.m_lexical_scope }
         , m_module { other.m_module } { }
 
     Env &operator=(Env &other) = delete;
@@ -184,6 +186,9 @@ public:
     const Method *method() { return m_method; }
     void set_method(const Method *method) { m_method = method; }
 
+    LexicalScope *lexical_scope() { return m_lexical_scope; }
+    void set_lexical_scope(LexicalScope *lexical_scope) { m_lexical_scope = lexical_scope; }
+
     ModuleObject *module() { return m_module; }
     void set_module(ModuleObject *module) { m_module = module; }
 
@@ -221,6 +226,7 @@ private:
     const char *m_file { nullptr };
     size_t m_line { 0 };
     const Method *m_method { nullptr };
+    LexicalScope *m_lexical_scope { nullptr };
     ModuleObject *m_module { nullptr };
     Optional<Value> m_match {};
     ExceptionObject *m_exception { nullptr };

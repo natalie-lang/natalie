@@ -4,6 +4,7 @@
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
+#include "natalie/lexical_scope.hpp"
 #include "natalie/method_visibility.hpp"
 #include "natalie/module_object.hpp"
 
@@ -11,9 +12,10 @@ namespace Natalie {
 
 class Method : public Cell {
 public:
-    Method(TM::String &&name, ModuleObject *owner, MethodFnPtr fn, int arity, int break_point = 0, const char *file = nullptr, size_t line = 0)
+    Method(TM::String &&name, ModuleObject *owner, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, int break_point = 0, const char *file = nullptr, size_t line = 0)
         : m_name { std::move(name) }
         , m_owner { owner }
+        , m_lexical_scope { lexical_scope }
         , m_fn { fn }
         , m_arity { arity }
         , m_break_point { break_point }
@@ -25,6 +27,7 @@ public:
     Method(TM::String &&name, ModuleObject *owner, Block *block)
         : m_name { std::move(name) }
         , m_owner { owner }
+        , m_lexical_scope { block->lexical_scope() }
         , m_arity { block->arity() }
         , m_env { Env::create(*block->env()) } {
         assert(m_env);
@@ -42,14 +45,14 @@ public:
         }
     }
 
-    Method(const TM::String &name, ModuleObject *owner, MethodFnPtr fn, int arity, int break_point = 0, const char *file = nullptr, size_t line = 0)
-        : Method(TM::String(name), owner, fn, arity, break_point, file, line) { }
+    Method(const TM::String &name, ModuleObject *owner, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, int break_point = 0, const char *file = nullptr, size_t line = 0)
+        : Method(TM::String(name), owner, lexical_scope, fn, arity, break_point, file, line) { }
 
     Method(const TM::String &name, ModuleObject *owner, Block *block)
         : Method(TM::String(name), owner, block) { }
 
     static Method *from_other(const TM::String &name, ModuleObject *owner, Method *other) {
-        auto method = new Method { name, owner, other->fn(), other->arity() };
+        auto method = new Method { name, owner, other->lexical_scope(), other->fn(), other->arity() };
         method->m_self = other->m_self;
         method->m_env = other->m_env;
         method->m_file = other->m_file;
@@ -69,6 +72,7 @@ public:
 
     String name() const { return m_name; }
     ModuleObject *owner() const { return m_owner; }
+    LexicalScope *lexical_scope() const { return m_lexical_scope; }
 
     String original_name() const {
         if (m_original_method)
@@ -89,6 +93,7 @@ public:
         if (m_self)
             visitor.visit(m_self.value());
         visitor.visit(m_original_method);
+        visitor.visit(m_lexical_scope);
     }
 
     virtual TM::String dbg_inspect(int indent = 0) const override {
@@ -99,6 +104,7 @@ private:
     String m_name {};
     Method *m_original_method = nullptr;
     ModuleObject *m_owner;
+    LexicalScope *m_lexical_scope;
     MethodFnPtr m_fn;
     Optional<Value> m_self {};
     int m_arity { 0 };

@@ -41,8 +41,7 @@ module ConstantSpecs
     $spec_i = i
     class << obj
       class X
-        # NATFIXME: uninitialized constant CS_SINGLETON4_CLASSES (NameError)
-        # CS_SINGLETON4_CLASSES << self
+        CS_SINGLETON4_CLASSES << self
         CONST = ($spec_i + 1)
 
         def foo

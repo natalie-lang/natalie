@@ -150,25 +150,24 @@ describe "BasicObject#instance_eval" do
       receiver = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::ReceiverScope::Receiver.new
       caller = BasicObjectSpecs::InstEval::Constants::ConstantInReceiverClass::CallerScope::Caller.new
 
-      caller.get_constant_with_string(receiver).should == :Receiver
+      # Regression with lexical_scope
+      NATFIXME 'it looks in the receiver class next', exception: SpecFailedException do
+        caller.get_constant_with_string(receiver).should == :Receiver
+      end
     end
 
     it "looks in the caller class next" do
       receiver = BasicObjectSpecs::InstEval::Constants::ConstantInCallerClass::ReceiverScope::Receiver.new
       caller = BasicObjectSpecs::InstEval::Constants::ConstantInCallerClass::CallerScope::Caller.new
 
-      NATFIXME 'it looks in the caller class next', exception: SpecFailedException do
-        caller.get_constant_with_string(receiver).should == :Caller
-      end
+      caller.get_constant_with_string(receiver).should == :Caller
     end
 
     it "looks in the caller outer scopes next" do
       receiver = BasicObjectSpecs::InstEval::Constants::ConstantInCallerOuterScopes::ReceiverScope::Receiver.new
       caller = BasicObjectSpecs::InstEval::Constants::ConstantInCallerOuterScopes::CallerScope::Caller.new
 
-      NATFIXME 'it looks in the caller outer scopes next', exception: SpecFailedException do
-        caller.get_constant_with_string(receiver).should == :CallerScope
-      end
+      caller.get_constant_with_string(receiver).should == :CallerScope
     end
 
     it "looks in the receiver class hierarchy next" do

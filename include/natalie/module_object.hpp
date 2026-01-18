@@ -8,6 +8,7 @@
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
+#include "natalie/lexical_scope.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/method_info.hpp"
 #include "natalie/method_visibility.hpp"
@@ -47,6 +48,8 @@ public:
 
     Object &operator=(Object &&other) = delete;
 
+    static Value nesting(Env *);
+
     Value initialize(Env *, Block *);
 
     Value include(Env *, Args &&args);
@@ -59,8 +62,16 @@ public:
 
     Value is_autoload(Env *, Value) const;
 
-    Optional<Value> const_find_with_autoload(Env *, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
-    Optional<Value> const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::ConstMissing);
+    Optional<Value> handle_missing_constant(Env *, Value, ConstLookupFailureMode);
+
+    Constant *get_constant(SymbolObject *name, ModuleObject **found_in_module) {
+        auto constant = m_constants.get(name);
+        if (found_in_module && constant)
+            *found_in_module = this;
+        return constant;
+    }
+    Constant *find_constant_in_modules(Env *, SymbolObject *, ModuleObject **);
+    Constant *find_constant_in_class_hierarchy(Env *, SymbolObject *, bool, ModuleObject **);
 
     Optional<Value> const_get(SymbolObject *) const;
     Value const_get(Env *, Value, Optional<Value> = {});
@@ -77,7 +88,7 @@ public:
     void make_method_alias(Env *, SymbolObject *, SymbolObject *);
     void method_alias(Env *, SymbolObject *, SymbolObject *);
 
-    Value eval_body(Env *, Value (*)(Env *, Value));
+    Value eval_body(Env *, LexicalScope *, Value (*)(Env *, Value));
 
     Optional<String> name() const {
         return m_name;
@@ -111,6 +122,7 @@ public:
     Value remove_class_variable(Env *, Value);
 
     Value define_method(Env *, Value, Optional<Value>, Block *);
+    SymbolObject *define_method(Env *, SymbolObject *, LexicalScope *, MethodFnPtr, int, int = 0);
     SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, int = 0);
     SymbolObject *define_method(Env *, SymbolObject *, Block *);
     SymbolObject *undefine_method(Env *, SymbolObject *);
@@ -185,8 +197,6 @@ public:
     }
 
 private:
-    Optional<Value> handle_missing_constant(Env *, Value, ConstLookupFailureMode);
-
     ClassObject *as_class();
 
     void cache_method(SymbolObject *, MethodInfo, Env *);
@@ -210,8 +220,6 @@ protected:
             m_included_modules.push(module);
         }
     }
-
-    Constant *find_constant(Env *, SymbolObject *, ModuleObject **, ConstLookupSearchMode = ConstLookupSearchMode::Strict);
 
     TM::Hashmap<SymbolObject *, Constant *> m_constants {};
     Optional<String> m_name {};
