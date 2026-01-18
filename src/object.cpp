@@ -627,6 +627,14 @@ Value Object::main_obj_public(Env *env, Args &&args) {
     return m_klass->public_method(env, std::move(args));
 }
 
+Value Object::main_obj_include(Env *env, Args &&args) {
+    return m_klass->include(env, std::move(args));
+}
+
+Value Object::main_obj_prepend(Env *env, Args &&args) {
+    return m_klass->include(env, std::move(args));
+}
+
 void Object::private_method(Env *env, SymbolObject *name) {
     private_method(env, Args { name });
 }

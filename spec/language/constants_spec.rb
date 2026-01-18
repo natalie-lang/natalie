@@ -36,24 +36,18 @@ describe "Literal (A::X) constant resolution" do
 
     it "searches Object if no class or module qualifier is given" do
       CS_CONST1.should == :const1
-      NATFIXME 'searches Object if no class or module qualifier is given', exception: NameError do
-        CS_CONST10.should == :const10_1
-      end
+      CS_CONST10.should == :const10_1
     end
 
     it "searches Object after searching other scopes" do
       module ConstantSpecs::SpecAdded1
-        NATFIXME 'searches Object after searching other scopes', exception: NameError do
-          CS_CONST10.should == :const10_1
-        end
+        CS_CONST10.should == :const10_1
       end
     end
 
     it "searches Object if a toplevel qualifier (::X) is given" do
       ::CS_CONST1.should == :const1
-      NATFIXME 'searches Object if a toplevel qualifier (::X) is given', exception: NameError do
-        ::CS_CONST10.should == :const10_1
-      end
+      ::CS_CONST10.should == :const10_1
     end
 
     it "does not search the singleton class of the class or module" do
@@ -269,10 +263,8 @@ describe "Constant resolution within methods" do
     end
 
     it "searches the superclass chain" do
-      NATFIXME 'searches the superclass chain', exception: NameError do
-        ConstantSpecs::ContainerA::ChildA.const13.should == :const13
-        ConstantSpecs::ContainerA::ChildA.new.const13.should == :const13
-      end
+      ConstantSpecs::ContainerA::ChildA.const13.should == :const13
+      ConstantSpecs::ContainerA::ChildA.new.const13.should == :const13
     end
 
     it "searches the lexical scope of the method not the receiver's immediate class" do
@@ -364,10 +356,8 @@ describe "Constant resolution within methods" do
     it "searches the superclass chain" do
       ConstantSpecs::ModuleA::CS_CONST205 = :const205
 
-      NATFIXME 'searches the superclass chain', exception: NameError do
-        ConstantSpecs::ContainerB::ChildB.const205.should == :const205
-        ConstantSpecs::ContainerB::ChildB.new.const205.should == :const205
-      end
+      ConstantSpecs::ContainerB::ChildB.const205.should == :const205
+      ConstantSpecs::ContainerB::ChildB.new.const205.should == :const205
     ensure
       ConstantSpecs::ModuleA.send(:remove_const, :CS_CONST205)
     end
