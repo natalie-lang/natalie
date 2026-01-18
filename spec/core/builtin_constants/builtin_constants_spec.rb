@@ -95,73 +95,55 @@ ruby_version_is "4.0" do
 
   describe "Ruby::VERSION" do
     it "is equal to RUBY_VERSION" do
-      NATFIXME 'Implement Ruby constant', exception: NameError, message: 'uninitialized constant Ruby' do
-        Ruby::VERSION.should equal(RUBY_VERSION)
-      end
+      Ruby::VERSION.should equal(RUBY_VERSION)
     end
   end
 
   describe "RUBY::PATCHLEVEL" do
     it "is equal to RUBY_PATCHLEVEL" do
-        NATFIXME 'Implement Ruby constant', exception: NameError, message: 'uninitialized constant Ruby' do
-        Ruby::PATCHLEVEL.should equal(RUBY_PATCHLEVEL)
-      end
+      Ruby::PATCHLEVEL.should equal(RUBY_PATCHLEVEL)
     end
   end
 
   describe "Ruby::COPYRIGHT" do
     it "is equal to RUBY_COPYRIGHT" do
-      NATFIXME 'Implement Ruby constant', exception: NameError, message: 'uninitialized constant Ruby' do
-        Ruby::COPYRIGHT.should equal(RUBY_COPYRIGHT)
-      end
+      Ruby::COPYRIGHT.should equal(RUBY_COPYRIGHT)
     end
   end
 
   describe "Ruby::DESCRIPTION" do
     it "is equal to RUBY_DESCRIPTION" do
-      NATFIXME 'Implement Ruby constant', exception: NameError, message: 'uninitialized constant Ruby' do
-        Ruby::DESCRIPTION.should equal(RUBY_DESCRIPTION)
-      end
+      Ruby::DESCRIPTION.should equal(RUBY_DESCRIPTION)
     end
   end
 
   describe "Ruby::ENGINE" do
     it "is equal to RUBY_ENGINE" do
-      NATFIXME 'Implement Ruby constant', exception: NameError, message: 'uninitialized constant Ruby' do
-        Ruby::ENGINE.should equal(RUBY_ENGINE)
-      end
+      Ruby::ENGINE.should equal(RUBY_ENGINE)
     end
   end
 
   describe "Ruby::ENGINE_VERSION" do
     it "is equal to RUBY_ENGINE_VERSION" do
-      NATFIXME 'Implement Ruby constant', exception: NameError, message: 'uninitialized constant Ruby' do
-        Ruby::ENGINE_VERSION.should equal(RUBY_ENGINE_VERSION)
-      end
+      Ruby::ENGINE_VERSION.should equal(RUBY_ENGINE_VERSION)
     end
   end
 
   describe "Ruby::PLATFORM" do
     it "is equal to RUBY_PLATFORM" do
-      NATFIXME 'Implement Ruby constant', exception: NameError, message: 'uninitialized constant Ruby' do
-        Ruby::PLATFORM.should equal(RUBY_PLATFORM)
-      end
+      Ruby::PLATFORM.should equal(RUBY_PLATFORM)
     end
   end
 
   describe "Ruby::RELEASE_DATE" do
     it "is equal to RUBY_RELEASE_DATE" do
-      NATFIXME 'Implement Ruby constant', exception: NameError, message: 'uninitialized constant Ruby' do
-        Ruby::RELEASE_DATE.should equal(RUBY_RELEASE_DATE)
-      end
+      Ruby::RELEASE_DATE.should equal(RUBY_RELEASE_DATE)
     end
   end
 
   describe "Ruby::REVISION" do
     it "is equal to RUBY_REVISION" do
-      NATFIXME 'Implement Ruby constant', exception: NameError, message: 'uninitialized constant Ruby' do
-        Ruby::REVISION.should equal(RUBY_REVISION)
-      end
+      Ruby::REVISION.should equal(RUBY_REVISION)
     end
   end
 end
