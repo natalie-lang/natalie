@@ -148,4 +148,19 @@ describe 'Module' do
     klass.new.public_methods(false).grep(/^m_/).sort.should == %i[m_klass]
     klass.new.public_methods(nil).grep(/^m_/).sort.should == %i[m_klass]
   end
+
+  describe 'Constant write semantics with Module.new block' do
+    NATFIXME 'Constant write semantics with Module.new block',
+             exception: NameError,
+             message: 'uninitialized constant CONST' do
+      mod =
+        Module.new do
+          CONST = 1
+          def self.foo(arg = CONST)
+            arg
+          end
+        end
+      mod.foo.should == 1
+    end
+  end
 end

@@ -291,30 +291,28 @@ describe 'FFI' do
   end
 
   it 'supports enums as constants' do
-    NATFIXME 'Constant write semantics with Module.new block', exception: NameError do
-      libtest =
-        Module.new do
-          extend FFI::Library
-          ffi_lib STUB_LIBRARY_PATH
-          TestEnum = enum(:A, :B, :C, 10, :D, :ERR, -1)
-          attach_function :test_enum_call, [:char], TestEnum
-          attach_function :test_enum_argument, [TestEnum], :char
-        end
-      libtest.test_enum_call('a'.ord).should == :A
-      libtest.test_enum_call('b'.ord).should == :B
-      libtest.test_enum_call('c'.ord).should == :C
-      libtest.test_enum_call('d'.ord).should == :D
-      libtest.test_enum_call('e'.ord).should == 20
-      libtest.test_enum_call('f'.ord).should == :ERR
+    libtest =
+      Module.new do
+        extend FFI::Library
+        ffi_lib STUB_LIBRARY_PATH
+        test_enum = enum(:A, :B, :C, 10, :D, :ERR, -1)
+        attach_function :test_enum_call, [:char], test_enum
+        attach_function :test_enum_argument, [test_enum], :char
+      end
+    libtest.test_enum_call('a'.ord).should == :A
+    libtest.test_enum_call('b'.ord).should == :B
+    libtest.test_enum_call('c'.ord).should == :C
+    libtest.test_enum_call('d'.ord).should == :D
+    libtest.test_enum_call('e'.ord).should == 20
+    libtest.test_enum_call('f'.ord).should == :ERR
 
-      libtest.test_enum_argument(:A).should == 'a'.ord
-      libtest.test_enum_argument(:B).should == 'b'.ord
-      libtest.test_enum_argument(:C).should == 'c'.ord
-      libtest.test_enum_argument(:D).should == 'd'.ord
-      libtest.test_enum_argument(:ERR).should == 'e'.ord
-      -> { libtest.test_enum_argument(:UNLISTED) }.should raise_error(ArgumentError, 'invalid enum value, :UNLISTED')
-      -> { libtest.test_enum_argument('UNLISTED') }.should raise_error(ArgumentError, 'invalid enum value, "UNLISTED"')
-    end
+    libtest.test_enum_argument(:A).should == 'a'.ord
+    libtest.test_enum_argument(:B).should == 'b'.ord
+    libtest.test_enum_argument(:C).should == 'c'.ord
+    libtest.test_enum_argument(:D).should == 'd'.ord
+    libtest.test_enum_argument(:ERR).should == 'e'.ord
+    -> { libtest.test_enum_argument(:UNLISTED) }.should raise_error(ArgumentError, 'invalid enum value, :UNLISTED')
+    -> { libtest.test_enum_argument('UNLISTED') }.should raise_error(ArgumentError, 'invalid enum value, "UNLISTED"')
   end
 
   describe 'Pointer' do
