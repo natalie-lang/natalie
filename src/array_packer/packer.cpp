@@ -94,8 +94,6 @@ namespace ArrayPacker {
 
                 if (d == 'U')
                     m_encoding = EncodingObject::get(Encoding::UTF_8);
-                else
-                    m_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
 
                 break;
             }
