@@ -984,6 +984,8 @@ Value ArrayObject::pack(Env *env, Value directives, Optional<Value> buffer_arg) 
         auto buffer = buffer_arg.value();
         if (!buffer.is_string())
             env->raise("TypeError", "buffer must be String, not {}", buffer.klass()->inspect_module());
+        if (buffer.is_frozen())
+            env->raise("FrozenError", "can't modify frozen String: {}", buffer.inspected(env));
         return ArrayPacker::Packer { this, directives_string }.pack(env, buffer.as_string());
     } else {
         StringObject *start_buffer = StringObject::create("", Encoding::ASCII_8BIT);

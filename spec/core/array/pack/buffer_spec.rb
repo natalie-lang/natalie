@@ -29,9 +29,7 @@ describe "Array#pack with :buffer option" do
   end
 
   it "raise FrozenError if buffer is frozen" do
-    NATFIXME 'raise FrozenError if buffer is frozen', exception: SpecFailedException do
-      -> { [65].pack("c", buffer: "frozen-string".freeze) }.should raise_error(FrozenError)
-    end
+    -> { [65].pack("c", buffer: "frozen-string".freeze) }.should raise_error(FrozenError)
   end
 
   it "preserves the encoding of the given buffer" do
