@@ -60,27 +60,21 @@ describe :enumerable_inject, shared: true do
   end
 
   it "can take a String argument" do
-    NATFIXME 'it can take a String argument', exception: RuntimeError, message: "don't know how to handle arg: \"-\"" do
-      EnumerableSpecs::Numerous.new(10, 1, 2, 3).send(@method, "-").should == 4
-      [10, 1, 2, 3].send(@method, "-").should == 4
-    end
+    EnumerableSpecs::Numerous.new(10, 1, 2, 3).send(@method, "-").should == 4
+    [10, 1, 2, 3].send(@method, "-").should == 4
   end
 
   it "converts non-Symbol method name argument to String with #to_str" do
     name = Object.new
     def name.to_str; "-"; end
 
-    NATFIXME 'it converts non-Symbol method name argument to String with #to_str', exception: RuntimeError, message: /don't know how to handle arg/ do
-      EnumerableSpecs::Numerous.new(10, 1, 2, 3).send(@method, name).should == 4
-      [10, 1, 2, 3].send(@method, name).should == 4
-    end
+    EnumerableSpecs::Numerous.new(10, 1, 2, 3).send(@method, name).should == 4
+    [10, 1, 2, 3].send(@method, name).should == 4
   end
 
   it "raises TypeError when passed not Symbol or String method name argument and it cannot be converted to String" do
-    NATFIXME 'it raises TypeError when passed not Symbol or String method name argument and it cannot be converted to String', exception: SpecFailedException, message: /don't know how to handle arg/ do
-      -> { EnumerableSpecs::Numerous.new(10, 1, 2, 3).send(@method, Object.new) }.should raise_error(TypeError, /is not a symbol nor a string/)
-      -> { [10, 1, 2, 3].send(@method, Object.new) }.should raise_error(TypeError, /is not a symbol nor a string/)
-    end
+    -> { EnumerableSpecs::Numerous.new(10, 1, 2, 3).send(@method, Object.new) }.should raise_error(TypeError, /is not a symbol nor a string/)
+    -> { [10, 1, 2, 3].send(@method, Object.new) }.should raise_error(TypeError, /is not a symbol nor a string/)
   end
 
   it "without argument takes a block with an accumulator (with first element as initial value) and the current element. Value of block becomes new accumulator" do

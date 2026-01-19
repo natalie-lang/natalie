@@ -374,7 +374,7 @@ module Enumerable
         memo = args.first
         each { |*item| memo = yield memo, gather.(item) }
         memo
-      elsif args.first.is_a?(Symbol)
+      elsif args.first.is_a?(Symbol) || args.first.is_a?(String) || args.first.respond_to(:to_str)
         sym = args.first
         reduce { |memo, i| memo.send(sym, i) }
       else
