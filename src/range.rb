@@ -168,4 +168,9 @@ class Range
     end
     self
   end
+
+  def to_set(...)
+    raise RangeError, 'cannot convert endless range to a set' if self.end.nil?
+    super
+  end
 end

@@ -18,10 +18,9 @@ describe "Range#to_set" do
   end
 
   ruby_version_is "4.0" do
-    # NATFIXME: Endless loop for now
-    xit "raises a RangeError if the range is endless" do
-      #-> { (1..).to_set }.should raise_error(RangeError, "cannot convert endless range to a set")
-      #-> { (1...).to_set }.should raise_error(RangeError, "cannot convert endless range to a set")
+    it "raises a RangeError if the range is endless" do
+      -> { (1..).to_set }.should raise_error(RangeError, "cannot convert endless range to a set")
+      -> { (1...).to_set }.should raise_error(RangeError, "cannot convert endless range to a set")
     end
   end
 
