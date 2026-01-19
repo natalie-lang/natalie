@@ -496,37 +496,53 @@ Env *build_top_env() {
     Object->const_set("ENV"_s, ENV);
     ENV->extend_once(env, Enumerable);
 
+    ModuleObject *Ruby = ModuleObject::create("Ruby");
+    Object->const_set("Ruby"_s, Ruby);
+
     auto RUBY_VERSION = StringObject::create("4.0.0");
     RUBY_VERSION->freeze();
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
+    Ruby->const_set("VERSION"_s, RUBY_VERSION);
 
     Value RUBY_COPYRIGHT = StringObject::create("natalie - Copyright (c) 2025 Tim Morgan and contributors");
     RUBY_COPYRIGHT->freeze();
     Object->const_set("RUBY_COPYRIGHT"_s, RUBY_COPYRIGHT);
+    Ruby->const_set("COPYRIGHT"_s, RUBY_COPYRIGHT);
 
     auto ruby_revision_short = TM::String(ruby_revision, 10);
     StringObject *RUBY_DESCRIPTION = StringObject::format("natalie (like ruby {}) ({} revision {}) [{}]", RUBY_VERSION->string(), ruby_release_date, ruby_revision_short, ruby_platform);
     RUBY_DESCRIPTION->freeze();
     Object->const_set("RUBY_DESCRIPTION"_s, RUBY_DESCRIPTION);
+    Ruby->const_set("DESCRIPTION"_s, RUBY_DESCRIPTION);
 
     Value RUBY_ENGINE = StringObject::create("natalie");
     RUBY_ENGINE->freeze();
     Object->const_set("RUBY_ENGINE"_s, RUBY_ENGINE);
+    Ruby->const_set("ENGINE"_s, RUBY_ENGINE);
+
+    Value RUBY_ENGINE_VERSION = StringObject::create("0.1");
+    RUBY_ENGINE_VERSION->freeze();
+    Object->const_set("RUBY_ENGINE_VERSION"_s, RUBY_ENGINE_VERSION);
+    Ruby->const_set("ENGINE_VERSION"_s, RUBY_ENGINE_VERSION);
 
     Value RUBY_PATCHLEVEL = Value::integer(-1);
     Object->const_set("RUBY_PATCHLEVEL"_s, RUBY_PATCHLEVEL);
+    Ruby->const_set("PATCHLEVEL"_s, RUBY_PATCHLEVEL);
 
     StringObject *RUBY_PLATFORM = StringObject::create(ruby_platform);
     RUBY_PLATFORM->freeze();
     Object->const_set("RUBY_PLATFORM"_s, RUBY_PLATFORM);
+    Ruby->const_set("PLATFORM"_s, RUBY_PLATFORM);
 
     Value RUBY_RELEASE_DATE = StringObject::create(ruby_release_date);
     RUBY_RELEASE_DATE->freeze();
     Object->const_set("RUBY_RELEASE_DATE"_s, RUBY_RELEASE_DATE);
+    Ruby->const_set("RELEASE_DATE"_s, RUBY_RELEASE_DATE);
 
     Value RUBY_REVISION = StringObject::create(ruby_revision);
     RUBY_REVISION->freeze();
     Object->const_set("RUBY_REVISION"_s, RUBY_REVISION);
+    Ruby->const_set("REVISION"_s, RUBY_REVISION);
 
     ModuleObject *GC = ModuleObject::create("GC");
     Object->const_set("GC"_s, GC);
