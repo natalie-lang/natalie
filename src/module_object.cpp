@@ -957,6 +957,7 @@ Value ModuleObject::module_function(Env *env, Args &&args) {
     } else {
         m_method_visibility = MethodVisibility::Private;
         m_module_function = true;
+        return Value::nil();
     }
     return this;
 }

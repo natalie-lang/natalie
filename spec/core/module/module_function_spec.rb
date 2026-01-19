@@ -211,9 +211,7 @@ describe "Module#module_function as a toggle (no arguments) in a Module body" do
 
   it "returns nil" do
     Module.new do
-      NATFIXME 'Support Ruby 3.1.0', exception: SpecFailedException do
-        module_function.should equal(nil)
-      end
+      module_function.should equal(nil)
     end
   end
 
