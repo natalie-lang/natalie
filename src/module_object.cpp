@@ -963,7 +963,7 @@ Value ModuleObject::module_function(Env *env, Args &&args) {
     }
     if (result.size() == 1)
         return result.first();
-    return this;
+    return ArrayObject::create(std::move(result));
 }
 
 Value ModuleObject::deprecate_constant(Env *env, Args &&args) {

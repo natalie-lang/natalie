@@ -42,9 +42,7 @@ describe "Module#module_function with specific method names" do
     Module.new do
       def foo; end
       module_function(:foo).should equal(:foo)
-      NATFIXME 'Support Ruby 3.1.0', exception: SpecFailedException do
-        module_function(:foo, :foo).should == [:foo, :foo]
-      end
+      module_function(:foo, :foo).should == [:foo, :foo]
     end
   end
 
