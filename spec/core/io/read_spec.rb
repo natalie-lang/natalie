@@ -325,11 +325,9 @@ describe "IO#read" do
 
   it "raise FrozenError if the output buffer is frozen" do
     @io.read
-    NATFIXME 'raise FrozenError if the output buffer is frozen', exception: SpecFailedException do
-      -> { @io.read(0, 'frozen-string'.freeze) }.should raise_error(FrozenError)
-      -> { @io.read(1, 'frozen-string'.freeze) }.should raise_error(FrozenError)
-      -> { @io.read(nil, 'frozen-string'.freeze) }.should raise_error(FrozenError)
-    end
+    -> { @io.read(0, 'frozen-string'.freeze) }.should raise_error(FrozenError)
+    -> { @io.read(1, 'frozen-string'.freeze) }.should raise_error(FrozenError)
+    -> { @io.read(nil, 'frozen-string'.freeze) }.should raise_error(FrozenError)
   end
 
   ruby_bug "", ""..."3.3" do

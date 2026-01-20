@@ -358,8 +358,11 @@ ssize_t IoObject::blocking_read(Env *env, void *buf, int count) const {
 Value IoObject::read(Env *env, Optional<Value> count_arg, Optional<Value> buffer_arg) {
     raise_if_closed(env);
     auto buffer = Value::nil();
-    if (buffer_arg && !buffer_arg->is_nil())
+    if (buffer_arg && !buffer_arg->is_nil()) {
         buffer = buffer_arg->to_str(env);
+        if (buffer->is_frozen())
+            env->raise("FrozenError", "can't modify frozen String: {}", buffer->inspected(env));
+    }
     ssize_t bytes_read;
     if (count_arg && !count_arg->is_nil()) {
         const auto count = IntegerMethods::convert_to_native_type<size_t>(env, count_arg.value());
