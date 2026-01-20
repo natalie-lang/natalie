@@ -1185,10 +1185,11 @@ describe "Global variable $?" do
     }.should raise_error(NameError, '$? is a read-only variable')
   end
 
-  # NATFIXME: Threads, and a very ugly error when running this
-  xit "is thread-local" do
+  it "is thread-local" do
     system(ruby_cmd('exit 0'))
-    Thread.new { $?.should be_nil }.join
+    NATFIXME 'Global variable $? is thread-local', exception: SpecFailedException do
+      Thread.new { $? }.join.should be_nil
+    end
   end
 end
 
