@@ -35,9 +35,7 @@ describe "Array#pack with :buffer option" do
   it "preserves the encoding of the given buffer" do
     buffer = ''.encode(Encoding::ISO_8859_1)
     [65, 66, 67].pack("ccc", buffer: buffer)
-    NATFIXME 'it preserves the encoding of the given buffer', exception: SpecFailedException do
-      buffer.encoding.should == Encoding::ISO_8859_1
-    end
+    buffer.encoding.should == Encoding::ISO_8859_1
   end
 
   context "offset (@) is specified" do
