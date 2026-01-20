@@ -477,21 +477,17 @@ describe "Multiple assignment" do
 
     it "wraps the Object in an Array if #to_a returns nil" do
       x = mock("multi-assign RHS splat")
-      NATFIXME 'it wraps the Object in an Array if #to_a returns nil', exception: SpecFailedException do
-        x.should_receive(:to_a).and_return(nil)
+      x.should_receive(:to_a).and_return(nil)
 
-        (*a = *x).should == [x]
-        a.should == [x]
-      end
+      (*a = *x).should == [x]
+      a.should == [x]
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
       x = mock("multi-assign RHS splat")
-      NATFIXME 'it raises a TypeError if #to_a does not return an Array', exception: SpecFailedException do
-        x.should_receive(:to_a).and_return(1)
+      x.should_receive(:to_a).and_return(1)
 
-        -> { *a = *x }.should raise_error(TypeError)
-      end
+      -> { *a = *x }.should raise_error(TypeError)
     end
 
     it "does not call #to_ary to convert an Object RHS with a single splat LHS" do
@@ -537,11 +533,9 @@ describe "Multiple assignment" do
 
     it "raises a TypeError if #to_a does not return an Array with a single LHS" do
       x = mock("multi-assign splat")
-      NATFIXME 'it raises a TypeError if #to_a does not return an Array with a single LHS', exception: SpecFailedException do
-        x.should_receive(:to_a).and_return(1)
+      x.should_receive(:to_a).and_return(1)
 
-        -> { a = *x }.should raise_error(TypeError)
-      end
+      -> { a = *x }.should raise_error(TypeError)
     end
 
     it "calls #to_a to convert an Object splat RHS when assigned to a simple MLHS" do
@@ -554,11 +548,9 @@ describe "Multiple assignment" do
 
     it "raises a TypeError if #to_a does not return an Array with a simple MLHS" do
       x = mock("multi-assign splat")
-      NATFIXME 'it raises a TypeError if #to_a does not return an Array with a simple MLHS', exception: SpecFailedException do
-        x.should_receive(:to_a).and_return(1)
+      x.should_receive(:to_a).and_return(1)
 
-        -> { a, b, c = *x }.should raise_error(TypeError)
-      end
+      -> { a, b, c = *x }.should raise_error(TypeError)
     end
 
     it "does not call #to_ary to convert an Object splat RHS when assigned to a simple MLHS" do
@@ -579,11 +571,9 @@ describe "Multiple assignment" do
 
     it "raises a TypeError if #to_a does not return an Array with MLHS" do
       x = mock("multi-assign splat")
-      NATFIXME 'it raises a TypeError if #to_a does not return an Array with MLHS', exception: SpecFailedException do
-        x.should_receive(:to_a).and_return(1)
+      x.should_receive(:to_a).and_return(1)
 
-        -> { a, *b, c = *x }.should raise_error(TypeError)
-      end
+      -> { a, *b, c = *x }.should raise_error(TypeError)
     end
 
     it "does not call #to_ary to convert an Object RHS with a MLHS" do
@@ -661,11 +651,9 @@ describe "Multiple assignment" do
 
     it "raises a TypeError if #to_a does not return an Array with a splat MLHS" do
       x = mock("multi-assign splat MRHS")
-      NATFIXME 'it raises a TypeError if #to_a does not return an Array with a splat MLHS', exception: SpecFailedException do
-        x.should_receive(:to_a).and_return(1)
+      x.should_receive(:to_a).and_return(1)
 
-        -> { a, *b = 1, *x }.should raise_error(TypeError)
-      end
+      -> { a, *b = 1, *x }.should raise_error(TypeError)
     end
 
     it "does not call #to_ary to convert a splatted Object as part of a MRHS with a splat MRHS" do
@@ -686,11 +674,9 @@ describe "Multiple assignment" do
 
     it "raises a TypeError if #to_a does not return an Array with a splat MRHS" do
       x = mock("multi-assign splat MRHS")
-      NATFIXME 'it raises a TypeError if #to_a does not return an Array with a splat MRHS', exception: SpecFailedException do
-        x.should_receive(:to_a).and_return(1)
+      x.should_receive(:to_a).and_return(1)
 
-        -> { a, *b = *x, 1 }.should raise_error(TypeError)
-      end
+      -> { a, *b = *x, 1 }.should raise_error(TypeError)
     end
 
     it "does not call #to_ary to convert a splatted Object with a splat MRHS" do

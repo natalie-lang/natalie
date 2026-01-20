@@ -1002,8 +1002,14 @@ Value ArrayObject::push(Env *env, Args &&args) {
 }
 
 void ArrayObject::push_splat(Env *env, Value val) {
-    if (!val.is_array() && val.respond_to(env, "to_a"_s)) {
-        val = val.send(env, "to_a"_s);
+    const static auto to_a_sym = "to_a"_s;
+    if (!val.is_array() && val.respond_to(env, to_a_sym)) {
+        auto next_val = val.send(env, to_a_sym);
+        if (!next_val.is_nil() && !next_val.is_array()) {
+            env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", val.klass()->inspected(env), val.klass()->inspected(env), next_val.klass()->inspected(env));
+        } else if (!next_val.is_nil()) {
+            val = next_val;
+        }
     }
     if (val.is_array()) {
         m_vector.concat(val.as_array()->m_vector);
