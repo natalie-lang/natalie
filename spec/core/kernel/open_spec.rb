@@ -30,36 +30,30 @@ describe "Kernel#open" do
   ruby_version_is ""..."4.0" do
     platform_is_not :windows, :wasi do
       it "opens an io when path starts with a pipe" do
-        NATFIXME 'Pipes in open', exception: NotImplementedError, message: 'no support for pipe in Kernel#open' do
-          suppress_warning do # https://bugs.ruby-lang.org/issues/19630
-            @io = open("|date")
-          end
-          begin
-            @io.should be_kind_of(IO)
-            @io.read
-          ensure
-            @io.close
-          end
+        suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+          @io = open("|date")
+        end
+        begin
+          @io.should be_kind_of(IO)
+          @io.read
+        ensure
+          @io.close
         end
       end
 
       it "opens an io when called with a block" do
-        NATFIXME 'Pipes in open', exception: NotImplementedError, message: 'no support for pipe in Kernel#open' do
-          suppress_warning do # https://bugs.ruby-lang.org/issues/19630
-            @output = open("|date") { |f| f.read }
-          end
-          @output.should_not == ''
+        suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+          @output = open("|date") { |f| f.read }
         end
+        @output.should_not == ''
       end
 
       it "opens an io for writing" do
-        NATFIXME 'Pipes in open', exception: NotImplementedError, message: 'no support for pipe in Kernel#open' do
-          suppress_warning do # https://bugs.ruby-lang.org/issues/19630
-            -> {
-              bytes = open("|cat", "w") { |io| io.write(".") }
-              bytes.should == 1
-            }.should output_to_fd(".")
-          end
+        suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+          -> {
+            bytes = open("|cat", "w") { |io| io.write(".") }
+            bytes.should == 1
+          }.should output_to_fd(".")
         end
       end
     end
@@ -89,11 +83,9 @@ describe "Kernel#open" do
       # https://bugs.ruby-lang.org/issues/19630
       it "warns about deprecation given a path with a pipe" do
         cmd = "|echo ok"
-        NATFIXME 'Pipes in open', exception: NotImplementedError, message: 'no support for pipe in Kernel#open' do
-          -> {
-            open(cmd) { |f| f.read }
-          }.should complain(/Kernel#open with a leading '\|'/)
-        end
+        -> {
+          open(cmd) { |f| f.read }
+        }.should complain(/Kernel#open with a leading '\|'/)
       end
     end
   end

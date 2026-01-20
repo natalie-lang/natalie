@@ -22,30 +22,26 @@ describe "IO.foreach" do
           cmd = "|cmd.exe /C echo hello&echo line2"
         end
 
-        NATFIXME 'Implement pipe in IO.foreach', exception: NotImplementedError, message: 'no support for pipe in IO.foreach' do
-          suppress_warning do # https://bugs.ruby-lang.org/issues/19630
-            IO.foreach(cmd) { |l| ScratchPad << l }
-          end
-          ScratchPad.recorded.should == ["hello\n", "line2\n"]
+        suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+          IO.foreach(cmd) { |l| ScratchPad << l }
         end
+        ScratchPad.recorded.should == ["hello\n", "line2\n"]
       end
 
       platform_is_not :windows do
         it "gets data from a fork when passed -" do
-          NATFIXME 'Implement pipe in IO.foreach', exception: NotImplementedError, message: 'no support for pipe in IO.foreach' do
-            parent_pid = $$
+          parent_pid = $$
 
-            suppress_warning do # https://bugs.ruby-lang.org/issues/19630
-              IO.foreach("|-") { |l| ScratchPad << l }
-            end
+          suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+            IO.foreach("|-") { |l| ScratchPad << l }
+          end
 
-            if $$ == parent_pid
-              ScratchPad.recorded.should == ["hello\n", "from a fork\n"]
-            else # child
-              puts "hello"
-              puts "from a fork"
-              exit!
-            end
+          if $$ == parent_pid
+            ScratchPad.recorded.should == ["hello\n", "from a fork\n"]
+          else # child
+            puts "hello"
+            puts "from a fork"
+            exit!
           end
         end
       end
@@ -55,11 +51,9 @@ describe "IO.foreach" do
       # https://bugs.ruby-lang.org/issues/19630
       it "warns about deprecation given a path with a pipe" do
         cmd = "|echo ok"
-        NATFIXME 'Implement pipe in IO.foreach', exception: NotImplementedError, message: 'no support for pipe in IO.foreach' do
-          -> {
-            IO.foreach(cmd).to_a
-          }.should complain(/IO process creation with a leading '\|'/)
-        end
+        -> {
+          IO.foreach(cmd).to_a
+        }.should complain(/IO process creation with a leading '\|'/)
       end
     end
   end

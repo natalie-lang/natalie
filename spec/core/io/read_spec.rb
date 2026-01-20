@@ -182,27 +182,23 @@ ruby_version_is ""..."4.0" do
         cmd = "|cmd.exe /C echo hello"
       end
 
-      NATFIXME 'Implement pipe in IO.read', exception: NotImplementedError, message: 'no support for pipe in IO.read' do
-        suppress_warning do # https://bugs.ruby-lang.org/issues/19630
-          IO.read(cmd).should == "hello\n"
-        end
+      suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+        IO.read(cmd).should == "hello\n"
       end
     end
 
     platform_is_not :windows do
       it "opens a pipe to a fork if the rest is -" do
-        NATFIXME 'Implement pipe in IO.read', exception: NotImplementedError, message: 'no support for pipe in IO.read' do
-          str = nil
-          suppress_warning do # https://bugs.ruby-lang.org/issues/19630
-            str = IO.read("|-")
-          end
+        str = nil
+        suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+          str = IO.read("|-")
+        end
 
-          if str # parent
-            str.should == "hello from child\n"
-          else #child
-            puts "hello from child"
-            exit!
-          end
+        if str # parent
+          str.should == "hello from child\n"
+        else #child
+          puts "hello from child"
+          exit!
         end
       end
     end
@@ -213,22 +209,18 @@ ruby_version_is ""..."4.0" do
         cmd = "|cmd.exe /C echo hello"
       end
 
-      NATFIXME 'Implement pipe in IO.read', exception: NotImplementedError, message: 'no support for pipe in IO.read' do
-        suppress_warning do # https://bugs.ruby-lang.org/issues/19630
-          IO.read(cmd, 1).should == "h"
-        end
+      suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+        IO.read(cmd, 1).should == "h"
       end
     end
 
     platform_is_not :windows do
       it "raises Errno::ESPIPE if passed an offset" do
-        NATFIXME 'Implement pipe in IO.read', exception: NotImplementedError, message: 'no support for pipe in IO.read' do
-          -> {
-            suppress_warning do # https://bugs.ruby-lang.org/issues/19630
-              IO.read("|sh -c 'echo hello'", 1, 1)
-            end
-          }.should raise_error(Errno::ESPIPE)
-        end
+        -> {
+          suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+            IO.read("|sh -c 'echo hello'", 1, 1)
+          end
+        }.should raise_error(Errno::ESPIPE)
       end
     end
 
@@ -250,11 +242,9 @@ ruby_version_is ""..."4.0" do
       # https://bugs.ruby-lang.org/issues/19630
       it "warns about deprecation" do
         cmd = "|echo ok"
-        NATFIXME 'Pipes in read', exception: NotImplementedError, message: 'no support for pipe in IO.read' do
-          -> {
-            IO.read(cmd)
-          }.should complain(/IO process creation with a leading '\|'/)
-        end
+        -> {
+          IO.read(cmd)
+        }.should complain(/IO process creation with a leading '\|'/)
       end
     end
   end
