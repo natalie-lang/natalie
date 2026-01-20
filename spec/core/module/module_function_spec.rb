@@ -41,10 +41,8 @@ describe "Module#module_function with specific method names" do
   it "returns argument or arguments if given" do
     Module.new do
       def foo; end
-      NATFIXME 'Support Ruby 3.1.0', exception: SpecFailedException do
-        module_function(:foo).should equal(:foo)
-        module_function(:foo, :foo).should == [:foo, :foo]
-      end
+      module_function(:foo).should equal(:foo)
+      module_function(:foo, :foo).should == [:foo, :foo]
     end
   end
 
@@ -211,9 +209,7 @@ describe "Module#module_function as a toggle (no arguments) in a Module body" do
 
   it "returns nil" do
     Module.new do
-      NATFIXME 'Support Ruby 3.1.0', exception: SpecFailedException do
-        module_function.should equal(nil)
-      end
+      module_function.should equal(nil)
     end
   end
 

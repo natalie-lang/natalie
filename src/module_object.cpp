@@ -943,6 +943,7 @@ Value ModuleObject::module_function(Env *env, Args &&args) {
     if (type() == Type::Class)
         env->raise("TypeError", "module_function must be called for modules");
 
+    Vector<Value> result;
     if (args.size() > 0) {
         for (size_t i = 0; i < args.size(); ++i) {
             std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
@@ -953,12 +954,16 @@ Value ModuleObject::module_function(Env *env, Args &&args) {
             Object::define_singleton_method(env, this, name, method->fn(), method->arity());
             GlobalEnv::the()->increment_method_cache_version();
             m_methods.put(name, MethodInfo(MethodVisibility::Private, method));
+            result.push(name);
         }
     } else {
         m_method_visibility = MethodVisibility::Private;
         m_module_function = true;
+        return Value::nil();
     }
-    return this;
+    if (result.size() == 1)
+        return result.first();
+    return ArrayObject::create(std::move(result));
 }
 
 Value ModuleObject::deprecate_constant(Env *env, Args &&args) {
