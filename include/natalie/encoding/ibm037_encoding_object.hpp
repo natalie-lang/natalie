@@ -21,7 +21,7 @@ public:
     virtual bool in_encoding_codepoint_range(nat_int_t codepoint) const override {
         return (codepoint >= 0 && codepoint <= 0xFF);
     }
-    virtual bool is_ascii_compatible() const override { return true; };
+    virtual bool is_ascii_compatible() const override { return false; };
     virtual bool is_dummy() const override { return true; }
 
     virtual std::pair<bool, StringView> prev_char(const String &string, size_t *index) const override;

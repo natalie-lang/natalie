@@ -43,6 +43,12 @@ describe 'encodings' do
     end
   end
 
+  describe 'IBM037' do
+    it 'is not ASCII compatible' do
+      Encoding::IBM037.should_not.ascii_compatible?
+    end
+  end
+
   describe 'ISO-8859-1' do
     it 'can convert codepoints' do
       [0x61, 0x8E, 0xFF].each { |codepoint| codepoint.chr(Encoding::ISO_8859_1).ord.should == codepoint }
