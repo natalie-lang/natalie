@@ -1593,9 +1593,9 @@ public:
      * ```
      */
     template <typename... Args>
-    static String format(const char *const fmt, Args... args) {
+    static String format(const char *const fmt, Args &&...args) {
         String out {};
-        format(out, fmt, args...);
+        format(out, fmt, std::forward<Args>(args)...);
         return out;
     }
 
@@ -1606,24 +1606,24 @@ public:
     }
 
     template <typename T, typename... Args>
-    static void format(String &out, const char *fmt, T first, Args... rest) {
+    static void format(String &out, const char *fmt, T &&first, Args &&...rest) {
         for (const char *c = fmt; *c != 0; c++) {
             if (*c == '{' && *(c + 1) == 'h' && *(c + 2) == '}') {
-                if constexpr (std::is_integral_v<T> || std::is_pointer_v<T>) {
+                if constexpr (std::is_integral_v<T> || std::is_pointer_v<std::decay_t<T>>) {
                     out += hex(first, HexFormat::LowercaseAndPrefixed);
-                    format(out, c + 3, rest...);
+                    format(out, c + 3, std::forward<Args>(rest)...);
                     return;
                 } else {
                     fprintf(stderr, "String::format: T is not a pointer or an arithmetic type\n");
                     abort();
                 }
             } else if (*c == '{' && *(c + 1) == '}') {
-                if constexpr (std::is_pointer_v<T> && !std::is_same_v<const char *, T> && !std::is_same_v<char *, T>) {
+                if constexpr (std::is_pointer_v<std::decay_t<T>> && !std::is_same_v<char *, std::remove_cv<std::decay_t<T>>> && !std::is_same_v<const char *, std::remove_cv<std::decay_t<T>>>) {
                     fprintf(stderr, "String::format: T is a general pointer type but you didn't specify {h}\n");
                     abort();
                 } else {
-                    out += first;
-                    format(out, c + 2, rest...);
+                    out += std::forward<T>(first);
+                    format(out, c + 2, std::forward<Args>(rest)...);
                     return;
                 }
             } else {
