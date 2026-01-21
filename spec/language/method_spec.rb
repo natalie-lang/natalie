@@ -1606,21 +1606,20 @@ describe "warning about not used block argument" do
       -> { obj.m { } }.should_not complain(verbose: true)
     end
 
-    # NATFIXME: Compiler error: Natalie::Compiler::SuperInstruction#generate': undefined method 'times' for an instance of String
-    xit "does not warn when passing a block argument to a method that calls super(...)" do
-      #parent = Class.new do
-        #def m(a)
-        #end
-      #end
+    it "does not warn when passing a block argument to a method that calls super(...)" do
+      parent = Class.new do
+        def m(a)
+        end
+      end
 
-      #child = Class.new(parent) do
-        #def m(...)
-          #super(...)
-        #end
-      #end
+      child = Class.new(parent) do
+        def m(...)
+          super(...)
+        end
+      end
 
-      #obj = child.new
-      #-> { obj.m(42) { } }.should_not complain(verbose: true)
+      obj = child.new
+      -> { obj.m(42) { } }.should_not complain(verbose: true)
     end
 
     it "does not warn when called #initialize()" do
