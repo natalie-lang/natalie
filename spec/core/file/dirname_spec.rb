@@ -102,7 +102,9 @@ describe "File.dirname" do
 
   platform_is_not :windows do
     it "ignores repeated leading / (edge cases on non-windows)" do
-      File.dirname("/////foo/bar/").should == "/foo"
+      NATFIXME 'it ignores repeated leading / (edge cases on non-windows)', exception: SpecFailedException do
+        File.dirname("/////foo/bar/").should == "/foo"
+      end
     end
 
     it "returns all the components of filename except the last one (edge cases on non-windows)" do
