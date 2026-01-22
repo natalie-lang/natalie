@@ -2623,6 +2623,7 @@ module Natalie
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
           with_block: with_block,
           has_keyword_hash: call_args.fetch(:has_keyword_hash),
+          forward_args: call_args.fetch(:forward_args, false),
         )
 
         instructions << PopInstruction.new unless used
