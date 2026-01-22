@@ -100,9 +100,7 @@ describe "Kernel#sleep" do
         sleep
       end
       sleeper.resume
-      NATFIXME 'it calls the scheduler without arguments when no duration is given', exception: SpecFailedException do
-        Fiber.scheduler.events.should == [{ event: :kernel_sleep, fiber: sleeper, args: [] }]
-      end
+      Fiber.scheduler.events.should == [{ event: :kernel_sleep, fiber: sleeper, args: [] }]
     end
 
     it "calls the scheduler with the given duration" do
