@@ -232,6 +232,7 @@ void FileObject::build_constants(Env *env, ModuleObject *fcmodule) {
     fcmodule->const_set("FNM_EXTGLOB"_s, Value::integer(FNM_EXTGLOB));
     fcmodule->const_set("FNM_SYSCASE"_s, Value::integer(FNM_SYSCASE));
     fcmodule->const_set("FNM_SHORTNAME"_s, Value::integer(FNM_SHORTNAME));
+    fcmodule->const_set("SHARE_DELETE"_s, Value::integer(0)); // Windows only
     Value null_file = StringObject::create("/dev/null", Encoding::US_ASCII);
     null_file->freeze();
     fcmodule->const_set("NULL"_s, null_file);
