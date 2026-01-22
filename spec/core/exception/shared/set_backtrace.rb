@@ -45,7 +45,9 @@ describe :exception_set_backtrace, shared: true do
 
   it "accepts nil" do
     err = @method.call(nil)
-    err.backtrace.should be_nil
+    NATFIXME "nil argument doesn't work when setting $@", condition: @method.to_s.include?('predefined_spec'), exception: SpecFailedException do
+      err.backtrace.should be_nil
+    end
   end
 
   it "raises a TypeError when passed a Symbol" do

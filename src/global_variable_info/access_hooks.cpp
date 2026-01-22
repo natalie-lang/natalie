@@ -103,6 +103,13 @@ namespace GlobalVariableAccessHooks::WriteHooks {
             return Value::nil();
         return bool_object(v.is_truthy());
     }
+
+    Value last_exception_backtrace(Env *env, Value v, GlobalVariableInfo &) {
+        if (!env->exception_object().is_exception())
+            env->raise("ArgumentError", "$! not set");
+        auto exception = env->exception_object().as_exception();
+        return exception->set_backtrace(env, v);
+    }
 }
 
 }

@@ -23,6 +23,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
     Value last_match(Env *, Value, GlobalVariableInfo &);
     Value set_stdout(Env *, Value, GlobalVariableInfo &);
     Value set_verbose(Env *, Value, GlobalVariableInfo &);
+    Value last_exception_backtrace(Env *, Value, GlobalVariableInfo &);
 }
 
 }
