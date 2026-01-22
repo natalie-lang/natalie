@@ -1,7 +1,7 @@
 #include "natalie.hpp"
 
 // IBM037 (CP37) is not an ASCII based encoding
-// See: https://en.wikipedia.org/wiki/Code_page_37
+// See: https://en.wikibooks.org/wiki/Character_Encodings/Code_Tables/EBCDIC/EBCDIC_037
 
 namespace Natalie {
 
