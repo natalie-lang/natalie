@@ -150,9 +150,10 @@ describe "Module#const_get" do
      ConstantSpecs.const_get(:CS_PRIVATE).should == :cs_private
   end
 
-  # NATFIXME: Failed assertion in include/natalie/constant.hpp:20
-  xit 'does autoload a constant' do
-    Object.const_get('CSAutoloadA').name.should == 'CSAutoloadA'
+  it 'does autoload a constant' do
+    NATFIXME 'it does autoload a constant', exception: NameError, message: 'uninitialized constant CSAutoloadA' do
+      Object.const_get('CSAutoloadA').name.should == 'CSAutoloadA'
+    end
   end
 
   it 'does autoload a constant with a toplevel scope qualifier' do
