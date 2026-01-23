@@ -625,31 +625,26 @@ describe "Predefined global $@" do
     begin
       raise
     rescue
-      NATFIXME '$@ is not readonly', exception: NameError, message: '$@ is a read-only variable' do
-        $@ = []
-        $@.should == []
-      end
+      $@ = []
+      $@.should == []
     end
   end
 
-  # NATFIXME $@ is a read-only variable
-  #it_behaves_like :exception_set_backtrace, -> backtrace {
-    #exception = nil
-    #begin
-      #raise
-    #rescue
-      #$@ = backtrace
-      #exception = $!
-    #end
-    #exception
-  #}
+  it_behaves_like :exception_set_backtrace, -> backtrace {
+    exception = nil
+    begin
+      raise
+    rescue
+      $@ = backtrace
+      exception = $!
+    end
+    exception
+  }
 
   it "cannot be assigned when there is no a rescued exception" do
-    NATFIXME 'it cannot be assigned when there is no a rescued exception', exception: SpecFailedException, message: /should have raised ArgumentError,/ do
-      -> {
-        $@ = []
-      }.should raise_error(ArgumentError, '$! not set')
-    end
+    -> {
+      $@ = []
+    }.should raise_error(ArgumentError, '$! not set')
   end
 end
 
