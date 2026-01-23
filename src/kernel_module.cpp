@@ -709,8 +709,11 @@ RationalObject *KernelModule::Rational(Env *env, double arg) {
 
 Value KernelModule::sleep(Env *env, Optional<Value> length_arg) {
     if (FiberObject::scheduler_is_relevant()) {
-        auto length = length_arg.value_or(Value::nil());
-        return FiberObject::scheduler().send(env, "kernel_sleep"_s, { length });
+        if (length_arg.has_value()) {
+            return FiberObject::scheduler().send(env, "kernel_sleep"_s, { length_arg.value() });
+        } else {
+            return FiberObject::scheduler().send(env, "kernel_sleep"_s);
+        }
     }
 
     if (!length_arg || length_arg->is_nil())
