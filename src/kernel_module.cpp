@@ -983,7 +983,7 @@ Value KernelModule::hash(Env *env, Value self) {
     case Object::Type::String:
         return Value::integer(HashKeyHandler<TM::String>::hash(self.as_string()->string()));
     case Object::Type::Symbol:
-        return Value::integer(HashKeyHandler<TM::String>::hash(self.as_symbol()->string()));
+        return Value::integer(self.object_id());
     default: {
         StringObject *inspected = self.send(env, "inspect"_s).as_string();
         nat_int_t hash_value = HashKeyHandler<TM::String>::hash(inspected->string());
