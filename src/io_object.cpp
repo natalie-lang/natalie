@@ -1103,7 +1103,7 @@ static ArrayObject *create_output_fds(Env *env, fd_set *fds, ArrayObject *ios) {
 Value IoObject::select(Env *env, Value read_ios, Optional<Value> write_ios, Optional<Value> error_ios, Optional<Value> timeout) {
     timeval timeout_tv = { 0, 0 }, *timeout_ptr = nullptr;
 
-    if (timeout && !timeout->is_nil()) {
+    if (timeout && !timeout->is_nil() && !(timeout->is_float() && timeout->as_float()->is_positive_infinity())) {
         const auto timeout_f = timeout->to_f(env)->to_double();
         if (timeout_f < 0)
             env->raise("ArgumentError", "time interval must not be negative");
