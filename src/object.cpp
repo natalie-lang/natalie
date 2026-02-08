@@ -379,6 +379,13 @@ Value Object::const_set(Env *env, Value ns, SymbolObject *name, Value val) {
         env->raise("TypeError", "{} is not a class/module", ns.inspected(env));
 }
 
+Value Object::const_set_not_strict(Env *env, SymbolObject *name, Value val) {
+    auto scope_module = env->lexical_scope()
+        ? env->lexical_scope()->module()
+        : GlobalEnv::the()->Object();
+    return scope_module->const_set(name, val);
+}
+
 Value Object::const_set(Env *env, Value ns, SymbolObject *name, MethodFnPtr autoload_fn, StringObject *autoload_path) {
     if (ns.is_module())
         return ns.as_module()->const_set(name, autoload_fn, autoload_path);

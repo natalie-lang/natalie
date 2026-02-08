@@ -106,6 +106,7 @@ public:
 
     static Value const_fetch(Value, SymbolObject *);
     static Value const_set(Env *, Value, SymbolObject *, Value);
+    static Value const_set_not_strict(Env *, SymbolObject *, Value);
     static Value const_set(Env *, Value, SymbolObject *, MethodFnPtr, StringObject *);
 
     static bool ivar_defined(Env *, Value, SymbolObject *);
