@@ -174,17 +174,15 @@ describe "Literal (A::X) constant resolution" do
     end
 
     it "evaluates left-to-right" do
-      NATFIXME 'Constant write semantics with Module#module_eval', exception: NameError do
-        mod = Module.new
+      mod = Module.new
 
-        mod.module_eval <<-EOC
-          order = []
-          ConstantSpecsRHS = Module.new
-          (order << :lhs; ConstantSpecsRHS)::B = (order << :rhs)
-        EOC
+      mod.module_eval <<-EOC
+        order = []
+        ConstantSpecsRHS = Module.new
+        (order << :lhs; ConstantSpecsRHS)::B = (order << :rhs)
+      EOC
 
-        mod::ConstantSpecsRHS::B.should == [:lhs, :rhs]
-      end
+      mod::ConstantSpecsRHS::B.should == [:lhs, :rhs]
     end
   end
 

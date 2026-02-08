@@ -996,7 +996,11 @@ module Natalie
         instructions << PopInstruction.new if used
         instructions.concat(transform_expression(node.value, used: true))
         instructions << DupInstruction.new if used
-        instructions.append(PushSelfInstruction.new, ConstSetInstruction.new(node.name, strict: false), EndInstruction.new(:if))
+        instructions.append(
+          PushSelfInstruction.new,
+          ConstSetInstruction.new(node.name, strict: false),
+          EndInstruction.new(:if),
+        )
         instructions
       end
 
