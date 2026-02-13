@@ -201,4 +201,17 @@ class Array
   def union(*args)
     dup.concat(*args).uniq
   end
+
+  def delete_if
+    return enum_for(:delete_if) { self.size() } unless block_given?
+
+    raise FrozenError if self.frozen? # TODO error msg?
+
+    begin
+      to_delete = []
+      each_with_index { |e, i| to_delete << i if yield e }
+    ensure
+      to_delete.reverse!.each { |i| self.delete_at(i) }
+    end
+  end
 end

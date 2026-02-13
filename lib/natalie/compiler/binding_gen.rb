@@ -414,7 +414,6 @@ gen.binding('Array', 'cycle', 'ArrayObject', 'cycle', argc: 0..1, pass_env: true
 gen.static_binding_as_instance_method('Array', 'deconstruct', 'Object', 'itself', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Array', 'delete', 'ArrayObject', 'delete_item', argc: 1, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'delete_at', 'ArrayObject', 'delete_at', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Array', 'delete_if', 'ArrayObject', 'delete_if', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'difference', 'ArrayObject', 'difference', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'dig', 'ArrayObject', 'dig', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'drop', 'ArrayObject', 'drop', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
