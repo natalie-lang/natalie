@@ -2045,4 +2045,21 @@ describe 'array' do
       a.object_id.should == id_was
     end
   end
+
+  describe '#delete_if' do
+    it 'handles edge-cases correctly' do
+      (1..10).to_a.delete_if { true }.should == []
+      (1..10).to_a.delete_if { false }.should == (1..10).to_a
+      (1..10).to_a.delete_if { |e| e == 1 }.should == (2..10).to_a
+      (1..10).to_a.delete_if { |e| e == 10 }.should == (1..9).to_a
+      (1..10).to_a.delete_if { |e| e == 1 || e == 10 }.should == (2..9).to_a
+      (1..10).to_a.delete_if { |e| e % 2 == 1 }.should == [2, 4, 6, 8, 10]
+      (1..10).to_a.delete_if { |e| e % 2 == 0 }.should == [1, 3, 5, 7, 9]
+    end
+
+    it 'runs in O(N)' do
+      # Really just to check completion in a reasonable time.
+      (1..10000000).to_a.delete_if { |e| e % 10 == 0 }.count.should == 9000000
+    end
+  end
 end
