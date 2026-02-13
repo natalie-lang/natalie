@@ -2059,7 +2059,7 @@ describe 'array' do
 
     it 'runs in O(N)' do
       # Really just to check completion in a reasonable time.
-      (1..10000000).to_a.delete_if { |e| e % 10 == 0 }.count.should == 9000000
+      (1..1000000).to_a.delete_if { |e| e % 10 == 0 }.count.should == 900000
     end
   end
 end

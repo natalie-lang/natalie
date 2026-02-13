@@ -211,7 +211,13 @@ class Array
       to_delete = []
       each_with_index { |e, i| to_delete << i if yield e }
     ensure
-      to_delete.reverse!.each { |i| self.delete_at(i) }
+      unless to_delete.empty?
+        retained = self.first(to_delete[0])
+        to_delete << self.size #unless to_delete.last == self.size - 1
+        (to_delete.size - 1).times { |i| retained.concat(self[(to_delete[i] + 1) .. (to_delete[i + 1] - 1)]) }
+        self.replace(retained)
+        #to_delete.reverse!.each { |i| self.delete_at(i) }
+      end
     end
   end
 end
