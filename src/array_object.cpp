@@ -682,30 +682,6 @@ Value ArrayObject::delete_at(Env *env, Value n) {
     return value;
 }
 
-Value ArrayObject::delete_if(Env *env, Block *block) {
-    if (!block) {
-        Block *size_block = Block::create(*env, this, ArrayObject::size_fn, 0);
-        return send(env, "enum_for"_s, { "delete_if"_s }, size_block);
-    }
-
-    this->assert_not_frozen(env);
-
-    Vector<size_t> marked_indexes;
-
-    for (size_t i = 0; i < size(); ++i) {
-        Value result = block->run(env, { (*this)[i] }, nullptr);
-        if (result.is_truthy()) {
-            marked_indexes.push(i);
-        }
-    }
-
-    while (!marked_indexes.is_empty()) {
-        m_vector.remove(marked_indexes.pop());
-    }
-
-    return this;
-}
-
 Value ArrayObject::delete_item(Env *env, Value target, Block *block) {
     Value deleted_item = Value::nil();
 
