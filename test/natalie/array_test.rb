@@ -2048,7 +2048,8 @@ describe 'array' do
 
   describe '#delete_if' do
     it 'should be O(N)' do
-      (1..100000).to_a.delete_if { |i| i % 10 == 0 }.count.should == 90000
+      # fake test just to see if it times out
+      (1..100000000).to_a.delete_if { |i| i % 10 == 0 }.count.should == 90000000
     end
   end
 end

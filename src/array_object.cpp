@@ -695,6 +695,8 @@ Value ArrayObject::delete_if(Env *env, Block *block) {
     // O(N)
     Defer remove_marked_indexes([&]() {
         if (marked_indexes.size() > 0) {
+            auto now = time(NULL);
+            printf("Starting to remove at %s...\n", ctime(&now));
             marked_indexes.push(m_vector.size());
             size_t from = 0, self_index = 0;
             for (size_t limit: marked_indexes) {
@@ -706,9 +708,14 @@ Value ArrayObject::delete_if(Env *env, Block *block) {
                 from = limit + 1;
             }
             m_vector.resize(m_vector.size() - marked_indexes.size() + 1);
+            now = time(NULL);
+            printf("...finished removing at %s\n", ctime(&now));
         }
     });
 
+    auto now = time(NULL);
+    printf("\n#delete_if actually starting at %s...\n", ctime(&now));
+    
     for (size_t i = 0; i < size(); ++i) {
         Value result = block->run(env, { (*this)[i] }, nullptr);
         if (result.is_truthy()) {
