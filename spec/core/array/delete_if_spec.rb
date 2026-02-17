@@ -41,11 +41,11 @@ describe "Array#delete_if" do
   end
 
   it "raises a FrozenError on a frozen array" do
-    -> { ArraySpecs.frozen_array.delete_if {} }.should raise_error(FrozenError)
+    -> { ArraySpecs.frozen_array.delete_if {} }.should raise_error(FrozenError, "can't modify frozen Array: [1, 2, 3]")
   end
 
   it "raises a FrozenError on an empty frozen array" do
-    -> { ArraySpecs.empty_frozen_array.delete_if {} }.should raise_error(FrozenError)
+    -> { ArraySpecs.empty_frozen_array.delete_if {} }.should raise_error(FrozenError, "can't modify frozen Array: []")
   end
 
   it "does not truncate the array is the block raises an exception" do
