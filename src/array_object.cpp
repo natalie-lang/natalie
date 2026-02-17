@@ -692,15 +692,28 @@ Value ArrayObject::delete_if(Env *env, Block *block) {
 
     Vector<size_t> marked_indexes;
 
+    // O(N)
+    Defer remove_marked_indexes([&]() {
+        if (marked_indexes.size() > 0) {
+            marked_indexes.push(m_vector.size());
+            size_t from = 0, self_index = 0;
+            for (size_t limit: marked_indexes) {
+                size_t n_to_move = limit - from;
+                // std::move not supported by TM::vector iterator :(
+                for (size_t i = 0; i < n_to_move; i++)
+                    m_vector[self_index + i] = m_vector[from + i];
+                self_index += n_to_move;
+                from = limit + 1;
+            }
+            m_vector.resize(m_vector.size() - marked_indexes.size() + 1);
+        }
+    });
+
     for (size_t i = 0; i < size(); ++i) {
         Value result = block->run(env, { (*this)[i] }, nullptr);
         if (result.is_truthy()) {
             marked_indexes.push(i);
         }
-    }
-
-    while (!marked_indexes.is_empty()) {
-        m_vector.remove(marked_indexes.pop());
     }
 
     return this;
