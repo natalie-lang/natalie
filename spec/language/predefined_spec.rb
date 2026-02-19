@@ -1083,9 +1083,7 @@ describe "Execution variable $:" do
   end
 
   it "does not include the current directory" do
-    NATFIXME 'Implement $:', exception: NoMethodError, message: "undefined method 'include?' for nil" do
-      $:.should_not include(".")
-    end
+    $:.should_not include(".")
   end
 
   it "is the same object as $LOAD_PATH and $-I" do
@@ -1094,7 +1092,7 @@ describe "Execution variable $:" do
   end
 
   it "can be changed via <<" do
-    NATFIXME 'Implement $:', exception: NoMethodError, message: "undefined method 'delete' for nil" do
+    NATFIXME 'Implement $:', exception: LoadError, message: "Cannot manipulate $: at runtime (spec/language/predefined_spec.rb#1096)" do
       $: << "foo"
       $:.should include("foo")
     ensure
@@ -1103,19 +1101,17 @@ describe "Execution variable $:" do
   end
 
   it "is read-only" do
-    NATFIXME 'is read-only', exception: SpecFailedException do
-      -> {
-        $: = []
-      }.should raise_error(NameError, '$: is a read-only variable')
+    -> {
+      $: = []
+    }.should raise_error(NameError, '$: is a read-only variable')
 
-      -> {
-        $LOAD_PATH = []
-      }.should raise_error(NameError, '$LOAD_PATH is a read-only variable')
+    -> {
+      $LOAD_PATH = []
+    }.should raise_error(NameError, '$LOAD_PATH is a read-only variable')
 
-      -> {
-        $-I = []
-      }.should raise_error(NameError, '$-I is a read-only variable')
-    end
+    -> {
+      $-I = []
+    }.should raise_error(NameError, '$-I is a read-only variable')
   end
 
   it "default $LOAD_PATH entries until sitelibdir included have @gem_prelude_index set" do
@@ -1590,7 +1586,7 @@ end
 
 describe "$LOAD_PATH.resolve_feature_path" do
   it "returns what will be loaded without actual loading, .rb file" do
-    NATFIXME 'Implement $LOAD_PATH', exception: NoMethodError, message: "undefined method 'resolve_feature_path' for nil" do
+    NATFIXME 'Implement $LOAD_PATH', exception: NoMethodError, message: "undefined method 'resolve_feature_path' for an instance of Array" do
       extension, path = $LOAD_PATH.resolve_feature_path('pp')
       extension.should == :rb
       path.should.end_with?('/pp.rb')
@@ -1601,7 +1597,7 @@ describe "$LOAD_PATH.resolve_feature_path" do
     require 'rbconfig'
     skip "no dynamically loadable standard extension" if RbConfig::CONFIG["EXTSTATIC"] == "static"
 
-    NATFIXME 'Implement $LOAD_PATH', exception: NoMethodError, message: "undefined method 'resolve_feature_path' for nil" do
+    NATFIXME 'Implement $LOAD_PATH', exception: NoMethodError, message: "undefined method 'resolve_feature_path' for an instance of Array" do
       extension, path = $LOAD_PATH.resolve_feature_path('etc')
       extension.should == :so
       path.should.end_with?("/etc.#{RbConfig::CONFIG['DLEXT']}")
@@ -1609,7 +1605,7 @@ describe "$LOAD_PATH.resolve_feature_path" do
   end
 
   it "return nil if feature cannot be found" do
-    NATFIXME 'Implement $LOAD_PATH', exception: NoMethodError, message: "undefined method 'resolve_feature_path' for nil" do
+    NATFIXME 'Implement $LOAD_PATH', exception: NoMethodError, message: "undefined method 'resolve_feature_path' for an instance of Array" do
       $LOAD_PATH.resolve_feature_path('noop').should be_nil
     end
   end

@@ -35,9 +35,7 @@ module CodeLoadingSpecs
 
   def self.spec_cleanup
     $LOADED_FEATURES.replace @saved_loaded_features
-    NATFIXME 'Runtime $LOAD_PATH', exception: NoMethodError, message: "undefined method 'replace' for nil" do
-      $LOAD_PATH.replace @saved_load_path
-    end
+    $LOAD_PATH.replace @saved_load_path
     ScratchPad.clear
   end
 end

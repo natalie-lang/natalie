@@ -472,6 +472,11 @@ Env *build_top_env() {
 
     GlobalEnv::the()->global_set_read_hook(env, "$$"_s, true, GlobalVariableAccessHooks::ReadHooks::getpid);
 
+    // TODO - $: is just a dummy value for now; unused at runtime
+    env->global_set("$:"_s, ArrayObject::create(), true);
+    env->global_alias("$-I"_s, "$:"_s);
+    env->global_alias("$LOAD_PATH"_s, "$:"_s);
+
     env->global_set("$\""_s, ArrayObject::create(), true);
     env->global_alias("$LOADED_FEATURES"_s, "$\""_s);
 
