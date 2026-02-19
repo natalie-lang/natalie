@@ -118,16 +118,16 @@ Value ModuleObject::const_fetch(SymbolObject *name) const {
     return constant.value();
 }
 
-Constant *ModuleObject::find_constant_in_modules(Env *env, SymbolObject *name, ModuleObject **found_in_module) {
+Constant *ModuleObject::find_constant_in_modules(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ModuleObject **found_in_module) {
     Constant *constant = nullptr;
     if (m_included_modules.is_empty()) {
         constant = this->get_constant(name, found_in_module);
     } else {
         for (auto module : m_included_modules) {
-            if (module == this)
+            if (search_mode == ConstLookupSearchMode::StrictPrivate || module == this)
                 constant = this->get_constant(name, found_in_module);
             else
-                constant = module->find_constant_in_modules(env, name, found_in_module);
+                constant = module->find_constant_in_modules(env, name, search_mode, found_in_module);
             if (constant)
                 break;
         }
@@ -135,13 +135,13 @@ Constant *ModuleObject::find_constant_in_modules(Env *env, SymbolObject *name, M
     return constant;
 }
 
-Constant *ModuleObject::find_constant_in_class_hierarchy(Env *env, SymbolObject *name, bool include_object, ModuleObject **found_in_module) {
+Constant *ModuleObject::find_constant_in_class_hierarchy(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, bool include_object, ModuleObject **found_in_module) {
     if (!include_object && (this == GlobalEnv::the()->Object() || this == GlobalEnv::the()->BasicObject()))
         return nullptr;
 
-    auto constant = find_constant_in_modules(env, name, found_in_module);
+    auto constant = find_constant_in_modules(env, name, search_mode, found_in_module);
     if (!constant && m_superclass)
-        constant = m_superclass->find_constant_in_class_hierarchy(env, name, include_object, found_in_module);
+        constant = m_superclass->find_constant_in_class_hierarchy(env, name, search_mode, include_object, found_in_module);
     return constant;
 }
 
@@ -1014,7 +1014,7 @@ bool ModuleObject::const_defined(Env *env, Value name_value, Optional<Value> inh
     if (inherited && inherited->is_falsey()) {
         return !!m_constants.get(name);
     }
-    return !!find_constant_in_class_hierarchy(env, name, /*include_object*/ true, /*found_in_module*/ nullptr) || (type() == Type::Module && !!GlobalEnv::the()->Object()->find_constant_in_class_hierarchy(env, name, /*include_object*/ true, /*found_in_module*/ nullptr));
+    return !!find_constant_in_class_hierarchy(env, name, ConstLookupSearchMode::Strict, /*include_object*/ true, /*found_in_module*/ nullptr) || (type() == Type::Module && !!GlobalEnv::the()->Object()->find_constant_in_class_hierarchy(env, name, ConstLookupSearchMode::Strict, /*include_object*/ true, /*found_in_module*/ nullptr));
 }
 
 Value ModuleObject::alias_method(Env *env, Value new_name_value, Value old_name_value) {
