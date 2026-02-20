@@ -1601,9 +1601,6 @@ class << self
       IncludeExpectation.new(args)
     end
   end
-
-  # TODO - in theory this natalie/test hack should no longer be necessary
-  alias include_all include
 end
 
 module Mock

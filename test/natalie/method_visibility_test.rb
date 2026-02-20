@@ -182,10 +182,10 @@ describe 'method visibility' do
 
   describe '#initialize' do
     it 'is always private unless changed by name' do
-      Foo.private_instance_methods.should include_all(:initialize)
+      Foo.private_instance_methods.should include(:initialize)
       Foo.send(:public, :initialize)
-      Foo.private_instance_methods.should_not include_all(:initialize)
-      Foo.public_instance_methods.should include_all(:initialize)
+      Foo.private_instance_methods.should_not include(:initialize)
+      Foo.public_instance_methods.should include(:initialize)
     end
   end
 end
