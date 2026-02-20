@@ -37,7 +37,10 @@ Value ModuleObject::initialize(Env *env, Block *block) {
 
 Value ModuleObject::include(Env *env, Args &&args) {
     for (int i = args.size() - 1; i >= 0; i--) {
-        include_once(env, args[i].as_module());
+        if (args[i].is_module())
+            include_once(env, args[i].as_module());
+        else
+            env->raise("TypeError", "wrong argument type {} (expected Module)", args[i].klass()->inspect_module());
     }
     return this;
 }

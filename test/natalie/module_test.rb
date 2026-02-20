@@ -163,4 +163,14 @@ describe 'Module' do
       mod.foo.should == 1
     end
   end
+
+  describe 'include' do
+    it 'raises a TypeError if arg is not a module' do
+      -> do
+        module M6
+          include 'string'
+        end
+      end.should raise_error(TypeError, 'wrong argument type String (expected Module)')
+    end
+  end
 end
