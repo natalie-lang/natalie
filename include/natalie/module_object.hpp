@@ -131,7 +131,7 @@ public:
 
     void methods(Env *, ArrayObject *, bool = true);
     void define_method(Env *, SymbolObject *, Method *, MethodVisibility);
-    MethodInfo find_method(Env *, SymbolObject *, ModuleObject ** = nullptr, const Method ** = nullptr);
+    MethodInfo find_method(Env *, SymbolObject *, ModuleObject ** = nullptr, const Method * = nullptr, bool * = nullptr);
     MethodInfo find_method(Env *, SymbolObject *, const Method *);
     void assert_method_defined(Env *, SymbolObject *, MethodInfo);
 

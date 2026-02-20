@@ -466,7 +466,9 @@ void ModuleObject::define_method(Env *env, SymbolObject *name, Method *method, M
 }
 
 // returns the method and sets matching_class_or_module to where the method was found
-MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObject **matching_class_or_module, const Method **after_method) {
+MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObject **matching_class_or_module, const Method *after_method, bool *after_method_found) {
+    assert(!after_method || after_method_found);
+
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     MethodInfo method_info;
@@ -487,9 +489,9 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Module
                 return method_info;
             }
             auto method = method_info.method();
-            if (after_method != nullptr && method == *after_method) {
-                *after_method = nullptr;
-            } else if (after_method == nullptr || *after_method == nullptr) {
+            if (method == after_method) {
+                *after_method_found = true;
+            } else if (!after_method || *after_method_found) {
                 if (matching_class_or_module) *matching_class_or_module = m_klass;
                 if (!after_method)
                     cache_method(method_name, method_info, env);
@@ -502,7 +504,7 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Module
         if (module == this) {
             method_info = module->m_methods.get(method_name, env);
         } else {
-            method_info = module->find_method(env, method_name, matching_class_or_module, after_method);
+            method_info = module->find_method(env, method_name, matching_class_or_module, after_method, after_method_found);
         }
         if (method_info) {
             if (!method_info.is_defined()) {
@@ -511,9 +513,9 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Module
                 return method_info;
             }
             auto method = method_info.method();
-            if (after_method != nullptr && method == *after_method) {
-                *after_method = nullptr;
-            } else if (after_method == nullptr || *after_method == nullptr) {
+            if (method == after_method) {
+                *after_method_found = true;
+            } else if (!after_method || *after_method_found) {
                 if (matching_class_or_module) *matching_class_or_module = module;
                 if (!after_method)
                     cache_method(method_name, method_info, env);
@@ -525,14 +527,15 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Module
     if (!m_superclass)
         return {};
 
-    method_info = m_superclass->find_method(env, method_name, matching_class_or_module, after_method);
+    method_info = m_superclass->find_method(env, method_name, matching_class_or_module, after_method, after_method_found);
     if (!after_method)
         cache_method(method_name, method_info, env);
     return method_info;
 }
 
 MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, const Method *after_method) {
-    return find_method(env, method_name, nullptr, &after_method);
+    bool after_method_found = !after_method;
+    return find_method(env, method_name, nullptr, after_method, &after_method_found);
 }
 
 void ModuleObject::assert_method_defined(Env *env, SymbolObject *name, MethodInfo method_info) {

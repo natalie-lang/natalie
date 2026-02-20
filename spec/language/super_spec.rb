@@ -61,11 +61,9 @@ describe "The super keyword" do
     SuperSpecs::IncludesIntermediate.new.__send__(:foobar).should == 42
   end
 
-  # NATFIXME: crash
-  # src/natalie.cpp:893: Natalie::Value Natalie::super(Env*, Value, Args&&, Block*): Assertion `super_method.method() != current_method' failed.
-  # it "calls the correct method when the method visibility is modified" do
-  #   SuperSpecs::MS4::A.new.example.should == 5
-  # end
+  it "calls the correct method when the method visibility is modified" do
+    SuperSpecs::MS4::A.new.example.should == 5
+  end
 
   it "calls the correct method when the superclass argument list is different from the subclass" do
     SuperSpecs::S4::A.new.foo([]).should == ["A#foo"]
