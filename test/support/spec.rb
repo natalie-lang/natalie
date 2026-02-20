@@ -1538,18 +1538,9 @@ class Object
     define_singleton_method(message) { raise SpecFailedException, "#{message} should not have been sent to #{inspect}" }
   end
 
-  def include(*values)
-    IncludeExpectation.new(values)
-  end
-
   def include_any_of(*values)
     IncludeAnyExpectation.new(values)
   end
-
-  # FIXME: the above method is visible to tests in **Natalie** but not MRI, and I don't know why.
-  # This alias is here so that MRI can see it. We should figure out why Natalie can see 'include'
-  # but MRI cannot. (That's a bug.)
-  alias include_all include
 
   def have_constant(method)
     HaveConstantExpectation.new(method)
@@ -1586,6 +1577,33 @@ class Object
   def stub!(message)
     Stub.new(self, message).any_number_of_times.tap { |stub| $stub_registry.register(stub) }
   end
+end
+
+# Special case for top-level include
+# ... mspec has similar problems
+# [although MRI 4 seems to handle the below code OK now?]
+# Quote from mspec/matchers/include.rb:
+# # Cannot override #include at the toplevel in MRI
+# module MSpecMatchers
+#   private def include(*expected)
+#     IncludeMatcher.new(*expected)
+#   end
+# end
+
+class << self
+  alias original_include include
+
+  def include(*args)
+    # Hackity hack... this is the only top-level (deliberate module) include in spec
+    if args.size > 0 && args[0].is_a?(Module) && args[0].name == 'ConstantSpecs::ModuleA'
+      original_include(*args)
+    else
+      IncludeExpectation.new(args)
+    end
+  end
+
+  # TODO - in theory this natalie/test hack should no longer be necessary
+  alias include_all include
 end
 
 module Mock
