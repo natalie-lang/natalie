@@ -86,12 +86,10 @@ describe "A class definition" do
     module ClassSpecs
       class SuperclassResetToSubclass < L
       end
-      NATFIXME 'raises an error when trying to change the superclass', exception: SpecFailedException do
-        -> {
-          class SuperclassResetToSubclass < M
-          end
-        }.should raise_error(TypeError, /superclass mismatch/)
-      end
+      -> {
+        class SuperclassResetToSubclass < M
+        end
+      }.should raise_error(TypeError, /superclass mismatch/)
     end
   end
 
@@ -101,13 +99,11 @@ describe "A class definition" do
       end
       SuperclassReopenedBasicObject.superclass.should == A
 
-      NATFIXME 'raises an error when reopening a class with BasicObject as superclass', exception: SpecFailedException do
-        -> {
-          class SuperclassReopenedBasicObject < BasicObject
-          end
-        }.should raise_error(TypeError, /superclass mismatch/)
+      -> {
+        class SuperclassReopenedBasicObject < BasicObject
+        end
+      }.should raise_error(TypeError, /superclass mismatch/)
         SuperclassReopenedBasicObject.superclass.should == A
-      end
     end
   end
 
@@ -145,12 +141,10 @@ describe "A class definition" do
       class NoSuperclassSet
       end
 
-      NATFIXME 'does not allow to set the superclass even if it was not specified by the first declaration', exception: SpecFailedException do
-        -> {
-          class NoSuperclassSet < String
-          end
-        }.should raise_error(TypeError, /superclass mismatch/)
-      end
+      -> {
+        class NoSuperclassSet < String
+        end
+      }.should raise_error(TypeError, /superclass mismatch/)
     end
   end
 
@@ -360,9 +354,7 @@ describe "Reopening a class" do
   end
 
   it "raises a TypeError when superclasses mismatch" do
-    NATFIXME 'raises a TypeError when superclasses mismatch', exception: SpecFailedException, message: /instead raised nothing/ do
-      -> { class ClassSpecs::A < Array; end }.should raise_error(TypeError)
-    end
+    -> { class ClassSpecs::A < Array; end }.should raise_error(TypeError)
   end
 
   it "adds new methods to subclasses" do
