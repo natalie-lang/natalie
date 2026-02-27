@@ -94,15 +94,7 @@ public:
     ClassObject *singleton_class() const;
     ClassObject *singleton_class(Env *);
 
-    // Old error message style, e.g.:
-    // - no implicit conversion from nil to string
-    // - no implicit conversion of Integer into String
-    StringObject *to_str(Env *env);
-
-    // New error message style, e.g.:
-    // - no implicit conversion of nil into String
-    // - no implicit conversion of Integer into String
-    StringObject *to_str2(Env *env);
+    StringObject *to_str(Env *env, bool = false);
 
     Integer integer() const;
     Integer integer_or_raise(Env *) const;

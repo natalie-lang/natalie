@@ -756,7 +756,7 @@ Value StringObject::byteindex(Env *env, Value needle_obj, Optional<Value> offset
     if (needle_obj.is_regexp())
         return byteindex_regexp_needle(env, this, needle_obj.as_regexp(), offset);
 
-    auto needle = needle_obj.to_str2(env);
+    auto needle = needle_obj.to_str(env, /*mri_variant_error_msg*/ true);
     return byteindex_string_needle(env, this, needle, offset);
 }
 
@@ -773,7 +773,7 @@ Value StringObject::byterindex(Env *env, Value needle_obj, Optional<Value> offse
     if (needle_obj.is_regexp())
         return byteindex_regexp_needle(env, this, needle_obj.as_regexp(), offset, true);
 
-    auto needle = needle_obj.to_str2(env);
+    auto needle = needle_obj.to_str(env, /*mri_variant_error_msg*/ true);
     return byteindex_string_needle(env, this, needle, offset, true);
 }
 
