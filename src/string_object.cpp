@@ -3774,24 +3774,14 @@ Value StringObject::upcase_in_place(Env *env, Optional<Value> arg1, Optional<Val
 }
 
 StringObject *StringObject::swapcase(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
-    // currently not doing anything with the returned flags
-    check_case_options(env, arg1, arg2);
+    auto flags = check_case_options(env, arg1, arg2);
     auto str = StringObject::create("", m_encoding);
+    nat_int_t result[SPECIAL_CASE_UPPER_MAX_SIZE] = {};
     for (StringView c : *this) {
-        nat_int_t codept = m_encoding->decode_codepoint(c);
-        if (codept >= 'a' && codept <= 'z') {
-            // upcase if codepoint was lowercase
-            codept -= 32;
-            String s = m_encoding->encode_codepoint(codept);
-            str->append(s);
-        } else if (codept >= 'A' && codept <= 'Z') {
-            // downcase if codepoint was uppercase
-            codept += 32;
-            String s = m_encoding->encode_codepoint(codept);
-            str->append(s);
-        } else {
-            str->append(c);
-        }
+        auto codepoint = m_encoding->decode_codepoint(c);
+        auto length = EncodingObject::codepoint_to_swapcase(codepoint, result, flags);
+        for (uint8_t i = 0; i < length; i++)
+            str->append(m_encoding->encode_codepoint(result[i]));
     }
     return str;
 }
