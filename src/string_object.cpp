@@ -1337,6 +1337,58 @@ Value StringObject::scan(Env *env, Value pattern, Block *block) {
     return ary;
 }
 
+Value StringObject::scrub(Env *env, Optional<Value> replacement_arg, Block *block) {
+    if (valid_encoding())
+        return StringObject::create(m_string, m_encoding);
+
+    StringObject *replacement_str = nullptr;
+    if (!block) {
+        if (replacement_arg) {
+            replacement_str = replacement_arg.value().to_str(env);
+            if (!replacement_str->valid_encoding())
+                env->raise("ArgumentError", "replacement must be valid byte sequence '{}'", replacement_str->string());
+        } else if (m_encoding->in_encoding_codepoint_range(0xFFFD)) {
+            replacement_str = StringObject::create(m_encoding->encode_codepoint(0xFFFD), m_encoding);
+        } else {
+            replacement_str = StringObject::create("?", m_encoding);
+        }
+    }
+
+    auto result = StringObject::create("", m_encoding);
+    size_t index = 0;
+    while (index < m_string.size()) {
+        size_t char_start = index;
+        auto [valid, length, _codepoint] = m_encoding->next_codepoint(m_string, &index);
+        if (length == 0)
+            break;
+
+        if (valid) {
+            result->append(StringView(&m_string, char_start, length));
+        } else if (block) {
+            auto bad = StringObject::create(StringView(&m_string, char_start, length), m_encoding);
+            auto block_result = block->run(env, Args({ bad }), nullptr);
+            result->append(block_result.to_str(env));
+        } else {
+            result->append(replacement_str);
+        }
+    }
+
+    result->force_validity(Validity::Valid);
+    return result;
+}
+
+Value StringObject::scrub_in_place(Env *env, Optional<Value> replacement_arg, Block *block) {
+    if (valid_encoding())
+        return Value::nil();
+
+    assert_not_frozen(env);
+    auto scrubbed = scrub(env, replacement_arg, block);
+
+    m_string = std::move(scrubbed.as_string()->m_string);
+    m_validity = Validity::Valid;
+    return this;
+}
+
 Value StringObject::setbyte(Env *env, Value index_obj, Value value_obj) {
     assert_not_frozen(env);
     m_validity = Validity::Unknown;
