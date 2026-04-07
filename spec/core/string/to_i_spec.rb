@@ -17,10 +17,8 @@ describe "String#to_i" do
   end
 
   it "bails out at the first double underscore if the first digit is 0" do
-    NATFIXME 'double underscores', exception: SpecFailedException do
-      (2..16).each do |base|
-        "010__1".to_i(base).should == base;
-      end
+    (2..16).each do |base|
+      "010__1".to_i(base).should == base;
     end
   end
 

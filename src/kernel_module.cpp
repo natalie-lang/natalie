@@ -438,7 +438,7 @@ Value KernelModule::Integer(Env *env, Value value, Optional<Value> base, Optiona
 
 Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exception) {
     if (value.is_string()) {
-        auto result = value.as_string()->convert_integer(env, base);
+        auto result = value.as_string()->strict_convert_integer(env, base);
         if (result.is_nil() && exception) {
             env->raise("ArgumentError", "invalid value for Integer(): {}", value.inspected(env));
         }
@@ -489,7 +489,7 @@ Value KernelModule::Float(Env *env, Value value, bool exception) {
     if (value.is_float()) {
         return value;
     } else if (value.is_string()) {
-        auto result = value.as_string()->convert_float();
+        auto result = value.as_string()->strict_convert_float();
         if (result.is_nil() && exception) {
             env->raise("ArgumentError", "invalid value for Float(): {}", value.inspected(env));
         }

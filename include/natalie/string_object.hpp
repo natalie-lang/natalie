@@ -365,6 +365,7 @@ public:
     Value lstrip_in_place(Env *);
     Value match(Env *, Value, Optional<Value> = {}, Block * = nullptr);
     Value mul(Env *, Value) const;
+    Value oct(Env *) const;
     Value ord(Env *) const;
     Value partition(Env *, Value);
     Value prepend(Env *, Args &&);
@@ -411,8 +412,8 @@ public:
     Value uplus(Env *);
     Value upto(Env *, Value, Optional<Value> = {}, Block * = nullptr);
 
-    Value convert_float();
-    Value convert_integer(Env *, nat_int_t base);
+    Value strict_convert_float();
+    Value strict_convert_integer(Env *, nat_int_t base);
 
     static size_t byte_index_to_char_index(ArrayObject *chars, size_t byte_index);
 
@@ -521,6 +522,8 @@ public:
     }
 
 private:
+    Value convert_integer(int base, int default_base) const;
+
     StringObject(ClassObject *klass)
         : Object { Object::Type::String, klass }
         , m_encoding { EncodingObject::get(Encoding::ASCII_8BIT) } {
