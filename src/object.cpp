@@ -314,16 +314,16 @@ Constant *Object::find_constant(Env *env, Value ns, SymbolObject *name, ConstLoo
 
         if (scope_module) {
             if (search_mode == ConstLookupSearchMode::StrictPrivate)
-                constant = scope_module->find_constant_in_modules(env, name, found_in_module);
+                constant = scope_module->find_constant_in_modules(env, name, search_mode, found_in_module);
             else
-                constant = scope_module->find_constant_in_class_hierarchy(env, name, include_object, found_in_module);
+                constant = scope_module->find_constant_in_class_hierarchy(env, name, search_mode, include_object, found_in_module);
         }
     }
 
     // 3. search in Object class and its class hierarchy
     if (!constant)
         if (search_mode == ConstLookupSearchMode::NotStrict)
-            constant = GlobalEnv::the()->Object()->find_constant_in_class_hierarchy(env, name, true, found_in_module);
+            constant = GlobalEnv::the()->Object()->find_constant_in_class_hierarchy(env, name, search_mode, true, found_in_module);
 
     if (constant) {
         auto scope_module = get_scope_module_else_object_class(env, ns, search_mode);

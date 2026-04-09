@@ -70,8 +70,8 @@ public:
             *found_in_module = this;
         return constant;
     }
-    Constant *find_constant_in_modules(Env *, SymbolObject *, ModuleObject **);
-    Constant *find_constant_in_class_hierarchy(Env *, SymbolObject *, bool, ModuleObject **);
+    Constant *find_constant_in_modules(Env *, SymbolObject *, ConstLookupSearchMode, ModuleObject **);
+    Constant *find_constant_in_class_hierarchy(Env *, SymbolObject *, ConstLookupSearchMode, bool, ModuleObject **);
 
     Optional<Value> const_get(SymbolObject *) const;
     Value const_get(Env *, Value, Optional<Value> = {});

@@ -373,40 +373,36 @@ describe "Reopening a class" do
   end
 
   it "does not reopen a class included in Object" do
-    NATFIXME 'it does not reopen a class included in Object', exception: SpecFailedException do
-      ruby_exe(<<~RUBY).should == "false"
-        module IncludedInObject
-          class IncludedClass
-          end
-        end
-        class Object
-          include IncludedInObject
-        end
+    ruby_exe(<<~RUBY).should == "false"
+      module IncludedInObject
         class IncludedClass
         end
-        print IncludedInObject::IncludedClass == Object::IncludedClass
-      RUBY
-    end
+      end
+      class Object
+        include IncludedInObject
+      end
+      class IncludedClass
+      end
+      print IncludedInObject::IncludedClass == Object::IncludedClass
+    RUBY
   end
 
   it "does not reopen a class included in non-Object modules" do
-    NATFIXME 'it does not reopen a class included in non-Object modules', exception: SpecFailedException do
-      ruby_exe(<<~RUBY).should == "false/false"
-        module Included
-          module IncludedClass; end
-        end
-        module M
-          include Included
-          module IncludedClass; end
-        end
-        class C
-          include Included
-          module IncludedClass; end
-        end
-        print Included::IncludedClass == M::IncludedClass, "/",
-              Included::IncludedClass == C::IncludedClass
-      RUBY
-    end
+    ruby_exe(<<~RUBY).should == "false/false"
+      module Included
+        module IncludedClass; end
+      end
+      module M
+        include Included
+        module IncludedClass; end
+      end
+      class C
+        include Included
+        module IncludedClass; end
+      end
+      print Included::IncludedClass == M::IncludedClass, "/",
+            Included::IncludedClass == C::IncludedClass
+    RUBY
   end
 end
 
