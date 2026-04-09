@@ -382,6 +382,8 @@ public:
     Value rstrip_in_place(Env *);
     size_t char_count(Env *) const;
     Value scan(Env *, Value, Block * = nullptr);
+    Value scrub(Env *, Optional<Value>, Block *);
+    Value scrub_in_place(Env *, Optional<Value>, Block *);
     Value setbyte(Env *, Value, Value);
     Value size(Env *) const;
     Value slice_in_place(Env *, Value, Optional<Value>);
