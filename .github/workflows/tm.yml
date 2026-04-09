@@ -30,7 +30,7 @@ jobs:
         run: sudo apt-get install -y -q clang-format
       - name: format
         run: cd ext/tm && rake format
-      - uses: EndBug/add-and-commit@v9
+      - uses: EndBug/add-and-commit@v10
         with:
           author_name: Tim Morgan
           author_email: tim@timmorgan.org
