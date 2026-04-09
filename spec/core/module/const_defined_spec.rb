@@ -100,9 +100,7 @@ describe "Module#const_defined?" do
   end
 
   it "special cases Object and checks it's included Modules" do
-    NATFIXME "special cases Object and checks it's included Modules", exception: SpecFailedException do
-      Object.const_defined?(:CS_CONST10).should be_true
-    end
+    Object.const_defined?(:CS_CONST10).should be_true
   end
 
   it "returns true for toplevel constant when the name begins with '::'" do

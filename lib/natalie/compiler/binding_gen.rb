@@ -1527,6 +1527,7 @@ gen.member_binding_as_class_method('main_obj', 'to_s', 'Object', 'main_obj_inspe
 gen.member_binding_as_class_method('main_obj', 'private', 'Object', 'main_obj_private', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.member_binding_as_class_method('main_obj', 'protected', 'Object', 'main_obj_protected', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.member_binding_as_class_method('main_obj', 'public', 'Object', 'main_obj_public', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
+gen.member_binding_as_class_method('main_obj', 'include', 'Object', 'main_obj_include', argc: 1.., pass_env: true, pass_block: false, return_type: :Value)
 
 gen.init
 

@@ -352,12 +352,12 @@ describe 'method' do
       end
 
       o1 = C2.new
-      o1.methods.should include_all(:c1, :c2, :m1)
+      o1.methods.should include(:c1, :c2, :m1)
 
       o2 = C2.new
       def o2.s1
       end
-      o2.methods.should include_all(:c1, :c2, :m1, :s1)
+      o2.methods.should include(:c1, :c2, :m1, :s1)
     end
   end
 
