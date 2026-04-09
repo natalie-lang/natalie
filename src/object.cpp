@@ -402,10 +402,10 @@ Value Object::define_class(Env *env, Value ns, Value self, SymbolObject *name, C
 
     if (klass_found) {
         klass = klass_found.value();
-        if (!klass.is_class()) {
+        if (!klass.is_class())
             env->raise("TypeError", "{} is not a class", name->string());
-        }
-        // TODO - what about an attempt to redefine the superclass?
+        if (superclass != GlobalEnv::the()->Object() && superclass != klass.as_class()->superclass(env))
+            env->raise("TypeError", "superclass mismatch for class {}", klass.as_class()->inspect_module());
     } else {
         klass = Object::subclass(env, superclass, name->string().c_str());
         Object::const_set(env, ns, name, klass);
@@ -421,9 +421,8 @@ Value Object::define_module(Env *env, Value ns, Value self, SymbolObject *name, 
 
     if (mod_found) {
         mod = mod_found.value();
-        if (!mod.is_module() || mod.is_class()) {
+        if (!mod.is_module() || mod.is_class())
             env->raise("TypeError", "{} is not a module", name->string());
-        }
     } else {
         mod = ModuleObject::create(name->string().c_str());
         Object::const_set(env, ns, name, mod);
