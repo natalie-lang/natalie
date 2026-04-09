@@ -7,16 +7,12 @@ describe :symbol_succ, shared: true do
   end
 
   it "propagates a 'carry'" do
-    NATFIXME "propagates a 'carry'", exception: SpecFailedException do
-      :"1999zzz".send(@method).should == :"2000aaa"
-      :ZZZ9999.send(@method).should == :AAAA0000
-    end
+    :"1999zzz".send(@method).should == :"2000aaa"
+    :ZZZ9999.send(@method).should == :AAAA0000
   end
 
   it "increments non-alphanumeric characters when no alphanumeric characters are present" do
-    NATFIXME "increments non-alphanumeric characters when no alphanumeric characters are present", exception: SpecFailedException do
-      :"<<koala>>".send(@method).should == :"<<koalb>>"
-    end
+    :"<<koala>>".send(@method).should == :"<<koalb>>"
     :"***".send(@method).should == :"**+"
   end
 end

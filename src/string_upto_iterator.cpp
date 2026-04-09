@@ -49,6 +49,10 @@ bool StringUptoIterator::to_reached() const {
     if (m_treat_as_integer) {
         return Integer(m_current.value()) >= Integer(m_to);
     } else {
+        // Stop iterating once `current` is longer than `to`, even if it would
+        // still compare lexicographically less.
+        if (m_current.value().length() > m_to.length())
+            return true;
         return m_current.value() >= m_to;
     }
 }

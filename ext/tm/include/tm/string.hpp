@@ -1532,37 +1532,89 @@ public:
     }
 
     /**
-     * Returns a new String that is the result of incrementing
-     * the last character of this String. If the the last character
-     * is z/Z/9, then the next-to-last character is incremented
-     * (or a new one is prepended) and the last character is reset.
+     * Returns a new String that is the successor to this one. The rightmost
+     * alphanumeric character is incremented; if it carries (z->a, Z->A, 9->0),
+     * the carry skips left over non-alphanumerics to the next alphanumeric.
+     * If the carry runs off the leftmost alphanumeric, the carry is inserted
+     * just before the leftmost-carried position.
+     *
+     * If the string contains no alphanumerics, plain byte increment is used
+     * (with carry on \xFF -> \x00, prepending \x01 if the carry runs off the
+     * left).
      *
      * ```
-     * assert_str_eq("b",    String("a").successive());
-     * assert_str_eq("az",   String("ay").successive());
-     * assert_str_eq("ba",   String("az").successive());
-     * assert_str_eq("aaa",  String("zz").successive());
-     * assert_str_eq("AAA",  String("ZZ").successive());
-     * assert_str_eq("1",    String("0").successive());
-     * assert_str_eq("100",  String("99").successive());
-     * assert_str_eq("d000", String("c999").successive());
+     * assert_str_eq("b",          String("a").successive());
+     * assert_str_eq("az",         String("ay").successive());
+     * assert_str_eq("ba",         String("az").successive());
+     * assert_str_eq("aaa",        String("zz").successive());
+     * assert_str_eq("AAA",        String("ZZ").successive());
+     * assert_str_eq("1",          String("0").successive());
+     * assert_str_eq("100",        String("99").successive());
+     * assert_str_eq("d000",       String("c999").successive());
+     * assert_str_eq("<<koalb>>",  String("<<koala>>").successive());
+     * assert_str_eq("7A00a00A",   String("6Z99z99Z").successive());
+     * assert_str_eq("10A00a00A",  String("9Z99z99Z").successive());
      * ```
      */
     String successive() const {
-        auto result = String { *this };
-        if (m_length == 0) return result;
-        const size_t index = size() - 1;
-        const char last_char = m_str[index];
-        if (last_char == 'z') {
-            result.increment_successive_char('a', 'z', 'a');
-        } else if (last_char == 'Z') {
-            result.increment_successive_char('A', 'Z', 'A');
-        } else if (last_char == '9') {
-            result.increment_successive_char('0', '9', '1');
-        } else {
-            result.m_str[index]++;
+        auto new_string = String(*this);
+        if (new_string.m_length == 0) return new_string;
+
+        struct AlnumRange {
+            char low_char;
+            char high_char;
+            char carry_char;
+        };
+
+        constexpr AlnumRange ranges[] = {
+            { '0', '9', '1' },
+            { 'a', 'z', 'a' },
+            { 'A', 'Z', 'A' },
+        };
+
+        ssize_t leftmost_carried = -1;
+        char carry_char = 0;
+
+        for (ssize_t idx = (ssize_t)new_string.m_length - 1; idx >= 0; idx--) {
+            char ch = new_string.m_str[idx];
+            const AlnumRange *match = nullptr;
+
+            for (auto &range : ranges) {
+                if (ch >= range.low_char && ch <= range.high_char) {
+                    match = &range;
+                    break;
+                }
+            }
+
+            if (match) {
+                if (ch < match->high_char) {
+                    new_string.m_str[idx] = ch + 1;
+                    return new_string;
+                }
+
+                new_string.m_str[idx] = match->low_char;
+                carry_char = match->carry_char;
+                leftmost_carried = idx;
+            }
         }
-        return result;
+
+        if (leftmost_carried >= 0) {
+            new_string.insert(leftmost_carried, carry_char);
+            return new_string;
+        }
+
+        // No alphanumerics, do byte increment with carry on 0xFF -> 0x00.
+        for (ssize_t idx = (ssize_t)new_string.m_length - 1; idx >= 0; idx--) {
+            unsigned char ch = (unsigned char)new_string.m_str[idx];
+            if (ch < 0xFF) {
+                new_string.m_str[idx] = (char)(ch + 1);
+                return new_string;
+            }
+            new_string.m_str[idx] = (char)0x00;
+        }
+
+        new_string.prepend_char((char)0x01);
+        return new_string;
     }
 
     /**
@@ -1967,23 +2019,6 @@ protected:
             snprintf(m_str + m_length, length + 1, fmt, std::forward<T>(i)...);
             m_str[total_length] = '\0';
             m_length = total_length;
-        }
-    }
-
-    void increment_successive_char(const char first_char_in_range, const char last_char_in_range, const char prepend_char_to_grow) {
-        assert(m_length > 0);
-        ssize_t index = m_length - 1;
-        char last_char = m_str[index];
-        while (last_char == last_char_in_range) {
-            m_str[index] = first_char_in_range;
-            if ((--index) < 0)
-                break;
-            last_char = m_str[index];
-        }
-        if (index == -1) {
-            this->prepend_char(prepend_char_to_grow);
-        } else {
-            m_str[index]++;
         }
     }
 
