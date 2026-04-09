@@ -1462,110 +1462,159 @@ bool StringObject::has_match(Env *env, Value other, Optional<Value> start) {
 }
 
 /**
- * String#hex
+ * Shared helper for hex(), oct(), and to_i().
  *
- * Converts the string to a base 16 integer. Includes an optional type, as well
- * as allowing an optional 0x prefix.
- *
- * To implement this, we effectively run the string through a state machine. The
- * state machine looks approximately like this:
- *
- *         +------------------- 0x ------------------+
- *         |                                         V
- *     +-------+            +------+           +--------+
- * --> | start | -- +/- --> | sign | -- 0x --> | prefix |
- *     +-------+            +------+           +--------+
- *         |                  |                      |
- *         |                  \h  +------- \h -------+
- *         |                  V   V
- *         |                +--------+ --- \h ---+
- *         +---- \h ------> | number |           |
- *                          +--------+ <---------+
- *                           |     ^
- *                           _     \h
- *                           V     |
- *                          +------------+
- *                          | underscore |
- *                          +------------+
+ * base=0 means auto-detect from prefix (0x, 0b, 0d, 0o), falling back
+ * to default_base when no prefix is found.
+ * base>0 means a fixed base; a matching prefix (e.g. 0x for base 16) is
+ * skipped if present.
  */
-Value StringObject::hex(Env *env) const {
-    // This is an enum that represents the states of the state machine.
-    enum {
-        start,
-        sign,
-        prefix,
-        number,
-        underscore,
-    } state
-        = start;
+Value StringObject::convert_integer(int base, int default_base) const {
+    const char *str = c_str();
+    size_t len = length();
+    size_t index = 0;
+
+    while (index < len && isspace(str[index])) {
+        index++;
+    }
 
     bool negative = false;
-    nat_int_t value = 0;
+    if (index < len && str[index] == '-') {
+        negative = true;
+        index++;
+    } else if (index < len && str[index] == '+') {
+        index++;
+    }
 
-    const char *str_source = c_str();
-    size_t str_length = length();
+    if (index < len && str[index] == '_') {
+        return Value::integer(0);
+    }
 
-    for (size_t index = 0; index < str_length; index++) {
-        char c = str_source[index];
-        int char_value;
-
-        switch (state) {
-        case start:
-            if (c == '-') {
-                negative = true;
-                state = sign;
-            } else if (c == '+') {
-                state = sign;
-            } else if (c == '0' && index + 1 < str_length && str_source[index + 1] == 'x') {
-                state = prefix;
-                index++;
-            } else if ((char_value = hex_char_to_decimal_value(c)) != -1) {
-                value = char_value;
-                state = number;
-            } else {
-                return Value::integer(0);
+    if (index < len && str[index] == '0' && index + 1 < len) {
+        char prefix = str[index + 1];
+        if (base == 0) {
+            switch (prefix) {
+            case 'x':
+            case 'X':
+                base = 16;
+                index += 2;
+                break;
+            case 'b':
+            case 'B':
+                base = 2;
+                index += 2;
+                break;
+            case 'd':
+            case 'D':
+                base = 10;
+                index += 2;
+                break;
+            case 'o':
+            case 'O':
+                base = 8;
+                index += 2;
+                break;
+            default:
+                if (isdigit(prefix)) {
+                    base = 8;
+                }
+                break;
             }
-            break;
-        case sign:
-            if (c == '0' && index + 1 < str_length && str_source[index + 1] == 'x') {
-                state = prefix;
-                index++;
-            } else if ((char_value = hex_char_to_decimal_value(c)) != -1) {
-                value = char_value;
-                state = number;
-            } else {
-                return Value::integer(0);
+        } else {
+            if (
+                (base == 16 && (prefix == 'x' || prefix == 'X')) || (base == 2 && (prefix == 'b' || prefix == 'B')) || (base == 10 && (prefix == 'd' || prefix == 'D')) || (base == 8 && (prefix == 'o' || prefix == 'O'))) {
+                index += 2;
             }
-            break;
-        case prefix:
-            if ((char_value = hex_char_to_decimal_value(c)) != -1) {
-                value = char_value;
-                state = number;
-            } else {
-                return Value::integer(0);
-            }
-            break;
-        case number:
-            if ((char_value = hex_char_to_decimal_value(c)) != -1) {
-                value = (value * 16) + char_value;
-            } else if (c == '_') {
-                state = underscore;
-            } else {
-                return Value::integer((negative ? -value : value));
-            }
-            break;
-        case underscore:
-            if ((char_value = hex_char_to_decimal_value(c)) != -1) {
-                value = (value * 16) + char_value;
-                state = number;
-            } else {
-                return Value::integer((negative ? -value : value));
-            }
-            break;
         }
     }
 
-    return Value::integer((negative ? -value : value));
+    if (base == 0) {
+        base = default_base;
+    }
+
+    constexpr size_t buffer_size = 32;
+    size_t buffer_len = 0;
+    bool buffer_overflow = false;
+
+    char buffer[buffer_size];
+    String big_digits;
+
+    if (negative) {
+        buffer[buffer_len++] = '-';
+    }
+
+    bool found_digit = false;
+    bool prev_underscore = false;
+
+    for (; index < len; index++) {
+        char c = str[index];
+
+        if (c == '_') {
+            if (!found_digit || prev_underscore) {
+                break;
+            }
+            prev_underscore = true;
+            continue;
+        }
+
+        prev_underscore = false;
+
+        int digit;
+        if (c >= '0' && c <= '9') {
+            digit = c - '0';
+        } else if (c >= 'a' && c <= 'z') {
+            digit = c - 'a' + 10;
+        } else if (c >= 'A' && c <= 'Z') {
+            digit = c - 'A' + 10;
+        } else {
+            break;
+        }
+
+        if (digit >= base) {
+            break;
+        }
+
+        found_digit = true;
+
+        if (!buffer_overflow) {
+            if (buffer_len < buffer_size - 1) {
+                buffer[buffer_len++] = c;
+            } else {
+                buffer_overflow = true;
+                big_digits.append(buffer, buffer_len);
+                big_digits.append_char(c);
+            }
+        } else {
+            big_digits.append_char(c);
+        }
+    }
+
+    if (!found_digit) {
+        return Value::integer(0);
+    }
+
+    if (buffer_overflow) {
+        return Integer(BigInt(big_digits, base));
+    }
+
+    buffer[buffer_len] = '\0';
+
+    errno = 0;
+    nat_int_t number = strtoll(buffer, nullptr, base);
+
+    if (errno == ERANGE) {
+        return Integer(BigInt(buffer, base));
+    }
+
+    return Value::integer(number);
+}
+
+Value StringObject::hex(Env *env) const {
+    return convert_integer(16, 16);
+}
+
+Value StringObject::oct(Env *env) const {
+    return convert_integer(0, 8);
 }
 
 /**
@@ -2763,98 +2812,14 @@ Value StringObject::to_f(Env *env) const {
 }
 
 Value StringObject::to_i(Env *env, Optional<Value> base_obj) const {
-    size_t start = 0;
-
-    // strip leading whitespace
-    while (start < m_string.size() && isspace(m_string.at(start)))
-        start++;
-
-    // skip leading minus sign
-    bool negative = false;
-    if (start < m_string.size() && m_string.at(start) == '-') {
-        negative = true;
-        start++;
-    }
-
-    // skip leading positive sign
-    if (start < m_string.size() && m_string.at(start) == '+' && !negative)
-        start++;
-
-    // return 0 for strings with leading underscore
-    if (start < m_string.size() && m_string.at(0) == '_')
-        return Value::integer(0);
-
     int base = 10;
     if (base_obj) {
         base = base_obj->to_int(env).to_nat_int_t();
-
         if (base < 0 || base == 1 || base > 36) {
             env->raise("ArgumentError", "invalid radix {}", base);
         }
-
-        if (base == 0) {
-            if (m_string.size() - start >= 2) {
-                if (m_string.at(start) == '0') {
-                    switch (m_string.at(start + 1)) {
-                    case 'b':
-                        base = 2;
-                        start += 2;
-                        break;
-                    case 'd':
-                        base = 10;
-                        start += 2;
-                        break;
-                    case 'o':
-                        base = 8;
-                        start += 2;
-                        break;
-                    case 'x':
-                        base = 16;
-                        start += 2;
-                        break;
-                    }
-                }
-            }
-        }
     }
-
-    if (m_string.size() - start >= 2 && m_string.at(start) == '0') {
-        auto specifier = m_string.at(start + 1);
-        if (specifier == 'b' && base == 2)
-            start += 2;
-        else if (specifier == 'd' && base == 10)
-            start += 2;
-        else if (specifier == 'o' && base == 8)
-            start += 2;
-        else if (specifier == 'x' && base == 16)
-            start += 2;
-    }
-
-    String digits_only;
-    if (negative) digits_only.append_char('-');
-    char highest_lower_alpha = 'a' - 1 + (base - 10);
-    char highest_upper_alpha = 'A' - 1 + (base - 10);
-    for (size_t i = start; i < m_string.size(); ++i) {
-        auto c = m_string[i];
-        if (isdigit(c)) {
-            digits_only.append_char(c);
-        } else if (c == '_') {
-            // ignore
-        } else if (base > 10) {
-            if ((c >= 'a' && c <= highest_lower_alpha) || (c >= 'A' && c <= highest_upper_alpha))
-                digits_only.append_char(c);
-            else
-                break;
-        } else {
-            break;
-        }
-    }
-
-    nat_int_t number = strtoll(digits_only.c_str(), nullptr, base);
-    if (number == NAT_INT_MIN || number == NAT_INT_MAX) {
-        return Integer(BigInt(std::move(digits_only), base));
-    }
-    return Value::integer(number);
+    return convert_integer(base, 10);
 }
 
 Value StringObject::to_r(Env *env) const {
@@ -4045,7 +4010,7 @@ void StringObject::append(Value val) {
     }
 }
 
-Value StringObject::convert_integer(Env *env, nat_int_t base) {
+Value StringObject::strict_convert_integer(Env *env, nat_int_t base) {
     // Only input bases 0, 2..36 allowed.
     // base default of 0 is for automatic base determination.
     if (base < 0 || base == 1 || base > 36) return Value::nil();
@@ -4133,8 +4098,9 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
     str.remove('_');
 
     char *end;
+    errno = 0;
     auto convint = strtoll(str.c_str(), &end, base);
-    if (convint == NAT_INT_MIN || convint == NAT_INT_MAX) {
+    if (errno == ERANGE) {
         if (signchar == '-') str.prepend_char(signchar);
         return Integer(BigInt(str, base));
     }
@@ -4146,7 +4112,7 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
     return Value::nil();
 }
 
-Value StringObject::convert_float() {
+Value StringObject::strict_convert_float() {
     if (m_string.length() == 0 || m_string[0] == '_' || m_string.last_char() == '_')
         return Value::nil();
 
