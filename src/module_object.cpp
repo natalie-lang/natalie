@@ -869,7 +869,9 @@ Value ModuleObject::module_eval(Env *env, Block *block) {
         env->raise("ArgumentError", "Natalie only supports module_eval with a block");
     }
     Value self = this;
-    block->set_self(self); // TODO thread-safe?
+    block->set_self(self);
+    auto lexical_scope = new LexicalScope { env->lexical_scope(), this };
+    block->env()->set_lexical_scope(lexical_scope);
     auto old_method_visibility = m_method_visibility;
     auto old_module_function = m_module_function;
     Value args[] = { self };

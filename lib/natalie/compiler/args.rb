@@ -238,7 +238,7 @@ module Natalie
       def transform_constant_arg(arg)
         shift_arg
         @instructions << PushSelfInstruction.new
-        @instructions << ConstSetInstruction.new(arg.name)
+        @instructions << ConstSetInstruction.new(arg.name, strict: true)
       end
 
       def transform_call_arg(arg)

@@ -127,7 +127,7 @@ module Natalie
               line: node.location.start_line,
             ),
             PushSelfInstruction.new,
-            ConstSetInstruction.new(:DATA),
+            ConstSetInstruction.new(:DATA, strict: false),
           ]
         end
         with_locals(node.locals) { data_loc + transform_statements_node(node.statements, used: used).flatten }
@@ -933,7 +933,7 @@ module Natalie
           transform_expression(node.value, used: true),
           DupInstruction.new,
           PushSelfInstruction.new,
-          ConstSetInstruction.new(node.name),
+          ConstSetInstruction.new(node.name, strict: false),
           ElseInstruction.new(:if),
           EndInstruction.new(:if),
         ]
@@ -957,7 +957,7 @@ module Natalie
             line: node.location.start_line,
           ),
           PushSelfInstruction.new,
-          ConstSetInstruction.new(node.name),
+          ConstSetInstruction.new(node.name, strict: false),
         ]
         instructions
       end
@@ -996,7 +996,11 @@ module Natalie
         instructions << PopInstruction.new if used
         instructions.concat(transform_expression(node.value, used: true))
         instructions << DupInstruction.new if used
-        instructions.append(PushSelfInstruction.new, ConstSetInstruction.new(node.name), EndInstruction.new(:if))
+        instructions.append(
+          PushSelfInstruction.new,
+          ConstSetInstruction.new(node.name, strict: false),
+          EndInstruction.new(:if),
+        )
         instructions
       end
 
@@ -1021,7 +1025,7 @@ module Natalie
         instructions.append(
           transform_expression(node.value, used: true),
           SwapInstruction.new,
-          ConstSetInstruction.new(name),
+          ConstSetInstruction.new(name, strict: true),
         )
         instructions << ConstFindInstruction.new(name, strict: true) if used
         instructions.append(ElseInstruction.new(:if), PopInstruction.new)
@@ -1061,7 +1065,7 @@ module Natalie
         else
           instructions << SwapInstruction.new
         end
-        instructions << ConstSetInstruction.new(name)
+        instructions << ConstSetInstruction.new(name, strict: true)
         instructions
       end
 
@@ -1103,7 +1107,7 @@ module Natalie
         instructions.append(
           transform_expression(node.value, used: true), #                         [tmp, tmp, value]                  [tmp, tmp, value]
           SwapInstruction.new, #                                                  [tmp, value, tmp]                  [tmp, value, tmp]
-          ConstSetInstruction.new(name), #                                        [tmp]                              [tmp]
+          ConstSetInstruction.new(name, strict: true), #                          [tmp]                              [tmp]
         )
         instructions << ConstFindInstruction.new(name, strict: true) if used #    [value]               [value]
         instructions << EndInstruction.new(:if)
@@ -1118,7 +1122,7 @@ module Natalie
           transform_expression(node.value, used: true),
           *(used ? DupInstruction.new : []),
           MoveRelInstruction.new(used ? 2 : 1),
-          ConstSetInstruction.new(name),
+          ConstSetInstruction.new(name, strict: true),
         ]
       end
 
@@ -1135,7 +1139,7 @@ module Natalie
         instructions = [transform_expression(node.value, used: true)]
         instructions << DupInstruction.new if used
         instructions << PushSelfInstruction.new
-        instructions << ConstSetInstruction.new(node.name)
+        instructions << ConstSetInstruction.new(node.name, strict: false)
         instructions
       end
 
@@ -2494,7 +2498,7 @@ module Natalie
           instructions << ClassVariableSetInstruction.new(node.name)
         when ::Prism::ConstantTargetNode, ::Prism::ConstantPathTargetNode
           prepper = ConstPrepper.new(node, pass: self)
-          instructions << [prepper.namespace, ConstSetInstruction.new(prepper.name)]
+          instructions << [prepper.namespace, ConstSetInstruction.new(prepper.name, strict: true)]
         when ::Prism::GlobalVariableTargetNode
           instructions << GlobalVariableSetInstruction.new(node.name)
         when ::Prism::IndexTargetNode

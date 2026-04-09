@@ -150,17 +150,13 @@ describe 'Module' do
   end
 
   describe 'Constant write semantics with Module.new block' do
-    NATFIXME 'Constant write semantics with Module.new block',
-             exception: NameError,
-             message: 'uninitialized constant CONST' do
-      mod =
-        Module.new do
-          CONST = 1
-          def self.foo(arg = CONST)
-            arg
-          end
+    mod =
+      Module.new do
+        CONST = 1
+        def self.foo(arg = CONST)
+          arg
         end
-      mod.foo.should == 1
-    end
+      end
+    mod.foo.should == 1
   end
 end

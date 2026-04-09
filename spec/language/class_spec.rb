@@ -290,12 +290,8 @@ describe "A class definition" do
         end
       end
 
-      NATFIXME 'for anonymous classes assigned to a constant', exception: NameError, message: 'constant AnonWithConstant not defined' do
-        AnonWithConstant.name.should == 'AnonWithConstant'
-        klass.get_class_name.should == 'AnonWithConstant'
-      ensure
-        Object.send(:remove_const, :AnonWithConstant)
-      end
+      AnonWithConstant.name.should == 'AnonWithConstant'
+      klass.get_class_name.should == 'AnonWithConstant'
     end
   end
 end

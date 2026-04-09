@@ -112,7 +112,7 @@ module Natalie
         when :constant_target_node
           name, prep_instruction = constant_name(arg)
           @instructions << prep_instruction
-          @instructions << ConstSetInstruction.new(name)
+          @instructions << ConstSetInstruction.new(name, strict: true)
           @instructions << prep_instruction
           @instructions << ConstFindInstruction.new(name, strict: true)
         when :global_variable_target_node
@@ -135,7 +135,7 @@ module Natalie
         shift_or_pop_next_arg
         name, prep_instruction = constant_name(name)
         @instructions << prep_instruction
-        @instructions << ConstSetInstruction.new(name)
+        @instructions << ConstSetInstruction.new(name, strict: true)
       end
 
       def transform_class_variable(name)
