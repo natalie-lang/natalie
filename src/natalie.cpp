@@ -207,6 +207,9 @@ Env *build_top_env() {
     Value EncodingUTF16BE = new Utf16BeEncodingObject {};
     Encoding->const_set("UTF_16BE"_s, EncodingUTF16BE);
 
+    Value EncodingUTF16 = new Utf16EncodingObject {};
+    Encoding->const_set("UTF_16"_s, EncodingUTF16);
+
     Value EncodingUTF32LE = new Utf32LeEncodingObject {};
     Encoding->const_set("UTF_32LE"_s, EncodingUTF32LE);
     Encoding->const_set("UCS_4LE"_s, EncodingUTF32LE);
@@ -214,6 +217,9 @@ Env *build_top_env() {
     Value EncodingUTF32BE = new Utf32BeEncodingObject {};
     Encoding->const_set("UTF_32BE"_s, EncodingUTF32BE);
     Encoding->const_set("UCS_4BE"_s, EncodingUTF32BE);
+
+    Value EncodingUTF32 = new Utf32EncodingObject {};
+    Encoding->const_set("UTF_32"_s, EncodingUTF32);
 
     Value EncodingIBM037 = new Ibm037EncodingObject {};
     Encoding->const_set("IBM037"_s, EncodingIBM037);

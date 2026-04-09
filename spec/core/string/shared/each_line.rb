@@ -161,7 +161,7 @@ describe :string_each_line, shared: true do
   end
 
   it "does not split lines for dummy UTF-16" do
-    NATFIXME 'Implement UTF-16', exception: NameError, message: 'uninitialized constant Encoding::UTF_16' do
+    NATFIXME 'Add encoder to UTF-16', exception: Encoding::UndefinedConversionError, message: /from UTF-8 to UTF-16/ do
       "a\nb".encode(Encoding::UTF_16).lines.should == [
         "\xFE\xFF\x00\x61\x00\n\x00\x62".dup.force_encoding(Encoding::UTF_16)
       ]

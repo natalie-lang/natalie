@@ -58,6 +58,8 @@ enum class Encoding : size_t {
     Windows_1256,
     Windows_1257,
     Windows_1258,
+    UTF_16,
+    UTF_32,
     TERMINATOR, // Keep this as the last entry
 };
 

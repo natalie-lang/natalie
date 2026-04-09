@@ -19,12 +19,8 @@ describe "Encoding#dummy?" do
   end
 
   it "returns true for UTF_16 and UTF_32" do
-    NATFIXME 'Implement UTF_16', exception: NameError, message: 'uninitialized constant Encoding::UTF_16' do
-      Encoding::UTF_16.should.dummy?
-    end
-    NATFIXME 'Implement UTF_32', exception: NameError, message: 'uninitialized constant Encoding::UTF_32' do
-      Encoding::UTF_32.should.dummy?
-    end
+    Encoding::UTF_16.should.dummy?
+    Encoding::UTF_32.should.dummy?
   end
 
   it "implies not #ascii_compatible?" do
