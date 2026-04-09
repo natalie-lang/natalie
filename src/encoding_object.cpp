@@ -419,6 +419,19 @@ uint8_t EncodingObject::codepoint_to_lowercase(nat_int_t codepoint, nat_int_t re
         return 1;
     }
 
+    if (flags & CaseMapTurkicAzeri) {
+        // 'I' -> 'ı'
+        if (codepoint == 'I') {
+            result[0] = 0x131;
+            return 1;
+        }
+        // 'İ' -> 'i'
+        if (codepoint == 0x130) {
+            result[0] = 'i';
+            return 1;
+        }
+    }
+
     auto block = codepoint >> 8;
     auto index = lcase_index[block] + (codepoint & 0xff);
     auto delta = lcase_map[index];
@@ -452,9 +465,17 @@ uint8_t EncodingObject::codepoint_to_uppercase(nat_int_t codepoint, nat_int_t re
         return 1;
     }
 
-    if (flags & CaseMapTurkicAzeri && codepoint == 0x69) {
-        result[0] = 0x130;
-        return 1;
+    if (flags & CaseMapTurkicAzeri) {
+        // 'i' -> 'İ'
+        if (codepoint == 'i') {
+            result[0] = 0x130;
+            return 1;
+        }
+        // 'ı' -> 'I'
+        if (codepoint == 0x131) {
+            result[0] = 'I';
+            return 1;
+        }
     }
 
     auto block = codepoint >> 8;
@@ -508,6 +529,77 @@ uint8_t EncodingObject::codepoint_to_titlecase(nat_int_t codepoint, nat_int_t re
             result[i] = entry.title[i];
         }
         return i;
+    }
+
+    result[0] = codepoint;
+    return 1;
+}
+
+static uint8_t copy_special_case_entry(const uint32_t *entry_chars, int max, nat_int_t result[]) {
+    int i = 0;
+    for (i = 0; i < max; i++) {
+        if (entry_chars[i] == 0) break;
+        result[i] = entry_chars[i];
+    }
+    return i;
+}
+
+uint8_t EncodingObject::codepoint_to_swapcase(nat_int_t codepoint, nat_int_t result[], uint8_t flags) {
+    if (flags & CaseMapAscii) {
+        if (codepoint >= 'A' && codepoint <= 'Z')
+            result[0] = codepoint + 32;
+        else if (codepoint >= 'a' && codepoint <= 'z')
+            result[0] = codepoint - 32;
+        else
+            result[0] = codepoint;
+        return 1;
+    }
+
+    if (flags & CaseMapTurkicAzeri) {
+        // 'i' -> 'İ'
+        if (codepoint == 'i') {
+            result[0] = 0x130;
+            return 1;
+        }
+        // 'İ' -> 'i'
+        if (codepoint == 0x130) {
+            result[0] = 'i';
+            return 1;
+        }
+        // 'I' -> 'ı'
+        if (codepoint == 'I') {
+            result[0] = 0x131;
+            return 1;
+        }
+        // 'ı' -> 'I'
+        if (codepoint == 0x131) {
+            result[0] = 'I';
+            return 1;
+        }
+    }
+
+    auto block = codepoint >> 8;
+    auto lcase_delta = lcase_map[lcase_index[block] + (codepoint & 0xff)];
+    if (lcase_delta != 0) {
+        result[0] = codepoint + lcase_delta;
+        return 1;
+    }
+    auto ucase_delta = ucase_map[ucase_index[block] + (codepoint & 0xff)];
+    if (ucase_delta != 0) {
+        result[0] = codepoint + ucase_delta;
+        return 1;
+    }
+
+    if (special_casing_map[0].code == 0)
+        init_special_casing_map();
+    auto entry = find_special_casing_map_entry(codepoint);
+    if (entry.code != 0) {
+        // Pick whichever side has a non-trivial mapping (the other side maps to
+        // itself).
+        if (entry.upper[0] != 0 && entry.upper[0] != (uint32_t)codepoint)
+            return copy_special_case_entry(entry.upper, SPECIAL_CASE_UPPER_MAX_SIZE, result);
+        if (entry.lower[0] != 0 && entry.lower[0] != (uint32_t)codepoint)
+            return copy_special_case_entry(entry.lower, SPECIAL_CASE_LOWER_MAX_SIZE, result);
     }
 
     result[0] = codepoint;

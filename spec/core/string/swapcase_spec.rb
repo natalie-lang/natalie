@@ -16,20 +16,16 @@ describe "String#swapcase" do
 
   describe "full Unicode case mapping" do
     it "works for all of Unicode with no option" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "äÖü".swapcase.should == "ÄöÜ"
-      end
+      "äÖü".swapcase.should == "ÄöÜ"
     end
 
     it "updates string metadata" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        swapcased = "Aßet".swapcase
+      swapcased = "Aßet".swapcase
 
-        swapcased.should == "aSSET"
-        swapcased.size.should == 5
-        swapcased.bytesize.should == 5
-        swapcased.ascii_only?.should be_true
-      end
+      swapcased.should == "aSSET"
+      swapcased.size.should == 5
+      swapcased.bytesize.should == 5
+      swapcased.ascii_only?.should be_true
     end
   end
 
@@ -45,15 +41,11 @@ describe "String#swapcase" do
 
   describe "full Unicode case mapping adapted for Turkic languages" do
     it "swaps case of ASCII characters according to Turkic semantics" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "aiS".swapcase(:turkic).should == "Aİs"
-      end
+      "aiS".swapcase(:turkic).should == "Aİs"
     end
 
     it "allows Lithuanian as an extra option" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "aiS".swapcase(:turkic, :lithuanian).should == "Aİs"
-      end
+      "aiS".swapcase(:turkic, :lithuanian).should == "Aİs"
     end
 
     it "does not allow any other additional option" do
@@ -63,15 +55,11 @@ describe "String#swapcase" do
 
   describe "full Unicode case mapping adapted for Lithuanian" do
     it "currently works the same as full Unicode case mapping" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "Iß".swapcase(:lithuanian).should == "iSS"
-      end
+      "Iß".swapcase(:lithuanian).should == "iSS"
     end
 
     it "allows Turkic as an extra option (and applies Turkic semantics)" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "iS".swapcase(:lithuanian, :turkic).should == "İs"
-      end
+      "iS".swapcase(:lithuanian, :turkic).should == "İs"
     end
 
     it "does not allow any other additional option" do
@@ -108,31 +96,25 @@ describe "String#swapcase!" do
 
   describe "full Unicode case mapping" do
     it "modifies self in place for all of Unicode with no option" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a = "äÖü"
-        a.swapcase!
-        a.should == "ÄöÜ"
-      end
+      a = "äÖü"
+      a.swapcase!
+      a.should == "ÄöÜ"
     end
 
     it "works for non-ascii-compatible encodings" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a = "äÖü".encode("utf-16le")
-        a.swapcase!
-        a.should == "ÄöÜ".encode("utf-16le")
-      end
+      a = "äÖü".encode("utf-16le")
+      a.swapcase!
+      a.should == "ÄöÜ".encode("utf-16le")
     end
 
     it "updates string metadata" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        swapcased = "Aßet"
-        swapcased.swapcase!
+      swapcased = "Aßet"
+      swapcased.swapcase!
 
-        swapcased.should == "aSSET"
-        swapcased.size.should == 5
-        swapcased.bytesize.should == 5
-        swapcased.ascii_only?.should be_true
-      end
+      swapcased.should == "aSSET"
+      swapcased.size.should == 5
+      swapcased.bytesize.should == 5
+      swapcased.ascii_only?.should be_true
     end
   end
 
@@ -152,19 +134,15 @@ describe "String#swapcase!" do
 
   describe "modifies self in place for full Unicode case mapping adapted for Turkic languages" do
     it "swaps case of ASCII characters according to Turkic semantics" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a = "aiS"
-        a.swapcase!(:turkic)
-        a.should == "Aİs"
-      end
+      a = "aiS"
+      a.swapcase!(:turkic)
+      a.should == "Aİs"
     end
 
     it "allows Lithuanian as an extra option" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a = "aiS"
-        a.swapcase!(:turkic, :lithuanian)
-        a.should == "Aİs"
-      end
+      a = "aiS"
+      a.swapcase!(:turkic, :lithuanian)
+      a.should == "Aİs"
     end
 
     it "does not allow any other additional option" do
@@ -174,19 +152,15 @@ describe "String#swapcase!" do
 
   describe "full Unicode case mapping adapted for Lithuanian" do
     it "currently works the same as full Unicode case mapping" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a = "Iß"
-        a.swapcase!(:lithuanian)
-        a.should == "iSS"
-      end
+      a = "Iß"
+      a.swapcase!(:lithuanian)
+      a.should == "iSS"
     end
 
     it "allows Turkic as an extra option (and applies Turkic semantics)" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a = "iS"
-        a.swapcase!(:lithuanian, :turkic)
-        a.should == "İs"
-      end
+      a = "iS"
+      a.swapcase!(:lithuanian, :turkic)
+      a.should == "İs"
     end
 
     it "does not allow any other additional option" do

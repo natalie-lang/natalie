@@ -19,10 +19,8 @@ describe "Symbol#swapcase" do
   end
 
   it "swaps the case for Unicode characters" do
-    NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
     "äÖü".to_sym.swapcase.should == :"ÄöÜ"
     "aOu".to_sym.swapcase.should == :"AoU"
-    end
   end
 
   it "leaves non-alphabetic ASCII characters as they were" do

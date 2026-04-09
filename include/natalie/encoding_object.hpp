@@ -168,6 +168,7 @@ public:
     static uint8_t codepoint_to_lowercase(nat_int_t codepoint, nat_int_t result[], uint8_t flags = CaseMapFull);
     static uint8_t codepoint_to_uppercase(nat_int_t codepoint, nat_int_t result[], uint8_t flags = CaseMapFull);
     static uint8_t codepoint_to_titlecase(nat_int_t codepoint, nat_int_t result[], uint8_t flags = CaseMapFull);
+    static uint8_t codepoint_to_swapcase(nat_int_t codepoint, nat_int_t result[], uint8_t flags = CaseMapFull);
 
     static void init_special_casing_map();
     static SpecialCasingEntry find_special_casing_map_entry(nat_int_t codepoint);
