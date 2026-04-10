@@ -575,10 +575,7 @@ StringObject *StringObject::inspect(Env *env) const {
         valid = pair.first;
         const auto c2 = !valid || ch.is_empty() ? 0 : encoding->decode_codepoint(pair.second);
 
-        if (c == '"' || c == '\\' || (c == '#' && (c2 == '{' || c2 == '$' || c2 == '@'))) {
-            out.append_char('\\');
-            out.append_char(c);
-        } else if (c == '\a') {
+        if (c == '\a') {
             out.append("\\a");
         } else if (c == '\b') {
             out.append("\\b");
@@ -594,6 +591,11 @@ StringObject *StringObject::inspect(Env *env) const {
             out.append("\\t");
         } else if (c == '\v') {
             out.append("\\v");
+        } else if (encoding->is_dummy()) {
+            encoding->append_escaped_char(out, c);
+        } else if (c == '"' || c == '\\' || (c == '#' && (c2 == '{' || c2 == '$' || c2 == '@'))) {
+            out.append_char('\\');
+            out.append_char(c);
         } else if (encoding->is_printable_char(c)) {
             if (encoding == utf8_encoding || c <= 255)
                 out.append(utf8_encoding->encode_codepoint(c));
