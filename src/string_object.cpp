@@ -3487,18 +3487,29 @@ Value StringObject::rjust(Env *env, Value length_obj, Optional<Value> pad_arg) c
     if (padstr->string().is_empty())
         env->raise("ArgumentError", "zero width padding");
 
-    StringObject *padding = StringObject::create("", m_encoding);
-    size_t padding_length = length < this->length() ? 0 : length - this->length();
+    auto compatible_encoding = negotiate_compatible_encoding(padstr);
+    if (!compatible_encoding)
+        m_encoding->raise_compatibility_error(env, padstr->m_encoding.ptr());
 
-    while (padding->length() < padding_length) {
-        bool truncate = padding->length() + padstr->length() > padding_length;
+    StringObject *padding = StringObject::create("", compatible_encoding);
+    size_t padding_chars = length < char_count(env) ? 0 : length - char_count(env);
+
+    while (padding->char_count(env) < padding_chars) {
+        bool truncate = padding->char_count(env) + padstr->char_count(env) > padding_chars;
         padding->append(padstr);
         if (truncate) {
-            padding->truncate(padding_length);
+            size_t byte_len = 0;
+            size_t chars = 0;
+            while (chars < padding_chars) {
+                auto [valid, view] = compatible_encoding->next_char(padding->string(), &byte_len);
+                if (view.is_empty()) break;
+                chars++;
+            }
+            padding->truncate(byte_len);
         }
     }
 
-    StringObject *str_with_padding = StringObject::create("", m_encoding);
+    StringObject *str_with_padding = StringObject::create("", compatible_encoding);
     StringObject *copy = duplicate(env).as_string();
     str_with_padding->append(padding);
     str_with_padding->append(copy);
