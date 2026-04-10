@@ -717,7 +717,7 @@ Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, Meth
         if (name == initialize)
             result = this;
         return result;
-    } else if (respond_to(env, "method_missing"_s)) {
+    } else if (KernelModule::respond_to_method(env, this, "method_missing"_s, true)) {
         return method_missing_send(env, name, std::move(args), block);
     } else {
         env->raise_no_method_error(this, name, GlobalEnv::the()->method_missing_reason(), std::move(args));
