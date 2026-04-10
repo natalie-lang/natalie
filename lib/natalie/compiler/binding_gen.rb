@@ -1348,6 +1348,7 @@ gen.binding('String', 'prepend', 'StringObject', 'prepend', argc: :any, pass_env
 gen.binding('String', 'oct', 'StringObject', 'oct', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'ord', 'StringObject', 'ord', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'partition', 'StringObject', 'partition', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'rpartition', 'StringObject', 'rpartition', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'reverse', 'StringObject', 'reverse', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'reverse!', 'StringObject', 'reverse_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'rindex', 'StringObject', 'rindex', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)

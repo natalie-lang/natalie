@@ -368,6 +368,7 @@ public:
     Value oct(Env *) const;
     Value ord(Env *) const;
     Value partition(Env *, Value);
+    Value rpartition(Env *, Value);
     Value prepend(Env *, Args &&);
     Value ref(Env *, Value, Optional<Value> = {});
     Value ref_slice_range_in_place(size_t, size_t);
