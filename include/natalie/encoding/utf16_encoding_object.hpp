@@ -8,6 +8,8 @@ class Utf16EncodingObject : public DummyEncodingObject {
 public:
     Utf16EncodingObject()
         : DummyEncodingObject { Encoding::UTF_16, { "UTF-16" } } { }
+
+    virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeOptions) const override;
 };
 
 }

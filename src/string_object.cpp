@@ -3305,6 +3305,10 @@ void StringObject::each_line(Env *env, Optional<Value> separator_arg, Optional<V
         separator = StringObject::create("\n\n");
     }
 
+    if (!separator_arg && !m_encoding->is_ascii_compatible()) {
+        separator = separator.as_string()->encode(env, Value(EncodingObject::get(m_encoding->num())));
+    }
+
     const auto chomp = chomp_arg ? chomp_arg->is_truthy() : false;
     auto separator_length = separator.as_string()->length();
 

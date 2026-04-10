@@ -8,6 +8,8 @@ class Utf32EncodingObject : public DummyEncodingObject {
 public:
     Utf32EncodingObject()
         : DummyEncodingObject { Encoding::UTF_32, { "UTF-32" } } { }
+
+    virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeOptions) const override;
 };
 
 }
