@@ -243,12 +243,10 @@ describe "Integer#chr with an encoding argument" do
     -> { 0xDC00.chr("UTF-8") }.should raise_error(RangeError)
     -> { 0xDFFF.chr("UTF-8") }.should raise_error(RangeError)
     # UTF-16 surrogate range
-    NATFIXME 'Implement UTF-16', exception: SpecFailedException do
-      -> { 0xD800.chr("UTF-16") }.should raise_error(RangeError)
-      -> { 0xDBFF.chr("UTF-16") }.should raise_error(RangeError)
-      -> { 0xDC00.chr("UTF-16") }.should raise_error(RangeError)
-      -> { 0xDFFF.chr("UTF-16") }.should raise_error(RangeError)
-    end
+    -> { 0xD800.chr("UTF-16") }.should raise_error(RangeError)
+    -> { 0xDBFF.chr("UTF-16") }.should raise_error(RangeError)
+    -> { 0xDC00.chr("UTF-16") }.should raise_error(RangeError)
+    -> { 0xDFFF.chr("UTF-16") }.should raise_error(RangeError)
   end
 
   it 'returns a String encoding self interpreted as a codepoint in the CESU-8 encoding' do

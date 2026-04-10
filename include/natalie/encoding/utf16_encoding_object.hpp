@@ -9,7 +9,9 @@ public:
     Utf16EncodingObject()
         : DummyEncodingObject { Encoding::UTF_16, { "UTF-16" } } { }
 
+    virtual nat_int_t to_unicode_codepoint(nat_int_t codepoint) const override { return codepoint; }
     virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeOptions) const override;
+    virtual std::tuple<bool, int, nat_int_t> next_codepoint(const String &, size_t *) const override;
 };
 
 }
