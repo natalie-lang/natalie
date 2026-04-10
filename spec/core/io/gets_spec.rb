@@ -335,7 +335,7 @@ describe "IO#gets" do
   it "transcodes into the IO object's internal encoding, when set" do
     Encoding.default_internal = Encoding::US_ASCII
     @io = new_io @name, 'r'
-    NATFIXME 'Add Encoding::UTF_16', exception: NameError, message: 'uninitialized constant Encoding::UTF_16' do
+    NATFIXME 'Transcoding into internal encoding UTF_16', exception: SpecFailedException do
       @io.set_encoding Encoding::UTF_8, Encoding::UTF_16
       @io.gets.encoding.should == Encoding::UTF_16
     end

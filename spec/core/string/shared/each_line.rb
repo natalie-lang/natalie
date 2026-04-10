@@ -161,14 +161,12 @@ describe :string_each_line, shared: true do
   end
 
   it "does not split lines for dummy UTF-16" do
-    NATFIXME 'Implement UTF-16', exception: NameError, message: 'uninitialized constant Encoding::UTF_16' do
-      "a\nb".encode(Encoding::UTF_16).lines.should == [
-        "\xFE\xFF\x00\x61\x00\n\x00\x62".dup.force_encoding(Encoding::UTF_16)
-      ]
+    "a\nb".encode(Encoding::UTF_16).lines.should == [
+      "\xFE\xFF\x00\x61\x00\n\x00\x62".dup.force_encoding(Encoding::UTF_16)
+    ]
 
-      str = "\x00\n\n\x00".dup.force_encoding(Encoding::UTF_16)
-      str.lines.should == [str]
-    end
+    str = "\x00\n\n\x00".dup.force_encoding(Encoding::UTF_16)
+    str.lines.should == [str]
   end
 
   it "raises Encoding::ConverterNotFoundError for dummy UTF-7" do

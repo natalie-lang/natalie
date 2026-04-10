@@ -10,12 +10,8 @@ describe "Encoding#ascii_compatible?" do
   end
 
   it "returns false for UTF_16 and UTF_32" do
-    NATFIXME 'Add UTF-16 encoding', exception: NameError, message: 'uninitialized constant Encoding::UTF_16' do
-      Encoding::UTF_16.should_not.ascii_compatible?
-    end
-    NATFIXME 'Add UTF-32 encoding', exception: NameError, message: 'uninitialized constant Encoding::UTF_32' do
-      Encoding::UTF_32.should_not.ascii_compatible?
-    end
+    Encoding::UTF_16.should_not.ascii_compatible?
+    Encoding::UTF_32.should_not.ascii_compatible?
   end
 
   it "is always false for dummy encodings" do

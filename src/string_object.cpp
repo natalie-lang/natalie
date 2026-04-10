@@ -575,10 +575,7 @@ StringObject *StringObject::inspect(Env *env) const {
         valid = pair.first;
         const auto c2 = !valid || ch.is_empty() ? 0 : encoding->decode_codepoint(pair.second);
 
-        if (c == '"' || c == '\\' || (c == '#' && (c2 == '{' || c2 == '$' || c2 == '@'))) {
-            out.append_char('\\');
-            out.append_char(c);
-        } else if (c == '\a') {
+        if (c == '\a') {
             out.append("\\a");
         } else if (c == '\b') {
             out.append("\\b");
@@ -594,6 +591,11 @@ StringObject *StringObject::inspect(Env *env) const {
             out.append("\\t");
         } else if (c == '\v') {
             out.append("\\v");
+        } else if (encoding->is_dummy()) {
+            encoding->append_escaped_char(out, c);
+        } else if (c == '"' || c == '\\' || (c == '#' && (c2 == '{' || c2 == '$' || c2 == '@'))) {
+            out.append_char('\\');
+            out.append_char(c);
         } else if (encoding->is_printable_char(c)) {
             if (encoding == utf8_encoding || c <= 255)
                 out.append(utf8_encoding->encode_codepoint(c));
@@ -1662,10 +1664,12 @@ Value StringObject::convert_integer(int base, int default_base) const {
 }
 
 Value StringObject::hex(Env *env) const {
+    assert_ascii_compatible_encoding(env);
     return convert_integer(16, 16);
 }
 
 Value StringObject::oct(Env *env) const {
+    assert_ascii_compatible_encoding(env);
     return convert_integer(0, 8);
 }
 
@@ -2856,14 +2860,17 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
 }
 
 Value StringObject::to_c(Env *env) {
+    assert_ascii_compatible_encoding(env);
     return KernelModule::Complex(env, this, false, true);
 }
 
 Value StringObject::to_f(Env *env) const {
+    assert_ascii_compatible_encoding(env);
     return NumberParser::string_to_f(this);
 }
 
 Value StringObject::to_i(Env *env, Optional<Value> base_obj) const {
+    assert_ascii_compatible_encoding(env);
     int base = 10;
     if (base_obj) {
         base = base_obj->to_int(env).to_nat_int_t();
@@ -2875,6 +2882,7 @@ Value StringObject::to_i(Env *env, Optional<Value> base_obj) const {
 }
 
 Value StringObject::to_r(Env *env) const {
+    assert_ascii_compatible_encoding(env);
     size_t idx = 0;
     String numerator_digits;
     String denominator_digits;
@@ -2931,10 +2939,7 @@ Value StringObject::to_r(Env *env) const {
 }
 
 Value StringObject::undump(Env *env) const {
-    if (!m_encoding->is_ascii_compatible()) {
-        auto CompatibilityError = GlobalEnv::the()->Object()->const_fetch("Encoding"_s).as_module()->const_fetch("CompatibilityError"_s).as_class();
-        env->raise(CompatibilityError, "ASCII incompatible encoding: {}", m_encoding->name()->string());
-    }
+    assert_ascii_compatible_encoding(env);
     if (!is_ascii_only())
         env->raise("RuntimeError", "non-ASCII character detected");
     auto error = [&env]() {
@@ -3302,6 +3307,10 @@ void StringObject::each_line(Env *env, Optional<Value> separator_arg, Optional<V
         separator = StringObject::create("\n\n");
     }
 
+    if (!separator_arg && !m_encoding->is_ascii_compatible()) {
+        separator = separator.as_string()->encode(env, Value(EncodingObject::get(m_encoding->num())));
+    }
+
     const auto chomp = chomp_arg ? chomp_arg->is_truthy() : false;
     auto separator_length = separator.as_string()->length();
 
@@ -3401,6 +3410,7 @@ Value StringObject::ljust(Env *env, Value length_obj, Optional<Value> pad_arg) c
 }
 
 Value StringObject::strip(Env *env) const {
+    assert_compatible_encoding_for_operation(env);
     if (length() == 0)
         return StringObject::create("", m_encoding);
     assert(length() < NAT_INT_MAX);
@@ -3425,6 +3435,7 @@ Value StringObject::strip(Env *env) const {
 }
 
 Value StringObject::strip_in_place(Env *env) {
+    assert_compatible_encoding_for_operation(env);
     // right side needs to go first because then we have less to move in
     // on the left side
     auto r = rstrip_in_place(env);
@@ -3518,6 +3529,7 @@ Value StringObject::rjust(Env *env, Value length_obj, Optional<Value> pad_arg) c
 }
 
 Value StringObject::rstrip(Env *env) const {
+    assert_compatible_encoding_for_operation(env);
     if (length() == 0)
         return StringObject::create("", m_encoding);
 
@@ -3541,6 +3553,7 @@ Value StringObject::rstrip(Env *env) const {
 }
 
 Value StringObject::rstrip_in_place(Env *env) {
+    assert_compatible_encoding_for_operation(env);
     assert_not_frozen(env);
 
     if (length() == 0)
@@ -3643,6 +3656,7 @@ Value StringObject::is_casecmp(Env *env, Value other) {
 }
 
 StringObject *StringObject::capitalize(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
+    assert_compatible_encoding_for_operation(env);
     auto flags = check_case_options(env, arg1, arg2);
     auto str = StringObject::create("", m_encoding);
     bool first_char = true;
@@ -3673,6 +3687,7 @@ Value StringObject::capitalize_in_place(Env *env, Optional<Value> arg1, Optional
 }
 
 StringObject *StringObject::downcase(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
+    assert_compatible_encoding_for_operation(env);
     auto flags = check_case_options(env, arg1, arg2, true);
     auto str = StringObject::create("", m_encoding);
     nat_int_t result[3] = {};
@@ -3777,6 +3792,7 @@ Value StringObject::dump(Env *env) {
 }
 
 StringObject *StringObject::upcase(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
+    assert_compatible_encoding_for_operation(env);
     auto flags = check_case_options(env, arg1, arg2);
     auto str = StringObject::create("", m_encoding);
     nat_int_t result[3] = {};
@@ -3802,6 +3818,7 @@ Value StringObject::upcase_in_place(Env *env, Optional<Value> arg1, Optional<Val
 }
 
 StringObject *StringObject::swapcase(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
+    assert_compatible_encoding_for_operation(env);
     auto flags = check_case_options(env, arg1, arg2);
     auto str = StringObject::create("", m_encoding);
     nat_int_t result[SPECIAL_CASE_UPPER_MAX_SIZE] = {};
@@ -3943,6 +3960,18 @@ void StringObject::assert_compatible_string(Env *env, const StringObject *other_
 void StringObject::assert_valid_encoding(Env *env) const {
     if (valid_encoding()) return;
     env->raise_invalid_byte_sequence_error(m_encoding.ptr());
+}
+
+void StringObject::assert_ascii_compatible_encoding(Env *env) const {
+    if (m_encoding->is_ascii_compatible()) return;
+    auto CompatibilityError = GlobalEnv::the()->Object()->const_fetch("Encoding"_s).as_module()->const_fetch("CompatibilityError"_s).as_class();
+    env->raise(CompatibilityError, "ASCII incompatible encoding: {}", m_encoding->name()->string());
+}
+
+void StringObject::assert_compatible_encoding_for_operation(Env *env) const {
+    if (!m_encoding->is_dummy()) return;
+    auto CompatibilityError = GlobalEnv::the()->Object()->const_fetch("Encoding"_s).as_module()->const_fetch("CompatibilityError"_s).as_class();
+    env->raise(CompatibilityError, "incompatible encoding with this operation: {}", m_encoding->name()->string());
 }
 
 EncodingObject *StringObject::assert_compatible_string_and_update_encoding(Env *env, StringObject *other_string) {

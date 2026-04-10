@@ -73,22 +73,18 @@ describe :string_chars, shared: true do
       ]
     end
 
-    NATFIXME 'Implement UTF-16 encoding', exception: NameError, message: 'uninitialized constant Encoding::UTF_16' do
-      "abcd".dup.force_encoding(Encoding::UTF_16).send(@method).to_a.should == [
-        "\x61".dup.force_encoding(Encoding::UTF_16),
-        "\x62".dup.force_encoding(Encoding::UTF_16),
-        "\x63".dup.force_encoding(Encoding::UTF_16),
-        "\x64".dup.force_encoding(Encoding::UTF_16)
-      ]
-    end
+    "abcd".dup.force_encoding(Encoding::UTF_16).send(@method).to_a.should == [
+      "\x61".dup.force_encoding(Encoding::UTF_16),
+      "\x62".dup.force_encoding(Encoding::UTF_16),
+      "\x63".dup.force_encoding(Encoding::UTF_16),
+      "\x64".dup.force_encoding(Encoding::UTF_16)
+    ]
 
-    NATFIXME 'Implement UTF-32 encoding', exception: NameError, message: 'uninitialized constant Encoding::UTF_32' do
-      "abcd".dup.force_encoding(Encoding::UTF_32).send(@method).to_a.should == [
-        "\x61".dup.force_encoding(Encoding::UTF_32),
-        "\x62".dup.force_encoding(Encoding::UTF_32),
-        "\x63".dup.force_encoding(Encoding::UTF_32),
-        "\x64".dup.force_encoding(Encoding::UTF_32)
-      ]
-    end
+    "abcd".dup.force_encoding(Encoding::UTF_32).send(@method).to_a.should == [
+      "\x61".dup.force_encoding(Encoding::UTF_32),
+      "\x62".dup.force_encoding(Encoding::UTF_32),
+      "\x63".dup.force_encoding(Encoding::UTF_32),
+      "\x64".dup.force_encoding(Encoding::UTF_32)
+    ]
   end
 end

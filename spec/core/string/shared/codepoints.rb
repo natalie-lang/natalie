@@ -61,11 +61,7 @@ describe :string_codepoints, shared: true do
   end
 
   it "returns individual bytes for dummy encodings UTF-16 and UTF-32" do
-    NATFIXME 'Implement UTF-16 encoding', exception: NameError, message: 'uninitialized constant Encoding::UTF_16' do
-      "abcd".dup.force_encoding(Encoding::UTF_16).send(@method).to_a.should == [97, 98, 99, 100]
-    end
-    NATFIXME 'Implement UTF-32 encoding', exception: NameError, message: 'uninitialized constant Encoding::UTF_32' do
-      "abcd".dup.force_encoding(Encoding::UTF_32).send(@method).to_a.should == [97, 98, 99, 100]
-    end
+    "abcd".dup.force_encoding(Encoding::UTF_16).send(@method).to_a.should == [97, 98, 99, 100]
+    "abcd".dup.force_encoding(Encoding::UTF_32).send(@method).to_a.should == [97, 98, 99, 100]
   end
 end
