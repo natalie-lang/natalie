@@ -241,7 +241,7 @@ describe "IO.readlines" do
   end
 
   it "encodes lines using the default internal encoding, when set" do
-    NATFIXME 'UTF-16', exception: NameError, message: 'uninitialized constant Encoding::UTF_16' do
+    NATFIXME 'UTF-16', exception: Encoding::CompatibilityError, message: 'incompatible character encodings: UTF-8 and UTF-16' do
       Encoding.default_external = Encoding::UTF_8
       Encoding.default_internal = Encoding::UTF_16
       suppress_warning {$/ = $/.encode Encoding::UTF_16}
