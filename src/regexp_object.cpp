@@ -481,13 +481,13 @@ Value RegexpObject::match(Env *env, Value other, Optional<Value> start, Block *b
     return result;
 }
 
-Value RegexpObject::match_at_byte_offset(Env *env, StringObject *str, size_t byte_index) {
+Value RegexpObject::match_at_byte_offset(Env *env, StringObject *str, size_t byte_index, bool reverse) {
     assert_initialized(env);
 
     Env *caller_env = env->caller();
 
     OnigRegion *region = onig_region_new();
-    int result = search(env, str, byte_index, region, ONIG_OPTION_NONE);
+    int result = search(env, str, byte_index, region, ONIG_OPTION_NONE, reverse);
 
     if (result >= 0) {
         auto match = MatchDataObject::create(region, str, this);

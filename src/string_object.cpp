@@ -4357,6 +4357,56 @@ Value StringObject::partition(Env *env, Value val) {
     return ary;
 }
 
+Value StringObject::rpartition(Env *env, Value val) {
+    auto ary = ArrayObject::create();
+
+    if (val.is_regexp()) {
+        auto match_result = val.as_regexp()->match_at_byte_offset(env, const_cast<StringObject *>(this), bytesize(), true);
+
+        ssize_t start_byte_index;
+        ssize_t end_byte_index;
+
+        if (match_result.is_nil()) {
+            return ArrayObject::create({ StringObject::create("", m_encoding), StringObject::create("", m_encoding), StringObject::create(m_string, m_encoding) });
+        } else {
+            start_byte_index = match_result.as_match_data()->beg_byte_index(0);
+            end_byte_index = match_result.as_match_data()->end_byte_index(0);
+            ary->push(StringObject::create(m_string.substring(0, start_byte_index), m_encoding));
+        }
+
+        ary->push(StringObject::create(m_string.substring(start_byte_index, end_byte_index - start_byte_index), m_encoding));
+
+        if (end_byte_index < static_cast<ssize_t>(m_string.length())) {
+            ary->push(StringObject::create(m_string.substring(end_byte_index, m_string.length() - end_byte_index), m_encoding));
+            return ary;
+        }
+    } else {
+        if (!val.is_string()) {
+            val = val.to_str(env);
+        }
+
+        auto query = val.as_string();
+        auto query_idx = rindex_int(env, query, bytesize());
+
+        if (query_idx < 0) {
+            return ArrayObject::create({ StringObject::create("", m_encoding), StringObject::create("", m_encoding), StringObject::create(m_string, m_encoding) });
+        } else {
+            ary->push(StringObject::create(m_string.substring(0, query_idx), m_encoding));
+        }
+
+        ary->push(val);
+
+        auto after_start = static_cast<size_t>(query_idx) + query->bytesize();
+        if (after_start < m_string.length()) {
+            ary->push(StringObject::create(m_string.substring(after_start, m_string.length() - after_start), m_encoding));
+            return ary;
+        }
+    }
+
+    ary->push(StringObject::create("", m_encoding));
+    return ary;
+}
+
 Value StringObject::sum(Env *env, Optional<Value> val) {
     int base = 16;
     int sum = 0;

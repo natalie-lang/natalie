@@ -182,7 +182,7 @@ public:
     Value inspect(Env *env);
     Value eqtilde(Env *env, Value);
     Value match(Env *env, Value, Optional<Value> = {}, Block * = nullptr);
-    Value match_at_byte_offset(Env *env, StringObject *, size_t);
+    Value match_at_byte_offset(Env *env, StringObject *, size_t, bool reverse = false);
     Value named_captures(Env *) const;
     Value names() const;
     Value source(Env *env) const;
