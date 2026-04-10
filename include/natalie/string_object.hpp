@@ -178,6 +178,8 @@ public:
     EncodingObject *negotiate_compatible_encoding(const StringObject *) const;
     void assert_compatible_string(Env *, const StringObject *) const;
     void assert_valid_encoding(Env *) const;
+    void assert_ascii_compatible_encoding(Env *) const;
+    void assert_compatible_encoding_for_operation(Env *) const;
     EncodingObject *assert_compatible_string_and_update_encoding(Env *, StringObject *);
 
     void prepend_char(Env *, char);
