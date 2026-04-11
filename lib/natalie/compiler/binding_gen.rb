@@ -1381,6 +1381,8 @@ gen.binding('String', 'to_s', 'StringObject', 'to_s', argc: 0, pass_env: false, 
 gen.binding('String', 'to_str', 'StringObject', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('String', 'tr', 'StringObject', 'tr', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'tr!', 'StringObject', 'tr_in_place', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'tr_s', 'StringObject', 'tr_s', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'tr_s!', 'StringObject', 'tr_s_in_place', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding_as_class_method('String', 'try_convert', 'StringObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'undump', 'StringObject', 'undump', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'unpack', 'StringObject', 'unpack', argc: 1, kwargs: [:offset], pass_env: true, pass_block: false, return_type: :Value)
