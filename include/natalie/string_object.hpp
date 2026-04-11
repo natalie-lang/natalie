@@ -390,9 +390,7 @@ public:
     Value setbyte(Env *, Value, Value);
     Value size(Env *) const;
     Value slice_in_place(Env *, Value, Optional<Value>);
-    Value split(Env *, Optional<Value>, Optional<Value> = {});
-    Value split(Env *, RegexpObject *, int);
-    Value split(Env *, StringObject *, int);
+    Value split(Env *, Optional<Value>, Optional<Value> = {}, Block * = nullptr);
     Value squeeze(Env *env, Args &&selectors);
     Value squeeze_in_place(Env *env, Args &&selectors);
     Value squeeze_in_place_without_selectors(Env *env);

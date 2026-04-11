@@ -3136,116 +3136,217 @@ Value StringObject::unpack1(Env *env, Value format, Optional<Value> offset_kwarg
     return unpacker->unpack1(env);
 }
 
-Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
-    ArrayObject *ary = ArrayObject::create();
-    size_t last_index = 0;
-    size_t index, len;
-    OnigRegion *region = onig_region_new();
-    int result = splitter->search(env, this, 0, region, ONIG_OPTION_NONE);
-    if (result == ONIG_MISMATCH) {
-        ary->push(StringObject::create(m_string, m_encoding));
-    } else {
-        do {
-            index = region->beg[0];
-            len = region->end[0] - region->beg[0];
-            ary->push(StringObject::create(&c_str()[last_index], index - last_index, m_encoding));
-            last_index = index + len;
-            if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                ary->push(StringObject::create(&c_str()[last_index], bytesize() - last_index, m_encoding));
-                onig_region_free(region, true);
-                return ary;
-            }
-            result = splitter->search(env, this, last_index, region, ONIG_OPTION_NONE);
-        } while (result != ONIG_MISMATCH);
-        auto part = StringObject::create(&c_str()[last_index], bytesize() - last_index, m_encoding);
-        part->force_validity(m_validity);
-        ary->push(part);
-    }
-    onig_region_free(region, true);
-    return ary;
-}
-
-Value StringObject::split(Env *env, StringObject *splitstr, int max_count) {
-    ArrayObject *ary = ArrayObject::create();
-    size_t last_index = 0;
-    size_t splitlen = splitstr->length();
-    assert(splitlen > 0);
-    nat_int_t index = index_int(env, splitstr, 0);
-    if (index == -1) {
-        ary->push(StringObject::create(m_string, m_encoding));
-    } else {
-        do {
-            size_t u_index = static_cast<size_t>(index);
-            ary->push(StringObject::create(&c_str()[last_index], u_index - last_index, m_encoding));
-            last_index = u_index + splitlen;
-            if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                ary->push(StringObject::create(&c_str()[last_index], bytesize() - last_index, m_encoding));
-                return ary;
-            }
-            index = index_int(env, splitstr, last_index);
-        } while (index != -1);
-        ary->push(StringObject::create(&c_str()[last_index], bytesize() - last_index, m_encoding));
-    }
-    return ary;
-}
-
-// NATFIXME: Does not support:
-// + blocks
-// + special case single-space splitter
-// + proper handling of negative max-count-values
-
-Value StringObject::split(Env *env, Optional<Value> splitter_arg, Optional<Value> max_count_arg) {
+Value StringObject::split(Env *env, Optional<Value> splitter_arg, Optional<Value> max_count_arg, Block *block) {
     assert_valid_encoding(env);
 
-    ArrayObject *ary = ArrayObject::create();
+    int limit = 0;
+    bool limit_given = false;
+    if (max_count_arg) {
+        limit = IntegerMethods::convert_to_int(env, max_count_arg.value());
+        limit_given = true;
+    }
+
+    if (limit_given && limit == 1) {
+        if (bytesize() == 0)
+            return block ? Value(this) : Value(ArrayObject::create());
+        auto copy = StringObject::create(m_string, m_encoding);
+        if (block) {
+            Value args[] = { copy };
+            block->run(env, Args(1, args), nullptr);
+            return this;
+        }
+        return ArrayObject::create({ copy });
+    }
+
+    Value splitter;
+    enum {
+        SPLIT_TYPE_AWK,
+        SPLIT_TYPE_STRING,
+        SPLIT_TYPE_CHARS,
+        SPLIT_TYPE_REGEXP
+    } split_type
+        = SPLIT_TYPE_AWK;
+
     if (!splitter_arg || splitter_arg->is_nil()) {
         auto field_sep = env->global_get("$;"_s);
         if (!field_sep.is_nil()) {
-            env->warn("$; is set to non-nil value, but the output was {}", field_sep.klass()->inspect_module());
+            env->warn("$; is set to non-nil value");
             splitter_arg = field_sep;
         }
     }
-    Value splitter = splitter_arg.value_or([&env]() { return RegexpObject::create(env, "\\s+"); });
 
-    int max_count = 0;
-    if (max_count_arg)
-        max_count = IntegerMethods::convert_to_int(env, max_count_arg.value());
-
-    if (length() == 0) {
-        return ary;
-    } else if (max_count == 1 || splitter.is_nil()) {
-        ary->push(StringObject::create(m_string, m_encoding));
-    } else if (splitter.is_regexp()) {
-        // special empty-split-regexp case, just return characters
-        if (splitter.as_regexp()->pattern()->is_empty()) {
-            ary = this->chars(env).as_array();
-        } else {
-            // split using regexp
-            ary = split(env, splitter.as_regexp(), max_count).as_array();
-        }
+    if (!splitter_arg || splitter_arg->is_nil()) {
+        split_type = SPLIT_TYPE_AWK;
     } else {
-        // string case or object-coercible to string case
-        if (!splitter.is_string() && splitter.respond_to(env, "to_str"_s))
-            splitter = splitter.to_str(env);
-        if (!splitter.is_string())
-            env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter.klass()->inspect_module());
-
-        StringObject *splitstr = splitter.as_string();
-        splitstr->assert_valid_encoding(env);
-
-        // special empty-split-string case, just return characters
-        if (splitstr->is_empty()) {
-            ary = this->chars(env).as_array();
+        splitter = splitter_arg.value();
+        if (splitter.is_regexp()) {
+            if (splitter.as_regexp()->pattern()->is_empty())
+                split_type = SPLIT_TYPE_CHARS;
+            else
+                split_type = SPLIT_TYPE_REGEXP;
         } else {
-            // split using substring
-            ary = split(env, splitstr, max_count).as_array();
+            if (!splitter.is_string() && splitter.respond_to(env, "to_str"_s))
+                splitter = splitter.to_str(env);
+            if (!splitter.is_string())
+                env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter.klass()->inspect_module());
+
+            splitter.as_string()->assert_valid_encoding(env);
+            auto splitstr = splitter.as_string();
+            if (splitstr->is_empty())
+                split_type = SPLIT_TYPE_CHARS;
+            else if (splitstr->bytesize() == 1 && splitstr->c_str()[0] == ' ')
+                split_type = SPLIT_TYPE_AWK;
+            else
+                split_type = SPLIT_TYPE_STRING;
         }
     }
-    if (max_count == 0) {
-        // Strip empty trailing strings
-        while (!ary->is_empty() && ary->last().as_string()->is_empty())
-            ary->pop();
+
+    if (bytesize() == 0)
+        return block ? Value(this) : Value(ArrayObject::create());
+
+    int effective_limit = (limit_given && limit > 0) ? limit : 0;
+    bool strip_trailing = !limit_given || limit == 0;
+    ArrayObject *ary = block ? nullptr : ArrayObject::create();
+    long empty_count = strip_trailing ? 0 : -1;
+
+    auto emit = [&](const char *ptr, size_t len) {
+        if (empty_count >= 0 && len == 0) {
+            empty_count++;
+            return;
+        }
+        while (empty_count > 0) {
+            auto empty = StringObject::create("", m_encoding);
+            if (block) {
+                Value args[] = { empty };
+                block->run(env, Args(1, args), nullptr);
+            } else {
+                ary->push(empty);
+            }
+            empty_count--;
+        }
+        auto part = StringObject::create(ptr, len, m_encoding);
+        if (block) {
+            Value args[] = { part };
+            block->run(env, Args(1, args), nullptr);
+        } else {
+            ary->push(part);
+        }
+    };
+
+    long i = 1;
+    size_t beg = 0;
+
+    switch (split_type) {
+    case SPLIT_TYPE_AWK: {
+        bool skip = true;
+        size_t end = 0;
+        size_t idx = 0;
+        while (idx < bytesize()) {
+            auto [valid, ch] = m_encoding->next_char(m_string, &idx);
+            if (ch.is_empty()) break;
+            auto cp = m_encoding->decode_codepoint(ch);
+            bool is_space = (cp == ' ' || cp == '\t' || cp == '\n' || cp == '\r' || cp == '\v' || cp == '\f');
+
+            if (skip) {
+                if (is_space) {
+                    beg = idx;
+                } else {
+                    end = idx;
+                    skip = false;
+                    if (effective_limit > 0 && limit <= i) break;
+                }
+            } else if (is_space) {
+                emit(c_str() + beg, end - beg);
+                skip = true;
+                beg = idx;
+                if (effective_limit > 0) ++i;
+            } else {
+                end = idx;
+            }
+        }
+        break;
     }
+    case SPLIT_TYPE_STRING: {
+        auto splitstr = splitter.as_string();
+        auto slen = splitstr->bytesize();
+        auto sptr = splitstr->c_str();
+        size_t ptr = 0;
+
+        while (ptr < bytesize()) {
+            ssize_t pos = -1;
+            for (size_t j = ptr; j + slen <= bytesize(); j++) {
+                if (memcmp(c_str() + j, sptr, slen) == 0) {
+                    pos = j;
+                    break;
+                }
+            }
+            if (pos == -1) break;
+            emit(c_str() + beg, pos - beg);
+            ptr = pos + slen;
+            beg = ptr;
+            if (effective_limit > 0 && limit <= ++i) break;
+        }
+        break;
+    }
+    case SPLIT_TYPE_CHARS: {
+        size_t idx = 0;
+        while (idx < bytesize()) {
+            auto [valid, ch] = m_encoding->next_char(m_string, &idx);
+            if (ch.is_empty()) break;
+            emit(c_str() + idx - ch.size(), ch.size());
+            if (effective_limit > 0 && limit <= ++i) break;
+        }
+        beg = idx;
+        break;
+    }
+    case SPLIT_TYPE_REGEXP: {
+        auto regexp = splitter.as_regexp();
+        size_t start = 0;
+        int last_null = 0;
+
+        OnigRegion *region = onig_region_new();
+        while (regexp->search(env, this, start, region, ONIG_OPTION_NONE) >= 0) {
+            size_t end = region->beg[0];
+
+            if (start == end && region->beg[0] == region->end[0]) {
+                if (last_null == 1) {
+                    size_t tmp = beg;
+                    m_encoding->next_char(m_string, &tmp);
+                    emit(c_str() + beg, tmp - beg);
+                    beg = start;
+                } else {
+                    if (start == bytesize())
+                        start++;
+                    else {
+                        size_t tmp = start;
+                        m_encoding->next_char(m_string, &tmp);
+                        start = tmp;
+                    }
+                    last_null = 1;
+                    continue;
+                }
+            } else {
+                emit(c_str() + beg, end - beg);
+                beg = start = region->end[0];
+            }
+            last_null = 0;
+
+            for (int idx = 1; idx < region->num_regs; idx++) {
+                if (region->beg[idx] == -1) continue;
+                emit(c_str() + region->beg[idx], region->end[idx] - region->beg[idx]);
+            }
+
+            if (effective_limit > 0 && limit <= ++i) break;
+        }
+        onig_region_free(region, true);
+        break;
+    }
+    }
+
+    if (bytesize() > 0 && (limit_given || bytesize() > beg || limit < 0))
+        emit(c_str() + beg, bytesize() - beg);
+
+    if (block) return this;
     return ary;
 }
 

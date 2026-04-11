@@ -803,7 +803,11 @@ Value KernelModule::spawn(Env *env, Args &&args) {
                 new_env.is_empty() ? environ : new_env.data());
         } else {
             auto splitter = RegexpObject::create(env, "\\s+");
-            auto split = arg->split(env, splitter, 0).as_array();
+            auto split = arg->split(env, Value(splitter), Value::integer(0)).as_array();
+            if (split->is_empty()) {
+                errno = ENOENT;
+                env->raise_errno();
+            }
             const char *cmd[split->size() + 1];
             for (size_t i = 0; i < split->size(); i++) {
                 cmd[i] = split->at(i).as_string()->c_str();

@@ -38,28 +38,26 @@ describe "String#split with String" do
   end
 
   it "does not suppress trailing empty fields when a positive limit is given" do
-    NATFIXME 'does not suppress trailing empty fields when a positive limit is given', exception: SpecFailedException do
-      " 1 2 ".split(" ", 2).should == ["1", "2 "]
-      " 1 2 ".split(" ", 3).should == ["1", "2", ""]
-      " 1 2 ".split(" ", 4).should == ["1", "2", ""]
-      " 1 あ ".split(" ", 2).should == ["1", "あ "]
-      " 1 あ ".split(" ", 3).should == ["1", "あ", ""]
-      " 1 あ ".split(" ", 4).should == ["1", "あ", ""]
+    " 1 2 ".split(" ", 2).should == ["1", "2 "]
+    " 1 2 ".split(" ", 3).should == ["1", "2", ""]
+    " 1 2 ".split(" ", 4).should == ["1", "2", ""]
+    " 1 あ ".split(" ", 2).should == ["1", "あ "]
+    " 1 あ ".split(" ", 3).should == ["1", "あ", ""]
+    " 1 あ ".split(" ", 4).should == ["1", "あ", ""]
 
-      "1,2,".split(',', 2).should == ["1", "2,"]
-      "1,2,".split(',', 3).should == ["1", "2", ""]
-      "1,2,".split(',', 4).should == ["1", "2", ""]
-      "1,あ,".split(',', 2).should == ["1", "あ,"]
-      "1,あ,".split(',', 3).should == ["1", "あ", ""]
-      "1,あ,".split(',', 4).should == ["1", "あ", ""]
+    "1,2,".split(',', 2).should == ["1", "2,"]
+    "1,2,".split(',', 3).should == ["1", "2", ""]
+    "1,2,".split(',', 4).should == ["1", "2", ""]
+    "1,あ,".split(',', 2).should == ["1", "あ,"]
+    "1,あ,".split(',', 3).should == ["1", "あ", ""]
+    "1,あ,".split(',', 4).should == ["1", "あ", ""]
 
-      "1 2 ".split(/ /, 2).should == ["1", "2 "]
-      "1 2 ".split(/ /, 3).should == ["1", "2", ""]
-      "1 2 ".split(/ /, 4).should == ["1", "2", ""]
-      "1 あ ".split(/ /, 2).should == ["1", "あ "]
-      "1 あ ".split(/ /, 3).should == ["1", "あ", ""]
-      "1 あ ".split(/ /, 4).should == ["1", "あ", ""]
-    end
+    "1 2 ".split(/ /, 2).should == ["1", "2 "]
+    "1 2 ".split(/ /, 3).should == ["1", "2", ""]
+    "1 2 ".split(/ /, 4).should == ["1", "2", ""]
+    "1 あ ".split(/ /, 2).should == ["1", "あ "]
+    "1 あ ".split(/ /, 3).should == ["1", "あ", ""]
+    "1 あ ".split(/ /, 4).should == ["1", "あ", ""]
   end
 
   it "returns an array with one entry if limit is 1: the original string" do
@@ -121,54 +119,48 @@ describe "String#split with String" do
         $; = old_fs
       end
     end
+  end
 
-    context "when $; is not nil" do
-      before do
-        suppress_warning do
-          @old_value, $; = $;, 'foobar'
-        end
+  context "when $; is not nil" do
+    before do
+      suppress_warning do
+        @old_value, $; = $;, 'foobar'
       end
+    end
 
-      after do
-        $; = @old_value
-      end
+    after do
+      $; = @old_value
+    end
 
-      it "warns" do
-        -> { "".split }.should complain(/warning: \$; is set to non-nil value/)
-      end
+    it "warns" do
+      -> { "".split }.should complain(/warning: \$; is set to non-nil value/)
     end
   end
 
   it "ignores leading and continuous whitespace when string is a single space" do
-    NATFIXME 'ignores leading and continuous whitespace when string is a single space', exception: SpecFailedException do
-      " now's  the time  ".split(' ').should == ["now's", "the", "time"]
-      " now's  the time  ".split(' ', -1).should == ["now's", "the", "time", ""]
-      " now's  the time  ".split(' ', 3).should == ["now's", "the", "time  "]
+    " now's  the time  ".split(' ').should == ["now's", "the", "time"]
+    " now's  the time  ".split(' ', -1).should == ["now's", "the", "time", ""]
+    " now's  the time  ".split(' ', 3).should == ["now's", "the", "time  "]
 
-      "\t\n a\t\tb \n\r\r\nc\v\vd\v ".split(' ').should == ["a", "b", "c", "d"]
-      "a\x00a b".split(' ').should == ["a\x00a", "b"]
-    end
+    "\t\n a\t\tb \n\r\r\nc\v\vd\v ".split(' ').should == ["a", "b", "c", "d"]
+    "a\x00a b".split(' ').should == ["a\x00a", "b"]
   end
 
   describe "when limit is zero" do
     it "ignores leading and continuous whitespace when string is a single space" do
-      NATFIXME 'when limit is zero', exception: SpecFailedException do
-        " now's  the time  ".split(' ', 0).should == ["now's", "the", "time"]
-      end
+      " now's  the time  ".split(' ', 0).should == ["now's", "the", "time"]
     end
   end
 
   it "splits between characters when its argument is an empty string" do
     "hi!".split("").should == ["h", "i", "!"]
-    NATFIXME 'splits between characters when its argument is an empty string', exception: SpecFailedException do
-      "hi!".split("", -1).should == ["h", "i", "!", ""]
-      "hi!".split("", 0).should == ["h", "i", "!"]
-      "hi!".split("", 1).should == ["hi!"]
-      "hi!".split("", 2).should == ["h", "i!"]
-      "hi!".split("", 3).should == ["h", "i", "!"]
-      "hi!".split("", 4).should == ["h", "i", "!", ""]
-      "hi!".split("", 5).should == ["h", "i", "!", ""]
-    end
+    "hi!".split("", -1).should == ["h", "i", "!", ""]
+    "hi!".split("", 0).should == ["h", "i", "!"]
+    "hi!".split("", 1).should == ["hi!"]
+    "hi!".split("", 2).should == ["h", "i!"]
+    "hi!".split("", 3).should == ["h", "i", "!"]
+    "hi!".split("", 4).should == ["h", "i", "!", ""]
+    "hi!".split("", 5).should == ["h", "i", "!", ""]
   end
 
   it "tries converting its pattern argument to a string via to_str" do
@@ -217,12 +209,10 @@ describe "String#split with String" do
   end
 
   it "returns an empty array when whitespace is split on whitespace" do
-    NATFIXME 'returns an empty array when whitespace is split on whitespace', exception: SpecFailedException do
-      " ".split(" ").should == []
-      " \n ".split(" ").should == []
-      "  ".split(" ").should == []
-      " \t ".split(" ").should == []
-    end
+    " ".split(" ").should == []
+    " \n ".split(" ").should == []
+    "  ".split(" ").should == []
+    " \t ".split(" ").should == []
   end
 
   it "doesn't split on non-ascii whitespace" do
@@ -323,26 +313,19 @@ describe "String#split with Regexp" do
 
   it "splits between characters when regexp matches a zero-length string" do
     "hello".split(//).should == ["h", "e", "l", "l", "o"]
-    NATFIXME 'Fix argument handling', exception: SpecFailedException do
-      "hello".split(//, -1).should == ["h", "e", "l", "l", "o", ""]
-    end
+    "hello".split(//, -1).should == ["h", "e", "l", "l", "o", ""]
     "hello".split(//, 0).should == ["h", "e", "l", "l", "o"]
     "hello".split(//, 1).should == ["hello"]
-    NATFIXME 'Fix argument handling', exception: SpecFailedException do
-      "hello".split(//, 2).should == ["h", "ello"]
-    end
+    "hello".split(//, 2).should == ["h", "ello"]
     "hello".split(//, 5).should == ["h", "e", "l", "l", "o"]
-    NATFIXME 'Fix argument handling', exception: SpecFailedException do
-      "hello".split(//, 6).should == ["h", "e", "l", "l", "o", ""]
-      "hello".split(//, 7).should == ["h", "e", "l", "l", "o", ""]
-    end
+    "hello".split(//, 6).should == ["h", "e", "l", "l", "o", ""]
+    "hello".split(//, 7).should == ["h", "e", "l", "l", "o", ""]
 
-    # NATFIXME: Slow or infinite loop
-    # "hi mom".split(/\s*/).should == ["h", "i", "m", "o", "m"]
+    "hi mom".split(/\s*/).should == ["h", "i", "m", "o", "m"]
 
-    # "AABCCBAA".split(/(?=B)/).should == ["AA", "BCC", "BAA"]
-    # "AABCCBAA".split(/(?=B)/, -1).should == ["AA", "BCC", "BAA"]
-    # "AABCCBAA".split(/(?=B)/, 2).should == ["AA", "BCCBAA"]
+    "AABCCBAA".split(/(?=B)/).should == ["AA", "BCC", "BAA"]
+    "AABCCBAA".split(/(?=B)/, -1).should == ["AA", "BCC", "BAA"]
+    "AABCCBAA".split(/(?=B)/, 2).should == ["AA", "BCCBAA"]
   end
 
   it "respects unicode when splitting between characters" do
@@ -361,25 +344,19 @@ describe "String#split with Regexp" do
   end
 
   it "includes all captures in the result array" do
-    NATFIXME 'includes all captures in the result array', exception: SpecFailedException do
-      "hello".split(/(el)/).should == ["h", "el", "lo"]
-      "hi!".split(/()/).should == ["h", "", "i", "", "!"]
-      "hi!".split(/()/, -1).should == ["h", "", "i", "", "!", "", ""]
-      "hello".split(/((el))()/).should == ["h", "el", "el", "", "lo"]
-      "AabB".split(/([a-z])+/).should == ["A", "b", "B"]
-    end
+    "hello".split(/(el)/).should == ["h", "el", "lo"]
+    "hi!".split(/()/).should == ["h", "", "i", "", "!"]
+    "hi!".split(/()/, -1).should == ["h", "", "i", "", "!", "", ""]
+    "hello".split(/((el))()/).should == ["h", "el", "el", "", "lo"]
+    "AabB".split(/([a-z])+/).should == ["A", "b", "B"]
   end
 
   it "applies the limit to the number of split substrings, without counting captures" do
-    NATFIXME 'applies the limit to the number of split substrings, without counting captures', exception: SpecFailedException do
-      "aBaBa".split(/(B)()()/, 2).should == ["a", "B", "", "", "aBa"]
-    end
+    "aBaBa".split(/(B)()()/, 2).should == ["a", "B", "", "", "aBa"]
   end
 
   it "does not include non-matching captures in the result array" do
-    NATFIXME 'does not include non-matching captures in the result array', exception: SpecFailedException do
-      "hello".split(/(el)|(xx)/).should == ["h", "el", "lo"]
-    end
+    "hello".split(/(el)|(xx)/).should == ["h", "el", "lo"]
   end
 
   it "tries converting limit to an integer via to_int" do
@@ -454,109 +431,87 @@ describe "String#split with Regexp" do
       a = []
       returned_object = "chunky bacon".split { |str| a << str.capitalize }
 
-      NATFIXME 'when a block is given', exception: SpecFailedException do
-        returned_object.should == "chunky bacon"
-        a.should == ["Chunky", "Bacon"]
-      end
+      returned_object.should == "chunky bacon"
+      a.should == ["Chunky", "Bacon"]
     end
 
     it "yields each split substring with default pattern for a lazy substring" do
       a = []
       returned_object = "chunky bacon"[1...-1].split { |str| a << str.capitalize }
 
-      NATFIXME 'when a block is given', exception: SpecFailedException do
-        returned_object.should == "hunky baco"
-        a.should == ["Hunky", "Baco"]
-      end
+      returned_object.should == "hunky baco"
+      a.should == ["Hunky", "Baco"]
     end
 
     it "yields each split substring with default pattern for a non-ASCII string" do
       a = []
       returned_object = "l'été arrive bientôt".split { |str| a << str }
 
-      NATFIXME 'when a block is given', exception: SpecFailedException do
-        returned_object.should == "l'été arrive bientôt"
-        a.should == ["l'été", "arrive", "bientôt"]
-      end
+      returned_object.should == "l'été arrive bientôt"
+      a.should == ["l'été", "arrive", "bientôt"]
     end
 
     it "yields each split substring with default pattern for a non-ASCII lazy substring" do
       a = []
       returned_object = "l'été arrive bientôt"[1...-1].split { |str| a << str }
 
-      NATFIXME 'when a block is given', exception: SpecFailedException do
-        returned_object.should == "'été arrive bientô"
-        a.should == ["'été", "arrive", "bientô"]
-      end
+      returned_object.should == "'été arrive bientô"
+      a.should == ["'été", "arrive", "bientô"]
     end
 
     it "yields the string when limit is 1" do
       a = []
       returned_object = "chunky bacon".split("", 1) { |str| a << str.capitalize }
 
-      NATFIXME 'when a block is given', exception: SpecFailedException do
-        returned_object.should == "chunky bacon"
-        a.should == ["Chunky bacon"]
-      end
+      returned_object.should == "chunky bacon"
+      a.should == ["Chunky bacon"]
     end
 
     it "yields each split letter" do
       a = []
       returned_object = "chunky".split("", 0) { |str| a << str.capitalize }
 
-      NATFIXME 'when a block is given', exception: SpecFailedException do
-        returned_object.should == "chunky"
-        a.should == %w(C H U N K Y)
-      end
+      returned_object.should == "chunky"
+      a.should == %w(C H U N K Y)
     end
 
     it "yields each split substring with a pattern" do
       a = []
       returned_object = "chunky-bacon".split("-", 0) { |str| a << str.capitalize }
 
-      NATFIXME 'when a block is given', exception: SpecFailedException do
-        returned_object.should == "chunky-bacon"
-        a.should == ["Chunky", "Bacon"]
-      end
+      returned_object.should == "chunky-bacon"
+      a.should == ["Chunky", "Bacon"]
     end
 
     it "yields each split substring with empty regexp pattern" do
       a = []
       returned_object = "chunky".split(//) { |str| a << str.capitalize }
 
-      NATFIXME 'when a block is given', exception: SpecFailedException do
-        returned_object.should == "chunky"
-        a.should == %w(C H U N K Y)
-      end
+      returned_object.should == "chunky"
+      a.should == %w(C H U N K Y)
     end
 
     it "yields each split substring with empty regexp pattern and limit" do
       a = []
       returned_object = "chunky".split(//, 3) { |str| a << str.capitalize }
 
-      NATFIXME 'when a block is given', exception: SpecFailedException do
-        returned_object.should == "chunky"
-        a.should == %w(C H Unky)
-      end
+      returned_object.should == "chunky"
+      a.should == %w(C H Unky)
     end
 
     it "yields each split substring with a regexp pattern" do
       a = []
       returned_object = "chunky:bacon".split(/:/) { |str| a << str.capitalize }
 
-      NATFIXME 'when a block is given', exception: SpecFailedException do
-        returned_object.should == "chunky:bacon"
-        a.should == ["Chunky", "Bacon"]
-      end
+      returned_object.should == "chunky:bacon"
+      a.should == ["Chunky", "Bacon"]
     end
 
     it "returns a string as is (and doesn't call block) if it is empty" do
       a = []
       returned_object = "".split { |str| a << str.capitalize }
 
-      NATFIXME 'when a block is given', exception: SpecFailedException do
-        returned_object.should == ""
-      end
+      returned_object.should == ""
       a.should == []
     end
   end
@@ -567,13 +522,11 @@ describe "String#split with Regexp" do
       StringSpecs::MyString.new("a|b").split("|") { |str| a << str }
       first, last = a
 
-      NATFIXME 'for a String subclass', exception: SpecFailedException do
-        first.should be_an_instance_of(String)
-        first.should == "a"
+      first.should be_an_instance_of(String)
+      first.should == "a"
 
-        last.should be_an_instance_of(String)
-        last.should == "b"
-      end
+      last.should be_an_instance_of(String)
+      last.should == "b"
     end
   end
 
