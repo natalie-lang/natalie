@@ -169,6 +169,7 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 | `prettyprint.rb`       | Yukihiro Matsumoto                | BSD               |
 | `shellwords.rb`        | Akinori MUSHA                     | BSD               |
 | `spec/*`               | Engine Yard, Inc.                 | MIT               |
+| `unicode_normalize/*`  | Ayumu Nojima and Martin J. Dürst  | BSD               |
 | `uri.rb`/`uri/*`       | Akira Yamada                      | BSD               |
 | `version.rb`           | Engine Yard, Inc.                 | MIT               |
 | `zlib`                 | Jean-loup Gailly and Mark Adler   | zlib license      |

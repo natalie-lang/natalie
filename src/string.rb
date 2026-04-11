@@ -2,6 +2,21 @@ class String
   alias replace initialize_copy
   alias slice []
 
+  def unicode_normalize(form = :nfc)
+    require 'unicode_normalize/normalize'
+    UnicodeNormalize.normalize(self, form)
+  end
+
+  def unicode_normalize!(form = :nfc)
+    require 'unicode_normalize/normalize'
+    replace(UnicodeNormalize.normalize(self, form))
+  end
+
+  def unicode_normalized?(form = :nfc)
+    require 'unicode_normalize/normalize'
+    UnicodeNormalize.normalized?(self, form)
+  end
+
   def %(args)
     positional_args =
       if args.respond_to?(:to_ary)
