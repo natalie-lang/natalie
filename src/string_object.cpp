@@ -2987,6 +2987,64 @@ Value StringObject::undump(Env *env) const {
                     result.append("\\#");
                     result.append(c);
                 }
+            } else if (c == 'u') {
+                if (it == end())
+                    env->raise("RuntimeError", "invalid Unicode escape");
+
+                auto utf8 = EncodingObject::get(Encoding::UTF_8);
+
+                if (*it == '{') {
+                    it++;
+                    bool closed = false;
+
+                    while (it != end() && (*it)[0] != '"') {
+                        if ((*it)[0] == '}') {
+                            it++;
+                            closed = true;
+                            break;
+                        }
+                        if ((*it)[0] == ' ') {
+                            it++;
+                            continue;
+                        }
+
+                        size_t hex_start = (*it).offset();
+                        while (it != end() && (*it)[0] != '}' && (*it)[0] != ' ' && (*it)[0] != '"')
+                            it++;
+
+                        size_t hex_len = (it != end() ? (*it).offset() : bytesize()) - hex_start;
+                        if (hex_len == 0 || hex_len > 6)
+                            env->raise("RuntimeError", "invalid Unicode escape");
+
+                        char hex_buf[7] = {};
+                        memcpy(hex_buf, c_str() + hex_start, hex_len);
+                        auto codepoint = std::strtoul(hex_buf, nullptr, 16);
+                        if (codepoint > 0x10ffff)
+                            env->raise("RuntimeError", "invalid Unicode codepoint (too large)");
+                        if (codepoint >= 0xd800 && codepoint <= 0xdfff)
+                            env->raise("RuntimeError", "invalid Unicode codepoint");
+
+                        result.append(utf8->encode_codepoint(codepoint));
+                    }
+
+                    if (!closed)
+                        env->raise("RuntimeError", "invalid Unicode escape");
+                } else {
+                    size_t hex_start = (*it).offset();
+                    for (int idx = 0; idx < 4; idx++) {
+                        if (it == end())
+                            env->raise("RuntimeError", "invalid Unicode escape");
+                        it++;
+                    }
+
+                    char hex_buf[5] = {};
+                    memcpy(hex_buf, c_str() + hex_start, 4);
+                    auto codepoint = std::strtoul(hex_buf, nullptr, 16);
+                    if (codepoint >= 0xd800 && codepoint <= 0xdfff)
+                        env->raise("RuntimeError", "invalid Unicode codepoint");
+
+                    result.append(utf8->encode_codepoint(codepoint));
+                }
             } else if (c == 'x') {
                 if (it == end())
                     env->raise("RuntimeError", "invalid hex escape");
@@ -3010,12 +3068,42 @@ Value StringObject::undump(Env *env) const {
             result.append(c);
         }
     }
+
     if (it == end() || *it != '"')
         env->raise("RuntimeError", "unterminated dumped string");
+
     it++;
-    if (it != end())
-        env->raise("RuntimeError", "invalid dumped string");
-    return StringObject::create(std::move(result), m_encoding);
+    auto result_encoding = m_encoding;
+
+    if (it != end()) {
+        size_t suffix_start = (*it).offset();
+        const char *suffix = c_str() + suffix_start;
+        size_t suffix_len = bytesize() - suffix_start;
+
+        if (suffix_len >= 4 && memcmp(suffix, ".dup", 4) == 0) {
+            suffix += 4;
+            suffix_len -= 4;
+        }
+
+        const char *fe = ".force_encoding(\"";
+        auto fe_len = strlen(fe);
+        if (suffix_len < fe_len + 2 || memcmp(suffix, fe, fe_len) != 0)
+            error();
+
+        auto encname_ptr = suffix + fe_len;
+        auto encname_end = static_cast<const char *>(memchr(encname_ptr, '"', suffix_len - fe_len));
+        if (!encname_end || encname_end + 2 != suffix + suffix_len || encname_end[1] != ')')
+            error();
+
+        auto encname = String(encname_ptr, encname_end - encname_ptr);
+        auto enc = EncodingObject::find_encoding_by_name(env, encname);
+        if (!enc)
+            env->raise("RuntimeError", "dumped string has unknown encoding name");
+
+        result_encoding = enc;
+    }
+
+    return StringObject::create(std::move(result), result_encoding);
 }
 
 nat_int_t StringObject::unpack_offset(Env *env, Optional<Value> offset_arg) const {
@@ -3731,64 +3819,67 @@ Value StringObject::downcase_in_place(Env *env, Optional<Value> arg1, Optional<V
 Value StringObject::dump(Env *env) {
     String out { "\"" };
     auto encoding = m_encoding.ptr();
-
     auto utf8_encoding = EncodingObject::get(Encoding::UTF_8);
+    bool is_utf8 = (encoding == utf8_encoding);
 
-    size_t index = 0;
-    auto [valid, ch] = next_char_result(&index);
-    while (!ch.is_empty()) {
-        if (!valid) {
-            for (size_t i = 0; i < ch.size(); i++)
-                out.append_sprintf("\\x%02X", static_cast<uint8_t>(ch[i]));
-            auto pair = next_char_result(&index);
-            valid = pair.first;
-            ch = pair.second;
-            continue;
-        }
-        const auto c = encoding->decode_codepoint(ch);
-        auto pair = next_char_result(&index);
-        valid = pair.first;
-        const auto c2 = !valid || ch.is_empty() ? 0 : encoding->decode_codepoint(pair.second);
+    for (size_t i = 0; i < bytesize(); i++) {
+        unsigned char c = c_str()[i];
 
-        if (c == '"' || c == '\\' || (c == '#' && (c2 == '{' || c2 == '$' || c2 == '@'))) {
+        if (c == '"' || c == '\\') {
             out.append_char('\\');
             out.append_char(c);
-        } else if (c == '\a') {
-            out.append("\\a");
-        } else if (c == '\b') {
-            out.append("\\b");
-        } else if (c == 27) {
-            out.append("\\e");
-        } else if (c == '\f') {
-            out.append("\\f");
+        } else if (c == '#') {
+            if (i + 1 < bytesize()) {
+                unsigned char c2 = c_str()[i + 1];
+                if (c2 == '{' || c2 == '$' || c2 == '@')
+                    out.append_char('\\');
+            }
+            out.append_char('#');
         } else if (c == '\n') {
             out.append("\\n");
         } else if (c == '\r') {
             out.append("\\r");
         } else if (c == '\t') {
             out.append("\\t");
+        } else if (c == '\f') {
+            out.append("\\f");
         } else if (c == '\v') {
             out.append("\\v");
-        } else if (encoding->is_printable_char(c) && c <= 0xFFFF) {
-            if (encoding == utf8_encoding || c <= 255)
-                out.append(utf8_encoding->encode_codepoint(c));
-            else
-                encoding->append_escaped_char(out, c);
+        } else if (c == '\b') {
+            out.append("\\b");
+        } else if (c == '\a') {
+            out.append("\\a");
+        } else if (c == 27) {
+            out.append("\\e");
+        } else if (c >= 0x20 && c < 0x7F) {
+            out.append_char(c);
         } else {
-            if (c < 128)
-                out.append_sprintf("\\x%02X", c);
-            else
-                encoding->append_escaped_char(out, c);
+            if (is_utf8 && c > 0x7F) {
+                size_t char_index = i;
+                auto [valid, ch] = encoding->next_char(m_string, &char_index);
+                if (valid && ch.size() > 1) {
+                    auto cp = encoding->decode_codepoint(ch);
+                    if (cp <= 0xFFFF)
+                        out.append_sprintf("\\u%04X", cp);
+                    else
+                        out.append_sprintf("\\u{%X}", cp);
+                    i = char_index - 1;
+                    continue;
+                }
+            }
+            out.append_sprintf("\\x%02X", c);
         }
-        ch = pair.second;
     }
 
     out.append_char('"');
 
-    if (!m_encoding->is_ascii_compatible())
-        out.append_sprintf(".force_encoding(\"%s\")", m_encoding->name()->c_str());
+    EncodingObject *result_encoding = m_encoding.ptr();
+    if (!m_encoding->is_ascii_compatible()) {
+        out.append_sprintf(".dup.force_encoding(\"%s\")", m_encoding->name()->c_str());
+        result_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
+    }
 
-    return StringObject::create(std::move(out), m_encoding);
+    return StringObject::create(std::move(out), result_encoding);
 }
 
 StringObject *StringObject::upcase(Env *env, Optional<Value> arg1, Optional<Value> arg2) {
