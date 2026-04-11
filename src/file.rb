@@ -34,6 +34,9 @@ class File
     path = path.to_path if path.respond_to?(:to_path)
     path = path.to_str if path.respond_to?(:to_str)
     raise TypeError, 'path must be convertible to String' unless path.is_a?(String)
+    unless path.encoding.ascii_compatible?
+      raise Encoding::CompatibilityError, "path name must be ASCII-compatible (#{path.encoding})"
+    end
 
     base =
       path.sub(/#{SEPARATOR}+\z/, '') # strip all trailing separators
@@ -63,6 +66,9 @@ class File
     path = path.to_path if path.respond_to?(:to_path)
     path = path.to_str if path.respond_to?(:to_str)
     raise TypeError, 'path must be convertible to String' unless path.is_a?(String)
+    unless path.encoding.ascii_compatible?
+      raise Encoding::CompatibilityError, "path name must be ASCII-compatible (#{path.encoding})"
+    end
     depth = depth.to_int if !depth.is_a?(Integer) && depth.respond_to?(:to_int)
     if depth < 0
       raise ArgumentError, "negative level: #{depth}"
