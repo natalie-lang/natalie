@@ -453,7 +453,17 @@ Value StringObject::tr(Env *env, Value from_value, Value to_value) const {
     return copy;
 }
 
-Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value) {
+Value StringObject::tr_s(Env *env, Value from_value, Value to_value) const {
+    auto copy = StringObject::create(m_string, m_encoding);
+    copy->tr_s_in_place(env, from_value, to_value);
+    return copy;
+}
+
+Value StringObject::tr_s_in_place(Env *env, Value from_value, Value to_value) {
+    return tr_in_place(env, from_value, to_value, true);
+}
+
+Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value, bool squeeze) {
     assert_not_frozen(env);
 
     auto from_chars = from_value.to_str(env)->chars(env).as_array_or_raise(env);
@@ -501,55 +511,51 @@ Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value) {
             to_chars->push(to_chars->last());
     }
 
+    String result;
+    StringView last_translated;
     bool changes_made = false;
+    auto last_char_index = to_chars->size() >= 1 ? to_chars->size() - 1 : 0;
 
-    auto replace_char = [&](size_t index, size_t size, size_t replacement_index) {
-        if (replacement_index >= to_chars->size()) {
-            m_string.replace_bytes(index, size, "");
+    size_t index = 0;
+    while (index < bytesize()) {
+        auto [valid, ch] = m_encoding->next_char(m_string, &index);
+        if (ch.is_empty()) break;
+
+        ssize_t match = -1;
+        for (size_t from_idx = 0; from_idx < from_chars->size(); from_idx++) {
+            if (*from_chars->at(from_idx).as_string() == ch) {
+                match = from_idx;
+                break;
+            }
+        }
+
+        bool translated = inverted_match ? (match == -1) : (match >= 0);
+
+        if (translated) {
+            changes_made = true;
+            size_t replacement_index = inverted_match ? last_char_index : match;
+            if (replacement_index < to_chars->size()) {
+                const auto &replacement = to_chars->at(replacement_index).as_string()->string();
+                if (squeeze) {
+                    StringView rv(&replacement, 0, replacement.length());
+                    if (last_translated.is_empty() || rv != last_translated) {
+                        result.append(replacement);
+                        last_translated = StringView(&result, result.length() - replacement.length(), replacement.length());
+                    }
+                } else {
+                    result.append(replacement);
+                }
+            }
         } else {
-            auto bytes = to_chars->at(replacement_index).as_string()->string();
-            m_string.replace_bytes(index, size, bytes);
-        }
-        changes_made = true;
-    };
-
-    if (inverted_match) {
-        bool changes_made = false;
-        size_t byte_index = length();
-        auto c = prev_char(&byte_index);
-        while (!c.is_empty()) {
-            auto last_char_index = to_chars->size() >= 1 ? to_chars->size() - 1 : 0;
-
-            bool found = false;
-            for (size_t j = 0; j < from_chars->size(); j++) {
-                if (*from_chars->at(j).as_string() == c) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
-                replace_char(byte_index, c.size(), last_char_index);
-
-            c = prev_char(&byte_index);
-        }
-
-    } else { // regular match
-        size_t byte_index = length();
-        auto c = prev_char(&byte_index);
-        while (!c.is_empty()) {
-            for (size_t j = 0; j < from_chars->size(); j++) {
-                if (*from_chars->at(j).as_string() == c) {
-                    replace_char(byte_index, c.size(), j);
-                    break;
-                }
-            }
-            c = prev_char(&byte_index);
+            result.append(ch);
+            last_translated = StringView();
         }
     }
 
     if (!changes_made)
         return Value::nil();
 
+    m_string = std::move(result);
     return this;
 }
 
