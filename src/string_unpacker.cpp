@@ -145,10 +145,10 @@ void StringUnpacker::unpack_token(Env *env, Token &token) {
         unpack_int<uint16_t>(token, false);
         break;
     case 'P':
-        unpack_P(token);
+        unpack_P(env, token);
         break;
     case 'p':
-        unpack_p();
+        unpack_p(env);
         break;
     case 'Q':
         unpack_int<uint64_t>(token);
@@ -190,7 +190,7 @@ void StringUnpacker::unpack_token(Env *env, Token &token) {
         unpack_at(env, token);
         break;
     default:
-        env->raise("ArgumentError", "{} is not supported", token.directive);
+        env->raise("ArgumentError", "unknown unpack directive '{}' in '{}'", token.directive, m_directives_string);
     }
 }
 
@@ -436,26 +436,56 @@ void StringUnpacker::unpack_m(Env *env, Token &token) {
     append(StringObject::create(out, Encoding::ASCII_8BIT));
 }
 
-void StringUnpacker::unpack_P(Token &token) {
-    if (m_index + sizeof(uintptr_t) > m_source->length()) {
-        append(Value::nil());
-        return;
-    }
-
-    const char *p = *(const char **)pointer();
-    const size_t size = std::min(static_cast<size_t>(token.count), strlen(p));
-    append(StringObject::create(p, size));
-    m_index += sizeof(uintptr_t);
+ArrayObject *StringUnpacker::str_associated(Env *env) const {
+    auto associates = const_cast<StringObject *>(m_source)->ivar_get(env, "@__associated__"_s);
+    if (associates.is_nil())
+        env->raise("ArgumentError", "no associated pointer");
+    return associates.as_array();
 }
 
-void StringUnpacker::unpack_p() {
+Value StringUnpacker::associated_pointer(Env *env, ArrayObject *associates, const char *t) const {
+    for (size_t i = 0; i < associates->size(); i++) {
+        auto tmp = associates->at(i);
+        if (tmp.is_string() && tmp.as_string()->c_str() == t)
+            return tmp;
+    }
+    env->raise("ArgumentError", "non associated pointer");
+}
+
+void StringUnpacker::unpack_P(Env *env, Token &token) {
     if (m_index + sizeof(uintptr_t) > m_source->length()) {
         append(Value::nil());
         return;
     }
 
-    append(StringObject::create(*(const char **)pointer()));
+    Value tmp = Value::nil();
+    const char *t = *(const char **)pointer();
     m_index += sizeof(uintptr_t);
+    if (t) {
+        auto associates = str_associated(env);
+        tmp = associated_pointer(env, associates, t);
+        auto len = static_cast<size_t>(token.count);
+        if (len < tmp.as_string()->bytesize()) {
+            tmp = StringObject::create(t, len);
+        }
+    }
+    append(tmp);
+}
+
+void StringUnpacker::unpack_p(Env *env) {
+    if (m_index + sizeof(uintptr_t) > m_source->length()) {
+        append(Value::nil());
+        return;
+    }
+
+    Value tmp = Value::nil();
+    const char *t = *(const char **)pointer();
+    m_index += sizeof(uintptr_t);
+    if (t) {
+        auto associates = str_associated(env);
+        tmp = associated_pointer(env, associates, t);
+    }
+    append(tmp);
 }
 
 void StringUnpacker::unpack_U(Env *env, Token &token) {

@@ -58,8 +58,20 @@ namespace ArrayPacker {
                     NAT_UNREACHABLE();
                 }
 
+                if (d == 'P' && string_object && token.count >= 0) {
+                    if (static_cast<size_t>(token.count) > string_object->bytesize())
+                        env->raise("ArgumentError", "too short buffer for P({} for {})",
+                            string_object->bytesize(), token.count);
+                }
+
                 auto packer = StringHandler { string, string_object, token };
                 m_packed.append(packer.pack(env));
+
+                if (d == 'p' || d == 'P') {
+                    if (!m_associates)
+                        m_associates = ArrayObject::create();
+                    m_associates->push(item);
+                }
 
                 if (d == 'm' || d == 'M' || d == 'u')
                     m_encoding = EncodingObject::get(Encoding::US_ASCII);
@@ -155,14 +167,15 @@ namespace ArrayPacker {
                 m_packed.truncate(count);
                 break;
             }
-            default: {
-                env->raise("ArgumentError", "{} is not supported", d);
-            }
+            default:
+                env->raise("ArgumentError", "unknown pack directive '{}' in '{}'", d, m_directives_string);
             }
         }
         // must force str length in case m_packed was stuffed with '\0's
         buffer->set_str(m_packed.c_str(), m_packed.length());
         buffer->set_encoding(m_encoding);
+        if (m_associates)
+            buffer->ivar_set(env, "@__associated__"_s, m_associates);
         return buffer;
     }
 

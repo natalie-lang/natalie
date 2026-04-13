@@ -14,6 +14,7 @@ public:
     StringUnpacker(const StringObject *source, String directives, nat_int_t offset)
         : m_source { source }
         , m_directives { Tokenizer { directives }.tokenize() }
+        , m_directives_string { directives }
         , m_index { (size_t)std::max(offset, (nat_int_t)0) } { }
 
     ~StringUnpacker() { delete m_directives; }
@@ -45,8 +46,8 @@ private:
     void unpack_h(Token &token);
     void unpack_M(Env *env, Token &token);
     void unpack_m(Env *env, Token &token);
-    void unpack_P(Token &token);
-    void unpack_p();
+    void unpack_P(Env *env, Token &token);
+    void unpack_p(Env *env);
     void unpack_U(Env *env, Token &token);
     void unpack_u(Token &token);
     void unpack_w(Env *env, Token &token);
@@ -174,6 +175,9 @@ private:
         }
     }
 
+    ArrayObject *str_associated(Env *env) const;
+    Value associated_pointer(Env *env, ArrayObject *associates, const char *t) const;
+
     const char *pointer() const { return m_source->c_str() + m_index; }
 
     unsigned char next_char() {
@@ -218,6 +222,7 @@ private:
 
     const StringObject *m_source;
     TM::Vector<Token> *m_directives;
+    String m_directives_string;
     Optional<Value> m_unpacked_value {};
     ArrayObject *m_unpacked_array { nullptr };
     size_t m_index { 0 };

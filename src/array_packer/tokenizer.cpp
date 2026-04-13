@@ -78,8 +78,6 @@ namespace ArrayPacker {
             token.star = true;
         }
 
-        // printf("token { directive='%c', count=%d, star=%d, native_size=%d, endianness=%d }\n", token.directive, token.count, (int)token.star, (int)token.native_size, (int)token.endianness);
-
         return token;
     }
 
@@ -87,7 +85,7 @@ namespace ArrayPacker {
         if (m_index >= m_directives.length())
             return 0;
         m_index++;
-        return current_char();
+        return char_at_index(m_index);
     }
 
     signed char Tokenizer::current_char() {

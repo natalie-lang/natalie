@@ -272,26 +272,18 @@ namespace ArrayPacker {
     }
 
     void StringHandler::pack_P() {
-        if (!m_string_object) {
-            for (size_t i = 0; i < sizeof(uintptr_t); i++)
-                m_packed.append_char(0x0);
-            return;
-        }
-        auto c_str = m_string_object->c_str();
-        auto ptr = (const char *)&c_str;
-        for (size_t i = 0; i < sizeof(uintptr_t); i++)
-            m_packed.append_char(ptr[i]);
+        pack_p();
     }
 
     void StringHandler::pack_p() {
+        const char *t;
         if (!m_string_object) {
-            for (size_t i = 0; i < sizeof(uintptr_t); i++)
-                m_packed.append_char(0x0);
-            return;
+            t = nullptr;
+        } else {
+            t = m_string_object->c_str();
         }
-        auto c_str = m_string_object->c_str();
-        auto ptr = (const char *)&c_str;
-        for (size_t i = 0; i < sizeof(uintptr_t); i++)
+        auto ptr = (const char *)&t;
+        for (size_t i = 0; i < sizeof(char *); i++)
             m_packed.append_char(ptr[i]);
     }
 

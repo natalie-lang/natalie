@@ -18,6 +18,7 @@ namespace ArrayPacker {
         Packer(ArrayObject *source, String directives)
             : m_source { source }
             , m_directives { Tokenizer { directives }.tokenize() }
+            , m_directives_string { directives }
             , m_encoding { EncodingObject::get(Encoding::ASCII_8BIT) } { }
 
         ~Packer() { delete m_directives; }
@@ -27,6 +28,7 @@ namespace ArrayPacker {
         virtual void visit_children(Visitor &visitor) const override {
             visitor.visit(m_source);
             visitor.visit(m_encoding);
+            visitor.visit(m_associates);
         }
 
         virtual TM::String dbg_inspect(int indent = 0) const override {
@@ -61,8 +63,10 @@ namespace ArrayPacker {
 
         ArrayObject *m_source;
         TM::Vector<Token> *m_directives;
+        String m_directives_string;
         String m_packed {};
         EncodingObject *m_encoding;
+        ArrayObject *m_associates { nullptr };
         size_t m_index { 0 };
     };
 
