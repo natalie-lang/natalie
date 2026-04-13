@@ -3129,8 +3129,7 @@ Value StringObject::unpack(Env *env, Value format, Optional<Value> offset_kwarg)
     auto offset = unpack_offset(env, offset_kwarg);
     if (offset == (nat_int_t)bytesize())
         return ArrayObject::create({ Value::nil() });
-    auto unpacker = new StringUnpacker { this, format_string, offset };
-    return unpacker->unpack(env);
+    return StringUnpacker { this, format_string, offset }.unpack(env);
 }
 
 Value StringObject::unpack1(Env *env, Value format, Optional<Value> offset_kwarg) const {
@@ -3138,8 +3137,7 @@ Value StringObject::unpack1(Env *env, Value format, Optional<Value> offset_kwarg
     auto offset = unpack_offset(env, offset_kwarg);
     if (offset == (nat_int_t)bytesize())
         return Value::nil();
-    auto unpacker = new StringUnpacker { this, format_string, offset };
-    return unpacker->unpack1(env);
+    return StringUnpacker { this, format_string, offset }.unpack1(env);
 }
 
 Value StringObject::split(Env *env, Optional<Value> splitter_arg, Optional<Value> max_count_arg, Block *block) {
