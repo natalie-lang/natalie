@@ -14,6 +14,7 @@ public:
     StringUnpacker(const StringObject *source, String directives, nat_int_t offset)
         : m_source { source }
         , m_directives { Tokenizer { directives }.tokenize() }
+        , m_directives_string { directives }
         , m_index { (size_t)std::max(offset, (nat_int_t)0) } { }
 
     ~StringUnpacker() { delete m_directives; }
@@ -221,6 +222,7 @@ private:
 
     const StringObject *m_source;
     TM::Vector<Token> *m_directives;
+    String m_directives_string;
     Optional<Value> m_unpacked_value {};
     ArrayObject *m_unpacked_array { nullptr };
     size_t m_index { 0 };

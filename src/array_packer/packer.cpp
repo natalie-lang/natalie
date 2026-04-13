@@ -167,9 +167,8 @@ namespace ArrayPacker {
                 m_packed.truncate(count);
                 break;
             }
-            default: {
-                env->raise("ArgumentError", "{} is not supported", d);
-            }
+            default:
+                env->raise("ArgumentError", "unknown pack directive '{}' in '{}'", d, m_directives_string);
             }
         }
         // must force str length in case m_packed was stuffed with '\0's

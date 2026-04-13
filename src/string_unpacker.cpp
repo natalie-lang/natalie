@@ -190,7 +190,7 @@ void StringUnpacker::unpack_token(Env *env, Token &token) {
         unpack_at(env, token);
         break;
     default:
-        env->raise("ArgumentError", "{} is not supported", token.directive);
+        env->raise("ArgumentError", "unknown unpack directive '{}' in '{}'", token.directive, m_directives_string);
     }
 }
 

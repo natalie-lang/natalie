@@ -78,8 +78,6 @@ namespace ArrayPacker {
             token.star = true;
         }
 
-        // printf("token { directive='%c', count=%d, star=%d, native_size=%d, endianness=%d }\n", token.directive, token.count, (int)token.star, (int)token.native_size, (int)token.endianness);
-
         return token;
     }
 

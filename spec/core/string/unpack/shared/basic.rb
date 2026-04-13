@@ -10,11 +10,11 @@ describe :string_unpack_basic, shared: true do
   end
 
   it "raises ArgumentError when a directive is unknown" do
-    NATFIXME 'it raise ArgumentError when a directive is unknown', exception: SpecFailedException do
-      -> { "abcdefgh".unpack("a K" + unpack_format) }.should raise_error(ArgumentError, "unknown unpack directive 'K' in 'a K#{unpack_format}'")
+    -> { "abcdefgh".unpack("a K" + unpack_format) }.should raise_error(ArgumentError, "unknown unpack directive 'K' in 'a K#{unpack_format}'")
+    NATFIXME 'tokenizer treats digits after whitespace as count modifiers', exception: SpecFailedException do
       -> { "abcdefgh".unpack("a 0" + unpack_format) }.should raise_error(ArgumentError, "unknown unpack directive '0' in 'a 0#{unpack_format}'")
-      -> { "abcdefgh".unpack("a :" + unpack_format) }.should raise_error(ArgumentError, "unknown unpack directive ':' in 'a :#{unpack_format}'")
     end
+    -> { "abcdefgh".unpack("a :" + unpack_format) }.should raise_error(ArgumentError, "unknown unpack directive ':' in 'a :#{unpack_format}'")
   end
 end
 
