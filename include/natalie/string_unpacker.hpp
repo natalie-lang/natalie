@@ -45,8 +45,8 @@ private:
     void unpack_h(Token &token);
     void unpack_M(Env *env, Token &token);
     void unpack_m(Env *env, Token &token);
-    void unpack_P(Token &token);
-    void unpack_p();
+    void unpack_P(Env *env, Token &token);
+    void unpack_p(Env *env);
     void unpack_U(Env *env, Token &token);
     void unpack_u(Token &token);
     void unpack_w(Env *env, Token &token);
@@ -173,6 +173,9 @@ private:
                 bits_remaining = 0;
         }
     }
+
+    ArrayObject *str_associated(Env *env) const;
+    Value associated_pointer(Env *env, ArrayObject *associates, const char *t) const;
 
     const char *pointer() const { return m_source->c_str() + m_index; }
 
