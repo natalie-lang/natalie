@@ -36,9 +36,7 @@ describe :array_pack_basic_non_float, shared: true do
     # additional directive ('a') is required for the X directive
     # Exact error class depends on caller, both SpecFailedException and ArgumentError have been seen
     -> { [@obj, @obj].pack("a R" + pack_format) }.should raise_error(ArgumentError, /unknown pack directive 'R'/)
-    NATFIXME 'tokenizer treats digits after whitespace as count modifiers', exception: SpecFailedException do
-      -> { [@obj, @obj].pack("a 0" + pack_format) }.should raise_error(ArgumentError, /unknown pack directive '0'/)
-    end
+    -> { [@obj, @obj].pack("a 0" + pack_format) }.should raise_error(ArgumentError, /unknown pack directive '0'/)
     -> { [@obj, @obj].pack("a :" + pack_format) }.should raise_error(ArgumentError, /unknown pack directive ':'/)
 
   end

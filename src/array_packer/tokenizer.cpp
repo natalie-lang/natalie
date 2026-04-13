@@ -85,7 +85,7 @@ namespace ArrayPacker {
         if (m_index >= m_directives.length())
             return 0;
         m_index++;
-        return current_char();
+        return char_at_index(m_index);
     }
 
     signed char Tokenizer::current_char() {
