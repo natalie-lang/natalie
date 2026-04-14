@@ -81,11 +81,13 @@ private:
     EconvResult m_last_result { EconvResult::SourceBufferEmpty };
     String m_error_bytes {};
     String m_readagain_bytes {};
+    nat_int_t m_error_codepoint { -1 };
 
     // Core conversion engine
     EconvResult do_convert(
+        Env *env,
         const String &input, size_t *input_pos,
-        String *output, size_t max_output,
+        String *output,
         int convert_flags);
 
     void set_default_replacement();

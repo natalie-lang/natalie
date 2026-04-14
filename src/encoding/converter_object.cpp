@@ -104,13 +104,47 @@ Value EncodingConverterObject::set_replacement(Env *env, Value str) {
 }
 
 Value EncodingConverterObject::convert(Env *env, Value source) {
-    // TODO: implement using do_convert
-    env->raise("NotImplementedError", "Encoding::Converter#convert is not yet implemented");
+    if (m_finished)
+        env->raise("ArgumentError", "converter already finished");
+
+    auto source_str = source.to_str(env);
+    String input = source_str->string();
+    String output;
+    size_t input_pos = 0;
+
+    auto result = do_convert(env, input, &input_pos, &output, ECONV_PARTIAL_INPUT);
+
+    switch (result) {
+    case EconvResult::SourceBufferEmpty:
+    case EconvResult::Finished:
+        break;
+    case EconvResult::UndefinedConversion: {
+        auto EncodingClass = find_top_level_const(env, "Encoding"_s);
+        auto message = StringObject::format(
+            "U+{} from {} to {}",
+            String::hex(m_error_codepoint, String::HexFormat::Uppercase),
+            m_source_encoding->name()->string(),
+            m_destination_encoding->name()->string());
+        env->raise(Object::const_find(env, EncodingClass, "UndefinedConversionError"_s)->as_class(), message);
+        break;
+    }
+    case EconvResult::InvalidByteSequence: {
+        auto EncodingClass = find_top_level_const(env, "Encoding"_s);
+        env->raise(Object::const_find(env, EncodingClass, "InvalidByteSequenceError"_s)->as_class(),
+            "invalid byte sequence in {}", m_source_encoding->name()->string());
+        break;
+    }
+    default:
+        break;
+    }
+
+    m_started = true;
+    return StringObject::create(output.c_str(), output.length(), m_destination_encoding);
 }
 
 Value EncodingConverterObject::finish(Env *env) {
-    // TODO: implement
-    env->raise("NotImplementedError", "Encoding::Converter#finish is not yet implemented");
+    m_finished = true;
+    return StringObject::create("", m_destination_encoding);
 }
 
 Value EncodingConverterObject::primitive_convert(Env *env, Args &&args) {
@@ -154,11 +188,61 @@ Value EncodingConverterObject::search_convpath(Env *env, Args &&args) {
 }
 
 EconvResult EncodingConverterObject::do_convert(
+    Env *env,
     const String &input, size_t *input_pos,
-    String *output, size_t max_output,
+    String *output,
     int convert_flags) {
-    // TODO: implement core conversion engine
-    return EconvResult::Finished;
+
+    m_error_bytes = String();
+    m_error_codepoint = -1;
+
+    while (*input_pos < input.length()) {
+        auto [valid, length, codepoint] = m_source_encoding->next_codepoint(input, input_pos);
+
+        if (length == 0)
+            break;
+
+        if (!valid || codepoint < 0) {
+            if (m_flags & ECONV_INVALID_REPLACE) {
+                output->append(m_replacement_str->string());
+                continue;
+            }
+            m_error_bytes = input.substring(*input_pos - length, length);
+            m_last_result = EconvResult::InvalidByteSequence;
+            return m_last_result;
+        }
+
+        auto unicode_codepoint = m_source_encoding->to_unicode_codepoint(codepoint);
+        if (unicode_codepoint < 0) {
+            if (m_flags & ECONV_UNDEF_REPLACE) {
+                output->append(m_replacement_str->string());
+                continue;
+            }
+            m_error_codepoint = codepoint;
+            m_last_result = EconvResult::UndefinedConversion;
+            return m_last_result;
+        }
+
+        auto dest_codepoint = m_destination_encoding->from_unicode_codepoint(unicode_codepoint);
+        if (dest_codepoint < 0) {
+            if (m_flags & ECONV_UNDEF_REPLACE) {
+                output->append(m_replacement_str->string());
+                continue;
+            }
+            m_error_codepoint = unicode_codepoint;
+            m_last_result = EconvResult::UndefinedConversion;
+            return m_last_result;
+        }
+
+        output->append(m_destination_encoding->encode_codepoint(dest_codepoint));
+    }
+
+    if (convert_flags & ECONV_PARTIAL_INPUT) {
+        m_last_result = EconvResult::SourceBufferEmpty;
+    } else {
+        m_last_result = EconvResult::Finished;
+    }
+    return m_last_result;
 }
 
 }
