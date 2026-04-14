@@ -409,13 +409,17 @@ Value EncodingConverterObject::insert_output(Env *env, Value str) {
 }
 
 Value EncodingConverterObject::asciicompat_encoding(Env *env, Value encoding) {
-    auto enc = EncodingObject::find(env, encoding);
-    if (enc.is_nil())
-        return Value::nil();
-    auto enc_obj = enc.as_encoding();
+    EncodingObject *enc_obj;
+    if (encoding.is_encoding()) {
+        enc_obj = encoding.as_encoding();
+    } else {
+        auto name = encoding.to_str(env)->string();
+        enc_obj = EncodingObject::find_encoding_by_name(env, name);
+        if (!enc_obj)
+            return Value::nil();
+    }
     if (enc_obj->is_ascii_compatible())
         return Value::nil();
-    // For ASCII-incompatible encodings, return UTF-8 as the compatible encoding
     return EncodingObject::get(Encoding::UTF_8);
 }
 

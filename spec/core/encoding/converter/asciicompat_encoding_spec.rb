@@ -7,11 +7,9 @@ describe "Encoding::Converter.asciicompat_encoding" do
   end
 
   it "coerces non-String/Encoding objects with #to_str" do
-    NATFIXME 'EncodingObject::find does not call to_str', exception: ArgumentError do
-      str = mock('string')
-      str.should_receive(:to_str).at_least(1).times.and_return('string')
-      Encoding::Converter.asciicompat_encoding(str)
-    end
+    str = mock('string')
+    str.should_receive(:to_str).at_least(1).times.and_return('string')
+    Encoding::Converter.asciicompat_encoding(str)
   end
 
   it "accepts an Encoding object as an argument" do
