@@ -76,22 +76,29 @@ private:
 
     // Internal buffer for streaming conversion
     String m_input_buffer {};
+    String m_output_buffer {};
 
     // Error state
     EconvResult m_last_result { EconvResult::SourceBufferEmpty };
     String m_error_bytes {};
     String m_readagain_bytes {};
+    String m_last_readagain_bytes {};
     nat_int_t m_error_codepoint { -1 };
+    String m_error_source_encoding_name {};
+    String m_error_dest_encoding_name {};
 
     // Core conversion engine
     EconvResult do_convert(
         Env *env,
         const String &input, size_t *input_pos,
         String *output,
-        int convert_flags);
+        int convert_flags,
+        ssize_t max_output = -1);
 
     void set_default_replacement();
     void apply_options_hash(Env *, HashObject *);
+    void set_error_encoding_names_for_decode();
+    void set_error_encoding_names_for_encode();
     static Value result_to_symbol(EconvResult result);
 };
 

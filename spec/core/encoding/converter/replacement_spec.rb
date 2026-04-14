@@ -44,7 +44,7 @@ describe "Encoding::Converter#replacement=" do
   end
 
   it "raises an UndefinedConversionError is the argument cannot be converted into the destination encoding" do
-    NATFIXME 'primitive_convert not yet implemented', exception: NotImplementedError do
+    NATFIXME 'replacement= should validate against destination encoding', exception: SpecFailedException do
       ec = Encoding::Converter.new("sjis", "ascii")
       utf8_q = "\u{986}".dup.force_encoding('utf-8')
       ec.primitive_convert(utf8_q.dup, +"").should == :undefined_conversion
@@ -54,7 +54,7 @@ describe "Encoding::Converter#replacement=" do
   end
 
   it "does not change the replacement character if the argument cannot be converted into the destination encoding" do
-    NATFIXME 'primitive_convert not yet implemented', exception: NotImplementedError do
+    NATFIXME 'replacement= should validate against destination encoding', exception: SpecFailedException do
       ec = Encoding::Converter.new("sjis", "ascii")
       utf8_q = "\u{986}".dup.force_encoding('utf-8')
       ec.primitive_convert(utf8_q.dup, +"").should == :undefined_conversion
@@ -65,14 +65,12 @@ describe "Encoding::Converter#replacement=" do
   end
 
   it "uses the replacement character" do
-    NATFIXME 'primitive_convert not yet implemented', exception: NotImplementedError do
-      ec = Encoding::Converter.new("utf-8", "us-ascii", :invalid => :replace, :undef => :replace)
-      ec.replacement = "!"
-      dest = +""
-      status = ec.primitive_convert(+"中文123", dest)
+    ec = Encoding::Converter.new("utf-8", "us-ascii", :invalid => :replace, :undef => :replace)
+    ec.replacement = "!"
+    dest = +""
+    status = ec.primitive_convert(+"中文123", dest)
 
-      status.should == :finished
-      dest.should == "!!123"
-    end
+    status.should == :finished
+    dest.should == "!!123"
   end
 end

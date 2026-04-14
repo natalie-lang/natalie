@@ -90,8 +90,8 @@ void EncodingConverterObject::apply_options_hash(Env *env, HashObject *hash) {
 Value EncodingConverterObject::inspect(Env *env) const {
     return StringObject::format(
         "#<Encoding::Converter: {} to {}>",
-        m_source_encoding->name()->string(),
-        m_destination_encoding->name()->string());
+        m_source_encoding->name_string(),
+        m_destination_encoding->name_string());
 }
 
 Value EncodingConverterObject::replacement(Env *env) const {
@@ -108,30 +108,37 @@ Value EncodingConverterObject::convert(Env *env, Value source) {
         env->raise("ArgumentError", "converter already finished");
 
     auto source_str = source.to_str(env);
-    String input = source_str->string();
+    String input;
+    if (!m_input_buffer.is_empty()) {
+        input.append(m_input_buffer);
+        m_input_buffer = String();
+    }
+    input.append(source_str->string());
     String output;
     size_t input_pos = 0;
 
     auto result = do_convert(env, input, &input_pos, &output, ECONV_PARTIAL_INPUT);
+
+    // Buffer incomplete bytes for next call
+    if (result == EconvResult::SourceBufferEmpty && !m_error_bytes.is_empty())
+        m_input_buffer = m_error_bytes;
 
     switch (result) {
     case EconvResult::SourceBufferEmpty:
     case EconvResult::Finished:
         break;
     case EconvResult::UndefinedConversion: {
-        auto EncodingClass = find_top_level_const(env, "Encoding"_s);
         auto message = StringObject::format(
             "U+{} from {} to {}",
             String::hex(m_error_codepoint, String::HexFormat::Uppercase),
-            m_source_encoding->name()->string(),
-            m_destination_encoding->name()->string());
-        env->raise(Object::const_find(env, EncodingClass, "UndefinedConversionError"_s)->as_class(), message);
+            m_source_encoding->name_string(),
+            m_destination_encoding->name_string());
+        env->raise(fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class(), message);
         break;
     }
     case EconvResult::InvalidByteSequence: {
-        auto EncodingClass = find_top_level_const(env, "Encoding"_s);
-        env->raise(Object::const_find(env, EncodingClass, "InvalidByteSequenceError"_s)->as_class(),
-            "invalid byte sequence in {}", m_source_encoding->name()->string());
+        env->raise(fetch_nested_const({ "Encoding"_s, "InvalidByteSequenceError"_s }).as_class(),
+            "invalid byte sequence in {}", m_source_encoding->name_string());
         break;
     }
     default:
@@ -139,22 +146,140 @@ Value EncodingConverterObject::convert(Env *env, Value source) {
     }
 
     m_started = true;
-    return StringObject::create(output.c_str(), output.length(), m_destination_encoding);
+    return StringObject::create(std::move(output), m_destination_encoding);
 }
 
 Value EncodingConverterObject::finish(Env *env) {
     m_finished = true;
+
+    if (!m_input_buffer.is_empty()) {
+        String output;
+        size_t input_pos = 0;
+        auto result = do_convert(env, m_input_buffer, &input_pos, &output, 0);
+        m_input_buffer = String();
+
+        if (result == EconvResult::IncompleteInput) {
+            env->raise(fetch_nested_const({ "Encoding"_s, "InvalidByteSequenceError"_s }).as_class(),
+                "incomplete byte sequence on {}", m_source_encoding->name_string());
+        }
+
+        if (!output.is_empty())
+            return StringObject::create(std::move(output), m_destination_encoding);
+    }
+
     return StringObject::create("", m_destination_encoding);
 }
 
 Value EncodingConverterObject::primitive_convert(Env *env, Args &&args) {
-    // TODO: implement
-    env->raise("NotImplementedError", "Encoding::Converter#primitive_convert is not yet implemented");
+    auto kwargs = args.pop_keyword_hash();
+    args.ensure_argc_between(env, 2, 4);
+
+    Value source_val = args.at(0);
+    auto dest_str = args.at(1).to_str(env);
+
+    if (dest_str->is_frozen())
+        env->raise("FrozenError", "can't modify frozen String: \"{}\"", dest_str->string());
+
+    nat_int_t dest_offset = -1;
+    if (args.size() > 2 && !args.at(2).is_nil())
+        dest_offset = IntegerMethods::convert_to_nat_int_t(env, args.at(2));
+
+    ssize_t max_output = -1;
+    if (args.size() > 3 && !args.at(3).is_nil())
+        max_output = IntegerMethods::convert_to_nat_int_t(env, args.at(3));
+
+    int convert_flags = 0;
+    if (kwargs) {
+        auto partial = kwargs->remove(env, "partial_input"_s);
+        if (partial && partial->is_truthy())
+            convert_flags |= ECONV_PARTIAL_INPUT;
+        auto after = kwargs->remove(env, "after_output"_s);
+        if (after && after->is_truthy())
+            convert_flags |= ECONV_AFTER_OUTPUT;
+    }
+
+    if (dest_offset >= 0) {
+        if ((size_t)dest_offset > dest_str->bytesize())
+            env->raise("ArgumentError", "destination byteoffset is too big");
+        dest_str->truncate(dest_offset);
+    }
+
+    // Build effective input: prepend read-again bytes from previous call
+    String input;
+    StringObject *source_str = nullptr;
+    size_t readagain_prepended = m_readagain_bytes.length();
+    if (readagain_prepended > 0) {
+        input.append(m_readagain_bytes);
+        m_readagain_bytes = String();
+    }
+
+    if (!source_val.is_nil()) {
+        source_str = source_val.to_str(env);
+        input.append(source_str->string());
+    }
+
+    // Flush any buffered output from previous call
+    String output;
+    if (!m_output_buffer.is_empty()) {
+        output.append(m_output_buffer);
+        m_output_buffer = String();
+    }
+
+    size_t input_pos = 0;
+    auto result = do_convert(env, input, &input_pos, &output, convert_flags, max_output);
+
+    // Update source buffer: remove consumed bytes
+    if (source_str) {
+        size_t consumed_from_source;
+        if (input_pos > readagain_prepended)
+            consumed_from_source = input_pos - readagain_prepended;
+        else
+            consumed_from_source = 0;
+        if (consumed_from_source >= source_str->length())
+            source_str->truncate(0);
+        else
+            source_str->set_str(source_str->string().substring(consumed_from_source));
+    }
+
+    // Write output to destination buffer
+    if (max_output >= 0 && (ssize_t)output.length() > max_output) {
+        // Buffer overflow: write what fits, buffer the rest
+        dest_str->append(output.substring(0, max_output));
+        m_output_buffer = output.substring(max_output);
+    } else {
+        dest_str->append(output);
+    }
+    dest_str->set_encoding(m_destination_encoding);
+
+    m_started = true;
+    return result_to_symbol(result);
 }
 
 Value EncodingConverterObject::primitive_errinfo(Env *env) const {
-    // TODO: implement
-    env->raise("NotImplementedError", "Encoding::Converter#primitive_errinfo is not yet implemented");
+    auto result_sym = result_to_symbol(m_last_result);
+    auto ary = ArrayObject::create();
+
+    ary->push(result_sym);
+
+    switch (m_last_result) {
+    case EconvResult::InvalidByteSequence:
+    case EconvResult::UndefinedConversion:
+    case EconvResult::IncompleteInput: {
+        ary->push(StringObject::create(m_error_source_encoding_name, Encoding::US_ASCII));
+        ary->push(StringObject::create(m_error_dest_encoding_name, Encoding::US_ASCII));
+        ary->push(StringObject::create(m_error_bytes, Encoding::ASCII_8BIT));
+        ary->push(StringObject::create(m_last_readagain_bytes, Encoding::ASCII_8BIT));
+        break;
+    }
+    default:
+        ary->push(Value::nil());
+        ary->push(Value::nil());
+        ary->push(Value::nil());
+        ary->push(Value::nil());
+        break;
+    }
+
+    return ary;
 }
 
 Value EncodingConverterObject::convpath(Env *env) const {
@@ -163,8 +288,21 @@ Value EncodingConverterObject::convpath(Env *env) const {
 }
 
 Value EncodingConverterObject::putback(Env *env, Optional<Value> max_bytes) {
-    // TODO: implement
-    env->raise("NotImplementedError", "Encoding::Converter#putback is not yet implemented");
+    size_t n = m_readagain_bytes.length();
+    if (max_bytes && !max_bytes.value().is_nil()) {
+        size_t limit = IntegerMethods::convert_to_nat_int_t(env, max_bytes.value());
+        if (limit < n) n = limit;
+    }
+
+    if (n == 0)
+        return StringObject::create("", m_source_encoding);
+
+    auto result = StringObject::create(m_readagain_bytes.c_str(), n, m_source_encoding);
+    if (n >= m_readagain_bytes.length())
+        m_readagain_bytes = String();
+    else
+        m_readagain_bytes = m_readagain_bytes.substring(n);
+    return result;
 }
 
 Value EncodingConverterObject::last_error(Env *env) const {
@@ -187,27 +325,80 @@ Value EncodingConverterObject::search_convpath(Env *env, Args &&args) {
     env->raise("NotImplementedError", "Encoding::Converter.search_convpath is not yet implemented");
 }
 
+void EncodingConverterObject::set_error_encoding_names_for_decode() {
+    m_error_source_encoding_name = m_source_encoding->name_string();
+    if (m_source_encoding->num() == Encoding::UTF_8)
+        m_error_dest_encoding_name = m_destination_encoding->name_string();
+    else
+        m_error_dest_encoding_name = String("UTF-8");
+}
+
+void EncodingConverterObject::set_error_encoding_names_for_encode() {
+    if (m_source_encoding->num() == Encoding::UTF_8)
+        m_error_source_encoding_name = m_source_encoding->name_string();
+    else
+        m_error_source_encoding_name = String("UTF-8");
+    m_error_dest_encoding_name = m_destination_encoding->name_string();
+}
+
 EconvResult EncodingConverterObject::do_convert(
     Env *env,
     const String &input, size_t *input_pos,
     String *output,
-    int convert_flags) {
+    int convert_flags,
+    ssize_t max_output) {
 
     m_error_bytes = String();
+    m_readagain_bytes = String();
+    m_last_readagain_bytes = String();
     m_error_codepoint = -1;
+    m_error_source_encoding_name = String();
+    m_error_dest_encoding_name = String();
 
     while (*input_pos < input.length()) {
+        auto start_pos = *input_pos;
         auto [valid, length, codepoint] = m_source_encoding->next_codepoint(input, input_pos);
 
         if (length == 0)
             break;
 
         if (!valid || codepoint < 0) {
+            int expected = m_source_encoding->expected_byte_count(input, start_pos);
+
+            // Determine if this is incomplete input or an invalid byte sequence
+            if (expected > length && *input_pos >= input.length()) {
+                // Truncated: ran out of input bytes
+                m_error_bytes = input.substring(start_pos, length);
+                set_error_encoding_names_for_decode();
+                if (convert_flags & ECONV_PARTIAL_INPUT) {
+                    m_last_result = EconvResult::SourceBufferEmpty;
+                    return m_last_result;
+                }
+                if (m_flags & ECONV_INVALID_REPLACE) {
+                    output->append(m_replacement_str->string());
+                    continue;
+                }
+                m_last_result = EconvResult::IncompleteInput;
+                return m_last_result;
+            }
+
+            // Invalid byte sequence
+            m_error_bytes = input.substring(start_pos, length);
+            set_error_encoding_names_for_decode();
+
+            // Detect read-again bytes: if the lead byte expected more bytes
+            // and a non-continuation byte at input_pos caused the error
+            int unit_size = m_source_encoding->code_unit_size();
+            if (expected > unit_size && length < expected && *input_pos + unit_size <= input.length()) {
+                m_readagain_bytes = input.substring(*input_pos, unit_size);
+                m_last_readagain_bytes = m_readagain_bytes;
+                (*input_pos) += unit_size;
+            }
+
             if (m_flags & ECONV_INVALID_REPLACE) {
                 output->append(m_replacement_str->string());
                 continue;
             }
-            m_error_bytes = input.substring(*input_pos - length, length);
             m_last_result = EconvResult::InvalidByteSequence;
             return m_last_result;
         }
@@ -218,7 +409,9 @@ EconvResult EncodingConverterObject::do_convert(
                 output->append(m_replacement_str->string());
                 continue;
             }
+            m_error_bytes = input.substring(start_pos, length);
             m_error_codepoint = codepoint;
+            set_error_encoding_names_for_decode();
             m_last_result = EconvResult::UndefinedConversion;
             return m_last_result;
         }
@@ -229,12 +422,29 @@ EconvResult EncodingConverterObject::do_convert(
                 output->append(m_replacement_str->string());
                 continue;
             }
+            m_error_bytes = input.substring(start_pos, length);
             m_error_codepoint = unicode_codepoint;
+            set_error_encoding_names_for_encode();
             m_last_result = EconvResult::UndefinedConversion;
             return m_last_result;
         }
 
-        output->append(m_destination_encoding->encode_codepoint(dest_codepoint));
+        auto encoded = m_destination_encoding->encode_codepoint(dest_codepoint);
+
+        // Check destination buffer size limit
+        if (max_output >= 0 && (ssize_t)(output->length() + encoded.length()) > max_output) {
+            m_last_result = EconvResult::DestinationBufferFull;
+            // Buffer the encoded output for next call
+            m_output_buffer.append(encoded);
+            return m_last_result;
+        }
+
+        output->append(encoded);
+
+        if (convert_flags & ECONV_AFTER_OUTPUT) {
+            m_last_result = EconvResult::AfterOutput;
+            return m_last_result;
+        }
     }
 
     if (convert_flags & ECONV_PARTIAL_INPUT) {
