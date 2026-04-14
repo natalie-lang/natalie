@@ -29,31 +29,62 @@ void EncodingConverterObject::set_default_replacement() {
         m_replacement_str = StringObject::create("?", Encoding::US_ASCII);
 }
 
-Value EncodingConverterObject::initialize(Env *env, Value source, Value destination, Optional<Value> flags_or_options) {
-    auto find_encoding = [&](Value val) -> EncodingObject * {
-        if (val.is_encoding())
-            return val.as_encoding();
-        auto name = val.to_str(env)->string();
-        auto enc = EncodingObject::find_encoding_by_name(env, name);
-        if (!enc)
-            env->raise("ArgumentError", "unknown encoding name - {}", name);
-        return enc;
-    };
+Value EncodingConverterObject::initialize(Env *env, Args &&args) {
+    auto kwargs = args.pop_keyword_hash();
 
-    m_source_encoding = find_encoding(source);
-    m_destination_encoding = find_encoding(destination);
+    args.ensure_argc_between(env, 2, 3);
 
-    if (flags_or_options) {
-        auto val = flags_or_options.value();
-        if (val.is_integer()) {
+    m_source_encoding = EncodingObject::find(env, args.at(0)).as_encoding();
+    m_destination_encoding = EncodingObject::find(env, args.at(1)).as_encoding();
+
+    if (args.size() > 2) {
+        auto val = args.at(2);
+        if (val.is_integer())
             m_flags = val.integer_or_raise(env).to_nat_int_t();
-        } else if (val.is_hash()) {
-            // TODO: parse options hash
-        }
+        else
+            apply_options_hash(env, val.to_hash(env));
     }
 
-    set_default_replacement();
+    if (kwargs)
+        apply_options_hash(env, kwargs);
+
+    if (!m_replacement_str)
+        set_default_replacement();
     return this;
+}
+
+void EncodingConverterObject::apply_options_hash(Env *env, HashObject *hash) {
+    auto invalid = hash->remove(env, "invalid"_s);
+    if (invalid && invalid.value() == "replace"_s)
+        m_flags |= ECONV_INVALID_REPLACE;
+
+    auto undef = hash->remove(env, "undef"_s);
+    if (undef && undef.value() == "replace"_s)
+        m_flags |= ECONV_UNDEF_REPLACE;
+
+    auto replace = hash->remove(env, "replace"_s);
+    if (replace && !replace->is_nil())
+        m_replacement_str = replace->to_str(env);
+
+    auto newline = hash->remove(env, "newline"_s);
+    if (newline) {
+        if (newline.value() == "universal"_s)
+            m_flags |= ECONV_UNIVERSAL_NEWLINE_DECORATOR;
+        else if (newline.value() == "crlf"_s)
+            m_flags |= ECONV_CRLF_NEWLINE_DECORATOR;
+        else if (newline.value() == "cr"_s)
+            m_flags |= ECONV_CR_NEWLINE_DECORATOR;
+        else if (newline.value() == "lf"_s)
+            m_flags |= ECONV_LF_NEWLINE_DECORATOR;
+    }
+
+    auto xml = hash->remove(env, "xml"_s);
+    if (xml) {
+        if (xml.value() == "text"_s)
+            m_flags |= ECONV_XML_TEXT_DECORATOR;
+        else if (xml.value() == "attr"_s)
+            m_flags |= ECONV_XML_ATTR_CONTENT_DECORATOR;
+    }
 }
 
 Value EncodingConverterObject::inspect(Env *env) const {

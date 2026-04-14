@@ -516,7 +516,7 @@ gen.binding('Encoding', 'inspect', 'EncodingObject', 'inspect', argc: 0, pass_en
 gen.binding('Encoding', 'names', 'EncodingObject', 'names', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Encoding', 'to_s', 'EncodingObject', 'name', argc: 0, pass_env: true, pass_block: false, aliases: ['name'], return_type: :Value)
 
-gen.binding('Encoding::Converter', 'initialize', 'EncodingConverterObject', 'initialize', argc: 2..3, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Encoding::Converter', 'initialize', 'EncodingConverterObject', 'initialize', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Encoding::Converter', 'convert', 'EncodingConverterObject', 'convert', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Encoding::Converter', 'finish', 'EncodingConverterObject', 'finish', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Encoding::Converter', 'inspect', 'EncodingConverterObject', 'inspect', argc: 0, pass_env: true, pass_block: false, aliases: ['to_s'], return_type: :Value)

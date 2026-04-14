@@ -7,6 +7,18 @@
 
 namespace Natalie {
 
+// Flag constants matching Encoding::Converter Ruby constants
+constexpr int ECONV_INVALID_REPLACE = 0x2;
+constexpr int ECONV_UNDEF_REPLACE = 0x20;
+constexpr int ECONV_UNIVERSAL_NEWLINE_DECORATOR = 0x100;
+constexpr int ECONV_CRLF_NEWLINE_DECORATOR = 0x1000;
+constexpr int ECONV_CR_NEWLINE_DECORATOR = 0x2000;
+constexpr int ECONV_LF_NEWLINE_DECORATOR = 0x4000;
+constexpr int ECONV_XML_TEXT_DECORATOR = 0x8000;
+constexpr int ECONV_XML_ATTR_CONTENT_DECORATOR = 0x10000;
+constexpr int ECONV_PARTIAL_INPUT = 0x20000;
+constexpr int ECONV_AFTER_OUTPUT = 0x40000;
+
 enum class EconvResult {
     InvalidByteSequence,
     UndefinedConversion,
@@ -22,7 +34,7 @@ public:
     EncodingConverterObject(ClassObject *klass)
         : Object { Object::Type::EncodingConverter, klass } { }
 
-    Value initialize(Env *, Value, Value, Optional<Value> = {});
+    Value initialize(Env *, Args &&);
     Value convert(Env *, Value);
     Value finish(Env *);
     Value inspect(Env *) const;
@@ -77,6 +89,7 @@ private:
         int convert_flags);
 
     void set_default_replacement();
+    void apply_options_hash(Env *, HashObject *);
     static Value result_to_symbol(EconvResult result);
 };
 
