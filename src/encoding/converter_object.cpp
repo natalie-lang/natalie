@@ -85,6 +85,22 @@ void EncodingConverterObject::apply_options_hash(Env *env, HashObject *hash) {
         else if (xml.value() == "attr"_s)
             m_flags |= ECONV_XML_ATTR_CONTENT_DECORATOR;
     }
+
+    auto universal_newline = hash->remove(env, "universal_newline"_s);
+    if (universal_newline && universal_newline->is_truthy())
+        m_flags |= ECONV_UNIVERSAL_NEWLINE_DECORATOR;
+
+    auto crlf_newline = hash->remove(env, "crlf_newline"_s);
+    if (crlf_newline && crlf_newline->is_truthy())
+        m_flags |= ECONV_CRLF_NEWLINE_DECORATOR;
+
+    auto cr_newline = hash->remove(env, "cr_newline"_s);
+    if (cr_newline && cr_newline->is_truthy())
+        m_flags |= ECONV_CR_NEWLINE_DECORATOR;
+
+    auto lf_newline = hash->remove(env, "lf_newline"_s);
+    if (lf_newline && lf_newline->is_truthy())
+        m_flags |= ECONV_LF_NEWLINE_DECORATOR;
 }
 
 Value EncodingConverterObject::inspect(Env *env) const {
@@ -283,8 +299,32 @@ Value EncodingConverterObject::primitive_errinfo(Env *env) const {
 }
 
 Value EncodingConverterObject::convpath(Env *env) const {
-    // TODO: implement
-    env->raise("NotImplementedError", "Encoding::Converter#convpath is not yet implemented");
+    auto ary = ArrayObject::create();
+    bool source_is_utf8 = (m_source_encoding->num() == Encoding::UTF_8);
+    bool dest_is_utf8 = (m_destination_encoding->num() == Encoding::UTF_8);
+
+    if (source_is_utf8 || dest_is_utf8 || m_source_encoding == m_destination_encoding) {
+        ary->push(ArrayObject::create({ m_source_encoding, m_destination_encoding }));
+    } else {
+        auto utf8 = EncodingObject::get(Encoding::UTF_8);
+        ary->push(ArrayObject::create({ m_source_encoding, utf8 }));
+        ary->push(ArrayObject::create({ utf8, m_destination_encoding }));
+    }
+
+    if (m_flags & ECONV_UNIVERSAL_NEWLINE_DECORATOR)
+        ary->push(StringObject::create("universal_newline", Encoding::US_ASCII));
+    if (m_flags & ECONV_CRLF_NEWLINE_DECORATOR)
+        ary->push(StringObject::create("crlf_newline", Encoding::US_ASCII));
+    if (m_flags & ECONV_CR_NEWLINE_DECORATOR)
+        ary->push(StringObject::create("cr_newline", Encoding::US_ASCII));
+    if (m_flags & ECONV_LF_NEWLINE_DECORATOR)
+        ary->push(StringObject::create("lf_newline", Encoding::US_ASCII));
+    if (m_flags & ECONV_XML_TEXT_DECORATOR)
+        ary->push(StringObject::create("xml_text_escape", Encoding::US_ASCII));
+    if (m_flags & ECONV_XML_ATTR_CONTENT_DECORATOR)
+        ary->push(StringObject::create("xml_attr_content_escape", Encoding::US_ASCII));
+
+    return ary;
 }
 
 Value EncodingConverterObject::putback(Env *env, Optional<Value> max_bytes) {
@@ -306,8 +346,29 @@ Value EncodingConverterObject::putback(Env *env, Optional<Value> max_bytes) {
 }
 
 Value EncodingConverterObject::last_error(Env *env) const {
-    // TODO: implement
-    env->raise("NotImplementedError", "Encoding::Converter#last_error is not yet implemented");
+    switch (m_last_result) {
+    case EconvResult::InvalidByteSequence: {
+        auto klass = fetch_nested_const({ "Encoding"_s, "InvalidByteSequenceError"_s }).as_class();
+        auto message = StringObject::format("invalid byte sequence in {}", m_error_source_encoding_name);
+        return ExceptionObject::create(klass, message);
+    }
+    case EconvResult::IncompleteInput: {
+        auto klass = fetch_nested_const({ "Encoding"_s, "InvalidByteSequenceError"_s }).as_class();
+        auto message = StringObject::format("incomplete byte sequence on {}", m_error_source_encoding_name);
+        return ExceptionObject::create(klass, message);
+    }
+    case EconvResult::UndefinedConversion: {
+        auto klass = fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class();
+        auto message = StringObject::format(
+            "U+{} from {} to {}",
+            String::hex(m_error_codepoint, String::HexFormat::Uppercase),
+            m_error_source_encoding_name,
+            m_error_dest_encoding_name);
+        return ExceptionObject::create(klass, message);
+    }
+    default:
+        return Value::nil();
+    }
 }
 
 Value EncodingConverterObject::insert_output(Env *env, Value str) {
