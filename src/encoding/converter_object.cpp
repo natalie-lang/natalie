@@ -376,8 +376,36 @@ Value EncodingConverterObject::last_error(Env *env) const {
 }
 
 Value EncodingConverterObject::insert_output(Env *env, Value str) {
-    // TODO: implement
-    env->raise("NotImplementedError", "Encoding::Converter#insert_output is not yet implemented");
+    auto s = str.to_str(env);
+    auto input = s->string();
+    String output;
+    size_t input_pos = 0;
+
+    auto source_enc = s->encoding();
+    if (source_enc != m_destination_encoding) {
+        // Need to transcode the input to destination encoding
+        while (input_pos < input.length()) {
+            auto [valid, length, codepoint] = source_enc->next_codepoint(input, &input_pos);
+            if (length == 0) break;
+            if (!valid || codepoint < 0)
+                env->raise(fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class(),
+                    "insert_output: invalid byte sequence");
+            auto unicode_cp = source_enc->to_unicode_codepoint(codepoint);
+            if (unicode_cp < 0)
+                env->raise(fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class(),
+                    "insert_output: undefined conversion");
+            auto dest_cp = m_destination_encoding->from_unicode_codepoint(unicode_cp);
+            if (dest_cp < 0)
+                env->raise(fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class(),
+                    "insert_output: undefined conversion");
+            output.append(m_destination_encoding->encode_codepoint(dest_cp));
+        }
+    } else {
+        output = input;
+    }
+
+    m_output_buffer.append(output);
+    return Value::nil();
 }
 
 Value EncodingConverterObject::asciicompat_encoding(Env *env, Value encoding) {
