@@ -37,6 +37,10 @@ Value EncodingConverterObject::initialize(Env *env, Args &&args) {
     m_source_encoding = EncodingObject::find(env, args.at(0)).as_encoding();
     m_destination_encoding = EncodingObject::find(env, args.at(1)).as_encoding();
 
+    if (m_source_encoding == m_destination_encoding)
+        env->raise(fetch_nested_const({ "Encoding"_s, "ConverterNotFoundError"_s }).as_class(),
+            "code converter not found ({} to {})", m_source_encoding->name_string(), m_destination_encoding->name_string());
+
     if (args.size() > 2) {
         auto val = args.at(2);
         if (val.is_integer())

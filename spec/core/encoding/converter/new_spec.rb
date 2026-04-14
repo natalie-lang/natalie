@@ -23,11 +23,9 @@ describe "Encoding::Converter.new" do
   end
 
   it "raises an Encoding::ConverterNotFoundError if both encodings are the same" do
-    NATFIXME 'should raise for same encoding', exception: SpecFailedException do
-      -> do
-        Encoding::Converter.new "utf-8", "utf-8"
-      end.should raise_error(Encoding::ConverterNotFoundError)
-    end
+    -> do
+      Encoding::Converter.new "utf-8", "utf-8"
+    end.should raise_error(Encoding::ConverterNotFoundError)
   end
 
   it "calls #to_str to convert the source encoding argument to an encoding name" do
