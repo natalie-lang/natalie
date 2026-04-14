@@ -242,6 +242,11 @@ ThreadObject *ThreadObject::initialize(Env *env, Args &&args, Block *block) {
 
     m_block = block;
 
+    // Clear the block's calling_env before the child thread starts, so
+    // non_block_env() inside the thread does not walk into the env of the
+    // parent and leak per-thread state like $~.
+    block->clear_calling_env();
+
     m_file = env->file();
     m_line = env->line();
 
