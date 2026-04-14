@@ -377,13 +377,61 @@ Value EncodingConverterObject::insert_output(Env *env, Value str) {
 }
 
 Value EncodingConverterObject::asciicompat_encoding(Env *env, Value encoding) {
-    // TODO: implement
-    env->raise("NotImplementedError", "Encoding::Converter.asciicompat_encoding is not yet implemented");
+    auto enc = EncodingObject::find(env, encoding);
+    if (enc.is_nil())
+        return Value::nil();
+    auto enc_obj = enc.as_encoding();
+    if (enc_obj->is_ascii_compatible())
+        return Value::nil();
+    // For ASCII-incompatible encodings, return UTF-8 as the compatible encoding
+    return EncodingObject::get(Encoding::UTF_8);
 }
 
 Value EncodingConverterObject::search_convpath(Env *env, Args &&args) {
-    // TODO: implement
-    env->raise("NotImplementedError", "Encoding::Converter.search_convpath is not yet implemented");
+    auto kwargs = args.pop_keyword_hash();
+    args.ensure_argc_is(env, 2);
+
+    auto source = EncodingObject::find(env, args.at(0)).as_encoding();
+    auto dest = EncodingObject::find(env, args.at(1)).as_encoding();
+
+    int flags = 0;
+    if (kwargs) {
+        auto crlf = kwargs->remove(env, "crlf_newline"_s);
+        if (crlf && crlf->is_truthy())
+            flags |= ECONV_CRLF_NEWLINE_DECORATOR;
+        auto universal = kwargs->remove(env, "universal_newline"_s);
+        if (universal && universal->is_truthy())
+            flags |= ECONV_UNIVERSAL_NEWLINE_DECORATOR;
+        auto cr = kwargs->remove(env, "cr_newline"_s);
+        if (cr && cr->is_truthy())
+            flags |= ECONV_CR_NEWLINE_DECORATOR;
+        auto lf = kwargs->remove(env, "lf_newline"_s);
+        if (lf && lf->is_truthy())
+            flags |= ECONV_LF_NEWLINE_DECORATOR;
+    }
+
+    auto ary = ArrayObject::create();
+    bool source_is_utf8 = (source->num() == Encoding::UTF_8);
+    bool dest_is_utf8 = (dest->num() == Encoding::UTF_8);
+
+    if (source_is_utf8 || dest_is_utf8 || source == dest) {
+        ary->push(ArrayObject::create({ source, dest }));
+    } else {
+        auto utf8 = EncodingObject::get(Encoding::UTF_8);
+        ary->push(ArrayObject::create({ source, utf8 }));
+        ary->push(ArrayObject::create({ utf8, dest }));
+    }
+
+    if (flags & ECONV_UNIVERSAL_NEWLINE_DECORATOR)
+        ary->push(StringObject::create("universal_newline", Encoding::US_ASCII));
+    if (flags & ECONV_CRLF_NEWLINE_DECORATOR)
+        ary->push(StringObject::create("crlf_newline", Encoding::US_ASCII));
+    if (flags & ECONV_CR_NEWLINE_DECORATOR)
+        ary->push(StringObject::create("cr_newline", Encoding::US_ASCII));
+    if (flags & ECONV_LF_NEWLINE_DECORATOR)
+        ary->push(StringObject::create("lf_newline", Encoding::US_ASCII));
+
+    return ary;
 }
 
 void EncodingConverterObject::set_error_encoding_names_for_decode() {
