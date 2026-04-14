@@ -26,6 +26,7 @@ class Data
 
           members.zip(args) { |name, value| instance_variable_set(:"@#{name}", value) }
         end
+        self
       end
 
       define_method(:inspect) do
