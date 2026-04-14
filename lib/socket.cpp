@@ -575,6 +575,27 @@ static ssize_t blocking_recv(Env *env, IoObject *io, char *buf, size_t len, int 
     return ::recv(io->fileno(), buf, len, flags);
 }
 
+static ssize_t blocking_recvfrom(Env *env, IoObject *io, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen) {
+    const auto addrlen_max = addrlen ? *addrlen : 0;
+    while (true) {
+        if (addrlen) *addrlen = addrlen_max;
+        const auto result = ::recvfrom(io->fileno(), buf, len, flags, src_addr, addrlen);
+        if (result >= 0)
+            return result;
+        if (errno == EINTR) {
+            ThreadObject::check_current_exception(env);
+            continue;
+        }
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+            ThreadObject::set_current_sleeping(true);
+            io->select_read(env);
+            continue;
+        }
+        env->raise_errno();
+    }
+}
+
 Value BasicSocket_recv(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 3);
     auto maxlen = args.at(0).integer_or_raise(env).to_nat_int_t();
@@ -912,13 +933,11 @@ Value IPSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     sockaddr_storage addr {};
     socklen_t addr_len = sizeof(addr);
 
-    const auto recvfrom_result = recvfrom(
-        self.as_io()->fileno(),
+    const auto recvfrom_result = blocking_recvfrom(
+        env, self.as_io(),
         &buf[0], buf.size(),
         flags,
         reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
-    if (recvfrom_result < 0)
-        env->raise_errno();
 
     if (static_cast<size_t>(recvfrom_result) < buf.size())
         buf.truncate(recvfrom_result);
@@ -995,13 +1014,11 @@ Value UNIXSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     struct sockaddr_un addr { };
     socklen_t addr_len = sizeof(addr);
 
-    const auto recvfrom_result = recvfrom(
-        self.as_io()->fileno(),
+    const auto recvfrom_result = blocking_recvfrom(
+        env, self.as_io(),
         &buf[0], buf.size(),
         flags,
         reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
-    if (recvfrom_result < 0)
-        env->raise_errno();
 
     if (static_cast<size_t>(recvfrom_result) < buf.size())
         buf.truncate(recvfrom_result);
@@ -1253,13 +1270,11 @@ Value Socket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     src_addr.ss_family = family;
     addrlen = sizeof(src_addr);
 
-    const auto res = recvfrom(
-        self.as_io()->fileno(),
+    const auto res = blocking_recvfrom(
+        env, self.as_io(),
         &str[0], maxlen,
         flags,
         reinterpret_cast<sockaddr *>(&src_addr), &addrlen);
-    if (res < 0)
-        env->raise_errno();
     auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
     auto addrinfo = StringObject::create(reinterpret_cast<const char *>(&src_addr), addrlen, Encoding::ASCII_8BIT);
     int socktype = 0;
