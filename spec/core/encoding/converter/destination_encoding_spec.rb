@@ -7,9 +7,7 @@ describe "Encoding::Converter#destination_encoding" do
       ec.destination_encoding.should == Encoding::BIG5
     end
 
-    NATFIXME 'SJIS encoding alias not recognized', exception: ArgumentError do
-      ec = Encoding::Converter.new('SJIS','EUC-JP')
-      ec.destination_encoding.should == Encoding::EUC_JP
-    end
+    ec = Encoding::Converter.new('SJIS','EUC-JP')
+    ec.destination_encoding.should == Encoding::EUC_JP
   end
 end

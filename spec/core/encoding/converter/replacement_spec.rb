@@ -6,11 +6,9 @@ describe "Encoding::Converter#replacement" do
     ec.replacement.should == "?"
     ec.replacement.encoding.should == Encoding::US_ASCII
 
-    NATFIXME 'sjis encoding alias not recognized', exception: ArgumentError do
-      ec = Encoding::Converter.new("utf-8", "sjis")
-      ec.replacement.should == "?"
-      ec.replacement.encoding.should == Encoding::US_ASCII
-    end
+    ec = Encoding::Converter.new("utf-8", "sjis")
+    ec.replacement.should == "?"
+    ec.replacement.encoding.should == Encoding::US_ASCII
   end
 
   it "returns \\uFFFD when the destination encoding is UTF-8" do
@@ -46,7 +44,7 @@ describe "Encoding::Converter#replacement=" do
   end
 
   it "raises an UndefinedConversionError is the argument cannot be converted into the destination encoding" do
-    NATFIXME 'primitive_convert not yet implemented', exception: ArgumentError do
+    NATFIXME 'primitive_convert not yet implemented', exception: NotImplementedError do
       ec = Encoding::Converter.new("sjis", "ascii")
       utf8_q = "\u{986}".dup.force_encoding('utf-8')
       ec.primitive_convert(utf8_q.dup, +"").should == :undefined_conversion
@@ -56,7 +54,7 @@ describe "Encoding::Converter#replacement=" do
   end
 
   it "does not change the replacement character if the argument cannot be converted into the destination encoding" do
-    NATFIXME 'primitive_convert not yet implemented', exception: ArgumentError do
+    NATFIXME 'primitive_convert not yet implemented', exception: NotImplementedError do
       ec = Encoding::Converter.new("sjis", "ascii")
       utf8_q = "\u{986}".dup.force_encoding('utf-8')
       ec.primitive_convert(utf8_q.dup, +"").should == :undefined_conversion

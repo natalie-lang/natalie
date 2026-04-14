@@ -13,7 +13,7 @@ using namespace TM;
 class ShiftJisEncodingObject : public EncodingObject {
 public:
     ShiftJisEncodingObject()
-        : EncodingObject { Encoding::SHIFT_JIS, { "Shift_JIS" } } { }
+        : EncodingObject { Encoding::SHIFT_JIS, { "Shift_JIS", "SJIS" } } { }
 
     virtual bool valid_codepoint(nat_int_t codepoint) const override;
 
