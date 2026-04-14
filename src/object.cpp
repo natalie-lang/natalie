@@ -41,6 +41,10 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         obj = DirObject::create(klass);
         break;
 
+    case Object::Type::EncodingConverter:
+        obj = new EncodingConverterObject { klass };
+        break;
+
     case Object::Type::Enumerator:
         obj = Object::create(klass);
         break;
