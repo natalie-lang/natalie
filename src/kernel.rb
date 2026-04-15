@@ -116,7 +116,7 @@ module Kernel
 
       begin
         result = result.encode(format_string.encoding)
-      rescue ArgumentError, Encoding::UndefinedConversionError, Encoding::InvalidByteSequenceError
+      rescue Encoding::UndefinedConversionError, Encoding::InvalidByteSequenceError
         # we tried
       end
 

@@ -41,16 +41,12 @@ describe "String#%" do
     end
 
     it "negotiates a compatible encoding if necessary" do
-      NATFIXME 'encoding negotation', exception: SpecFailedException do
-        ("hello %s" % 195.chr).encoding.should == Encoding::BINARY
-        ("hello %s".encode("shift_jis") % "wörld").encoding.should == Encoding::UTF_8
-      end
+      ("hello %s" % 195.chr).encoding.should == Encoding::BINARY
+      ("hello %s".encode("shift_jis") % "wörld").encoding.should == Encoding::UTF_8
     end
 
     it "raises if a compatible encoding can't be found" do
-      NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
-        -> { "hello %s".encode("utf-8") % "world".encode("UTF-16LE") }.should raise_error(Encoding::CompatibilityError)
-      end
+      -> { "hello %s".encode("utf-8") % "world".encode("UTF-16LE") }.should raise_error(Encoding::CompatibilityError)
     end
   end
 
