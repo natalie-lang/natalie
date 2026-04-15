@@ -8,6 +8,81 @@ namespace Natalie {
 EncodingObject::EncodingObject()
     : Object { Object::Type::Encoding, GlobalEnv::the()->Object()->const_fetch("Encoding"_s).as_class() } { }
 
+// Returns the encoding of an object, or nullptr if it doesn't have one
+static EncodingObject *encoding_of(Env *env, Value obj) {
+    if (obj.is_string())
+        return obj.as_string()->encoding();
+    if (obj.is_encoding())
+        return obj.as_encoding();
+    if (obj.is_symbol())
+        return obj.as_symbol()->encoding(env);
+    if (obj.is_regexp())
+        return obj.as_regexp()->encoding();
+    return nullptr;
+}
+
+static bool is_ascii_only(Env *env, Value obj) {
+    if (obj.is_string())
+        return obj.as_string()->is_ascii_only();
+    if (obj.is_symbol()) {
+        auto enc = obj.as_symbol()->encoding(env);
+        return enc->num() == Encoding::US_ASCII;
+    }
+    return false;
+}
+
+Value EncodingObject::compatible(Env *env, Value obj1, Value obj2) {
+    auto enc1 = encoding_of(env, obj1);
+    auto enc2 = encoding_of(env, obj2);
+
+    if (!enc1 || !enc2)
+        return Value::nil();
+
+    if (enc1 == enc2)
+        return enc1;
+
+    // If str2 is empty string, return enc1
+    if (is_empty_string(obj2))
+        return enc1;
+
+    // If str1 is empty string
+    if (is_empty_string(obj1)) {
+        if (enc1->is_ascii_compatible() && is_ascii_only(env, obj2))
+            return enc1;
+        return enc2;
+    }
+
+    if (!enc1->is_ascii_compatible() || !enc2->is_ascii_compatible())
+        return Value::nil();
+
+    // Non-string objects with US-ASCII encoding are compatible with anything ASCII-compatible
+    if (!obj1.is_string() && enc1->num() == Encoding::US_ASCII)
+        return enc2;
+    if (!obj2.is_string() && enc2->num() == Encoding::US_ASCII)
+        return enc1;
+
+    // If one is not a string, swap so str1 is a string
+    if (!obj1.is_string() && obj2.is_string()) {
+        std::swap(obj1, obj2);
+        std::swap(enc1, enc2);
+    }
+
+    if (obj1.is_string()) {
+        bool cr1_ascii = is_ascii_only(env, obj1);
+        if (obj2.is_string()) {
+            bool cr2_ascii = is_ascii_only(env, obj2);
+            if (cr1_ascii != cr2_ascii) {
+                if (cr1_ascii) return enc2;
+                if (cr2_ascii) return enc1;
+            }
+            if (cr2_ascii) return enc1;
+        }
+        if (cr1_ascii) return enc2;
+    }
+
+    return Value::nil();
+}
+
 HashObject *EncodingObject::aliases(Env *env) {
     auto aliases = HashObject::create();
     for (auto encoding : *list(env)) {
