@@ -1524,7 +1524,6 @@ Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, 
     if (src_enc->num() == Encoding::ASCII_8BIT && dst_enc->num() == Encoding::ASCII_8BIT)
         return this;
 
-    // Create converter directly
     auto converter_class = fetch_nested_const({ "Encoding"_s, "Converter"_s }).as_class();
     auto converter = new EncodingConverterObject { converter_class };
     Args init_args { src_enc, dst_enc, Value::integer(converter_flags) };

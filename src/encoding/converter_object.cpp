@@ -47,6 +47,9 @@ Value EncodingConverterObject::initialize(Env *env, Args &&args) {
     m_source_encoding = EncodingObject::find(env, args.at(0)).as_encoding();
     m_destination_encoding = EncodingObject::find(env, args.at(1)).as_encoding();
 
+    if (m_destination_encoding->num() == Encoding::UTF_16 || m_destination_encoding->num() == Encoding::UTF_32)
+        m_needs_bom = true;
+
     if (args.size() > 2) {
         auto val = args.at(2);
         if (val.is_integer())
@@ -315,14 +318,15 @@ Value EncodingConverterObject::primitive_errinfo(Env *env) const {
 Value EncodingConverterObject::convpath(Env *env) const {
     auto ary = ArrayObject::create();
     bool source_is_utf8 = (m_source_encoding->num() == Encoding::UTF_8);
-    bool dest_is_utf8 = (m_destination_encoding->num() == Encoding::UTF_8);
+    auto dst = m_destination_encoding;
+    bool dest_is_utf8 = (dst->num() == Encoding::UTF_8);
 
-    if (source_is_utf8 || dest_is_utf8 || m_source_encoding == m_destination_encoding) {
-        ary->push(ArrayObject::create({ m_source_encoding, m_destination_encoding }));
+    if (source_is_utf8 || dest_is_utf8 || m_source_encoding == dst) {
+        ary->push(ArrayObject::create({ m_source_encoding, dst }));
     } else {
         auto utf8 = EncodingObject::get(Encoding::UTF_8);
         ary->push(ArrayObject::create({ m_source_encoding, utf8 }));
-        ary->push(ArrayObject::create({ utf8, m_destination_encoding }));
+        ary->push(ArrayObject::create({ utf8, dst }));
     }
 
     if (m_flags & ECONV_UNIVERSAL_NEWLINE_DECORATOR)
@@ -386,7 +390,8 @@ Value EncodingConverterObject::last_error(Env *env) const {
 }
 
 String EncodingConverterObject::transcode_to_destination(Env *env, const String &input, EncodingObject *source_enc) {
-    if (source_enc == m_destination_encoding)
+    auto dest = destination_encoding_for_output();
+    if (source_enc == dest)
         return input;
 
     String output;
@@ -401,11 +406,11 @@ String EncodingConverterObject::transcode_to_destination(Env *env, const String 
         if (unicode_cp < 0)
             env->raise(fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class(),
                 "undefined conversion");
-        auto dest_cp = m_destination_encoding->from_unicode_codepoint(unicode_cp);
+        auto dest_cp = dest->from_unicode_codepoint(unicode_cp);
         if (dest_cp < 0)
             env->raise(fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class(),
                 "undefined conversion");
-        output.append(m_destination_encoding->encode_codepoint(dest_cp));
+        output.append(dest->encode_codepoint(dest_cp));
     }
     return output;
 }
@@ -508,10 +513,21 @@ EconvResult EncodingConverterObject::do_convert(
     m_error_source_encoding_name = String();
     m_error_dest_encoding_name = String();
 
+    auto dest = destination_encoding_for_output();
+
     // Flush any buffered output (from insert_output)
     if (!m_output_buffer.is_empty()) {
         output->append(m_output_buffer);
         m_output_buffer = String();
+    }
+
+    // Emit BOM on first output for bare UTF-16/UTF-32
+    if (m_needs_bom) {
+        if (m_destination_encoding->num() == Encoding::UTF_16)
+            output->append("\xFE\xFF", 2);
+        else
+            output->append("\x00\x00\xFE\xFF", 4);
+        m_needs_bom = false;
     }
 
     // Pre-compute replacement string in destination encoding
@@ -584,8 +600,8 @@ EconvResult EncodingConverterObject::do_convert(
         // Newline decorators
         if (unicode_codepoint == '\n') {
             if (m_flags & ECONV_CRLF_NEWLINE_DECORATOR) {
-                output->append(m_destination_encoding->encode_codepoint(
-                    m_destination_encoding->from_unicode_codepoint('\r')));
+                output->append(dest->encode_codepoint(
+                    dest->from_unicode_codepoint('\r')));
             } else if (m_flags & ECONV_CR_NEWLINE_DECORATOR) {
                 unicode_codepoint = '\r';
             }
@@ -607,14 +623,21 @@ EconvResult EncodingConverterObject::do_convert(
         if (m_flags & (ECONV_XML_TEXT_DECORATOR | ECONV_XML_ATTR_CONTENT_DECORATOR)) {
             const char *entity = nullptr;
             switch (unicode_codepoint) {
-            case '&': entity = "&amp;"; break;
-            case '<': entity = "&lt;"; break;
-            case '>': entity = "&gt;"; break;
+            case '&':
+                entity = "&amp;";
+                break;
+            case '<':
+                entity = "&lt;";
+                break;
+            case '>':
+                entity = "&gt;";
+                break;
             case '"':
                 if (m_flags & ECONV_XML_ATTR_CONTENT_DECORATOR)
                     entity = "&quot;";
                 break;
-            default: break;
+            default:
+                break;
             }
             if (entity) {
                 output->append(entity);
@@ -622,7 +645,7 @@ EconvResult EncodingConverterObject::do_convert(
             }
         }
 
-        auto dest_codepoint = m_destination_encoding->from_unicode_codepoint(unicode_codepoint);
+        auto dest_codepoint = dest->from_unicode_codepoint(unicode_codepoint);
         if (dest_codepoint < 0) {
             if (m_flags & ECONV_UNDEF_REPLACE) {
                 output->append(dest_replacement);
@@ -640,7 +663,7 @@ EconvResult EncodingConverterObject::do_convert(
             return m_last_result;
         }
 
-        auto encoded = m_destination_encoding->encode_codepoint(dest_codepoint);
+        auto encoded = dest->encode_codepoint(dest_codepoint);
 
         // Check destination buffer size limit
         if (max_output >= 0 && (ssize_t)(output->length() + encoded.length()) > max_output) {

@@ -98,40 +98,6 @@ public:
         return view;
     }
 
-    enum class EncodeInvalidOption {
-        Raise,
-        Replace,
-    };
-
-    enum class EncodeUndefOption {
-        Raise,
-        Replace,
-    };
-
-    enum class EncodeNewlineOption {
-        None,
-        Cr,
-        Crlf,
-        Universal,
-    };
-
-    enum class EncodeXmlOption {
-        None,
-        Attr,
-        Text,
-    };
-
-    struct EncodeOptions {
-        EncodeInvalidOption invalid_option = EncodeInvalidOption::Raise;
-        EncodeUndefOption undef_option = EncodeUndefOption::Raise;
-        EncodeNewlineOption newline_option = EncodeNewlineOption::None;
-        EncodeXmlOption xml_option = EncodeXmlOption::None;
-        StringObject *replace_option = nullptr;
-        Value fallback_option;
-    };
-
-    virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeOptions) const;
-
     virtual bool is_printable_char(const nat_int_t c) const;
     virtual void append_escaped_char(String &str, nat_int_t c) const = 0;
     virtual String encode_codepoint(nat_int_t codepoint) const = 0;

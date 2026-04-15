@@ -80,6 +80,7 @@ private:
     int m_flags { 0 };
     bool m_started { false };
     bool m_finished { false };
+    bool m_needs_bom { false };
 
     StringObject *m_replacement_str { nullptr };
 
@@ -95,6 +96,15 @@ private:
     nat_int_t m_error_codepoint { -1 };
     String m_error_source_encoding_name {};
     String m_error_dest_encoding_name {};
+
+    // For bare UTF-16/UTF-32, returns the BE variant used for actual codepoint encoding.
+    EncodingObject *destination_encoding_for_output() const {
+        if (m_destination_encoding->num() == Encoding::UTF_16)
+            return EncodingObject::get(Encoding::UTF_16BE);
+        if (m_destination_encoding->num() == Encoding::UTF_32)
+            return EncodingObject::get(Encoding::UTF_32BE);
+        return m_destination_encoding;
+    }
 
     void set_default_replacement();
     void apply_options_hash(Env *, HashObject *);
