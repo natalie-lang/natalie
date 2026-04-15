@@ -169,12 +169,10 @@ describe "String#index with String" do
   end
 
   it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
-    NATFIXME 'Implement ISO-2022-JP', exception: ArgumentError, message: 'unknown encoding name - ISO-2022-JP' do
-      str = 'abc'.dup.force_encoding("ISO-2022-JP")
-      pattern = 'b'.dup.force_encoding("EUC-JP")
+    str = 'abc'.dup.force_encoding("ISO-2022-JP")
+    pattern = 'b'.dup.force_encoding("EUC-JP")
 
-      -> { str.index(pattern) }.should raise_error(Encoding::CompatibilityError, "incompatible character encodings: ISO-2022-JP and EUC-JP")
-    end
+    -> { str.index(pattern) }.should raise_error(Encoding::CompatibilityError, "incompatible character encodings: ISO-2022-JP and EUC-JP")
   end
 end
 

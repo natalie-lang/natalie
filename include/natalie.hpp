@@ -44,6 +44,7 @@
 #include "natalie/encoding/ibm865_encoding_object.hpp"
 #include "natalie/encoding/ibm866_encoding_object.hpp"
 #include "natalie/encoding/ibm869_encoding_object.hpp"
+#include "natalie/encoding/iso2022jp_encoding_object.hpp"
 #include "natalie/encoding/iso885910_encoding_object.hpp"
 #include "natalie/encoding/iso885911_encoding_object.hpp"
 #include "natalie/encoding/iso885913_encoding_object.hpp"

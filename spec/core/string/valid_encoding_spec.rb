@@ -128,9 +128,7 @@ describe "String#valid_encoding?" do
     NATFIXME 'Implement GB12345 encoding', exception: ArgumentError do
       str.force_encoding('GB12345').valid_encoding?.should be_false
     end
-    NATFIXME 'Implement ISO-2022-JP encoding', exception: ArgumentError do
-      str.force_encoding('ISO-2022-JP').valid_encoding?.should be_true
-    end
+    str.force_encoding('ISO-2022-JP').valid_encoding?.should be_true
     NATFIXME 'Implement ISO-2022-JP-2 encoding', exception: ArgumentError do
       str.force_encoding('ISO-2022-JP-2').valid_encoding?.should be_true
     end

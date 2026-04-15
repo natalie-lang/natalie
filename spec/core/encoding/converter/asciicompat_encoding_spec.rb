@@ -13,16 +13,14 @@ describe "Encoding::Converter.asciicompat_encoding" do
   end
 
   it "accepts an Encoding object as an argument" do
-    NATFIXME 'ISO-2022-JP encoding not implemented', exception: ArgumentError do
-      Encoding::Converter.
-        asciicompat_encoding(Encoding.find("ISO-2022-JP")).
-        should == Encoding::Converter.asciicompat_encoding("ISO-2022-JP")
-    end
+    Encoding::Converter.
+      asciicompat_encoding(Encoding.find("ISO-2022-JP")).
+      should == Encoding::Converter.asciicompat_encoding("ISO-2022-JP")
   end
 
   it "returns a corresponding ASCII compatible encoding for ASCII-incompatible encodings" do
     Encoding::Converter.asciicompat_encoding('UTF-16BE').should == Encoding::UTF_8
-    NATFIXME 'ISO-2022-JP encoding not implemented', exception: ArgumentError do
+    NATFIXME 'stateless-ISO-2022-JP encoding not implemented', exception: ArgumentError do
       Encoding::Converter.asciicompat_encoding("ISO-2022-JP").should == Encoding.find("stateless-ISO-2022-JP")
     end
   end

@@ -7,9 +7,7 @@ describe "Encoding#dummy?" do
   end
 
   it "returns true for dummy encodings" do
-    NATFIXME 'Implement ISO_2022_JP', exception: NameError, message: 'uninitialized constant Encoding::ISO_2022_JP' do
-      Encoding::ISO_2022_JP.dummy?.should be_true
-    end
+    Encoding::ISO_2022_JP.dummy?.should be_true
     NATFIXME 'Implement CP50221', exception: NameError, message: 'uninitialized constant Encoding::CP50221' do
       Encoding::CP50221.dummy?.should be_true
     end
