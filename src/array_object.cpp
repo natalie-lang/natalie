@@ -912,17 +912,29 @@ Value ArrayObject::join(Env *env, Optional<Value> joiner_arg) {
             else
                 joiner = env->global_get("$,"_s);
             if (joiner.is_nil())
-                joiner = StringObject::create("");
+                joiner = StringObject::create("", Encoding::US_ASCII);
 
             if (!joiner.is_string())
                 joiner = joiner.to_str(env);
 
+            bool first = true;
             StringObject *out = StringObject::create();
             for (size_t i = 0; i < size(); i++) {
-                Value item = (*this)[i];
-                out->append(_subjoin(env, item, joiner));
-                if (i < (size() - 1))
+                if (i > 0)
                     out->append(joiner.as_string());
+
+                auto str = _subjoin(env, (*this)[i], joiner).to_str(env);
+                if (first) {
+                    out->set_encoding(str->encoding());
+                    first = false;
+                } else {
+                    auto compatible = out->negotiate_compatible_encoding(str);
+                    if (compatible)
+                        out->set_encoding(compatible);
+                    else
+                        out->encoding()->raise_compatibility_error(env, str->encoding());
+                }
+                out->append(str);
             }
             return (Value)out;
         }

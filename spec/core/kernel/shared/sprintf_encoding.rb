@@ -31,11 +31,9 @@ describe :kernel_sprintf_encoding, shared: true do
     string = "Ä %s".encode('windows-1252')
     argument = "Ђ".encode('windows-1251')
 
-    NATFIXME 'raises Encoding::CompatibilityError if both encodings are ASCII compatible and there are not ASCII characters', exception: SpecFailedException do
-      -> {
-        @method.call(string, argument)
-      }.should raise_error(Encoding::CompatibilityError)
-    end
+    -> {
+      @method.call(string, argument)
+    }.should raise_error(Encoding::CompatibilityError)
   end
 
   describe "%c" do
@@ -61,9 +59,7 @@ describe :kernel_sprintf_encoding, shared: true do
       format = "%c".dup.force_encoding("euc-jp")
       result = @method.call(format, 9415601)
 
-      NATFIXME 'uses the encoding of the format string to interpret codepoints', exception: SpecFailedException do
-        result.encoding.should == Encoding::EUC_JP
-      end
+      result.encoding.should == Encoding::EUC_JP
       result.should == "é".encode(Encoding::EUC_JP)
       result.bytes.should == [143, 171, 177]
     end
