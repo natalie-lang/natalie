@@ -37,10 +37,6 @@ Value EncodingConverterObject::initialize(Env *env, Args &&args) {
     m_source_encoding = EncodingObject::find(env, args.at(0)).as_encoding();
     m_destination_encoding = EncodingObject::find(env, args.at(1)).as_encoding();
 
-    if (m_source_encoding == m_destination_encoding)
-        env->raise(fetch_nested_const({ "Encoding"_s, "ConverterNotFoundError"_s }).as_class(),
-            "code converter not found ({} to {})", m_source_encoding->name_string(), m_destination_encoding->name_string());
-
     if (args.size() > 2) {
         auto val = args.at(2);
         if (val.is_integer())
@@ -51,6 +47,10 @@ Value EncodingConverterObject::initialize(Env *env, Args &&args) {
 
     if (kwargs)
         apply_options_hash(env, kwargs);
+
+    if (m_source_encoding == m_destination_encoding && !m_flags)
+        env->raise(fetch_nested_const({ "Encoding"_s, "ConverterNotFoundError"_s }).as_class(),
+            "code converter not found ({} to {})", m_source_encoding->name_string(), m_destination_encoding->name_string());
 
     if (!m_replacement_str)
         set_default_replacement();
@@ -561,10 +561,56 @@ EconvResult EncodingConverterObject::do_convert(
             return m_last_result;
         }
 
+        // Newline decorators
+        if (unicode_codepoint == '\n') {
+            if (m_flags & ECONV_CRLF_NEWLINE_DECORATOR) {
+                output->append(m_destination_encoding->encode_codepoint(
+                    m_destination_encoding->from_unicode_codepoint('\r')));
+            } else if (m_flags & ECONV_CR_NEWLINE_DECORATOR) {
+                unicode_codepoint = '\r';
+            }
+        } else if (unicode_codepoint == '\r') {
+            if (m_flags & ECONV_UNIVERSAL_NEWLINE_DECORATOR) {
+                if (*input_pos < input.length()) {
+                    auto peek_pos = *input_pos;
+                    auto [pv, pl, pc] = m_source_encoding->next_codepoint(input, &peek_pos);
+                    if (pv && pc == '\n')
+                        *input_pos = peek_pos;
+                }
+                unicode_codepoint = '\n';
+            } else if (m_flags & ECONV_LF_NEWLINE_DECORATOR) {
+                unicode_codepoint = '\n';
+            }
+        }
+
+        // XML decorators
+        if (m_flags & (ECONV_XML_TEXT_DECORATOR | ECONV_XML_ATTR_CONTENT_DECORATOR)) {
+            const char *entity = nullptr;
+            switch (unicode_codepoint) {
+            case '&': entity = "&amp;"; break;
+            case '<': entity = "&lt;"; break;
+            case '>': entity = "&gt;"; break;
+            case '"':
+                if (m_flags & ECONV_XML_ATTR_CONTENT_DECORATOR)
+                    entity = "&quot;";
+                break;
+            default: break;
+            }
+            if (entity) {
+                output->append(entity);
+                continue;
+            }
+        }
+
         auto dest_codepoint = m_destination_encoding->from_unicode_codepoint(unicode_codepoint);
         if (dest_codepoint < 0) {
             if (m_flags & ECONV_UNDEF_REPLACE) {
                 output->append(m_replacement_str->string());
+                continue;
+            }
+            // XML decorators: encode undefined codepoints as numeric entities
+            if (m_flags & (ECONV_XML_TEXT_DECORATOR | ECONV_XML_ATTR_CONTENT_DECORATOR)) {
+                output->append_sprintf("&#x%X;", (unsigned int)unicode_codepoint);
                 continue;
             }
             m_error_bytes = input.substring(start_pos, length);
