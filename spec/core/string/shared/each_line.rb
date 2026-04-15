@@ -170,7 +170,7 @@ describe :string_each_line, shared: true do
   end
 
   it "raises Encoding::ConverterNotFoundError for dummy UTF-7" do
-    NATFIXME 'Implement UTF-7', exception: NameError, message: 'uninitialized constant Encoding::UTF_7' do
+    NATFIXME 'should raise ConverterNotFoundError for dummy encoding', exception: SpecFailedException do
       str = "a\nb".dup.force_encoding(Encoding::UTF_7)
       -> { str.lines }.should raise_error(Encoding::ConverterNotFoundError)
     end

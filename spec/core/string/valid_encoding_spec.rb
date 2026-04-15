@@ -156,9 +156,7 @@ describe "String#valid_encoding?" do
     NATFIXME 'Implement MacJapanese encoding', exception: ArgumentError do
       str.force_encoding('MacJapanese').valid_encoding?.should be_false
     end
-    NATFIXME 'Implement UTF-7 encoding', exception: ArgumentError do
-      str.force_encoding('UTF-7').valid_encoding?.should be_true
-    end
+    str.force_encoding('UTF-7').valid_encoding?.should be_true
     NATFIXME 'Implement UTF8-MAC encoding', exception: ArgumentError do
       str.force_encoding('UTF8-MAC').valid_encoding?.should be_true
     end

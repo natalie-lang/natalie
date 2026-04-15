@@ -224,6 +224,9 @@ Env *build_top_env() {
     Value EncodingUTF32 = new Utf32EncodingObject {};
     Encoding->const_set("UTF_32"_s, EncodingUTF32);
 
+    Value EncodingUTF7 = new Utf7EncodingObject {};
+    Encoding->const_set("UTF_7"_s, EncodingUTF7);
+
     Value EncodingIBM037 = new Ibm037EncodingObject {};
     Encoding->const_set("IBM037"_s, EncodingIBM037);
     Value EncodingIBM437 = new Ibm437EncodingObject {};

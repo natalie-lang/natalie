@@ -69,6 +69,7 @@
 #include "natalie/encoding/utf32_encoding_object.hpp"
 #include "natalie/encoding/utf32be_encoding_object.hpp"
 #include "natalie/encoding/utf32le_encoding_object.hpp"
+#include "natalie/encoding/utf7_encoding_object.hpp"
 #include "natalie/encoding/utf8_encoding_object.hpp"
 #include "natalie/encoding/windows1250_encoding_object.hpp"
 #include "natalie/encoding/windows1251_encoding_object.hpp"

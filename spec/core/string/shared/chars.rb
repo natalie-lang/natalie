@@ -64,12 +64,10 @@ describe :string_chars, shared: true do
   end
 
   it "returns individual chars for dummy encodings" do
-    NATFIXME 'Implement UTF-7 encoding', exception: NameError, message: 'uninitialized constant Encoding::UTF_7' do
-      "ab".dup.force_encoding(Encoding::UTF_7).send(@method).to_a.should == [
-        "\x61".dup.force_encoding(Encoding::UTF_7),
-        "\x62".dup.force_encoding(Encoding::UTF_7)
-      ]
-    end
+    "ab".dup.force_encoding(Encoding::UTF_7).send(@method).to_a.should == [
+      "\x61".dup.force_encoding(Encoding::UTF_7),
+      "\x62".dup.force_encoding(Encoding::UTF_7)
+    ]
 
     "abcd".dup.force_encoding(Encoding::UTF_16).send(@method).to_a.should == [
       "\x61".dup.force_encoding(Encoding::UTF_16),
