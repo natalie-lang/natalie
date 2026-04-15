@@ -65,7 +65,7 @@ describe "Marshal.dump" do
 
     it "dumps an encoded Symbol" do
       s = "\u2192"
-      NATFIXME 'Fix encoding of result and implement sjis encoding', exception: Encoding::ConverterNotFoundError, message: 'code converter not found (UTF-8 to sjis)' do
+      NATFIXME 'Fix encoding of result', exception: SpecFailedException do
         [ [Marshal, s.encode("utf-8").to_sym,
               "\x04\bI:\b\xE2\x86\x92\x06:\x06ET"],
           [Marshal, s.encode("utf-16").to_sym,

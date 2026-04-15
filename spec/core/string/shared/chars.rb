@@ -56,13 +56,11 @@ describe :string_chars, shared: true do
       [0xAD].pack('C').force_encoding('BINARY'),
       [0xA2].pack('C').force_encoding('BINARY')
     ]
-    NATFIXME 'Implement SJIS encoding', exception: ArgumentError, message: 'unknown encoding name - SJIS' do
-      s.force_encoding('SJIS').send(@method).to_a.should == [
-        [0xF0,0xA4].pack('CC').force_encoding('SJIS'),
-        [0xAD].pack('C').force_encoding('SJIS'),
-        [0xA2].pack('C').force_encoding('SJIS')
-      ]
-    end
+    s.force_encoding('SJIS').send(@method).to_a.should == [
+      [0xF0,0xA4].pack('CC').force_encoding('SJIS'),
+      [0xAD].pack('C').force_encoding('SJIS'),
+      [0xA2].pack('C').force_encoding('SJIS')
+    ]
   end
 
   it "returns individual chars for dummy encodings" do

@@ -171,10 +171,8 @@ describe "File.basename" do
   end
 
   it "works with all ASCII-compatible encodings" do
-    NATFIXME 'it works with all ASCII-compatible encodings', exception: SpecFailedException do
-      Encoding.list.select(&:ascii_compatible?).each do |enc|
-        File.basename("/foo/bar".encode(enc)).should == "bar".encode(enc)
-      end
+    Encoding.list.select(&:ascii_compatible?).each do |enc|
+      File.basename("/foo/bar".encode(enc)).should == "bar".encode(enc)
     end
   end
 
