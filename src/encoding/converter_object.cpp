@@ -23,10 +23,20 @@ Value EncodingConverterObject::result_to_symbol(EconvResult result) {
 }
 
 void EncodingConverterObject::set_default_replacement() {
-    if (m_destination_encoding->num() == Encoding::UTF_8)
+    switch (m_destination_encoding->num()) {
+    case Encoding::UTF_8:
+    case Encoding::UTF_16LE:
+    case Encoding::UTF_16BE:
+    case Encoding::UTF_16:
+    case Encoding::UTF_32LE:
+    case Encoding::UTF_32BE:
+    case Encoding::UTF_32:
         m_replacement_str = StringObject::create("\xEF\xBF\xBD", Encoding::UTF_8); // U+FFFD
-    else
+        break;
+    default:
         m_replacement_str = StringObject::create("?", Encoding::US_ASCII);
+        break;
+    }
 }
 
 Value EncodingConverterObject::initialize(Env *env, Args &&args) {
@@ -375,36 +385,34 @@ Value EncodingConverterObject::last_error(Env *env) const {
     }
 }
 
+String EncodingConverterObject::transcode_to_destination(Env *env, const String &input, EncodingObject *source_enc) {
+    if (source_enc == m_destination_encoding)
+        return input;
+
+    String output;
+    size_t pos = 0;
+    while (pos < input.length()) {
+        auto [valid, length, codepoint] = source_enc->next_codepoint(input, &pos);
+        if (length == 0) break;
+        if (!valid || codepoint < 0)
+            env->raise(fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class(),
+                "invalid byte sequence");
+        auto unicode_cp = source_enc->to_unicode_codepoint(codepoint);
+        if (unicode_cp < 0)
+            env->raise(fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class(),
+                "undefined conversion");
+        auto dest_cp = m_destination_encoding->from_unicode_codepoint(unicode_cp);
+        if (dest_cp < 0)
+            env->raise(fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class(),
+                "undefined conversion");
+        output.append(m_destination_encoding->encode_codepoint(dest_cp));
+    }
+    return output;
+}
+
 Value EncodingConverterObject::insert_output(Env *env, Value str) {
     auto s = str.to_str(env);
-    auto input = s->string();
-    String output;
-    size_t input_pos = 0;
-
-    auto source_enc = s->encoding();
-    if (source_enc != m_destination_encoding) {
-        // Need to transcode the input to destination encoding
-        while (input_pos < input.length()) {
-            auto [valid, length, codepoint] = source_enc->next_codepoint(input, &input_pos);
-            if (length == 0) break;
-            if (!valid || codepoint < 0)
-                env->raise(fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class(),
-                    "insert_output: invalid byte sequence");
-            auto unicode_cp = source_enc->to_unicode_codepoint(codepoint);
-            if (unicode_cp < 0)
-                env->raise(fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class(),
-                    "insert_output: undefined conversion");
-            auto dest_cp = m_destination_encoding->from_unicode_codepoint(unicode_cp);
-            if (dest_cp < 0)
-                env->raise(fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class(),
-                    "insert_output: undefined conversion");
-            output.append(m_destination_encoding->encode_codepoint(dest_cp));
-        }
-    } else {
-        output = input;
-    }
-
-    m_output_buffer.append(output);
+    m_output_buffer.append(transcode_to_destination(env, s->string(), s->encoding()));
     return Value::nil();
 }
 
@@ -500,6 +508,17 @@ EconvResult EncodingConverterObject::do_convert(
     m_error_source_encoding_name = String();
     m_error_dest_encoding_name = String();
 
+    // Flush any buffered output (from insert_output)
+    if (!m_output_buffer.is_empty()) {
+        output->append(m_output_buffer);
+        m_output_buffer = String();
+    }
+
+    // Pre-compute replacement string in destination encoding
+    String dest_replacement;
+    if (m_replacement_str)
+        dest_replacement = transcode_to_destination(env, m_replacement_str->string(), m_replacement_str->encoding());
+
     while (*input_pos < input.length()) {
         auto start_pos = *input_pos;
         auto [valid, length, codepoint] = m_source_encoding->next_codepoint(input, input_pos);
@@ -520,7 +539,7 @@ EconvResult EncodingConverterObject::do_convert(
                     return m_last_result;
                 }
                 if (m_flags & ECONV_INVALID_REPLACE) {
-                    output->append(m_replacement_str->string());
+                    output->append(dest_replacement);
                     continue;
                 }
                 m_last_result = EconvResult::IncompleteInput;
@@ -531,6 +550,11 @@ EconvResult EncodingConverterObject::do_convert(
             m_error_bytes = input.substring(start_pos, length);
             set_error_encoding_names_for_decode();
 
+            if (m_flags & ECONV_INVALID_REPLACE) {
+                output->append(dest_replacement);
+                continue;
+            }
+
             // Detect read-again bytes: if the lead byte expected more bytes
             // and a non-continuation byte at input_pos caused the error
             int unit_size = m_source_encoding->code_unit_size();
@@ -540,10 +564,6 @@ EconvResult EncodingConverterObject::do_convert(
                 (*input_pos) += unit_size;
             }
 
-            if (m_flags & ECONV_INVALID_REPLACE) {
-                output->append(m_replacement_str->string());
-                continue;
-            }
             m_last_result = EconvResult::InvalidByteSequence;
             return m_last_result;
         }
@@ -551,7 +571,7 @@ EconvResult EncodingConverterObject::do_convert(
         auto unicode_codepoint = m_source_encoding->to_unicode_codepoint(codepoint);
         if (unicode_codepoint < 0) {
             if (m_flags & ECONV_UNDEF_REPLACE) {
-                output->append(m_replacement_str->string());
+                output->append(dest_replacement);
                 continue;
             }
             m_error_bytes = input.substring(start_pos, length);
@@ -605,7 +625,7 @@ EconvResult EncodingConverterObject::do_convert(
         auto dest_codepoint = m_destination_encoding->from_unicode_codepoint(unicode_codepoint);
         if (dest_codepoint < 0) {
             if (m_flags & ECONV_UNDEF_REPLACE) {
-                output->append(m_replacement_str->string());
+                output->append(dest_replacement);
                 continue;
             }
             // XML decorators: encode undefined codepoints as numeric entities

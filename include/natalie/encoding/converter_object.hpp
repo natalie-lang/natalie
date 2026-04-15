@@ -54,6 +54,15 @@ public:
     static Value asciicompat_encoding(Env *, Value);
     static Value search_convpath(Env *, Args &&);
 
+    nat_int_t error_codepoint() const { return m_error_codepoint; }
+
+    EconvResult do_convert(
+        Env *env,
+        const String &input, size_t *input_pos,
+        String *output,
+        int convert_flags,
+        ssize_t max_output = -1);
+
     virtual void visit_children(Visitor &visitor) const override final {
         Object::visit_children(visitor);
         visitor.visit(m_source_encoding);
@@ -87,18 +96,11 @@ private:
     String m_error_source_encoding_name {};
     String m_error_dest_encoding_name {};
 
-    // Core conversion engine
-    EconvResult do_convert(
-        Env *env,
-        const String &input, size_t *input_pos,
-        String *output,
-        int convert_flags,
-        ssize_t max_output = -1);
-
     void set_default_replacement();
     void apply_options_hash(Env *, HashObject *);
     void set_error_encoding_names_for_decode();
     void set_error_encoding_names_for_encode();
+    String transcode_to_destination(Env *, const String &, EncodingObject *);
     static Value result_to_symbol(EconvResult result);
 };
 

@@ -1442,71 +1442,158 @@ Value StringObject::encode_in_place(Env *env, Optional<Value> dst_encoding_arg, 
     else
         dst_encoding = EncodingObject::get(Encoding::UTF_8);
 
-    auto src_encoding = src_encoding_arg.value_or(m_encoding.ptr());
+    Value src_encoding = src_encoding_arg.value_or(m_encoding.ptr());
 
-    EncodeOptions options;
+    Value fallback_option = Value::nil();
+    bool xml_attr_quote = false;
+    int converter_flags = 0;
+    StringObject *replace_str = nullptr;
+
     if (kwargs) {
-        if (kwargs->remove(env, "universal_newline"_s))
-            options.newline_option = EncodeNewlineOption::Universal;
-        else if (kwargs->remove(env, "crlf_newline"_s))
-            options.newline_option = EncodeNewlineOption::Crlf;
-        else if (kwargs->remove(env, "cr_newline"_s))
-            options.newline_option = EncodeNewlineOption::Cr;
-
         auto invalid = kwargs->remove(env, "invalid"_s);
-        if (invalid) {
-            if (invalid->is_nil())
-                options.invalid_option = EncodeInvalidOption::Raise;
-            else if (invalid.value() == "replace"_s)
-                options.invalid_option = EncodeInvalidOption::Replace;
-        }
+        if (invalid && invalid.value() == "replace"_s)
+            converter_flags |= ECONV_INVALID_REPLACE;
 
         auto undef = kwargs->remove(env, "undef"_s);
-        if (undef) {
-            if (!undef || undef->is_nil())
-                options.undef_option = EncodeUndefOption::Raise;
-            else if (undef.value() == "replace"_s)
-                options.undef_option = EncodeUndefOption::Replace;
-        }
+        if (undef && undef.value() == "replace"_s)
+            converter_flags |= ECONV_UNDEF_REPLACE;
 
         auto replace = kwargs->remove(env, "replace"_s);
         if (replace && !replace->is_nil())
-            options.replace_option = replace->as_string_or_raise(env)->encode(env, dst_encoding).as_string_or_raise(env);
-
-        auto fallback = kwargs->remove(env, "fallback"_s);
-        if (fallback && !fallback->is_nil())
-            options.fallback_option = fallback.value();
+            replace_str = replace->as_string_or_raise(env)->encode(env, dst_encoding).as_string_or_raise(env);
 
         auto xml = kwargs->remove(env, "xml"_s);
         if (xml) {
-            if (xml.value() == "attr"_s)
-                options.xml_option = EncodeXmlOption::Attr;
-            else if (xml.value() == "text"_s)
-                options.xml_option = EncodeXmlOption::Text;
-            else
+            if (xml.value() == "attr"_s) {
+                converter_flags |= ECONV_XML_ATTR_CONTENT_DECORATOR;
+                xml_attr_quote = true;
+            } else if (xml.value() == "text"_s) {
+                converter_flags |= ECONV_XML_TEXT_DECORATOR;
+            } else {
                 env->raise("ArgumentError", "unexpected value for xml option: {}", xml->inspected(env));
+            }
         }
+
+        auto universal_newline = kwargs->remove(env, "universal_newline"_s);
+        if (universal_newline && universal_newline->is_truthy())
+            converter_flags |= ECONV_UNIVERSAL_NEWLINE_DECORATOR;
+
+        auto crlf_newline = kwargs->remove(env, "crlf_newline"_s);
+        if (crlf_newline && crlf_newline->is_truthy())
+            converter_flags |= ECONV_CRLF_NEWLINE_DECORATOR;
+
+        auto cr_newline = kwargs->remove(env, "cr_newline"_s);
+        if (cr_newline && cr_newline->is_truthy())
+            converter_flags |= ECONV_CR_NEWLINE_DECORATOR;
+
+        auto lf_newline = kwargs->remove(env, "lf_newline"_s);
+        if (lf_newline && lf_newline->is_truthy())
+            converter_flags |= ECONV_LF_NEWLINE_DECORATOR;
+
+        auto fallback = kwargs->remove(env, "fallback"_s);
+        if (fallback && !fallback->is_nil())
+            fallback_option = fallback.value();
     }
 
-    auto find_encoding = [&](Value encoding) {
+    env->ensure_no_extra_keywords(kwargs);
+
+    // Resolve encoding objects
+    auto find_encoding = [&](Value encoding) -> EncodingObject * {
         if (encoding.is_encoding())
             return encoding.as_encoding();
-
         auto name = encoding.to_str(env)->string();
         return EncodingObject::find_encoding_by_name(env, name);
     };
 
-    env->ensure_no_extra_keywords(kwargs);
-    EncodingObject *dst_encoding_obj = find_encoding(dst_encoding);
-    EncodingObject *src_encoding_obj = find_encoding(src_encoding);
-    if (!dst_encoding_obj || !src_encoding_obj) {
-        auto klass = Object::const_find(env, m_encoding->klass(), "ConverterNotFoundError"_s)->as_class();
-        auto to_name = dst_encoding.to_s(env)->string();
-        auto from_name = src_encoding.to_s(env)->string();
-        env->raise(klass, "code converter not found ({} to {})", from_name, to_name);
+    EncodingObject *src_enc = find_encoding(src_encoding);
+    EncodingObject *dst_enc = find_encoding(dst_encoding);
+    if (!src_enc || !dst_enc) {
+        env->raise(fetch_nested_const({ "Encoding"_s, "ConverterNotFoundError"_s }).as_class(),
+            "code converter not found ({} to {})",
+            src_encoding.to_s(env)->string(),
+            dst_encoding.to_s(env)->string());
     }
 
-    return dst_encoding_obj->encode(env, src_encoding_obj, this, options);
+    // Same encoding with no flags: just retag
+    if (src_enc == dst_enc && !converter_flags) {
+        set_encoding(dst_enc);
+        return this;
+    }
+
+    // ASCII-8BIT to ASCII-8BIT: no-op
+    if (src_enc->num() == Encoding::ASCII_8BIT && dst_enc->num() == Encoding::ASCII_8BIT)
+        return this;
+
+    // Create converter directly
+    auto converter_class = fetch_nested_const({ "Encoding"_s, "Converter"_s }).as_class();
+    auto converter = new EncodingConverterObject { converter_class };
+    Args init_args { src_enc, dst_enc, Value::integer(converter_flags) };
+    converter->initialize(env, std::move(init_args));
+    if (replace_str)
+        converter->set_replacement(env, replace_str);
+
+    String output;
+    if (xml_attr_quote)
+        output.append_char('"');
+
+    size_t input_pos = 0;
+    auto input = string();
+    auto econv_result = converter->do_convert(env, input, &input_pos, &output, 0);
+
+    // Handle fallback for undefined conversions
+    while (econv_result == EconvResult::UndefinedConversion && !fallback_option.is_nil()) {
+        auto codepoint = converter->error_codepoint();
+        auto ch = StringObject::create(src_enc->encode_codepoint(codepoint));
+        Value fb_result = Value::nil();
+        if (fallback_option.respond_to(env, "[]"_s))
+            fb_result = fallback_option.send(env, "[]"_s, { ch });
+        else if (fallback_option.respond_to(env, "call"_s))
+            fb_result = fallback_option.send(env, "call"_s, { ch });
+
+        if (fb_result.is_nil())
+            break;
+
+        try {
+            converter->insert_output(env, fb_result);
+        } catch (ExceptionObject *e) {
+            auto undef_class = fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class();
+            if (e->klass() == undef_class || e->klass()->is_subclass_of(undef_class))
+                env->raise("ArgumentError", "too big fallback string");
+            throw;
+        }
+        econv_result = converter->do_convert(env, input, &input_pos, &output, 0);
+    }
+
+    // Handle remaining errors
+    if (econv_result == EconvResult::InvalidByteSequence) {
+        env->raise(fetch_nested_const({ "Encoding"_s, "InvalidByteSequenceError"_s }).as_class(),
+            "invalid byte sequence in {}", src_enc->name_string());
+    } else if (econv_result == EconvResult::UndefinedConversion) {
+        auto codepoint = converter->error_codepoint();
+        bool source_is_utf8 = (src_enc->num() == Encoding::UTF_8);
+        StringObject *message;
+        if (!source_is_utf8)
+            message = StringObject::format(
+                "U+{} to {} in conversion from {} to UTF-8 to {}",
+                String::hex(codepoint, String::HexFormat::Uppercase),
+                dst_enc->name_string(), src_enc->name_string(), dst_enc->name_string());
+        else
+            message = StringObject::format(
+                "U+{} from UTF-8 to {}",
+                String::hex(codepoint, String::HexFormat::Uppercase),
+                dst_enc->name_string());
+        env->raise(fetch_nested_const({ "Encoding"_s, "UndefinedConversionError"_s }).as_class(), message);
+    } else if (econv_result == EconvResult::IncompleteInput) {
+        env->raise(fetch_nested_const({ "Encoding"_s, "InvalidByteSequenceError"_s }).as_class(),
+            "incomplete byte sequence on {}", src_enc->name_string());
+    }
+
+    if (xml_attr_quote)
+        output.append_char('"');
+
+    set_str(std::move(output));
+    set_encoding(dst_enc);
+    return this;
 }
 
 Value StringObject::force_encoding(Env *env, Value encoding) {
