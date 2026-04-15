@@ -34,11 +34,13 @@ class Struct
             invalid_keywords = args.each_key.reject { |arg| attrs.include?(arg) }
             raise ArgumentError, "unknown keywords: #{invalid_keywords.join(', ')}" unless invalid_keywords.empty?
             args.each { |attr, value| send("#{attr}=", value) }
+            self
           end
         else
           define_method :initialize do |*vals|
             raise ArgumentError, 'struct size differs' if vals.size > attrs.size
             attrs.each_with_index { |attr, index| send("#{attr}=", vals[index]) }
+            self
           end
         end
 

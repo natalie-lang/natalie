@@ -708,15 +708,11 @@ Value Object::module_function(Env *env, Args &&args) {
 }
 
 Value Object::send(Env *env, SymbolObject *name, Args &&args, Block *block, MethodVisibility visibility_at_least, Optional<Value> sent_from) {
-    static const auto initialize = SymbolObject::intern("initialize");
     Method *method = find_method(env, name, visibility_at_least, sent_from);
     // TODO: make a copy if has empty keyword hash (unless that's not rare)
     args.pop_empty_keyword_hash();
     if (method) {
-        auto result = method->call(env, this, std::move(args), block);
-        if (name == initialize)
-            result = this;
-        return result;
+        return method->call(env, this, std::move(args), block);
     } else if (KernelModule::respond_to_method(env, this, "method_missing"_s, true)) {
         return method_missing_send(env, name, std::move(args), block);
     } else {

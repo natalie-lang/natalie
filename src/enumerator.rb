@@ -6,6 +6,7 @@ class Enumerator
       @current_feed = []
       @enumerables = enumerables
       @enum_block = Proc.new { |yielder| enumerables.each { |enumerable| enumerable.each { |item| yielder << item } } }
+      self
     end
 
     def inspect
@@ -25,6 +26,7 @@ class Enumerator
   class Yielder
     def initialize(&block)
       @block = block
+      self
     end
 
     def yield(*item)
@@ -194,6 +196,7 @@ class Enumerator
       end
 
       super(size, &enum_block)
+      self
     end
 
     def chunk(&block)
