@@ -188,6 +188,9 @@ Env *build_top_env() {
     ClassObject *Encoding = GlobalEnv::the()->Object()->subclass(env, "Encoding");
     Object->const_set("Encoding"_s, Encoding);
 
+    ClassObject *EncodingConverter = Encoding->subclass(env, "Converter", Object::Type::EncodingConverter);
+    Encoding->const_set("Converter"_s, EncodingConverter);
+
     Value EncodingAscii8Bit = new Ascii8BitEncodingObject {};
     Encoding->const_set("ASCII_8BIT"_s, EncodingAscii8Bit);
     Encoding->const_set("BINARY"_s, EncodingAscii8Bit);

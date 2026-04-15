@@ -11,6 +11,7 @@ enum class ObjectType {
     Complex,
     Dir,
     Encoding,
+    EncodingConverter,
     Enumerator,
     EnumeratorArithmeticSequence,
     Env,

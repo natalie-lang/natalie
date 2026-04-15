@@ -36,5 +36,14 @@ public:
     virtual nat_int_t decode_codepoint(StringView &str) const override;
 
     virtual bool is_single_byte_encoding() const override final { return false; }
+
+    virtual int code_unit_size() const override { return 2; }
+
+    virtual int expected_byte_count(const String &string, size_t index) const override {
+        if (index + 1 >= string.size()) return 2;
+        size_t code_unit = (unsigned char)string[index] + ((unsigned char)string[index + 1] << 8);
+        if (code_unit >= 0xD800 && code_unit <= 0xDBFF) return 4;
+        return 2;
+    }
 };
 }

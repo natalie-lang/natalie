@@ -13,7 +13,7 @@ using namespace TM;
 class ShiftJisEncodingObject : public EncodingObject {
 public:
     ShiftJisEncodingObject()
-        : EncodingObject { Encoding::SHIFT_JIS, { "Shift_JIS" } } { }
+        : EncodingObject { Encoding::SHIFT_JIS, { "Shift_JIS", "SJIS" } } { }
 
     virtual bool valid_codepoint(nat_int_t codepoint) const override;
 
@@ -35,6 +35,12 @@ public:
     virtual nat_int_t decode_codepoint(StringView &str) const override;
 
     virtual bool is_single_byte_encoding() const override final { return false; }
+
+    virtual int expected_byte_count(const String &string, size_t index) const override {
+        unsigned char byte = string[index];
+        if ((byte >= 0x81 && byte <= 0x9F) || (byte >= 0xE0 && byte <= 0xFC)) return 2;
+        return 1;
+    }
 };
 
 }

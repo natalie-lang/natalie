@@ -28,16 +28,4 @@ std::tuple<bool, int, nat_int_t> Utf16EncodingObject::next_codepoint(const Strin
     return DummyEncodingObject::next_codepoint(string, index);
 }
 
-Value Utf16EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str, EncodeOptions options) const {
-    auto *delegate = EncodingObject::get(Encoding::UTF_16BE);
-    delegate->encode(env, orig_encoding, str, options);
-    if (str->bytesize() > 0) {
-        auto with_bom = String("\xFE\xFF", 2);
-        with_bom.append(str->string());
-        str->set_str(std::move(with_bom));
-    }
-    str->set_encoding(EncodingObject::get(num()));
-    return str;
-}
-
 }

@@ -653,12 +653,6 @@ private:
 
     using Object::Object;
 
-    using EncodeOptions = EncodingObject::EncodeOptions;
-    using EncodeInvalidOption = EncodingObject::EncodeInvalidOption;
-    using EncodeNewlineOption = EncodingObject::EncodeNewlineOption;
-    using EncodeXmlOption = EncodingObject::EncodeXmlOption;
-    using EncodeUndefOption = EncodingObject::EncodeUndefOption;
-
     String m_string {};
     NonNullPtr<EncodingObject> m_encoding;
     Chilled m_chilled { Chilled::None };

@@ -20,6 +20,7 @@ class Block;
 class ClassObject;
 class ComplexObject;
 class DirObject;
+class EncodingConverterObject;
 class EncodingObject;
 class Env;
 class EnvObject;

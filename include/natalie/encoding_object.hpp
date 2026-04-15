@@ -57,6 +57,7 @@ public:
     Encoding num() const { return m_num; }
 
     const StringObject *name() const;
+    const String &name_string() const { return m_names[0]; }
     Value name(Env *);
 
     ArrayObject *names(Env *) const;
@@ -97,40 +98,6 @@ public:
         return view;
     }
 
-    enum class EncodeInvalidOption {
-        Raise,
-        Replace,
-    };
-
-    enum class EncodeUndefOption {
-        Raise,
-        Replace,
-    };
-
-    enum class EncodeNewlineOption {
-        None,
-        Cr,
-        Crlf,
-        Universal,
-    };
-
-    enum class EncodeXmlOption {
-        None,
-        Attr,
-        Text,
-    };
-
-    struct EncodeOptions {
-        EncodeInvalidOption invalid_option = EncodeInvalidOption::Raise;
-        EncodeUndefOption undef_option = EncodeUndefOption::Raise;
-        EncodeNewlineOption newline_option = EncodeNewlineOption::None;
-        EncodeXmlOption xml_option = EncodeXmlOption::None;
-        StringObject *replace_option = nullptr;
-        Value fallback_option;
-    };
-
-    virtual Value encode(Env *, EncodingObject *, StringObject *, EncodeOptions) const;
-
     virtual bool is_printable_char(const nat_int_t c) const;
     virtual void append_escaped_char(String &str, nat_int_t c) const = 0;
     virtual String encode_codepoint(nat_int_t codepoint) const = 0;
@@ -140,6 +107,13 @@ public:
     virtual nat_int_t from_unicode_codepoint(nat_int_t codepoint) const = 0;
 
     virtual bool is_single_byte_encoding() const = 0;
+
+    // Returns the expected number of bytes for a character starting at the given position.
+    // Used by Encoding::Converter to detect read-again bytes and incomplete input.
+    virtual int expected_byte_count(const String &string, size_t index) const { return 1; }
+
+    // Returns the size of one code unit in bytes (1 for byte-oriented, 2 for UTF-16, 4 for UTF-32).
+    virtual int code_unit_size() const { return 1; }
 
     virtual bool is_compatible_with(EncodingObject *) const;
 

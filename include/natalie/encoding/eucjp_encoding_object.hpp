@@ -34,6 +34,13 @@ public:
     virtual nat_int_t decode_codepoint(StringView &str) const override;
 
     virtual bool is_single_byte_encoding() const override final { return false; }
+
+    virtual int expected_byte_count(const String &string, size_t index) const override {
+        unsigned char byte = string[index];
+        if (byte == 0x8F) return 3;
+        if (byte == 0x8E || (byte >= 0xA1 && byte <= 0xFE)) return 2;
+        return 1;
+    }
 };
 
 extern const long JIS0208[];

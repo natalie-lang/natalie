@@ -41,6 +41,14 @@ public:
     virtual bool is_ascii_compatible() const override { return true; };
 
     virtual bool is_single_byte_encoding() const override final { return false; }
+
+    virtual int expected_byte_count(const String &string, size_t index) const override {
+        unsigned char byte = string[index];
+        if ((byte >> 3) == 0b11110) return 4;
+        if ((byte >> 4) == 0b1110) return 3;
+        if ((byte >> 5) == 0b110) return 2;
+        return 1;
+    }
 };
 
 }
