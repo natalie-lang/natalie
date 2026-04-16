@@ -62,6 +62,7 @@ void ModuleObject::include_once(Env *env, ModuleObject *module) {
         assert(this_index != -1);
         m_included_modules.insert(this_index + 1, module);
     }
+    GlobalEnv::the()->increment_method_cache_version();
     if (module->respond_to(env, "included"_s))
         module->send(env, "included"_s, { this });
 }
@@ -86,6 +87,7 @@ void ModuleObject::prepend_once(Env *env, ModuleObject *module) {
         }
         m_included_modules.push_front(module);
     }
+    GlobalEnv::the()->increment_method_cache_version();
 }
 
 Value ModuleObject::extend_object(Env *env, Value obj) {
