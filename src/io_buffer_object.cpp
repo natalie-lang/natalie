@@ -346,6 +346,41 @@ Value IoBufferObject::get_string(Env *env, Optional<Value> offset_arg, Optional<
     return StringObject::create(static_cast<const char *>(m_base) + offset, length, encoding);
 }
 
+Value IoBufferObject::op_not(Env *env) {
+    assert_valid(env);
+
+    auto new_buffer = IoBufferObject::create(klass());
+    if (m_size > 0) {
+        uint32_t new_flags = (static_cast<long>(m_size) >= s_page_size) ? MAPPED : INTERNAL;
+        void *base = allocate_buffer(m_size, new_flags);
+        if (!base) {
+            auto AllocationError = klass()->const_fetch("AllocationError"_s).as_class();
+            env->raise(AllocationError, "Could not allocate buffer!");
+        }
+        const auto *src = static_cast<const unsigned char *>(m_base);
+        auto *dst = static_cast<unsigned char *>(base);
+        for (size_t i = 0; i < m_size; i++)
+            dst[i] = ~src[i];
+        new_buffer->m_base = base;
+        new_buffer->m_size = m_size;
+        new_buffer->m_flags = new_flags;
+    }
+    return new_buffer;
+}
+
+Value IoBufferObject::not_bang(Env *env) {
+    if (m_flags & READONLY) {
+        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
+        env->raise(AccessError, "Buffer is not writable!");
+    }
+    assert_valid(env);
+
+    auto *base = static_cast<unsigned char *>(m_base);
+    for (size_t i = 0; i < m_size; i++)
+        base[i] = ~base[i];
+    return this;
+}
+
 Value IoBufferObject::set_string(Env *env, Value source_arg, Optional<Value> offset_arg, Optional<Value> length_arg, Optional<Value> source_offset_arg) {
     if (m_flags & READONLY) {
         auto AccessError = klass()->const_fetch("AccessError"_s).as_class();

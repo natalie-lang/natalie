@@ -997,6 +997,8 @@ gen.binding('IO::Buffer', 'slice', 'IoBufferObject', 'slice', argc: 0..2, pass_e
 gen.binding('IO::Buffer', 'to_s', 'IoBufferObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO::Buffer', 'get_string', 'IoBufferObject', 'get_string', argc: 0..3, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO::Buffer', 'set_string', 'IoBufferObject', 'set_string', argc: 1..4, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('IO::Buffer', '~', 'IoBufferObject', 'op_not', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('IO::Buffer', 'not!', 'IoBufferObject', 'not_bang', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO::Buffer', 'free', 'IoBufferObject', 'free', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO::Buffer', 'null?', 'IoBufferObject', 'is_null', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('IO::Buffer', 'empty?', 'IoBufferObject', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)

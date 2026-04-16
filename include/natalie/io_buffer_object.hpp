@@ -46,6 +46,8 @@ public:
     Value to_s(Env *);
     Value get_string(Env *, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
     Value set_string(Env *, Value, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
+    Value op_not(Env *);
+    Value not_bang(Env *);
 
     bool is_null() const { return m_base == nullptr; }
     bool is_empty() const { return m_size == 0; }
