@@ -279,11 +279,6 @@ Value IoBufferObject::locked(Env *env, Block *block) {
 }
 
 Value IoBufferObject::slice(Env *env, Optional<Value> offset_arg, Optional<Value> length_arg) {
-    if (!m_base) {
-        auto AllocationError = klass()->const_fetch("AllocationError"_s).as_class();
-        env->raise(AllocationError, "The buffer is not allocated!");
-    }
-
     const size_t offset = offset_arg ? extract_offset(env, offset_arg.value()) : 0;
     const size_t length = length_arg ? extract_length(env, length_arg.value()) : (m_size > offset ? m_size - offset : 0);
 
@@ -291,7 +286,7 @@ Value IoBufferObject::slice(Env *env, Optional<Value> offset_arg, Optional<Value
         env->raise("ArgumentError", "Specified offset+length exceeds source size!");
 
     auto slice = IoBufferObject::create(klass());
-    slice->m_base = static_cast<char *>(m_base) + offset;
+    slice->m_base = m_base ? static_cast<char *>(m_base) + offset : nullptr;
     slice->m_size = length;
     slice->m_flags = (m_flags | EXTERNAL) & ~(INTERNAL | MAPPED);
     slice->m_source = m_source ? m_source : static_cast<Object *>(this);
