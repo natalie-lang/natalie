@@ -30,6 +30,7 @@ public:
     }
 
     static void build_constants(Env *, ClassObject *);
+    static long page_size() { return s_page_size; }
 
     static Value s_for(Env *, ClassObject *, Value, Block *);
     static Value s_string(Env *, ClassObject *, Value, Block *);
@@ -39,13 +40,16 @@ public:
     Value initialize(Env *, Optional<Value> = {}, Optional<Value> = {});
     Value size() const { return Value::integer(static_cast<nat_int_t>(m_size)); }
     Value free(Env *);
+    Value resize(Env *, Value);
+    Value transfer(Env *);
+    Value slice(Env *, Optional<Value> = {}, Optional<Value> = {});
     Value to_s(Env *);
     Value get_string(Env *, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
     Value set_string(Env *, Value, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
 
     bool is_null() const { return m_base == nullptr; }
     bool is_empty() const { return m_size == 0; }
-    bool is_valid() const { return true; }
+    bool is_valid() const;
     bool is_external() const { return m_flags & EXTERNAL; }
     bool is_internal() const { return m_flags & INTERNAL; }
     bool is_mapped() const { return m_flags & MAPPED; }
@@ -62,11 +66,14 @@ private:
 
     void release_memory();
     void attach_to_string(StringObject *, uint32_t flags);
+    void assert_valid(Env *) const;
 
     void *m_base { nullptr };
     size_t m_size { 0 };
     uint32_t m_flags { 0 };
-    StringObject *m_source { nullptr };
+    Object *m_source { nullptr };
+
+    inline static long s_page_size { 0 };
 };
 
 }
