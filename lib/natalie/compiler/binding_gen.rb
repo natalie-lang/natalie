@@ -987,8 +987,13 @@ gen.binding('IO', 'wait_writable', 'IoObject', 'wait_writable', argc: 0..1, pass
 gen.binding('IO', 'write', 'IoObject', 'write', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO', 'write_nonblock', 'IoObject', 'write_nonblock', argc: 1, kwargs: [:exception], pass_env: true, pass_block: false, return_type: :Value)
 
+gen.static_binding_as_class_method('IO::Buffer', 'for', 'IoBufferObject', 's_for', argc: 1, pass_env: true, pass_klass: true, pass_block: true, return_type: :Value)
+gen.static_binding_as_class_method('IO::Buffer', 'string', 'IoBufferObject', 's_string', argc: 1, pass_env: true, pass_klass: true, pass_block: true, return_type: :Value)
 gen.binding('IO::Buffer', 'initialize', 'IoBufferObject', 'initialize', argc: 0..2, pass_env: true, pass_block: false, return_type: :Value, visibility: :private)
 gen.binding('IO::Buffer', 'size', 'IoBufferObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
+gen.binding('IO::Buffer', 'to_s', 'IoBufferObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('IO::Buffer', 'get_string', 'IoBufferObject', 'get_string', argc: 0..3, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('IO::Buffer', 'set_string', 'IoBufferObject', 'set_string', argc: 1..4, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO::Buffer', 'free', 'IoBufferObject', 'free', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO::Buffer', 'null?', 'IoBufferObject', 'is_null', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('IO::Buffer', 'empty?', 'IoBufferObject', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)

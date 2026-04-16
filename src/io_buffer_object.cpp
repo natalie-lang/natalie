@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
@@ -45,24 +46,48 @@ void IoBufferObject::release_memory() {
     m_base = nullptr;
     m_size = 0;
     m_flags = 0;
+    m_source = nullptr;
+}
+
+void IoBufferObject::attach_to_string(StringObject *string, uint32_t flags) {
+    m_base = const_cast<char *>(string->c_str());
+    m_size = string->bytesize();
+    m_flags = flags;
+    m_source = string;
+}
+
+void IoBufferObject::visit_children(Visitor &visitor) const {
+    Object::visit_children(visitor);
+    visitor.visit(m_source);
+}
+
+static size_t extract_non_negative_integer(Env *env, Value arg, const char *negative_message) {
+    if (!arg.is_integer())
+        env->raise("TypeError", "not an Integer");
+    auto integer = arg.integer();
+    if (integer.is_negative())
+        env->raise("ArgumentError", negative_message);
+    auto val = integer.to_nat_int_t_or_none();
+    if (!val)
+        env->raise("RangeError", "bignum too big to convert into `long'");
+    return static_cast<size_t>(val.value());
 }
 
 static size_t extract_size(Env *env, Value arg) {
-    if (!arg.is_integer())
-        env->raise("TypeError", "not an Integer");
-    auto integer = arg.integer();
-    if (integer.is_negative())
-        env->raise("ArgumentError", "Size can't be negative!");
-    return static_cast<size_t>(integer.to_nat_int_t());
+    return extract_non_negative_integer(env, arg, "Size can't be negative!");
 }
 
 static uint32_t extract_flags(Env *env, Value arg) {
-    if (!arg.is_integer())
-        env->raise("TypeError", "not an Integer");
-    auto integer = arg.integer();
-    if (integer.is_negative())
-        env->raise("ArgumentError", "Flags can't be negative!");
-    return static_cast<uint32_t>(integer.to_nat_int_t()) & IoBufferObject::FLAGS_MASK;
+    auto value = extract_non_negative_integer(env, arg, "Flags can't be negative!");
+    return static_cast<uint32_t>(value) & IoBufferObject::FLAGS_MASK;
+}
+
+static size_t extract_offset(Env *env, Value arg) {
+    return extract_non_negative_integer(env, arg, "Offset can't be negative!");
+}
+
+static size_t extract_length(Env *env, Value arg) {
+    return extract_non_negative_integer(env, arg, "Length can't be negative!");
 }
 
 Value IoBufferObject::initialize(Env *env, Optional<Value> size_arg, Optional<Value> flags_arg) {
@@ -113,6 +138,104 @@ Value IoBufferObject::free(Env *env) {
     }
     release_memory();
     return this;
+}
+
+Value IoBufferObject::s_for(Env *env, ClassObject *klass, Value string_arg, Block *block) {
+    string_arg.assert_type(env, Object::Type::String, "String");
+    auto string = string_arg.as_string();
+
+    auto buffer = IoBufferObject::create(klass);
+
+    if (block) {
+        uint32_t flags = string->is_frozen() ? (EXTERNAL | READONLY) : EXTERNAL;
+        buffer->attach_to_string(string, flags);
+        Value result;
+        try {
+            result = block->run(env, { buffer }, nullptr);
+        } catch (ExceptionObject *exception) {
+            buffer->release_memory();
+            throw exception;
+        }
+        buffer->release_memory();
+        return result;
+    }
+
+    auto copy = StringObject::create(*string);
+    copy->freeze();
+    buffer->attach_to_string(copy, EXTERNAL | READONLY);
+    return buffer;
+}
+
+Value IoBufferObject::s_string(Env *env, ClassObject *klass, Value length_arg, Block *block) {
+    if (!block)
+        env->raise("LocalJumpError", "no block given");
+    auto size = extract_non_negative_integer(env, length_arg, "negative string size (or size too big)");
+
+    auto string = StringObject::create(String(size, '\0'), Encoding::ASCII_8BIT);
+    auto buffer = IoBufferObject::create(klass);
+    buffer->attach_to_string(string, EXTERNAL);
+
+    try {
+        block->run(env, { buffer }, nullptr);
+    } catch (ExceptionObject *exception) {
+        buffer->release_memory();
+        throw exception;
+    }
+    buffer->release_memory();
+    return string;
+}
+
+Value IoBufferObject::to_s(Env *env) {
+    if (!m_base)
+        return StringObject::create("", Encoding::ASCII_8BIT);
+    return StringObject::create(static_cast<const char *>(m_base), m_size, Encoding::ASCII_8BIT);
+}
+
+Value IoBufferObject::get_string(Env *env, Optional<Value> offset_arg, Optional<Value> length_arg, Optional<Value> encoding_arg) {
+    size_t offset = offset_arg ? extract_offset(env, offset_arg.value()) : 0;
+    size_t length = length_arg ? extract_length(env, length_arg.value()) : (m_size > offset ? m_size - offset : 0);
+
+    if (offset + length > m_size) {
+        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
+        env->raise(AccessError, "Specified offset+length exceeds source size!");
+    }
+
+    EncodingObject *encoding = EncodingObject::get(Encoding::ASCII_8BIT);
+    if (encoding_arg && !encoding_arg.value().is_nil()) {
+        encoding = EncodingObject::find_encoding(env, encoding_arg.value());
+    }
+
+    if (!m_base || length == 0)
+        return StringObject::create("", encoding);
+
+    return StringObject::create(static_cast<const char *>(m_base) + offset, length, encoding);
+}
+
+Value IoBufferObject::set_string(Env *env, Value source_arg, Optional<Value> offset_arg, Optional<Value> length_arg, Optional<Value> source_offset_arg) {
+    if (m_flags & READONLY) {
+        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
+        env->raise(AccessError, "Buffer is not writable!");
+    }
+
+    source_arg.assert_type(env, Object::Type::String, "String");
+    auto source = source_arg.as_string();
+
+    size_t offset = offset_arg ? extract_offset(env, offset_arg.value()) : 0;
+    size_t source_offset = source_offset_arg ? extract_offset(env, source_offset_arg.value()) : 0;
+
+    size_t max_length = source->bytesize() > source_offset ? source->bytesize() - source_offset : 0;
+    size_t length = length_arg ? extract_length(env, length_arg.value()) : max_length;
+    if (length > max_length) length = max_length;
+
+    if (offset + length > m_size) {
+        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
+        env->raise(AccessError, "Specified offset+length exceeds target size!");
+    }
+
+    if (length > 0)
+        memcpy(static_cast<char *>(m_base) + offset, source->c_str() + source_offset, length);
+
+    return Value::integer(static_cast<nat_int_t>(length));
 }
 
 }

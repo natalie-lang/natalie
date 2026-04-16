@@ -31,11 +31,17 @@ public:
 
     static void build_constants(Env *, ClassObject *);
 
+    static Value s_for(Env *, ClassObject *, Value, Block *);
+    static Value s_string(Env *, ClassObject *, Value, Block *);
+
     virtual ~IoBufferObject() override { release_memory(); }
 
     Value initialize(Env *, Optional<Value> = {}, Optional<Value> = {});
     Value size() const { return Value::integer(static_cast<nat_int_t>(m_size)); }
     Value free(Env *);
+    Value to_s(Env *);
+    Value get_string(Env *, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
+    Value set_string(Env *, Value, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
 
     bool is_null() const { return m_base == nullptr; }
     bool is_empty() const { return m_size == 0; }
@@ -48,15 +54,19 @@ public:
     bool is_private() const { return m_flags & PRIVATE; }
     bool is_readonly() const { return m_flags & READONLY; }
 
+    virtual void visit_children(Visitor &) const override;
+
 private:
     IoBufferObject(ClassObject *klass)
         : Object { Object::Type::IoBuffer, klass } { }
 
     void release_memory();
+    void attach_to_string(StringObject *, uint32_t flags);
 
     void *m_base { nullptr };
     size_t m_size { 0 };
     uint32_t m_flags { 0 };
+    StringObject *m_source { nullptr };
 };
 
 }
