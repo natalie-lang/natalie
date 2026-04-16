@@ -57,11 +57,9 @@ describe "String#unpack with format 'H'" do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        "\x01\x10".unpack("H\x00H")
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
-    end
+    -> {
+      "\x01\x10".unpack("H\x00H")
+    }.should raise_error(ArgumentError, /unknown unpack directive/)
   end
 
   it "ignores spaces between directives" do
@@ -126,11 +124,9 @@ describe "String#unpack with format 'h'" do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        "\x01\x10".unpack("h\x00h")
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
-    end
+    -> {
+      "\x01\x10".unpack("h\x00h")
+    }.should raise_error(ArgumentError, /unknown unpack directive/)
   end
 
   it "ignores spaces between directives" do

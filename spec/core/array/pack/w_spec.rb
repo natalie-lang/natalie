@@ -25,11 +25,9 @@ describe "Array#pack with format 'w'" do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        [1, 2, 3].pack("w\x00w")
-      }.should raise_error(ArgumentError, /unknown pack directive/)
-    end
+    -> {
+      [1, 2, 3].pack("w\x00w")
+    }.should raise_error(ArgumentError, /unknown pack directive/)
   end
 
   it "ignores spaces between directives" do

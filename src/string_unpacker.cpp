@@ -61,6 +61,22 @@ void StringUnpacker::unpack_token(Env *env, Token &token) {
     if (token.error)
         env->raise("ArgumentError", *token.error);
 
+    auto raise_unknown = [&]() {
+        unsigned char byte = (unsigned char)token.directive;
+        auto fmt = ArrayPacker::quote_unprintable(m_directives_string);
+        if (is_ascii_printable(byte)) {
+            env->raise("ArgumentError", "unknown unpack directive '{}' in '{}'", token.directive, fmt);
+        } else {
+            auto hex = String::hex(byte, String::HexFormat::Lowercase);
+            if (hex.length() < 2)
+                hex.prepend_char('0');
+            env->raise("ArgumentError", "unknown unpack directive '\\x{}' in '{}'", hex, fmt);
+        }
+    };
+
+    if (token.unknown)
+        raise_unknown();
+
     switch (token.directive) {
     case 'A':
         unpack_A(token);
@@ -190,7 +206,7 @@ void StringUnpacker::unpack_token(Env *env, Token &token) {
         unpack_at(env, token);
         break;
     default:
-        env->raise("ArgumentError", "unknown unpack directive '{}' in '{}'", token.directive, m_directives_string);
+        raise_unknown();
     }
 }
 

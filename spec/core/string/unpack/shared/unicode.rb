@@ -51,11 +51,9 @@ describe :string_unpack_unicode, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        "\x01\x02".unpack("U\x00U")
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
-    end
+    -> {
+      "\x01\x02".unpack("U\x00U")
+    }.should raise_error(ArgumentError, /unknown unpack directive/)
   end
 
   it "ignores spaces between directives" do

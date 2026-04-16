@@ -36,11 +36,9 @@ describe :string_unpack_8bit, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        "abc".unpack(unpack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
-    end
+    -> {
+      "abc".unpack(unpack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown unpack directive/)
   end
 
   it "ignores spaces between directives" do
