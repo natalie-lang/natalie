@@ -989,6 +989,7 @@ gen.binding('IO', 'write_nonblock', 'IoObject', 'write_nonblock', argc: 1, kwarg
 
 gen.static_binding_as_class_method('IO::Buffer', 'for', 'IoBufferObject', 's_for', argc: 1, pass_env: true, pass_klass: true, pass_block: true, return_type: :Value)
 gen.static_binding_as_class_method('IO::Buffer', 'string', 'IoBufferObject', 's_string', argc: 1, pass_env: true, pass_klass: true, pass_block: true, return_type: :Value)
+gen.static_binding_as_class_method('IO::Buffer', 'map', 'IoBufferObject', 's_map', argc: 1..4, pass_env: true, pass_klass: true, pass_block: false, return_type: :Value)
 gen.binding('IO::Buffer', 'initialize', 'IoBufferObject', 'initialize', argc: 0..2, pass_env: true, pass_block: false, return_type: :Value, visibility: :private)
 gen.binding('IO::Buffer', 'size', 'IoBufferObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('IO::Buffer', 'resize', 'IoBufferObject', 'resize', argc: 1, pass_env: true, pass_block: false, return_type: :Value)

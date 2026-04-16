@@ -34,6 +34,7 @@ public:
 
     static Value s_for(Env *, ClassObject *, Value, Block *);
     static Value s_string(Env *, ClassObject *, Value, Block *);
+    static Value s_map(Env *, ClassObject *, Value, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
 
     virtual ~IoBufferObject() override { release_memory(); }
 

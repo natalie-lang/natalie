@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 namespace Natalie {
@@ -320,6 +321,75 @@ Value IoBufferObject::s_string(Env *env, ClassObject *klass, Value length_arg, B
     }
     buffer->release_memory();
     return string;
+}
+
+Value IoBufferObject::s_map(Env *env, ClassObject *klass, Value io_arg, Optional<Value> size_arg, Optional<Value> offset_arg, Optional<Value> flags_arg) {
+    if (!io_arg.is_io())
+        env->raise("TypeError", "wrong argument type {} (expected IO)", io_arg.klass()->inspect_module());
+    auto io = io_arg.as_io();
+    const int fd = io->fileno();
+
+    struct stat st;
+    if (fstat(fd, &st) < 0) env->raise_errno();
+    const off_t file_size = st.st_size;
+    if (file_size <= 0)
+        env->raise("ArgumentError", "Invalid negative or zero file size!");
+
+    const bool size_nil = !size_arg || size_arg.value().is_nil();
+    size_t size;
+    if (!size_nil) {
+        size = extract_size(env, size_arg.value());
+        if (size == 0)
+            env->raise("ArgumentError", "Size can't be zero!");
+        if (size > static_cast<size_t>(file_size))
+            env->raise("ArgumentError", "Size can't be larger than file size!");
+    } else {
+        size = static_cast<size_t>(file_size);
+    }
+
+    off_t offset = 0;
+    if (offset_arg) {
+        offset = static_cast<off_t>(offset_arg.value().to_int(env).to_nat_int_t());
+        if (offset < 0)
+            env->raise("ArgumentError", "Offset can't be negative!");
+        if (offset >= file_size)
+            env->raise("ArgumentError", "Offset too large!");
+        if (size_nil) {
+            size = static_cast<size_t>(file_size - offset);
+        } else if (static_cast<size_t>(file_size - offset) < size) {
+            env->raise("ArgumentError", "Offset too large!");
+        }
+    }
+
+    uint32_t requested_flags = 0;
+    if (flags_arg) requested_flags = extract_flags(env, flags_arg.value());
+
+    int prot = PROT_READ;
+    int mmap_flags = 0;
+    uint32_t buffer_flags = MAPPED;
+
+    if (requested_flags & READONLY) {
+        buffer_flags |= READONLY;
+    } else {
+        prot |= PROT_WRITE;
+    }
+
+    if (requested_flags & PRIVATE) {
+        buffer_flags |= PRIVATE;
+        mmap_flags |= MAP_PRIVATE;
+    } else {
+        buffer_flags |= EXTERNAL | SHARED;
+        mmap_flags |= MAP_SHARED;
+    }
+
+    void *base = mmap(nullptr, size, prot, mmap_flags, fd, offset);
+    if (base == MAP_FAILED) env->raise_errno();
+
+    auto buffer = IoBufferObject::create(klass);
+    buffer->m_base = base;
+    buffer->m_size = size;
+    buffer->m_flags = buffer_flags;
+    return buffer;
 }
 
 Value IoBufferObject::to_s(Env *env) {
