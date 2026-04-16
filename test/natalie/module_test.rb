@@ -62,17 +62,19 @@ describe 'Module' do
     end
 
     it 'invalidates previously-cached method dispatch' do
-      parent = Class.new do
-        def include_dispatch_test
-          'parent'
+      parent =
+        Class.new do
+          def include_dispatch_test
+            'parent'
+          end
         end
-      end
       child = Class.new(parent)
-      mod = Module.new do
-        def include_dispatch_test
-          'module'
+      mod =
+        Module.new do
+          def include_dispatch_test
+            'module'
+          end
         end
-      end
       instance = child.new
       10.times { instance.include_dispatch_test }
       instance.include_dispatch_test.should == 'parent'
@@ -87,16 +89,18 @@ describe 'Module' do
     end
 
     it 'invalidates previously-cached method dispatch' do
-      klass = Class.new do
-        def prepend_dispatch_test
-          'class'
+      klass =
+        Class.new do
+          def prepend_dispatch_test
+            'class'
+          end
         end
-      end
-      mod = Module.new do
-        def prepend_dispatch_test
-          'module'
+      mod =
+        Module.new do
+          def prepend_dispatch_test
+            'module'
+          end
         end
-      end
       instance = klass.new
       10.times { instance.prepend_dispatch_test }
       instance.prepend_dispatch_test.should == 'class'
