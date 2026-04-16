@@ -172,7 +172,7 @@ describe "Encoding::Converter#primitive_convert" do
   end
 
   it "returns :destination_buffer_full when the destination buffer is too small" do
-    NATFIXME 'iso-2022-jp encoding not implemented', exception: ArgumentError do
+    NATFIXME 'iso-2022-jp conversion not supported (dummy encoding)', exception: Encoding::UndefinedConversionError do
       ec = Encoding::Converter.new("utf-8", "iso-2022-jp")
       source = "\u{9999}"
       destination_bytesize = source.bytesize - 1
@@ -183,7 +183,7 @@ describe "Encoding::Converter#primitive_convert" do
   end
 
   it "clears the source buffer when returning :destination_buffer_full" do
-    NATFIXME 'iso-2022-jp encoding not implemented', exception: ArgumentError do
+    NATFIXME 'iso-2022-jp conversion not supported (dummy encoding)', exception: Encoding::UndefinedConversionError do
       ec = Encoding::Converter.new("utf-8", "iso-2022-jp")
       s = "\u{9999}"
       destination_bytesize = s.bytesize - 1

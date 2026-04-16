@@ -8,6 +8,88 @@ namespace Natalie {
 EncodingObject::EncodingObject()
     : Object { Object::Type::Encoding, GlobalEnv::the()->Object()->const_fetch("Encoding"_s).as_class() } { }
 
+// Returns the encoding of an object, or nullptr if it doesn't have one
+static EncodingObject *encoding_of(Env *env, Value obj) {
+    if (obj.is_string())
+        return obj.as_string()->encoding();
+    if (obj.is_encoding())
+        return obj.as_encoding();
+    if (obj.is_symbol())
+        return obj.as_symbol()->encoding(env);
+    if (obj.is_regexp())
+        return obj.as_regexp()->encoding();
+    return nullptr;
+}
+
+static bool is_ascii_only(Env *env, Value obj) {
+    if (obj.is_string())
+        return obj.as_string()->is_ascii_only();
+    if (obj.is_symbol()) {
+        auto enc = obj.as_symbol()->encoding(env);
+        return enc->num() == Encoding::US_ASCII;
+    }
+    return false;
+}
+
+Value EncodingObject::compatible(Env *env, Value obj1, Value obj2) {
+    auto enc1 = encoding_of(env, obj1);
+    auto enc2 = encoding_of(env, obj2);
+
+    if (!enc1 || !enc2)
+        return Value::nil();
+
+    if (enc1 == enc2)
+        return enc1;
+
+    bool isstr1 = obj1.is_string();
+    bool isstr2 = obj2.is_string();
+
+    if (isstr2 && obj2.as_string()->is_empty())
+        return enc1;
+
+    if (isstr1 && isstr2 && obj1.as_string()->is_empty())
+        return (enc1->is_ascii_compatible() && obj2.as_string()->is_ascii_only()) ? enc1 : enc2;
+
+    if (!enc1->is_ascii_compatible() || !enc2->is_ascii_compatible())
+        return Value::nil();
+
+    if (!isstr2 && enc2->num() == Encoding::US_ASCII)
+        return enc1;
+    if (!isstr1 && enc1->num() == Encoding::US_ASCII)
+        return enc2;
+
+    if (!isstr1 && !isstr2) {
+        if (is_ascii_only(env, obj1) && !is_ascii_only(env, obj2)) return enc2;
+        if (!is_ascii_only(env, obj1) && is_ascii_only(env, obj2)) return enc1;
+        return Value::nil();
+    }
+
+    // Swap so obj1 is a string, but keep enc1/enc2 as the ORIGINAL encodings
+    // (matches MRI's enc_compatible_latter which does not swap enc1/enc2)
+    if (!isstr1 && isstr2) {
+        std::swap(obj1, obj2);
+        std::swap(isstr1, isstr2);
+    }
+
+    if (!isstr1)
+        return Value::nil();
+
+    bool cr1_7bit = obj1.as_string()->is_ascii_only();
+    if (isstr2) {
+        bool cr2_7bit = obj2.as_string()->is_ascii_only();
+        if (cr1_7bit != cr2_7bit) {
+            if (cr1_7bit) return enc2;
+            if (cr2_7bit) return enc1;
+        }
+        if (cr2_7bit)
+            return enc1;
+    }
+    if (cr1_7bit)
+        return enc2;
+
+    return Value::nil();
+}
+
 HashObject *EncodingObject::aliases(Env *env) {
     auto aliases = HashObject::create();
     for (auto encoding : *list(env)) {

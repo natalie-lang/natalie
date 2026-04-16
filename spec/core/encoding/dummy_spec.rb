@@ -7,15 +7,11 @@ describe "Encoding#dummy?" do
   end
 
   it "returns true for dummy encodings" do
-    NATFIXME 'Implement ISO_2022_JP', exception: NameError, message: 'uninitialized constant Encoding::ISO_2022_JP' do
-      Encoding::ISO_2022_JP.dummy?.should be_true
-    end
+    Encoding::ISO_2022_JP.dummy?.should be_true
     NATFIXME 'Implement CP50221', exception: NameError, message: 'uninitialized constant Encoding::CP50221' do
       Encoding::CP50221.dummy?.should be_true
     end
-    NATFIXME 'Implement UTF_7', exception: NameError, message: 'uninitialized constant Encoding::UTF_7' do
-      Encoding::UTF_7.dummy?.should be_true
-    end
+    Encoding::UTF_7.dummy?.should be_true
   end
 
   it "returns true for UTF_16 and UTF_32" do

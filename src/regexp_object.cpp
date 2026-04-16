@@ -409,6 +409,9 @@ void RegexpObject::initialize_internal(Env *env, const StringObject *pattern, in
         enc = ruby_encoding_to_onig_encoding(encoding);
     } else if (fixed_encoding && !no_encoding) {
         enc = ruby_encoding_to_onig_encoding(pattern->encoding());
+    } else if (!pattern->is_ascii_only()) {
+        enc = ruby_encoding_to_onig_encoding(pattern->encoding());
+        options |= RegexOpts::FixedEncoding;
     } else {
         enc = ONIG_ENCODING_ASCII;
     }

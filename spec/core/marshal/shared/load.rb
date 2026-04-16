@@ -1047,12 +1047,10 @@ describe :marshal_load, shared: true do
 
     it "preserves Regexp encoding" do
       source_object = Regexp.new("a".encode("utf-32le"))
-      NATFIXME 'Support encoding in regexp dump', exception: SpecFailedException do
-        regexp = Marshal.send(@method, Marshal.dump(source_object))
+      regexp = Marshal.send(@method, Marshal.dump(source_object))
 
-        regexp.encoding.should == Encoding::UTF_32LE
-        regexp.source.should == "a".encode("utf-32le")
-      end
+      regexp.encoding.should == Encoding::UTF_32LE
+      regexp.source.should == "a".encode("utf-32le")
     end
 
     it "raises ArgumentError when end of byte sequence reached before source string end" do

@@ -508,6 +508,7 @@ gen.static_binding_as_class_method('Encoding', 'default_internal=', 'EncodingObj
 gen.static_binding_as_class_method('Encoding', 'locale_charmap', 'EncodingObject', 'locale_charmap', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 
 gen.static_binding_as_class_method('Encoding', 'find', 'EncodingObject', 'find', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.static_binding_as_class_method('Encoding', 'compatible?', 'EncodingObject', 'compatible', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding_as_class_method('Encoding', 'list', 'EncodingObject', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding_as_class_method('Encoding', 'name_list', 'EncodingObject', 'name_list', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Encoding', 'ascii_compatible?', 'EncodingObject', 'is_ascii_compatible', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
