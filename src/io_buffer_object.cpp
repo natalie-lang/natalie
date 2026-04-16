@@ -418,6 +418,41 @@ Value IoBufferObject::and_bang(Env *env, Value mask_arg) {
     return this;
 }
 
+Value IoBufferObject::op_or(Env *env, Value mask_arg) {
+    assert_valid(env);
+    auto mask = assert_buffer_arg(env, mask_arg);
+    mask->assert_valid(env);
+
+    auto new_buffer = IoBufferObject::create(klass());
+    if (m_size > 0 && mask->m_size > 0) {
+        const uint32_t new_flags = (static_cast<long>(m_size) >= s_page_size) ? MAPPED : INTERNAL;
+        void *base = allocate_or_raise(env, m_size, new_flags);
+        const auto *src = static_cast<const unsigned char *>(m_base);
+        const auto *m = static_cast<const unsigned char *>(mask->m_base);
+        auto *dst = static_cast<unsigned char *>(base);
+        for (size_t i = 0; i < m_size; i++)
+            dst[i] = src[i] | m[i % mask->m_size];
+        new_buffer->m_base = base;
+        new_buffer->m_size = m_size;
+        new_buffer->m_flags = new_flags;
+    }
+    return new_buffer;
+}
+
+Value IoBufferObject::or_bang(Env *env, Value mask_arg) {
+    assert_writable(env);
+    assert_valid(env);
+    auto mask = assert_buffer_arg(env, mask_arg);
+    mask->assert_valid(env);
+
+    if (mask->m_size == 0) return this;
+    auto *base = static_cast<unsigned char *>(m_base);
+    const auto *m = static_cast<const unsigned char *>(mask->m_base);
+    for (size_t i = 0; i < m_size; i++)
+        base[i] = base[i] | m[i % mask->m_size];
+    return this;
+}
+
 Value IoBufferObject::set_string(Env *env, Value source_arg, Optional<Value> offset_arg, Optional<Value> length_arg, Optional<Value> source_offset_arg) {
     assert_writable(env);
     assert_valid(env);

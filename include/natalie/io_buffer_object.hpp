@@ -50,6 +50,8 @@ public:
     Value not_bang(Env *);
     Value op_and(Env *, Value);
     Value and_bang(Env *, Value);
+    Value op_or(Env *, Value);
+    Value or_bang(Env *, Value);
 
     bool is_null() const { return m_base == nullptr; }
     bool is_empty() const { return m_size == 0; }
