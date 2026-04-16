@@ -90,6 +90,12 @@ void IoBufferObject::assert_valid(Env *env) const {
     env->raise(InvalidatedError, "Buffer has been invalidated!");
 }
 
+void IoBufferObject::assert_writable(Env *env) const {
+    if (!(m_flags & READONLY)) return;
+    auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
+    env->raise(AccessError, "Buffer is not writable!");
+}
+
 static size_t extract_non_negative_integer(Env *env, Value arg, const char *negative_message) {
     if (!arg.is_integer())
         env->raise("TypeError", "not an Integer");
@@ -129,6 +135,15 @@ static void *allocate_buffer(size_t size, uint32_t flags) {
     return nullptr;
 }
 
+void *IoBufferObject::allocate_or_raise(Env *env, size_t size, uint32_t flags) {
+    void *base = allocate_buffer(size, flags);
+    if (!base) {
+        auto AllocationError = klass()->const_fetch("AllocationError"_s).as_class();
+        env->raise(AllocationError, "Could not allocate buffer!");
+    }
+    return base;
+}
+
 Value IoBufferObject::initialize(Env *env, Optional<Value> size_arg, Optional<Value> flags_arg) {
     release_memory();
 
@@ -150,13 +165,7 @@ Value IoBufferObject::initialize(Env *env, Optional<Value> size_arg, Optional<Va
     if (size == 0)
         return this;
 
-    void *base = allocate_buffer(size, flags);
-    if (!base) {
-        auto AllocationError = klass()->const_fetch("AllocationError"_s).as_class();
-        env->raise(AllocationError, "Could not allocate buffer!");
-    }
-
-    m_base = base;
+    m_base = allocate_or_raise(env, size, flags);
     m_size = size;
     m_flags = flags;
     return this;
@@ -185,13 +194,8 @@ Value IoBufferObject::resize(Env *env, Value new_size_arg) {
     }
 
     if (!m_base) {
-        uint32_t new_flags = (static_cast<long>(new_size) >= s_page_size) ? MAPPED : INTERNAL;
-        void *base = allocate_buffer(new_size, new_flags);
-        if (!base) {
-            auto AllocationError = klass()->const_fetch("AllocationError"_s).as_class();
-            env->raise(AllocationError, "Could not allocate buffer!");
-        }
-        m_base = base;
+        const uint32_t new_flags = (static_cast<long>(new_size) >= s_page_size) ? MAPPED : INTERNAL;
+        m_base = allocate_or_raise(env, new_size, new_flags);
         m_size = new_size;
         m_flags = new_flags;
         return this;
@@ -213,11 +217,7 @@ Value IoBufferObject::resize(Env *env, Value new_size_arg) {
         new_flags = (static_cast<long>(new_size) >= s_page_size) ? MAPPED : INTERNAL;
     }
 
-    void *new_base = allocate_buffer(new_size, new_flags);
-    if (!new_base) {
-        auto AllocationError = klass()->const_fetch("AllocationError"_s).as_class();
-        env->raise(AllocationError, "Could not allocate buffer!");
-    }
+    void *new_base = allocate_or_raise(env, new_size, new_flags);
 
     const size_t copy_size = std::min(old_size, new_size);
     if (copy_size > 0) memcpy(new_base, old_base, copy_size);
@@ -351,12 +351,8 @@ Value IoBufferObject::op_not(Env *env) {
 
     auto new_buffer = IoBufferObject::create(klass());
     if (m_size > 0) {
-        uint32_t new_flags = (static_cast<long>(m_size) >= s_page_size) ? MAPPED : INTERNAL;
-        void *base = allocate_buffer(m_size, new_flags);
-        if (!base) {
-            auto AllocationError = klass()->const_fetch("AllocationError"_s).as_class();
-            env->raise(AllocationError, "Could not allocate buffer!");
-        }
+        const uint32_t new_flags = (static_cast<long>(m_size) >= s_page_size) ? MAPPED : INTERNAL;
+        void *base = allocate_or_raise(env, m_size, new_flags);
         const auto *src = static_cast<const unsigned char *>(m_base);
         auto *dst = static_cast<unsigned char *>(base);
         for (size_t i = 0; i < m_size; i++)
@@ -369,10 +365,7 @@ Value IoBufferObject::op_not(Env *env) {
 }
 
 Value IoBufferObject::not_bang(Env *env) {
-    if (m_flags & READONLY) {
-        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
-        env->raise(AccessError, "Buffer is not writable!");
-    }
+    assert_writable(env);
     assert_valid(env);
 
     auto *base = static_cast<unsigned char *>(m_base);
@@ -381,11 +374,52 @@ Value IoBufferObject::not_bang(Env *env) {
     return this;
 }
 
-Value IoBufferObject::set_string(Env *env, Value source_arg, Optional<Value> offset_arg, Optional<Value> length_arg, Optional<Value> source_offset_arg) {
-    if (m_flags & READONLY) {
-        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
-        env->raise(AccessError, "Buffer is not writable!");
+static IoBufferObject *assert_buffer_arg(Env *env, Value arg) {
+    if (!arg.is_pointer() || arg->type() != Object::Type::IoBuffer) {
+        if (arg.is_nil())
+            env->raise("TypeError", "wrong argument type nil (expected IO::Buffer)");
+        env->raise("TypeError", "wrong argument type {} (expected IO::Buffer)", arg.klass()->inspect_module());
     }
+    return static_cast<IoBufferObject *>(arg.object());
+}
+
+Value IoBufferObject::op_and(Env *env, Value mask_arg) {
+    assert_valid(env);
+    auto mask = assert_buffer_arg(env, mask_arg);
+    mask->assert_valid(env);
+
+    auto new_buffer = IoBufferObject::create(klass());
+    if (m_size > 0 && mask->m_size > 0) {
+        const uint32_t new_flags = (static_cast<long>(m_size) >= s_page_size) ? MAPPED : INTERNAL;
+        void *base = allocate_or_raise(env, m_size, new_flags);
+        const auto *src = static_cast<const unsigned char *>(m_base);
+        const auto *m = static_cast<const unsigned char *>(mask->m_base);
+        auto *dst = static_cast<unsigned char *>(base);
+        for (size_t i = 0; i < m_size; i++)
+            dst[i] = src[i] & m[i % mask->m_size];
+        new_buffer->m_base = base;
+        new_buffer->m_size = m_size;
+        new_buffer->m_flags = new_flags;
+    }
+    return new_buffer;
+}
+
+Value IoBufferObject::and_bang(Env *env, Value mask_arg) {
+    assert_writable(env);
+    assert_valid(env);
+    auto mask = assert_buffer_arg(env, mask_arg);
+    mask->assert_valid(env);
+
+    if (mask->m_size == 0) return this;
+    auto *base = static_cast<unsigned char *>(m_base);
+    const auto *m = static_cast<const unsigned char *>(mask->m_base);
+    for (size_t i = 0; i < m_size; i++)
+        base[i] = base[i] & m[i % mask->m_size];
+    return this;
+}
+
+Value IoBufferObject::set_string(Env *env, Value source_arg, Optional<Value> offset_arg, Optional<Value> length_arg, Optional<Value> source_offset_arg) {
+    assert_writable(env);
     assert_valid(env);
 
     source_arg.assert_type(env, Object::Type::String, "String");

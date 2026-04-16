@@ -48,6 +48,8 @@ public:
     Value set_string(Env *, Value, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
     Value op_not(Env *);
     Value not_bang(Env *);
+    Value op_and(Env *, Value);
+    Value and_bang(Env *, Value);
 
     bool is_null() const { return m_base == nullptr; }
     bool is_empty() const { return m_size == 0; }
@@ -69,6 +71,8 @@ private:
     void release_memory();
     void attach_to_string(StringObject *, uint32_t flags);
     void assert_valid(Env *) const;
+    void assert_writable(Env *) const;
+    void *allocate_or_raise(Env *, size_t, uint32_t flags);
 
     void *m_base { nullptr };
     size_t m_size { 0 };
