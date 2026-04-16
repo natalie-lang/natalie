@@ -50,7 +50,7 @@ describe :string_encode, shared: true do
     end
 
     it "transcodes Japanese multibyte characters" do
-      NATFIXME 'need ISO_2022_JP encoding', exception: NameError, message: /uninitialized constant Encoding::ISO_2022_JP/ do
+      NATFIXME 'ISO-2022-JP conversion not supported (dummy encoding)', exception: Encoding::UndefinedConversionError do
         str = "あいうえお"
         str.send(@method, Encoding::ISO_2022_JP).should ==
           "\e\x24\x42\x24\x22\x24\x24\x24\x26\x24\x28\x24\x2A\e\x28\x42".force_encoding(Encoding::ISO_2022_JP)

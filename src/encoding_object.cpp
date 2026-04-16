@@ -41,44 +41,51 @@ Value EncodingObject::compatible(Env *env, Value obj1, Value obj2) {
     if (enc1 == enc2)
         return enc1;
 
-    // If str2 is empty string, return enc1
-    if (is_empty_string(obj2))
+    bool isstr1 = obj1.is_string();
+    bool isstr2 = obj2.is_string();
+
+    if (isstr2 && obj2.as_string()->is_empty())
         return enc1;
 
-    // If str1 is empty string
-    if (is_empty_string(obj1)) {
-        if (enc1->is_ascii_compatible() && is_ascii_only(env, obj2))
-            return enc1;
-        return enc2;
-    }
+    if (isstr1 && isstr2 && obj1.as_string()->is_empty())
+        return (enc1->is_ascii_compatible() && obj2.as_string()->is_ascii_only()) ? enc1 : enc2;
 
     if (!enc1->is_ascii_compatible() || !enc2->is_ascii_compatible())
         return Value::nil();
 
-    // Non-string objects with US-ASCII encoding are compatible with anything ASCII-compatible
-    if (!obj1.is_string() && enc1->num() == Encoding::US_ASCII)
-        return enc2;
-    if (!obj2.is_string() && enc2->num() == Encoding::US_ASCII)
+    if (!isstr2 && enc2->num() == Encoding::US_ASCII)
         return enc1;
+    if (!isstr1 && enc1->num() == Encoding::US_ASCII)
+        return enc2;
 
-    // If one is not a string, swap so str1 is a string
-    if (!obj1.is_string() && obj2.is_string()) {
+    if (!isstr1 && !isstr2) {
+        if (is_ascii_only(env, obj1) && !is_ascii_only(env, obj2)) return enc2;
+        if (!is_ascii_only(env, obj1) && is_ascii_only(env, obj2)) return enc1;
+        return Value::nil();
+    }
+
+    // Swap so obj1 is a string, but keep enc1/enc2 as the ORIGINAL encodings
+    // (matches MRI's enc_compatible_latter which does not swap enc1/enc2)
+    if (!isstr1 && isstr2) {
         std::swap(obj1, obj2);
-        std::swap(enc1, enc2);
+        std::swap(isstr1, isstr2);
     }
 
-    if (obj1.is_string()) {
-        bool cr1_ascii = is_ascii_only(env, obj1);
-        if (obj2.is_string()) {
-            bool cr2_ascii = is_ascii_only(env, obj2);
-            if (cr1_ascii != cr2_ascii) {
-                if (cr1_ascii) return enc2;
-                if (cr2_ascii) return enc1;
-            }
-            if (cr2_ascii) return enc1;
+    if (!isstr1)
+        return Value::nil();
+
+    bool cr1_7bit = obj1.as_string()->is_ascii_only();
+    if (isstr2) {
+        bool cr2_7bit = obj2.as_string()->is_ascii_only();
+        if (cr1_7bit != cr2_7bit) {
+            if (cr1_7bit) return enc2;
+            if (cr2_7bit) return enc1;
         }
-        if (cr1_ascii) return enc2;
+        if (cr2_7bit)
+            return enc1;
     }
+    if (cr1_7bit)
+        return enc2;
 
     return Value::nil();
 }

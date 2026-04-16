@@ -106,7 +106,12 @@ public:
         if (!is_initialized())
             return EncodingObject::get(Encoding::ASCII_8BIT);
 
-        return onig_encoding_to_ruby_encoding(onig_get_encoding(m_regex));
+        auto enc = onig_encoding_to_ruby_encoding(onig_get_encoding(m_regex));
+        // ONIG_ENCODING_ASCII maps to US-ASCII, but if the pattern was BINARY
+        // with non-ASCII content, we should return BINARY
+        if (enc->num() == Encoding::US_ASCII && (m_options & RegexOpts::FixedEncoding) && m_pattern && m_pattern->encoding()->num() == Encoding::ASCII_8BIT)
+            return EncodingObject::get(Encoding::ASCII_8BIT);
+        return enc;
     }
 
     int options() const { return m_options; }
