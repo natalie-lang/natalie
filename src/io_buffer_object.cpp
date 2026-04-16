@@ -258,6 +258,26 @@ Value IoBufferObject::transfer(Env *env) {
     return new_buffer;
 }
 
+Value IoBufferObject::locked(Env *env, Block *block) {
+    if (!block)
+        env->raise("LocalJumpError", "no block given");
+    if (m_flags & LOCKED) {
+        auto LockedError = klass()->const_fetch("LockedError"_s).as_class();
+        env->raise(LockedError, "Buffer already locked!");
+    }
+
+    m_flags |= LOCKED;
+    Value result;
+    try {
+        result = block->run(env, { this }, nullptr);
+    } catch (ExceptionObject *exception) {
+        m_flags &= ~LOCKED;
+        throw exception;
+    }
+    m_flags &= ~LOCKED;
+    return result;
+}
+
 Value IoBufferObject::slice(Env *env, Optional<Value> offset_arg, Optional<Value> length_arg) {
     if (!m_base) {
         auto AllocationError = klass()->const_fetch("AllocationError"_s).as_class();

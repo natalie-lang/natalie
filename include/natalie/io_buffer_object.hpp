@@ -43,6 +43,7 @@ public:
     Value free(Env *);
     Value resize(Env *, Value);
     Value transfer(Env *);
+    Value locked(Env *, Block *);
     Value slice(Env *, Optional<Value> = {}, Optional<Value> = {});
     Value to_s(Env *);
     Value get_string(Env *, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
