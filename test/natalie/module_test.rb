@@ -60,11 +60,52 @@ describe 'Module' do
     it 'does not include the same module more than once' do
       M4.ancestors.count(M1).should == 1
     end
+
+    it 'invalidates previously-cached method dispatch' do
+      parent =
+        Class.new do
+          def include_dispatch_test
+            'parent'
+          end
+        end
+      child = Class.new(parent)
+      mod =
+        Module.new do
+          def include_dispatch_test
+            'module'
+          end
+        end
+      instance = child.new
+      10.times { instance.include_dispatch_test }
+      instance.include_dispatch_test.should == 'parent'
+      child.include(mod)
+      instance.include_dispatch_test.should == 'module'
+    end
   end
 
   describe 'prepend' do
     it 'does not prepend the same module more than once' do
       M5.ancestors.count(M1).should == 1
+    end
+
+    it 'invalidates previously-cached method dispatch' do
+      klass =
+        Class.new do
+          def prepend_dispatch_test
+            'class'
+          end
+        end
+      mod =
+        Module.new do
+          def prepend_dispatch_test
+            'module'
+          end
+        end
+      instance = klass.new
+      10.times { instance.prepend_dispatch_test }
+      instance.prepend_dispatch_test.should == 'class'
+      klass.prepend(mod)
+      instance.prepend_dispatch_test.should == 'module'
     end
   end
 
