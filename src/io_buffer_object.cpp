@@ -209,7 +209,7 @@ Value IoBufferObject::resize(Env *env, Value new_size_arg) {
         return this;
     }
 
-    if (!(m_flags & (INTERNAL | MAPPED))) {
+    if (m_flags & EXTERNAL) {
         auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
         env->raise(AccessError, "Cannot resize external buffer!");
     }
