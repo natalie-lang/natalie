@@ -40,7 +40,18 @@ describe 'ruby/spec' do
     describe path do
       it 'passes all specs' do
         timeout = spec_timeout(path)
-        out = Command.new(NAT_BINARY, '--build-dir=test/build', '--build-quietly', path, timeout:).run
+        out =
+          Command.new(
+            NAT_BINARY,
+            '--build-dir=test/build',
+            '--build-quietly',
+            '-I',
+            'test/support',
+            '-r',
+            'spec',
+            path,
+            timeout:,
+          ).run
         puts out if ENV['DEBUG']
         expect(out).wont_match(/traceback|error/i)
       end
