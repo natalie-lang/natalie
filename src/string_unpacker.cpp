@@ -507,11 +507,12 @@ void StringUnpacker::unpack_p(Env *env) {
 void StringUnpacker::unpack_U(Env *env, Token &token) {
     if (token.count == -1) token.count = 1;
     nat_int_t consumed = 0;
+    auto utf8 = EncodingObject::get(Encoding::UTF_8);
     while (!at_end() && (token.star || consumed < token.count)) {
-        auto pair = m_source->next_char_result(&m_index);
+        auto pair = utf8->next_char(m_source->string(), &m_index);
         if (!pair.first)
             env->raise("ArgumentError", "malformed UTF-8 character");
-        auto value = m_source->encoding()->decode_codepoint(pair.second);
+        auto value = utf8->decode_codepoint(pair.second);
         append(Value::integer(value));
         consumed++;
     }
