@@ -180,7 +180,7 @@ namespace ArrayPacker {
         for (size_t index = 0; index < m_source.size(); index++) {
             unsigned char c = m_source[index];
 
-            if (c == '\t' || c == '\n' || (isprint(c) && c != '=' && (unsigned int)c <= 0176)) {
+            if (c == '\t' || c == '\n' || (is_ascii_printable(c) && c != '=')) {
                 m_packed.append_char(c);
                 line_size++;
                 if (c == '\n')

@@ -63,10 +63,10 @@ namespace ArrayPacker {
         if (apply_endianness_modifier(token, modifier))
             modifier = next_char();
 
-        if (isdigit(modifier)) {
+        if (is_ascii_digit(modifier)) {
             token.count = (int)modifier - '0';
             modifier = next_char();
-            while (isdigit(modifier)) {
+            while (is_ascii_digit(modifier)) {
                 token.count *= 10;
                 token.count += ((int)modifier - '0');
                 modifier = next_char();
@@ -91,7 +91,7 @@ namespace ArrayPacker {
     signed char Tokenizer::current_char() {
         signed char c = char_at_index(m_index);
 
-        while (m_index < m_directives.size() && (isspace(c) || c == '\0'))
+        while (m_index < m_directives.size() && (is_ascii_space(c) || c == '\0'))
             c = char_at_index(++m_index);
 
         if (c == '#') {

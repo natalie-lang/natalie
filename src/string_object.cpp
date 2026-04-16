@@ -1620,7 +1620,7 @@ Value StringObject::convert_integer(int base, int default_base) const {
     size_t len = length();
     size_t index = 0;
 
-    while (index < len && isspace(str[index])) {
+    while (index < len && is_ascii_space(str[index])) {
         index++;
     }
 
@@ -1661,7 +1661,7 @@ Value StringObject::convert_integer(int base, int default_base) const {
                 index += 2;
                 break;
             default:
-                if (isdigit(prefix)) {
+                if (is_ascii_digit(prefix)) {
                     base = 8;
                 }
                 break;
@@ -2981,7 +2981,7 @@ Value StringObject::to_r(Env *env) const {
     nat_int_t denominator = 1;
 
     // ignore leading whitespace
-    while (idx < m_string.size() && isspace(m_string.at(idx)))
+    while (idx < m_string.size() && is_ascii_space(m_string.at(idx)))
         idx++;
 
     // optional hyphen
@@ -2995,7 +2995,7 @@ Value StringObject::to_r(Env *env) const {
     // numerator digits
     for (; idx < m_string.size(); ++idx) {
         auto c = m_string[idx];
-        if (isdigit(c)) {
+        if (is_ascii_digit(c)) {
             numerator_digits.append_char(c);
         } else if (c == '_') {
             // ignore underscores between digits
@@ -3007,7 +3007,7 @@ Value StringObject::to_r(Env *env) const {
     // optional decimal point and fractional digits
     if (idx < m_string.size() && m_string.at(idx) == '.') {
         idx++;
-        while (idx < m_string.size() && isdigit(m_string.at(idx))) {
+        while (idx < m_string.size() && is_ascii_digit(m_string.at(idx))) {
             numerator_digits.append_char(m_string.at(idx));
             denominator = denominator * 10;
             idx++;
@@ -3017,7 +3017,7 @@ Value StringObject::to_r(Env *env) const {
     // optional slash and denominator digits
     if (idx < m_string.size() && m_string.at(idx) == '/') {
         idx++;
-        while (idx < m_string.size() && isdigit(m_string.at(idx))) {
+        while (idx < m_string.size() && is_ascii_digit(m_string.at(idx))) {
             denominator_digits.append_char(m_string.at(idx));
             idx++;
         }
@@ -3141,12 +3141,12 @@ Value StringObject::undump(Env *env) const {
                 if (it == end())
                     env->raise("RuntimeError", "invalid hex escape");
                 auto c1 = *it++;
-                if (c1.length() != 1 || !std::isxdigit(static_cast<unsigned char>(c1[0])))
+                if (c1.length() != 1 || !is_ascii_xdigit(static_cast<unsigned char>(c1[0])))
                     env->raise("RuntimeError", "invalid hex escape");
                 if (it == end())
                     env->raise("RuntimeError", "invalid hex escape");
                 auto c2 = *it++;
-                if (c2.length() != 1 || !std::isxdigit(static_cast<unsigned char>(c2[0])))
+                if (c2.length() != 1 || !is_ascii_xdigit(static_cast<unsigned char>(c2[0])))
                     env->raise("RuntimeError", "invalid hex escape");
                 const char hex[] = { c1[0], c2[0], 0 };
                 result.append_char(static_cast<char>(std::strtol(hex, nullptr, 0x10)));
@@ -4427,11 +4427,11 @@ Value StringObject::strict_convert_integer(Env *env, nat_int_t base) {
             }
             break;
         default:
-            if ((base == 0 || base == 8) && isdigit(str[1])) {
+            if ((base == 0 || base == 8) && is_ascii_digit(str[1])) {
                 // "implicit" octal with leading zero
                 prefix_base = 8;
                 str = str.substring(1);
-            } else if ((base == 0 || base == 8) && str.length() > 2 && str[1] == '_' && isdigit(str[2])) {
+            } else if ((base == 0 || base == 8) && str.length() > 2 && str[1] == '_' && is_ascii_digit(str[2])) {
                 prefix_base = 8;
                 str = str.substring(2);
             }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "natalie/ctype.hpp"
 #include "tm/optional.hpp"
 #include "tm/string.hpp"
 #include "tm/vector.hpp"

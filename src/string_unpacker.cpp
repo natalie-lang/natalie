@@ -352,7 +352,7 @@ void StringUnpacker::unpack_M(Env *env, Token &token) {
 
             if (c == '\n') {
                 void(); // skip it
-            } else if (isxdigit(c) && isxdigit(peek())) {
+            } else if (is_ascii_xdigit(c) && is_ascii_xdigit(peek())) {
                 auto value = hex_char_to_decimal_value(c);
                 value *= 16;
                 value += hex_char_to_decimal_value(next());
