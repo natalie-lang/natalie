@@ -16,6 +16,18 @@ static long io_buffer_default_size(long page_size) {
     return platform_agnostic_default_size < page_size ? page_size : platform_agnostic_default_size;
 }
 
+static void free_backing(void *base, size_t size, uint32_t flags) {
+    if (!base) return;
+    if (flags & IoBufferObject::INTERNAL)
+        ::free(base);
+    else if (flags & IoBufferObject::MAPPED)
+        munmap(base, size);
+}
+
+static uint32_t choose_flags_for_size(size_t size) {
+    return (static_cast<long>(size) >= IoBufferObject::page_size()) ? IoBufferObject::MAPPED : IoBufferObject::INTERNAL;
+}
+
 void IoBufferObject::build_constants(Env *env, ClassObject *klass) {
     s_page_size = sysconf(_SC_PAGESIZE);
     klass->const_set("PAGE_SIZE"_s, Value::integer(s_page_size));
@@ -39,12 +51,7 @@ void IoBufferObject::build_constants(Env *env, ClassObject *klass) {
 }
 
 void IoBufferObject::release_memory() {
-    if (m_base) {
-        if (m_flags & INTERNAL)
-            ::free(m_base);
-        else if (m_flags & MAPPED)
-            munmap(m_base, m_size);
-    }
+    free_backing(m_base, m_size, m_flags);
     m_base = nullptr;
     m_size = 0;
     m_flags = 0;
@@ -159,7 +166,7 @@ Value IoBufferObject::initialize(Env *env, Optional<Value> size_arg, Optional<Va
     if (flags_arg) {
         flags = extract_flags(env, flags_arg.value());
     } else {
-        flags = (static_cast<long>(size) >= s_page_size) ? MAPPED : INTERNAL;
+        flags = choose_flags_for_size(size);
     }
 
     if (size == 0)
@@ -194,7 +201,7 @@ Value IoBufferObject::resize(Env *env, Value new_size_arg) {
     }
 
     if (!m_base) {
-        const uint32_t new_flags = (static_cast<long>(new_size) >= s_page_size) ? MAPPED : INTERNAL;
+        const uint32_t new_flags = choose_flags_for_size(new_size);
         m_base = allocate_or_raise(env, new_size, new_flags);
         m_size = new_size;
         m_flags = new_flags;
@@ -214,7 +221,7 @@ Value IoBufferObject::resize(Env *env, Value new_size_arg) {
     if (old_flags & INTERNAL) {
         new_flags = INTERNAL;
     } else {
-        new_flags = (static_cast<long>(new_size) >= s_page_size) ? MAPPED : INTERNAL;
+        new_flags = choose_flags_for_size(new_size);
     }
 
     void *new_base = allocate_or_raise(env, new_size, new_flags);
@@ -222,10 +229,7 @@ Value IoBufferObject::resize(Env *env, Value new_size_arg) {
     const size_t copy_size = std::min(old_size, new_size);
     if (copy_size > 0) memcpy(new_base, old_base, copy_size);
 
-    if (old_flags & INTERNAL)
-        ::free(old_base);
-    else if (old_flags & MAPPED)
-        munmap(old_base, old_size);
+    free_backing(old_base, old_size, old_flags);
 
     m_base = new_base;
     m_size = new_size;
@@ -351,7 +355,7 @@ Value IoBufferObject::op_not(Env *env) {
 
     auto new_buffer = IoBufferObject::create(klass());
     if (m_size > 0) {
-        const uint32_t new_flags = (static_cast<long>(m_size) >= s_page_size) ? MAPPED : INTERNAL;
+        const uint32_t new_flags = choose_flags_for_size(m_size);
         void *base = allocate_or_raise(env, m_size, new_flags);
         const auto *src = static_cast<const unsigned char *>(m_base);
         auto *dst = static_cast<unsigned char *>(base);
@@ -390,7 +394,7 @@ Value IoBufferObject::op_and(Env *env, Value mask_arg) {
 
     auto new_buffer = IoBufferObject::create(klass());
     if (m_size > 0 && mask->m_size > 0) {
-        const uint32_t new_flags = (static_cast<long>(m_size) >= s_page_size) ? MAPPED : INTERNAL;
+        const uint32_t new_flags = choose_flags_for_size(m_size);
         void *base = allocate_or_raise(env, m_size, new_flags);
         const auto *src = static_cast<const unsigned char *>(m_base);
         const auto *m = static_cast<const unsigned char *>(mask->m_base);
@@ -425,7 +429,7 @@ Value IoBufferObject::op_or(Env *env, Value mask_arg) {
 
     auto new_buffer = IoBufferObject::create(klass());
     if (m_size > 0 && mask->m_size > 0) {
-        const uint32_t new_flags = (static_cast<long>(m_size) >= s_page_size) ? MAPPED : INTERNAL;
+        const uint32_t new_flags = choose_flags_for_size(m_size);
         void *base = allocate_or_raise(env, m_size, new_flags);
         const auto *src = static_cast<const unsigned char *>(m_base);
         const auto *m = static_cast<const unsigned char *>(mask->m_base);
@@ -450,6 +454,41 @@ Value IoBufferObject::or_bang(Env *env, Value mask_arg) {
     const auto *m = static_cast<const unsigned char *>(mask->m_base);
     for (size_t i = 0; i < m_size; i++)
         base[i] = base[i] | m[i % mask->m_size];
+    return this;
+}
+
+Value IoBufferObject::op_xor(Env *env, Value mask_arg) {
+    assert_valid(env);
+    auto mask = assert_buffer_arg(env, mask_arg);
+    mask->assert_valid(env);
+
+    auto new_buffer = IoBufferObject::create(klass());
+    if (m_size > 0 && mask->m_size > 0) {
+        const uint32_t new_flags = choose_flags_for_size(m_size);
+        void *base = allocate_or_raise(env, m_size, new_flags);
+        const auto *src = static_cast<const unsigned char *>(m_base);
+        const auto *m = static_cast<const unsigned char *>(mask->m_base);
+        auto *dst = static_cast<unsigned char *>(base);
+        for (size_t i = 0; i < m_size; i++)
+            dst[i] = src[i] ^ m[i % mask->m_size];
+        new_buffer->m_base = base;
+        new_buffer->m_size = m_size;
+        new_buffer->m_flags = new_flags;
+    }
+    return new_buffer;
+}
+
+Value IoBufferObject::xor_bang(Env *env, Value mask_arg) {
+    assert_writable(env);
+    assert_valid(env);
+    auto mask = assert_buffer_arg(env, mask_arg);
+    mask->assert_valid(env);
+
+    if (mask->m_size == 0) return this;
+    auto *base = static_cast<unsigned char *>(m_base);
+    const auto *m = static_cast<const unsigned char *>(mask->m_base);
+    for (size_t i = 0; i < m_size; i++)
+        base[i] = base[i] ^ m[i % mask->m_size];
     return this;
 }
 
