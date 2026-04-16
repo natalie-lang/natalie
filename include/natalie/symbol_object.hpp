@@ -1,9 +1,9 @@
 #pragma once
 
 #include <assert.h>
-#include <ctype.h>
 
 #include "natalie/class_object.hpp"
+#include "natalie/ctype.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
@@ -37,7 +37,7 @@ public:
     Value cmp(Env *, Value);
 
     bool is_constant_name() {
-        return m_name.length() > 0 && isupper(m_name[0]);
+        return m_name.length() > 0 && is_ascii_upper(m_name[0]);
     }
 
     bool is_global_name() {
@@ -45,7 +45,7 @@ public:
     }
 
     bool is_ivar_name() {
-        return m_name.length() > 1 && m_name[0] == '@' && (isalpha(m_name[1]) || m_name[1] == '_');
+        return m_name.length() > 1 && m_name[0] == '@' && (is_ascii_alpha(m_name[1]) || m_name[1] == '_');
     }
 
     bool is_cvar_name() {

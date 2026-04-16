@@ -82,6 +82,7 @@
 #include "natalie/encoding/windows1257_encoding_object.hpp"
 #include "natalie/encoding/windows1258_encoding_object.hpp"
 
+#include "natalie/ctype.hpp"
 #include "natalie/encoding_object.hpp"
 #include "natalie/enumerator/arithmetic_sequence_object.hpp"
 #include "natalie/env.hpp"

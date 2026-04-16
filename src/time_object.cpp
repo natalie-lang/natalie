@@ -355,7 +355,7 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val, NonNullPtr<SymbolO
             // other single characters are illegal
         } else if (ssize == 6 || ssize == 9) {
             char sign = str.at(0);
-            if ((sign == '+' || sign == '-') && isdigit(str[1]) && isdigit(str[2]) && str[3] == ':' && isdigit(str[4]) && isdigit(str[5]) && (ssize == 6 || (str[6] == ':' && isdigit(str[7]) && isdigit(str[8])))) {
+            if ((sign == '+' || sign == '-') && is_ascii_digit(str[1]) && is_ascii_digit(str[2]) && str[3] == ':' && is_ascii_digit(str[4]) && is_ascii_digit(str[5]) && (ssize == 6 || (str[6] == ':' && is_ascii_digit(str[7]) && is_ascii_digit(str[8])))) {
 
                 nat_int_t isign = (sign == '+') ? 1 : -1;
                 auto hour = atoi(str.substring(1, 2).c_str());

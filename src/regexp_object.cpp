@@ -305,9 +305,9 @@ static String prepare_pattern_for_onigmo(Env *env, const StringObject *pattern, 
                     c = next_char();
                     do {
                         long codepoint = 0;
-                        while (isxdigit(c)) {
+                        while (is_ascii_xdigit(c)) {
                             codepoint *= 16;
-                            if (isdigit(c))
+                            if (is_ascii_digit(c))
                                 codepoint += c - '0';
                             else if (c >= 'a' && c <= 'f')
                                 codepoint += c - 'a' + 10;
@@ -335,12 +335,12 @@ static String prepare_pattern_for_onigmo(Env *env, const StringObject *pattern, 
                 default:
                     new_pattern.append_char('\\');
                     new_pattern.append_char('u');
-                    if (!isxdigit(c))
+                    if (!is_ascii_xdigit(c))
                         env->raise("RegexpError", "invalid Unicode escape: /{}/", pattern->string());
                     new_pattern.append_char(c);
                     for (int i = 1; i < 4; i++) {
                         c = next_char();
-                        if (!isxdigit(c))
+                        if (!is_ascii_xdigit(c))
                             env->raise("RegexpError", "invalid Unicode escape: /{}/", pattern->string());
                         new_pattern.append_char(c);
                     }
@@ -353,7 +353,7 @@ static String prepare_pattern_for_onigmo(Env *env, const StringObject *pattern, 
 
             case 'x': {
                 c = next_char();
-                if (!std::isxdigit(c))
+                if (!is_ascii_xdigit(c))
                     env->raise("RegexpError", "invalid hex escape: /{}/", pattern->string());
 
                 *fixed_encoding = true;
