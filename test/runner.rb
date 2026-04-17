@@ -18,7 +18,7 @@ flags = []
 flags << ARGV.shift while ARGV.first.to_s.start_with?('-')
 
 if flags.delete('--run-grouped')
-  flags.prepend('-I.', '-Itest/support')
+  flags.prepend('-I.', '-Itest/support', '-rspec')
   require 'tempfile'
   Tempfile.create('test_runner') do |f|
     ARGV.each do |path|
@@ -39,6 +39,7 @@ if flags.delete('--run-grouped')
   end
   exit $?.exitstatus unless $?.success?
 else
+  flags.prepend('-Itest/support', '-rspec')
   ARGV.each do |path|
     if File.directory?(path)
       $stderr.puts "WARNING: skipping directory #{path}"

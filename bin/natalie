@@ -254,11 +254,9 @@ class Runner
     if options[:execute].any?
       @source_path = '-e'
       @code = options[:execute].join("\n").gsub(/\\n/, "\n")
-      @code = options[:require].map { |l| "require #{l.inspect}" }.join("\n") + "\n" + @code if options[:require].any?
     elsif ARGV.any?
       @source_path = ARGV.shift
       @code = File.read(source_path)
-      @code = options[:require].map { |l| "require #{l.inspect}" }.join("\n") + "\n" + @code if options[:require].any?
     elsif options[:bytecode]
       @source_path = options[:bytecode]
     elsif options[:expecting_script]
@@ -268,7 +266,6 @@ class Runner
       @source_path = File.expand_path('../lib/natalie/repl.rb', __dir__)
       @code = File.read(source_path)
     end
-    @code = '$VERBOSE = true' + "\n" + @code if options[:warnings] && !@code.nil?
   end
 
   def extension
@@ -282,7 +279,7 @@ class Runner
   def compiler
     return @compiler if @compiler
 
-    ast = parser.ast
+    ast = prepend_to_ast(parser.ast, build_preamble_nodes)
     encoding = parser.encoding
     warnings = parser.warnings
     data_loc = parser.data_loc
@@ -290,6 +287,52 @@ class Runner
       Natalie::Compiler
         .new(ast:, path: source_path, encoding:, warnings:, data_loc:, options: options)
         .tap { |c| c.load_path = options[:load_path] }
+  end
+
+  # Prepend AST nodes (for -r requires and -w $VERBOSE) to the program's
+  # statements instead of injecting source text, so line numbers and magic
+  # comments in the original source are preserved.
+  def prepend_to_ast(ast, nodes)
+    return ast if nodes.empty?
+    return ast unless ast.is_a?(Prism::ProgramNode)
+
+    stmts = ast.statements
+    new_stmts =
+      if stmts
+        Prism::StatementsNode.new(nil, nil, stmts.location, 0, nodes + stmts.body)
+      else
+        Prism::StatementsNode.new(nil, nil, ast.location, 0, nodes)
+      end
+    Prism::ProgramNode.new(nil, nil, ast.location, 0, ast.locals, new_stmts)
+  end
+
+  def build_preamble_nodes
+    loc = parser.ast.location
+    nodes = options[:require].map { |lib| build_require_node(lib, loc) }
+    nodes << build_verbose_node(loc) if options[:warnings]
+    nodes
+  end
+
+  def build_require_node(lib, location)
+    Prism.call_node(
+      receiver: nil,
+      name: :require,
+      location: location,
+      arguments: [Prism.string_node(unescaped: lib, location: location)],
+    )
+  end
+
+  def build_verbose_node(location)
+    Prism::GlobalVariableWriteNode.new(
+      nil,
+      nil,
+      location,
+      0,
+      :$VERBOSE,
+      location,
+      Prism.true_node(location: location),
+      location,
+    )
   end
 
   def parser
