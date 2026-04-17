@@ -40,7 +40,7 @@ StringObject *SymbolObject::to_s(Env *env) {
 StringObject *SymbolObject::inspect(Env *env) {
     StringObject *string = StringObject::create(":");
 
-    if (should_be_quoted()) {
+    if (is_invalid_name()) {
         auto quoted = StringObject::create(m_name)->inspect(env);
         string->append(quoted);
     } else {
@@ -49,22 +49,109 @@ StringObject *SymbolObject::inspect(Env *env) {
     return string;
 }
 
-bool SymbolObject::should_be_quoted() const {
-    if (!s_inspect_quote_regex) {
-        auto pattern = String(
-            "\\A\\$(\\d|\\?|\\!|~)\\z|" // :$0 :$? :$!
-            "\\A(@{0,2}|\\$)[a-z_][a-z0-9_]*[\\?\\!=]?\\z|" // :foo :@bar :baz=
-            "\\A(%|==|\\!|\\!=|\\+|\\-|/|\\*{1,2}|<<?|>>?|\\[\\]\\=?|&)\\z" // :% :== :**
-        );
-        UChar *pat = (UChar *)pattern.c_str();
-        assert(onig_new(&s_inspect_quote_regex, pat, pat + pattern.size(), ONIG_OPTION_IGNORECASE, ONIG_ENCODING_UTF_8, ONIG_SYNTAX_DEFAULT, nullptr) == ONIG_NORMAL);
+SymbolObject::NameType SymbolObject::classify_name() const {
+    const auto size = m_name.size();
+    if (size == 0) return NameType::Invalid;
+    const auto *s = (const unsigned char *)m_name.c_str();
+
+    const bool non_ascii_ok = m_encoding
+        && m_encoding->num() != Encoding::ASCII_8BIT
+        && m_encoding->is_ascii_compatible()
+        && !m_encoding->is_dummy();
+
+    auto ident_start = [&](unsigned char c) {
+        return c >= 0x80 ? non_ascii_ok : (is_ascii_alpha(c) || c == '_');
+    };
+    auto ident_cont = [&](unsigned char c) {
+        return c >= 0x80 ? non_ascii_ok : (is_ascii_alnum(c) || c == '_');
+    };
+
+    const auto c0 = s[0];
+
+    switch (c0) {
+    case '$': {
+        if (size == 1) return NameType::Invalid;
+        const auto c1 = s[1];
+        if (size == 2 && strchr("!?~&`'+=\\/,;.<>:\"*$@_", c1)) return NameType::Global;
+        if (c1 == '-') {
+            if (size != 3 || !ident_cont(s[2])) return NameType::Invalid;
+            return NameType::Global;
+        }
+        if (is_ascii_digit(c1)) {
+            for (size_t i = 2; i < size; i++)
+                if (!is_ascii_digit(s[i])) return NameType::Invalid;
+            return NameType::Global;
+        }
+        if (!ident_start(c1)) return NameType::Invalid;
+        for (size_t i = 2; i < size; i++)
+            if (!ident_cont(s[i])) return NameType::Invalid;
+        return NameType::Global;
     }
-
-    auto unsigned_str = (unsigned char *)m_name.c_str();
-    auto char_end = unsigned_str + m_name.size();
-    int result = onig_search(s_inspect_quote_regex, unsigned_str, char_end, unsigned_str, char_end, nullptr, ONIG_OPTION_NONE);
-
-    return result < 0;
+    case '@': {
+        const bool cvar = size > 1 && s[1] == '@';
+        const size_t start = cvar ? 2 : 1;
+        if (start >= size || !ident_start(s[start])) return NameType::Invalid;
+        for (size_t i = start + 1; i < size; i++)
+            if (!ident_cont(s[i])) return NameType::Invalid;
+        return cvar ? NameType::CVar : NameType::IVar;
+    }
+    case '!':
+        if (size == 1) return NameType::Junk;
+        if (size == 2 && (s[1] == '=' || s[1] == '~')) return NameType::Junk;
+        return NameType::Invalid;
+    case '%':
+    case '&':
+    case '/':
+    case '^':
+    case '`':
+    case '|':
+    case '~':
+        return size == 1 ? NameType::Junk : NameType::Invalid;
+    case '*':
+        if (size == 1) return NameType::Junk;
+        if (size == 2 && s[1] == '*') return NameType::Junk;
+        return NameType::Invalid;
+    case '+':
+    case '-':
+        if (size == 1) return NameType::Junk;
+        if (size == 2 && s[1] == '@') return NameType::Junk;
+        return NameType::Invalid;
+    case '<':
+        if (size == 1) return NameType::Junk;
+        if (size == 2 && (s[1] == '<' || s[1] == '=')) return NameType::Junk;
+        if (size == 3 && s[1] == '=' && s[2] == '>') return NameType::Junk;
+        return NameType::Invalid;
+    case '>':
+        if (size == 1) return NameType::Junk;
+        if (size == 2 && (s[1] == '>' || s[1] == '=')) return NameType::Junk;
+        return NameType::Invalid;
+    case '=':
+        if (size == 2 && (s[1] == '=' || s[1] == '~')) return NameType::Junk;
+        if (size == 3 && s[1] == '=' && s[2] == '=') return NameType::Junk;
+        return NameType::Invalid;
+    case '[':
+        if (size == 2 && s[1] == ']') return NameType::Junk;
+        if (size == 3 && s[1] == ']' && s[2] == '=') return NameType::Junk;
+        return NameType::Invalid;
+    default: {
+        if (!ident_start(c0)) return NameType::Invalid;
+        size_t i = 1;
+        while (i < size && ident_cont(s[i]))
+            i++;
+        if (i == size)
+            return is_ascii_upper(c0) ? NameType::Const : NameType::Local;
+        if (i + 1 == size) {
+            switch (s[i]) {
+            case '=':
+                return NameType::AttrSet;
+            case '?':
+            case '!':
+                return NameType::Junk;
+            }
+        }
+        return NameType::Invalid;
+    }
+    }
 }
 
 String SymbolObject::dbg_inspect(int indent) const {

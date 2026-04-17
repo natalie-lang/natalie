@@ -752,6 +752,8 @@ ArrayObject *ModuleObject::attr_reader(Env *env, Args &&args) {
 
 SymbolObject *ModuleObject::attr_reader(Env *env, Value obj) {
     auto name = obj.to_symbol(env, Value::Conversion::Strict);
+    if (!name->is_local_name() && !name->is_constant_name())
+        env->raise_name_error(name, "invalid attribute name '{}'", name->string());
     OwnedPtr<Env> block_env { Env::create() };
     block_env->var_set("name", 0, true, name);
     Block *attr_block = Block::create(std::move(block_env), this, ModuleObject::attr_reader_block_fn, 0);
@@ -777,6 +779,8 @@ ArrayObject *ModuleObject::attr_writer(Env *env, Args &&args) {
 
 SymbolObject *ModuleObject::attr_writer(Env *env, Value obj) {
     auto name = obj.to_symbol(env, Value::Conversion::Strict);
+    if (!name->is_local_name() && !name->is_constant_name())
+        env->raise_name_error(name, "invalid attribute name '{}'", name->string());
     auto method_name = SymbolObject::intern(TM::String::format("{}=", name->string()));
     OwnedPtr<Env> block_env { Env::create() };
     block_env->var_set("name", 0, true, name);

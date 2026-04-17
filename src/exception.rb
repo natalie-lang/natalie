@@ -87,12 +87,14 @@ class NameError < StandardError
   end
 end
 class NoMethodError < NameError
-  attr_reader :args, :private_call?
+  attr_reader :args
   def initialize(message = nil, name = nil, args = nil, priv = false, receiver: nil)
     super(message, name, receiver: receiver)
-    # Set instance variables on NoMethodError but not NameError
     @args = args
-    instance_variable_set('@private_call?', !!priv)
+    @private_call = !!priv
+  end
+  def private_call?
+    @private_call
   end
 end
 # end NameError subclasses
