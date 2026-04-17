@@ -196,12 +196,8 @@ Value IoBufferObject::resize(Env *env, Value new_size_arg) {
 
     const size_t new_size = extract_size(env, new_size_arg);
 
-    if (new_size == 0) {
-        release_memory();
-        return this;
-    }
-
     if (!m_base) {
+        if (new_size == 0) return this;
         const uint32_t new_flags = choose_flags_for_size(new_size);
         m_base = allocate_or_raise(env, new_size, new_flags);
         m_size = new_size;
@@ -212,6 +208,11 @@ Value IoBufferObject::resize(Env *env, Value new_size_arg) {
     if (m_flags & EXTERNAL) {
         auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
         env->raise(AccessError, "Cannot resize external buffer!");
+    }
+
+    if (new_size == 0) {
+        release_memory();
+        return this;
     }
 
     const size_t old_size = m_size;
@@ -288,7 +289,7 @@ Value IoBufferObject::slice(Env *env, Optional<Value> offset_arg, Optional<Value
     auto slice = IoBufferObject::create(klass());
     slice->m_base = m_base ? static_cast<char *>(m_base) + offset : nullptr;
     slice->m_size = length;
-    slice->m_flags = (m_flags | EXTERNAL) & ~(INTERNAL | MAPPED);
+    slice->m_flags = m_flags & READONLY;
     slice->m_source = m_source ? m_source : static_cast<Object *>(this);
     return slice;
 }
@@ -463,6 +464,13 @@ Value IoBufferObject::not_bang(Env *env) {
     return this;
 }
 
+static void assert_mask_not_empty(Env *env, IoBufferObject *mask) {
+    if (mask->is_empty()) {
+        auto MaskError = mask->klass()->const_fetch("MaskError"_s).as_class();
+        env->raise(MaskError, "Zero-length mask given!");
+    }
+}
+
 static IoBufferObject *assert_buffer_arg(Env *env, Value arg) {
     if (!arg.is_pointer() || arg->type() != Object::Type::IoBuffer) {
         if (arg.is_nil())
@@ -476,9 +484,10 @@ Value IoBufferObject::op_and(Env *env, Value mask_arg) {
     assert_valid(env);
     auto mask = assert_buffer_arg(env, mask_arg);
     mask->assert_valid(env);
+    assert_mask_not_empty(env, mask);
 
     auto new_buffer = IoBufferObject::create(klass());
-    if (m_size > 0 && mask->m_size > 0) {
+    if (m_size > 0) {
         const uint32_t new_flags = choose_flags_for_size(m_size);
         void *base = allocate_or_raise(env, m_size, new_flags);
         const auto *src = static_cast<const unsigned char *>(m_base);
@@ -498,8 +507,7 @@ Value IoBufferObject::and_bang(Env *env, Value mask_arg) {
     assert_valid(env);
     auto mask = assert_buffer_arg(env, mask_arg);
     mask->assert_valid(env);
-
-    if (mask->m_size == 0) return this;
+    assert_mask_not_empty(env, mask);
     auto *base = static_cast<unsigned char *>(m_base);
     const auto *m = static_cast<const unsigned char *>(mask->m_base);
     for (size_t i = 0; i < m_size; i++)
@@ -511,9 +519,10 @@ Value IoBufferObject::op_or(Env *env, Value mask_arg) {
     assert_valid(env);
     auto mask = assert_buffer_arg(env, mask_arg);
     mask->assert_valid(env);
+    assert_mask_not_empty(env, mask);
 
     auto new_buffer = IoBufferObject::create(klass());
-    if (m_size > 0 && mask->m_size > 0) {
+    if (m_size > 0) {
         const uint32_t new_flags = choose_flags_for_size(m_size);
         void *base = allocate_or_raise(env, m_size, new_flags);
         const auto *src = static_cast<const unsigned char *>(m_base);
@@ -533,8 +542,7 @@ Value IoBufferObject::or_bang(Env *env, Value mask_arg) {
     assert_valid(env);
     auto mask = assert_buffer_arg(env, mask_arg);
     mask->assert_valid(env);
-
-    if (mask->m_size == 0) return this;
+    assert_mask_not_empty(env, mask);
     auto *base = static_cast<unsigned char *>(m_base);
     const auto *m = static_cast<const unsigned char *>(mask->m_base);
     for (size_t i = 0; i < m_size; i++)
@@ -546,9 +554,10 @@ Value IoBufferObject::op_xor(Env *env, Value mask_arg) {
     assert_valid(env);
     auto mask = assert_buffer_arg(env, mask_arg);
     mask->assert_valid(env);
+    assert_mask_not_empty(env, mask);
 
     auto new_buffer = IoBufferObject::create(klass());
-    if (m_size > 0 && mask->m_size > 0) {
+    if (m_size > 0) {
         const uint32_t new_flags = choose_flags_for_size(m_size);
         void *base = allocate_or_raise(env, m_size, new_flags);
         const auto *src = static_cast<const unsigned char *>(m_base);
@@ -568,8 +577,7 @@ Value IoBufferObject::xor_bang(Env *env, Value mask_arg) {
     assert_valid(env);
     auto mask = assert_buffer_arg(env, mask_arg);
     mask->assert_valid(env);
-
-    if (mask->m_size == 0) return this;
+    assert_mask_not_empty(env, mask);
     auto *base = static_cast<unsigned char *>(m_base);
     const auto *m = static_cast<const unsigned char *>(mask->m_base);
     for (size_t i = 0; i < m_size; i++)
@@ -579,135 +587,135 @@ Value IoBufferObject::xor_bang(Env *env, Value mask_arg) {
 
 namespace {
 
-struct DataType {
-    size_t width;
-    bool is_signed;
-    bool is_float;
-    bool is_le;
+    struct DataType {
+        size_t width;
+        bool is_signed;
+        bool is_float;
+        bool is_le;
 
-    Value read(const unsigned char *src, bool host_le) const {
-        const bool swap = width > 1 && is_le != host_le;
+        Value read(const unsigned char *src, bool host_le) const {
+            const bool swap = width > 1 && is_le != host_le;
 
-        switch (width) {
-        case 1:
-            return is_signed
-                ? Value::integer(static_cast<nat_int_t>(static_cast<int8_t>(src[0])))
-                : Value::integer(static_cast<nat_int_t>(src[0]));
-        case 2: {
-            uint16_t v;
-            memcpy(&v, src, 2);
-            if (swap) v = __builtin_bswap16(v);
-            if (is_signed) return Value::integer(static_cast<nat_int_t>(static_cast<int16_t>(v)));
-            return Value::integer(static_cast<nat_int_t>(v));
-        }
-        case 4: {
-            uint32_t v;
-            memcpy(&v, src, 4);
-            if (swap) v = __builtin_bswap32(v);
-            if (is_float) {
-                float f;
-                memcpy(&f, &v, 4);
-                return FloatObject::create(static_cast<double>(f));
+            switch (width) {
+            case 1:
+                return is_signed
+                    ? Value::integer(static_cast<nat_int_t>(static_cast<int8_t>(src[0])))
+                    : Value::integer(static_cast<nat_int_t>(src[0]));
+            case 2: {
+                uint16_t v;
+                memcpy(&v, src, 2);
+                if (swap) v = __builtin_bswap16(v);
+                if (is_signed) return Value::integer(static_cast<nat_int_t>(static_cast<int16_t>(v)));
+                return Value::integer(static_cast<nat_int_t>(v));
             }
-            if (is_signed) return Value::integer(static_cast<nat_int_t>(static_cast<int32_t>(v)));
-            return Value::integer(static_cast<nat_int_t>(v));
-        }
-        case 8: {
-            uint64_t v;
-            memcpy(&v, src, 8);
-            if (swap) v = __builtin_bswap64(v);
-            if (is_float) {
-                double f;
-                memcpy(&f, &v, 8);
-                return FloatObject::create(f);
-            }
-            if (is_signed) return Value::integer(static_cast<nat_int_t>(static_cast<int64_t>(v)));
-            return Value::integer(static_cast<nat_int_t>(v));
-        }
-        default:
-            NAT_UNREACHABLE();
-        }
-    }
-
-    void write(unsigned char *dst, Env *env, Value val, bool host_le) const {
-        const bool swap = width > 1 && is_le != host_le;
-
-        switch (width) {
-        case 1: {
-            auto v = static_cast<uint8_t>(IntegerMethods::convert_to_nat_int_t(env, val));
-            dst[0] = v;
-            break;
-        }
-        case 2: {
-            auto v = static_cast<uint16_t>(IntegerMethods::convert_to_nat_int_t(env, val));
-            if (swap) v = __builtin_bswap16(v);
-            memcpy(dst, &v, 2);
-            break;
-        }
-        case 4: {
-            if (is_float) {
-                auto f = static_cast<float>(val.to_f(env)->to_double());
+            case 4: {
                 uint32_t v;
-                memcpy(&v, &f, 4);
+                memcpy(&v, src, 4);
                 if (swap) v = __builtin_bswap32(v);
-                memcpy(dst, &v, 4);
-            } else {
-                auto v = static_cast<uint32_t>(IntegerMethods::convert_to_nat_int_t(env, val));
-                if (swap) v = __builtin_bswap32(v);
-                memcpy(dst, &v, 4);
+                if (is_float) {
+                    float f;
+                    memcpy(&f, &v, 4);
+                    return FloatObject::create(static_cast<double>(f));
+                }
+                if (is_signed) return Value::integer(static_cast<nat_int_t>(static_cast<int32_t>(v)));
+                return Value::integer(static_cast<nat_int_t>(v));
             }
-            break;
-        }
-        case 8: {
-            if (is_float) {
-                auto f = val.to_f(env)->to_double();
+            case 8: {
                 uint64_t v;
-                memcpy(&v, &f, 8);
+                memcpy(&v, src, 8);
                 if (swap) v = __builtin_bswap64(v);
-                memcpy(dst, &v, 8);
-            } else {
-                auto v = static_cast<uint64_t>(IntegerMethods::convert_to_nat_int_t(env, val));
-                if (swap) v = __builtin_bswap64(v);
-                memcpy(dst, &v, 8);
+                if (is_float) {
+                    double f;
+                    memcpy(&f, &v, 8);
+                    return FloatObject::create(f);
+                }
+                if (is_signed) return Value::integer(static_cast<nat_int_t>(static_cast<int64_t>(v)));
+                return Value::integer(static_cast<nat_int_t>(v));
             }
-            break;
+            default:
+                NAT_UNREACHABLE();
+            }
         }
-        default:
-            NAT_UNREACHABLE();
+
+        void write(unsigned char *dst, Env *env, Value val, bool host_le) const {
+            const bool swap = width > 1 && is_le != host_le;
+
+            switch (width) {
+            case 1: {
+                auto v = static_cast<uint8_t>(IntegerMethods::convert_to_nat_int_t(env, val));
+                dst[0] = v;
+                break;
+            }
+            case 2: {
+                auto v = static_cast<uint16_t>(IntegerMethods::convert_to_nat_int_t(env, val));
+                if (swap) v = __builtin_bswap16(v);
+                memcpy(dst, &v, 2);
+                break;
+            }
+            case 4: {
+                if (is_float) {
+                    auto f = static_cast<float>(val.to_f(env)->to_double());
+                    uint32_t v;
+                    memcpy(&v, &f, 4);
+                    if (swap) v = __builtin_bswap32(v);
+                    memcpy(dst, &v, 4);
+                } else {
+                    auto v = static_cast<uint32_t>(IntegerMethods::convert_to_nat_int_t(env, val));
+                    if (swap) v = __builtin_bswap32(v);
+                    memcpy(dst, &v, 4);
+                }
+                break;
+            }
+            case 8: {
+                if (is_float) {
+                    auto f = val.to_f(env)->to_double();
+                    uint64_t v;
+                    memcpy(&v, &f, 8);
+                    if (swap) v = __builtin_bswap64(v);
+                    memcpy(dst, &v, 8);
+                } else {
+                    auto v = static_cast<uint64_t>(IntegerMethods::convert_to_nat_int_t(env, val));
+                    if (swap) v = __builtin_bswap64(v);
+                    memcpy(dst, &v, 8);
+                }
+                break;
+            }
+            default:
+                NAT_UNREACHABLE();
+            }
         }
-    }
-};
+    };
 
-static constexpr struct {
-    const char *name;
-    DataType dt;
-} data_type_table[] = {
-    { "U8", { 1, false, false, false } },
-    { "S8", { 1, true, false, false } },
-    { "u16", { 2, false, false, true } },
-    { "U16", { 2, false, false, false } },
-    { "s16", { 2, true, false, true } },
-    { "S16", { 2, true, false, false } },
-    { "u32", { 4, false, false, true } },
-    { "U32", { 4, false, false, false } },
-    { "s32", { 4, true, false, true } },
-    { "S32", { 4, true, false, false } },
-    { "u64", { 8, false, false, true } },
-    { "U64", { 8, false, false, false } },
-    { "s64", { 8, true, false, true } },
-    { "S64", { 8, true, false, false } },
-    { "f32", { 4, false, true, true } },
-    { "F32", { 4, false, true, false } },
-    { "f64", { 8, false, true, true } },
-    { "F64", { 8, false, true, false } },
-};
+    static constexpr struct {
+        const char *name;
+        DataType dt;
+    } data_type_table[] = {
+        { "U8", { 1, false, false, false } },
+        { "S8", { 1, true, false, false } },
+        { "u16", { 2, false, false, true } },
+        { "U16", { 2, false, false, false } },
+        { "s16", { 2, true, false, true } },
+        { "S16", { 2, true, false, false } },
+        { "u32", { 4, false, false, true } },
+        { "U32", { 4, false, false, false } },
+        { "s32", { 4, true, false, true } },
+        { "S32", { 4, true, false, false } },
+        { "u64", { 8, false, false, true } },
+        { "U64", { 8, false, false, false } },
+        { "s64", { 8, true, false, true } },
+        { "S64", { 8, true, false, false } },
+        { "f32", { 4, false, true, true } },
+        { "F32", { 4, false, true, false } },
+        { "f64", { 8, false, true, true } },
+        { "F64", { 8, false, true, false } },
+    };
 
-const DataType *find_data_type(Env *env, const String &name) {
-    for (const auto &entry : data_type_table) {
-        if (name == entry.name) return &entry.dt;
+    const DataType *find_data_type(Env *env, const String &name) {
+        for (const auto &entry : data_type_table) {
+            if (name == entry.name) return &entry.dt;
+        }
+        env->raise("ArgumentError", "Invalid type name!");
     }
-    env->raise("ArgumentError", "Invalid type name!");
-}
 
 } // anonymous namespace
 
@@ -717,10 +725,8 @@ Value IoBufferObject::get_value(Env *env, Value type_arg, Value offset_arg) {
     const auto *dt = find_data_type(env, sym->string());
     const size_t offset = extract_offset(env, offset_arg);
 
-    if (offset + dt->width > m_size) {
-        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
-        env->raise(AccessError, "Specified offset+type exceeds source buffer size!");
-    }
+    if (offset + dt->width > m_size)
+        env->raise("ArgumentError", "Type extends beyond end of buffer! (offset={} > size={})", offset, m_size);
 
     return dt->read(static_cast<const unsigned char *>(m_base) + offset, s_host_is_le);
 }
@@ -732,10 +738,8 @@ Value IoBufferObject::set_value(Env *env, Value type_arg, Value offset_arg, Valu
     const auto *dt = find_data_type(env, sym->string());
     const size_t offset = extract_offset(env, offset_arg);
 
-    if (offset + dt->width > m_size) {
-        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
-        env->raise(AccessError, "Specified offset+type exceeds target buffer size!");
-    }
+    if (offset + dt->width > m_size)
+        env->raise("ArgumentError", "Type extends beyond end of buffer! (offset={} > size={})", offset, m_size);
 
     dt->write(static_cast<unsigned char *>(m_base) + offset, env, value_arg, s_host_is_le);
     return Value::integer(static_cast<nat_int_t>(offset + dt->width));
@@ -798,8 +802,12 @@ Value IoBufferObject::clear(Env *env, Optional<Value> value_arg, Optional<Value>
 Value IoBufferObject::each(Env *env, Optional<Value> type_arg, Optional<Value> offset_arg, Optional<Value> count_arg, Block *block) {
     auto type = type_arg ? type_arg.value().to_symbol(env, Value::Conversion::Strict) : "U8"_s;
 
-    if (!block)
-        return send(env, "enum_for"_s, { "each"_s, type });
+    if (!block) {
+        auto args = Vector<Value> { "each"_s, type };
+        if (offset_arg) args.push(offset_arg.value());
+        if (count_arg) args.push(count_arg.value());
+        return send(env, "enum_for"_s, Args(std::move(args)));
+    }
 
     assert_valid(env);
 
