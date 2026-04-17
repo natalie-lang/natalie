@@ -439,6 +439,7 @@ module Marshal
 
     def read_object_link
       index = read_integer
+      raise ArgumentError, 'dump format error' if index < 0 || index >= @object_lookup.size
       @object_lookup.fetch(index)
     end
 
