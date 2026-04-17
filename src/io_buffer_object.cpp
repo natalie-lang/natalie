@@ -799,6 +799,81 @@ Value IoBufferObject::clear(Env *env, Optional<Value> value_arg, Optional<Value>
     return this;
 }
 
+static int extract_io_fd(Env *env, Value io_arg) {
+    auto io = IoObject::try_convert(env, io_arg);
+    if (io.is_nil())
+        env->raise("TypeError", "wrong argument type {} (expected IO)", io_arg.klass()->inspect_module());
+    return io.as_io()->fileno();
+}
+
+Value IoBufferObject::read(Env *env, Value io_arg, Optional<Value> length_arg, Optional<Value> offset_arg) {
+    assert_writable(env);
+    assert_valid(env);
+
+    const size_t offset = offset_arg ? extract_offset(env, offset_arg.value()) : 0;
+    const size_t length = length_arg ? extract_length(env, length_arg.value()) : (m_size > offset ? m_size - offset : 0);
+
+    if (offset + length > m_size)
+        env->raise("ArgumentError", "Specified offset+length exceeds buffer size!");
+
+    const int fd = extract_io_fd(env, io_arg);
+    ssize_t result = ::read(fd, static_cast<unsigned char *>(m_base) + offset, length);
+    if (result < 0)
+        return Value::integer(static_cast<nat_int_t>(-errno));
+    return Value::integer(static_cast<nat_int_t>(result));
+}
+
+Value IoBufferObject::write(Env *env, Value io_arg, Optional<Value> length_arg, Optional<Value> offset_arg) {
+    assert_valid(env);
+
+    const size_t offset = offset_arg ? extract_offset(env, offset_arg.value()) : 0;
+    const size_t length = length_arg ? extract_length(env, length_arg.value()) : (m_size > offset ? m_size - offset : 0);
+
+    if (offset + length > m_size)
+        env->raise("ArgumentError", "Specified offset+length exceeds buffer size!");
+
+    const int fd = extract_io_fd(env, io_arg);
+    ssize_t result = ::write(fd, static_cast<const unsigned char *>(m_base) + offset, length);
+    if (result < 0)
+        return Value::integer(static_cast<nat_int_t>(-errno));
+    return Value::integer(static_cast<nat_int_t>(result));
+}
+
+Value IoBufferObject::pread(Env *env, Value io_arg, Value from_arg, Optional<Value> length_arg, Optional<Value> offset_arg) {
+    assert_writable(env);
+    assert_valid(env);
+
+    const size_t offset = offset_arg ? extract_offset(env, offset_arg.value()) : 0;
+    const size_t length = length_arg ? extract_length(env, length_arg.value()) : (m_size > offset ? m_size - offset : 0);
+
+    if (offset + length > m_size)
+        env->raise("ArgumentError", "Specified offset+length exceeds buffer size!");
+
+    const int fd = extract_io_fd(env, io_arg);
+    const off_t from = static_cast<off_t>(from_arg.to_int(env).to_nat_int_t());
+    ssize_t result = ::pread(fd, static_cast<unsigned char *>(m_base) + offset, length, from);
+    if (result < 0)
+        return Value::integer(static_cast<nat_int_t>(-errno));
+    return Value::integer(static_cast<nat_int_t>(result));
+}
+
+Value IoBufferObject::pwrite(Env *env, Value io_arg, Value from_arg, Optional<Value> length_arg, Optional<Value> offset_arg) {
+    assert_valid(env);
+
+    const size_t offset = offset_arg ? extract_offset(env, offset_arg.value()) : 0;
+    const size_t length = length_arg ? extract_length(env, length_arg.value()) : (m_size > offset ? m_size - offset : 0);
+
+    if (offset + length > m_size)
+        env->raise("ArgumentError", "Specified offset+length exceeds buffer size!");
+
+    const int fd = extract_io_fd(env, io_arg);
+    const off_t from = static_cast<off_t>(from_arg.to_int(env).to_nat_int_t());
+    ssize_t result = ::pwrite(fd, static_cast<const unsigned char *>(m_base) + offset, length, from);
+    if (result < 0)
+        return Value::integer(static_cast<nat_int_t>(-errno));
+    return Value::integer(static_cast<nat_int_t>(result));
+}
+
 Value IoBufferObject::each(Env *env, Optional<Value> type_arg, Optional<Value> offset_arg, Optional<Value> count_arg, Block *block) {
     auto type = type_arg ? type_arg.value().to_symbol(env, Value::Conversion::Strict) : "U8"_s;
 

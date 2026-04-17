@@ -54,6 +54,10 @@ public:
     Value each(Env *, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {}, Block * = nullptr);
     Value copy(Env *, Value, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
     Value clear(Env *, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
+    Value read(Env *, Value, Optional<Value> = {}, Optional<Value> = {});
+    Value write(Env *, Value, Optional<Value> = {}, Optional<Value> = {});
+    Value pread(Env *, Value, Value, Optional<Value> = {}, Optional<Value> = {});
+    Value pwrite(Env *, Value, Value, Optional<Value> = {}, Optional<Value> = {});
     Value op_not(Env *);
     Value not_bang(Env *);
     Value op_and(Env *, Value);
