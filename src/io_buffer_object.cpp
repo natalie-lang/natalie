@@ -47,8 +47,8 @@ void IoBufferObject::build_constants(Env *env, ClassObject *klass) {
     klass->const_set("NETWORK_ENDIAN"_s, Value::integer(BIG_ENDIAN_FLAG));
 
     int probe = 1;
-    bool host_is_little_endian = *((char *)&probe) == 1;
-    klass->const_set("HOST_ENDIAN"_s, Value::integer(host_is_little_endian ? LITTLE_ENDIAN_FLAG : BIG_ENDIAN_FLAG));
+    s_host_is_le = *((char *)&probe) == 1;
+    klass->const_set("HOST_ENDIAN"_s, Value::integer(s_host_is_le ? LITTLE_ENDIAN_FLAG : BIG_ENDIAN_FLAG));
 }
 
 void IoBufferObject::release_memory() {
@@ -577,39 +577,100 @@ Value IoBufferObject::xor_bang(Env *env, Value mask_arg) {
     return this;
 }
 
-Value IoBufferObject::get_value(Env *env, Value type_arg, Value offset_arg) {
-    assert_valid(env);
-
-    auto type = type_arg.to_symbol(env, Value::Conversion::Strict);
-    const size_t offset = extract_offset(env, offset_arg);
-
+struct DataType {
     size_t width;
     bool is_signed;
-    const char *name = type->string().c_str();
-    if (strcmp(name, "U8") == 0) {
-        width = 1;
-        is_signed = false;
-    } else if (strcmp(name, "S8") == 0) {
-        width = 1;
-        is_signed = true;
-    } else
-        env->raise("ArgumentError", "Invalid type name!");
+    bool is_float;
+    bool is_le;
 
-    if (offset + width > m_size) {
+    Value read(const unsigned char *src, bool host_le) const {
+        const bool swap = width > 1 && is_le != host_le;
+
+        switch (width) {
+        case 1:
+            return is_signed
+                ? Value::integer(static_cast<nat_int_t>(static_cast<int8_t>(src[0])))
+                : Value::integer(static_cast<nat_int_t>(src[0]));
+        case 2: {
+            uint16_t v;
+            memcpy(&v, src, 2);
+            if (swap) v = __builtin_bswap16(v);
+            if (is_signed) return Value::integer(static_cast<nat_int_t>(static_cast<int16_t>(v)));
+            return Value::integer(static_cast<nat_int_t>(v));
+        }
+        case 4: {
+            uint32_t v;
+            memcpy(&v, src, 4);
+            if (swap) v = __builtin_bswap32(v);
+            if (is_float) {
+                float f;
+                memcpy(&f, &v, 4);
+                return FloatObject::create(static_cast<double>(f));
+            }
+            if (is_signed) return Value::integer(static_cast<nat_int_t>(static_cast<int32_t>(v)));
+            return Value::integer(static_cast<nat_int_t>(v));
+        }
+        case 8: {
+            uint64_t v;
+            memcpy(&v, src, 8);
+            if (swap) v = __builtin_bswap64(v);
+            if (is_float) {
+                double f;
+                memcpy(&f, &v, 8);
+                return FloatObject::create(f);
+            }
+            if (is_signed) return Value::integer(static_cast<nat_int_t>(static_cast<int64_t>(v)));
+            return Value::integer(static_cast<nat_int_t>(v));
+        }
+        default:
+            NAT_UNREACHABLE();
+        }
+    }
+};
+
+static constexpr struct {
+    const char *name;
+    DataType dt;
+} data_type_table[] = {
+    { "U8", { 1, false, false, false } },
+    { "S8", { 1, true, false, false } },
+    { "u16", { 2, false, false, true } },
+    { "U16", { 2, false, false, false } },
+    { "s16", { 2, true, false, true } },
+    { "S16", { 2, true, false, false } },
+    { "u32", { 4, false, false, true } },
+    { "U32", { 4, false, false, false } },
+    { "s32", { 4, true, false, true } },
+    { "S32", { 4, true, false, false } },
+    { "u64", { 8, false, false, true } },
+    { "U64", { 8, false, false, false } },
+    { "s64", { 8, true, false, true } },
+    { "S64", { 8, true, false, false } },
+    { "f32", { 4, false, true, true } },
+    { "F32", { 4, false, true, false } },
+    { "f64", { 8, false, true, true } },
+    { "F64", { 8, false, true, false } },
+};
+
+static const DataType *find_data_type(Env *env, const String &name) {
+    for (const auto &entry : data_type_table) {
+        if (name == entry.name) return &entry.dt;
+    }
+    env->raise("ArgumentError", "Invalid type name!");
+}
+
+Value IoBufferObject::get_value(Env *env, Value type_arg, Value offset_arg) {
+    assert_valid(env);
+    auto sym = type_arg.to_symbol(env, Value::Conversion::Strict);
+    const auto *dt = find_data_type(env, sym->string());
+    const size_t offset = extract_offset(env, offset_arg);
+
+    if (offset + dt->width > m_size) {
         auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
         env->raise(AccessError, "Specified offset+type exceeds source buffer size!");
     }
 
-    const unsigned char *base = static_cast<const unsigned char *>(m_base);
-    if (is_signed)
-        return Value::integer(static_cast<nat_int_t>(static_cast<int8_t>(base[offset])));
-    return Value::integer(static_cast<nat_int_t>(base[offset]));
-}
-
-static size_t type_size_for_symbol(Env *env, SymbolObject *type) {
-    auto name = type->string();
-    if (name == "U8" || name == "S8") return 1;
-    env->raise("ArgumentError", "Invalid type name!");
+    return dt->read(static_cast<const unsigned char *>(m_base) + offset, s_host_is_le);
 }
 
 Value IoBufferObject::each(Env *env, Optional<Value> type_arg, Optional<Value> offset_arg, Optional<Value> count_arg, Block *block) {
@@ -620,17 +681,17 @@ Value IoBufferObject::each(Env *env, Optional<Value> type_arg, Optional<Value> o
 
     assert_valid(env);
 
-    const size_t width = type_size_for_symbol(env, type);
+    const auto *dt = find_data_type(env, type->string());
     size_t offset = offset_arg ? extract_offset(env, offset_arg.value()) : 0;
     size_t count;
     if (count_arg) {
         count = extract_length(env, count_arg.value());
     } else {
-        count = m_size > offset ? (m_size - offset) / width : 0;
+        count = m_size > offset ? (m_size - offset) / dt->width : 0;
     }
 
     for (size_t i = 0; i < count; i++) {
-        size_t current_offset = offset + i * width;
+        size_t current_offset = offset + i * dt->width;
         Value value = get_value(env, type, Value::integer(static_cast<nat_int_t>(current_offset)));
         block->run(env, { Value::integer(static_cast<nat_int_t>(current_offset)), value }, nullptr);
     }

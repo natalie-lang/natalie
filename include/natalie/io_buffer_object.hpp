@@ -31,6 +31,7 @@ public:
 
     static void build_constants(Env *, ClassObject *);
     static long page_size() { return s_page_size; }
+    static bool host_is_le() { return s_host_is_le; }
 
     static Value s_for(Env *, ClassObject *, Value, Block *);
     static Value s_string(Env *, ClassObject *, Value, Block *);
@@ -88,6 +89,7 @@ private:
     Object *m_source { nullptr };
 
     inline static long s_page_size { 0 };
+    inline static bool s_host_is_le { false };
 };
 
 }
