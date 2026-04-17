@@ -222,6 +222,12 @@ Value IoBufferObject::resize(Env *env, Value new_size_arg) {
     uint32_t new_flags;
     if (old_flags & INTERNAL) {
         new_flags = INTERNAL;
+    } else if (old_flags & MAPPED) {
+#ifdef __linux__
+        new_flags = MAPPED;
+#else
+        new_flags = choose_flags_for_size(new_size);
+#endif
     } else {
         new_flags = choose_flags_for_size(new_size);
     }
