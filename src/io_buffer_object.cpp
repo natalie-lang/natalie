@@ -577,6 +577,8 @@ Value IoBufferObject::xor_bang(Env *env, Value mask_arg) {
     return this;
 }
 
+namespace {
+
 struct DataType {
     size_t width;
     bool is_signed;
@@ -626,6 +628,54 @@ struct DataType {
             NAT_UNREACHABLE();
         }
     }
+
+    void write(unsigned char *dst, Env *env, Value val, bool host_le) const {
+        const bool swap = width > 1 && is_le != host_le;
+
+        switch (width) {
+        case 1: {
+            auto v = static_cast<uint8_t>(IntegerMethods::convert_to_nat_int_t(env, val));
+            dst[0] = v;
+            break;
+        }
+        case 2: {
+            auto v = static_cast<uint16_t>(IntegerMethods::convert_to_nat_int_t(env, val));
+            if (swap) v = __builtin_bswap16(v);
+            memcpy(dst, &v, 2);
+            break;
+        }
+        case 4: {
+            if (is_float) {
+                auto f = static_cast<float>(val.to_f(env)->to_double());
+                uint32_t v;
+                memcpy(&v, &f, 4);
+                if (swap) v = __builtin_bswap32(v);
+                memcpy(dst, &v, 4);
+            } else {
+                auto v = static_cast<uint32_t>(IntegerMethods::convert_to_nat_int_t(env, val));
+                if (swap) v = __builtin_bswap32(v);
+                memcpy(dst, &v, 4);
+            }
+            break;
+        }
+        case 8: {
+            if (is_float) {
+                auto f = val.to_f(env)->to_double();
+                uint64_t v;
+                memcpy(&v, &f, 8);
+                if (swap) v = __builtin_bswap64(v);
+                memcpy(dst, &v, 8);
+            } else {
+                auto v = static_cast<uint64_t>(IntegerMethods::convert_to_nat_int_t(env, val));
+                if (swap) v = __builtin_bswap64(v);
+                memcpy(dst, &v, 8);
+            }
+            break;
+        }
+        default:
+            NAT_UNREACHABLE();
+        }
+    }
 };
 
 static constexpr struct {
@@ -652,12 +702,14 @@ static constexpr struct {
     { "F64", { 8, false, true, false } },
 };
 
-static const DataType *find_data_type(Env *env, const String &name) {
+const DataType *find_data_type(Env *env, const String &name) {
     for (const auto &entry : data_type_table) {
         if (name == entry.name) return &entry.dt;
     }
     env->raise("ArgumentError", "Invalid type name!");
 }
+
+} // anonymous namespace
 
 Value IoBufferObject::get_value(Env *env, Value type_arg, Value offset_arg) {
     assert_valid(env);
@@ -671,6 +723,22 @@ Value IoBufferObject::get_value(Env *env, Value type_arg, Value offset_arg) {
     }
 
     return dt->read(static_cast<const unsigned char *>(m_base) + offset, s_host_is_le);
+}
+
+Value IoBufferObject::set_value(Env *env, Value type_arg, Value offset_arg, Value value_arg) {
+    assert_writable(env);
+    assert_valid(env);
+    auto sym = type_arg.to_symbol(env, Value::Conversion::Strict);
+    const auto *dt = find_data_type(env, sym->string());
+    const size_t offset = extract_offset(env, offset_arg);
+
+    if (offset + dt->width > m_size) {
+        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
+        env->raise(AccessError, "Specified offset+type exceeds target buffer size!");
+    }
+
+    dt->write(static_cast<unsigned char *>(m_base) + offset, env, value_arg, s_host_is_le);
+    return Value::integer(static_cast<nat_int_t>(offset + dt->width));
 }
 
 Value IoBufferObject::each(Env *env, Optional<Value> type_arg, Optional<Value> offset_arg, Optional<Value> count_arg, Block *block) {

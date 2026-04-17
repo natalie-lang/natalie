@@ -50,6 +50,7 @@ public:
     Value get_string(Env *, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
     Value set_string(Env *, Value, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
     Value get_value(Env *, Value, Value);
+    Value set_value(Env *, Value, Value, Value);
     Value each(Env *, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {}, Block * = nullptr);
     Value op_not(Env *);
     Value not_bang(Env *);
