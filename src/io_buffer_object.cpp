@@ -340,10 +340,10 @@ Value IoBufferObject::s_string(Env *env, ClassObject *klass, Value length_arg, B
 }
 
 Value IoBufferObject::s_map(Env *env, ClassObject *klass, Value io_arg, Optional<Value> size_arg, Optional<Value> offset_arg, Optional<Value> flags_arg) {
-    if (!io_arg.is_io())
+    auto io = IoObject::try_convert(env, io_arg);
+    if (io.is_nil())
         env->raise("TypeError", "wrong argument type {} (expected IO)", io_arg.klass()->inspect_module());
-    auto io = io_arg.as_io();
-    const int fd = io->fileno();
+    const int fd = io.as_io()->fileno();
 
     struct stat st;
     if (fstat(fd, &st) < 0) env->raise_errno();
@@ -434,6 +434,31 @@ Value IoBufferObject::get_string(Env *env, Optional<Value> offset_arg, Optional<
         return StringObject::create("", encoding);
 
     return StringObject::create(static_cast<const char *>(m_base) + offset, length, encoding);
+}
+
+Value IoBufferObject::set_string(Env *env, Value source_arg, Optional<Value> offset_arg, Optional<Value> length_arg, Optional<Value> source_offset_arg) {
+    assert_writable(env);
+    assert_valid(env);
+
+    source_arg.assert_type(env, Object::Type::String, "String");
+    auto source = source_arg.as_string();
+
+    size_t offset = offset_arg ? extract_offset(env, offset_arg.value()) : 0;
+    size_t source_offset = source_offset_arg ? extract_offset(env, source_offset_arg.value()) : 0;
+
+    size_t max_length = source->bytesize() > source_offset ? source->bytesize() - source_offset : 0;
+    size_t length = length_arg ? extract_length(env, length_arg.value()) : max_length;
+    if (length > max_length) length = max_length;
+
+    if (offset + length > m_size) {
+        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
+        env->raise(AccessError, "Specified offset+length exceeds target size!");
+    }
+
+    if (length > 0)
+        memcpy(static_cast<char *>(m_base) + offset, source->c_str() + source_offset, length);
+
+    return Value::integer(static_cast<nat_int_t>(length));
 }
 
 Value IoBufferObject::op_not(Env *env) {
@@ -901,31 +926,6 @@ Value IoBufferObject::each(Env *env, Optional<Value> type_arg, Optional<Value> o
         block->run(env, { Value::integer(static_cast<nat_int_t>(current_offset)), value }, nullptr);
     }
     return this;
-}
-
-Value IoBufferObject::set_string(Env *env, Value source_arg, Optional<Value> offset_arg, Optional<Value> length_arg, Optional<Value> source_offset_arg) {
-    assert_writable(env);
-    assert_valid(env);
-
-    source_arg.assert_type(env, Object::Type::String, "String");
-    auto source = source_arg.as_string();
-
-    size_t offset = offset_arg ? extract_offset(env, offset_arg.value()) : 0;
-    size_t source_offset = source_offset_arg ? extract_offset(env, source_offset_arg.value()) : 0;
-
-    size_t max_length = source->bytesize() > source_offset ? source->bytesize() - source_offset : 0;
-    size_t length = length_arg ? extract_length(env, length_arg.value()) : max_length;
-    if (length > max_length) length = max_length;
-
-    if (offset + length > m_size) {
-        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
-        env->raise(AccessError, "Specified offset+length exceeds target size!");
-    }
-
-    if (length > 0)
-        memcpy(static_cast<char *>(m_base) + offset, source->c_str() + source_offset, length);
-
-    return Value::integer(static_cast<nat_int_t>(length));
 }
 
 }
