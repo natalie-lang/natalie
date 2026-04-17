@@ -42,11 +42,9 @@ describe :array_pack_16bit_le, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        [0x1243_6578, 0xdef0_abcd].pack(pack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown pack directive/)
-    end
+    -> {
+      [0x1243_6578, 0xdef0_abcd].pack(pack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown pack directive/)
   end
 
   it "ignores spaces between directives" do
@@ -97,11 +95,9 @@ describe :array_pack_16bit_be, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        [0x1243_6578, 0xdef0_abcd].pack(pack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown pack directive/)
-    end
+    -> {
+      [0x1243_6578, 0xdef0_abcd].pack(pack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown pack directive/)
   end
 
   it "ignores spaces between directives" do
@@ -152,11 +148,9 @@ describe :array_pack_32bit_le, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        [0x1243_6578, 0xdef0_abcd].pack(pack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown pack directive/)
-    end
+    -> {
+      [0x1243_6578, 0xdef0_abcd].pack(pack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown pack directive/)
   end
 
   it "ignores spaces between directives" do
@@ -207,11 +201,9 @@ describe :array_pack_32bit_be, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        [0x1243_6578, 0xdef0_abcd].pack(pack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown pack directive/)
-    end
+    -> {
+      [0x1243_6578, 0xdef0_abcd].pack(pack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown pack directive/)
   end
 
   it "ignores spaces between directives" do
@@ -322,11 +314,9 @@ describe :array_pack_64bit_le, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        [0xdef0_abcd_3412_7856, 0x7865_4321_dcba_def0].pack(pack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown pack directive/)
-    end
+    -> {
+      [0xdef0_abcd_3412_7856, 0x7865_4321_dcba_def0].pack(pack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown pack directive/)
   end
 
   it "ignores spaces between directives" do
@@ -385,11 +375,9 @@ describe :array_pack_64bit_be, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        [0xdef0_abcd_3412_7856, 0x7865_4321_dcba_def0].pack(pack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown pack directive/)
-    end
+    -> {
+      [0xdef0_abcd_3412_7856, 0x7865_4321_dcba_def0].pack(pack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown pack directive/)
   end
 
   it "ignores spaces between directives" do

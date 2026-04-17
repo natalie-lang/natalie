@@ -70,11 +70,9 @@ describe :array_pack_unicode, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        [1, 2, 3].pack("U\x00U")
-      }.should raise_error(ArgumentError, /unknown pack directive/)
-    end
+    -> {
+      [1, 2, 3].pack("U\x00U")
+    }.should raise_error(ArgumentError, /unknown pack directive/)
   end
 
   it "ignores spaces between directives" do

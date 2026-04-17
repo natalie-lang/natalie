@@ -335,7 +335,7 @@ def _platform_match(*args)
     else
       [{}, args]
     end
-  return true if options[:wordsize] == 64 || options[:pointer_size] == 64
+  return true if options[:wordsize] == 64 || options[:pointer_size] == 64 || options[:c_long_size] == 64
   return true if platforms.include?(:windows) && RUBY_PLATFORM =~ /(mswin|mingw)/
   return true if platforms.include?(:linux) && RUBY_PLATFORM =~ /linux/
   return true if platforms.include?(:darwin) && RUBY_PLATFORM =~ /darwin/i

@@ -33,11 +33,9 @@ describe :string_unpack_16bit_le, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        "abcd".unpack(unpack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
-    end
+    -> {
+      "abcd".unpack(unpack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown unpack directive/)
   end
 
   it "ignores spaces between directives" do
@@ -90,11 +88,9 @@ describe :string_unpack_16bit_be, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        "badc".unpack(unpack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
-    end
+    -> {
+      "badc".unpack(unpack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown unpack directive/)
   end
 
   it "ignores spaces between directives" do
@@ -148,11 +144,9 @@ describe :string_unpack_32bit_le, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        "abcdefgh".unpack(unpack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
-    end
+    -> {
+      "abcdefgh".unpack(unpack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown unpack directive/)
   end
 
   it "ignores spaces between directives" do
@@ -206,11 +200,9 @@ describe :string_unpack_32bit_be, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        "dcbahgfe".unpack(unpack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
-    end
+    -> {
+      "dcbahgfe".unpack(unpack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown unpack directive/)
   end
 
   it "ignores spaces between directives" do
@@ -260,11 +252,9 @@ describe :string_unpack_64bit_le, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        "badc".unpack(unpack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
-    end
+    -> {
+      "badc".unpack(unpack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown unpack directive/)
   end
 
   it "ignores spaces between directives" do
@@ -325,11 +315,9 @@ describe :string_unpack_64bit_be, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        "hgfedcbadcfehgba".unpack(unpack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
-    end
+    -> {
+      "hgfedcbadcfehgba".unpack(unpack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown unpack directive/)
   end
 
   it "ignores spaces between directives" do

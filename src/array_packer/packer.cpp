@@ -10,9 +10,25 @@ namespace ArrayPacker {
         m_packed = buffer->string();
         m_encoding = buffer->encoding();
 
+        auto raise_unknown = [&](Token &token) {
+            unsigned char byte = (unsigned char)token.directive;
+            auto fmt = quote_unprintable(m_directives_string);
+            if (is_ascii_printable(byte)) {
+                env->raise("ArgumentError", "unknown pack directive '{}' in '{}'", token.directive, fmt);
+            } else {
+                auto hex = String::hex(byte, String::HexFormat::Lowercase);
+                if (hex.length() < 2)
+                    hex.prepend_char('0');
+                env->raise("ArgumentError", "unknown pack directive '\\x{}' in '{}'", hex, fmt);
+            }
+        };
+
         for (auto token : *m_directives) {
             if (token.error)
                 env->raise("ArgumentError", *token.error);
+
+            if (token.unknown)
+                raise_unknown(token);
 
             char d = token.directive;
             switch (d) {
@@ -168,7 +184,7 @@ namespace ArrayPacker {
                 break;
             }
             default:
-                env->raise("ArgumentError", "unknown pack directive '{}' in '{}'", d, m_directives_string);
+                raise_unknown(token);
             }
         }
         // must force str length in case m_packed was stuffed with '\0's

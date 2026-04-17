@@ -87,11 +87,9 @@ describe "String#unpack with format 'B'" do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        "\x80\x00".unpack("B\x00B")
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
-    end
+    -> {
+      "\x80\x00".unpack("B\x00B")
+    }.should raise_error(ArgumentError, /unknown unpack directive/)
   end
 
   it "ignores spaces between directives" do
@@ -187,11 +185,9 @@ describe "String#unpack with format 'b'" do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        "\x01\x00".unpack("b\x00b")
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
-    end
+    -> {
+      "\x01\x00".unpack("b\x00b")
+    }.should raise_error(ArgumentError, /unknown unpack directive/)
   end
 
   it "ignores spaces between directives" do

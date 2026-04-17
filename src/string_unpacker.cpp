@@ -61,6 +61,22 @@ void StringUnpacker::unpack_token(Env *env, Token &token) {
     if (token.error)
         env->raise("ArgumentError", *token.error);
 
+    auto raise_unknown = [&]() {
+        unsigned char byte = (unsigned char)token.directive;
+        auto fmt = ArrayPacker::quote_unprintable(m_directives_string);
+        if (is_ascii_printable(byte)) {
+            env->raise("ArgumentError", "unknown unpack directive '{}' in '{}'", token.directive, fmt);
+        } else {
+            auto hex = String::hex(byte, String::HexFormat::Lowercase);
+            if (hex.length() < 2)
+                hex.prepend_char('0');
+            env->raise("ArgumentError", "unknown unpack directive '\\x{}' in '{}'", hex, fmt);
+        }
+    };
+
+    if (token.unknown)
+        raise_unknown();
+
     switch (token.directive) {
     case 'A':
         unpack_A(token);
@@ -190,7 +206,7 @@ void StringUnpacker::unpack_token(Env *env, Token &token) {
         unpack_at(env, token);
         break;
     default:
-        env->raise("ArgumentError", "unknown unpack directive '{}' in '{}'", token.directive, m_directives_string);
+        raise_unknown();
     }
 }
 
@@ -491,11 +507,12 @@ void StringUnpacker::unpack_p(Env *env) {
 void StringUnpacker::unpack_U(Env *env, Token &token) {
     if (token.count == -1) token.count = 1;
     nat_int_t consumed = 0;
+    auto utf8 = EncodingObject::get(Encoding::UTF_8);
     while (!at_end() && (token.star || consumed < token.count)) {
-        auto pair = m_source->next_char_result(&m_index);
+        auto pair = utf8->next_char(m_source->string(), &m_index);
         if (!pair.first)
             env->raise("ArgumentError", "malformed UTF-8 character");
-        auto value = m_source->encoding()->decode_codepoint(pair.second);
+        auto value = utf8->decode_codepoint(pair.second);
         append(Value::integer(value));
         consumed++;
     }

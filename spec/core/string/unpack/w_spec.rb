@@ -16,11 +16,9 @@ describe "String#unpack with directive 'w'" do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        "\x01\x02\x03".unpack("w\x00w")
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
-    end
+    -> {
+      "\x01\x02\x03".unpack("w\x00w")
+    }.should raise_error(ArgumentError, /unknown unpack directive/)
   end
 
   it "ignores spaces between directives" do

@@ -45,7 +45,18 @@ namespace ArrayPacker {
 
     Token Tokenizer::next_token() {
         auto directive = current_char();
-        if (!directive) return {};
+        if (!directive) {
+            if (m_index < m_directives.size()) {
+                // null byte in middle of directives string - pass through as an
+                // invalid directive so the pack/unpack default case can raise
+                // a context-appropriate ArgumentError.
+                m_index++;
+                auto token = Token {};
+                token.unknown = true;
+                return token;
+            }
+            return {};
+        }
 
         auto token = Token { directive };
 
@@ -91,7 +102,7 @@ namespace ArrayPacker {
     signed char Tokenizer::current_char() {
         signed char c = char_at_index(m_index);
 
-        while (m_index < m_directives.size() && (is_ascii_space(c) || c == '\0'))
+        while (m_index < m_directives.size() && is_ascii_space(c))
             c = char_at_index(++m_index);
 
         if (c == '#') {

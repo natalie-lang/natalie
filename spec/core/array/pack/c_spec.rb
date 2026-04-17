@@ -46,11 +46,9 @@ describe :array_pack_8bit, shared: true do
   end
 
   it "raise ArgumentError for NULL bytes between directives" do
-    NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
-      -> {
-        [1, 2, 3].pack(pack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown pack directive/)
-    end
+    -> {
+      [1, 2, 3].pack(pack_format("\000", 2))
+    }.should raise_error(ArgumentError, /unknown pack directive/)
   end
 
   it "ignores spaces between directives" do
