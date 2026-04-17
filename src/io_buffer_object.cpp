@@ -577,6 +577,66 @@ Value IoBufferObject::xor_bang(Env *env, Value mask_arg) {
     return this;
 }
 
+Value IoBufferObject::get_value(Env *env, Value type_arg, Value offset_arg) {
+    assert_valid(env);
+
+    auto type = type_arg.to_symbol(env, Value::Conversion::Strict);
+    const size_t offset = extract_offset(env, offset_arg);
+
+    size_t width;
+    bool is_signed;
+    const char *name = type->string().c_str();
+    if (strcmp(name, "U8") == 0) {
+        width = 1;
+        is_signed = false;
+    } else if (strcmp(name, "S8") == 0) {
+        width = 1;
+        is_signed = true;
+    } else
+        env->raise("ArgumentError", "Invalid type name!");
+
+    if (offset + width > m_size) {
+        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
+        env->raise(AccessError, "Specified offset+type exceeds source buffer size!");
+    }
+
+    const unsigned char *base = static_cast<const unsigned char *>(m_base);
+    if (is_signed)
+        return Value::integer(static_cast<nat_int_t>(static_cast<int8_t>(base[offset])));
+    return Value::integer(static_cast<nat_int_t>(base[offset]));
+}
+
+static size_t type_size_for_symbol(Env *env, SymbolObject *type) {
+    auto name = type->string();
+    if (name == "U8" || name == "S8") return 1;
+    env->raise("ArgumentError", "Invalid type name!");
+}
+
+Value IoBufferObject::each(Env *env, Optional<Value> type_arg, Optional<Value> offset_arg, Optional<Value> count_arg, Block *block) {
+    auto type = type_arg ? type_arg.value().to_symbol(env, Value::Conversion::Strict) : "U8"_s;
+
+    if (!block)
+        return send(env, "enum_for"_s, { "each"_s, type });
+
+    assert_valid(env);
+
+    const size_t width = type_size_for_symbol(env, type);
+    size_t offset = offset_arg ? extract_offset(env, offset_arg.value()) : 0;
+    size_t count;
+    if (count_arg) {
+        count = extract_length(env, count_arg.value());
+    } else {
+        count = m_size > offset ? (m_size - offset) / width : 0;
+    }
+
+    for (size_t i = 0; i < count; i++) {
+        size_t current_offset = offset + i * width;
+        Value value = get_value(env, type, Value::integer(static_cast<nat_int_t>(current_offset)));
+        block->run(env, { Value::integer(static_cast<nat_int_t>(current_offset)), value }, nullptr);
+    }
+    return this;
+}
+
 Value IoBufferObject::set_string(Env *env, Value source_arg, Optional<Value> offset_arg, Optional<Value> length_arg, Optional<Value> source_offset_arg) {
     assert_writable(env);
     assert_valid(env);
