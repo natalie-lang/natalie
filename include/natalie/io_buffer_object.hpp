@@ -52,6 +52,8 @@ public:
     Value get_value(Env *, Value, Value);
     Value set_value(Env *, Value, Value, Value);
     Value each(Env *, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {}, Block * = nullptr);
+    Value copy(Env *, Value, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
+    Value clear(Env *, Optional<Value> = {}, Optional<Value> = {}, Optional<Value> = {});
     Value op_not(Env *);
     Value not_bang(Env *);
     Value op_and(Env *, Value);

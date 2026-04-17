@@ -1001,6 +1001,8 @@ gen.binding('IO::Buffer', 'get_string', 'IoBufferObject', 'get_string', argc: 0.
 gen.binding('IO::Buffer', 'set_string', 'IoBufferObject', 'set_string', argc: 1..4, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO::Buffer', 'get_value', 'IoBufferObject', 'get_value', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO::Buffer', 'set_value', 'IoBufferObject', 'set_value', argc: 3, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('IO::Buffer', 'copy', 'IoBufferObject', 'copy', argc: 1..4, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('IO::Buffer', 'clear', 'IoBufferObject', 'clear', argc: 0..3, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO::Buffer', 'each', 'IoBufferObject', 'each', argc: 0..3, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('IO::Buffer', '~', 'IoBufferObject', 'op_not', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO::Buffer', 'not!', 'IoBufferObject', 'not_bang', argc: 0, pass_env: true, pass_block: false, return_type: :Value)

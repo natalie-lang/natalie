@@ -741,6 +741,60 @@ Value IoBufferObject::set_value(Env *env, Value type_arg, Value offset_arg, Valu
     return Value::integer(static_cast<nat_int_t>(offset + dt->width));
 }
 
+Value IoBufferObject::copy(Env *env, Value source_arg, Optional<Value> offset_arg, Optional<Value> length_arg, Optional<Value> source_offset_arg) {
+    assert_writable(env);
+    assert_valid(env);
+
+    auto source = assert_buffer_arg(env, source_arg);
+    source->assert_valid(env);
+    const auto *source_base = static_cast<const unsigned char *>(source->m_base);
+    const size_t source_size = source->m_size;
+
+    const size_t offset = offset_arg ? extract_offset(env, offset_arg.value()) : 0;
+    const size_t source_offset = source_offset_arg ? extract_offset(env, source_offset_arg.value()) : 0;
+
+    if (source_offset > source_size)
+        env->raise("ArgumentError", "The given source offset is bigger than the source itself!");
+
+    const size_t length = length_arg && !length_arg.value().is_nil()
+        ? extract_length(env, length_arg.value())
+        : source_size - source_offset;
+
+    if (source_offset + length > source_size) {
+        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
+        env->raise(AccessError, "Specified offset+length exceeds source size!");
+    }
+
+    if (offset + length > m_size) {
+        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
+        env->raise(AccessError, "Specified offset+length exceeds target size!");
+    }
+
+    if (length > 0)
+        memmove(static_cast<unsigned char *>(m_base) + offset, source_base + source_offset, length);
+
+    return Value::integer(static_cast<nat_int_t>(length));
+}
+
+Value IoBufferObject::clear(Env *env, Optional<Value> value_arg, Optional<Value> offset_arg, Optional<Value> length_arg) {
+    assert_writable(env);
+    assert_valid(env);
+
+    const uint8_t fill = value_arg ? static_cast<uint8_t>(extract_non_negative_integer(env, value_arg.value(), "Value can't be negative!")) : 0;
+    const size_t offset = offset_arg ? extract_offset(env, offset_arg.value()) : 0;
+    const size_t length = length_arg ? extract_length(env, length_arg.value()) : (m_size > offset ? m_size - offset : 0);
+
+    if (offset + length > m_size) {
+        auto AccessError = klass()->const_fetch("AccessError"_s).as_class();
+        env->raise(AccessError, "Specified offset+length exceeds buffer size!");
+    }
+
+    if (length > 0)
+        memset(static_cast<unsigned char *>(m_base) + offset, fill, length);
+
+    return this;
+}
+
 Value IoBufferObject::each(Env *env, Optional<Value> type_arg, Optional<Value> offset_arg, Optional<Value> count_arg, Block *block) {
     auto type = type_arg ? type_arg.value().to_symbol(env, Value::Conversion::Strict) : "U8"_s;
 
