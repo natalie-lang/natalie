@@ -17,16 +17,36 @@ namespace ArrayPacker {
         for (size_t i = 0; i < str.size(); i++) {
             unsigned char c = str[i];
             switch (c) {
-            case '\0': out.append("\\0"); break;
-            case '\a': out.append("\\a"); break;
-            case '\b': out.append("\\b"); break;
-            case '\t': out.append("\\t"); break;
-            case '\n': out.append("\\n"); break;
-            case '\v': out.append("\\v"); break;
-            case '\f': out.append("\\f"); break;
-            case '\r': out.append("\\r"); break;
-            case '\x1b': out.append("\\e"); break;
-            case '\x7f': out.append("\\c?"); break;
+            case '\0':
+                out.append("\\0");
+                break;
+            case '\a':
+                out.append("\\a");
+                break;
+            case '\b':
+                out.append("\\b");
+                break;
+            case '\t':
+                out.append("\\t");
+                break;
+            case '\n':
+                out.append("\\n");
+                break;
+            case '\v':
+                out.append("\\v");
+                break;
+            case '\f':
+                out.append("\\f");
+                break;
+            case '\r':
+                out.append("\\r");
+                break;
+            case '\x1b':
+                out.append("\\e");
+                break;
+            case '\x7f':
+                out.append("\\c?");
+                break;
             default:
                 if (c < 0x20) {
                     auto hex = String::hex(c, String::HexFormat::Uppercase);
