@@ -507,9 +507,7 @@ describe "Marshal.dump" do
 
     it "dumps a binary Regexp" do
       o = Regexp.new("".dup.force_encoding("binary"), Regexp::FIXEDENCODING)
-      NATFIXME 'dumps a binary Regexp', exception: SpecFailedException do
-        Marshal.dump(o).should == "\x04\b/\x00\x10"
-      end
+      Marshal.dump(o).should == "\x04\b/\x00\x10"
     end
 
     it "dumps an ascii-compatible Regexp" do

@@ -256,13 +256,13 @@ module Marshal
 
     def write_regexp(value, ivars)
       add_encoding_to_ivars(value, ivars)
-      write_char('I')
+      write_char('I') unless ivars.empty?
       write_extended_modules(value)
       write_user_class(value, Regexp)
       write_char('/')
       write_string_bytes(value.source)
       write_byte(value.options)
-      write_ivars(ivars)
+      write_ivars(ivars) unless ivars.empty?
     end
 
     def write_data(value)
