@@ -664,9 +664,7 @@ describe "Marshal.dump" do
     end
 
     it "raises a TypeError with hash having default proc" do
-      NATFIXME 'raises a TypeError with hash having default proc', exception: SpecFailedException do
-        -> { Marshal.dump(Hash.new {}) }.should raise_error(TypeError, "can't dump hash with default proc")
-      end
+      -> { Marshal.dump(Hash.new {}) }.should raise_error(TypeError, "can't dump hash with default proc")
     end
 
     it "dumps a Hash with instance variables" do
