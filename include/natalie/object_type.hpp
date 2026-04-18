@@ -24,6 +24,7 @@ enum class ObjectType {
     Hash,
     Integer,
     Io,
+    IoBuffer,
     MatchData,
     Method,
     Module,

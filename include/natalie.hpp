@@ -99,6 +99,7 @@
 #include "natalie/hash_builder.hpp"
 #include "natalie/hash_object.hpp"
 #include "natalie/integer_methods.hpp"
+#include "natalie/io_buffer_object.hpp"
 #include "natalie/io_object.hpp"
 #include "natalie/kernel_module.hpp"
 #include "natalie/lexical_scope.hpp"

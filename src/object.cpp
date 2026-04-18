@@ -65,6 +65,10 @@ Optional<Value> Object::create(Env *env, ClassObject *klass) {
         obj = IoObject::create(klass);
         break;
 
+    case Object::Type::IoBuffer:
+        obj = IoBufferObject::create(klass);
+        break;
+
     case Object::Type::File:
         obj = FileObject::create(klass);
         break;
