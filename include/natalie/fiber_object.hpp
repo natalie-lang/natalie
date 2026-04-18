@@ -77,6 +77,7 @@ public:
     static Value set_scheduler(Env *, Value);
     Value set_storage(Env *, Value);
     Value storage(Env *) const;
+    Value transfer(Env *env, Args &&args);
     void swap_to_previous(Env *env, size_t arg_size, Value *arg_data);
 
     mco_coro *coroutine() { return m_coroutine; }

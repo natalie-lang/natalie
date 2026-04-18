@@ -20,10 +20,8 @@ describe "Fiber#inspect" do
     end
 
     it "is resumed for a Fiber which was transferred" do
-      NATFIXME 'Implement Fiber#transfer', exception: NoMethodError, message: "undefined method 'transfer'" do
-        inspected = Fiber.new { Fiber.current.inspect }.transfer
-        inspected.should =~ /\A#<Fiber:0x\h+ .+ \(resumed\)>\z/
-      end
+      inspected = Fiber.new { Fiber.current.inspect }.transfer
+      inspected.should =~ /\A#<Fiber:0x\h+ .+ \(resumed\)>\z/
     end
 
     it "is suspended for a Fiber which was resumed and yielded" do
