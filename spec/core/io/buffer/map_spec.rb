@@ -75,28 +75,28 @@ describe "IO::Buffer.map" do
 
   platform_is_not :windows, :openbsd do
     it "is shareable across processes" do
-      file_name = tmp("shared_buffer")
-      @file = File.open(file_name, "w+")
-      @file << "I'm private"
-      @file.rewind
-      @buffer = IO::Buffer.map(@file)
+      NATFIXME 'IO.popen with "-" to fork is not yet supported', exception: NotImplementedError do
+        file_name = tmp("shared_buffer")
+        @file = File.open(file_name, "w+")
+        @file << "I'm private"
+        @file.rewind
+        @buffer = IO::Buffer.map(@file)
 
-      IO.popen("-") do |child_pipe|
-        if child_pipe
-          # Synchronize on child's output.
-          child_pipe.readlines.first.chomp.should == @buffer.to_s
-          @buffer.get_string.should == "I'm shared!"
-
-          @file.read.should == "I'm shared!"
-        else
-          @buffer.set_string("I'm shared!")
-          puts @buffer
+        IO.popen("-") do |child_pipe|
+          if child_pipe
+            child_pipe.readlines.first.chomp.should == @buffer.to_s
+            @buffer.get_string.should == "I'm shared!"
+            @file.read.should == "I'm shared!"
+          else
+            @buffer.set_string("I'm shared!")
+            puts @buffer
+          end
+        ensure
+          child_pipe&.close
         end
       ensure
-        child_pipe&.close
+        File.unlink(file_name)
       end
-    ensure
-      File.unlink(file_name)
     end
   end
 
@@ -314,28 +314,28 @@ describe "IO::Buffer.map" do
 
       platform_is_not :windows do
         it "is not shared across processes" do
-          file_name = tmp("shared_buffer")
-          @file = File.open(file_name, "w+")
-          @file << "I'm private"
-          @file.rewind
-          @buffer = IO::Buffer.map(@file, nil, 0, IO::Buffer::PRIVATE)
+          NATFIXME 'IO.popen with "-" to fork is not yet supported', exception: NotImplementedError do
+            file_name = tmp("shared_buffer")
+            @file = File.open(file_name, "w+")
+            @file << "I'm private"
+            @file.rewind
+            @buffer = IO::Buffer.map(@file, nil, 0, IO::Buffer::PRIVATE)
 
-          IO.popen("-") do |child_pipe|
-            if child_pipe
-              # Synchronize on child's output.
-              child_pipe.readlines.first.chomp.should == @buffer.to_s
-              @buffer.get_string.should == "I'm private"
-
-              @file.read.should == "I'm private"
-            else
-              @buffer.set_string("I'm shared!")
-              puts @buffer
+            IO.popen("-") do |child_pipe|
+              if child_pipe
+                child_pipe.readlines.first.chomp.should == @buffer.to_s
+                @buffer.get_string.should == "I'm private"
+                @file.read.should == "I'm private"
+              else
+                @buffer.set_string("I'm shared!")
+                puts @buffer
+              end
+            ensure
+              child_pipe&.close
             end
           ensure
-            child_pipe&.close
+            File.unlink(file_name)
           end
-        ensure
-          File.unlink(file_name)
         end
       end
     end

@@ -73,11 +73,13 @@ describe "IO::Buffer.for" do
       end
 
       it "locks the original string to prevent modification" do
-        IO::Buffer.for(@string) do |_buffer|
-          -> { @string[0] = "t" }.should raise_error(RuntimeError, "can't modify string; temporarily locked")
+        NATFIXME 'Implement temporary string locking', exception: SpecFailedException do
+          IO::Buffer.for(@string) do |_buffer|
+            -> { @string[0] = "t" }.should raise_error(RuntimeError, "can't modify string; temporarily locked")
+          end
+          @string[1] = "u"
+          @string.should == "fur striñg"
         end
-        @string[1] = "u"
-        @string.should == "fur striñg"
       end
     end
 
