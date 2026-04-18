@@ -627,18 +627,14 @@ describe "Marshal.dump" do
       h = {}
       h.compare_by_identity
 
-      NATFIXME 'dumps a Hash with compare_by_identity', exception: SpecFailedException do
-        Marshal.dump(h).should == "\004\bC:\tHash{\x00"
-      end
+      Marshal.dump(h).should == "\004\bC:\tHash{\x00"
     end
 
     it "dumps a Hash subclass with compare_by_identity" do
       h = UserHash.new
       h.compare_by_identity
 
-      NATFIXME 'dumps a Hash subclass with compare_by_identity', exception: SpecFailedException do
-        Marshal.dump(h).should == "\x04\bC:\rUserHashC:\tHash{\x00"
-      end
+      Marshal.dump(h).should == "\x04\bC:\rUserHashC:\tHash{\x00"
     end
 
     it "raises a TypeError with hash having default proc" do

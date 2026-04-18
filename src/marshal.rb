@@ -203,6 +203,10 @@ module Marshal
       write_char('I') unless ivars.empty?
       write_extended_modules(values)
       write_user_class(values, Hash)
+      if values.compare_by_identity?
+        write_char('C')
+        write_symbol(:Hash)
+      end
       if values.default.nil?
         write_char('{')
       else
