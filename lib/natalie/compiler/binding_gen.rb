@@ -1097,7 +1097,12 @@ gen.binding('Method', 'unbind', 'MethodObject', 'unbind', argc: 0, pass_env: tru
 
 gen.static_binding_as_class_method('Module', 'nesting', 'ModuleObject', 'nesting', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Module', 'initialize', 'ModuleObject', 'initialize', argc: 0, pass_env: true, pass_block: true, return_type: :Value, visibility: :private)
+gen.binding('Module', '<', 'ModuleObject', 'lt', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Module', '<=', 'ModuleObject', 'lte', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Module', '<=>', 'ModuleObject', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Module', '===', 'ModuleObject', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Module', '>', 'ModuleObject', 'gt', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Module', '>=', 'ModuleObject', 'gte', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Module', 'alias_method', 'ModuleObject', 'alias_method', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Module', 'ancestors', 'ModuleObject', 'ancestors', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Module', 'attr', 'ModuleObject', 'attr', argc: 1.., pass_env: true, pass_block: false, return_type: :Value)

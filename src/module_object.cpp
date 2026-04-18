@@ -657,6 +657,55 @@ bool ModuleObject::ancestors_includes(Env *env, ModuleObject *module) {
     return false;
 }
 
+Value ModuleObject::lt(Env *env, Value other) {
+    if (!other.is_module())
+        env->raise("TypeError", "compared with non class/module");
+    auto other_mod = other.as_module();
+    if (this == other_mod) return Value::False();
+    if (is_subclass_of(other_mod)) return Value::True();
+    if (other_mod->is_subclass_of(this)) return Value::False();
+    return Value::nil();
+}
+
+Value ModuleObject::lte(Env *env, Value other) {
+    if (!other.is_module())
+        env->raise("TypeError", "compared with non class/module");
+    auto other_mod = other.as_module();
+    if (this == other_mod) return Value::True();
+    if (is_subclass_of(other_mod)) return Value::True();
+    if (other_mod->is_subclass_of(this)) return Value::False();
+    return Value::nil();
+}
+
+Value ModuleObject::gt(Env *env, Value other) {
+    if (!other.is_module())
+        env->raise("TypeError", "compared with non class/module");
+    auto other_mod = other.as_module();
+    if (this == other_mod) return Value::False();
+    if (other_mod->is_subclass_of(this)) return Value::True();
+    if (is_subclass_of(other_mod)) return Value::False();
+    return Value::nil();
+}
+
+Value ModuleObject::gte(Env *env, Value other) {
+    if (!other.is_module())
+        env->raise("TypeError", "compared with non class/module");
+    auto other_mod = other.as_module();
+    if (this == other_mod) return Value::True();
+    if (other_mod->is_subclass_of(this)) return Value::True();
+    if (is_subclass_of(other_mod)) return Value::False();
+    return Value::nil();
+}
+
+Value ModuleObject::cmp(Env *env, Value other) {
+    if (!other.is_module()) return Value::nil();
+    auto other_mod = other.as_module();
+    if (this == other_mod) return Value::integer(0);
+    if (is_subclass_of(other_mod)) return Value::integer(-1);
+    if (other_mod->is_subclass_of(this)) return Value::integer(1);
+    return Value::nil();
+}
+
 bool ModuleObject::is_subclass_of(ModuleObject *other) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
@@ -669,7 +718,11 @@ bool ModuleObject::is_subclass_of(ModuleObject *other) {
             return true;
         }
         for (ModuleObject *m : klass->included_modules()) {
+            if (m == klass) continue;
             if (other == m) {
+                return true;
+            }
+            if (m->is_subclass_of(other)) {
                 return true;
             }
         }
