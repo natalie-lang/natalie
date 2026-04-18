@@ -771,11 +771,9 @@ describe "Marshal.dump" do
     it "raises TypeError if an Object has a singleton class and singleton methods" do
       obj = Object.new
       def obj.foo; end
-      NATFIXME 'raises TypeError if an Object has a singleton class and singleton methods', exception: SpecFailedException do
-        -> {
-          Marshal.dump(obj)
-        }.should raise_error(TypeError, "singleton can't be dumped")
-      end
+      -> {
+        Marshal.dump(obj)
+      }.should raise_error(TypeError, "singleton can't be dumped")
     end
 
     it "raises TypeError if an Object has a singleton class and singleton instance variables" do
@@ -784,11 +782,9 @@ describe "Marshal.dump" do
         @v = 1
       end
 
-      NATFIXME 'raises TypeError if an Object has a singleton class and singleton instance variables', exception: SpecFailedException do
-        -> {
-          Marshal.dump(obj)
-        }.should raise_error(TypeError, "singleton can't be dumped")
-      end
+      -> {
+        Marshal.dump(obj)
+      }.should raise_error(TypeError, "singleton can't be dumped")
     end
 
     it "raises TypeError if an Object is an instance of an anonymous class" do

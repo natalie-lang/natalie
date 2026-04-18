@@ -330,6 +330,10 @@ module Marshal
     end
 
     def write_object(value, ivars)
+      singleton = value.singleton_class
+      if singleton.instance_methods(false).any? || singleton.instance_variables.any?
+        raise TypeError, "singleton can't be dumped"
+      end
       name = Module.instance_method(:name).bind_call(value.class)
       raise TypeError, "can't dump anonymous class #{value.class}" if name.nil?
       write_extended_modules(value)
