@@ -628,9 +628,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps a Hash subclass" do
-      NATFIXME 'dumps a Hash subclass', exception: SpecFailedException do
-        Marshal.dump(UserHash.new).should == "\004\bC:\rUserHash{\000"
-      end
+      Marshal.dump(UserHash.new).should == "\004\bC:\rUserHash{\000"
     end
 
     it "dumps a Hash with a default value" do
@@ -672,16 +670,12 @@ describe "Marshal.dump" do
     end
 
     it "dumps an Hash subclass with a parameter to initialize" do
-      NATFIXME 'dumps an Hash subclass with a parameter to initialize', exception: SpecFailedException do
-        Marshal.dump(UserHashInitParams.new(1)).should == "\004\bIC:\027UserHashInitParams{\000\006:\a@ai\006"
-      end
+      Marshal.dump(UserHashInitParams.new(1)).should == "\004\bIC:\027UserHashInitParams{\000\006:\a@ai\006"
     end
 
     it "ignores overridden name method when dumps a Hash subclass" do
       obj = MarshalSpec::HashWithOverriddenName.new
-      NATFIXME 'ignores overridden name method when dumps a Hash subclass', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bC:(MarshalSpec::HashWithOverriddenName{\x00"
-      end
+      Marshal.dump(obj).should == "\x04\bC:(MarshalSpec::HashWithOverriddenName{\x00"
     end
 
     it "uses object links for objects repeatedly dumped" do

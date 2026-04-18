@@ -199,6 +199,7 @@ module Marshal
     def write_hash(values, ivars)
       raise TypeError, "can't dump hash with default proc" if values.default_proc
       write_char('I') unless ivars.empty?
+      write_user_class(values, Hash)
       if values.default.nil?
         write_char('{')
       else
