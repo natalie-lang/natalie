@@ -128,6 +128,7 @@ module Marshal
     def write_string(value, ivars)
       add_encoding_to_ivars(value, ivars)
       write_char('I') unless ivars.empty?
+      write_user_class(value, String)
       write_char('"')
       write_string_bytes(value)
       write_ivars(ivars) unless ivars.empty?
@@ -217,6 +218,14 @@ module Marshal
       raise TypeError, "can't dump anonymous class #{value}" if name.nil?
       write_char('c')
       write_string_bytes(name)
+    end
+
+    def write_user_class(value, base)
+      return if value.class == base
+      name = Module.instance_method(:name).bind_call(value.class)
+      raise TypeError, "can't dump anonymous class #{value.class}" if name.nil?
+      write_char('C')
+      write_symbol(name.to_sym)
     end
 
     def write_module(value)

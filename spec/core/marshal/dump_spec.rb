@@ -430,9 +430,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps a String subclass" do
-      NATFIXME 'dumps a String subclass', exception: SpecFailedException do
-        Marshal.dump(UserString.new.force_encoding("binary")).should == "\004\bC:\017UserString\"\000"
-      end
+      Marshal.dump(UserString.new.force_encoding("binary")).should == "\004\bC:\017UserString\"\000"
     end
 
     it "dumps a String subclass extended with a Module" do
@@ -443,9 +441,7 @@ describe "Marshal.dump" do
 
     it "ignores overridden name method when dumps a String subclass" do
       obj = MarshalSpec::StringWithOverriddenName.new
-      NATFIXME 'ignores overridden name method when dumps a String subclass', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bC:*MarshalSpec::StringWithOverriddenName\"\x00"
-      end
+      Marshal.dump(obj).should == "\x04\bC:*MarshalSpec::StringWithOverriddenName\"\x00"
     end
 
     it "dumps a String with instance variables" do
