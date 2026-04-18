@@ -458,9 +458,7 @@ describe :marshal_load, shared: true do
   it "assigns classes to nested subclasses of Array correctly" do
     arr = ArraySub.new(ArraySub.new)
     arr_dump = Marshal.dump(arr)
-    NATFIXME 'assigns classes to nested subclasses of Array correctly', exception: SpecFailedException do
-      Marshal.send(@method, arr_dump).class.should == ArraySub
-    end
+    Marshal.send(@method, arr_dump).class.should == ArraySub
   end
 
   it "loads subclasses of Array with overridden << and push correctly" do
@@ -600,26 +598,22 @@ describe :marshal_load, shared: true do
       h = { a: 1 }
       h.compare_by_identity
       unmarshalled = Marshal.send(@method, Marshal.dump(h))
-      NATFIXME 'preserves compare_by_identity behaviour', exception: SpecFailedException do
-        unmarshalled.should.compare_by_identity?
+      unmarshalled.should.compare_by_identity?
 
-        h = { a: 1 }
-        unmarshalled = Marshal.send(@method, Marshal.dump(h))
-        unmarshalled.should_not.compare_by_identity?
-      end
+      h = { a: 1 }
+      unmarshalled = Marshal.send(@method, Marshal.dump(h))
+      unmarshalled.should_not.compare_by_identity?
     end
 
     it "preserves compare_by_identity behaviour for a Hash subclass" do
       h = UserHash.new({ a: 1 })
       h.compare_by_identity
       unmarshalled = Marshal.send(@method, Marshal.dump(h))
-      NATFIXME 'preserves compare_by_identity behaviour for a Hash subclass', exception: SpecFailedException do
-        unmarshalled.should.compare_by_identity?
+      unmarshalled.should.compare_by_identity?
 
-        h = UserHash.new({ a: 1 })
-        unmarshalled = Marshal.send(@method, Marshal.dump(h))
-        unmarshalled.should_not.compare_by_identity?
-      end
+      h = UserHash.new({ a: 1 })
+      unmarshalled = Marshal.send(@method, Marshal.dump(h))
+      unmarshalled.should_not.compare_by_identity?
     end
 
     it "allocates an instance of the proper class when Hash subclass with compare_by_identity behaviour" do
@@ -736,10 +730,8 @@ describe :marshal_load, shared: true do
     end
 
     it "loads a String subclass with custom constructor" do
-      NATFIXME 'loads a String subclass with custom constructor', exception: ArgumentError, message: 'dump format error' do
-        str = Marshal.send(@method, "\x04\bC: UserCustomConstructorString\"\x00")
-        str.should be_an_instance_of(UserCustomConstructorString)
-      end
+      str = Marshal.send(@method, "\x04\bC: UserCustomConstructorString\"\x00")
+      str.should be_an_instance_of(UserCustomConstructorString)
     end
 
     it "loads a US-ASCII String" do
@@ -996,12 +988,10 @@ describe :marshal_load, shared: true do
         data = Marshal.dump(MarshalSpec::SwappedClass.new)
 
         MarshalSpec.set_swapped_class(Class.new(Array))
-        NATFIXME 'raises ArgumentError if the resulting class does not extend the same type', exception: SpecFailedException do
-          -> { Marshal.send(@method, data) }.should raise_error(ArgumentError)
+        -> { Marshal.send(@method, data) }.should raise_error(ArgumentError)
 
-          MarshalSpec.set_swapped_class(Class.new)
-          -> { Marshal.send(@method, data) }.should raise_error(ArgumentError)
-        end
+        MarshalSpec.set_swapped_class(Class.new)
+        -> { Marshal.send(@method, data) }.should raise_error(ArgumentError)
       end
     end
   end

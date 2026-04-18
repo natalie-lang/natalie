@@ -592,6 +592,36 @@ module Marshal
       Regexp.new(string, options)
     end
 
+    def read_user_class
+      name = read_value
+      klass = find_constant(name)
+      inner = read_value
+      if klass == Hash && inner.is_a?(Hash)
+        inner.compare_by_identity
+        return inner
+      end
+      raise ArgumentError, 'dump format error (user class)' unless klass.is_a?(Class)
+      case inner
+      when Hash
+        raise ArgumentError, 'dump format error (user class)' unless klass <= Hash
+        instance = klass.allocate
+        instance.replace(inner)
+        instance.compare_by_identity if inner.compare_by_identity?
+        instance
+      when Array
+        raise ArgumentError, 'dump format error (user class)' unless klass <= Array
+        klass.allocate.replace(inner)
+      when String
+        raise ArgumentError, 'dump format error (user class)' unless klass <= String
+        klass.allocate.replace(inner)
+      when Regexp
+        raise ArgumentError, 'dump format error (user class)' unless klass <= Regexp
+        klass.new(inner.source, inner.options)
+      else
+        raise ArgumentError, 'dump format error (user class)'
+      end
+    end
+
     def read_user_marshaled_object_with_allocate
       name = read_value
       object_class = find_constant(name)
@@ -723,6 +753,8 @@ module Marshal
             read_struct
           when 'o'
             read_object
+          when 'C'
+            read_user_class
           else
             raise ArgumentError, 'dump format error'
           end
