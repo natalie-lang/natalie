@@ -241,7 +241,7 @@ module Marshal
       extended = value.singleton_class.included_modules - value.class.included_modules
       extended.reverse_each do |mod|
         name = Module.instance_method(:name).bind_call(mod)
-        raise TypeError, "can't dump anonymous module #{mod}" if name.nil?
+        raise TypeError, "can't dump anonymous class #{mod}" if name.nil?
         write_char('e')
         write_symbol(name.to_sym)
       end
@@ -278,12 +278,14 @@ module Marshal
     end
 
     def write_struct(value, ivars)
-      raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
+      name = Module.instance_method(:name).bind_call(value.class)
+      raise TypeError, "can't dump anonymous class #{value.class}" if name.nil?
       values = value.to_h
       ivars.delete_if { |key, _| values.key?(key) }
       write_char('I') unless ivars.empty?
+      write_extended_modules(value)
       write_char('S')
-      write(value.class.to_s.to_sym)
+      write(name.to_sym)
       write_integer_bytes(values.size)
       values.each do |name, value|
         write(name)
@@ -330,6 +332,7 @@ module Marshal
     def write_object(value, ivars)
       name = Module.instance_method(:name).bind_call(value.class)
       raise TypeError, "can't dump anonymous class #{value.class}" if name.nil?
+      write_extended_modules(value)
       write_char('o')
       write(name.to_sym)
       write_ivars(ivars)

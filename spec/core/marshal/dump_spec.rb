@@ -692,14 +692,12 @@ describe "Marshal.dump" do
 
     it "dumps an extended Struct" do
       obj = Struct.new("Extended", :a, :b).new.extend(Meths)
-      NATFIXME 'dumps an extended Struct', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\004\be:\nMethsS:\025Struct::Extended\a:\006a0:\006b0"
+      Marshal.dump(obj).should == "\004\be:\nMethsS:\025Struct::Extended\a:\006a0:\006b0"
 
-        s = 'hi'
-        obj.a = [:a, s]
-        obj.b = [:Meths, s]
-        Marshal.dump(obj).should == "\004\be:\nMethsS:\025Struct::Extended\a:\006a[\a;\a\"\ahi:\006b[\a;\000@\a"
-      end
+      s = 'hi'
+      obj.a = [:a, s]
+      obj.b = [:Meths, s]
+      Marshal.dump(obj).should == "\004\be:\nMethsS:\025Struct::Extended\a:\006a[\a;\a\"\ahi:\006b[\a;\000@\a"
       Struct.send(:remove_const, :Extended)
     end
 
@@ -734,9 +732,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps an extended Object" do
-      NATFIXME 'dumps an extended Object', exception: SpecFailedException do
-        Marshal.dump(Object.new.extend(Meths)).should == "\004\be:\x0AMethso:\x0BObject\x00"
-      end
+      Marshal.dump(Object.new.extend(Meths)).should == "\004\be:\x0AMethso:\x0BObject\x00"
     end
 
     it "dumps an Object with an instance variable" do
@@ -807,9 +803,7 @@ describe "Marshal.dump" do
       obj = Object.new
       obj.extend(anonymous_module)
 
-      NATFIXME 'raises TypeError if an Object extends an anonymous module', exception: SpecFailedException do
-        -> { Marshal.dump(obj) }.should raise_error(TypeError, /can't dump anonymous class/)
-      end
+      -> { Marshal.dump(obj) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
 
     it "dumps a BasicObject subclass if it defines respond_to?" do
