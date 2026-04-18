@@ -189,6 +189,7 @@ module Marshal
 
     def write_array(values, ivars)
       write_char('I') unless ivars.empty?
+      write_user_class(values, Array)
       write_char('[')
       write_integer_bytes(values.size)
       values.each { |value| write(value) }

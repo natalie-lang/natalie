@@ -576,9 +576,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps an Array subclass" do
-      NATFIXME 'dumps an Array subclass', exception: SpecFailedException do
-        Marshal.dump(UserArray.new).should == "\004\bC:\016UserArray[\000"
-      end
+      Marshal.dump(UserArray.new).should == "\004\bC:\016UserArray[\000"
     end
 
     it "dumps a recursive Array" do
@@ -601,9 +599,7 @@ describe "Marshal.dump" do
 
     it "ignores overridden name method when dumps an Array subclass" do
       obj = MarshalSpec::ArrayWithOverriddenName.new
-      NATFIXME 'ignores overridden name method when dumps an Array subclass', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bC:)MarshalSpec::ArrayWithOverriddenName[\x00"
-      end
+      Marshal.dump(obj).should == "\x04\bC:)MarshalSpec::ArrayWithOverriddenName[\x00"
     end
 
     it "uses object links for objects repeatedly dumped" do
