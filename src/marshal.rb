@@ -240,6 +240,7 @@ module Marshal
     def write_regexp(value, ivars)
       add_encoding_to_ivars(value, ivars)
       write_char('I')
+      write_user_class(value, Regexp)
       write_char('/')
       write_string_bytes(value.source)
       write_byte(value.options)

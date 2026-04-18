@@ -508,9 +508,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps a Regexp subclass" do
-      NATFIXME 'dumps a Regexp subclass', exception: SpecFailedException do
-        Marshal.dump(UserRegexp.new("")).should == "\x04\bIC:\x0FUserRegexp/\x00\x00\x06:\x06EF"
-      end
+      Marshal.dump(UserRegexp.new("")).should == "\x04\bIC:\x0FUserRegexp/\x00\x00\x06:\x06EF"
     end
 
     it "dumps a binary Regexp" do
@@ -555,9 +553,7 @@ describe "Marshal.dump" do
 
     it "ignores overridden name method when dumps a Regexp subclass" do
       obj = MarshalSpec::RegexpWithOverriddenName.new("")
-      NATFIXME 'ignores overridden name method when dumps a Regexp subclass', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bIC:*MarshalSpec::RegexpWithOverriddenName/\x00\x00\x06:\x06EF"
-      end
+      Marshal.dump(obj).should == "\x04\bIC:*MarshalSpec::RegexpWithOverriddenName/\x00\x00\x06:\x06EF"
     end
 
     it "uses object links for objects repeatedly dumped" do
