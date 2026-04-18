@@ -1040,20 +1040,16 @@ describe "Marshal.dump" do
 
   it "raises an ArgumentError when the recursion limit is exceeded" do
     h = {'one' => {'two' => {'three' => 0}}}
-    NATFIXME 'Support recursion limit', exception: SpecFailedException, message: "undefined method 'ungetbyte' for an instance of Integer" do
-      -> { Marshal.dump(h, 3) }.should raise_error(ArgumentError)
-      -> { Marshal.dump([h], 4) }.should raise_error(ArgumentError)
-      -> { Marshal.dump([], 0) }.should raise_error(ArgumentError)
-      -> { Marshal.dump([[[]]], 1) }.should raise_error(ArgumentError)
-    end
+    -> { Marshal.dump(h, 3) }.should raise_error(ArgumentError)
+    -> { Marshal.dump([h], 4) }.should raise_error(ArgumentError)
+    -> { Marshal.dump([], 0) }.should raise_error(ArgumentError)
+    -> { Marshal.dump([[[]]], 1) }.should raise_error(ArgumentError)
   end
 
   it "ignores the recursion limit if the limit is negative" do
-    NATFIXME 'Support recursion limit', exception: NoMethodError, message: "undefined method 'ungetbyte' for an instance of Integer" do
-      Marshal.dump([], -1).should == "\004\b[\000"
-      Marshal.dump([[]], -1).should == "\004\b[\006[\000"
-      Marshal.dump([[[]]], -1).should == "\004\b[\006[\006[\000"
-    end
+    Marshal.dump([], -1).should == "\004\b[\000"
+    Marshal.dump([[]], -1).should == "\004\b[\006[\000"
+    Marshal.dump([[[]]], -1).should == "\004\b[\006[\006[\000"
   end
 
   describe "when passed an IO" do

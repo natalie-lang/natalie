@@ -10,10 +10,14 @@ module Marshal
 
   class << self
     def dump(object, io = nil, limit = -1)
+      if io.is_a?(Integer)
+        limit = io
+        io = nil
+      end
       if io.nil?
-        writer = StringWriter.new
+        writer = StringWriter.new(limit)
       else
-        writer = Writer.new(io)
+        writer = Writer.new(io, limit)
       end
       writer.write_version
       writer.write(object)
@@ -35,8 +39,9 @@ module Marshal
   end
 
   class Writer
-    def initialize(output)
+    def initialize(output, limit = -1)
       @output = output
+      @initial_limit = limit
       @symbol_lookup = {}
       @object_lookup = {}
     end
@@ -125,14 +130,14 @@ module Marshal
       end
     end
 
-    def write_string(value, ivars)
+    def write_string(value, ivars, limit)
       add_encoding_to_ivars(value, ivars)
       write_char('I') unless ivars.empty?
       write_extended_modules(value)
       write_user_class(value, String)
       write_char('"')
       write_string_bytes(value)
-      write_ivars(ivars) unless ivars.empty?
+      write_ivars(ivars, limit) unless ivars.empty?
     end
 
     def write_symbol(value)
@@ -188,17 +193,17 @@ module Marshal
       write_integer_bytes(index)
     end
 
-    def write_array(values, ivars)
+    def write_array(values, ivars, limit)
       write_char('I') unless ivars.empty?
       write_extended_modules(values)
       write_user_class(values, Array)
       write_char('[')
       write_integer_bytes(values.size)
-      values.each { |value| write(value) }
-      write_ivars(ivars) unless ivars.empty?
+      values.each { |value| write(value, limit) }
+      write_ivars(ivars, limit) unless ivars.empty?
     end
 
-    def write_hash(values, ivars)
+    def write_hash(values, ivars, limit)
       raise TypeError, "can't dump hash with default proc" if values.default_proc
       write_char('I') unless ivars.empty?
       write_extended_modules(values)
@@ -214,11 +219,11 @@ module Marshal
       end
       write_integer_bytes(values.size)
       values.each do |key, value|
-        write(key)
-        write(value)
+        write(key, limit)
+        write(value, limit)
       end
-      write(values.default) unless values.default.nil?
-      write_ivars(ivars) unless ivars.empty?
+      write(values.default, limit) unless values.default.nil?
+      write_ivars(ivars, limit) unless ivars.empty?
     end
 
     def write_class(value)
@@ -254,7 +259,7 @@ module Marshal
       write_string_bytes(name)
     end
 
-    def write_regexp(value, ivars)
+    def write_regexp(value, ivars, limit)
       add_encoding_to_ivars(value, ivars)
       write_char('I') unless ivars.empty?
       write_extended_modules(value)
@@ -262,22 +267,22 @@ module Marshal
       write_char('/')
       write_string_bytes(value.source)
       write_byte(value.options)
-      write_ivars(ivars) unless ivars.empty?
+      write_ivars(ivars, limit) unless ivars.empty?
     end
 
-    def write_data(value)
+    def write_data(value, limit)
       raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
       write_char('S')
-      write(value.class.to_s.to_sym)
+      write(value.class.to_s.to_sym, limit)
       values = value.to_h
       write_integer_bytes(values.size)
       values.each do |name, value|
-        write(name)
-        write(value)
+        write(name, limit)
+        write(value, limit)
       end
     end
 
-    def write_struct(value, ivars)
+    def write_struct(value, ivars, limit)
       name = Module.instance_method(:name).bind_call(value.class)
       raise TypeError, "can't dump anonymous class #{value.class}" if name.nil?
       values = value.to_h
@@ -285,16 +290,16 @@ module Marshal
       write_char('I') unless ivars.empty?
       write_extended_modules(value)
       write_char('S')
-      write(name.to_sym)
+      write(name.to_sym, limit)
       write_integer_bytes(values.size)
       values.each do |name, value|
-        write(name)
-        write(value)
+        write(name, limit)
+        write(value, limit)
       end
-      write_ivars(ivars) unless ivars.empty?
+      write_ivars(ivars, limit) unless ivars.empty?
     end
 
-    def write_exception(value, ivars)
+    def write_exception(value, ivars, limit)
       message = value.message
       if message == value.class.inspect
         message = nil
@@ -304,19 +309,19 @@ module Marshal
       ivars.prepend([:cause, value.cause]) if value.cause
       ivars.prepend([:bt, value.backtrace])
       ivars.prepend([:mesg, message])
-      write_object(value, ivars)
+      write_object(value, ivars, limit)
     end
 
-    def write_range(value, ivars)
+    def write_range(value, ivars, limit)
       ivars.concat([[:excl, value.exclude_end?], [:begin, value.begin], [:end, value.end]])
-      write_object(value, ivars)
+      write_object(value, ivars, limit)
     end
 
-    def write_user_marshaled_object_with_allocate(value)
+    def write_user_marshaled_object_with_allocate(value, limit)
       raise TypeError, "can't dump anonymous class #{value.class}" if Module.instance_method(:name).bind_call(value.class).nil?
       write_char('U')
-      write(value.class.to_s.to_sym)
-      write(value.send(:marshal_dump))
+      write(value.class.to_s.to_sym, limit)
+      write(value.send(:marshal_dump), limit)
     end
 
     def write_user_marshaled_object_without_allocate(value)
@@ -329,7 +334,7 @@ module Marshal
       write_bytes(value.send(:_dump, -1))
     end
 
-    def write_object(value, ivars)
+    def write_object(value, ivars, limit)
       singleton = value.singleton_class
       if singleton.instance_methods(false).any? || singleton.instance_variables.any?
         raise TypeError, "singleton can't be dumped"
@@ -338,15 +343,15 @@ module Marshal
       raise TypeError, "can't dump anonymous class #{value.class}" if name.nil?
       write_extended_modules(value)
       write_char('o')
-      write(name.to_sym)
-      write_ivars(ivars)
+      write(name.to_sym, limit)
+      write_ivars(ivars, limit)
     end
 
-    def write_ivars(ivars)
+    def write_ivars(ivars, limit)
       write_integer_bytes(ivars.size)
       ivars.each do |ivar_name, ivar_value|
-        write(ivar_name)
-        write(ivar_value)
+        write(ivar_name, limit)
+        write(ivar_value, limit)
       end
     end
 
@@ -363,7 +368,9 @@ module Marshal
       end
     end
 
-    def write(value)
+    def write(value, limit = @initial_limit)
+      raise ArgumentError, 'exceed depth limit' if limit == 0
+      limit -= 1 if limit > 0
       if value.respond_to?(:object_id) && !value.is_a?(Integer) && @object_lookup.key?(value.object_id)
         write_object_link(@object_lookup.fetch(value.object_id))
         return @output
@@ -396,31 +403,31 @@ module Marshal
       elsif value.is_a?(Integer)
         write_integer(value)
       elsif value.is_a?(String)
-        write_string(value, ivars)
+        write_string(value, ivars, limit)
       elsif value.is_a?(Symbol)
         write_symbol(value)
       elsif value.is_a?(Float)
         write_float(value)
       elsif value.is_a?(Array)
-        write_array(value, ivars)
+        write_array(value, ivars, limit)
       elsif value.is_a?(Hash)
-        write_hash(value, ivars)
+        write_hash(value, ivars, limit)
       elsif value.is_a?(Class)
         write_class(value)
       elsif value.is_a?(Module)
         write_module(value)
       elsif value.is_a?(Regexp)
-        write_regexp(value, ivars)
+        write_regexp(value, ivars, limit)
       elsif value.is_a?(Data)
-        write_data(value)
+        write_data(value, limit)
       elsif value.is_a?(Struct)
-        write_struct(value, ivars)
+        write_struct(value, ivars, limit)
       elsif value.is_a?(Exception)
-        write_exception(value, ivars)
+        write_exception(value, ivars, limit)
       elsif value.is_a?(Range)
-        write_range(value, ivars)
+        write_range(value, ivars, limit)
       elsif value.respond_to?(:marshal_dump, true)
-        write_user_marshaled_object_with_allocate(value)
+        write_user_marshaled_object_with_allocate(value, limit)
       elsif value.respond_to?(:_dump, true)
         write_user_marshaled_object_without_allocate(value)
       elsif value.is_a?(Mutex) || value.is_a?(Proc) || value.is_a?(Method) ||
@@ -429,7 +436,7 @@ module Marshal
       elsif value.is_a?(MatchData) || value.is_a?(IO)
         raise TypeError, "can't dump #{value.class}"
       elsif value.is_a?(Object)
-        write_object(value, ivars)
+        write_object(value, ivars, limit)
       else
         raise TypeError, "can't dump #{value.class}"
       end
@@ -439,8 +446,8 @@ module Marshal
   end
 
   class StringWriter < Writer
-    def initialize
-      super(String.new.force_encoding(Encoding::ASCII_8BIT))
+    def initialize(limit = -1)
+      super(String.new.force_encoding(Encoding::ASCII_8BIT), limit)
     end
 
     def write_byte(value)
