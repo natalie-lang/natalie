@@ -212,14 +212,17 @@ module Marshal
 
     def write_class(value)
       raise TypeError, "singleton class can't be dumped" if value.singleton_class?
+      name = Module.instance_method(:name).bind_call(value)
+      raise TypeError, "can't dump anonymous class #{value}" if name.nil?
       write_char('c')
-      write_string_bytes(value.name)
+      write_string_bytes(name)
     end
 
     def write_module(value)
-      raise TypeError, "can't dump anonymous module #{value}" if value.name.nil?
+      name = Module.instance_method(:name).bind_call(value)
+      raise TypeError, "can't dump anonymous module #{value}" if name.nil?
       write_char('m')
-      write_string_bytes(value.name)
+      write_string_bytes(name)
     end
 
     def write_regexp(value, ivars)
@@ -277,6 +280,7 @@ module Marshal
     end
 
     def write_user_marshaled_object_with_allocate(value)
+      raise TypeError, "can't dump anonymous class #{value.class}" if Module.instance_method(:name).bind_call(value.class).nil?
       write_char('U')
       write(value.class.to_s.to_sym)
       write(value.send(:marshal_dump))
@@ -293,9 +297,10 @@ module Marshal
     end
 
     def write_object(value, ivars)
-      raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
+      name = Module.instance_method(:name).bind_call(value.class)
+      raise TypeError, "can't dump anonymous class #{value.class}" if name.nil?
       write_char('o')
-      write(value.class.name.to_sym)
+      write(name.to_sym)
       write_ivars(ivars)
     end
 

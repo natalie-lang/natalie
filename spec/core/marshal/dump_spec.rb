@@ -120,9 +120,7 @@ describe "Marshal.dump" do
     end
 
     it "raises TypeError if an Object is an instance of an anonymous class" do
-      NATFIXME 'raises TypeError if an Object is an instance of an anonymous class', exception: SpecFailedException do
-        -> { Marshal.dump(Class.new(UserMarshal).new) }.should raise_error(TypeError, /can't dump anonymous class/)
-      end
+      -> { Marshal.dump(Class.new(UserMarshal).new) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
 
     it "uses object links for objects repeatedly dumped" do
@@ -244,9 +242,7 @@ describe "Marshal.dump" do
     end
 
     it "ignores overridden name method" do
-      NATFIXME 'ignores overridden name method', exception: SpecFailedException do
-        Marshal.dump(MarshalSpec::ClassWithOverriddenName).should == "\x04\bc)MarshalSpec::ClassWithOverriddenName"
-      end
+      Marshal.dump(MarshalSpec::ClassWithOverriddenName).should == "\x04\bc)MarshalSpec::ClassWithOverriddenName"
     end
 
     ruby_version_is "4.0" do
@@ -264,9 +260,7 @@ describe "Marshal.dump" do
     end
 
     it "raises TypeError with an anonymous Class" do
-      NATFIXME 'raises TypeError with an anonymous Class', exception: SpecFailedException do
-        -> { Marshal.dump(Class.new) }.should raise_error(TypeError, /can't dump anonymous class/)
-      end
+      -> { Marshal.dump(Class.new) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
 
     it "raises TypeError with a singleton Class" do
@@ -280,9 +274,7 @@ describe "Marshal.dump" do
     end
 
     it "ignores overridden name method" do
-      NATFIXME 'ignores overridden name method', exception: SpecFailedException do
-        Marshal.dump(MarshalSpec::ModuleWithOverriddenName).should == "\x04\bc*MarshalSpec::ModuleWithOverriddenName"
-      end
+      Marshal.dump(MarshalSpec::ModuleWithOverriddenName).should == "\x04\bc*MarshalSpec::ModuleWithOverriddenName"
     end
 
     ruby_version_is "4.0" do
@@ -813,9 +805,7 @@ describe "Marshal.dump" do
 
     it "ignores overridden name method" do
       obj = MarshalSpec::ClassWithOverriddenName.new
-      NATFIXME 'ignores overridden name method', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bo:)MarshalSpec::ClassWithOverriddenName\x00"
-      end
+      Marshal.dump(obj).should == "\x04\bo:)MarshalSpec::ClassWithOverriddenName\x00"
     end
 
     it "raises TypeError if an Object has a singleton class and singleton methods" do
