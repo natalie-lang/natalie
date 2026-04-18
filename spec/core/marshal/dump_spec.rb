@@ -424,9 +424,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps a String extended with a Module" do
-      NATFIXME 'dumps a String extended with a Module', exception: SpecFailedException do
-        Marshal.dump("".dup.extend(Meths).force_encoding("binary")).should == "\004\be:\nMeths\"\000"
-      end
+      Marshal.dump("".dup.extend(Meths).force_encoding("binary")).should == "\004\be:\nMeths\"\000"
     end
 
     it "dumps a String subclass" do
@@ -434,9 +432,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps a String subclass extended with a Module" do
-      NATFIXME 'dumps a String subclass extended with a Module', exception: SpecFailedException do
-        Marshal.dump(UserString.new.extend(Meths).force_encoding("binary")).should == "\004\be:\nMethsC:\017UserString\"\000"
-      end
+      Marshal.dump(UserString.new.extend(Meths).force_encoding("binary")).should == "\004\be:\nMethsC:\017UserString\"\000"
     end
 
     it "ignores overridden name method when dumps a String subclass" do
@@ -502,9 +498,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps an extended Regexp" do
-      NATFIXME 'dumps an extended Regexp', exception: SpecFailedException do
-        Marshal.dump(Regexp.new("").extend(Meths)).should == "\x04\bIe:\nMeths/\x00\x00\x06:\x06EF"
-      end
+      Marshal.dump(Regexp.new("").extend(Meths)).should == "\x04\bIe:\nMeths/\x00\x00\x06:\x06EF"
     end
 
     it "dumps a Regexp subclass" do
@@ -588,9 +582,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps an extended Array" do
-      NATFIXME 'dumps an extended Array', exception: SpecFailedException do
-        Marshal.dump([].extend(Meths)).should == "\004\be:\nMeths[\000"
-      end
+      Marshal.dump([].extend(Meths)).should == "\004\be:\nMeths[\000"
     end
 
     it "ignores overridden name method when dumps an Array subclass" do
@@ -660,9 +652,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps an extended Hash" do
-      NATFIXME 'dumps an extended Hash', exception: SpecFailedException do
-        Marshal.dump({}.extend(Meths)).should == "\004\be:\nMeths{\000"
-      end
+      Marshal.dump({}.extend(Meths)).should == "\004\be:\nMeths{\000"
     end
 
     it "dumps an Hash subclass with a parameter to initialize" do

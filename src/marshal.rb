@@ -128,6 +128,7 @@ module Marshal
     def write_string(value, ivars)
       add_encoding_to_ivars(value, ivars)
       write_char('I') unless ivars.empty?
+      write_extended_modules(value)
       write_user_class(value, String)
       write_char('"')
       write_string_bytes(value)
@@ -189,6 +190,7 @@ module Marshal
 
     def write_array(values, ivars)
       write_char('I') unless ivars.empty?
+      write_extended_modules(values)
       write_user_class(values, Array)
       write_char('[')
       write_integer_bytes(values.size)
@@ -199,6 +201,7 @@ module Marshal
     def write_hash(values, ivars)
       raise TypeError, "can't dump hash with default proc" if values.default_proc
       write_char('I') unless ivars.empty?
+      write_extended_modules(values)
       write_user_class(values, Hash)
       if values.default.nil?
         write_char('{')
@@ -230,6 +233,16 @@ module Marshal
       write_symbol(name.to_sym)
     end
 
+    def write_extended_modules(value)
+      extended = value.singleton_class.included_modules - value.class.included_modules
+      extended.reverse_each do |mod|
+        name = Module.instance_method(:name).bind_call(mod)
+        raise TypeError, "can't dump anonymous module #{mod}" if name.nil?
+        write_char('e')
+        write_symbol(name.to_sym)
+      end
+    end
+
     def write_module(value)
       name = Module.instance_method(:name).bind_call(value)
       raise TypeError, "can't dump anonymous module #{value}" if name.nil?
@@ -240,6 +253,7 @@ module Marshal
     def write_regexp(value, ivars)
       add_encoding_to_ivars(value, ivars)
       write_char('I')
+      write_extended_modules(value)
       write_user_class(value, Regexp)
       write_char('/')
       write_string_bytes(value.source)
