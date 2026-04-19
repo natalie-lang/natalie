@@ -42,6 +42,12 @@ describe 'JSON' do
       -> { JSON.parse('"\u00"') }.should raise_error(JSON::ParserError)
     end
 
+    it 'preserves UTF-8 in raw string bodies' do
+      result = JSON.parse('"café"')
+      result.should == 'café'
+      result.encoding.should == Encoding::UTF_8
+    end
+
     ruby_version_is ''...'4.0' do
       it 'parses a string that is invalid according to the spec' do
         JSON.parse('"\y"').should == 'y'
