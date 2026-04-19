@@ -25,11 +25,11 @@ module Marshal
       writer.write(object)
     end
 
-    def load(source, freeze: false)
+    def load(source, proc = nil, freeze: false)
       if source.respond_to?(:to_str)
-        reader = StringReader.new(source.to_str, freeze: freeze)
+        reader = StringReader.new(source.to_str, proc, freeze: freeze)
       elsif source.respond_to?(:getbyte) && source.respond_to?(:read)
-        reader = Reader.new(source, freeze: freeze)
+        reader = Reader.new(source, proc, freeze: freeze)
       else
         raise TypeError, 'instance of IO needed'
       end
@@ -480,8 +480,9 @@ module Marshal
   end
 
   class Reader
-    def initialize(source, freeze: false)
+    def initialize(source, proc = nil, freeze: false)
       @source = source
+      @proc = proc
       @freeze = freeze
       @symbol_lookup = []
       @object_lookup = []
@@ -813,7 +814,10 @@ module Marshal
           @object_lookup[index] = inner
           inner
         end
-      Kernel.instance_method(:freeze).bind_call(value) if @freeze && !partial && !value.is_a?(Module)
+      unless partial
+        Kernel.instance_method(:freeze).bind_call(value) if @freeze && !value.is_a?(Module)
+        value = @proc.call(value) if @proc
+      end
       value
     end
 
@@ -828,8 +832,8 @@ module Marshal
   end
 
   class StringReader < Reader
-    def initialize(source, freeze: false)
-      super(source, freeze: freeze)
+    def initialize(source, proc = nil, freeze: false)
+      super(source, proc, freeze: freeze)
       @offset = 0
     end
 
