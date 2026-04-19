@@ -29,6 +29,7 @@ module Marshal
       if source.respond_to?(:to_str)
         reader = StringReader.new(source.to_str, proc, freeze: freeze)
       elsif source.respond_to?(:getbyte) && source.respond_to?(:read)
+        source.binmode if source.respond_to?(:binmode)
         reader = Reader.new(source, proc, freeze: freeze)
       else
         raise TypeError, 'instance of IO needed'

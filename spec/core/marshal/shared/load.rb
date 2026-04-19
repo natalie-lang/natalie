@@ -655,9 +655,7 @@ describe :marshal_load, shared: true do
     it "sets binmode if it is loading through StringIO stream" do
       io = StringIO.new("\004\b:\vsymbol")
       def io.binmode; raise "binmode"; end
-      NATFIXME 'sets binmode if it is loading through StringIO stream', exception: SpecFailedException do
-        -> { Marshal.load(io) }.should raise_error(RuntimeError, "binmode")
-      end
+      -> { Marshal.load(io) }.should raise_error(RuntimeError, "binmode")
     end
 
     it "loads a string with an ivar" do
