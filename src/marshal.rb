@@ -243,7 +243,9 @@ module Marshal
     end
 
     def write_extended_modules(value)
-      extended = value.singleton_class.included_modules - value.class.included_modules
+      singleton = Kernel.instance_method(:singleton_class).bind_call(value)
+      klass = Kernel.instance_method(:class).bind_call(value)
+      extended = singleton.included_modules - klass.included_modules
       extended.reverse_each do |mod|
         name = Module.instance_method(:name).bind_call(mod)
         raise TypeError, "can't dump anonymous class #{mod}" if name.nil?
@@ -335,12 +337,13 @@ module Marshal
     end
 
     def write_object(value, ivars, limit)
-      singleton = value.singleton_class
+      klass = Kernel.instance_method(:class).bind_call(value)
+      singleton = Kernel.instance_method(:singleton_class).bind_call(value)
       if singleton.instance_methods(false).any? || singleton.instance_variables.any?
         raise TypeError, "singleton can't be dumped"
       end
-      name = Module.instance_method(:name).bind_call(value.class)
-      raise TypeError, "can't dump anonymous class #{value.class}" if name.nil?
+      name = Module.instance_method(:name).bind_call(klass)
+      raise TypeError, "can't dump anonymous class #{klass}" if name.nil?
       write_extended_modules(value)
       write_char('o')
       write(name.to_sym, limit)
@@ -371,74 +374,78 @@ module Marshal
     def write(value, limit = @initial_limit)
       raise ArgumentError, 'exceed depth limit' if limit == 0
       limit -= 1 if limit > 0
-      if value.respond_to?(:object_id) && !value.is_a?(Integer) && @object_lookup.key?(value.object_id)
-        write_object_link(@object_lookup.fetch(value.object_id))
+      klass = Kernel.instance_method(:class).bind_call(value)
+      oid = Kernel.instance_method(:object_id).bind_call(value) unless Integer === value
+      if oid && @object_lookup.key?(oid)
+        write_object_link(@object_lookup.fetch(oid))
         return @output
-      elsif value.is_a?(Integer) && (value >= 2**62 || value < -(2**62)) && @object_lookup.key?([:integer, value])
+      elsif Integer === value && (value >= 2**62 || value < -(2**62)) && @object_lookup.key?([:integer, value])
         write_object_link(@object_lookup.fetch([:integer, value]))
         return @output
-      elsif value.is_a?(Float) && @object_lookup.key?(value)
+      elsif Float === value && @object_lookup.key?(value)
         write_object_link(@object_lookup.fetch(value))
         return @output
       end
 
-      if !value.nil? && !value.is_a?(TrueClass) && !value.is_a?(FalseClass) && !value.is_a?(Integer) &&
-           !value.is_a?(Float) && !value.is_a?(Symbol)
-        @object_lookup[value.object_id] = @object_lookup.size
-      elsif value.is_a?(Integer) && (value >= 2**30 || value < -(2**30))
+      if !nil.equal?(value) && !(TrueClass === value) && !(FalseClass === value) && !(Integer === value) &&
+           !(Float === value) && !(Symbol === value)
+        @object_lookup[oid] = @object_lookup.size
+      elsif Integer === value && (value >= 2**30 || value < -(2**30))
         # Integers are special: Object links are only used when 64 bits are used, but the objects are counted when 32 bits are used
         @object_lookup[[:integer, value]] = @object_lookup.size
-      elsif value.is_a?(Float)
+      elsif Float === value
         @object_lookup[value] = @object_lookup.size
       end
 
-      ivars = value.instance_variables.map { |ivar_name| [ivar_name, value.instance_variable_get(ivar_name)] }
+      ivar_names = Kernel.instance_method(:instance_variables).bind_call(value)
+      ivars = ivar_names.map { |name| [name, Kernel.instance_method(:instance_variable_get).bind_call(value, name)] }
+      has_respond_to = klass.method_defined?(:respond_to?) || klass.private_method_defined?(:respond_to?)
 
-      if value.nil?
+      if nil.equal?(value)
         write_nil
-      elsif value.is_a?(TrueClass)
+      elsif TrueClass === value
         write_true
-      elsif value.is_a?(FalseClass)
+      elsif FalseClass === value
         write_false
-      elsif value.is_a?(Integer)
+      elsif Integer === value
         write_integer(value)
-      elsif value.is_a?(String)
+      elsif String === value
         write_string(value, ivars, limit)
-      elsif value.is_a?(Symbol)
+      elsif Symbol === value
         write_symbol(value)
-      elsif value.is_a?(Float)
+      elsif Float === value
         write_float(value)
-      elsif value.is_a?(Array)
+      elsif Array === value
         write_array(value, ivars, limit)
-      elsif value.is_a?(Hash)
+      elsif Hash === value
         write_hash(value, ivars, limit)
-      elsif value.is_a?(Class)
+      elsif Class === value
         write_class(value)
-      elsif value.is_a?(Module)
+      elsif Module === value
         write_module(value)
-      elsif value.is_a?(Regexp)
+      elsif Regexp === value
         write_regexp(value, ivars, limit)
-      elsif value.is_a?(Data)
+      elsif Data === value
         write_data(value, limit)
-      elsif value.is_a?(Struct)
+      elsif Struct === value
         write_struct(value, ivars, limit)
-      elsif value.is_a?(Exception)
+      elsif Exception === value
         write_exception(value, ivars, limit)
-      elsif value.is_a?(Range)
+      elsif Range === value
         write_range(value, ivars, limit)
-      elsif value.respond_to?(:marshal_dump, true)
+      elsif has_respond_to && value.respond_to?(:marshal_dump, true)
         write_user_marshaled_object_with_allocate(value, limit)
-      elsif value.respond_to?(:_dump, true)
+      elsif has_respond_to && value.respond_to?(:_dump, true)
         write_user_marshaled_object_without_allocate(value)
-      elsif value.is_a?(Mutex) || value.is_a?(Proc) || value.is_a?(Method) ||
-            (defined?(StringIO) && value.is_a?(StringIO))
-        raise TypeError, "no _dump_data is defined for class #{value.class}"
-      elsif value.is_a?(MatchData) || value.is_a?(IO)
-        raise TypeError, "can't dump #{value.class}"
-      elsif value.is_a?(Object)
+      elsif Mutex === value || Proc === value || Method === value ||
+            (defined?(StringIO) && StringIO === value)
+        raise TypeError, "no _dump_data is defined for class #{klass}"
+      elsif MatchData === value || IO === value
+        raise TypeError, "can't dump #{klass}"
+      elsif Object === value
         write_object(value, ivars, limit)
       else
-        raise TypeError, "can't dump #{value.class}"
+        raise TypeError, "can't dump #{klass}"
       end
 
       @output
