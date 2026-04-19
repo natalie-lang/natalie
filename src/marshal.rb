@@ -320,20 +320,24 @@ module Marshal
     end
 
     def write_user_marshaled_object_with_allocate(value, limit)
-      raise TypeError, "can't dump anonymous class #{value.class}" if Module.instance_method(:name).bind_call(value.class).nil?
+      klass = Kernel.instance_method(:class).bind_call(value)
+      name = Module.instance_method(:name).bind_call(klass)
+      raise TypeError, "can't dump anonymous class #{klass}" if name.nil?
       write_char('U')
-      write(value.class.to_s.to_sym, limit)
-      write(value.send(:marshal_dump), limit)
+      write(name.to_sym, limit)
+      write(value.__send__(:marshal_dump), limit)
     end
 
     def write_user_marshaled_object_without_allocate(value)
-      raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
+      klass = Kernel.instance_method(:class).bind_call(value)
+      name = Module.instance_method(:name).bind_call(klass)
+      raise TypeError, "can't dump anonymous class #{klass}" if name.nil?
       write_char('u')
-      write(value.class.to_s.to_sym)
-      dump = value.send(:_dump, -1)
-      raise TypeError, '_dump() must return string' unless dump.is_a?(String)
+      write(name.to_sym)
+      dump = value.__send__(:_dump, -1)
+      raise TypeError, '_dump() must return string' unless String === dump
       write_integer_bytes(dump.size)
-      write_bytes(value.send(:_dump, -1))
+      write_bytes(dump)
     end
 
     def write_object(value, ivars, limit)
@@ -399,7 +403,7 @@ module Marshal
 
       ivar_names = Kernel.instance_method(:instance_variables).bind_call(value)
       ivars = ivar_names.map { |name| [name, Kernel.instance_method(:instance_variable_get).bind_call(value, name)] }
-      has_respond_to = klass.method_defined?(:respond_to?) || klass.private_method_defined?(:respond_to?)
+      has_respond_to = klass.method_defined?(:respond_to?)
 
       if nil.equal?(value)
         write_nil
@@ -442,10 +446,8 @@ module Marshal
         raise TypeError, "no _dump_data is defined for class #{klass}"
       elsif MatchData === value || IO === value
         raise TypeError, "can't dump #{klass}"
-      elsif Object === value
-        write_object(value, ivars, limit)
       else
-        raise TypeError, "can't dump #{klass}"
+        write_object(value, ivars, limit)
       end
 
       @output

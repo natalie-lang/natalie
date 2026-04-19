@@ -804,9 +804,7 @@ describe "Marshal.dump" do
 
     it "dumps a BasicObject subclass if it defines respond_to?" do
       obj = MarshalSpec::BasicObjectSubWithRespondToFalse.new
-      NATFIXME 'it dumps a BasicObject subclass if it defines respond_to?', exception: TypeError do
-        Marshal.dump(obj).should == "\x04\bo:2MarshalSpec::BasicObjectSubWithRespondToFalse\x00"
-      end
+      Marshal.dump(obj).should == "\x04\bo:2MarshalSpec::BasicObjectSubWithRespondToFalse\x00"
     end
 
     it "dumps without marshaling any attached finalizer" do
