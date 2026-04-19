@@ -330,16 +330,22 @@ module Marshal
       write(value.__send__(:marshal_dump), limit)
     end
 
-    def write_user_marshaled_object_without_allocate(value)
+    def write_user_marshaled_object_without_allocate(value, limit)
       klass = Kernel.instance_method(:class).bind_call(value)
       name = Module.instance_method(:name).bind_call(klass)
       raise TypeError, "can't dump anonymous class #{klass}" if name.nil?
-      write_char('u')
-      write(name.to_sym)
       dump = value.__send__(:_dump, -1)
       raise TypeError, '_dump() must return string' unless String === dump
-      write_integer_bytes(dump.size)
+      dump_ivar_names = Kernel.instance_method(:instance_variables).bind_call(dump)
+      dump_ivars = dump_ivar_names.map { |n| [n, Kernel.instance_method(:instance_variable_get).bind_call(dump, n)] }
+      add_encoding_to_ivars(dump, dump_ivars)
+      write_char('I') unless dump_ivars.empty?
+      write_char('u')
+      write(name.to_sym, limit)
+      write_integer_bytes(dump.bytesize)
       write_bytes(dump)
+      write_ivars(dump_ivars, limit) unless dump_ivars.empty?
+      @object_lookup[Kernel.instance_method(:object_id).bind_call(value)] = @object_lookup.size
     end
 
     def write_object(value, ivars, limit)
@@ -393,8 +399,12 @@ module Marshal
         return @output
       end
 
+      has_respond_to = klass.method_defined?(:respond_to?)
+      has_marshal_dump = has_respond_to && value.respond_to?(:marshal_dump, true)
+      has_dump = has_respond_to && !has_marshal_dump && value.respond_to?(:_dump, true)
+
       if !nil.equal?(value) && !(TrueClass === value) && !(FalseClass === value) && !(Integer === value) &&
-           !(Float === value) && !(Symbol === value)
+           !(Float === value) && !(Symbol === value) && !has_dump
         @object_lookup[oid] = @object_lookup.size
       elsif Integer === value && (value >= 2**30 || value < -(2**30))
         # Integers are special: Object links are only used when 64 bits are used, but the objects are counted when 32 bits are used
@@ -405,7 +415,6 @@ module Marshal
 
       ivar_names = Kernel.instance_method(:instance_variables).bind_call(value)
       ivars = ivar_names.map { |name| [name, Kernel.instance_method(:instance_variable_get).bind_call(value, name)] }
-      has_respond_to = klass.method_defined?(:respond_to?)
 
       if nil.equal?(value)
         write_nil
@@ -439,10 +448,10 @@ module Marshal
         write_exception(value, ivars, limit)
       elsif Range === value
         write_range(value, ivars, limit)
-      elsif has_respond_to && value.respond_to?(:marshal_dump, true)
+      elsif has_marshal_dump
         write_user_marshaled_object_with_allocate(value, limit)
-      elsif has_respond_to && value.respond_to?(:_dump, true)
-        write_user_marshaled_object_without_allocate(value)
+      elsif has_dump
+        write_user_marshaled_object_without_allocate(value, limit)
       elsif Mutex === value || Proc === value || Method === value ||
             (defined?(StringIO) && StringIO === value)
         raise TypeError, "no _dump_data is defined for class #{klass}"
@@ -661,11 +670,15 @@ module Marshal
       object
     end
 
-    def read_user_marshaled_object_without_allocate
+    def read_user_marshaled_object_without_allocate(ivars_consumed = nil)
       name = read_value
       object_class = find_constant(name)
       raise TypeError, "#{object_class} needs to have method `_load'" unless object_class.respond_to?(:_load)
       data = read_string
+      if ivars_consumed
+        read_ivars(data)
+        ivars_consumed[0] = true
+      end
       object_class._load(data)
     end
 
@@ -726,7 +739,7 @@ module Marshal
       end
     end
 
-    def read_value
+    def read_value(ivars_consumed = nil)
       char = read_byte.chr
       case char
       when '0'
@@ -748,8 +761,9 @@ module Marshal
       when 'f'
         read_float
       when 'I'
-        result = read_value
-        read_ivars(result) unless result.is_a?(Regexp)
+        ivars_consumed = [false]
+        result = read_value(ivars_consumed)
+        read_ivars(result) unless result.is_a?(Regexp) || ivars_consumed[0]
         result
       else
         index = @object_lookup.size
@@ -773,7 +787,7 @@ module Marshal
           when 'U'
             read_user_marshaled_object_with_allocate
           when 'u'
-            read_user_marshaled_object_without_allocate
+            read_user_marshaled_object_without_allocate(ivars_consumed)
           when 'S'
             read_struct
           when 'o'

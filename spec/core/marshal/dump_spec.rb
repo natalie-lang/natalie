@@ -145,16 +145,12 @@ describe "Marshal.dump" do
 
     it "dumps the String in non US-ASCII and non UTF-8 encoding" do
       object = UserDefinedString.new("a".encode("windows-1251"))
-      NATFIXME 'dumps the String in non US-ASCII and non UTF-8 encoding', exception: SpecFailedException do
-        Marshal.dump(object).should == "\x04\bIu:\x16UserDefinedString\x06a\x06:\rencoding\"\x11Windows-1251"
-      end
+      Marshal.dump(object).should == "\x04\bIu:\x16UserDefinedString\x06a\x06:\rencoding\"\x11Windows-1251"
     end
 
     it "dumps the String in multibyte encoding" do
       object = UserDefinedString.new("a".encode("utf-32le"))
-      NATFIXME 'Encoding of output', exception: SpecFailedException, message: /should be == / do
-        Marshal.dump(object).should == "\x04\bIu:\x16UserDefinedString\ta\x00\x00\x00\x06:\rencoding\"\rUTF-32LE"
-      end
+      Marshal.dump(object).should == "\x04\bIu:\x16UserDefinedString\ta\x00\x00\x00\x06:\rencoding\"\rUTF-32LE"
     end
 
     it "ignores overridden name method" do
@@ -195,7 +191,7 @@ describe "Marshal.dump" do
       # But they are indexed in different order: Array (index=0), "bar" (index=1), a (index=2)
       # So the second occurenc of the object a is encoded as an index 2.
       reference = "@\a"
-      NATFIXME 'indexes instance variables of a String returned by #_dump at first and then indexes the object itself', exception: SpecFailedException do
+      NATFIXME 'nested class name missing outer module', exception: SpecFailedException do
         Marshal.dump([a, a]).should == "\x04\b[\aIu:\x17MarshalSpec::M1::A\v<dump>\x06:\t@foo\"\bbar#{reference}"
       end
     end
@@ -211,9 +207,7 @@ describe "Marshal.dump" do
 
       # expect a link to the object (@\a, that means Integer 2) is greater than a link
       # to the instance variable value (@\x06, that means Integer 1)
-      NATFIXME 'it adds instance variables of a dumped String before the object itself into the objects table', exception: SpecFailedException do
-        Marshal.dump([obj, obj, value]).should == "\x04\b[\bIu:*MarshalSpec::UserDefinedDumpWithIVars\vstring\x06:\t@foo\"\n<foo>@\a@\x06"
-      end
+      Marshal.dump([obj, obj, value]).should == "\x04\b[\bIu:*MarshalSpec::UserDefinedDumpWithIVars\vstring\x06:\t@foo\"\n<foo>@\a@\x06"
     end
 
     describe "Core library classes with #_dump returning a String with instance variables" do

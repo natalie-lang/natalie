@@ -370,10 +370,8 @@ describe :marshal_load, shared: true do
 
     it "loads the String in multibyte encoding" do
       source_object = UserDefinedString.new("a".encode("utf-32le"))
-      NATFIXME 'loads the String in multibyte encoding', exception: SpecFailedException do
-        object = Marshal.send(@method, Marshal.dump(source_object))
-        object.string.should == "a".encode("utf-32le")
-      end
+      object = Marshal.send(@method, Marshal.dump(source_object))
+      object.string.should == "a".encode("utf-32le")
     end
 
     describe "that returns an immediate value" do
@@ -392,16 +390,14 @@ describe :marshal_load, shared: true do
         # this string represents: {a: <#UserDefinedImmediate A>, b: <#UserDefinedImmediate A>, c: <#String "string">, d: <#String "string">}
         hash_dump = "\x04\b{\t:\x06aIu:\x19UserDefinedImmediate\x00\x06:\x06ET:\x06b@\x06:\x06cI\"\vstring\x06;\aT:\x06d@\a"
 
-        NATFIXME 'loads any structure with multiple references to the same object, followed by multiple instances of another object', exception: NoMethodError, message: "undefined method 'force_encoding' for nil" do
-          marshaled_obj = Marshal.send(@method, hash_dump)
-          marshaled_obj.should == {a: nil, b: nil, c: str, d: str}
+        marshaled_obj = Marshal.send(@method, hash_dump)
+        marshaled_obj.should == {a: nil, b: nil, c: str, d: str}
 
-          # this string represents: [<#UserDefinedImmediate A>, <#UserDefinedImmediate A>, <#String "string">, <#String "string">]
-          array_dump = "\x04\b[\tIu:\x19UserDefinedImmediate\x00\x06:\x06ET@\x06I\"\vstring\x06;\x06T@\a"
+        # this string represents: [<#UserDefinedImmediate A>, <#UserDefinedImmediate A>, <#String "string">, <#String "string">]
+        array_dump = "\x04\b[\tIu:\x19UserDefinedImmediate\x00\x06:\x06ET@\x06I\"\vstring\x06;\x06T@\a"
 
-          marshaled_obj = Marshal.send(@method, array_dump)
-          marshaled_obj.should == [nil, nil, str, str]
-        end
+        marshaled_obj = Marshal.send(@method, array_dump)
+        marshaled_obj.should == [nil, nil, str, str]
       end
 
       it "loads an array containing references to multiple instances of the object, followed by multiple instances of another object" do
@@ -410,10 +406,8 @@ describe :marshal_load, shared: true do
         # this string represents: [<#UserDefinedImmediate A>, <#UserDefinedImmediate B>, <#String "string">, <#String "string">]
         array_dump = "\x04\b[\tIu:\x19UserDefinedImmediate\x00\x06:\x06ETIu;\x00\x00\x06;\x06TI\"\vstring\x06;\x06T@\b"
 
-        NATFIXME 'loads an array containing references to multiple instances of the object, followed by multiple instances of another object', exception: NoMethodError, message: "undefined method 'force_encoding' for nil" do
-          marshaled_obj = Marshal.send(@method, array_dump)
-          marshaled_obj.should == [nil, nil, str, str]
-        end
+        marshaled_obj = Marshal.send(@method, array_dump)
+        marshaled_obj.should == [nil, nil, str, str]
       end
     end
   end
