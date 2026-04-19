@@ -113,9 +113,9 @@ module JSON
     HEX_DIGITS = DIGITS.to_a + ('a'..'f').to_a + ('A'..'F').to_a
 
     def initialize(string)
-      @string = string
-      @remaining_string = @string.dup
+      @string = string.b
       @index = 0
+      @bytesize = @string.bytesize
     end
 
     def tokens
@@ -131,7 +131,7 @@ module JSON
     private
 
     def next_token
-      return nil if @remaining_string.empty?
+      return nil if @index >= @bytesize
 
       case (c = current_char)
       when 't'
@@ -144,37 +144,24 @@ module JSON
         raise ParserError, "unknown literal: #{c}" unless advance(4) == 'null'
         :null
       when '-', DIGITS
-        num = advance
-        while DIGITS.include?(c = current_char)
-          num << c
-          advance
-        end
-        case c
+        cursor = @index
+        advance
+        skip_digits
+        case (c = current_char)
         when '.'
-          num << c
           advance
-          while DIGITS.include?(c = current_char)
-            num << c
+          skip_digits
+          if (c = current_char) && (c == 'e' || c == 'E')
             advance
+            skip_digits
           end
-          if c == 'e' || c == 'E'
-            num << c
-            advance
-            while DIGITS.include?(c = current_char)
-              num << c
-              advance
-            end
-          end
-          num.to_f
+          byteslice(cursor).to_f
         when 'e', 'E'
-          num << c
           advance
-          while DIGITS.include?(c = current_char)
-            num << c
-            advance
-          end
-          num.to_f
+          skip_digits
+          byteslice(cursor).to_f
         else
+          num = byteslice(cursor)
           if (num.start_with?('0') && num.length > 1) || (num.start_with?('-0') && num.length > 2)
             raise ParserError, "unknown literal: #{num}"
           end
@@ -186,7 +173,7 @@ module JSON
         loop do
           case (c = advance)
           when '"'
-            return str
+            return str.force_encoding(Encoding::UTF_8)
           when '\\'
             c2 = advance
             case c2
@@ -224,8 +211,16 @@ module JSON
       when '[', ']', '{', '}', ',', ':'
         advance.to_sym
       else
-        raise ParserError, "unknown sequence at index #{@index}: #{@remaining_string[0..10].inspect}"
+        raise ParserError, "unknown sequence at index #{@index}: #{@string.byteslice(@index, 10).inspect}"
       end
+    end
+
+    def byteslice(cursor)
+      @string.byteslice(cursor, @index - cursor)
+    end
+
+    def skip_digits
+      advance while DIGITS.include?(current_char)
     end
 
     def skip_whitespace
@@ -233,16 +228,13 @@ module JSON
     end
 
     def current_char
-      return nil if @remaining_string.empty?
-      @remaining_string[0]
+      @string.getbyte(@index).chr if @index < @bytesize
     end
 
     def advance(count = 1)
-      return nil if @remaining_string.empty?
-      result = @remaining_string[...count]
+      return nil if @index >= @bytesize
       @index += count
-      @remaining_string = @remaining_string[count..]
-      result
+      @string.byteslice(@index - count, count)
     end
   end
 
