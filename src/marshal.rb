@@ -17,6 +17,8 @@ module Marshal
       if io.nil?
         writer = StringWriter.new(limit)
       else
+        raise TypeError, 'instance of IO needed' unless io.respond_to?(:write)
+        io.binmode if io.respond_to?(:binmode)
         writer = Writer.new(io, limit)
       end
       writer.write_version
@@ -47,7 +49,7 @@ module Marshal
     end
 
     def write_byte(value)
-      @output.ungetbyte(value)
+      @output.write(value.chr)
     end
 
     def write_bytes(value)

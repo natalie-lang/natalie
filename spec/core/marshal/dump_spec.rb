@@ -1052,34 +1052,26 @@ describe "Marshal.dump" do
 
   describe "when passed an IO" do
     it "writes the serialized data to the IO-Object" do
-      NATFIXME 'should not depend on ungetbyte', exception: NoMethodError, message: "undefined method 'ungetbyte' for an instance of MockObject" do
-        (obj = mock('test')).should_receive(:write).at_least(1)
-        Marshal.dump("test", obj)
-      end
+      (obj = mock('test')).should_receive(:write).at_least(1)
+      Marshal.dump("test", obj)
     end
 
     it "returns the IO-Object" do
-      NATFIXME 'should not depend on ungetbyte', exception: NoMethodError, message: "undefined method 'ungetbyte' for an instance of MockObject" do
-        (obj = mock('test')).should_receive(:write).at_least(1)
-        Marshal.dump("test", obj).should == obj
-      end
+      (obj = mock('test')).should_receive(:write).at_least(1)
+      Marshal.dump("test", obj).should == obj
     end
 
     it "raises an Error when the IO-Object does not respond to #write" do
       obj = mock('test')
-      NATFIXME 'should not depend on ungetbyte', exception: SpecFailedException, message: "undefined method 'ungetbyte'" do
-        -> { Marshal.dump("test", obj) }.should raise_error(TypeError)
-      end
+      -> { Marshal.dump("test", obj) }.should raise_error(TypeError)
     end
 
 
     it "calls binmode when it's defined" do
       obj = mock('test')
-      NATFIXME 'should not depend on ungetbyte', exception: NoMethodError, message: "undefined method 'ungetbyte' for an instance of MockObject" do
-        obj.should_receive(:write).at_least(1)
-        obj.should_receive(:binmode).at_least(1)
-        Marshal.dump("test", obj)
-      end
+      obj.should_receive(:write).at_least(1)
+      obj.should_receive(:binmode).at_least(1)
+      Marshal.dump("test", obj)
     end
   end
 
