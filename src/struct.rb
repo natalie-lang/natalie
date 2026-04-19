@@ -15,6 +15,12 @@ class Struct
       attrs.shift
     end
 
+    attrs.map! do |attr|
+      next attr if attr.is_a?(Symbol)
+      next attr.to_sym if attr.is_a?(String)
+      raise TypeError, "#{attr.inspect} is not a symbol nor a string"
+    end
+
     result =
       Class.new(Struct) do
         include Enumerable
@@ -189,9 +195,16 @@ class Struct
           result
         end
 
-        # These are generated for Struct.new(...).methods, but will be redefined
-        # The actual values are not stored as ivars (requirement of Ruby specs)
-        attrs.each { |attr| attr_accessor attr }
+        # Hash-backed fallback accessors used when an instance is created via
+        # `.allocate` directly (e.g. Marshal.restore). The reader is side-effect
+        # free so `undef_method`, which triggers `inspect` internally, doesn't
+        # spuriously create the backing ivar. Hand-rolled rather than
+        # attr_accessor so names like :"current-state" are accepted.
+        attrs.each do |attr|
+          key = attr.to_sym
+          define_method(key) { @__struct_values&.dig(key) }
+          define_method(:"#{attr}=") { |val| (@__struct_values ||= {})[key] = val }
+        end
 
         instance_eval(&block) if block
       end
@@ -201,24 +214,23 @@ class Struct
       Struct.const_set(klass, result)
     end
 
+    # Override `.new` to install closure-based accessors on each instance,
+    # keeping values out of the ivar table (a Ruby spec requirement). The
+    # singleton methods shadow the hash-backed stubs defined above. Objects
+    # built via `allocate` (e.g. Marshal.restore) use those stubs.
     def result.new(*args)
       object = allocate
-      # The `values` variable will store the actual values of the struct. We redefine the
-      # getter and setter methods in a closure to capture this variable and make it
-      # invisible to the user.
-      values = members.map { nil }
-      members.each_with_index do |attr, idx|
-        object.singleton_class.undef_method(attr)
-        object.singleton_class.undef_method(:"#{attr}=")
-
+      attrs = members
+      values = Array.new(attrs.size)
+      attrs.each_with_index do |attr, idx|
         object.define_singleton_method(attr) { values[idx] }
-
         object.define_singleton_method(:"#{attr}=") do |value|
           raise FrozenError, "can't modify frozen #{self.class}: #{self}" if frozen?
           values[idx] = value
         end
       end
       object.__send__(:initialize, *args)
+      object
     end
 
     result

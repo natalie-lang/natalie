@@ -103,26 +103,10 @@ describe "Symbol#inspect" do
   }
 
   expected_by_encoding = Encoding::default_external == Encoding::UTF_8 ? 0 : 1
-  natalie_expected_failures = Set[
-    :"$ruby!", :"$ruby?", :"@ruby!", :"@ruby?", :"@@ruby!",
-    :"@@ruby?", :"$-w", :"$+", :"$:", :"$<",
-    :"$/", :"$'", :"$\"", :"$$", :"$.",
-    :"$,", :"$`", :"$;", :"$\\", :"$=",
-    :"$*", :"$>", :"$&", :"$@", :"$1234",
-    :"-@", :"+@", :"<=", :"<=>", :"===",
-    :"=~", :">=", :"^", :"`", :"~",
-    :"|", :"!~", :"ê", :"测", :"🦊"
-  ]
   symbols.each do |input, expected|
     expected = expected[expected_by_encoding] if expected.is_a?(Array)
     it "returns self as a symbol literal for #{expected}" do
-      if natalie_expected_failures.include?(input)
-        NATFIXME "Failure for #{input}", exception: SpecFailedException do
-          input.inspect.should == expected
-        end
-      else
-        input.inspect.should == expected
-      end
+      input.inspect.should == expected
     end
   end
 

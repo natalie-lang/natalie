@@ -36,21 +36,27 @@ public:
 
     Value cmp(Env *, Value);
 
-    bool is_constant_name() {
-        return m_name.length() > 0 && is_ascii_upper(m_name[0]);
-    }
+    // Classification of a symbol name in the style of MRI's rb_enc_symname_type.
+    // Computed once in the constructor and cached; symbols are immutable.
+    enum class NameType : uint8_t {
+        Local, // foo, _bar, föö
+        Const, // Foo
+        Global, // $foo, $0, $!, $-w
+        IVar, // @foo
+        CVar, // @@foo
+        AttrSet, // foo=
+        Junk, // foo?, foo!, and operator names (==, <<, []=, ...)
+        Invalid, // anything that can't be written as a bare symbol literal
+    };
 
-    bool is_global_name() {
-        return m_name.length() > 0 && m_name[0] == '$';
-    }
+    NameType name_type() const { return m_type; }
 
-    bool is_ivar_name() {
-        return m_name.length() > 1 && m_name[0] == '@' && (is_ascii_alpha(m_name[1]) || m_name[1] == '_');
-    }
-
-    bool is_cvar_name() {
-        return m_name.length() > 2 && m_name[0] == '@' && m_name[1] == '@';
-    }
+    bool is_local_name() const { return m_type == NameType::Local; }
+    bool is_constant_name() const { return m_type == NameType::Const; }
+    bool is_global_name() const { return m_type == NameType::Global; }
+    bool is_ivar_name() const { return m_type == NameType::IVar; }
+    bool is_cvar_name() const { return m_type == NameType::CVar; }
+    bool is_invalid_name() const { return m_type == NameType::Invalid; }
 
     bool is_empty() {
         return m_name.is_empty();
@@ -68,8 +74,6 @@ public:
 
     const String &string() const { return m_name; }
     EncodingObject *encoding(Env *env) const { return m_encoding; }
-
-    bool should_be_quoted() const;
 
     virtual String dbg_inspect(int indent = 0) const override;
 
@@ -91,7 +95,6 @@ public:
 
 private:
     inline static TM::Hashmap<TM::String, SymbolObject *> s_symbols { 1000 };
-    inline static regex_t *s_inspect_quote_regex { nullptr };
 
     SymbolObject(const String &name, EncodingObject *encoding)
         : Object { Object::Type::Symbol, GlobalEnv::the()->Symbol() }
@@ -111,13 +114,17 @@ private:
             }
             if (all_ascii) m_encoding = EncodingObject::get(Encoding::US_ASCII);
         }
+        m_type = classify_name();
         freeze();
     }
+
+    NameType classify_name() const;
 
     const TM::String m_name {};
 
     StringObject *m_string = nullptr;
     EncodingObject *m_encoding = nullptr;
+    NameType m_type { NameType::Invalid };
 };
 
 [[nodiscard]] __attribute__((always_inline)) inline SymbolObject *operator""_s(const char *cstring, size_t length) {
