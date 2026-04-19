@@ -25,57 +25,45 @@ describe :marshal_load, shared: true do
 
   describe "when called with freeze: true" do
     it "returns frozen strings" do
-      NATFIXME 'returns frozen strings', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        string = Marshal.send(@method, Marshal.dump("foo"), freeze: true)
-        string.should == "foo"
-        string.should.frozen?
+      string = Marshal.send(@method, Marshal.dump("foo"), freeze: true)
+      string.should == "foo"
+      string.should.frozen?
 
-        utf8_string = "foo".encode(Encoding::UTF_8)
-        string = Marshal.send(@method, Marshal.dump(utf8_string), freeze: true)
-        string.should == utf8_string
-        string.should.frozen?
-      end
+      utf8_string = "foo".encode(Encoding::UTF_8)
+      string = Marshal.send(@method, Marshal.dump(utf8_string), freeze: true)
+      string.should == utf8_string
+      string.should.frozen?
     end
 
     it "returns frozen arrays" do
-      NATFIXME 'returns frozen arrays', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        array = Marshal.send(@method, Marshal.dump([1, 2, 3]), freeze: true)
-        array.should == [1, 2, 3]
-        array.should.frozen?
-      end
+      array = Marshal.send(@method, Marshal.dump([1, 2, 3]), freeze: true)
+      array.should == [1, 2, 3]
+      array.should.frozen?
     end
 
     it "returns frozen hashes" do
-      NATFIXME 'returns frozen hashes', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        hash = Marshal.send(@method, Marshal.dump({foo: 42}), freeze: true)
-        hash.should == {foo: 42}
-        hash.should.frozen?
-      end
+      hash = Marshal.send(@method, Marshal.dump({foo: 42}), freeze: true)
+      hash.should == {foo: 42}
+      hash.should.frozen?
     end
 
     it "returns frozen regexps" do
-      NATFIXME 'returns frozen regexps', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        regexp = Marshal.send(@method, Marshal.dump(/foo/), freeze: true)
-        regexp.should == /foo/
-        regexp.should.frozen?
-      end
+      regexp = Marshal.send(@method, Marshal.dump(/foo/), freeze: true)
+      regexp.should == /foo/
+      regexp.should.frozen?
     end
 
     it "returns frozen structs" do
-      NATFIXME 'returns frozen structs', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        struct = Marshal.send(@method, Marshal.dump(MarshalSpec::StructToDump.new(1, 2)), freeze: true)
-        struct.should == MarshalSpec::StructToDump.new(1, 2)
-        struct.should.frozen?
-      end
+      struct = Marshal.send(@method, Marshal.dump(MarshalSpec::StructToDump.new(1, 2)), freeze: true)
+      struct.should == MarshalSpec::StructToDump.new(1, 2)
+      struct.should.frozen?
     end
 
     it "returns frozen objects" do
       source_object = Object.new
 
-      NATFIXME 'returns frozen objects', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
+      object.should.frozen?
     end
 
     describe "deep freezing" do
@@ -84,23 +72,19 @@ describe :marshal_load, shared: true do
         value = Object.new
         source_object = {key => value}
 
-        NATFIXME 'returns hashes with frozen keys and values', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-          hash = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
-          hash.size.should == 1
-          hash.keys[0].should.frozen?
-          hash.values[0].should.frozen?
-        end
+        hash = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
+        hash.size.should == 1
+        hash.keys[0].should.frozen?
+        hash.values[0].should.frozen?
       end
 
       it "returns arrays with frozen elements" do
         object = Object.new
         source_object = [object]
 
-        NATFIXME 'returns arrays with frozen elements', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-          array = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
-          array.size.should == 1
-          array[0].should.frozen?
-        end
+        array = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
+        array.size.should == 1
+        array[0].should.frozen?
       end
 
       it "returns structs with frozen members" do
@@ -108,11 +92,9 @@ describe :marshal_load, shared: true do
         object2 = Object.new
         source_object = MarshalSpec::StructToDump.new(object1, object2)
 
-        NATFIXME 'returns structs with frozen members', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-          struct = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
-          struct.a.should.frozen?
-          struct.b.should.frozen?
-        end
+        struct = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
+        struct.a.should.frozen?
+        struct.b.should.frozen?
       end
 
       it "returns objects with frozen instance variables" do
@@ -120,16 +102,14 @@ describe :marshal_load, shared: true do
         instance_variable = Object.new
         source_object.instance_variable_set(:@a, instance_variable)
 
-        NATFIXME 'returns objects with frozen instance variables', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-          object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
-          object.instance_variable_get(:@a).should != nil
-          object.instance_variable_get(:@a).should.frozen?
-        end
+        object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
+        object.instance_variable_get(:@a).should != nil
+        object.instance_variable_get(:@a).should.frozen?
       end
 
       it "deduplicates frozen strings" do
         source_object = ["foo" + "bar", "foobar"]
-        NATFIXME 'deduplicates frozen strings', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
+        NATFIXME 'deduplicates frozen strings', exception: SpecFailedException do
           object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
 
           object[0].should equal(object[1])
@@ -138,83 +118,63 @@ describe :marshal_load, shared: true do
     end
 
     it "does not freeze modules" do
-      NATFIXME 'does not freeze modules', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.send(@method, Marshal.dump(Kernel), freeze: true)
-        object.should_not.frozen?
-        Kernel.should_not.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(Kernel), freeze: true)
+      object.should_not.frozen?
+      Kernel.should_not.frozen?
     end
 
     it "does not freeze classes" do
-      NATFIXME 'does not freeze classes', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.send(@method, Marshal.dump(Object), freeze: true)
-        object.should_not.frozen?
-        Object.should_not.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(Object), freeze: true)
+      object.should_not.frozen?
+      Object.should_not.frozen?
     end
 
     it "does freeze extended objects" do
-      NATFIXME 'does freeze extended objects', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x00", freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x00", freeze: true)
+      object.should.frozen?
     end
 
     it "does freeze extended objects with instance variables" do
-      NATFIXME 'does freeze extended objects with instance variables', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x06:\n@ivarT", freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x06:\n@ivarT", freeze: true)
+      object.should.frozen?
     end
 
     it "returns frozen object having #_dump method" do
-      NATFIXME 'returns frozen object having #_dump method', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.send(@method, Marshal.dump(UserDefined.new), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(UserDefined.new), freeze: true)
+      object.should.frozen?
     end
 
     it "returns frozen object responding to #marshal_dump and #marshal_load" do
-      NATFIXME 'returns frozen object responding to #marshal_dump and #marshal_load', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.send(@method, Marshal.dump(UserMarshal.new), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(UserMarshal.new), freeze: true)
+      object.should.frozen?
     end
 
     it "returns frozen object extended by a module" do
       object = Object.new
       object.extend(MarshalSpec::ModuleToExtendBy)
 
-      NATFIXME 'returns frozen object extended by a module', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.send(@method, Marshal.dump(object), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(object), freeze: true)
+      object.should.frozen?
     end
 
     it "does not call freeze method" do
       object = MarshalSpec::ObjectWithFreezeRaisingException.new
-      NATFIXME 'does not call freeze method', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        object = Marshal.send(@method, Marshal.dump(object), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(object), freeze: true)
+      object.should.frozen?
     end
 
     it "returns frozen object even if object does not respond to freeze method" do
       object = MarshalSpec::ObjectWithoutFreeze.new
-      NATFIXME 'returns frozen object even if object does not respond to freeze method', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        object = Marshal.send(@method, Marshal.dump(object), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(object), freeze: true)
+      object.should.frozen?
     end
 
     it "returns a frozen object when is an instance of String/Array/Regexp/Hash subclass and has instance variables" do
       source_object = UserString.new
       source_object.instance_variable_set(:@foo, "bar")
 
-      NATFIXME 'returns a frozen object when is an instance of String/Array/Regexp/Hash subclass and has instance variables', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
+      object.should.frozen?
     end
 
     describe "when called with a proc" do
@@ -233,7 +193,7 @@ describe :marshal_load, shared: true do
         obj.instance_variable_set(:@zoo, 'ant')
         proc = Proc.new { |o| arr << o; o}
 
-        NATFIXME 'call the proc with frozen objects', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1)' do
+        NATFIXME 'call the proc with frozen objects', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
           Marshal.send(
             @method,
             "\x04\bI[\vI\"\ahi\a:\x06EF:\t@fooi\ni\x0F@\x06@\x06IS:\x14Struct::Brittle\x06:\x06af\x060\x06:\n@clueI\"\tnone\x06;\x00FI[\b;\b:\x06b:\x06c\x06:\t@twoi\a\x06:\t@zooI\"\bant\x06;\x00F",
@@ -255,7 +215,7 @@ describe :marshal_load, shared: true do
       end
 
       it "does not freeze the object returned by the proc" do
-        NATFIXME 'does not freeze the object returned by the proc', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1)' do
+        NATFIXME 'does not freeze the object returned by the proc', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
           string = Marshal.send(@method, Marshal.dump("foo"), proc { |o| o.upcase }, freeze: true)
           string.should == "FOO"
           string.should_not.frozen?
@@ -539,14 +499,12 @@ describe :marshal_load, shared: true do
     it "loads an extended Array object containing a user-marshaled object" do
       obj = [UserMarshal.new, UserMarshal.new].extend(Meths)
       dump = "\x04\be:\nMeths[\ao:\x10UserMarshal\x06:\n@dataI\"\nstuff\x06:\x06ETo;\x06\x06;\aI\"\nstuff\x06;\bT"
-      NATFIXME 'loads an extended Array object containing a user-marshaled object', exception: ArgumentError, message: 'dump format error' do
-        new_obj = Marshal.send(@method, dump)
+      new_obj = Marshal.send(@method, dump)
 
-        new_obj.should == obj
-        obj_ancestors = class << obj; ancestors[1..-1]; end
-        new_obj_ancestors = class << new_obj; ancestors[1..-1]; end
-        obj_ancestors.should == new_obj_ancestors
-      end
+      new_obj.should == obj
+      obj_ancestors = class << obj; ancestors[1..-1]; end
+      new_obj_ancestors = class << new_obj; ancestors[1..-1]; end
+      obj_ancestors.should == new_obj_ancestors
     end
   end
 
@@ -554,7 +512,7 @@ describe :marshal_load, shared: true do
     it "loads an extended_user_hash with a parameter to initialize" do
       obj = UserHashInitParams.new(:abc).extend(Meths)
 
-      NATFIXME 'loads an extended_user_hash with a parameter to initialize', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'loads an extended_user_hash with a parameter to initialize', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
         new_obj = Marshal.send(@method, "\004\bIe:\nMethsC:\027UserHashInitParams{\000\006:\a@a:\babc")
 
         new_obj.should == obj
@@ -567,14 +525,12 @@ describe :marshal_load, shared: true do
     it "loads an extended hash object containing a user-marshaled object" do
       obj = {a: UserMarshal.new}.extend(Meths)
 
-      NATFIXME 'loads an extended hash object containing a user-marshaled object', exception: ArgumentError, message: 'dump format error' do
-        new_obj = Marshal.send(@method, "\004\be:\nMeths{\006:\006aU:\020UserMarshal\"\nstuff")
+      new_obj = Marshal.send(@method, "\004\be:\nMeths{\006:\006aU:\020UserMarshal\"\nstuff")
 
-        new_obj.should == obj
-        new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-        new_obj_metaclass_ancestors[@num_self_class].should == Meths
-        new_obj_metaclass_ancestors[@num_self_class+1].should == Hash
-      end
+      new_obj.should == obj
+      new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+      new_obj_metaclass_ancestors[@num_self_class].should == Meths
+      new_obj_metaclass_ancestors[@num_self_class+1].should == Hash
     end
 
     it "preserves hash ivars when hash contains a string having ivar" do
@@ -774,7 +730,7 @@ describe :marshal_load, shared: true do
       s = 'hi'
       obj = Struct.new("Extended", :a, :b).new.extend(Meths)
       dump = "\004\be:\nMethsS:\025Struct::Extended\a:\006a0:\006b0"
-      NATFIXME 'loads a extended_struct having fields with same objects', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'loads a extended_struct having fields with same objects', exception: SpecFailedException do
         Marshal.send(@method, dump).should == obj
 
         obj.a = [:a, s]
@@ -897,13 +853,11 @@ describe :marshal_load, shared: true do
     it "loads an extended Object" do
       obj = Object.new.extend(Meths)
 
-      NATFIXME 'Support extended Object', exception: ArgumentError, message: 'dump format error' do
-        new_obj = Marshal.send(@method, "\004\be:\nMethso:\vObject\000")
+      new_obj = Marshal.send(@method, "\004\be:\nMethso:\vObject\000")
 
-        new_obj.class.should == obj.class
-        new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-        new_obj_metaclass_ancestors[@num_self_class, 2].should == [Meths, Object]
-      end
+      new_obj.class.should == obj.class
+      new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+      new_obj_metaclass_ancestors[@num_self_class, 2].should == [Meths, Object]
     end
 
     it "loads an object having ivar" do
@@ -993,7 +947,7 @@ describe :marshal_load, shared: true do
   describe "for a Regexp" do
     it "loads an extended Regexp" do
       obj = /[a-z]/.dup.extend(Meths, MethsMore)
-      NATFIXME 'Support regexp dump', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'Support regexp dump', exception: ArgumentError, message: 'marshal data too short' do
         new_obj = Marshal.send(@method, "\004\be:\nMethse:\016MethsMore/\n[a-z]\000")
 
         new_obj.should == obj
@@ -1007,7 +961,7 @@ describe :marshal_load, shared: true do
       obj = UserRegexp.new('').extend(Meths)
       obj.instance_variable_set(:@noise, 'much')
 
-      NATFIXME 'Support regexp dump', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'Support regexp dump', exception: SpecFailedException do
         new_obj = Marshal.send(@method, "\004\bIe:\nMethsC:\017UserRegexp/\000\000\006:\v@noise\"\tmuch")
 
         new_obj.should == obj

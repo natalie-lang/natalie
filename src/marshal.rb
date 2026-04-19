@@ -25,11 +25,11 @@ module Marshal
       writer.write(object)
     end
 
-    def load(source)
+    def load(source, freeze: false)
       if source.respond_to?(:to_str)
-        reader = StringReader.new(source.to_str)
+        reader = StringReader.new(source.to_str, freeze: freeze)
       elsif source.respond_to?(:getbyte) && source.respond_to?(:read)
-        reader = Reader.new(source)
+        reader = Reader.new(source, freeze: freeze)
       else
         raise TypeError, 'instance of IO needed'
       end
@@ -480,8 +480,9 @@ module Marshal
   end
 
   class Reader
-    def initialize(source)
+    def initialize(source, freeze: false)
       @source = source
+      @freeze = freeze
       @symbol_lookup = []
       @object_lookup = []
     end
@@ -626,6 +627,15 @@ module Marshal
       Regexp.new(string, options)
     end
 
+    def read_extended(ivars_consumed)
+      name = read_value
+      mod = find_constant(name)
+      raise ArgumentError, "#{name} does not refer to a Module" unless mod.is_a?(Module)
+      inner = read_value(ivars_consumed, partial: true)
+      inner.extend(mod)
+      inner
+    end
+
     def read_user_class
       name = read_value
       klass = find_constant(name)
@@ -739,67 +749,72 @@ module Marshal
       end
     end
 
-    def read_value(ivars_consumed = nil)
+    def read_value(ivars_consumed = nil, partial: false)
       char = read_byte.chr
-      case char
-      when '0'
-        nil
-      when 'T'
-        true
-      when 'F'
-        false
-      when '@'
-        read_object_link
-      when 'i'
-        read_integer
-      when 'l'
-        read_big_integer
-      when ':'
-        read_symbol
-      when ';'
-        read_symbol_link
-      when 'f'
-        read_float
-      when 'I'
-        ivars_consumed = [false]
-        result = read_value(ivars_consumed)
-        read_ivars(result) unless result.is_a?(Regexp) || ivars_consumed[0]
-        result
-      else
-        index = @object_lookup.size
-        @object_lookup << nil # placeholder
-        value =
-          case char
-          when '"'
-            read_string
-          when '['
-            read_array
-          when '{'
-            read_hash
-          when '}'
-            read_hash_with_default
-          when 'c'
-            read_class
-          when 'm'
-            read_module
-          when '/'
-            read_regexp
-          when 'U'
-            read_user_marshaled_object_with_allocate
-          when 'u'
-            read_user_marshaled_object_without_allocate(ivars_consumed)
-          when 'S'
-            read_struct
-          when 'o'
-            read_object
-          when 'C'
-            read_user_class
-          else
-            raise ArgumentError, 'dump format error'
-          end
-        @object_lookup[index] = value
-        value
-      end
+      value =
+        case char
+        when '0'
+          nil
+        when 'T'
+          true
+        when 'F'
+          false
+        when '@'
+          return read_object_link
+        when 'i'
+          read_integer
+        when 'l'
+          read_big_integer
+        when ':'
+          return read_symbol
+        when ';'
+          return read_symbol_link
+        when 'f'
+          read_float
+        when 'I'
+          ivars_consumed = [false]
+          result = read_value(ivars_consumed, partial: true)
+          read_ivars(result) unless result.is_a?(Regexp) || ivars_consumed[0]
+          result
+        else
+          index = @object_lookup.size
+          @object_lookup << nil # placeholder
+          inner =
+            case char
+            when '"'
+              read_string
+            when '['
+              read_array
+            when '{'
+              read_hash
+            when '}'
+              read_hash_with_default
+            when 'c'
+              read_class
+            when 'm'
+              read_module
+            when '/'
+              read_regexp
+            when 'U'
+              read_user_marshaled_object_with_allocate
+            when 'u'
+              read_user_marshaled_object_without_allocate(ivars_consumed)
+            when 'S'
+              read_struct
+            when 'o'
+              read_object
+            when 'C'
+              read_user_class
+            when 'e'
+              read_extended(ivars_consumed)
+            else
+              raise ArgumentError, 'dump format error'
+            end
+          @object_lookup[index] = inner
+          inner
+        end
+      Kernel.instance_method(:freeze).bind_call(value) if @freeze && !partial && !value.is_a?(Module)
+      value
     end
 
     def find_constant(name)
@@ -813,8 +828,8 @@ module Marshal
   end
 
   class StringReader < Reader
-    def initialize(source)
-      super(source)
+    def initialize(source, freeze: false)
+      super(source, freeze: freeze)
       @offset = 0
     end
 
