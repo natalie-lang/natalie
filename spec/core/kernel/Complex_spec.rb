@@ -101,11 +101,9 @@ describe "Kernel.Complex()" do
       end
 
       it "does not understand a sequence of _" do
-        NATFIXME 'does not understand a sequence of _', exception: SpecFailedException do
-          -> {
-            Complex("7__9+4__0i")
-          }.should raise_error(ArgumentError, 'invalid value for convert(): "7__9+4__0i"')
-        end
+        -> {
+          Complex("7__9+4__0i")
+        }.should raise_error(ArgumentError, 'invalid value for convert(): "7__9+4__0i"')
       end
 
       it "does not allow null-byte" do

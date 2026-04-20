@@ -251,7 +251,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                     imag_start = imag_end = nullptr;
                     state = State::Finished;
                 } else {
-                    return Value::nil();
+                    return error();
                 }
             } else if (*c == '.') {
                 if (*curr_type == Type::Integer) {
