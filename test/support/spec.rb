@@ -253,6 +253,7 @@ def ruby_exe(code = nil, options: nil, args: nil, escape: true, exit_status: 0, 
     else
       ENV.fetch('NAT_BINARY', 'bin/natalie')
     end
+  args = args.join(' ') if args.is_a?(Array)
   if code.nil?
     return [binary] if args.nil?
 

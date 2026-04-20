@@ -1,15 +1,20 @@
 # ARGF is the virtual concatenation of the files named in ARGV (or $stdin when
-# ARGV is empty). Its class is anonymous; it is accessible only via
-# ARGF.class, matching MRI's behaviour.
+# ARGV is empty). Its class is anonymous; it is accessible only via ARGF.class.
 
 argf_class = Class.new do
   include Enumerable
 
   def initialize(*argv)
     @argv = argv
+    @lineno = 0
   end
 
-  attr_reader :argv
+  attr_reader :argv, :lineno
+
+  def lineno=(value)
+    @lineno = value.to_int
+    $. = @lineno
+  end
 
   def to_s
     'ARGF'
@@ -17,12 +22,12 @@ argf_class = Class.new do
   alias_method :inspect, :to_s
 
   def file
-    advance!
+    advance! unless @current_file
     @current_file
   end
 
   def filename
-    advance!
+    advance! unless @current_file
     @current_filename
   end
   alias_method :path, :filename
@@ -42,10 +47,33 @@ argf_class = Class.new do
     self
   end
 
+  def gets(*args)
+    advance! unless @current_file
+    loop do
+      line = @current_file.gets(*args)
+      if line
+        @lineno += 1
+        $. = @lineno
+        $_ = line
+        return line
+      end
+      return nil unless advance!
+    end
+  end
+
+  def readline(*args)
+    line = gets(*args)
+    raise EOFError, 'end of file reached' unless line
+    line
+  end
+
   private
 
   def advance!
-    return if @current_file
+    if @current_file
+      return false if argv.empty?
+      @current_file.close unless @current_file == $stdin || @current_file.closed?
+    end
     if argv.empty?
       @current_filename = '-'
       @current_file = $stdin
@@ -54,6 +82,7 @@ argf_class = Class.new do
       @current_file = @current_filename == '-' ? $stdin : File.open(@current_filename, 'r')
     end
     $FILENAME = @current_filename
+    true
   end
 end
 
