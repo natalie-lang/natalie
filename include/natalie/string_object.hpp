@@ -175,7 +175,6 @@ public:
     EncodingObject *encoding() const { return m_encoding.ptr(); }
     void set_encoding(EncodingObject *encoding) { m_encoding = encoding; }
     bool is_ascii_only() const;
-    EncodingObject *negotiate_compatible_encoding(const StringObject *) const;
     void assert_compatible_string(Env *, const StringObject *) const;
     void assert_valid_encoding(Env *) const;
     void assert_ascii_compatible_encoding(Env *) const;

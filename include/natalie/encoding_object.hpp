@@ -120,6 +120,7 @@ public:
     [[noreturn]] void raise_encoding_invalid_byte_sequence_error(Env *, const String &, size_t) const;
     [[noreturn]] void raise_compatibility_error(Env *, const EncodingObject *) const;
 
+    static EncodingObject *compatible(const StringObject *, const StringObject *);
     static Value compatible(Env *, Value, Value);
     static HashObject *aliases(Env *);
     static Value find(Env *, Value);

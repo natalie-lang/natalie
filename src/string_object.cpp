@@ -684,7 +684,7 @@ bool StringObject::end_with(Env *env, Args &&args) const {
 }
 
 static Value byteindex_regexp_needle(Env *env, const StringObject *haystack, RegexpObject *needle, OnigPosition offset, bool reverse = false) {
-    if (!haystack->negotiate_compatible_encoding(needle->pattern())) {
+    if (!EncodingObject::compatible(haystack, needle->pattern())) {
         auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s }).as_class();
         auto enc1 = needle->pattern()->encoding()->name()->string();
         auto enc2 = haystack->encoding()->name()->string();
@@ -887,7 +887,7 @@ nat_int_t StringObject::rindex_int(Env *env, Value needle, size_t byte_start) co
         // FIXME: use byteindex_regexp_needle shared code
 
         auto needle_regexp = needle.as_regexp();
-        if (!negotiate_compatible_encoding(needle_regexp->pattern())) {
+        if (!EncodingObject::compatible(this, needle_regexp->pattern())) {
             auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s }).as_class();
             auto enc1 = needle_regexp->encoding()->name()->string();
             auto enc2 = encoding()->name()->string();
@@ -2230,7 +2230,7 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
     }
 
     if (str) {
-        auto compatible_encoding = negotiate_compatible_encoding(str);
+        auto compatible_encoding = EncodingObject::compatible(this, str);
         if (!compatible_encoding)
             m_encoding->raise_compatibility_error(env, str->encoding());
         m_encoding = compatible_encoding;
@@ -3777,7 +3777,7 @@ Value StringObject::rjust(Env *env, Value length_obj, Optional<Value> pad_arg) c
     if (padstr->string().is_empty())
         env->raise("ArgumentError", "zero width padding");
 
-    auto compatible_encoding = negotiate_compatible_encoding(padstr);
+    auto compatible_encoding = EncodingObject::compatible(this, padstr);
     if (!compatible_encoding)
         m_encoding->raise_compatibility_error(env, padstr->m_encoding.ptr());
 
@@ -3905,7 +3905,7 @@ Value StringObject::casecmp(Env *env, Value other) {
     if (is_empty() && other_str->is_empty())
         return Value::integer(0);
 
-    if (!negotiate_compatible_encoding(other_str))
+    if (!EncodingObject::compatible(this, other_str))
         return Value::nil();
 
     auto str1 = this->downcase(env, Value("ascii"_s));
@@ -3923,7 +3923,7 @@ Value StringObject::is_casecmp(Env *env, Value other) {
     if (is_empty() && other_str->is_empty())
         return Value::integer(0);
 
-    if (!negotiate_compatible_encoding(other_str))
+    if (!EncodingObject::compatible(this, other_str))
         return Value::nil();
 
     auto str1 = this->downcase(env, Value("fold"_s));
@@ -4201,31 +4201,8 @@ bool StringObject::is_ascii_only() const {
     return m_string.is_ascii_only();
 }
 
-EncodingObject *StringObject::negotiate_compatible_encoding(const StringObject *other_string) const {
-    if (m_encoding == other_string->m_encoding)
-        return m_encoding.ptr();
-
-    if (!m_encoding->is_compatible_with(other_string->m_encoding.ptr()))
-        return nullptr;
-
-    bool this_is_ascii = is_ascii_only();
-    bool other_is_ascii = other_string->is_ascii_only();
-
-    if (!this_is_ascii && !other_is_ascii)
-        return nullptr;
-
-    // Special case for BINARY
-    if (m_encoding->num() == Encoding::ASCII_8BIT)
-        return m_encoding.ptr();
-
-    else if (this_is_ascii && !other_is_ascii)
-        return other_string->m_encoding.ptr();
-    else
-        return m_encoding.ptr();
-}
-
 void StringObject::assert_compatible_string(Env *env, const StringObject *other_string) const {
-    auto compatible_encoding = negotiate_compatible_encoding(other_string);
+    auto compatible_encoding = EncodingObject::compatible(this, other_string);
     if (compatible_encoding)
         return;
 
@@ -4250,7 +4227,7 @@ void StringObject::assert_compatible_encoding_for_operation(Env *env) const {
 }
 
 EncodingObject *StringObject::assert_compatible_string_and_update_encoding(Env *env, StringObject *other_string) {
-    auto compatible_encoding = negotiate_compatible_encoding(other_string);
+    auto compatible_encoding = EncodingObject::compatible(this, other_string);
     if (compatible_encoding) {
         if (m_encoding != compatible_encoding)
             m_encoding = compatible_encoding;
