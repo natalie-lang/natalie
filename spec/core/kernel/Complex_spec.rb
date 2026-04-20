@@ -156,9 +156,7 @@ describe "Kernel.Complex()" do
   describe "when passed an Object which responds to #to_c" do
     it "returns the passed argument" do
       obj = Object.new; def obj.to_c; 1i end
-      NATFIXME 'when passed an Object which responds to #to_c', exception: TypeError, message: "can't convert Object into Complex" do
-        Complex(obj).should == Complex(0, 1)
-      end
+      Complex(obj).should == Complex(0, 1)
     end
   end
 
@@ -216,10 +214,8 @@ describe "Kernel.Complex()" do
     it "coerces the passed argument using #to_c" do
       n = mock("n")
       c = Complex(0, 0)
-      NATFIXME 'when passed a single non-Numeric', exception: TypeError, message: "can't convert MockObject into Complex" do
-        n.should_receive(:to_c).and_return(c)
-        Complex(n).should equal(c)
-      end
+      n.should_receive(:to_c).and_return(c)
+      Complex(n).should equal(c)
     end
   end
 

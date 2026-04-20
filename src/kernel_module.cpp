@@ -172,6 +172,9 @@ Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, boo
         }
     }
 
+    if (!imaginary && real.respond_to(env, "to_c"_s))
+        return real.send(env, "to_c"_s);
+
     if (exception)
         env->raise("TypeError", "can't convert {} into Complex", real.klass()->inspect_module());
 
