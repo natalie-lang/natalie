@@ -68,6 +68,7 @@ Value IoObject::initialize(Env *env, Args &&args, Block *block) {
             env->raise_errno(EINVAL);
     }
     set_fileno(fileno);
+    set_fmode(fmode_from_oflags(wanted_flags.has_mode() ? wanted_flags.flags() : actual_flags));
     set_encoding(env, wanted_flags.external_encoding(), wanted_flags.internal_encoding());
     m_autoclose = wanted_flags.autoclose();
     m_path = wanted_flags.path();
@@ -160,13 +161,11 @@ int IoObject::fileno() const {
     return m_fileno;
 }
 
-void IoObject::set_fileno(int fileno) {
-    m_fileno = fileno;
-    if (fileno >= 0) {
-        int flags = ::fcntl(fileno, F_GETFL);
-        if (flags >= 0)
-            m_writable = flags_is_writable(flags);
-    }
+int IoObject::fmode_from_oflags(int oflags) {
+    int fmode = 0;
+    if (flags_is_readable(oflags)) fmode |= FMODE_READABLE;
+    if (flags_is_writable(oflags)) fmode |= FMODE_WRITABLE;
+    return fmode;
 }
 
 int IoObject::fileno(Env *env) const {
@@ -508,7 +507,7 @@ int IoObject::write(Env *env, Value obj) {
         total_written += written;
     }
 
-    if (m_sync) ::fsync(m_fileno);
+    if (fmode_sync()) ::fsync(m_fileno);
 
     return total_written;
 }
@@ -881,7 +880,10 @@ Value IoObject::set_lineno(Env *env, Value lineno) {
 
 Value IoObject::set_sync(Env *env, Value value) {
     raise_if_closed(env);
-    m_sync = value.is_truthy();
+    if (value.is_truthy())
+        m_fmode |= FMODE_SYNC;
+    else
+        m_fmode &= ~FMODE_SYNC;
     return value;
 }
 
@@ -1061,7 +1063,7 @@ int IoObject::set_pos(Env *env, Value position) {
 
 bool IoObject::sync(Env *env) const {
     raise_if_closed(env);
-    return m_sync;
+    return fmode_sync();
 }
 
 Value IoObject::sysread(Env *env, Value amount, Optional<Value> buffer) {
@@ -1096,7 +1098,7 @@ Value IoObject::syswrite(Env *env, Value obj) {
     if (result == -1)
         throw_unless_writable(env, this);
 
-    if (m_sync) ::fsync(m_fileno);
+    if (fmode_sync()) ::fsync(m_fileno);
 
     return Value::integer(result);
 }
