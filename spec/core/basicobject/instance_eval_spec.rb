@@ -303,7 +303,7 @@ describe "BasicObject#instance_eval" do
       def source_code.to_str() :symbol end
 
       a = BasicObject.new
-      -> { a.instance_eval(source_code) }.should raise_error(TypeError, /can't convert Object to String/)
+      -> { a.instance_eval(source_code) }.should raise_consistent_error(TypeError, /can't convert Object to String/)
     end
   end
 
@@ -326,7 +326,7 @@ describe "BasicObject#instance_eval" do
       filename = Object.new
       def filename.to_str() :symbol end
 
-      -> { Object.new.instance_eval("raise", filename) }.should raise_error(TypeError, /can't convert Object to String/)
+      -> { Object.new.instance_eval("raise", filename) }.should raise_consistent_error(TypeError, /can't convert Object to String/)
     end
   end
 
@@ -349,7 +349,7 @@ describe "BasicObject#instance_eval" do
       lineno = Object.new
       def lineno.to_int() :symbol end
 
-      -> { Object.new.instance_eval("raise", "file.rb", lineno) }.should raise_error(TypeError, /can't convert Object to Integer/)
+      -> { Object.new.instance_eval("raise", "file.rb", lineno) }.should raise_consistent_error(TypeError, /can't convert Object to Integer/)
     end
   end
 end

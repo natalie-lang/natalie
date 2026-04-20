@@ -1548,6 +1548,10 @@ class Object
     RaiseErrorExpectation.new(klass, message, &block)
   end
 
+  def raise_consistent_error(klass = Exception, message = nil, &block)
+    RaiseErrorExpectation.new(klass, message, &block)
+  end
+
   def complain(message = nil, kwargs = {}, verbose: false)
     ComplainExpectation.new(message, kwargs, verbose: verbose)
   end
