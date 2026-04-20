@@ -294,6 +294,31 @@ def fixture(source, filename)
   File.join(dirname, filename)
 end
 
+# Convenience helper for specs using ARGF.
+# Ported from ruby/mspec: creates an isolated ARGF.class instance in @argf so
+# tests don't pollute the global ARGF state, and closes the opened files after
+# the block runs.
+def argf(argv)
+  if argv.empty? || argv.length > 2
+    raise "Only 1 or 2 filenames are allowed for the argf helper so files can be properly closed: #{argv.inspect}"
+  end
+  @argf ||= nil
+  raise 'Cannot nest calls to the argf helper' if @argf
+
+  @argf = ARGF.class.new(*argv)
+  @__saved_argf_file__ = @argf.file
+  begin
+    yield
+  ensure
+    file1 = @__saved_argf_file__
+    file2 = @argf.file
+    file1.close if !file1.closed? && file1 != STDIN
+    file2.close if !file2.closed? && file2 != STDIN
+    @argf = nil
+    @__saved_argf_file__ = nil
+  end
+end
+
 def ruby_version_is(version, &block)
   version_is(RUBY_VERSION, version, &block)
 end
