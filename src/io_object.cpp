@@ -360,8 +360,30 @@ ssize_t IoObject::blocking_read(Env *env, void *buf, int count) const {
     Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
 
-    select_read(env);
-    return ::read(m_fileno, buf, count);
+    // Force O_NONBLOCK so read() returns immediately, then wait via
+    // select_read() only on EAGAIN/EWOULDBLOCK/EINTR. Routing the wait
+    // through select_read() keeps the wake_pipe in the fd set so the
+    // read stays interruptible by thread cancellation. A plain
+    // select-then-read would hang on a listening socket (never
+    // readable, never accepted), masking the ENOTCONN that read()
+    // would surface immediately.
+    const int flags = ::fcntl(m_fileno, F_GETFL, 0);
+    const bool was_blocking = flags != -1 && !(flags & O_NONBLOCK);
+    if (was_blocking)
+        ::fcntl(m_fileno, F_SETFL, flags | O_NONBLOCK);
+    Defer restore_flags([&] {
+        if (was_blocking)
+            ::fcntl(m_fileno, F_SETFL, flags);
+    });
+
+    for (;;) {
+        const ssize_t n = ::read(m_fileno, buf, count);
+        if (n >= 0)
+            return n;
+        if (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)
+            return n;
+        select_read(env);
+    }
 }
 
 Value IoObject::read(Env *env, Optional<Value> count_arg, Optional<Value> buffer_arg) {
