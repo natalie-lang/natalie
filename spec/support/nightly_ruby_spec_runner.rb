@@ -89,7 +89,7 @@ Dir[specs].each do |path|
     stderr = Tempfile.new('stderr')
     stderr.close
 
-    unless system("bin/natalie -c #{binary_name} #{path} 2> #{stderr.path}")
+    unless system("bin/natalie -I test/support -r spec -c #{binary_name} #{path} 2> #{stderr.path}")
       compile_errors += 1
       lines = File.readlines(stderr.path).map(&:chomp)
       error_message = lines.reject(&:empty?).first.split(':', 4).last.strip
