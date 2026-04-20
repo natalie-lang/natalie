@@ -559,9 +559,16 @@ module Marshal
       read_bytes(integer)
     end
 
-    def read_symbol
-      symbol = read_string.to_sym
-      @symbol_lookup << symbol
+    def read_symbol(ivars_consumed = nil)
+      bytes = read_string
+      index = @symbol_lookup.size
+      @symbol_lookup << nil
+      if ivars_consumed
+        read_hash.each { |name, value| apply_encoding_ivar(bytes, name, value) }
+        ivars_consumed[0] = true
+      end
+      symbol = bytes.to_sym
+      @symbol_lookup[index] = symbol
       symbol
     end
 
@@ -737,17 +744,23 @@ module Marshal
 
     def read_ivars(object)
       read_hash.each do |name, value|
-        if name == :E
-          if value == false
-            object.force_encoding(Encoding::US_ASCII)
-          elsif value == true
-            object.force_encoding(Encoding::UTF_8)
-          end
-        elsif name == :encoding
-          object.force_encoding(value)
+        if name == :E || name == :encoding
+          apply_encoding_ivar(object, name, value)
         else
           object.instance_variable_set(name, value)
         end
+      end
+    end
+
+    def apply_encoding_ivar(object, name, value)
+      if name == :E
+        if value == false
+          object.force_encoding(Encoding::US_ASCII)
+        elsif value == true
+          object.force_encoding(Encoding::UTF_8)
+        end
+      elsif name == :encoding
+        object.force_encoding(value)
       end
     end
 
@@ -768,7 +781,7 @@ module Marshal
         when 'l'
           read_big_integer
         when ':'
-          return read_symbol
+          return read_symbol(ivars_consumed)
         when ';'
           return read_symbol_link
         when 'f'
