@@ -17,9 +17,7 @@ describe "String#valid_encoding?" do
     str.force_encoding('BINARY').valid_encoding?.should be_true
     str.force_encoding('UTF-8').valid_encoding?.should be_true
     str.force_encoding('US-ASCII').valid_encoding?.should be_false
-    NATFIXME 'Implement Big5 encoding', exception: ArgumentError do
-      str.force_encoding('Big5').valid_encoding?.should be_false
-    end
+    str.force_encoding('Big5').valid_encoding?.should be_false
     NATFIXME 'Implement CPC949 encoding', exception: ArgumentError do
       str.force_encoding('CP949').valid_encoding?.should be_false
     end

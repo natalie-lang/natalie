@@ -25,6 +25,7 @@
 #include "natalie/dir_object.hpp"
 
 #include "natalie/encoding/ascii_8bit_encoding_object.hpp"
+#include "natalie/encoding/big5_encoding_object.hpp"
 #include "natalie/encoding/converter_object.hpp"
 #include "natalie/encoding/eucjp_encoding_object.hpp"
 #include "natalie/encoding/ibm037_encoding_object.hpp"

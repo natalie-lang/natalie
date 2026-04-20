@@ -79,7 +79,7 @@ describe "Encoding::Converter#last_error" do
   end
 
   it "returns the last error of #convert with a message showing the transcoding path" do
-    NATFIXME 'Big5 encoding not implemented', exception: ArgumentError do
+    NATFIXME 'error message does not include the full transcoding path', exception: SpecFailedException do
       ec = Encoding::Converter.new("iso-8859-1", "Big5")
       exception = nil
       -> {

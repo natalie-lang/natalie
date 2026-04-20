@@ -7,13 +7,11 @@ describe "Encoding::Converter#convpath" do
   end
 
   it "returns multiple encoding pairs when direct conversion is impossible" do
-    NATFIXME 'Big5 encoding not implemented', exception: ArgumentError do
-      cp = Encoding::Converter.new('ascii','Big5').convpath
-      cp.should == [
-        [Encoding::US_ASCII, Encoding::UTF_8],
-        [Encoding::UTF_8, Encoding::Big5]
-      ]
-    end
+    cp = Encoding::Converter.new('ascii','Big5').convpath
+    cp.should == [
+      [Encoding::US_ASCII, Encoding::UTF_8],
+      [Encoding::UTF_8, Encoding::Big5]
+    ]
   end
 
   it "indicates if crlf_newline conversion would occur" do

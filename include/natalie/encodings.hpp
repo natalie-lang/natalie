@@ -62,6 +62,7 @@ enum class Encoding : size_t {
     UTF_32,
     UTF_7,
     ISO_2022_JP,
+    BIG5,
     TERMINATOR, // Keep this as the last entry
 };
 
