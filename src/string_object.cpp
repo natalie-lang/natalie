@@ -2711,6 +2711,7 @@ Value StringObject::refeq(Env *env, Value arg1, Optional<Value> arg2, Optional<V
         chars_to_be_removed = chars->size() - begin;
 
     auto string = value->to_str(env);
+    assert_compatible_string_and_update_encoding(env, string);
     auto arg_chars = string->chars(env).as_array();
     size_t new_length = arg_chars->size() + (chars->size() - chars_to_be_removed);
 
