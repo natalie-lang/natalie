@@ -65,11 +65,9 @@ describe "Kernel.Complex()" do
 
     context "invalid argument" do
       it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
-        NATFIXME 'Complex() should raise Encoding::CompatibilityError for UTF-16 encoded string', exception: SpecFailedException do
-          -> {
-            Complex("79+4i".encode("UTF-16"))
-          }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
-        end
+        -> {
+          Complex("79+4i".encode("UTF-16"))
+        }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
       end
 
       it "raises ArgumentError for unrecognised Strings" do
@@ -115,11 +113,9 @@ describe "Kernel.Complex()" do
 
     context "invalid argument and exception: false passed" do
       it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
-        NATFIXME 'Complex() should raise Encoding::CompatibilityError for UTF-16 encoded string with exception: false', exception: SpecFailedException do
-          -> {
-            Complex("79+4i".encode("UTF-16"), exception: false)
-          }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
-        end
+        -> {
+          Complex("79+4i".encode("UTF-16"), exception: false)
+        }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
       end
 
       it "returns nil for unrecognised Strings" do
@@ -245,9 +241,7 @@ describe "Kernel.Complex()" do
 
     describe "and [non-Numeric, Numeric] argument" do
       it "throws a TypeError" do
-        NATFIXME '[non-Numeric, Numeric] argument', exception: SpecFailedException do
-          -> { Complex(:sym, 0, exception: false) }.should raise_error(TypeError, "not a real")
-        end
+        -> { Complex(:sym, 0, exception: false) }.should raise_error(TypeError, "not a real")
       end
     end
 
