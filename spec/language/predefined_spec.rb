@@ -1342,9 +1342,7 @@ end
 
 describe "The predefined standard objects" do
   it "includes ARGF" do
-    NATFIXME 'Implement ARGF', exception: SpecFailedException do
-      Object.const_defined?(:ARGF).should == true
-    end
+    Object.const_defined?(:ARGF).should == true
   end
 
   it "includes ARGV" do
