@@ -85,6 +85,61 @@ argf_class = Class.new do
   end
   alias_method :each, :each_line
 
+  def getc
+    advance! unless @current_file
+    loop do
+      c = @current_file.getc
+      return c if c
+      return nil unless advance!
+    end
+  end
+
+  def readchar
+    c = getc
+    raise EOFError, 'end of file reached' unless c
+    c
+  end
+
+  def getbyte
+    advance! unless @current_file
+    loop do
+      b = @current_file.getbyte
+      return b if b
+      return nil unless advance!
+    end
+  end
+
+  def readbyte
+    b = getbyte
+    raise EOFError, 'end of file reached' unless b
+    b
+  end
+
+  def each_char
+    return to_enum(:each_char) unless block_given?
+    while (c = getc)
+      yield c
+    end
+    self
+  end
+  alias_method :chars, :each_char
+
+  def each_byte
+    return to_enum(:each_byte) unless block_given?
+    while (b = getbyte)
+      yield b
+    end
+    self
+  end
+  alias_method :bytes, :each_byte
+
+  def each_codepoint
+    return to_enum(:each_codepoint) unless block_given?
+    each_char { |c| yield c.ord }
+    self
+  end
+  alias_method :codepoints, :each_codepoint
+
   private
 
   def advance!
