@@ -789,8 +789,6 @@ module Marshal
           return read_object_link
         when 'i'
           read_integer
-        when 'l'
-          read_big_integer
         when ':'
           return read_symbol(ivars_consumed)
         when ';'
@@ -807,6 +805,8 @@ module Marshal
           @object_lookup << nil # placeholder
           inner =
             case char
+            when 'l'
+              read_big_integer
             when '"'
               read_string
             when '['

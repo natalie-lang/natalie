@@ -1096,11 +1096,9 @@ describe :marshal_load, shared: true do
         end
 
         it "dumps an array containing multiple references to the Bignum as an array of Fixnum" do
-          NATFIXME 'Support references', exception: ArgumentError, message: 'dump format error' do
-            arr = Marshal.send(@method, "\004\b[\al+\a\223BwU@\006")
-            arr.should == [1433879187, 1433879187]
-            arr.each { |v| v.class.should == Integer }
-          end
+          arr = Marshal.send(@method, "\004\b[\al+\a\223BwU@\006")
+          arr.should == [1433879187, 1433879187]
+          arr.each { |v| v.class.should == Integer }
         end
       end
     end
