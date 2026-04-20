@@ -42,6 +42,27 @@ argf_class = Class.new do
   end
   alias_method :to_i, :fileno
 
+  def pos
+    raise ArgumentError, 'no stream' if @done
+    file.pos
+  end
+  alias_method :tell, :pos
+
+  def pos=(value)
+    file.pos = value
+  end
+
+  def seek(*args)
+    file.seek(*args)
+  end
+
+  def rewind
+    raise ArgumentError, 'no stream to rewind' if @done
+    file.rewind
+    @lineno = 0
+    self
+  end
+
   def closed?
     return false unless @current_file
     @current_file.closed?
