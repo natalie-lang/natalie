@@ -115,6 +115,31 @@ argf_class = Class.new do
     b
   end
 
+  def read(length = nil, outbuf = nil)
+    outbuf = outbuf ? outbuf.clear : +''
+    advance! unless @current_file
+    if length.nil?
+      loop do
+        chunk = @current_file.read
+        outbuf << chunk if chunk
+        break unless advance!
+      end
+      outbuf
+    else
+      remaining = length
+      while remaining > 0
+        chunk = @current_file.read(remaining)
+        if chunk.nil? || chunk.empty?
+          break unless advance!
+        else
+          outbuf << chunk
+          remaining -= chunk.bytesize
+        end
+      end
+      length.zero? || !outbuf.empty? ? outbuf : nil
+    end
+  end
+
   def each_char
     return to_enum(:each_char) unless block_given?
     while (c = getc)
