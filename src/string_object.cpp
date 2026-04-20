@@ -4198,14 +4198,7 @@ Value StringObject::reverse_in_place(Env *env) {
 bool StringObject::is_ascii_only() const {
     if (!m_encoding->is_ascii_compatible())
         return false;
-
-    for (size_t i = 0; i < length(); i++) {
-        unsigned char c = c_str()[i];
-        if (c > 127) {
-            return false;
-        }
-    }
-    return true;
+    return m_string.is_ascii_only();
 }
 
 EncodingObject *StringObject::negotiate_compatible_encoding(const StringObject *other_string) const {

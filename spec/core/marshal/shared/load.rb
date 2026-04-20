@@ -25,57 +25,45 @@ describe :marshal_load, shared: true do
 
   describe "when called with freeze: true" do
     it "returns frozen strings" do
-      NATFIXME 'returns frozen strings', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        string = Marshal.send(@method, Marshal.dump("foo"), freeze: true)
-        string.should == "foo"
-        string.should.frozen?
+      string = Marshal.send(@method, Marshal.dump("foo"), freeze: true)
+      string.should == "foo"
+      string.should.frozen?
 
-        utf8_string = "foo".encode(Encoding::UTF_8)
-        string = Marshal.send(@method, Marshal.dump(utf8_string), freeze: true)
-        string.should == utf8_string
-        string.should.frozen?
-      end
+      utf8_string = "foo".encode(Encoding::UTF_8)
+      string = Marshal.send(@method, Marshal.dump(utf8_string), freeze: true)
+      string.should == utf8_string
+      string.should.frozen?
     end
 
     it "returns frozen arrays" do
-      NATFIXME 'returns frozen arrays', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        array = Marshal.send(@method, Marshal.dump([1, 2, 3]), freeze: true)
-        array.should == [1, 2, 3]
-        array.should.frozen?
-      end
+      array = Marshal.send(@method, Marshal.dump([1, 2, 3]), freeze: true)
+      array.should == [1, 2, 3]
+      array.should.frozen?
     end
 
     it "returns frozen hashes" do
-      NATFIXME 'returns frozen hashes', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        hash = Marshal.send(@method, Marshal.dump({foo: 42}), freeze: true)
-        hash.should == {foo: 42}
-        hash.should.frozen?
-      end
+      hash = Marshal.send(@method, Marshal.dump({foo: 42}), freeze: true)
+      hash.should == {foo: 42}
+      hash.should.frozen?
     end
 
     it "returns frozen regexps" do
-      NATFIXME 'returns frozen regexps', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        regexp = Marshal.send(@method, Marshal.dump(/foo/), freeze: true)
-        regexp.should == /foo/
-        regexp.should.frozen?
-      end
+      regexp = Marshal.send(@method, Marshal.dump(/foo/), freeze: true)
+      regexp.should == /foo/
+      regexp.should.frozen?
     end
 
     it "returns frozen structs" do
-      NATFIXME 'returns frozen structs', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        struct = Marshal.send(@method, Marshal.dump(MarshalSpec::StructToDump.new(1, 2)), freeze: true)
-        struct.should == MarshalSpec::StructToDump.new(1, 2)
-        struct.should.frozen?
-      end
+      struct = Marshal.send(@method, Marshal.dump(MarshalSpec::StructToDump.new(1, 2)), freeze: true)
+      struct.should == MarshalSpec::StructToDump.new(1, 2)
+      struct.should.frozen?
     end
 
     it "returns frozen objects" do
       source_object = Object.new
 
-      NATFIXME 'returns frozen objects', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
+      object.should.frozen?
     end
 
     describe "deep freezing" do
@@ -84,23 +72,19 @@ describe :marshal_load, shared: true do
         value = Object.new
         source_object = {key => value}
 
-        NATFIXME 'returns hashes with frozen keys and values', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-          hash = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
-          hash.size.should == 1
-          hash.keys[0].should.frozen?
-          hash.values[0].should.frozen?
-        end
+        hash = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
+        hash.size.should == 1
+        hash.keys[0].should.frozen?
+        hash.values[0].should.frozen?
       end
 
       it "returns arrays with frozen elements" do
         object = Object.new
         source_object = [object]
 
-        NATFIXME 'returns arrays with frozen elements', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-          array = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
-          array.size.should == 1
-          array[0].should.frozen?
-        end
+        array = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
+        array.size.should == 1
+        array[0].should.frozen?
       end
 
       it "returns structs with frozen members" do
@@ -108,11 +92,9 @@ describe :marshal_load, shared: true do
         object2 = Object.new
         source_object = MarshalSpec::StructToDump.new(object1, object2)
 
-        NATFIXME 'returns structs with frozen members', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-          struct = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
-          struct.a.should.frozen?
-          struct.b.should.frozen?
-        end
+        struct = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
+        struct.a.should.frozen?
+        struct.b.should.frozen?
       end
 
       it "returns objects with frozen instance variables" do
@@ -120,16 +102,14 @@ describe :marshal_load, shared: true do
         instance_variable = Object.new
         source_object.instance_variable_set(:@a, instance_variable)
 
-        NATFIXME 'returns objects with frozen instance variables', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-          object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
-          object.instance_variable_get(:@a).should != nil
-          object.instance_variable_get(:@a).should.frozen?
-        end
+        object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
+        object.instance_variable_get(:@a).should != nil
+        object.instance_variable_get(:@a).should.frozen?
       end
 
       it "deduplicates frozen strings" do
         source_object = ["foo" + "bar", "foobar"]
-        NATFIXME 'deduplicates frozen strings', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
+        NATFIXME 'deduplicates frozen strings', exception: SpecFailedException do
           object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
 
           object[0].should equal(object[1])
@@ -138,83 +118,63 @@ describe :marshal_load, shared: true do
     end
 
     it "does not freeze modules" do
-      NATFIXME 'does not freeze modules', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.send(@method, Marshal.dump(Kernel), freeze: true)
-        object.should_not.frozen?
-        Kernel.should_not.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(Kernel), freeze: true)
+      object.should_not.frozen?
+      Kernel.should_not.frozen?
     end
 
     it "does not freeze classes" do
-      NATFIXME 'does not freeze classes', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.send(@method, Marshal.dump(Object), freeze: true)
-        object.should_not.frozen?
-        Object.should_not.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(Object), freeze: true)
+      object.should_not.frozen?
+      Object.should_not.frozen?
     end
 
     it "does freeze extended objects" do
-      NATFIXME 'does freeze extended objects', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x00", freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x00", freeze: true)
+      object.should.frozen?
     end
 
     it "does freeze extended objects with instance variables" do
-      NATFIXME 'does freeze extended objects with instance variables', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x06:\n@ivarT", freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x06:\n@ivarT", freeze: true)
+      object.should.frozen?
     end
 
     it "returns frozen object having #_dump method" do
-      NATFIXME 'returns frozen object having #_dump method', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.send(@method, Marshal.dump(UserDefined.new), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(UserDefined.new), freeze: true)
+      object.should.frozen?
     end
 
     it "returns frozen object responding to #marshal_dump and #marshal_load" do
-      NATFIXME 'returns frozen object responding to #marshal_dump and #marshal_load', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.send(@method, Marshal.dump(UserMarshal.new), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(UserMarshal.new), freeze: true)
+      object.should.frozen?
     end
 
     it "returns frozen object extended by a module" do
       object = Object.new
       object.extend(MarshalSpec::ModuleToExtendBy)
 
-      NATFIXME 'returns frozen object extended by a module', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1' do
-        object = Marshal.send(@method, Marshal.dump(object), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(object), freeze: true)
+      object.should.frozen?
     end
 
     it "does not call freeze method" do
       object = MarshalSpec::ObjectWithFreezeRaisingException.new
-      NATFIXME 'does not call freeze method', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        object = Marshal.send(@method, Marshal.dump(object), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(object), freeze: true)
+      object.should.frozen?
     end
 
     it "returns frozen object even if object does not respond to freeze method" do
       object = MarshalSpec::ObjectWithoutFreeze.new
-      NATFIXME 'returns frozen object even if object does not respond to freeze method', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        object = Marshal.send(@method, Marshal.dump(object), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(object), freeze: true)
+      object.should.frozen?
     end
 
     it "returns a frozen object when is an instance of String/Array/Regexp/Hash subclass and has instance variables" do
       source_object = UserString.new
       source_object.instance_variable_set(:@foo, "bar")
 
-      NATFIXME 'returns a frozen object when is an instance of String/Array/Regexp/Hash subclass and has instance variables', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
-        object.should.frozen?
-      end
+      object = Marshal.send(@method, Marshal.dump(source_object), freeze: true)
+      object.should.frozen?
     end
 
     describe "when called with a proc" do
@@ -233,7 +193,7 @@ describe :marshal_load, shared: true do
         obj.instance_variable_set(:@zoo, 'ant')
         proc = Proc.new { |o| arr << o; o}
 
-        NATFIXME 'call the proc with frozen objects', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1)' do
+        NATFIXME 'call the proc with frozen objects', exception: SpecFailedException do
           Marshal.send(
             @method,
             "\x04\bI[\vI\"\ahi\a:\x06EF:\t@fooi\ni\x0F@\x06@\x06IS:\x14Struct::Brittle\x06:\x06af\x060\x06:\n@clueI\"\tnone\x06;\x00FI[\b;\b:\x06b:\x06c\x06:\t@twoi\a\x06:\t@zooI\"\bant\x06;\x00F",
@@ -255,11 +215,9 @@ describe :marshal_load, shared: true do
       end
 
       it "does not freeze the object returned by the proc" do
-        NATFIXME 'does not freeze the object returned by the proc', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1)' do
-          string = Marshal.send(@method, Marshal.dump("foo"), proc { |o| o.upcase }, freeze: true)
-          string.should == "FOO"
-          string.should_not.frozen?
-        end
+        string = Marshal.send(@method, Marshal.dump("foo"), proc { |o| o.upcase }, freeze: true)
+        string.should == "FOO"
+        string.should_not.frozen?
       end
     end
   end
@@ -267,43 +225,35 @@ describe :marshal_load, shared: true do
   describe "when called with a proc" do
     it "call the proc with fully initialized strings" do
       utf8_string = "foo".encode(Encoding::UTF_8)
-      NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        Marshal.send(@method, Marshal.dump(utf8_string), proc { |arg|
-          if arg.is_a?(String)
-            arg.should == utf8_string
-            arg.encoding.should == Encoding::UTF_8
-          end
-          arg
-        })
-      end
+      Marshal.send(@method, Marshal.dump(utf8_string), proc { |arg|
+        if arg.is_a?(String)
+          arg.should == utf8_string
+          arg.encoding.should == Encoding::UTF_8
+        end
+        arg
+      })
     end
 
     it "no longer mutate the object after it was passed to the proc" do
-      NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        string = Marshal.load(Marshal.dump("foo"), :freeze.to_proc)
-        string.should.frozen?
-      end
+      string = Marshal.load(Marshal.dump("foo"), :freeze.to_proc)
+      string.should.frozen?
     end
 
     it "call the proc with extended objects" do
-      NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        objs = []
-        obj = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x00", Proc.new { |o| objs << o; o })
-        objs.should == [obj]
-      end
+      objs = []
+      obj = Marshal.load("\x04\be:\x0FEnumerableo:\vObject\x00", Proc.new { |o| objs << o; o })
+      objs.should == [obj]
     end
 
     it "returns the value of the proc" do
-      NATFIXME 'returns the value of the proc', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        Marshal.send(@method, Marshal.dump([1,2]), proc { [3,4] }).should ==  [3,4]
-      end
+      Marshal.send(@method, Marshal.dump([1,2]), proc { [3,4] }).should ==  [3,4]
     end
 
     it "calls the proc for recursively visited data" do
       a = [1]
       a << a
       ret = []
-      NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      NATFIXME 'recursive arrays via Marshal', exception: SpecFailedException do
         Marshal.send(@method, Marshal.dump(a), proc { |arg| ret << arg.inspect; arg })
         ret[0].should == 1.inspect
         ret[1].should == a.inspect
@@ -326,7 +276,7 @@ describe :marshal_load, shared: true do
       obj.instance_variable_set(:@zoo, 'ant')
       proc = Proc.new { |o| arr << o.dup; o}
 
-      NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      NATFIXME 'loads an Array with proc', exception: SpecFailedException do
         Marshal.send(@method, "\x04\bI[\vI\"\ahi\a:\x06EF:\t@fooi\ni\x0F@\x06@\x06IS:\x14Struct::Brittle\x06:\x06af\x060\x06:\n@clueI\"\tnone\x06;\x00FI[\b;\b:\x06b:\x06c\x06:\t@twoi\a\x06:\t@zooI\"\bant\x06;\x00F", proc)
 
         arr.should == [
@@ -342,7 +292,7 @@ describe :marshal_load, shared: true do
     it "behaves as if no proc argument was passed" do
       a = [1]
       a << a
-      NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      NATFIXME 'recursive arrays via Marshal', exception: SpecFailedException do
         b = Marshal.send(@method, Marshal.dump(a), nil)
         b.should == a
       end
@@ -370,10 +320,8 @@ describe :marshal_load, shared: true do
 
     it "loads the String in multibyte encoding" do
       source_object = UserDefinedString.new("a".encode("utf-32le"))
-      NATFIXME 'loads the String in multibyte encoding', exception: SpecFailedException do
-        object = Marshal.send(@method, Marshal.dump(source_object))
-        object.string.should == "a".encode("utf-32le")
-      end
+      object = Marshal.send(@method, Marshal.dump(source_object))
+      object.string.should == "a".encode("utf-32le")
     end
 
     describe "that returns an immediate value" do
@@ -392,16 +340,14 @@ describe :marshal_load, shared: true do
         # this string represents: {a: <#UserDefinedImmediate A>, b: <#UserDefinedImmediate A>, c: <#String "string">, d: <#String "string">}
         hash_dump = "\x04\b{\t:\x06aIu:\x19UserDefinedImmediate\x00\x06:\x06ET:\x06b@\x06:\x06cI\"\vstring\x06;\aT:\x06d@\a"
 
-        NATFIXME 'loads any structure with multiple references to the same object, followed by multiple instances of another object', exception: NoMethodError, message: "undefined method 'force_encoding' for nil" do
-          marshaled_obj = Marshal.send(@method, hash_dump)
-          marshaled_obj.should == {a: nil, b: nil, c: str, d: str}
+        marshaled_obj = Marshal.send(@method, hash_dump)
+        marshaled_obj.should == {a: nil, b: nil, c: str, d: str}
 
-          # this string represents: [<#UserDefinedImmediate A>, <#UserDefinedImmediate A>, <#String "string">, <#String "string">]
-          array_dump = "\x04\b[\tIu:\x19UserDefinedImmediate\x00\x06:\x06ET@\x06I\"\vstring\x06;\x06T@\a"
+        # this string represents: [<#UserDefinedImmediate A>, <#UserDefinedImmediate A>, <#String "string">, <#String "string">]
+        array_dump = "\x04\b[\tIu:\x19UserDefinedImmediate\x00\x06:\x06ET@\x06I\"\vstring\x06;\x06T@\a"
 
-          marshaled_obj = Marshal.send(@method, array_dump)
-          marshaled_obj.should == [nil, nil, str, str]
-        end
+        marshaled_obj = Marshal.send(@method, array_dump)
+        marshaled_obj.should == [nil, nil, str, str]
       end
 
       it "loads an array containing references to multiple instances of the object, followed by multiple instances of another object" do
@@ -410,57 +356,49 @@ describe :marshal_load, shared: true do
         # this string represents: [<#UserDefinedImmediate A>, <#UserDefinedImmediate B>, <#String "string">, <#String "string">]
         array_dump = "\x04\b[\tIu:\x19UserDefinedImmediate\x00\x06:\x06ETIu;\x00\x00\x06;\x06TI\"\vstring\x06;\x06T@\b"
 
-        NATFIXME 'loads an array containing references to multiple instances of the object, followed by multiple instances of another object', exception: NoMethodError, message: "undefined method 'force_encoding' for nil" do
-          marshaled_obj = Marshal.send(@method, array_dump)
-          marshaled_obj.should == [nil, nil, str, str]
-        end
+        marshaled_obj = Marshal.send(@method, array_dump)
+        marshaled_obj.should == [nil, nil, str, str]
       end
     end
   end
 
   it "loads an array containing objects having _dump method, and with proc" do
-    NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-      arr = []
-      myproc = Proc.new { |o| arr << o.dup; o }
-      o1 = UserDefined.new;
-      o2 = UserDefinedWithIvar.new
-      obj = [o1, o2, o1, o2]
+    arr = []
+    myproc = Proc.new { |o| arr << o.dup; o }
+    o1 = UserDefined.new;
+    o2 = UserDefinedWithIvar.new
+    obj = [o1, o2, o1, o2]
 
-      Marshal.send(@method, "\x04\b[\tu:\x10UserDefined\x18\x04\b[\aI\"\nstuff\x06:\x06EF@\x06u:\x18UserDefinedWithIvar>\x04\b[\bI\"\nstuff\a:\x06EF:\t@foo:\x18UserDefinedWithIvarI\"\tmore\x06;\x00F@\a@\x06@\a", myproc)
+    Marshal.send(@method, "\x04\b[\tu:\x10UserDefined\x18\x04\b[\aI\"\nstuff\x06:\x06EF@\x06u:\x18UserDefinedWithIvar>\x04\b[\bI\"\nstuff\a:\x06EF:\t@foo:\x18UserDefinedWithIvarI\"\tmore\x06;\x00F@\a@\x06@\a", myproc)
 
-      arr[0].should == o1
-      arr[1].should == o2
-      arr[2].should == obj
-      arr.size.should == 3
-    end
+    arr[0].should == o1
+    arr[1].should == o2
+    arr[2].should == obj
+    arr.size.should == 3
   end
 
   it "loads an array containing objects having marshal_dump method, and with proc" do
-    NATFIXME 'Support proc argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-      arr = []
-      proc = Proc.new { |o| arr << o.dup; o }
-      o1 = UserMarshal.new
-      o2 = UserMarshalWithIvar.new
+    arr = []
+    proc = Proc.new { |o| arr << o.dup; o }
+    o1 = UserMarshal.new
+    o2 = UserMarshalWithIvar.new
 
-      Marshal.send(@method, "\004\b[\tU:\020UserMarshal\"\nstuffU:\030UserMarshalWithIvar[\006\"\fmy data@\006@\b", proc)
+    Marshal.send(@method, "\004\b[\tU:\020UserMarshal\"\nstuffU:\030UserMarshalWithIvar[\006\"\fmy data@\006@\b", proc)
 
-      arr[0].should == 'stuff'
-      arr[1].should == o1
-      arr[2].should == 'my data'
-      arr[3].should == ['my data']
-      arr[4].should == o2
-      arr[5].should == [o1, o2, o1, o2]
+    arr[0].should == 'stuff'
+    arr[1].should == o1
+    arr[2].should == 'my data'
+    arr[3].should == ['my data']
+    arr[4].should == o2
+    arr[5].should == [o1, o2, o1, o2]
 
-      arr.size.should == 6
-    end
+    arr.size.should == 6
   end
 
   it "assigns classes to nested subclasses of Array correctly" do
     arr = ArraySub.new(ArraySub.new)
     arr_dump = Marshal.dump(arr)
-    NATFIXME 'assigns classes to nested subclasses of Array correctly', exception: SpecFailedException do
-      Marshal.send(@method, arr_dump).class.should == ArraySub
-    end
+    Marshal.send(@method, arr_dump).class.should == ArraySub
   end
 
   it "loads subclasses of Array with overridden << and push correctly" do
@@ -488,9 +426,7 @@ describe :marshal_load, shared: true do
     temp_file = tmp("marshal.rubyspec.tmp.#{Process.pid}")
     file = File.new(temp_file, "w+")
     begin
-      NATFIXME 'raises EOFError on loading an empty file', exception: SpecFailedException, message: 'marshal data too short' do
-        -> { Marshal.send(@method, file) }.should raise_error(EOFError)
-      end
+      -> { Marshal.send(@method, file) }.should raise_error(EOFError)
     ensure
       file.close
       rm_r temp_file
@@ -527,7 +463,7 @@ describe :marshal_load, shared: true do
              :go, c, nil, Struct::Pyramid.new, f, :go, :no, s, b, r,
              :so, 'huh', o1, true, b, b, 99, r, b, s, :so, f, c, :no, o1, d]
 
-      NATFIXME 'loads an array containing the same objects', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'loads an array containing the same objects', exception: SpecFailedException do
         Marshal.send(@method, "\004\b[*:\aso\"\nhelloii;\000;\000[\t\"\ahi:\ano\"\aoh:\ago;\000U:\020UserMarshal\"\nstuff;\000;\006@\n;\ac\vString0S:\024Struct::Pyramid\000f\0061;\a;\006@\t@\b/\000\000;\000\"\bhuhU:\030UserMarshalWithIvar[\006\"\fmy dataT@\b@\bih@\017@\b@\t;\000@\016@\f;\006@\021@\a").should ==
           obj
       end
@@ -547,14 +483,12 @@ describe :marshal_load, shared: true do
     it "loads an extended Array object containing a user-marshaled object" do
       obj = [UserMarshal.new, UserMarshal.new].extend(Meths)
       dump = "\x04\be:\nMeths[\ao:\x10UserMarshal\x06:\n@dataI\"\nstuff\x06:\x06ETo;\x06\x06;\aI\"\nstuff\x06;\bT"
-      NATFIXME 'loads an extended Array object containing a user-marshaled object', exception: ArgumentError, message: 'dump format error' do
-        new_obj = Marshal.send(@method, dump)
+      new_obj = Marshal.send(@method, dump)
 
-        new_obj.should == obj
-        obj_ancestors = class << obj; ancestors[1..-1]; end
-        new_obj_ancestors = class << new_obj; ancestors[1..-1]; end
-        obj_ancestors.should == new_obj_ancestors
-      end
+      new_obj.should == obj
+      obj_ancestors = class << obj; ancestors[1..-1]; end
+      new_obj_ancestors = class << new_obj; ancestors[1..-1]; end
+      obj_ancestors.should == new_obj_ancestors
     end
   end
 
@@ -562,7 +496,7 @@ describe :marshal_load, shared: true do
     it "loads an extended_user_hash with a parameter to initialize" do
       obj = UserHashInitParams.new(:abc).extend(Meths)
 
-      NATFIXME 'loads an extended_user_hash with a parameter to initialize', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'loads an extended_user_hash with a parameter to initialize', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
         new_obj = Marshal.send(@method, "\004\bIe:\nMethsC:\027UserHashInitParams{\000\006:\a@a:\babc")
 
         new_obj.should == obj
@@ -575,14 +509,12 @@ describe :marshal_load, shared: true do
     it "loads an extended hash object containing a user-marshaled object" do
       obj = {a: UserMarshal.new}.extend(Meths)
 
-      NATFIXME 'loads an extended hash object containing a user-marshaled object', exception: ArgumentError, message: 'dump format error' do
-        new_obj = Marshal.send(@method, "\004\be:\nMeths{\006:\006aU:\020UserMarshal\"\nstuff")
+      new_obj = Marshal.send(@method, "\004\be:\nMeths{\006:\006aU:\020UserMarshal\"\nstuff")
 
-        new_obj.should == obj
-        new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-        new_obj_metaclass_ancestors[@num_self_class].should == Meths
-        new_obj_metaclass_ancestors[@num_self_class+1].should == Hash
-      end
+      new_obj.should == obj
+      new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+      new_obj_metaclass_ancestors[@num_self_class].should == Meths
+      new_obj_metaclass_ancestors[@num_self_class+1].should == Hash
     end
 
     it "preserves hash ivars when hash contains a string having ivar" do
@@ -600,26 +532,22 @@ describe :marshal_load, shared: true do
       h = { a: 1 }
       h.compare_by_identity
       unmarshalled = Marshal.send(@method, Marshal.dump(h))
-      NATFIXME 'preserves compare_by_identity behaviour', exception: SpecFailedException do
-        unmarshalled.should.compare_by_identity?
+      unmarshalled.should.compare_by_identity?
 
-        h = { a: 1 }
-        unmarshalled = Marshal.send(@method, Marshal.dump(h))
-        unmarshalled.should_not.compare_by_identity?
-      end
+      h = { a: 1 }
+      unmarshalled = Marshal.send(@method, Marshal.dump(h))
+      unmarshalled.should_not.compare_by_identity?
     end
 
     it "preserves compare_by_identity behaviour for a Hash subclass" do
       h = UserHash.new({ a: 1 })
       h.compare_by_identity
       unmarshalled = Marshal.send(@method, Marshal.dump(h))
-      NATFIXME 'preserves compare_by_identity behaviour for a Hash subclass', exception: SpecFailedException do
-        unmarshalled.should.compare_by_identity?
+      unmarshalled.should.compare_by_identity?
 
-        h = UserHash.new({ a: 1 })
-        unmarshalled = Marshal.send(@method, Marshal.dump(h))
-        unmarshalled.should_not.compare_by_identity?
-      end
+      h = UserHash.new({ a: 1 })
+      unmarshalled = Marshal.send(@method, Marshal.dump(h))
+      unmarshalled.should_not.compare_by_identity?
     end
 
     it "allocates an instance of the proper class when Hash subclass with compare_by_identity behaviour" do
@@ -646,7 +574,7 @@ describe :marshal_load, shared: true do
     it "loads an encoded Symbol" do
       s = "\u2192"
 
-      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: "undefined method 'force_encoding' for an instance of Symbol" do
+      NATFIXME 'Support dummy encodings for symbols', exception: ArgumentError do
         sym = Marshal.send(@method, "\x04\bI:\b\xE2\x86\x92\x06:\x06ET")
         sym.should == s.encode("utf-8").to_sym
         sym.encoding.should == Encoding::UTF_8
@@ -685,19 +613,17 @@ describe :marshal_load, shared: true do
       symbol1 = "I:\t\xE2\x82\xACa\x06:\x06ET"
       symbol2 = "I:\t\xE2\x82\xACb\x06;\x06T"
       dump = "\x04\b[\a#{symbol1}#{symbol2}"
-      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: "undefined method 'force_encoding' for an instance of Symbol" do
-        value = Marshal.send(@method, dump)
-        value.map(&:encoding).should == [Encoding::UTF_8, Encoding::UTF_8]
-        expected = [
-          "€a".dup.force_encoding(Encoding::UTF_8).to_sym,
-          "€b".dup.force_encoding(Encoding::UTF_8).to_sym
-        ]
-        value.should == expected
+      value = Marshal.send(@method, dump)
+      value.map(&:encoding).should == [Encoding::UTF_8, Encoding::UTF_8]
+      expected = [
+        "€a".dup.force_encoding(Encoding::UTF_8).to_sym,
+        "€b".dup.force_encoding(Encoding::UTF_8).to_sym
+      ]
+      value.should == expected
 
-        value = Marshal.send(@method, "\x04\b[\b#{symbol1}#{symbol2};\x00")
-        value.map(&:encoding).should == [Encoding::UTF_8, Encoding::UTF_8, Encoding::UTF_8]
-        value.should == [*expected, expected[0]]
-      end
+      value = Marshal.send(@method, "\x04\b[\b#{symbol1}#{symbol2};\x00")
+      value.map(&:encoding).should == [Encoding::UTF_8, Encoding::UTF_8, Encoding::UTF_8]
+      value.should == [*expected, expected[0]]
     end
 
     it "raises ArgumentError when end of byte sequence reached before symbol characters end" do
@@ -725,9 +651,7 @@ describe :marshal_load, shared: true do
     it "sets binmode if it is loading through StringIO stream" do
       io = StringIO.new("\004\b:\vsymbol")
       def io.binmode; raise "binmode"; end
-      NATFIXME 'sets binmode if it is loading through StringIO stream', exception: SpecFailedException do
-        -> { Marshal.load(io) }.should raise_error(RuntimeError, "binmode")
-      end
+      -> { Marshal.load(io) }.should raise_error(RuntimeError, "binmode")
     end
 
     it "loads a string with an ivar" do
@@ -736,10 +660,8 @@ describe :marshal_load, shared: true do
     end
 
     it "loads a String subclass with custom constructor" do
-      NATFIXME 'loads a String subclass with custom constructor', exception: ArgumentError, message: 'dump format error' do
-        str = Marshal.send(@method, "\x04\bC: UserCustomConstructorString\"\x00")
-        str.should be_an_instance_of(UserCustomConstructorString)
-      end
+      str = Marshal.send(@method, "\x04\bC: UserCustomConstructorString\"\x00")
+      str.should be_an_instance_of(UserCustomConstructorString)
     end
 
     it "loads a US-ASCII String" do
@@ -788,7 +710,7 @@ describe :marshal_load, shared: true do
       s = 'hi'
       obj = Struct.new("Extended", :a, :b).new.extend(Meths)
       dump = "\004\be:\nMethsS:\025Struct::Extended\a:\006a0:\006b0"
-      NATFIXME 'loads a extended_struct having fields with same objects', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'loads a extended_struct having fields with same objects', exception: SpecFailedException do
         Marshal.send(@method, dump).should == obj
 
         obj.a = [:a, s]
@@ -911,13 +833,11 @@ describe :marshal_load, shared: true do
     it "loads an extended Object" do
       obj = Object.new.extend(Meths)
 
-      NATFIXME 'Support extended Object', exception: ArgumentError, message: 'dump format error' do
-        new_obj = Marshal.send(@method, "\004\be:\nMethso:\vObject\000")
+      new_obj = Marshal.send(@method, "\004\be:\nMethso:\vObject\000")
 
-        new_obj.class.should == obj.class
-        new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-        new_obj_metaclass_ancestors[@num_self_class, 2].should == [Meths, Object]
-      end
+      new_obj.class.should == obj.class
+      new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+      new_obj_metaclass_ancestors[@num_self_class, 2].should == [Meths, Object]
     end
 
     it "loads an object having ivar" do
@@ -934,12 +854,10 @@ describe :marshal_load, shared: true do
 
     it "loads an Object with a non-US-ASCII instance variable" do
       ivar = "@é".dup.force_encoding(Encoding::UTF_8).to_sym
-      NATFIXME 'Support non-ASCII instance variables', exception: NoMethodError, message: "undefined method 'force_encoding' for an instance of Symbol" do
-        obj = Marshal.send(@method, "\x04\bo:\vObject\x06I:\b@\xC3\xA9\x06:\x06ETi\x06")
-        obj.instance_variables.should == [ivar]
-        obj.instance_variables[0].encoding.should == Encoding::UTF_8
-        obj.instance_variable_get(ivar).should == 1
-      end
+      obj = Marshal.send(@method, "\x04\bo:\vObject\x06I:\b@\xC3\xA9\x06:\x06ETi\x06")
+      obj.instance_variables.should == [ivar]
+      obj.instance_variables[0].encoding.should == Encoding::UTF_8
+      obj.instance_variable_get(ivar).should == 1
     end
 
     it "raises ArgumentError if the object from an 'o' stream is not dumpable as 'o' type user class" do
@@ -996,12 +914,10 @@ describe :marshal_load, shared: true do
         data = Marshal.dump(MarshalSpec::SwappedClass.new)
 
         MarshalSpec.set_swapped_class(Class.new(Array))
-        NATFIXME 'raises ArgumentError if the resulting class does not extend the same type', exception: SpecFailedException do
-          -> { Marshal.send(@method, data) }.should raise_error(ArgumentError)
+        -> { Marshal.send(@method, data) }.should raise_error(ArgumentError)
 
-          MarshalSpec.set_swapped_class(Class.new)
-          -> { Marshal.send(@method, data) }.should raise_error(ArgumentError)
-        end
+        MarshalSpec.set_swapped_class(Class.new)
+        -> { Marshal.send(@method, data) }.should raise_error(ArgumentError)
       end
     end
   end
@@ -1009,29 +925,25 @@ describe :marshal_load, shared: true do
   describe "for a Regexp" do
     it "loads an extended Regexp" do
       obj = /[a-z]/.dup.extend(Meths, MethsMore)
-      NATFIXME 'Support regexp dump', exception: ArgumentError, message: 'dump format error' do
-        new_obj = Marshal.send(@method, "\004\be:\nMethse:\016MethsMore/\n[a-z]\000")
+      new_obj = Marshal.send(@method, "\004\be:\nMethse:\016MethsMore/\n[a-z]\000")
 
-        new_obj.should == obj
-        new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-        new_obj_metaclass_ancestors[@num_self_class, 3].should ==
-          [Meths, MethsMore, Regexp]
-      end
+      new_obj.should == obj
+      new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+      new_obj_metaclass_ancestors[@num_self_class, 3].should ==
+        [Meths, MethsMore, Regexp]
     end
 
     it "loads a Regexp subclass instance variables when it is extended with a module" do
       obj = UserRegexp.new('').extend(Meths)
       obj.instance_variable_set(:@noise, 'much')
 
-      NATFIXME 'Support regexp dump', exception: ArgumentError, message: 'dump format error' do
-        new_obj = Marshal.send(@method, "\004\bIe:\nMethsC:\017UserRegexp/\000\000\006:\v@noise\"\tmuch")
+      new_obj = Marshal.send(@method, "\004\bIe:\nMethsC:\017UserRegexp/\000\000\006:\v@noise\"\tmuch")
 
-        new_obj.should == obj
-        new_obj.instance_variable_get(:@noise).should == 'much'
-        new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-        new_obj_metaclass_ancestors[@num_self_class, 3].should ==
-          [Meths, UserRegexp, Regexp]
-      end
+      new_obj.should == obj
+      new_obj.instance_variable_get(:@noise).should == 'much'
+      new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+      new_obj_metaclass_ancestors[@num_self_class, 3].should ==
+        [Meths, UserRegexp, Regexp]
     end
 
     it "restore the regexp instance variables" do
@@ -1039,10 +951,8 @@ describe :marshal_load, shared: true do
       obj.instance_variable_set(:@regexp_ivar, [42])
 
       new_obj = Marshal.send(@method, "\x04\bI/\nhello\x00\a:\x06EF:\x11@regexp_ivar[\x06i/")
-      NATFIXME 'restore the regexp instance variables', exception: SpecFailedException do
-        new_obj.instance_variables.should == [:@regexp_ivar]
-        new_obj.instance_variable_get(:@regexp_ivar).should == [42]
-      end
+      new_obj.instance_variables.should == [:@regexp_ivar]
+      new_obj.instance_variable_get(:@regexp_ivar).should == [42]
     end
 
     it "preserves Regexp encoding" do
@@ -1178,11 +1088,9 @@ describe :marshal_load, shared: true do
         end
 
         it "dumps an array containing multiple references to the Bignum as an array of Fixnum" do
-          NATFIXME 'Support references', exception: ArgumentError, message: 'dump format error' do
-            arr = Marshal.send(@method, "\004\b[\al+\a\223BwU@\006")
-            arr.should == [1433879187, 1433879187]
-            arr.each { |v| v.class.should == Integer }
-          end
+          arr = Marshal.send(@method, "\004\b[\al+\a\223BwU@\006")
+          arr.should == [1433879187, 1433879187]
+          arr.each { |v| v.class.should == Integer }
         end
       end
     end
@@ -1318,9 +1226,7 @@ describe :marshal_load, shared: true do
     end
 
     it "loads an old module" do
-      NATFIXME 'loads an old module', exception: ArgumentError, message: 'dump format error' do
-        Marshal.send(@method, "\x04\bM\vKernel").should == Kernel
-      end
+      Marshal.send(@method, "\x04\bM\vKernel").should == Kernel
     end
 
     it "raises ArgumentError when end of byte sequence reached before module name end" do
@@ -1345,13 +1251,11 @@ describe :marshal_load, shared: true do
 
       data = "\x04\bd:\x10DumpableDirI\"\x06.\x06:\x06ET"
 
-      NATFIXME 'it loads a wrapped C pointer', exception: ArgumentError, message: 'dump format error' do
-        dir = Marshal.send(@method, data)
-        begin
-          dir.path.should == '.'
-        ensure
-          dir.close
-        end
+      dir = Marshal.send(@method, data)
+      begin
+        dir.path.should == '.'
+      ensure
+        dir.close
       end
     end
 
@@ -1365,9 +1269,7 @@ describe :marshal_load, shared: true do
 
       data = "\x04\bd:\x1AUnloadableDumpableDirI\"\x06.\x06:\x06ET"
 
-      NATFIXME 'it loads a wrapped C pointer', exception: SpecFailedException, message: 'dump format error' do
-        -> { Marshal.send(@method, data) }.should raise_error(TypeError)
-      end
+      -> { Marshal.send(@method, data) }.should raise_error(TypeError)
     end
 
     it "raises ArgumentError when the local class is a regular object" do

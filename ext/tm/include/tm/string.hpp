@@ -1532,6 +1532,23 @@ public:
     }
 
     /**
+     * Returns true if the String contains only 7-bit ASCII bytes (0-127).
+     *
+     * ```
+     * auto str1 = String { "hello" };
+     * auto str2 = String { "h\xC3\xA9llo" };
+     * assert(str1.is_ascii_only());
+     * assert_not(str2.is_ascii_only());
+     * ```
+     */
+    bool is_ascii_only() const {
+        for (size_t i = 0; i < m_length; ++i)
+            if (static_cast<unsigned char>(at(i)) > 127)
+                return false;
+        return true;
+    }
+
+    /**
      * Returns a new String that is the successor to this one. The rightmost
      * alphanumeric character is incremented; if it carries (z->a, Z->A, 9->0),
      * the carry skips left over non-alphanumerics to the next alphanumeric.

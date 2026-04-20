@@ -95,12 +95,10 @@ describe "Marshal.dump" do
         "€a".dup.force_encoding(Encoding::UTF_8).to_sym,
         "€b".dup.force_encoding(Encoding::UTF_8).to_sym
       ]
-      NATFIXME 'symbol links for ivar names', exception: SpecFailedException do
-        Marshal.dump(value).should == "\x04\b[\a#{symbol1}#{symbol2}"
+      Marshal.dump(value).should == "\x04\b[\a#{symbol1}#{symbol2}"
 
-        value = [*value, value[0]]
-        Marshal.dump(value).should == "\x04\b[\b#{symbol1}#{symbol2};\x00"
-      end
+      value = [*value, value[0]]
+      Marshal.dump(value).should == "\x04\b[\b#{symbol1}#{symbol2};\x00"
     end
 
     it "uses symbol links for objects repeatedly dumped" do
@@ -120,9 +118,7 @@ describe "Marshal.dump" do
     end
 
     it "raises TypeError if an Object is an instance of an anonymous class" do
-      NATFIXME 'raises TypeError if an Object is an instance of an anonymous class', exception: SpecFailedException do
-        -> { Marshal.dump(Class.new(UserMarshal).new) }.should raise_error(TypeError, /can't dump anonymous class/)
-      end
+      -> { Marshal.dump(Class.new(UserMarshal).new) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
 
     it "uses object links for objects repeatedly dumped" do
@@ -147,16 +143,12 @@ describe "Marshal.dump" do
 
     it "dumps the String in non US-ASCII and non UTF-8 encoding" do
       object = UserDefinedString.new("a".encode("windows-1251"))
-      NATFIXME 'dumps the String in non US-ASCII and non UTF-8 encoding', exception: SpecFailedException do
-        Marshal.dump(object).should == "\x04\bIu:\x16UserDefinedString\x06a\x06:\rencoding\"\x11Windows-1251"
-      end
+      Marshal.dump(object).should == "\x04\bIu:\x16UserDefinedString\x06a\x06:\rencoding\"\x11Windows-1251"
     end
 
     it "dumps the String in multibyte encoding" do
       object = UserDefinedString.new("a".encode("utf-32le"))
-      NATFIXME 'Encoding of output', exception: SpecFailedException, message: /should be == / do
-        Marshal.dump(object).should == "\x04\bIu:\x16UserDefinedString\ta\x00\x00\x00\x06:\rencoding\"\rUTF-32LE"
-      end
+      Marshal.dump(object).should == "\x04\bIu:\x16UserDefinedString\ta\x00\x00\x00\x06:\rencoding\"\rUTF-32LE"
     end
 
     it "ignores overridden name method" do
@@ -197,7 +189,7 @@ describe "Marshal.dump" do
       # But they are indexed in different order: Array (index=0), "bar" (index=1), a (index=2)
       # So the second occurenc of the object a is encoded as an index 2.
       reference = "@\a"
-      NATFIXME 'indexes instance variables of a String returned by #_dump at first and then indexes the object itself', exception: SpecFailedException do
+      NATFIXME 'nested class name missing outer module', exception: SpecFailedException do
         Marshal.dump([a, a]).should == "\x04\b[\aIu:\x17MarshalSpec::M1::A\v<dump>\x06:\t@foo\"\bbar#{reference}"
       end
     end
@@ -213,9 +205,7 @@ describe "Marshal.dump" do
 
       # expect a link to the object (@\a, that means Integer 2) is greater than a link
       # to the instance variable value (@\x06, that means Integer 1)
-      NATFIXME 'it adds instance variables of a dumped String before the object itself into the objects table', exception: SpecFailedException do
-        Marshal.dump([obj, obj, value]).should == "\x04\b[\bIu:*MarshalSpec::UserDefinedDumpWithIVars\vstring\x06:\t@foo\"\n<foo>@\a@\x06"
-      end
+      Marshal.dump([obj, obj, value]).should == "\x04\b[\bIu:*MarshalSpec::UserDefinedDumpWithIVars\vstring\x06:\t@foo\"\n<foo>@\a@\x06"
     end
 
     describe "Core library classes with #_dump returning a String with instance variables" do
@@ -244,9 +234,7 @@ describe "Marshal.dump" do
     end
 
     it "ignores overridden name method" do
-      NATFIXME 'ignores overridden name method', exception: SpecFailedException do
-        Marshal.dump(MarshalSpec::ClassWithOverriddenName).should == "\x04\bc)MarshalSpec::ClassWithOverriddenName"
-      end
+      Marshal.dump(MarshalSpec::ClassWithOverriddenName).should == "\x04\bc)MarshalSpec::ClassWithOverriddenName"
     end
 
     ruby_version_is "4.0" do
@@ -264,9 +252,7 @@ describe "Marshal.dump" do
     end
 
     it "raises TypeError with an anonymous Class" do
-      NATFIXME 'raises TypeError with an anonymous Class', exception: SpecFailedException do
-        -> { Marshal.dump(Class.new) }.should raise_error(TypeError, /can't dump anonymous class/)
-      end
+      -> { Marshal.dump(Class.new) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
 
     it "raises TypeError with a singleton Class" do
@@ -280,9 +266,7 @@ describe "Marshal.dump" do
     end
 
     it "ignores overridden name method" do
-      NATFIXME 'ignores overridden name method', exception: SpecFailedException do
-        Marshal.dump(MarshalSpec::ModuleWithOverriddenName).should == "\x04\bc*MarshalSpec::ModuleWithOverriddenName"
-      end
+      Marshal.dump(MarshalSpec::ModuleWithOverriddenName).should == "\x04\bc*MarshalSpec::ModuleWithOverriddenName"
     end
 
     ruby_version_is "4.0" do
@@ -432,28 +416,20 @@ describe "Marshal.dump" do
     end
 
     it "dumps a String extended with a Module" do
-      NATFIXME 'dumps a String extended with a Module', exception: SpecFailedException do
-        Marshal.dump("".dup.extend(Meths).force_encoding("binary")).should == "\004\be:\nMeths\"\000"
-      end
+      Marshal.dump("".dup.extend(Meths).force_encoding("binary")).should == "\004\be:\nMeths\"\000"
     end
 
     it "dumps a String subclass" do
-      NATFIXME 'dumps a String subclass', exception: SpecFailedException do
-        Marshal.dump(UserString.new.force_encoding("binary")).should == "\004\bC:\017UserString\"\000"
-      end
+      Marshal.dump(UserString.new.force_encoding("binary")).should == "\004\bC:\017UserString\"\000"
     end
 
     it "dumps a String subclass extended with a Module" do
-      NATFIXME 'dumps a String subclass extended with a Module', exception: SpecFailedException do
-        Marshal.dump(UserString.new.extend(Meths).force_encoding("binary")).should == "\004\be:\nMethsC:\017UserString\"\000"
-      end
+      Marshal.dump(UserString.new.extend(Meths).force_encoding("binary")).should == "\004\be:\nMethsC:\017UserString\"\000"
     end
 
     it "ignores overridden name method when dumps a String subclass" do
       obj = MarshalSpec::StringWithOverriddenName.new
-      NATFIXME 'ignores overridden name method when dumps a String subclass', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bC:*MarshalSpec::StringWithOverriddenName\"\x00"
-      end
+      Marshal.dump(obj).should == "\x04\bC:*MarshalSpec::StringWithOverriddenName\"\x00"
     end
 
     it "dumps a String with instance variables" do
@@ -514,22 +490,16 @@ describe "Marshal.dump" do
     end
 
     it "dumps an extended Regexp" do
-      NATFIXME 'dumps an extended Regexp', exception: SpecFailedException do
-        Marshal.dump(Regexp.new("").extend(Meths)).should == "\x04\bIe:\nMeths/\x00\x00\x06:\x06EF"
-      end
+      Marshal.dump(Regexp.new("").extend(Meths)).should == "\x04\bIe:\nMeths/\x00\x00\x06:\x06EF"
     end
 
     it "dumps a Regexp subclass" do
-      NATFIXME 'dumps a Regexp subclass', exception: SpecFailedException do
-        Marshal.dump(UserRegexp.new("")).should == "\x04\bIC:\x0FUserRegexp/\x00\x00\x06:\x06EF"
-      end
+      Marshal.dump(UserRegexp.new("")).should == "\x04\bIC:\x0FUserRegexp/\x00\x00\x06:\x06EF"
     end
 
     it "dumps a binary Regexp" do
       o = Regexp.new("".dup.force_encoding("binary"), Regexp::FIXEDENCODING)
-      NATFIXME 'dumps a binary Regexp', exception: SpecFailedException do
-        Marshal.dump(o).should == "\x04\b/\x00\x10"
-      end
+      Marshal.dump(o).should == "\x04\b/\x00\x10"
     end
 
     it "dumps an ascii-compatible Regexp" do
@@ -567,9 +537,7 @@ describe "Marshal.dump" do
 
     it "ignores overridden name method when dumps a Regexp subclass" do
       obj = MarshalSpec::RegexpWithOverriddenName.new("")
-      NATFIXME 'ignores overridden name method when dumps a Regexp subclass', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bIC:*MarshalSpec::RegexpWithOverriddenName/\x00\x00\x06:\x06EF"
-      end
+      Marshal.dump(obj).should == "\x04\bIC:*MarshalSpec::RegexpWithOverriddenName/\x00\x00\x06:\x06EF"
     end
 
     it "uses object links for objects repeatedly dumped" do
@@ -588,9 +556,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps an Array subclass" do
-      NATFIXME 'dumps an Array subclass', exception: SpecFailedException do
-        Marshal.dump(UserArray.new).should == "\004\bC:\016UserArray[\000"
-      end
+      Marshal.dump(UserArray.new).should == "\004\bC:\016UserArray[\000"
     end
 
     it "dumps a recursive Array" do
@@ -606,16 +572,12 @@ describe "Marshal.dump" do
     end
 
     it "dumps an extended Array" do
-      NATFIXME 'dumps an extended Array', exception: SpecFailedException do
-        Marshal.dump([].extend(Meths)).should == "\004\be:\nMeths[\000"
-      end
+      Marshal.dump([].extend(Meths)).should == "\004\be:\nMeths[\000"
     end
 
     it "ignores overridden name method when dumps an Array subclass" do
       obj = MarshalSpec::ArrayWithOverriddenName.new
-      NATFIXME 'ignores overridden name method when dumps an Array subclass', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bC:)MarshalSpec::ArrayWithOverriddenName[\x00"
-      end
+      Marshal.dump(obj).should == "\x04\bC:)MarshalSpec::ArrayWithOverriddenName[\x00"
     end
 
     it "uses object links for objects repeatedly dumped" do
@@ -644,9 +606,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps a Hash subclass" do
-      NATFIXME 'dumps a Hash subclass', exception: SpecFailedException do
-        Marshal.dump(UserHash.new).should == "\004\bC:\rUserHash{\000"
-      end
+      Marshal.dump(UserHash.new).should == "\004\bC:\rUserHash{\000"
     end
 
     it "dumps a Hash with a default value" do
@@ -657,24 +617,18 @@ describe "Marshal.dump" do
       h = {}
       h.compare_by_identity
 
-      NATFIXME 'dumps a Hash with compare_by_identity', exception: SpecFailedException do
-        Marshal.dump(h).should == "\004\bC:\tHash{\x00"
-      end
+      Marshal.dump(h).should == "\004\bC:\tHash{\x00"
     end
 
     it "dumps a Hash subclass with compare_by_identity" do
       h = UserHash.new
       h.compare_by_identity
 
-      NATFIXME 'dumps a Hash subclass with compare_by_identity', exception: SpecFailedException do
-        Marshal.dump(h).should == "\x04\bC:\rUserHashC:\tHash{\x00"
-      end
+      Marshal.dump(h).should == "\x04\bC:\rUserHashC:\tHash{\x00"
     end
 
     it "raises a TypeError with hash having default proc" do
-      NATFIXME 'raises a TypeError with hash having default proc', exception: SpecFailedException do
-        -> { Marshal.dump(Hash.new {}) }.should raise_error(TypeError, "can't dump hash with default proc")
-      end
+      -> { Marshal.dump(Hash.new {}) }.should raise_error(TypeError, "can't dump hash with default proc")
     end
 
     it "dumps a Hash with instance variables" do
@@ -684,22 +638,16 @@ describe "Marshal.dump" do
     end
 
     it "dumps an extended Hash" do
-      NATFIXME 'dumps an extended Hash', exception: SpecFailedException do
-        Marshal.dump({}.extend(Meths)).should == "\004\be:\nMeths{\000"
-      end
+      Marshal.dump({}.extend(Meths)).should == "\004\be:\nMeths{\000"
     end
 
     it "dumps an Hash subclass with a parameter to initialize" do
-      NATFIXME 'dumps an Hash subclass with a parameter to initialize', exception: SpecFailedException do
-        Marshal.dump(UserHashInitParams.new(1)).should == "\004\bIC:\027UserHashInitParams{\000\006:\a@ai\006"
-      end
+      Marshal.dump(UserHashInitParams.new(1)).should == "\004\bIC:\027UserHashInitParams{\000\006:\a@ai\006"
     end
 
     it "ignores overridden name method when dumps a Hash subclass" do
       obj = MarshalSpec::HashWithOverriddenName.new
-      NATFIXME 'ignores overridden name method when dumps a Hash subclass', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bC:(MarshalSpec::HashWithOverriddenName{\x00"
-      end
+      Marshal.dump(obj).should == "\x04\bC:(MarshalSpec::HashWithOverriddenName{\x00"
     end
 
     it "uses object links for objects repeatedly dumped" do
@@ -736,14 +684,12 @@ describe "Marshal.dump" do
 
     it "dumps an extended Struct" do
       obj = Struct.new("Extended", :a, :b).new.extend(Meths)
-      NATFIXME 'dumps an extended Struct', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\004\be:\nMethsS:\025Struct::Extended\a:\006a0:\006b0"
+      Marshal.dump(obj).should == "\004\be:\nMethsS:\025Struct::Extended\a:\006a0:\006b0"
 
-        s = 'hi'
-        obj.a = [:a, s]
-        obj.b = [:Meths, s]
-        Marshal.dump(obj).should == "\004\be:\nMethsS:\025Struct::Extended\a:\006a[\a;\a\"\ahi:\006b[\a;\000@\a"
-      end
+      s = 'hi'
+      obj.a = [:a, s]
+      obj.b = [:Meths, s]
+      Marshal.dump(obj).should == "\004\be:\nMethsS:\025Struct::Extended\a:\006a[\a;\a\"\ahi:\006b[\a;\000@\a"
       Struct.send(:remove_const, :Extended)
     end
 
@@ -778,9 +724,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps an extended Object" do
-      NATFIXME 'dumps an extended Object', exception: SpecFailedException do
-        Marshal.dump(Object.new.extend(Meths)).should == "\004\be:\x0AMethso:\x0BObject\x00"
-      end
+      Marshal.dump(Object.new.extend(Meths)).should == "\004\be:\x0AMethso:\x0BObject\x00"
     end
 
     it "dumps an Object with an instance variable" do
@@ -792,10 +736,8 @@ describe "Marshal.dump" do
     it "dumps an Object with a non-US-ASCII instance variable" do
       obj = Object.new
       ivar = "@é".dup.force_encoding(Encoding::UTF_8).to_sym
-      NATFIXME 'Support non-ASCII ivar names (seen NameError and Encoding::CompatibilityError)' do
-        obj.instance_variable_set(ivar, 1)
-        Marshal.dump(obj).should == "\x04\bo:\vObject\x06I:\b@\xC3\xA9\x06:\x06ETi\x06"
-      end
+      obj.instance_variable_set(ivar, 1)
+      Marshal.dump(obj).should == "\x04\bo:\vObject\x06I:\b@\xC3\xA9\x06:\x06ETi\x06"
     end
 
     it "dumps an Object that has had an instance variable added and removed as though it was never set" do
@@ -813,19 +755,15 @@ describe "Marshal.dump" do
 
     it "ignores overridden name method" do
       obj = MarshalSpec::ClassWithOverriddenName.new
-      NATFIXME 'ignores overridden name method', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bo:)MarshalSpec::ClassWithOverriddenName\x00"
-      end
+      Marshal.dump(obj).should == "\x04\bo:)MarshalSpec::ClassWithOverriddenName\x00"
     end
 
     it "raises TypeError if an Object has a singleton class and singleton methods" do
       obj = Object.new
       def obj.foo; end
-      NATFIXME 'raises TypeError if an Object has a singleton class and singleton methods', exception: SpecFailedException do
-        -> {
-          Marshal.dump(obj)
-        }.should raise_error(TypeError, "singleton can't be dumped")
-      end
+      -> {
+        Marshal.dump(obj)
+      }.should raise_error(TypeError, "singleton can't be dumped")
     end
 
     it "raises TypeError if an Object has a singleton class and singleton instance variables" do
@@ -834,11 +772,9 @@ describe "Marshal.dump" do
         @v = 1
       end
 
-      NATFIXME 'raises TypeError if an Object has a singleton class and singleton instance variables', exception: SpecFailedException do
-        -> {
-          Marshal.dump(obj)
-        }.should raise_error(TypeError, "singleton can't be dumped")
-      end
+      -> {
+        Marshal.dump(obj)
+      }.should raise_error(TypeError, "singleton can't be dumped")
     end
 
     it "raises TypeError if an Object is an instance of an anonymous class" do
@@ -853,16 +789,12 @@ describe "Marshal.dump" do
       obj = Object.new
       obj.extend(anonymous_module)
 
-      NATFIXME 'raises TypeError if an Object extends an anonymous module', exception: SpecFailedException do
-        -> { Marshal.dump(obj) }.should raise_error(TypeError, /can't dump anonymous class/)
-      end
+      -> { Marshal.dump(obj) }.should raise_error(TypeError, /can't dump anonymous class/)
     end
 
     it "dumps a BasicObject subclass if it defines respond_to?" do
       obj = MarshalSpec::BasicObjectSubWithRespondToFalse.new
-      NATFIXME 'it dumps a BasicObject subclass if it defines respond_to?', exception: NoMethodError, message: "undefined method 'is_a?' for an instance of MarshalSpec::BasicObjectSubWithRespondToFalse" do
-        Marshal.dump(obj).should == "\x04\bo:2MarshalSpec::BasicObjectSubWithRespondToFalse\x00"
-      end
+      Marshal.dump(obj).should == "\x04\bo:2MarshalSpec::BasicObjectSubWithRespondToFalse\x00"
     end
 
     it "dumps without marshaling any attached finalizer" do
@@ -1096,52 +1028,40 @@ describe "Marshal.dump" do
 
   it "raises an ArgumentError when the recursion limit is exceeded" do
     h = {'one' => {'two' => {'three' => 0}}}
-    NATFIXME 'Support recursion limit', exception: SpecFailedException, message: "undefined method 'ungetbyte' for an instance of Integer" do
-      -> { Marshal.dump(h, 3) }.should raise_error(ArgumentError)
-      -> { Marshal.dump([h], 4) }.should raise_error(ArgumentError)
-      -> { Marshal.dump([], 0) }.should raise_error(ArgumentError)
-      -> { Marshal.dump([[[]]], 1) }.should raise_error(ArgumentError)
-    end
+    -> { Marshal.dump(h, 3) }.should raise_error(ArgumentError)
+    -> { Marshal.dump([h], 4) }.should raise_error(ArgumentError)
+    -> { Marshal.dump([], 0) }.should raise_error(ArgumentError)
+    -> { Marshal.dump([[[]]], 1) }.should raise_error(ArgumentError)
   end
 
   it "ignores the recursion limit if the limit is negative" do
-    NATFIXME 'Support recursion limit', exception: NoMethodError, message: "undefined method 'ungetbyte' for an instance of Integer" do
-      Marshal.dump([], -1).should == "\004\b[\000"
-      Marshal.dump([[]], -1).should == "\004\b[\006[\000"
-      Marshal.dump([[[]]], -1).should == "\004\b[\006[\006[\000"
-    end
+    Marshal.dump([], -1).should == "\004\b[\000"
+    Marshal.dump([[]], -1).should == "\004\b[\006[\000"
+    Marshal.dump([[[]]], -1).should == "\004\b[\006[\006[\000"
   end
 
   describe "when passed an IO" do
     it "writes the serialized data to the IO-Object" do
-      NATFIXME 'should not depend on ungetbyte', exception: NoMethodError, message: "undefined method 'ungetbyte' for an instance of MockObject" do
-        (obj = mock('test')).should_receive(:write).at_least(1)
-        Marshal.dump("test", obj)
-      end
+      (obj = mock('test')).should_receive(:write).at_least(1)
+      Marshal.dump("test", obj)
     end
 
     it "returns the IO-Object" do
-      NATFIXME 'should not depend on ungetbyte', exception: NoMethodError, message: "undefined method 'ungetbyte' for an instance of MockObject" do
-        (obj = mock('test')).should_receive(:write).at_least(1)
-        Marshal.dump("test", obj).should == obj
-      end
+      (obj = mock('test')).should_receive(:write).at_least(1)
+      Marshal.dump("test", obj).should == obj
     end
 
     it "raises an Error when the IO-Object does not respond to #write" do
       obj = mock('test')
-      NATFIXME 'should not depend on ungetbyte', exception: SpecFailedException, message: "undefined method 'ungetbyte'" do
-        -> { Marshal.dump("test", obj) }.should raise_error(TypeError)
-      end
+      -> { Marshal.dump("test", obj) }.should raise_error(TypeError)
     end
 
 
     it "calls binmode when it's defined" do
       obj = mock('test')
-      NATFIXME 'should not depend on ungetbyte', exception: NoMethodError, message: "undefined method 'ungetbyte' for an instance of MockObject" do
-        obj.should_receive(:write).at_least(1)
-        obj.should_receive(:binmode).at_least(1)
-        Marshal.dump("test", obj)
-      end
+      obj.should_receive(:write).at_least(1)
+      obj.should_receive(:binmode).at_least(1)
+      Marshal.dump("test", obj)
     end
   end
 

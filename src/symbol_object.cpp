@@ -10,11 +10,23 @@ SymbolObject *SymbolObject::intern(const char *name, const size_t length, Encodi
 
 SymbolObject *SymbolObject::intern(const String &name, EncodingObject *encoding) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-    SymbolObject *symbol = s_symbols.get(name);
-    if (symbol)
-        return symbol;
-    symbol = new SymbolObject { name, encoding };
-    s_symbols.put(name, symbol);
+    // Fast path: ASCII-only symbols are keyed by their bare bytes. A hit here
+    // skips the ascii-scan below and covers the common case (repeat :foo interns).
+    if (SymbolObject *existing = s_symbols.get(name))
+        return existing;
+    bool ascii_only = name.is_ascii_only();
+    EncodingObject *effective_encoding = ascii_only
+        ? EncodingObject::get(Encoding::US_ASCII)
+        : (encoding ? encoding : EncodingObject::get(Encoding::UTF_8));
+    String key = name;
+    if (!ascii_only) {
+        key.append_char('\0');
+        key.append(effective_encoding->name()->string());
+        if (SymbolObject *existing = s_symbols.get(key))
+            return existing;
+    }
+    SymbolObject *symbol = new SymbolObject { name, effective_encoding };
+    s_symbols.put(key, symbol);
     return symbol;
 }
 

@@ -10,20 +10,27 @@ module Marshal
 
   class << self
     def dump(object, io = nil, limit = -1)
+      if io.is_a?(Integer)
+        limit = io
+        io = nil
+      end
       if io.nil?
-        writer = StringWriter.new
+        writer = StringWriter.new(limit)
       else
-        writer = Writer.new(io)
+        raise TypeError, 'instance of IO needed' unless io.respond_to?(:write)
+        io.binmode if io.respond_to?(:binmode)
+        writer = Writer.new(io, limit)
       end
       writer.write_version
       writer.write(object)
     end
 
-    def load(source)
+    def load(source, proc = nil, freeze: false)
       if source.respond_to?(:to_str)
-        reader = StringReader.new(source.to_str)
+        reader = StringReader.new(source.to_str, proc, freeze: freeze)
       elsif source.respond_to?(:getbyte) && source.respond_to?(:read)
-        reader = Reader.new(source)
+        source.binmode if source.respond_to?(:binmode)
+        reader = Reader.new(source, proc, freeze: freeze)
       else
         raise TypeError, 'instance of IO needed'
       end
@@ -35,14 +42,15 @@ module Marshal
   end
 
   class Writer
-    def initialize(output)
+    def initialize(output, limit = -1)
       @output = output
+      @initial_limit = limit
       @symbol_lookup = {}
       @object_lookup = {}
     end
 
     def write_byte(value)
-      @output.ungetbyte(value)
+      @output.write(value.chr)
     end
 
     def write_bytes(value)
@@ -125,23 +133,29 @@ module Marshal
       end
     end
 
-    def write_string(value, ivars)
+    def write_string(value, ivars, limit)
       add_encoding_to_ivars(value, ivars)
       write_char('I') unless ivars.empty?
+      write_extended_modules(value)
+      write_user_class(value, String)
       write_char('"')
       write_string_bytes(value)
-      write_ivars(ivars) unless ivars.empty?
+      write_ivars(ivars, limit) unless ivars.empty?
     end
 
-    def write_symbol(value)
+    def write_symbol(value, limit = -1)
       if @symbol_lookup.key?(value)
         write_char(';')
         write_integer_bytes(@symbol_lookup[value])
-      else
-        write_char(':')
-        write_string_bytes(value)
-        @symbol_lookup[value] = @symbol_lookup.size
+        return
       end
+      ivars = []
+      add_encoding_to_ivars(value, ivars) unless value.to_s.ascii_only?
+      write_char('I') unless ivars.empty?
+      write_char(':')
+      write_string_bytes(value)
+      @symbol_lookup[value] = @symbol_lookup.size
+      write_ivars(ivars, limit) unless ivars.empty?
     end
 
     def write_float(value)
@@ -186,16 +200,25 @@ module Marshal
       write_integer_bytes(index)
     end
 
-    def write_array(values, ivars)
+    def write_array(values, ivars, limit)
       write_char('I') unless ivars.empty?
+      write_extended_modules(values)
+      write_user_class(values, Array)
       write_char('[')
       write_integer_bytes(values.size)
-      values.each { |value| write(value) }
-      write_ivars(ivars) unless ivars.empty?
+      values.each { |value| write(value, limit) }
+      write_ivars(ivars, limit) unless ivars.empty?
     end
 
-    def write_hash(values, ivars)
+    def write_hash(values, ivars, limit)
+      raise TypeError, "can't dump hash with default proc" if values.default_proc
       write_char('I') unless ivars.empty?
+      write_extended_modules(values)
+      write_user_class(values, Hash)
+      if values.compare_by_identity?
+        write_char('C')
+        write_symbol(:Hash)
+      end
       if values.default.nil?
         write_char('{')
       else
@@ -203,62 +226,89 @@ module Marshal
       end
       write_integer_bytes(values.size)
       values.each do |key, value|
-        write(key)
-        write(value)
+        write(key, limit)
+        write(value, limit)
       end
-      write(values.default) unless values.default.nil?
-      write_ivars(ivars) unless ivars.empty?
+      write(values.default, limit) unless values.default.nil?
+      write_ivars(ivars, limit) unless ivars.empty?
     end
 
     def write_class(value)
       raise TypeError, "singleton class can't be dumped" if value.singleton_class?
+      name = Module.instance_method(:name).bind_call(value)
+      raise TypeError, "can't dump anonymous class #{value}" if name.nil?
       write_char('c')
-      write_string_bytes(value.name)
+      write_string_bytes(name)
+    end
+
+    def write_user_class(value, base)
+      return if value.class == base
+      name = Module.instance_method(:name).bind_call(value.class)
+      raise TypeError, "can't dump anonymous class #{value.class}" if name.nil?
+      write_char('C')
+      write_symbol(name.to_sym)
+    end
+
+    def write_extended_modules(value)
+      singleton = Kernel.instance_method(:singleton_class).bind_call(value)
+      klass = Kernel.instance_method(:class).bind_call(value)
+      extended = singleton.included_modules - klass.included_modules
+      extended.reverse_each do |mod|
+        name = Module.instance_method(:name).bind_call(mod)
+        raise TypeError, "can't dump anonymous class #{mod}" if name.nil?
+        write_char('e')
+        write_symbol(name.to_sym)
+      end
     end
 
     def write_module(value)
-      raise TypeError, "can't dump anonymous module #{value}" if value.name.nil?
+      name = Module.instance_method(:name).bind_call(value)
+      raise TypeError, "can't dump anonymous module #{value}" if name.nil?
       write_char('m')
-      write_string_bytes(value.name)
+      write_string_bytes(name)
     end
 
-    def write_regexp(value, ivars)
+    def write_regexp(value, ivars, limit)
       add_encoding_to_ivars(value, ivars)
-      write_char('I')
+      write_char('I') unless ivars.empty?
+      write_extended_modules(value)
+      write_user_class(value, Regexp)
       write_char('/')
       write_string_bytes(value.source)
       write_byte(value.options)
-      write_ivars(ivars)
+      write_ivars(ivars, limit) unless ivars.empty?
     end
 
-    def write_data(value)
+    def write_data(value, limit)
       raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
       write_char('S')
-      write(value.class.to_s.to_sym)
+      write(value.class.to_s.to_sym, limit)
       values = value.to_h
       write_integer_bytes(values.size)
       values.each do |name, value|
-        write(name)
-        write(value)
+        write(name, limit)
+        write(value, limit)
       end
     end
 
-    def write_struct(value, ivars)
-      raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
+    def write_struct(value, ivars, limit)
+      name = Module.instance_method(:name).bind_call(value.class)
+      raise TypeError, "can't dump anonymous class #{value.class}" if name.nil?
       values = value.to_h
       ivars.delete_if { |key, _| values.key?(key) }
       write_char('I') unless ivars.empty?
+      write_extended_modules(value)
       write_char('S')
-      write(value.class.to_s.to_sym)
+      write(name.to_sym, limit)
       write_integer_bytes(values.size)
       values.each do |name, value|
-        write(name)
-        write(value)
+        write(name, limit)
+        write(value, limit)
       end
-      write_ivars(ivars) unless ivars.empty?
+      write_ivars(ivars, limit) unless ivars.empty?
     end
 
-    def write_exception(value, ivars)
+    def write_exception(value, ivars, limit)
       message = value.message
       if message == value.class.inspect
         message = nil
@@ -268,42 +318,60 @@ module Marshal
       ivars.prepend([:cause, value.cause]) if value.cause
       ivars.prepend([:bt, value.backtrace])
       ivars.prepend([:mesg, message])
-      write_object(value, ivars)
+      write_object(value, ivars, limit)
     end
 
-    def write_range(value, ivars)
+    def write_range(value, ivars, limit)
       ivars.concat([[:excl, value.exclude_end?], [:begin, value.begin], [:end, value.end]])
-      write_object(value, ivars)
+      write_object(value, ivars, limit)
     end
 
-    def write_user_marshaled_object_with_allocate(value)
+    def write_user_marshaled_object_with_allocate(value, limit)
+      klass = Kernel.instance_method(:class).bind_call(value)
+      name = Module.instance_method(:name).bind_call(klass)
+      raise TypeError, "can't dump anonymous class #{klass}" if name.nil?
       write_char('U')
-      write(value.class.to_s.to_sym)
-      write(value.send(:marshal_dump))
+      write(name.to_sym, limit)
+      write(value.__send__(:marshal_dump), limit)
     end
 
-    def write_user_marshaled_object_without_allocate(value)
-      raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
+    def write_user_marshaled_object_without_allocate(value, limit)
+      klass = Kernel.instance_method(:class).bind_call(value)
+      name = Module.instance_method(:name).bind_call(klass)
+      raise TypeError, "can't dump anonymous class #{klass}" if name.nil?
+      dump = value.__send__(:_dump, -1)
+      raise TypeError, '_dump() must return string' unless String === dump
+      dump_ivar_names = Kernel.instance_method(:instance_variables).bind_call(dump)
+      dump_ivars = dump_ivar_names.map { |n| [n, Kernel.instance_method(:instance_variable_get).bind_call(dump, n)] }
+      add_encoding_to_ivars(dump, dump_ivars)
+      write_char('I') unless dump_ivars.empty?
       write_char('u')
-      write(value.class.to_s.to_sym)
-      dump = value.send(:_dump, -1)
-      raise TypeError, '_dump() must return string' unless dump.is_a?(String)
-      write_integer_bytes(dump.size)
-      write_bytes(value.send(:_dump, -1))
+      write(name.to_sym, limit)
+      write_integer_bytes(dump.bytesize)
+      write_bytes(dump)
+      write_ivars(dump_ivars, limit) unless dump_ivars.empty?
+      @object_lookup[Kernel.instance_method(:object_id).bind_call(value)] = @object_lookup.size
     end
 
-    def write_object(value, ivars)
-      raise TypeError, "can't dump anonymous class #{value.class}" if value.class.name.nil?
+    def write_object(value, ivars, limit)
+      klass = Kernel.instance_method(:class).bind_call(value)
+      singleton = Kernel.instance_method(:singleton_class).bind_call(value)
+      if singleton.instance_methods(false).any? || singleton.instance_variables.any?
+        raise TypeError, "singleton can't be dumped"
+      end
+      name = Module.instance_method(:name).bind_call(klass)
+      raise TypeError, "can't dump anonymous class #{klass}" if name.nil?
+      write_extended_modules(value)
       write_char('o')
-      write(value.class.name.to_sym)
-      write_ivars(ivars)
+      write(name.to_sym, limit)
+      write_ivars(ivars, limit)
     end
 
-    def write_ivars(ivars)
+    def write_ivars(ivars, limit)
       write_integer_bytes(ivars.size)
       ivars.each do |ivar_name, ivar_value|
-        write(ivar_name)
-        write(ivar_value)
+        write(ivar_name, limit)
+        write(ivar_value, limit)
       end
     end
 
@@ -320,75 +388,82 @@ module Marshal
       end
     end
 
-    def write(value)
-      if value.respond_to?(:object_id) && !value.is_a?(Integer) && @object_lookup.key?(value.object_id)
-        write_object_link(@object_lookup.fetch(value.object_id))
+    def write(value, limit = @initial_limit)
+      raise ArgumentError, 'exceed depth limit' if limit == 0
+      limit -= 1 if limit > 0
+      klass = Kernel.instance_method(:class).bind_call(value)
+      oid = Kernel.instance_method(:object_id).bind_call(value) unless Integer === value
+      if oid && @object_lookup.key?(oid)
+        write_object_link(@object_lookup.fetch(oid))
         return @output
-      elsif value.is_a?(Integer) && (value >= 2**62 || value < -(2**62)) && @object_lookup.key?([:integer, value])
+      elsif Integer === value && (value >= 2**62 || value < -(2**62)) && @object_lookup.key?([:integer, value])
         write_object_link(@object_lookup.fetch([:integer, value]))
         return @output
-      elsif value.is_a?(Float) && @object_lookup.key?(value)
+      elsif Float === value && @object_lookup.key?(value)
         write_object_link(@object_lookup.fetch(value))
         return @output
       end
 
-      if !value.nil? && !value.is_a?(TrueClass) && !value.is_a?(FalseClass) && !value.is_a?(Integer) &&
-           !value.is_a?(Float) && !value.is_a?(Symbol)
-        @object_lookup[value.object_id] = @object_lookup.size
-      elsif value.is_a?(Integer) && (value >= 2**30 || value < -(2**30))
+      has_respond_to = klass.method_defined?(:respond_to?)
+      has_marshal_dump = has_respond_to && value.respond_to?(:marshal_dump, true)
+      has_dump = has_respond_to && !has_marshal_dump && value.respond_to?(:_dump, true)
+
+      if !nil.equal?(value) && !(TrueClass === value) && !(FalseClass === value) && !(Integer === value) &&
+           !(Float === value) && !(Symbol === value) && !has_dump
+        @object_lookup[oid] = @object_lookup.size
+      elsif Integer === value && (value >= 2**30 || value < -(2**30))
         # Integers are special: Object links are only used when 64 bits are used, but the objects are counted when 32 bits are used
         @object_lookup[[:integer, value]] = @object_lookup.size
-      elsif value.is_a?(Float)
+      elsif Float === value
         @object_lookup[value] = @object_lookup.size
       end
 
-      ivars = value.instance_variables.map { |ivar_name| [ivar_name, value.instance_variable_get(ivar_name)] }
+      ivar_names = Kernel.instance_method(:instance_variables).bind_call(value)
+      ivars = ivar_names.map { |name| [name, Kernel.instance_method(:instance_variable_get).bind_call(value, name)] }
 
-      if value.nil?
+      if nil.equal?(value)
         write_nil
-      elsif value.is_a?(TrueClass)
+      elsif TrueClass === value
         write_true
-      elsif value.is_a?(FalseClass)
+      elsif FalseClass === value
         write_false
-      elsif value.is_a?(Integer)
+      elsif Integer === value
         write_integer(value)
-      elsif value.is_a?(String)
-        write_string(value, ivars)
-      elsif value.is_a?(Symbol)
-        write_symbol(value)
-      elsif value.is_a?(Float)
+      elsif String === value
+        write_string(value, ivars, limit)
+      elsif Symbol === value
+        write_symbol(value, limit)
+      elsif Float === value
         write_float(value)
-      elsif value.is_a?(Array)
-        write_array(value, ivars)
-      elsif value.is_a?(Hash)
-        write_hash(value, ivars)
-      elsif value.is_a?(Class)
+      elsif Array === value
+        write_array(value, ivars, limit)
+      elsif Hash === value
+        write_hash(value, ivars, limit)
+      elsif Class === value
         write_class(value)
-      elsif value.is_a?(Module)
+      elsif Module === value
         write_module(value)
-      elsif value.is_a?(Regexp)
-        write_regexp(value, ivars)
-      elsif value.is_a?(Data)
-        write_data(value)
-      elsif value.is_a?(Struct)
-        write_struct(value, ivars)
-      elsif value.is_a?(Exception)
-        write_exception(value, ivars)
-      elsif value.is_a?(Range)
-        write_range(value, ivars)
-      elsif value.respond_to?(:marshal_dump, true)
-        write_user_marshaled_object_with_allocate(value)
-      elsif value.respond_to?(:_dump, true)
-        write_user_marshaled_object_without_allocate(value)
-      elsif value.is_a?(Mutex) || value.is_a?(Proc) || value.is_a?(Method) ||
-            (defined?(StringIO) && value.is_a?(StringIO))
-        raise TypeError, "no _dump_data is defined for class #{value.class}"
-      elsif value.is_a?(MatchData) || value.is_a?(IO)
-        raise TypeError, "can't dump #{value.class}"
-      elsif value.is_a?(Object)
-        write_object(value, ivars)
+      elsif Regexp === value
+        write_regexp(value, ivars, limit)
+      elsif Data === value
+        write_data(value, limit)
+      elsif Struct === value
+        write_struct(value, ivars, limit)
+      elsif Exception === value
+        write_exception(value, ivars, limit)
+      elsif Range === value
+        write_range(value, ivars, limit)
+      elsif has_marshal_dump
+        write_user_marshaled_object_with_allocate(value, limit)
+      elsif has_dump
+        write_user_marshaled_object_without_allocate(value, limit)
+      elsif Mutex === value || Proc === value || Method === value ||
+            (defined?(StringIO) && StringIO === value)
+        raise TypeError, "no _dump_data is defined for class #{klass}"
+      elsif MatchData === value || IO === value
+        raise TypeError, "can't dump #{klass}"
       else
-        raise TypeError, "can't dump #{value.class}"
+        write_object(value, ivars, limit)
       end
 
       @output
@@ -396,8 +471,8 @@ module Marshal
   end
 
   class StringWriter < Writer
-    def initialize
-      super(String.new.force_encoding(Encoding::ASCII_8BIT))
+    def initialize(limit = -1)
+      super(String.new.force_encoding(Encoding::ASCII_8BIT), limit)
     end
 
     def write_byte(value)
@@ -410,15 +485,17 @@ module Marshal
   end
 
   class Reader
-    def initialize(source)
+    def initialize(source, proc = nil, freeze: false)
       @source = source
+      @proc = proc
+      @freeze = freeze
       @symbol_lookup = []
       @object_lookup = []
     end
 
     def read_byte
       byte = @source.getbyte
-      raise ArgumentError, 'marshal data too short' if byte.nil?
+      raise EOFError if byte.nil?
 
       byte
     end
@@ -486,9 +563,16 @@ module Marshal
       read_bytes(integer)
     end
 
-    def read_symbol
-      symbol = read_string.to_sym
-      @symbol_lookup << symbol
+    def read_symbol(ivars_consumed = nil)
+      bytes = read_string
+      index = @symbol_lookup.size
+      @symbol_lookup << nil
+      if ivars_consumed
+        read_hash.each { |name, value| apply_encoding_ivar(bytes, name, value) }
+        ivars_consumed[0] = true
+      end
+      symbol = bytes.to_sym
+      @symbol_lookup[index] = symbol
       symbol
     end
 
@@ -549,11 +633,85 @@ module Marshal
       result
     end
 
-    def read_regexp
+    def read_old_module
+      name = read_string
+      result = find_constant(name)
+      raise ArgumentError, "#{name} does not refer to class/module" unless result.is_a?(Module)
+      result
+    end
+
+    def read_data_object
+      name = read_value
+      klass = find_constant(name)
+      raise ArgumentError, 'dump format error' unless klass.method_defined?(:_dump_data)
+      object = klass.allocate
+      unless object.respond_to?(:_load_data, true)
+        raise TypeError, "class #{name} needs to have instance method `_load_data'"
+      end
+      data = read_value
+      object.__send__(:_load_data, data)
+      object
+    end
+
+    def read_regexp(ivars_consumed = nil)
       string = read_string
       options = read_byte
-      read_ivars(string)
-      Regexp.new(string, options)
+      regexp_ivars = []
+      if ivars_consumed
+        read_hash.each do |name, value|
+          if name == :E || name == :encoding
+            apply_encoding_ivar(string, name, value)
+          else
+            regexp_ivars << [name, value]
+          end
+        end
+        ivars_consumed[0] = true
+      end
+      regexp = Regexp.new(string, options)
+      regexp_ivars.each { |name, value| regexp.instance_variable_set(name, value) }
+      regexp
+    end
+
+    def read_extended(ivars_consumed)
+      name = read_value
+      mod = find_constant(name)
+      raise ArgumentError, "#{name} does not refer to a Module" unless mod.is_a?(Module)
+      inner = read_value(ivars_consumed, partial: true)
+      inner.extend(mod)
+      inner
+    end
+
+    def read_user_class(ivars_consumed = nil)
+      name = read_value
+      klass = find_constant(name)
+      inner = read_value(ivars_consumed, partial: true)
+      if klass == Hash && inner.is_a?(Hash)
+        inner.compare_by_identity
+        return inner
+      end
+      raise ArgumentError, 'dump format error (user class)' unless klass.is_a?(Class)
+      instance =
+        case inner
+        when Hash
+          raise ArgumentError, 'dump format error (user class)' unless klass <= Hash
+          wrapped = klass.allocate
+          wrapped.replace(inner)
+          wrapped.compare_by_identity if inner.compare_by_identity?
+          wrapped
+        when Array
+          raise ArgumentError, 'dump format error (user class)' unless klass <= Array
+          klass.allocate.replace(inner)
+        when String
+          raise ArgumentError, 'dump format error (user class)' unless klass <= String
+          klass.allocate.replace(inner)
+        when Regexp
+          raise ArgumentError, 'dump format error (user class)' unless klass <= Regexp
+          klass.new(inner.source, inner.options)
+        else
+          raise ArgumentError, 'dump format error (user class)'
+        end
+      inner.instance_variables.each { |ivar| instance.instance_variable_set(ivar, inner.instance_variable_get(ivar)) }
+      instance
     end
 
     def read_user_marshaled_object_with_allocate
@@ -570,11 +728,15 @@ module Marshal
       object
     end
 
-    def read_user_marshaled_object_without_allocate
+    def read_user_marshaled_object_without_allocate(ivars_consumed = nil)
       name = read_value
       object_class = find_constant(name)
       raise TypeError, "#{object_class} needs to have method `_load'" unless object_class.respond_to?(:_load)
       data = read_string
+      if ivars_consumed
+        read_ivars(data)
+        ivars_consumed[0] = true
+      end
       object_class._load(data)
     end
 
@@ -621,78 +783,99 @@ module Marshal
 
     def read_ivars(object)
       read_hash.each do |name, value|
-        if name == :E
-          if value == false
-            object.force_encoding(Encoding::US_ASCII)
-          elsif value == true
-            object.force_encoding(Encoding::UTF_8)
-          end
-        elsif name == :encoding
-          object.force_encoding(value)
+        if name == :E || name == :encoding
+          apply_encoding_ivar(object, name, value)
         else
           object.instance_variable_set(name, value)
         end
       end
     end
 
-    def read_value
-      char = read_byte.chr
-      case char
-      when '0'
-        nil
-      when 'T'
-        true
-      when 'F'
-        false
-      when '@'
-        read_object_link
-      when 'i'
-        read_integer
-      when 'l'
-        read_big_integer
-      when ':'
-        read_symbol
-      when ';'
-        read_symbol_link
-      when 'f'
-        read_float
-      when 'I'
-        result = read_value
-        read_ivars(result) unless result.is_a?(Regexp)
-        result
-      else
-        index = @object_lookup.size
-        @object_lookup << nil # placeholder
-        value =
-          case char
-          when '"'
-            read_string
-          when '['
-            read_array
-          when '{'
-            read_hash
-          when '}'
-            read_hash_with_default
-          when 'c'
-            read_class
-          when 'm'
-            read_module
-          when '/'
-            read_regexp
-          when 'U'
-            read_user_marshaled_object_with_allocate
-          when 'u'
-            read_user_marshaled_object_without_allocate
-          when 'S'
-            read_struct
-          when 'o'
-            read_object
-          else
-            raise ArgumentError, 'dump format error'
-          end
-        @object_lookup[index] = value
-        value
+    def apply_encoding_ivar(object, name, value)
+      if name == :E
+        if value == false
+          object.force_encoding(Encoding::US_ASCII)
+        elsif value == true
+          object.force_encoding(Encoding::UTF_8)
+        end
+      elsif name == :encoding
+        object.force_encoding(value)
       end
+    end
+
+    def read_value(ivars_consumed = nil, partial: false)
+      char = read_byte.chr
+      value =
+        case char
+        when '0'
+          nil
+        when 'T'
+          true
+        when 'F'
+          false
+        when '@'
+          return read_object_link
+        when 'i'
+          read_integer
+        when ':'
+          return read_symbol(ivars_consumed)
+        when ';'
+          return read_symbol_link
+        when 'f'
+          read_float
+        when 'I'
+          ivars_consumed = [false]
+          result = read_value(ivars_consumed, partial: true)
+          read_ivars(result) unless result.is_a?(Regexp) || ivars_consumed[0]
+          result
+        else
+          index = @object_lookup.size
+          @object_lookup << nil # placeholder
+          inner =
+            case char
+            when 'l'
+              read_big_integer
+            when '"'
+              read_string
+            when '['
+              read_array
+            when '{'
+              read_hash
+            when '}'
+              read_hash_with_default
+            when 'c'
+              read_class
+            when 'm'
+              read_module
+            when 'M'
+              read_old_module
+            when '/'
+              read_regexp(ivars_consumed)
+            when 'U'
+              read_user_marshaled_object_with_allocate
+            when 'u'
+              read_user_marshaled_object_without_allocate(ivars_consumed)
+            when 'S'
+              read_struct
+            when 'o'
+              read_object
+            when 'C'
+              read_user_class(ivars_consumed)
+            when 'e'
+              read_extended(ivars_consumed)
+            when 'd'
+              read_data_object
+            else
+              raise ArgumentError, 'dump format error'
+            end
+          @object_lookup[index] = inner
+          inner
+        end
+      unless partial
+        Kernel.instance_method(:freeze).bind_call(value) if @freeze && !value.is_a?(Module)
+        value = @proc.call(value) if @proc
+      end
+      value
     end
 
     def find_constant(name)
@@ -706,8 +889,8 @@ module Marshal
   end
 
   class StringReader < Reader
-    def initialize(source)
-      super(source)
+    def initialize(source, proc = nil, freeze: false)
+      super(source, proc, freeze: freeze)
       @offset = 0
     end
 

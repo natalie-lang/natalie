@@ -192,6 +192,12 @@ public:
         return other.is_a(env, this);
     }
 
+    Value lt(Env *, Value);
+    Value lte(Env *, Value);
+    Value gt(Env *, Value);
+    Value gte(Env *, Value);
+    Value cmp(Env *, Value);
+
     virtual void visit_children(Visitor &) const override final;
 
     virtual TM::String dbg_inspect(int indent = 0) const override {
