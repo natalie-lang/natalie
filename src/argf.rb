@@ -124,6 +124,7 @@ argf_class = Class.new do
         outbuf << chunk if chunk
         break unless advance!
       end
+      @done = true
       outbuf
     else
       remaining = length
@@ -139,6 +140,13 @@ argf_class = Class.new do
       length.zero? || !outbuf.empty? ? outbuf : nil
     end
   end
+
+  def eof?
+    raise IOError, 'stream already closed' if @done
+    advance! unless @current_file
+    @current_file.eof?
+  end
+  alias_method :eof, :eof?
 
   def each_char
     return to_enum(:each_char) unless block_given?
