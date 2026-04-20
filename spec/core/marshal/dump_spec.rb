@@ -736,10 +736,8 @@ describe "Marshal.dump" do
     it "dumps an Object with a non-US-ASCII instance variable" do
       obj = Object.new
       ivar = "@é".dup.force_encoding(Encoding::UTF_8).to_sym
-      NATFIXME 'Support non-ASCII ivar names (seen NameError and Encoding::CompatibilityError)' do
-        obj.instance_variable_set(ivar, 1)
-        Marshal.dump(obj).should == "\x04\bo:\vObject\x06I:\b@\xC3\xA9\x06:\x06ETi\x06"
-      end
+      obj.instance_variable_set(ivar, 1)
+      Marshal.dump(obj).should == "\x04\bo:\vObject\x06I:\b@\xC3\xA9\x06:\x06ETi\x06"
     end
 
     it "dumps an Object that has had an instance variable added and removed as though it was never set" do

@@ -854,12 +854,10 @@ describe :marshal_load, shared: true do
 
     it "loads an Object with a non-US-ASCII instance variable" do
       ivar = "@é".dup.force_encoding(Encoding::UTF_8).to_sym
-      NATFIXME 'non-ASCII ivar names', exception: NameError do
-        obj = Marshal.send(@method, "\x04\bo:\vObject\x06I:\b@\xC3\xA9\x06:\x06ETi\x06")
-        obj.instance_variables.should == [ivar]
-        obj.instance_variables[0].encoding.should == Encoding::UTF_8
-        obj.instance_variable_get(ivar).should == 1
-      end
+      obj = Marshal.send(@method, "\x04\bo:\vObject\x06I:\b@\xC3\xA9\x06:\x06ETi\x06")
+      obj.instance_variables.should == [ivar]
+      obj.instance_variables[0].encoding.should == Encoding::UTF_8
+      obj.instance_variable_get(ivar).should == 1
     end
 
     it "raises ArgumentError if the object from an 'o' stream is not dumpable as 'o' type user class" do
