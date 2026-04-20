@@ -140,6 +140,12 @@ Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, Opt
 }
 
 Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, bool exception) {
+    if (real.is_nil() || (imaginary && imaginary->is_nil())) {
+        if (exception)
+            env->raise("TypeError", "can't convert nil into Complex");
+        return Value::nil();
+    }
+
     if (real.is_string())
         return Complex(env, real.as_string(), exception, false);
 

@@ -232,11 +232,9 @@ describe "Kernel.Complex()" do
 
   describe "when passed nil" do
     it "raises TypeError" do
-      NATFIXME 'when passed nil', exception: SpecFailedException do
-        -> { Complex(nil) }.should raise_error(TypeError, "can't convert nil into Complex")
-        -> { Complex(0, nil) }.should raise_error(TypeError, "can't convert nil into Complex")
-        -> { Complex(nil, 0) }.should raise_error(TypeError, "can't convert nil into Complex")
-      end
+      -> { Complex(nil) }.should raise_error(TypeError, "can't convert nil into Complex")
+      -> { Complex(0, nil) }.should raise_error(TypeError, "can't convert nil into Complex")
+      -> { Complex(nil, 0) }.should raise_error(TypeError, "can't convert nil into Complex")
     end
   end
 
