@@ -463,7 +463,7 @@ describe :marshal_load, shared: true do
              :go, c, nil, Struct::Pyramid.new, f, :go, :no, s, b, r,
              :so, 'huh', o1, true, b, b, 99, r, b, s, :so, f, c, :no, o1, d]
 
-      NATFIXME 'loads an array containing the same objects', exception: ArgumentError, message: 'dump format error' do
+      NATFIXME 'loads an array containing the same objects', exception: SpecFailedException do
         Marshal.send(@method, "\004\b[*:\aso\"\nhelloii;\000;\000[\t\"\ahi:\ano\"\aoh:\ago;\000U:\020UserMarshal\"\nstuff;\000;\006@\n;\ac\vString0S:\024Struct::Pyramid\000f\0061;\a;\006@\t@\b/\000\000;\000\"\bhuhU:\030UserMarshalWithIvar[\006\"\fmy dataT@\b@\bih@\017@\b@\t;\000@\016@\f;\006@\021@\a").should ==
           obj
       end
@@ -927,14 +927,12 @@ describe :marshal_load, shared: true do
   describe "for a Regexp" do
     it "loads an extended Regexp" do
       obj = /[a-z]/.dup.extend(Meths, MethsMore)
-      NATFIXME 'Support regexp dump', exception: ArgumentError, message: 'marshal data too short' do
-        new_obj = Marshal.send(@method, "\004\be:\nMethse:\016MethsMore/\n[a-z]\000")
+      new_obj = Marshal.send(@method, "\004\be:\nMethse:\016MethsMore/\n[a-z]\000")
 
-        new_obj.should == obj
-        new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-        new_obj_metaclass_ancestors[@num_self_class, 3].should ==
-          [Meths, MethsMore, Regexp]
-      end
+      new_obj.should == obj
+      new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+      new_obj_metaclass_ancestors[@num_self_class, 3].should ==
+        [Meths, MethsMore, Regexp]
     end
 
     it "loads a Regexp subclass instance variables when it is extended with a module" do
@@ -957,10 +955,8 @@ describe :marshal_load, shared: true do
       obj.instance_variable_set(:@regexp_ivar, [42])
 
       new_obj = Marshal.send(@method, "\x04\bI/\nhello\x00\a:\x06EF:\x11@regexp_ivar[\x06i/")
-      NATFIXME 'restore the regexp instance variables', exception: SpecFailedException do
-        new_obj.instance_variables.should == [:@regexp_ivar]
-        new_obj.instance_variable_get(:@regexp_ivar).should == [42]
-      end
+      new_obj.instance_variables.should == [:@regexp_ivar]
+      new_obj.instance_variable_get(:@regexp_ivar).should == [42]
     end
 
     it "preserves Regexp encoding" do

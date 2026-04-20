@@ -653,11 +653,23 @@ module Marshal
       object
     end
 
-    def read_regexp
+    def read_regexp(ivars_consumed = nil)
       string = read_string
       options = read_byte
-      read_ivars(string)
-      Regexp.new(string, options)
+      regexp_ivars = []
+      if ivars_consumed
+        read_hash.each do |name, value|
+          if name == :E || name == :encoding
+            apply_encoding_ivar(string, name, value)
+          else
+            regexp_ivars << [name, value]
+          end
+        end
+        ivars_consumed[0] = true
+      end
+      regexp = Regexp.new(string, options)
+      regexp_ivars.each { |name, value| regexp.instance_variable_set(name, value) }
+      regexp
     end
 
     def read_extended(ivars_consumed)
@@ -835,7 +847,7 @@ module Marshal
             when 'M'
               read_old_module
             when '/'
-              read_regexp
+              read_regexp(ivars_consumed)
             when 'U'
               read_user_marshaled_object_with_allocate
             when 'u'
