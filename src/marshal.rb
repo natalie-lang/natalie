@@ -681,34 +681,37 @@ module Marshal
       inner
     end
 
-    def read_user_class
+    def read_user_class(ivars_consumed = nil)
       name = read_value
       klass = find_constant(name)
-      inner = read_value
+      inner = read_value(ivars_consumed, partial: true)
       if klass == Hash && inner.is_a?(Hash)
         inner.compare_by_identity
         return inner
       end
       raise ArgumentError, 'dump format error (user class)' unless klass.is_a?(Class)
-      case inner
-      when Hash
-        raise ArgumentError, 'dump format error (user class)' unless klass <= Hash
-        instance = klass.allocate
-        instance.replace(inner)
-        instance.compare_by_identity if inner.compare_by_identity?
-        instance
-      when Array
-        raise ArgumentError, 'dump format error (user class)' unless klass <= Array
-        klass.allocate.replace(inner)
-      when String
-        raise ArgumentError, 'dump format error (user class)' unless klass <= String
-        klass.allocate.replace(inner)
-      when Regexp
-        raise ArgumentError, 'dump format error (user class)' unless klass <= Regexp
-        klass.new(inner.source, inner.options)
-      else
-        raise ArgumentError, 'dump format error (user class)'
-      end
+      instance =
+        case inner
+        when Hash
+          raise ArgumentError, 'dump format error (user class)' unless klass <= Hash
+          wrapped = klass.allocate
+          wrapped.replace(inner)
+          wrapped.compare_by_identity if inner.compare_by_identity?
+          wrapped
+        when Array
+          raise ArgumentError, 'dump format error (user class)' unless klass <= Array
+          klass.allocate.replace(inner)
+        when String
+          raise ArgumentError, 'dump format error (user class)' unless klass <= String
+          klass.allocate.replace(inner)
+        when Regexp
+          raise ArgumentError, 'dump format error (user class)' unless klass <= Regexp
+          klass.new(inner.source, inner.options)
+        else
+          raise ArgumentError, 'dump format error (user class)'
+        end
+      inner.instance_variables.each { |ivar| instance.instance_variable_set(ivar, inner.instance_variable_get(ivar)) }
+      instance
     end
 
     def read_user_marshaled_object_with_allocate
@@ -857,7 +860,7 @@ module Marshal
             when 'o'
               read_object
             when 'C'
-              read_user_class
+              read_user_class(ivars_consumed)
             when 'e'
               read_extended(ivars_consumed)
             when 'd'

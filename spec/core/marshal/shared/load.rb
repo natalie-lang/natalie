@@ -939,15 +939,13 @@ describe :marshal_load, shared: true do
       obj = UserRegexp.new('').extend(Meths)
       obj.instance_variable_set(:@noise, 'much')
 
-      NATFIXME 'Support regexp dump', exception: SpecFailedException do
-        new_obj = Marshal.send(@method, "\004\bIe:\nMethsC:\017UserRegexp/\000\000\006:\v@noise\"\tmuch")
+      new_obj = Marshal.send(@method, "\004\bIe:\nMethsC:\017UserRegexp/\000\000\006:\v@noise\"\tmuch")
 
-        new_obj.should == obj
-        new_obj.instance_variable_get(:@noise).should == 'much'
-        new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-        new_obj_metaclass_ancestors[@num_self_class, 3].should ==
-          [Meths, UserRegexp, Regexp]
-      end
+      new_obj.should == obj
+      new_obj.instance_variable_get(:@noise).should == 'much'
+      new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+      new_obj_metaclass_ancestors[@num_self_class, 3].should ==
+        [Meths, UserRegexp, Regexp]
     end
 
     it "restore the regexp instance variables" do
