@@ -293,7 +293,9 @@ module Natalie
               .map { |path| path.sub(%r{^.*/src/}, '') }
               .grep(%r{^([a-z0-9_]+/)?[a-z0-9_]+\.rb$})
           list = rb_files.sort.map { |name| name.split('.').first }
-          ['exception'] + (list - ['exception']) + @backend.compiler_context[:required_cpp_files].values # must come first
+          # 'exception' must come first; 'argf' depends on Enumerable and IO,
+          # so it must load after everything else.
+          ['exception'] + (list - %w[exception argf]) + ['argf'] + @backend.compiler_context[:required_cpp_files].values
         end
 
         def reindent(code)
