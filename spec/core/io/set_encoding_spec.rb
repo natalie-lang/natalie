@@ -5,10 +5,8 @@ describe :io_set_encoding_write, shared: true do
     @io = new_io @name, "#{@object}:ibm437:ibm866"
     @io.set_encoding nil, nil
 
-    NATFIXME 'sets the encodings to nil when they were set previously', exception: SpecFailedException do
-      @io.external_encoding.should be_nil
-      @io.internal_encoding.should be_nil
-    end
+    @io.external_encoding.should be_nil
+    @io.internal_encoding.should be_nil
   end
 
   it "sets the encodings to nil when the IO is built with no explicit encoding" do
@@ -31,10 +29,8 @@ describe :io_set_encoding_write, shared: true do
     Encoding.default_external = Encoding::IBM437
     Encoding.default_internal = Encoding::IBM866
 
-    NATFIXME 'prevents the encodings from changing when Encoding defaults are changed', exception: SpecFailedException do
-      @io.external_encoding.should be_nil
-      @io.internal_encoding.should be_nil
-    end
+    @io.external_encoding.should be_nil
+    @io.internal_encoding.should be_nil
   end
 
   it "sets the encodings to the current Encoding defaults" do
@@ -151,10 +147,8 @@ describe "IO#set_encoding when passed nil, nil" do
         STDOUT.set_encoding(nil, nil)
       end
 
-      NATFIXME 'It correctly resets standard IOs', exception: SpecFailedException do
-        STDOUT.external_encoding.should == nil
-        STDOUT.internal_encoding.should == nil
-      end
+      STDOUT.external_encoding.should == nil
+      STDOUT.internal_encoding.should == nil
     end
   end
 end

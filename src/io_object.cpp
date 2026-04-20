@@ -808,6 +808,12 @@ Value IoObject::set_encoding(Env *env, Optional<Value> ext_arg, Optional<Value> 
     Value ext_enc = ext_arg.value_or(Value::nil());
     Value int_enc = int_arg.value_or(Value::nil());
 
+    if (ext_arg && ext_enc.is_nil()) {
+        m_external_encoding = nullptr;
+        m_internal_encoding = nullptr;
+        return this;
+    }
+
     if (int_enc.is_nil() && ext_arg && (ext_enc.is_string() || ext_enc.respond_to(env, "to_str"_s))) {
         ext_enc = ext_enc.to_str(env);
         if (ext_enc.as_string()->include(":")) {
