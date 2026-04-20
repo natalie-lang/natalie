@@ -818,20 +818,30 @@ Value IoObject::set_encoding(Env *env, Optional<Value> ext_arg, Optional<Value> 
         }
     }
 
+    EncodingObject *new_ext = nullptr;
+    EncodingObject *new_int = nullptr;
+
     if (ext_enc != nullptr && !ext_enc.is_nil()) {
         if (ext_enc.is_encoding()) {
-            m_external_encoding = ext_enc.as_encoding();
+            new_ext = ext_enc.as_encoding();
         } else {
-            m_external_encoding = EncodingObject::find_encoding(env, ext_enc.to_str(env));
+            new_ext = EncodingObject::find_encoding(env, ext_enc.to_str(env));
         }
     }
     if (int_enc != nullptr && !int_enc.is_nil()) {
         if (int_enc.is_encoding()) {
-            m_internal_encoding = int_enc.as_encoding();
+            new_int = int_enc.as_encoding();
         } else {
-            m_internal_encoding = EncodingObject::find_encoding(env, int_enc.to_str(env));
+            new_int = EncodingObject::find_encoding(env, int_enc.to_str(env));
         }
     }
+
+    // If internal matches external, drop internal.
+    if (new_ext && new_int && new_ext == new_int)
+        new_int = nullptr;
+
+    if (new_ext) m_external_encoding = new_ext;
+    if (new_int) m_internal_encoding = new_int;
 
     return this;
 }

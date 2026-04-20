@@ -196,17 +196,13 @@ describe "IO#set_encoding" do
   it "ignores the internal encoding if the same as external when passed Encoding objects" do
     @io.set_encoding(Encoding::UTF_8, Encoding::UTF_8)
     @io.external_encoding.should == Encoding::UTF_8
-    NATFIXME 'ignores the internal encoding if the same as external when passed Encoding objects', exception: SpecFailedException do
-      @io.internal_encoding.should be_nil
-    end
+    @io.internal_encoding.should be_nil
   end
 
   it "ignores the internal encoding if the same as external when passed encoding names separated by ':'" do
     @io.set_encoding("utf-8:utf-8")
     @io.external_encoding.should == Encoding::UTF_8
-    NATFIXME "ignores the internal encoding if the same as external when passed encoding names separated by ':'", exception: SpecFailedException do
-      @io.internal_encoding.should be_nil
-    end
+    @io.internal_encoding.should be_nil
   end
 
   it "sets the external and internal encoding when passed the names of Encodings separated by ':'" do
