@@ -293,6 +293,11 @@ Env *build_top_env() {
     Encoding->const_set("EUC_JP"_s, EncodingEucJp);
     Encoding->const_set("EUCJP"_s, EncodingEucJp);
 
+    Value EncodingBig5 = new Big5EncodingObject {};
+    Encoding->const_set("Big5"_s, EncodingBig5);
+    Encoding->const_set("BIG5"_s, EncodingBig5);
+    Encoding->const_set("CP950"_s, EncodingBig5);
+
     Value EncodingIso88591 = new Iso88591EncodingObject {};
     Encoding->const_set("ISO_8859_1"_s, EncodingIso88591);
     Encoding->const_set("ISO8859_1"_s, EncodingIso88591);
