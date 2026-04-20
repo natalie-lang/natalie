@@ -164,10 +164,24 @@ Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, boo
         return is_a(env, val, Numeric);
     };
 
+    auto is_real = [&env](Value val) -> bool {
+        if (val.is_integer() || val.is_float() || val.is_rational())
+            return true;
+        if (val.is_complex())
+            return false;
+        return val.send(env, "real?"_s).is_truthy();
+    };
+
     if (is_numeric(real)) {
         if (!imaginary) {
+            if (!is_real(real))
+                return real;
             return ComplexObject::create(real);
         } else if (is_numeric(imaginary.value())) {
+            if (!is_real(real) || !is_real(imaginary.value())) {
+                auto i = ComplexObject::create(Value::integer(0), Value::integer(1));
+                return real.send(env, "+"_s, { imaginary->send(env, "*"_s, { i }) });
+            }
             return ComplexObject::create(real, imaginary.value());
         }
     }
