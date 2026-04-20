@@ -67,6 +67,24 @@ argf_class = Class.new do
     line
   end
 
+  def readlines(*args)
+    lines = []
+    while (line = gets(*args))
+      lines << line
+    end
+    lines
+  end
+  alias_method :to_a, :readlines
+
+  def each_line(*args)
+    return to_enum(:each_line, *args) unless block_given?
+    while (line = gets(*args))
+      yield line
+    end
+    self
+  end
+  alias_method :each, :each_line
+
   private
 
   def advance!
