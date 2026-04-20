@@ -2,6 +2,7 @@
 #include "natalie/integer_methods.hpp"
 #include "natalie/ioutil.hpp"
 #include "tm/defer.hpp"
+#include "tm/recursion_guard.hpp"
 
 #include <fcntl.h>
 #include <limits.h>
@@ -662,9 +663,16 @@ void IoObject::putstr(Env *env, StringObject *str) {
 }
 
 void IoObject::putary(Env *env, ArrayObject *ary) {
-    for (auto &item : *ary) {
-        this->puts(env, item);
-    }
+    TM::RecursionGuard guard { ary };
+    guard.run([&](bool is_recursive) {
+        if (is_recursive) {
+            this->putstr(env, StringObject::create("[...]"));
+        } else {
+            for (auto &item : *ary) {
+                this->puts(env, item);
+            }
+        }
+    });
 }
 
 void IoObject::puts(Env *env, Value val) {

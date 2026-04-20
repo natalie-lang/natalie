@@ -211,12 +211,37 @@ class StringIO
 
   def puts(*args)
     args = [$_] if args.empty?
-    args.flatten.each do |arg|
-      arg = arg.to_s unless arg.is_a?(String)
-      write(arg)
-      write("\n") unless arg.end_with?("\n")
-    end
+    args.each { |arg| puts_arg(arg, nil) }
     nil
+  end
+
+  private def puts_arg(arg, seen)
+    ary =
+      if arg.is_a?(Array)
+        arg
+      elsif !arg.is_a?(String) && arg.respond_to?(:to_ary)
+        arg.to_ary
+      end
+
+    if ary
+      seen ||= {}.compare_by_identity
+      if seen.include?(ary)
+        write("[...]\n")
+        return
+      end
+
+      seen[ary] = true
+      begin
+        ary.each { |item| puts_arg(item, seen) }
+      ensure
+        seen.delete(ary)
+      end
+    else
+      str = arg.is_a?(String) ? arg : arg.to_s
+      str = arg.inspect unless str.is_a?(String)
+      write(str)
+      write("\n") unless str.end_with?("\n")
+    end
   end
 
   def read(length = nil, out_string = nil)

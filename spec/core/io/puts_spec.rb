@@ -91,8 +91,7 @@ describe "IO#puts" do
     @io.puts(x).should == nil
   end
 
-  # NATFIXME: recursion case not handled yet
-  xit "writes [...] for a recursive array arg" do
+  it "writes [...] for a recursive array arg" do
     x = []
     x << 2 << x
     @io.puts(x).should == nil
