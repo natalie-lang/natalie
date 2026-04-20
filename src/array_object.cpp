@@ -691,16 +691,16 @@ Value ArrayObject::delete_if(Env *env, Block *block) {
     this->assert_not_frozen(env);
 
     Vector<size_t> marked_indexes;
+    Defer remove_marked_indexes([&]() {
+        while (!marked_indexes.is_empty())
+            m_vector.remove(marked_indexes.pop());
+    });
 
     for (size_t i = 0; i < size(); ++i) {
         Value result = block->run(env, { (*this)[i] }, nullptr);
         if (result.is_truthy()) {
             marked_indexes.push(i);
         }
-    }
-
-    while (!marked_indexes.is_empty()) {
-        m_vector.remove(marked_indexes.pop());
     }
 
     return this;
