@@ -36,6 +36,12 @@ argf_class = Class.new do
     file
   end
 
+  def fileno
+    raise ArgumentError, 'no stream' if @done
+    file.fileno
+  end
+  alias_method :to_i, :fileno
+
   def closed?
     return false unless @current_file
     @current_file.closed?
