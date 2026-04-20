@@ -1486,16 +1486,12 @@ describe "The predefined global constant" do
   describe "STDIN" do
     platform_is_not :windows do
       it "has the same external encoding as Encoding.default_external" do
-        NATFIXME 'Encodings', exception: SpecFailedException do
-          STDIN.external_encoding.should equal(Encoding.default_external)
-        end
+        STDIN.external_encoding.should equal(Encoding.default_external)
       end
 
       it "has the same external encoding as Encoding.default_external when that encoding is changed" do
         Encoding.default_external = Encoding::ISO_8859_16
-        NATFIXME 'Encodings', exception: SpecFailedException do
-          STDIN.external_encoding.should equal(Encoding::ISO_8859_16)
-        end
+        STDIN.external_encoding.should equal(Encoding::ISO_8859_16)
       end
 
       it "has nil for the internal encoding" do

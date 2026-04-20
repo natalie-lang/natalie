@@ -68,6 +68,7 @@ Value IoObject::initialize(Env *env, Args &&args, Block *block) {
             env->raise_errno(EINVAL);
     }
     set_fileno(fileno);
+    set_fmode(fmode_from_oflags(wanted_flags.has_mode() ? wanted_flags.flags() : actual_flags));
     set_encoding(env, wanted_flags.external_encoding(), wanted_flags.internal_encoding());
     m_autoclose = wanted_flags.autoclose();
     m_path = wanted_flags.path();
@@ -158,6 +159,13 @@ Value IoObject::each_byte(Env *env, Block *block) {
 
 int IoObject::fileno() const {
     return m_fileno;
+}
+
+int IoObject::fmode_from_oflags(int oflags) {
+    int fmode = 0;
+    if (flags_is_readable(oflags)) fmode |= FMODE_READABLE;
+    if (flags_is_writable(oflags)) fmode |= FMODE_WRITABLE;
+    return fmode;
 }
 
 int IoObject::fileno(Env *env) const {
@@ -499,7 +507,7 @@ int IoObject::write(Env *env, Value obj) {
         total_written += written;
     }
 
-    if (m_sync) ::fsync(m_fileno);
+    if (fmode_sync()) ::fsync(m_fileno);
 
     return total_written;
 }
@@ -808,6 +816,22 @@ Value IoObject::set_encoding(Env *env, Optional<Value> ext_arg, Optional<Value> 
     Value ext_enc = ext_arg.value_or(Value::nil());
     Value int_enc = int_arg.value_or(Value::nil());
 
+    if (ext_arg && ext_enc.is_nil() && (!int_arg || int_enc.is_nil())) {
+        auto default_internal = EncodingObject::default_internal();
+        auto default_external = EncodingObject::default_external();
+        auto binary = EncodingObject::get(Encoding::ASCII_8BIT);
+        if (default_internal && default_external != binary) {
+            m_external_encoding = default_external;
+            m_internal_encoding = default_internal;
+            if (m_external_encoding == m_internal_encoding)
+                m_internal_encoding = nullptr;
+        } else {
+            m_external_encoding = nullptr;
+            m_internal_encoding = nullptr;
+        }
+        return this;
+    }
+
     if (int_enc.is_nil() && ext_arg && (ext_enc.is_string() || ext_enc.respond_to(env, "to_str"_s))) {
         ext_enc = ext_enc.to_str(env);
         if (ext_enc.as_string()->include(":")) {
@@ -818,20 +842,30 @@ Value IoObject::set_encoding(Env *env, Optional<Value> ext_arg, Optional<Value> 
         }
     }
 
+    EncodingObject *new_ext = nullptr;
+    EncodingObject *new_int = nullptr;
+
     if (ext_enc != nullptr && !ext_enc.is_nil()) {
         if (ext_enc.is_encoding()) {
-            m_external_encoding = ext_enc.as_encoding();
+            new_ext = ext_enc.as_encoding();
         } else {
-            m_external_encoding = EncodingObject::find_encoding(env, ext_enc.to_str(env));
+            new_ext = EncodingObject::find_encoding(env, ext_enc.to_str(env));
         }
     }
     if (int_enc != nullptr && !int_enc.is_nil()) {
         if (int_enc.is_encoding()) {
-            m_internal_encoding = int_enc.as_encoding();
+            new_int = int_enc.as_encoding();
         } else {
-            m_internal_encoding = EncodingObject::find_encoding(env, int_enc.to_str(env));
+            new_int = EncodingObject::find_encoding(env, int_enc.to_str(env));
         }
     }
+
+    // If internal matches external, drop internal.
+    if (new_ext && new_int && new_ext == new_int)
+        new_int = nullptr;
+
+    if (new_ext) m_external_encoding = new_ext;
+    if (new_int) m_internal_encoding = new_int;
 
     return this;
 }
@@ -846,7 +880,10 @@ Value IoObject::set_lineno(Env *env, Value lineno) {
 
 Value IoObject::set_sync(Env *env, Value value) {
     raise_if_closed(env);
-    m_sync = value.is_truthy();
+    if (value.is_truthy())
+        m_fmode |= FMODE_SYNC;
+    else
+        m_fmode &= ~FMODE_SYNC;
     return value;
 }
 
@@ -1026,7 +1063,7 @@ int IoObject::set_pos(Env *env, Value position) {
 
 bool IoObject::sync(Env *env) const {
     raise_if_closed(env);
-    return m_sync;
+    return fmode_sync();
 }
 
 Value IoObject::sysread(Env *env, Value amount, Optional<Value> buffer) {
@@ -1061,7 +1098,7 @@ Value IoObject::syswrite(Env *env, Value obj) {
     if (result == -1)
         throw_unless_writable(env, this);
 
-    if (m_sync) ::fsync(m_fileno);
+    if (fmode_sync()) ::fsync(m_fileno);
 
     return Value::integer(result);
 }

@@ -63,6 +63,7 @@ Value FileObject::initialize(Env *env, Args &&args, Block *block) {
         set_fileno(fileno);
         set_path(filename.as_string());
     }
+    set_fmode(fmode_from_oflags(flags.flags()));
     set_encoding(env, flags.external_encoding(), flags.internal_encoding());
     if (block)
         env->warn("File::new() does not take block; use File::open() instead");

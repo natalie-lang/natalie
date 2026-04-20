@@ -35,9 +35,7 @@ describe :io_external_encoding_write, shared: true do
     it "returns the value of Encoding.default_external when the instance was created" do
       @io = new_io @name, @object
       Encoding.default_external = Encoding::UTF_8
-      NATFIXME 'returns the value of Encoding.default_external when the instance was created', exception: SpecFailedException do
-        @io.external_encoding.should equal(Encoding::IBM437)
-      end
+      @io.external_encoding.should equal(Encoding::IBM437)
     end
 
     it "returns the external encoding specified when the instance was created" do
@@ -62,9 +60,7 @@ describe :io_external_encoding_write, shared: true do
     it "returns the value of Encoding.default_external when the instance was created" do
       @io = new_io @name, @object
       Encoding.default_external = Encoding::UTF_8
-      NATFIXME 'returns the value of Encoding.default_external when the instance was created', exception: SpecFailedException do
-        @io.external_encoding.should equal(Encoding::IBM866)
-      end
+      @io.external_encoding.should equal(Encoding::IBM866)
     end
 
     it "returns the external encoding specified when the instance was created" do
@@ -101,9 +97,7 @@ describe "IO#external_encoding" do
   it "can be retrieved from a closed stream" do
     io = IOSpecs.io_fixture("lines.txt", "r")
     io.close
-    NATFIXME 'can be retrieved from a closed stream', exception: SpecFailedException do
-      io.external_encoding.should equal(Encoding.default_external)
-    end
+    io.external_encoding.should equal(Encoding.default_external)
   end
 
   describe "with 'r' mode" do
@@ -115,17 +109,13 @@ describe "IO#external_encoding" do
 
       it "returns Encoding.default_external if the external encoding is not set" do
         @io = new_io @name, "r"
-        NATFIXME 'returns Encoding.default_external if the external encoding is not set', exception: SpecFailedException do
-          @io.external_encoding.should equal(Encoding::IBM866)
-        end
+        @io.external_encoding.should equal(Encoding::IBM866)
       end
 
       it "returns Encoding.default_external when that encoding is changed after the instance is created" do
         @io = new_io @name, "r"
         Encoding.default_external = Encoding::IBM437
-        NATFIXME 'returns Encoding.default_external when that encoding is changed after the instance is created', exception: SpecFailedException do
-          @io.external_encoding.should equal(Encoding::IBM437)
-        end
+        @io.external_encoding.should equal(Encoding::IBM437)
       end
 
       it "returns the external encoding specified when the instance was created" do
@@ -150,9 +140,7 @@ describe "IO#external_encoding" do
       it "returns the value of Encoding.default_external when the instance was created" do
         @io = new_io @name, "r"
         Encoding.default_external = Encoding::IBM437
-        NATFIXME 'returns the value of Encoding.default_external when the instance was created', exception: SpecFailedException do
-          @io.external_encoding.should equal(Encoding::IBM866)
-        end
+        @io.external_encoding.should equal(Encoding::IBM866)
       end
 
       it "returns the external encoding specified when the instance was created" do

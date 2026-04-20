@@ -96,37 +96,31 @@ describe "IO.pipe" do
   end
 
   it "sets the external encoding of the read end to the default when passed no arguments" do
-    NATFIXME 'Encodings', exception: SpecFailedException do
-      Encoding.default_external = Encoding::ISO_8859_1
+    Encoding.default_external = Encoding::ISO_8859_1
 
-      IO.pipe do |r, w|
-        r.external_encoding.should == Encoding::ISO_8859_1
-        r.internal_encoding.should be_nil
-      end
+    IO.pipe do |r, w|
+      r.external_encoding.should == Encoding::ISO_8859_1
+      r.internal_encoding.should be_nil
     end
   end
 
   it "sets the internal encoding of the read end to the default when passed no arguments" do
-    NATFIXME 'Encodings', exception: SpecFailedException do
-      Encoding.default_external = Encoding::ISO_8859_1
-      Encoding.default_internal = Encoding::UTF_8
+    Encoding.default_external = Encoding::ISO_8859_1
+    Encoding.default_internal = Encoding::UTF_8
 
-      IO.pipe do |r, w|
-        r.external_encoding.should == Encoding::ISO_8859_1
-        r.internal_encoding.should == Encoding::UTF_8
-      end
+    IO.pipe do |r, w|
+      r.external_encoding.should == Encoding::ISO_8859_1
+      r.internal_encoding.should == Encoding::UTF_8
     end
   end
 
   it "sets the internal encoding to nil if the same as the external" do
-    NATFIXME 'Encodings', exception: SpecFailedException do
-      Encoding.default_external = Encoding::UTF_8
-      Encoding.default_internal = Encoding::UTF_8
+    Encoding.default_external = Encoding::UTF_8
+    Encoding.default_internal = Encoding::UTF_8
 
-      IO.pipe do |r, w|
-        r.external_encoding.should == Encoding::UTF_8
-        r.internal_encoding.should be_nil
-      end
+    IO.pipe do |r, w|
+      r.external_encoding.should == Encoding::UTF_8
+      r.internal_encoding.should be_nil
     end
   end
 

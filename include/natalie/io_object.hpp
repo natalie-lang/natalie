@@ -29,8 +29,8 @@ public:
         return new IoObject(type, klass);
     }
 
-    static IoObject *create(int fileno) {
-        return new IoObject(fileno);
+    static IoObject *create(int fileno, int fmode) {
+        return new IoObject(fileno, fmode);
     }
 
     virtual ~IoObject() override {
@@ -95,6 +95,12 @@ public:
     Value set_encoding(Env *, Optional<EncodingObject *>, Optional<EncodingObject *>);
     Value set_encoding(Env *, Optional<Value>, Optional<Value> = {});
     void set_fileno(int fileno) { m_fileno = fileno; }
+
+    enum FMode : int {
+        FMODE_READABLE = 0x1,
+        FMODE_WRITABLE = 0x2,
+        FMODE_SYNC = 0x4,
+    };
     Value set_lineno(Env *, Value);
     Value set_sync(Env *, Value);
     void set_nonblock(Env *, bool) const;
@@ -129,9 +135,13 @@ public:
     void set_path(String path) { m_path = StringObject::create(path); }
 
     Value external_encoding() const {
-        if (!m_external_encoding)
-            return Value::nil();
-        return m_external_encoding;
+        if (m_internal_encoding || fmode_writable())
+            return m_external_encoding ? Value(m_external_encoding) : Value::nil();
+        if (m_external_encoding)
+            return m_external_encoding;
+        if (auto def = EncodingObject::default_external())
+            return def;
+        return Value::nil();
     }
 
     Value internal_encoding() const {
@@ -155,16 +165,22 @@ protected:
     IoObject(Type type, ClassObject *klass)
         : Object { type, klass } { }
 
-    IoObject(int fileno)
-        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s).as_class() }
-        , m_sync { fileno == STDERR_FILENO } {
+    IoObject(int fileno, int fmode)
+        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s).as_class() } {
         set_fileno(fileno);
+        set_fmode(fmode);
     }
 
     void raise_if_closed(Env *) const;
     int write(Env *, Value);
 
+    static int fmode_from_oflags(int oflags);
+    void set_fmode(int fmode) { m_fmode = fmode; }
+
 private:
+    bool fmode_writable() const { return (m_fmode & FMODE_WRITABLE) != 0; }
+    bool fmode_sync() const { return (m_fmode & FMODE_SYNC) != 0; }
+
     static const nat_int_t WAIT_READABLE = 1;
     static const nat_int_t WAIT_PRIORITY = 2;
     static const nat_int_t WAIT_WRITABLE = 4;
@@ -173,13 +189,13 @@ private:
 
     EncodingObject *m_external_encoding { nullptr };
     EncodingObject *m_internal_encoding { nullptr };
+    int m_fmode { 0 };
     int m_fileno { -1 };
     FILE *m_fileptr { nullptr };
     int m_pid { -1 };
     int m_lineno { 0 };
     std::atomic<bool> m_closed { false };
     bool m_autoclose { true };
-    bool m_sync { false };
     StringObject *m_path { nullptr };
     TM::String m_read_buffer {};
 };

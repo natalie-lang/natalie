@@ -57,17 +57,13 @@ describe :io_internal_encoding, shared: true do
 
     it "returns the value of Encoding.default_internal when the instance was created if the internal encoding is not set" do
       @io = new_io @name, @object
-      NATFIXME 'returns the value of Encoding.default_internal when the instance was created if the internal encoding is not set', exception: SpecFailedException do
-        @io.internal_encoding.should equal(Encoding::IBM866)
-      end
+      @io.internal_encoding.should equal(Encoding::IBM866)
     end
 
     it "does not change when Encoding.default_internal is changed" do
       @io = new_io @name, @object
       Encoding.default_internal = Encoding::IBM437
-      NATFIXME 'does not change when Encoding.default_internal is changed', exception: SpecFailedException do
-        @io.internal_encoding.should equal(Encoding::IBM866)
-      end
+      @io.internal_encoding.should equal(Encoding::IBM866)
     end
 
     it "returns the internal encoding set when the instance was created" do
