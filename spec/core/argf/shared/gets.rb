@@ -76,24 +76,28 @@ describe :argf_gets_inplace_edit, shared: true do
   # -i with no backup extension is not supported on Windows
   platform_is_not :windows do
     it "modifies the files when in place edit mode is on" do
-      ruby_exe(@code,
-               options: "-i",
-               args: "#{@tmp1_name} #{@tmp2_name}")
+      NATFIXME 'in-place edit mode (-i) is not supported', exception: SpecFailedException do
+        ruby_exe(@code,
+                 options: "-i",
+                 args: "#{@tmp1_name} #{@tmp2_name}")
 
-      File.read(@tmp1_name).should == "x\nx\n"
-      File.read(@tmp2_name).should == "x\nx\n"
+        File.read(@tmp1_name).should == "x\nx\n"
+        File.read(@tmp2_name).should == "x\nx\n"
+      end
     end
   end
 
   it "modifies and backups two files when in place edit mode is on" do
-    ruby_exe(@code,
-             options: "-i.bak",
-             args: "#{@tmp1_name} #{@tmp2_name}")
+    NATFIXME 'in-place edit mode (-i) is not supported', exception: SpecFailedException do
+      ruby_exe(@code,
+               options: "-i.bak",
+               args: "#{@tmp1_name} #{@tmp2_name}")
 
-    File.read(@tmp1_name).should == "x\nx\n"
-    File.read(@tmp2_name).should == "x\nx\n"
+      File.read(@tmp1_name).should == "x\nx\n"
+      File.read(@tmp2_name).should == "x\nx\n"
 
-    File.read(@tmp1_name_bak).should == "file1.1\nfile1.2\n"
-    File.read(@tmp2_name_bak).should == "line2.1\nline2.2\n"
+      File.read(@tmp1_name_bak).should == "file1.1\nfile1.2\n"
+      File.read(@tmp2_name_bak).should == "line2.1\nline2.2\n"
+    end
   end
 end

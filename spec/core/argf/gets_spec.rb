@@ -42,7 +42,9 @@ describe "ARGF.gets" do
   it "reads the contents of the file with default encoding" do
     Encoding.default_external = Encoding::US_ASCII
     argf [@file1_name, @file2_name] do
-      @argf.gets.encoding.should == Encoding::US_ASCII
+      NATFIXME 'File#gets does not honor Encoding.default_external', exception: SpecFailedException do
+        @argf.gets.encoding.should == Encoding::US_ASCII
+      end
     end
   end
 
