@@ -65,11 +65,9 @@ describe "Kernel.Complex()" do
 
     context "invalid argument" do
       it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
-        NATFIXME 'Complex() should raise Encoding::CompatibilityError for UTF-16 encoded string', exception: SpecFailedException do
-          -> {
-            Complex("79+4i".encode("UTF-16"))
-          }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
-        end
+        -> {
+          Complex("79+4i".encode("UTF-16"))
+        }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
       end
 
       it "raises ArgumentError for unrecognised Strings" do
@@ -101,11 +99,9 @@ describe "Kernel.Complex()" do
       end
 
       it "does not understand a sequence of _" do
-        NATFIXME 'does not understand a sequence of _', exception: SpecFailedException do
-          -> {
-            Complex("7__9+4__0i")
-          }.should raise_error(ArgumentError, 'invalid value for convert(): "7__9+4__0i"')
-        end
+        -> {
+          Complex("7__9+4__0i")
+        }.should raise_error(ArgumentError, 'invalid value for convert(): "7__9+4__0i"')
       end
 
       it "does not allow null-byte" do
@@ -117,11 +113,9 @@ describe "Kernel.Complex()" do
 
     context "invalid argument and exception: false passed" do
       it "raises Encoding::CompatibilityError if String is in not ASCII-compatible encoding" do
-        NATFIXME 'Complex() should raise Encoding::CompatibilityError for UTF-16 encoded string with exception: false', exception: SpecFailedException do
-          -> {
-            Complex("79+4i".encode("UTF-16"), exception: false)
-          }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
-        end
+        -> {
+          Complex("79+4i".encode("UTF-16"), exception: false)
+        }.should raise_error(Encoding::CompatibilityError, "ASCII incompatible encoding: UTF-16")
       end
 
       it "returns nil for unrecognised Strings" do
@@ -158,19 +152,15 @@ describe "Kernel.Complex()" do
   describe "when passed an Object which responds to #to_c" do
     it "returns the passed argument" do
       obj = Object.new; def obj.to_c; 1i end
-      NATFIXME 'when passed an Object which responds to #to_c', exception: TypeError, message: "can't convert Object into Complex" do
-        Complex(obj).should == Complex(0, 1)
-      end
+      Complex(obj).should == Complex(0, 1)
     end
   end
 
   describe "when passed a Numeric which responds to #real? with false" do
     it "returns the passed argument" do
       n = mock_numeric("unreal")
-      NATFIXME 'when passed a Numeric which responds to #real? with false', exception: SpecFailedException do
-        n.should_receive(:real?).any_number_of_times.and_return(false)
-        Complex(n).should equal(n)
-      end
+      n.should_receive(:real?).any_number_of_times.and_return(false)
+      Complex(n).should equal(n)
     end
   end
 
@@ -191,13 +181,11 @@ describe "Kernel.Complex()" do
         n2 = mock_numeric("n2")
         n3 = mock_numeric("n3")
         n4 = mock_numeric("n4")
-        NATFIXME 'when passed Numerics n1 and n2 and at least one responds to #real? with false', exception: ArgumentError, message: 'comparison of MockNumeric with 0 failed' do
-          n1.should_receive(:real?).any_number_of_times.and_return(r1)
-          n2.should_receive(:real?).any_number_of_times.and_return(r2)
-          n2.should_receive(:*).with(Complex(0, 1)).and_return(n3)
-          n1.should_receive(:+).with(n3).and_return(n4)
-          Complex(n1, n2).should equal(n4)
-        end
+        n1.should_receive(:real?).any_number_of_times.and_return(r1)
+        n2.should_receive(:real?).any_number_of_times.and_return(r2)
+        n2.should_receive(:*).with(Complex(0, 1)).and_return(n3)
+        n1.should_receive(:+).with(n3).and_return(n4)
+        Complex(n1, n2).should equal(n4)
       end
     end
   end
@@ -218,10 +206,8 @@ describe "Kernel.Complex()" do
     it "coerces the passed argument using #to_c" do
       n = mock("n")
       c = Complex(0, 0)
-      NATFIXME 'when passed a single non-Numeric', exception: TypeError, message: "can't convert MockObject into Complex" do
-        n.should_receive(:to_c).and_return(c)
-        Complex(n).should equal(c)
-      end
+      n.should_receive(:to_c).and_return(c)
+      Complex(n).should equal(c)
     end
   end
 
@@ -234,11 +220,9 @@ describe "Kernel.Complex()" do
 
   describe "when passed nil" do
     it "raises TypeError" do
-      NATFIXME 'when passed nil', exception: SpecFailedException do
-        -> { Complex(nil) }.should raise_error(TypeError, "can't convert nil into Complex")
-        -> { Complex(0, nil) }.should raise_error(TypeError, "can't convert nil into Complex")
-        -> { Complex(nil, 0) }.should raise_error(TypeError, "can't convert nil into Complex")
-      end
+      -> { Complex(nil) }.should raise_error(TypeError, "can't convert nil into Complex")
+      -> { Complex(0, nil) }.should raise_error(TypeError, "can't convert nil into Complex")
+      -> { Complex(nil, 0) }.should raise_error(TypeError, "can't convert nil into Complex")
     end
   end
 
@@ -257,9 +241,7 @@ describe "Kernel.Complex()" do
 
     describe "and [non-Numeric, Numeric] argument" do
       it "throws a TypeError" do
-        NATFIXME '[non-Numeric, Numeric] argument', exception: SpecFailedException do
-          -> { Complex(:sym, 0, exception: false) }.should raise_error(TypeError, "not a real")
-        end
+        -> { Complex(:sym, 0, exception: false) }.should raise_error(TypeError, "not a real")
       end
     end
 

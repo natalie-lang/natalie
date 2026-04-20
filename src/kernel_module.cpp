@@ -140,14 +140,17 @@ Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, Opt
 }
 
 Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, bool exception) {
+    if (real.is_nil() || (imaginary && imaginary->is_nil())) {
+        if (exception)
+            env->raise("TypeError", "can't convert nil into Complex");
+        return Value::nil();
+    }
+
     if (real.is_string())
         return Complex(env, real.as_string(), exception, false);
 
     if (real.is_complex() && !imaginary)
         return real;
-
-    if (real.is_complex() && imaginary->is_complex())
-        return real.send(env, "+"_s, { imaginary->send(env, "*"_s, { ComplexObject::create(Value::integer(0), Value::integer(1)) }) });
 
     auto is_numeric = [&env](Value val) -> bool {
         if (val.is_numeric() || val.is_rational() || val.is_complex())
@@ -158,13 +161,33 @@ Value KernelModule::Complex(Env *env, Value real, Optional<Value> imaginary, boo
         return is_a(env, val, Numeric);
     };
 
+    auto is_real = [&env](Value val) -> bool {
+        if (val.is_integer() || val.is_float() || val.is_rational())
+            return true;
+        if (val.is_complex())
+            return false;
+        return val.send(env, "real?"_s).is_truthy();
+    };
+
     if (is_numeric(real)) {
         if (!imaginary) {
+            if (!is_real(real))
+                return real;
             return ComplexObject::create(real);
         } else if (is_numeric(imaginary.value())) {
+            if (!is_real(real) || !is_real(imaginary.value())) {
+                auto i = ComplexObject::create(Value::integer(0), Value::integer(1));
+                return real.send(env, "+"_s, { imaginary->send(env, "*"_s, { i }) });
+            }
             return ComplexObject::create(real, imaginary.value());
         }
     }
+
+    if (!imaginary && real.respond_to(env, "to_c"_s))
+        return real.send(env, "to_c"_s);
+
+    if (imaginary && is_numeric(imaginary.value()) && !is_numeric(real))
+        env->raise("TypeError", "not a real");
 
     if (exception)
         env->raise("TypeError", "can't convert {} into Complex", real.klass()->inspect_module());
@@ -178,6 +201,8 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
             env->raise("ArgumentError", "invalid value for convert(): \"{}\"", input->string());
         return Value::nil();
     };
+    if (!string_to_c)
+        input->assert_ascii_compatible_encoding(env);
     if (!input->is_ascii_only()) {
         if (string_to_c)
             return ComplexObject::create(Value::integer(0));
@@ -251,7 +276,7 @@ Value KernelModule::Complex(Env *env, StringObject *input, bool exception, bool 
                     imag_start = imag_end = nullptr;
                     state = State::Finished;
                 } else {
-                    return Value::nil();
+                    return error();
                 }
             } else if (*c == '.') {
                 if (*curr_type == Type::Integer) {
