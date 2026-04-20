@@ -640,6 +640,19 @@ module Marshal
       result
     end
 
+    def read_data_object
+      name = read_value
+      klass = find_constant(name)
+      raise ArgumentError, 'dump format error' unless klass.method_defined?(:_dump_data)
+      object = klass.allocate
+      unless object.respond_to?(:_load_data, true)
+        raise TypeError, "class #{name} needs to have instance method `_load_data'"
+      end
+      data = read_value
+      object.__send__(:_load_data, data)
+      object
+    end
+
     def read_regexp
       string = read_string
       options = read_byte
@@ -835,6 +848,8 @@ module Marshal
               read_user_class
             when 'e'
               read_extended(ivars_consumed)
+            when 'd'
+              read_data_object
             else
               raise ArgumentError, 'dump format error'
             end

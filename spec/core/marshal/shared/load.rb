@@ -1259,13 +1259,11 @@ describe :marshal_load, shared: true do
 
       data = "\x04\bd:\x10DumpableDirI\"\x06.\x06:\x06ET"
 
-      NATFIXME 'it loads a wrapped C pointer', exception: ArgumentError, message: 'dump format error' do
-        dir = Marshal.send(@method, data)
-        begin
-          dir.path.should == '.'
-        ensure
-          dir.close
-        end
+      dir = Marshal.send(@method, data)
+      begin
+        dir.path.should == '.'
+      ensure
+        dir.close
       end
     end
 
@@ -1279,9 +1277,7 @@ describe :marshal_load, shared: true do
 
       data = "\x04\bd:\x1AUnloadableDumpableDirI\"\x06.\x06:\x06ET"
 
-      NATFIXME 'it loads a wrapped C pointer', exception: SpecFailedException, message: 'dump format error' do
-        -> { Marshal.send(@method, data) }.should raise_error(TypeError)
-      end
+      -> { Marshal.send(@method, data) }.should raise_error(TypeError)
     end
 
     it "raises ArgumentError when the local class is a regular object" do
