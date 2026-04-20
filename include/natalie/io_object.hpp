@@ -94,7 +94,7 @@ public:
     Value set_close_on_exec(Env *, Value);
     Value set_encoding(Env *, Optional<EncodingObject *>, Optional<EncodingObject *>);
     Value set_encoding(Env *, Optional<Value>, Optional<Value> = {});
-    void set_fileno(int fileno) { m_fileno = fileno; }
+    void set_fileno(int fileno);
     Value set_lineno(Env *, Value);
     Value set_sync(Env *, Value);
     void set_nonblock(Env *, bool) const;
@@ -129,9 +129,13 @@ public:
     void set_path(String path) { m_path = StringObject::create(path); }
 
     Value external_encoding() const {
-        if (!m_external_encoding)
-            return Value::nil();
-        return m_external_encoding;
+        if (m_internal_encoding || m_writable)
+            return m_external_encoding ? Value(m_external_encoding) : Value::nil();
+        if (m_external_encoding)
+            return m_external_encoding;
+        if (auto def = EncodingObject::default_external())
+            return def;
+        return Value::nil();
     }
 
     Value internal_encoding() const {
@@ -173,6 +177,7 @@ private:
 
     EncodingObject *m_external_encoding { nullptr };
     EncodingObject *m_internal_encoding { nullptr };
+    bool m_writable { false };
     int m_fileno { -1 };
     FILE *m_fileptr { nullptr };
     int m_pid { -1 };

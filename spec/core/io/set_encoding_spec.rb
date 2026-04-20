@@ -41,10 +41,8 @@ describe :io_set_encoding_write, shared: true do
 
     @io.set_encoding nil, nil
 
-    NATFIXME 'sets the encodings to the current Encoding defaults', exception: SpecFailedException do
-      @io.external_encoding.should == Encoding::IBM437
-      @io.internal_encoding.should == Encoding::IBM866
-    end
+    @io.external_encoding.should == Encoding::IBM437
+    @io.internal_encoding.should == Encoding::IBM866
   end
 end
 
@@ -77,10 +75,8 @@ describe "IO#set_encoding when passed nil, nil" do
       Encoding.default_internal = Encoding::IBM866
 
       @io.set_encoding nil, nil
-      NATFIXME 'sets the encodings to the current Encoding defaults', exception: SpecFailedException do
-        @io.external_encoding.should equal(Encoding::IBM437)
-        @io.internal_encoding.should equal(Encoding::IBM866)
-      end
+      @io.external_encoding.should equal(Encoding::IBM437)
+      @io.internal_encoding.should equal(Encoding::IBM866)
     end
 
     it "prevents the #internal_encoding from changing when Encoding.default_internal is changed" do
@@ -98,9 +94,7 @@ describe "IO#set_encoding when passed nil, nil" do
 
       Encoding.default_external = Encoding::IBM437
 
-      NATFIXME 'allows the #external_encoding to change when Encoding.default_external is changed', exception: SpecFailedException do
-        @io.external_encoding.should equal(Encoding::IBM437)
-      end
+      @io.external_encoding.should equal(Encoding::IBM437)
     end
   end
 
@@ -110,9 +104,7 @@ describe "IO#set_encoding when passed nil, nil" do
       @io.external_encoding.should equal(Encoding::BINARY)
 
       @io.set_encoding nil, nil
-      NATFIXME "returns Encoding.default_external with 'rb' mode", exception: SpecFailedException do
-        @io.external_encoding.should equal(Encoding.default_external)
-      end
+      @io.external_encoding.should equal(Encoding.default_external)
     end
   end
 

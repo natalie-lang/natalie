@@ -160,6 +160,15 @@ int IoObject::fileno() const {
     return m_fileno;
 }
 
+void IoObject::set_fileno(int fileno) {
+    m_fileno = fileno;
+    if (fileno >= 0) {
+        int flags = ::fcntl(fileno, F_GETFL);
+        if (flags >= 0)
+            m_writable = flags_is_writable(flags);
+    }
+}
+
 int IoObject::fileno(Env *env) const {
     raise_if_closed(env);
     return m_fileno;
@@ -808,9 +817,19 @@ Value IoObject::set_encoding(Env *env, Optional<Value> ext_arg, Optional<Value> 
     Value ext_enc = ext_arg.value_or(Value::nil());
     Value int_enc = int_arg.value_or(Value::nil());
 
-    if (ext_arg && ext_enc.is_nil()) {
-        m_external_encoding = nullptr;
-        m_internal_encoding = nullptr;
+    if (ext_arg && ext_enc.is_nil() && (!int_arg || int_enc.is_nil())) {
+        auto default_internal = EncodingObject::default_internal();
+        auto default_external = EncodingObject::default_external();
+        auto binary = EncodingObject::get(Encoding::ASCII_8BIT);
+        if (default_internal && default_external != binary) {
+            m_external_encoding = default_external;
+            m_internal_encoding = default_internal;
+            if (m_external_encoding == m_internal_encoding)
+                m_internal_encoding = nullptr;
+        } else {
+            m_external_encoding = nullptr;
+            m_internal_encoding = nullptr;
+        }
         return this;
     }
 
