@@ -63,6 +63,13 @@ argf_class = Class.new do
     self
   end
 
+  def skip
+    return self if @done || @current_file.nil?
+    @current_file.close if @current_file != $stdin && !@current_file.closed?
+    @current_file = nil
+    self
+  end
+
   def closed?
     return false unless @current_file
     @current_file.closed?
@@ -205,7 +212,7 @@ argf_class = Class.new do
   def advance!
     if @current_file
       return false if argv.empty?
-      @current_file.close unless @current_file == $stdin || @current_file.closed?
+      @current_file.close if @current_file != $stdin && !@current_file.closed?
     end
     if argv.empty?
       @current_filename = '-'
