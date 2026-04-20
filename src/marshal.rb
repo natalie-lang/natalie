@@ -143,15 +143,19 @@ module Marshal
       write_ivars(ivars, limit) unless ivars.empty?
     end
 
-    def write_symbol(value)
+    def write_symbol(value, limit = -1)
       if @symbol_lookup.key?(value)
         write_char(';')
         write_integer_bytes(@symbol_lookup[value])
-      else
-        write_char(':')
-        write_string_bytes(value)
-        @symbol_lookup[value] = @symbol_lookup.size
+        return
       end
+      ivars = []
+      add_encoding_to_ivars(value, ivars) unless value.to_s.ascii_only?
+      write_char('I') unless ivars.empty?
+      write_char(':')
+      write_string_bytes(value)
+      @symbol_lookup[value] = @symbol_lookup.size
+      write_ivars(ivars, limit) unless ivars.empty?
     end
 
     def write_float(value)
@@ -428,7 +432,7 @@ module Marshal
       elsif String === value
         write_string(value, ivars, limit)
       elsif Symbol === value
-        write_symbol(value)
+        write_symbol(value, limit)
       elsif Float === value
         write_float(value)
       elsif Array === value

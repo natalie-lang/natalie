@@ -95,12 +95,10 @@ describe "Marshal.dump" do
         "€a".dup.force_encoding(Encoding::UTF_8).to_sym,
         "€b".dup.force_encoding(Encoding::UTF_8).to_sym
       ]
-      NATFIXME 'symbol links for ivar names', exception: SpecFailedException do
-        Marshal.dump(value).should == "\x04\b[\a#{symbol1}#{symbol2}"
+      Marshal.dump(value).should == "\x04\b[\a#{symbol1}#{symbol2}"
 
-        value = [*value, value[0]]
-        Marshal.dump(value).should == "\x04\b[\b#{symbol1}#{symbol2};\x00"
-      end
+      value = [*value, value[0]]
+      Marshal.dump(value).should == "\x04\b[\b#{symbol1}#{symbol2};\x00"
     end
 
     it "uses symbol links for objects repeatedly dumped" do
