@@ -426,9 +426,7 @@ describe :marshal_load, shared: true do
     temp_file = tmp("marshal.rubyspec.tmp.#{Process.pid}")
     file = File.new(temp_file, "w+")
     begin
-      NATFIXME 'raises EOFError on loading an empty file', exception: SpecFailedException, message: 'marshal data too short' do
-        -> { Marshal.send(@method, file) }.should raise_error(EOFError)
-      end
+      -> { Marshal.send(@method, file) }.should raise_error(EOFError)
     ensure
       file.close
       rm_r temp_file

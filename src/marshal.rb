@@ -495,7 +495,7 @@ module Marshal
 
     def read_byte
       byte = @source.getbyte
-      raise ArgumentError, 'marshal data too short' if byte.nil?
+      raise EOFError if byte.nil?
 
       byte
     end
