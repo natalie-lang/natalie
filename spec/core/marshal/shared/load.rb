@@ -1236,9 +1236,7 @@ describe :marshal_load, shared: true do
     end
 
     it "loads an old module" do
-      NATFIXME 'loads an old module', exception: ArgumentError, message: 'dump format error' do
-        Marshal.send(@method, "\x04\bM\vKernel").should == Kernel
-      end
+      Marshal.send(@method, "\x04\bM\vKernel").should == Kernel
     end
 
     it "raises ArgumentError when end of byte sequence reached before module name end" do

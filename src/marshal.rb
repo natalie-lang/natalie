@@ -633,6 +633,13 @@ module Marshal
       result
     end
 
+    def read_old_module
+      name = read_string
+      result = find_constant(name)
+      raise ArgumentError, "#{name} does not refer to class/module" unless result.is_a?(Module)
+      result
+    end
+
     def read_regexp
       string = read_string
       options = read_byte
@@ -812,6 +819,8 @@ module Marshal
               read_class
             when 'm'
               read_module
+            when 'M'
+              read_old_module
             when '/'
               read_regexp
             when 'U'
