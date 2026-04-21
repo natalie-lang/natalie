@@ -38,6 +38,7 @@ public:
     virtual bool is_single_byte_encoding() const override final { return false; }
     virtual int code_unit_size() const override { return 4; }
     virtual int expected_byte_count(const String &, size_t) const override { return 4; }
+    virtual bool is_char_boundary(const String &, size_t byte_offset) const override { return byte_offset % 4 == 0; }
 };
 
 }

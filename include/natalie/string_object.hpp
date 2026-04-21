@@ -312,6 +312,7 @@ public:
 
     StringObject *to_s();
 
+    bool is_char_boundary(size_t) const;
     bool internal_start_with(Env *, Value);
     bool start_with(Env *, Args &&);
     bool end_with(Env *, Value) const;

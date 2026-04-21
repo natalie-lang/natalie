@@ -653,6 +653,10 @@ StringObject *StringObject::to_s() {
     }
 }
 
+bool StringObject::is_char_boundary(size_t byte_offset) const {
+    return m_encoding->is_char_boundary(m_string, byte_offset);
+}
+
 bool StringObject::internal_start_with(Env *env, Value needle) {
     if (needle.is_regexp()) {
         needle = needle.as_regexp()->to_s(env);
@@ -661,8 +665,10 @@ bool StringObject::internal_start_with(Env *env, Value needle) {
         return needle.as_regexp()->match(env, this).is_truthy();
     }
 
-    nat_int_t i = index_int(env, needle, 0);
-    return i == 0;
+    auto needle_str = needle.to_str(env);
+    nat_int_t i = index_int(env, needle_str, 0);
+    if (i != 0) return false;
+    return is_char_boundary(needle_str->bytesize());
 }
 
 bool StringObject::start_with(Env *env, Args &&args) {
@@ -676,15 +682,18 @@ bool StringObject::start_with(Env *env, Args &&args) {
     return false;
 }
 
-// NATFIXME : broken for searching the middle of a multibyte char
 bool StringObject::end_with(Env *env, Value needle) const {
     needle = needle.to_str(env);
     needle.assert_type(env, Object::Type::String, "String");
-    if (length() < needle.as_string()->length())
+    auto needle_str = needle.as_string();
+    assert_compatible_string(env, needle_str);
+    auto needle_size = needle_str->bytesize();
+    if (bytesize() < needle_size)
         return false;
-    auto from_end = StringObject::create(c_str() + length() - needle.as_string()->length());
-    nat_int_t i = from_end->index_int(env, needle, 0);
-    return i == 0;
+    size_t offset = bytesize() - needle_size;
+    if (memcmp(c_str() + offset, needle_str->c_str(), needle_size) != 0)
+        return false;
+    return is_char_boundary(offset);
 }
 
 bool StringObject::end_with(Env *env, Args &&args) const {
