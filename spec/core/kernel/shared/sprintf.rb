@@ -60,10 +60,8 @@ describe :kernel_sprintf, shared: true do
         end
 
         it "converts to the empty string if precision is 0 and value is 0" do
-          NATFIXME 'it converts to the empty string if precision is 0 and value is 0', exception: ArgumentError, message: /no transition from :precision_period with char "."/ do
-            @method.call("%.#{f}", 0).should == ""
-            @method.call("%.0#{f}", 0).should == ""
-          end
+          @method.call("%.#{f}", 0).should == ""
+          @method.call("%.0#{f}", 0).should == ""
         end
       end
     end

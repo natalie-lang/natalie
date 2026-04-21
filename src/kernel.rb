@@ -348,7 +348,8 @@ module Kernel
         value = i.abs.to_s(base)
       end
 
-      prefix = '' unless token.flags.include?(:alternate_format)
+      alternate_format = token.flags.include?(:alternate_format)
+      prefix = '' unless alternate_format
 
       # '%#x' % 0 should not produce '0x0'
       prefix = '' if value == '0'
@@ -357,8 +358,13 @@ module Kernel
       prefix = '' if prefix == '0' && i.negative?
 
       if token.precision
-        needed = token.precision - value.size - (dotdot_sign&.size || 0)
-        value = ('0' * ([needed, 0].max)) + value
+        # '%.0d' % 0 => '' but '%#.0o' % 0 => '0'
+        if token.precision.zero? && value == '0' && !(base == 8 && alternate_format)
+          value = ''
+        else
+          needed = token.precision - value.size - (dotdot_sign&.size || 0)
+          value = ('0' * ([needed, 0].max)) + value
+        end
       end
 
       build_numeric_value_with_padding(token: token, sign: sign, value: value, prefix: prefix, dotdot_sign: dotdot_sign)
@@ -541,6 +547,7 @@ module Kernel
           return: :field,
         },
         precision_period: {
+          on_alpha: :field_end,
           on_number: :precision,
           on_zero: :precision,
           on_asterisk: :precision_from_arg,
@@ -680,8 +687,10 @@ module Kernel
             tokens << Token.new(type: :literal, datum: char)
           when :literal_percent
             tokens << Token.new(type: :literal, datum: "%#{char}")
-          when :field, :precision_period
+          when :field
             :noop
+          when :precision_period
+            @precision = 0
           when :flag
             flags << case char
             when '#'
@@ -711,7 +720,8 @@ module Kernel
             @precision = (@precision || 0) * 10 + char.to_i
             raise ArgumentError, 'precision too big' if precision > 2**64
           when :precision_from_arg
-            raise ArgumentError, 'precision given twice' if precision || flags.include?(:precision_given_as_arg)
+            raise ArgumentError, 'precision given twice' if flags.include?(:precision_given_as_arg)
+            @precision = nil
             flags << :precision_given_as_arg
           when :precision_from_positional_arg
             @precision_arg_position = (@precision_arg_position || 0) * 10 + char.to_i
