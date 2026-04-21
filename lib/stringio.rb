@@ -549,8 +549,12 @@ class StringIO
     __assert_not_write_closed
 
     argument = argument.to_s unless argument.is_a? String
+    bytesize = argument.bytes.size
 
     @mutex.synchronize do
+      unless argument.encoding == @string.encoding
+        argument = argument.dup.force_encoding(@string.encoding)
+      end
       if __appending?
         @string << argument
         @index = @string.length
@@ -562,7 +566,7 @@ class StringIO
         @index += argument.length
       end
     end
-    argument.bytes.size
+    bytesize
   end
 
   alias syswrite write

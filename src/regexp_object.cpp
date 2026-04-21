@@ -157,11 +157,9 @@ Value RegexpObject::quote(Env *env, Value string) {
         }
     }
 
-    auto encoding = EncodingObject::get(Encoding::ASCII_8BIT);
-    if (str->is_ascii_only())
-        encoding = EncodingObject::get(Encoding::US_ASCII);
-    else if (str->valid_encoding())
-        encoding = str->encoding();
+    auto encoding = str->is_ascii_only()
+        ? EncodingObject::get(Encoding::US_ASCII)
+        : str->encoding();
     return StringObject::create(std::move(out), encoding);
 }
 
