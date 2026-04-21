@@ -552,9 +552,7 @@ class StringIO
     bytesize = argument.bytes.size
 
     @mutex.synchronize do
-      unless argument.encoding == @string.encoding
-        argument = argument.dup.force_encoding(@string.encoding)
-      end
+      argument = argument.dup.force_encoding(@string.encoding) unless argument.encoding == @string.encoding
       if __appending?
         @string << argument
         @index = @string.length
