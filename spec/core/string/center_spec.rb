@@ -109,8 +109,7 @@ describe "String#center with length, padding" do
       end
     end
 
-    # NATFIXME: Add back after adding encodings.
-    xit "raises an Encoding::CompatibilityError if the encodings are incompatible" do
+    it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
       pat = "ア".encode Encoding::EUC_JP
       -> do
         "あれ".center 5, pat

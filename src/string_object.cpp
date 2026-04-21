@@ -265,21 +265,19 @@ String create_padding(String &padding, size_t length) {
 Value StringObject::center(Env *env, Value length, Optional<Value> pad_arg) {
     nat_int_t length_i = length.to_int(env).to_nat_int_t();
 
-    String pad;
+    StringObject *padstr;
+    if (pad_arg)
+        padstr = pad_arg->to_str(env);
+    else
+        padstr = StringObject::create(" ");
 
-    if (!pad_arg) {
-        pad = String { " " };
-    } else {
-        auto padstr = pad_arg.value();
-        if (padstr.is_string()) {
-            pad = padstr.as_string()->string();
-        } else {
-            pad = padstr.to_str(env)->string();
-        }
-    }
+    auto pad = padstr->string();
 
     if (pad.is_empty())
         env->raise("ArgumentError", "zero width padding");
+
+    if (!EncodingObject::compatible(this, padstr))
+        m_encoding->raise_compatibility_error(env, padstr->encoding());
 
     if (length_i <= (nat_int_t)m_string.size())
         return this;
@@ -3685,6 +3683,9 @@ Value StringObject::ljust(Env *env, Value length_obj, Optional<Value> pad_arg) c
 
     if (padstr->string().is_empty())
         env->raise("ArgumentError", "zero width padding");
+
+    if (!EncodingObject::compatible(this, padstr))
+        m_encoding->raise_compatibility_error(env, padstr->encoding());
 
     StringObject *copy = StringObject::create(m_string, m_encoding);
     while (copy->length() < length) {
