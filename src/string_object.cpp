@@ -262,19 +262,18 @@ String create_padding(String &padding, size_t length) {
     return buffer;
 }
 
+static StringObject *resolve_padstr(Env *env, Optional<Value> pad_arg) {
+    auto padstr = pad_arg ? pad_arg->to_str(env) : StringObject::create(" ");
+    if (padstr->string().is_empty())
+        env->raise("ArgumentError", "zero width padding");
+    return padstr;
+}
+
 Value StringObject::center(Env *env, Value length, Optional<Value> pad_arg) {
     nat_int_t length_i = length.to_int(env).to_nat_int_t();
 
-    StringObject *padstr;
-    if (pad_arg)
-        padstr = pad_arg->to_str(env);
-    else
-        padstr = StringObject::create(" ");
-
+    auto padstr = resolve_padstr(env, pad_arg);
     auto pad = padstr->string();
-
-    if (pad.is_empty())
-        env->raise("ArgumentError", "zero width padding");
 
     if (!EncodingObject::compatible(this, padstr))
         m_encoding->raise_compatibility_error(env, padstr->encoding());
@@ -3675,14 +3674,7 @@ Value StringObject::ljust(Env *env, Value length_obj, Optional<Value> pad_arg) c
     nat_int_t length_i = length_obj.to_int(env).to_nat_int_t();
     size_t length = length_i < 0 ? 0 : length_i;
 
-    StringObject *padstr;
-    if (pad_arg)
-        padstr = pad_arg->to_str(env);
-    else
-        padstr = StringObject::create(" ");
-
-    if (padstr->string().is_empty())
-        env->raise("ArgumentError", "zero width padding");
+    auto padstr = resolve_padstr(env, pad_arg);
 
     if (!EncodingObject::compatible(this, padstr))
         m_encoding->raise_compatibility_error(env, padstr->encoding());
@@ -3778,14 +3770,7 @@ Value StringObject::rjust(Env *env, Value length_obj, Optional<Value> pad_arg) c
     nat_int_t length_i = length_obj.to_int(env).to_nat_int_t();
     size_t length = length_i < 0 ? 0 : length_i;
 
-    StringObject *padstr;
-    if (pad_arg)
-        padstr = pad_arg->to_str(env);
-    else
-        padstr = StringObject::create(" ");
-
-    if (padstr->string().is_empty())
-        env->raise("ArgumentError", "zero width padding");
+    auto padstr = resolve_padstr(env, pad_arg);
 
     auto compatible_encoding = EncodingObject::compatible(this, padstr);
     if (!compatible_encoding)
