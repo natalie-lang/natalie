@@ -17,15 +17,11 @@ describe :string_eql_value, shared: true do
   end
 
   it "considers encoding difference of incompatible string" do
-    NATFIXME 'considers encoding difference of incompatible string', exception: SpecFailedException do
-      "\xff".dup.force_encoding("utf-8").send(@method, "\xff".dup.force_encoding("iso-8859-1")).should be_false
-    end
+    "\xff".dup.force_encoding("utf-8").send(@method, "\xff".dup.force_encoding("iso-8859-1")).should be_false
   end
 
   it "considers encoding compatibility" do
-    NATFIXME 'considers encoding compatibility', exception: SpecFailedException do
-      "abcd".dup.force_encoding("utf-8").send(@method, "abcd".dup.force_encoding("utf-32le")).should be_false
-    end
+    "abcd".dup.force_encoding("utf-8").send(@method, "abcd".dup.force_encoding("utf-32le")).should be_false
   end
 
   it "ignores subclass differences" do

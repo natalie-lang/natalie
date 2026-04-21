@@ -302,7 +302,12 @@ public:
     Value ltlt(Env *, Value);
 
     bool eql(Value arg) const {
-        return *this == arg;
+        if (!arg.is_string())
+            return false;
+        auto other = arg.as_string();
+        if (!EncodingObject::compatible(this, other))
+            return false;
+        return m_string == other->m_string;
     }
 
     StringObject *to_s();
