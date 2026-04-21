@@ -150,7 +150,7 @@ module Kernel
 
       val =
         if token.value_arg_name
-          get_named_argument(token.value_arg_name)
+          get_named_argument(token)
         elsif token.value_arg_position
           get_positional_argument(token.value_arg_position)
         else
@@ -448,12 +448,16 @@ module Kernel
       arg
     end
 
-    def get_named_argument(name)
-      if arguments.size == 1 && arguments.first.is_a?(Hash)
-        arguments.first.fetch(name.to_sym)
-      else
-        raise ArgumentError, 'one hash required'
+    def get_named_argument(token)
+      raise ArgumentError, 'one hash required' unless arguments.size == 1 && arguments.first.is_a?(Hash)
+      hash = arguments.first
+      key = token.value_arg_name.to_sym
+      val = hash[key]
+      if val.nil? && !hash.key?(key)
+        open, close = token.datum ? %w[< >] : %w[{ }]
+        raise KeyError.new("key#{open}#{token.value_arg_name}#{close} not found", receiver: hash, key: key)
       end
+      val
     end
 
     def get_positional_argument(position)
