@@ -2749,6 +2749,14 @@ Value StringObject::refeq(Env *env, Value arg1, Optional<Value> arg2, Optional<V
     return value.value();
 }
 
+static std::pair<EncodingObject *, bool> negotiate_result_encoding(Env *env, std::pair<EncodingObject *, bool> state, EncodingObject *piece_enc, bool piece_ascii_only) {
+    auto [enc, ascii_only] = state;
+    auto negotiated = EncodingObject::compatible(enc, ascii_only, piece_enc, piece_ascii_only);
+    if (!negotiated)
+        enc->raise_compatibility_error(env, piece_enc);
+    return { negotiated, ascii_only && piece_ascii_only };
+}
+
 Value StringObject::sub(Env *env, Value find, Optional<Value> replacement_value, Block *block) {
     if (!block && !replacement_value)
         env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
@@ -2762,18 +2770,28 @@ Value StringObject::sub(Env *env, Value find, Optional<Value> replacement_value,
         env->raise("TypeError", "wrong argument type {} (expected Regexp)", find.klass()->inspect_module());
 
     MatchDataObject *match;
-    StringObject *expanded_replacement;
+    StringObject *expanded_replacement = nullptr;
     String out;
+    std::pair<EncodingObject *, bool> result { m_encoding.ptr(), true };
+
     regexp_sub(env, out, this, find.as_regexp(), replacement_value, &match, &expanded_replacement, 0, block);
 
+    size_t prefix_end = match ? (size_t)match->beg_byte_index(0) : m_string.size();
+    if (prefix_end > 0)
+        result = negotiate_result_encoding(env, result, m_encoding.ptr(), m_string.is_ascii_only(0, prefix_end));
+    if (expanded_replacement)
+        result = negotiate_result_encoding(env, result, expanded_replacement->encoding(), expanded_replacement->is_ascii_only());
+
     if (match) {
-        // append remaining bytes from source string
         auto byte_index = match->end_byte_index(0);
-        if (byte_index >= 0 && (size_t)byte_index < m_string.size())
+        if (byte_index >= 0 && (size_t)byte_index < m_string.size()) {
+            auto tail_len = m_string.size() - byte_index;
+            result = negotiate_result_encoding(env, result, m_encoding.ptr(), m_string.is_ascii_only(byte_index, tail_len));
             out.append(m_string.substring(byte_index));
+        }
     }
 
-    return StringObject::create(out, m_encoding);
+    return StringObject::create(out, result.first);
 }
 
 Value StringObject::sub_in_place(Env *env, Value find, Optional<Value> replacement_value, Block *block) {
@@ -2803,16 +2821,28 @@ Value StringObject::gsub(Env *env, Value find, Optional<Value> replacement_value
     StringObject *expanded_replacement = nullptr;
     size_t byte_index = 0;
     String out;
+    std::pair<EncodingObject *, bool> result { m_encoding.ptr(), true };
 
     do {
         match = nullptr;
+        expanded_replacement = nullptr;
+        size_t prefix_start = byte_index;
         this->regexp_sub(env, out, this, find.as_regexp(), replacement_value, &match, &expanded_replacement, byte_index, block);
+
+        size_t prefix_end = match ? (size_t)match->beg_byte_index(0) : m_string.size();
+        if (prefix_start < prefix_end)
+            result = negotiate_result_encoding(env, result, m_encoding.ptr(), m_string.is_ascii_only(prefix_start, prefix_end - prefix_start));
+        if (expanded_replacement)
+            result = negotiate_result_encoding(env, result, expanded_replacement->encoding(), expanded_replacement->is_ascii_only());
+
         if (match) {
             byte_index = match->end_byte_index(0);
             if (match->is_empty()) {
-                if (byte_index < m_string.size())
-                    out += peek_char(byte_index);
-
+                if (byte_index < m_string.size()) {
+                    auto peeked = peek_char(byte_index);
+                    result = negotiate_result_encoding(env, result, m_encoding.ptr(), m_string.is_ascii_only(byte_index, peeked.size()));
+                    out += peeked;
+                }
                 // The match was empty, and running it again with the same byte_index would cause an infinite loop.
                 // So we increment ahead one character, and run the match again.
                 if (byte_index < m_string.size())
@@ -2824,17 +2854,18 @@ Value StringObject::gsub(Env *env, Value find, Optional<Value> replacement_value
         }
     } while (match);
 
-    return StringObject::create(out, m_encoding);
+    return StringObject::create(out, result.first);
 }
 
 Value StringObject::gsub_in_place(Env *env, Value find, Optional<Value> replacement_value, Block *block) {
     assert_not_frozen(env);
 
-    auto replacement = gsub(env, find, replacement_value, block).as_string()->string();
-    if (m_string == replacement)
+    auto replacement = gsub(env, find, replacement_value, block).as_string();
+    if (m_encoding == replacement->encoding() && m_string == replacement->string())
         return Value::nil();
 
-    m_string = replacement;
+    m_string = replacement->string();
+    m_encoding = replacement->encoding();
     return this;
 }
 

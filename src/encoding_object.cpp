@@ -31,28 +31,31 @@ static bool is_ascii_only(Env *env, Value obj) {
     return false;
 }
 
-EncodingObject *EncodingObject::compatible(const StringObject *s1, const StringObject *s2) {
-    auto enc1 = s1->encoding();
-    auto enc2 = s2->encoding();
-
+EncodingObject *EncodingObject::compatible(EncodingObject *enc1, bool ascii1, EncodingObject *enc2, bool ascii2) {
     if (enc1 == enc2)
         return enc1;
-
-    if (s2->is_empty())
-        return enc1;
-
-    if (s1->is_empty())
-        return (enc1->is_ascii_compatible() && s2->is_ascii_only()) ? enc1 : enc2;
 
     if (!enc1->is_ascii_compatible() || !enc2->is_ascii_compatible())
         return nullptr;
 
-    if (s1->is_ascii_only())
-        return s2->is_ascii_only() ? enc1 : enc2;
-    if (s2->is_ascii_only())
+    if (ascii1)
+        return ascii2 ? enc1 : enc2;
+    if (ascii2)
         return enc1;
 
     return nullptr;
+}
+
+EncodingObject *EncodingObject::compatible(const StringObject *s1, const StringObject *s2) {
+    if (s2->is_empty())
+        return s1->encoding();
+
+    if (s1->is_empty()) {
+        auto enc1 = s1->encoding();
+        return (enc1->is_ascii_compatible() && s2->is_ascii_only()) ? enc1 : s2->encoding();
+    }
+
+    return compatible(s1->encoding(), s1->is_ascii_only(), s2->encoding(), s2->is_ascii_only());
 }
 
 Value EncodingObject::compatible(Env *env, Value obj1, Value obj2) {
