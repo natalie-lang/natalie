@@ -251,17 +251,6 @@ Value StringObject::grapheme_clusters(Env *env, Block *block) {
     return ary;
 }
 
-String create_padding(String &padding, size_t length) {
-    size_t quotient = ::floor(length / padding.size());
-    size_t remainder = length % padding.size();
-    auto buffer = String("");
-    for (size_t i = 0; i < quotient; ++i)
-        buffer.append(padding);
-    for (size_t j = 0; j < remainder; ++j)
-        buffer.append_char(padding[j]);
-    return buffer;
-}
-
 static StringObject *resolve_padstr(Env *env, Optional<Value> pad_arg) {
     auto padstr = pad_arg ? pad_arg->to_str(env) : StringObject::create(" ");
     if (padstr->string().is_empty())
@@ -269,27 +258,53 @@ static StringObject *resolve_padstr(Env *env, Optional<Value> pad_arg) {
     return padstr;
 }
 
-Value StringObject::center(Env *env, Value length, Optional<Value> pad_arg) {
-    nat_int_t length_i = length.to_int(env).to_nat_int_t();
+static void append_padstr(TM::String &buffer, Env *env, StringObject *padstr, size_t n, EncodingObject *encoding) {
+    if (n == 0) return;
+    const TM::String &f = padstr->string();
+    if (f.size() == 1) {
+        buffer.append_char(f[0], n);
+        return;
+    }
+    const size_t pad_chars = padstr->char_count(env);
+    size_t chars = 0;
+    while (chars + pad_chars <= n) {
+        buffer.append(f);
+        chars += pad_chars;
+    }
+    if (chars < n) {
+        size_t byte_len = 0;
+        size_t counted = 0;
+        while (counted < n - chars) {
+            auto [valid, view] = encoding->next_char(f, &byte_len);
+            if (view.is_empty()) break;
+            counted++;
+        }
+        buffer.append(f.c_str(), byte_len);
+    }
+}
+
+Value StringObject::center(Env *env, Value length_obj, Optional<Value> pad_arg) {
+    nat_int_t length_i = length_obj.to_int(env).to_nat_int_t();
+    size_t length = length_i < 0 ? 0 : length_i;
 
     auto padstr = resolve_padstr(env, pad_arg);
-    auto pad = padstr->string();
-
-    if (!EncodingObject::compatible(this, padstr))
+    auto compatible_encoding = EncodingObject::compatible(this, padstr);
+    if (!compatible_encoding)
         m_encoding->raise_compatibility_error(env, padstr->encoding());
 
-    if (length_i <= (nat_int_t)m_string.size())
-        return this;
+    size_t my_chars = char_count(env);
+    if (length <= my_chars)
+        return StringObject::create(m_string, compatible_encoding);
 
-    double split = (length_i - m_string.size()) / 2.0;
-    auto left_split = ::floor(split);
-    auto right_split = ::ceil(split);
+    size_t total_padding = length - my_chars;
+    size_t left_padding = total_padding / 2;
+    size_t right_padding = total_padding - left_padding;
 
-    auto result = String { m_string };
-    result.prepend(create_padding(pad, left_split));
-    result.append(create_padding(pad, right_split));
-
-    return StringObject::create(result, m_encoding);
+    TM::String buffer;
+    append_padstr(buffer, env, padstr, left_padding, compatible_encoding);
+    buffer.append(m_string);
+    append_padstr(buffer, env, padstr, right_padding, compatible_encoding);
+    return StringObject::create(std::move(buffer), compatible_encoding);
 }
 
 Value StringObject::chomp(Env *env, Optional<Value> record_separator) const {
@@ -3675,19 +3690,16 @@ Value StringObject::ljust(Env *env, Value length_obj, Optional<Value> pad_arg) c
     size_t length = length_i < 0 ? 0 : length_i;
 
     auto padstr = resolve_padstr(env, pad_arg);
-
-    if (!EncodingObject::compatible(this, padstr))
+    auto compatible_encoding = EncodingObject::compatible(this, padstr);
+    if (!compatible_encoding)
         m_encoding->raise_compatibility_error(env, padstr->encoding());
 
-    StringObject *copy = StringObject::create(m_string, m_encoding);
-    while (copy->length() < length) {
-        bool truncate = copy->length() + padstr->length() > length;
-        copy->append(padstr);
-        if (truncate) {
-            copy->truncate(length);
-        }
-    }
-    return copy;
+    size_t my_chars = char_count(env);
+    size_t padding_chars = length < my_chars ? 0 : length - my_chars;
+
+    TM::String buffer = m_string;
+    append_padstr(buffer, env, padstr, padding_chars, compatible_encoding);
+    return StringObject::create(std::move(buffer), compatible_encoding);
 }
 
 Value StringObject::strip(Env *env) const {
@@ -3771,35 +3783,17 @@ Value StringObject::rjust(Env *env, Value length_obj, Optional<Value> pad_arg) c
     size_t length = length_i < 0 ? 0 : length_i;
 
     auto padstr = resolve_padstr(env, pad_arg);
-
     auto compatible_encoding = EncodingObject::compatible(this, padstr);
     if (!compatible_encoding)
         m_encoding->raise_compatibility_error(env, padstr->m_encoding.ptr());
 
-    StringObject *padding = StringObject::create("", compatible_encoding);
-    size_t padding_chars = length < char_count(env) ? 0 : length - char_count(env);
+    size_t my_chars = char_count(env);
+    size_t padding_chars = length < my_chars ? 0 : length - my_chars;
 
-    while (padding->char_count(env) < padding_chars) {
-        bool truncate = padding->char_count(env) + padstr->char_count(env) > padding_chars;
-        padding->append(padstr);
-        if (truncate) {
-            size_t byte_len = 0;
-            size_t chars = 0;
-            while (chars < padding_chars) {
-                auto [valid, view] = compatible_encoding->next_char(padding->string(), &byte_len);
-                if (view.is_empty()) break;
-                chars++;
-            }
-            padding->truncate(byte_len);
-        }
-    }
-
-    StringObject *str_with_padding = StringObject::create("", compatible_encoding);
-    StringObject *copy = duplicate(env).as_string();
-    str_with_padding->append(padding);
-    str_with_padding->append(copy);
-
-    return str_with_padding;
+    TM::String buffer;
+    append_padstr(buffer, env, padstr, padding_chars, compatible_encoding);
+    buffer.append(m_string);
+    return StringObject::create(std::move(buffer), compatible_encoding);
 }
 
 Value StringObject::rstrip(Env *env) const {

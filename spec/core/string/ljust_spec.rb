@@ -86,10 +86,8 @@ describe "String#ljust with length, padding" do
     it "returns a String in the compatible encoding" do
       str = "abc".dup.force_encoding Encoding::IBM437
       result = str.ljust 5, "あ"
-      NATFIXME 'Encoding', exception: SpecFailedException do
-        result.should == "abcああ"
-        result.encoding.should equal(Encoding::UTF_8)
-      end
+      result.should == "abcああ"
+      result.encoding.should equal(Encoding::UTF_8)
     end
 
     it "raises an Encoding::CompatibilityError if the encodings are incompatible" do

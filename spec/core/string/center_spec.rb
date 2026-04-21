@@ -103,10 +103,8 @@ describe "String#center with length, padding" do
     it "returns a String in the compatible encoding" do
       str = "abc".dup.force_encoding Encoding::IBM437
       result = str.center 6, "あ"
-      NATFIXME 'returns a String in the compatible encoding', exception: SpecFailedException do
-        result.should == "あabcああ"
-        result.encoding.should equal(Encoding::UTF_8)
-      end
+      result.should == "あabcああ"
+      result.encoding.should equal(Encoding::UTF_8)
     end
 
     it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
