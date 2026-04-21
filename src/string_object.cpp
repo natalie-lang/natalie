@@ -812,7 +812,15 @@ Value StringObject::index(Env *env, Value needle, size_t start) const {
 nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) const {
     if (needle.is_regexp()) {
         // FIXME: use byteindex_regexp_needle shared code
-        if (needle.as_regexp()->pattern()->is_empty())
+        auto regexp = needle.as_regexp();
+        if (!EncodingObject::compatible(this, regexp->pattern())) {
+            auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s }).as_class();
+            env->raise(exception_class, "incompatible encoding regexp match ({} regexp with {} string)",
+                regexp->pattern()->encoding()->name()->string(),
+                encoding()->name()->string());
+        }
+
+        if (regexp->pattern()->is_empty())
             return byte_start;
 
         if (bytesize() == 0)
