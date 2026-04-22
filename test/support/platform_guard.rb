@@ -6,6 +6,10 @@ class PlatformGuard
     false
   end
 
+  def self.standard?
+    implementation? :ruby
+  end
+
   def self.windows?
     false
   end
