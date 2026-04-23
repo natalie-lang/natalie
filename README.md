@@ -167,8 +167,10 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 | `minicoro.h`           | Eduardo Bart                      | MIT               |
 | `pp.rb`                | Yukihiro Matsumoto                | BSD               |
 | `prettyprint.rb`       | Yukihiro Matsumoto                | BSD               |
+| `resolv.rb`            | Tanaka Akira                      | BSD               |
 | `shellwords.rb`        | Akinori MUSHA                     | BSD               |
 | `spec/*`               | Engine Yard, Inc.                 | MIT               |
+| `timeout.rb`           | Yukihiro Matsumoto                | BSD               |
 | `unicode_normalize/*`  | Ayumu Nojima and Martin J. Dürst  | BSD               |
 | `uri.rb`/`uri/*`       | Akira Yamada                      | BSD               |
 | `version.rb`           | Engine Yard, Inc.                 | MIT               |

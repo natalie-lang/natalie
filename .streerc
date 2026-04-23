@@ -21,7 +21,9 @@
 --ignore-files=lib/pp.rb*
 --ignore-files=lib/prettyprint.rb*
 --ignore-files=lib/random/formatter.rb*
+--ignore-files=lib/resolv.rb*
 --ignore-files=lib/shellwords.rb*
+--ignore-files=lib/timeout.rb*
 --ignore-files=lib/unicode_normalize/*
 --ignore-files=lib/uri*
 --ignore-files=spec/*
