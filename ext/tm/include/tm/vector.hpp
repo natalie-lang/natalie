@@ -752,6 +752,14 @@ public:
         grow_at_least(new_size);
     }
 
+    /**
+     * Shrink the size of the vector.
+     */
+    void resize(size_t new_size) {
+        assert(new_size <= m_size);
+        m_size = new_size;
+    }
+
     class iterator {
     public:
         iterator(const Vector<T> *vector, size_t index)
