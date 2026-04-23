@@ -1542,8 +1542,13 @@ public:
      * ```
      */
     bool is_ascii_only() const {
-        for (size_t i = 0; i < m_length; ++i)
-            if (static_cast<unsigned char>(at(i)) > 127)
+        return is_ascii_only(0, m_length);
+    }
+
+    bool is_ascii_only(size_t start, size_t length) const {
+        assert(start + length <= m_length);
+        for (size_t i = 0; i < length; ++i)
+            if (static_cast<unsigned char>(at(start + i)) > 127)
                 return false;
         return true;
     }

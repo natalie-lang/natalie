@@ -175,7 +175,6 @@ public:
     EncodingObject *encoding() const { return m_encoding.ptr(); }
     void set_encoding(EncodingObject *encoding) { m_encoding = encoding; }
     bool is_ascii_only() const;
-    EncodingObject *negotiate_compatible_encoding(const StringObject *) const;
     void assert_compatible_string(Env *, const StringObject *) const;
     void assert_valid_encoding(Env *) const;
     void assert_ascii_compatible_encoding(Env *) const;
@@ -303,11 +302,17 @@ public:
     Value ltlt(Env *, Value);
 
     bool eql(Value arg) const {
-        return *this == arg;
+        if (!arg.is_string())
+            return false;
+        auto other = arg.as_string();
+        if (!EncodingObject::compatible(this, other))
+            return false;
+        return m_string == other->m_string;
     }
 
     StringObject *to_s();
 
+    bool is_char_boundary(size_t) const;
     bool internal_start_with(Env *, Value);
     bool start_with(Env *, Args &&);
     bool end_with(Env *, Value) const;

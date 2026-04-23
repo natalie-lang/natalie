@@ -23,9 +23,7 @@ describe "String#delete_suffix" do
   end
 
   it "does not remove partial bytes, only full characters" do
-    NATFIXME 'does not remove partial bytes, only full characters', exception: SpecFailedException do
-      "\xe3\x81\x82".delete_suffix("\x82").should == "\xe3\x81\x82"
-    end
+    "\xe3\x81\x82".delete_suffix("\x82").should == "\xe3\x81\x82"
   end
 
   it "doesn't set $~" do

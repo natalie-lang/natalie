@@ -13,8 +13,6 @@ describe "String#start_with?" do
 
   it "checks we are matching only part of a character" do
     "\xe3\x81\x82".size.should == 1
-    NATFIXME 'checks we are matching only part of a character', exception: SpecFailedException do
-      "\xe3\x81\x82".should_not.start_with?("\xe3")
-    end
+    "\xe3\x81\x82".should_not.start_with?("\xe3")
   end
 end

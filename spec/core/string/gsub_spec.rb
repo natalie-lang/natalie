@@ -464,18 +464,14 @@ describe "String#gsub with pattern and block" do
     s = "hllëllo"
     s2 = "hellö"
 
-    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
-      -> { s.gsub(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
-      -> { s2.gsub(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
-    end
+    -> { s.gsub(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
+    -> { s2.gsub(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
   end
 
   it "replaces the incompatible part properly even if the encodings are not compatible" do
     s = "hllëllo"
 
-    NATFIXME 'Not preserving encoding properly', exception: SpecFailedException do
-      s.gsub(/ë/) { |bar| "Русский".force_encoding("iso-8859-5") }.encoding.should == Encoding::ISO_8859_5
-    end
+    s.gsub(/ë/) { |bar| "Русский".force_encoding("iso-8859-5") }.encoding.should == Encoding::ISO_8859_5
   end
 
   not_supported_on :opal do
@@ -606,18 +602,14 @@ describe "String#gsub! with pattern and block" do
     s = "hllëllo"
     s2 = "hellö"
 
-    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
-      -> { s.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
-      -> { s2.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
-    end
+    -> { s.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
+    -> { s2.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
   end
 
   it "replaces the incompatible part properly even if the encodings are not compatible" do
     s = "hllëllo"
 
-    NATFIXME 'Encodings', exception: SpecFailedException do
-      s.gsub!(/ë/) { |bar| "Русский".force_encoding("iso-8859-5") }.encoding.should == Encoding::ISO_8859_5
-    end
+    s.gsub!(/ë/) { |bar| "Русский".force_encoding("iso-8859-5") }.encoding.should == Encoding::ISO_8859_5
   end
 
   not_supported_on :opal do

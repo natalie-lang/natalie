@@ -173,7 +173,7 @@ class StringScanner
 
   def peek(length)
     raise ArgumentError, 'length is negative' if length < 0
-    @string.bytes[@pos...(@pos + length)].map(&:chr).join
+    @string.byteslice(@pos, length)
   end
 
   def peek_byte

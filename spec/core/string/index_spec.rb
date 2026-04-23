@@ -332,10 +332,8 @@ describe "String#index with Regexp" do
 
   it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
     re = Regexp.new "れ".encode(Encoding::EUC_JP)
-    NATFIXME 'Implement real encodings on Regexp', exception: SpecFailedException, message: /Encoding::CompatibilityError/ do
-      -> do
-        "あれ".index re
-      end.should raise_error(Encoding::CompatibilityError)
-    end
+    -> do
+      "あれ".index re
+    end.should raise_error(Encoding::CompatibilityError)
   end
 end

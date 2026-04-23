@@ -928,7 +928,7 @@ Value ArrayObject::join(Env *env, Optional<Value> joiner_arg) {
                     out->set_encoding(str->encoding());
                     first = false;
                 } else {
-                    auto compatible = out->negotiate_compatible_encoding(str);
+                    auto compatible = EncodingObject::compatible(out, str);
                     if (compatible)
                         out->set_encoding(compatible);
                     else

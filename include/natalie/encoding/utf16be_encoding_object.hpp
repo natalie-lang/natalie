@@ -45,6 +45,12 @@ public:
         if (code_unit >= 0xD800 && code_unit <= 0xDBFF) return 4;
         return 2;
     }
+
+    virtual bool is_char_boundary(const String &string, size_t byte_offset) const override {
+        if (byte_offset == 0 || byte_offset >= string.size()) return true;
+        if (byte_offset % 2 != 0 || byte_offset + 2 > string.size()) return false;
+        return ((unsigned char)string[byte_offset] & 0xFC) != 0xDC;
+    }
 };
 
 }

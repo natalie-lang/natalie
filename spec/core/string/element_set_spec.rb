@@ -127,25 +127,19 @@ describe "String#[]= with Integer index" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY
     str[0] = rep
-    NATFIXME 'Implement encoding compatibility (Encoding::compatible?)', exception: SpecFailedException do
-      str.encoding.should equal(Encoding::BINARY)
-    end
+    str.encoding.should equal(Encoding::BINARY)
   end
 
   it "updates the string to a compatible encoding" do
     str = "  "
     str[1] = [0xB9].pack("C*")
-    NATFIXME 'Implement encoding compatibility (Encoding::compatible?)', exception: SpecFailedException do
-      str.encoding.should == Encoding::ASCII_8BIT
-    end
+    str.encoding.should == Encoding::ASCII_8BIT
   end
 
   it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
-      -> { str[0] = rep }.should raise_error(Encoding::CompatibilityError)
-    end
+    -> { str[0] = rep }.should raise_error(Encoding::CompatibilityError)
   end
 end
 
@@ -195,17 +189,13 @@ describe "String#[]= with String index" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY
     str[" "] = rep
-    NATFIXME 'Implement encoding compatibility (Encoding::compatible?)', exception: SpecFailedException do
-      str.encoding.should equal(Encoding::BINARY)
-    end
+    str.encoding.should equal(Encoding::BINARY)
   end
 
   it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
-      -> { str["れ"] = rep }.should raise_error(Encoding::CompatibilityError)
-    end
+    -> { str["れ"] = rep }.should raise_error(Encoding::CompatibilityError)
   end
 end
 
@@ -312,17 +302,13 @@ describe "String#[]= with a Regexp index" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY
     str[/ /] = rep
-    NATFIXME 'Implement encoding compatibility (Encoding::compatible?)', exception: SpecFailedException do
-      str.encoding.should equal(Encoding::BINARY)
-    end
+    str.encoding.should equal(Encoding::BINARY)
   end
 
   it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
-      -> { str[/れ/] = rep }.should raise_error(Encoding::CompatibilityError)
-    end
+    -> { str[/れ/] = rep }.should raise_error(Encoding::CompatibilityError)
   end
 end
 
@@ -437,17 +423,13 @@ describe "String#[]= with a Range index" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY
     str[0..1] = rep
-    NATFIXME 'Implement encoding compatibility (Encoding::compatible?)', exception: SpecFailedException do
-      str.encoding.should equal(Encoding::BINARY)
-    end
+    str.encoding.should equal(Encoding::BINARY)
   end
 
   it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
-      -> { str[0..1] = rep }.should raise_error(Encoding::CompatibilityError)
-    end
+    -> { str[0..1] = rep }.should raise_error(Encoding::CompatibilityError)
   end
 end
 
@@ -596,16 +578,12 @@ describe "String#[]= with Integer index, count" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY
     str[0, 1] = rep
-    NATFIXME 'Implement encoding compatibility (Encoding::compatible?)', exception: SpecFailedException do
-      str.encoding.should equal(Encoding::BINARY)
-    end
+    str.encoding.should equal(Encoding::BINARY)
   end
 
   it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
-      -> { str[0, 1] = rep }.should raise_error(Encoding::CompatibilityError)
-    end
+    -> { str[0, 1] = rep }.should raise_error(Encoding::CompatibilityError)
   end
 end

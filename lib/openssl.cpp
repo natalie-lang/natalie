@@ -376,7 +376,7 @@ Value OpenSSL_HMAC_digest(Env *env, Value self, Args &&args, Block *) {
     auto res = HMAC(evp_md, key->c_str(), key->bytesize(), reinterpret_cast<const unsigned char *>(data->c_str()), data->bytesize(), md, &md_len);
     if (!res)
         OpenSSL_raise_error(env, "HMAC");
-    return StringObject::create(reinterpret_cast<const char *>(md), md_len);
+    return StringObject::create(reinterpret_cast<const char *>(md), md_len, Encoding::ASCII_8BIT);
 }
 
 Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args &&args, Block *) {
@@ -1051,7 +1051,7 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args &&args, Block *) {
         OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError.as_class());
     }
 
-    return StringObject::create(reinterpret_cast<const char *>(out), outlen);
+    return StringObject::create(reinterpret_cast<const char *>(out), outlen, Encoding::ASCII_8BIT);
 }
 
 Value init_openssl(Env *env, Value self) {

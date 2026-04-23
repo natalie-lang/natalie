@@ -108,6 +108,28 @@ public:
 
     virtual bool is_single_byte_encoding() const = 0;
 
+    virtual bool is_char_boundary(const String &string, size_t byte_offset) const {
+        if (byte_offset == 0 || byte_offset >= string.size())
+            return true;
+        // For ASCII-compatible encodings, walk back to the nearest ASCII byte as a guaranteed
+        // character head (matches Oniguruma's onigenc_get_left_adjust_char_head fallback).
+        size_t index = 0;
+        if (is_ascii_compatible()) {
+            for (size_t i = byte_offset; i > 0; --i) {
+                if ((unsigned char)string[i - 1] < 0x80) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        while (index < byte_offset) {
+            auto [valid, view] = next_char(string, &index);
+            if (view.is_empty())
+                return false;
+        }
+        return index == byte_offset;
+    }
+
     // Returns the expected number of bytes for a character starting at the given position.
     // Used by Encoding::Converter to detect read-again bytes and incomplete input.
     virtual int expected_byte_count(const String &string, size_t index) const { return 1; }
@@ -120,6 +142,8 @@ public:
     [[noreturn]] void raise_encoding_invalid_byte_sequence_error(Env *, const String &, size_t) const;
     [[noreturn]] void raise_compatibility_error(Env *, const EncodingObject *) const;
 
+    static EncodingObject *compatible(EncodingObject *, bool ascii1, EncodingObject *, bool ascii2);
+    static EncodingObject *compatible(const StringObject *, const StringObject *);
     static Value compatible(Env *, Value, Value);
     static HashObject *aliases(Env *);
     static Value find(Env *, Value);

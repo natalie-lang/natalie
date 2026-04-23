@@ -251,48 +251,60 @@ Value StringObject::grapheme_clusters(Env *env, Block *block) {
     return ary;
 }
 
-String create_padding(String &padding, size_t length) {
-    size_t quotient = ::floor(length / padding.size());
-    size_t remainder = length % padding.size();
-    auto buffer = String("");
-    for (size_t i = 0; i < quotient; ++i)
-        buffer.append(padding);
-    for (size_t j = 0; j < remainder; ++j)
-        buffer.append_char(padding[j]);
-    return buffer;
+static StringObject *resolve_padstr(Env *env, Optional<Value> pad_arg) {
+    auto padstr = pad_arg ? pad_arg->to_str(env) : StringObject::create(" ");
+    if (padstr->string().is_empty())
+        env->raise("ArgumentError", "zero width padding");
+    return padstr;
 }
 
-Value StringObject::center(Env *env, Value length, Optional<Value> pad_arg) {
-    nat_int_t length_i = length.to_int(env).to_nat_int_t();
-
-    String pad;
-
-    if (!pad_arg) {
-        pad = String { " " };
-    } else {
-        auto padstr = pad_arg.value();
-        if (padstr.is_string()) {
-            pad = padstr.as_string()->string();
-        } else {
-            pad = padstr.to_str(env)->string();
-        }
+static void append_padstr(TM::String &buffer, Env *env, StringObject *padstr, size_t n, EncodingObject *encoding) {
+    if (n == 0) return;
+    const TM::String &f = padstr->string();
+    if (f.size() == 1) {
+        buffer.append_char(f[0], n);
+        return;
     }
+    const size_t pad_chars = padstr->char_count(env);
+    size_t chars = 0;
+    while (chars + pad_chars <= n) {
+        buffer.append(f);
+        chars += pad_chars;
+    }
+    if (chars < n) {
+        size_t byte_len = 0;
+        size_t counted = 0;
+        while (counted < n - chars) {
+            auto [valid, view] = encoding->next_char(f, &byte_len);
+            if (view.is_empty()) break;
+            counted++;
+        }
+        buffer.append(f.c_str(), byte_len);
+    }
+}
 
-    if (pad.is_empty())
-        env->raise("ArgumentError", "zero width padding");
+Value StringObject::center(Env *env, Value length_obj, Optional<Value> pad_arg) {
+    nat_int_t length_i = length_obj.to_int(env).to_nat_int_t();
+    size_t length = length_i < 0 ? 0 : length_i;
 
-    if (length_i <= (nat_int_t)m_string.size())
-        return this;
+    auto padstr = resolve_padstr(env, pad_arg);
+    auto compatible_encoding = EncodingObject::compatible(this, padstr);
+    if (!compatible_encoding)
+        m_encoding->raise_compatibility_error(env, padstr->encoding());
 
-    double split = (length_i - m_string.size()) / 2.0;
-    auto left_split = ::floor(split);
-    auto right_split = ::ceil(split);
+    size_t my_chars = char_count(env);
+    if (length <= my_chars)
+        return StringObject::create(m_string, compatible_encoding);
 
-    auto result = String { m_string };
-    result.prepend(create_padding(pad, left_split));
-    result.append(create_padding(pad, right_split));
+    size_t total_padding = length - my_chars;
+    size_t left_padding = total_padding / 2;
+    size_t right_padding = total_padding - left_padding;
 
-    return StringObject::create(result, m_encoding);
+    TM::String buffer;
+    append_padstr(buffer, env, padstr, left_padding, compatible_encoding);
+    buffer.append(m_string);
+    append_padstr(buffer, env, padstr, right_padding, compatible_encoding);
+    return StringObject::create(std::move(buffer), compatible_encoding);
 }
 
 Value StringObject::chomp(Env *env, Optional<Value> record_separator) const {
@@ -641,6 +653,10 @@ StringObject *StringObject::to_s() {
     }
 }
 
+bool StringObject::is_char_boundary(size_t byte_offset) const {
+    return m_encoding->is_char_boundary(m_string, byte_offset);
+}
+
 bool StringObject::internal_start_with(Env *env, Value needle) {
     if (needle.is_regexp()) {
         needle = needle.as_regexp()->to_s(env);
@@ -649,8 +665,10 @@ bool StringObject::internal_start_with(Env *env, Value needle) {
         return needle.as_regexp()->match(env, this).is_truthy();
     }
 
-    nat_int_t i = index_int(env, needle, 0);
-    return i == 0;
+    auto needle_str = needle.to_str(env);
+    nat_int_t i = index_int(env, needle_str, 0);
+    if (i != 0) return false;
+    return is_char_boundary(needle_str->bytesize());
 }
 
 bool StringObject::start_with(Env *env, Args &&args) {
@@ -664,15 +682,18 @@ bool StringObject::start_with(Env *env, Args &&args) {
     return false;
 }
 
-// NATFIXME : broken for searching the middle of a multibyte char
 bool StringObject::end_with(Env *env, Value needle) const {
     needle = needle.to_str(env);
     needle.assert_type(env, Object::Type::String, "String");
-    if (length() < needle.as_string()->length())
+    auto needle_str = needle.as_string();
+    assert_compatible_string(env, needle_str);
+    auto needle_size = needle_str->bytesize();
+    if (bytesize() < needle_size)
         return false;
-    auto from_end = StringObject::create(c_str() + length() - needle.as_string()->length());
-    nat_int_t i = from_end->index_int(env, needle, 0);
-    return i == 0;
+    size_t offset = bytesize() - needle_size;
+    if (memcmp(c_str() + offset, needle_str->c_str(), needle_size) != 0)
+        return false;
+    return is_char_boundary(offset);
 }
 
 bool StringObject::end_with(Env *env, Args &&args) const {
@@ -684,7 +705,7 @@ bool StringObject::end_with(Env *env, Args &&args) const {
 }
 
 static Value byteindex_regexp_needle(Env *env, const StringObject *haystack, RegexpObject *needle, OnigPosition offset, bool reverse = false) {
-    if (!haystack->negotiate_compatible_encoding(needle->pattern())) {
+    if (!EncodingObject::compatible(haystack, needle->pattern())) {
         auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s }).as_class();
         auto enc1 = needle->pattern()->encoding()->name()->string();
         auto enc2 = haystack->encoding()->name()->string();
@@ -812,7 +833,15 @@ Value StringObject::index(Env *env, Value needle, size_t start) const {
 nat_int_t StringObject::index_int(Env *env, Value needle, size_t byte_start) const {
     if (needle.is_regexp()) {
         // FIXME: use byteindex_regexp_needle shared code
-        if (needle.as_regexp()->pattern()->is_empty())
+        auto regexp = needle.as_regexp();
+        if (!EncodingObject::compatible(this, regexp->pattern())) {
+            auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s }).as_class();
+            env->raise(exception_class, "incompatible encoding regexp match ({} regexp with {} string)",
+                regexp->pattern()->encoding()->name()->string(),
+                encoding()->name()->string());
+        }
+
+        if (regexp->pattern()->is_empty())
             return byte_start;
 
         if (bytesize() == 0)
@@ -887,7 +916,7 @@ nat_int_t StringObject::rindex_int(Env *env, Value needle, size_t byte_start) co
         // FIXME: use byteindex_regexp_needle shared code
 
         auto needle_regexp = needle.as_regexp();
-        if (!negotiate_compatible_encoding(needle_regexp->pattern())) {
+        if (!EncodingObject::compatible(this, needle_regexp->pattern())) {
             auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s }).as_class();
             auto enc1 = needle_regexp->encoding()->name()->string();
             auto enc2 = encoding()->name()->string();
@@ -2230,7 +2259,7 @@ Value StringObject::bytesplice(Env *env, Args &&args) {
     }
 
     if (str) {
-        auto compatible_encoding = negotiate_compatible_encoding(str);
+        auto compatible_encoding = EncodingObject::compatible(this, str);
         if (!compatible_encoding)
             m_encoding->raise_compatibility_error(env, str->encoding());
         m_encoding = compatible_encoding;
@@ -2711,6 +2740,7 @@ Value StringObject::refeq(Env *env, Value arg1, Optional<Value> arg2, Optional<V
         chars_to_be_removed = chars->size() - begin;
 
     auto string = value->to_str(env);
+    assert_compatible_string_and_update_encoding(env, string);
     auto arg_chars = string->chars(env).as_array();
     size_t new_length = arg_chars->size() + (chars->size() - chars_to_be_removed);
 
@@ -2728,6 +2758,14 @@ Value StringObject::refeq(Env *env, Value arg1, Optional<Value> arg2, Optional<V
     return value.value();
 }
 
+static std::pair<EncodingObject *, bool> negotiate_result_encoding(Env *env, std::pair<EncodingObject *, bool> state, EncodingObject *piece_enc, bool piece_ascii_only) {
+    auto [enc, ascii_only] = state;
+    auto negotiated = EncodingObject::compatible(enc, ascii_only, piece_enc, piece_ascii_only);
+    if (!negotiated)
+        enc->raise_compatibility_error(env, piece_enc);
+    return { negotiated, ascii_only && piece_ascii_only };
+}
+
 Value StringObject::sub(Env *env, Value find, Optional<Value> replacement_value, Block *block) {
     if (!block && !replacement_value)
         env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
@@ -2741,18 +2779,28 @@ Value StringObject::sub(Env *env, Value find, Optional<Value> replacement_value,
         env->raise("TypeError", "wrong argument type {} (expected Regexp)", find.klass()->inspect_module());
 
     MatchDataObject *match;
-    StringObject *expanded_replacement;
+    StringObject *expanded_replacement = nullptr;
     String out;
+    std::pair<EncodingObject *, bool> result { m_encoding.ptr(), true };
+
     regexp_sub(env, out, this, find.as_regexp(), replacement_value, &match, &expanded_replacement, 0, block);
 
+    size_t prefix_end = match ? (size_t)match->beg_byte_index(0) : m_string.size();
+    if (prefix_end > 0)
+        result = negotiate_result_encoding(env, result, m_encoding.ptr(), m_string.is_ascii_only(0, prefix_end));
+    if (expanded_replacement)
+        result = negotiate_result_encoding(env, result, expanded_replacement->encoding(), expanded_replacement->is_ascii_only());
+
     if (match) {
-        // append remaining bytes from source string
         auto byte_index = match->end_byte_index(0);
-        if (byte_index >= 0 && (size_t)byte_index < m_string.size())
+        if (byte_index >= 0 && (size_t)byte_index < m_string.size()) {
+            auto tail_len = m_string.size() - byte_index;
+            result = negotiate_result_encoding(env, result, m_encoding.ptr(), m_string.is_ascii_only(byte_index, tail_len));
             out.append(m_string.substring(byte_index));
+        }
     }
 
-    return StringObject::create(out, m_encoding);
+    return StringObject::create(out, result.first);
 }
 
 Value StringObject::sub_in_place(Env *env, Value find, Optional<Value> replacement_value, Block *block) {
@@ -2782,16 +2830,28 @@ Value StringObject::gsub(Env *env, Value find, Optional<Value> replacement_value
     StringObject *expanded_replacement = nullptr;
     size_t byte_index = 0;
     String out;
+    std::pair<EncodingObject *, bool> result { m_encoding.ptr(), true };
 
     do {
         match = nullptr;
+        expanded_replacement = nullptr;
+        size_t prefix_start = byte_index;
         this->regexp_sub(env, out, this, find.as_regexp(), replacement_value, &match, &expanded_replacement, byte_index, block);
+
+        size_t prefix_end = match ? (size_t)match->beg_byte_index(0) : m_string.size();
+        if (prefix_start < prefix_end)
+            result = negotiate_result_encoding(env, result, m_encoding.ptr(), m_string.is_ascii_only(prefix_start, prefix_end - prefix_start));
+        if (expanded_replacement)
+            result = negotiate_result_encoding(env, result, expanded_replacement->encoding(), expanded_replacement->is_ascii_only());
+
         if (match) {
             byte_index = match->end_byte_index(0);
             if (match->is_empty()) {
-                if (byte_index < m_string.size())
-                    out += peek_char(byte_index);
-
+                if (byte_index < m_string.size()) {
+                    auto peeked = peek_char(byte_index);
+                    result = negotiate_result_encoding(env, result, m_encoding.ptr(), m_string.is_ascii_only(byte_index, peeked.size()));
+                    out += peeked;
+                }
                 // The match was empty, and running it again with the same byte_index would cause an infinite loop.
                 // So we increment ahead one character, and run the match again.
                 if (byte_index < m_string.size())
@@ -2803,17 +2863,18 @@ Value StringObject::gsub(Env *env, Value find, Optional<Value> replacement_value
         }
     } while (match);
 
-    return StringObject::create(out, m_encoding);
+    return StringObject::create(out, result.first);
 }
 
 Value StringObject::gsub_in_place(Env *env, Value find, Optional<Value> replacement_value, Block *block) {
     assert_not_frozen(env);
 
-    auto replacement = gsub(env, find, replacement_value, block).as_string()->string();
-    if (m_string == replacement)
+    auto replacement = gsub(env, find, replacement_value, block).as_string();
+    if (m_encoding == replacement->encoding() && m_string == replacement->string())
         return Value::nil();
 
-    m_string = replacement;
+    m_string = replacement->string();
+    m_encoding = replacement->encoding();
     return this;
 }
 
@@ -3668,24 +3729,17 @@ Value StringObject::ljust(Env *env, Value length_obj, Optional<Value> pad_arg) c
     nat_int_t length_i = length_obj.to_int(env).to_nat_int_t();
     size_t length = length_i < 0 ? 0 : length_i;
 
-    StringObject *padstr;
-    if (pad_arg)
-        padstr = pad_arg->to_str(env);
-    else
-        padstr = StringObject::create(" ");
+    auto padstr = resolve_padstr(env, pad_arg);
+    auto compatible_encoding = EncodingObject::compatible(this, padstr);
+    if (!compatible_encoding)
+        m_encoding->raise_compatibility_error(env, padstr->encoding());
 
-    if (padstr->string().is_empty())
-        env->raise("ArgumentError", "zero width padding");
+    size_t my_chars = char_count(env);
+    size_t padding_chars = length < my_chars ? 0 : length - my_chars;
 
-    StringObject *copy = StringObject::create(m_string, m_encoding);
-    while (copy->length() < length) {
-        bool truncate = copy->length() + padstr->length() > length;
-        copy->append(padstr);
-        if (truncate) {
-            copy->truncate(length);
-        }
-    }
-    return copy;
+    TM::String buffer = m_string;
+    append_padstr(buffer, env, padstr, padding_chars, compatible_encoding);
+    return StringObject::create(std::move(buffer), compatible_encoding);
 }
 
 Value StringObject::strip(Env *env) const {
@@ -3768,43 +3822,18 @@ Value StringObject::rjust(Env *env, Value length_obj, Optional<Value> pad_arg) c
     nat_int_t length_i = length_obj.to_int(env).to_nat_int_t();
     size_t length = length_i < 0 ? 0 : length_i;
 
-    StringObject *padstr;
-    if (pad_arg)
-        padstr = pad_arg->to_str(env);
-    else
-        padstr = StringObject::create(" ");
-
-    if (padstr->string().is_empty())
-        env->raise("ArgumentError", "zero width padding");
-
-    auto compatible_encoding = negotiate_compatible_encoding(padstr);
+    auto padstr = resolve_padstr(env, pad_arg);
+    auto compatible_encoding = EncodingObject::compatible(this, padstr);
     if (!compatible_encoding)
         m_encoding->raise_compatibility_error(env, padstr->m_encoding.ptr());
 
-    StringObject *padding = StringObject::create("", compatible_encoding);
-    size_t padding_chars = length < char_count(env) ? 0 : length - char_count(env);
+    size_t my_chars = char_count(env);
+    size_t padding_chars = length < my_chars ? 0 : length - my_chars;
 
-    while (padding->char_count(env) < padding_chars) {
-        bool truncate = padding->char_count(env) + padstr->char_count(env) > padding_chars;
-        padding->append(padstr);
-        if (truncate) {
-            size_t byte_len = 0;
-            size_t chars = 0;
-            while (chars < padding_chars) {
-                auto [valid, view] = compatible_encoding->next_char(padding->string(), &byte_len);
-                if (view.is_empty()) break;
-                chars++;
-            }
-            padding->truncate(byte_len);
-        }
-    }
-
-    StringObject *str_with_padding = StringObject::create("", compatible_encoding);
-    StringObject *copy = duplicate(env).as_string();
-    str_with_padding->append(padding);
-    str_with_padding->append(copy);
-
-    return str_with_padding;
+    TM::String buffer;
+    append_padstr(buffer, env, padstr, padding_chars, compatible_encoding);
+    buffer.append(m_string);
+    return StringObject::create(std::move(buffer), compatible_encoding);
 }
 
 Value StringObject::rstrip(Env *env) const {
@@ -3905,7 +3934,7 @@ Value StringObject::casecmp(Env *env, Value other) {
     if (is_empty() && other_str->is_empty())
         return Value::integer(0);
 
-    if (!negotiate_compatible_encoding(other_str))
+    if (!EncodingObject::compatible(this, other_str))
         return Value::nil();
 
     auto str1 = this->downcase(env, Value("ascii"_s));
@@ -3923,7 +3952,7 @@ Value StringObject::is_casecmp(Env *env, Value other) {
     if (is_empty() && other_str->is_empty())
         return Value::integer(0);
 
-    if (!negotiate_compatible_encoding(other_str))
+    if (!EncodingObject::compatible(this, other_str))
         return Value::nil();
 
     auto str1 = this->downcase(env, Value("fold"_s));
@@ -4201,31 +4230,8 @@ bool StringObject::is_ascii_only() const {
     return m_string.is_ascii_only();
 }
 
-EncodingObject *StringObject::negotiate_compatible_encoding(const StringObject *other_string) const {
-    if (m_encoding == other_string->m_encoding)
-        return m_encoding.ptr();
-
-    if (!m_encoding->is_compatible_with(other_string->m_encoding.ptr()))
-        return nullptr;
-
-    bool this_is_ascii = is_ascii_only();
-    bool other_is_ascii = other_string->is_ascii_only();
-
-    if (!this_is_ascii && !other_is_ascii)
-        return nullptr;
-
-    // Special case for BINARY
-    if (m_encoding->num() == Encoding::ASCII_8BIT)
-        return m_encoding.ptr();
-
-    else if (this_is_ascii && !other_is_ascii)
-        return other_string->m_encoding.ptr();
-    else
-        return m_encoding.ptr();
-}
-
 void StringObject::assert_compatible_string(Env *env, const StringObject *other_string) const {
-    auto compatible_encoding = negotiate_compatible_encoding(other_string);
+    auto compatible_encoding = EncodingObject::compatible(this, other_string);
     if (compatible_encoding)
         return;
 
@@ -4250,7 +4256,7 @@ void StringObject::assert_compatible_encoding_for_operation(Env *env) const {
 }
 
 EncodingObject *StringObject::assert_compatible_string_and_update_encoding(Env *env, StringObject *other_string) {
-    auto compatible_encoding = negotiate_compatible_encoding(other_string);
+    auto compatible_encoding = EncodingObject::compatible(this, other_string);
     if (compatible_encoding) {
         if (m_encoding != compatible_encoding)
             m_encoding = compatible_encoding;
