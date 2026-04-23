@@ -1174,6 +1174,8 @@ Value IoObject::select(Env *env, Value read_ios, Optional<Value> write_ios, Opti
     timeval timeout_tv = { 0, 0 }, *timeout_ptr = nullptr;
 
     if (timeout && !timeout->is_nil() && !(timeout->is_float() && timeout->as_float()->is_positive_infinity())) {
+        if (timeout->is_float() && timeout->as_float()->is_nan())
+            env->raise("RangeError", "NaN out of Time range");
         const auto timeout_f = timeout->to_f(env)->to_double();
         if (timeout_f < 0)
             env->raise("ArgumentError", "time interval must not be negative");
