@@ -40,12 +40,10 @@ describe "Rational#floor" do
       @rational.floor(2).should eql Rational(7857, 25)
       @rational.floor(3).should eql Rational(62857, 200)
 
-      NATFIXME 'it should return Rational instead of Integer', exception: SpecFailedException do
-        Rational(100, 2).floor(1).should eql Rational(50, 1)
-        Rational(100, 2).floor(2).should eql Rational(50, 1)
-        Rational(-100, 2).floor(1).should eql Rational(-50, 1)
-        Rational(-100, 2).floor(2).should eql Rational(-50, 1)
-      end
+      Rational(100, 2).floor(1).should eql Rational(50, 1)
+      Rational(100, 2).floor(2).should eql Rational(50, 1)
+      Rational(-100, 2).floor(1).should eql Rational(-50, 1)
+      Rational(-100, 2).floor(2).should eql Rational(-50, 1)
     end
   end
 end
