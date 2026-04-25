@@ -92,35 +92,15 @@ ClassObject *Value::singleton_class(Env *env) {
     return Object::singleton_class(env, *this);
 }
 
-StringObject *Value::to_str(Env *env) {
+// The origin of the mri_variant_error_msg has been lost in the mists of time...
+// But spec depends on them
+StringObject *Value::to_str(Env *env, bool mri_variant_error_msg) {
     if (is_string())
         return as_string();
 
     auto to_str = "to_str"_s;
     if (!respond_to(env, to_str))
-        env->raise_type_error(*this, "String");
-
-    auto result = send(env, to_str);
-
-    if (result.is_string())
-        return result.as_string();
-
-    env->raise(
-        "TypeError", "can't convert {} to String ({}#to_str gives {})",
-        klass()->inspect_module(),
-        klass()->inspect_module(),
-        result.klass()->inspect_module());
-}
-
-// This is just like Value::to_str, but it raises more consistent error messages.
-// We still need the old error messages because CRuby is inconsistent. :-(
-StringObject *Value::to_str2(Env *env) {
-    if (is_string())
-        return as_string();
-
-    auto to_str = "to_str"_s;
-    if (!respond_to(env, to_str))
-        env->raise_type_error2(*this, "String");
+        env->raise_type_error(*this, "String", mri_variant_error_msg);
 
     auto result = send(env, to_str);
 

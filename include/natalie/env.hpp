@@ -81,15 +81,7 @@ public:
     [[noreturn]] void raise_name_error(StringObject *name, String);
     [[noreturn]] void raise_not_comparable_error(Value lhs, Value rhs);
 
-    // Old error message style, e.g.:
-    // - no implicit conversion from nil to string
-    // - no implicit conversion of Integer into String
-    [[noreturn]] void raise_type_error(Value obj, const char *expected);
-
-    // New error message style, e.g.:
-    // - no implicit conversion of nil into String
-    // - no implicit conversion of Integer into String
-    [[noreturn]] void raise_type_error2(Value obj, const char *expected);
+    [[noreturn]] void raise_type_error(Value obj, const char *expected, bool = false);
 
     template <typename... Args>
     [[noreturn]] void raise_name_error(SymbolObject *name, const char *format, Args... args) {
