@@ -5,7 +5,9 @@ module CompareRubies
   NAT_BINARY = ENV.fetch('NAT_BINARY', 'bin/natalie')
 
   def run_nat(path, *args)
-    out_nat = sh("#{NAT_BINARY} --build-dir=test/build --build-quietly -I test/support #{path} #{args.join(' ')} 2>&1")
+    flags = ['--build-dir=test/build', '--build-quietly', '-I', 'test/support']
+    flags << '-rspec' if path.end_with?('_spec.rb')
+    out_nat = sh("#{NAT_BINARY} #{flags.join(' ')} #{path} #{args.join(' ')} 2>&1")
     puts out_nat unless $?.success?
     expect($?).must_be :success?
     out_nat
