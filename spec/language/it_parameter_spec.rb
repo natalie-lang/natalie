@@ -74,15 +74,13 @@ ruby_version_is "3.4" do
     end
 
     it "affects block parameters" do
-      NATFIXME 'Implement Proc#parameters', exception: NoMethodError, message: "undefined method 'parameters' for an instance of Proc" do
-        -> { it }.parameters.should == [[:req]]
+      -> { it }.parameters.should == [[:req]]
 
-        ruby_version_is ""..."4.0" do
-          proc { it }.parameters.should == [[:opt, nil]]
-        end
-        ruby_version_is "4.0" do
-          proc { it }.parameters.should == [[:opt]]
-        end
+      ruby_version_is ""..."4.0" do
+        proc { it }.parameters.should == [[:opt, nil]]
+      end
+      ruby_version_is "4.0" do
+        proc { it }.parameters.should == [[:opt]]
       end
     end
 

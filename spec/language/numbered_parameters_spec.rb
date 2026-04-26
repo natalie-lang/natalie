@@ -85,13 +85,11 @@ describe "Numbered parameters" do
   end
 
   it "affects block parameters" do
-    NATFIXME 'Implement Proc#parameters', exception: NoMethodError, message: "undefined method 'parameters' for an instance of Proc" do
-      -> { _1 }.parameters.should == [[:req, :_1]]
-      -> { _2 }.parameters.should == [[:req, :_1], [:req, :_2]]
+    -> { _1 }.parameters.should == [[:req, :_1]]
+    -> { _2 }.parameters.should == [[:req, :_1], [:req, :_2]]
 
-      proc { _1 }.parameters.should == [[:opt, :_1]]
-      proc { _2 }.parameters.should == [[:opt, :_1], [:opt, :_2]]
-    end
+    proc { _1 }.parameters.should == [[:opt, :_1]]
+    proc { _2 }.parameters.should == [[:opt, :_1], [:opt, :_2]]
   end
 
   ruby_version_is ""..."4.0" do

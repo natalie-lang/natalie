@@ -3,10 +3,11 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class DefineBlockInstruction < BaseInstruction
-      def initialize(arity:, for_lambda: false, has_return: false)
+      def initialize(arity:, for_lambda: false, has_return: false, parameters: [])
         @arity = arity
         @for_lambda = for_lambda
         @has_return = has_return
+        @parameters = parameters
       end
 
       def has_body?
@@ -16,7 +17,7 @@ module Natalie
       def for_lambda? = !!@for_lambda
       def has_return? = !!@has_return
 
-      attr_reader :arity
+      attr_reader :arity, :parameters
       attr_accessor :has_return
 
       def to_s
@@ -36,7 +37,10 @@ module Natalie
           body << '}'
           transform.top(fn, body)
         end
-        transform.push("Block::create(*env, self, #{fn}, #{@arity}, #{has_return?})")
+        params_ref = @parameters.empty? ? 'nullptr' : transform.intern_param_table(@parameters)
+        transform.push(
+          "Block::create(*env, self, #{fn}, #{@arity}, #{has_return?}, Block::BlockType::Proc, #{params_ref})",
+        )
       end
 
       def execute(vm)
@@ -45,15 +49,17 @@ module Natalie
         nil
       end
 
-      def serialize(_)
-        [instruction_number, arity, for_lambda? ? 1 : 0, has_return? ? 1 : 0].pack('CwCC')
+      def serialize(rodata)
+        header = [instruction_number, arity, for_lambda? ? 1 : 0, has_return? ? 1 : 0].pack('CwCC')
+        header + serialize_parameters(rodata, @parameters)
       end
 
-      def self.deserialize(io, _)
+      def self.deserialize(io, rodata)
         arity = io.read_ber_integer
         for_lambda = io.getbool
         has_return = io.getbool
-        new(arity:, for_lambda:, has_return:)
+        parameters = deserialize_parameters(io, rodata)
+        new(arity:, for_lambda:, has_return:, parameters:)
       end
     end
   end

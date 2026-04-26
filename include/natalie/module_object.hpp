@@ -122,10 +122,10 @@ public:
     Value remove_class_variable(Env *, Value);
 
     Value define_method(Env *, Value, Optional<Value>, Block *);
-    SymbolObject *define_method(Env *, SymbolObject *, LexicalScope *, MethodFnPtr, int, int, MethodVisibility);
-    SymbolObject *define_method(Env *, SymbolObject *, LexicalScope *, MethodFnPtr, int, int = 0);
-    SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, int, MethodVisibility);
-    SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, int = 0);
+    SymbolObject *define_method(Env *, SymbolObject *, LexicalScope *, MethodFnPtr, int, int, MethodVisibility, const ParamDescriptor * = nullptr);
+    SymbolObject *define_method(Env *, SymbolObject *, LexicalScope *, MethodFnPtr, int, int = 0, const ParamDescriptor * = nullptr);
+    SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, int, MethodVisibility, const ParamDescriptor * = nullptr);
+    SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, int = 0, const ParamDescriptor * = nullptr);
     SymbolObject *define_method(Env *, SymbolObject *, Block *);
     SymbolObject *undefine_method(Env *, SymbolObject *);
 

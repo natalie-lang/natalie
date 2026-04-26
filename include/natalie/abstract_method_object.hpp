@@ -18,6 +18,7 @@ public:
     SymbolObject *name(Env *env) { return SymbolObject::intern(m_method->name()); }
     Method *method() { return m_method; }
     int arity() { return m_method->arity(); }
+    Value parameters(Env *env) { return m_method->parameters_array(env); }
 
     virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);

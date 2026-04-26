@@ -55,4 +55,65 @@ Value Method::call(Env *env, Value self, Args &&args, Block *block) const {
 
     return call_fn(std::move(args));
 }
+
+ArrayObject *Method::parameters_array(Env *env) const {
+    return parameters_to_array(env, m_parameters, m_arity);
+}
+
+// When params is nullptr, synthesize from arity the way MRI does for
+// attr_reader/attr_writer/fixed-arity C methods.
+ArrayObject *parameters_to_array(Env *env, const ParamDescriptor *params, int arity, bool as_proc) {
+    auto array = ArrayObject::create();
+    if (!params) {
+        if (arity < 0) {
+            auto rest = ArrayObject::create();
+            rest->push("rest"_s);
+            array->push(rest);
+        } else {
+            for (int i = 0; i < arity; ++i) {
+                auto pair = ArrayObject::create();
+                pair->push(as_proc ? "opt"_s : "req"_s);
+                array->push(pair);
+            }
+        }
+        return array;
+    }
+    for (auto *p = params; p->kind != ParamKind::End; ++p) {
+        auto pair = ArrayObject::create();
+        SymbolObject *kind_sym = nullptr;
+        switch (p->kind) {
+        case ParamKind::Req:
+            kind_sym = as_proc ? "opt"_s : "req"_s;
+            break;
+        case ParamKind::Opt:
+            kind_sym = "opt"_s;
+            break;
+        case ParamKind::Rest:
+            kind_sym = "rest"_s;
+            break;
+        case ParamKind::KeyReq:
+            kind_sym = "keyreq"_s;
+            break;
+        case ParamKind::Key:
+            kind_sym = "key"_s;
+            break;
+        case ParamKind::KeyRest:
+            kind_sym = "keyrest"_s;
+            break;
+        case ParamKind::NoKey:
+            kind_sym = "nokey"_s;
+            break;
+        case ParamKind::Block:
+            kind_sym = "block"_s;
+            break;
+        case ParamKind::End:
+            continue;
+        }
+        pair->push(kind_sym);
+        if (p->name)
+            pair->push(SymbolObject::intern(p->name));
+        array->push(pair);
+    }
+    return array;
+}
 }

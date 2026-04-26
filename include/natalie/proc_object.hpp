@@ -59,6 +59,7 @@ public:
     Env *env() { return m_block->env(); }
 
     int arity() { return m_block ? m_block->arity() : 0; }
+    Value parameters(Env *env, Optional<Value> lambda_opt = {});
 
     virtual void visit_children(Visitor &visitor) const override {
         Object::visit_children(visitor);

@@ -401,9 +401,9 @@ Value ModuleObject::remove_class_variable(Env *env, Value name) {
     return val.value();
 }
 
-SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, int break_point, MethodVisibility visibility) {
+SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, int break_point, MethodVisibility visibility, const ParamDescriptor *parameters) {
     assert_not_frozen(env, this);
-    Method *method = new Method { name->string(), this, lexical_scope, fn, arity, break_point, env->file(), env->line() };
+    Method *method = new Method { name->string(), this, lexical_scope, fn, arity, break_point, env->file(), env->line(), parameters };
     if (name == "initialize"_s)
         visibility = MethodVisibility::Private;
     define_method(env, name, method, visibility);
@@ -412,16 +412,16 @@ SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, LexicalS
     return name;
 }
 
-SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, int break_point) {
-    return define_method(env, name, lexical_scope, fn, arity, break_point, m_method_visibility);
+SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, int break_point, const ParamDescriptor *parameters) {
+    return define_method(env, name, lexical_scope, fn, arity, break_point, m_method_visibility, parameters);
 }
 
-SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, int break_point, MethodVisibility visibility) {
-    return define_method(env, name, env->lexical_scope(), fn, arity, break_point, visibility);
+SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, int break_point, MethodVisibility visibility, const ParamDescriptor *parameters) {
+    return define_method(env, name, env->lexical_scope(), fn, arity, break_point, visibility, parameters);
 }
 
-SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, int break_point) {
-    return define_method(env, name, env->lexical_scope(), fn, arity, break_point, m_method_visibility);
+SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, int break_point, const ParamDescriptor *parameters) {
+    return define_method(env, name, env->lexical_scope(), fn, arity, break_point, m_method_visibility, parameters);
 }
 
 SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, Block *block) {

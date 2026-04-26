@@ -1132,6 +1132,7 @@ gen.binding('Method', 'owner', 'MethodObject', 'owner', argc: 0, pass_env: false
 gen.binding('Method', 'arity', 'MethodObject', 'arity', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.binding('Method', 'call', 'MethodObject', 'call', argc: :any, pass_env: true, pass_block: true, aliases: ['[]', '==='], return_type: :Value)
 gen.binding('Method', 'hash', 'MethodObject', 'hash', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
+gen.binding('Method', 'parameters', 'MethodObject', 'parameters', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Method', 'source_location', 'MethodObject', 'source_location', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Method', 'to_proc', 'MethodObject', 'to_proc', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Method', 'unbind', 'MethodObject', 'unbind', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
@@ -1217,6 +1218,7 @@ gen.binding('Proc', 'initialize', 'ProcObject', 'initialize', argc: 0, pass_env:
 gen.binding('Proc', 'arity', 'ProcObject', 'arity', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.binding('Proc', 'call', 'ProcObject', 'call', argc: :any, pass_env: true, pass_block: true, aliases: ['[]', '===', 'yield'], return_type: :Value)
 gen.binding('Proc', 'lambda?', 'ProcObject', 'is_lambda', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Proc', 'parameters', 'ProcObject', 'parameters', argc: 0, kwargs: [:lambda], pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Proc', 'ruby2_keywords', 'ProcObject', 'ruby2_keywords', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Proc', 'source_location', 'ProcObject', 'source_location', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Proc', 'to_proc', 'ProcObject', 'to_proc', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
@@ -1591,6 +1593,7 @@ gen.binding('UnboundMethod', 'bind_call', 'UnboundMethodObject', 'bind_call', ar
 gen.binding('UnboundMethod', 'inspect', 'UnboundMethodObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('UnboundMethod', 'name', 'UnboundMethodObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('UnboundMethod', 'owner', 'UnboundMethodObject', 'owner', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
+gen.binding('UnboundMethod', 'parameters', 'UnboundMethodObject', 'parameters', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.member_binding_as_class_method('main_obj', 'define_method', 'Object', 'main_obj_define_method', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
 gen.member_binding_as_class_method('main_obj', 'to_s', 'Object', 'main_obj_inspect', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Value)

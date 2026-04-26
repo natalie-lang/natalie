@@ -18,6 +18,7 @@ module Natalie
           @symbols = transform_data.symbols
           @interned_strings = transform_data.interned_strings
           @inline_functions = transform_data.inline_functions
+          @param_tables = transform_data.param_tables
           @var_prefix = transform_data.var_prefix
         end
 
@@ -155,6 +156,11 @@ module Natalie
           index = @symbols[symbol] ||= @symbols.size
           comment = "/*:#{symbol.to_s.gsub(%r{\*/|\\}, '?')}*/"
           "#{symbols_var_name}[#{index}]#{comment}"
+        end
+
+        def intern_param_table(parameters)
+          index = @param_tables[parameters] ||= @param_tables.size
+          "#{@var_prefix}param_table_#{index}"
         end
 
         def interned_string(str, encoding)

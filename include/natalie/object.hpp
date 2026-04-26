@@ -128,7 +128,7 @@ public:
     virtual Optional<Value> cvar_get_maybe(Env *, SymbolObject *);
     virtual Value cvar_set(Env *, SymbolObject *, Value);
 
-    static SymbolObject *define_method(Env *, Value, SymbolObject *, MethodFnPtr, int, int = 0);
+    static SymbolObject *define_method(Env *, Value, SymbolObject *, MethodFnPtr, int, int = 0, const ParamDescriptor * = nullptr);
     static SymbolObject *define_method(Env *, Value, SymbolObject *, Block *);
     static SymbolObject *undefine_method(Env *, Value, SymbolObject *);
 

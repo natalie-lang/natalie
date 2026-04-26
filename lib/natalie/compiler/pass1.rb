@@ -1,6 +1,7 @@
 require_relative './args'
 require_relative './block_args'
 require_relative './arity'
+require_relative './parameter_list'
 require_relative './base_pass'
 require_relative './const_prepper'
 require_relative './multiple_assignment'
@@ -415,9 +416,10 @@ module Natalie
 
       def transform_block_node(node, used:, for_lambda:)
         arity = Arity.new(node.parameters, is_proc: !for_lambda).arity
+        parameters = ParameterList.new(node.parameters).to_a
 
         instructions = []
-        instructions << DefineBlockInstruction.new(arity:, for_lambda:)
+        instructions << DefineBlockInstruction.new(arity:, for_lambda:, parameters:)
         if for_lambda
           instructions << transform_block_args_for_lambda(node.parameters, used: true)
         else
@@ -1145,6 +1147,7 @@ module Natalie
 
       def transform_def_node(node, used:)
         arity = Arity.new(node.parameters, is_proc: false).arity
+        parameters = ParameterList.new(node.parameters).to_a
 
         instructions = []
         if node.receiver
@@ -1154,7 +1157,13 @@ module Natalie
         end
 
         instructions << [
-          DefineMethodInstruction.new(name: node.name, arity: arity, file: @file.path, line: node.location.start_line),
+          DefineMethodInstruction.new(
+            name: node.name,
+            arity: arity,
+            file: @file.path,
+            line: node.location.start_line,
+            parameters: parameters,
+          ),
           transform_defn_args(node.parameters, used: true),
           with_locals(node.locals) { transform_body([node.body], used: true, location: node.location) },
           EndInstruction.new(:define_method),

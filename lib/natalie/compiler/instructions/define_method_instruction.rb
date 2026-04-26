@@ -3,10 +3,11 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class DefineMethodInstruction < BaseInstruction
-      def initialize(name:, arity:, file:, line:, break_point: nil)
+      def initialize(name:, arity:, file:, line:, break_point: nil, parameters: [])
         @name = name
         @arity = arity
         @break_point = break_point
+        @parameters = parameters
 
         # source location info
         @file = file
@@ -17,7 +18,7 @@ module Natalie
         true
       end
 
-      attr_reader :name, :arity, :file, :line
+      attr_reader :name, :arity, :file, :line, :parameters
       attr_accessor :break_point
 
       def to_s
@@ -40,8 +41,9 @@ module Natalie
           body << '}'
           transform.top(fn, body)
         end
+        params_ref = @parameters.empty? ? 'nullptr' : transform.intern_param_table(@parameters)
         transform.exec(
-          "Object::define_method(env, #{klass}, #{transform.intern(@name)}, #{fn}, #{@arity}, #{@break_point.to_i})",
+          "Object::define_method(env, #{klass}, #{transform.intern(@name)}, #{fn}, #{@arity}, #{@break_point.to_i}, #{params_ref})",
         )
       end
 
@@ -77,7 +79,8 @@ module Natalie
         raise NotImplementedError, 'Methods with more than 127 arguments are not supported' if @arity > 127
 
         position = rodata.add(@name.to_s)
-        [instruction_number, position, @arity, @break_point.to_i].pack('CwcC')
+        header = [instruction_number, position, @arity, @break_point.to_i].pack('CwcC')
+        header + serialize_parameters(rodata, @parameters)
       end
 
       def self.deserialize(io, rodata)
@@ -86,12 +89,14 @@ module Natalie
         arity = io.read(1).unpack1('c')
         break_point = io.read_ber_integer
         break_point = nil if break_point.zero?
+        parameters = deserialize_parameters(io, rodata)
         new(
           name:,
           arity:,
           file: '', # FIXME
           line: 0, # FIXME
           break_point:,
+          parameters:,
         )
       end
     end

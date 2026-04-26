@@ -87,6 +87,19 @@ Value ProcObject::source_location() {
     return ArrayObject::create({ StringObject::create(file), Value::integer(static_cast<nat_int_t>(m_block->env()->line())) });
 }
 
+Value ProcObject::parameters(Env *env, Optional<Value> lambda_opt) {
+    if (!m_block) return ArrayObject::create();
+    bool as_proc = !is_lambda();
+    if (lambda_opt) {
+        auto v = lambda_opt.value();
+        // Proc#parameters(lambda: nil) ignores the keyword entirely -- spec: see
+        // spec/core/proc/parameters_spec.rb.
+        if (!v.is_nil())
+            as_proc = !v.is_truthy();
+    }
+    return parameters_to_array(env, m_block->parameters(), m_block->arity(), as_proc);
+}
+
 StringObject *ProcObject::to_s(Env *env) {
     assert(m_block);
     String suffix {};
