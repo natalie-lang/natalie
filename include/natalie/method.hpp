@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "natalie/block.hpp"
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
@@ -10,9 +12,29 @@
 
 namespace Natalie {
 
+// Mirror of ParameterList::KINDS in Ruby. End terminates in-memory tables only.
+enum class ParamKind : uint8_t {
+    End = 0,
+    Req,
+    Opt,
+    Rest,
+    KeyReq,
+    Key,
+    KeyRest,
+    NoKey,
+    Block,
+};
+
+struct ParamDescriptor {
+    ParamKind kind;
+    const char *name; // nullptr for anonymous rest / block / nokey
+};
+
+ArrayObject *parameters_to_array(Env *env, const ParamDescriptor *params, int arity, bool as_proc = false);
+
 class Method : public Cell {
 public:
-    Method(TM::String &&name, ModuleObject *owner, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, int break_point = 0, const char *file = nullptr, size_t line = 0)
+    Method(TM::String &&name, ModuleObject *owner, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, int break_point = 0, const char *file = nullptr, size_t line = 0, const ParamDescriptor *parameters = nullptr)
         : m_name { std::move(name) }
         , m_owner { owner }
         , m_lexical_scope { lexical_scope }
@@ -20,7 +42,8 @@ public:
         , m_arity { arity }
         , m_break_point { break_point }
         , m_file { file ? Optional<String>(file) : Optional<String>() }
-        , m_line { line ? Optional<size_t>(line) : Optional<size_t>() } {
+        , m_line { line ? Optional<size_t>(line) : Optional<size_t>() }
+        , m_parameters { parameters } {
         assert(fn);
     }
 
@@ -29,7 +52,8 @@ public:
         , m_owner { owner }
         , m_lexical_scope { block->lexical_scope() }
         , m_arity { block->arity() }
-        , m_env { Env::create(*block->env()) } {
+        , m_env { Env::create(*block->env()) }
+        , m_parameters { block->parameters() } {
         assert(m_env);
         block->copy_fn_pointer_to_method(this);
 
@@ -45,8 +69,8 @@ public:
         }
     }
 
-    Method(const TM::String &name, ModuleObject *owner, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, int break_point = 0, const char *file = nullptr, size_t line = 0)
-        : Method(TM::String(name), owner, lexical_scope, fn, arity, break_point, file, line) { }
+    Method(const TM::String &name, ModuleObject *owner, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, int break_point = 0, const char *file = nullptr, size_t line = 0, const ParamDescriptor *parameters = nullptr)
+        : Method(TM::String(name), owner, lexical_scope, fn, arity, break_point, file, line, parameters) { }
 
     Method(const TM::String &name, ModuleObject *owner, Block *block)
         : Method(TM::String(name), owner, block) { }
@@ -58,6 +82,7 @@ public:
         method->m_file = other->m_file;
         method->m_line = other->m_line;
         method->m_break_point = other->m_break_point;
+        method->m_parameters = other->m_parameters;
         method->set_original_method(other);
         return method;
     }
@@ -83,6 +108,9 @@ public:
     Method *original_method() const { return m_original_method; }
 
     int arity() const { return m_arity; }
+
+    const ParamDescriptor *parameters() const { return m_parameters; }
+    ArrayObject *parameters_array(Env *env) const;
 
     const Optional<String> &get_file() const { return m_file; }
     const Optional<size_t> &get_line() const { return m_line; }
@@ -112,5 +140,6 @@ private:
     Optional<String> m_file {};
     Optional<size_t> m_line {};
     Env *m_env { nullptr };
+    const ParamDescriptor *m_parameters { nullptr };
 };
 }

@@ -25,6 +25,7 @@ module Natalie
           @top = transform_data.top
           @symbols = transform_data.symbols
           @interned_strings = transform_data.interned_strings
+          @param_tables = transform_data.param_tables
           @var_prefix = transform_data.var_prefix
           @ruby_path = ruby_path
           @compiler = compiler
@@ -213,9 +214,13 @@ module Natalie
         end
 
         def declarations
-          [object_file_declarations, symbols_declaration, interned_strings_declaration, @top.values.join("\n")].join(
-            "\n\n",
-          )
+          [
+            object_file_declarations,
+            symbols_declaration,
+            interned_strings_declaration,
+            param_tables_declaration,
+            @top.values.join("\n"),
+          ].join("\n\n")
         end
 
         def init_matter
@@ -238,6 +243,24 @@ module Natalie
           return '' if @interned_strings.empty?
 
           "static StringObject *#{interned_strings_var_name}[#{@interned_strings.size}] = { 0 };"
+        end
+
+        def param_tables_declaration
+          return '' if @param_tables.empty?
+
+          @param_tables
+            .map do |params, index|
+              entries = params.map { |kind, name| param_descriptor_literal(kind, name) }
+              entries << 'ParamDescriptor{ParamKind::End, nullptr}'
+              "static const ParamDescriptor #{static_var_name("param_table_#{index}")}[] = { #{entries.join(', ')} };"
+            end
+            .join("\n")
+        end
+
+        def param_descriptor_literal(kind, name)
+          kind_cpp = ParameterList::KIND_CPP_NAMES.fetch(kind)
+          name_cpp = name ? string_to_cpp(name.to_s) : 'nullptr'
+          "ParamDescriptor{#{kind_cpp}, #{name_cpp}}"
         end
 
         def init_object_files

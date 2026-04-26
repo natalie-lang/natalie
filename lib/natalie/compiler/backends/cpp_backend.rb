@@ -16,6 +16,7 @@ module Natalie
           @symbols = {}
           @interned_strings = {}
           @inline_functions = {}
+          @param_tables = {}
           @var_prefix = var_prefix
           @var_num = 0
         end
@@ -24,7 +25,7 @@ module Natalie
           @var_num += 1
         end
 
-        attr_reader :top, :symbols, :interned_strings, :inline_functions, :var_prefix
+        attr_reader :top, :symbols, :interned_strings, :inline_functions, :param_tables, :var_prefix
       end
 
       ROOT_DIR = File.expand_path('../../../../', __dir__)

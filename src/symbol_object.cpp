@@ -228,7 +228,12 @@ Value SymbolObject::is_casecmp(Env *env, Value other) {
 ProcObject *SymbolObject::to_proc(Env *env) {
     OwnedPtr<Env> block_env { Env::create() };
     block_env->var_set("name", 0, true, this);
-    Block *proc_block = Block::create(std::move(block_env), this, SymbolObject::to_proc_block_fn, -2, false, Block::BlockType::Lambda);
+    static const ParamDescriptor params[] = {
+        { ParamKind::Req, nullptr },
+        { ParamKind::Rest, nullptr },
+        { ParamKind::End, nullptr },
+    };
+    Block *proc_block = Block::create(std::move(block_env), this, SymbolObject::to_proc_block_fn, -2, false, Block::BlockType::Lambda, params);
     return ProcObject::create(proc_block);
 }
 

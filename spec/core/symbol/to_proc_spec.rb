@@ -24,9 +24,7 @@ describe "Symbol#to_proc" do
 
   it "produces a Proc that always returns [[:req], [:rest]] for #parameters" do
     pr = :to_s.to_proc
-    NATFIXME 'Implement Proc#parameters', exception: NoMethodError, message: "undefined method 'parameters'" do
-      pr.parameters.should == [[:req], [:rest]]
-    end
+    pr.parameters.should == [[:req], [:rest]]
   end
 
   it "only calls public methods" do

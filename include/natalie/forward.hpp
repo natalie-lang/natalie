@@ -39,6 +39,7 @@ class MatchDataObject;
 class Method;
 class MethodObject;
 class ModuleObject;
+struct ParamDescriptor;
 class NatalieProfiler;
 class NatalieProfilerEvent;
 class NumberParser;

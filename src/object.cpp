@@ -613,17 +613,17 @@ SymbolObject *Object::undefine_singleton_method(Env *env, Value self, SymbolObje
     return name;
 }
 
-SymbolObject *Object::define_method(Env *env, Value self, SymbolObject *name, MethodFnPtr fn, int arity, int break_point) {
+SymbolObject *Object::define_method(Env *env, Value self, SymbolObject *name, MethodFnPtr fn, int arity, int break_point, const ParamDescriptor *parameters) {
     if (self.is_module())
-        return self.as_module()->define_method(env, name, fn, arity, break_point);
+        return self.as_module()->define_method(env, name, fn, arity, break_point, parameters);
 
     if (GlobalEnv::the()->instance_evaling())
         return define_singleton_method(env, self, name, fn, arity, break_point);
 
     if (self == GlobalEnv::the()->main_obj())
-        return GlobalEnv::the()->Object()->define_method(env, name, fn, arity, break_point, GlobalEnv::the()->top_level_method_visibility());
+        return GlobalEnv::the()->Object()->define_method(env, name, fn, arity, break_point, GlobalEnv::the()->top_level_method_visibility(), parameters);
 
-    self.klass()->define_method(env, name, fn, arity, break_point);
+    self.klass()->define_method(env, name, fn, arity, break_point, parameters);
     return name;
 }
 

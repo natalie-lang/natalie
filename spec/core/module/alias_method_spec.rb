@@ -22,10 +22,8 @@ describe "Module#alias_method" do
   it "preserves the arguments information of the original methods" do
     @class.make_alias :uno, :public_one
     @class.make_alias :double, :public_two
-    NATFIXME 'Implement Method#parameters', exception: NoMethodError, message: "undefined method 'parameters' for an instance of UnboundMethod" do
-      @class.instance_method(:uno).parameters.should == @class.instance_method(:public_one).parameters
-      @class.instance_method(:double).parameters.should == @class.instance_method(:public_two).parameters
-    end
+    @class.instance_method(:uno).parameters.should == @class.instance_method(:public_one).parameters
+    @class.instance_method(:double).parameters.should == @class.instance_method(:public_two).parameters
   end
 
   it "retains method visibility" do

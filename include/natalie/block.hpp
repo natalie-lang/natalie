@@ -17,24 +17,25 @@ public:
         Method
     };
 
-    static Block *create(Env &env, Value self, MethodFnPtr fn, int arity, bool has_return = false, BlockType type = BlockType::Proc) {
+    static Block *create(Env &env, Value self, MethodFnPtr fn, int arity, bool has_return = false, BlockType type = BlockType::Proc, const ParamDescriptor *parameters = nullptr) {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new Block(env, self, fn, arity, has_return, type);
+        return new Block(env, self, fn, arity, has_return, type, parameters);
     }
 
-    static Block *create(Env &env, Value self, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, bool has_return = false, BlockType type = BlockType::Proc) {
+    static Block *create(Env &env, Value self, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, bool has_return = false, BlockType type = BlockType::Proc, const ParamDescriptor *parameters = nullptr) {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new Block(env, self, lexical_scope, fn, arity, has_return, type);
+        return new Block(env, self, lexical_scope, fn, arity, has_return, type, parameters);
     }
 
-    static Block *create(TM::OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, bool has_return = false, BlockType type = BlockType::Proc) {
+    static Block *create(TM::OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, bool has_return = false, BlockType type = BlockType::Proc, const ParamDescriptor *parameters = nullptr) {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new Block(std::move(env), self, fn, arity, has_return, type);
+        return new Block(std::move(env), self, fn, arity, has_return, type, parameters);
     }
 
     Value run(Env *env, Args &&args = {}, Block *block = nullptr);
 
     int arity() const { return m_arity; }
+    const ParamDescriptor *parameters() const { return m_parameters; }
 
     bool has_return() const { return m_has_return; }
 
@@ -68,32 +69,35 @@ public:
     }
 
 private:
-    Block(Env &env, Value self, MethodFnPtr fn, int arity, bool has_return, BlockType type = BlockType::Proc)
+    Block(Env &env, Value self, MethodFnPtr fn, int arity, bool has_return, BlockType type = BlockType::Proc, const ParamDescriptor *parameters = nullptr)
         : m_fn { fn }
         , m_arity { arity }
         , m_has_return { has_return }
         , m_env { Env::create(env) }
         , m_self { self }
-        , m_type { type } { }
+        , m_type { type }
+        , m_parameters { parameters } { }
 
-    Block(Env &env, Value self, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, bool has_return, BlockType type = BlockType::Proc)
+    Block(Env &env, Value self, LexicalScope *lexical_scope, MethodFnPtr fn, int arity, bool has_return, BlockType type = BlockType::Proc, const ParamDescriptor *parameters = nullptr)
         : m_fn { fn }
         , m_arity { arity }
         , m_has_return { has_return }
         , m_env { Env::create(env) }
         , m_self { self }
-        , m_type { type } {
+        , m_type { type }
+        , m_parameters { parameters } {
 
         m_env->set_lexical_scope(lexical_scope);
     }
 
-    Block(OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, bool has_return, BlockType type = BlockType::Proc)
+    Block(OwnedPtr<Env> &&env, Value self, MethodFnPtr fn, int arity, bool has_return, BlockType type = BlockType::Proc, const ParamDescriptor *parameters = nullptr)
         : m_fn { fn }
         , m_arity { arity }
         , m_has_return { has_return }
         , m_env { env.release() }
         , m_self { self }
-        , m_type { type } { }
+        , m_type { type }
+        , m_parameters { parameters } { }
 
     MethodFnPtr m_fn;
     int m_arity { 0 };
@@ -102,6 +106,7 @@ private:
     Env *m_calling_env { nullptr };
     Value m_self {};
     BlockType m_type { BlockType::Proc };
+    const ParamDescriptor *m_parameters { nullptr };
 };
 
 }
