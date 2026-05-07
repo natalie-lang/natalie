@@ -45,15 +45,19 @@ Value ModuleObject::include(Env *env, Args &&args) {
     return this;
 }
 
+bool ModuleObject::is_origin_hollow() const {
+    return m_origin && m_origin != this;
+}
+
 // Walk a module's iclass-aware super chain and collect each visible module
 // in MRI's ancestor order (skipping hollow class wrappers and unwrapping iclasses).
 // Stops at the first non-iclass node that isn't `start` itself, so we don't
 // leak the parent class hierarchy of a class into an include's splice.
 static void collect_modules_for_splice(ModuleObject *start, TM::Vector<ModuleObject *> &out) {
     for (ModuleObject *p = start; p; p = p->chain_super()) {
-        if (p->origin() && p->origin() != p) continue; // hollow wrapper
+        if (p->is_origin_hollow()) continue;
         if (p->is_iclass()) {
-            out.push(static_cast<IClassObject *>(p)->wrapped_module());
+            out.push(p->defined_class());
         } else if (p == start) {
             out.push(p);
         } else {
@@ -294,13 +298,14 @@ Value ModuleObject::remove_const(Env *env, Value name) {
 
 Value ModuleObject::constants(Env *env, Optional<Value> inherit) const {
     auto ary = ArrayObject::create();
-    for (auto pair : m_constants)
+    for (auto pair : constants_table())
         ary->push(pair.first);
     if (!inherit || inherit->is_truthy()) {
-        for (ModuleObject *module : m_included_modules) {
-            if (module != this) {
-                ary->concat(*module->constants(env, inherit).as_array());
-            }
+        for (ClassObject *p = m_superclass; p; p = p->chain_super()) {
+            if (p == GlobalEnv::the()->Object()) break;
+            if (p->is_origin_hollow()) continue;
+            for (auto pair : p->constants_table())
+                ary->push(pair.first);
         }
     }
     return ary;
@@ -344,25 +349,15 @@ Optional<Value> ModuleObject::cvar_get_maybe(Env *env, SymbolObject *name) {
 
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ModuleObject *module = this;
-    Optional<Value> val;
-    while (module) {
-        val = module->class_vars_table().get(name, env);
-        if (val)
-            return val;
-        module = module->m_superclass;
-    }
-
-    for (auto *m : m_included_modules) {
-        val = m->class_vars_table().get(name, env);
-        if (val)
-            return val;
+    for (ModuleObject *p = this; p; p = p->m_superclass) {
+        if (p->is_origin_hollow()) continue;
+        auto val = p->class_vars_table().get(name, env);
+        if (val) return val;
     }
 
     if (singleton_class()) {
-        val = singleton_class()->class_vars_table().get(name, env);
-        if (val)
-            return val;
+        auto val = singleton_class()->class_vars_table().get(name, env);
+        if (val) return val;
     }
 
     return {};
@@ -375,16 +370,13 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
 
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-        ModuleObject *current = module;
-
-        Optional<Value> exists;
-        while (current) {
-            exists = current->class_vars_table().get(name, env);
+        for (ModuleObject *current = module; current; current = current->m_superclass) {
+            if (current->is_origin_hollow()) continue;
+            auto exists = current->class_vars_table().get(name, env);
             if (exists) {
                 current->class_vars_table().put(name, val, env);
                 return val;
             }
-            current = current->m_superclass;
         }
         module->class_vars_table().put(name, val, env);
         return val;
@@ -435,8 +427,17 @@ ArrayObject *ModuleObject::class_variables(Optional<Value> inherit) const {
         for (auto [cvar, _] : singleton_class()->class_vars_table())
             result->push(cvar);
     }
-    if (inherit && inherit->is_truthy() && m_superclass)
-        result->concat(*m_superclass->class_variables(inherit));
+    if (inherit && inherit->is_truthy()) {
+        for (ClassObject *p = m_superclass; p; p = p->chain_super()) {
+            if (p->is_origin_hollow()) continue;
+            for (auto [cvar, _] : p->class_vars_table())
+                result->push(cvar);
+            if (!p->is_iclass() && p->singleton_class()) {
+                for (auto [cvar, _] : p->singleton_class()->class_vars_table())
+                    result->push(cvar);
+            }
+        }
+    }
     return result;
 }
 
@@ -505,18 +506,14 @@ void ModuleObject::methods(Env *env, ArrayObject *array, bool include_super) {
             continue;
         array->push(pair.first);
     }
-    if (!include_super) {
-        return;
-    }
-    for (ModuleObject *module : m_included_modules) {
-        for (auto pair : module->methods_table()) {
+    if (!include_super) return;
+    for (ClassObject *p = m_superclass; p; p = p->chain_super()) {
+        if (p->is_origin_hollow()) continue;
+        for (auto pair : p->methods_table()) {
             if (array->include(env, pair.first))
                 continue;
             array->push(pair.first);
         }
-    }
-    if (m_superclass) {
-        m_superclass->methods(env, array);
     }
 }
 
@@ -680,11 +677,8 @@ ArrayObject *ModuleObject::ancestors(Env *env) {
 
     ArrayObject *ancestors = ArrayObject::create();
     for (ModuleObject *p = this; p; p = p->m_superclass) {
-        if (p->m_origin && p->m_origin != p) continue; // hollow class wrapper
-        if (p->is_iclass())
-            ancestors->push(static_cast<IClassObject *>(p)->wrapped_module());
-        else
-            ancestors->push(p);
+        if (p->is_origin_hollow()) continue;
+        ancestors->push(p->defined_class());
     }
     return ancestors;
 }
@@ -693,9 +687,8 @@ bool ModuleObject::ancestors_includes(Env *env, ModuleObject *module) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     for (ModuleObject *p = this; p; p = p->m_superclass) {
-        if (p->m_origin && p->m_origin != p) continue;
-        ModuleObject *visible = p->is_iclass() ? static_cast<IClassObject *>(p)->wrapped_module() : p;
-        if (visible == module) return true;
+        if (p->is_origin_hollow()) continue;
+        if (p->defined_class() == module) return true;
     }
     return false;
 }
@@ -752,25 +745,11 @@ Value ModuleObject::cmp(Env *env, Value other) {
 bool ModuleObject::is_subclass_of(ModuleObject *other) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    if (other == this) {
-        return false;
+    if (other == this) return false;
+    for (ClassObject *p = m_superclass; p; p = p->chain_super()) {
+        if (p->is_origin_hollow()) continue;
+        if (p->defined_class() == other) return true;
     }
-    ModuleObject *klass = this;
-    do {
-        if (other == klass->m_superclass) {
-            return true;
-        }
-        for (ModuleObject *m : klass->included_modules()) {
-            if (m == klass) continue;
-            if (other == m) {
-                return true;
-            }
-            if (m->is_subclass_of(other)) {
-                return true;
-            }
-        }
-        klass = klass->m_superclass;
-    } while (klass);
     return false;
 }
 
@@ -906,14 +885,13 @@ ArrayObject *ModuleObject::attr_accessor(Env *env, Args &&args) {
 void ModuleObject::included_modules(Env *env, ArrayObject *modules) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    for (ModuleObject *m : included_modules()) {
-        if (m == this || modules->include(env, m))
-            continue;
-        modules->push(m);
-        m->included_modules(env, modules);
-    }
-    if (m_superclass) {
-        m_superclass->included_modules(env, modules);
+    for (ModuleObject *p = this; p; p = p->m_superclass) {
+        if (p == this) continue;
+        if (p->is_origin_hollow()) continue;
+        ModuleObject *visible = p->defined_class();
+        if (visible->type() == Type::Class) continue;
+        if (modules->include(env, visible)) continue;
+        modules->push(visible);
     }
 }
 
@@ -927,16 +905,14 @@ bool ModuleObject::does_include_module(Env *env, Value module) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     module.assert_type(env, Object::Type::Module, "Module");
-    for (ModuleObject *m : included_modules()) {
-        if (this == m)
-            continue;
-        if (module == m)
-            return true;
-        if (m->does_include_module(env, module))
-            return true;
+    auto target = module.as_module();
+    for (ModuleObject *p = this; p; p = p->m_superclass) {
+        if (p == this) continue;
+        if (p->is_origin_hollow()) continue;
+        ModuleObject *visible = p->defined_class();
+        if (visible->type() == Type::Class) continue;
+        if (visible == target) return true;
     }
-    if (m_superclass && m_superclass->does_include_module(env, module))
-        return true;
     return false;
 }
 
