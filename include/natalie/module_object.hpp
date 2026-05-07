@@ -65,11 +65,27 @@ public:
     Optional<Value> handle_missing_constant(Env *, Value, ConstLookupFailureMode);
 
     Constant *get_constant(SymbolObject *name, ModuleObject **found_in_module) {
-        auto constant = m_constants.get(name);
+        auto constant = constants_table().get(name);
         if (found_in_module && constant)
-            *found_in_module = this;
+            *found_in_module = defined_class();
         return constant;
     }
+
+    // Virtual accessors that an IClassObject overrides to forward to its wrapped module.
+    // For all non-iclass modules these return the module's own storage.
+    virtual TM::Hashmap<SymbolObject *, MethodInfo> &methods_table() { return m_methods; }
+    virtual const TM::Hashmap<SymbolObject *, MethodInfo> &methods_table() const { return m_methods; }
+    virtual TM::Hashmap<SymbolObject *, Constant *> &constants_table() { return m_constants; }
+    virtual const TM::Hashmap<SymbolObject *, Constant *> &constants_table() const { return m_constants; }
+    virtual TM::Hashmap<SymbolObject *, Optional<Value>> &class_vars_table() { return m_class_vars; }
+    virtual const TM::Hashmap<SymbolObject *, Optional<Value>> &class_vars_table() const { return m_class_vars; }
+
+    // For iclasses, returns the wrapped module; otherwise returns `this`. Use this
+    // when reporting the owner of a method or constant to user code so that iclasses
+    // never leak.
+    virtual ModuleObject *defined_class() { return this; }
+
+    virtual bool is_iclass() const { return false; }
     Constant *find_constant_in_modules(Env *, SymbolObject *, ConstLookupSearchMode, ModuleObject **);
     Constant *find_constant_in_class_hierarchy(Env *, SymbolObject *, ConstLookupSearchMode, bool, ModuleObject **);
 
@@ -198,7 +214,7 @@ public:
     Value gte(Env *, Value);
     Value cmp(Env *, Value);
 
-    virtual void visit_children(Visitor &) const override final;
+    virtual void visit_children(Visitor &) const override;
 
     virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<ModuleObject {h} name=\"{}\">", this, m_name.value_or("none"));

@@ -77,4 +77,9 @@ String ClassObject::backtrace_name() const {
     return String::format("<class:{}>", m_name.value());
 }
 
+void ClassObject::visit_children(Visitor &visitor) const {
+    ModuleObject::visit_children(visitor);
+    visitor.visit(m_origin);
+}
+
 }
