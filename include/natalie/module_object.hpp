@@ -122,6 +122,16 @@ public:
     virtual ClassObject *superclass(Env *) { return m_superclass; }
     void set_superclass_DANGEROUSLY(ClassObject *superclass) { m_superclass = superclass; }
 
+    // Raw next-node pointer for walks that need to traverse iclass nodes (find_method,
+    // ancestors, etc.). Differs from `superclass()` which skips iclasses.
+    ClassObject *chain_super() const { return m_superclass; }
+    void set_chain_super(ClassObject *s) { m_superclass = s; }
+
+    // Set on the first prepend into this module/class. Points at the origin iclass
+    // that holds the original method table so prepended modules' `super` calls find it.
+    ClassObject *origin() const { return m_origin; }
+    void set_origin(ClassObject *origin) { m_origin = origin; }
+
     ModuleObject *owner() const { return m_owner; }
 
     void included_modules(Env *, ArrayObject *);
@@ -248,6 +258,7 @@ protected:
     TM::Hashmap<SymbolObject *, Constant *> m_constants {};
     Optional<String> m_name {};
     ClassObject *m_superclass { nullptr };
+    ClassObject *m_origin { nullptr };
     ModuleObject *m_owner { nullptr };
     TM::Hashmap<SymbolObject *, MethodInfo> m_method_cache {};
     int m_method_cache_version { 0 };

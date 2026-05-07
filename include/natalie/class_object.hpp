@@ -29,7 +29,11 @@ public:
     ClassObject *superclass(Env *env) override {
         if (!m_is_initialized)
             env->raise("TypeError", "uninitialized class");
-        return m_superclass;
+        // m_superclass may point at iclass nodes that are internal-only.
+        // The user-visible superclass skips past them.
+        ClassObject *s = m_superclass;
+        while (s && s->is_iclass()) s = s->m_superclass;
+        return s;
     }
 
     ClassObject *subclass(Env *env, const char *name) {
@@ -63,13 +67,6 @@ public:
     bool is_singleton() const { return m_is_singleton; }
     void set_is_singleton(bool is_singleton) { m_is_singleton = is_singleton; }
 
-    // Set on the first prepend into this class. Points at the origin iclass that
-    // holds the class's own methods so prepended modules' `super` finds them.
-    ClassObject *origin() const { return m_origin; }
-    void set_origin(ClassObject *origin) { m_origin = origin; }
-
-    virtual void visit_children(Visitor &) const override;
-
     virtual String backtrace_name() const override final;
 
     virtual TM::String dbg_inspect(int indent = 0) const override {
@@ -94,7 +91,6 @@ private:
     bool m_is_singleton { false };
     bool m_is_initialized { false };
     AllocFunc m_alloc_func { nullptr };
-    ClassObject *m_origin { nullptr };
 };
 
 }
