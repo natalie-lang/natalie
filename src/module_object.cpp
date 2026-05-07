@@ -290,20 +290,20 @@ Optional<Value> ModuleObject::cvar_get_maybe(Env *env, SymbolObject *name) {
     ModuleObject *module = this;
     Optional<Value> val;
     while (module) {
-        val = module->m_class_vars.get(name, env);
+        val = module->class_vars_table().get(name, env);
         if (val)
             return val;
         module = module->m_superclass;
     }
 
     for (auto *m : m_included_modules) {
-        val = m->m_class_vars.get(name, env);
+        val = m->class_vars_table().get(name, env);
         if (val)
             return val;
     }
 
     if (singleton_class()) {
-        val = singleton_class()->m_class_vars.get(name, env);
+        val = singleton_class()->class_vars_table().get(name, env);
         if (val)
             return val;
     }
@@ -322,14 +322,14 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
 
         Optional<Value> exists;
         while (current) {
-            exists = current->m_class_vars.get(name, env);
+            exists = current->class_vars_table().get(name, env);
             if (exists) {
-                current->m_class_vars.put(name, val, env);
+                current->class_vars_table().put(name, val, env);
                 return val;
             }
             current = current->m_superclass;
         }
-        module->m_class_vars.put(name, val, env);
+        module->class_vars_table().put(name, val, env);
         return val;
     };
 
@@ -372,10 +372,10 @@ ArrayObject *ModuleObject::class_variables(Optional<Value> inherit) const {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     auto result = ArrayObject::create();
-    for (auto [cvar, _] : m_class_vars)
+    for (auto [cvar, _] : class_vars_table())
         result->push(cvar);
     if (singleton_class()) {
-        for (auto [cvar, _] : singleton_class()->m_class_vars)
+        for (auto [cvar, _] : singleton_class()->class_vars_table())
             result->push(cvar);
     }
     if (inherit && inherit->is_truthy() && m_superclass)
@@ -443,7 +443,7 @@ SymbolObject *ModuleObject::undefine_method(Env *env, SymbolObject *name) {
 
 // supply an empty array and it will be populated with the method names as symbols
 void ModuleObject::methods(Env *env, ArrayObject *array, bool include_super) {
-    for (auto pair : m_methods) {
+    for (auto pair : methods_table()) {
         if (array->include(env, pair.first))
             continue;
         array->push(pair.first);
@@ -452,7 +452,7 @@ void ModuleObject::methods(Env *env, ArrayObject *array, bool include_super) {
         return;
     }
     for (ModuleObject *module : m_included_modules) {
-        for (auto pair : module->m_methods) {
+        for (auto pair : module->methods_table()) {
             if (array->include(env, pair.first))
                 continue;
             array->push(pair.first);
@@ -486,7 +486,7 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Module
     if (m_included_modules.is_empty()) {
         // no included modules, just search the class/module
         // note: if there are included modules, then the module chain will include this class/module
-        method_info = m_methods.get(method_name, env);
+        method_info = methods_table().get(method_name, env);
         if (method_info) {
             if (!method_info.is_defined()) {
                 if (!after_method)
@@ -507,7 +507,7 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Module
 
     for (ModuleObject *module : m_included_modules) {
         if (module == this) {
-            method_info = module->m_methods.get(method_name, env);
+            method_info = module->methods_table().get(method_name, env);
         } else {
             method_info = module->find_method(env, method_name, matching_class_or_module, after_method, after_method_found);
         }
