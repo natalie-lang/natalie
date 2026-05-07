@@ -45,23 +45,57 @@ Value ModuleObject::include(Env *env, Args &&args) {
     return this;
 }
 
+// Walk a module's iclass-aware super chain and collect each visible module
+// in MRI's ancestor order (skipping hollow class wrappers and unwrapping iclasses).
+// Stops at the first non-iclass node that isn't `start` itself, so we don't
+// leak the parent class hierarchy of a class into an include's splice.
+static void collect_modules_for_splice(ModuleObject *start, TM::Vector<ModuleObject *> &out) {
+    for (ModuleObject *p = start; p; p = p->chain_super()) {
+        if (p->origin() && p->origin() != p) continue; // hollow wrapper
+        if (p->is_iclass()) {
+            out.push(static_cast<IClassObject *>(p)->wrapped_module());
+        } else if (p == start) {
+            out.push(p);
+        } else {
+            break; // hit a real class above the module being included
+        }
+    }
+}
+
 void ModuleObject::include_once(Env *env, ModuleObject *module) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
+    // Update the legacy flat list.
     if (m_included_modules.is_empty()) {
         m_included_modules.push(this);
         m_included_modules.push(module);
     } else {
         ssize_t this_index = -1;
+        bool already_present = false;
         for (size_t i = 0; i < m_included_modules.size(); ++i) {
             if (m_included_modules[i] == this)
                 this_index = i;
             if (m_included_modules[i] == module)
-                return;
+                already_present = true;
         }
+        if (already_present) return;
         assert(this_index != -1);
         m_included_modules.insert(this_index + 1, module);
     }
+
+    // Build the iclass-augmented super chain. Splice an iclass for `module` and each
+    // module in its ancestor chain into self, preserving MRI's ordering.
+    TM::Vector<ModuleObject *> to_splice;
+    collect_modules_for_splice(module, to_splice);
+
+    ModuleObject *insertion = m_origin ? static_cast<ModuleObject *>(m_origin) : this;
+    for (ModuleObject *m : to_splice) {
+        if (m != module && ancestors_includes(env, m)) continue;
+        IClassObject *iclass = IClassObject::create(m, insertion->m_superclass);
+        insertion->m_superclass = iclass;
+        insertion = iclass;
+    }
+
     GlobalEnv::the()->increment_method_cache_version();
     if (module->respond_to(env, "included"_s))
         module->send(env, "included"_s, { this });
@@ -77,6 +111,7 @@ Value ModuleObject::prepend(Env *env, Args &&args) {
 void ModuleObject::prepend_once(Env *env, ModuleObject *module) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
+    // Update the legacy flat list.
     if (m_included_modules.is_empty()) {
         m_included_modules.push(module);
         m_included_modules.push(this);
@@ -87,6 +122,28 @@ void ModuleObject::prepend_once(Env *env, ModuleObject *module) {
         }
         m_included_modules.push_front(module);
     }
+
+    // Lazily create the origin iclass on first prepend. The origin wraps `this` so
+    // that prepended modules' `super` calls land back on the original method table.
+    if (!m_origin) {
+        IClassObject *origin = IClassObject::create(this, m_superclass);
+        m_superclass = origin;
+        m_origin = origin;
+    }
+
+    // Splice prepended modules between `this` and `m_origin` (or above whatever was
+    // most-recently prepended). New iclasses are inserted right after `this`.
+    TM::Vector<ModuleObject *> to_splice;
+    collect_modules_for_splice(module, to_splice);
+
+    ModuleObject *insertion = this;
+    for (ModuleObject *m : to_splice) {
+        if (m != module && ancestors_includes(env, m)) continue;
+        IClassObject *iclass = IClassObject::create(m, insertion->m_superclass);
+        insertion->m_superclass = iclass;
+        insertion = iclass;
+    }
+
     GlobalEnv::the()->increment_method_cache_version();
 }
 
@@ -621,39 +678,25 @@ Value ModuleObject::public_instance_methods(Env *env, Optional<Value> include_su
 ArrayObject *ModuleObject::ancestors(Env *env) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ModuleObject *klass = this;
     ArrayObject *ancestors = ArrayObject::create();
-    do {
-        if (klass->included_modules().is_empty()) {
-            // note: if there are included modules, then they will include this klass
-            ancestors->push(klass);
-        }
-        for (ModuleObject *m : klass->included_modules()) {
-            ancestors->push(m);
-        }
-        klass = klass->m_superclass;
-    } while (klass);
+    for (ModuleObject *p = this; p; p = p->m_superclass) {
+        if (p->m_origin && p->m_origin != p) continue; // hollow class wrapper
+        if (p->is_iclass())
+            ancestors->push(static_cast<IClassObject *>(p)->wrapped_module());
+        else
+            ancestors->push(p);
+    }
     return ancestors;
 }
 
 bool ModuleObject::ancestors_includes(Env *env, ModuleObject *module) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    ModuleObject *klass = this;
-    do {
-        if (klass->included_modules().is_empty()) {
-            // note: if there are included modules, then they will include this klass
-            if (klass == module) {
-                return true;
-            }
-        }
-        for (ModuleObject *m : klass->included_modules()) {
-            if (m == module) {
-                return true;
-            }
-        }
-        klass = klass->m_superclass;
-    } while (klass);
+    for (ModuleObject *p = this; p; p = p->m_superclass) {
+        if (p->m_origin && p->m_origin != p) continue;
+        ModuleObject *visible = p->is_iclass() ? static_cast<IClassObject *>(p)->wrapped_module() : p;
+        if (visible == module) return true;
+    }
     return false;
 }
 
@@ -1146,6 +1189,7 @@ Value ModuleObject::ruby2_keywords(Env *env, Value name) {
 void ModuleObject::visit_children(Visitor &visitor) const {
     Object::visit_children(visitor);
     visitor.visit(m_superclass);
+    visitor.visit(m_origin);
     visitor.visit(m_owner);
     for (auto pair : m_constants) {
         visitor.visit(pair.first);
