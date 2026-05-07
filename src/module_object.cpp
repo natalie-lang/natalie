@@ -185,30 +185,34 @@ Value ModuleObject::const_fetch(SymbolObject *name) const {
 }
 
 Constant *ModuleObject::find_constant_in_modules(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ModuleObject **found_in_module) {
-    Constant *constant = nullptr;
-    if (m_included_modules.is_empty()) {
-        constant = this->get_constant(name, found_in_module);
-    } else {
-        for (auto module : m_included_modules) {
-            if (search_mode == ConstLookupSearchMode::StrictPrivate || module == this)
-                constant = this->get_constant(name, found_in_module);
-            else
-                constant = module->find_constant_in_modules(env, name, search_mode, found_in_module);
-            if (constant)
-                break;
-        }
+    if (search_mode == ConstLookupSearchMode::StrictPrivate)
+        return this->get_constant(name, found_in_module);
+
+    for (ModuleObject *p = this; p; p = p->m_superclass) {
+        if (p->is_origin_hollow()) continue;
+        // Stop at the first real class above `this` — class-hierarchy traversal is the caller's job.
+        if (!p->is_iclass() && p != this) break;
+        if (auto constant = p->get_constant(name, found_in_module))
+            return constant;
     }
-    return constant;
+    return nullptr;
 }
 
 Constant *ModuleObject::find_constant_in_class_hierarchy(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, bool include_object, ModuleObject **found_in_module) {
     if (!include_object && (this == GlobalEnv::the()->Object() || this == GlobalEnv::the()->BasicObject()))
         return nullptr;
 
-    auto constant = find_constant_in_modules(env, name, search_mode, found_in_module);
-    if (!constant && m_superclass)
-        constant = m_superclass->find_constant_in_class_hierarchy(env, name, search_mode, include_object, found_in_module);
-    return constant;
+    if (auto constant = find_constant_in_modules(env, name, search_mode, found_in_module))
+        return constant;
+
+    // Skip iclasses (already searched by find_constant_in_modules) to reach the next real class.
+    // Hollow wrappers must NOT be skipped — their constants live on the wrapper itself, reached
+    // via the recursive call below.
+    ClassObject *parent = m_superclass;
+    while (parent && parent->is_iclass())
+        parent = parent->chain_super();
+    if (parent) return parent->find_constant_in_class_hierarchy(env, name, search_mode, include_object, found_in_module);
+    return nullptr;
 }
 
 Value ModuleObject::is_autoload(Env *env, Value name) const {
@@ -530,66 +534,33 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Module
 
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    MethodInfo method_info;
     if (!after_method && m_method_cache_version == GlobalEnv::the()->method_cache_version()) {
-        method_info = m_method_cache.get(method_name, env);
-        if (method_info)
+        auto cached = m_method_cache.get(method_name, env);
+        if (cached) return cached;
+    }
+
+    bool should_return_match = !after_method || *after_method_found;
+    for (ModuleObject *p = this; p; p = p->m_superclass) {
+        if (p->is_origin_hollow()) continue;
+        auto method_info = p->methods_table().get(method_name, env);
+        if (!method_info) continue;
+        if (!method_info.is_defined()) {
+            if (!after_method) cache_method(method_name, method_info, env);
             return method_info;
-    }
-
-    if (m_included_modules.is_empty()) {
-        // no included modules, just search the class/module
-        // note: if there are included modules, then the module chain will include this class/module
-        method_info = methods_table().get(method_name, env);
-        if (method_info) {
-            if (!method_info.is_defined()) {
-                if (!after_method)
-                    cache_method(method_name, method_info, env);
-                return method_info;
-            }
-            auto method = method_info.method();
-            if (method == after_method) {
-                *after_method_found = true;
-            } else if (!after_method || *after_method_found) {
-                if (matching_class_or_module) *matching_class_or_module = m_klass;
-                if (!after_method)
-                    cache_method(method_name, method_info, env);
-                return method_info;
-            }
+        }
+        if (method_info.method() == after_method) {
+            *after_method_found = true;
+            should_return_match = true;
+            continue;
+        }
+        if (should_return_match) {
+            if (matching_class_or_module) *matching_class_or_module = p->defined_class();
+            if (!after_method) cache_method(method_name, method_info, env);
+            return method_info;
         }
     }
 
-    for (ModuleObject *module : m_included_modules) {
-        if (module == this) {
-            method_info = module->methods_table().get(method_name, env);
-        } else {
-            method_info = module->find_method(env, method_name, matching_class_or_module, after_method, after_method_found);
-        }
-        if (method_info) {
-            if (!method_info.is_defined()) {
-                if (!after_method)
-                    cache_method(method_name, method_info, env);
-                return method_info;
-            }
-            auto method = method_info.method();
-            if (method == after_method) {
-                *after_method_found = true;
-            } else if (!after_method || *after_method_found) {
-                if (matching_class_or_module) *matching_class_or_module = module;
-                if (!after_method)
-                    cache_method(method_name, method_info, env);
-                return method_info;
-            }
-        }
-    }
-
-    if (!m_superclass)
-        return {};
-
-    method_info = m_superclass->find_method(env, method_name, matching_class_or_module, after_method, after_method_found);
-    if (!after_method)
-        cache_method(method_name, method_info, env);
-    return method_info;
+    return {};
 }
 
 MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, const Method *after_method) {
