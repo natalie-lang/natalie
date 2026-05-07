@@ -1090,6 +1090,7 @@ gen.static_binding_as_instance_method('Kernel', 'protected_methods', 'KernelModu
 gen.static_binding_as_instance_method('Kernel', 'public_methods', 'KernelModule', 'public_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding_as_instance_method('Kernel', 'remove_instance_variable', 'KernelModule', 'remove_instance_variable', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding_as_instance_method('Kernel', 'singleton_class', 'Object', 'singleton_class', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.static_binding_as_instance_method('Kernel', 'singleton_methods', 'KernelModule', 'singleton_methods', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding_as_instance_method('Kernel', 'tap', 'KernelModule', 'tap', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.static_binding_as_instance_method('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding_as_instance_method('Kernel', 'send', 'KernelModule', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Value)
