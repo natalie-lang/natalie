@@ -50,7 +50,7 @@ bool ModuleObject::is_origin_hollow() const {
 }
 
 // Walk a module's iclass-aware super chain and collect each visible module
-// in MRI's ancestor order (skipping hollow class wrappers and unwrapping iclasses).
+// in ancestor order (skipping hollow class wrappers and unwrapping iclasses).
 // Stops at the first non-iclass node that isn't `start` itself, so we don't
 // leak the parent class hierarchy of a class into an include's splice.
 static void collect_modules_for_splice(ModuleObject *start, TM::Vector<ModuleObject *> &out) {
@@ -69,26 +69,10 @@ static void collect_modules_for_splice(ModuleObject *start, TM::Vector<ModuleObj
 void ModuleObject::include_once(Env *env, ModuleObject *module) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    // Update the legacy flat list.
-    if (m_included_modules.is_empty()) {
-        m_included_modules.push(this);
-        m_included_modules.push(module);
-    } else {
-        ssize_t this_index = -1;
-        bool already_present = false;
-        for (size_t i = 0; i < m_included_modules.size(); ++i) {
-            if (m_included_modules[i] == this)
-                this_index = i;
-            if (m_included_modules[i] == module)
-                already_present = true;
-        }
-        if (already_present) return;
-        assert(this_index != -1);
-        m_included_modules.insert(this_index + 1, module);
-    }
+    if (ancestors_includes(env, module)) return;
 
-    // Build the iclass-augmented super chain. Splice an iclass for `module` and each
-    // module in its ancestor chain into self, preserving MRI's ordering.
+    // Splice an iclass for `module` and each module in its ancestor chain into
+    // self's super chain.
     TM::Vector<ModuleObject *> to_splice;
     collect_modules_for_splice(module, to_splice);
 
@@ -115,17 +99,7 @@ Value ModuleObject::prepend(Env *env, Args &&args) {
 void ModuleObject::prepend_once(Env *env, ModuleObject *module) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    // Update the legacy flat list.
-    if (m_included_modules.is_empty()) {
-        m_included_modules.push(module);
-        m_included_modules.push(this);
-    } else {
-        for (auto m : m_included_modules) {
-            if (m == module)
-                return;
-        }
-        m_included_modules.push_front(module);
-    }
+    if (ancestors_includes(env, module)) return;
 
     // Lazily create the origin iclass on first prepend. The origin wraps `this` so
     // that prepended modules' `super` calls land back on the original method table.
@@ -1154,9 +1128,6 @@ void ModuleObject::visit_children(Visitor &visitor) const {
         visitor.visit(pair.first);
         if (pair.second)
             visitor.visit(pair.second.value());
-    }
-    for (auto module : m_included_modules) {
-        visitor.visit(module);
     }
 }
 
