@@ -132,6 +132,10 @@ public:
     ClassObject *origin() const { return m_origin; }
     void set_origin(ClassObject *origin) { m_origin = origin; }
 
+    // True for a class that has been prepended into and is now a "hollow" wrapper
+    // — chain walks should skip it and read from the origin iclass instead.
+    bool is_origin_hollow() const;
+
     ModuleObject *owner() const { return m_owner; }
 
     void included_modules(Env *, ArrayObject *);
