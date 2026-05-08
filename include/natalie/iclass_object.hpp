@@ -20,6 +20,11 @@ public:
     ModuleObject *wrapped_module() const { return m_wrapped_module; }
     ModuleObject *defined_class() override { return m_wrapped_module; }
 
+    // The class or module whose super chain contains this iclass. Used to
+    // propagate late includes/prepends back into includers.
+    ModuleObject *includer() const { return m_includer; }
+    void set_includer(ModuleObject *includer) { m_includer = includer; }
+
     // The origin iclass for prepend wraps a real class (the class whose own
     // methods got displaced by the prepend). All other iclasses wrap a Module.
     bool is_origin_iclass() const {
@@ -44,6 +49,7 @@ private:
     IClassObject(ModuleObject *wrapped, ClassObject *super);
 
     ModuleObject *m_wrapped_module { nullptr };
+    ModuleObject *m_includer { nullptr };
 };
 
 }

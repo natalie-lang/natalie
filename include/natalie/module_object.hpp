@@ -265,6 +265,11 @@ protected:
     int m_method_cache_version { 0 };
     TM::Hashmap<SymbolObject *, MethodInfo> m_methods {};
     TM::Hashmap<SymbolObject *, Optional<Value>> m_class_vars {};
+    // Every iclass currently wrapping this module in some other class's super chain.
+    // Used to propagate late includes/prepends back into already-including classes.
+    // Strong-references each iclass and (transitively) its includer class — a class
+    // that includes a module is kept alive as long as the module is.
+    Vector<IClassObject *> m_iclasses {};
     MethodVisibility m_method_visibility { MethodVisibility::Public };
     bool m_module_function { false };
 };

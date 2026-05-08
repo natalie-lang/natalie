@@ -44,6 +44,7 @@ const TM::Hashmap<SymbolObject *, Optional<Value>> &IClassObject::class_vars_tab
 void IClassObject::visit_children(Visitor &visitor) const {
     ClassObject::visit_children(visitor);
     visitor.visit(m_wrapped_module);
+    visitor.visit(m_includer);
 }
 
 TM::String IClassObject::dbg_inspect(int) const {
