@@ -82,6 +82,8 @@ void ModuleObject::splice_module_chain(ModuleObject *source, ModuleObject *inser
             insertion = existing;
         } else if (!existing) {
             IClassObject *iclass = IClassObject::create(to_splice, insertion->m_superclass);
+            iclass->set_includer(this);
+            to_splice->m_iclasses.push(iclass);
             insertion->m_superclass = iclass;
             insertion = iclass;
         }
@@ -93,6 +95,15 @@ void ModuleObject::include_once(Env *env, ModuleObject *module) {
 
     ModuleObject *insertion = m_origin ? static_cast<ModuleObject *>(m_origin) : this;
     splice_module_chain(module, insertion, /*search_super=*/true);
+
+    // Propagate to any class/module that already includes self: insert the new
+    // modules right after each iclass-wrapping-self, so they appear in those
+    // includers' ancestors too.
+    for (IClassObject *iclass_self : m_iclasses) {
+        ModuleObject *includer = iclass_self->includer();
+        assert(includer);
+        includer->splice_module_chain(module, iclass_self, /*search_super=*/true);
+    }
 
     GlobalEnv::the()->increment_method_cache_version();
     if (module->respond_to(env, "included"_s))
@@ -118,6 +129,19 @@ void ModuleObject::prepend_once(Env *env, ModuleObject *module) {
     }
 
     splice_module_chain(module, this, /*search_super=*/false);
+
+    // Propagate to any class/module that already includes self: prepended modules
+    // must appear *before* each iclass-wrapping-self, so we splice into the node
+    // that points at the iclass.
+    for (IClassObject *iclass_self : m_iclasses) {
+        ModuleObject *includer = iclass_self->includer();
+        assert(includer);
+        ModuleObject *prev = includer;
+        while (prev && prev->chain_super() != iclass_self)
+            prev = prev->chain_super();
+        assert(prev);
+        includer->splice_module_chain(module, prev, /*search_super=*/true);
+    }
 
     GlobalEnv::the()->increment_method_cache_version();
 }
@@ -1125,6 +1149,9 @@ void ModuleObject::visit_children(Visitor &visitor) const {
         visitor.visit(pair.first);
         if (pair.second)
             visitor.visit(pair.second.value());
+    }
+    for (auto iclass : m_iclasses) {
+        visitor.visit(iclass);
     }
 }
 

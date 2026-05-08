@@ -36,9 +36,7 @@ describe "Module#ancestors" do
     end
     m2.include m1 # should be after m3 includes m2
 
-    NATFIXME 'it returns a module that is included later into a nested module as well', exception: SpecFailedException do
-      m3.ancestors.should == [m3, m2, m1]
-    end
+    m3.ancestors.should == [m3, m2, m1]
   end
 
   describe "when called on a singleton class" do
