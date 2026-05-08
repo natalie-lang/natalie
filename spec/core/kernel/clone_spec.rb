@@ -159,21 +159,19 @@ describe "Kernel#clone" do
 
     cloned = object.clone
 
-    NATFIXME 'Implement Kernel#singleton_methods', exception: NoMethodError, message: "undefined method 'singleton_methods'" do
-      cloned.singleton_methods.should == [:bar]
+    cloned.singleton_methods.should == [:bar]
 
-      # bar should replace previous one
-      cloned.define_singleton_method(:bar) do
-        ['c', *super()]
-      end
-      cloned.bar.should == ['c', 'a']
-
-      # bar should be removed and call through to superclass
-      cloned.singleton_class.class_eval do
-        remove_method :bar
-      end
-
-      cloned.bar.should == ['a']
+    # bar should replace previous one
+    cloned.define_singleton_method(:bar) do
+      ['c', *super()]
     end
+    cloned.bar.should == ['c', 'a']
+
+    # bar should be removed and call through to superclass
+    cloned.singleton_class.class_eval do
+      remove_method :bar
+    end
+
+    cloned.bar.should == ['a']
   end
 end
