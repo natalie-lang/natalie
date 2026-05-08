@@ -49,19 +49,41 @@ bool ModuleObject::is_origin_hollow() const {
     return m_origin && m_origin != this;
 }
 
-// Walk a module's iclass-aware super chain and collect each visible module
-// in ancestor order (skipping hollow class wrappers and unwrapping iclasses).
-// Stops at the first non-iclass node that isn't `start` itself, so we don't
-// leak the parent class hierarchy of a class into an include's splice.
-static void collect_modules_for_splice(ModuleObject *start, TM::Vector<ModuleObject *> &out) {
-    for (ModuleObject *p = start; p; p = p->chain_super()) {
-        if (p->is_origin_hollow()) continue;
-        if (p->is_iclass()) {
-            out.push(p->defined_class());
-        } else if (p == start) {
-            out.push(p);
-        } else {
-            break; // hit a real class above the module being included
+// Splice each module in `source`'s chain into self's super chain, advancing
+// `insertion` to maintain proper relative order when duplicates are encountered:
+// when an iclass for the same module already exists above any non-iclass boundary,
+// `insertion` moves there so later splices stay in source order.
+//
+// `search_super` walks the entire super chain (include) or stops at `m_origin`
+// (prepend, so dedup checks only the prepended region).
+void ModuleObject::splice_module_chain(ModuleObject *source, ModuleObject *insertion, bool search_super) {
+    for (ModuleObject *cur = source; cur; cur = cur->chain_super()) {
+        if (cur != source && !cur->is_iclass() && !cur->is_origin_hollow()) break;
+
+        ModuleObject *to_splice = cur->defined_class();
+
+        bool insertion_seen = false;
+        bool real_class_seen = false;
+        ClassObject *existing = nullptr;
+        for (ClassObject *p = m_superclass; p; p = p->chain_super()) {
+            if (!search_super && m_origin == p) break;
+            if (p == insertion) insertion_seen = true;
+            if (p->is_iclass()) {
+                if (p->defined_class() == to_splice) {
+                    existing = p;
+                    break;
+                }
+            } else {
+                real_class_seen = true;
+            }
+        }
+
+        if (existing && insertion_seen && !real_class_seen) {
+            insertion = existing;
+        } else if (!existing) {
+            IClassObject *iclass = IClassObject::create(to_splice, insertion->m_superclass);
+            insertion->m_superclass = iclass;
+            insertion = iclass;
         }
     }
 }
@@ -69,20 +91,8 @@ static void collect_modules_for_splice(ModuleObject *start, TM::Vector<ModuleObj
 void ModuleObject::include_once(Env *env, ModuleObject *module) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    if (ancestors_includes(env, module)) return;
-
-    // Splice an iclass for `module` and each module in its ancestor chain into
-    // self's super chain.
-    TM::Vector<ModuleObject *> to_splice;
-    collect_modules_for_splice(module, to_splice);
-
     ModuleObject *insertion = m_origin ? static_cast<ModuleObject *>(m_origin) : this;
-    for (ModuleObject *m : to_splice) {
-        if (m != module && ancestors_includes(env, m)) continue;
-        IClassObject *iclass = IClassObject::create(m, insertion->m_superclass);
-        insertion->m_superclass = iclass;
-        insertion = iclass;
-    }
+    splice_module_chain(module, insertion, /*search_super=*/true);
 
     GlobalEnv::the()->increment_method_cache_version();
     if (module->respond_to(env, "included"_s))
@@ -99,8 +109,6 @@ Value ModuleObject::prepend(Env *env, Args &&args) {
 void ModuleObject::prepend_once(Env *env, ModuleObject *module) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    if (ancestors_includes(env, module)) return;
-
     // Lazily create the origin iclass on first prepend. The origin wraps `this` so
     // that prepended modules' `super` calls land back on the original method table.
     if (!m_origin) {
@@ -109,18 +117,7 @@ void ModuleObject::prepend_once(Env *env, ModuleObject *module) {
         m_origin = origin;
     }
 
-    // Splice prepended modules between `this` and `m_origin` (or above whatever was
-    // most-recently prepended). New iclasses are inserted right after `this`.
-    TM::Vector<ModuleObject *> to_splice;
-    collect_modules_for_splice(module, to_splice);
-
-    ModuleObject *insertion = this;
-    for (ModuleObject *m : to_splice) {
-        if (m != module && ancestors_includes(env, m)) continue;
-        IClassObject *iclass = IClassObject::create(m, insertion->m_superclass);
-        insertion->m_superclass = iclass;
-        insertion = iclass;
-    }
+    splice_module_chain(module, this, /*search_super=*/false);
 
     GlobalEnv::the()->increment_method_cache_version();
 }
