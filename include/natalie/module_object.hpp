@@ -238,6 +238,8 @@ private:
 
     void cache_method(SymbolObject *, MethodInfo, Env *);
 
+    void splice_module_chain(ModuleObject *source, ModuleObject *insertion, bool search_super);
+
 protected:
     ModuleObject();
     ModuleObject(const char *);
