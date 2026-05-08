@@ -32,7 +32,8 @@ public:
         // m_superclass may point at iclass nodes that are internal-only.
         // The user-visible superclass skips past them.
         ClassObject *s = m_superclass;
-        while (s && s->is_iclass()) s = s->m_superclass;
+        while (s && s->is_iclass())
+            s = s->m_superclass;
         return s;
     }
 

@@ -20,10 +20,10 @@
 #include "natalie/binding_object.hpp"
 #include "natalie/block.hpp"
 #include "natalie/class_object.hpp"
-#include "natalie/iclass_object.hpp"
 #include "natalie/complex_object.hpp"
 #include "natalie/constant.hpp"
 #include "natalie/dir_object.hpp"
+#include "natalie/iclass_object.hpp"
 
 #include "natalie/encoding/ascii_8bit_encoding_object.hpp"
 #include "natalie/encoding/big5_encoding_object.hpp"
