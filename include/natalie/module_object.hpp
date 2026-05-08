@@ -144,6 +144,10 @@ public:
 
     virtual Optional<Value> cvar_get_maybe(Env *, SymbolObject *) override;
     virtual Value cvar_set(Env *, SymbolObject *, Value) override;
+
+    // For a singleton class of a class/module, returns the attached object so
+    // class variables track the lexical scope rather than landing on the singleton.
+    ModuleObject *cvar_scope_target();
     bool class_variable_defined(Env *, Value);
     Value class_variable_get(Env *, Value);
     Value class_variable_set(Env *, Value, Value);

@@ -212,6 +212,7 @@ SymbolObject *Object::to_instance_variable_name(Env *env, Value name) {
 
 void Object::set_singleton_class(ClassObject *klass) {
     klass->set_is_singleton(true);
+    klass->set_attached_object(this);
     m_singleton_class = klass;
 }
 

@@ -67,6 +67,14 @@ public:
     bool is_singleton() const { return m_is_singleton; }
     void set_is_singleton(bool is_singleton) { m_is_singleton = is_singleton; }
 
+    // For a singleton class, the object/class/module it is the singleton of.
+    // Cvars assigned inside `class << foo` blocks belong on the attached object,
+    // matching Ruby's lexical-scope semantics for class variables.
+    Object *attached_object() const { return m_attached_object; }
+    void set_attached_object(Object *obj) { m_attached_object = obj; }
+
+    virtual void visit_children(Visitor &) const override;
+
     virtual String backtrace_name() const override final;
 
     virtual TM::String dbg_inspect(int indent = 0) const override {
@@ -91,6 +99,7 @@ private:
     bool m_is_singleton { false };
     bool m_is_initialized { false };
     AllocFunc m_alloc_func { nullptr };
+    Object *m_attached_object { nullptr };
 };
 
 }
