@@ -342,20 +342,30 @@ Value ModuleObject::eval_body(Env *env, Value (*fn)(Env *, Value)) {
     return result;
 }
 
+ModuleObject *ModuleObject::cvar_scope_target() {
+    // `class << foo; @@x = ...; end` should land on `foo`, not on its singleton
+    // class — class variables follow the lexical class/module, skipping past
+    // singleton wrappers.
+    if (type() == Type::Class) {
+        ClassObject *self_class = static_cast<ClassObject *>(this);
+        if (self_class->is_singleton()) {
+            Object *attached = self_class->attached_object();
+            if (attached && Value(attached).is_module())
+                return static_cast<ModuleObject *>(attached);
+        }
+    }
+    return this;
+}
+
 Optional<Value> ModuleObject::cvar_get_maybe(Env *env, SymbolObject *name) {
     if (!name->is_cvar_name())
         env->raise_name_error(name, "`{}' is not allowed as a class variable name", name->string());
 
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
-    for (ModuleObject *p = this; p; p = p->m_superclass) {
+    for (ModuleObject *p = cvar_scope_target(); p; p = p->m_superclass) {
         if (p->is_origin_hollow()) continue;
         auto val = p->class_vars_table().get(name, env);
-        if (val) return val;
-    }
-
-    if (singleton_class()) {
-        auto val = singleton_class()->class_vars_table().get(name, env);
         if (val) return val;
     }
 
@@ -382,7 +392,6 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
     };
 
     if (GlobalEnv::the()->instance_evaling()) {
-        // Set class variable in block definition scope
         auto context = GlobalEnv::the()->current_instance_eval_context();
         if (context.block_original_self.is_module()) {
             return set_cvar_in(context.block_original_self.as_module());
@@ -391,7 +400,7 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
         }
     }
 
-    return set_cvar_in(this);
+    return set_cvar_in(cvar_scope_target());
 }
 
 bool ModuleObject::class_variable_defined(Env *env, Value name) {
@@ -422,19 +431,11 @@ ArrayObject *ModuleObject::class_variables(Optional<Value> inherit) const {
     auto result = ArrayObject::create();
     for (auto [cvar, _] : class_vars_table())
         result->push(cvar);
-    if (singleton_class()) {
-        for (auto [cvar, _] : singleton_class()->class_vars_table())
-            result->push(cvar);
-    }
     if (inherit && inherit->is_truthy()) {
         for (ClassObject *p = m_superclass; p; p = p->chain_super()) {
             if (p->is_origin_hollow()) continue;
             for (auto [cvar, _] : p->class_vars_table())
                 result->push(cvar);
-            if (!p->is_iclass() && p->singleton_class()) {
-                for (auto [cvar, _] : p->singleton_class()->class_vars_table())
-                    result->push(cvar);
-            }
         }
     }
     return result;
