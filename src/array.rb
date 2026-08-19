@@ -201,4 +201,17 @@ class Array
   def union(*args)
     dup.concat(*args).uniq
   end
+
+  def delete_if
+    return enum_for(:delete_if) { self.size() } unless block_given?
+
+    raise FrozenError, "can't modify frozen Array: #{self}" if self.frozen?
+
+    begin
+      to_delete = []
+      each_with_index { |e, i| to_delete << i if yield e }
+    ensure
+      to_delete.reverse_each { |i| self.delete_at(i) }
+    end
+  end
 end
