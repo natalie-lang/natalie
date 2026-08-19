@@ -223,27 +223,25 @@ void Env::raise_not_comparable_error(Value lhs, Value rhs) {
     raise("ArgumentError", std::move(message));
 }
 
-void Env::raise_type_error(const Value obj, const char *expected) {
+// The origin of the mri_variant_error_msg has been lost in the mists of time...
+// But spec depends on them
+void Env::raise_type_error(const Value obj, const char *expected, bool mri_variant_error_msg) {
     if (obj.is_nil()) {
-        auto lowercase_expected = StringObject::create(expected);
-        lowercase_expected->downcase_in_place(this);
-        raise("TypeError", "no implicit conversion from nil to {}", lowercase_expected->string());
-    } else {
-        raise("TypeError", "no implicit conversion of {} into {}", obj.klass()->inspect_module(), expected);
+        if (mri_variant_error_msg) {
+            raise("TypeError", "no implicit conversion of nil into {}", expected);
+        } else {
+            auto lowercase_expected = StringObject::create(expected);
+            lowercase_expected->downcase_in_place(this);
+            raise("TypeError", "no implicit conversion from nil to {}", lowercase_expected->string());
+        }
     }
-}
-
-// This is the same as Env::raise_type_error, but with more consistent error messages.
-// We need both methods because CRuby is inconsistent. :-(
-void Env::raise_type_error2(const Value obj, const char *expected) {
-    if (obj.is_nil())
-        raise("TypeError", "no implicit conversion of nil into {}", expected);
-    else if (obj.is_true())
-        raise("TypeError", "no implicit conversion of true into {}", expected);
-    else if (obj.is_false())
-        raise("TypeError", "no implicit conversion of false into {}", expected);
-    else
-        raise("TypeError", "no implicit conversion of {} into {}", obj.klass()->inspect_module(), expected);
+    if (mri_variant_error_msg) {
+        if (obj.is_true())
+            raise("TypeError", "no implicit conversion of true into {}", expected);
+        if (obj.is_false())
+            raise("TypeError", "no implicit conversion of false into {}", expected);
+    }
+    raise("TypeError", "no implicit conversion of {} into {}", obj.klass()->inspect_module(), expected);
 }
 
 bool Env::has_catch(Value value) const {

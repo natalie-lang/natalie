@@ -50,7 +50,7 @@ module CGI::Escape
   #      # => "%27Stop%21%27%20said%20Fred"
   def escapeURIComponent(string)
     # NATALIE ruby converts this in a c extension
-    __inline__ 'string_var = string_var.to_str2(env)'
+    __inline__ 'string_var = string_var.to_str(env, /*mri_variant_error_msg*/ true)'
     # END NATALIE
     encoding = string.encoding
     buffer = string.b
@@ -66,7 +66,7 @@ module CGI::Escape
   #      # => "'Stop!'+said Fred"
   def unescapeURIComponent(string, encoding = @@accept_charset)
     # NATALIE ruby converts this in a c extension
-    __inline__ 'string_var = string_var.to_str2(env)'
+    __inline__ 'string_var = string_var.to_str(env, /*mri_variant_error_msg*/ true)'
     # END NATALIE
     str = string.b
     str.gsub!(/((?:%[0-9a-fA-F]{2})+)/) do |m|
