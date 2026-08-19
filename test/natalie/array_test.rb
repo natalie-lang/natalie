@@ -2045,4 +2045,11 @@ describe 'array' do
       a.object_id.should == id_was
     end
   end
+
+  describe '#delete_if' do
+    it 'should be O(N)' do
+      # fake test just to see if it times out
+      (1..100000000).to_a.delete_if { |i| i % 10 == 0 }.count.should == 90000000
+    end
+  end
 end
