@@ -1209,6 +1209,25 @@ Value KernelModule::send(Env *env, Value self, Args &&args, Block *block) {
     return self.send(env->caller(), name, args.copy(), block);
 }
 
+Value KernelModule::singleton_methods(Env *env, Value self, Optional<Value> recur_val) {
+    bool recur = recur_val ? recur_val->is_truthy() : true;
+    auto result = ArrayObject::create();
+    ClassObject *klass = self->singleton_class();
+    if (!klass) return result;
+    do {
+        for (auto pair : klass->methods_table()) {
+            auto vis = pair.second.visibility();
+            if (vis == MethodVisibility::Public || vis == MethodVisibility::Protected) {
+                if (!result->include(env, pair.first))
+                    result->push(pair.first);
+            }
+        }
+        if (!recur) break;
+        klass = klass->chain_super();
+    } while (klass && (klass->is_singleton() || klass->is_iclass()));
+    return result;
+}
+
 Value KernelModule::tap(Env *env, Value self, Block *block) {
     Value args[] = { self };
     if (!block)

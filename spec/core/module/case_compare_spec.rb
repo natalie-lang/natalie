@@ -14,17 +14,15 @@ describe "Module#===" do
   end
 
   it "returns true when the given Object's class includes self or when the given Object is extended by self" do
-    NATFIXME 'transitive module inclusion lookup', exception: SpecFailedException do
-      (ModuleSpecs::Basic === ModuleSpecs::Child.new).should == true
-      (ModuleSpecs::Super === ModuleSpecs::Child.new).should == true
-      (ModuleSpecs::Basic === mock('x').extend(ModuleSpecs::Super)).should == true
-      (ModuleSpecs::Super === mock('y').extend(ModuleSpecs::Super)).should == true
+    (ModuleSpecs::Basic === ModuleSpecs::Child.new).should == true
+    (ModuleSpecs::Super === ModuleSpecs::Child.new).should == true
+    (ModuleSpecs::Basic === mock('x').extend(ModuleSpecs::Super)).should == true
+    (ModuleSpecs::Super === mock('y').extend(ModuleSpecs::Super)).should == true
 
-      (ModuleSpecs::Basic === ModuleSpecs::Parent.new).should == false
-      (ModuleSpecs::Super === ModuleSpecs::Parent.new).should == false
-      (ModuleSpecs::Basic === mock('z')).should == false
-      (ModuleSpecs::Super === mock('a')).should == false
-    end
+    (ModuleSpecs::Basic === ModuleSpecs::Parent.new).should == false
+    (ModuleSpecs::Super === ModuleSpecs::Parent.new).should == false
+    (ModuleSpecs::Basic === mock('z')).should == false
+    (ModuleSpecs::Super === mock('a')).should == false
   end
 
   it "does not let a module singleton class interfere when its on the RHS" do

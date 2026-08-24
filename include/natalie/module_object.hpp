@@ -65,11 +65,27 @@ public:
     Optional<Value> handle_missing_constant(Env *, Value, ConstLookupFailureMode);
 
     Constant *get_constant(SymbolObject *name, ModuleObject **found_in_module) {
-        auto constant = m_constants.get(name);
+        auto constant = constants_table().get(name);
         if (found_in_module && constant)
-            *found_in_module = this;
+            *found_in_module = defined_class();
         return constant;
     }
+
+    // Virtual accessors that an IClassObject overrides to forward to its wrapped module.
+    // For all non-iclass modules these return the module's own storage.
+    virtual TM::Hashmap<SymbolObject *, MethodInfo> &methods_table() { return m_methods; }
+    virtual const TM::Hashmap<SymbolObject *, MethodInfo> &methods_table() const { return m_methods; }
+    virtual TM::Hashmap<SymbolObject *, Constant *> &constants_table() { return m_constants; }
+    virtual const TM::Hashmap<SymbolObject *, Constant *> &constants_table() const { return m_constants; }
+    virtual TM::Hashmap<SymbolObject *, Optional<Value>> &class_vars_table() { return m_class_vars; }
+    virtual const TM::Hashmap<SymbolObject *, Optional<Value>> &class_vars_table() const { return m_class_vars; }
+
+    // For iclasses, returns the wrapped module; otherwise returns `this`. Use this
+    // when reporting the owner of a method or constant to user code so that iclasses
+    // never leak.
+    virtual ModuleObject *defined_class() { return this; }
+
+    virtual bool is_iclass() const { return false; }
     Constant *find_constant_in_modules(Env *, SymbolObject *, ConstLookupSearchMode, ModuleObject **);
     Constant *find_constant_in_class_hierarchy(Env *, SymbolObject *, ConstLookupSearchMode, bool, ModuleObject **);
 
@@ -106,15 +122,32 @@ public:
     virtual ClassObject *superclass(Env *) { return m_superclass; }
     void set_superclass_DANGEROUSLY(ClassObject *superclass) { m_superclass = superclass; }
 
+    // Raw next-node pointer for walks that need to traverse iclass nodes (find_method,
+    // ancestors, etc.). Differs from `superclass()` which skips iclasses.
+    ClassObject *chain_super() const { return m_superclass; }
+    void set_chain_super(ClassObject *s) { m_superclass = s; }
+
+    // Set on the first prepend into this module/class. Points at the origin iclass
+    // that holds the original method table so prepended modules' `super` calls find it.
+    ClassObject *origin() const { return m_origin; }
+    void set_origin(ClassObject *origin) { m_origin = origin; }
+
+    // True for a class that has been prepended into and is now a "hollow" wrapper
+    // — chain walks should skip it and read from the origin iclass instead.
+    bool is_origin_hollow() const;
+
     ModuleObject *owner() const { return m_owner; }
 
     void included_modules(Env *, ArrayObject *);
     Value included_modules(Env *);
-    const Vector<ModuleObject *> &included_modules() { return m_included_modules; }
     bool does_include_module(Env *, Value);
 
     virtual Optional<Value> cvar_get_maybe(Env *, SymbolObject *) override;
     virtual Value cvar_set(Env *, SymbolObject *, Value) override;
+
+    // For a singleton class of a class/module, returns the attached object so
+    // class variables track the lexical scope rather than landing on the singleton.
+    ModuleObject *cvar_scope_target();
     bool class_variable_defined(Env *, Value);
     Value class_variable_get(Env *, Value);
     Value class_variable_set(Env *, Value, Value);
@@ -198,7 +231,7 @@ public:
     Value gte(Env *, Value);
     Value cmp(Env *, Value);
 
-    virtual void visit_children(Visitor &) const override final;
+    virtual void visit_children(Visitor &) const override;
 
     virtual TM::String dbg_inspect(int indent = 0) const override {
         return TM::String::format("<ModuleObject {h} name=\"{}\">", this, m_name.value_or("none"));
@@ -208,6 +241,8 @@ private:
     ClassObject *as_class();
 
     void cache_method(SymbolObject *, MethodInfo, Env *);
+
+    void splice_module_chain(ModuleObject *source, ModuleObject *insertion, bool search_super);
 
 protected:
     ModuleObject();
@@ -223,21 +258,22 @@ protected:
         , m_superclass { other.m_superclass }
         , m_owner { other.m_owner }
         , m_methods { other.m_methods }
-        , m_class_vars { other.m_class_vars } {
-        for (ModuleObject *module : const_cast<ModuleObject &>(other).m_included_modules) {
-            m_included_modules.push(module);
-        }
-    }
+        , m_class_vars { other.m_class_vars } { }
 
     TM::Hashmap<SymbolObject *, Constant *> m_constants {};
     Optional<String> m_name {};
     ClassObject *m_superclass { nullptr };
+    ClassObject *m_origin { nullptr };
     ModuleObject *m_owner { nullptr };
     TM::Hashmap<SymbolObject *, MethodInfo> m_method_cache {};
     int m_method_cache_version { 0 };
     TM::Hashmap<SymbolObject *, MethodInfo> m_methods {};
     TM::Hashmap<SymbolObject *, Optional<Value>> m_class_vars {};
-    Vector<ModuleObject *> m_included_modules {};
+    // Every iclass currently wrapping this module in some other class's super chain.
+    // Used to propagate late includes/prepends back into already-including classes.
+    // Strong-references each iclass and (transitively) its includer class — a class
+    // that includes a module is kept alive as long as the module is.
+    Vector<IClassObject *> m_iclasses {};
     MethodVisibility m_method_visibility { MethodVisibility::Public };
     bool m_module_function { false };
 };

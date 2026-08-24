@@ -15,10 +15,8 @@ describe "Module#ancestors" do
     else
       ModuleSpecs.without_test_modules(ModuleSpecs::Parent.ancestors).should ==
         [ModuleSpecs::Parent, Object, Kernel, BasicObject]
-      NATFIXME 'it returns a list of modules included in self (including self)', exception: SpecFailedException do
-        ModuleSpecs.without_test_modules(ModuleSpecs::Child.ancestors).should ==
-          [ModuleSpecs::Child, ModuleSpecs::Super, ModuleSpecs::Basic, ModuleSpecs::Parent, Object, Kernel, BasicObject]
-      end
+      ModuleSpecs.without_test_modules(ModuleSpecs::Child.ancestors).should ==
+        [ModuleSpecs::Child, ModuleSpecs::Super, ModuleSpecs::Basic, ModuleSpecs::Parent, Object, Kernel, BasicObject]
     end
   end
 
@@ -38,9 +36,7 @@ describe "Module#ancestors" do
     end
     m2.include m1 # should be after m3 includes m2
 
-    NATFIXME 'it returns a module that is included later into a nested module as well', exception: SpecFailedException do
-      m3.ancestors.should == [m3, m2, m1]
-    end
+    m3.ancestors.should == [m3, m2, m1]
   end
 
   describe "when called on a singleton class" do

@@ -98,6 +98,7 @@ public:
     static bool respond_to_method(Env *, Value, Value, Optional<Value>);
     static bool respond_to_method(Env *, Value, Value, bool);
     static Value send(Env *, Value, Args &&, Block *);
+    static Value singleton_methods(Env *env, Value self, Optional<Value> recur);
     static Value tap(Env *env, Value self, Block *block);
 };
 
