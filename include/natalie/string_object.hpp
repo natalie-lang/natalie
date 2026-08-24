@@ -32,89 +32,10 @@ public:
         Invalid,
     };
 
-    static StringObject *create(ClassObject *klass) {
+    template <typename... Args>
+    static StringObject *create(Args &&...args) {
         std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(klass);
-    }
-
-    static StringObject *create() {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject();
-    }
-
-    static StringObject *create(NonNullPtr<EncodingObject> encoding) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(encoding);
-    }
-
-    static StringObject *create(const char *str) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(str);
-    }
-
-    static StringObject *create(const char *str, NonNullPtr<EncodingObject> encoding) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(str, encoding);
-    }
-
-    static StringObject *create(const char *str, Encoding encoding) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(str, encoding);
-    }
-
-    static StringObject *create(const char *str, size_t length) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(str, length);
-    }
-
-    static StringObject *create(const char *str, size_t length, NonNullPtr<EncodingObject> encoding) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(str, length, encoding);
-    }
-
-    static StringObject *create(const char *str, size_t length, Encoding encoding) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(str, length, encoding);
-    }
-
-    static StringObject *create(const StringObject &other) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(other);
-    }
-
-    static StringObject *create(const String &str) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(str);
-    }
-
-    static StringObject *create(String &&str) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(std::move(str));
-    }
-
-    static StringObject *create(const String &str, NonNullPtr<EncodingObject> encoding) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(str, encoding);
-    }
-
-    static StringObject *create(String &&str, NonNullPtr<EncodingObject> encoding) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(std::move(str), encoding);
-    }
-
-    static StringObject *create(const String &str, Encoding encoding) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(str, encoding);
-    }
-
-    static StringObject *create(String &&str, Encoding encoding) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(std::move(str), encoding);
-    }
-
-    static StringObject *create(const StringView &str, NonNullPtr<EncodingObject> encoding) {
-        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-        return new StringObject(str, encoding);
+        return new StringObject(std::forward<Args>(args)...);
     }
 
     const String &string() const { return m_string; }
