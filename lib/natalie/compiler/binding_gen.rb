@@ -623,6 +623,7 @@ gen.binding('Fiber', 'status', 'FiberObject', 'status', argc: 0, pass_env: true,
 gen.binding('Fiber', 'storage', 'FiberObject', 'storage', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Fiber', 'storage=', 'FiberObject', 'set_storage', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Fiber', 'to_s', 'FiberObject', 'inspect', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Value)
+gen.binding('Fiber', 'transfer', 'FiberObject', 'transfer', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.static_binding_as_class_method('File', 'absolute_path', 'FileObject', 'absolute_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding_as_class_method('File', 'absolute_path?', 'FileObject', 'is_absolute_path', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

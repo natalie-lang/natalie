@@ -70,11 +70,9 @@ describe "Fiber#resume" do
 
   it "can work with Fiber#transfer" do
     fiber1 = Fiber.new { true }
-    NATFIXME 'Implement Fiber#transfer', exception: NoMethodError, message: "undefined method 'transfer' for an instance of Fiber" do
-      fiber2 = Fiber.new { fiber1.transfer; Fiber.yield 10 ; Fiber.yield 20; raise }
-      fiber2.resume.should == 10
-      fiber2.resume.should == 20
-    end
+    fiber2 = Fiber.new { fiber1.transfer; Fiber.yield 10 ; Fiber.yield 20; raise }
+    fiber2.resume.should == 10
+    fiber2.resume.should == 20
   end
 
   it "raises a FiberError if the Fiber attempts to resume a resuming fiber" do
