@@ -9,13 +9,9 @@ Value Dir_mktmpdir(Env *env, Value self, Args &&args, Block *) {
         env->raise("ArgumentError", "TODO: Support arguments");
     String tmpdir = self->send(env, "tmpdir"_s).as_string()->string();
     tmpdir.append("/XXXXXX");
-    auto fh = mkstemp(&tmpdir[0]);
-    if (fh < 0)
+    if (!mkdtemp(&tmpdir[0]))
         env->raise_errno();
-    close(fh);
-    unlink(tmpdir.c_str());
     auto result = StringObject::create(std::move(tmpdir));
-    self->send(env, "mkdir"_s, { result });
     return result;
 }
 
