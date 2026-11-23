@@ -1,5 +1,6 @@
 require 'tmpdir'
 require_relative 'llvm_backend/ir'
+require_relative 'llvm_backend/native_extensions'
 
 module Natalie
   class Compiler
@@ -16,11 +17,11 @@ module Natalie
           raise CompileError,
                 'LLVM proof of concept supports scripts and object files; REPL, shared objects, and --build-dir are not supported'
         end
-        if compiler_context[:required_cpp_files].any?
-          raise CompileError, 'LLVM proof of concept does not yet support inline C++ files'
-        end
         @compiler_context.merge!(compile_cxx_flags: [], compile_ld_flags: [])
+        @native_extensions = NativeExtensions.new(compiler: compiler, backend: self)
       end
+
+      attr_reader :compiler_context
 
       def ir
         @ir ||=
@@ -28,12 +29,21 @@ module Natalie
             @instructions,
             source_path: @compiler_context.fetch(:source_path),
             required_files: @compiler_context.fetch(:required_ruby_files),
+            native_extensions: @native_extensions,
           ).generate
       end
 
       def compile_to_object_file(path)
         require_relative 'llvm_backend/native'
-        Native.new.emit_object(ir, path)
+        source = ir
+        return Native.new.emit_object(source, path) unless @native_extensions.active?
+        Dir.mktmpdir('natalie-llvm-object') do |dir|
+          ruby_object = File.join(dir, 'ruby.o')
+          native_object = File.join(dir, 'native.o')
+          Native.new.emit_object(source, ruby_object)
+          @native_extensions.compile(native_object)
+          @native_extensions.merge_objects([ruby_object, native_object], path)
+        end
       end
 
       def compile_to_binary
@@ -41,9 +51,16 @@ module Natalie
         raise CompileError, 'Build the LLVM runtime bridge first: bundle exec rake llvm_runtime' unless missing.empty?
         Dir.mktmpdir('natalie-llvm') do |dir|
           object = File.join(dir, 'program.o')
-          compile_to_object_file(object)
+          require_relative 'llvm_backend/native'
+          Native.new.emit_object(ir, object)
+          objects = [object, *RUNTIME_OBJECTS]
+          if @native_extensions.active?
+            native_object = File.join(dir, 'native.o')
+            @native_extensions.compile(native_object)
+            objects << native_object
+          end
           CppBackend::Linker.new(
-            in_paths: [object, *RUNTIME_OBJECTS],
+            in_paths: objects,
             out_path: @compiler.out_path,
             compiler: @compiler,
             compiler_context: @compiler_context,
@@ -56,7 +73,9 @@ module Natalie
         file = Tempfile.create(%w[natalie .ll])
         file.write(ir)
         file.close
-        [file.path]
+        paths = [file.path]
+        paths << @native_extensions.out_file.write_source_to_tempfile if @native_extensions.active?
+        paths
       end
 
       def profile_app!

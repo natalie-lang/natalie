@@ -17,6 +17,22 @@ module Natalie
         "inline_cpp #{exp.name}"
       end
 
+      def generate_llvm(transform)
+        name = exp.name
+        args = exp.arguments&.arguments || []
+        # Scoped inline C++ may refer to generated Ruby locals, which are LLVM
+        # environment slots rather than C++ variables in this backend.
+        if name == :__inline__
+          scope = env
+          scope = scope.fetch(:outer) while scope[:hoist]
+          transform.unsupported(self, 'scoped inline C++') if scope[:outer] && !scope[:main]
+        end
+        count = name == :__call__ ? args.size - 1 : 0
+        operands = transform.pop(count)
+        fn = transform.native_extensions.wrapper(self, count)
+        transform.push_call("call i64 @#{fn}(ptr %env, i64 %self, ptr #{transform.argument_array(operands)})")
+      end
+
       def generate(transform)
         if exp.is_a?(::Prism::CallNode)
           name = exp.name

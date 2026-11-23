@@ -49,7 +49,8 @@ module Natalie
           shared: nil,
           function_name: 'nat_llvm_eval',
           scope: nil,
-          required_files: {}
+          required_files: {},
+          native_extensions: nil
         )
           @instructions = instructions
           @source_path = source_path
@@ -59,6 +60,7 @@ module Natalie
           @function_name = function_name
           @scope = scope
           @required_files = required_files
+          @native_extensions = native_extensions
           @allocas = []
           @body = []
         end
@@ -69,6 +71,9 @@ module Natalie
           end
           emit "call void @nat_llvm_build_vars(ptr %env, i64 #{@scope ? @scope.fetch(:vars).size : top_scope.fetch(:vars).size})"
           transform(@instructions)
+          if @function_name == 'nat_llvm_eval' && @native_extensions&.active?
+            @body.unshift('  call void @nat_llvm_init_extensions(ptr %env, i64 %self)')
+          end
           emit "ret i64 #{@stack.last || 4}"
           function = <<~LLVM
             define i64 @#{@function_name}(ptr %env, i64 %self#{@function_name == 'nat_llvm_eval' ? '' : ', ptr %args, ptr %block'}) uwtable {
@@ -82,6 +87,7 @@ module Natalie
             ; Natalie experimental LLVM backend (64-bit hosts)
             #{@globals.join("\n")}
             #{DECLARATIONS}
+            #{@native_extensions&.declarations}
             #{@shared[:functions].join("\n")}
             #{function}
           LLVM
@@ -109,6 +115,7 @@ module Natalie
               function_name: fn,
               scope: scope,
               required_files: @required_files,
+              native_extensions: @native_extensions,
             )
             .generate
           "@#{fn}"
@@ -128,6 +135,7 @@ module Natalie
               shared: @shared,
               function_name: fn,
               required_files: @required_files,
+              native_extensions: @native_extensions,
             )
             .generate
           "@#{fn}"
@@ -147,7 +155,7 @@ module Natalie
           [depth, instruction.meta.fetch(:index)]
         end
 
-        attr_reader :stack, :source_path
+        attr_reader :stack, :source_path, :native_extensions
 
         def transform(instructions)
           previous = @current_instructions

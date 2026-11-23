@@ -126,10 +126,129 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
-  def test_spec_runner_reports_native_extension_boundary
+  def test_spec_runner_reports_remaining_ruby_instruction_boundary
     _, stderr, status = run_cli('--backend=llvm', 'spec/core/string/strip_spec.rb')
     refute status.success?
-    assert_includes stderr, 'LLVM proof of concept does not yet support inline C++ files'
+    assert_includes stderr, 'LLVM backend does not support anonymous_splat_set'
+  end
+
+  def native_extension_program
+    <<~RUBY
+      require 'natalie/inline'
+      require #{File.join(ROOT, 'test/support/llvm/fixture.cpp').inspect}
+      class NativeFixture
+        __bind_method__ :subtract, :LlvmFixture_subtract, 2
+        __bind_static_method__ :apply, :LlvmFixture_yield, 1
+      end
+      p $llvm_extension_initialized
+      p NativeFixture.new.subtract(20, 3)
+      p NativeFixture.apply(6) { |n| n * 7 }
+      __function__ 'llvm_fixture_scale', ['double', 'int'], 'double'
+      p __call__('llvm_fixture_scale', 2.5, 3)
+    RUBY
+  end
+
+  def test_native_extension_initialization_bindings_and_callbacks
+    assert_program(native_extension_program, "1\n17\n42\n7.5\n")
+  end
+
+  def test_inline_cpp_method_definition
+    assert_program(
+      'require "natalie/inline"; class NativeAnswer; __define_method__(:answer, [:n], "return n.send(env, \"+\"_s, { Value::integer(1) });"); end; puts NativeAnswer.new.answer(41)',
+      "42\n",
+    )
+  end
+
+  def test_native_extension_allocation_constants_and_compile_flags
+    code = <<~RUBY
+      require 'natalie/inline'
+      require #{File.join(ROOT, 'test/support/llvm/fixture.cpp').inspect}
+      __cxx_flags__ '-DLLVM_NATIVE_TEST_CONSTANT=23'
+      class NativeAllocation
+        __alloc_func__ :LlvmFixture_allocate
+        __constant__ 'ANSWER', 'int', 'LLVM_NATIVE_TEST_CONSTANT'
+      end
+      NativeAllocation.new
+      p $llvm_allocated
+      p NativeAllocation::ANSWER
+    RUBY
+    assert_program(code, "true\n23\n")
+  end
+
+  def test_native_exception_unwinds_through_llvm
+    code = <<~RUBY
+      require 'natalie/inline'
+      require #{File.join(ROOT, 'test/support/llvm/fixture.cpp').inspect}
+      class NativeFailure
+        __bind_static_method__ :fail, :LlvmFixture_fail
+      end
+      NativeFailure.fail
+    RUBY
+    _, stderr, status = run_cli('--backend=llvm', '-e', code)
+    assert_equal 1, status.exitstatus
+    assert_includes stderr, 'native extension failure (RuntimeError)'
+    refute_includes stderr, 'terminate called'
+  end
+
+  def test_native_extension_in_required_ruby_file
+    Dir.mktmpdir('natalie-llvm-test') do |dir|
+      file = File.join(dir, 'library.rb')
+      File.write(file, native_extension_program)
+      assert_program("require #{file.inspect}; p NativeFixture.new.subtract(10, 4)", "1\n17\n42\n7.5\n6\n")
+    end
+  end
+
+  def test_scoped_inline_cpp_is_rejected_explicitly
+    _, stderr, status =
+      run_cli('--backend=llvm', '-e', 'require "natalie/inline"; def f; __inline__("return self;"); end; f')
+    refute status.success?
+    assert_includes stderr, 'scoped inline C++'
+  end
+
+  def test_native_extension_ir_emission_needs_no_cpp_compiler
+    stdout, stderr, status =
+      run_cli('--emit-llvm', '-e', native_extension_program, env: { 'CXX' => '/no-cpp-compiler' })
+    assert status.success?, stderr
+    assert_includes stdout, 'call void @nat_llvm_init_extensions'
+    assert_includes stdout, 'declare i64 @nat_llvm_ext_'
+    refute_includes stdout, '#include'
+  end
+
+  def test_builtin_tempfile_cpp_extension
+    assert_program(
+      'require "natalie/inline"; require "tempfile.cpp"; class NativeTempfile; __bind_method__ :initialize, :Tempfile_initialize; def file; @tmpfile; end; end; file = NativeTempfile.new("llvm", "/tmp").file; file.write("native works"); file.rewind; p file.read; path = file.path; file.close; File.unlink(path)',
+      "\"native works\"\n",
+    )
+  end
+
+  def test_native_extension_executable_and_combined_object
+    Dir.mktmpdir('natalie-llvm-test') do |dir|
+      executable = File.join(dir, 'program')
+      object = File.join(dir, 'program.o')
+      _, stderr, status = run_cli('--backend=llvm', '-c', executable, '-e', native_extension_program)
+      assert status.success?, stderr
+      stdout, stderr, status = Open3.capture3(executable)
+      assert status.success?, stderr
+      assert_equal "1\n17\n42\n7.5\n", stdout
+      _, stderr, status =
+        run_cli('--backend=llvm', '--compilation-type=object', '-c', object, '-e', native_extension_program)
+      assert status.success?, stderr
+      linked = File.join(dir, 'from-object')
+      compiler = Natalie::Compiler.new(ast: nil, path: '-e')
+      compiler.out_path = linked
+      Natalie::Compiler::CppBackend::Linker.new(
+        in_paths: [object, *Natalie::Compiler::LlvmBackend::RUNTIME_OBJECTS],
+        out_path: linked,
+        compiler: compiler,
+        compiler_context: {
+          compile_ld_flags: [],
+        },
+        keep_inputs: true,
+      ).link
+      stdout, stderr, status = Open3.capture3(linked)
+      assert status.success?, stderr
+      assert_equal "1\n17\n42\n7.5\n", stdout
+    end
   end
 
   def test_methods_defaults_rest_and_recursion

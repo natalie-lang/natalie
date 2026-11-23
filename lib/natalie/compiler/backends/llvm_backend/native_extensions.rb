@@ -1,0 +1,99 @@
+require 'open3'
+require 'shellwords'
+
+module Natalie
+  class Compiler
+    class LlvmBackend
+      # Reuse the C++ inline-macro generator for native code only. Ruby bodies
+      # stay in LLVM; the generated wrappers pass tagged words across the ABI.
+      class NativeExtensions
+        class OutFile < CppBackend::OutFile
+          def merged_source
+            <<~CPP
+              #include "natalie/llvm_runtime.hpp"
+              using namespace Natalie;
+              #{declarations}
+              extern "C" void nat_llvm_init_extensions(Env *env, uint64_t self_bits) {
+                  auto self = nat_llvm_unpack(self_bits);
+                  #{init_matter}
+                  #{@body}
+              }
+            CPP
+          end
+        end
+
+        def initialize(compiler:, backend:)
+          @compiler = compiler
+          @backend = backend
+          @data = CppBackend::TransformData.new(var_prefix: 'llvm_ext_')
+          @wrappers = []
+        end
+
+        def active?
+          @wrappers.any?
+        end
+
+        def declarations
+          return '' unless active?
+          (
+            ['declare void @nat_llvm_init_extensions(ptr, i64)'] +
+              @wrappers.map { |name| "declare i64 @#{name}(ptr, i64, ptr)" }
+          ).join("\n")
+        end
+
+        def wrapper(instruction, argument_count)
+          name = "nat_llvm_ext_#{@wrappers.size}"
+          stack = Array.new(argument_count) { |i| "nat_llvm_unpack(argv[#{i}])" }
+          transform =
+            CppBackend::Transform.new(
+              [instruction],
+              compiler_context: @backend.compiler_context,
+              transform_data: @data,
+              stack: stack,
+            )
+          body = transform.transform('return')
+          @data.top[name] = <<~CPP
+            extern "C" uint64_t #{name}(Env *env, uint64_t self_bits, const uint64_t *argv) {
+                auto self = nat_llvm_unpack(self_bits);
+                auto result = [&]() -> Value {
+                    #{body}
+                }();
+                return nat_llvm_pack(result);
+            }
+          CPP
+          @wrappers << name
+          name
+        end
+
+        def out_file
+          init = @backend.compiler_context.fetch(:required_cpp_files).values.map { |name| "init_#{name}(env, self);" }
+          OutFile.new(
+            type: :obj,
+            body: init.join("\n"),
+            transform_data: @data,
+            ruby_path: @backend.compiler_context.fetch(:source_path),
+            compiler: @compiler,
+            backend: @backend,
+          )
+        end
+
+        def compile(path)
+          out = out_file
+          out.out_path = path
+          out.compile_object_file
+        end
+
+        def merge_objects(paths, output)
+          command = [*Shellwords.split(ENV.fetch('CXX', 'c++')), '-r', '-nostdlib']
+          command << '-no-pie' unless CppBackend::DARWIN
+          command.concat([*paths, '-o', output])
+          puts command.shelljoin if @compiler.debug == 'cc-cmd'
+          stdout, stderr, status = Open3.capture3(*command)
+          unless status.success?
+            raise CompileError, "Could not combine LLVM and native extension objects:\n#{stdout}#{stderr}"
+          end
+        end
+      end
+    end
+  end
+end
