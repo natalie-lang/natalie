@@ -12,11 +12,9 @@ describe "Struct#deconstruct_keys" do
     struct = Struct.new(:x)
     obj = struct.new(1)
 
-    NATFIXME 'This is a repsonsibility of define_method, not of Struct', exception: SpecFailedException do
-      -> {
-        obj.deconstruct_keys
-      }.should raise_error(ArgumentError, /wrong number of arguments \(given 0, expected 1\)/)
-    end
+    -> {
+      obj.deconstruct_keys
+    }.should raise_error(ArgumentError, /wrong number of arguments \(given 0, expected 1\)/)
   end
 
   it "returns only specified keys" do
