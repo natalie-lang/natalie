@@ -2,6 +2,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_variable_info/access_hooks.hpp"
 #include "natalie/value.hpp"
+#include <algorithm>
 #include <math.h>
 #include <stdarg.h>
 #include <sys/wait.h>
@@ -540,7 +541,7 @@ Env *build_top_env() {
     Object->const_set("RUBY_COPYRIGHT"_s, RUBY_COPYRIGHT);
     Ruby->const_set("COPYRIGHT"_s, RUBY_COPYRIGHT);
 
-    auto ruby_revision_short = TM::String(ruby_revision, 10);
+    auto ruby_revision_short = TM::String(ruby_revision, std::min<size_t>(strlen(ruby_revision), 10));
     StringObject *RUBY_DESCRIPTION = StringObject::format("natalie (like ruby {}) ({} revision {}) [{}]", RUBY_VERSION->string(), ruby_release_date, ruby_revision_short, ruby_platform);
     RUBY_DESCRIPTION->freeze();
     Object->const_set("RUBY_DESCRIPTION"_s, RUBY_DESCRIPTION);
