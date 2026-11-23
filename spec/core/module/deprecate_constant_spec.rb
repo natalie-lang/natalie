@@ -28,9 +28,7 @@ describe "Module#deprecate_constant" do
       @module.deprecate_constant :PUBLIC1
 
       -> { @module::PUBLIC1 }.should complain(/warning: constant .+::PUBLIC1 is deprecated/)
-      NATFIXME 'Implement deprecations in Module#const_get', exception: SpecFailedException do
-        -> { @module.const_get :PRIVATE }.should complain(/warning: constant .+::PRIVATE is deprecated/)
-      end
+      -> { @module.const_get :PRIVATE }.should complain(/warning: constant .+::PRIVATE is deprecated/)
     end
 
     it "does not warn if Warning[:deprecated] is false" do
