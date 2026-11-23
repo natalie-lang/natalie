@@ -30,6 +30,7 @@ module Natalie
       end
 
       def generate_llvm(transform)
+        transform.set_location(@file, @line)
         body = transform.fetch_block_of_instructions(expected_label: :define_class)
         fn = transform.function(body, scope: env)
         namespace = transform.pop

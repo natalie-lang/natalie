@@ -23,6 +23,7 @@ module Natalie
       end
 
       def generate_llvm(transform)
+        transform.set_location(@file, @line)
         namespace = transform.pop
         failure = { 'ConstMissing' => 0, 'Raise' => 1 }.fetch(@failure_mode)
         transform.push_call(

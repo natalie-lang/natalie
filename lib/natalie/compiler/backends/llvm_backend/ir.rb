@@ -91,6 +91,7 @@ module Natalie
           declare i64 @nat_llvm_dup_object(ptr, i64)
           declare void @nat_llvm_check_defined(i64)
           declare void @nat_llvm_set_zero(ptr, ptr)
+          declare void @nat_llvm_set_location(ptr, ptr, i64)
           declare void @nat_llvm_warn(ptr, i64, ptr, i32)
         LLVM
 
@@ -468,6 +469,13 @@ module Natalie
           @allocas << "  #{ptr} = alloca i64, align 8"
           @allocas << "  store volatile i64 4, ptr #{ptr}"
           ptr
+        end
+
+        def set_location(file, line)
+          return unless file && line
+          @shared[:source_files] ||= {}
+          filename = @shared[:source_files][file] ||= string(file)
+          emit "call void @nat_llvm_set_location(ptr %env, ptr #{filename}, i64 #{line})"
         end
 
         def string(str)

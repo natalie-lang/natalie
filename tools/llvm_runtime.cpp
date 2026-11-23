@@ -81,6 +81,11 @@ extern "C" void nat_llvm_set_zero(Env *env, const char *path) {
     env->global_set("$0"_s, StringObject::create(path));
 }
 
+extern "C" void nat_llvm_set_location(Env *env, const char *file, uint64_t line) {
+    env->set_file(file);
+    env->set_line(line);
+}
+
 extern "C" void nat_llvm_warn(Env *env, uint64_t self_bits, const char *message, int verbose) {
     if (verbose && !GlobalEnv::the()->is_verbose())
         return;

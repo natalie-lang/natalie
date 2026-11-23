@@ -139,6 +139,21 @@ class LlvmBackendTest < Minitest::Test
     RUBY
   end
 
+  def test_constant_lookup_errors_preserve_class_and_module_locations
+    code = <<~RUBY
+      module LocationModule
+        class LocationClass
+          MissingLocationConstant
+        end
+      end
+    RUBY
+    _, stderr, status = run_cli('--backend=llvm', '-e', code)
+    assert_equal 1, status.exitstatus
+    assert_includes stderr, "-e:3:in '<class:LocationClass>'"
+    assert_includes stderr, "-e:2:in '<module:LocationModule>'"
+    assert_includes stderr, "-e:1:in '<main>'"
+  end
+
   def test_runtime_exception_unwinds_through_llvm_frame
     stdout, stderr, status = run_cli('--backend=llvm', '-e', 'puts "before"; raise "llvm exception"; puts "after"')
     assert_equal 1, status.exitstatus
