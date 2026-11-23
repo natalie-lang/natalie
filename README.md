@@ -32,7 +32,7 @@ Natalie is tested on macOS and Ubuntu Linux. Windows is not yet supported.
 
 Natalie requires a system Ruby (MRI) to host the compiler, for now.
 
-Prerequisites:
+Use `nix` or install dependencies manually:
 
 - git
 - autoconf

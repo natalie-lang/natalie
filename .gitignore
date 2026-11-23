@@ -8,6 +8,8 @@ Gemfile.lock
 /rubyspec_temp
 /master
 .bundle
+.gem
+.direnv
 vendor
 
 # Editor tools
