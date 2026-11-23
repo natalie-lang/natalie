@@ -180,9 +180,7 @@ describe "Keyword arguments" do
       empty = {}
       m(**empty).should == [[], {}]
       Hash.ruby2_keywords_hash?(empty).should == false
-      NATFIXME 'it works with call(*ruby2_keyword_args)', exception: SpecFailedException do
-        m(empty).should == [[{}], {}]
-      end
+      m(empty).should == [[{}], {}]
       Hash.ruby2_keywords_hash?(empty).should == false
 
       NATFIXME 'it works with call(*ruby2_keyword_args)', exception: SpecFailedException do
@@ -200,10 +198,8 @@ describe "Keyword arguments" do
       Hash.ruby2_keywords_hash?(kw).should == false
       Hash.ruby2_keywords_hash?(m(**kw)[1]).should == false
 
-      NATFIXME 'it works with call(*ruby2_keyword_args)', exception: SpecFailedException do
-        m(kw).should == [[{a: 1}], {}]
-        m(kw)[0][0].should.equal?(kw)
-      end
+      m(kw).should == [[{a: 1}], {}]
+      m(kw)[0][0].should.equal?(kw)
       Hash.ruby2_keywords_hash?(kw).should == false
     end
 
@@ -299,9 +295,7 @@ describe "Keyword arguments" do
       empty = {}
       m(**empty).should == [[], {}]
       Hash.ruby2_keywords_hash?(empty).should == false
-      NATFIXME 'it works with yield(*ruby2_keyword_args)', exception: SpecFailedException do
-        m(empty).should == [[{}], {}]
-      end
+      m(empty).should == [[{}], {}]
       Hash.ruby2_keywords_hash?(empty).should == false
 
       NATFIXME 'it works with yield(*ruby2_keyword_args)', exception: SpecFailedException do
@@ -319,10 +313,8 @@ describe "Keyword arguments" do
       Hash.ruby2_keywords_hash?(kw).should == false
       Hash.ruby2_keywords_hash?(m(**kw)[1]).should == false
 
-      NATFIXME 'it works with yield(*ruby2_keyword_args)', exception: SpecFailedException do
-        m(kw).should == [[{a: 1}], {}]
-        m(kw)[0][0].should.equal?(kw)
-      end
+      m(kw).should == [[{a: 1}], {}]
+      m(kw)[0][0].should.equal?(kw)
       Hash.ruby2_keywords_hash?(kw).should == false
     end
 
@@ -369,14 +361,10 @@ describe "Keyword arguments" do
 
       empty = {}
       m(**empty).should == [[], {}]
-      NATFIXME 'it does not work with call(*ruby2_keyword_args) with missing ruby2_keywords in between', exception: SpecFailedException do
-        m(empty).should == [[{}], {}]
-      end
+      m(empty).should == [[{}], {}]
 
       m(a: 1).should == [[{a: 1}], {}]
-      NATFIXME 'it does not work with call(*ruby2_keyword_args) with missing ruby2_keywords in between', exception: SpecFailedException do
-        m({a: 1}).should == [[{a: 1}], {}]
-      end
+      m({a: 1}).should == [[{a: 1}], {}]
     end
   end
 
