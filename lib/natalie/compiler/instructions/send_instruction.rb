@@ -67,15 +67,16 @@ module Natalie
       end
 
       def generate_llvm(transform)
-        if @with_block || @forward_args || @args_array_on_stack
+        if @forward_args || @args_array_on_stack
           transform.unsupported(self, 'blocks, argument forwarding, and splats are not supported')
         end
         argc = transform.pop
         raise CompileError, 'LLVM: expected static argument count' unless argc.is_a?(Integer)
         args = transform.pop(argc)
         receiver = transform.pop
+        block = @with_block ? transform.pop : 4
         call =
-          "call i64 @nat_llvm_send(ptr %env, i64 %self, i64 #{receiver}, ptr #{transform.string(@message.to_s)}, i64 #{argc}, ptr #{transform.argument_array(args)}, i32 #{@receiver_is_self ? 0 : 1}, i32 #{@has_keyword_hash ? 1 : 0}, ptr #{transform.string(@file || transform.source_path)}, i64 #{@line || 1})"
+          "call i64 @nat_llvm_send(ptr %env, i64 %self, i64 #{receiver}, ptr #{transform.string(@message.to_s)}, i64 #{argc}, ptr #{transform.argument_array(args)}, i32 #{@receiver_is_self ? 0 : 1}, i32 #{@has_keyword_hash ? 1 : 0}, ptr #{transform.string(@file || transform.source_path)}, i64 #{@line || 1}, i64 #{block})"
         transform.push_call(call)
         if @message.to_s.match?(/\w=$|\[\]=$/)
           transform.pop

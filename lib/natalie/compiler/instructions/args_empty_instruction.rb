@@ -13,6 +13,10 @@ module Natalie
         s
       end
 
+      def generate_llvm(transform)
+        transform.push_call("call i64 @nat_llvm_args_empty(ptr %env, ptr %args, i32 #{@include_keyword_hash ? 1 : 0})")
+      end
+
       def generate(transform)
         transform.exec_and_push(:args_empty, "bool_object(args.size(#{@include_keyword_hash}) == 0)")
       end

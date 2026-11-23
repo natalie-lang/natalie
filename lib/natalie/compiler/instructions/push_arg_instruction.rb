@@ -16,6 +16,10 @@ module Natalie
         s
       end
 
+      def generate_llvm(transform)
+        transform.push_call("call i64 @nat_llvm_arg(ptr %args, i64 #{@index})")
+      end
+
       def generate(transform)
         if @nil_default
           transform.push("args.at(#{@index}, Value::nil())")

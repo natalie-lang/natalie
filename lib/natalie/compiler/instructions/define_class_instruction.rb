@@ -29,6 +29,16 @@ module Natalie
         s
       end
 
+      def generate_llvm(transform)
+        body = transform.fetch_block_of_instructions(expected_label: :define_class)
+        fn = transform.function(body, scope: env)
+        namespace = transform.pop
+        superclass = transform.pop
+        transform.push_call(
+          "call i64 @nat_llvm_define_type(ptr %env, i64 #{namespace}, i64 %self, ptr #{transform.string(@name.to_s)}, i64 #{superclass}, ptr #{fn}, i32 #{private? ? 1 : 0}, i32 0)",
+        )
+      end
+
       def generate(transform)
         transform.set_file(@file)
         transform.set_line(@line)

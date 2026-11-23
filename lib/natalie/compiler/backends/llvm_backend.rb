@@ -16,14 +16,19 @@ module Natalie
           raise CompileError,
                 'LLVM proof of concept supports scripts and object files; REPL, shared objects, and --build-dir are not supported'
         end
-        if compiler_context[:required_ruby_files].any? || compiler_context[:required_cpp_files].any?
-          raise CompileError, 'LLVM proof of concept does not yet support require/load or inline C++ files'
+        if compiler_context[:required_cpp_files].any?
+          raise CompileError, 'LLVM proof of concept does not yet support inline C++ files'
         end
         @compiler_context.merge!(compile_cxx_flags: [], compile_ld_flags: [])
       end
 
       def ir
-        @ir ||= IR.new(@instructions, source_path: @compiler_context.fetch(:source_path)).generate
+        @ir ||=
+          IR.new(
+            @instructions,
+            source_path: @compiler_context.fetch(:source_path),
+            required_files: @compiler_context.fetch(:required_ruby_files),
+          ).generate
       end
 
       def compile_to_object_file(path)

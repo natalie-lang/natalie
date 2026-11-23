@@ -20,6 +20,13 @@ module Natalie
         s
       end
 
+      def generate_llvm(transform)
+        transform.unsupported(self, 'raw Args') unless @to_array || @for_block
+        transform.push_call(
+          "call i64 @nat_llvm_args(ptr %env, ptr %args, i32 #{@for_block ? 1 : 0}, i64 #{@min_count}, i64 #{@max_count || -1}, i32 #{@autosplat ? 1 : 0}, i32 #{@include_keyword_hash ? 1 : 0})",
+        )
+      end
+
       def generate(transform)
         if @for_block
           transform.exec_and_push(

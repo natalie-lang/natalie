@@ -13,6 +13,13 @@ module Natalie
         "create_hash count: #{@count}"
       end
 
+      def generate_llvm(transform)
+        items = transform.pop(@count * 2)
+        transform.push_call(
+          "call i64 @nat_llvm_hash(ptr %env, i64 #{items.size}, ptr #{transform.argument_array(items)})",
+        )
+      end
+
       def generate(transform)
         items = []
         @count.times do

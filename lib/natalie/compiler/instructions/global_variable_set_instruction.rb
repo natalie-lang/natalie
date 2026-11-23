@@ -13,6 +13,10 @@ module Natalie
         "global_variable_set #{@name}"
       end
 
+      def generate_llvm(transform)
+        transform.emit "call void @nat_llvm_global_set(ptr %env, ptr #{transform.string(@name.to_s)}, i64 #{transform.pop})"
+      end
+
       def generate(transform)
         value = transform.pop
         transform.exec("env->global_set(#{transform.intern(@name)}, #{value})")

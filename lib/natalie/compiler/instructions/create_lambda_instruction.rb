@@ -21,6 +21,11 @@ module Natalie
 
       attr_accessor :break_point
 
+      def generate_llvm(transform)
+        transform.unsupported(self, 'non-local return') if @break_point
+        transform.push_call("call i64 @nat_llvm_lambda(ptr %env, i64 #{transform.pop})")
+      end
+
       def generate(transform)
         transform.set_file(@file)
         transform.set_line(@line)

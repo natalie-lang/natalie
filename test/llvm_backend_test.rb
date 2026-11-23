@@ -114,9 +114,88 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_unsupported_construct_is_rejected_without_fallback
-    _, stderr, status = run_cli('--backend=llvm', '-e', 'def foo; 1; end; foo')
+    _, stderr, status = run_cli('--backend=llvm', '-e', 'begin; raise "error"; rescue; nil; end')
     refute status.success?
-    assert_includes stderr, 'LLVM backend does not support define_method'
+    assert_includes stderr, 'LLVM backend does not support try'
+  end
+
+  def test_short_circuit_branches_merge_the_entire_stack
+    assert_program(
+      'x = nil; p [x || 3, false && 4, 5 && 6]; p(10 + (x || 2)); p(true || false)',
+      "[3, false, 6]\n12\ntrue\n",
+    )
+  end
+
+  def test_spec_runner_reports_native_extension_boundary
+    _, stderr, status = run_cli('--backend=llvm', 'spec/core/string/strip_spec.rb')
+    refute status.success?
+    assert_includes stderr, 'LLVM proof of concept does not yet support inline C++ files'
+  end
+
+  def test_methods_defaults_rest_and_recursion
+    assert_program(
+      'def sum(n, extra = 1); if n == 0; extra; else; n + sum(n - 1, extra); end; end; def rest(a, *xs); [a, xs]; end; p sum(4); p sum(2, 10); p rest(1, 2, 3)',
+      "11\n13\n[1, [2, 3]]\n",
+    )
+  end
+
+  def test_classes_modules_constants_and_instance_variables
+    assert_program(
+      'module M; C = 3; class A; def initialize(x); @x = x; end; def value(y = 2); @x + y; end; end; end; p M::C; p M::A.new(4).value; p M::A.new(4).value(5)',
+      "3\n6\n9\n",
+    )
+  end
+
+  def test_nested_and_escaping_closures_share_locals
+    assert_program(
+      'def counter(n); proc { |step| n = n + step; GC.start; n }; end; c = counter(10); p c.call(2); p c.call(3); x = 0; 2.times { 3.times { x = x + 1 } }; p x',
+      "12\n15\n6\n",
+    )
+  end
+
+  def test_yield_and_explicit_block_parameter
+    assert_program(
+      'def twice(x); yield x; yield x; end; total = 0; twice(3) { |n| total = total + n }; p total; def apply(&b); b.call(4); end; p apply { |x| x * 2 }',
+      "6\n8\n",
+    )
+  end
+
+  def test_lambda_and_block_next
+    assert_program('f = ->(x) { x + 1 }; p f.call(2); p [1, 2, 3].map { |x| next 9 if x == 2; x }', "3\n[1, 9, 3]\n")
+  end
+
+  def test_hashes_ranges_and_globals
+    assert_program('$answer = {a: 42}; p $answer[:a]; p((2...5).to_a)', "42\n[2, 3, 4]\n")
+  end
+
+  def test_wrong_method_arity_and_exception_in_callback
+    stdout, stderr, status = run_cli('--backend=llvm', '-e', 'def f(x); x; end; f')
+    assert_equal 1, status.exitstatus
+    assert_includes stderr, 'wrong number of arguments'
+    stdout, stderr, status = run_cli('--backend=llvm', '-e', '1.times { raise "callback error" }')
+    assert_equal 1, status.exitstatus
+    assert_includes stderr, 'callback error (RuntimeError)'
+    refute_includes stderr, 'terminate called'
+  end
+
+  def test_require_load_and_separate_file_locals
+    Dir.mktmpdir('natalie-llvm-test') do |dir|
+      file = File.join(dir, 'required.rb')
+      File.write(file, 'x = 99; $loads = ($loads || 0) + 1; def loaded_value; 42; end')
+      assert_program(
+        "x = 7; p require(#{file.inspect}); p require(#{file.inspect}); p load(#{file.inspect}); p $loads; p loaded_value; p x",
+        "true\nfalse\ntrue\n2\n42\n7\n",
+      )
+    end
+  end
+
+  def test_recursive_require
+    Dir.mktmpdir('natalie-llvm-test') do |dir|
+      a, b = %w[a.rb b.rb].map { |name| File.join(dir, name) }
+      File.write(a, "require_relative 'b'; puts 'a'")
+      File.write(b, "require_relative 'a'; puts 'b'")
+      assert_program("require #{a.inspect}", "b\na\n")
+    end
   end
 
   def test_invalid_ir_reports_an_error_without_aborting

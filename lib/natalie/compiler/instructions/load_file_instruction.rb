@@ -17,6 +17,13 @@ module Natalie
         s
       end
 
+      def generate_llvm(transform)
+        fn = transform.loaded_file(@filename)
+        transform.push_call(
+          "call i64 @nat_llvm_load(ptr %env, ptr #{transform.string(@filename)}, ptr #{fn}, i32 #{@require_once ? 1 : 0})",
+        )
+      end
+
       def generate(transform)
         fn = transform.compiled_files[@filename]
         filename_sym = transform.intern(@filename)

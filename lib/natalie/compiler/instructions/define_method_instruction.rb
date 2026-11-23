@@ -27,6 +27,14 @@ module Natalie
         s
       end
 
+      def generate_llvm(transform)
+        transform.unsupported(self, 'non-local return') if @break_point
+        klass = transform.pop
+        body = transform.fetch_block_of_instructions(expected_label: :define_method)
+        fn = transform.function(body, scope: env)
+        transform.emit "call void @nat_llvm_define_method(ptr %env, i64 #{klass}, ptr #{transform.string(@name.to_s)}, ptr #{fn}, i32 #{@arity}, ptr #{transform.string(@file)}, i64 #{@line})"
+      end
+
       def generate(transform)
         transform.set_file(@file)
         transform.set_line(@line)

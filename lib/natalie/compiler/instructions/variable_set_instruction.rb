@@ -21,7 +21,8 @@ module Natalie
       end
 
       def generate_llvm(transform)
-        transform.emit "store volatile i64 #{transform.pop}, ptr #{transform.local(self)}"
+        depth, index = transform.variable_address(self)
+        transform.emit "call void @nat_llvm_var_set(ptr %env, i64 #{depth}, i64 #{index}, i64 #{transform.pop})"
       end
 
       def generate(transform)

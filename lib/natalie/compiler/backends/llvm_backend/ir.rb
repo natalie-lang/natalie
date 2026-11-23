@@ -11,38 +11,140 @@ module Natalie
           declare i64 @nat_llvm_string(ptr, i64, i32)
           declare i64 @nat_llvm_symbol(ptr, i64)
           declare i64 @nat_llvm_array(i64, ptr)
+          declare i64 @nat_llvm_array_shift(i64)
+          declare i64 @nat_llvm_array_pop(i64)
           declare i64 @nat_llvm_object_class()
           declare i64 @nat_llvm_const(ptr, i64, i64, ptr, i32, i32)
-          declare i64 @nat_llvm_send(ptr, i64, i64, ptr, i64, ptr, i32, i32, ptr, i64)
+          declare i64 @nat_llvm_send(ptr, i64, i64, ptr, i64, ptr, i32, i32, ptr, i64, i64)
+          declare void @nat_llvm_build_vars(ptr, i64)
+          declare i64 @nat_llvm_var_get(ptr, i64, i64)
+          declare void @nat_llvm_var_set(ptr, i64, i64, i64)
+          declare i64 @nat_llvm_block(ptr, i64, ptr, i32)
+          declare void @nat_llvm_define_method(ptr, i64, ptr, ptr, i32, ptr, i64)
+          declare i64 @nat_llvm_arg(ptr, i64)
+          declare void @nat_llvm_check_args(ptr, ptr, i64, i64)
+          declare i64 @nat_llvm_args(ptr, ptr, i32, i64, i64, i32, i32)
+          declare i64 @nat_llvm_yield(ptr, i64, ptr, i32)
+          declare i64 @nat_llvm_global_get(ptr, ptr)
+          declare void @nat_llvm_global_set(ptr, ptr, i64)
+          declare i64 @nat_llvm_hash(ptr, i64, ptr)
+          declare i64 @nat_llvm_range(ptr, i64, i64, i32)
+          declare i64 @nat_llvm_ivar_get(ptr, i64, ptr)
+          declare void @nat_llvm_ivar_set(ptr, i64, ptr, i64)
+          declare void @nat_llvm_const_set(ptr, i64, ptr, i64, i32)
+          declare i64 @nat_llvm_define_type(ptr, i64, i64, ptr, i64, ptr, i32, i32)
+          declare i64 @nat_llvm_load(ptr, ptr, ptr, i32)
+          declare i64 @nat_llvm_args_empty(ptr, ptr, i32)
+          declare i64 @nat_llvm_args_shift(ptr, ptr, i32)
+          declare i64 @nat_llvm_args_pop(ptr, ptr, i32)
+          declare i64 @nat_llvm_lambda(ptr, i64)
+          declare i64 @nat_llvm_push_block(ptr, ptr, i32)
           declare void @nat_llvm_set_zero(ptr, ptr)
           declare void @nat_llvm_warn(ptr, i64, ptr, i32)
         LLVM
 
-        def initialize(instructions, source_path:)
+        def initialize(
+          instructions,
+          source_path:,
+          shared: nil,
+          function_name: 'nat_llvm_eval',
+          scope: nil,
+          required_files: {}
+        )
           @instructions = instructions
           @source_path = source_path
           @stack = []
-          @globals = []
+          @shared = shared || { globals: [], functions: [], serial: 0 }
+          @globals = @shared[:globals]
+          @function_name = function_name
+          @scope = scope
+          @required_files = required_files
           @allocas = []
           @body = []
-          @locals = {}
-          @serial = 0
         end
 
         def generate
-          emit "call void @nat_llvm_set_zero(ptr %env, ptr #{string(@source_path)})"
+          if @function_name == 'nat_llvm_eval'
+            emit "call void @nat_llvm_set_zero(ptr %env, ptr #{string(@source_path)})"
+          end
+          emit "call void @nat_llvm_build_vars(ptr %env, i64 #{@scope ? @scope.fetch(:vars).size : top_scope.fetch(:vars).size})"
           transform(@instructions)
           emit "ret i64 #{@stack.last || 4}"
-          <<~LLVM
-            ; Natalie experimental LLVM backend (64-bit hosts)
-            #{@globals.join("\n")}
-            #{DECLARATIONS}
-            define i64 @nat_llvm_eval(ptr %env, i64 %self) uwtable {
+          function = <<~LLVM
+            define i64 @#{@function_name}(ptr %env, i64 %self#{@function_name == 'nat_llvm_eval' ? '' : ', ptr %args, ptr %block'}) uwtable {
             entry:
             #{@allocas.join("\n")}
             #{@body.join("\n")}
             }
           LLVM
+          return function unless @function_name == 'nat_llvm_eval'
+          <<~LLVM
+            ; Natalie experimental LLVM backend (64-bit hosts)
+            #{@globals.join("\n")}
+            #{DECLARATIONS}
+            #{@shared[:functions].join("\n")}
+            #{function}
+          LLVM
+        end
+
+        def function_block
+          @function_name == 'nat_llvm_eval' ? 'null' : '%block'
+        end
+
+        def top_scope
+          env = @instructions.to_a.first&.env
+          return { vars: {} } unless env
+          env = env[:outer] while env[:outer]
+          env
+        end
+
+        def function(body, scope:)
+          fn = name('fn')
+          @shared[:functions] << self
+            .class
+            .new(
+              body,
+              source_path: @source_path,
+              shared: @shared,
+              function_name: fn,
+              scope: scope,
+              required_files: @required_files,
+            )
+            .generate
+          "@#{fn}"
+        end
+
+        def loaded_file(path)
+          @shared[:loaded_files] ||= {}
+          return @shared[:loaded_files][path] if @shared[:loaded_files].key?(path)
+          file = @required_files.fetch(path)
+          fn = name('loaded')
+          @shared[:loaded_files][path] = "@#{fn}"
+          @shared[:functions] << self
+            .class
+            .new(
+              file.instructions,
+              source_path: path,
+              shared: @shared,
+              function_name: fn,
+              required_files: @required_files,
+            )
+            .generate
+          "@#{fn}"
+        end
+
+        # Pass2 already resolves each local to its owning scope. Count Ruby
+        # scopes here; the bridge skips its callback environment at each hop.
+        def variable_address(instruction)
+          env = instruction.env
+          env = env[:outer] while env[:hoist]
+          depth = 0
+          until env[:vars].values.any? { |var| var.equal?(instruction.meta) }
+            env = env.fetch(:outer)
+            env = env[:outer] while env[:hoist]
+            depth += 1
+          end
+          [depth, instruction.meta.fetch(:index)]
         end
 
         attr_reader :stack, :source_path
@@ -66,10 +168,6 @@ module Natalie
 
         def peek
           @stack.last || raise(CompileError, 'LLVM: instruction stack underflow')
-        end
-
-        def local(instruction)
-          @locals[instruction.meta.object_id] ||= slot('local')
         end
 
         def argument_array(args)
@@ -120,8 +218,8 @@ module Natalie
         end
 
         def name(prefix)
-          @serial += 1
-          "#{prefix}#{@serial}"
+          @shared[:serial] += 1
+          "#{prefix}#{@shared[:serial]}"
         end
 
         def pop(count = nil)

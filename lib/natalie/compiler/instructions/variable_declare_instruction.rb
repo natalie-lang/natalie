@@ -19,7 +19,7 @@ module Natalie
       end
 
       def generate_llvm(transform)
-        transform.local(self)
+        # Environment slots are initialized to nil at function entry.
       end
 
       def generate(transform)

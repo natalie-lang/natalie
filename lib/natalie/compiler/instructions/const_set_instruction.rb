@@ -16,6 +16,11 @@ module Natalie
         s
       end
 
+      def generate_llvm(transform)
+        namespace, value = transform.pop, transform.pop
+        transform.emit "call void @nat_llvm_const_set(ptr %env, i64 #{namespace}, ptr #{transform.string(@name.to_s)}, i64 #{value}, i32 #{@strict ? 1 : 0})"
+      end
+
       def generate(transform)
         namespace = transform.pop
         value = transform.pop

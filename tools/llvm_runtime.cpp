@@ -40,7 +40,7 @@ extern "C" uint64_t nat_llvm_const(Env *env, uint64_t namespace_bits, uint64_t s
     return nat_llvm_pack(Object::const_find_with_autoload(env, nat_llvm_unpack(namespace_bits), nat_llvm_unpack(self_bits), SymbolObject::intern(name), search, failure).value());
 }
 
-extern "C" uint64_t nat_llvm_send(Env *env, uint64_t self_bits, uint64_t receiver_bits, const char *name, uint64_t argc, const uint64_t *argv, int public_only, int keywords, const char *file, uint64_t line) {
+extern "C" uint64_t nat_llvm_send(Env *env, uint64_t self_bits, uint64_t receiver_bits, const char *name, uint64_t argc, const uint64_t *argv, int public_only, int keywords, const char *file, uint64_t line, uint64_t block_bits) {
     env->set_file(file);
     env->set_line(line);
     TM::Vector<Value> values;
@@ -50,8 +50,8 @@ extern "C" uint64_t nat_llvm_send(Env *env, uint64_t self_bits, uint64_t receive
     auto receiver = nat_llvm_unpack(receiver_bits);
     auto symbol = SymbolObject::intern(name);
     if (public_only)
-        return nat_llvm_pack(receiver.public_send(env, symbol, std::move(args), nullptr, nat_llvm_unpack(self_bits)));
-    return nat_llvm_pack(receiver.send(env, symbol, std::move(args), nullptr));
+        return nat_llvm_pack(receiver.public_send(env, symbol, std::move(args), to_block(env, nat_llvm_unpack(block_bits)), nat_llvm_unpack(self_bits)));
+    return nat_llvm_pack(receiver.send(env, symbol, std::move(args), to_block(env, nat_llvm_unpack(block_bits))));
 }
 
 extern "C" void nat_llvm_set_zero(Env *env, const char *path) {
@@ -62,4 +62,173 @@ extern "C" void nat_llvm_warn(Env *env, uint64_t self_bits, const char *message,
     if (verbose && !GlobalEnv::the()->is_verbose())
         return;
     nat_llvm_unpack(self_bits).send(env, "warn"_s, { StringObject::create(message) });
+}
+
+// A captured environment holds the callback separately from Ruby local slots.
+// This keeps the C++ calling convention inside the precompiled bridge.
+using LlvmFn = uint64_t (*)(Env *, uint64_t, Args *, Block *);
+
+static Value llvm_callback(Env *env, Value self, Args &&args, Block *block) {
+    auto address = env->outer()->var_get("llvm_callback", 0).integer().to_nat_int_t();
+    auto fn = reinterpret_cast<LlvmFn>(address);
+    return nat_llvm_unpack(fn(env, nat_llvm_pack(self), &args, block));
+}
+
+static Block *llvm_block(Env *env, Value self, LlvmFn fn, int arity, bool capture) {
+    auto closure = Env::create(capture ? Env::create(*env) : nullptr);
+    closure->set_lexical_scope(env->lexical_scope());
+    closure->set_file(env->file());
+    closure->set_line(env->line());
+    closure->build_vars(1);
+    closure->var_set("llvm_callback", 0, true, Value::integer(reinterpret_cast<intptr_t>(fn)));
+    return Block::create(*closure, self, llvm_callback, arity);
+}
+
+extern "C" void nat_llvm_build_vars(Env *env, uint64_t count) {
+    env->build_vars(count);
+}
+
+// Each closure adds a callback environment between the invocation's locals
+// and the captured Ruby environment. Copies share the managed local vector.
+static Env *llvm_outer(Env *env, uint64_t depth) {
+    while (depth--)
+        env = env->outer()->outer();
+    return env;
+}
+
+extern "C" uint64_t nat_llvm_var_get(Env *env, uint64_t depth, uint64_t index) {
+    return nat_llvm_pack(llvm_outer(env, depth)->var_get("llvm_local", index));
+}
+
+extern "C" void nat_llvm_var_set(Env *env, uint64_t depth, uint64_t index, uint64_t value) {
+    llvm_outer(env, depth)->var_set("llvm_local", index, true, nat_llvm_unpack(value));
+}
+
+extern "C" uint64_t nat_llvm_block(Env *env, uint64_t self, LlvmFn fn, int arity) {
+    return nat_llvm_pack(ProcObject::from_block_maybe(llvm_block(env, nat_llvm_unpack(self), fn, arity, true)));
+}
+
+extern "C" void nat_llvm_define_method(Env *env, uint64_t target, const char *name, LlvmFn fn, int arity, const char *file, uint64_t line) {
+    env->set_file(file);
+    env->set_line(line);
+    auto self = nat_llvm_unpack(target);
+    auto block = llvm_block(env, self, fn, arity, false);
+    Object::define_method(env, self, SymbolObject::intern(name), block);
+    if (self == GlobalEnv::the()->main_obj())
+        self.klass()->set_method_visibility(env, SymbolObject::intern(name), GlobalEnv::the()->top_level_method_visibility());
+}
+
+extern "C" uint64_t nat_llvm_arg(Args *args, uint64_t index) {
+    return nat_llvm_pack(args->at(index, Value::nil()));
+}
+
+extern "C" void nat_llvm_check_args(Env *env, Args *args, int64_t min, int64_t max) {
+    if (max < 0)
+        args->ensure_argc_at_least(env, min);
+    else
+        args->ensure_argc_between(env, min, max);
+}
+
+extern "C" uint64_t nat_llvm_args(Env *env, Args *args, int for_block, int64_t min, int64_t max, int autosplat, int keywords) {
+    return nat_llvm_pack(for_block ? args->to_array_for_block(env, min, max, autosplat, keywords) : args->to_array(keywords));
+}
+
+extern "C" uint64_t nat_llvm_yield(Env *env, uint64_t argc, const uint64_t *argv, int keywords) {
+    TM::Vector<Value> values;
+    for (uint64_t i = 0; i < argc; ++i)
+        values.push(nat_llvm_unpack(argv[i]));
+    return nat_llvm_pack(env->nearest_block()->run(env, Args(values, keywords)));
+}
+
+extern "C" uint64_t nat_llvm_global_get(Env *env, const char *name) {
+    return nat_llvm_pack(env->global_get(SymbolObject::intern(name)));
+}
+
+extern "C" void nat_llvm_global_set(Env *env, const char *name, uint64_t value) {
+    env->global_set(SymbolObject::intern(name), nat_llvm_unpack(value));
+}
+
+extern "C" uint64_t nat_llvm_array_shift(uint64_t array) {
+    return nat_llvm_pack(nat_llvm_unpack(array).as_array()->shift());
+}
+extern "C" uint64_t nat_llvm_array_pop(uint64_t array) {
+    return nat_llvm_pack(nat_llvm_unpack(array).as_array()->pop());
+}
+
+extern "C" uint64_t nat_llvm_hash(Env *env, uint64_t count, const uint64_t *items) {
+    auto hash = HashObject::create();
+    for (uint64_t i = 0; i < count; i += 2)
+        hash->put(env, nat_llvm_unpack(items[i]), nat_llvm_unpack(items[i + 1]));
+    return nat_llvm_pack(hash);
+}
+
+extern "C" uint64_t nat_llvm_range(Env *env, uint64_t begin, uint64_t end, int exclude) {
+    return nat_llvm_pack(RangeObject::create(env, nat_llvm_unpack(begin), nat_llvm_unpack(end), exclude));
+}
+
+extern "C" uint64_t nat_llvm_ivar_get(Env *env, uint64_t self, const char *name) {
+    return nat_llvm_pack(Object::ivar_get(env, nat_llvm_unpack(self), SymbolObject::intern(name)));
+}
+
+extern "C" void nat_llvm_ivar_set(Env *env, uint64_t self, const char *name, uint64_t value) {
+    Object::ivar_set(env, nat_llvm_unpack(self), SymbolObject::intern(name), nat_llvm_unpack(value));
+}
+
+extern "C" void nat_llvm_const_set(Env *env, uint64_t ns, const char *name, uint64_t value, int strict) {
+    if (strict)
+        Object::const_set(env, nat_llvm_unpack(ns), SymbolObject::intern(name), nat_llvm_unpack(value));
+    else
+        Object::const_set_not_strict(env, SymbolObject::intern(name), nat_llvm_unpack(value));
+}
+
+// Class/module bodies execute synchronously; preserve the callback across nested definitions.
+static thread_local LlvmFn llvm_type_body;
+static Value llvm_eval_type(Env *env, Value self) {
+    Args args;
+    return nat_llvm_unpack(llvm_type_body(env, nat_llvm_pack(self), &args, nullptr));
+}
+extern "C" uint64_t nat_llvm_define_type(Env *env, uint64_t ns, uint64_t self, const char *name, uint64_t superclass, LlvmFn fn, int is_private, int is_module) {
+    auto previous = llvm_type_body;
+    Defer restore([&] { llvm_type_body = previous; });
+    llvm_type_body = fn;
+    auto mode = is_private ? Object::ConstLookupSearchMode::StrictPrivate : Object::ConstLookupSearchMode::Strict;
+    if (is_module)
+        return nat_llvm_pack(Object::define_module(env, nat_llvm_unpack(ns), nat_llvm_unpack(self), SymbolObject::intern(name), mode, llvm_eval_type));
+    return nat_llvm_pack(Object::define_class(env, nat_llvm_unpack(ns), nat_llvm_unpack(self), SymbolObject::intern(name), mode, nat_llvm_unpack(superclass), llvm_eval_type));
+}
+
+extern "C" uint64_t nat_llvm_load(Env *env, const char *path, LlvmFn fn, int require_once) {
+    auto filename = SymbolObject::intern(path);
+    if (require_once && GlobalEnv::the()->has_file(filename))
+        return nat_llvm_pack(Value::False());
+    GlobalEnv::the()->add_file(env, filename);
+    Env loaded;
+    loaded.set_caller(env);
+    loaded.set_lexical_scope(GlobalEnv::the()->main_env()->lexical_scope());
+    loaded.set_file(path);
+    Args args;
+    fn(&loaded, nat_llvm_pack(GlobalEnv::the()->main_obj()), &args, nullptr);
+    return nat_llvm_pack(Value::True());
+}
+
+extern "C" uint64_t nat_llvm_args_empty(Env *env, Args *args, int keywords) {
+    return nat_llvm_pack(bool_object(args->size(keywords) == 0));
+}
+
+extern "C" uint64_t nat_llvm_args_shift(Env *env, Args *args, int keywords) {
+    return nat_llvm_pack(args->shift(env, keywords));
+}
+
+extern "C" uint64_t nat_llvm_args_pop(Env *env, Args *args, int keywords) {
+    return nat_llvm_pack(args->pop(env, keywords));
+}
+
+extern "C" uint64_t nat_llvm_lambda(Env *env, uint64_t proc) {
+    auto block = to_block(env, nat_llvm_unpack(proc));
+    block->set_type(Block::BlockType::Lambda);
+    return nat_llvm_pack(ProcObject::create(block));
+}
+
+extern "C" uint64_t nat_llvm_push_block(Env *env, Block *block, int nearest) {
+    return nat_llvm_pack(ProcObject::from_block_maybe(nearest ? env->nearest_block(true) : block));
 }

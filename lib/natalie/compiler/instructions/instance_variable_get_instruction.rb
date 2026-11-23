@@ -13,6 +13,10 @@ module Natalie
         "instance_variable_get #{@name}"
       end
 
+      def generate_llvm(transform)
+        transform.push_call("call i64 @nat_llvm_ivar_get(ptr %env, i64 %self, ptr #{transform.string(@name.to_s)})")
+      end
+
       def generate(transform)
         transform.exec_and_push(:ivar, "Object::ivar_get(env, self, #{transform.intern(@name)})")
       end

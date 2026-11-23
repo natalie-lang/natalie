@@ -13,6 +13,10 @@ module Natalie
         "global_variable_get #{@name}"
       end
 
+      def generate_llvm(transform)
+        transform.push_call("call i64 @nat_llvm_global_get(ptr %env, ptr #{transform.string(@name.to_s)})")
+      end
+
       def generate(transform)
         transform.exec_and_push(:gvar, "env->global_get(#{transform.intern(@name)})")
       end
