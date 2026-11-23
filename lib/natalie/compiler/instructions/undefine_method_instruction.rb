@@ -7,6 +7,10 @@ module Natalie
         'undefine_method'
       end
 
+      def generate_llvm(transform)
+        transform.push_call("call i64 @nat_llvm_undef_method(ptr %env, i64 %self, i64 #{transform.pop})")
+      end
+
       def generate(transform)
         transform.exec_and_push(
           :undef_result,

@@ -67,6 +67,10 @@ module Natalie
           declare i32 @nat_llvm_loop_step(ptr, i64, ptr, ptr, ptr, ptr, ptr, ptr, i64, i64, i64)
           declare void @nat_llvm_redo()
           declare i64 @nat_llvm_catch_return(ptr, i64, ptr, i64)
+          declare i64 @nat_llvm_cvar_get(ptr, i64, ptr, i32)
+          declare void @nat_llvm_cvar_set(ptr, i64, ptr, i64)
+          declare i64 @nat_llvm_alias_global(ptr, i64, i64)
+          declare i64 @nat_llvm_undef_method(ptr, i64, i64)
           declare void @nat_llvm_set_zero(ptr, ptr)
           declare void @nat_llvm_warn(ptr, i64, ptr, i32)
         LLVM

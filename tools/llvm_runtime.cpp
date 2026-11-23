@@ -449,3 +449,21 @@ extern "C" uint64_t nat_llvm_catch_return(Env *env, uint64_t self, uint64_t (*fn
         throw;
     }
 }
+
+extern "C" uint64_t nat_llvm_cvar_get(Env *env, uint64_t self_bits, const char *name, int nil_default) {
+    auto self = nat_llvm_unpack(self_bits);
+    auto symbol = SymbolObject::intern(name);
+    return nat_llvm_pack(nil_default ? self->cvar_get_maybe(env, symbol).value_or(Value::nil()) : self->cvar_get(env, symbol));
+}
+
+extern "C" void nat_llvm_cvar_set(Env *env, uint64_t self, const char *name, uint64_t value) {
+    nat_llvm_unpack(self)->cvar_set(env, SymbolObject::intern(name), nat_llvm_unpack(value));
+}
+
+extern "C" uint64_t nat_llvm_alias_global(Env *env, uint64_t new_name, uint64_t old_name) {
+    return nat_llvm_pack(env->global_alias(nat_llvm_unpack(new_name).to_symbol(env, Value::Conversion::Strict), nat_llvm_unpack(old_name).to_symbol(env, Value::Conversion::Strict)));
+}
+
+extern "C" uint64_t nat_llvm_undef_method(Env *env, uint64_t self, uint64_t name) {
+    return nat_llvm_pack(Object::undefine_method(env, nat_llvm_unpack(self), nat_llvm_unpack(name).to_symbol(env, Value::Conversion::Strict)));
+}

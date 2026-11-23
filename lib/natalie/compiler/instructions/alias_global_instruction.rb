@@ -11,6 +11,11 @@ module Natalie
         'alias_global'
       end
 
+      def generate_llvm(transform)
+        old_name, new_name = transform.pop, transform.pop
+        transform.push_call("call i64 @nat_llvm_alias_global(ptr %env, i64 #{new_name}, i64 #{old_name})")
+      end
+
       def generate(transform)
         old_name = transform.pop
         new_name = transform.pop

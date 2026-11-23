@@ -434,6 +434,20 @@ class LlvmBackendTest < Minitest::Test
     assert_empty stderr
   end
 
+  def test_class_variables_follow_runtime_inheritance_and_defaulting
+    assert_program(
+      'class A; @@n ||= 3; def self.bump; @@n += 1; end; def self.n; @@n; end; end; class B < A; end; p B.bump; p A.n; p B.n',
+      "4\n4\n4\n",
+    )
+  end
+
+  def test_undef_hides_inherited_methods_and_global_aliases_share_storage
+    assert_program(
+      'class A; def f; 1; end; end; class B < A; undef f; end; p B.new.respond_to?(:f); $first=1; alias $second $first; $second=3; p $first',
+      "false\n3\n",
+    )
+  end
+
   def test_methods_defaults_rest_and_recursion
     assert_program(
       'def sum(n, extra = 1); if n == 0; extra; else; n + sum(n - 1, extra); end; end; def rest(a, *xs); [a, xs]; end; p sum(4); p sum(2, 10); p rest(1, 2, 3)',

@@ -13,6 +13,10 @@ module Natalie
         "class_variable_set #{@name}"
       end
 
+      def generate_llvm(transform)
+        transform.emit "call void @nat_llvm_cvar_set(ptr %env, i64 %self, ptr #{transform.string(@name.to_s)}, i64 #{transform.pop})"
+      end
+
       def generate(transform)
         value = transform.pop
         transform.exec("self->cvar_set(env, #{transform.intern(@name)}, #{value})")
