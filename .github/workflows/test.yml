@@ -62,7 +62,7 @@ jobs:
           submodules: true
       - uses: ruby/setup-ruby@v1
       - name: install build tools
-        run: brew install --force --overwrite autoconf automake libtool pkg-config
+        run: brew install --force --overwrite autoconf automake libtool pkg-config llvm
       - name: install openssl
         run: brew install openssl
       - name: install libffi
@@ -75,6 +75,7 @@ jobs:
           NAT_BUILD_MODE: release
         run: |
           export GLOB=$(ruby spec/support/split_specs.rb 4 ${{ matrix.group }})
+          export NAT_LLVM_LIBRARY="$(brew --prefix llvm)/lib/libLLVM.dylib"
           rake test
   self-hosted:
     runs-on: ubuntu-24.04

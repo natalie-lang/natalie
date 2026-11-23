@@ -40,12 +40,22 @@ Use `nix` or install dependencies manually:
 - libtool
 - GNU make
 - gcc or clang
+- LLVM 16 or newer, including its shared library (`llvm-dev` on Ubuntu or
+  `brew install llvm` on macOS)
 - Ruby 3.2 or higher with dev headers
   - Using [rbenv](https://github.com/rbenv/rbenv) to install Ruby is preferred.
   - Installing [rbenv-aliases](https://github.com/tpope/rbenv-aliases) along with rbenv helps with matching Ruby versions like `3.2` to the latest patch release.
   - If not using rbenv or another version manager, you'll need the `ruby` and `ruby-dev` package from your system.
 - ccache (optional, but recommended)
 - compiledb (optional, but recommended)
+
+The runtime's Ruby sources are compiled with LLVM. If the LLVM shared library
+is not found automatically, set `NAT_LLVM_LIBRARY` to its full path. For example,
+on macOS with Homebrew:
+
+```sh
+export NAT_LLVM_LIBRARY="$(brew --prefix llvm)/lib/libLLVM.dylib"
+```
 
 Install the above prerequisites on your platform, then run:
 

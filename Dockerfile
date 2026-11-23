@@ -1,7 +1,7 @@
 ARG IMAGE=ruby:4.0
 FROM $IMAGE
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build-essential autoconf libtool clang lcov clang-tidy libclang-dev lldb gdb python3 python3-pip ccache
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build-essential autoconf libtool clang llvm-dev lcov clang-tidy libclang-dev lldb gdb python3 python3-pip ccache
 
 # PIP externally-managed-environment now forces you
 # to be explicit when installing system-wide package
@@ -30,7 +30,7 @@ RUN if [ "$NEED_CASTXML" = "true" ]; then \
 ENV PATH="/tmp/castxml/bin:${PATH}"
 
 ENV LC_ALL=C.UTF-8
-ENV LLVM_CONFIG=/usr/lib/llvm-14/bin/llvm-config
+ENV LLVM_CONFIG=/usr/bin/llvm-config
 
 WORKDIR /natalie
 COPY .git/ .git/

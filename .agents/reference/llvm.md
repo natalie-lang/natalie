@@ -19,10 +19,11 @@ explicitly with `clang-format` when editing it.
 
 ## Build and Run
 
-After building Natalie, build the runtime bridge and run a script with LLVM:
+The normal build compiles runtime Ruby files with LLVM and includes the runtime
+bridge in Natalie's runtime libraries. It also builds the executable startup
+object. After building Natalie, run a script with LLVM:
 
 ```sh
-bundle exec rake llvm_runtime
 bin/natalie --backend=llvm examples/llvm_poc.rb
 bundle exec rake test_llvm
 ```
@@ -46,8 +47,9 @@ bundle exec rake test_llvm_self_hosted
 
 MRI uses Fiddle to call the LLVM C API; `bin/nat` uses Natalie's existing
 libffi bindings. Both use the same IR generator, object emitter, native
-extension support, and build cache. LLVM is loaded at runtime, so bootstrapping
-the compiler and using its default C++ backend do not require LLVM to be installed.
+extension support, and build cache. Building the runtime and bootstrapping the
+compiler require the shared LLVM library. Ordinary compiled programs use native
+object code and do not load LLVM unless they invoke the LLVM compiler themselves.
 The self-hosted test task runs the backend and build-cache integration suites
 through `bin/nat` (the direct malformed-IR unit tests still run under MRI).
 A compiled fixture also checks parser, verifier, and object-emission errors and

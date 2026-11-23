@@ -7,7 +7,7 @@ end
 
 task default: :build
 
-desc 'Build the optional runtime bridge for the experimental LLVM backend (after rake)'
+desc 'Build the LLVM runtime bridge and executable startup object'
 task llvm_runtime: %w[build/llvm_runtime.o build/llvm_main.o]
 
 desc 'Test the experimental LLVM backend (requires a built Natalie runtime and shared LLVM library)'
@@ -74,17 +74,17 @@ task :build do
 end
 
 desc 'Build Natalie with release optimizations enabled and warnings off (default)'
-task build_release: %i[set_build_release libnatalie prism_c_ext libnat] do
+task build_release: %i[set_build_release libnatalie prism_c_ext libnat llvm_runtime] do
   puts 'Build mode: release'
 end
 
 desc 'Build Natalie with no optimization and all warnings'
-task build_debug: %i[set_build_debug libnatalie prism_c_ext libnat ctags] do
+task build_debug: %i[set_build_debug libnatalie prism_c_ext libnat llvm_runtime ctags] do
   puts 'Build mode: debug'
 end
 
 desc 'Build Natalie with sanitizers enabled'
-task build_sanitized: %i[set_build_sanitized libnatalie prism_c_ext libnat] do
+task build_sanitized: %i[set_build_sanitized libnatalie prism_c_ext libnat llvm_runtime] do
   puts 'Build mode: sanitized'
 end
 
@@ -472,7 +472,7 @@ SOURCES = PRIMARY_SOURCES + RUBY_SOURCES + LIBNAT_SOURCES + SPECIAL_SOURCES
 PRIMARY_OBJECT_FILES = PRIMARY_SOURCES.sub('src/', 'build/').pathmap('%p.o')
 RUBY_OBJECT_FILES = RUBY_SOURCES.pathmap('build/generated/%{^src/,}p.o')
 SPECIAL_OBJECT_FILES = SPECIAL_SOURCES.pathmap('%p.o')
-OBJECT_FILES = PRIMARY_OBJECT_FILES + RUBY_OBJECT_FILES + SPECIAL_OBJECT_FILES
+OBJECT_FILES = PRIMARY_OBJECT_FILES + RUBY_OBJECT_FILES + SPECIAL_OBJECT_FILES + ['build/llvm_runtime.o']
 
 # Find duplicate object files (even if in different directories), because a static library
 # with duplicate names causes the following runtime warning on macOS:
@@ -670,10 +670,10 @@ rule '.cpp.o' => ['src/%{build/,}X'] + HEADERS do |t|
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 
-rule '.rb.o' => ['src/%{build\/generated/,}X'] do |t|
+rule '.rb.o' => ['src/%{build\/generated/,}X', 'Rakefile', 'bin/natalie'] + LIBNAT_SOURCES + HEADERS do |t|
   subdir = File.dirname(t.name)
   mkdir_p(subdir) unless File.directory?(subdir)
-  sh "NAT_CXX_FLAGS='#{extra_cxx_flags.join(' ')}' CXX='#{cxx}' bin/natalie --compilation-type=object -c #{t.name} #{t.source}"
+  sh "NAT_CXX_FLAGS='#{extra_cxx_flags.join(' ')}' CXX='#{cxx}' bin/natalie --backend=llvm --compilation-type=object -c #{t.name} #{t.source}"
 end
 
 file "build/libprism.#{SO_EXT}" => ['build/libprism.a']
