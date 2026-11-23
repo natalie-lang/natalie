@@ -90,4 +90,23 @@ describe 'require' do
     require 'socket'
     Socket.should be_an_instance_of(Class)
   end
+
+  it 'does not mark a file as required when it was only loaded' do
+    load('require/load_then_require.rb').should == true
+    $load_then_require_runs.should == 1
+    path = File.expand_path('../support/require/load_then_require.rb', __dir__)
+    $LOADED_FEATURES.should_not include(path)
+    require('require/load_then_require').should == true
+    $load_then_require_runs.should == 2
+    require('require/load_then_require').should == false
+  end
+
+  it 'preserves a successful require when a later explicit load raises' do
+    require('require/load_failed_after_require').should == true
+    -> { load('require/load_failed_after_require.rb') }.should raise_error(RuntimeError, 'explicit load failed')
+    require('require/load_failed_after_require').should == false
+    $load_after_require_runs.should == 2
+    path = File.expand_path('../support/require/load_failed_after_require.rb', __dir__)
+    $LOADED_FEATURES.should include(path)
+  end
 end
