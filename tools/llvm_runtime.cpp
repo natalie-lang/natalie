@@ -141,8 +141,11 @@ extern "C" void nat_llvm_var_set(Env *env, uint64_t depth, uint64_t index, uint6
     llvm_outer(env, depth)->var_set("llvm_local", index, true, nat_llvm_unpack(value));
 }
 
-extern "C" uint64_t nat_llvm_block(Env *env, uint64_t self, LlvmFn fn, int arity, int64_t return_point, int has_return, int64_t redo_point, const ParamDescriptor *parameters) {
-    return nat_llvm_pack(ProcObject::from_block_maybe(llvm_block(env, nat_llvm_unpack(self), fn, arity, true, return_point, has_return, redo_point, parameters)));
+extern "C" uint64_t nat_llvm_block(Env *env, uint64_t self, LlvmFn fn, int arity, int64_t return_point, int has_return, int64_t redo_point, const ParamDescriptor *parameters, const char *file, uint64_t line) {
+    auto result = llvm_block(env, nat_llvm_unpack(self), fn, arity, true, return_point, has_return, redo_point, parameters);
+    result->env()->set_file(file);
+    result->env()->set_line(line);
+    return nat_llvm_pack(ProcObject::from_block_maybe(result));
 }
 
 extern "C" void nat_llvm_define_method(Env *env, uint64_t target, const char *name, LlvmFn fn, int arity, const char *file, uint64_t line, int64_t return_point, const ParamDescriptor *parameters) {

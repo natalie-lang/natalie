@@ -31,23 +31,14 @@ describe :proc_to_s, shared: true do
 
   describe "for a proc created with UnboundMethod#to_proc" do
     it "returns a description including '(lambda)' and optionally including file and line number" do
-        # NATFIXME: We need some workarounds here, the line result is one line off, so if we just wrap the failing
-        #           spec in a NATFIXME block the test passes.
-        s = nil
-        NATFIXME 'Issue with Method#source_location (see spec: works for methods defined with a Method)', exception: SpecFailedException do
-          def hello; end
-          s = method("hello").to_proc.send(@method)
-          if s.include? __FILE__
-            s.should =~ /^#<Proc:([^ ]*?) #{Regexp.escape __FILE__}:#{__LINE__ - 3} \(lambda\)>$/
-          else
-            s.should =~ /^#<Proc:([^ ]*?) \(lambda\)>$/
-          end
-        end
-        if s.include? __FILE__
-          s.should =~ /^#<Proc:([^ ]*?) #{Regexp.escape __FILE__}:#{__LINE__ - 8} \(lambda\)>$/
-        else
-          s.should =~ /^#<Proc:([^ ]*?) \(lambda\)>$/
-        end
+      line = __LINE__ + 1
+      def hello; end
+      s = method("hello").to_proc.send(@method)
+      if s.include? __FILE__
+        s.should =~ /^#<Proc:([^ ]*?) #{Regexp.escape __FILE__}:#{line} \(lambda\)>$/
+      else
+        s.should =~ /^#<Proc:([^ ]*?) \(lambda\)>$/
+      end
     end
 
     it "has a binary encoding" do

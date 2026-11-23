@@ -423,7 +423,13 @@ module Natalie
         parameters = ParameterList.new(node.parameters).to_a
 
         instructions = []
-        instructions << DefineBlockInstruction.new(arity:, for_lambda:, parameters:)
+        instructions << DefineBlockInstruction.new(
+          arity:,
+          for_lambda:,
+          parameters:,
+          file: @file.path,
+          line: node.location.start_line,
+        )
         if for_lambda
           instructions << transform_block_args_for_lambda(node.parameters, used: true)
         else
@@ -1468,7 +1474,7 @@ module Natalie
 
       def transform_for_node(node, used:)
         instructions = transform_for_declare_args(node.index)
-        instructions << DefineBlockInstruction.new(arity: 1)
+        instructions << DefineBlockInstruction.new(arity: 1, file: @file.path, line: node.location.start_line)
         instructions += transform_block_args_for_for(node.index, used: true)
         instructions += transform_expression(node.statements, used: true) if node.statements
         instructions << EndInstruction.new(:define_block)
@@ -2406,7 +2412,7 @@ module Natalie
       end
 
       def transform_post_execution_node(node, used:)
-        instructions = [DefineBlockInstruction.new(arity: 0)]
+        instructions = [DefineBlockInstruction.new(arity: 0, file: @file.path, line: node.location.start_line)]
         if node.statements
           instructions << transform_expression(node.statements, used: true)
         else

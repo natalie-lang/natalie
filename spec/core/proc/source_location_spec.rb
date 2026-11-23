@@ -49,9 +49,7 @@ describe "Proc#source_location" do
 
     line = @method.source_location[1]
     line.should be_an_instance_of(Integer)
-    NATFIXME 'Fix line in Env', exception: SpecFailedException do
-      line.should == 15
-    end
+    line.should == 15
   end
 
   it "works even if the proc was created on the same line" do
@@ -85,18 +83,14 @@ describe "Proc#source_location" do
     method = ProcSpecs::SourceLocation.method(:my_proc)
     proc = method.to_proc
 
-    NATFIXME 'returns the same value for a proc-ified method as the method reports', exception: SpecFailedException do
-      method.source_location.should == proc.source_location
-    end
+    method.source_location.should == proc.source_location
   end
 
   it "returns nil for a core method that has been proc-ified" do
     method = [].method(:<<)
     proc = method.to_proc
 
-    NATFIXME 'returns nil for a core method that has been proc-ified', exception: SpecFailedException do
-      proc.source_location.should == nil
-    end
+    proc.source_location.should == nil
   end
 
   it "works for eval with a given line" do

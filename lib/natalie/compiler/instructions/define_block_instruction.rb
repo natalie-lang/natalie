@@ -3,11 +3,13 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class DefineBlockInstruction < BaseInstruction
-      def initialize(arity:, for_lambda: false, has_return: false, parameters: [])
+      def initialize(arity:, for_lambda: false, has_return: false, parameters: [], file: nil, line: nil)
         @arity = arity
         @for_lambda = for_lambda
         @has_return = has_return
         @parameters = parameters
+        @file = file
+        @line = line
       end
 
       def has_body?
@@ -32,7 +34,7 @@ module Natalie
         point = transform.break_point([:next, env.object_id])
         fn = transform.function(body, scope: env, return_point: point)
         transform.push_call(
-          "call i64 @nat_llvm_block(ptr %env, i64 %self, ptr #{fn}, i32 #{@arity}, i64 #{point}, i32 #{has_return? ? 1 : 0}, i64 #{@redo_point ? transform.break_point(@redo_point) : 0}, ptr #{transform.parameter_table(@parameters)})",
+          "call i64 @nat_llvm_block(ptr %env, i64 %self, ptr #{fn}, i32 #{@arity}, i64 #{point}, i32 #{has_return? ? 1 : 0}, i64 #{@redo_point ? transform.break_point(@redo_point) : 0}, ptr #{transform.parameter_table(@parameters)}, ptr #{transform.string(@file || transform.source_path)}, i64 #{@line || 0})",
         )
       end
 

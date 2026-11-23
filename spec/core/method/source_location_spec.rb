@@ -53,9 +53,7 @@ describe "Method#source_location" do
 
     method = klass.new.method(:g)
     method.source_location[0].should =~ /#{__FILE__}/
-    NATFIXME 'works for methods defined with a Method', exception: SpecFailedException do
-      method.source_location[1].should == line
-    end
+    method.source_location[1].should == line
   end
 
   it "works for methods defined with an UnboundMethod" do
@@ -69,9 +67,7 @@ describe "Method#source_location" do
 
     method = klass.new.method(:g)
     method.source_location[0].should =~ /#{__FILE__}/
-    NATFIXME 'works for methods defined with an UnboundMethod', exception: SpecFailedException do
-      method.source_location[1].should == line
-    end
+    method.source_location[1].should == line
   end
 
   it "works for methods whose visibility has been overridden in a subclass" do
