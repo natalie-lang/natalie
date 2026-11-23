@@ -11,11 +11,6 @@ module Natalie
         obj = transform.pop
         transform.push("#{obj}.public_send(env, \"!\"_s)")
       end
-
-      def execute(vm)
-        obj = vm.pop
-        vm.push !obj
-      end
     end
   end
 end

@@ -23,12 +23,6 @@ module Natalie
           "is_case_equal(env, #{case_value}, #{when_value}, #{@is_splat ? 'true' : 'false'})",
         )
       end
-
-      def execute(vm)
-        when_value = vm.pop
-        case_value = vm.peek
-        vm.push(when_value === case_value)
-      end
     end
   end
 end

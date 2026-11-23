@@ -33,10 +33,6 @@ module Natalie
         transform.exec(code)
         transform.push(result)
       end
-
-      def execute(vm)
-        raise 'todo'
-      end
     end
   end
 end

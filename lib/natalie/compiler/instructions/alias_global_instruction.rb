@@ -19,10 +19,6 @@ module Natalie
           "env->global_alias(#{new_name}.to_symbol(env, Value::Conversion::Strict), #{old_name}.to_symbol(env, Value::Conversion::Strict))",
         )
       end
-
-      def execute(vm)
-        raise 'todo'
-      end
     end
   end
 end

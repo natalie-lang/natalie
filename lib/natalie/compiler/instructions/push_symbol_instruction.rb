@@ -17,22 +17,6 @@ module Natalie
         sym = transform.intern(@name)
         transform.push("Value(#{sym})")
       end
-
-      def execute(vm)
-        vm.push(@name)
-      end
-
-      def serialize(rodata)
-        position = rodata.add(name.to_s)
-
-        [instruction_number, position].pack('Cw')
-      end
-
-      def self.deserialize(io, rodata)
-        position = io.read_ber_integer
-        name = rodata.get(position, convert: :to_sym)
-        new(name)
-      end
     end
   end
 end

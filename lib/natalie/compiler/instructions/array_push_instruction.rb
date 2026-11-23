@@ -12,12 +12,6 @@ module Natalie
         ary = transform.peek
         transform.exec("#{ary}.as_array()->push(#{value})")
       end
-
-      def execute(vm)
-        value = vm.pop
-        ary = vm.peek
-        ary.push(value)
-      end
     end
   end
 end

@@ -71,52 +71,6 @@ module Natalie
         transform.exec(code)
         transform.push(result_name)
       end
-
-      def execute(vm)
-        start_ip = vm.ip
-        vm.skip_block_of_instructions(until_instruction: WhileBodyInstruction)
-        body_ip = vm.ip
-        vm.skip_block_of_instructions(until_instruction: EndInstruction, expected_label: :while)
-        end_ip = vm.ip
-        condition = -> do
-          vm.ip = start_ip
-          vm.run
-          vm.ip = end_ip
-          vm.pop
-        end
-        if @pre
-          while condition.()
-            vm.ip = body_ip
-            result = vm.run
-            vm.ip = end_ip
-            if result == :break_out
-              result = :halt
-              break
-            end
-          end
-        else
-          begin
-            vm.ip = body_ip
-            result = vm.run
-            vm.ip = end_ip
-            if result == :break_out
-              p result
-              result = :halt
-              break
-            end
-          end while condition.()
-        end
-        result unless result == :halt
-      end
-
-      def serialize(_)
-        [instruction_number, pre ? 1 : 0].pack('CC')
-      end
-
-      def self.deserialize(io, _)
-        pre = io.getbool
-        new(pre:)
-      end
     end
   end
 end

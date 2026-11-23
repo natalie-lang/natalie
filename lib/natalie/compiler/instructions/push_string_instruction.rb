@@ -48,30 +48,6 @@ module Natalie
         end
       end
 
-      def execute(vm)
-        string = @string.dup.force_encoding(@encoding)
-        string.freeze if frozen?
-        vm.push(string)
-      end
-
-      def serialize(rodata)
-        position = rodata.add(@string)
-        encoding = rodata.add(@encoding.to_s)
-
-        [instruction_number, position, encoding, frozen? ? 1 : 0].pack('CwwC')
-      end
-
-      def self.deserialize(io, rodata)
-        string_position = io.read_ber_integer
-        encoding_position = io.read_ber_integer
-        frozen = io.getbool
-        string = rodata.get(string_position, convert: :to_s)
-        string = string.dup unless frozen
-        encoding = rodata.get(encoding_position, convert: :to_encoding)
-        status = :frozen if frozen?
-        new(string, bytesize: string.bytesize, encoding: encoding, status:)
-      end
-
       private
 
       def frozen?

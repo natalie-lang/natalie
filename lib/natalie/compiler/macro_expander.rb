@@ -8,9 +8,9 @@ module Natalie
       class LoadPathMacroError < MacroError
       end
 
-      def initialize(load_path:, interpret:, compiler_context:, log_load_error:)
+      def initialize(load_path:, compiler_options:, compiler_context:, log_load_error:)
         @load_path = load_path
-        @interpret = interpret
+        @compiler_options = compiler_options
         @compiler_context = compiler_context
         @inline_cpp_enabled = @compiler_context[:inline_cpp_enabled]
         @log_load_error = log_load_error
@@ -49,12 +49,6 @@ module Natalie
             :evalish_string_to_block
           elsif MACROS.include?(node.name)
             node.name
-          elsif @macros_enabled
-            if node.name == :macro!
-              node.name
-            elsif @macros.key?(node.name)
-              :user_macro
-            end
           end
         else
           get_hidden_macro_name(node)
@@ -75,19 +69,6 @@ module Natalie
 
       def run_macro(macro_name, expr, current_path:, locals:, depth:)
         send("macro_#{macro_name}", expr: expr, current_path: current_path, locals: locals, depth: depth)
-      end
-
-      def macro_user_macro(expr:, **)
-        _, _, name = expr
-        macro = @macros[name]
-        VM.compile_and_run(macro, path: 'macro')
-      end
-
-      def macro_macro!(expr:, **)
-        _, call, _, block = expr
-        _, name = call.last
-        @macros[name] = block
-        nothing(expr)
       end
 
       EXTENSIONS_TO_TRY = ['.rb', '.cpp', ''].freeze
@@ -126,7 +107,6 @@ module Natalie
       def macro_require(expr:, current_path:, **)
         args = expr.arguments&.arguments || []
         name = comptime_string(args.first, path: current_path)
-        return nothing(expr) if name == 'tempfile' && interpret? # FIXME: not sure how to handle this actually
         if name == 'natalie/inline'
           @inline_cpp_enabled[current_path] = true
           return nothing(expr)
@@ -223,17 +203,17 @@ module Natalie
           )
         end
 
-        path_to_add =
-          VM.compile_and_run(
-            ::Prism::StatementsNode.new(nil, nil, location(expr), 0, expr.arguments&.arguments),
-            path: current_path,
-          )
+        path_to_add = compile_load_path(expr.arguments.arguments.first, current_path:)
 
         unless path_to_add.is_a?(String) && File.directory?(path_to_add)
           raise LoadPathMacroError, "#{path_to_add.inspect} is not a directory"
         end
 
-        load_path << path_to_add
+        if expr.name == :unshift
+          load_path.unshift(path_to_add)
+        else
+          load_path << path_to_add
+        end
         Prism.nil_node(location: expr.location)
       end
 
@@ -265,8 +245,34 @@ module Natalie
         drop_error(:SyntaxError, e.message, location: expr.location)
       end
 
-      def interpret?
-        !!@interpret
+      # Evaluate just the path expression in a standalone compiled program.
+      # Keep the original AST and source path so __dir__ and __FILE__ work.
+      # A separate result file keeps any output from the expression out of the path.
+      def compile_load_path(expr, current_path:)
+        ast = Natalie::Parser.new(<<~RUBY, current_path).ast
+          __natalie_load_path__ = nil
+          raise TypeError, 'load path must be a String' unless __natalie_load_path__.is_a?(String)
+          File.binwrite(ARGV.fetch(0), __natalie_load_path__)
+        RUBY
+        body = ast.statements.body
+        assignment = body.first.copy(value: expr)
+        ast = ast.copy(statements: ast.statements.copy(body: [assignment] + body.drop(1)))
+
+        Tempfile.create('natalie-load-path') do |result|
+          Tempfile.create('natalie-load-path-program') do |program|
+            result.close
+            program.close
+            compiler =
+              Compiler.new(ast:, path: current_path, options: { build: @compiler_options[:build], ld_flags: nil })
+            compiler.load_path = load_path
+            compiler.out_path = program.path
+            compiler.compile
+            unless system(program.path, result.path)
+              raise LoadPathMacroError, "Could not evaluate load path at #{current_path}##{expr.location.start_line}"
+            end
+            File.binread(result.path)
+          end
+        end
       end
 
       def find_full_path(path, base:, search:)

@@ -12,18 +12,6 @@ module Natalie
         transform.exec("return #{value}")
         transform.push_nil
       end
-
-      def execute(_vm)
-        :return
-      end
-
-      def serialize(_)
-        [instruction_number].pack('C')
-      end
-
-      def self.deserialize(_, _)
-        new
-      end
     end
   end
 end

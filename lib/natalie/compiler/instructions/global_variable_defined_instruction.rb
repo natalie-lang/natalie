@@ -16,10 +16,6 @@ module Natalie
       def generate(transform)
         transform.exec("if (!env->global_defined(#{transform.intern(@name)})) throw ExceptionObject::create()")
       end
-
-      def execute(vm)
-        vm.push(vm.global_variables.key?(@name))
-      end
     end
   end
 end

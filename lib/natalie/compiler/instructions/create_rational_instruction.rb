@@ -15,20 +15,6 @@ module Natalie
           "Value(RationalObject::create(env, #{numerator}.to_int(env), #{denominator}.to_int(env)))",
         )
       end
-
-      def execute(vm)
-        denominator = vm.pop
-        numerator = vm.pop
-        vm.push(Rational(numerator, denominator))
-      end
-
-      def serialize(_)
-        [instruction_number].pack('C')
-      end
-
-      def self.deserialize(_, _)
-        new
-      end
     end
   end
 end

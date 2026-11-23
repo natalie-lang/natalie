@@ -18,20 +18,6 @@ module Natalie
         transform.exec("  #{ary}.as_array()->push_splat(env, #{ary2})")
         transform.exec('}')
       end
-
-      def execute(vm)
-        ary2 = vm.pop
-        ary = vm.peek
-        ary.concat(Array(ary2))
-      end
-
-      def serialize(_)
-        [instruction_number].pack('C')
-      end
-
-      def self.deserialize(_, _)
-        new
-      end
     end
   end
 end

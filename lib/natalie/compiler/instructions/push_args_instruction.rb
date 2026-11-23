@@ -32,51 +32,6 @@ module Natalie
           transform.exec_and_push(:args, 'args', type: 'auto')
         end
       end
-
-      def execute(vm)
-        count = vm.args.size
-        count -= 1 if vm.kwargs.any? && !@include_keyword_hash
-        if @for_block && @max_count && @max_count > 1 && count == 1
-          if vm.args.first.is_a?(Array)
-            vm.push(vm.args.first.dup)
-          elsif vm.args.first.respond_to?(:to_ary)
-            vm.push(vm.args.first.to_ary)
-          else
-            vm.push(vm.args.first(count))
-          end
-        else
-          vm.push(vm.args.first(count))
-        end
-      end
-
-      def serialize(_)
-        flags = 0
-        [
-          @for_block,
-          @autosplat,
-          @to_array,
-          @include_keyword_hash,
-          !@min_count.nil?,
-          !@max_count.nil?,
-        ].each_with_index { |flag, index| flags |= (1 << index) if flag }
-        bytecode = [instruction_number, flags].pack('CC')
-        bytecode << [@min_count].pack('w') unless @min_count.nil?
-        bytecode << [@max_count].pack('w') unless @max_count.nil?
-        bytecode
-      end
-
-      def self.deserialize(io, _)
-        flags = io.getbyte
-        for_block = flags[0] == 1
-        autosplat = flags[1] == 1
-        to_array = flags[2] == 1
-        include_keyword_hash = flags[3] == 1
-        has_min_count = flags[4] == 1
-        has_max_count = flags[5] == 1
-        min_count = io.read_ber_integer if has_min_count
-        max_count = io.read_ber_integer if has_max_count
-        new(for_block:, min_count:, max_count:, autosplat:, to_array:, include_keyword_hash:)
-      end
     end
   end
 end

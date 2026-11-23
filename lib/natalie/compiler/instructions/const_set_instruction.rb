@@ -25,25 +25,6 @@ module Natalie
           transform.exec("Object::const_set_not_strict(env, #{transform.intern(@name)}, #{value})")
         end
       end
-
-      def execute(vm)
-        namespace = vm.pop
-        namespace = namespace.class unless namespace.is_a? Module
-        value = vm.pop
-        namespace.const_set(@name, value)
-      end
-
-      def serialize(rodata)
-        position = rodata.add(@name.to_s)
-        [instruction_number, position, @strict ? 1 : 0].pack('CwC')
-      end
-
-      def self.deserialize(io, rodata)
-        position = io.read_ber_integer
-        name = rodata.get(position, convert: :to_sym)
-        strict = io.getbool
-        new(name, strict: strict)
-      end
     end
   end
 end

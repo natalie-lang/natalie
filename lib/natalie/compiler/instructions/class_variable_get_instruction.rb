@@ -23,10 +23,6 @@ module Natalie
           transform.exec_and_push(:cvar, "self->cvar_get(env, #{transform.intern(@name)})")
         end
       end
-
-      def execute(vm)
-        vm.push(vm.self.class.class_variable_get(@name))
-      end
     end
   end
 end

@@ -16,16 +16,6 @@ module Natalie
         new_name = transform.pop
         transform.exec("Object::method_alias(env, self, #{new_name}, #{old_name})")
       end
-
-      def execute(vm)
-        old_name = vm.pop
-        new_name = vm.pop
-        if vm.self.respond_to?(:alias_method)
-          vm.self.alias_method(new_name, old_name)
-        else
-          vm.self.class.alias_method(new_name, old_name)
-        end
-      end
     end
   end
 end

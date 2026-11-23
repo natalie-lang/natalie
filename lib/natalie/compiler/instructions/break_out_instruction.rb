@@ -17,10 +17,6 @@ module Natalie
         transform.exec('break')
         transform.push_nil
       end
-
-      def execute(vm)
-        :break_out
-      end
     end
   end
 end

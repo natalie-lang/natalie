@@ -24,19 +24,6 @@ module Natalie
           transform.push("Value(FloatObject::create(#{@float}))")
         end
       end
-
-      def execute(vm)
-        vm.push(@float)
-      end
-
-      def serialize(_)
-        [instruction_number, @float].pack('CG')
-      end
-
-      def self.deserialize(io, _)
-        float = io.read(8).unpack1('G')
-        new(float)
-      end
     end
   end
 end

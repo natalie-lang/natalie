@@ -18,10 +18,6 @@ module Natalie
           "if (!Object::ivar_defined(env, self, #{transform.intern(@name)})) throw ExceptionObject::create()",
         )
       end
-
-      def execute(vm)
-        vm.push(vm.self.instance_variables.include?(@name))
-      end
     end
   end
 end

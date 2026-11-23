@@ -10,10 +10,6 @@ module Natalie
       def generate(transform)
         transform.exec_and_push(:duplicated_value, "#{transform.peek}->duplicate(env)")
       end
-
-      def execute(vm)
-        vm.push(vm.peek.dup)
-      end
     end
   end
 end

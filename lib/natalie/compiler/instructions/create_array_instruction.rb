@@ -22,21 +22,6 @@ module Natalie
           transform.exec_and_push(:array, "Value(ArrayObject::create(#{@count}, #{items_temp}))")
         end
       end
-
-      def execute(vm)
-        ary = []
-        @count.times { ary.unshift(vm.pop) }
-        vm.push(ary)
-      end
-
-      def serialize(_)
-        [instruction_number, @count].pack('Cw')
-      end
-
-      def self.deserialize(io, _)
-        count = io.read_ber_integer
-        new(count:)
-      end
     end
   end
 end

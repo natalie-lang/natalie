@@ -70,20 +70,6 @@ OptionParser
 
     opts.on('--ast', 'Show AST rather than compiling') { |ast| options[:ast] = ast }
 
-    opts.on('--compile-bytecode path', 'Compile to bytecode') do |path|
-      options[:compile] = path
-      options[:bytecode] = path
-      options[:expecting_script] = true
-    end
-
-    opts.on('-b path', '--bytecode path', 'Load from bytecode dump') { |path| options[:bytecode] = path }
-
-    opts.on('--run-bytecode', 'Compile and run bytecode without an intermediate file') do |path|
-      options[:run] = path
-      options[:bytecode] = true
-      options[:expecting_script] = true
-    end
-
     opts.on('-c path', '--compile path', 'Compile to binary but do not execute') do |path|
       options[:compile] = path
       options[:expecting_script] = true
@@ -93,10 +79,6 @@ OptionParser
 
     opts.on('-I path', 'Specify $LOAD_PATH directory (may be used more than once)') do |value|
       value.split(':').each { |p| options[:load_path].unshift(p) }
-    end
-
-    opts.on('-i', '--interpret', 'Interpret Ruby code instead of compiling it (experimental)') do
-      options[:interpret] = true
     end
 
     opts.on('--build-dir', 'Setup build directory and compile files separately') { |path| options[:build_dir] = path }
@@ -151,33 +133,16 @@ class Runner
   def run
     load_code
     if options[:ast]
-      raise 'No AST output for bytecode' if options[:bytecode]
       require 'pp'
       pp parser.ast
-    elsif options[:bytecode] && options[:run]
-      require 'stringio'
-      io = StringIO.new(binary: true)
-      compiler.compile_to_bytecode(io)
-      io.rewind
-      compile_and_run_bytecode(io, options)
-    elsif options[:compile] && options[:bytecode]
-      compiler.out_path = options[:compile]
-      compiler.write_bytecode_to_file
     elsif options[:compile]
       compiler.out_path = options[:compile]
       compiler.compile
     elsif options[:debug] == 'cpp'
-      if options[:interpret]
-        puts compiler.instructions.map(&:to_s)
-      else
-        paths = compiler.write_files_for_debugging
-        print_cpp_sources(paths)
-      end
+      paths = compiler.write_files_for_debugging
+      print_cpp_sources(paths)
     elsif options[:debug] == 'S'
       show_assembly
-    elsif options[:bytecode]
-      io = File.open(@source_path, 'rb')
-      compile_and_run_bytecode(io, options)
     else
       compile_and_run
     end
@@ -211,8 +176,6 @@ class Runner
     else
       if options[:profile] == :compiler
         profile_compiler
-      elsif options[:interpret]
-        Natalie::VM.new(compiler.instructions, path: source_path).run
       else
         compiler.options[:dynamic_linking] = true
         compiler.compile
@@ -223,16 +186,6 @@ class Runner
         end
       end
     end
-  end
-
-  def compile_and_run_bytecode(io, options)
-    loader = Natalie::Compiler::Bytecode::Loader.new(io)
-    if /\Ap\d\z/.match?(options[:debug])
-      puts loader.instructions
-      exit 0
-    end
-    im = Natalie::Compiler::InstructionManager.new(loader.instructions)
-    Natalie::VM.new(im, path: io.respond_to?(:path) ? io.path : options[:path]).run
   end
 
   def run_temp_and_wait(path)
@@ -257,8 +210,6 @@ class Runner
     elsif ARGV.any?
       @source_path = ARGV.shift
       @code = File.read(source_path)
-    elsif options[:bytecode]
-      @source_path = options[:bytecode]
     elsif options[:expecting_script]
       raise 'Expected a Ruby script, but none was given.'
     else

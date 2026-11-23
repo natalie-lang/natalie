@@ -42,26 +42,6 @@ module Natalie
 
         transform.exec_and_push :super, "super(env, #{receiver}, #{args}, #{block})"
       end
-
-      def execute(vm)
-        args =
-          if @forward_args
-            vm.original_args.dup
-          elsif @args_array_on_stack
-            vm.pop
-          else
-            arg_count = vm.pop
-            args = []
-            arg_count.times { args.unshift vm.pop }
-            args
-          end
-        receiver = vm.pop
-        block = @with_block ? vm.pop : vm.block
-        vm.with_self(receiver) do
-          result = receiver.method(vm.method_name).super_method.call(*args, &block)
-          vm.push result
-        end
-      end
     end
   end
 end

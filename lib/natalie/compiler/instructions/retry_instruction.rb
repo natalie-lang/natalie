@@ -17,10 +17,6 @@ module Natalie
         transform.push_nil
       end
 
-      def execute(vm)
-        raise 'todo'
-      end
-
       private
 
       def retry_name

@@ -22,10 +22,6 @@ module Natalie
         end
         transform.push_nil
       end
-
-      def execute(_vm)
-        raise 'todo'
-      end
     end
   end
 end

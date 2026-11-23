@@ -54,38 +54,6 @@ module Natalie
 
         transform.exec_and_push(:result_of_define_class, code)
       end
-
-      def execute(vm)
-        namespace = vm.pop
-        namespace = namespace.class unless namespace.respond_to?(:const_set)
-        superclass = vm.pop
-        if namespace.constants.include?(@name)
-          klass = namespace.const_get(@name)
-        else
-          klass = Class.new(superclass)
-          namespace.const_set(@name, klass)
-        end
-        vm.method_visibility = :public
-        vm.with_self(klass) { vm.run }
-        :no_halt
-      end
-
-      def serialize(rodata)
-        position = rodata.add(@name.to_s)
-        [instruction_number, position, @is_private ? 1 : 0].pack('CwC')
-      end
-
-      def self.deserialize(io, rodata)
-        position = io.read_ber_integer
-        name = rodata.get(position, convert: :to_sym)
-        is_private = io.getbool
-        new(
-          name:,
-          is_private:,
-          file: '', # FIXME
-          line: 0, # FIXME
-        )
-      end
     end
   end
 end

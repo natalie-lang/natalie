@@ -13,13 +13,6 @@ module Natalie
         hash = transform.peek
         transform.exec("#{hash}.as_hash()->put(env, #{key}, #{value})")
       end
-
-      def execute(vm)
-        value = vm.pop
-        key = vm.pop
-        hash = vm.peek
-        hash[key] = value
-      end
     end
   end
 end

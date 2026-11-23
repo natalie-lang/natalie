@@ -10,10 +10,6 @@ module Natalie
       def generate(transform)
         transform.push('bool_object(GlobalEnv::the()->rescued())')
       end
-
-      def execute(vm)
-        vm.push(vm.rescued)
-      end
     end
   end
 end

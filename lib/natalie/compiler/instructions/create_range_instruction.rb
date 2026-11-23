@@ -18,25 +18,6 @@ module Natalie
         ending = transform.pop
         transform.exec_and_push(:range, "Value(RangeObject::create(env, #{beginning}, #{ending}, #{@exclude_end}))")
       end
-
-      def execute(vm)
-        beginning = vm.pop
-        ending = vm.pop
-        if @exclude_end
-          vm.push(beginning...ending)
-        else
-          vm.push(beginning..ending)
-        end
-      end
-
-      def serialize(_)
-        [instruction_number, @exclude_end ? 1 : 0].pack('CC')
-      end
-
-      def self.deserialize(io, _)
-        exclude_end = io.getbool
-        new(exclude_end)
-      end
     end
   end
 end

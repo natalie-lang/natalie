@@ -35,22 +35,6 @@ module Natalie
           transform.exec("Value #{@meta[:name]} = Value::nil()")
         end
       end
-
-      def execute(vm)
-        :noop
-      end
-
-      def serialize(rodata)
-        position = rodata.add(@name.to_s)
-        [instruction_number, position, @local_only ? 1 : 0].pack('CwC')
-      end
-
-      def self.deserialize(io, rodata)
-        position = io.read_ber_integer
-        name = rodata.get(position, convert: :to_sym)
-        local_only = io.getbool
-        new(name, local_only:)
-      end
     end
   end
 end

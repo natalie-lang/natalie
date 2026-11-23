@@ -31,20 +31,6 @@ module Natalie
 
         transform.exec_and_push(:result_of_with_singleton, code)
       end
-
-      def execute(vm)
-        singleton = vm.self.singleton_class
-        vm.with_self(singleton) { vm.run }
-        :no_halt
-      end
-
-      def serialize(_)
-        [instruction_number].pack('C')
-      end
-
-      def self.deserialize(_, _)
-        new
-      end
     end
   end
 end

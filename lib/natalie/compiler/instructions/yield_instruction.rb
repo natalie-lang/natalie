@@ -29,28 +29,6 @@ module Natalie
         end
         transform.exec_and_push :yield, "env->nearest_block()->run(env, #{args_list}, nullptr)"
       end
-
-      def execute(vm)
-        arg_count = vm.pop
-        args = []
-        arg_count.times { args.unshift vm.pop }
-        raise LocalJumpError.new('no block given') unless vm.block
-        result = vm.block.call(*args)
-        vm.push result
-      end
-
-      def serialize(_)
-        flags = 0
-        [args_array_on_stack, has_keyword_hash].each_with_index { |flag, index| flags |= (1 << index) if flag }
-        [instruction_number, flags].pack('CC')
-      end
-
-      def self.deserialize(io, _)
-        flags = io.getbyte
-        args_array_on_stack = flags[0] == 1
-        has_keyword_hash = flags[1] == 1
-        new(args_array_on_stack:, has_keyword_hash:)
-      end
     end
   end
 end

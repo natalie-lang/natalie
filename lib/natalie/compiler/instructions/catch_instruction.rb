@@ -10,10 +10,6 @@ module Natalie
       def generate(_)
         :noop
       end
-
-      def execute(_)
-        :halt
-      end
     end
   end
 end

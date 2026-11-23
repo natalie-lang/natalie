@@ -83,39 +83,6 @@ module Natalie
         transform.push(result)
       end
 
-      def execute(vm)
-        start_ip = vm.ip
-        vm.skip_block_of_instructions(until_instruction: CatchInstruction)
-        catch_ip = vm.ip
-        vm.skip_block_of_instructions(expected_label: :try)
-        end_ip = vm.ip
-        begin
-          vm.ip = start_ip
-          vm.run
-          vm.ip = end_ip
-          vm.rescued = false
-        rescue => e
-          vm.rescued = true
-          exception_was = vm.global_variables[:$!]
-          # For an ensure-only try, control-flow throws (LocalJumpError from
-          # `return`, `break`, etc.) must not clobber $! while the ensure body
-          # runs; only real Ruby exceptions become the new $!.
-          vm.global_variables[:$!] = e unless @has_ensure && e.is_a?(LocalJumpError)
-          vm.ip = catch_ip
-          vm.run
-          vm.ip = end_ip
-          if exception_was
-            vm.global_variables[:$!] = exception_was
-          else
-            vm.global_variables.delete(:$!)
-          end
-          # The catch body for an ensure-only try just runs the ensure clause;
-          # the original exception must propagate up after that. (For a rescue
-          # try, the catch body itself raises if no clause matched.)
-          raise e if @has_ensure
-        end
-      end
-
       @serial = 0
 
       def self.serial

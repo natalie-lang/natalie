@@ -51,28 +51,6 @@ module Natalie
           raise "variable not defined #{@name}"
         end
       end
-
-      def execute(vm)
-        if (var = vm.find_var(@name))
-          vm.push(var.fetch(:value))
-        elsif @default_to_nil
-          vm.push(nil)
-        else
-          raise "unknown variable #{@name}"
-        end
-      end
-
-      def serialize(rodata)
-        position = rodata.add(@name.to_s)
-        [instruction_number, position, @default_to_nil ? 1 : 0].pack('CwC')
-      end
-
-      def self.deserialize(io, rodata)
-        position = io.read_ber_integer
-        name = rodata.get(position, convert: :to_sym)
-        default_to_nil = io.getbool
-        new(name, default_to_nil: default_to_nil)
-      end
     end
   end
 end

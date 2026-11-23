@@ -11,18 +11,6 @@ module Natalie
         value = transform.pop
         transform.exec("Value anon_block = #{value}")
       end
-
-      def execute(vm)
-        vm.scope[:vars][:anon_block] = { value: vm.pop }
-      end
-
-      def serialize(_)
-        [instruction_number].pack('C')
-      end
-
-      def self.deserialize(_, _)
-        new
-      end
     end
   end
 end

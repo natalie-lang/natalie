@@ -32,25 +32,6 @@ module Natalie
           )
         end
       end
-
-      def execute(vm)
-        string = vm.pop
-        options = @options
-        if @encoding
-          string = string.dup.force_encoding(@encoding)
-          options |= Regexp::FIXEDENCODING
-        end
-        vm.push(Regexp.new(string, options))
-      end
-
-      def serialize(_)
-        [instruction_number, @options].pack('Cw')
-      end
-
-      def self.deserialize(io, _)
-        options = io.read_ber_integer
-        new(options:)
-      end
     end
   end
 end

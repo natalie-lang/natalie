@@ -14,11 +14,6 @@ module Natalie
         obj = transform.pop
         transform.exec_and_push(:array, "splat(env, #{obj})")
       end
-
-      def execute(vm)
-        obj = vm.pop
-        vm.push([*obj])
-      end
     end
   end
 end

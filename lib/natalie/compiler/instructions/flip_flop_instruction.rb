@@ -52,50 +52,6 @@ module Natalie
         transform.exec(code)
         transform.push("(#{state} == FlipFlopState::Off ? Value::False() : Value::True())")
       end
-
-      def execute(vm)
-        on_start_ip = vm.ip
-        vm.skip_block_of_instructions(until_instruction: ElseInstruction, expected_label: :flip_flop)
-        off_start_ip = vm.ip
-        vm.skip_block_of_instructions(expected_label: :flip_flop)
-        end_ip = vm.ip
-
-        vm.flip_flop_states[on_start_ip] ||= :off
-
-        state = vm.flip_flop_states[on_start_ip]
-        if state == :on
-          vm.ip = off_start_ip
-          vm.run
-          vm.flip_flop_states[on_start_ip] = :transitioning if vm.pop
-        else
-          vm.ip = on_start_ip
-          vm.run
-          result = vm.pop
-          if state == :transitioning
-            vm.flip_flop_states[on_start_ip] = result ? :on : :off
-          elsif result
-            if @exclude_end
-              vm.flip_flop_states[on_start_ip] = :on
-            else
-              vm.ip = off_start_ip
-              vm.run
-              vm.flip_flop_states[on_start_ip] = vm.pop ? :transitioning : :on
-            end
-          end
-        end
-
-        vm.ip = end_ip
-        vm.push(vm.flip_flop_states[on_start_ip] != :off)
-      end
-
-      def serialize(_)
-        [instruction_number, @exclude_end ? 1 : 0].pack('CC')
-      end
-
-      def self.deserialize(io, _)
-        exclude_end = io.getbool
-        new(exclude_end)
-      end
     end
   end
 end

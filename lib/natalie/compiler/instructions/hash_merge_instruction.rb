@@ -16,12 +16,6 @@ module Natalie
         transform.exec("  #{hash}.as_hash()->merge_in_place(env, Args({ #{hash2} }), nullptr)")
         transform.exec('}')
       end
-
-      def execute(vm)
-        hash2 = vm.pop
-        hash = vm.peek
-        hash.merge!(hash2)
-      end
     end
   end
 end

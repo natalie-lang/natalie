@@ -26,15 +26,6 @@ module Natalie
         transform.exec("env->raise_local_jump_error(#{value}, LocalJumpErrorType::#{type}, #{@break_point})")
         transform.push_nil
       end
-
-      def execute(vm)
-        raise 'no break point set' unless @break_point
-
-        error = LocalJumpError.new('break from proc-closure')
-        error.instance_variable_set(:@break_point, @break_point)
-        error.instance_variable_set(:@exit_value, vm.pop)
-        raise error
-      end
     end
   end
 end

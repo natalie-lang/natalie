@@ -1,10 +1,6 @@
 require 'tempfile'
 require_relative '../../build/generated/numbers'
 require_relative './compiler/backends/cpp_backend'
-require_relative './compiler/bytecode/header'
-require_relative './compiler/bytecode/loader'
-require_relative './compiler/bytecode/ro_data'
-require_relative './compiler/bytecode/sections'
 require_relative './compiler/comptime_values'
 require_relative './compiler/instruction_manager'
 require_relative './compiler/loaded_file'
@@ -42,30 +38,6 @@ module Natalie
       else
         backend.compile_to_binary
       end
-    end
-
-    def write_bytecode_to_file
-      File.open(@out_path, 'wb') { |file| compile_to_bytecode(file) }
-    end
-
-    def compile_to_bytecode(io)
-      rodata = Bytecode::RoData.new
-      bytecode = instructions.each.with_object(''.b) { |instruction, output| output << instruction.serialize(rodata) }
-
-      header = Bytecode::Header.new
-      io.write(header)
-
-      sections = Bytecode::Sections.new(header:, rodata:, bytecode:)
-      io.write(sections)
-
-      unless rodata.empty?
-        io.write([rodata.bytesize].pack('N'))
-        io.write(rodata)
-      end
-
-      # Format of every section: size (32 bits), content
-      io.write([bytecode.bytesize].pack('N'))
-      io.write(bytecode)
     end
 
     def write_files_for_debugging
@@ -119,7 +91,6 @@ module Natalie
     def build_dir = options[:build_dir]
     def build_quietly? = !!options[:build_quietly]
     def compilation_type = options.fetch(:compilation_type, 'executable')
-    def interpret? = !!options[:interpret]
     def dynamic_linking? = !!options[:dynamic_linking]
     def repl? = !!repl
     def frozen_string_literal? = !!options[:frozen_string_literal]
@@ -194,7 +165,7 @@ module Natalie
       @macro_expander ||=
         MacroExpander.new(
           load_path: load_path,
-          interpret: interpret?,
+          compiler_options: options,
           log_load_error: options[:log_load_error],
           compiler_context: @context,
         )

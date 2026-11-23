@@ -29,11 +29,6 @@ module Natalie
         transform.exec_and_push(:result_of_load_file, "#{fn}(env, GlobalEnv::the()->main_obj(), #{@require_once})")
       end
 
-      def execute(vm)
-        vm.with_self(vm.main) { vm.run }
-        :no_halt
-      end
-
       private
 
       def build_fn_name(loaded_file)

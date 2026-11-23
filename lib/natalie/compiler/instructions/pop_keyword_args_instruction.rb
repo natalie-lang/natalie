@@ -13,22 +13,6 @@ module Natalie
           'args.has_keyword_hash() ? args.pop_keyword_hash() : HashObject::create()',
         )
       end
-
-      def execute(vm)
-        if vm.args.empty? || !vm.args.last.is_a?(Hash)
-          vm.push Hash.new
-        else
-          vm.push vm.args.pop
-        end
-      end
-
-      def serialize(_)
-        [instruction_number].pack('C')
-      end
-
-      def self.deserialize(_, _)
-        new
-      end
     end
   end
 end

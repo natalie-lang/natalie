@@ -112,49 +112,6 @@ module Natalie
         end
       end
 
-      def execute(vm)
-        if @forward_args
-          args = vm.args
-          kwargs = args.pop if vm.kwargs.any?
-        elsif @args_array_on_stack
-          args = vm.pop
-          kwargs = @has_keyword_hash ? args.pop : {}
-        else
-          arg_count = vm.pop
-          args = []
-          arg_count.times { args.unshift vm.pop }
-          kwargs = @has_keyword_hash ? args.pop : {}
-        end
-
-        receiver = vm.pop
-
-        if args.empty? && %i[public private protected].include?(@message)
-          vm.method_visibility = @message
-          vm.push(receiver)
-          return
-        end
-
-        # TODO: put these special intercepts somewhere else?
-        if %i[__dir__].include?(@message)
-          vm.push(vm.main.__dir__)
-          return
-        end
-
-        old_last_match = vm.global_variables[:$~]
-        vm.with_self(receiver) do
-          block = vm.pop if @with_block
-          begin
-            result = receiver.send(method, @message, *args, **kwargs, &block)
-          rescue StandardError => e
-            # TODO: use actual call stack locations
-            e.set_backtrace("#{@file}:#{@line}")
-            raise e
-          end
-          vm.push result
-        end
-        vm.global_variables[:$~] = $~ if $~ != old_last_match
-      end
-
       def to_method_defined_instruction
         MethodDefinedInstruction.new(
           message,
@@ -162,40 +119,6 @@ module Natalie
           with_block: @with_block,
           args_array_on_stack: @args_array_on_stack,
           has_keyword_hash: @has_keyword_hash,
-        )
-      end
-
-      def serialize(rodata)
-        position = rodata.add(@message.to_s)
-        flags = 0
-        [
-          receiver_is_self,
-          with_block,
-          args_array_on_stack,
-          has_keyword_hash,
-          forward_args,
-        ].each_with_index { |flag, index| flags |= (1 << index) if flag }
-        [instruction_number, position, flags].pack('CwC')
-      end
-
-      def self.deserialize(io, rodata)
-        position = io.read_ber_integer
-        message = rodata.get(position, convert: :to_sym)
-        flags = io.getbyte
-        receiver_is_self = flags[0] == 1
-        with_block = flags[1] == 1
-        args_array_on_stack = flags[2] == 1
-        has_keyword_hash = flags[3] == 1
-        forward_args = flags[4] == 1
-        new(
-          message,
-          receiver_is_self:,
-          with_block:,
-          args_array_on_stack:,
-          has_keyword_hash:,
-          forward_args:,
-          file: '', # FIXME
-          line: 0, # FIXME
         )
       end
 

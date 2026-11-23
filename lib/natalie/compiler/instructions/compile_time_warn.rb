@@ -31,22 +31,6 @@ module Natalie
         transform.exec '    return true'
         transform.exec '}()'
       end
-
-      def execute(_vm)
-        unless self.class.seen.key?(self)
-          warn(message) if @level.nil? || @level != :verbose || $VERBOSE
-          self.class.seen[self] = self
-        end
-      end
-
-      def self.seen
-        @seen ||= {}
-      end
-
-      def serialize(_rodata)
-        # This needs some restructuring to fit in the bytecode VM. Just skip for now
-        ''.b
-      end
     end
   end
 end

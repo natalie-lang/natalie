@@ -10,18 +10,6 @@ module Natalie
       def generate(transform)
         transform.push('Value(env->last_match())')
       end
-
-      def execute(vm)
-        vm.push(vm.global_variables[:$~])
-      end
-
-      def serialize(_)
-        [instruction_number].pack('C')
-      end
-
-      def self.deserialize(_, _)
-        new
-      end
     end
   end
 end

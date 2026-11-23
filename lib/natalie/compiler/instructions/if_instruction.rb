@@ -51,33 +51,6 @@ module Natalie
         transform.exec(code)
         transform.push(result)
       end
-
-      def execute(vm)
-        start_ip = vm.ip
-        vm.skip_block_of_instructions(until_instruction: ElseInstruction, expected_label: :if)
-        else_ip = vm.ip
-        vm.skip_block_of_instructions(expected_label: :if)
-        end_ip = vm.ip
-        condition = vm.pop
-        if condition
-          vm.ip = start_ip
-          result = vm.run
-          vm.ip = end_ip
-        else
-          vm.ip = else_ip
-          result = vm.run
-          vm.ip = end_ip
-        end
-        result unless result == :halt
-      end
-
-      def serialize(_)
-        [instruction_number].pack('C')
-      end
-
-      def self.deserialize(_, _)
-        new
-      end
     end
   end
 end

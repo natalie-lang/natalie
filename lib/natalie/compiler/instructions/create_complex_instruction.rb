@@ -11,20 +11,6 @@ module Natalie
         imaginary = transform.pop
         transform.exec_and_push(:complex, "Value(ComplexObject::create(Value::integer(0), #{imaginary}))")
       end
-
-      def execute(vm)
-        imaginary = vm.pop
-
-        vm.push(Complex(0, imaginary))
-      end
-
-      def serialize(_)
-        [instruction_number].pack('C')
-      end
-
-      def self.deserialize(_, _)
-        new
-      end
     end
   end
 end

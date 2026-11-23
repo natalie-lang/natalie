@@ -42,25 +42,6 @@ module Natalie
           "Block::create(*env, self, #{fn}, #{@arity}, #{has_return?}, Block::BlockType::Proc, #{params_ref})",
         )
       end
-
-      def execute(vm)
-        vm.push(Natalie::VM::Block.new(vm: vm))
-        vm.skip_block_of_instructions(expected_label: :define_block)
-        nil
-      end
-
-      def serialize(rodata)
-        header = [instruction_number, arity, for_lambda? ? 1 : 0, has_return? ? 1 : 0].pack('CwCC')
-        header + serialize_parameters(rodata, @parameters)
-      end
-
-      def self.deserialize(io, rodata)
-        arity = io.read_ber_integer
-        for_lambda = io.getbool
-        has_return = io.getbool
-        parameters = deserialize_parameters(io, rodata)
-        new(arity:, for_lambda:, has_return:, parameters:)
-      end
     end
   end
 end

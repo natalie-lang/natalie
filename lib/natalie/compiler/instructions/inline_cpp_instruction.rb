@@ -29,10 +29,6 @@ module Natalie
         send(generator, transform, *rest)
       end
 
-      def execute(_vm)
-        raise 'todo'
-      end
-
       private
 
       def generate_bind_method(transform, ruby_name, cpp_name = ruby_name, arity = -1)

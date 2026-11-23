@@ -26,16 +26,6 @@ module Natalie
         transform.exec(code)
         transform.push(value)
       end
-
-      def execute(vm)
-        exception = vm.global_variables[:$!]
-        if exception.instance_variable_get(:@break_point) == @break_point
-          value = exception.instance_variable_get(:@exit_value)
-          vm.push(value)
-        else
-          raise exception
-        end
-      end
     end
   end
 end

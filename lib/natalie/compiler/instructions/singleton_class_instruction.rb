@@ -11,11 +11,6 @@ module Natalie
         obj = transform.pop
         transform.push("Object::singleton_class(env, #{obj})")
       end
-
-      def execute(vm)
-        obj = vm.pop
-        vm.push(obj.singleton_class)
-      end
     end
   end
 end

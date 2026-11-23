@@ -16,12 +16,6 @@ module Natalie
         value = transform.stack.slice!(transform.stack.length - 1 - @index)
         transform.push(value)
       end
-
-      def execute(vm)
-        raise 'ran out of stack' unless vm.stack.length > @index
-        value = vm.stack.slice!(vm.stack.length - 1 - @index)
-        vm.push(value)
-      end
     end
   end
 end

@@ -35,7 +35,7 @@ module Natalie
             libraries.join(' '),
             link_flags,
             "-o #{@compiler.out_path}",
-            ENV['NAT_LD_FLAGS'],
+            @compiler.options.fetch(:ld_flags, ENV['NAT_LD_FLAGS']),
           ].compact.join(' ')
         end
 

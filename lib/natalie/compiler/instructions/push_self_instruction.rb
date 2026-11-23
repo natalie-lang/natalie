@@ -10,18 +10,6 @@ module Natalie
       def generate(transform)
         transform.push('self')
       end
-
-      def execute(vm)
-        vm.push(vm.self)
-      end
-
-      def serialize(_)
-        [instruction_number].pack('C')
-      end
-
-      def self.deserialize(_, _)
-        new
-      end
     end
   end
 end

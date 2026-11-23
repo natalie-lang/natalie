@@ -16,11 +16,6 @@ module Natalie
         raise 'ran out of stack' unless transform.stack.length > @offset
         transform.push(transform.stack[transform.stack.length - 1 - @offset])
       end
-
-      def execute(vm)
-        raise 'ran out of stack' unless vm.stack.length > @offset
-        vm.push(vm.stack[vm.stack.length - 1 - @offset])
-      end
     end
   end
 end

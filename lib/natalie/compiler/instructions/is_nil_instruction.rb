@@ -11,11 +11,6 @@ module Natalie
         obj = transform.pop
         transform.exec_and_push(:is_nil, "bool_object(#{obj}.is_nil())")
       end
-
-      def execute(vm)
-        obj = vm.pop
-        vm.push obj.nil?
-      end
     end
   end
 end

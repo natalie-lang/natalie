@@ -13,10 +13,6 @@ module Natalie
           "Object::undefine_method(env, self, #{transform.pop}.to_symbol(env, Value::Conversion::Strict))",
         )
       end
-
-      def execute(vm)
-        raise 'todo'
-      end
     end
   end
 end

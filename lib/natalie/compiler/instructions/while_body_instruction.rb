@@ -17,18 +17,6 @@ module Natalie
       def generate(transform)
         :noop
       end
-
-      def execute(vm)
-        :halt
-      end
-
-      def serialize(_)
-        [instruction_number].pack('C')
-      end
-
-      def self.deserialize(_, _)
-        new
-      end
     end
   end
 end

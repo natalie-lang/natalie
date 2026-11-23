@@ -12,10 +12,6 @@ module Natalie
         transform.exec('continue')
         transform.push_nil
       end
-
-      def execute(vm)
-        :continue
-      end
     end
   end
 end

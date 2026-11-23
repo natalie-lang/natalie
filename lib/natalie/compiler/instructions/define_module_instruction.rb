@@ -52,20 +52,6 @@ module Natalie
 
         transform.exec_and_push(:result_of_define_module, code)
       end
-
-      def execute(vm)
-        namespace = vm.pop
-        namespace = namespace.class unless namespace.respond_to?(:const_set)
-        if namespace.constants.include?(@name)
-          mod = namespace.const_get(@name)
-        else
-          mod = Module.new
-          namespace.const_set(@name, mod)
-        end
-        vm.method_visibility = :public
-        vm.with_self(mod) { vm.run }
-        :no_halt
-      end
     end
   end
 end

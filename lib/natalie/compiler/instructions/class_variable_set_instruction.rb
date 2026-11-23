@@ -17,10 +17,6 @@ module Natalie
         value = transform.pop
         transform.exec("self->cvar_set(env, #{transform.intern(@name)}, #{value})")
       end
-
-      def execute(vm)
-        vm.self.class.class_variable_set(@name, vm.pop)
-      end
     end
   end
 end

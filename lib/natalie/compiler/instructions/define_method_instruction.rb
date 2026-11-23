@@ -46,59 +46,6 @@ module Natalie
           "Object::define_method(env, #{klass}, #{transform.intern(@name)}, #{fn}, #{@arity}, #{@break_point.to_i}, #{params_ref})",
         )
       end
-
-      def execute(vm)
-        klass = vm.pop
-        klass = klass.class unless klass.respond_to?(:define_method)
-        start_ip = vm.ip
-        vm.skip_block_of_instructions(expected_label: :define_method)
-        name = @name
-        klass.define_method(name) do |*args, **kwargs, &block|
-          scope = { vars: {} }
-          args << kwargs if kwargs.any?
-          vm.push_call(name:, return_ip: vm.ip, args:, kwargs:, scope:, block: block)
-          vm.ip = start_ip
-          vm.with_self(self) do
-            begin
-              vm.run
-            ensure
-              vm.ip = vm.pop_call[:return_ip]
-            end
-            vm.pop # result must be returned to SendInstruction
-          end
-        end
-        case vm.method_visibility
-        when :private
-          klass.send(:private, @name)
-        when :protected
-          klass.send(:protected, @name)
-        end
-      end
-
-      def serialize(rodata)
-        raise NotImplementedError, 'Methods with more than 127 arguments are not supported' if @arity > 127
-
-        position = rodata.add(@name.to_s)
-        header = [instruction_number, position, @arity, @break_point.to_i].pack('CwcC')
-        header + serialize_parameters(rodata, @parameters)
-      end
-
-      def self.deserialize(io, rodata)
-        position = io.read_ber_integer
-        name = rodata.get(position, convert: :to_sym)
-        arity = io.read(1).unpack1('c')
-        break_point = io.read_ber_integer
-        break_point = nil if break_point.zero?
-        parameters = deserialize_parameters(io, rodata)
-        new(
-          name:,
-          arity:,
-          file: '', # FIXME
-          line: 0, # FIXME
-          break_point:,
-          parameters:,
-        )
-      end
     end
   end
 end

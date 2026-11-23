@@ -39,26 +39,6 @@ module Natalie
           transform.exec("Value #{@meta[:name]} = #{value}")
         end
       end
-
-      def execute(vm)
-        if (var = vm.find_var(@name, local_only: @local_only))
-          var[:value] = vm.pop
-        else
-          vm.scope[:vars][@name] = { name: @name, value: vm.pop }
-        end
-      end
-
-      def serialize(rodata)
-        position = rodata.add(@name.to_s)
-        [instruction_number, position, @local_only ? 1 : 0].pack('CwC')
-      end
-
-      def self.deserialize(io, rodata)
-        position = io.read_ber_integer
-        name = rodata.get(position, convert: :to_sym)
-        local_only = io.getbool
-        new(name, local_only: local_only)
-      end
     end
   end
 end
