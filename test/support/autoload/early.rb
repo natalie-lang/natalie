@@ -3,7 +3,7 @@ module Foo
 end
 
 begin
-  return 123
+  return
 ensure
   $autoload_early_ensure = true
 end
