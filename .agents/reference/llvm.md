@@ -38,7 +38,8 @@ the C++ driver only for linking.
 The proof of concept supports literals, arrays, hashes, ranges, conditionals,
 short-circuit expressions, case matching, string interpolation, regexp literals
 and interpolation, while loops, local/global/instance variables,
-constants, classes/modules, methods with positional/default/rest arguments,
+constants, classes/modules and singleton classes, aliases, `super`,
+methods with positional/default/rest arguments,
 blocks and lambdas, captured locals, anonymous argument/block forwarding, splat
 calls and yields, rescue/ensure, block breaks and non-local returns, and statically resolved Ruby
 `require`, `require_relative`, and `load`. Escaping closures share locals through
@@ -81,8 +82,8 @@ shared-object output, and `--build-dir` are also unsupported.
 
 The normal ruby/spec runner is **not yet supported**. For example,
 `bin/natalie --backend=llvm spec/core/string/strip_spec.rb` stops at the runner's
-singleton-class operations, after passing native-extension, splat, regexp,
-and exception-region compilation. Supporting that runner still requires more Ruby
+keyword-hash merging, after passing native-extension, splat, regexp,
+exception-region, and singleton-class compilation. Supporting that runner still requires more Ruby
 instructions, including forwarding and exception handling. The LLVM tests
 exercise supported Ruby programs directly; they do not replace the spec runner
 or silently use the C++ backend.

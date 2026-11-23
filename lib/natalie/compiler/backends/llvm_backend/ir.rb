@@ -54,6 +54,10 @@ module Natalie
           declare i64 @nat_llvm_match_break(ptr, ptr, i64)
           declare i64 @nat_llvm_match_exception(ptr, ptr, i64)
           declare i64 @nat_llvm_rescued()
+          declare i64 @nat_llvm_singleton_class(ptr, i64)
+          declare i64 @nat_llvm_with_singleton(ptr, i64, ptr)
+          declare void @nat_llvm_alias(ptr, i64, i64, i64)
+          declare i64 @nat_llvm_super(ptr, i64, i64, ptr, i64, ptr, i32, i32)
           declare void @nat_llvm_set_zero(ptr, ptr)
           declare void @nat_llvm_warn(ptr, i64, ptr, i32)
         LLVM

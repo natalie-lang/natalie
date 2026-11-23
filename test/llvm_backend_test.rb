@@ -129,7 +129,7 @@ class LlvmBackendTest < Minitest::Test
   def test_spec_runner_reports_remaining_ruby_instruction_boundary
     _, stderr, status = run_cli('--backend=llvm', 'spec/core/string/strip_spec.rb')
     refute status.success?
-    assert_includes stderr, 'LLVM backend does not support singleton_class'
+    assert_includes stderr, 'LLVM backend does not support hash_merge'
   end
 
   def native_extension_program
@@ -318,6 +318,27 @@ class LlvmBackendTest < Minitest::Test
     assert_program(
       'x = "persistent"; begin; x = [x * 10]; raise "bad"; rescue; GC.start; p x[0].size; x = 4; ensure; p x; end; p x',
       "100\n4\n4\n",
+    )
+  end
+
+  def test_singleton_methods_class_bodies_and_aliases
+    assert_program(
+      'class A; def self.name; :a; end; class << self; alias other_name name; end; end; p A.name; p A.other_name; o = Object.new; def o.answer; 42; end; p o.answer',
+      ":a\n:a\n42\n",
+    )
+  end
+
+  def test_super_with_explicit_arguments_and_block
+    assert_program(
+      'class A; def f(x); yield(x+1); end; end; class B < A; def f(x); super(x*2) { |n| n+3 }; end; alias g f; end; p B.new.g(4)',
+      "12\n",
+    )
+  end
+
+  def test_super_forwards_original_arguments_and_current_block
+    assert_program(
+      'class A; def f(a,b); yield(a+b); end; end; class B < A; def f(a,b); super; end; end; p B.new.f(3,4) { |n| n*2 }; class C < A; def f(a,b); super(*[a+1,b+1]); end; end; p C.new.f(3,4) { |n| n*2 }',
+      "14\n18\n",
     )
   end
 

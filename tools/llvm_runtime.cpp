@@ -335,3 +335,27 @@ extern "C" uint64_t nat_llvm_match_exception(Env *env, ExceptionObject *exceptio
 extern "C" uint64_t nat_llvm_rescued() {
     return nat_llvm_pack(bool_object(GlobalEnv::the()->rescued()));
 }
+
+extern "C" uint64_t nat_llvm_singleton_class(Env *env, uint64_t object) {
+    return nat_llvm_pack(Object::singleton_class(env, nat_llvm_unpack(object)));
+}
+
+extern "C" uint64_t nat_llvm_with_singleton(Env *env, uint64_t object, LlvmFn fn) {
+    auto previous = llvm_type_body;
+    Defer restore([&] { llvm_type_body = previous; });
+    llvm_type_body = fn;
+    auto klass = Object::singleton_class(env, nat_llvm_unpack(object));
+    return nat_llvm_pack(klass->eval_body(env, llvm_eval_type));
+}
+
+extern "C" void nat_llvm_alias(Env *env, uint64_t self, uint64_t new_name, uint64_t old_name) {
+    Object::method_alias(env, nat_llvm_unpack(self), nat_llvm_unpack(new_name), nat_llvm_unpack(old_name));
+}
+
+extern "C" uint64_t nat_llvm_super(Env *env, uint64_t receiver, uint64_t array, Args *forwarded, uint64_t block_bits, Block *default_block, int with_block, int keywords) {
+    Args args = forwarded
+        ? Args(forwarded->original_size(), &tl_current_arg_stack->data()[forwarded->original_start_index()], forwarded->has_keyword_hash())
+        : Args(nat_llvm_unpack(array).as_array(), keywords);
+    auto block = with_block ? to_block(env, nat_llvm_unpack(block_bits)) : default_block;
+    return nat_llvm_pack(super(env, nat_llvm_unpack(receiver), std::move(args), block));
+}
