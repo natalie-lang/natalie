@@ -47,6 +47,9 @@ EncodingObject *EncodingObject::compatible(EncodingObject *enc1, bool ascii1, En
 }
 
 EncodingObject *EncodingObject::compatible(const StringObject *s1, const StringObject *s2) {
+    if (s1->encoding() == s2->encoding())
+        return s1->encoding();
+
     if (s2->is_empty())
         return s1->encoding();
 
