@@ -15,7 +15,7 @@ module Natalie
 
       def generate_llvm(transform)
         name = @name.to_s
-        transform.push_call("call i64 @nat_llvm_symbol(ptr #{transform.string(name)}, i64 #{name.bytesize})")
+        transform.push_call("call i64 @nat_llvm_symbol(ptr #{transform.symbol_name(name)}, i64 #{name.bytesize})")
       end
 
       def generate(transform)

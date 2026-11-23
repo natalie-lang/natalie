@@ -167,6 +167,13 @@ module Natalie
           if @function_name == 'nat_llvm_eval' && @native_extensions&.active?
             @body.unshift('  call void @nat_llvm_init_extensions(ptr %env, i64 %self)')
           end
+          if @function_name == 'nat_llvm_eval' || @module_entry
+            symbols =
+              @shared
+                .fetch(:source_symbols, {})
+                .map { |name, pointer| "  call i64 @nat_llvm_symbol(ptr #{pointer}, i64 #{name.bytesize})" }
+            @body.unshift(*symbols)
+          end
           result =
             @function_name == 'nat_llvm_eval' && @shared[:shared_library] && !@shared[:repl] ? 4 : (@stack.last || 4)
           emit "ret i64 #{result}"
@@ -469,6 +476,11 @@ module Natalie
           @allocas << "  #{ptr} = alloca i64, align 8"
           @allocas << "  store volatile i64 4, ptr #{ptr}"
           ptr
+        end
+
+        def symbol_name(name)
+          @shared[:source_symbols] ||= {}
+          @shared[:source_symbols][name] ||= string(name)
         end
 
         def set_location(file, line)
