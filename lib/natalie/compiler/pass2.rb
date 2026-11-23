@@ -24,6 +24,18 @@ module Natalie
 
       private
 
+      def transform_flip_flop(instruction)
+        # Flip-flop state belongs to the enclosing method/top-level activation,
+        # so closures share it, while separate activations remain independent.
+        owner = instruction.env
+        owner = owner.fetch(:outer) while owner[:hoist] || owner[:type] == :define_block
+        @flip_flop_index = (@flip_flop_index || 0) + 1
+        instruction.state_name = "__flip_flop_#{@flip_flop_index}".to_sym
+        instruction.meta = find_or_create_var(owner, instruction.state_name)
+        instruction.meta[:captured] = true
+        instruction.meta[:declared] = true
+      end
+
       def transform_variable_declare(instruction)
         instruction.meta = find_or_create_var(instruction.env, instruction.name)
       end
