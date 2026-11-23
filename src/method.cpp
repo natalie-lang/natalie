@@ -5,6 +5,46 @@ namespace Natalie {
 Value Method::call(Env *env, Value self, Args &&args, Block *block) const {
     assert(m_fn);
 
+    // Bodies compiled as blocks do not enforce positional method arity.
+    // Parameter descriptors retain the full bounds, including optional args.
+    if (has_env() && m_parameters) {
+        size_t min = 0;
+        size_t max = 0;
+        bool rest = false;
+        bool keywords = false;
+        Vector<String> required_keywords;
+        for (auto param = m_parameters; param->kind != ParamKind::End; ++param) {
+            switch (param->kind) {
+            case ParamKind::Req:
+                ++min;
+                ++max;
+                break;
+            case ParamKind::Opt:
+                ++max;
+                break;
+            case ParamKind::Rest:
+                rest = true;
+                break;
+            case ParamKind::KeyReq:
+                required_keywords.push(String(param->name));
+                [[fallthrough]];
+            case ParamKind::Key:
+            case ParamKind::KeyRest:
+            case ParamKind::NoKey:
+                keywords = true;
+                break;
+            default:
+                break;
+            }
+        }
+        if (rest)
+            args.ensure_argc_at_least(env, min, keywords, required_keywords);
+        else if (min == max)
+            args.ensure_argc_is(env, min, keywords, required_keywords);
+        else
+            args.ensure_argc_between(env, min, max, keywords, required_keywords);
+    }
+
     Env *closure_env = nullptr;
     if (has_env())
         closure_env = m_env;

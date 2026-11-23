@@ -14,7 +14,7 @@ public:
     enum class BlockType {
         Proc,
         Lambda,
-        Method
+        MethodProc // Method#to_proc: lambda semantics with a bound receiver
     };
 
     static Block *create(Env &env, Value self, MethodFnPtr fn, int arity, bool has_return = false, BlockType type = BlockType::Proc, const ParamDescriptor *parameters = nullptr) {
@@ -42,8 +42,8 @@ public:
     Env *env() { return m_env; }
 
     void set_type(BlockType type) { m_type = type; }
-    bool is_lambda() const { return m_type == BlockType::Lambda; }
-    bool is_from_method() const { return m_type == BlockType::Method; }
+    bool is_lambda() const { return m_type == BlockType::Lambda || m_type == BlockType::MethodProc; }
+    bool is_from_method() const { return m_type == BlockType::MethodProc; }
 
     Env *calling_env() { return m_calling_env; }
     void set_calling_env(Env *env) { m_calling_env = env; }

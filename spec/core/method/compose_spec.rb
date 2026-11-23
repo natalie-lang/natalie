@@ -86,9 +86,7 @@ describe "Method#>>" do
       double = proc { |x| x + x }
 
       (pow_2 >> double).is_a?(Proc).should == true
-      NATFIXME 'Method#to_proc should return lambda', exception: SpecFailedException do
-        (pow_2 >> double).should.lambda?
-      end
+      (pow_2 >> double).should.lambda?
     end
 
     it "may accept multiple arguments" do

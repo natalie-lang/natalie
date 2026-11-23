@@ -30,10 +30,7 @@ public:
             return StringObject::format("#<Method: {}#{}(*)>", owner()->inspect_module(), name);
     }
 
-    virtual ProcObject *to_proc(Env *env) override {
-        auto block = Block::create(*env, m_object, m_method->lexical_scope(), m_method->fn(), m_method->arity(), false, Block::BlockType::Method);
-        return ProcObject::create(block);
-    }
+    virtual ProcObject *to_proc(Env *env) override;
 
     Value call(Env *env, Args &&args, Block *block) {
         if (m_method_missing_name)

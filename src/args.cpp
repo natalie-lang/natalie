@@ -105,6 +105,8 @@ ArrayObject *Args::to_array(bool include_keyword_hash) const {
 }
 
 ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread, bool include_keyword_hash) const {
+    if (env->method())
+        return to_array(include_keyword_hash);
     auto count = size(include_keyword_hash);
     if (count == 1 && spread) {
         auto ary = to_ary(env, at(0), true)->duplicate(env).as_array();

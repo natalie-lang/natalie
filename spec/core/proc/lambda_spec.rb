@@ -36,10 +36,8 @@ describe "Proc#lambda?" do
 
   it "returns true for a Method converted to a Proc" do
     m = :foo.method(:to_s)
-    NATFIXME 'it returns true for a Method converted to a Proc', exception: SpecFailedException do
-      m.to_proc.lambda?.should be_true
-      ProcSpecs.new_proc_from_amp(&m).lambda?.should be_true
-    end
+    m.to_proc.lambda?.should be_true
+    ProcSpecs.new_proc_from_amp(&m).lambda?.should be_true
   end
 
   # [ruby-core:24127]

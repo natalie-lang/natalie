@@ -2,6 +2,22 @@
 
 namespace Natalie {
 
+ProcObject *MethodObject::to_proc(Env *env) {
+    auto closure = Env::create();
+    closure->set_lexical_scope(m_method->lexical_scope());
+    if (m_method->get_file()) {
+        closure->set_file(m_method->get_file().value().c_str());
+        closure->set_line(m_method->get_line().value_or(0));
+    }
+    closure->var_set("method", 0, true, this);
+    auto fn = [](Env *env, Value self, Args &&args, Block *block) -> Value {
+        auto method = env->outer()->var_get("method", 0).as_method();
+        return method->call(env, std::move(args), block);
+    };
+    auto block = Block::create(*closure, m_object, m_method->lexical_scope(), fn, m_method->arity(), false, Block::BlockType::MethodProc, m_method->parameters());
+    return ProcObject::create(block);
+}
+
 bool MethodObject::eq(Env *env, Value other_value) {
     if (other_value.is_method()) {
         auto other = other_value.as_method();
