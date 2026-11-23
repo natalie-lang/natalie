@@ -29,22 +29,22 @@ class LlvmSpecRunnerTest < Minitest::Test
   end
 
   def test_child_ruby_programs_use_the_selected_backend
-    # Object-printing diagnostics remain unsupported by LLVM. A C++ fallback in ruby_exe
-    # would hide that restriction in the child compiler.
     run_fixture(<<~'RUBY') do |report, _, stderr, status|
       describe 'runner children' do
         it 'selects the child backend' do
-          ruby_exe('puts 42', options: '--print-objects').include?("42\n").should == true
+          source = ruby_exe('puts 42', options: '-d code')
+          puts source
+          source.empty?.should == false
         end
       end
     RUBY
-      assert_equal 1, status.exitstatus, stderr
-      assert_equal({ 'llvm_failed' => 1 }, report.fetch('summary'), JSON.pretty_generate(report))
+      assert status.success?, stderr
+      assert_equal({ 'passed' => 1 }, report.fetch('summary'), JSON.pretty_generate(report))
       runs = report.fetch('results').first.fetch('runs')
-      assert runs.fetch('cpp').fetch('success')
-      refute runs.fetch('llvm').fetch('success')
-      assert_includes runs.fetch('llvm').fetch('stderr'), '--print-objects'
-      assert_equal 0, report.fetch('matching_passed_examples')
+      assert_includes runs.fetch('cpp').fetch('stdout'), '#include "natalie.hpp"'
+      assert_includes runs.fetch('llvm').fetch('stdout'), 'define i64 @nat_llvm_eval'
+      refute_includes runs.fetch('llvm').fetch('stdout'), '#include'
+      assert_equal 1, report.fetch('matching_passed_examples')
     end
   end
 
