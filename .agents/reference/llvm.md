@@ -147,6 +147,19 @@ The full Ruby `tempfile` library is also exercised through `Tempfile.create`.
 
 ## Shared Libraries
 
+Relocatable object output (`--compilation-type=object -c widgets.rb.o`) exports
+the same C++ `Value init_<object_name>(Env *, Value)` initializer ABI as the
+C++ backend. A small C++ shim adapts this ABI to the LLVM entrypoint, even for
+pure Ruby objects. Link the resulting object with the LLVM runtime bridge and
+Natalie's runtime. Each object's LLVM entrypoints, native wrappers, and required
+file symbols have an output-specific namespace, allowing multiple objects to
+link together. Initializers preserve the caller's `$0`, return their final Ruby
+value, and support explicit returns and `ensure`.
+
+`--emit-llvm` still emits IR without invoking a C++ compiler. The lower-level
+`Native#emit_object` API can turn that IR into a raw LLVM object without C++, but
+that raw object does not include the C++ initializer shim.
+
 Compile a library using the same output mode as the C++ backend:
 
 ```sh

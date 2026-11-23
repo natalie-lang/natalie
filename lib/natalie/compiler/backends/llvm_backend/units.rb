@@ -8,7 +8,8 @@ module Natalie
       class Units
         attr_reader :sources
 
-        def initialize(required_files:, native_extensions:)
+        def initialize(required_files:, native_extensions:, namespace: nil)
+          @namespace = namespace ? "#{namespace}_" : ''
           @required_files = required_files
           @native_extensions = native_extensions
           @sources = {}
@@ -19,11 +20,11 @@ module Natalie
         end
 
         def entrypoint(path)
-          "nat_llvm_file_#{self.class.id(path)}"
+          "nat_llvm_file_#{@namespace}#{self.class.id(path)}"
         end
 
         def return_token(path)
-          "nat_llvm_file_return_#{self.class.id(path)}"
+          "nat_llvm_file_return_#{@namespace}#{self.class.id(path)}"
         end
 
         def load(path)

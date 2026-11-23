@@ -4,8 +4,10 @@ require 'tmpdir'
 require 'rbconfig'
 require_relative '../lib/natalie'
 require_relative '../lib/natalie/compiler/backends/llvm_backend'
+require_relative 'support/llvm/object_linker'
 
 class LlvmBackendTest < Minitest::Test
+  include LlvmObjectLinker
   ROOT = File.expand_path('..', __dir__)
   CLI = File.join(ROOT, 'bin/natalie')
   COMPILER_COMMAND = ENV['NAT_LLVM_COMPILER'] ? [ENV.fetch('NAT_LLVM_COMPILER')] : [RbConfig.ruby, CLI]
@@ -209,8 +211,14 @@ class LlvmBackendTest < Minitest::Test
       assert_includes stdout, 'define i64 @nat_llvm_eval'
       refute_includes stdout, '#include'
       path = File.join(dir, 'program.o')
-      _, stderr, status =
-        run_cli('--backend=llvm', '--compilation-type=object', '-c', path, '-e', 'puts 40 + 2', env: env)
+      ir_path = File.join(dir, 'program.ll')
+      File.write(ir_path, stdout)
+      emit = <<~RUBY
+        require #{File.join(ROOT, 'lib/natalie').inspect}
+        require #{File.join(ROOT, 'lib/natalie/compiler/backends/llvm_backend/native').inspect}
+        Natalie::Compiler::LlvmBackend::Native.new.emit_object(File.read(#{ir_path.inspect}), #{path.inspect})
+      RUBY
+      _, stderr, status = Open3.capture3(env, RbConfig.ruby, '-e', emit)
       assert status.success?, stderr
       assert_operator File.size(path), :>, 0
     end
@@ -533,6 +541,67 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
+  def test_multiple_object_initializers_link_with_native_macros_and_shared_ruby_dependencies
+    [false, true].each do |cached|
+      Dir.mktmpdir('natalie-object-initializers') do |dir|
+        dependency = File.join(dir, 'dependency.rb')
+        File.write(dependency, '$object_dependency_loads = ($object_dependency_loads || 0) + 1')
+        first = File.join(dir, 'first.rb')
+        second = File.join(dir, 'second.rb')
+        File.write(first, <<~RUBY)
+          $object_zero = $0
+          require #{dependency.inspect}
+          require 'natalie/inline'
+          class FirstInitializer
+            __define_method__ :answer, [], 'return Value::integer(40);'
+          end
+          $object_reader = -> { FirstInitializer.new.answer }
+        RUBY
+        File.write(second, <<~RUBY)
+          require #{dependency.inspect}
+          require 'natalie/inline'
+          class SecondInitializer
+            __define_method__ :answer, [], 'return Value::integer(2);'
+          end
+          GC.start
+          p [$object_reader.call, SecondInitializer.new.answer, $object_dependency_loads, $0 == $object_zero]
+        RUBY
+        objects =
+          [first, second].map do |source|
+            object = "#{source}.o"
+            options = ['--backend=llvm', '--compilation-type=object', '-c', object]
+            options += ["--build-dir=#{File.join(dir, 'cache')}", '--build-quietly'] if cached
+            _, stderr, status = run_cli(*options, source)
+            assert status.success?, stderr
+            object
+          end
+        executable = File.join(dir, 'program')
+        link_initializer_objects(objects, executable)
+        stdout, stderr, status = Open3.capture3(executable)
+        assert status.success?, stderr
+        assert_equal "[40, 2, 1, true]\n", stdout
+        assert_empty stderr
+      end
+    end
+  end
+
+  def test_object_initializers_preserve_return_values_and_ensure
+    Dir.mktmpdir('natalie-object-return') do |dir|
+      plain = File.join(dir, 'plain.o')
+      returning = File.join(dir, 'returning.o')
+      [[plain, '40 + 2'], [returning, 'begin; return 43; ensure; puts :ensured; end']].each do |object, code|
+        _, stderr, status = run_cli('--backend=llvm', '--compilation-type=object', '-c', object, '-e', code)
+        assert status.success?, stderr
+      end
+      executable = File.join(dir, 'program')
+      link_initializer_objects([plain, returning], executable, print_results: true)
+      stdout, stderr, status = Open3.capture3(executable)
+      assert status.success?, stderr
+      assert_equal "42\nensured\n43\n", stdout
+      assert_empty stderr
+    end
+  end
+
   def test_native_extension_executable_and_combined_object
     Dir.mktmpdir('natalie-llvm-test') do |dir|
       executable = File.join(dir, 'program')
@@ -546,17 +615,7 @@ class LlvmBackendTest < Minitest::Test
         run_cli('--backend=llvm', '--compilation-type=object', '-c', object, '-e', native_extension_program)
       assert status.success?, stderr
       linked = File.join(dir, 'from-object')
-      compiler = Natalie::Compiler.new(ast: nil, path: '-e')
-      compiler.out_path = linked
-      Natalie::Compiler::NativeBuild::Linker.new(
-        in_paths: [object, *Natalie::Compiler::LlvmBackend::RUNTIME_OBJECTS],
-        out_path: linked,
-        compiler: compiler,
-        compiler_context: {
-          compile_ld_flags: [],
-        },
-        keep_inputs: true,
-      ).link
+      link_initializer_objects([object], linked)
       stdout, stderr, status = Open3.capture3(linked)
       assert status.success?, stderr
       assert_equal "1\n17\n42\n7.5\n", stdout

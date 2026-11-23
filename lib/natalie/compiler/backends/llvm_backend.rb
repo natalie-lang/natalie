@@ -29,7 +29,8 @@ module Natalie
             source_path: @compiler_context.fetch(:source_path),
             required_files: @compiler_context.fetch(:required_ruby_files),
             native_extensions: @native_extensions,
-            shared_library: shared_library?,
+            module_initializer: initializer?,
+            entrypoint: entrypoint_name,
             repl: @compiler.repl?,
             units: units,
           ).generate
@@ -50,12 +51,12 @@ module Natalie
           )
         end
         source = ir
-        return Native.new.emit_object(source, path) unless @native_extensions.active?
+        return Native.new.emit_object(source, path) unless @native_extensions.active? || initializer?
         Dir.mktmpdir do |dir|
           ruby_object = File.join(dir, 'ruby.o')
           native_object = File.join(dir, 'native.o')
           Native.new.emit_object(source, ruby_object)
-          @native_extensions.compile(native_object)
+          @native_extensions.compile(native_object, library_initializer: initializer_name)
           @native_extensions.merge_objects([ruby_object, native_object], path)
         end
       end
@@ -88,7 +89,7 @@ module Natalie
           end
           if @native_extensions.active? || library?
             native_object = File.join(dir, 'native.o')
-            initializer = NativeBuild.object_name(@compiler.out_path) if shared_library?
+            initializer = initializer_name
             @native_extensions.compile(native_object, library_initializer: initializer)
             objects << native_object
           end
@@ -108,7 +109,7 @@ module Natalie
           end
         if @native_extensions.active? || library?
           out = @native_extensions.out_file
-          out.library_initializer = NativeBuild.object_name(@compiler.out_path) if shared_library?
+          out.library_initializer = initializer_name
           paths << out.write_source_to_tempfile
         end
         paths
@@ -128,7 +129,7 @@ module Natalie
           end
         if @native_extensions.active? || library?
           out = @native_extensions.out_file
-          out.library_initializer = NativeBuild.object_name(@compiler.out_path) if shared_library?
+          out.library_initializer = initializer_name
           paths << out.write_assembly_file
         end
         paths
@@ -142,6 +143,22 @@ module Natalie
       def print_objects!
         @compiler_context.fetch(:compile_cxx_flags) << '-DNAT_PRINT_OBJECTS'
         @custom_entrypoint = true
+      end
+
+      def initializer?
+        %w[object shared-object].include?(@compiler.compilation_type)
+      end
+
+      def initializer_name
+        NativeBuild.object_name(@compiler.out_path || @compiler_context.fetch(:source_path)) if initializer?
+      end
+
+      def object_namespace
+        Units.id(@compiler.out_path || @compiler_context.fetch(:source_path)) if @compiler.compilation_type == 'object'
+      end
+
+      def entrypoint_name
+        object_namespace ? "nat_llvm_eval_#{object_namespace}" : 'nat_llvm_eval'
       end
 
       private
@@ -169,6 +186,7 @@ module Natalie
           Units.new(
             required_files: @compiler_context.fetch(:required_ruby_files),
             native_extensions: @native_extensions,
+            namespace: object_namespace,
           )
       end
 
@@ -184,7 +202,7 @@ module Natalie
         units.sources.each { |path, source| objects << build_cache.llvm_object(Units.id(path), source, native) }
         if @native_extensions.active? || library?
           out = @native_extensions.out_file
-          out.library_initializer = NativeBuild.object_name(@compiler.out_path) if shared_library?
+          out.library_initializer = initializer_name
           objects << build_cache.native_object(out)
         end
         objects
@@ -202,12 +220,8 @@ module Natalie
         puts 'done' if @compiler.build_dir && !@compiler.build_quietly?
       end
 
-      def shared_library?
-        @compiler.compilation_type == 'shared-object'
-      end
-
       def library?
-        shared_library? || @compiler.repl?
+        initializer? || @compiler.repl?
       end
     end
   end

@@ -103,7 +103,8 @@ module Natalie
           scope: nil,
           required_files: {},
           native_extensions: nil,
-          shared_library: false,
+          module_initializer: false,
+          entrypoint: 'nat_llvm_eval',
           repl: false,
           units: nil,
           module_entry: false,
@@ -120,7 +121,8 @@ module Natalie
                 globals: [],
                 functions: [],
                 serial: 0,
-                shared_library: shared_library,
+                module_initializer: module_initializer,
+                entrypoint: entrypoint,
                 repl: repl,
                 units: units,
                 native_wrappers: [],
@@ -152,7 +154,7 @@ module Natalie
                 value("load volatile i64, ptr #{ptr}")
               end
           end
-          if @function_name == 'nat_llvm_eval' && !@shared[:shared_library] && !@shared[:repl]
+          if @function_name == 'nat_llvm_eval' && !@shared[:module_initializer] && !@shared[:repl]
             emit "call void @nat_llvm_set_zero(ptr %env, ptr #{string(@source_path)})"
           end
 
@@ -165,7 +167,7 @@ module Natalie
             )
           end
           if @function_name == 'nat_llvm_eval' && @native_extensions&.active?
-            @body.unshift('  call void @nat_llvm_init_extensions(ptr %env, i64 %self)')
+            @body.unshift("  call void @#{@native_extensions.initializer_name}(ptr %env, i64 %self)")
           end
           if @function_name == 'nat_llvm_eval' || @module_entry
             symbols =
@@ -196,7 +198,7 @@ module Natalie
           LLVM
           return output if @module_entry
           output + <<~LLVM
-            define #{@shared[:shared_library] || @shared[:repl] ? 'hidden ' : ''}i64 @nat_llvm_eval(ptr %env, i64 %self) uwtable {
+            define #{@shared[:module_initializer] || @shared[:repl] ? 'hidden ' : ''}i64 @#{@shared[:entrypoint]}(ptr %env, i64 %self) uwtable {
             entry:
               %result = call i64 @nat_llvm_catch_return(ptr %env, i64 %self, ptr @nat_llvm_eval_body, i64 #{@return_point})
               ret i64 %result

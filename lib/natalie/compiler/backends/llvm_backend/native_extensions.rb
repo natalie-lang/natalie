@@ -9,14 +9,14 @@ module Natalie
       # stay in LLVM; the generated wrappers pass tagged words across the ABI.
       class NativeExtensions
         class OutFile < NativeBuild::SourceFile
-          attr_accessor :library_initializer
+          attr_accessor :library_initializer, :llvm_entrypoint, :extension_initializer
 
           def merged_source
             <<~CPP
               #include "natalie/llvm_runtime.hpp"
               using namespace Natalie;
               #{declarations}
-              extern "C" __attribute__((visibility("hidden"))) void nat_llvm_init_extensions(Env *env, uint64_t self_bits) {
+              extern "C" __attribute__((visibility("hidden"))) void #{extension_initializer}(Env *env, uint64_t self_bits) {
                   auto self = nat_llvm_unpack(self_bits);
                   #{init_matter}
                   #{@body}
@@ -30,9 +30,9 @@ module Natalie
             return '' unless library_initializer
 
             <<~CPP
-              extern "C" __attribute__((visibility("hidden"))) uint64_t nat_llvm_eval(Env *, uint64_t);
+              extern "C" __attribute__((visibility("hidden"))) uint64_t #{llvm_entrypoint}(Env *, uint64_t);
               Value init_#{library_initializer}(Env *env, Value self) {
-                  return nat_llvm_unpack(nat_llvm_eval(env, nat_llvm_pack(self)));
+                  return nat_llvm_unpack(#{llvm_entrypoint}(env, nat_llvm_pack(self)));
               }
             CPP
           end
@@ -41,13 +41,13 @@ module Natalie
             return '' unless @compiler.repl?
 
             <<~CPP
-              extern "C" __attribute__((visibility("hidden"))) uint64_t nat_llvm_eval(Env *, uint64_t);
+              extern "C" __attribute__((visibility("hidden"))) uint64_t #{llvm_entrypoint}(Env *, uint64_t);
               extern "C" int EVAL(Env *env, Value *result_memory) {
                   auto self = GlobalEnv::the()->main_obj();
                   volatile bool run_exit_handlers = true;
                   Value result = Value::nil();
                   try {
-                      result = nat_llvm_unpack(nat_llvm_eval(env, nat_llvm_pack(self)));
+                      result = nat_llvm_unpack(#{llvm_entrypoint}(env, nat_llvm_pack(self)));
                       run_exit_handlers = false;
                       run_at_exit_handlers(env);
                   } catch (ExceptionObject *exception) {
@@ -64,12 +64,17 @@ module Natalie
         def initialize(compiler:, backend:)
           @compiler = compiler
           @backend = backend
+          @namespace = backend.object_namespace
           prefix = 'llvm_ext_'
-          prefix += "#{NativeBuild.object_name(compiler.out_path)}_" if compiler.compilation_type == 'shared-object'
+          prefix += "#{backend.initializer_name}_" if backend.initializer?
           prefix += "repl#{compiler.repl_num}_" if compiler.repl?
           @data = NativeBuild::TransformData.new(var_prefix: prefix)
           @wrappers = []
           @file_wrapper_counts = Hash.new(0)
+        end
+
+        def initializer_name
+          @namespace ? "nat_llvm_init_extensions_#{@namespace}" : 'nat_llvm_init_extensions'
         end
 
         def active?
@@ -77,7 +82,7 @@ module Natalie
         end
 
         def declarations(wrappers: nil, include_init: true)
-          declarations = include_init && active? ? ['declare void @nat_llvm_init_extensions(ptr, i64)'] : []
+          declarations = include_init && active? ? ["declare void @#{initializer_name}(ptr, i64)"] : []
           declarations.concat((wrappers || @wrappers).map { |name| "declare i64 @#{name}(ptr, i64, ptr)" }).join("\n")
         end
 
@@ -85,9 +90,9 @@ module Natalie
           if source_path
             index = @file_wrapper_counts[source_path]
             @file_wrapper_counts[source_path] += 1
-            name = "nat_llvm_ext_#{Units.id(source_path)}_#{index}"
+            name = "nat_llvm_ext_#{@namespace ? "#{@namespace}_" : ''}#{Units.id(source_path)}_#{index}"
           else
-            name = "nat_llvm_ext_#{@wrappers.size}"
+            name = "nat_llvm_ext_#{@namespace ? "#{@namespace}_" : ''}#{@wrappers.size}"
           end
           stack = Array.new(argument_count) { |i| "nat_llvm_unpack(argv[#{i}])" }
           transform =
@@ -113,14 +118,18 @@ module Natalie
 
         def out_file
           init = @backend.compiler_context.fetch(:required_cpp_files).values.map { |name| "init_#{name}(env, self);" }
-          OutFile.new(
-            type: :obj,
-            body: init.join("\n"),
-            transform_data: @data,
-            ruby_path: @backend.compiler_context.fetch(:source_path),
-            compiler: @compiler,
-            backend: @backend,
-          )
+          out =
+            OutFile.new(
+              type: :obj,
+              body: init.join("\n"),
+              transform_data: @data,
+              ruby_path: @backend.compiler_context.fetch(:source_path),
+              compiler: @compiler,
+              backend: @backend,
+            )
+          out.llvm_entrypoint = @backend.entrypoint_name
+          out.extension_initializer = initializer_name
+          out
         end
 
         def compile(path, library_initializer: nil)

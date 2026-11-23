@@ -5,8 +5,10 @@ require 'fileutils'
 require 'rbconfig'
 require_relative '../lib/natalie'
 require_relative '../lib/natalie/compiler/backends/llvm_backend'
+require_relative 'support/llvm/object_linker'
 
 class LlvmBuildDirTest < Minitest::Test
+  include LlvmObjectLinker
   ROOT = File.expand_path('..', __dir__)
   CLI = File.join(ROOT, 'bin/natalie')
   COMPILER_COMMAND = ENV['NAT_LLVM_COMPILER'] ? [ENV.fetch('NAT_LLVM_COMPILER')] : [RbConfig.ruby, CLI]
@@ -259,17 +261,7 @@ class LlvmBuildDirTest < Minitest::Test
       RUBY
       2.times { assert_equal '', run_ok(cache, '--compilation-type=object', '-c', object, '-e', code) }
       executable = File.join(dir, 'program')
-      compiler = Natalie::Compiler.new(ast: nil, path: '-e')
-      compiler.out_path = executable
-      Natalie::Compiler::NativeBuild::Linker.new(
-        in_paths: [object, *Natalie::Compiler::LlvmBackend::RUNTIME_OBJECTS],
-        out_path: executable,
-        compiler: compiler,
-        compiler_context: {
-          compile_ld_flags: [],
-        },
-        keep_inputs: true,
-      ).link
+      link_initializer_objects([object], executable)
       stdout, stderr, status = Open3.capture3(executable)
       assert status.success?, stderr
       assert_equal "42\n1\n", stdout
