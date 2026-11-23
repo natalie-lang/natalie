@@ -33,11 +33,11 @@ const TM::Hashmap<SymbolObject *, Constant *> &IClassObject::constants_table() c
     return m_wrapped_module->constants_table();
 }
 
-TM::Hashmap<SymbolObject *, Optional<Value>> &IClassObject::class_vars_table() {
+TM::OrderedHashmap<SymbolObject *, Optional<Value>> &IClassObject::class_vars_table() {
     return m_wrapped_module->class_vars_table();
 }
 
-const TM::Hashmap<SymbolObject *, Optional<Value>> &IClassObject::class_vars_table() const {
+const TM::OrderedHashmap<SymbolObject *, Optional<Value>> &IClassObject::class_vars_table() const {
     return m_wrapped_module->class_vars_table();
 }
 

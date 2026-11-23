@@ -14,6 +14,7 @@
 #include "natalie/method_visibility.hpp"
 #include "natalie/object.hpp"
 #include "tm/optional.hpp"
+#include "tm/ordered_hashmap.hpp"
 
 namespace Natalie {
 
@@ -77,8 +78,8 @@ public:
     virtual const TM::Hashmap<SymbolObject *, MethodInfo> &methods_table() const { return m_methods; }
     virtual TM::Hashmap<SymbolObject *, Constant *> &constants_table() { return m_constants; }
     virtual const TM::Hashmap<SymbolObject *, Constant *> &constants_table() const { return m_constants; }
-    virtual TM::Hashmap<SymbolObject *, Optional<Value>> &class_vars_table() { return m_class_vars; }
-    virtual const TM::Hashmap<SymbolObject *, Optional<Value>> &class_vars_table() const { return m_class_vars; }
+    virtual TM::OrderedHashmap<SymbolObject *, Optional<Value>> &class_vars_table() { return m_class_vars; }
+    virtual const TM::OrderedHashmap<SymbolObject *, Optional<Value>> &class_vars_table() const { return m_class_vars; }
 
     // For iclasses, returns the wrapped module; otherwise returns `this`. Use this
     // when reporting the owner of a method or constant to user code so that iclasses
@@ -268,7 +269,7 @@ protected:
     TM::Hashmap<SymbolObject *, MethodInfo> m_method_cache {};
     int m_method_cache_version { 0 };
     TM::Hashmap<SymbolObject *, MethodInfo> m_methods {};
-    TM::Hashmap<SymbolObject *, Optional<Value>> m_class_vars {};
+    TM::OrderedHashmap<SymbolObject *, Optional<Value>> m_class_vars {};
     // Every iclass currently wrapping this module in some other class's super chain.
     // Used to propagate late includes/prepends back into already-including classes.
     // Strong-references each iclass and (transitively) its includer class — a class

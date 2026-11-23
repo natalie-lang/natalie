@@ -35,8 +35,8 @@ public:
     const TM::Hashmap<SymbolObject *, MethodInfo> &methods_table() const override;
     TM::Hashmap<SymbolObject *, Constant *> &constants_table() override;
     const TM::Hashmap<SymbolObject *, Constant *> &constants_table() const override;
-    TM::Hashmap<SymbolObject *, Optional<Value>> &class_vars_table() override;
-    const TM::Hashmap<SymbolObject *, Optional<Value>> &class_vars_table() const override;
+    TM::OrderedHashmap<SymbolObject *, Optional<Value>> &class_vars_table() override;
+    const TM::OrderedHashmap<SymbolObject *, Optional<Value>> &class_vars_table() const override;
 
     void visit_children(Visitor &) const override;
 
