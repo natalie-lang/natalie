@@ -107,7 +107,13 @@ module Natalie
           [
             cc,
             build_flags,
-            (@compiler.repl? ? LIBNAT_AND_REPL_COMPILE_FLAGS.join(' ') : ''),
+            (
+              if @compiler.repl? || @compiler.compilation_type == 'shared-object'
+                LIBNAT_AND_REPL_COMPILE_FLAGS.join(' ')
+              else
+                ''
+              end
+            ),
             INC_PATHS.map { |path| "-I #{path}" }.join(' '),
             *package_compile_flags,
             '-c',
