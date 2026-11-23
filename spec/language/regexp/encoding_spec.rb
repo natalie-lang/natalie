@@ -57,9 +57,7 @@ describe "Regexps with encoding modifiers" do
   end
 
   it 'uses BINARY as /n encoding if not all chars are 7-bit' do
-    NATFIXME 'it uses BINARY as /n encoding if not all chars are 7-bit', exception: SpecFailedException do
-      /\xFF/n.encoding.should == Encoding::BINARY
-    end
+    /\xFF/n.encoding.should == Encoding::BINARY
   end
 
   it 'preserves US-ASCII as /n encoding through interpolation if all chars are 7-bit' do

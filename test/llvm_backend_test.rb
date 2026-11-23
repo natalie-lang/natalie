@@ -460,12 +460,14 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_binary_regexp_literals
-    assert_program(<<~'RUBY', "ASCII-8BIT\ntrue\nnil\n")
+    assert_program(<<~'RUBY', "ASCII-8BIT\ntrue\nnil\nUTF-8\n[195, 169]\n")
       # encoding: binary
       pattern = /\xAA/
       puts pattern.encoding.name
       p pattern.match?("\xAA")
       p pattern.match("\nA")
+      puts /./u.encoding.name
+      p /./u.match("\u{e9}")[0].bytes
     RUBY
   end
 

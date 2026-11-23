@@ -15,9 +15,7 @@ describe "Regexp#encoding" do
   end
 
   it "returns BINARY if the 'n' modifier is supplied and non-US-ASCII characters are present" do
-    NATFIXME 'Encoding', exception: SpecFailedException do
-      /\xc2\xa1/n.encoding.should == Encoding::BINARY
-    end
+    /\xc2\xa1/n.encoding.should == Encoding::BINARY
   end
 
   it "defaults to UTF-8 if \\u escapes appear" do

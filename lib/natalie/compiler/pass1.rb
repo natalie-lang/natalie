@@ -2458,7 +2458,9 @@ module Natalie
       end
 
       def transform_regular_expression_node(node, used:)
-        regexp = Regexp.new(node.unescaped, node.options)
+        source = node.unescaped
+        source = source.dup.force_encoding(Encoding::UTF_8) if node.utf_8?
+        regexp = Regexp.new(source, node.options)
         return [] unless used
         PushRegexpInstruction.new(regexp, **encoding_for_regexp_node(node))
       rescue RegexpError => e
