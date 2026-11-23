@@ -1,4 +1,5 @@
 require_relative '../../native_build/source_file'
+require_relative '../../native_build/native_call'
 require 'shellwords'
 
 module Natalie
@@ -90,13 +91,13 @@ module Natalie
           end
           stack = Array.new(argument_count) { |i| "nat_llvm_unpack(argv[#{i}])" }
           transform =
-            CppBackend::Transform.new(
-              [instruction],
+            NativeBuild::NativeCall.new(
+              instruction,
               compiler_context: @backend.compiler_context,
               transform_data: @data,
               stack: stack,
             )
-          body = transform.transform('return')
+          body = transform.generate
           @data.top[name] = <<~CPP
             extern "C" __attribute__((visibility("hidden"))) uint64_t #{name}(Env *env, uint64_t self_bits, const uint64_t *argv) {
                 auto self = nat_llvm_unpack(self_bits);

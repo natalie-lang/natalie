@@ -21,6 +21,34 @@ class LlvmBackendTest < Minitest::Test
     assert_empty stderr
   end
 
+  def test_native_helpers_compile_without_loading_the_cpp_backend
+    Dir.mktmpdir('natalie-independent-llvm') do |dir|
+      output = File.join(dir, 'program')
+      code = <<~RUBY
+        $LOAD_PATH.unshift(File.expand_path(#{dir.inspect}))
+        require 'natalie/inline'
+        class IndependentNative
+          __define_method__ :answer, [], 'return Value::integer(42);'
+        end
+        puts IndependentNative.new.answer
+      RUBY
+      driver = <<~RUBY
+        require #{File.join(ROOT, 'lib/natalie').inspect}
+        parser = Natalie::Parser.new(#{code.inspect}, '-e')
+        compiler = Natalie::Compiler.new(ast: parser.ast, path: '-e', options: { backend: 'llvm' })
+        compiler.out_path = #{output.inspect}
+        compiler.compile
+        abort 'Loaded the C++ Ruby backend' if defined?(Natalie::Compiler::CppBackend)
+      RUBY
+      stdout, stderr, status = Open3.capture3(RbConfig.ruby, '-e', driver, chdir: ROOT)
+      assert status.success?, stdout + stderr
+      stdout, stderr, status = Open3.capture3(output)
+      assert status.success?, stderr
+      assert_equal "42\n", stdout
+      assert_empty stderr
+    end
+  end
+
   def test_literals_and_dynamic_dispatch
     assert_program(
       'p [nil, false, true, :hello, -42, 1.5]; p 123456789012345678901234567890 + 1; puts "héllo\u0000world".bytesize',

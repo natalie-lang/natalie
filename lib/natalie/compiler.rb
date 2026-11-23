@@ -1,6 +1,5 @@
 require 'tempfile'
 require_relative '../../build/generated/numbers'
-require_relative './compiler/backends/cpp_backend'
 require_relative './compiler/comptime_values'
 require_relative './compiler/instruction_manager'
 require_relative './compiler/loaded_file'
@@ -84,6 +83,7 @@ module Natalie
           klass =
             case options.fetch(:backend, 'cpp')
             when 'cpp'
+              Kernel.require_relative './compiler/backends/cpp_backend' unless RUBY_ENGINE == 'natalie'
               CppBackend
             when 'llvm'
               # An explicit receiver keeps Natalie's require macro from bundling
@@ -188,5 +188,8 @@ module Natalie
   end
 end
 
-# Bundle the backend in the self-hosted compiler. MRI loads it on demand above.
-require_relative 'compiler/backends/llvm_backend' if RUBY_ENGINE == 'natalie'
+# Bundle selectable backends in the self-hosted compiler. MRI loads them on demand.
+if RUBY_ENGINE == 'natalie'
+  require_relative 'compiler/backends/cpp_backend'
+  require_relative 'compiler/backends/llvm_backend'
+end

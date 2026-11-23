@@ -121,8 +121,10 @@ Natalie's existing GC-managed environments.
 
 `require 'extension.cpp'` uses Natalie's existing extension convention:
 `init_extension(Env *, Value)` plus inline macros such as `__bind_method__`.
-The sidecar object reuses `CppBackend::Transform` for these macros and
-`NativeBuild::SourceFile` for compilation flags and diagnostics. Initialization runs
+The sidecar object uses `NativeBuild::NativeCall` for these macros and
+`NativeBuild::SourceFile` for compilation flags and diagnostics. The native
+renderer accepts only explicit native macros; it does not load or invoke the
+C++ Ruby backend. Initialization runs
 before the LLVM entrypoint's Ruby instructions, matching the C++ backend.
 
 LLVM calls generated `extern "C"` wrappers using tagged machine words and

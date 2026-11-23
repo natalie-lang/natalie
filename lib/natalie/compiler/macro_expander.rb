@@ -263,7 +263,15 @@ module Natalie
             result.close
             program.close
             compiler =
-              Compiler.new(ast:, path: current_path, options: { build: @compiler_options[:build], ld_flags: nil })
+              Compiler.new(
+                ast:,
+                path: current_path,
+                options: {
+                  backend: @compiler_options.fetch(:backend, 'cpp'),
+                  build: @compiler_options[:build],
+                  ld_flags: nil,
+                },
+              )
             compiler.load_path = load_path
             compiler.out_path = program.path
             compiler.compile
