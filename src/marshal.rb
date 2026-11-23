@@ -457,8 +457,7 @@ module Marshal
         write_user_marshaled_object_with_allocate(value, limit)
       elsif has_dump
         write_user_marshaled_object_without_allocate(value, limit)
-      elsif Mutex === value || Proc === value || Method === value ||
-            (defined?(StringIO) && StringIO === value)
+      elsif Mutex === value || Proc === value || Method === value || (defined?(StringIO) && StringIO === value)
         raise TypeError, "no _dump_data is defined for class #{klass}"
       elsif MatchData === value || IO === value
         raise TypeError, "can't dump #{klass}"
@@ -880,8 +879,7 @@ module Marshal
 
     def find_constant(name)
       begin
-        # NATFIXME: Should be supported directly in const_get
-        name.to_s.split('::').reduce(Object) { |memo, part| memo.const_get(part) }
+        Object.const_get(name.to_s)
       rescue NameError
         raise ArgumentError, "undefined class/module #{name}"
       end

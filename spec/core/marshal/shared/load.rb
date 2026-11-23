@@ -1292,6 +1292,16 @@ describe :marshal_load, shared: true do
       message = "undefined class/module NamespaceTest::SameName"
       -> { Marshal.send(@method, @data) }.should raise_error(ArgumentError, message)
     end
+
+    it "raises an ArgumentError when the containing namespace is a Class" do
+      namespace = ClassNamespaceTest
+      namespace.const_set(:SameName, Class.new)
+      data = Marshal.dump(namespace.const_get(:SameName, false).new)
+      namespace.send(:remove_const, :SameName)
+
+      message = "undefined class/module ClassNamespaceTest::SameName"
+      -> { Marshal.send(@method, data) }.should raise_error(ArgumentError, message)
+    end
   end
 
   it "raises an ArgumentError with full constant name when the dumped constant is missing" do

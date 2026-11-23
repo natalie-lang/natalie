@@ -563,5 +563,8 @@ end
 class SameName
 end
 
+class ClassNamespaceTest
+end
+
 module NamespaceTest
 end
