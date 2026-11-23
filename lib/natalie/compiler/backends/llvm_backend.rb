@@ -61,6 +61,9 @@ module Natalie
       end
 
       def compile_to_binary
+        if @compiler.options[:keep_source] && !@compiler.build_dir
+          write_files_for_debugging.each { |path| puts "source file path is: #{path}" }
+        end
         runtime_objects = library? || @custom_entrypoint ? [RUNTIME_BRIDGE] : RUNTIME_OBJECTS
         missing = runtime_objects.reject { |path| File.file?(path) }
         raise CompileError, 'Build the LLVM runtime bridge first: bundle exec rake llvm_runtime' unless missing.empty?
@@ -95,9 +98,10 @@ module Natalie
 
       def write_files_for_debugging
         source = ir
+        sources = [[@compiler_context.fetch(:source_path), source], *(@units&.sources || {}).to_a]
         paths =
-          [source, *(@units&.sources&.values || [])].map do |unit|
-            file = Tempfile.create(%w[natalie .ll])
+          sources.map do |source_path, unit|
+            file = Tempfile.create([File.basename(source_path), '.ll'])
             file.write(unit)
             file.close
             file.path

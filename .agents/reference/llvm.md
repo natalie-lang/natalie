@@ -53,6 +53,10 @@ through `bin/nat` (the direct malformed-IR unit tests still run under MRI).
 A compiled fixture also checks parser, verifier, and object-emission errors and
 recovery through Natalie's FFI adapter.
 
+Use `-d code` to print generated LLVM IR and any native sidecar sources.
+`--keep-source` retains intermediate source files and prints their paths;
+cached builds retain IR in their build directory.
+
 ## REPL
 
 Build the compiler library and LLVM bridge, then start the REPL without a script:

@@ -50,7 +50,7 @@ module Natalie
         end
 
         def write_source_to_tempfile
-          temp = Tempfile.create(temp_name('cpp'))
+          temp = Tempfile.create([File.basename(@ruby_path), '.cpp'])
           temp.write(merged_source)
           temp.close
           @cpp_path = temp.path
@@ -98,8 +98,8 @@ module Natalie
               File.unlink(command_path) if command_path && File.exist?(command_path)
               puts cmd if @compiler.debug == 'cc-cmd'
               out = `#{cmd} 2>&1`
-              File.unlink(@cpp_path) unless @compiler.keep_cpp? || $? != 0
-              puts "cpp file path is: #{@cpp_path}" if @compiler.print_cpp_path?
+              File.unlink(@cpp_path) unless @compiler.keep_source? || $? != 0
+              puts "source file path is: #{@cpp_path}" if @compiler.print_source_path?
               warn out if out.strip != ''
               raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
 

@@ -43,7 +43,9 @@ module Natalie
 
         def llvm_object(name, source, native)
           path = File.join(@directory, "#{name}.o")
-          write_if_changed(File.join(@directory, "#{name}.ll"), source)
+          source_path = File.join(@directory, "#{name}.ll")
+          write_if_changed(source_path, source)
+          puts "source file path is: #{source_path}" if @compiler.options[:keep_source]
           key = digest([source, native.cache_key, @compiler.build])
           cached(path, key) { |temporary| native.emit_object(source, temporary) }
           path

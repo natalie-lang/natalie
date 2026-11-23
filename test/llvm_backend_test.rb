@@ -194,6 +194,23 @@ class LlvmBackendTest < Minitest::Test
     end
   end
 
+  def test_keep_source_retains_usable_llvm_ir
+    stdout, stderr, status = run_cli('--backend=llvm', '--keep-source', '-e', 'puts 42')
+    assert status.success?, stderr
+    assert_includes stdout, "42\n"
+    path = stdout[/source file path is: (.+\.ll)/, 1]
+    refute_nil path, stdout
+    assert_includes File.read(path), '@nat_llvm_eval('
+    Dir.mktmpdir('natalie-retained-ir') do |dir|
+      require_relative '../lib/natalie/compiler/backends/llvm_backend/native'
+      object = File.join(dir, 'retained.o')
+      Natalie::Compiler::LlvmBackend::Native.new.emit_object(File.read(path), object)
+      assert File.size?(object)
+    end
+  ensure
+    File.unlink(path) if path && File.file?(path)
+  end
+
   def test_print_objects_keeps_allocations_and_dumps_them_at_exit
     stdout, stderr, status = run_cli('--backend=llvm', '--print-objects', '-e', 'puts "llvm object dump"')
     assert status.success?, stderr

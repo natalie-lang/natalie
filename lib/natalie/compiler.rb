@@ -112,12 +112,12 @@ module Natalie
     def profile_app! = backend.profile_app!
     def print_objects! = backend.print_objects!
 
-    def print_cpp_path?
-      options[:keep_cpp]
+    def print_source_path?
+      options[:keep_source]
     end
 
-    def keep_cpp?
-      !!((debug && debug != 'cc-cmd') || options[:keep_cpp]) || build_dir || compilation_type == 'object'
+    def keep_source?
+      !!((debug && debug != 'cc-cmd') || options[:keep_source]) || build_dir || compilation_type == 'object'
     end
 
     private

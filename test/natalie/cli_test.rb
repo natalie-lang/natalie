@@ -11,8 +11,9 @@ describe '-d' do
     end
   end
 
-  specify '-d cpp' do
-    ruby_exe('puts "hello world"', options: '-d cpp').should include('int main(int argc, char *argv[])')
+  specify '-d code' do
+    ruby_exe('puts "hello world"', options: '-d code').should =~
+      /int main\(int argc, char \*argv\[\]\)|define .*@nat_llvm_eval\(/
   end
 
   specify '-d cc-cmd' do
@@ -23,9 +24,9 @@ describe '-d' do
   end
 end
 
-describe '--keep-cpp' do
-  it 'prints the temporary cpp file path' do
-    ruby_exe('puts "hello world"', options: '--keep-cpp').should include(File.join(TMPDIR, 'ruby_exe.rb'))
+describe '--keep-source' do
+  it 'prints the temporary generated source file path' do
+    ruby_exe('puts "hello world"', options: '--keep-source').should include(File.join(TMPDIR, 'ruby_exe.rb'))
   end
 end
 
@@ -34,6 +35,7 @@ describe '--profile-app' do
     out = ruby_exe('puts "hello world"', options: '--profile-app')
     path = out.match(/Profile path: (.*profile-\d+\.json)/)[1]
     File.read(path).size.should > 0
+    File.unlink(path)
   end
 end
 

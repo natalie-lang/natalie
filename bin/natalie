@@ -28,7 +28,7 @@ OptionParser
       'Show debug output (specify option below)',
       options: {
         '{p1,p2,p3,p4}' => 'print intermediate instructions from individual compiler pass',
-        'cpp' => 'print generated C++',
+        '{code,cpp}' => 'print generated code (C++ or LLVM IR)',
         'transform' => 'only transform the code to C++ without outputting it (can be used for profiling the compiler)',
         'cc-cmd' => 'show the gcc/clang compiler command that will be run',
         'callgrind' =>
@@ -38,13 +38,13 @@ OptionParser
       },
     ) do |type|
       case type
-      when true, 'c', 'cpp', 'c++'
+      when true, 'code', 'c', 'cpp', 'c++'
         options[:debug] = 'cpp'
       when /^p\d/, 'S', 'cc-cmd', 'callgrind', 'strace'
         options[:debug] = type
       when 'gdb', 'lldb'
         options[:debug] = type
-        options[:keep_cpp] = true
+        options[:keep_source] = true
       else
         puts "Unrecognized -d argument: #{type.inspect}"
         exit 1
@@ -106,7 +106,7 @@ OptionParser
       options[:compilation_type] = type
     end
 
-    opts.on('--keep-cpp', 'Do not delete intermediate cpp file used for compilation') { options[:keep_cpp] = true }
+    opts.on('--keep-source', 'Keep intermediate generated source files') { options[:keep_source] = true }
 
     opts.on('--log-load-error', 'Log a message when natalie cannot load a required file') do
       options[:log_load_error] = true
@@ -152,7 +152,7 @@ class Runner
       compiler.compile
     elsif options[:debug] == 'cpp'
       paths = compiler.write_files_for_debugging
-      print_cpp_sources(paths)
+      print_generated_sources(paths)
     elsif options[:debug] == 'S'
       show_assembly
     else
@@ -303,11 +303,11 @@ class Runner
     @parser ||= Natalie::Parser.new(code, source_path)
   end
 
-  def print_cpp_sources(paths)
+  def print_generated_sources(paths)
     if system('which bat 2>&1 >/dev/null')
-      system('bat', *paths, '-lcpp')
+      system('bat', *paths)
     elsif system('which batcat 2>&1 >/dev/null')
-      system('batcat', *paths, '-lcpp')
+      system('batcat', *paths)
     else
       paths.each do |path|
         unless ENV['DO_NOT_PRINT_CPP_PATH']
