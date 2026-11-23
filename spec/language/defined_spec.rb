@@ -62,6 +62,25 @@ describe "The defined? keyword when called with a method name" do
     ScratchPad.recorded.should != :defined_specs_side_effects
   end
 
+  it "does not execute assignments in arguments" do
+    value = 0
+    defined?(DefinedSpecs.any_args(value += 1)).should == "method"
+    value.should == 0
+  end
+
+  it "checks definitions inside array and keyword arguments without calling methods" do
+    defined?(DefinedSpecs.any_args([DefinedSpecs.side_effects], key: DefinedSpecs.side_effects)).should == "method"
+    ScratchPad.recorded.should != :defined_specs_side_effects
+    defined?(DefinedSpecs.any_args([defined_specs_missing_argument])).should be_nil
+    defined?(DefinedSpecs.any_args(key: defined_specs_missing_argument)).should be_nil
+  end
+
+  it "does not evaluate the right hand side of an assignment argument" do
+    value = 0
+    defined?(DefinedSpecs.any_args(value = defined_specs_missing_argument)).should == "method"
+    value.should == 0
+  end
+
   describe "without a receiver" do
     it "returns 'method' if the method is defined" do
       ret = defined?(puts)

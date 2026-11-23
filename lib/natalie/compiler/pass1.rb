@@ -1262,6 +1262,10 @@ module Natalie
             'expression'
           end
 
+        if current_node.is_a?(Prism::CallNode) && !current_node.safe_navigation?
+          return transform_defined_call(node, current_node)
+        end
+
         body.each_with_index do |instruction, index|
           case instruction
           when GlobalVariableGetInstruction
@@ -1294,6 +1298,55 @@ module Natalie
         end
 
         [IsDefinedInstruction.new(type: type), body.compact.flatten, EndInstruction.new(:is_defined)]
+      end
+
+      def transform_defined_call(defined_node, call)
+        receiver = call.receiver ? transform_expression(call.receiver, used: true).flatten : [PushSelfInstruction.new]
+        body =
+          receiver.flat_map do |instruction|
+            case instruction
+            when GlobalVariableGetInstruction
+              [GlobalVariableDefinedInstruction.new(instruction.name), instruction]
+            when InstanceVariableGetInstruction
+              [InstanceVariableDefinedInstruction.new(instruction.name), instruction]
+            when ConstFindInstruction
+              instruction.raise_if_missing!
+              [instruction]
+            else
+              [instruction]
+            end
+          end
+        (call.arguments&.arguments || []).each do |argument|
+          definition_argument_nodes(argument).each do |value|
+            body << transform_defined_node(defined_node.copy(value: value), used: true)
+            body << CheckDefinedInstruction.new
+          end
+        end
+        body << PushArgcInstruction.new(0)
+        body << MethodDefinedInstruction.new(
+          call.name,
+          receiver_is_self: call.receiver.nil? || call.receiver.is_a?(Prism::SelfNode),
+          with_block: false,
+        )
+        [IsDefinedInstruction.new(type: 'method'), *body.flatten, EndInstruction.new(:is_defined)]
+      end
+
+      def definition_argument_nodes(node)
+        case node
+        when Prism::ArrayNode, Prism::HashNode, Prism::KeywordHashNode
+          node.elements.flat_map { |value| definition_argument_nodes(value) }
+        when Prism::AssocNode
+          [*definition_argument_nodes(node.key), *definition_argument_nodes(node.value)]
+        when Prism::SplatNode
+          node.expression ? definition_argument_nodes(node.expression) : []
+        when Prism::AssocSplatNode
+          node.value ? definition_argument_nodes(node.value) : []
+        when Prism::ParenthesesNode
+          values = node.body&.body || []
+          values.size == 1 ? definition_argument_nodes(values.first) : []
+        else
+          [node]
+        end
       end
 
       def transform_defn_args(node, used:, for_block: false, check_args: true, local_only: true)

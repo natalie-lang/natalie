@@ -524,3 +524,8 @@ extern "C" uint64_t nat_llvm_hash_has_key(Env *env, uint64_t hash, const char *n
 extern "C" uint64_t nat_llvm_dup_object(Env *env, uint64_t object) {
     return nat_llvm_pack(nat_llvm_unpack(object)->duplicate(env));
 }
+
+extern "C" void nat_llvm_check_defined(uint64_t value) {
+    if (nat_llvm_unpack(value).is_nil())
+        throw ExceptionObject::create();
+}

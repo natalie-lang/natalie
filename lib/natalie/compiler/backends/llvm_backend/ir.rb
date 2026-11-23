@@ -84,6 +84,7 @@ module Natalie
           declare i64 @nat_llvm_hash_delete(ptr, i64, ptr)
           declare i64 @nat_llvm_hash_has_key(ptr, i64, ptr)
           declare i64 @nat_llvm_dup_object(ptr, i64)
+          declare void @nat_llvm_check_defined(i64)
           declare void @nat_llvm_set_zero(ptr, ptr)
           declare void @nat_llvm_warn(ptr, i64, ptr, i32)
         LLVM
