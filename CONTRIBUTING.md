@@ -12,6 +12,26 @@ direction. If you are not sure about this, open an issue first so we can discuss
 
 - Use `clang-format` to automatically format C++ files and `syntax_tree` for Ruby files. You can run `rake format`.
 
+### Pre-commit formatting check
+
+Enable the repository's hook once per checkout:
+
+```sh
+git config core.hooksPath .githooks
+```
+
+The hook rejects commits when staged Ruby or C/C++ files would change under
+Syntax Tree or clang-format. It checks a temporary copy of the index, including
+staged formatter settings, without modifying your working tree or staged files.
+Ruby exclusions in `.streerc`, bundled dependencies in `ext/`, build output, and
+generated encoding tables are skipped.
+
+The hook uses `nix develop` when Nix is installed. Otherwise, install the project's
+Ruby gems and clang-format on `PATH`. Fix formatting with `bundle exec stree write
+path/to/file.rb` or `clang-format -i path/to/file.cpp`, then stage the files again.
+Run the check manually with `ruby tools/check_staged_format.rb` in your development
+shell.
+
 ## Tests
 
 - We prefer specs be brought over from [ruby/spec](https://github.com/ruby/spec) so we are sure
