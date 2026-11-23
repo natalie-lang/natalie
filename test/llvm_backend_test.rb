@@ -469,6 +469,13 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
+  def test_method_proc_and_lambda_parameter_metadata
+    assert_program(
+      'def f(a,b=2,*rest,c:,d:3,**opts,&block); end; p method(:f).parameters; p proc { |x,y=1,*r,a:,**k,&b| }.parameters; p ->(x,*r,**nil) {}.parameters',
+      "[[:req, :a], [:opt, :b], [:rest, :rest], [:keyreq, :c], [:key, :d], [:keyrest, :opts], [:block, :block]]\n[[:opt, :x], [:opt, :y], [:rest, :r], [:keyreq, :a], [:keyrest, :k], [:block, :b]]\n[[:req, :x], [:rest, :r], [:nokey]]\n",
+    )
+  end
+
   def test_methods_defaults_rest_and_recursion
     assert_program(
       'def sum(n, extra = 1); if n == 0; extra; else; n + sum(n - 1, extra); end; end; def rest(a, *xs); [a, xs]; end; p sum(4); p sum(2, 10); p rest(1, 2, 3)',

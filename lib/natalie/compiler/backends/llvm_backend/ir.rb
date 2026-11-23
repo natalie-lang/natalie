@@ -5,6 +5,9 @@ module Natalie
       # Each allocation happens in the entry block, including argument arrays and
       # conservative GC roots, so loops use a bounded amount of native stack.
       class IR
+        # ParamKind in method.hpp; the bridge asserts this C-layout metadata ABI.
+        PARAMETER_KINDS = %i[req opt rest keyreq key keyrest nokey block].freeze
+
         DECLARATIONS = <<~LLVM.freeze
           declare i64 @nat_llvm_integer(ptr)
           declare i64 @nat_llvm_float(double)
@@ -19,8 +22,8 @@ module Natalie
           declare void @nat_llvm_build_vars(ptr, i64)
           declare i64 @nat_llvm_var_get(ptr, i64, i64)
           declare void @nat_llvm_var_set(ptr, i64, i64, i64)
-          declare i64 @nat_llvm_block(ptr, i64, ptr, i32, i64, i32, i64)
-          declare void @nat_llvm_define_method(ptr, i64, ptr, ptr, i32, ptr, i64, i64)
+          declare i64 @nat_llvm_block(ptr, i64, ptr, i32, i64, i32, i64, ptr)
+          declare void @nat_llvm_define_method(ptr, i64, ptr, ptr, i32, ptr, i64, i64, ptr)
           declare i64 @nat_llvm_arg(ptr, i64)
           declare void @nat_llvm_check_args(ptr, ptr, i64, i64, i32, i64, ptr)
           declare i64 @nat_llvm_args(ptr, ptr, i32, i64, i64, i32, i32)
@@ -340,6 +343,22 @@ module Natalie
             emit "store i64 #{arg}, ptr #{ptr}"
           end
           array
+        end
+
+        def parameter_table(parameters)
+          return 'null' if parameters.empty?
+          @shared[:parameter_tables] ||= {}
+          @shared[:parameter_tables][parameters] ||= begin
+            entries =
+              parameters.map do |kind, name|
+                id = PARAMETER_KINDS.index(kind) || raise(CompileError, "LLVM: unknown parameter kind #{kind}")
+                "{ i8, ptr } { i8 #{id + 1}, ptr #{name ? string(name.to_s) : 'null'} }"
+              end
+            entries << '{ i8, ptr } { i8 0, ptr null }'
+            table = "@#{name('parameters')}"
+            @globals << "#{table} = private constant [#{entries.size} x { i8, ptr }] [#{entries.join(', ')}], align 8"
+            table
+          end
         end
 
         def keyword_names(names)

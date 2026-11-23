@@ -32,7 +32,7 @@ module Natalie
         point = transform.break_point([:next, env.object_id])
         fn = transform.function(body, scope: env, return_point: point)
         transform.push_call(
-          "call i64 @nat_llvm_block(ptr %env, i64 %self, ptr #{fn}, i32 #{@arity}, i64 #{point}, i32 #{has_return? ? 1 : 0}, i64 #{@redo_point ? transform.break_point(@redo_point) : 0})",
+          "call i64 @nat_llvm_block(ptr %env, i64 %self, ptr #{fn}, i32 #{@arity}, i64 #{point}, i32 #{has_return? ? 1 : 0}, i64 #{@redo_point ? transform.break_point(@redo_point) : 0}, ptr #{transform.parameter_table(@parameters)})",
         )
       end
 

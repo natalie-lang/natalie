@@ -32,7 +32,7 @@ module Natalie
         body = transform.fetch_block_of_instructions(expected_label: :define_method)
         point = transform.break_point(@break_point || [:return, env.object_id])
         fn = transform.function(body, scope: env, return_point: point)
-        transform.emit "call void @nat_llvm_define_method(ptr %env, i64 #{klass}, ptr #{transform.string(@name.to_s)}, ptr #{fn}, i32 #{@arity}, ptr #{transform.string(@file)}, i64 #{@line}, i64 #{point})"
+        transform.emit "call void @nat_llvm_define_method(ptr %env, i64 #{klass}, ptr #{transform.string(@name.to_s)}, ptr #{fn}, i32 #{@arity}, ptr #{transform.string(@file)}, i64 #{@line}, i64 #{point}, ptr #{transform.parameter_table(@parameters)})"
       end
 
       def generate(transform)

@@ -1,6 +1,13 @@
 #include "natalie/llvm_runtime.hpp"
+#include <cstddef>
 
 using namespace Natalie;
+
+static_assert(sizeof(ParamDescriptor) == 16 && offsetof(ParamDescriptor, name) == 8);
+static_assert(static_cast<int>(ParamKind::Req) == 1 && static_cast<int>(ParamKind::Opt) == 2
+    && static_cast<int>(ParamKind::Rest) == 3 && static_cast<int>(ParamKind::KeyReq) == 4
+    && static_cast<int>(ParamKind::Key) == 5 && static_cast<int>(ParamKind::KeyRest) == 6
+    && static_cast<int>(ParamKind::NoKey) == 7 && static_cast<int>(ParamKind::Block) == 8);
 
 extern "C" uint64_t nat_llvm_integer(const char *digits) {
     return nat_llvm_pack(Value::integer(TM::String(digits)));
@@ -86,7 +93,7 @@ static Value llvm_callback(Env *env, Value self, Args &&args, Block *block) {
     }
 }
 
-static Block *llvm_block(Env *env, Value self, LlvmFn fn, int arity, bool capture, int64_t return_point, bool has_return = false, int64_t redo_point = 0) {
+static Block *llvm_block(Env *env, Value self, LlvmFn fn, int arity, bool capture, int64_t return_point, bool has_return = false, int64_t redo_point = 0, const ParamDescriptor *parameters = nullptr) {
     auto closure = Env::create(capture ? Env::create(*env) : nullptr);
     closure->set_lexical_scope(env->lexical_scope());
     closure->set_file(env->file());
@@ -95,7 +102,7 @@ static Block *llvm_block(Env *env, Value self, LlvmFn fn, int arity, bool captur
     closure->var_set("llvm_callback", 0, true, Value::integer(reinterpret_cast<intptr_t>(fn)));
     closure->var_set("llvm_return", 1, true, Value::integer(return_point));
     closure->var_set("llvm_redo", 2, true, Value::integer(redo_point));
-    return Block::create(*closure, self, llvm_callback, arity, has_return);
+    return Block::create(*closure, self, llvm_callback, arity, has_return, Block::BlockType::Proc, parameters);
 }
 
 extern "C" void nat_llvm_build_vars(Env *env, uint64_t count) {
@@ -118,15 +125,15 @@ extern "C" void nat_llvm_var_set(Env *env, uint64_t depth, uint64_t index, uint6
     llvm_outer(env, depth)->var_set("llvm_local", index, true, nat_llvm_unpack(value));
 }
 
-extern "C" uint64_t nat_llvm_block(Env *env, uint64_t self, LlvmFn fn, int arity, int64_t return_point, int has_return, int64_t redo_point) {
-    return nat_llvm_pack(ProcObject::from_block_maybe(llvm_block(env, nat_llvm_unpack(self), fn, arity, true, return_point, has_return, redo_point)));
+extern "C" uint64_t nat_llvm_block(Env *env, uint64_t self, LlvmFn fn, int arity, int64_t return_point, int has_return, int64_t redo_point, const ParamDescriptor *parameters) {
+    return nat_llvm_pack(ProcObject::from_block_maybe(llvm_block(env, nat_llvm_unpack(self), fn, arity, true, return_point, has_return, redo_point, parameters)));
 }
 
-extern "C" void nat_llvm_define_method(Env *env, uint64_t target, const char *name, LlvmFn fn, int arity, const char *file, uint64_t line, int64_t return_point) {
+extern "C" void nat_llvm_define_method(Env *env, uint64_t target, const char *name, LlvmFn fn, int arity, const char *file, uint64_t line, int64_t return_point, const ParamDescriptor *parameters) {
     env->set_file(file);
     env->set_line(line);
     auto self = nat_llvm_unpack(target);
-    auto block = llvm_block(env, self, fn, arity, false, return_point);
+    auto block = llvm_block(env, self, fn, arity, false, return_point, false, 0, parameters);
     Object::define_method(env, self, SymbolObject::intern(name), block);
     if (self == GlobalEnv::the()->main_obj())
         self.klass()->set_method_visibility(env, SymbolObject::intern(name), GlobalEnv::the()->top_level_method_visibility());

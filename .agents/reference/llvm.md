@@ -40,7 +40,7 @@ short-circuit expressions, case matching, string interpolation, regexp literals
 and interpolation, capture access, while loops, local/global/instance/class variables,
 constants, `defined?` probes, classes/modules and singleton classes, method/global
 aliases, `undef`, `super`,
-methods with positional/default/rest and keyword arguments,
+methods with positional/default/rest and keyword arguments, parameter metadata,
 blocks and lambdas, captured locals, anonymous argument/block forwarding, splat
 calls and yields, rescue/ensure/retry, loop and block jumps, non-local and
 top-level returns, and statically resolved Ruby
@@ -80,7 +80,7 @@ Loop branches remain in LLVM; scoped body/condition callbacks use the bridge to
 translate local jumps into branch statuses after intervening ensure handlers run.
 
 Unsupported instructions fail explicitly. Remaining gaps include once-only
-regexp interpolation (`/o`), scoped inline C++, and complete parameter reflection. REPL, shared-object output, and `--build-dir` are also unsupported.
+regexp interpolation (`/o`) and scoped inline C++. REPL, shared-object output, and `--build-dir` are also unsupported.
 
 The normal ruby/spec runner now works for the unmodified
 `spec/core/nil/nil_spec.rb`:
