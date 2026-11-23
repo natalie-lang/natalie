@@ -486,7 +486,8 @@ SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFn
 SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, Block *block) {
     assert_not_frozen(env, this);
     Method *method = new Method { name->string(), this, block };
-    define_method(env, name, method, m_method_visibility);
+    auto visibility = name == "initialize"_s ? MethodVisibility::Private : m_method_visibility;
+    define_method(env, name, method, visibility);
     if (m_module_function)
         Object::define_singleton_method(env, this, name, block);
     return name;

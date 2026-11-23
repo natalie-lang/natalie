@@ -23,6 +23,11 @@ describe "Defining a method at the top-level" do
 end
 
 describe "Defining an 'initialize' method" do
+  it "sets a block-backed initialize method's visibility to private" do
+    klass = Class.new { define_method(:initialize) {} }
+    klass.should have_private_instance_method(:initialize)
+  end
+
   it "sets the method's visibility to private" do
     class DefInitializeSpec
       def initialize
