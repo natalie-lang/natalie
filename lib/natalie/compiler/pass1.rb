@@ -1619,7 +1619,11 @@ module Natalie
           when Float
             PushFloatInstruction.new(value)
           when Rational
-            CreateRationalInstruction.new(value)
+            [
+              PushIntInstruction.new(value.numerator),
+              PushIntInstruction.new(value.denominator),
+              CreateRationalInstruction.new,
+            ]
           else
             raise "Unexpected imaginary value: \"#{value.inspect}\""
           end

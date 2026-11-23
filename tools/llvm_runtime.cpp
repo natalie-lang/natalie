@@ -17,6 +17,14 @@ extern "C" uint64_t nat_llvm_float(double number) {
     return nat_llvm_pack(FloatObject::create(number));
 }
 
+extern "C" uint64_t nat_llvm_rational(Env *env, uint64_t numerator, uint64_t denominator) {
+    return nat_llvm_pack(RationalObject::create(env, nat_llvm_unpack(numerator).to_int(env), nat_llvm_unpack(denominator).to_int(env)));
+}
+
+extern "C" uint64_t nat_llvm_complex(uint64_t imaginary) {
+    return nat_llvm_pack(ComplexObject::create(Value::integer(0), nat_llvm_unpack(imaginary)));
+}
+
 extern "C" uint64_t nat_llvm_string(const char *bytes, uint64_t size, int status) {
     auto string = StringObject::create(bytes, size, EncodingObject::get(Encoding::UTF_8));
     if (status == 1)

@@ -27,6 +27,13 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
+  def test_rational_and_complex_literals
+    assert_program(
+      'p [1r, 0.25r, 2i, 0.5ri, 123456789012345678901234567890r]',
+      "[(1/1), (1/4), (0+2i), (0+(1/2)*i), (123456789012345678901234567890/1)]\n",
+    )
+  end
+
   def test_conditionals_and_local_initialization
     assert_program(
       'if false; x = 1; end; p x; x = if 0; 2; else; 3; end; p x; p(if nil; 4; else; 5; end); p !false; p !0',

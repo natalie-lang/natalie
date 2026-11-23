@@ -2,6 +2,11 @@ require_relative '../spec_helper'
 
 describe "A number literal" do
 
+  it "can have a rational imaginary component" do
+    0.5ri.should == Complex(0, Rational(1, 2))
+    123456789012345678901234567890ri.imaginary.should == Rational(123456789012345678901234567890, 1)
+  end
+
   it "can be a sequence of decimal digits" do
     435.should == 435
   end
