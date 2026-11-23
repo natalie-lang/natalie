@@ -462,6 +462,13 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
+  def test_block_destructuring_defaults_and_keyword_hash_copy
+    assert_program(
+      'f=proc { |(a,b),c=3| [a,b,c] }; p f.call([[1,2]]); p proc { |a=3,b=4| [a,b] }.call; h={a:1,x:2}; p proc { |a:3, **rest| [a,rest] }.call(**h); p h',
+      "[1, 2, 3]\n[3, 4]\n[1, {x: 2}]\n{a: 1, x: 2}\n",
+    )
+  end
+
   def test_methods_defaults_rest_and_recursion
     assert_program(
       'def sum(n, extra = 1); if n == 0; extra; else; n + sum(n - 1, extra); end; end; def rest(a, *xs); [a, xs]; end; p sum(4); p sum(2, 10); p rest(1, 2, 3)',

@@ -497,3 +497,23 @@ extern "C" void nat_llvm_global_defined(Env *env, const char *name) {
 extern "C" uint64_t nat_llvm_last_match(Env *env) {
     return nat_llvm_pack(env->last_match());
 }
+
+extern "C" uint64_t nat_llvm_array_empty(uint64_t array) {
+    return nat_llvm_pack(bool_object(nat_llvm_unpack(array).as_array()->is_empty()));
+}
+
+extern "C" void nat_llvm_hash_put(Env *env, uint64_t hash, uint64_t key, uint64_t value) {
+    nat_llvm_unpack(hash).as_hash()->put(env, nat_llvm_unpack(key), nat_llvm_unpack(value));
+}
+
+extern "C" uint64_t nat_llvm_hash_delete(Env *env, uint64_t hash, const char *name) {
+    return nat_llvm_pack(nat_llvm_unpack(hash).as_hash()->remove(env, SymbolObject::intern(name)).value());
+}
+
+extern "C" uint64_t nat_llvm_hash_has_key(Env *env, uint64_t hash, const char *name) {
+    return nat_llvm_pack(bool_object(nat_llvm_unpack(hash).as_hash()->has_key(env, SymbolObject::intern(name))));
+}
+
+extern "C" uint64_t nat_llvm_dup_object(Env *env, uint64_t object) {
+    return nat_llvm_pack(nat_llvm_unpack(object)->duplicate(env));
+}
