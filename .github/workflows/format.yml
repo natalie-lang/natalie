@@ -19,14 +19,13 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
-      - uses: ruby/setup-ruby@v1
+      - uses: cachix/install-nix-action@v31
       - name: install dependencies
-        run: |
-          sudo apt-get install -y -q clang-format build-essential
-          bundle config set --local path vendor/bundle
-          bundle install
+        run: nix develop -c bundle install
+      - name: show formatter version
+        run: nix develop -c clang-format --version
       - name: format
-        run: bundle exec rake format
+        run: nix develop -c bundle exec rake format
       - uses: EndBug/add-and-commit@v11
         with:
           author_name: Tim Morgan
