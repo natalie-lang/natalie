@@ -35,9 +35,11 @@ the C++ driver only for linking.
 
 ## Supported Features and Boundaries
 
-The proof of concept supports literals, arrays, hashes, ranges, conditionals,
+The backend supports literals (including rational and complex numbers), arrays,
+hashes, ranges, conditionals,
 short-circuit expressions, case matching, string interpolation, regexp literals
-and interpolation, capture access, while loops, local/global/instance/class variables,
+and interpolation (including `/o`), capture access, flip-flops, encoded strings,
+frozen literal identity, while loops, local/global/instance/class variables,
 constants, `defined?` probes, classes/modules and singleton classes, method/global
 aliases, `undef`, `super`,
 methods with positional/default/rest and keyword arguments, parameter metadata,
@@ -79,8 +81,13 @@ handlers, and reuses Natalie's local-jump exceptions for non-local control flow.
 Loop branches remain in LLVM; scoped body/condition callbacks use the bridge to
 translate local jumps into branch statuses after intervening ensure handlers run.
 
-Unsupported instructions fail explicitly. Remaining gaps include once-only
-regexp interpolation (`/o`) and scoped inline C++. REPL, shared-object output, and `--build-dir` are also unsupported.
+Literal caches live in the shared runtime, with GC roots and a recursive guard.
+Both backends skip `/o` interpolation after successful initialization, retry it
+after an exception or local jump, and serialize concurrent initialization.
+
+Unsupported instructions fail explicitly. Remaining gaps include autoload
+registration, raw `Args` operands, and scoped inline C++. REPL, shared-object
+output, and `--build-dir` are also unsupported.
 
 The normal ruby/spec runner now works for the unmodified
 `spec/core/nil/nil_spec.rb`:
@@ -89,7 +96,7 @@ The normal ruby/spec runner now works for the unmodified
 bin/natalie --backend=llvm spec/core/nil/nil_spec.rb
 # 1 spec(s) passed.
 bin/natalie --backend=llvm spec/language/keyword_arguments_spec.rb
-# 22 spec(s) passed; 14 existing skips (same result as the C++ backend).
+# 22 spec(s) passed; 8 existing skips (same result as the C++ backend).
 ```
 
 This compiles the shared helpers and their Ruby/native dependencies through the
@@ -115,3 +122,22 @@ counts for each backend in JSON. A matching pass requires successful, nonempty
 runs with identical counts. Empty runs and failures are listed separately and
 never added to the matching passed-example total. Use `--backend=llvm` for a
 single-backend run while diagnosing a failure.
+
+For the broader language, method/Proc, and numeric selection used during backend
+development:
+
+```sh
+bundle exec ruby tools/llvm_spec_runner.rb --jobs=6 --timeout=180 \
+  --report=build/llvm-spec-final.json 'spec/language/*_spec.rb' \
+  'spec/core/{method,proc,integer,rational,complex,nil,true,false}/*_spec.rb'
+```
+
+This selection includes existing `NATFIXME` skips. Matching results demonstrate
+coverage of the active examples, rather than full Ruby conformance. Files with
+no active examples remain separate from successful spec files in the report.
+
+Validation at `c8f10470d` (2026-11-23): all 65 language files matched, with 2,323
+passing examples. Another 207 core files matched, with 1,301 passing examples.
+Two core files had no active examples. The full selection retained 598 skips.
+The LLVM backend and runner suites also passed: 67 tests / 295 assertions and
+3 tests / 15 assertions, respectively.
