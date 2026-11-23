@@ -333,12 +333,14 @@ extern "C" uint64_t nat_llvm_yield_array(Env *env, uint64_t array, int keywords)
     return nat_llvm_pack(env->nearest_block()->run(env, Args(nat_llvm_unpack(array).as_array(), keywords)));
 }
 
-extern "C" uint64_t nat_llvm_regexp(Env *env, const char *bytes, uint64_t size, int options, int euc_jp, OnceCache **cache) {
+extern "C" uint64_t nat_llvm_regexp(Env *env, const char *bytes, uint64_t size, int options, int encoding_flag, OnceCache **cache) {
     OnceCache::Guard guard(env, cache);
     if (auto cached = guard.value())
         return nat_llvm_pack(cached.value());
-    auto encoding = euc_jp ? EncodingObject::get(Encoding::EUC_JP) : nullptr;
-    auto regex = RegexpObject::create(env, String(bytes, size), options, encoding);
+    auto encoding = encoding_flag == 1 ? EncodingObject::get(Encoding::EUC_JP) : nullptr;
+    auto source_encoding = EncodingObject::get(encoding_flag == 2 ? Encoding::ASCII_8BIT : Encoding::UTF_8);
+    auto pattern = StringObject::create(String(bytes, size), source_encoding);
+    auto regex = RegexpObject::create(env, pattern, options, encoding);
     regex->freeze();
     guard.set(regex);
     return nat_llvm_pack(regex);

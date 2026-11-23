@@ -20,8 +20,9 @@ module Natalie
 
       def generate_llvm(transform)
         source = @regexp.source
+        encoding_flag = @encoding == Encoding::EUC_JP ? 1 : (source.encoding == Encoding::ASCII_8BIT ? 2 : 0)
         transform.push_call(
-          "call i64 @nat_llvm_regexp(ptr %env, ptr #{transform.string(source)}, i64 #{source.bytesize}, i32 #{@regexp.options}, i32 #{@encoding == Encoding::EUC_JP ? 1 : 0}, ptr #{transform.literal_cache([:regexp, self])})",
+          "call i64 @nat_llvm_regexp(ptr %env, ptr #{transform.string(source)}, i64 #{source.bytesize}, i32 #{@regexp.options}, i32 #{encoding_flag}, ptr #{transform.literal_cache([:regexp, self])})",
         )
       end
 
@@ -31,7 +32,8 @@ module Natalie
               static OnceCache *cache = nullptr;
               OnceCache::Guard guard(env, &cache);
               if (auto cached = guard.value()) return cached.value();
-              auto regexp = RegexpObject::create(env, String(#{string_to_cpp(@regexp.source)}, #{@regexp.source.bytesize}), #{@regexp.options}, #{encoding});
+              auto pattern = StringObject::create(String(#{string_to_cpp(@regexp.source)}, #{@regexp.source.bytesize}), EncodingObject::get(Encoding::#{@regexp.source.encoding == Encoding::ASCII_8BIT ? 'ASCII_8BIT' : 'UTF_8'}));
+              auto regexp = RegexpObject::create(env, pattern, #{@regexp.options}, #{encoding});
               regexp->freeze();
               Value value(regexp);
               guard.set(value);

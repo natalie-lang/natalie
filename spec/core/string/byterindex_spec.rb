@@ -200,19 +200,17 @@ end
 
 describe "String#byterindex with Regexp" do
   it "behaves the same as String#byterindex(string) for escaped string regexps" do
-    NATFIXME "I don't think this will work with upstream Onigmo.", exception: SpecFailedException do
-      ["blablabla", "hello cruel world...!"].each do |str|
-        ["", "b", "bla", "lab", "o c", "d."].each do |needle|
-          regexp = Regexp.new(Regexp.escape(needle))
-          str.byterindex(regexp).should == str.byterindex(needle)
+    ["blablabla", "hello cruel world...!"].each do |str|
+      ["", "b", "bla", "lab", "o c", "d."].each do |needle|
+        regexp = Regexp.new(Regexp.escape(needle))
+        str.byterindex(regexp).should == str.byterindex(needle)
 
-          0.upto(str.size + 1) do |start|
-            str.byterindex(regexp, start).should == str.byterindex(needle, start)
-          end
+        0.upto(str.size + 1) do |start|
+          str.byterindex(regexp, start).should == str.byterindex(needle, start)
+        end
 
-          (-str.size - 1).upto(-1) do |start|
-            str.byterindex(regexp, start).should == str.byterindex(needle, start)
-          end
+        (-str.size - 1).upto(-1) do |start|
+          str.byterindex(regexp, start).should == str.byterindex(needle, start)
         end
       end
     end
@@ -252,35 +250,33 @@ describe "String#byterindex with Regexp" do
   end
 
   it "starts the search at the given offset" do
-    NATFIXME 'Onigmo cannot handle this case. CRuby has forked Onigmo and the patches have not gone upstream.', exception: SpecFailedException do
-      "blablabla".byterindex(/.{1}/, 5).should == 5
-      "blablabla".byterindex(/.{2}/, 5).should == 5
-      "blablabla".byterindex(/.{3}/, 5).should == 5
-      "blablabla".byterindex(/.{4}/, 5).should == 5
+    "blablabla".byterindex(/.{1}/, 5).should == 5
+    "blablabla".byterindex(/.{2}/, 5).should == 5
+    "blablabla".byterindex(/.{3}/, 5).should == 5
+    "blablabla".byterindex(/.{4}/, 5).should == 5
 
-      "blablabla".byterindex(/.{0}/, 3).should == 3
-      "blablabla".byterindex(/.{1}/, 3).should == 3
-      "blablabla".byterindex(/.{2}/, 3).should == 3
-      "blablabla".byterindex(/.{5}/, 3).should == 3
-      "blablabla".byterindex(/.{6}/, 3).should == 3
+    "blablabla".byterindex(/.{0}/, 3).should == 3
+    "blablabla".byterindex(/.{1}/, 3).should == 3
+    "blablabla".byterindex(/.{2}/, 3).should == 3
+    "blablabla".byterindex(/.{5}/, 3).should == 3
+    "blablabla".byterindex(/.{6}/, 3).should == 3
 
-      "blablabla".byterindex(/.l./, 0).should == 0
-      "blablabla".byterindex(/.l./, 1).should == 0
-      "blablabla".byterindex(/.l./, 2).should == 0
-      "blablabla".byterindex(/.l./, 3).should == 3
+    "blablabla".byterindex(/.l./, 0).should == 0
+    "blablabla".byterindex(/.l./, 1).should == 0
+    "blablabla".byterindex(/.l./, 2).should == 0
+    "blablabla".byterindex(/.l./, 3).should == 3
 
-      "blablablax".byterindex(/.x/, 10).should == 8
-      "blablablax".byterindex(/.x/, 9).should == 8
-      "blablablax".byterindex(/.x/, 8).should == 8
+    "blablablax".byterindex(/.x/, 10).should == 8
+    "blablablax".byterindex(/.x/, 9).should == 8
+    "blablablax".byterindex(/.x/, 8).should == 8
 
-      "blablablax".byterindex(/..x/, 10).should == 7
-      "blablablax".byterindex(/..x/, 9).should == 7
-      "blablablax".byterindex(/..x/, 8).should == 7
-      "blablablax".byterindex(/..x/, 7).should == 7
+    "blablablax".byterindex(/..x/, 10).should == 7
+    "blablablax".byterindex(/..x/, 9).should == 7
+    "blablablax".byterindex(/..x/, 8).should == 7
+    "blablablax".byterindex(/..x/, 7).should == 7
 
-      not_supported_on :opal do
-        "blablabla\n".byterindex(/\Z/, 9).should == 9
-      end
+    not_supported_on :opal do
+      "blablabla\n".byterindex(/\Z/, 9).should == 9
     end
   end
 
@@ -310,25 +306,23 @@ describe "String#byterindex with Regexp" do
 
   not_supported_on :opal do
     it "supports \\G which matches at the given start offset" do
-      NATFIXME 'Add \G support', exception: SpecFailedException, message: /should be ==/ do
-        "helloYOU.".byterindex(/YOU\G/, 8).should == 5
-        "helloYOU.".byterindex(/YOU\G/).should == nil
+      "helloYOU.".byterindex(/YOU\G/, 8).should == 5
+      "helloYOU.".byterindex(/YOU\G/).should == nil
 
-        idx = "helloYOUall!".index("YOU")
-        re = /YOU.+\G.+/
-        # The # marks where \G will match.
-        [
-          ["helloYOU#all.", nil],
-          ["helloYOUa#ll.", idx],
-          ["helloYOUal#l.", idx],
-          ["helloYOUall#.", idx],
-          ["helloYOUall.#", nil]
-        ].each do |i|
-          start = i[0].index("#")
-          str = i[0].delete("#")
+      idx = "helloYOUall!".index("YOU")
+      re = /YOU.+\G.+/
+      # The # marks where \G will match.
+      [
+        ["helloYOU#all.", nil],
+        ["helloYOUa#ll.", idx],
+        ["helloYOUal#l.", idx],
+        ["helloYOUall#.", idx],
+        ["helloYOUall.#", nil]
+      ].each do |i|
+        start = i[0].index("#")
+        str = i[0].delete("#")
 
-          str.byterindex(re, start).should == i[1]
-        end
+        str.byterindex(re, start).should == i[1]
       end
     end
   end

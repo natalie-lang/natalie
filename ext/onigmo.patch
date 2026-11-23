@@ -1,13 +1,259 @@
-diff --git a/regparse.c b/regparse.c
-index dd41be0..57e3d77 100644
+--- a/onigmo.h
++++ b/onigmo.h
+@@ -1,5 +1,6 @@
+ #ifndef ONIGMO_H
+ #define ONIGMO_H
++#include <stdint.h>
+ /**********************************************************************
+   onigmo.h - Onigmo (Oniguruma-mod) (regular expression library)
+ **********************************************************************/
+--- a/regexec.c
++++ b/regexec.c
+@@ -30,7 +30,7 @@
+ 
+ #include "regint.h"
+ 
+-#ifdef RUBY
++#if 1 /* Cora uses Ruby search-range semantics. */
+ # undef USE_MATCH_RANGE_MUST_BE_INSIDE_OF_SPECIFIED_RANGE
+ #else
+ # define USE_MATCH_RANGE_MUST_BE_INSIDE_OF_SPECIFIED_RANGE
 --- a/regparse.c
 +++ b/regparse.c
-@@ -2506,7 +2506,7 @@ get_name_end_code_point(OnigCodePoint start)
+@@ -37,7 +37,7 @@
+ 
+ #include "regparse.h"
+ #include <stdarg.h>
+-#include "internal/sanitizers.h"
++#include "sanitizers.h"
+ 
+ #define WARN_BUFSIZE    256
+ 
+@@ -2651,7 +2651,7 @@
  }
-
+ 
  #ifdef USE_NAMED_GROUP
 -# ifdef RUBY
-+# if 1
++# if 1 /* Cora accepts Ruby group names. */
  #  define ONIGENC_IS_CODE_NAME(enc, c)  TRUE
  # else
  #  define ONIGENC_IS_CODE_NAME(enc, c)  ONIGENC_IS_CODE_WORD(enc, c)
+--- a/st.c
++++ b/st.c
+@@ -103,6 +103,7 @@
+ #ifdef NOT_RUBY
+ #include "regint.h"
+ #include "st.h"
++#include "st-compat.h"
+ #include <assert.h>
+ #elif defined RUBY_EXPORT
+ #include "internal.h"
+@@ -1303,7 +1304,7 @@
+ }
+ 
+ void
+-rb_st_add_direct_with_hash(st_table *tab,
++onig_st_add_direct_with_hash(st_table *tab,
+                            st_data_t key, st_data_t value, st_hash_t hash)
+ {
+     st_add_direct_with_hash(tab, key, value, normalize_hash_value(hash));
+@@ -2158,7 +2159,7 @@
+ 
+ #undef st_hash_start
+ st_index_t
+-rb_st_hash_start(st_index_t h)
++onig_st_hash_start(st_index_t h)
+ {
+     return h;
+ }
+@@ -2475,7 +2476,7 @@
+ }
+ 
+ void
+-rb_st_compact_table(st_table *tab)
++onig_st_compact_table(st_table *tab)
+ {
+     st_index_t num = tab->num_entries;
+     if (REBUILD_THRESHOLD * num <= get_allocated_entries(tab)) {
+--- a/st.h
++++ b/st.h
+@@ -14,7 +14,7 @@
+ #endif
+ #endif
+ 
+-#include "ruby/defines.h"
++#include "config.h"
+ 
+ RUBY_SYMBOL_EXPORT_BEGIN
+ 
+@@ -100,91 +100,91 @@
+ 
+ enum st_retval {ST_CONTINUE, ST_STOP, ST_DELETE, ST_CHECK, ST_REPLACE};
+ 
+-size_t rb_st_table_size(const struct st_table *tbl);
+-#define st_table_size rb_st_table_size
+-st_table *rb_st_init_table(const struct st_hash_type *);
+-#define st_init_table rb_st_init_table
+-st_table *rb_st_init_table_with_size(const struct st_hash_type *, st_index_t);
+-#define st_init_table_with_size rb_st_init_table_with_size
+-st_table *rb_st_init_numtable(void);
+-#define st_init_numtable rb_st_init_numtable
+-st_table *rb_st_init_numtable_with_size(st_index_t);
+-#define st_init_numtable_with_size rb_st_init_numtable_with_size
+-st_table *rb_st_init_strtable(void);
+-#define st_init_strtable rb_st_init_strtable
+-st_table *rb_st_init_strtable_with_size(st_index_t);
+-#define st_init_strtable_with_size rb_st_init_strtable_with_size
+-st_table *rb_st_init_strcasetable(void);
+-#define st_init_strcasetable rb_st_init_strcasetable
+-st_table *rb_st_init_strcasetable_with_size(st_index_t);
+-#define st_init_strcasetable_with_size rb_st_init_strcasetable_with_size
+-int rb_st_delete(st_table *, st_data_t *, st_data_t *); /* returns 0:notfound 1:deleted */
+-#define st_delete rb_st_delete
+-int rb_st_delete_safe(st_table *, st_data_t *, st_data_t *, st_data_t);
+-#define st_delete_safe rb_st_delete_safe
+-int rb_st_shift(st_table *, st_data_t *, st_data_t *); /* returns 0:notfound 1:deleted */
+-#define st_shift rb_st_shift
+-int rb_st_insert(st_table *, st_data_t, st_data_t);
+-#define st_insert rb_st_insert
+-int rb_st_insert2(st_table *, st_data_t, st_data_t, st_data_t (*)(st_data_t));
+-#define st_insert2 rb_st_insert2
+-int rb_st_lookup(st_table *, st_data_t, st_data_t *);
+-#define st_lookup rb_st_lookup
+-int rb_st_get_key(st_table *, st_data_t, st_data_t *);
+-#define st_get_key rb_st_get_key
++size_t onig_st_table_size(const struct st_table *tbl);
++#define st_table_size onig_st_table_size
++st_table *onig_st_init_table(const struct st_hash_type *);
++#define st_init_table onig_st_init_table
++st_table *onig_st_init_table_with_size(const struct st_hash_type *, st_index_t);
++#define st_init_table_with_size onig_st_init_table_with_size
++st_table *onig_st_init_numtable(void);
++#define st_init_numtable onig_st_init_numtable
++st_table *onig_st_init_numtable_with_size(st_index_t);
++#define st_init_numtable_with_size onig_st_init_numtable_with_size
++st_table *onig_st_init_strtable(void);
++#define st_init_strtable onig_st_init_strtable
++st_table *onig_st_init_strtable_with_size(st_index_t);
++#define st_init_strtable_with_size onig_st_init_strtable_with_size
++st_table *onig_st_init_strcasetable(void);
++#define st_init_strcasetable onig_st_init_strcasetable
++st_table *onig_st_init_strcasetable_with_size(st_index_t);
++#define st_init_strcasetable_with_size onig_st_init_strcasetable_with_size
++int onig_st_delete(st_table *, st_data_t *, st_data_t *); /* returns 0:notfound 1:deleted */
++#define st_delete onig_st_delete
++int onig_st_delete_safe(st_table *, st_data_t *, st_data_t *, st_data_t);
++#define st_delete_safe onig_st_delete_safe
++int onig_st_shift(st_table *, st_data_t *, st_data_t *); /* returns 0:notfound 1:deleted */
++#define st_shift onig_st_shift
++int onig_st_insert(st_table *, st_data_t, st_data_t);
++#define st_insert onig_st_insert
++int onig_st_insert2(st_table *, st_data_t, st_data_t, st_data_t (*)(st_data_t));
++#define st_insert2 onig_st_insert2
++int onig_st_lookup(st_table *, st_data_t, st_data_t *);
++#define st_lookup onig_st_lookup
++int onig_st_get_key(st_table *, st_data_t, st_data_t *);
++#define st_get_key onig_st_get_key
+ typedef int st_update_callback_func(st_data_t *key, st_data_t *value, st_data_t arg, int existing);
+ /* *key may be altered, but must equal to the old key, i.e., the
+  * results of hash() are same and compare() returns 0, otherwise the
+  * behavior is undefined */
+-int rb_st_update(st_table *table, st_data_t key, st_update_callback_func *func, st_data_t arg);
+-#define st_update rb_st_update
++int onig_st_update(st_table *table, st_data_t key, st_update_callback_func *func, st_data_t arg);
++#define st_update onig_st_update
+ typedef int st_foreach_callback_func(st_data_t, st_data_t, st_data_t);
+ typedef int st_foreach_check_callback_func(st_data_t, st_data_t, st_data_t, int);
+-int rb_st_foreach_with_replace(st_table *tab, st_foreach_check_callback_func *func, st_update_callback_func *replace, st_data_t arg);
+-#define st_foreach_with_replace rb_st_foreach_with_replace
+-int rb_st_foreach(st_table *, st_foreach_callback_func *, st_data_t);
+-#define st_foreach rb_st_foreach
+-int rb_st_foreach_check(st_table *, st_foreach_check_callback_func *, st_data_t, st_data_t);
+-#define st_foreach_check rb_st_foreach_check
+-st_index_t rb_st_keys(st_table *table, st_data_t *keys, st_index_t size);
+-#define st_keys rb_st_keys
+-st_index_t rb_st_keys_check(st_table *table, st_data_t *keys, st_index_t size, st_data_t never);
+-#define st_keys_check rb_st_keys_check
+-st_index_t rb_st_values(st_table *table, st_data_t *values, st_index_t size);
+-#define st_values rb_st_values
+-st_index_t rb_st_values_check(st_table *table, st_data_t *values, st_index_t size, st_data_t never);
+-#define st_values_check rb_st_values_check
+-void rb_st_add_direct(st_table *, st_data_t, st_data_t);
+-#define st_add_direct rb_st_add_direct
+-void rb_st_free_table(st_table *);
+-#define st_free_table rb_st_free_table
+-void rb_st_cleanup_safe(st_table *, st_data_t);
+-#define st_cleanup_safe rb_st_cleanup_safe
+-void rb_st_clear(st_table *);
+-#define st_clear rb_st_clear
+-st_table *rb_st_copy(st_table *);
+-#define st_copy rb_st_copy
+-CONSTFUNC(int rb_st_numcmp(st_data_t, st_data_t));
+-#define st_numcmp rb_st_numcmp
+-CONSTFUNC(st_index_t rb_st_numhash(st_data_t));
+-#define st_numhash rb_st_numhash
+-PUREFUNC(int rb_st_locale_insensitive_strcasecmp(const char *s1, const char *s2));
+-#define st_locale_insensitive_strcasecmp rb_st_locale_insensitive_strcasecmp
+-PUREFUNC(int rb_st_locale_insensitive_strncasecmp(const char *s1, const char *s2, size_t n));
+-#define st_locale_insensitive_strncasecmp rb_st_locale_insensitive_strncasecmp
+-#define st_strcasecmp rb_st_locale_insensitive_strcasecmp
+-#define st_strncasecmp rb_st_locale_insensitive_strncasecmp
+-PUREFUNC(size_t rb_st_memsize(const st_table *));
+-#define st_memsize rb_st_memsize
+-PUREFUNC(st_index_t rb_st_hash(const void *ptr, size_t len, st_index_t h));
+-#define st_hash rb_st_hash
+-CONSTFUNC(st_index_t rb_st_hash_uint32(st_index_t h, uint32_t i));
+-#define st_hash_uint32 rb_st_hash_uint32
+-CONSTFUNC(st_index_t rb_st_hash_uint(st_index_t h, st_index_t i));
+-#define st_hash_uint rb_st_hash_uint
+-CONSTFUNC(st_index_t rb_st_hash_end(st_index_t h));
+-#define st_hash_end rb_st_hash_end
+-CONSTFUNC(st_index_t rb_st_hash_start(st_index_t h));
++int onig_st_foreach_with_replace(st_table *tab, st_foreach_check_callback_func *func, st_update_callback_func *replace, st_data_t arg);
++#define st_foreach_with_replace onig_st_foreach_with_replace
++int onig_st_foreach(st_table *, st_foreach_callback_func *, st_data_t);
++#define st_foreach onig_st_foreach
++int onig_st_foreach_check(st_table *, st_foreach_check_callback_func *, st_data_t, st_data_t);
++#define st_foreach_check onig_st_foreach_check
++st_index_t onig_st_keys(st_table *table, st_data_t *keys, st_index_t size);
++#define st_keys onig_st_keys
++st_index_t onig_st_keys_check(st_table *table, st_data_t *keys, st_index_t size, st_data_t never);
++#define st_keys_check onig_st_keys_check
++st_index_t onig_st_values(st_table *table, st_data_t *values, st_index_t size);
++#define st_values onig_st_values
++st_index_t onig_st_values_check(st_table *table, st_data_t *values, st_index_t size, st_data_t never);
++#define st_values_check onig_st_values_check
++void onig_st_add_direct(st_table *, st_data_t, st_data_t);
++#define st_add_direct onig_st_add_direct
++void onig_st_free_table(st_table *);
++#define st_free_table onig_st_free_table
++void onig_st_cleanup_safe(st_table *, st_data_t);
++#define st_cleanup_safe onig_st_cleanup_safe
++void onig_st_clear(st_table *);
++#define st_clear onig_st_clear
++st_table *onig_st_copy(st_table *);
++#define st_copy onig_st_copy
++CONSTFUNC(int onig_st_numcmp(st_data_t, st_data_t));
++#define st_numcmp onig_st_numcmp
++CONSTFUNC(st_index_t onig_st_numhash(st_data_t));
++#define st_numhash onig_st_numhash
++PUREFUNC(int onig_st_locale_insensitive_strcasecmp(const char *s1, const char *s2));
++#define st_locale_insensitive_strcasecmp onig_st_locale_insensitive_strcasecmp
++PUREFUNC(int onig_st_locale_insensitive_strncasecmp(const char *s1, const char *s2, size_t n));
++#define st_locale_insensitive_strncasecmp onig_st_locale_insensitive_strncasecmp
++#define st_strcasecmp onig_st_locale_insensitive_strcasecmp
++#define st_strncasecmp onig_st_locale_insensitive_strncasecmp
++PUREFUNC(size_t onig_st_memsize(const st_table *));
++#define st_memsize onig_st_memsize
++PUREFUNC(st_index_t onig_st_hash(const void *ptr, size_t len, st_index_t h));
++#define st_hash onig_st_hash
++CONSTFUNC(st_index_t onig_st_hash_uint32(st_index_t h, uint32_t i));
++#define st_hash_uint32 onig_st_hash_uint32
++CONSTFUNC(st_index_t onig_st_hash_uint(st_index_t h, st_index_t i));
++#define st_hash_uint onig_st_hash_uint
++CONSTFUNC(st_index_t onig_st_hash_end(st_index_t h));
++#define st_hash_end onig_st_hash_end
++CONSTFUNC(st_index_t onig_st_hash_start(st_index_t h));
+ #define st_hash_start(h) ((st_index_t)(h))
+ 
+ RUBY_SYMBOL_EXPORT_END

@@ -564,10 +564,8 @@ describe "Regexp with character classes" do
 
   ruby_bug "#19417", ""..."3.4.6" do
     it "matches Unicode join control characters with [[:word:]]" do
-      NATFIXME 'it matches Unicode join control characters with [[:word:]]', exception: SpecFailedException do
-        "\u{200C}".match(/[[:word:]]/).to_a.should == ["\u{200C}"]
-        "\u{200D}".match(/[[:word:]]/).to_a.should == ["\u{200D}"]
-      end
+      "\u{200C}".match(/[[:word:]]/).to_a.should == ["\u{200C}"]
+      "\u{200D}".match(/[[:word:]]/).to_a.should == ["\u{200D}"]
     end
   end
 
