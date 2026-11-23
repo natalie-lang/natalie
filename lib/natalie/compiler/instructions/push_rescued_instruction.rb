@@ -7,6 +7,10 @@ module Natalie
         'push_rescued'
       end
 
+      def generate_llvm(transform)
+        transform.push_call('call i64 @nat_llvm_rescued()')
+      end
+
       def generate(transform)
         transform.push('bool_object(GlobalEnv::the()->rescued())')
       end

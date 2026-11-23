@@ -7,6 +7,10 @@ module Natalie
         'catch'
       end
 
+      def generate_llvm(_)
+        # The enclosing try instruction extracts the handler body.
+      end
+
       def generate(_)
         :noop
       end

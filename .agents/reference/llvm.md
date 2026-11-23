@@ -40,7 +40,7 @@ short-circuit expressions, case matching, string interpolation, regexp literals
 and interpolation, while loops, local/global/instance variables,
 constants, classes/modules, methods with positional/default/rest arguments,
 blocks and lambdas, captured locals, anonymous argument/block forwarding, splat
-calls and yields, and statically resolved Ruby
+calls and yields, rescue/ensure, block breaks and non-local returns, and statically resolved Ruby
 `require`, `require_relative`, and `load`. Escaping closures share locals through
 Natalie's existing GC-managed environments.
 
@@ -69,16 +69,20 @@ Tests include a native extension fixture, C++-to-LLVM block callbacks, linking a
 combined object, and using the actual `tempfile.cpp` implementation directly.
 The full Ruby `tempfile` library still uses unsupported Ruby constructs.
 
-Unsupported instructions fail explicitly. Remaining gaps include rescue/ensure,
-non-local block returns, `break`, loop `next`, keyword parameters, once-only
+Exception bodies and handlers compile to LLVM callbacks that share their caller's
+environment. The C++ bridge catches Ruby exceptions, restores `$!`, runs ensure
+handlers, and reuses Natalie's local-jump exceptions for non-local control flow.
+
+Unsupported instructions fail explicitly. Remaining gaps include loop `break`/`next`,
+`retry`, top-level returns inside exception regions, keyword parameters, once-only
 regexp interpolation (`/o`),
 scoped inline C++, and complete parameter reflection. REPL,
 shared-object output, and `--build-dir` are also unsupported.
 
 The normal ruby/spec runner is **not yet supported**. For example,
 `bin/natalie --backend=llvm spec/core/string/strip_spec.rb` stops at the runner's
-block `break` handling, after passing native-extension, splat, and regexp
-compilation. Supporting that runner still requires more Ruby
+singleton-class operations, after passing native-extension, splat, regexp,
+and exception-region compilation. Supporting that runner still requires more Ruby
 instructions, including forwarding and exception handling. The LLVM tests
 exercise supported Ruby programs directly; they do not replace the spec runner
 or silently use the C++ backend.

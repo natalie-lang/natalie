@@ -114,9 +114,9 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_unsupported_construct_is_rejected_without_fallback
-    _, stderr, status = run_cli('--backend=llvm', '-e', 'begin; raise "error"; rescue; nil; end')
+    _, stderr, status = run_cli('--backend=llvm', '-e', 'p(/#{1}/o)')
     refute status.success?
-    assert_includes stderr, 'LLVM backend does not support try'
+    assert_includes stderr, 'once-only regexp interpolation'
   end
 
   def test_short_circuit_branches_merge_the_entire_stack
@@ -129,7 +129,7 @@ class LlvmBackendTest < Minitest::Test
   def test_spec_runner_reports_remaining_ruby_instruction_boundary
     _, stderr, status = run_cli('--backend=llvm', 'spec/core/string/strip_spec.rb')
     refute status.success?
-    assert_includes stderr, 'LLVM backend does not support break'
+    assert_includes stderr, 'LLVM backend does not support singleton_class'
   end
 
   def native_extension_program
@@ -283,6 +283,41 @@ class LlvmBackendTest < Minitest::Test
     assert_program(
       'p [7, case 2; when 1; 10; when 2; 20; else; 30; end, 8]; a,b = [4,5]; p [a,b]',
       "[7, 20, 8]\n[4, 5]\n",
+    )
+  end
+
+  def test_rescue_results_and_nested_exception_state
+    assert_program(
+      'p [10, (begin; raise "outer"; rescue => e; p $!.message; begin; raise "inner"; rescue; p $!.message; end; p $!.message; 20; end), 30]; p $!',
+      "\"outer\"\n\"inner\"\n\"outer\"\n[10, 20, 30]\nnil\n",
+    )
+  end
+
+  def test_ensure_runs_for_returns_and_block_breaks
+    assert_program(
+      'def f; begin; return 2; ensure; puts :method; end; end; p f; p(1.times { begin; break 4; ensure; puts :block; end }); def g; [1].each { return 8 }; 9; end; p g',
+      "method\n2\nblock\n4\n8\n",
+    )
+  end
+
+  def test_lambda_return_and_block_next_run_ensure
+    assert_program(
+      'f = -> { begin; return 9; ensure; p :lambda; end }; p f.call; p [1,2].map { |x| begin; next x+10; ensure; p x; end }',
+      ":lambda\n9\n1\n2\n[11, 12]\n",
+    )
+  end
+
+  def test_return_from_rescue_and_exception_from_ensure
+    assert_program(
+      'def f; begin; raise "bad"; rescue; return 7; end; end; p f; begin; begin; raise "first"; ensure; raise "second"; end; rescue => e; p e.message; end; p $!',
+      "7\n\"second\"\nnil\n",
+    )
+  end
+
+  def test_exception_regions_share_locals_and_gc_roots
+    assert_program(
+      'x = "persistent"; begin; x = [x * 10]; raise "bad"; rescue; GC.start; p x[0].size; x = 4; ensure; p x; end; p x',
+      "100\n4\n4\n",
     )
   end
 

@@ -28,10 +28,12 @@ module Natalie
       end
 
       def generate_llvm(transform)
-        transform.unsupported(self, 'non-local return') if has_return?
         body = transform.fetch_block_of_instructions(expected_label: :define_block)
-        fn = transform.function(body, scope: env)
-        transform.push_call("call i64 @nat_llvm_block(ptr %env, i64 %self, ptr #{fn}, i32 #{@arity})")
+        point = transform.break_point([:next, env.object_id])
+        fn = transform.function(body, scope: env, return_point: point)
+        transform.push_call(
+          "call i64 @nat_llvm_block(ptr %env, i64 %self, ptr #{fn}, i32 #{@arity}, i64 #{point}, i32 #{has_return? ? 1 : 0})",
+        )
       end
 
       def generate(transform)

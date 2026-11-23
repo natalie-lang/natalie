@@ -71,17 +71,25 @@ using LlvmFn = uint64_t (*)(Env *, uint64_t, Args *, Block *);
 static Value llvm_callback(Env *env, Value self, Args &&args, Block *block) {
     auto address = env->outer()->var_get("llvm_callback", 0).integer().to_nat_int_t();
     auto fn = reinterpret_cast<LlvmFn>(address);
-    return nat_llvm_unpack(fn(env, nat_llvm_pack(self), &args, block));
+    auto return_point = env->outer()->var_get("llvm_return", 1).integer().to_nat_int_t();
+    try {
+        return nat_llvm_unpack(fn(env, nat_llvm_pack(self), &args, block));
+    } catch (ExceptionObject *exception) {
+        if (return_point && exception->is_local_jump_error_with_break_point(return_point))
+            return exception->ivar_get(env, "@exit_value"_s);
+        throw;
+    }
 }
 
-static Block *llvm_block(Env *env, Value self, LlvmFn fn, int arity, bool capture) {
+static Block *llvm_block(Env *env, Value self, LlvmFn fn, int arity, bool capture, int64_t return_point, bool has_return = false) {
     auto closure = Env::create(capture ? Env::create(*env) : nullptr);
     closure->set_lexical_scope(env->lexical_scope());
     closure->set_file(env->file());
     closure->set_line(env->line());
-    closure->build_vars(1);
+    closure->build_vars(2);
     closure->var_set("llvm_callback", 0, true, Value::integer(reinterpret_cast<intptr_t>(fn)));
-    return Block::create(*closure, self, llvm_callback, arity);
+    closure->var_set("llvm_return", 1, true, Value::integer(return_point));
+    return Block::create(*closure, self, llvm_callback, arity, has_return);
 }
 
 extern "C" void nat_llvm_build_vars(Env *env, uint64_t count) {
@@ -104,15 +112,15 @@ extern "C" void nat_llvm_var_set(Env *env, uint64_t depth, uint64_t index, uint6
     llvm_outer(env, depth)->var_set("llvm_local", index, true, nat_llvm_unpack(value));
 }
 
-extern "C" uint64_t nat_llvm_block(Env *env, uint64_t self, LlvmFn fn, int arity) {
-    return nat_llvm_pack(ProcObject::from_block_maybe(llvm_block(env, nat_llvm_unpack(self), fn, arity, true)));
+extern "C" uint64_t nat_llvm_block(Env *env, uint64_t self, LlvmFn fn, int arity, int64_t return_point, int has_return) {
+    return nat_llvm_pack(ProcObject::from_block_maybe(llvm_block(env, nat_llvm_unpack(self), fn, arity, true, return_point, has_return)));
 }
 
-extern "C" void nat_llvm_define_method(Env *env, uint64_t target, const char *name, LlvmFn fn, int arity, const char *file, uint64_t line) {
+extern "C" void nat_llvm_define_method(Env *env, uint64_t target, const char *name, LlvmFn fn, int arity, const char *file, uint64_t line, int64_t return_point) {
     env->set_file(file);
     env->set_line(line);
     auto self = nat_llvm_unpack(target);
-    auto block = llvm_block(env, self, fn, arity, false);
+    auto block = llvm_block(env, self, fn, arity, false, return_point);
     Object::define_method(env, self, SymbolObject::intern(name), block);
     if (self == GlobalEnv::the()->main_obj())
         self.klass()->set_method_visibility(env, SymbolObject::intern(name), GlobalEnv::the()->top_level_method_visibility());
@@ -223,10 +231,10 @@ extern "C" uint64_t nat_llvm_args_pop(Env *env, Args *args, int keywords) {
     return nat_llvm_pack(args->pop(env, keywords));
 }
 
-extern "C" uint64_t nat_llvm_lambda(Env *env, uint64_t proc) {
+extern "C" uint64_t nat_llvm_lambda(Env *env, uint64_t proc, int64_t break_point) {
     auto block = to_block(env, nat_llvm_unpack(proc));
     block->set_type(Block::BlockType::Lambda);
-    return nat_llvm_pack(ProcObject::create(block));
+    return nat_llvm_pack(ProcObject::create(block, break_point));
 }
 
 extern "C" uint64_t nat_llvm_push_block(Env *env, Block *block, int nearest) {
@@ -287,4 +295,43 @@ extern "C" void nat_llvm_string_append(Env *env, uint64_t string, uint64_t part)
 
 extern "C" uint64_t nat_llvm_case_equal(Env *env, uint64_t value, uint64_t pattern, int splat) {
     return nat_llvm_pack(is_case_equal(env, nat_llvm_unpack(value), nat_llvm_unpack(pattern), splat));
+}
+
+// Exception regions keep C++ exception handling in the bridge. LLVM callbacks
+// share their caller's Env, so locals and closures retain their Ruby scope.
+using LlvmRegionFn = uint64_t (*)(Env *, uint64_t, Args *, Block *, uint64_t *, ExceptionObject *);
+extern "C" uint64_t nat_llvm_try(Env *env, uint64_t self, Args *args, Block *block, LlvmRegionFn body, LlvmRegionFn handler, uint64_t *frame, int has_ensure, int discard_catch_result) {
+    try {
+        auto result = body(env, self, args, block, frame, nullptr);
+        GlobalEnv::the()->set_rescued(false);
+        return result;
+    } catch (ExceptionObject *exception) {
+        auto previous = env->exception();
+        Defer restore([&] { env->set_exception(previous); });
+        if (!has_ensure || exception->local_jump_error_type() == LocalJumpErrorType::None)
+            env->set_exception(exception);
+        auto result = handler(env, self, args, block, frame, exception);
+        GlobalEnv::the()->set_rescued(true);
+        if (has_ensure)
+            throw;
+        return discard_catch_result ? nat_llvm_pack(Value::nil()) : result;
+    }
+}
+
+extern "C" void nat_llvm_jump(Env *env, uint64_t value, int is_return, int64_t point) {
+    env->raise_local_jump_error(nat_llvm_unpack(value), is_return ? LocalJumpErrorType::Return : LocalJumpErrorType::Break, point);
+}
+
+extern "C" uint64_t nat_llvm_match_break(Env *env, ExceptionObject *exception, int64_t point) {
+    if (exception->is_local_jump_error_with_break_point(point))
+        return nat_llvm_pack(exception->ivar_get(env, "@exit_value"_s));
+    env->raise_exception(exception);
+}
+
+extern "C" uint64_t nat_llvm_match_exception(Env *env, ExceptionObject *exception, uint64_t patterns) {
+    return nat_llvm_pack(exception->match_rescue_array(env, nat_llvm_unpack(patterns)));
+}
+
+extern "C" uint64_t nat_llvm_rescued() {
+    return nat_llvm_pack(bool_object(GlobalEnv::the()->rescued()));
 }

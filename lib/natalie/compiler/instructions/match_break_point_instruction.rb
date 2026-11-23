@@ -13,6 +13,12 @@ module Natalie
         "match_break_point #{@break_point}"
       end
 
+      def generate_llvm(transform)
+        transform.push_call(
+          "call i64 @nat_llvm_match_break(ptr %env, ptr %exception, i64 #{transform.break_point(@break_point)})",
+        )
+      end
+
       def generate(transform)
         value = transform.temp('break_value')
         code = [

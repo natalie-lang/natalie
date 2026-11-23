@@ -8,9 +8,7 @@ module Natalie
       end
 
       def generate_llvm(transform)
-        transform.emit "ret i64 #{transform.pop}"
-        transform.emit "#{transform.name('unreachable')}:"
-        transform.push('4')
+        transform.return_value(transform.pop)
       end
 
       def generate(transform)
