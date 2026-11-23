@@ -58,6 +58,13 @@ Use `-d code` to print generated LLVM IR and any native sidecar sources.
 cached builds retain IR in their build directory. `-d S` emits and prints assembly
 for each Ruby compilation unit and any native sidecar.
 
+Debug and sanitized builds emit DWARF with Ruby filenames, line numbers, method
+names, and native callback parameters. Methods, blocks, required files, and
+rescue/ensure callbacks retain their source positions. Pass1 records positions
+on existing instructions, and instruction replacements inherit them.
+Use `--build-dir` to retain debug objects for native debuggers, particularly on
+macOS. Ruby local-variable presentation is not yet implemented.
+
 Release builds run LLVM's `default<O3>` optimization pipeline and use aggressive
 target code generation. Debug and sanitized builds retain unoptimized LLVM
 code. Build mode participates in the object cache key. Volatile stack roots

@@ -138,13 +138,20 @@ module Natalie
       def transform_expression(node, used:, **kwargs)
         case node
         when ::Prism::Node
+          location = [@file.path, node.location.start_line] if node.location
           node = expand_macros(node) if node.type == :call_node
-          return transform_expression(node, used: used) unless node.is_a?(::Prism::Node)
+          unless node.is_a?(::Prism::Node)
+            instructions = transform_expression(node, used: used)
+            instructions.each { |instruction| instruction.source_location ||= location } if location
+            return instructions
+          end
           @depth += 1 unless node.type == :statements_node
           method = "transform_#{node.type}"
           result = track_scope(node) { send(method, node, used: used, **kwargs) }
           @depth -= 1 unless node.type == :statements_node
-          Array(result).flatten
+          instructions = Array(result).flatten
+          instructions.each { |instruction| instruction.source_location ||= location } if location
+          instructions
         when Array
           if %i[load_file autoload_const].include?(node.first)
             # TODO: remove this kludge and change these fake node types to CallNode or something else

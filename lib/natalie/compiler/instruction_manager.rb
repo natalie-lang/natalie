@@ -59,6 +59,8 @@ module Natalie
       def replace_at(ip, new_instructions)
         raise 'expected array of instructions' unless new_instructions.all? { |i| i.is_a?(BaseInstruction) }
 
+        location = @instructions[ip]&.source_location
+        new_instructions.each { |instruction| instruction.source_location ||= location }
         @instructions[ip, 1] = new_instructions
         EnvBuilder.new(new_instructions, env: @env).process
       end

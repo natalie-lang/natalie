@@ -8,7 +8,8 @@ module Natalie
       class Units
         attr_reader :sources
 
-        def initialize(required_files:, native_extensions:, namespace: nil)
+        def initialize(required_files:, native_extensions:, namespace: nil, debug_info: false)
+          @debug_info = debug_info
           @namespace = namespace ? "#{namespace}_" : ''
           @required_files = required_files
           @native_extensions = native_extensions
@@ -39,6 +40,7 @@ module Natalie
             required_files: @required_files,
             native_extensions: @native_extensions,
             units: self,
+            debug_info: @debug_info,
           ).generate
         end
       end

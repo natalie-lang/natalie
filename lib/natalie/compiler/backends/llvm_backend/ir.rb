@@ -1,3 +1,5 @@
+require_relative 'debug_info'
+
 module Natalie
   class Compiler
     class LlvmBackend
@@ -110,7 +112,10 @@ module Natalie
           module_entry: false,
           region_stack: nil,
           return_point: nil,
-          loop_points: nil
+          loop_points: nil,
+          debug_info: false,
+          debug_name: nil,
+          source_location: nil
         )
           @instructions = instructions
           @source_path = source_path
@@ -129,6 +134,7 @@ module Natalie
                 external_files: {
                 },
                 unit_main: function_name == 'nat_llvm_eval',
+                debug: debug_info ? DebugInfo.new(source_path) : nil,
               }
           @globals = @shared[:globals]
           @function_name = function_name
@@ -143,6 +149,15 @@ module Natalie
           @return_point =
             return_point || ((@function_name == 'nat_llvm_eval' || module_entry) ? file_return_point : nil)
           @loop_points = loop_points
+          @debug = @shared[:debug]
+          @debug_name = debug_name || '<main>'
+          @function_location =
+            source_location || @instructions.to_a.find { |i| i.source_location }&.source_location || [@source_path, 1]
+          @location = @function_location
+          @parameters = %w[env self]
+          @parameters += %w[args block] unless @function_name == 'nat_llvm_eval'
+          @parameters += %w[frame exception] if @region_stack
+          @subprogram = @debug&.function(@debug_name, *@function_location, @parameters)
         end
 
         def generate
@@ -163,25 +178,33 @@ module Natalie
           unless @region_stack
             build_vars = @function_name == 'nat_llvm_eval' && @shared[:repl] ? 'grow_vars' : 'build_vars'
             @body.unshift(
-              "  call void @nat_llvm_#{build_vars}(ptr %env, i64 #{@scope_env.fetch(:vars).size + anonymous.size})",
+              code_line(
+                "call void @nat_llvm_#{build_vars}(ptr %env, i64 #{@scope_env.fetch(:vars).size + anonymous.size})",
+                @function_location,
+              ),
             )
           end
           if @function_name == 'nat_llvm_eval' && @native_extensions&.active?
-            @body.unshift("  call void @#{@native_extensions.initializer_name}(ptr %env, i64 %self)")
+            @body.unshift(
+              code_line("call void @#{@native_extensions.initializer_name}(ptr %env, i64 %self)", @function_location),
+            )
           end
           if @function_name == 'nat_llvm_eval' || @module_entry
             symbols =
               @shared
                 .fetch(:source_symbols, {})
-                .map { |name, pointer| "  call i64 @nat_llvm_symbol(ptr #{pointer}, i64 #{name.bytesize})" }
+                .map do |name, pointer|
+                  code_line("call i64 @nat_llvm_symbol(ptr #{pointer}, i64 #{name.bytesize})", @function_location)
+                end
             @body.unshift(*symbols)
           end
           result = @stack.last || 4
           emit "ret i64 #{result}"
           function = <<~LLVM
-            define #{@module_entry ? 'hidden' : 'internal'} i64 @#{@function_name == 'nat_llvm_eval' ? 'nat_llvm_eval_body' : @function_name}(ptr %env, i64 %self#{@function_name == 'nat_llvm_eval' ? '' : ', ptr %args, ptr %block'}#{@region_stack ? ', ptr %frame, ptr %exception' : ''}) uwtable {
+            define #{@module_entry ? 'hidden' : 'internal'} i64 @#{llvm_function_name}(ptr %env, i64 %self#{@function_name == 'nat_llvm_eval' ? '' : ', ptr %args, ptr %block'}#{@region_stack ? ', ptr %frame, ptr %exception' : ''}) uwtable#{@subprogram ? " !dbg #{@subprogram}" : ''} {
             entry:
             #{@allocas.join("\n")}
+            #{@debug&.parameters(@subprogram, *@function_location, @parameters)}
             #{@body.join("\n")}
             }
           LLVM
@@ -191,13 +214,14 @@ module Natalie
             ; Source: #{@source_path.inspect}
             #{@globals.join("\n")}
             #{DECLARATIONS}
+            #{@debug ? 'declare void @llvm.dbg.value(metadata, metadata, metadata)' : ''}
             #{@native_extensions&.declarations(wrappers: @shared[:units] ? @shared[:native_wrappers] : nil, include_init: !@shared[:units] || @function_name == 'nat_llvm_eval')}
             #{@shared[:external_files].values.join("\n")}
             #{@shared[:functions].join("\n")}
             #{function}
           LLVM
-          return output if @module_entry
-          output + <<~LLVM
+          return output + (@debug&.generate || '') if @module_entry
+          output + <<~LLVM + (@debug&.generate || '')
             define #{@shared[:module_initializer] || @shared[:repl] ? 'hidden ' : ''}i64 @#{@shared[:entrypoint]}(ptr %env, i64 %self) uwtable {
             entry:
               %result = call i64 @nat_llvm_catch_return(ptr %env, i64 %self, ptr @nat_llvm_eval_body, i64 #{@return_point})
@@ -217,7 +241,11 @@ module Natalie
           env
         end
 
-        def function(body, scope:, return_point: nil)
+        def llvm_function_name
+          @function_name == 'nat_llvm_eval' ? 'nat_llvm_eval_body' : @function_name
+        end
+
+        def function(body, scope:, return_point: nil, debug_name: nil, source_location: @location)
           fn = name('fn')
           @shared[:functions] << self
             .class
@@ -230,6 +258,8 @@ module Natalie
               return_point: return_point,
               required_files: @required_files,
               native_extensions: @native_extensions,
+              debug_name: debug_name || "#{@debug_name} (scope)",
+              source_location: source_location,
             )
             .generate
           "@#{fn}"
@@ -286,6 +316,8 @@ module Natalie
               region_stack: baseline,
               loop_points: @loop_points,
               return_point: @return_point,
+              debug_name: "#{@debug_name} (callback)",
+              source_location: @location,
             )
           @shared[:functions] << child.generate
           ["@#{fn}", [child.stack.size - 1, 0].max]
@@ -347,6 +379,7 @@ module Natalie
               return_point: file_return_point(path),
               required_files: @required_files,
               native_extensions: @native_extensions,
+              debug_name: "<required #{File.basename(path)}>",
             )
             .generate
           "@#{fn}"
@@ -395,7 +428,10 @@ module Natalie
           previous = @current_instructions
           @current_instructions =
             instructions.is_a?(InstructionManager) ? instructions : InstructionManager.new(instructions)
-          @current_instructions.walk { |instruction| instruction.generate_llvm(self) }
+          @current_instructions.walk do |instruction|
+            @location = instruction.source_location || @location
+            instruction.generate_llvm(self)
+          end
         ensure
           @current_instructions = previous
         end
@@ -519,8 +555,16 @@ module Natalie
           end
         end
 
+        def code_line(line, location = @location)
+          if @debug && !line.end_with?(':')
+            "  #{line}, !dbg #{@debug.location(@subprogram, *location)}"
+          else
+            "  #{line}"
+          end
+        end
+
         def emit(line)
-          @body << "  #{line}"
+          @body << code_line(line)
         end
 
         def unsupported(instruction, reason = nil)

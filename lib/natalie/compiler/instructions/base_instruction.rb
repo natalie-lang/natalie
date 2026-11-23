@@ -24,7 +24,8 @@ module Natalie
         transform.unsupported(self)
       end
 
-      attr_accessor :env
+      # source_location is [file, line], retained through instruction rewrites.
+      attr_accessor :env, :source_location
 
       private
 

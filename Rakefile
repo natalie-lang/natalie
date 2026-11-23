@@ -14,6 +14,7 @@ desc 'Test the experimental LLVM backend (requires a built Natalie runtime and s
 task test_llvm: %i[libnat llvm_runtime] do
   ruby 'test/llvm_backend_test.rb'
   ruby 'test/llvm_build_dir_test.rb'
+  ruby 'test/llvm_debug_info_test.rb'
   ruby 'test/llvm_spec_runner_test.rb'
   sh({ 'NAT_REPL_TEST_BACKEND' => 'llvm' }, RbConfig.ruby, 'test/ruby/repl_test.rb')
 end

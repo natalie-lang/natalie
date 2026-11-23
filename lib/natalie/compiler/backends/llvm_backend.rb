@@ -33,6 +33,7 @@ module Natalie
             entrypoint: entrypoint_name,
             repl: @compiler.repl?,
             units: units,
+            debug_info: @compiler.build != 'release',
           ).generate
       end
 
@@ -189,6 +190,7 @@ module Natalie
             required_files: @compiler_context.fetch(:required_ruby_files),
             native_extensions: @native_extensions,
             namespace: object_namespace,
+            debug_info: @compiler.build != 'release',
           )
       end
 
