@@ -1,4 +1,5 @@
 require_relative './lib/natalie/compiler/flags'
+require 'shellwords'
 begin
   require 'syntax_tree/rake_tasks'
 rescue LoadError
@@ -97,8 +98,23 @@ end
 task distclean: :clobber
 
 desc 'Run the test suite'
-task test: %i[build build_test_support] do
+task test: %i[build build_test_support test_onigmo] do
   sh 'bundle exec ruby test/all.rb'
+end
+
+desc 'Test the vendored Onigmo library'
+task test_onigmo: 'build/onigmo/lib/libonigmo.a' do
+  mkdir_p 'test/build'
+  sh(
+    *Shellwords.split(cc),
+    '-std=gnu17',
+    '-Iext/onigmo',
+    'test/onigmo/case_map_test.c',
+    'build/onigmo/lib/libonigmo.a',
+    '-o',
+    'test/build/onigmo_case_map_test',
+  )
+  sh 'test/build/onigmo_case_map_test'
 end
 
 desc 'Run the most-recently-modified test'
@@ -424,7 +440,12 @@ end
 # # # # Internal Tasks and Rules # # # #
 
 STANDARD = 'c++17'.freeze
-HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
+HEADERS = Rake::FileList['include/**/{*.h,*.hpp}'] + ['build/onigmo/include/onigmo.h']
+
+file 'build/onigmo/include/onigmo.h' => 'build/onigmo/lib/libonigmo.a' do |t|
+  mkdir_p File.dirname(t.name)
+  cp 'ext/onigmo/onigmo.h', t.name
+end
 
 PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp', 'src/des_tables.c')
 RUBY_SOURCES = Rake::FileList['src/**/*.rb']
@@ -518,19 +539,37 @@ file "build/libnatalie_base.#{DL_EXT}" => OBJECT_FILES + HEADERS do |t|
   sh "#{cxx} -shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup -o #{t.name} #{OBJECT_FILES}"
 end
 
-file 'build/onigmo/lib/libonigmo.a' do
+ONIGMO_SOURCES = (Dir['ext/onigmo/enc/*.c'] + Dir['ext/onigmo/*.c']).freeze
+ONIGMO_INPUTS = (Dir['ext/onigmo/**/*'] + ['Rakefile']).select { |path| File.file?(path) }.freeze
+
+file 'build/onigmo/lib/libonigmo.a' => ONIGMO_INPUTS do
   build_dir = File.expand_path('build/onigmo', __dir__)
-  patch_path = File.expand_path('ext/onigmo.patch', __dir__)
   rm_rf build_dir
-  cp_r 'ext/onigmo', build_dir
-  sh <<-SH
-    cd #{build_dir} && \
-    sh autogen.sh && \
-    ./configure --with-pic --prefix #{build_dir} && \
-    git apply #{patch_path} && \
-    make -j CFLAGS="-std=gnu17" && \
-    make install
-  SH
+  mkdir_p "#{build_dir}/lib"
+  mkdir_p "#{build_dir}/include"
+  mkdir_p "#{build_dir}/obj"
+  objects =
+    ONIGMO_SOURCES.map do |source|
+      object = "#{build_dir}/obj/#{File.basename(source, '.c')}.o"
+      sh(
+        *Shellwords.split(cc),
+        '-std=gnu17',
+        '-fPIC',
+        '-DNOT_RUBY',
+        '-DUNALIGNED_WORD_ACCESS=0',
+        '-Iext/onigmo',
+        '-Iext/onigmo/compat',
+        '-Iext/onigmo/enc/unicode/17.0.0',
+        '-c',
+        source,
+        '-o',
+        object,
+      )
+      object
+    end
+  rm_f "#{build_dir}/lib/libonigmo.a"
+  sh 'ar', 'rcs', "#{build_dir}/lib/libonigmo.a", *objects
+  cp 'ext/onigmo/onigmo.h', "#{build_dir}/include/onigmo.h"
 end
 
 file 'build/zlib/libz.a' do
@@ -587,7 +626,7 @@ file 'bin/nat' => LIBNAT_SOURCES + %w[bin/natalie build/libnatalie.a] do
   sh 'bin/natalie --build-dir=build/libnat -c bin/nat bin/natalie'
 end
 
-file "build/libnat.#{SO_EXT}" => LIBNAT_SOURCES do |t|
+file "build/libnat.#{SO_EXT}" => LIBNAT_SOURCES + ['build/libnatalie.a'] do |t|
   if system('pkg-config --exists libffi')
     ffi_cxx_flags = `pkg-config --cflags libffi`.chomp
     ffi_ld_flags = `pkg-config --libs libffi`.chomp

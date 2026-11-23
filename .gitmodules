@@ -1,6 +1,3 @@
-[submodule "ext/onigmo"]
-	path = ext/onigmo
-	url = https://github.com/k-takata/Onigmo.git
 [submodule "ext/tm"]
 	path = ext/tm
 	url = https://github.com/seven1m/tm

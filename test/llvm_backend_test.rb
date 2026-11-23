@@ -339,6 +339,16 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
+  def test_binary_regexp_literals
+    assert_program(<<~'RUBY', "ASCII-8BIT\ntrue\nnil\n")
+      # encoding: binary
+      pattern = /\xAA/
+      puts pattern.encoding.name
+      p pattern.match?("\xAA")
+      p pattern.match("\nA")
+    RUBY
+  end
+
   def test_case_matching_keeps_other_expression_operands
     assert_program(
       'p [7, case 2; when 1; 10; when 2; 20; else; 30; end, 8]; a,b = [4,5]; p [a,b]',

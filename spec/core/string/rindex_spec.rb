@@ -216,19 +216,17 @@ end
 
 describe "String#rindex with Regexp" do
   it "behaves the same as String#rindex(string) for escaped string regexps" do
-    NATFIXME "I don't think this will work with upstream Onigmo.", exception: SpecFailedException do
-      ["blablabla", "hello cruel world...!"].each do |str|
-        ["", "b", "bla", "lab", "o c", "d."].each do |needle|
-          regexp = Regexp.new(Regexp.escape(needle))
-          str.rindex(regexp).should == str.rindex(needle)
+    ["blablabla", "hello cruel world...!"].each do |str|
+      ["", "b", "bla", "lab", "o c", "d."].each do |needle|
+        regexp = Regexp.new(Regexp.escape(needle))
+        str.rindex(regexp).should == str.rindex(needle)
 
-          0.upto(str.size + 1) do |start|
-            str.rindex(regexp, start).should == str.rindex(needle, start)
-          end
+        0.upto(str.size + 1) do |start|
+          str.rindex(regexp, start).should == str.rindex(needle, start)
+        end
 
-          (-str.size - 1).upto(-1) do |start|
-            str.rindex(regexp, start).should == str.rindex(needle, start)
-          end
+        (-str.size - 1).upto(-1) do |start|
+          str.rindex(regexp, start).should == str.rindex(needle, start)
         end
       end
     end
@@ -276,36 +274,34 @@ describe "String#rindex with Regexp" do
   end
 
   it "starts the search at the given offset" do
-    NATFIXME 'Onigmo cannot handle this case. CRuby has forked Onigmo and the patches have not gone upstream.', exception: SpecFailedException do
-      "blablabla".rindex(/.{0}/, 5).should == 5
-      "blablabla".rindex(/.{1}/, 5).should == 5
-      "blablabla".rindex(/.{2}/, 5).should == 5
-      "blablabla".rindex(/.{3}/, 5).should == 5
-      "blablabla".rindex(/.{4}/, 5).should == 5
+    "blablabla".rindex(/.{0}/, 5).should == 5
+    "blablabla".rindex(/.{1}/, 5).should == 5
+    "blablabla".rindex(/.{2}/, 5).should == 5
+    "blablabla".rindex(/.{3}/, 5).should == 5
+    "blablabla".rindex(/.{4}/, 5).should == 5
 
-      "blablabla".rindex(/.{0}/, 3).should == 3
-      "blablabla".rindex(/.{1}/, 3).should == 3
-      "blablabla".rindex(/.{2}/, 3).should == 3
-      "blablabla".rindex(/.{5}/, 3).should == 3
-      "blablabla".rindex(/.{6}/, 3).should == 3
+    "blablabla".rindex(/.{0}/, 3).should == 3
+    "blablabla".rindex(/.{1}/, 3).should == 3
+    "blablabla".rindex(/.{2}/, 3).should == 3
+    "blablabla".rindex(/.{5}/, 3).should == 3
+    "blablabla".rindex(/.{6}/, 3).should == 3
 
-      "blablabla".rindex(/.l./, 0).should == 0
-      "blablabla".rindex(/.l./, 1).should == 0
-      "blablabla".rindex(/.l./, 2).should == 0
-      "blablabla".rindex(/.l./, 3).should == 3
+    "blablabla".rindex(/.l./, 0).should == 0
+    "blablabla".rindex(/.l./, 1).should == 0
+    "blablabla".rindex(/.l./, 2).should == 0
+    "blablabla".rindex(/.l./, 3).should == 3
 
-      "blablablax".rindex(/.x/, 10).should == 8
-      "blablablax".rindex(/.x/, 9).should == 8
-      "blablablax".rindex(/.x/, 8).should == 8
+    "blablablax".rindex(/.x/, 10).should == 8
+    "blablablax".rindex(/.x/, 9).should == 8
+    "blablablax".rindex(/.x/, 8).should == 8
 
-      "blablablax".rindex(/..x/, 10).should == 7
-      "blablablax".rindex(/..x/, 9).should == 7
-      "blablablax".rindex(/..x/, 8).should == 7
-      "blablablax".rindex(/..x/, 7).should == 7
+    "blablablax".rindex(/..x/, 10).should == 7
+    "blablablax".rindex(/..x/, 9).should == 7
+    "blablablax".rindex(/..x/, 8).should == 7
+    "blablablax".rindex(/..x/, 7).should == 7
 
-      not_supported_on :opal do
-        "blablabla\n".rindex(/\Z/, 9).should == 9
-      end
+    not_supported_on :opal do
+      "blablabla\n".rindex(/\Z/, 9).should == 9
     end
   end
 
@@ -335,25 +331,23 @@ describe "String#rindex with Regexp" do
 
   not_supported_on :opal do
     it "supports \\G which matches at the given start offset" do
-      NATFIXME 'Add \G support', exception: SpecFailedException, message: /should be ==/ do
-        "helloYOU.".rindex(/YOU\G/, 8).should == 5
-        "helloYOU.".rindex(/YOU\G/).should == nil
+      "helloYOU.".rindex(/YOU\G/, 8).should == 5
+      "helloYOU.".rindex(/YOU\G/).should == nil
 
-        idx = "helloYOUall!".index("YOU")
-        re = /YOU.+\G.+/
-        # The # marks where \G will match.
-        [
-          ["helloYOU#all.", nil],
-          ["helloYOUa#ll.", idx],
-          ["helloYOUal#l.", idx],
-          ["helloYOUall#.", idx],
-          ["helloYOUall.#", nil]
-        ].each do |i|
-          start = i[0].index("#")
-          str = i[0].delete("#")
+      idx = "helloYOUall!".index("YOU")
+      re = /YOU.+\G.+/
+      # The # marks where \G will match.
+      [
+        ["helloYOU#all.", nil],
+        ["helloYOUa#ll.", idx],
+        ["helloYOUal#l.", idx],
+        ["helloYOUall#.", idx],
+        ["helloYOUall.#", nil]
+      ].each do |i|
+        start = i[0].index("#")
+        str = i[0].delete("#")
 
-          str.rindex(re, start).should == i[1]
-        end
+        str.rindex(re, start).should == i[1]
       end
     end
   end
