@@ -2,6 +2,11 @@
 
 Prefer imported ruby/spec coverage that matches MRI behavior. Use `NATFIXME` for known unsupported cases instead of commenting out tests. Name specs `*_spec.rb` and custom tests `*_test.rb`. Host integration tests use Minitest.
 
+Keep files under `spec/` aligned with upstream ruby/spec. Put Natalie-specific
+regression cases and other custom tests under `test/`; do not add them to the
+imported spec files. Existing `NATFIXME` markers may be removed when their
+upstream examples pass.
+
 Use MRI as the semantic reference when comparing backends. If a comparison
 exposes a C++ backend bug, fix it rather than reproducing the bug in LLVM.
 Remove resolved `NATFIXME` markers and keep regression coverage for both backends.
