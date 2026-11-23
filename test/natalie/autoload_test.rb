@@ -3,6 +3,10 @@ require_relative '../spec_helper'
 $LOAD_PATH << File.expand_path('../support', __dir__)
 
 module Foo
+  ExistingNil = nil
+  ExistingFalse = false
+  autoload :ExistingNil, 'autoload/query'
+  autoload :ExistingFalse, 'autoload/query'
   autoload :Simple, 'autoload/simple'
   autoload :UpALevel, 'autoload/up_a_level'
   autoload :Nested, 'autoload/nested'
@@ -10,13 +14,33 @@ module Foo
   autoload :Query, 'autoload/query'
   autoload :SameFile1, 'autoload/same_file'
   autoload :SameFile2, 'autoload/same_file'
+  autoload :Removable, 'autoload/query'
 end
 
 describe 'autoload' do
+  it 'preserves existing constants, including nil and false values' do
+    Foo.autoload?(:ExistingNil).should == nil
+    Foo.autoload?(:ExistingFalse).should == nil
+    Foo::ExistingNil.should == nil
+    Foo::ExistingFalse.should == false
+  end
+
+  it 'returns nil when an unloaded registration is removed' do
+    Foo.send(:remove_const, :Removable).should == nil
+    Foo.autoload?(:Removable).should == nil
+  end
+
   it 'loads the file when the constant is referenced' do
     $foo_simple_loaded.should == nil
     Foo::Simple.should be_an_instance_of(Class)
     $foo_simple_loaded.should == true
+  end
+
+  it 'preserves a previously autoloaded constant when registered again' do
+    original = Foo::Simple
+    Foo.module_eval { autoload :Simple, 'autoload/simple' }
+    Foo::Simple.should equal(original)
+    Foo.autoload?(:Simple).should == nil
   end
 
   it 'searches up the module hierarchy for the constant' do

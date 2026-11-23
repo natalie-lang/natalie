@@ -268,6 +268,8 @@ Value ModuleObject::const_set(SymbolObject *name, Value val) {
 Value ModuleObject::const_set(SymbolObject *name, MethodFnPtr autoload_fn, StringObject *autoload_path) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
+    if (auto constant = m_constants.get(name); constant && constant->value())
+        return Value::nil();
     m_constants.put(name, new Constant { name, autoload_fn, autoload_path });
     return Value::nil();
 }
@@ -282,6 +284,8 @@ Value ModuleObject::const_set(Env *env, Value name, Value val) {
 Value ModuleObject::const_set(SymbolObject *name, Block *autoload_block, StringObject *autoload_path) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
+    if (auto constant = m_constants.get(name); constant && constant->value())
+        return Value::nil();
     m_constants.put(name, new Constant { name, autoload_block, autoload_path });
     return Value::nil();
 }
@@ -300,7 +304,7 @@ Value ModuleObject::remove_const(Env *env, Value name) {
     if (!constant)
         env->raise("NameError", "constant {} not defined", name_as_sym->string());
     remove_const(name_as_sym);
-    return constant->value().value();
+    return constant->value().value_or(Value::nil());
 }
 
 Value ModuleObject::constants(Env *env, Optional<Value> inherit) const {
