@@ -1,6 +1,6 @@
 require 'tempfile'
 require 'shellwords'
-require_relative './pkg_config'
+require_relative '../../native_build'
 require_relative '../../advisory_lock'
 require_relative '../../flags'
 require_relative '../../string_to_cpp'
@@ -10,7 +10,8 @@ module Natalie
     class CppBackend
       class OutFile
         include Flags
-        include PkgConfig
+        include NativeBuild
+        include NativeBuild::PkgConfig
         include StringToCpp
 
         ROOT_DIR = File.expand_path('../../../../../', __dir__)

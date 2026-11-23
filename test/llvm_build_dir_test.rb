@@ -236,7 +236,7 @@ class LlvmBuildDirTest < Minitest::Test
       executable = File.join(dir, 'program')
       compiler = Natalie::Compiler.new(ast: nil, path: '-e')
       compiler.out_path = executable
-      Natalie::Compiler::CppBackend::Linker.new(
+      Natalie::Compiler::NativeBuild::Linker.new(
         in_paths: [object, *Natalie::Compiler::LlvmBackend::RUNTIME_OBJECTS],
         out_path: executable,
         compiler: compiler,

@@ -1,6 +1,6 @@
 module Natalie
   class Compiler
-    class CppBackend
+    module NativeBuild
       module PkgConfig
         PACKAGES_REQUIRING_PKG_CONFIG = %w[openssl libffi yaml-0.1].freeze
 

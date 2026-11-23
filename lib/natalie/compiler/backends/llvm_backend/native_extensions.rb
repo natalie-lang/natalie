@@ -71,7 +71,7 @@ module Natalie
           @compiler = compiler
           @backend = backend
           prefix = 'llvm_ext_'
-          prefix += "#{CppBackend.object_name(compiler.out_path)}_" if compiler.compilation_type == 'shared-object'
+          prefix += "#{NativeBuild.object_name(compiler.out_path)}_" if compiler.compilation_type == 'shared-object'
           prefix += "repl#{compiler.repl_num}_" if compiler.repl?
           @data = CppBackend::TransformData.new(var_prefix: prefix)
           @wrappers = []
@@ -138,7 +138,7 @@ module Natalie
 
         def merge_objects(paths, output)
           command = [*Shellwords.split(ENV.fetch('CXX', 'c++')), '-r', '-nostdlib']
-          command << '-no-pie' unless CppBackend::DARWIN
+          command << '-no-pie' unless NativeBuild::DARWIN
           command.concat([*paths, '-o', output])
           puts command.shelljoin if @compiler.debug == 'cc-cmd'
           output = `#{command.shelljoin} 2>&1`

@@ -72,7 +72,7 @@ module Natalie
           objects = [object, *runtime_objects]
           if @native_extensions.active? || library?
             native_object = File.join(dir, 'native.o')
-            initializer = CppBackend.object_name(@compiler.out_path) if shared_library?
+            initializer = NativeBuild.object_name(@compiler.out_path) if shared_library?
             @native_extensions.compile(native_object, library_initializer: initializer)
             objects << native_object
           end
@@ -91,7 +91,7 @@ module Natalie
           end
         if @native_extensions.active? || library?
           out = @native_extensions.out_file
-          out.library_initializer = CppBackend.object_name(@compiler.out_path) if shared_library?
+          out.library_initializer = NativeBuild.object_name(@compiler.out_path) if shared_library?
           paths << out.write_source_to_tempfile
         end
         paths
@@ -129,7 +129,7 @@ module Natalie
         units.sources.each { |path, source| objects << build_cache.llvm_object(Units.id(path), source, native) }
         if @native_extensions.active? || library?
           out = @native_extensions.out_file
-          out.library_initializer = CppBackend.object_name(@compiler.out_path) if shared_library?
+          out.library_initializer = NativeBuild.object_name(@compiler.out_path) if shared_library?
           objects << build_cache.native_object(out)
         end
         objects
@@ -137,7 +137,7 @@ module Natalie
 
       def link(objects)
         puts 'linking...' if @compiler.build_dir && !@compiler.build_quietly?
-        CppBackend::Linker.new(
+        NativeBuild::Linker.new(
           in_paths: objects,
           out_path: @compiler.out_path,
           compiler: @compiler,

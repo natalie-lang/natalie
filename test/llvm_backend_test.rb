@@ -209,7 +209,7 @@ class LlvmBackendTest < Minitest::Test
     assert status.success?, stderr
     symbols, stderr, status = Open3.capture3('nm', '-g', path)
     assert status.success?, stderr
-    initializer = Natalie::Compiler::CppBackend.object_name(path)
+    initializer = Natalie::Compiler::NativeBuild.object_name(path)
     symbol = symbols.lines.map { |line| line.split.last }.find { |name| name&.include?("init_#{initializer}") }
     refute_nil symbol, symbols
     symbol = symbol.delete_prefix('_') if RUBY_PLATFORM.include?('darwin')
@@ -470,7 +470,7 @@ class LlvmBackendTest < Minitest::Test
       linked = File.join(dir, 'from-object')
       compiler = Natalie::Compiler.new(ast: nil, path: '-e')
       compiler.out_path = linked
-      Natalie::Compiler::CppBackend::Linker.new(
+      Natalie::Compiler::NativeBuild::Linker.new(
         in_paths: [object, *Natalie::Compiler::LlvmBackend::RUNTIME_OBJECTS],
         out_path: linked,
         compiler: compiler,

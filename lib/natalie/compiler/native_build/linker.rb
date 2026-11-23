@@ -1,11 +1,11 @@
 require 'tempfile'
 require 'shellwords'
-require_relative '../../flags'
+require_relative '../flags'
 require_relative './pkg_config'
 
 module Natalie
   class Compiler
-    class CppBackend
+    module NativeBuild
       class Linker
         include PkgConfig
         include Flags
