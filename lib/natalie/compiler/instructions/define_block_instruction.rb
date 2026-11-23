@@ -18,7 +18,7 @@ module Natalie
       def has_return? = !!@has_return
 
       attr_reader :arity, :parameters
-      attr_accessor :has_return
+      attr_accessor :has_return, :redo_point
 
       def to_s
         s = 'define_block'
@@ -32,7 +32,7 @@ module Natalie
         point = transform.break_point([:next, env.object_id])
         fn = transform.function(body, scope: env, return_point: point)
         transform.push_call(
-          "call i64 @nat_llvm_block(ptr %env, i64 %self, ptr #{fn}, i32 #{@arity}, i64 #{point}, i32 #{has_return? ? 1 : 0})",
+          "call i64 @nat_llvm_block(ptr %env, i64 %self, ptr #{fn}, i32 #{@arity}, i64 #{point}, i32 #{has_return? ? 1 : 0}, i64 #{@redo_point ? transform.break_point(@redo_point) : 0})",
         )
       end
 
@@ -42,7 +42,15 @@ module Natalie
         transform.with_new_scope(body) do |t|
           body = []
           body << "Value #{fn}(Env *env, Value self, Args &&args, Block *block) {"
+          body << 'try {' if @redo_point
           body << t.transform('return')
+          if @redo_point
+            body << '} catch (ExceptionObject *exception) {'
+            body << "if (!exception->is_local_jump_error_with_break_point(#{@redo_point})) throw;"
+            body << 'FiberObject::current()->set_redo_flag();'
+            body << 'return Value::nil();'
+            body << '}'
+          end
           body << '}'
           transform.top(fn, body)
         end

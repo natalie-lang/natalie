@@ -3,7 +3,7 @@ require_relative './env_builder'
 
 module Natalie
   class Compiler
-    # This compiler pass sets up needed break points to handle `return` from a block.
+    # Set up scoped jumps for returns and redo across blocks and ensure handlers.
     # You can debug this pass with the `-d p4` CLI flag.
     class Pass4 < BasePass
       def initialize(instructions, **)
@@ -71,6 +71,25 @@ module Natalie
         @instructions.replace_current([break_instruction])
       end
 
+      # Like return, redo must unwind through intervening ensure handlers.
+      # Catch the scoped jump at the block/loop boundary, then request replay.
+      def transform_redo(instruction)
+        scope = @env
+        has_ensure = false
+        until scope.nil? || %i[define_block while].include?(scope[:type])
+          has_ensure ||= scope[:has_ensure]
+          scope = scope[:outer]
+        end
+        return unless scope && has_ensure
+
+        scope[:redo_break_point] ||= @instructions.next_break_point
+        instruction.redo_point = scope.fetch(:redo_break_point)
+      end
+
+      def transform_end_while(instruction)
+        instruction.matching_instruction.redo_point = @env[:redo_break_point]
+      end
+
       def transform_end_define_method(instruction)
         define_method_instruction = instruction.matching_instruction
         if define_method_instruction.env[:return_break_point]
@@ -87,6 +106,7 @@ module Natalie
 
       def transform_end_define_block(instruction)
         instruction.matching_instruction.has_return = true if @env[:has_return]
+        instruction.matching_instruction.redo_point = @env[:redo_break_point]
       end
 
       class << self

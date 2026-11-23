@@ -75,20 +75,26 @@ static Value llvm_callback(Env *env, Value self, Args &&args, Block *block) {
     try {
         return nat_llvm_unpack(fn(env, nat_llvm_pack(self), &args, block));
     } catch (ExceptionObject *exception) {
+        auto redo_point = env->outer()->var_get("llvm_redo", 2).integer().to_nat_int_t();
+        if (redo_point && exception->is_local_jump_error_with_break_point(redo_point)) {
+            FiberObject::current()->set_redo_flag();
+            return Value::nil();
+        }
         if (return_point && exception->is_local_jump_error_with_break_point(return_point))
             return exception->ivar_get(env, "@exit_value"_s);
         throw;
     }
 }
 
-static Block *llvm_block(Env *env, Value self, LlvmFn fn, int arity, bool capture, int64_t return_point, bool has_return = false) {
+static Block *llvm_block(Env *env, Value self, LlvmFn fn, int arity, bool capture, int64_t return_point, bool has_return = false, int64_t redo_point = 0) {
     auto closure = Env::create(capture ? Env::create(*env) : nullptr);
     closure->set_lexical_scope(env->lexical_scope());
     closure->set_file(env->file());
     closure->set_line(env->line());
-    closure->build_vars(2);
+    closure->build_vars(3);
     closure->var_set("llvm_callback", 0, true, Value::integer(reinterpret_cast<intptr_t>(fn)));
     closure->var_set("llvm_return", 1, true, Value::integer(return_point));
+    closure->var_set("llvm_redo", 2, true, Value::integer(redo_point));
     return Block::create(*closure, self, llvm_callback, arity, has_return);
 }
 
@@ -112,8 +118,8 @@ extern "C" void nat_llvm_var_set(Env *env, uint64_t depth, uint64_t index, uint6
     llvm_outer(env, depth)->var_set("llvm_local", index, true, nat_llvm_unpack(value));
 }
 
-extern "C" uint64_t nat_llvm_block(Env *env, uint64_t self, LlvmFn fn, int arity, int64_t return_point, int has_return) {
-    return nat_llvm_pack(ProcObject::from_block_maybe(llvm_block(env, nat_llvm_unpack(self), fn, arity, true, return_point, has_return)));
+extern "C" uint64_t nat_llvm_block(Env *env, uint64_t self, LlvmFn fn, int arity, int64_t return_point, int has_return, int64_t redo_point) {
+    return nat_llvm_pack(ProcObject::from_block_maybe(llvm_block(env, nat_llvm_unpack(self), fn, arity, true, return_point, has_return, redo_point)));
 }
 
 extern "C" void nat_llvm_define_method(Env *env, uint64_t target, const char *name, LlvmFn fn, int arity, const char *file, uint64_t line, int64_t return_point) {

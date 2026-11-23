@@ -19,7 +19,7 @@ module Natalie
           declare void @nat_llvm_build_vars(ptr, i64)
           declare i64 @nat_llvm_var_get(ptr, i64, i64)
           declare void @nat_llvm_var_set(ptr, i64, i64, i64)
-          declare i64 @nat_llvm_block(ptr, i64, ptr, i32, i64, i32)
+          declare i64 @nat_llvm_block(ptr, i64, ptr, i32, i64, i32, i64)
           declare void @nat_llvm_define_method(ptr, i64, ptr, ptr, i32, ptr, i64, i64)
           declare i64 @nat_llvm_arg(ptr, i64)
           declare void @nat_llvm_check_args(ptr, ptr, i64, i64, i32, i64, ptr)

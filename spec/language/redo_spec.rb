@@ -53,9 +53,53 @@ describe "The redo statement" do
         list << 100*x
       end
     end
-    NATFIXME 'it triggers ensure block when re-executing a block', exception: SpecFailedException do
-      list.should == [1,10,100,1,10,100,2,20,200,3,30,300]
+    list.should == [1,10,100,1,10,100,2,20,200,3,30,300]
+  end
+
+  it "runs ensure before restarting a while iteration without checking the condition" do
+    checks = 0
+    steps = 0
+    list = []
+    while (checks += 1) < 2
+      begin
+        steps += 1
+        list << :body
+        redo if steps < 2
+      ensure
+        list << :ensure
+      end
     end
+    [checks, steps, list].should == [2, 2, [:body, :ensure, :body, :ensure]]
+  end
+
+  it "lets break from ensure cancel a pending redo" do
+    list = []
+    result = [1].each do
+      raise 'redo did not exit' if list.size > 4
+      begin
+        list << :body
+        redo
+      ensure
+        list << :ensure
+        break :done
+      end
+    end
+    result.should == :done
+    list.should == [:body, :ensure]
+  end
+
+  it "lets return from ensure cancel a pending redo without replaying later blocks" do
+    result = -> do
+      begin
+        redo
+      ensure
+        return :done
+      end
+    end.call
+    list = []
+    [1].each { |x| list << x }
+    result.should == :done
+    list.should == [1]
   end
 
   describe "in a method" do

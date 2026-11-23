@@ -8,6 +8,7 @@ module Natalie
       end
 
       attr_reader :pre
+      attr_accessor :redo_point
 
       def to_s
         s = 'while'
@@ -85,23 +86,31 @@ module Natalie
 
         transform.with_same_scope(condition) do |t|
           code << "auto #{condition_name} = [&]() {"
+          code << 'try {' if @redo_point
           code << '  if (FiberObject::current()->check_redo_flag_and_clear()) { return Value::True(); }'
           code << t.transform('return')
+          if @redo_point
+            code << '} catch (ExceptionObject *exception) {'
+            code << "if (!exception->is_local_jump_error_with_break_point(#{@redo_point})) throw;"
+            code << 'return Value::True();'
+            code << '}'
+          end
           code << '};'
         end
 
         code << "Value #{result_name} = Value::nil()"
 
         transform.with_same_scope(body) do |t|
-          if @pre
-            code << "while (#{condition_name}().is_truthy()) {"
-            code << t.transform
+          code << (@pre ? "while (#{condition_name}().is_truthy()) {" : 'do {')
+          code << 'try {' if @redo_point
+          code << t.transform
+          if @redo_point
+            code << '} catch (ExceptionObject *exception) {'
+            code << "if (!exception->is_local_jump_error_with_break_point(#{@redo_point})) throw;"
+            code << 'FiberObject::current()->set_redo_flag();'
             code << '}'
-          else
-            code << 'do {'
-            code << t.transform
-            code << "} while (#{condition_name}().is_truthy())"
           end
+          code << (@pre ? '}' : "} while (#{condition_name}().is_truthy())")
         end
 
         transform.exec(code)
