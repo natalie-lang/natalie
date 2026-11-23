@@ -51,7 +51,7 @@ module Natalie
         end
         source = ir
         return Native.new.emit_object(source, path) unless @native_extensions.active?
-        Dir.mktmpdir('natalie-llvm-object') do |dir|
+        Dir.mktmpdir do |dir|
           ruby_object = File.join(dir, 'ruby.o')
           native_object = File.join(dir, 'native.o')
           Native.new.emit_object(source, ruby_object)
@@ -65,7 +65,7 @@ module Natalie
         missing = runtime_objects.reject { |path| File.file?(path) }
         raise CompileError, 'Build the LLVM runtime bridge first: bundle exec rake llvm_runtime' unless missing.empty?
         return build_cache.lock { link([*cached_objects, *runtime_objects]) } if @compiler.build_dir
-        Dir.mktmpdir('natalie-llvm') do |dir|
+        Dir.mktmpdir do |dir|
           object = File.join(dir, 'program.o')
           require_relative 'llvm_backend/native'
           Native.new.emit_object(ir, object)

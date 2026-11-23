@@ -9,12 +9,12 @@ require_relative '../lib/natalie/compiler/backends/llvm_backend'
 class LlvmBuildDirTest < Minitest::Test
   ROOT = File.expand_path('..', __dir__)
   CLI = File.join(ROOT, 'bin/natalie')
+  COMPILER_COMMAND = ENV['NAT_LLVM_COMPILER'] ? [ENV.fetch('NAT_LLVM_COMPILER')] : [RbConfig.ruby, CLI]
 
   def build(cache, *arguments, env: {})
     Open3.capture3(
       env,
-      RbConfig.ruby,
-      CLI,
+      *COMPILER_COMMAND,
       '--backend=llvm',
       "--build-dir=#{cache}",
       '--build-quietly',

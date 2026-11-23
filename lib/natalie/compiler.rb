@@ -86,10 +86,9 @@ module Natalie
             when 'cpp'
               CppBackend
             when 'llvm'
-              raise CompileError, 'LLVM backend currently requires the host Ruby compiler' if RUBY_ENGINE == 'natalie'
               # An explicit receiver keeps Natalie's require macro from bundling
               # MRI's Fiddle dependency into the self-hosted C++ compiler.
-              Kernel.require_relative './compiler/backends/llvm_backend'
+              Kernel.require_relative './compiler/backends/llvm_backend' unless RUBY_ENGINE == 'natalie'
               LlvmBackend
             else
               raise CompileError, "Unknown backend: #{options[:backend]}"
@@ -188,3 +187,6 @@ module Natalie
     end
   end
 end
+
+# Bundle the backend in the self-hosted compiler. MRI loads it on demand above.
+require_relative 'compiler/backends/llvm_backend' if RUBY_ENGINE == 'natalie'

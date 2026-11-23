@@ -17,6 +17,14 @@ task test_llvm: :llvm_runtime do
   ruby 'test/llvm_spec_runner_test.rb'
 end
 
+desc 'Test LLVM compilation through the self-hosted compiler'
+task test_llvm_self_hosted: %i[bootstrap llvm_runtime] do
+  environment = { 'NAT_LLVM_COMPILER' => File.expand_path('bin/nat') }
+  sh environment, RbConfig.ruby, 'test/llvm_backend_test.rb'
+  sh environment, RbConfig.ruby, 'test/llvm_build_dir_test.rb'
+  sh 'bin/nat', '--build-dir=build/libnat', '--build-quietly', 'test/support/llvm/native_errors.rb'
+end
+
 file 'build/llvm_runtime.o' => %w[tools/llvm_runtime.cpp .build] + Rake::FileList['include/**/*.{h,hpp}'] do |t|
   ENV['BUILD'] ||= current_build_mode
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"

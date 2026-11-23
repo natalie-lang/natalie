@@ -8,9 +8,10 @@ require_relative '../lib/natalie/compiler/backends/llvm_backend'
 class LlvmBackendTest < Minitest::Test
   ROOT = File.expand_path('..', __dir__)
   CLI = File.join(ROOT, 'bin/natalie')
+  COMPILER_COMMAND = ENV['NAT_LLVM_COMPILER'] ? [ENV.fetch('NAT_LLVM_COMPILER')] : [RbConfig.ruby, CLI]
 
   def run_cli(*args, env: {})
-    Open3.capture3(env, RbConfig.ruby, CLI, *args, chdir: ROOT)
+    Open3.capture3(env, *COMPILER_COMMAND, *args, chdir: ROOT)
   end
 
   def assert_program(code, expected)
@@ -25,6 +26,59 @@ class LlvmBackendTest < Minitest::Test
       'p [nil, false, true, :hello, -42, 1.5]; p 123456789012345678901234567890 + 1; puts "héllo\u0000world".bytesize',
       "[nil, false, true, :hello, -42, 1.5]\n123456789012345678901234567891\n12\n",
     )
+  end
+
+  def test_missing_llvm_library_reports_a_compile_error
+    stdout, stderr, status = run_cli('--backend=llvm', '-e', 'puts 42', env: { 'NAT_LLVM_LIBRARY' => '/missing/LLVM' })
+    assert_equal 1, status.exitstatus
+    assert_empty stdout
+    assert_includes stderr, 'Cannot load LLVM:'
+    assert_includes stderr, 'NAT_LLVM_LIBRARY'
+    refute_includes stderr, 'terminate called'
+  end
+
+  def test_module_function_preserves_closures_and_parameter_metadata
+    assert_program(<<~'RUBY', "[42, 43]\n[[:req, :value], [:key, :increment]]\n")
+      module Example
+        offset = 40
+        define_method(:calculate) { |value, increment: 1| offset + value + increment }
+        module_function :calculate
+        class << self
+          alias result calculate
+        end
+      end
+      GC.start
+      p [Example.calculate(1), Example.result(1, increment: 2)]
+      p Example.method(:calculate).parameters
+    RUBY
+  end
+
+  def test_discovers_llvm_through_llvm_config
+    require_relative '../lib/natalie/compiler/backends/llvm_backend/native'
+    library = Natalie::Compiler::LlvmBackend::Native.new.send(:library)
+    skip 'A library file is needed for llvm-config discovery' unless File.file?(library)
+    Dir.mktmpdir('natalie-llvm-config') do |dir|
+      File.symlink(
+        File.realpath(library),
+        File.join(dir, RUBY_PLATFORM.include?('darwin') ? 'libLLVM.dylib' : 'libLLVM.so'),
+      )
+      config = File.join(dir, 'llvm-config')
+      File.write(config, "#!/bin/sh\nprintf '%s\\n' #{dir.shellescape}\n")
+      File.chmod(0755, config)
+      stdout, stderr, status =
+        run_cli(
+          '--backend=llvm',
+          '-e',
+          'puts 42',
+          env: {
+            'NAT_LLVM_LIBRARY' => nil,
+            'PATH' => "#{dir}:#{ENV.fetch('PATH')}",
+          },
+        )
+      assert status.success?, stderr
+      assert_equal "42\n", stdout
+      assert_empty stderr
+    end
   end
 
   def test_rational_and_complex_literals

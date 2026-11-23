@@ -1,11 +1,17 @@
-require 'fiddle/import'
-require 'open3'
+if RUBY_ENGINE == 'natalie'
+  require_relative 'native_ffi'
+else
+  # Keep MRI's gem outside Natalie's static require expansion while retaining
+  # RubyGems' require hook (Kernel.require bypasses gem activation).
+  Object.new.send(:require, 'fiddle/import')
+end
 
 module Natalie
   class Compiler
     class LlvmBackend
       # Keep LLVM behind its C API so the Ruby compiler needs no compiled extension.
       class Native
+        API_ERROR = RUBY_ENGINE == 'natalie' ? LoadError : Fiddle::DLError
         SIGNATURES = [
           'void* LLVMContextCreate()',
           'void LLVMContextDispose(void*)',
@@ -27,11 +33,16 @@ module Natalie
         ].freeze
 
         def initialize
-          @api = Module.new { extend Fiddle::Importer }
+          @api =
+            if RUBY_ENGINE == 'natalie'
+              Module.new { extend NativeFFI }
+            else
+              Module.new { extend Fiddle::Importer }
+            end
           @library = library
           @api.dlload(@library)
           SIGNATURES.each { |signature| @api.extern(signature) }
-        rescue Fiddle::DLError => e
+        rescue API_ERROR => e
           raise CompileError,
                 "Cannot load LLVM: #{e.message}. Set NAT_LLVM_LIBRARY to a shared LLVM library (16 or newer)."
         end
@@ -49,10 +60,10 @@ module Natalie
                   # reusing objects from a different compiler process.
                   begin
                     @api.extern('void LLVMGetVersion(void*, void*, void*)')
-                    version = Array.new(3) { Fiddle::Pointer[[0].pack('I')] }
+                    version = Array.new(3) { pointer_slot }
                     @api.LLVMGetVersion(*version)
-                    [@library, version.map { |part| part[0, 4].unpack1('I') }]
-                  rescue Fiddle::DLError
+                    [@library, version.map { |part| pointer_bytes(part, 4).unpack1('I') }]
+                  rescue API_ERROR
                     [@library, Process.pid]
                   end
                 end
@@ -70,7 +81,7 @@ module Natalie
           # LLVMReturnStatusAction: report malformed IR without aborting the host Ruby.
           check(@api.LLVMVerifyModule(mod, 2, error), error)
           triple = @api.LLVMGetDefaultTargetTriple
-          target_triple = triple.to_s
+          target_triple = pointer_string(triple)
           if RUBY_PLATFORM.include?('darwin') && ENV['MACOSX_DEPLOYMENT_TARGET']
             target_triple =
               target_triple.sub(
@@ -79,7 +90,7 @@ module Natalie
               )
           end
           arch =
-            case triple.to_s
+            case target_triple
             when /\A(aarch64|arm64)/
               'AArch64'
             when /\A(x86_64|i[3-6]86)/
@@ -117,9 +128,13 @@ module Natalie
           return ENV.fetch('NAT_LLVM_LIBRARY') if ENV['NAT_LLVM_LIBRARY']
 
           begin
-            dir, status = Open3.capture2('llvm-config', '--libdir')
+            dir = IO.popen('llvm-config --libdir 2>/dev/null', &:read)
+            status = $?
             if status.success?
-              candidate = Dir[File.join(dir.strip, 'libLLVM.{so,dylib}'), File.join(dir.strip, 'libLLVM-*.so')].first
+              candidate =
+                %w[libLLVM.so libLLVM.dylib libLLVM-*.so]
+                  .flat_map { |pattern| Dir[File.join(dir.strip, pattern)] }
+                  .first
               return candidate if candidate
             end
           rescue Errno::ENOENT
@@ -128,18 +143,35 @@ module Natalie
         end
 
         def pointer_slot
-          Fiddle::Pointer[Array.new(Fiddle::SIZEOF_VOIDP, 0).pack('C*')]
+          if RUBY_ENGINE == 'natalie'
+            FFI::MemoryPointer.new(:pointer, 1, true)
+          else
+            Fiddle::Pointer[[0].pack('J')]
+          end
         end
 
         def read_pointer(slot)
-          Fiddle::Pointer.new(slot[0, Fiddle::SIZEOF_VOIDP].unpack1('J'))
+          address = pointer_bytes(slot, 8).unpack1('J')
+          RUBY_ENGINE == 'natalie' ? FFI::Pointer.new(address) : Fiddle::Pointer.new(address)
+        end
+
+        def pointer_bytes(pointer, size)
+          RUBY_ENGINE == 'natalie' ? pointer.read_string(size) : pointer[0, size]
+        end
+
+        def pointer_string(pointer)
+          RUBY_ENGINE == 'natalie' ? pointer.read_string : pointer.to_s
         end
 
         def check(status, error)
           message = read_pointer(error)
-          text = message.null? ? 'unknown LLVM error' : message.to_s
+          text = message.null? ? 'unknown LLVM error' : pointer_string(message)
           @api.LLVMDisposeMessage(message) unless message.null?
-          error[0, Fiddle::SIZEOF_VOIDP] = [0].pack('J')
+          if RUBY_ENGINE == 'natalie'
+            error.write_string([0].pack('J'))
+          else
+            error[0, 8] = [0].pack('J')
+          end
           raise CompileError, text unless status.zero?
         end
       end

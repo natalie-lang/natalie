@@ -1,4 +1,3 @@
-require 'open3'
 require 'shellwords'
 
 module Natalie
@@ -117,10 +116,9 @@ module Natalie
           command << '-no-pie' unless CppBackend::DARWIN
           command.concat([*paths, '-o', output])
           puts command.shelljoin if @compiler.debug == 'cc-cmd'
-          stdout, stderr, status = Open3.capture3(*command)
-          unless status.success?
-            raise CompileError, "Could not combine LLVM and native extension objects:\n#{stdout}#{stderr}"
-          end
+          output = `#{command.shelljoin} 2>&1`
+          status = $?
+          raise CompileError, "Could not combine LLVM and native extension objects:\n#{output}" unless status.success?
         end
       end
     end

@@ -5,6 +5,7 @@
 - `lib/natalie/compiler/backends/llvm_backend.rb`: compiler integration and linking.
 - `lib/natalie/compiler/backends/llvm_backend/ir.rb`: shared LLVM emission state and function generation.
 - `lib/natalie/compiler/backends/llvm_backend/native.rb`: LLVM C API bindings and object emission.
+- `lib/natalie/compiler/backends/llvm_backend/native_ffi.rb`: LLVM bindings for the self-hosted compiler.
 - `lib/natalie/compiler/backends/llvm_backend/native_extensions.rb`: C++ extension objects and ABI wrappers.
 - `lib/natalie/compiler/backends/llvm_backend/units.rb` and `build_cache.rb`: separate Ruby compilation units and cached artifacts.
 - `lib/natalie/compiler/instructions/`: instruction-specific `generate_llvm` methods.
@@ -34,6 +35,23 @@ precompiled runtime objects. Ruby bodies stay in LLVM. Programs using native
 extensions or inline C++ macros additionally compile a separate C++ object with
 the native sources and registration/call wrappers. Pure Ruby executables still use
 the C++ driver only for linking.
+
+The self-hosted compiler also supports LLVM:
+
+```sh
+bundle exec rake bootstrap llvm_runtime
+bin/nat --backend=llvm examples/llvm_poc.rb
+bundle exec rake test_llvm_self_hosted
+```
+
+MRI uses Fiddle to call the LLVM C API; `bin/nat` uses Natalie's existing
+libffi bindings. Both use the same IR generator, object emitter, native
+extension support, and build cache. LLVM is loaded at runtime, so bootstrapping
+the compiler and using its default C++ backend do not require LLVM to be installed.
+The self-hosted test task runs the backend and build-cache integration suites
+through `bin/nat` (the direct malformed-IR unit tests still run under MRI).
+A compiled fixture also checks parser, verifier, and object-emission errors and
+recovery through Natalie's FFI adapter.
 
 ## Cached Builds
 

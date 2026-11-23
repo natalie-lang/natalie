@@ -62,7 +62,7 @@ module Natalie
               dependency_paths = Shellwords.split(File.read(dependencies).gsub("\\\n", ' ').gsub('$$', '$')).drop(1)
               dependency_paths.uniq.to_h { |file| [file, fingerprint(file)] }
             ensure
-              FileUtils.rm_f(out.dependency_file)
+              File.unlink(out.dependency_file) if File.exist?(out.dependency_file)
             end
           end
           path
