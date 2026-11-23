@@ -214,6 +214,7 @@ bool ThreadObject::is_stopped() const {
 
 void ThreadObject::prepare_main_thread() {
     assert(!s_main); // can only be built once
+    s_process_id = getpid();
     auto thread = ThreadObject::create();
     thread->m_status = ThreadObject::Status::Active;
     thread->m_suspend_status = ThreadObject::SuspendStatus::Running;
@@ -1000,6 +1001,10 @@ bool ThreadObject::all_running() {
 }
 
 void ThreadObject::terminate_all(Env *env) {
+    // fork currently preserves the parent's registry. Those native threads
+    // do not exist in the child, so attempting to wait for them would hang.
+    if (getpid() != s_process_id)
+        return;
     Value observed = ArrayObject::create();
     NAT_GC_GUARD_VALUE(observed);
     for (;;) {

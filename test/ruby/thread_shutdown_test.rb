@@ -25,4 +25,16 @@ describe 'thread shutdown' do
       expect(out.lines.map(&:strip).reject(&:empty?)).must_equal ['main finished', 'worker stopped']
     end
   end
+
+  it 'does not wait for inherited parent threads in a forked child' do
+    code = <<~RUBY
+      worker = Thread.new { sleep }
+      Thread.pass until worker.status == 'sleep'
+      child = fork { exit 0 }
+      _, status = Process.wait2(child)
+      puts status.exitstatus
+    RUBY
+    out = Command.new(NAT_BINARY, '-e', code, timeout: 120).run
+    expect(out.strip).must_equal '0'
+  end
 end

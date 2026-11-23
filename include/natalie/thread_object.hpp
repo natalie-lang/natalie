@@ -12,6 +12,7 @@
 #endif
 #include <atomic>
 #include <condition_variable>
+#include <sys/types.h>
 #include <sys/ucontext.h>
 #include <thread>
 
@@ -366,6 +367,7 @@ private:
     std::mutex m_sleep_lock;
 
     inline static ThreadObject *s_main = nullptr;
+    inline static pid_t s_process_id { 0 };
     inline static TM::Vector<ThreadObject *> s_list {};
     inline static bool s_abort_on_exception { false };
     inline static bool s_report_on_exception { true };
