@@ -17,14 +17,14 @@ public:
         if (other >= NAT_MIN_FIXNUM && other <= NAT_MAX_FIXNUM)
             m_value = left_shift_with_undefined_behavior(other, 1) | 0x1;
         else
-            m_value = (uintptr_t) new BigInt(other);
+            m_value = (uintptr_t)new BigInt(other);
     }
 
     Integer(long other) {
         if (other >= NAT_MIN_FIXNUM && other <= NAT_MAX_FIXNUM)
             m_value = left_shift_with_undefined_behavior(static_cast<nat_int_t>(other), 1) | 0x1;
         else
-            m_value = (uintptr_t) new BigInt(other);
+            m_value = (uintptr_t)new BigInt(other);
     }
 
     Integer(int other) {

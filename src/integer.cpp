@@ -10,7 +10,7 @@ Integer::Integer(double other) {
     if (i >= NAT_MIN_FIXNUM && i <= NAT_MAX_FIXNUM)
         m_value = left_shift_with_undefined_behavior(i, 1) | 0x1;
     else
-        m_value = (uintptr_t) new BigInt(other);
+        m_value = (uintptr_t)new BigInt(other);
 }
 
 Integer::Integer(const TM::String &other) {
@@ -18,21 +18,21 @@ Integer::Integer(const TM::String &other) {
     if (bigint >= NAT_MIN_FIXNUM && bigint <= NAT_MAX_FIXNUM)
         m_value = left_shift_with_undefined_behavior(bigint.to_long_long(), 1) | 0x1;
     else
-        m_value = (uintptr_t) new BigInt(bigint);
+        m_value = (uintptr_t)new BigInt(bigint);
 }
 
 Integer::Integer(const BigInt &other) {
     if (other >= NAT_MIN_FIXNUM && other <= NAT_MAX_FIXNUM)
         m_value = left_shift_with_undefined_behavior(other.to_long_long(), 1) | 0x1;
     else
-        m_value = (uintptr_t) new BigInt(other);
+        m_value = (uintptr_t)new BigInt(other);
 }
 
 Integer::Integer(BigInt &&other) {
     if (other >= NAT_MIN_FIXNUM && other <= NAT_MAX_FIXNUM)
         m_value = left_shift_with_undefined_behavior(other.to_long_long(), 1) | 0x1;
     else
-        m_value = (uintptr_t) new BigInt(std::move(other));
+        m_value = (uintptr_t)new BigInt(std::move(other));
 }
 
 Integer Integer::operator+=(const Integer other) {

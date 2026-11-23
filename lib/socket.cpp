@@ -301,7 +301,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args &&args, Block *block) {
         if (host->is_empty())
             host = StringObject::create("0.0.0.0");
 
-        struct addrinfo hints { };
+        struct addrinfo hints {};
         struct addrinfo *getaddrinfo_result = nullptr;
 
         if (afamily)
@@ -520,7 +520,7 @@ Value BasicSocket_getsockopt(Env *env, Value self, Args &&args, Block *block) {
         optname_val = level == IPPROTO_UDP ? "UDP_CORK"_s : "TCP_CORK"_s;
     auto optname = Socket_const_get(env, optname_val);
 
-    struct sockaddr addr { };
+    struct sockaddr addr {};
     socklen_t addr_len = sizeof(addr);
 
     auto getsockname_result = getsockname(
@@ -755,7 +755,7 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args &&args, Block *block) {
         data = option.send(env, "data"_s).as_string_or_raise(env);
     }
 
-    struct sockaddr addr { };
+    struct sockaddr addr {};
     socklen_t addr_len = sizeof(addr);
 
     auto getsockname_result = getsockname(
@@ -976,7 +976,7 @@ Value IPSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
 Value UNIXSocket_addr(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 0);
 
-    struct sockaddr_un addr { };
+    struct sockaddr_un addr {};
     socklen_t addr_len = sizeof(addr);
 
     auto getsockname_result = getsockname(
@@ -993,7 +993,7 @@ Value UNIXSocket_addr(Env *env, Value self, Args &&args, Block *block) {
 Value UNIXSocket_peeraddr(Env *env, Value self, Args &&args, Block *block) {
     args.ensure_argc_is(env, 0);
 
-    struct sockaddr_un addr { };
+    struct sockaddr_un addr {};
     socklen_t addr_len = sizeof(addr);
 
     auto getsockname_result = getpeername(
@@ -1019,7 +1019,7 @@ Value UNIXSocket_recvfrom(Env *env, Value self, Args &&args, Block *) {
     }
 
     TM::String buf { static_cast<size_t>(size), '\0' };
-    struct sockaddr_un addr { };
+    struct sockaddr_un addr {};
     socklen_t addr_len = sizeof(addr);
 
     const auto recvfrom_result = blocking_recvfrom(
@@ -1123,7 +1123,7 @@ Value Socket_bind(Env *env, Value self, Args &&args, Block *block) {
     auto afamily = sockaddr.send(env, "afamily"_s).integer_or_raise(env).to_nat_int_t();
     switch (afamily) {
     case AF_INET: {
-        struct sockaddr_in addr { };
+        struct sockaddr_in addr {};
         auto packed = sockaddr.send(env, "to_sockaddr"_s).as_string_or_raise(env);
         memcpy(&addr, packed->c_str(), std::min(sizeof(addr), packed->length()));
 
@@ -1138,7 +1138,7 @@ Value Socket_bind(Env *env, Value self, Args &&args, Block *block) {
         return Value::integer(result);
     }
     case AF_INET6: {
-        struct sockaddr_in6 addr { };
+        struct sockaddr_in6 addr {};
         auto packed = sockaddr.send(env, "to_sockaddr"_s).as_string_or_raise(env);
         memcpy(&addr, packed->c_str(), std::min(sizeof(addr), packed->length()));
 
@@ -1153,7 +1153,7 @@ Value Socket_bind(Env *env, Value self, Args &&args, Block *block) {
         return Value::integer(result);
     }
     case AF_UNIX: {
-        struct sockaddr_un addr { };
+        struct sockaddr_un addr {};
         auto packed = sockaddr.send(env, "to_sockaddr"_s).as_string_or_raise(env);
         memcpy(&addr, packed->c_str(), std::min(sizeof(addr), packed->length()));
 
@@ -1329,7 +1329,7 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args &&args, Block *block) {
     if (host.is_string() && host.as_string()->is_empty())
         host = StringObject::create("0.0.0.0");
 
-    struct addrinfo hints { };
+    struct addrinfo hints {};
     hints.ai_family = PF_UNSPEC;
 
     String service_str;
@@ -1361,7 +1361,7 @@ Value Socket_pack_sockaddr_un(Env *env, Value self, Args &&args, Block *block) {
     path.assert_type(env, Object::Type::String, "String");
     auto path_string = path.as_string();
 
-    struct sockaddr_un un { };
+    struct sockaddr_un un {};
     constexpr auto unix_path_max = sizeof(un.sun_path);
 
     if (path_string->length() >= unix_path_max)
@@ -1441,7 +1441,7 @@ Value Socket_unpack_sockaddr_un(Env *env, Value self, Args &&args, Block *block)
     if (sockaddr.as_string()->bytesize() > sizeof(struct sockaddr_un))
         env->raise("ArgumentError", "not an AF_UNIX sockaddr");
 
-    struct sockaddr_un addr { };
+    struct sockaddr_un addr {};
     memcpy(&addr, sockaddr.as_string()->c_str(), std::min(sizeof(addr), sockaddr.as_string()->bytesize()));
     if (addr.sun_family != AF_UNIX)
         env->raise("ArgumentError", "not an AF_UNIX sockaddr");
@@ -1512,7 +1512,7 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args &&args, Block *) {
         reverse_lookup = Value::False();
     }
 
-    struct addrinfo hints { };
+    struct addrinfo hints {};
     hints.ai_family = Socket_const_name_to_i(env, self, { family, Value::True() }, nullptr).integer_or_raise(env).to_nat_int_t();
     hints.ai_socktype = Socket_const_name_to_i(env, self, { socktype, Value::True() }, nullptr).integer_or_raise(env).to_nat_int_t();
     hints.ai_protocol = Socket_const_name_to_i(env, self, { protocol, Value::True() }, nullptr).integer_or_raise(env).to_nat_int_t();
@@ -1740,7 +1740,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args &&args, Block *block) {
     else
         service_str = port.to_str(env)->string();
 
-    struct addrinfo hints { };
+    struct addrinfo hints {};
     hints.ai_family = PF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
