@@ -263,6 +263,16 @@ describe "The if expression" do
       first.call(2).should == true
     end
 
+    it "does not alias user locals with its internal state" do
+      ruby_exe(<<~RUBY).should == "[1]\n:user\n"
+        __flip_flop_1 = :user
+        hits = []
+        3.times { |i| hits << i if (i == 1)..(i == 1) }
+        p hits
+        p __flip_flop_1
+      RUBY
+    end
+
     it "skips the end condition when an exclusive range starts again" do
       events = []
       4.times { events << :body if (events << :start; true)...(events << :stop; true) }

@@ -30,7 +30,9 @@ module Natalie
         owner = instruction.env
         owner = owner.fetch(:outer) while owner[:hoist] || owner[:type] == :define_block
         @flip_flop_index = (@flip_flop_index || 0) + 1
-        instruction.state_name = "__flip_flop_#{@flip_flop_index}".to_sym
+        # A colon cannot occur in a Ruby local name, so this cannot alias a
+        # user variable. The slot is always captured and needs no C++ identifier.
+        instruction.state_name = "__flip_flop:#{@flip_flop_index}".to_sym
         instruction.meta = find_or_create_var(owner, instruction.state_name)
         instruction.meta[:captured] = true
         instruction.meta[:declared] = true
