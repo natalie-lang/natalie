@@ -28,11 +28,36 @@ module Natalie
 
         def initialize
           @api = Module.new { extend Fiddle::Importer }
-          @api.dlload(library)
+          @library = library
+          @api.dlload(@library)
           SIGNATURES.each { |signature| @api.extern(signature) }
         rescue Fiddle::DLError => e
           raise CompileError,
                 "Cannot load LLVM: #{e.message}. Set NAT_LLVM_LIBRARY to a shared LLVM library (16 or newer)."
+        end
+
+        def cache_key
+          @cache_key ||=
+            begin
+              identity =
+                if File.file?(@library)
+                  stat = File.stat(@library)
+                  [File.realpath(@library), stat.size, stat.mtime.to_r.to_s]
+                else
+                  # Some hosts resolve a bare soname through the dynamic loader.
+                  # If version discovery is unavailable, conservatively avoid
+                  # reusing objects from a different compiler process.
+                  begin
+                    @api.extern('void LLVMGetVersion(void*, void*, void*)')
+                    version = Array.new(3) { Fiddle::Pointer[[0].pack('I')] }
+                    @api.LLVMGetVersion(*version)
+                    [@library, version.map { |part| part[0, 4].unpack1('I') }]
+                  rescue Fiddle::DLError
+                    [@library, Process.pid]
+                  end
+                end
+              [identity, RUBY_PLATFORM, ENV['MACOSX_DEPLOYMENT_TARGET'], File.binread(__FILE__)]
+            end
         end
 
         def emit_object(ir, path)

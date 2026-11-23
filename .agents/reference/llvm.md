@@ -6,6 +6,7 @@
 - `lib/natalie/compiler/backends/llvm_backend/ir.rb`: shared LLVM emission state and function generation.
 - `lib/natalie/compiler/backends/llvm_backend/native.rb`: LLVM C API bindings and object emission.
 - `lib/natalie/compiler/backends/llvm_backend/native_extensions.rb`: C++ extension objects and ABI wrappers.
+- `lib/natalie/compiler/backends/llvm_backend/units.rb` and `build_cache.rb`: separate Ruby compilation units and cached artifacts.
 - `lib/natalie/compiler/instructions/`: instruction-specific `generate_llvm` methods.
 - `tools/llvm_runtime.cpp` and `include/natalie/llvm_runtime.hpp`: precompiled runtime bridge.
 - `src/constant.cpp` and `include/natalie/constant.hpp`: deferred autoload callbacks and their GC roots.
@@ -33,6 +34,32 @@ precompiled runtime objects. Ruby bodies stay in LLVM. Programs using native
 extensions or inline C++ macros additionally compile a separate C++ object with
 the native sources and registration/call wrappers. Pure Ruby executables still use
 the C++ driver only for linking.
+
+## Cached Builds
+
+Use `--build-dir` for separate compilation and reusable object files:
+
+```sh
+bin/natalie --backend=llvm --build-dir=build/my-program program.rb
+```
+
+Each required Ruby file has its own LLVM module and object. File entrypoints and
+file-return tokens cross object boundaries; methods, closures, literal caches,
+and other jump tokens stay private to their module. Native extension wrappers
+use stable per-file names, and their C++ code is cached in a separate object.
+
+Artifacts live under `BUILD_DIR/llvm/`, grouped by the main source path and
+output mode. The cache retains `.ll`, `.o`, native `.cpp`/`.d`, and fingerprint
+manifests. Ruby objects are rebuilt when their IR or LLVM toolchain identity
+changes. Native objects also track compiler flags, compiler identity, and
+transitive project header dependencies using content fingerprints. Executable,
+combined object, and shared-library output all support the cache.
+
+Each build regenerates IR to validate cache keys and relinks the output.
+Atomic replacements and a persistent per-program lock protect concurrent
+builders. `--build-quietly` suppresses build progress; `NAT_VERBOSE=1` reports
+reused objects when progress is enabled. C++ and LLVM can share a build directory
+because LLVM artifacts have their own namespace.
 
 ## Supported Features and Boundaries
 
@@ -128,7 +155,7 @@ can be retried. Loaded-file returns count as successful requires; explicit
 Dynamic runtime `Module#autoload` calls remain outside this static macro path.
 
 Unsupported instructions fail explicitly. Remaining gaps include raw `Args`
-operands. REPL, `--build-dir`,
+operands. REPL,
 `--profile-app`, and `--print-objects` are also unsupported.
 
 The normal ruby/spec runner now works for the unmodified
@@ -154,6 +181,7 @@ compile/run deadlines:
 
 ```sh
 bundle exec ruby tools/llvm_spec_runner.rb --jobs=4 --timeout=120 \
+  --build-dir=build/spec-cache \
   --report=build/llvm-spec-results.json 'spec/language/*_spec.rb'
 ```
 
@@ -164,6 +192,8 @@ counts for each backend in JSON. A matching pass requires successful, nonempty
 runs with identical counts. Empty runs and failures are listed separately and
 never added to the matching passed-example total. Use `--backend=llvm` for a
 single-backend run while diagnosing a failure.
+The optional `--build-dir` gives each backend a separate cache and applies to
+both parent specs and their child compiler invocations.
 
 For the broader language, method/Proc, and numeric selection used during backend
 development:

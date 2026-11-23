@@ -142,9 +142,9 @@ class LlvmBackendTest < Minitest::Test
 
   def test_unsupported_construct_is_rejected_without_fallback
     Dir.mktmpdir('natalie-unsupported-output') do |dir|
-      _, stderr, status = run_cli('--backend=llvm', "--build-dir=#{dir}", '-e', 'nil')
+      _, stderr, status = run_cli('--backend=llvm', '--print-objects', '-e', 'nil')
       refute status.success?
-      assert_includes stderr, '--build-dir'
+      assert_includes stderr, '--print-objects'
     end
   end
 

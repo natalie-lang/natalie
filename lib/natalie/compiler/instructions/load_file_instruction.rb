@@ -20,7 +20,7 @@ module Natalie
       def generate_llvm(transform)
         fn = transform.loaded_file(@filename)
         transform.push_call(
-          "call i64 @nat_llvm_load(ptr %env, ptr #{transform.string(@filename)}, ptr #{fn}, i32 #{@require_once ? 1 : 0}, i64 #{transform.file_return_point(@filename)})",
+          "call i64 @nat_llvm_load(ptr %env, ptr #{transform.string(@filename)}, ptr #{fn}, i32 #{@require_once ? 1 : 0}, i64 #{transform.file_return_point(@filename, loaded: true)})",
         )
       end
 

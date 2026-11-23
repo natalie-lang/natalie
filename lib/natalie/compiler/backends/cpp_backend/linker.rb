@@ -1,4 +1,5 @@
 require 'tempfile'
+require 'shellwords'
 require_relative '../../flags'
 require_relative './pkg_config'
 
@@ -29,13 +30,13 @@ module Natalie
         def link_command
           [
             cc,
-            LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
+            LIB_PATHS.map { |path| "-L #{path.shellescape}" }.join(' '),
             shared_link_flags.join(' '),
             *package_link_flags,
-            *@in_paths,
+            *@in_paths.map(&:shellescape),
             libraries.join(' '),
             link_flags,
-            "-o #{@compiler.out_path}",
+            "-o #{@compiler.out_path.shellescape}",
             @compiler.options.fetch(:ld_flags, ENV['NAT_LD_FLAGS']),
           ].compact.join(' ')
         end

@@ -102,6 +102,8 @@ module Natalie
           required_files: {},
           native_extensions: nil,
           shared_library: false,
+          units: nil,
+          module_entry: false,
           region_stack: nil,
           return_point: nil,
           loop_points: nil
@@ -109,17 +111,31 @@ module Natalie
           @instructions = instructions
           @source_path = source_path
           @stack = []
-          @shared = shared || { globals: [], functions: [], serial: 0, shared_library: shared_library }
+          @shared =
+            shared ||
+              {
+                globals: [],
+                functions: [],
+                serial: 0,
+                shared_library: shared_library,
+                units: units,
+                native_wrappers: [],
+                external_files: {
+                },
+                unit_main: function_name == 'nat_llvm_eval',
+              }
           @globals = @shared[:globals]
           @function_name = function_name
           @scope = scope
           @required_files = required_files
           @native_extensions = native_extensions
+          @module_entry = module_entry
           @allocas = []
           @body = []
           @scope_env = @scope || top_scope
           @region_stack = region_stack
-          @return_point = return_point || (@function_name == 'nat_llvm_eval' ? file_return_point : nil)
+          @return_point =
+            return_point || ((@function_name == 'nat_llvm_eval' || module_entry) ? file_return_point : nil)
           @loop_points = loop_points
         end
 
@@ -149,20 +165,25 @@ module Natalie
           result = @function_name == 'nat_llvm_eval' && @shared[:shared_library] ? 4 : (@stack.last || 4)
           emit "ret i64 #{result}"
           function = <<~LLVM
-            define internal i64 @#{@function_name == 'nat_llvm_eval' ? 'nat_llvm_eval_body' : @function_name}(ptr %env, i64 %self#{@function_name == 'nat_llvm_eval' ? '' : ', ptr %args, ptr %block'}#{@region_stack ? ', ptr %frame, ptr %exception' : ''}) uwtable {
+            define #{@module_entry ? 'hidden' : 'internal'} i64 @#{@function_name == 'nat_llvm_eval' ? 'nat_llvm_eval_body' : @function_name}(ptr %env, i64 %self#{@function_name == 'nat_llvm_eval' ? '' : ', ptr %args, ptr %block'}#{@region_stack ? ', ptr %frame, ptr %exception' : ''}) uwtable {
             entry:
             #{@allocas.join("\n")}
             #{@body.join("\n")}
             }
           LLVM
-          return function unless @function_name == 'nat_llvm_eval'
-          <<~LLVM
+          return function unless @function_name == 'nat_llvm_eval' || @module_entry
+          output = <<~LLVM
             ; Natalie experimental LLVM backend (64-bit hosts)
+            ; Source: #{@source_path.inspect}
             #{@globals.join("\n")}
             #{DECLARATIONS}
-            #{@native_extensions&.declarations}
+            #{@native_extensions&.declarations(wrappers: @shared[:units] ? @shared[:native_wrappers] : nil, include_init: !@shared[:units] || @function_name == 'nat_llvm_eval')}
+            #{@shared[:external_files].values.join("\n")}
             #{@shared[:functions].join("\n")}
             #{function}
+          LLVM
+          return output if @module_entry
+          output + <<~LLVM
             define #{@shared[:shared_library] ? 'hidden ' : ''}i64 @nat_llvm_eval(ptr %env, i64 %self) uwtable {
             entry:
               %result = call i64 @nat_llvm_catch_return(ptr %env, i64 %self, ptr @nat_llvm_eval_body, i64 #{@return_point})
@@ -204,12 +225,25 @@ module Natalie
           @function_name == 'nat_llvm_eval' ? 'null' : '%args'
         end
 
-        def file_return_point(path = @source_path)
+        def file_return_point(path = @source_path, loaded: false)
+          if (units = @shared[:units])
+            return jump_token([path, :main_return]) if path == @source_path && @shared[:unit_main] && !loaded
+            token = units.return_token(path)
+            key = [:file_token, path]
+            unless @shared[:external_files].key?(key)
+              @shared[:external_files][key] = if path == @source_path && !@shared[:unit_main]
+                "@#{token} = hidden global i8 0, align 1"
+              else
+                "@#{token} = external hidden global i8"
+              end
+            end
+            return "ptrtoint (ptr @#{token} to i64)"
+          end
           jump_token([path, :file_return])
         end
 
         def break_point(key)
-          key = :file_return if key == -1
+          return file_return_point if key == -1
           jump_token([@source_path, key])
         end
 
@@ -276,6 +310,14 @@ module Natalie
         end
 
         def loaded_file(path)
+          if (units = @shared[:units])
+            units.load(path)
+            fn = units.entrypoint(path)
+            unless @module_entry && path == @source_path
+              @shared[:external_files][[:file, path]] = "declare hidden i64 @#{fn}(ptr, i64, ptr, ptr)"
+            end
+            return "@#{fn}"
+          end
           @shared[:loaded_files] ||= {}
           return @shared[:loaded_files][path] if @shared[:loaded_files].key?(path)
           file = @required_files.fetch(path)
@@ -294,6 +336,12 @@ module Natalie
             )
             .generate
           "@#{fn}"
+        end
+
+        def native_wrapper(instruction, count)
+          fn = @native_extensions.wrapper(instruction, count, source_path: @shared[:units] ? @source_path : nil)
+          @shared[:native_wrappers] << fn
+          fn
         end
 
         # Pass2 already resolves each local to its owning scope. Count Ruby

@@ -1,4 +1,5 @@
 require 'tempfile'
+require 'shellwords'
 require_relative './pkg_config'
 require_relative '../../advisory_lock'
 require_relative '../../flags'
@@ -77,13 +78,13 @@ module Natalie
           @top["#{fn}_def"] = other_out_file.loaded_file_fn_source(fn_only: true)
         end
 
-        def compile_object_file
+        def compile_object_file(force: false)
           write_source unless @cpp_path
 
           AdvisoryLock
             .new("#{out_path}.lock")
             .lock do
-              if build_dir && File.exist?(out_path) && File.stat(out_path).mtime >= File.stat(@cpp_path).mtime
+              if !force && build_dir && File.exist?(out_path) && File.stat(out_path).mtime >= File.stat(@cpp_path).mtime
                 @status = :unchanged
                 return out_path
               end
@@ -114,12 +115,12 @@ module Natalie
                 ''
               end
             ),
-            INC_PATHS.map { |path| "-I #{path}" }.join(' '),
+            INC_PATHS.map { |path| "-I #{path.shellescape}" }.join(' '),
             *package_compile_flags,
             '-c',
-            "-o #{out_path}",
+            "-o #{out_path.shellescape}",
             '-x c++ -std=c++17',
-            (@cpp_path || 'code.cpp'),
+            (@cpp_path || 'code.cpp').shellescape,
           ].map(&:to_s).join(' ')
         end
 

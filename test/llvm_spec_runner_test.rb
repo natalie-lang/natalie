@@ -29,21 +29,12 @@ class LlvmSpecRunnerTest < Minitest::Test
   end
 
   def test_child_ruby_programs_use_the_selected_backend
-    # Cached separate compilation remains unsupported by LLVM. A C++ fallback in ruby_exe
+    # Object-printing diagnostics remain unsupported by LLVM. A C++ fallback in ruby_exe
     # would hide that restriction in the child compiler.
     run_fixture(<<~'RUBY') do |report, _, stderr, status|
-      require 'tmpdir'
       describe 'runner children' do
         it 'selects the child backend' do
-          dir = Dir.mktmpdir
-          begin
-            ruby_exe(
-              'puts 1',
-              options: "--build-dir=#{dir} --build-quietly",
-            ).should == "1\n"
-          ensure
-            FileUtils.rm_rf(dir)
-          end
+          ruby_exe('puts 42', options: '--print-objects').include?("42\n").should == true
         end
       end
     RUBY
@@ -52,7 +43,7 @@ class LlvmSpecRunnerTest < Minitest::Test
       runs = report.fetch('results').first.fetch('runs')
       assert runs.fetch('cpp').fetch('success')
       refute runs.fetch('llvm').fetch('success')
-      assert_includes runs.fetch('llvm').fetch('stderr'), '--build-dir'
+      assert_includes runs.fetch('llvm').fetch('stderr'), '--print-objects'
       assert_equal 0, report.fetch('matching_passed_examples')
     end
   end
@@ -64,6 +55,24 @@ class LlvmSpecRunnerTest < Minitest::Test
       assert result.fetch('timed_out')
       refute result.fetch('success')
       assert_equal 0, report.fetch('matching_passed_examples')
+    end
+  end
+
+  def test_build_directory_is_used_by_parent_and_child_compilers
+    Dir.mktmpdir('natalie-runner-cache') do |cache|
+      run_fixture(<<~'RUBY', "--build-dir=#{cache}") do |report, _, stderr, status|
+        describe 'cached runner' do
+          it 'compiles its child' do
+            ruby_exe('puts 42').should == "42\n"
+          end
+        end
+      RUBY
+        assert status.success?, stderr
+        assert_equal({ 'passed' => 1 }, report.fetch('summary'))
+        objects = Dir[File.join(cache, 'llvm', 'llvm', '*', 'executable', 'main.o')]
+        assert_equal 2, objects.size
+        assert Dir.exist?(File.join(cache, 'cpp'))
+      end
     end
   end
 end

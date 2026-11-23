@@ -23,7 +23,7 @@ module Natalie
         validate_inline_scope!(env) if name == :__inline__
         count = name == :__call__ ? args.size - 1 : 0
         operands = transform.pop(count)
-        fn = transform.native_extensions.wrapper(self, count)
+        fn = transform.native_wrapper(self, count)
         transform.push_call("call i64 @#{fn}(ptr %env, i64 %self, ptr #{transform.argument_array(operands)})")
       end
 

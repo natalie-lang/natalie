@@ -26,6 +26,7 @@ class LlvmSpecRunner
         opts.on('--timeout=SECONDS', Float) { |n| @timeout = n }
         opts.on('--backend=BACKEND', %w[cpp llvm both]) { |b| @backends = b == 'both' ? %w[cpp llvm] : [b] }
         opts.on('--report=PATH') { |path| @report = File.expand_path(path) }
+        opts.on('--build-dir=PATH') { |path| @build_dir = File.expand_path(path) }
         opts.on('-h', '--help') do
           puts opts
           exit
@@ -39,9 +40,15 @@ class LlvmSpecRunner
   end
 
   def driver(path, backend)
-    command = [RbConfig.ruby, CLI, "--backend=#{backend}"].shelljoin
+    command = [RbConfig.ruby, CLI, *compiler_options(backend)].shelljoin
     File.write(path, "#!/bin/sh\nexec #{command} \"$@\"\n")
     File.chmod(0o755, path)
+  end
+
+  def compiler_options(backend)
+    options = ["--backend=#{backend}"]
+    options += ["--build-dir=#{File.join(@build_dir, backend)}", '--build-quietly'] if @build_dir
+    options
   end
 
   def run_spec(file, backend, driver_path, directory, index)
@@ -53,7 +60,7 @@ class LlvmSpecRunner
         { 'NAT_BINARY' => driver_path },
         RbConfig.ruby,
         CLI,
-        "--backend=#{backend}",
+        *compiler_options(backend),
         file,
         chdir: ROOT,
         out: stdout_path,

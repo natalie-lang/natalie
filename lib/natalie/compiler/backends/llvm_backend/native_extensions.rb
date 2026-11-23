@@ -9,6 +9,14 @@ module Natalie
       class NativeExtensions
         class OutFile < CppBackend::OutFile
           attr_accessor :library_initializer
+          attr_accessor :dependency_file
+          attr_writer :cpp_path
+
+          def compiler_command
+            command = super
+            command += " -MMD -MF #{dependency_file.shellescape}" if dependency_file
+            command
+          end
 
           def merged_source
             <<~CPP
@@ -43,22 +51,26 @@ module Natalie
           prefix += "#{CppBackend.object_name(compiler.out_path)}_" if compiler.compilation_type == 'shared-object'
           @data = CppBackend::TransformData.new(var_prefix: prefix)
           @wrappers = []
+          @file_wrapper_counts = Hash.new(0)
         end
 
         def active?
           @wrappers.any?
         end
 
-        def declarations
-          return '' unless active?
-          (
-            ['declare void @nat_llvm_init_extensions(ptr, i64)'] +
-              @wrappers.map { |name| "declare i64 @#{name}(ptr, i64, ptr)" }
-          ).join("\n")
+        def declarations(wrappers: nil, include_init: true)
+          declarations = include_init && active? ? ['declare void @nat_llvm_init_extensions(ptr, i64)'] : []
+          declarations.concat((wrappers || @wrappers).map { |name| "declare i64 @#{name}(ptr, i64, ptr)" }).join("\n")
         end
 
-        def wrapper(instruction, argument_count)
-          name = "nat_llvm_ext_#{@wrappers.size}"
+        def wrapper(instruction, argument_count, source_path: nil)
+          if source_path
+            index = @file_wrapper_counts[source_path]
+            @file_wrapper_counts[source_path] += 1
+            name = "nat_llvm_ext_#{Units.id(source_path)}_#{index}"
+          else
+            name = "nat_llvm_ext_#{@wrappers.size}"
+          end
           stack = Array.new(argument_count) { |i| "nat_llvm_unpack(argv[#{i}])" }
           transform =
             CppBackend::Transform.new(
