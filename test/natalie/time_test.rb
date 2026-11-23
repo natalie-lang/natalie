@@ -244,6 +244,21 @@ describe 'Time' do
     it 'returns a string' do
       time.strftime('%Y-%m-%d %H:%M:%S').should == '1985-04-12 23:20:50'
     end
+
+    it 'formats UTC offsets independently of the process timezone' do
+      with_timezone('CST', -6) do
+        Time.utc(2000, 4, 9).strftime('%z').should == '+0000'
+        Time.gm(2000, 4, 9).strftime('%z').should == '+0000'
+        Time.new(2000, 4, 9, 0, 0, 0, 3660).strftime('%z').should == '+0101'
+        Time.new(2000, 4, 9, 0, 0, 0, -3660).strftime('%z').should == '-0101'
+        Time.local(2000, 4, 9).strftime('%z').should == '-0600'
+      end
+    end
+
+    it 'preserves escaped percent signs next to timezone directives' do
+      time.strftime('%%z %z %Y').should == '%z +0000 1985'
+      time.strftime('%%%z').should == '%+0000'
+    end
   end
 
   describe '#subsec' do

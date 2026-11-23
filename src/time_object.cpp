@@ -572,9 +572,25 @@ void TimeObject::set_subsec(Env *, RationalObject *subsec) {
 }
 
 Value TimeObject::build_string(const tm *time, const char *format, Encoding encoding) {
+    // Darwin's strftime uses the process timezone for %z rather than tm_gmtoff.
+    String normalized_format;
+    for (size_t i = 0; format[i]; ++i) {
+        if (format[i] == '%' && format[i + 1]) {
+            if (format[i + 1] == 'z') {
+                auto offset = time->tm_gmtoff;
+                char zone[32];
+                snprintf(zone, sizeof(zone), "%c%02ld%02ld", offset < 0 ? '-' : '+', std::abs(offset / 3600), std::abs(offset / 60 % 60));
+                normalized_format.append(zone);
+                ++i;
+                continue;
+            }
+            normalized_format.append_char(format[i++]);
+        }
+        normalized_format.append_char(format[i]);
+    }
     int maxsize = 32;
     auto buffer = new char[maxsize];
-    auto length = ::strftime(buffer, maxsize, format, time);
+    auto length = ::strftime(buffer, maxsize, normalized_format.c_str(), time);
     String str { std::move(buffer), length };
     return StringObject::create(std::move(str), encoding);
 }
