@@ -19,10 +19,12 @@ module Natalie
       end
 
       def generate_llvm(transform)
+        transform.symbol_name(name.to_s)
         # Environment slots are initialized to nil at function entry.
       end
 
       def generate(transform)
+        transform.intern(name)
         depth, var = transform.find_var(name, local_only: @local_only)
         index = var.fetch(:index)
 

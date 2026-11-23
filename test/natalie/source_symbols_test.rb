@@ -13,4 +13,14 @@ describe 'source symbols' do
     Symbol.all_symbols.any? { |symbol| symbol.to_s == 'source_symbols_block_literal_927' }.should == true
     block = -> { :source_symbols_block_literal_927 }
   end
+
+  it 'interns parameter and local names before their method is defined or called' do
+    symbols = Symbol.all_symbols.map(&:to_s)
+    symbols.should include('source_symbols_parameter_928')
+    symbols.should include('source_symbols_local_928')
+
+    def source_symbols_unused_method_928(source_symbols_parameter_928)
+      source_symbols_local_928 = nil
+    end
+  end
 end
