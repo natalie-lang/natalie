@@ -2,6 +2,24 @@ module Natalie
   class Compiler
     # Platform settings and native linking shared by all code generators.
     module NativeBuild
+      class TransformData
+        def initialize(var_prefix: nil)
+          @top = {}
+          @symbols = {}
+          @interned_strings = {}
+          @inline_functions = {}
+          @param_tables = {}
+          @var_prefix = var_prefix
+          @var_num = 0
+        end
+
+        def next_var_num
+          @var_num += 1
+        end
+
+        attr_reader :top, :symbols, :interned_strings, :inline_functions, :param_tables, :var_prefix
+      end
+
       ROOT_DIR = File.expand_path('../../..', __dir__)
       BUILD_DIR = File.join(ROOT_DIR, 'build')
 

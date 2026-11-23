@@ -49,15 +49,15 @@ module Natalie
           path
         end
 
-        def native_object(out)
-          path = File.join(@directory, 'native.o')
-          source_path = File.join(@directory, 'native.cpp')
+        def native_object(out, name: 'native')
+          path = File.join(@directory, "#{name}.o")
+          source_path = File.join(@directory, "#{name}.cpp")
           write_if_changed(source_path, out.merged_source)
           out.cpp_path = source_path
           out.out_path = path
           command = out.compiler_command
           key = digest([out.merged_source, command, compiler_identity, COMPILER_ENV.map { |name| [name, ENV[name]] }])
-          dependencies = File.join(@directory, 'native.d')
+          dependencies = File.join(@directory, "#{name}.d")
           cached(path, key) do |temporary|
             out.out_path = temporary
             out.dependency_file = "#{temporary}.d"

@@ -10,8 +10,8 @@ class LlvmBackendTest < Minitest::Test
   CLI = File.join(ROOT, 'bin/natalie')
   COMPILER_COMMAND = ENV['NAT_LLVM_COMPILER'] ? [ENV.fetch('NAT_LLVM_COMPILER')] : [RbConfig.ruby, CLI]
 
-  def run_cli(*args, env: {})
-    Open3.capture3(env, *COMPILER_COMMAND, *args, chdir: ROOT)
+  def run_cli(*args, env: {}, chdir: ROOT)
+    Open3.capture3(env, *COMPILER_COMMAND, *args, chdir:)
   end
 
   def assert_program(code, expected)
@@ -194,11 +194,26 @@ class LlvmBackendTest < Minitest::Test
     end
   end
 
-  def test_unsupported_construct_is_rejected_without_fallback
-    Dir.mktmpdir('natalie-unsupported-output') do |dir|
-      _, stderr, status = run_cli('--backend=llvm', '--print-objects', '-e', 'nil')
-      refute status.success?
-      assert_includes stderr, '--print-objects'
+  def test_print_objects_keeps_allocations_and_dumps_them_at_exit
+    stdout, stderr, status = run_cli('--backend=llvm', '--print-objects', '-e', 'puts "llvm object dump"')
+    assert status.success?, stderr
+    assert_includes stdout, "llvm object dump\n"
+    assert_match(/<StringObject 0x[0-9a-f]+ string="llvm object dump">/, stdout + stderr)
+    assert_match(/Total allocations: \d+/, stdout + stderr)
+  end
+
+  def test_profile_app_records_runtime_events
+    Dir.mktmpdir('natalie-llvm-profile') do |dir|
+      stdout, stderr, status =
+        run_cli('--backend=llvm', '--profile-app', '-e', 'puts "llvm profile"; GC.start', chdir: dir)
+      assert status.success?, stderr
+      assert_includes stdout, "llvm profile\n"
+      path = stdout[/Profile path: (.+)/, 1]
+      refute_nil path, stdout
+      require 'json'
+      events = JSON.parse(File.read(path))
+      assert events.any? { |event| event['name'].include?('puts') }, events.inspect
+      assert events.any? { |event| event['name'] == 'GC_Collect' }, events.inspect
     end
   end
 

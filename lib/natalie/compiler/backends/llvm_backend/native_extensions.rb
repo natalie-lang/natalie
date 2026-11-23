@@ -1,3 +1,4 @@
+require_relative '../../native_build/source_file'
 require 'shellwords'
 
 module Natalie
@@ -6,16 +7,8 @@ module Natalie
       # Reuse the C++ inline-macro generator for native code only. Ruby bodies
       # stay in LLVM; the generated wrappers pass tagged words across the ABI.
       class NativeExtensions
-        class OutFile < CppBackend::OutFile
+        class OutFile < NativeBuild::SourceFile
           attr_accessor :library_initializer
-          attr_accessor :dependency_file
-          attr_writer :cpp_path
-
-          def compiler_command
-            command = super
-            command += " -MMD -MF #{dependency_file.shellescape}" if dependency_file
-            command
-          end
 
           def merged_source
             <<~CPP
@@ -73,7 +66,7 @@ module Natalie
           prefix = 'llvm_ext_'
           prefix += "#{NativeBuild.object_name(compiler.out_path)}_" if compiler.compilation_type == 'shared-object'
           prefix += "repl#{compiler.repl_num}_" if compiler.repl?
-          @data = CppBackend::TransformData.new(var_prefix: prefix)
+          @data = NativeBuild::TransformData.new(var_prefix: prefix)
           @wrappers = []
           @file_wrapper_counts = Hash.new(0)
         end

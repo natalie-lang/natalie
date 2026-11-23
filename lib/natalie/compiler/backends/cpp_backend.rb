@@ -1,5 +1,5 @@
 require_relative '../native_build'
-require_relative './cpp_backend/out_file'
+require_relative '../native_build/source_file'
 require_relative './cpp_backend/transform'
 require_relative '../flags'
 require_relative '../../../thread_pool'
@@ -11,30 +11,12 @@ module Natalie
       include Flags
       include NativeBuild
 
-      class TransformData
-        def initialize(var_prefix: nil)
-          @top = {}
-          @symbols = {}
-          @interned_strings = {}
-          @inline_functions = {}
-          @param_tables = {}
-          @var_prefix = var_prefix
-          @var_num = 0
-        end
-
-        def next_var_num
-          @var_num += 1
-        end
-
-        attr_reader :top, :symbols, :interned_strings, :inline_functions, :param_tables, :var_prefix
-      end
-
       def initialize(instructions, compiler:, compiler_context:)
         @instructions = instructions
         @compiler = compiler
         @compiler_context = compiler_context
         augment_compiler_context
-        @transform_data = TransformData.new(var_prefix: build_var_prefix)
+        @transform_data = NativeBuild::TransformData.new(var_prefix: build_var_prefix)
         @compiled_files = {}
         @var_prefixes_used = {}
       end
@@ -129,7 +111,7 @@ module Natalie
         end
         @var_prefixes_used[var_prefix] = loaded_file
 
-        @transform_data = TransformData.new(var_prefix:)
+        @transform_data = NativeBuild::TransformData.new(var_prefix:)
       end
 
       def prepare_main_out_file
@@ -158,7 +140,14 @@ module Natalie
       end
 
       def out_file_for_source(type:, body:, ruby_path:)
-        OutFile.new(type:, body:, transform_data: @transform_data, ruby_path:, compiler: @compiler, backend: self)
+        NativeBuild::SourceFile.new(
+          type:,
+          body:,
+          transform_data: @transform_data,
+          ruby_path:,
+          compiler: @compiler,
+          backend: self,
+        )
       end
 
       def build_transform(instructions)

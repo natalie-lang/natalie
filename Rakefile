@@ -32,15 +32,15 @@ file 'build/llvm_runtime.o' => %w[tools/llvm_runtime.cpp .build] + Rake::FileLis
 end
 
 file 'build/llvm_main.cpp' =>
-       %w[src/main_template.cpp lib/natalie/compiler/backends/cpp_backend/out_file.rb Rakefile] +
+       %w[src/main_template.cpp lib/natalie/compiler/native_build/source_file.rb Rakefile] +
          Rake::FileList['src/**/*.rb'] do |t|
   require_relative 'lib/natalie/compiler'
-  data = Natalie::Compiler::CppBackend::TransformData.new
+  data = Natalie::Compiler::NativeBuild::TransformData.new
   data.top[:llvm] = '#include "natalie/llvm_runtime.hpp"'
   backend = Struct.new(:compiled_files, :compiler_context).new({}, { required_cpp_files: {}, source_path: '(llvm)' })
   compiler = Struct.new(:build_dir).new
   source =
-    Natalie::Compiler::CppBackend::OutFile.new(
+    Natalie::Compiler::NativeBuild::SourceFile.new(
       type: :main,
       body: 'return nat_llvm_unpack(nat_llvm_eval(env, nat_llvm_pack(self)));',
       transform_data: data,

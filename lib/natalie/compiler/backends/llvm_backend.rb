@@ -61,15 +61,28 @@ module Natalie
       end
 
       def compile_to_binary
-        runtime_objects = library? ? [RUNTIME_BRIDGE] : RUNTIME_OBJECTS
+        runtime_objects = library? || @custom_entrypoint ? [RUNTIME_BRIDGE] : RUNTIME_OBJECTS
         missing = runtime_objects.reject { |path| File.file?(path) }
         raise CompileError, 'Build the LLVM runtime bridge first: bundle exec rake llvm_runtime' unless missing.empty?
-        return build_cache.lock { link([*cached_objects, *runtime_objects]) } if @compiler.build_dir
+        if @compiler.build_dir
+          return(
+            build_cache.lock do
+              objects = [*cached_objects, *runtime_objects]
+              objects << build_cache.native_object(entrypoint, name: 'entrypoint') if @custom_entrypoint && !library?
+              link(objects)
+            end
+          )
+        end
         Dir.mktmpdir do |dir|
           object = File.join(dir, 'program.o')
           require_relative 'llvm_backend/native'
           Native.new.emit_object(ir, object)
           objects = [object, *runtime_objects]
+          if @custom_entrypoint && !library?
+            main = entrypoint
+            main.out_path = File.join(dir, 'entrypoint.o')
+            objects << main.compile_object_file
+          end
           if @native_extensions.active? || library?
             native_object = File.join(dir, 'native.o')
             initializer = NativeBuild.object_name(@compiler.out_path) if shared_library?
@@ -98,14 +111,32 @@ module Natalie
       end
 
       def profile_app!
-        raise CompileError, 'LLVM backend does not yet support --profile-app'
+        @compiler_context.fetch(:compile_cxx_flags) << '-DNAT_NATIVE_PROFILER'
+        @custom_entrypoint = true
       end
 
       def print_objects!
-        raise CompileError, 'LLVM backend does not yet support --print-objects'
+        @compiler_context.fetch(:compile_cxx_flags) << '-DNAT_PRINT_OBJECTS'
+        @custom_entrypoint = true
       end
 
       private
+
+      def entrypoint
+        data = NativeBuild::TransformData.new
+        data.top[:llvm] = '#include "natalie/llvm_runtime.hpp"'
+        # Native dependencies initialize in the LLVM sidecar, not twice here.
+        context = @compiler_context.merge(required_cpp_files: {})
+        backend = Struct.new(:compiled_files, :compiler_context).new({}, context)
+        NativeBuild::SourceFile.new(
+          type: :main,
+          body: 'return nat_llvm_unpack(nat_llvm_eval(env, nat_llvm_pack(self)));',
+          transform_data: data,
+          ruby_path: @compiler_context.fetch(:source_path),
+          compiler: @compiler,
+          backend: backend,
+        )
+      end
 
       def units
         return unless @compiler.build_dir

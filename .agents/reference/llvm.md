@@ -117,7 +117,7 @@ Natalie's existing GC-managed environments.
 `require 'extension.cpp'` uses Natalie's existing extension convention:
 `init_extension(Env *, Value)` plus inline macros such as `__bind_method__`.
 The sidecar object reuses `CppBackend::Transform` for these macros and
-`CppBackend::OutFile` for compilation flags and diagnostics. Initialization runs
+`NativeBuild::SourceFile` for compilation flags and diagnostics. Initialization runs
 before the LLVM entrypoint's Ruby instructions, matching the C++ backend.
 
 LLVM calls generated `extern "C"` wrappers using tagged machine words and
@@ -189,8 +189,11 @@ can be retried. Loaded-file returns count as successful requires; explicit
 `load` does not modify require's feature state.
 Dynamic runtime `Module#autoload` calls remain outside this static macro path.
 
-Unsupported instructions fail explicitly. `--profile-app` and `--print-objects`
-remain unsupported.
+`--profile-app` and `--print-objects` use the shared native startup generator
+with the same runtime instrumentation as the C++ backend. A configured startup
+object is compiled only when these options are requested; ordinary executables
+reuse the prebuilt startup object. Cached builds keep the configured startup in
+`entrypoint.o`, independently of native extensions in `native.o`.
 
 The normal ruby/spec runner now works for the unmodified
 `spec/core/nil/nil_spec.rb`:

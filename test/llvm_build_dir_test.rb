@@ -11,7 +11,7 @@ class LlvmBuildDirTest < Minitest::Test
   CLI = File.join(ROOT, 'bin/natalie')
   COMPILER_COMMAND = ENV['NAT_LLVM_COMPILER'] ? [ENV.fetch('NAT_LLVM_COMPILER')] : [RbConfig.ruby, CLI]
 
-  def build(cache, *arguments, env: {})
+  def build(cache, *arguments, env: {}, chdir: ROOT)
     Open3.capture3(
       env,
       *COMPILER_COMMAND,
@@ -39,6 +39,31 @@ class LlvmBuildDirTest < Minitest::Test
 
   def object_for(cache, source)
     Dir[File.join(cache, 'llvm', '**', "#{Natalie::Compiler::LlvmBackend::Units.id(source)}.o")].fetch(0)
+  end
+
+  def test_cached_entrypoint_options_coexist_with_native_dependencies
+    Dir.mktmpdir('natalie-llvm-entrypoint-cache') do |dir|
+      cache = File.join(dir, 'build')
+      code = "require 'tempfile'; Tempfile.create('llvm-entrypoint') { puts 'cached native entrypoint' }; GC.start"
+      2.times do |attempt|
+        stdout, stderr, status = build(cache, '--profile-app', '--print-objects', '-e', code, chdir: dir)
+        assert status.success?, stderr
+        assert_match(/Total allocations: \d+/, stdout + stderr)
+        path = stdout[/Profile path: (.+)/, 1]
+        refute_nil path, stdout
+        assert File.size?(path)
+        File.unlink(path)
+        if attempt.zero?
+          objects = age_objects(cache)
+          assert objects.any? { |object| File.basename(object) == 'native.o' }
+          assert objects.any? { |object| File.basename(object) == 'entrypoint.o' }
+        else
+          assert Dir[File.join(cache, 'llvm', '**', '*.o')].all? { |object| File.mtime(object) == Time.at(1) }
+        end
+      end
+      stdout = run_ok(cache, '-e', code)
+      assert_equal "cached native entrypoint\n", stdout
+    end
   end
 
   def test_reuses_separate_ruby_objects_and_rebuilds_only_the_changed_file

@@ -1,20 +1,19 @@
 require 'tempfile'
 require 'shellwords'
-require_relative '../../native_build'
-require_relative '../../advisory_lock'
-require_relative '../../flags'
-require_relative '../../string_to_cpp'
+require_relative '../native_build'
+require_relative '../advisory_lock'
+require_relative '../flags'
+require_relative '../string_to_cpp'
 
 module Natalie
   class Compiler
-    class CppBackend
-      class OutFile
+    module NativeBuild
+      class SourceFile
         include Flags
         include NativeBuild
         include NativeBuild::PkgConfig
         include StringToCpp
 
-        ROOT_DIR = File.expand_path('../../../../../', __dir__)
         SRC_PATH = File.join(ROOT_DIR, 'src')
         MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main_template.cpp'))
         OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit_template.cpp'))
@@ -35,7 +34,8 @@ module Natalie
         end
 
         attr_reader :ruby_path, :cpp_path, :status
-        attr_writer :out_path
+        attr_writer :out_path, :cpp_path
+        attr_accessor :dependency_file
 
         def write_source
           if build_dir
@@ -73,7 +73,7 @@ module Natalie
         end
 
         def append_loaded_file(other_out_file)
-          raise "Expected OutFile, got #{other_out_file.class}" unless other_out_file.is_a?(OutFile)
+          raise "Expected SourceFile, got #{other_out_file.class}" unless other_out_file.is_a?(SourceFile)
 
           fn = @backend.compiled_files.fetch(other_out_file.ruby_path)
           @top["#{fn}_def"] = other_out_file.loaded_file_fn_source(fn_only: true)
@@ -127,7 +127,8 @@ module Natalie
             "-o #{out_path.shellescape}",
             '-x c++ -std=c++17',
             (@cpp_path || 'code.cpp').shellescape,
-          ].map(&:to_s).join(' ')
+            ("-MMD -MF #{dependency_file.shellescape}" if dependency_file),
+          ].compact.map(&:to_s).join(' ')
         end
 
         def out_path
