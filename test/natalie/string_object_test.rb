@@ -7,11 +7,11 @@ require 'natalie/inline'
 describe 'StringObject' do
   it 'should be able to append any type with StringObject::append' do
     o = Object.new
-    def o.stringobject_append(str, val)
-      __inline__ <<~END
-        str_var.assert_type(env, Object::Type::String, "String");
-        str_var.as_string()->append(val_var);
-        return str_var;
+    class << o
+      __define_method__ :stringobject_append, %i[str val], <<~END
+        str.assert_type(env, Object::Type::String, "String");
+        str.as_string()->append(val);
+        return str;
       END
     end
     o.stringobject_append('foo ', false).should == 'foo false'

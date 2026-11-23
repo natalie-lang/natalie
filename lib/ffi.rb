@@ -105,25 +105,21 @@ module FFI
     __bind_method__ :to_obj, :FFI_Pointer_to_obj
     __bind_method__ :write_string, :FFI_Pointer_write_string
 
-    def self.from_env
-      __inline__ <<~END
+    class << self
+      __define_method__ :from_env, [], <<~CPP
         auto e = env->caller();
         return self.send(env, "new"_s, { Value::integer((uintptr_t)e) });
-      END
-    end
+      CPP
 
-    def self.new_env
-      __inline__ <<~END
+      __define_method__ :new_env, [], <<~CPP
         auto e = Env::create(env->caller());
         return self.send(env, "new"_s, { Value::integer((uintptr_t)e) });
-      END
-    end
+      CPP
 
-    def self.new_value
-      __inline__ <<~END
+      __define_method__ :new_value, [], <<~CPP
         auto *v = new Value;
         return self.send(env, "new"_s, { Value::integer((uintptr_t)v) });
-      END
+      CPP
     end
 
     attr_reader :type_size

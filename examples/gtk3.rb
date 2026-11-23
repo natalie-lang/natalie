@@ -92,9 +92,7 @@ module Gtk3
   end
 
   class << self
-    def init
-      __inline__ 'gtk_init(0, nullptr);'
-    end
+    __define_method__ :init, [], 'gtk_init(0, nullptr); return Value::nil();'
 
     __define_method__ :window_new, <<-END
       args.ensure_argc_is(env, 1);
@@ -241,16 +239,8 @@ module Gtk3
       return Value::nil();
     END
 
-    def main
-      __inline__ <<-END
-        gtk_main();
-      END
-    end
+    __define_method__ :main, [], 'gtk_main(); return Value::nil();'
 
-    def main_quit
-      __inline__ <<-END
-        gtk_main_quit();
-      END
-    end
+    __define_method__ :main_quit, [], 'gtk_main_quit(); return Value::nil();'
   end
 end

@@ -2,23 +2,15 @@
 
 require_relative '../spec_helper'
 require 'natalie/inline'
+require_relative '../support/gc_helpers.cpp'
+
+__function__ 'GC_create_probe', [], 'void'
 
 describe 'GC' do
   def create_object
     $gc_ran = false
-    ptr = nil
-    # Our VoidPObject has a cleanup function that runs whenever
-    # the object is collected by the GC, so we can use that to
-    # test that it did indeed run.
-    __inline__ <<~END
-      ptr_var = VoidPObject::create(
-          nullptr,
-          [](auto p) {
-              Env e {};
-              GlobalEnv::the()->global_set(&e, "$gc_ran"_s, Value::True());
-          }
-      );
-    END
+    # The native probe sets $gc_ran when it becomes unreachable and is collected.
+    __call__('GC_create_probe')
   end
 
   describe '.start' do

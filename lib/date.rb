@@ -1,4 +1,7 @@
 require 'natalie/inline'
+require 'date.cpp'
+
+__function__ 'Date_strftime', ['Env *', 'Value', 'Value'], 'Value'
 
 class Date
   include Comparable
@@ -335,16 +338,7 @@ class Date
   end
 
   def strftime(format = '%F')
-    __inline__ <<-END
-      format_var.assert_type(env, Object::Type::String, "String");
-      struct tm time = { 0 };
-      time.tm_year = IntegerMethods::convert_to_int(env, self->ivar_get(env, "@year"_s)) - 1900;
-      time.tm_mon = IntegerMethods::convert_to_int(env, self->ivar_get(env, "@month"_s)) - 1;
-      time.tm_mday = IntegerMethods::convert_to_int(env, self->ivar_get(env, "@mday"_s));
-      time.tm_gmtoff = 0;
-      time.tm_isdst = 0;
-      return TimeObject::build_string(&time, format_var.as_string()->c_str(), format_var.as_string()->encoding()->num());
-    END
+    __call__('Date_strftime', self, format)
   end
 
   def sunday?

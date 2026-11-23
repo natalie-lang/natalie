@@ -1,4 +1,6 @@
 require 'natalie/inline'
+
+__function__ 'Env::raise_errno', ['Env *'], 'void'
 require 'zlib.cpp'
 
 __ld_flags__ '-lz'
@@ -45,7 +47,7 @@ module Zlib
     when 2
       raise NeedDict
     when -1
-      __inline__ 'env->raise_errno();'
+      __call__('Env::raise_errno')
     when -2
       raise StreamError
     when -3
