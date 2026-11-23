@@ -226,6 +226,29 @@ describe "The super keyword" do
     foo.bar.should == "super_bar"
   end
 
+  it "preserves a closure when defining a method from an UnboundMethod" do
+    source = Class.new do
+      value = 7
+      define_method(:value) { value }
+    end
+    target = Class.new(source)
+    target.define_method(:copy, source.instance_method(:value))
+    GC.start
+    target.new.copy.should == 7
+    lambda { source.define_method(:invalid, target.instance_method(:copy)) }.should raise_error(TypeError)
+  end
+
+  it "uses the body name after a renamed module method is installed" do
+    parent = Class.new do
+      def foo; :parent_foo; end
+      def bar; :parent_bar; end
+    end
+    body = Module.new { def foo; super; end }
+    target = Class.new(parent)
+    target.define_method(:bar, body.instance_method(:foo))
+    target.new.bar.should == :parent_foo
+  end
+
   # Rubinius ticket github#157
   it "calls method_missing when a superclass method is not found" do
     NATFIXME 'Fix super calling method_missing', exception: NoMethodError do

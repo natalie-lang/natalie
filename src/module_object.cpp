@@ -538,19 +538,26 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Module
     }
 
     bool should_return_match = !after_method || *after_method_found;
+    auto anchor_name = after_method ? SymbolObject::intern(after_method->name()) : nullptr;
     for (ModuleObject *p = this; p; p = p->m_superclass) {
         if (p->is_origin_hollow()) continue;
+        if (!should_return_match) {
+            auto anchor = p->methods_table().get(anchor_name, env);
+            if (anchor.is_defined() && anchor.method() == after_method) {
+                *after_method_found = true;
+                should_return_match = true;
+            }
+            continue;
+        }
         auto method_info = p->methods_table().get(method_name, env);
         if (!method_info) continue;
         if (!method_info.is_defined()) {
             if (!after_method) cache_method(method_name, method_info, env);
             return method_info;
         }
-        if (method_info.method() == after_method) {
-            *after_method_found = true;
-            should_return_match = true;
-            continue;
-        }
+        // Visibility shims can expose the same method in more than one node.
+        // None of those copies is a superclass implementation of that method.
+        if (method_info.method() == after_method) continue;
         if (should_return_match) {
             if (matching_class_or_module) *matching_class_or_module = p->defined_class();
             if (!after_method) cache_method(method_name, method_info, env);
@@ -901,13 +908,22 @@ Value ModuleObject::define_method(Env *env, Value name_value, Optional<Value> me
                 env->raise("TypeError", "wrong argument type {} (expected Proc/Method/UnboundMethod)", method_value.klass()->inspect_module());
             }
             ModuleObject *owner = method->owner();
-            if (owner != this && owner->type() == Type::Class && !owner->is_subclass_of(this)) {
+            if (owner != this && owner->type() == Type::Class && !is_subclass_of(owner)) {
                 if (owner->as_class()->is_singleton())
                     env->raise("TypeError", "can't bind singleton method to a different class");
                 else
                     env->raise("TypeError", "bind argument must be a subclass of {}", owner->inspect_module());
             }
-            define_method(env, name, method->lexical_scope(), method->fn(), method->arity());
+            // A Method body can carry a closure environment, source location,
+            // parameters, and alias origin. Copy all of it, not only its fn.
+            auto copy = Method::from_other(name->string(), this, method);
+            auto visibility = name == "initialize"_s ? MethodVisibility::Private : m_method_visibility;
+            define_method(env, name, copy, visibility);
+            if (m_module_function) {
+                auto singleton = Object::singleton_class(env, this);
+                auto exported = Method::from_other(name->string(), singleton, copy);
+                singleton->define_method(env, name, exported, MethodVisibility::Public);
+            }
         }
     } else if (block) {
         define_method(env, name, block);

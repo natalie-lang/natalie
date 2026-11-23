@@ -100,9 +100,10 @@ public:
     LexicalScope *lexical_scope() const { return m_lexical_scope; }
 
     String original_name() const {
-        if (m_original_method)
-            return m_original_method->name();
-        return name();
+        auto method = this;
+        while (method->m_original_method)
+            method = method->m_original_method;
+        return method->name();
     }
     void set_original_method(Method *method) { m_original_method = method; }
     Method *original_method() const { return m_original_method; }

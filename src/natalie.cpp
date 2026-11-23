@@ -909,10 +909,18 @@ Value super(Env *env, Value self, Args &&args, Block *block) {
     if (!klass)
         klass = self.klass();
     auto after_method = current_method;
-    if (current_method->original_method())
-        after_method = current_method->original_method();
+    while (after_method->original_method())
+        after_method = after_method->original_method();
 
-    auto super_method = klass->find_method(env, SymbolObject::intern(after_method->name()), after_method);
+    auto name = SymbolObject::intern(after_method->name());
+    bool anchor_found = false;
+    auto super_method = klass->find_method(env, name, nullptr, after_method, &anchor_found);
+    if (!anchor_found && after_method != current_method) {
+        // define_method may copy a module body that is not in this receiver's
+        // ancestors. In that case start after the installed definition instead.
+        // A miss after an existing anchor is final and must never fall back.
+        super_method = klass->find_method(env, name, nullptr, current_method, &anchor_found);
+    }
     if (!super_method.is_defined()) {
         if (self.is_module()) {
             env->raise("NoMethodError", "super: no superclass method '{}' for {}:{}", current_method->original_name(), self.as_module()->inspect_module(), self.klass()->inspect_module());
