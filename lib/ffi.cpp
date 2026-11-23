@@ -471,7 +471,9 @@ Value FFI_Pointer_write_string(Env *env, Value self, Args &&args, Block *) {
     args.ensure_argc_between(env, 1, 2);
 
     auto str = args.at(0).as_string_or_raise(env);
-    auto length = args.size() > 1 ? IntegerMethods::convert_to_native_type<size_t>(env, args.at(0)) : str->bytesize();
+    auto length = args.size() > 1 ? IntegerMethods::convert_to_native_type<size_t>(env, args.at(1)) : str->bytesize();
+    if (length > str->bytesize())
+        env->raise("RangeError", "index+length is greater than size of string");
 
     auto address = (void *)self.send(env, "address"_s).integer_or_raise(env).to_nat_int_t();
     memcpy(address, str->c_str(), length);

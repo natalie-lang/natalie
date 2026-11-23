@@ -345,6 +345,19 @@ describe 'FFI' do
   end
 
   describe 'MemoryPointer' do
+    describe '#write_string' do
+      it 'writes an explicit byte length including embedded nulls' do
+        pointer = FFI::MemoryPointer.new(8, 1, true)
+        pointer.write_string("a\x00bc", 3)
+        pointer.read_string(4).should == "a\x00b\x00"
+      end
+
+      it 'rejects lengths beyond the string' do
+        pointer = FFI::MemoryPointer.new(8)
+        -> { pointer.write_string('x', 2) }.should raise_error(RangeError)
+      end
+    end
+
     describe '#initialize' do
       it 'sets address and type_size' do
         pointer = FFI::MemoryPointer.new(100)
