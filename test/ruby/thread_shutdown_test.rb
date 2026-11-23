@@ -15,6 +15,7 @@ describe 'thread shutdown' do
             ready << true
             #{body}
           ensure
+            puts [true.class, false.class, nil.class].join(', ')
             puts 'worker stopped'
           end
         end
@@ -22,7 +23,11 @@ describe 'thread shutdown' do
         puts 'main finished'
       RUBY
       out = Command.new(NAT_BINARY, '-e', code, timeout: 120).run
-      expect(out.lines.map(&:strip).reject(&:empty?)).must_equal ['main finished', 'worker stopped']
+      expect(out.lines.map(&:strip).reject(&:empty?)).must_equal [
+                     'main finished',
+                     'TrueClass, FalseClass, NilClass',
+                     'worker stopped',
+                   ]
     end
   end
 
