@@ -106,6 +106,7 @@
 #include "natalie/kernel_module.hpp"
 #include "natalie/lexical_scope.hpp"
 #include "natalie/local_jump_error_type.hpp"
+#include "natalie/marshal_module.hpp"
 #include "natalie/match_data_object.hpp"
 #include "natalie/method.hpp"
 #include "natalie/method_object.hpp"

@@ -73,6 +73,7 @@ public:
     [[noreturn]] void raise_key_error(Value, Value);
     [[noreturn]] void raise_local_jump_error(Value, LocalJumpErrorType, nat_int_t break_point = 0);
     [[noreturn]] void raise_errno();
+    [[noreturn]] static void raise_errno(Env *env) { env->raise_errno(); }
     [[noreturn]] void raise_errno(int);
     [[noreturn]] void raise_errno(StringObject *);
     [[noreturn]] void raise_invalid_byte_sequence_error(const EncodingObject *);
@@ -202,6 +203,8 @@ public:
         if (auto dst = src->caller())
             dst->set_last_match(src->has_last_match() ? src->last_match().as_match_data() : nullptr);
     }
+
+    static void propagate_last_match_to_caller(Env *env) { env->propagate_last_match_to_caller(); }
 
     Value exception_object();
     ExceptionObject *exception();

@@ -278,6 +278,10 @@ public:
         current()->deliver_pending(env, kind);
     }
 
+    static Value push_current_interrupt_mask(Env *env, Value mask) { return current()->push_interrupt_mask(env, mask); }
+    static Value pop_current_interrupt_mask(Env *env) { return current()->pop_interrupt_mask(env); }
+    static void deliver_current_blocking_pending(Env *env) { deliver_current_pending(env, CheckpointKind::Blocking); }
+
     static void setup_wake_pipe(Env *env);
     static int wake_pipe_read_fileno() { return s_wake_pipe_read_fileno; }
     static void wake_all();

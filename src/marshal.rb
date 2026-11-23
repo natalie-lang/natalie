@@ -2,7 +2,8 @@
 
 require 'natalie/inline'
 
-__inline__ 'extern "C" char *dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve);'
+__function__ 'MarshalModule::float_to_string', ['Env *', 'Value'], 'Value'
+__function__ 'MarshalModule::set_exception_cause', ['Env *', 'Value', 'Value'], 'void'
 
 module Marshal
   MAJOR_VERSION = 4
@@ -167,31 +168,7 @@ module Marshal
       elsif value == 0.0
         write_string_bytes(1 / value < 0 ? '-0' : '0')
       else
-        __inline__ <<-END
-            int decpt, sign;
-            char *out, *e;
-            out = dtoa(value_var.as_float()->to_double(), 0, 0, &decpt, &sign, &e);
-            int digits = strlen(out);
-            String string;
-            if (decpt < -3 || decpt > digits) {
-                string.append(out);
-                string.insert(1, '.');
-                string.append_sprintf("e%d", decpt - 1);
-            } else if (decpt > 0) {
-                string.append(out);
-                if (decpt < digits) {
-                    string.insert(decpt, '.');
-                }
-            } else {
-                string = String("0.");
-                string.append(::abs(decpt), '0');
-                string.append(out);
-            }
-            if (sign) {
-                string.prepend_char('-');
-            }
-            self.send(env, "write_string_bytes"_s, { StringObject::create(string, Encoding::US_ASCII) });
-        END
+        write_string_bytes(__call__('MarshalModule::float_to_string', value))
       end
     end
 
@@ -773,7 +750,7 @@ module Marshal
         if ivars_hash.key?(:cause)
           exception = object
           cause = ivars_hash.delete(:cause)
-          __inline__ 'exception_var.as_exception_or_raise(env)->set_cause(cause_var.as_exception_or_raise(env));'
+          __call__('MarshalModule::set_exception_cause', exception, cause)
         end
       end
       ivars_hash.each { |ivar_name, value| object.instance_variable_set(ivar_name, value) }

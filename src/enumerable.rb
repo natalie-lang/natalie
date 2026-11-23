@@ -1,5 +1,7 @@
 require 'natalie/inline'
 
+__function__ 'Env::propagate_last_match_to_caller', ['Env *'], 'void'
+
 module Enumerable
   def all?(pattern = nil)
     gather = ->(item) { item.size <= 1 ? item.first : item }
@@ -8,7 +10,7 @@ module Enumerable
       regexp = Regexp === pattern
       each do |*item|
         result = pattern === gather.(item)
-        __inline__ 'env->propagate_last_match_to_caller();' if regexp
+        __call__('Env::propagate_last_match_to_caller') if regexp
         return false unless result
       end
       true
@@ -28,7 +30,7 @@ module Enumerable
       regexp = Regexp === pattern
       each do |*item|
         result = pattern === gather.(item)
-        __inline__ 'env->propagate_last_match_to_caller();' if regexp
+        __call__('Env::propagate_last_match_to_caller') if regexp
         return true if result
       end
       false
@@ -54,7 +56,7 @@ module Enumerable
       regexp = Regexp === pattern
       each do |*item|
         matched = pattern === gather.(item)
-        __inline__ 'env->propagate_last_match_to_caller();' if regexp
+        __call__('Env::propagate_last_match_to_caller') if regexp
         return false if matched
       end
     elsif block_given?
@@ -73,7 +75,7 @@ module Enumerable
       regexp = Regexp === pattern
       each do |*item|
         matched = pattern === gather.(item)
-        __inline__ 'env->propagate_last_match_to_caller();' if regexp
+        __call__('Env::propagate_last_match_to_caller') if regexp
         if matched
           return false if result
           result = true
@@ -330,7 +332,7 @@ module Enumerable
       each do |*item|
         item = item.size > 1 ? item : item[0]
         matched = pattern === item
-        __inline__ 'env->propagate_last_match_to_caller();' if regexp
+        __call__('Env::propagate_last_match_to_caller') if regexp
         ary << yield(item) if matched
       end
       ary
@@ -346,7 +348,7 @@ module Enumerable
       each do |*item|
         item = item.size > 1 ? item : item[0]
         matched = pattern === item
-        __inline__ 'env->propagate_last_match_to_caller();' if regexp
+        __call__('Env::propagate_last_match_to_caller') if regexp
         ary << yield(item) unless matched
       end
       ary

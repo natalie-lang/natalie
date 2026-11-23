@@ -1,5 +1,9 @@
 require 'natalie/inline'
 
+__function__ 'ThreadObject::push_current_interrupt_mask', ['Env *', 'Value'], 'Value'
+__function__ 'ThreadObject::pop_current_interrupt_mask', ['Env *'], 'Value'
+__function__ 'ThreadObject::deliver_current_blocking_pending', ['Env *'], 'void'
+
 class Thread
   # Run +block+ with an interrupt-mask in effect. The mask is a
   # +{Module/Class => :immediate|:on_blocking|:never}+ Hash that controls
@@ -19,15 +23,15 @@ class Thread
   # in a Ruby +ensure+ rather than a C++ destructor).
   def self.handle_interrupt(mask)
     raise ArgumentError, 'block is needed.' unless block_given?
-    __inline__ 'ThreadObject::current()->push_interrupt_mask(env, mask_var);'
+    __call__('ThreadObject::push_current_interrupt_mask', mask)
     begin
       # Drain inside +begin+ so a delivered :immediate exception still
       # triggers the +ensure+ that pops the mask we just pushed; if we
       # drained before the begin, an exception there would leak the frame.
-      __inline__ 'ThreadObject::current()->deliver_pending(env, ThreadObject::CheckpointKind::Blocking);'
+      __call__('ThreadObject::deliver_current_blocking_pending')
       yield
     ensure
-      __inline__ 'ThreadObject::current()->pop_interrupt_mask(env);'
+      __call__('ThreadObject::pop_current_interrupt_mask')
     end
   end
 
