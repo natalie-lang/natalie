@@ -467,3 +467,33 @@ extern "C" uint64_t nat_llvm_alias_global(Env *env, uint64_t new_name, uint64_t 
 extern "C" uint64_t nat_llvm_undef_method(Env *env, uint64_t self, uint64_t name) {
     return nat_llvm_pack(Object::undefine_method(env, nat_llvm_unpack(self), nat_llvm_unpack(name).to_symbol(env, Value::Conversion::Strict)));
 }
+
+extern "C" uint64_t nat_llvm_is_defined(Env *env, uint64_t self, Args *args, Block *block, LlvmRegionFn fn, uint64_t *frame, const char *type) {
+    try {
+        fn(env, self, args, block, frame, nullptr);
+        auto result = StringObject::create(type);
+        result->freeze();
+        return nat_llvm_pack(result);
+    } catch (ExceptionObject *) {
+        return nat_llvm_pack(Value::nil());
+    }
+}
+
+extern "C" void nat_llvm_method_defined(Env *env, uint64_t receiver, const char *name, int include_all) {
+    if (!nat_llvm_unpack(receiver).respond_to(env, SymbolObject::intern(name), include_all))
+        throw ExceptionObject::create();
+}
+
+extern "C" void nat_llvm_ivar_defined(Env *env, uint64_t self, const char *name) {
+    if (!Object::ivar_defined(env, nat_llvm_unpack(self), SymbolObject::intern(name)))
+        throw ExceptionObject::create();
+}
+
+extern "C" void nat_llvm_global_defined(Env *env, const char *name) {
+    if (!env->global_defined(SymbolObject::intern(name)))
+        throw ExceptionObject::create();
+}
+
+extern "C" uint64_t nat_llvm_last_match(Env *env) {
+    return nat_llvm_pack(env->last_match());
+}

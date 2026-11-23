@@ -13,6 +13,10 @@ module Natalie
         "instance_variable_defined #{@name}"
       end
 
+      def generate_llvm(transform)
+        transform.emit "call void @nat_llvm_ivar_defined(ptr %env, i64 %self, ptr #{transform.string(@name.to_s)})"
+      end
+
       def generate(transform)
         transform.exec(
           "if (!Object::ivar_defined(env, self, #{transform.intern(@name)})) throw ExceptionObject::create()",

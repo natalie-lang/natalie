@@ -37,8 +37,9 @@ the C++ driver only for linking.
 
 The proof of concept supports literals, arrays, hashes, ranges, conditionals,
 short-circuit expressions, case matching, string interpolation, regexp literals
-and interpolation, while loops, local/global/instance variables,
-constants, classes/modules and singleton classes, aliases, `super`,
+and interpolation, capture access, while loops, local/global/instance/class variables,
+constants, `defined?` probes, classes/modules and singleton classes, method/global
+aliases, `undef`, `super`,
 methods with positional/default/rest and keyword arguments,
 blocks and lambdas, captured locals, anonymous argument/block forwarding, splat
 calls and yields, rescue/ensure/retry, loop and block jumps, non-local and

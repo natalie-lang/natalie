@@ -448,6 +448,20 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
+  def test_defined_probes_preserve_nil_valued_variables_and_do_not_call_methods
+    assert_program(
+      '$g=nil; @i=nil; p [defined?($g),defined?($missing_g),defined?(@i),defined?(@missing_i),defined?(MissingConstant)]; def f; raise "not called"; end; p defined?(f); p defined?(does_not_exist); p defined?(puts); p defined?(f).frozen?',
+      "[\"global-variable\", nil, \"instance-variable\", nil, nil]\n\"method\"\nnil\n\"method\"\ntrue\n",
+    )
+  end
+
+  def test_regexp_capture_access_and_definition_checks
+    assert_program(
+      '/(a)/ =~ "a"; p $1; p defined?($1); /z/ =~ "a"; p $1; p defined?($1)',
+      "\"a\"\n\"global-variable\"\nnil\nnil\n",
+    )
+  end
+
   def test_methods_defaults_rest_and_recursion
     assert_program(
       'def sum(n, extra = 1); if n == 0; extra; else; n + sum(n - 1, extra); end; end; def rest(a, *xs); [a, xs]; end; p sum(4); p sum(2, 10); p rest(1, 2, 3)',

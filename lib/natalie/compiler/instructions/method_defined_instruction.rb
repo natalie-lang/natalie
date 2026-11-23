@@ -17,6 +17,17 @@ module Natalie
         "method_defined #{@message.inspect}"
       end
 
+      def generate_llvm(transform)
+        if @args_array_on_stack
+          transform.pop
+        else
+          transform.pop(transform.pop)
+        end
+        receiver = transform.pop
+        transform.emit "call void @nat_llvm_method_defined(ptr %env, i64 #{receiver}, ptr #{transform.string(@message.to_s)}, i32 #{receiver == '%self' ? 1 : 0})"
+        transform.push('4')
+      end
+
       def generate(transform)
         if @args_array_on_stack
           transform.pop

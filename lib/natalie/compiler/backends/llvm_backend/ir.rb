@@ -71,6 +71,11 @@ module Natalie
           declare void @nat_llvm_cvar_set(ptr, i64, ptr, i64)
           declare i64 @nat_llvm_alias_global(ptr, i64, i64)
           declare i64 @nat_llvm_undef_method(ptr, i64, i64)
+          declare i64 @nat_llvm_is_defined(ptr, i64, ptr, ptr, ptr, ptr, ptr)
+          declare void @nat_llvm_method_defined(ptr, i64, ptr, i32)
+          declare void @nat_llvm_ivar_defined(ptr, i64, ptr)
+          declare void @nat_llvm_global_defined(ptr, ptr)
+          declare i64 @nat_llvm_last_match(ptr)
           declare void @nat_llvm_set_zero(ptr, ptr)
           declare void @nat_llvm_warn(ptr, i64, ptr, i32)
         LLVM
