@@ -38,19 +38,36 @@ module Natalie
         condition = transform.fetch_block_of_instructions(until_instruction: WhileBodyInstruction)
         body = transform.fetch_block_of_instructions(expected_label: :while)
         baseline = transform.stack.dup
-        test, run, done = %w[while_test while_body while_end].map { |s| transform.name(s) }
+        points = %i[break next redo].to_h { |kind| [kind, transform.break_point([:loop, env.object_id, kind])] }
+        condition_fn = body_fn = nil
+        transform.with_loop(points) do
+          condition_fn, = transform.region(condition, baseline)
+          body_fn, = transform.region(body, baseline)
+        end
+        frame = transform.argument_array(baseline)
+        result = transform.slot('loop_result')
+        value = transform.slot('loop_value')
+        test, run, check, finish, done =
+          %w[while_test while_body while_check while_break while_end].map { |s| transform.name(s) }
         transform.emit "br label %#{@pre ? test : run}"
-        transform.emit "#{test}:"
-        transform.transform(condition)
-        condition_value = transform.truthy(transform.pop)
+        [[test, condition_fn, check], [run, body_fn, test]].each do |label, fn, normal|
+          transform.emit "#{label}:"
+          status =
+            transform.value(
+              "call i32 @nat_llvm_loop_step(ptr %env, i64 %self, ptr #{transform.function_args}, ptr #{transform.function_block}, ptr #{fn}, ptr #{frame}, ptr #{transform.function_exception}, ptr #{value}, i64 #{points.fetch(:break)}, i64 #{points.fetch(:next)}, i64 #{points.fetch(:redo)})",
+            )
+          transform.emit "switch i32 #{status}, label %#{normal} [ i32 1, label %#{finish} i32 2, label %#{test} i32 3, label %#{run} ]"
+        end
+        transform.emit "#{check}:"
+        condition_value = transform.truthy(transform.value("load volatile i64, ptr #{value}"))
         transform.emit "br i1 #{condition_value}, label %#{run}, label %#{done}"
-        transform.emit "#{run}:"
-        transform.stack.replace(baseline)
-        transform.transform(body)
-        transform.emit "br label %#{test}"
+        transform.emit "#{finish}:"
+        exit_value = transform.value("load volatile i64, ptr #{value}")
+        transform.emit "store volatile i64 #{exit_value}, ptr #{result}"
+        transform.emit "br label %#{done}"
         transform.emit "#{done}:"
         transform.stack.replace(baseline)
-        transform.push('4')
+        transform.push(transform.value("load volatile i64, ptr #{result}"))
       end
 
       def generate(transform)

@@ -210,7 +210,7 @@ extern "C" uint64_t nat_llvm_define_type(Env *env, uint64_t ns, uint64_t self, c
     return nat_llvm_pack(Object::define_class(env, nat_llvm_unpack(ns), nat_llvm_unpack(self), SymbolObject::intern(name), mode, nat_llvm_unpack(superclass), llvm_eval_type));
 }
 
-extern "C" uint64_t nat_llvm_load(Env *env, const char *path, LlvmFn fn, int require_once) {
+extern "C" uint64_t nat_llvm_load(Env *env, const char *path, LlvmFn fn, int require_once, int64_t return_point) {
     auto filename = SymbolObject::intern(path);
     if (require_once && GlobalEnv::the()->has_file(filename))
         return nat_llvm_pack(Value::False());
@@ -220,7 +220,12 @@ extern "C" uint64_t nat_llvm_load(Env *env, const char *path, LlvmFn fn, int req
     loaded.set_lexical_scope(GlobalEnv::the()->main_env()->lexical_scope());
     loaded.set_file(path);
     Args args;
-    fn(&loaded, nat_llvm_pack(GlobalEnv::the()->main_obj()), &args, nullptr);
+    try {
+        fn(&loaded, nat_llvm_pack(GlobalEnv::the()->main_obj()), &args, nullptr);
+    } catch (ExceptionObject *exception) {
+        if (!exception->is_local_jump_error_with_break_point(return_point))
+            throw;
+    }
     return nat_llvm_pack(Value::True());
 }
 
@@ -305,21 +310,29 @@ extern "C" uint64_t nat_llvm_case_equal(Env *env, uint64_t value, uint64_t patte
 // Exception regions keep C++ exception handling in the bridge. LLVM callbacks
 // share their caller's Env, so locals and closures retain their Ruby scope.
 using LlvmRegionFn = uint64_t (*)(Env *, uint64_t, Args *, Block *, uint64_t *, ExceptionObject *);
-extern "C" uint64_t nat_llvm_try(Env *env, uint64_t self, Args *args, Block *block, LlvmRegionFn body, LlvmRegionFn handler, uint64_t *frame, int has_ensure, int discard_catch_result) {
-    try {
-        auto result = body(env, self, args, block, frame, nullptr);
-        GlobalEnv::the()->set_rescued(false);
-        return result;
-    } catch (ExceptionObject *exception) {
-        auto previous = env->exception();
-        Defer restore([&] { env->set_exception(previous); });
-        if (!has_ensure || exception->local_jump_error_type() == LocalJumpErrorType::None)
-            env->set_exception(exception);
-        auto result = handler(env, self, args, block, frame, exception);
-        GlobalEnv::the()->set_rescued(true);
-        if (has_ensure)
-            throw;
-        return discard_catch_result ? nat_llvm_pack(Value::nil()) : result;
+extern "C" uint64_t nat_llvm_try(Env *env, uint64_t self, Args *args, Block *block, LlvmRegionFn body, LlvmRegionFn handler, uint64_t *frame, int has_ensure, int discard_catch_result, int64_t retry_point) {
+    for (;;) {
+        try {
+            auto result = body(env, self, args, block, frame, nullptr);
+            GlobalEnv::the()->set_rescued(false);
+            return result;
+        } catch (ExceptionObject *exception) {
+            auto previous = env->exception();
+            Defer restore([&] { env->set_exception(previous); });
+            if (!has_ensure || exception->local_jump_error_type() == LocalJumpErrorType::None)
+                env->set_exception(exception);
+            try {
+                auto result = handler(env, self, args, block, frame, exception);
+                GlobalEnv::the()->set_rescued(true);
+                if (has_ensure)
+                    throw exception;
+                return discard_catch_result ? nat_llvm_pack(Value::nil()) : result;
+            } catch (ExceptionObject *handler_exception) {
+                if (handler_exception->is_local_jump_error_with_break_point(retry_point))
+                    continue;
+                throw;
+            }
+        }
     }
 }
 
@@ -396,4 +409,37 @@ extern "C" void nat_llvm_hash_merge(Env *env, uint64_t hash, uint64_t other) {
     auto value = nat_llvm_unpack(other);
     if (!value.is_nil())
         nat_llvm_unpack(hash).as_hash()->merge_in_place(env, { value }, nullptr);
+}
+
+// Keep loop branches in LLVM. The bridge only converts scoped local jumps
+// into branch statuses after any intervening ensure callbacks have run.
+extern "C" int nat_llvm_loop_step(Env *env, uint64_t self, Args *args, Block *block, LlvmRegionFn fn, uint64_t *frame, ExceptionObject *exception, uint64_t *value, int64_t break_point, int64_t next_point, int64_t redo_point) {
+    try {
+        *value = fn(env, self, args, block, frame, exception);
+        return 0;
+    } catch (ExceptionObject *jump) {
+        if (jump->is_local_jump_error_with_break_point(break_point)) {
+            *value = nat_llvm_pack(jump->ivar_get(env, "@exit_value"_s));
+            return 1;
+        }
+        if (jump->is_local_jump_error_with_break_point(next_point))
+            return 2;
+        if (jump->is_local_jump_error_with_break_point(redo_point))
+            return 3;
+        throw;
+    }
+}
+
+extern "C" void nat_llvm_redo() {
+    FiberObject::current()->set_redo_flag();
+}
+
+extern "C" uint64_t nat_llvm_catch_return(Env *env, uint64_t self, uint64_t (*fn)(Env *, uint64_t), int64_t point) {
+    try {
+        return fn(env, self);
+    } catch (ExceptionObject *exception) {
+        if (exception->is_local_jump_error_with_break_point(point))
+            return nat_llvm_pack(exception->ivar_get(env, "@exit_value"_s));
+        throw;
+    }
 }

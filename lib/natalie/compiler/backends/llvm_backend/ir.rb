@@ -33,7 +33,7 @@ module Natalie
           declare void @nat_llvm_ivar_set(ptr, i64, ptr, i64)
           declare void @nat_llvm_const_set(ptr, i64, ptr, i64, i32)
           declare i64 @nat_llvm_define_type(ptr, i64, i64, ptr, i64, ptr, i32, i32)
-          declare i64 @nat_llvm_load(ptr, ptr, ptr, i32)
+          declare i64 @nat_llvm_load(ptr, ptr, ptr, i32, i64)
           declare i64 @nat_llvm_args_empty(ptr, ptr, i32)
           declare i64 @nat_llvm_args_shift(ptr, ptr, i32)
           declare i64 @nat_llvm_args_pop(ptr, ptr, i32)
@@ -49,7 +49,7 @@ module Natalie
           declare i64 @nat_llvm_string_regexp(ptr, i64, i32, i32)
           declare void @nat_llvm_string_append(ptr, i64, i64)
           declare i64 @nat_llvm_case_equal(ptr, i64, i64, i32)
-          declare i64 @nat_llvm_try(ptr, i64, ptr, ptr, ptr, ptr, ptr, i32, i32)
+          declare i64 @nat_llvm_try(ptr, i64, ptr, ptr, ptr, ptr, ptr, i32, i32, i64)
           declare void @nat_llvm_jump(ptr, i64, i32, i64) noreturn
           declare i64 @nat_llvm_match_break(ptr, ptr, i64)
           declare i64 @nat_llvm_match_exception(ptr, ptr, i64)
@@ -64,6 +64,9 @@ module Natalie
           declare i64 @nat_llvm_keyword_rest(ptr, ptr, i64, ptr)
           declare i64 @nat_llvm_pop_keywords(ptr)
           declare void @nat_llvm_hash_merge(ptr, i64, i64)
+          declare i32 @nat_llvm_loop_step(ptr, i64, ptr, ptr, ptr, ptr, ptr, ptr, i64, i64, i64)
+          declare void @nat_llvm_redo()
+          declare i64 @nat_llvm_catch_return(ptr, i64, ptr, i64)
           declare void @nat_llvm_set_zero(ptr, ptr)
           declare void @nat_llvm_warn(ptr, i64, ptr, i32)
         LLVM
@@ -77,7 +80,8 @@ module Natalie
           required_files: {},
           native_extensions: nil,
           region_stack: nil,
-          return_point: nil
+          return_point: nil,
+          loop_points: nil
         )
           @instructions = instructions
           @source_path = source_path
@@ -92,7 +96,8 @@ module Natalie
           @body = []
           @scope_env = @scope || top_scope
           @region_stack = region_stack
-          @return_point = return_point
+          @return_point = return_point || (@function_name == 'nat_llvm_eval' ? file_return_point : nil)
+          @loop_points = loop_points
         end
 
         def generate
@@ -120,7 +125,7 @@ module Natalie
           end
           emit "ret i64 #{@stack.last || 4}"
           function = <<~LLVM
-            define i64 @#{@function_name}(ptr %env, i64 %self#{@function_name == 'nat_llvm_eval' ? '' : ', ptr %args, ptr %block'}#{@region_stack ? ', ptr %frame, ptr %exception' : ''}) uwtable {
+            define i64 @#{@function_name == 'nat_llvm_eval' ? 'nat_llvm_eval_body' : @function_name}(ptr %env, i64 %self#{@function_name == 'nat_llvm_eval' ? '' : ', ptr %args, ptr %block'}#{@region_stack ? ', ptr %frame, ptr %exception' : ''}) uwtable {
             entry:
             #{@allocas.join("\n")}
             #{@body.join("\n")}
@@ -134,6 +139,11 @@ module Natalie
             #{@native_extensions&.declarations}
             #{@shared[:functions].join("\n")}
             #{function}
+            define i64 @nat_llvm_eval(ptr %env, i64 %self) uwtable {
+            entry:
+              %result = call i64 @nat_llvm_catch_return(ptr %env, i64 %self, ptr @nat_llvm_eval_body, i64 #{@return_point})
+              ret i64 %result
+            }
           LLVM
         end
 
@@ -170,7 +180,13 @@ module Natalie
           @function_name == 'nat_llvm_eval' ? 'null' : '%args'
         end
 
+        def file_return_point(path = @source_path)
+          @shared[:break_points] ||= {}
+          @shared[:break_points][[path, :file_return]] ||= 1_000_000 + @shared[:break_points].size
+        end
+
         def break_point(key)
+          key = :file_return if key == -1
           @shared[:break_points] ||= {}
           @shared[:break_points][[@source_path, key]] ||= 1_000_000 + @shared[:break_points].size
         end
@@ -187,10 +203,31 @@ module Natalie
               required_files: @required_files,
               native_extensions: @native_extensions,
               region_stack: baseline,
+              loop_points: @loop_points,
               return_point: @return_point,
             )
           @shared[:functions] << child.generate
           ["@#{fn}", [child.stack.size - 1, 0].max]
+        end
+
+        def with_loop(points)
+          previous = @loop_points
+          @loop_points = points
+          yield
+        ensure
+          @loop_points = previous
+        end
+
+        def loop_jump(kind, value = '4')
+          raise CompileError, "LLVM: #{kind} outside a loop" unless @loop_points
+          emit "call void @nat_llvm_jump(ptr %env, i64 #{value}, i32 1, i64 #{@loop_points.fetch(kind)})"
+          emit 'unreachable'
+          emit "#{name('unreachable')}:"
+          push('4')
+        end
+
+        def function_exception
+          @region_stack ? '%exception' : 'null'
         end
 
         def return_value(value)
@@ -218,6 +255,7 @@ module Natalie
               source_path: path,
               shared: @shared,
               function_name: fn,
+              return_point: file_return_point(path),
               required_files: @required_files,
               native_extensions: @native_extensions,
             )

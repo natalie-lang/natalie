@@ -31,7 +31,7 @@ module Natalie
         frame = transform.argument_array(baseline)
         transform.stack.replace(baseline.take([protected_size, catch_size].min))
         transform.push_call(
-          "call i64 @nat_llvm_try(ptr %env, i64 %self, ptr #{transform.function_args}, ptr #{transform.function_block}, ptr #{protected_fn}, ptr #{catch_fn}, ptr #{frame}, i32 #{@has_ensure ? 1 : 0}, i32 #{@discard_catch_result ? 1 : 0})",
+          "call i64 @nat_llvm_try(ptr %env, i64 %self, ptr #{transform.function_args}, ptr #{transform.function_block}, ptr #{protected_fn}, ptr #{catch_fn}, ptr #{frame}, i32 #{@has_ensure ? 1 : 0}, i32 #{@discard_catch_result ? 1 : 0}, i64 #{transform.break_point([:retry, @serial])})",
         )
       end
 

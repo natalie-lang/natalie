@@ -393,6 +393,40 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
+  def test_loop_jumps_run_ensure_and_return_break_value
+    assert_program(
+      'i=0; p(while i<5; begin; i+=1; next if i==2; break i if i==4; ensure; p i; end; end)',
+      "1\n2\n3\n4\n4\n",
+    )
+  end
+
+  def test_redo_skips_loop_condition_and_runs_block_ensure
+    assert_program(
+      'i=0; j=0; while (i+=1)<3; j+=1; redo if j<3; end; p [i,j]; values=[]; [1].each { |x| begin; values << x; redo if values.count(x)<2; ensure; values << :ensure; end }; p values',
+      "[3, 4]\n[1, :ensure, 1, :ensure]\n",
+    )
+  end
+
+  def test_retry_restarts_rescue_body_and_restores_exception
+    assert_program(
+      'n=0; begin; n+=1; raise "again" if n<3; rescue; retry; ensure; puts :ensure; end; p n; p $!',
+      "ensure\n3\nnil\n",
+    )
+  end
+
+  def test_top_level_return_crosses_loop_and_ensure_regions
+    assert_program('i=0; begin; while true; i+=1; return if i==2; end; ensure; p i; end; puts :unreachable', "2\n")
+    assert_program('begin; [1].each { return }; ensure; puts :done; end; puts :unreachable', "done\n")
+  end
+
+  def test_return_in_required_file_only_exits_that_file
+    Dir.mktmpdir('natalie-llvm-test') do |dir|
+      file = File.join(dir, 'early_return.rb')
+      File.write(file, 'begin; puts :before; return; ensure; puts :ensured; end; puts :unreachable')
+      assert_program("p require(#{file.inspect}); puts :loaded", "before\nensured\ntrue\nloaded\n")
+    end
+  end
+
   def test_methods_defaults_rest_and_recursion
     assert_program(
       'def sum(n, extra = 1); if n == 0; extra; else; n + sum(n - 1, extra); end; end; def rest(a, *xs); [a, xs]; end; p sum(4); p sum(2, 10); p rest(1, 2, 3)',

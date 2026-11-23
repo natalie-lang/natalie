@@ -41,7 +41,8 @@ and interpolation, while loops, local/global/instance variables,
 constants, classes/modules and singleton classes, aliases, `super`,
 methods with positional/default/rest and keyword arguments,
 blocks and lambdas, captured locals, anonymous argument/block forwarding, splat
-calls and yields, rescue/ensure, block breaks and non-local returns, and statically resolved Ruby
+calls and yields, rescue/ensure/retry, loop and block jumps, non-local and
+top-level returns, and statically resolved Ruby
 `require`, `require_relative`, and `load`. Escaping closures share locals through
 Natalie's existing GC-managed environments.
 
@@ -74,10 +75,11 @@ Exception bodies and handlers compile to LLVM callbacks that share their caller'
 environment. The C++ bridge catches Ruby exceptions, restores `$!`, runs ensure
 handlers, and reuses Natalie's local-jump exceptions for non-local control flow.
 
-Unsupported instructions fail explicitly. Remaining gaps include loop
-`break`/`next`, `retry`, top-level returns inside exception regions, once-only
-regexp interpolation (`/o`), scoped inline C++, and complete parameter
-reflection. REPL, shared-object output, and `--build-dir` are also unsupported.
+Loop branches remain in LLVM; scoped body/condition callbacks use the bridge to
+translate local jumps into branch statuses after intervening ensure handlers run.
+
+Unsupported instructions fail explicitly. Remaining gaps include once-only
+regexp interpolation (`/o`), scoped inline C++, and complete parameter reflection. REPL, shared-object output, and `--build-dir` are also unsupported.
 
 The normal ruby/spec runner now works for the unmodified
 `spec/core/nil/nil_spec.rb`:

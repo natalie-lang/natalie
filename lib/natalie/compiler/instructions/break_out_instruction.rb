@@ -8,6 +8,10 @@ module Natalie
         'break_out'
       end
 
+      def generate_llvm(transform)
+        transform.loop_jump(:break, transform.pop)
+      end
+
       def generate(transform)
         value = transform.pop
         while_env = @env

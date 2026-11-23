@@ -8,6 +8,10 @@ module Natalie
         'continue'
       end
 
+      def generate_llvm(transform)
+        transform.loop_jump(:next)
+      end
+
       def generate(transform)
         transform.exec('continue')
         transform.push_nil
