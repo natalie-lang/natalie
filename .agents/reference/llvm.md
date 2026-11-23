@@ -97,3 +97,21 @@ LLVM and native-extension paths. The LLVM integration tests also verify that an
 assertion failure is reported as a failed spec with exit status 1. This proves a
 real runner path, not general ruby/spec conformance; other specs can still use
 unsupported instructions or encounter incomplete behavior.
+
+## Comparing Specs With C++
+
+Run a selection through both backends, with bounded parallelism and per-file
+compile/run deadlines:
+
+```sh
+bundle exec ruby tools/llvm_spec_runner.rb --jobs=4 --timeout=120 \
+  --report=build/llvm-spec-results.json 'spec/language/*_spec.rb'
+```
+
+The runner sets `NAT_BINARY` to a backend-specific executable wrapper, so
+`ruby_exe` child programs use the same backend as their parent spec. It records
+exit status, signals, timeouts, full output, and passed/failed/errored/skipped
+counts for each backend in JSON. A matching pass requires successful, nonempty
+runs with identical counts. Empty runs and failures are listed separately and
+never added to the matching passed-example total. Use `--backend=llvm` for a
+single-backend run while diagnosing a failure.

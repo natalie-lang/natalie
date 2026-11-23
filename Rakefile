@@ -12,6 +12,7 @@ task llvm_runtime: %w[build/llvm_runtime.o build/llvm_main.o]
 desc 'Test the experimental LLVM backend (requires a built Natalie runtime and shared LLVM library)'
 task test_llvm: :llvm_runtime do
   ruby 'test/llvm_backend_test.rb'
+  ruby 'test/llvm_spec_runner_test.rb'
 end
 
 file 'build/llvm_runtime.o' => %w[tools/llvm_runtime.cpp .build] + Rake::FileList['include/**/*.{h,hpp}'] do |t|
