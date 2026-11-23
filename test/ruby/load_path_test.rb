@@ -68,4 +68,22 @@ describe 'Compiled load path updates' do
     assert_match(/load path must be a String/, err)
     assert_match(/Could not evaluate load path/, err)
   end
+
+  it 'builds a shared library without a build directory and with punctuation in its path' do
+    Dir.mktmpdir('natalie-shared-library') do |dir|
+      library = File.join(dir, 'library-with.dots.so')
+      _, err, status =
+        Open3.capture3(
+          { 'NAT_LD_FLAGS' => '-shared' },
+          NAT_BINARY,
+          '--compilation-type=shared-object',
+          '-c',
+          library,
+          '-e',
+          'nil',
+        )
+      assert status.success?, err
+      assert File.size(library).positive?
+    end
+  end
 end

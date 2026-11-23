@@ -112,7 +112,7 @@ module Natalie
 
       def obj_name
         path = @compiler.out_path
-        path.sub(/\.rb\.o$/, '').sub(/\.(so|dylib)$/, '').sub(%r{.*build/(generated/)?}, '').tr('/', '_')
+        path.sub(/\.rb\.o$/, '').sub(/\.(so|dylib)$/, '').sub(%r{.*build/(generated/)?}, '').gsub(/[^a-zA-Z0-9_]/, '_')
       end
 
       def profile_app!

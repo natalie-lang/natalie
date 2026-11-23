@@ -39,7 +39,7 @@ module Natalie
           if build_dir
             @cpp_path = build_path('cpp')
           elsif @type == :obj
-            @cpp_path = @out_path.sub(/(\.o)?$/, '.cpp')
+            @cpp_path = out_path.sub(/(\.o)?$/, '.cpp')
           else
             return write_source_to_tempfile
           end
