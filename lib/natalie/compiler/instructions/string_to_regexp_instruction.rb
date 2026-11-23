@@ -18,6 +18,13 @@ module Natalie
         str
       end
 
+      def generate_llvm(transform)
+        transform.unsupported(self, 'once-only regexp interpolation') if @once
+        transform.push_call(
+          "call i64 @nat_llvm_string_regexp(ptr %env, i64 #{transform.pop}, i32 #{@options}, i32 #{@encoding == Encoding::EUC_JP ? 1 : 0})",
+        )
+      end
+
       def generate(transform)
         string = transform.pop
         if @once

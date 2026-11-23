@@ -11,6 +11,11 @@ module Natalie
         "move_rel #{@index}"
       end
 
+      def generate_llvm(transform)
+        raise CompileError, 'LLVM: instruction stack underflow' unless transform.stack.size > @index
+        transform.push(transform.stack.delete_at(-1 - @index))
+      end
+
       def generate(transform)
         raise 'ran out of stack' unless transform.stack.length > @index
         value = transform.stack.slice!(transform.stack.length - 1 - @index)

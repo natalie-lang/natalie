@@ -18,6 +18,13 @@ module Natalie
         str
       end
 
+      def generate_llvm(transform)
+        source = @regexp.source
+        transform.push_call(
+          "call i64 @nat_llvm_regexp(ptr %env, ptr #{transform.string(source)}, i64 #{source.bytesize}, i32 #{@regexp.options}, i32 #{@encoding == Encoding::EUC_JP ? 1 : 0})",
+        )
+      end
+
       def generate(transform)
         transform.exec_and_push(
           :regexp,

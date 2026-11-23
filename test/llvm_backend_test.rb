@@ -129,7 +129,7 @@ class LlvmBackendTest < Minitest::Test
   def test_spec_runner_reports_remaining_ruby_instruction_boundary
     _, stderr, status = run_cli('--backend=llvm', 'spec/core/string/strip_spec.rb')
     refute status.success?
-    assert_includes stderr, 'LLVM backend does not support push_regexp'
+    assert_includes stderr, 'LLVM backend does not support break'
   end
 
   def native_extension_program
@@ -269,6 +269,20 @@ class LlvmBackendTest < Minitest::Test
     assert_program(
       'def relay(...); [1,2].map(...); end; p relay { |x| x * 3 }; def print_all(...); p(...); end; print_all(1,2)',
       "[3, 6]\n1\n2\n",
+    )
+  end
+
+  def test_interpolation_regexps_and_case_matching
+    assert_program(
+      'x=3; p "hello #{x}!"; pattern="a+"; p /#{pattern}/i.match?("AAA"); p(/x/.frozen?); p case "42"; when /^\\d+$/; :digits; else; :other; end; p case 2; when *[1,2,3]; :member; end',
+      "\"hello 3!\"\ntrue\ntrue\n:digits\n:member\n",
+    )
+  end
+
+  def test_case_matching_keeps_other_expression_operands
+    assert_program(
+      'p [7, case 2; when 1; 10; when 2; 20; else; 30; end, 8]; a,b = [4,5]; p [a,b]',
+      "[7, 20, 8]\n[4, 5]\n",
     )
   end
 

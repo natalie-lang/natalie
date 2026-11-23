@@ -15,6 +15,13 @@ module Natalie
         s
       end
 
+      def generate_llvm(transform)
+        when_value = transform.pop
+        transform.push_call(
+          "call i64 @nat_llvm_case_equal(ptr %env, i64 #{transform.peek}, i64 #{when_value}, i32 #{@is_splat ? 1 : 0})",
+        )
+      end
+
       def generate(transform)
         when_value = transform.pop
         case_value = transform.peek

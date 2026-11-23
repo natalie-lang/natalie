@@ -268,3 +268,23 @@ extern "C" uint64_t nat_llvm_to_array(Env *env, uint64_t value) {
 extern "C" uint64_t nat_llvm_yield_array(Env *env, uint64_t array, int keywords) {
     return nat_llvm_pack(env->nearest_block()->run(env, Args(nat_llvm_unpack(array).as_array(), keywords)));
 }
+
+extern "C" uint64_t nat_llvm_regexp(Env *env, const char *bytes, uint64_t size, int options, int euc_jp) {
+    auto encoding = euc_jp ? EncodingObject::get(Encoding::EUC_JP) : nullptr;
+    auto regex = RegexpObject::create(env, String(bytes, size), options, encoding);
+    regex->freeze();
+    return nat_llvm_pack(regex);
+}
+
+extern "C" uint64_t nat_llvm_string_regexp(Env *env, uint64_t pattern, int options, int euc_jp) {
+    auto encoding = euc_jp ? EncodingObject::get(Encoding::EUC_JP) : nullptr;
+    return nat_llvm_pack(RegexpObject::create(env, nat_llvm_unpack(pattern).as_string()->string(), options, encoding));
+}
+
+extern "C" void nat_llvm_string_append(Env *env, uint64_t string, uint64_t part) {
+    nat_llvm_unpack(string).as_string()->append(nat_llvm_unpack(part).send(env, "to_s"_s));
+}
+
+extern "C" uint64_t nat_llvm_case_equal(Env *env, uint64_t value, uint64_t pattern, int splat) {
+    return nat_llvm_pack(is_case_equal(env, nat_llvm_unpack(value), nat_llvm_unpack(pattern), splat));
+}

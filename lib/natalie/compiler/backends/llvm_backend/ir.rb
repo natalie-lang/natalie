@@ -45,6 +45,10 @@ module Natalie
           declare i64 @nat_llvm_splat(ptr, i64)
           declare i64 @nat_llvm_to_array(ptr, i64)
           declare i64 @nat_llvm_yield_array(ptr, i64, i32)
+          declare i64 @nat_llvm_regexp(ptr, ptr, i64, i32, i32)
+          declare i64 @nat_llvm_string_regexp(ptr, i64, i32, i32)
+          declare void @nat_llvm_string_append(ptr, i64, i64)
+          declare i64 @nat_llvm_case_equal(ptr, i64, i64, i32)
           declare void @nat_llvm_set_zero(ptr, ptr)
           declare void @nat_llvm_warn(ptr, i64, ptr, i32)
         LLVM

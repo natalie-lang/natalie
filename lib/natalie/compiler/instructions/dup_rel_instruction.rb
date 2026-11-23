@@ -12,6 +12,11 @@ module Natalie
         "dup_rel #{@offset}"
       end
 
+      def generate_llvm(transform)
+        raise CompileError, 'LLVM: instruction stack underflow' unless transform.stack.size > @offset
+        transform.push(transform.stack[-1 - @offset])
+      end
+
       def generate(transform)
         raise 'ran out of stack' unless transform.stack.length > @offset
         transform.push(transform.stack[transform.stack.length - 1 - @offset])
