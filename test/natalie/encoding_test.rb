@@ -722,7 +722,7 @@ describe 'encodings' do
       [0x81, 0x8D, 0x8E, 0x8F, 0x90, 0x9D, 0x9E].each do |codepoint|
         -> { codepoint.chr(Encoding::Windows_1254).encode(Encoding::UTF_8) }.should raise_error(
                      Encoding::UndefinedConversionError,
-                     /from Windows-1254 to UTF-8/,
+                     /from Windows-1254 to UTF-8/i,
                    )
       end
     end
@@ -759,7 +759,7 @@ describe 'encodings' do
       [0x81, 0x8D, 0x8E, 0x8F, 0x90, 0x9D, 0x9E, 0xFF].each do |codepoint|
         -> { codepoint.chr(Encoding::Windows_1255).encode(Encoding::UTF_8) }.should raise_error(
                      Encoding::UndefinedConversionError,
-                     /from Windows-1255 to UTF-8/,
+                     /from Windows-1255 to UTF-8/i,
                    )
       end
     end
@@ -821,10 +821,10 @@ describe 'encodings' do
     end
 
     it 'cannot convert certain codepoints to UTF-8' do
-      [0x81, 0x8D, 0x8E, 0x8F, 0x90, 0x9D, 0x9E, 0xFF].each do |codepoint|
-        -> { codepoint.chr(Encoding::Windows_1255).encode(Encoding::UTF_8) }.should raise_error(
+      [0x81, 0x83, 0x88, 0x8A, 0x8C, 0x90, 0x98, 0x9A, 0x9C, 0x9F, 0xA1, 0xA5].each do |codepoint|
+        -> { codepoint.chr(Encoding::Windows_1257).encode(Encoding::UTF_8) }.should raise_error(
                      Encoding::UndefinedConversionError,
-                     /from Windows-1255 to UTF-8/,
+                     /from Windows-1257 to UTF-8/i,
                    )
       end
     end
