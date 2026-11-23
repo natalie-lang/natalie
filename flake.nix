@@ -24,6 +24,7 @@
             automake
             cacert
             ccache
+            clang-tools
             git
             gnumake
             libtool
