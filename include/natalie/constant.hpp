@@ -33,7 +33,7 @@ public:
 
     bool needs_load() const { return !m_value && (m_autoload_fn || m_autoload_block); }
     StringObject *autoload_path() const { return m_autoload_path; }
-    void autoload(Env *, Value);
+    void autoload(Env *, Value, ModuleObject *);
 
     virtual void visit_children(Visitor &visitor) const override;
 

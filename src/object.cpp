@@ -372,8 +372,7 @@ Optional<Value> Object::const_find_with_autoload(Env *env, Value ns, Value self,
 
     if (constant->needs_load()) {
         assert(found_in_module);
-        found_in_module->remove_const(name);
-        constant->autoload(env, self);
+        constant->autoload(env, self, found_in_module);
     }
 
     return const_find(env, ns, name, search_mode, failure_mode);

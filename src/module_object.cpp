@@ -197,8 +197,7 @@ Value ModuleObject::const_get(Env *env, Value name, Optional<Value> inherited) {
         };
         auto constant = lookup();
         if (constant && constant->needs_load()) {
-            owner->remove_const(symbol);
-            constant->autoload(env, scope);
+            constant->autoload(env, scope, owner);
             constant = lookup();
         }
         if (constant && constant->value()) {

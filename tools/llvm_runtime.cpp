@@ -261,8 +261,13 @@ extern "C" uint64_t nat_llvm_load(Env *env, const char *path, LlvmFn fn, int req
     try {
         fn(&loaded, nat_llvm_pack(GlobalEnv::the()->main_obj()), &args, nullptr);
     } catch (ExceptionObject *exception) {
-        if (!exception->is_local_jump_error_with_break_point(return_point))
+        if (!exception->is_local_jump_error_with_break_point(return_point)) {
+            GlobalEnv::the()->remove_file(env, filename);
             throw;
+        }
+    } catch (...) {
+        GlobalEnv::the()->remove_file(env, filename);
+        throw;
     }
     return nat_llvm_pack(Value::True());
 }

@@ -15,6 +15,9 @@ module Foo
   autoload :SameFile1, 'autoload/same_file'
   autoload :SameFile2, 'autoload/same_file'
   autoload :Removable, 'autoload/query'
+  autoload :Retry, 'autoload/retry'
+  autoload :Partial, 'autoload/partial'
+  autoload :Early, 'autoload/early'
 end
 
 describe 'autoload' do
@@ -28,6 +31,32 @@ describe 'autoload' do
   it 'returns nil when an unloaded registration is removed' do
     Foo.send(:remove_const, :Removable).should == nil
     Foo.autoload?(:Removable).should == nil
+  end
+
+  it 'retains the registration and retries a file that raised before assignment' do
+    -> { Foo::Retry }.should raise_error(RuntimeError, 'autoload first attempt')
+    Foo.autoload?(:Retry).should == 'autoload/retry'
+    GC.start
+    Foo.const_get(:Retry).should == :loaded
+    $autoload_retry_attempts.should == 2
+    Foo.autoload?(:Retry).should == nil
+    require('autoload/retry').should == false
+  end
+
+  it 'retries even when a failing file had assigned the constant' do
+    -> { Foo.const_get(:Partial) }.should raise_error(RuntimeError, 'autoload after assignment')
+    Foo.autoload?(:Partial).should == 'autoload/partial'
+    path = File.expand_path('../support/autoload/partial.rb', __dir__)
+    $LOADED_FEATURES.should_not include(path)
+    Foo::Partial.should == 2
+    $autoload_partial_attempts.should == 2
+    Foo.autoload?(:Partial).should == nil
+  end
+
+  it 'handles a return through ensure as a successful load' do
+    Foo::Early.should == :loaded
+    $autoload_early_ensure.should == true
+    require('autoload/early').should == false
   end
 
   it 'loads the file when the constant is referenced' do

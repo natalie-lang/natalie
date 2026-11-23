@@ -12,6 +12,21 @@ void GlobalEnv::add_file(Env *env, SymbolObject *name) {
     loaded_features.as_array()->push(name->to_s(env));
 }
 
+void GlobalEnv::remove_file(Env *env, SymbolObject *name) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+    m_files.remove(name);
+    auto features = global_get(env, "$\""_s).as_array();
+    size_t remaining = 0;
+    for (size_t i = 0; i < features->size(); ++i) {
+        auto feature = features->at(i);
+        if (feature.is_string() && feature.as_string()->string() == name->string())
+            continue;
+        features->set(remaining++, feature);
+    }
+    if (remaining < features->size())
+        features->truncate(remaining);
+}
+
 bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
