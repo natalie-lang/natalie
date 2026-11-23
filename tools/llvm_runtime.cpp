@@ -125,6 +125,13 @@ extern "C" void nat_llvm_build_vars(Env *env, uint64_t count) {
     env->build_vars(count);
 }
 
+extern "C" void nat_llvm_grow_vars(Env *env, uint64_t count) {
+    // var_set grows the shared vector in place and preserves earlier slots.
+    // Allocate before closures capture the environment, even for unset locals.
+    if (count)
+        env->var_set("llvm_local", count - 1, true, env->var_get("llvm_local", count - 1));
+}
+
 extern "C" void nat_llvm_autoload(Env *env, uint64_t self, const char *name, const char *path, LlvmFn fn) {
     auto receiver = nat_llvm_unpack(self);
     auto loader = llvm_block(env, receiver, fn, 0, false, 0);

@@ -23,6 +23,7 @@ module Natalie
           declare i64 @nat_llvm_const(ptr, i64, i64, ptr, i32, i32)
           declare i64 @nat_llvm_send(ptr, i64, i64, ptr, i64, ptr, i32, i32, ptr, i64, i64)
           declare void @nat_llvm_build_vars(ptr, i64)
+          declare void @nat_llvm_grow_vars(ptr, i64)
           declare i64 @nat_llvm_var_get(ptr, i64, i64)
           declare void @nat_llvm_var_set(ptr, i64, i64, i64)
           declare i64 @nat_llvm_block(ptr, i64, ptr, i32, i64, i32, i64, ptr, ptr, i64)
@@ -102,6 +103,7 @@ module Natalie
           required_files: {},
           native_extensions: nil,
           shared_library: false,
+          repl: false,
           units: nil,
           module_entry: false,
           region_stack: nil,
@@ -118,6 +120,7 @@ module Natalie
                 functions: [],
                 serial: 0,
                 shared_library: shared_library,
+                repl: repl,
                 units: units,
                 native_wrappers: [],
                 external_files: {
@@ -148,21 +151,23 @@ module Natalie
                 value("load volatile i64, ptr #{ptr}")
               end
           end
-          if @function_name == 'nat_llvm_eval' && !@shared[:shared_library]
+          if @function_name == 'nat_llvm_eval' && !@shared[:shared_library] && !@shared[:repl]
             emit "call void @nat_llvm_set_zero(ptr %env, ptr #{string(@source_path)})"
           end
 
           transform(@instructions)
           anonymous = @shared.fetch(:anonymous_vars, {}).fetch(@scope_env.object_id, {})
           unless @region_stack
+            build_vars = @function_name == 'nat_llvm_eval' && @shared[:repl] ? 'grow_vars' : 'build_vars'
             @body.unshift(
-              "  call void @nat_llvm_build_vars(ptr %env, i64 #{@scope_env.fetch(:vars).size + anonymous.size})",
+              "  call void @nat_llvm_#{build_vars}(ptr %env, i64 #{@scope_env.fetch(:vars).size + anonymous.size})",
             )
           end
           if @function_name == 'nat_llvm_eval' && @native_extensions&.active?
             @body.unshift('  call void @nat_llvm_init_extensions(ptr %env, i64 %self)')
           end
-          result = @function_name == 'nat_llvm_eval' && @shared[:shared_library] ? 4 : (@stack.last || 4)
+          result =
+            @function_name == 'nat_llvm_eval' && @shared[:shared_library] && !@shared[:repl] ? 4 : (@stack.last || 4)
           emit "ret i64 #{result}"
           function = <<~LLVM
             define #{@module_entry ? 'hidden' : 'internal'} i64 @#{@function_name == 'nat_llvm_eval' ? 'nat_llvm_eval_body' : @function_name}(ptr %env, i64 %self#{@function_name == 'nat_llvm_eval' ? '' : ', ptr %args, ptr %block'}#{@region_stack ? ', ptr %frame, ptr %exception' : ''}) uwtable {
@@ -184,7 +189,7 @@ module Natalie
           LLVM
           return output if @module_entry
           output + <<~LLVM
-            define #{@shared[:shared_library] ? 'hidden ' : ''}i64 @nat_llvm_eval(ptr %env, i64 %self) uwtable {
+            define #{@shared[:shared_library] || @shared[:repl] ? 'hidden ' : ''}i64 @nat_llvm_eval(ptr %env, i64 %self) uwtable {
             entry:
               %result = call i64 @nat_llvm_catch_return(ptr %env, i64 %self, ptr @nat_llvm_eval_body, i64 #{@return_point})
               ret i64 %result

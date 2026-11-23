@@ -28,6 +28,7 @@ module Natalie
                   #{@body}
               }
               #{library_entrypoint}
+              #{repl_entrypoint}
             CPP
           end
 
@@ -41,6 +42,29 @@ module Natalie
               }
             CPP
           end
+
+          def repl_entrypoint
+            return '' unless @compiler.repl?
+
+            <<~CPP
+              extern "C" __attribute__((visibility("hidden"))) uint64_t nat_llvm_eval(Env *, uint64_t);
+              extern "C" int EVAL(Env *env, Value *result_memory) {
+                  auto self = GlobalEnv::the()->main_obj();
+                  volatile bool run_exit_handlers = true;
+                  Value result = Value::nil();
+                  try {
+                      result = nat_llvm_unpack(nat_llvm_eval(env, nat_llvm_pack(self)));
+                      run_exit_handlers = false;
+                      run_at_exit_handlers(env);
+                  } catch (ExceptionObject *exception) {
+                      handle_top_level_exception(env, exception, run_exit_handlers);
+                      return 1;
+                  }
+                  memcpy(result_memory, &result, sizeof(Value));
+                  return 0;
+              }
+            CPP
+          end
         end
 
         def initialize(compiler:, backend:)
@@ -48,6 +72,7 @@ module Natalie
           @backend = backend
           prefix = 'llvm_ext_'
           prefix += "#{CppBackend.object_name(compiler.out_path)}_" if compiler.compilation_type == 'shared-object'
+          prefix += "repl#{compiler.repl_num}_" if compiler.repl?
           @data = CppBackend::TransformData.new(var_prefix: prefix)
           @wrappers = []
           @file_wrapper_counts = Hash.new(0)

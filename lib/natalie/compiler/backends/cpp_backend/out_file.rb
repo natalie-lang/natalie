@@ -154,7 +154,7 @@ module Natalie
               result =
                 get_template
                   .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
-                  .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files }
+                  .sub('/*' + 'NAT_OBJ_INIT' + '*/') { repl_main? ? '' : init_object_files }
                   .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
                   .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
               reindent(result)
@@ -235,10 +235,19 @@ module Natalie
           ].join("\n\n")
         end
 
+        def repl_main?
+          @type == :main && @backend.compiler_context[:repl]
+        end
+
         def init_matter
           return '' if single_source? && @type == :loaded_file
 
-          [init_symbols.join("\n"), init_interned_strings.join("\n"), init_dollar_zero_global].compact.join("\n\n")
+          [
+            init_symbols.join("\n"),
+            init_interned_strings.join("\n"),
+            init_dollar_zero_global,
+            (repl_main? ? init_object_files : nil),
+          ].compact.join("\n\n")
         end
 
         def object_file_declarations
@@ -276,7 +285,8 @@ module Natalie
         end
 
         def init_object_files
-          object_files.map { |name| "init_#{name.tr('/', '_')}(env, self);" }.join("\n")
+          receiver = repl_main? ? 'GlobalEnv::the()->main_obj()' : 'self'
+          object_files.map { |name| "init_#{name.tr('/', '_')}(env, #{receiver});" }.join("\n")
         end
 
         def init_symbols
@@ -323,7 +333,7 @@ module Natalie
         end
 
         def object_files
-          return @backend.compiler_context[:required_cpp_files].values if @type == :obj
+          return @backend.compiler_context[:required_cpp_files].values if @type == :obj || repl_main?
 
           rb_files =
             Dir[File.join(ROOT_DIR, '/src/**/*.rb')]

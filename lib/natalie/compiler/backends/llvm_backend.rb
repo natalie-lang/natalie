@@ -16,7 +16,6 @@ module Natalie
         @compiler = compiler
         @compiler_context = compiler_context
         raise CompileError, 'LLVM backend requires a 64-bit host' unless [0].pack('J').bytesize == 8
-        raise CompileError, 'LLVM backend does not support REPL' if compiler.repl?
         @compiler_context.merge!(compile_cxx_flags: [], compile_ld_flags: [])
         @native_extensions = NativeExtensions.new(compiler: compiler, backend: self)
       end
@@ -31,6 +30,7 @@ module Natalie
             required_files: @compiler_context.fetch(:required_ruby_files),
             native_extensions: @native_extensions,
             shared_library: shared_library?,
+            repl: @compiler.repl?,
             units: units,
           ).generate
       end
@@ -61,7 +61,7 @@ module Natalie
       end
 
       def compile_to_binary
-        runtime_objects = shared_library? ? [RUNTIME_BRIDGE] : RUNTIME_OBJECTS
+        runtime_objects = library? ? [RUNTIME_BRIDGE] : RUNTIME_OBJECTS
         missing = runtime_objects.reject { |path| File.file?(path) }
         raise CompileError, 'Build the LLVM runtime bridge first: bundle exec rake llvm_runtime' unless missing.empty?
         return build_cache.lock { link([*cached_objects, *runtime_objects]) } if @compiler.build_dir
@@ -70,7 +70,7 @@ module Natalie
           require_relative 'llvm_backend/native'
           Native.new.emit_object(ir, object)
           objects = [object, *runtime_objects]
-          if @native_extensions.active? || shared_library?
+          if @native_extensions.active? || library?
             native_object = File.join(dir, 'native.o')
             initializer = CppBackend.object_name(@compiler.out_path) if shared_library?
             @native_extensions.compile(native_object, library_initializer: initializer)
@@ -89,7 +89,7 @@ module Natalie
             file.close
             file.path
           end
-        if @native_extensions.active? || shared_library?
+        if @native_extensions.active? || library?
           out = @native_extensions.out_file
           out.library_initializer = CppBackend.object_name(@compiler.out_path) if shared_library?
           paths << out.write_source_to_tempfile
@@ -127,7 +127,7 @@ module Natalie
         native = Native.new
         objects = [build_cache.llvm_object('main', main_source, native)]
         units.sources.each { |path, source| objects << build_cache.llvm_object(Units.id(path), source, native) }
-        if @native_extensions.active? || shared_library?
+        if @native_extensions.active? || library?
           out = @native_extensions.out_file
           out.library_initializer = CppBackend.object_name(@compiler.out_path) if shared_library?
           objects << build_cache.native_object(out)
@@ -149,6 +149,10 @@ module Natalie
 
       def shared_library?
         @compiler.compilation_type == 'shared-object'
+      end
+
+      def library?
+        shared_library? || @compiler.repl?
       end
     end
   end

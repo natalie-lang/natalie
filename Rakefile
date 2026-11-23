@@ -11,10 +11,11 @@ desc 'Build the optional runtime bridge for the experimental LLVM backend (after
 task llvm_runtime: %w[build/llvm_runtime.o build/llvm_main.o]
 
 desc 'Test the experimental LLVM backend (requires a built Natalie runtime and shared LLVM library)'
-task test_llvm: :llvm_runtime do
+task test_llvm: %i[libnat llvm_runtime] do
   ruby 'test/llvm_backend_test.rb'
   ruby 'test/llvm_build_dir_test.rb'
   ruby 'test/llvm_spec_runner_test.rb'
+  sh({ 'NAT_REPL_TEST_BACKEND' => 'llvm' }, RbConfig.ruby, 'test/ruby/repl_test.rb')
 end
 
 desc 'Test LLVM compilation through the self-hosted compiler'

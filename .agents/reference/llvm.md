@@ -53,6 +53,23 @@ through `bin/nat` (the direct malformed-IR unit tests still run under MRI).
 A compiled fixture also checks parser, verifier, and object-emission errors and
 recovery through Natalie's FFI adapter.
 
+## REPL
+
+Build the compiler library and LLVM bridge, then start the REPL without a script:
+
+```sh
+bundle exec rake libnat llvm_runtime
+bin/natalie --backend=llvm
+NAT_REPL_TEST_BACKEND=llvm bundle exec ruby test/ruby/repl_test.rb
+```
+
+The CLI passes its backend selection to the running REPL. Each input compiles to
+an LLVM shared library with the same `EVAL` entrypoint used by the C++ REPL.
+Inputs share a growing local-variable vector, preserving earlier values and
+closure captures. Native extension initializers run before evaluating the input.
+The LLVM test task includes the shared REPL regression tests; the ordinary Ruby
+test suite runs those tests with the default C++ backend.
+
 ## Cached Builds
 
 Use `--build-dir` for separate compilation and reusable object files:
@@ -173,8 +190,7 @@ can be retried. Loaded-file returns count as successful requires; explicit
 Dynamic runtime `Module#autoload` calls remain outside this static macro path.
 
 Unsupported instructions fail explicitly. Remaining gaps include raw `Args`
-operands. REPL,
-`--profile-app`, and `--print-objects` are also unsupported.
+operands. `--profile-app` and `--print-objects` are also unsupported.
 
 The normal ruby/spec runner now works for the unmodified
 `spec/core/nil/nil_spec.rb`:

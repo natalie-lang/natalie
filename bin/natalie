@@ -203,6 +203,7 @@ class Runner
   def run_temp_and_wait(path)
     var_name = RbConfig::CONFIG['LIBPATHENV']
     env = { var_name => Natalie::Compiler::CppBackend::LIB_PATHS.join(':') }
+    env['NAT_REPL_BACKEND'] = options.fetch(:backend, 'cpp') if @repl
     pid = spawn(env, path, *ARGV)
     Process.wait(pid)
     @run_result = $?

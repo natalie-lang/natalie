@@ -180,7 +180,15 @@ loop do
 
   reset_lines.call
 
-  compiler = Natalie::Compiler.new(ast: ast, path: source_path, encoding: parser.encoding)
+  compiler =
+    Natalie::Compiler.new(
+      ast: ast,
+      path: source_path,
+      encoding: parser.encoding,
+      options: {
+        backend: ENV.fetch('NAT_REPL_BACKEND', 'cpp'),
+      },
+    )
   compiler.repl = true
   compiler.repl_num = (repl_num += 1)
   compiler.vars = vars

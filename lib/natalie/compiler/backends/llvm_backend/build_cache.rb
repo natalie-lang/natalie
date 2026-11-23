@@ -21,7 +21,12 @@ module Natalie
         def initialize(compiler, source_path)
           @compiler = compiler
           @directory =
-            File.join(File.expand_path(compiler.build_dir), 'llvm', Units.id(source_path), compiler.compilation_type)
+            File.join(
+              File.expand_path(compiler.build_dir),
+              'llvm',
+              Units.id(source_path),
+              compiler.repl? ? 'repl' : compiler.compilation_type,
+            )
           FileUtils.mkdir_p(@directory)
         end
 
