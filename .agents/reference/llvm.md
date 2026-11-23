@@ -189,8 +189,8 @@ can be retried. Loaded-file returns count as successful requires; explicit
 `load` does not modify require's feature state.
 Dynamic runtime `Module#autoload` calls remain outside this static macro path.
 
-Unsupported instructions fail explicitly. Remaining gaps include raw `Args`
-operands. `--profile-app` and `--print-objects` are also unsupported.
+Unsupported instructions fail explicitly. `--profile-app` and `--print-objects`
+remain unsupported.
 
 The normal ruby/spec runner now works for the unmodified
 `spec/core/nil/nil_spec.rb`:

@@ -3,12 +3,11 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class PushArgsInstruction < BaseInstruction
-      def initialize(for_block:, min_count:, max_count:, autosplat: false, to_array: true, include_keyword_hash: true)
+      def initialize(for_block:, min_count:, max_count:, autosplat: false, include_keyword_hash: true)
         @for_block = for_block
         @min_count = min_count
         @max_count = max_count
         @autosplat = autosplat
-        @to_array = to_array
         @include_keyword_hash = include_keyword_hash
       end
 
@@ -21,7 +20,6 @@ module Natalie
       end
 
       def generate_llvm(transform)
-        transform.unsupported(self, 'raw Args') unless @to_array || @for_block
         transform.push_call(
           "call i64 @nat_llvm_args(ptr %env, ptr %args, i32 #{@for_block ? 1 : 0}, i64 #{@min_count}, i64 #{@max_count || -1}, i32 #{@autosplat ? 1 : 0}, i32 #{@include_keyword_hash ? 1 : 0})",
         )
@@ -33,10 +31,8 @@ module Natalie
             :args,
             "args.to_array_for_block(env, #{@min_count}, #{@max_count || -1}, #{@autosplat ? 'true' : 'false'}, #{@include_keyword_hash ? 'true' : 'false'})",
           )
-        elsif @to_array
-          transform.exec_and_push(:args, "args.to_array(#{@include_keyword_hash ? 'true' : 'false'})")
         else
-          transform.exec_and_push(:args, 'args', type: 'auto')
+          transform.exec_and_push(:args, "args.to_array(#{@include_keyword_hash ? 'true' : 'false'})")
         end
       end
     end
