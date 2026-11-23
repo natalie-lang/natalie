@@ -18,6 +18,11 @@ task test_llvm: %i[libnat llvm_runtime] do
   sh({ 'NAT_REPL_TEST_BACKEND' => 'llvm' }, RbConfig.ruby, 'test/ruby/repl_test.rb')
 end
 
+desc 'Test LLVM AddressSanitizer instrumentation (requires a compatible C++ ASan runtime)'
+task :test_llvm_sanitizers do
+  ruby 'test/llvm_sanitizer_test.rb'
+end
+
 desc 'Test LLVM compilation through the self-hosted compiler'
 task test_llvm_self_hosted: %i[bootstrap llvm_runtime] do
   environment = { 'NAT_LLVM_COMPILER' => File.expand_path('bin/nat') }

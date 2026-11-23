@@ -34,11 +34,22 @@ module Natalie
           'void* LLVMRunPasses(void*, char*, void*, void*)',
           'void* LLVMGetErrorMessage(void*)',
           'void LLVMDisposeErrorMessage(void*)',
+          'void* LLVMGetFirstFunction(void*)',
+          'void* LLVMGetNextFunction(void*)',
+          'int LLVMIsDeclaration(void*)',
+          'int LLVMGetEnumAttributeKindForName(char*, size_t)',
+          'void* LLVMCreateEnumAttribute(void*, int, size_t)',
+          'void LLVMAddAttributeAtIndex(void*, int, void*)',
+          'void LLVMAddTargetDependentFunctionAttr(void*, char*, char*)',
           'int LLVMTargetMachineEmitToFile(void*, void*, char*, int, void*)',
         ].freeze
 
         def initialize(build: nil)
           @optimization = build == 'release' ? 3 : 0
+          @sanitize_address = build == 'sanitized'
+          if @sanitize_address && ENV.fetch('NAT_SANITIZE_FLAG_VALUE', 'address') != 'address'
+            raise CompileError, 'LLVM instrumentation currently supports NAT_SANITIZE_FLAG_VALUE=address only'
+          end
           @api =
             if RUBY_ENGINE == 'natalie'
               Module.new { extend NativeFFI }
@@ -73,7 +84,14 @@ module Natalie
                     [@library, Process.pid]
                   end
                 end
-              [identity, RUBY_PLATFORM, ENV['MACOSX_DEPLOYMENT_TARGET'], @optimization, File.binread(__FILE__)]
+              [
+                identity,
+                RUBY_PLATFORM,
+                ENV['MACOSX_DEPLOYMENT_TARGET'],
+                @optimization,
+                @sanitize_address,
+                File.binread(__FILE__),
+              ]
             end
         end
 
@@ -129,7 +147,8 @@ module Natalie
           layout = @api.LLVMCreateTargetDataLayout(machine)
           layout_string = @api.LLVMCopyStringRepOfTargetData(layout)
           @api.LLVMSetDataLayout(mod, layout_string)
-          optimize(mod, machine) if @optimization > 0
+          run_passes(mod, machine, "default<O#{@optimization}>") if @optimization > 0
+          instrument_address_sanitizer(mod, context, machine) if @sanitize_address
           check(@api.LLVMTargetMachineEmitToFile(machine, mod, path, file_type, error), error)
         ensure
           @api.LLVMDisposeMessage(layout_string) if layout_string
@@ -142,12 +161,27 @@ module Natalie
 
         private
 
-        def optimize(mod, machine)
+        def instrument_address_sanitizer(mod, context, machine)
+          name = 'sanitize_address'
+          kind = @api.LLVMGetEnumAttributeKindForName(name, name.bytesize)
+          attribute = @api.LLVMCreateEnumAttribute(context, kind, 0)
+          function = @api.LLVMGetFirstFunction(mod)
+          until function.null?
+            if @api.LLVMIsDeclaration(function) == 0
+              @api.LLVMAddAttributeAtIndex(function, -1, attribute) # LLVMAttributeFunctionIndex
+              @api.LLVMAddTargetDependentFunctionAttr(function, 'frame-pointer', 'all')
+            end
+            function = @api.LLVMGetNextFunction(function)
+          end
+          run_passes(mod, machine, 'asan')
+        end
+
+        def run_passes(mod, machine, pipeline)
           options = @api.LLVMCreatePassBuilderOptions
-          error = @api.LLVMRunPasses(mod, "default<O#{@optimization}>", machine, options)
+          error = @api.LLVMRunPasses(mod, pipeline, machine, options)
           return if error.null?
           message = @api.LLVMGetErrorMessage(error)
-          raise CompileError, "LLVM optimization failed: #{pointer_string(message)}"
+          raise CompileError, "LLVM pass pipeline #{pipeline} failed: #{pointer_string(message)}"
         ensure
           @api.LLVMDisposeErrorMessage(message) if message
           @api.LLVMDisposePassBuilderOptions(options) if options

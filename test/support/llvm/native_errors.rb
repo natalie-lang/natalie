@@ -36,6 +36,10 @@ Dir.mktmpdir do |dir|
   path = File.join(dir, 'good.o')
   native.emit_object(valid, path)
   raise 'LLVM did not recover after errors' unless File.size?(path)
+
+  assembly = File.join(dir, 'sanitized.s')
+  Natalie::Compiler::LlvmBackend::Native.new(build: 'sanitized').emit_assembly(valid, assembly)
+  raise 'LLVM did not instrument sanitized code' unless File.read(assembly).include?('asan_init')
 end
 
 puts 'LLVM native error recovery passed'

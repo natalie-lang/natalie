@@ -65,6 +65,14 @@ keep Ruby values visible to the conservative collector through optimization.
 The lower-level `Native` emitter accepts `build: 'release'` to select the same
 pipeline; its default remains unoptimized.
 
+Sanitized builds instrument LLVM functions with AddressSanitizer as well as
+instrumenting native sidecars. Build the runtime and bridge in sanitized mode
+before running sanitized programs. `NAT_SANITIZE_FLAG_VALUE=address` is supported;
+other sanitizer selections currently report a compile error for LLVM output.
+`bundle exec rake test_llvm_sanitizers` checks that instrumentation detects an
+invalid LLVM stack write and accepts a valid one. This separate test task needs
+a compatible C++ AddressSanitizer runtime in addition to the shared LLVM library.
+
 ## REPL
 
 Build the compiler library and LLVM bridge, then start the REPL without a script:
