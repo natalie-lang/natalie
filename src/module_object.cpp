@@ -161,14 +161,64 @@ Optional<Value> ModuleObject::const_get(SymbolObject *name) const {
 }
 
 Value ModuleObject::const_get(Env *env, Value name, Optional<Value> inherited) {
-    auto symbol = name.to_symbol(env, Value::Conversion::Strict);
-    auto constant = const_get(symbol);
-    if (!constant) {
-        if (inherited && inherited->is_falsey())
-            env->raise("NameError", "uninitialized constant {}", symbol->string());
-        return send(env, "const_missing"_s, { name });
+    bool is_symbol = name.is_symbol();
+    auto path = is_symbol ? name.as_symbol()->string() : name.to_str(env)->string();
+    bool inherit = !inherited || inherited->is_truthy();
+    Value value = this;
+    if (!is_symbol && path.size() >= 2 && path[0] == ':' && path[1] == ':') {
+        value = GlobalEnv::the()->Object();
+        path = path.size() == 2 ? String() : path.substring(2);
     }
-    return constant.value();
+
+    bool first = true;
+    for (;;) {
+        auto separator = is_symbol ? -1 : path.find("::");
+        auto part = separator == -1 ? path : (separator == 0 ? String() : path.substring(0, separator));
+        auto symbol = SymbolObject::intern(part);
+        if (!symbol->is_constant_name()) {
+            if (is_symbol)
+                env->raise_name_error(name.as_symbol(), "wrong constant name {}", part);
+            env->raise_name_error(StringObject::create(path), "wrong constant name {}", part);
+        }
+        if (!value.is_module())
+            env->raise("TypeError", "{} does not refer to class/module", name.inspected(env));
+        auto scope = value.as_module();
+        ModuleObject *owner = nullptr;
+        auto lookup = [&]() -> Constant * {
+            std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+            if (!inherit)
+                return scope->get_constant(symbol, &owner);
+            auto constant = scope->find_constant_in_class_hierarchy(env, symbol, ConstLookupSearchMode::Strict, true, &owner);
+            // A first-component lookup on a Module may fall back to Object;
+            // nested modules do not implicitly acquire top-level constants.
+            if (!constant && first && scope->type() == Type::Module)
+                constant = GlobalEnv::the()->Object()->find_constant_in_class_hierarchy(env, symbol, ConstLookupSearchMode::Strict, true, &owner);
+            return constant;
+        };
+        auto constant = lookup();
+        if (constant && constant->needs_load()) {
+            owner->remove_const(symbol);
+            constant->autoload(env, scope);
+            constant = lookup();
+        }
+        if (constant && constant->value()) {
+            // const_get permits private constants, while retaining warnings.
+            if (constant->is_deprecated()) {
+                if (scope == GlobalEnv::the()->Object())
+                    env->deprecation_warn("constant ::{} is deprecated", part);
+                else
+                    env->deprecation_warn("constant {}::{} is deprecated", scope->inspect_module(), part);
+            }
+            value = constant->value().value();
+        } else {
+            value = scope->send(env, "const_missing"_s, { symbol });
+        }
+        if (separator == -1)
+            return value;
+        auto next = static_cast<size_t>(separator + 2);
+        path = next == path.size() ? String() : path.substring(next);
+        first = false;
+    }
 }
 
 Value ModuleObject::const_fetch(SymbolObject *name) const {
@@ -228,9 +278,12 @@ Optional<Value> ModuleObject::handle_missing_constant(Env *env, Value name, Cons
 
     if (failure_mode == ConstLookupFailureMode::Raise) {
         auto name_str = name.to_s(env);
-        if (this == GlobalEnv::the()->Object())
-            env->raise_name_error(name_str, "uninitialized constant {}", name_str->string());
-        env->raise_name_error(name_str, "uninitialized constant {}::{}", inspect_module(), name_str->string());
+        auto message = this == GlobalEnv::the()->Object()
+            ? String::format("uninitialized constant {}", name_str->string())
+            : String::format("uninitialized constant {}::{}", inspect_module(), name_str->string());
+        if (name.is_symbol())
+            env->raise_name_error(name.as_symbol(), std::move(message));
+        env->raise_name_error(name_str, std::move(message));
     }
 
     return send(env, "const_missing"_s, { name });
