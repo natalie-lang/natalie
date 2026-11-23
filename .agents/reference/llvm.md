@@ -58,6 +58,13 @@ Use `-d code` to print generated LLVM IR and any native sidecar sources.
 cached builds retain IR in their build directory. `-d S` emits and prints assembly
 for each Ruby compilation unit and any native sidecar.
 
+Release builds run LLVM's `default<O3>` optimization pipeline and use aggressive
+target code generation. Debug and sanitized builds retain unoptimized LLVM
+code. Build mode participates in the object cache key. Volatile stack roots
+keep Ruby values visible to the conservative collector through optimization.
+The lower-level `Native` emitter accepts `build: 'release'` to select the same
+pipeline; its default remains unoptimized.
+
 ## REPL
 
 Build the compiler library and LLVM bridge, then start the REPL without a script:

@@ -8,7 +8,7 @@ end
 require_relative '../../../lib/natalie/compiler/backends/llvm_backend/native'
 require 'tmpdir'
 
-native = Natalie::Compiler::LlvmBackend::Native.new
+native = Natalie::Compiler::LlvmBackend::Native.new(build: 'release')
 invalid_ssa = <<~LLVM
   define i64 @bad() {
   entry:

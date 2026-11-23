@@ -58,6 +58,61 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
+  def test_release_optimization_preserves_gc_roots_and_ensured_returns
+    Dir.mktmpdir('natalie-llvm-release') do |dir|
+      dependency = File.join(dir, 'dependency.rb')
+      File.write(dependency, <<~RUBY)
+        require 'natalie/inline'
+        class OptimizedNative
+          __define_method__ :answer, [], 'return Value::integer(42);'
+        end
+      RUBY
+      code = <<~RUBY
+        require #{dependency.inspect}
+        def build_reader
+          captured = Array.new(100) { |i| "value-\#{i}" }
+          begin
+            return -> { [captured.first, captured.last, OptimizedNative.new.answer] }
+          ensure
+            GC.start
+          end
+        end
+        reader = build_reader
+        10.times do
+          Array.new(100) { 'garbage' * 100 }
+          GC.start
+        end
+        p reader.call
+        begin
+          raise 'expected'
+        rescue => e
+          puts e.message
+        ensure
+          puts :ensured
+        end
+      RUBY
+      source = File.join(dir, 'program.rb')
+      File.write(source, code)
+      executable = File.join(dir, 'program')
+      [nil, File.join(dir, 'cache')].each do |cache|
+        driver = <<~RUBY
+          require #{File.join(ROOT, 'lib/natalie').inspect}
+          parser = Natalie::Parser.new(File.read(#{source.inspect}), #{source.inspect})
+          options = { backend: 'llvm', build: 'release', build_dir: #{cache.inspect}, build_quietly: true }
+          compiler = Natalie::Compiler.new(ast: parser.ast, path: #{source.inspect}, options: options)
+          compiler.out_path = #{executable.inspect}
+          compiler.compile
+        RUBY
+        stdout, stderr, status = Open3.capture3(RbConfig.ruby, '-e', driver, chdir: ROOT)
+        assert status.success?, stdout + stderr
+        stdout, stderr, status = Open3.capture3(executable)
+        assert status.success?, stderr
+        assert_equal "[\"value-0\", \"value-99\", 42]\nexpected\nensured\n", stdout
+        assert_empty stderr
+      end
+    end
+  end
+
   def test_missing_llvm_library_reports_a_compile_error
     stdout, stderr, status = run_cli('--backend=llvm', '-e', 'puts 42', env: { 'NAT_LLVM_LIBRARY' => '/missing/LLVM' })
     assert_equal 1, status.exitstatus

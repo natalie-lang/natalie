@@ -51,11 +51,13 @@ module Natalie
           )
         end
         source = ir
-        return Native.new.emit_object(source, path) unless @native_extensions.active? || initializer?
+        unless @native_extensions.active? || initializer?
+          return Native.new(build: @compiler.build).emit_object(source, path)
+        end
         Dir.mktmpdir do |dir|
           ruby_object = File.join(dir, 'ruby.o')
           native_object = File.join(dir, 'native.o')
-          Native.new.emit_object(source, ruby_object)
+          Native.new(build: @compiler.build).emit_object(source, ruby_object)
           @native_extensions.compile(native_object, library_initializer: initializer_name)
           @native_extensions.merge_objects([ruby_object, native_object], path)
         end
@@ -80,7 +82,7 @@ module Natalie
         Dir.mktmpdir do |dir|
           object = File.join(dir, 'program.o')
           require_relative 'llvm_backend/native'
-          Native.new.emit_object(ir, object)
+          Native.new(build: @compiler.build).emit_object(ir, object)
           objects = [object, *runtime_objects]
           if @custom_entrypoint && !library?
             main = entrypoint
@@ -119,7 +121,7 @@ module Natalie
         require_relative 'llvm_backend/native'
         source = ir
         sources = [[@compiler_context.fetch(:source_path), source], *(@units&.sources || {}).to_a]
-        native = Native.new
+        native = Native.new(build: @compiler.build)
         paths =
           sources.map do |source_path, unit|
             file = Tempfile.create([File.basename(source_path), '.s'])
@@ -197,7 +199,7 @@ module Natalie
       def cached_objects
         require_relative 'llvm_backend/native'
         main_source = ir # Recursively generates the independent loaded-file units.
-        native = Native.new
+        native = Native.new(build: @compiler.build)
         objects = [build_cache.llvm_object('main', main_source, native)]
         units.sources.each { |path, source| objects << build_cache.llvm_object(Units.id(path), source, native) }
         if @native_extensions.active? || library?

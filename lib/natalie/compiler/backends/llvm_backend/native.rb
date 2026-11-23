@@ -29,10 +29,16 @@ module Natalie
           'void* LLVMCopyStringRepOfTargetData(void*)',
           'void LLVMSetDataLayout(void*, char*)',
           'void LLVMDisposeTargetData(void*)',
+          'void* LLVMCreatePassBuilderOptions()',
+          'void LLVMDisposePassBuilderOptions(void*)',
+          'void* LLVMRunPasses(void*, char*, void*, void*)',
+          'void* LLVMGetErrorMessage(void*)',
+          'void LLVMDisposeErrorMessage(void*)',
           'int LLVMTargetMachineEmitToFile(void*, void*, char*, int, void*)',
         ].freeze
 
-        def initialize
+        def initialize(build: nil)
+          @optimization = build == 'release' ? 3 : 0
           @api =
             if RUBY_ENGINE == 'natalie'
               Module.new { extend NativeFFI }
@@ -67,7 +73,7 @@ module Natalie
                     [@library, Process.pid]
                   end
                 end
-              [identity, RUBY_PLATFORM, ENV['MACOSX_DEPLOYMENT_TARGET'], File.binread(__FILE__)]
+              [identity, RUBY_PLATFORM, ENV['MACOSX_DEPLOYMENT_TARGET'], @optimization, File.binread(__FILE__)]
             end
         end
 
@@ -115,13 +121,15 @@ module Natalie
           end
           target_out = pointer_slot
           check(@api.LLVMGetTargetFromTriple(target_triple, target_out, error), error)
-          # No optimization passes yet; PIC permits both normal and shared linking.
-          machine = @api.LLVMCreateTargetMachine(read_pointer(target_out), target_triple, 'generic', '', 0, 2, 0)
+          # PIC permits both normal and shared linking.
+          machine =
+            @api.LLVMCreateTargetMachine(read_pointer(target_out), target_triple, 'generic', '', @optimization, 2, 0)
           raise CompileError, 'LLVM could not create a target machine' if machine.null?
           @api.LLVMSetTarget(mod, target_triple)
           layout = @api.LLVMCreateTargetDataLayout(machine)
           layout_string = @api.LLVMCopyStringRepOfTargetData(layout)
           @api.LLVMSetDataLayout(mod, layout_string)
+          optimize(mod, machine) if @optimization > 0
           check(@api.LLVMTargetMachineEmitToFile(machine, mod, path, file_type, error), error)
         ensure
           @api.LLVMDisposeMessage(layout_string) if layout_string
@@ -133,6 +141,17 @@ module Natalie
         end
 
         private
+
+        def optimize(mod, machine)
+          options = @api.LLVMCreatePassBuilderOptions
+          error = @api.LLVMRunPasses(mod, "default<O#{@optimization}>", machine, options)
+          return if error.null?
+          message = @api.LLVMGetErrorMessage(error)
+          raise CompileError, "LLVM optimization failed: #{pointer_string(message)}"
+        ensure
+          @api.LLVMDisposeErrorMessage(message) if message
+          @api.LLVMDisposePassBuilderOptions(options) if options
+        end
 
         def library
           return ENV.fetch('NAT_LLVM_LIBRARY') if ENV['NAT_LLVM_LIBRARY']
