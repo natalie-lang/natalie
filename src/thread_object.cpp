@@ -1,10 +1,19 @@
 #include <chrono>
 #include <pthread.h>
 #include <signal.h>
+#include <type_traits>
 
 #include "natalie.hpp"
 #include "natalie/thread/mutex_object.hpp"
 #include "natalie/thread_object.hpp"
+
+struct SavedThreadContext {
+    ucontext_t context;
+    Natalie::ExceptionObject **current_exception;
+#ifdef __APPLE__
+    std::remove_pointer_t<mcontext_t> machine_context;
+#endif
+};
 
 static void set_stack_for_thread(Natalie::ThreadObject *thread_object) {
     auto thread_id = pthread_self();
@@ -42,15 +51,16 @@ static void *nat_create_thread(void *thread_object) {
 
     auto thread = (Natalie::ThreadObject *)thread_object;
     Natalie::tl_current_thread = thread;
+    reinterpret_cast<SavedThreadContext *>(thread->get_context())->current_exception = &Natalie::tl_current_exception;
 
     thread->set_native_thread_handle(pthread_self());
 #ifdef __APPLE__
     thread->set_mach_thread_port(mach_thread_self());
 #endif
-    thread->set_suspend_status(Natalie::ThreadObject::SuspendStatus::Running);
-
     pthread_cleanup_push(nat_thread_finish, thread);
     set_stack_for_thread(thread);
+    // Publish GC readiness only after both stack bounds are initialized.
+    thread->set_suspend_status(Natalie::ThreadObject::SuspendStatus::Running);
     thread->build_main_fiber();
     Natalie::Env e {};
 
@@ -273,7 +283,12 @@ ThreadObject *ThreadObject::initialize(Env *env, Args &&args, Block *block) {
     // you *will* lock the GC, and this thread (and thus the
     // whole program) will hang forever.
 
-    m_context = (ucontext_t *)malloc(sizeof(ucontext_t));
+    auto saved_context = static_cast<SavedThreadContext *>(calloc(1, sizeof(SavedThreadContext)));
+    m_context = &saved_context->context;
+#ifdef __APPLE__
+    m_context->uc_mcontext = &saved_context->machine_context;
+    m_context->uc_mcsize = sizeof(saved_context->machine_context);
+#endif
 
     for (size_t i = 0; i < args.size(); i++)
         m_args.push(args[i]);
@@ -1104,6 +1119,28 @@ void ThreadObject::suspend() { // NOLINT "can be made const" warning only for Li
         result = thread_suspend(m_mach_thread_port);
     } while (result == KERN_ABORTED);
     assert(result == KERN_SUCCESS);
+
+    // Unlike the signal handler on Linux, thread_suspend does not save any
+    // registers for us. A live Ruby object may exist only in a register while
+    // this worker is blocked in native code, so GC must scan this snapshot too.
+#if defined(__arm64__)
+    mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
+    result = thread_get_state(m_mach_thread_port, ARM_THREAD_STATE64,
+        reinterpret_cast<thread_state_t>(&m_context->uc_mcontext->__ss), &count);
+    assert(result == KERN_SUCCESS);
+    count = ARM_NEON_STATE64_COUNT;
+    result = thread_get_state(m_mach_thread_port, ARM_NEON_STATE64,
+        reinterpret_cast<thread_state_t>(&m_context->uc_mcontext->__ns), &count);
+#else
+    mach_msg_type_number_t count = x86_THREAD_STATE64_COUNT;
+    result = thread_get_state(m_mach_thread_port, x86_THREAD_STATE64,
+        reinterpret_cast<thread_state_t>(&m_context->uc_mcontext->__ss), &count);
+    assert(result == KERN_SUCCESS);
+    count = x86_FLOAT_STATE64_COUNT;
+    result = thread_get_state(m_mach_thread_port, x86_FLOAT_STATE64,
+        reinterpret_cast<thread_state_t>(&m_context->uc_mcontext->__fs), &count);
+#endif
+    assert(result == KERN_SUCCESS);
     m_suspend_status = SuspendStatus::Suspended;
 #else
     assert(m_native_thread_handle);
@@ -1168,7 +1205,12 @@ void ThreadObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *p
 #endif
 
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_context(Visitor &visitor) const {
+    auto saved_context = reinterpret_cast<SavedThreadContext *>(m_context);
+    // C++ unwinding can keep the exception in native heap storage, so it is
+    // not sufficient to scan the worker's stack and registers alone.
+    if (saved_context->current_exception)
+        visitor.visit(*saved_context->current_exception);
     auto start = reinterpret_cast<std::byte *>(m_context);
-    Heap::the().scan_memory(visitor, start, start + sizeof(ucontext_t));
+    Heap::the().scan_memory(visitor, start, start + sizeof(SavedThreadContext));
 }
 }

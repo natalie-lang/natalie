@@ -34,6 +34,23 @@ describe 'Thread' do
     $results.size.should == 10
   end
 
+  it 'keeps interrupted threads alive while GC scans their registers' do
+    10.times do
+      ready = Queue.new
+      threads =
+        8.times.map do
+          Thread.new do
+            ready << true
+            sleep
+          end
+        end
+      threads.size.times { ready.pop }
+      threads.each(&:kill)
+      GC.start
+      threads.each(&:join)
+    end
+  end
+
   describe '#join' do
     it 'waits for the thread to finish' do
       start = Time.now
