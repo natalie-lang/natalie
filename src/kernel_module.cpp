@@ -997,6 +997,8 @@ Value KernelModule::extend(Env *env, Value self, Args &&args) {
     for (size_t i = 0; i < args.size(); i++) {
         if (args[i].type() == Object::Type::Module) {
             args[i].as_module()->send(env, "extend_object"_s, { self });
+            if (args[i].as_module()->respond_to(env, "extended"_s))
+                args[i].as_module()->send(env, "extended"_s, { self });
         } else {
             env->raise("TypeError", "wrong argument type {} (expected Module)", args[i].klass()->inspect_module());
         }

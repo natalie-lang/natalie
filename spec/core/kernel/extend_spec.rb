@@ -42,9 +42,7 @@ describe "Kernel#extend" do
   it "calls extended on argument" do
     o = mock('o')
     o.extend KernelSpecs::M
-    NATFIXME 'Implement Module#extend_object', exception: SpecFailedException do
-      ScratchPad.recorded.include?("extended").should == true
-    end
+    ScratchPad.recorded.include?("extended").should == true
   end
 
   it "makes the class a kind_of? the argument" do
