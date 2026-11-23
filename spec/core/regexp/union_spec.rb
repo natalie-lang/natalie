@@ -54,12 +54,12 @@ describe "Regexp.union" do
   end
 
   it "returns ASCII-8BIT if the regexp encodings are ASCII-8BIT and at least one has non-ASCII characters" do
-    NATFIXME 'Encodings', exception: SpecFailedException do
-      us_ascii_implicit, us_ascii_explicit, binary = /abc/, /[\x00-\x7f]/n, /[\x80-\xBF]/n
-      us_ascii_implicit.encoding.should == Encoding::US_ASCII
-      us_ascii_explicit.encoding.should == Encoding::US_ASCII
-      binary.encoding.should == Encoding::BINARY
+    us_ascii_implicit, us_ascii_explicit, binary = /abc/, /[\x00-\x7f]/n, /[\x80-\xBF]/n
+    us_ascii_implicit.encoding.should == Encoding::US_ASCII
+    us_ascii_explicit.encoding.should == Encoding::US_ASCII
+    binary.encoding.should == Encoding::BINARY
 
+    NATFIXME 'Regexp.union loses binary pattern encoding', exception: RegexpError, message: /invalid code point value/ do
       Regexp.union(us_ascii_implicit, us_ascii_explicit, binary).encoding.should == Encoding::BINARY
       Regexp.union(us_ascii_implicit, binary, us_ascii_explicit).encoding.should == Encoding::BINARY
       Regexp.union(us_ascii_explicit, us_ascii_implicit, binary).encoding.should == Encoding::BINARY
