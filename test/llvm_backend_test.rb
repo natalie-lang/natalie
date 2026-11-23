@@ -574,6 +574,46 @@ class LlvmBackendTest < Minitest::Test
     end
   end
 
+  def test_autoload_registration_survives_gc_and_is_deferred
+    Dir.mktmpdir('natalie-llvm-autoload') do |dir|
+      file = File.join(dir, 'lazy.rb')
+      File.write(file, '$autoload_runs = ($autoload_runs || 0) + 1; module LazySpace; Answer = 42; end')
+      assert_program(<<~RUBY, "nil\ntrue\n42\n42\n1\nnil\n")
+        module LazySpace; end
+        def register
+          LazySpace.module_eval { autoload :Answer, #{file.inspect} }
+        end
+        register
+        5.times { GC.start }
+        p $autoload_runs
+        p LazySpace.autoload?(:Answer) == #{file.inspect}
+        p LazySpace::Answer
+        p LazySpace::Answer
+        p $autoload_runs
+        p LazySpace.autoload?(:Answer)
+      RUBY
+    end
+  end
+
+  def test_autoload_shares_require_state_and_preserves_caller_locals
+    Dir.mktmpdir('natalie-llvm-autoload') do |dir|
+      file = File.join(dir, 'shared.rb')
+      File.write(
+        file,
+        '$autoload_runs = ($autoload_runs || 0) + 1; local = :loaded; LazyFirst = 1; LazySecond = 2; return',
+      )
+      assert_program(<<~RUBY, "[2, 1]\nfalse\n1\n:caller\n")
+        local = :caller
+        autoload :LazyFirst, #{file.inspect}
+        autoload :LazySecond, #{file.inspect}
+        p [LazySecond, LazyFirst]
+        p require(#{file.inspect})
+        p $autoload_runs
+        p local
+      RUBY
+    end
+  end
+
   def test_recursive_require
     Dir.mktmpdir('natalie-llvm-test') do |dir|
       a, b = %w[a.rb b.rb].map { |name| File.join(dir, name) }

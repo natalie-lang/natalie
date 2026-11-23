@@ -125,6 +125,12 @@ extern "C" void nat_llvm_build_vars(Env *env, uint64_t count) {
     env->build_vars(count);
 }
 
+extern "C" void nat_llvm_autoload(Env *env, uint64_t self, const char *name, const char *path, LlvmFn fn) {
+    auto receiver = nat_llvm_unpack(self);
+    auto loader = llvm_block(env, receiver, fn, 0, false, 0);
+    Object::const_set(env, receiver, SymbolObject::intern(name), loader, StringObject::create(path));
+}
+
 // Each closure adds a callback environment between the invocation's locals
 // and the captured Ruby environment. Copies share the managed local vector.
 static Env *llvm_outer(Env *env, uint64_t depth) {

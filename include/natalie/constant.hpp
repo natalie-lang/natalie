@@ -7,12 +7,17 @@ class Constant : public Cell {
 public:
     Constant(SymbolObject *name, Value value)
         : m_name(name)
-        , m_value(value) {};
+        , m_value(value) { };
 
     Constant(SymbolObject *name, MethodFnPtr autoload_fn, StringObject *autoload_path)
         : m_name(name)
         , m_autoload_fn(autoload_fn)
-        , m_autoload_path(autoload_path) {};
+        , m_autoload_path(autoload_path) { };
+
+    Constant(SymbolObject *name, Block *autoload_block, StringObject *autoload_path)
+        : m_name(name)
+        , m_autoload_block(autoload_block)
+        , m_autoload_path(autoload_path) { };
 
     SymbolObject *name() const { return m_name; }
     Optional<Value> value() const { return m_value; }
@@ -26,7 +31,7 @@ public:
     MethodFnPtr autoload_fn() const { return m_autoload_fn; }
     void set_autoload_fn(MethodFnPtr fn) { m_autoload_fn = fn; }
 
-    bool needs_load() const { return !m_value && m_autoload_fn; }
+    bool needs_load() const { return !m_value && (m_autoload_fn || m_autoload_block); }
     StringObject *autoload_path() const { return m_autoload_path; }
     void autoload(Env *, Value);
 
@@ -40,6 +45,7 @@ private:
     bool m_private { false };
     bool m_deprecated { false };
     MethodFnPtr m_autoload_fn { nullptr };
+    Block *m_autoload_block { nullptr };
     StringObject *m_autoload_path { nullptr };
 };
 }

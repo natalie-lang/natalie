@@ -95,6 +95,7 @@ public:
     Value const_fetch(SymbolObject *) const;
     Value const_set(SymbolObject *, Value);
     Value const_set(SymbolObject *, MethodFnPtr, StringObject *);
+    Value const_set(SymbolObject *, Block *, StringObject *);
     Value const_set(Env *, Value, Value);
 
     void remove_const(SymbolObject *);

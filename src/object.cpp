@@ -411,6 +411,15 @@ Value Object::const_set(Env *env, Value ns, SymbolObject *name, MethodFnPtr auto
         env->raise("TypeError", "{} is not a class/module", ns.inspected(env));
 }
 
+Value Object::const_set(Env *env, Value ns, SymbolObject *name, Block *autoload_block, StringObject *autoload_path) {
+    if (ns.is_module())
+        return ns.as_module()->const_set(name, autoload_block, autoload_path);
+    else if (ns == GlobalEnv::the()->main_obj())
+        return GlobalEnv::the()->Object()->const_set(name, autoload_block, autoload_path);
+    else
+        env->raise("TypeError", "{} is not a class/module", ns.inspected(env));
+}
+
 Value Object::define_class(Env *env, Value ns, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, Value superclass, Value (*fn)(Env *, Value)) {
     Value klass;
 

@@ -279,6 +279,13 @@ Value ModuleObject::const_set(Env *env, Value name, Value val) {
     return const_set(name_as_sym, val);
 }
 
+Value ModuleObject::const_set(SymbolObject *name, Block *autoload_block, StringObject *autoload_path) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    m_constants.put(name, new Constant { name, autoload_block, autoload_path });
+    return Value::nil();
+}
+
 void ModuleObject::remove_const(SymbolObject *name) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 

@@ -11,6 +11,7 @@ module Natalie
         DECLARATIONS = <<~LLVM.freeze
           declare i64 @nat_llvm_integer(ptr)
           declare i64 @nat_llvm_float(double)
+          declare void @nat_llvm_autoload(ptr, i64, ptr, ptr, ptr)
           declare i64 @nat_llvm_rational(ptr, i64, i64)
           declare i64 @nat_llvm_complex(i64)
           declare i64 @nat_llvm_string(ptr, ptr, i64, ptr, i32, ptr)

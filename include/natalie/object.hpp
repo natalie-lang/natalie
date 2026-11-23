@@ -108,6 +108,7 @@ public:
     static Value const_set(Env *, Value, SymbolObject *, Value);
     static Value const_set_not_strict(Env *, SymbolObject *, Value);
     static Value const_set(Env *, Value, SymbolObject *, MethodFnPtr, StringObject *);
+    static Value const_set(Env *, Value, SymbolObject *, Block *, StringObject *);
 
     static Value define_class(Env *, Value, Value, SymbolObject *, ConstLookupSearchMode, Value, Value (*)(Env *, Value));
     static Value define_module(Env *, Value, Value, SymbolObject *, ConstLookupSearchMode, Value (*)(Env *, Value));

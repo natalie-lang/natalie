@@ -16,6 +16,13 @@ module Natalie
         "autoload_const #{@name}, #{@path.inspect}"
       end
 
+      def generate_llvm(transform)
+        body = transform.fetch_block_of_instructions(expected_label: :autoload_const)
+        fn = transform.function(body, scope: env)
+        transform.emit "call void @nat_llvm_autoload(ptr %env, i64 %self, ptr #{transform.string(@name.to_s)}, ptr #{transform.string(@path)}, ptr #{fn})"
+        transform.push('4')
+      end
+
       def generate(transform)
         body = transform.fetch_block_of_instructions(expected_label: :autoload_const)
         fn = transform.temp("autoload_const_#{@name}_fn")
