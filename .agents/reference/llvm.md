@@ -68,8 +68,9 @@ the sidecar when one is needed.
 
 The existing generator handles method/static-method bindings, allocation hooks,
 constants, native method definitions, function declarations/calls, and compile/link
-flags. Top-level inline declarations are supported; scoped `__inline__` code is
-rejected because it can refer to C++ local variables that do not exist in LLVM.
+flags. Top-level inline declarations are supported. Scoped `__inline__` code is
+retired on both backends. Use explicit native helper calls or native method
+definitions instead; see [Native code](native-code.md).
 
 Tests include a native extension fixture, C++-to-LLVM block callbacks, linking a
 combined object, and using the actual `tempfile.cpp` implementation directly.
@@ -96,7 +97,7 @@ can be retried. Loaded-file returns count as successful requires; explicit
 Dynamic runtime `Module#autoload` calls remain outside this static macro path.
 
 Unsupported instructions fail explicitly. Remaining gaps include raw `Args`
-operands and scoped inline C++. REPL, shared-object output, `--build-dir`,
+operands. REPL, shared-object output, `--build-dir`,
 `--profile-app`, and `--print-objects` are also unsupported.
 
 The normal ruby/spec runner now works for the unmodified

@@ -15,4 +15,15 @@ class NativeHelpersTest < Minitest::Test
       wrong arity
     OUTPUT
   end
+
+  def test_scoped_inline_is_retired
+    [
+      'def f; __inline__("return self;"); end; f',
+      '1.times { __inline__("return self;") }',
+      'class C; __inline__("return self;"); end',
+    ].each do |body|
+      error = assert_raises(Command::Error) { Command.new(NAT_BINARY, '-e', "require 'natalie/inline'; #{body}").run }
+      assert_includes error.to_s, 'scoped __inline__ has been retired'
+    end
+  end
 end

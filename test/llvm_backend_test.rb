@@ -141,14 +141,12 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_unsupported_construct_is_rejected_without_fallback
-    _, stderr, status =
-      run_cli(
-        '--backend=llvm',
-        '-e',
-        'require "natalie/inline"; def answer; __inline__("return Value::integer(1);"); end; p answer',
-      )
-    refute status.success?
-    assert_includes stderr, 'scoped inline C++'
+    Dir.mktmpdir('natalie-unsupported-output') do |dir|
+      _, stderr, status =
+        run_cli('--backend=llvm', '--compilation-type=shared-object', '-c', File.join(dir, 'library.so'), '-e', 'nil')
+      refute status.success?
+      assert_includes stderr, 'shared objects'
+    end
   end
 
   def test_short_circuit_branches_merge_the_entire_stack
@@ -256,10 +254,15 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_scoped_inline_cpp_is_rejected_explicitly
-    _, stderr, status =
-      run_cli('--backend=llvm', '-e', 'require "natalie/inline"; def f; __inline__("return self;"); end; f')
-    refute status.success?
-    assert_includes stderr, 'scoped inline C++'
+    [
+      'def f; __inline__("return self;"); end; f',
+      '1.times { __inline__("return self;") }',
+      'class C; __inline__("return self;"); end',
+    ].each do |body|
+      _, stderr, status = run_cli('--backend=llvm', '-e', "require 'natalie/inline'; #{body}")
+      refute status.success?
+      assert_includes stderr, 'scoped __inline__ has been retired'
+    end
   end
 
   def test_native_extension_ir_emission_needs_no_cpp_compiler

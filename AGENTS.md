@@ -13,4 +13,5 @@ in these documents are relative to the repository root unless stated otherwise.
 - [Development](.agents/reference/development.md): toolchain, build/run commands, coding style, and formatting.
 - [Testing](.agents/reference/testing.md): ruby/spec, Natalie tests, focused runs, and regression coverage.
 - [LLVM backend](.agents/reference/llvm.md): bridge setup, implementation entrypoints, supported features, and current boundaries.
+- [Native code](.agents/reference/native-code.md): explicit C++ helpers, native methods, and retired scoped inline code.
 - [Commits and pull requests](.agents/reference/contributing.md): commit conventions, review expectations, and project direction.

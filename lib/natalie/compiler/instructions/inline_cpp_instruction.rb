@@ -20,13 +20,7 @@ module Natalie
       def generate_llvm(transform)
         name = exp.name
         args = exp.arguments&.arguments || []
-        # Scoped inline C++ may refer to generated Ruby locals, which are LLVM
-        # environment slots rather than C++ variables in this backend.
-        if name == :__inline__
-          scope = env
-          scope = scope.fetch(:outer) while scope[:hoist]
-          transform.unsupported(self, 'scoped inline C++') if scope[:outer] && !scope[:main]
-        end
+        validate_inline_scope!(env) if name == :__inline__
         count = name == :__call__ ? args.size - 1 : 0
         operands = transform.pop(count)
         fn = transform.native_extensions.wrapper(self, count)
@@ -189,14 +183,17 @@ module Natalie
 
       def generate_inline(transform, body)
         body = comptime_string(body)
-        env = transform.env
-        env = env.fetch(:outer) while env[:hoist]
-        if env[:outer].nil? || env[:main]
-          transform.top(body, body)
-        else
-          transform.exec body
-        end
+        validate_inline_scope!(transform.env)
+        transform.top(body, body)
         transform.push_nil
+      end
+
+      def validate_inline_scope!(scope)
+        scope = scope.fetch(:outer) while scope[:hoist]
+        return if scope[:outer].nil? || scope[:main]
+
+        raise CompileError,
+              'scoped __inline__ has been retired; use __function__/__call__ for native helpers or __define_method__ for native methods'
       end
 
       def generate_internal_inline_code(transform, body)

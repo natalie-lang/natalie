@@ -29,21 +29,28 @@ class LlvmSpecRunnerTest < Minitest::Test
   end
 
   def test_child_ruby_programs_use_the_selected_backend
-    # Scoped inline C++ remains unsupported by LLVM. A C++ fallback in ruby_exe would make
-    # both runs pass, hiding the missing feature in the child program.
+    # Shared-object output remains unsupported by LLVM. A C++ fallback in ruby_exe
+    # would hide that restriction in the child compiler.
     run_fixture(<<~'RUBY') do |report, _, stderr, status|
+      require 'tempfile'
       describe 'runner children' do
         it 'selects the child backend' do
-          ruby_exe('require "natalie/inline"; def answer; __inline__("return Value::integer(1);"); end; p answer').should == "1\n"
+          Tempfile.create('runner-child') do |file|
+            ruby_exe(
+              'nil',
+              options: "--compilation-type=shared-object -c #{file.path}",
+              env: { 'NAT_LD_FLAGS' => '-shared' },
+            ).should == ""
+          end
         end
       end
     RUBY
       assert_equal 1, status.exitstatus, stderr
-      assert_equal({ 'llvm_failed' => 1 }, report.fetch('summary'))
+      assert_equal({ 'llvm_failed' => 1 }, report.fetch('summary'), JSON.pretty_generate(report))
       runs = report.fetch('results').first.fetch('runs')
       assert runs.fetch('cpp').fetch('success')
       refute runs.fetch('llvm').fetch('success')
-      assert_includes runs.fetch('llvm').fetch('stderr'), 'scoped inline C++'
+      assert_includes runs.fetch('llvm').fetch('stderr'), 'shared objects'
       assert_equal 0, report.fetch('matching_passed_examples')
     end
   end
