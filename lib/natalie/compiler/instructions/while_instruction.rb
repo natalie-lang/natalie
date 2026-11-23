@@ -88,6 +88,7 @@ module Natalie
           code << "auto #{condition_name} = [&]() {"
           code << 'for (;;) {' if @next_point
           code << 'try {' if @redo_point || @next_point
+          code << 'ThreadObject::deliver_current_pending(env, ThreadObject::CheckpointKind::NonBlocking);'
           code << 'if (FiberObject::current()->check_redo_flag_and_clear()) return Value::True();'
           code << t.transform('return')
           if @redo_point || @next_point

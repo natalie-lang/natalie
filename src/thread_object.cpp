@@ -29,9 +29,12 @@ static void set_stack_for_thread(Natalie::ThreadObject *thread_object) {
 static void nat_thread_finish(void *thread_object) {
     auto thread = (Natalie::ThreadObject *)thread_object;
 
+    std::lock_guard<std::recursive_mutex> lock(Natalie::g_gc_recursive_mutex);
+    thread->unlock_mutexes();
+    // The shutdown waiter must not observe an empty list while a worker
+    // still accesses runtime mutexes during its final cleanup.
     thread->set_status(Natalie::ThreadObject::Status::Dead);
     Natalie::ThreadObject::remove_from_list(thread);
-    thread->unlock_mutexes();
 }
 
 static void *nat_create_thread(void *thread_object) {
@@ -996,13 +999,40 @@ bool ThreadObject::all_running() {
     return true;
 }
 
-void ThreadObject::detach_all() {
-    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-    for (auto thread : s_list) {
-        if (thread->is_main())
-            continue;
-        thread->detach();
+void ThreadObject::terminate_all(Env *env) {
+    Value observed = ArrayObject::create();
+    NAT_GC_GUARD_VALUE(observed);
+    for (;;) {
+        Vector<ThreadObject *> pending;
+        {
+            std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+            for (auto thread : s_list) {
+                if (thread->is_main())
+                    continue;
+                pending.push(thread);
+                bool tracked = false;
+                for (auto value : *observed.as_array()) {
+                    if (value.as_thread() == thread) {
+                        tracked = true;
+                        break;
+                    }
+                }
+                if (!tracked)
+                    observed.as_array()->push(thread);
+            }
+        }
+        if (pending.is_empty())
+            break;
+        for (auto thread : pending) {
+            if (thread->m_status != Status::Dead && thread->m_status != Status::Aborting)
+                thread->kill(env);
+        }
+        sched_yield();
     }
+    // All Ruby bodies and cleanup handlers have finished, so no worker can
+    // race C++ static destruction or another worker's join/detach operations.
+    for (auto value : *observed.as_array())
+        value.as_thread()->detach();
 }
 
 void ThreadObject::stop_the_world_and_save_context() {

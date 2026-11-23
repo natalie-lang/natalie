@@ -475,6 +475,7 @@ extern "C" void nat_llvm_hash_merge(Env *env, uint64_t hash, uint64_t other) {
 // into branch statuses after any intervening ensure callbacks have run.
 extern "C" int nat_llvm_loop_step(Env *env, uint64_t self, Args *args, Block *block, LlvmRegionFn fn, uint64_t *frame, ExceptionObject *exception, uint64_t *value, int64_t break_point, int64_t next_point, int64_t redo_point) {
     try {
+        ThreadObject::deliver_current_pending(env, ThreadObject::CheckpointKind::NonBlocking);
         *value = fn(env, self, args, block, frame, exception);
         return 0;
     } catch (ExceptionObject *jump) {

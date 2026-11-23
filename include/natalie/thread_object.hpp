@@ -289,7 +289,7 @@ public:
         return s_thread_kill_class;
     }
 
-    static void detach_all();
+    static void terminate_all(Env *);
 
     static void stop_the_world_and_save_context();
     static void wake_up_the_world();
