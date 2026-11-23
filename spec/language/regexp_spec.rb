@@ -27,9 +27,7 @@ describe "Literal Regexps" do
     2.times do |i|
       rs << /foo/
     end
-    NATFIXME 'caches the Regexp object', exception: SpecFailedException do
-      rs[0].should equal(rs[1])
-    end
+    rs[0].should equal(rs[1])
   end
 
   it "throws SyntaxError for malformed literals" do

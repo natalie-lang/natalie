@@ -319,16 +319,22 @@ extern "C" uint64_t nat_llvm_yield_array(Env *env, uint64_t array, int keywords)
     return nat_llvm_pack(env->nearest_block()->run(env, Args(nat_llvm_unpack(array).as_array(), keywords)));
 }
 
-extern "C" uint64_t nat_llvm_regexp(Env *env, const char *bytes, uint64_t size, int options, int euc_jp) {
+extern "C" uint64_t nat_llvm_regexp(Env *env, const char *bytes, uint64_t size, int options, int euc_jp, OnceCache **cache) {
+    OnceCache::Guard guard(env, cache);
+    if (auto cached = guard.value())
+        return nat_llvm_pack(cached.value());
     auto encoding = euc_jp ? EncodingObject::get(Encoding::EUC_JP) : nullptr;
     auto regex = RegexpObject::create(env, String(bytes, size), options, encoding);
     regex->freeze();
+    guard.set(regex);
     return nat_llvm_pack(regex);
 }
 
 extern "C" uint64_t nat_llvm_string_regexp(Env *env, uint64_t pattern, int options, int euc_jp) {
     auto encoding = euc_jp ? EncodingObject::get(Encoding::EUC_JP) : nullptr;
-    return nat_llvm_pack(RegexpObject::create(env, nat_llvm_unpack(pattern).as_string()->string(), options, encoding));
+    auto regex = RegexpObject::create(env, nat_llvm_unpack(pattern).as_string()->string(), options, encoding);
+    regex->freeze();
+    return nat_llvm_pack(regex);
 }
 
 extern "C" void nat_llvm_string_append(Env *env, uint64_t string, uint64_t part) {
@@ -342,6 +348,14 @@ extern "C" uint64_t nat_llvm_case_equal(Env *env, uint64_t value, uint64_t patte
 // Exception regions keep C++ exception handling in the bridge. LLVM callbacks
 // share their caller's Env, so locals and closures retain their Ruby scope.
 using LlvmRegionFn = uint64_t (*)(Env *, uint64_t, Args *, Block *, uint64_t *, ExceptionObject *);
+extern "C" uint64_t nat_llvm_once(Env *env, uint64_t self, Args *args, Block *block, OnceCache **cache, LlvmRegionFn body, uint64_t *frame) {
+    OnceCache::Guard guard(env, cache);
+    if (auto cached = guard.value())
+        return nat_llvm_pack(cached.value());
+    auto value = body(env, self, args, block, frame, nullptr);
+    guard.set(nat_llvm_unpack(value));
+    return value;
+}
 extern "C" uint64_t nat_llvm_try(Env *env, uint64_t self, Args *args, Block *block, LlvmRegionFn body, LlvmRegionFn handler, uint64_t *frame, int has_ensure, int discard_catch_result, int64_t retry_point) {
     for (;;) {
         try {

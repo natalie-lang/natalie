@@ -141,9 +141,14 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_unsupported_construct_is_rejected_without_fallback
-    _, stderr, status = run_cli('--backend=llvm', '-e', 'p(/#{1}/o)')
+    _, stderr, status =
+      run_cli(
+        '--backend=llvm',
+        '-e',
+        'require "natalie/inline"; def answer; __inline__("return Value::integer(1);"); end; p answer',
+      )
     refute status.success?
-    assert_includes stderr, 'once-only regexp interpolation'
+    assert_includes stderr, 'scoped inline C++'
   end
 
   def test_short_circuit_branches_merge_the_entire_stack

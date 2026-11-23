@@ -68,6 +68,13 @@ module Natalie
       def process_if(i)
         @env = i.env || { vars: {}, outer: @env, hoist: true, type: i.label }
       end
+
+      def process_once(i)
+        @env = i.env || { vars: {}, outer: @env, hoist: true, type: i.label }
+      end
+      def process_end_once(_)
+        @env = @env.fetch(:outer)
+      end
       def process_end_if(_)
         @env = @env.fetch(:outer)
       end

@@ -29,12 +29,12 @@ class LlvmSpecRunnerTest < Minitest::Test
   end
 
   def test_child_ruby_programs_use_the_selected_backend
-    # /o remains unsupported by LLVM. A C++ fallback in ruby_exe would make
+    # Scoped inline C++ remains unsupported by LLVM. A C++ fallback in ruby_exe would make
     # both runs pass, hiding the missing feature in the child program.
     run_fixture(<<~'RUBY') do |report, _, stderr, status|
       describe 'runner children' do
         it 'selects the child backend' do
-          ruby_exe('p(/#{1}/o)').should == "/1/\n"
+          ruby_exe('require "natalie/inline"; def answer; __inline__("return Value::integer(1);"); end; p answer').should == "1\n"
         end
       end
     RUBY
@@ -43,7 +43,7 @@ class LlvmSpecRunnerTest < Minitest::Test
       runs = report.fetch('results').first.fetch('runs')
       assert runs.fetch('cpp').fetch('success')
       refute runs.fetch('llvm').fetch('success')
-      assert_includes runs.fetch('llvm').fetch('stderr'), 'once-only regexp interpolation'
+      assert_includes runs.fetch('llvm').fetch('stderr'), 'scoped inline C++'
       assert_equal 0, report.fetch('matching_passed_examples')
     end
   end
