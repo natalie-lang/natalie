@@ -390,10 +390,8 @@ describe "String#gsub with pattern and block" do
   end
 
   it "does not set $~ for procs created from methods" do
-    NATFIXME 'proc from method handling', exception: SpecFailedException do
-      str = "hello"
-      str.gsub("l", &StringSpecs::SpecialVarProcessor.new.method(:process)).should == "he<unset><unset>o"
-    end
+    str = "hello"
+    str.gsub("l", &StringSpecs::SpecialVarProcessor.new.method(:process)).should == "he<unset><unset>o"
   end
 
   it "restores $~ after leaving the block" do

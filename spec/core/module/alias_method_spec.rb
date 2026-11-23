@@ -121,15 +121,11 @@ describe "Module#alias_method" do
   end
 
   it "can call a method with super aliased twice" do
-    NATFIXME 'it can call a method with super aliased twice', exception: NoMethodError, message: /super: no superclass method [`']alias_super_call'/ do
-      ModuleSpecs::AliasingSuper::Target.new.super_call(1).should == 1
-    end
+    ModuleSpecs::AliasingSuper::Target.new.super_call(1).should == 1
   end
 
   it "preserves original super call after alias redefine" do
-    NATFIXME 'it preserves original super call after alias redefine', exception: NoMethodError, message: /super: no superclass method [`']super_call'/ do
-      ModuleSpecs::AliasingSuper::RedefineAfterAlias.new.alias_super_call(1).should == 1
-    end
+    ModuleSpecs::AliasingSuper::RedefineAfterAlias.new.alias_super_call(1).should == 1
   end
 
   describe "aliasing special methods" do
