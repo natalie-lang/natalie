@@ -59,6 +59,7 @@ bool ModuleObject::is_origin_hollow() const {
 void ModuleObject::splice_module_chain(ModuleObject *source, ModuleObject *insertion, bool search_super) {
     for (ModuleObject *cur = source; cur; cur = cur->chain_super()) {
         if (cur != source && !cur->is_iclass() && !cur->is_origin_hollow()) break;
+        if (cur->is_origin_hollow()) continue;
 
         ModuleObject *to_splice = cur->defined_class();
 
