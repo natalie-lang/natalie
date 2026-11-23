@@ -85,8 +85,8 @@ String Env::build_code_location_name() {
         auto outer_name = outer()->build_code_location_name();
         return String::format("block in {}", outer_name);
     }
-    // fall back to just "block" if we don't know where this block came from
-    return String("block");
+    // A root scope stays a file body when copied to capture a closure.
+    return String("<main>");
 }
 
 void Env::raise(ClassObject *klass, StringObject *message) {

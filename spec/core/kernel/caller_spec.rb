@@ -41,15 +41,9 @@ describe 'Kernel#caller' do
   it "returns an Array with the block given to #at_exit at the base of the stack" do
     path = fixture(__FILE__, "caller_at_exit.rb")
     lines = ruby_exe(path).lines
-    NATFIXME 'Natalie backtrace differs from MRI', exception: SpecFailedException do
-      lines.size.should == 2
-      lines[0].should =~ /\A#{path}:6:in [`'](?:Object#)?foo'\n\z/
-      lines[1].should =~ /\A#{path}:2:in [`']block in <main>'\n\z/
-    end
-    lines.size.should == 3
+    lines.size.should == 2
     lines[0].should =~ /\A#{path}:6:in [`'](?:Object#)?foo'\n\z/
-    lines[1].should =~ /\A#{path}:2:in [`']block in block'\n\z/
-    lines[2].should =~ /\A#{path}:5:in [`']<main>'\n\z/
+    lines[1].should =~ /\A#{path}:2:in [`']block in <main>'\n\z/
   end
 
   it "can be called with a range" do

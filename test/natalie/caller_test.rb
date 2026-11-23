@@ -26,12 +26,8 @@ describe 'caller' do
   end
 
   it 'returns an array of paths, line numbers, and call site names' do
-    # FIXME: make this more closely match MRI
+    # Natalie spells nested block labels as repeated "block in" prefixes.
     normalize_lines(get_caller).should ==
-      [
-        "test/natalie/caller_test.rb:13:in 'get_caller'",
-        "test/natalie/caller_test.rb:30:in 'block in block in block'",
-        "test/natalie/caller_test.rb:5:in '<main>'",
-      ]
+      ["test/natalie/caller_test.rb:13:in 'get_caller'", "test/natalie/caller_test.rb:30:in 'block in block in <main>'"]
   end
 end

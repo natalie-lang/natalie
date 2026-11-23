@@ -615,10 +615,16 @@ Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat)
 void run_at_exit_handlers(Env *env) {
     ArrayObject *at_exit_handlers = env->global_get("$NAT_at_exit_handlers"_s).as_array_or_raise(env);
 
+    // The script has finished; retain its exception context without reporting
+    // it as an active caller beneath each exit handler.
+    Env callback_env { *env };
+    callback_env.set_file(nullptr);
+    callback_env.set_exception(env->exception());
+
     Value proc;
     while (!(proc = at_exit_handlers->pop()).is_nil()) {
         if (proc.is_proc())
-            proc.as_proc()->block()->run(env, {}, nullptr);
+            proc.as_proc()->block()->run(&callback_env, {}, nullptr);
     }
 }
 

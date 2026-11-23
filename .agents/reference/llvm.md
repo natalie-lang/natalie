@@ -174,6 +174,10 @@ native extension callbacks, GC, return values, exception propagation, and `$0`.
 
 ## Runtime Semantics
 
+Adapter-only environments do not add Ruby block scopes to backtraces. Captured
+top-level closures retain their `<main>` source scope, and `at_exit` backtraces
+omit the script frame that has already finished.
+
 Exception bodies and handlers compile to LLVM callbacks that share their caller's
 environment. The C++ bridge catches Ruby exceptions, restores `$!`, runs ensure
 handlers, and reuses Natalie's local-jump exceptions for non-local control flow.
