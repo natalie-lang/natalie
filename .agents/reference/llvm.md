@@ -55,7 +55,8 @@ recovery through Natalie's FFI adapter.
 
 Use `-d code` to print generated LLVM IR and any native sidecar sources.
 `--keep-source` retains intermediate source files and prints their paths;
-cached builds retain IR in their build directory.
+cached builds retain IR in their build directory. `-d S` emits and prints assembly
+for each Ruby compilation unit and any native sidecar.
 
 ## REPL
 

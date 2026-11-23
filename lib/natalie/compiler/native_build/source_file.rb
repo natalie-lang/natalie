@@ -110,7 +110,18 @@ module Natalie
             end
         end
 
-        def compiler_command
+        def write_assembly_file
+          file = Tempfile.create([File.basename(@ruby_path), '.s'])
+          file.close
+          @out_path = file.path
+          write_source
+          output = `#{compiler_command(assembly: true)} 2>&1`
+          warn output unless output.empty?
+          raise Compiler::CompileError, 'There was an error emitting assembly.' unless $?.success?
+          file.path
+        end
+
+        def compiler_command(assembly: false)
           [
             cc,
             build_flags,
@@ -123,7 +134,7 @@ module Natalie
             ),
             INC_PATHS.map { |path| "-I #{path.shellescape}" }.join(' '),
             *package_compile_flags,
-            '-c',
+            assembly ? '-S' : '-c',
             "-o #{out_path.shellescape}",
             '-x c++ -std=c++17',
             (@cpp_path || 'code.cpp').shellescape,

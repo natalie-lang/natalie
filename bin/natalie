@@ -29,6 +29,7 @@ OptionParser
       options: {
         '{p1,p2,p3,p4}' => 'print intermediate instructions from individual compiler pass',
         '{code,cpp}' => 'print generated code (C++ or LLVM IR)',
+        'S' => 'print generated assembly',
         'transform' => 'only transform the code to C++ without outputting it (can be used for profiling the compiler)',
         'cc-cmd' => 'show the gcc/clang compiler command that will be run',
         'callgrind' =>
@@ -210,10 +211,7 @@ class Runner
   end
 
   def show_assembly
-    compiler.write_file
-    compiler.out_path = '-'
-    cmd = compiler.compiler_command.gsub(/-L [^ ]+|[^ ]+\.[ao]|-lnatalie/, '')
-    puts `#{cmd} -S -fverbose-asm 2>&1`
+    print_generated_sources(compiler.write_assembly_files)
   end
 
   def load_code

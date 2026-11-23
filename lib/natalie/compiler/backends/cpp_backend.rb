@@ -63,6 +63,12 @@ module Natalie
         end
       end
 
+      def write_assembly_files
+        outs = prepare_out_files
+        outs = [merge_out_file_sources(outs)] if single_source?
+        outs.map(&:write_assembly_file)
+      end
+
       def compile_to_object_file(out_path)
         outs = prepare_out_files
         one_out = merge_out_file_sources(outs)

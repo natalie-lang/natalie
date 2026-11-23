@@ -114,6 +114,26 @@ module Natalie
         paths
       end
 
+      def write_assembly_files
+        require_relative 'llvm_backend/native'
+        source = ir
+        sources = [[@compiler_context.fetch(:source_path), source], *(@units&.sources || {}).to_a]
+        native = Native.new
+        paths =
+          sources.map do |source_path, unit|
+            file = Tempfile.create([File.basename(source_path), '.s'])
+            file.close
+            native.emit_assembly(unit, file.path)
+            file.path
+          end
+        if @native_extensions.active? || library?
+          out = @native_extensions.out_file
+          out.library_initializer = NativeBuild.object_name(@compiler.out_path) if shared_library?
+          paths << out.write_assembly_file
+        end
+        paths
+      end
+
       def profile_app!
         @compiler_context.fetch(:compile_cxx_flags) << '-DNAT_NATIVE_PROFILER'
         @custom_entrypoint = true

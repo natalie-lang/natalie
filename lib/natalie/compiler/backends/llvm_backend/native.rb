@@ -72,6 +72,16 @@ module Natalie
         end
 
         def emit_object(ir, path)
+          emit_file(ir, path, 1) # LLVMObjectFile
+        end
+
+        def emit_assembly(ir, path)
+          emit_file(ir, path, 0) # LLVMAssemblyFile
+        end
+
+        private
+
+        def emit_file(ir, path, file_type)
           context = @api.LLVMContextCreate
           mod_out = pointer_slot
           error = pointer_slot
@@ -112,7 +122,7 @@ module Natalie
           layout = @api.LLVMCreateTargetDataLayout(machine)
           layout_string = @api.LLVMCopyStringRepOfTargetData(layout)
           @api.LLVMSetDataLayout(mod, layout_string)
-          check(@api.LLVMTargetMachineEmitToFile(machine, mod, path, 1, error), error)
+          check(@api.LLVMTargetMachineEmitToFile(machine, mod, path, file_type, error), error)
         ensure
           @api.LLVMDisposeMessage(layout_string) if layout_string
           @api.LLVMDisposeTargetData(layout) if layout

@@ -44,8 +44,8 @@ module Natalie
       backend.write_files_for_debugging
     end
 
-    def compiler_command
-      backend.compiler_command
+    def write_assembly_files
+      backend.write_assembly_files
     end
 
     def build_context
