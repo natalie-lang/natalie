@@ -231,7 +231,7 @@ public:
      */
     Hashmap(const Hashmap &other)
         : m_capacity { other.m_capacity } {
-        m_map = new Item *[m_capacity] {};
+        m_map = new Item *[m_capacity] { };
         copy_items_from(other);
     }
 
@@ -273,7 +273,7 @@ public:
             clear();
             delete[] m_map;
         }
-        m_map = new Item *[m_capacity] {};
+        m_map = new Item *[m_capacity] { };
         copy_items_from(other);
         return *this;
     }
@@ -462,7 +462,7 @@ public:
     template <typename KeyTArg>
     void put(KeyTArg &&key, T value, void *data = nullptr) {
         if (!m_map)
-            m_map = new Item *[m_capacity] {};
+            m_map = new Item *[m_capacity] { };
         if (load_factor() > HASHMAP_MAX_LOAD_FACTOR)
             rehash();
         auto hash = HashKeyHandler<KeyT>::hash(std::forward<KeyTArg>(key));
@@ -753,7 +753,7 @@ private:
     void rehash() {
         auto old_capacity = m_capacity;
         m_capacity = calculate_map_size(m_size);
-        auto new_map = new Item *[m_capacity] {};
+        auto new_map = new Item *[m_capacity] { };
         for (size_t i = 0; i < old_capacity; i++) {
             auto item = m_map[i];
             while (item) {
