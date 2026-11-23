@@ -17,7 +17,7 @@ inline uint64_t nat_llvm_pack(Natalie::Value value) {
 
 inline Natalie::Value nat_llvm_unpack(uint64_t bits) {
     Natalie::Value value;
-    memcpy(&value, &bits, sizeof(value));
+    memcpy(static_cast<void *>(&value), &bits, sizeof(value));
     return value;
 }
 
