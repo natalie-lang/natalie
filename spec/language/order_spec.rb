@@ -48,19 +48,24 @@ describe "A method call" do
   it "evaluates block pass after arguments" do
     a = 0
     p = proc {true}
-    NATFIXME 'it evaluates block pass after arguments', exception: SpecFailedException do
-      @obj.foo1(a += 1, &(a += 1; p)).should == [1, true]
-    end
-    NATFIXME 'it evaluates block pass after arguments', exception: SpecFailedException do
-      @obj.foo2(a += 1, a += 1, &(a += 1; p)).should == [3, 4, true]
-    end
-    NATFIXME 'it evaluates block pass after arguments', exception: SpecFailedException do
-      @obj.foo3(a += 1, a += 1, a += 1, &(a += 1; p)).should == [6, 7, 8, true]
-    end
-    NATFIXME 'it evaluates block pass after arguments', exception: SpecFailedException do
-      @obj.foo4(a += 1, a += 1, a += 1, a += 1, &(a += 1; p)).should == [10, 11, 12, 13, true]
-    end
+    @obj.foo1(a += 1, &(a += 1; p)).should == [1, true]
+    @obj.foo2(a += 1, a += 1, &(a += 1; p)).should == [3, 4, true]
+    @obj.foo3(a += 1, a += 1, a += 1, &(a += 1; p)).should == [6, 7, 8, true]
+    @obj.foo4(a += 1, a += 1, a += 1, a += 1, &(a += 1; p)).should == [10, 11, 12, 13, true]
     a.should == 14
+  end
+
+  it "snapshots arguments before evaluating a block pass that changes a local" do
+    value = :before
+    block = proc { true }
+    @obj.foo1(value, &(value = :after; block)).should == [:before, true]
+    value.should == :after
+  end
+
+  it "does not evaluate a block pass when a safe navigation receiver is nil" do
+    value = 0
+    nil&.foo1(1, &(value += 1; proc {})).should == nil
+    value.should == 0
   end
 
   it "evaluates block pass after receiver" do

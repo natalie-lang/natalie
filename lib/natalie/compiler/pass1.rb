@@ -517,12 +517,12 @@ module Natalie
         instructions = []
 
         # block handling
+        late_block = node.block.is_a?(Prism::BlockArgumentNode)
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
           instructions << transform_expression(node.block, used: true, for_lambda: is_lambda_call?(node))
         elsif node.block.is_a?(Prism::BlockArgumentNode)
           with_block = true
-          instructions << transform_expression(node.block, used: true)
         end
 
         # foo(...) block handling
@@ -559,13 +559,27 @@ module Natalie
           instructions << IsNilInstruction.new
           instructions << IfInstruction.new
           instructions << PopInstruction.new # pop receiver since it is unused
-          instructions << PopInstruction.new if with_block # pop block since it is unused
+          instructions << PopInstruction.new if with_block && !late_block # pop a previously created literal block
           instructions << PushNilInstruction.new
           instructions << ElseInstruction.new(:if)
         end
 
         call_args = transform_call_args(args, with_block: with_block, instructions: instructions)
         with_block ||= call_args.fetch(:with_block_pass)
+
+        if late_block
+          count =
+            if call_args[:forward_args]
+              1 # receiver
+            elsif call_args.fetch(:args_array_on_stack)
+              2 # receiver and argument array
+            else
+              args.size + 2 # receiver, arguments, and static argc
+            end
+          instructions << SnapshotInstruction.new(count)
+          instructions << transform_expression(node.block, used: true)
+          count.times { instructions << MoveRelInstruction.new(count) }
+        end
 
         instructions << SendInstruction.new(
           message,
