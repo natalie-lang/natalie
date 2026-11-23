@@ -360,6 +360,7 @@ private:
     // Async exceptions awaiting delivery at the next checkpoint. FIFO; mask
     // resolution is recomputed at drain time, not enqueue time.
     TM::Vector<ExceptionObject *> m_pending_exceptions {};
+    ExceptionObject *m_delivering_exception { nullptr };
     std::mutex m_interrupt_lock;
 
     Value m_fiber_scheduler { Value::nil() };

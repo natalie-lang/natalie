@@ -393,6 +393,8 @@ Value ThreadObject::kill(Env *env) {
         if (!m_pending_exceptions.is_empty()) {
             exception->set_cause(m_pending_exceptions.last());
             m_pending_exceptions.clear();
+        } else if (m_delivering_exception) {
+            exception->set_cause(m_delivering_exception);
         }
     }
 
@@ -620,6 +622,7 @@ Value ThreadObject::deliver_pending(Env *env, CheckpointKind kind) {
     // Drain a single eligible item from the pending queue. Any leftover
     // items wait for the next checkpoint.
     ExceptionObject *to_throw = nullptr;
+    ExceptionObject *previous_delivery = nullptr;
     {
         InterruptLockGuard lock(m_interrupt_lock);
         for (size_t i = 0; i < m_pending_exceptions.size(); ++i) {
@@ -629,11 +632,20 @@ Value ThreadObject::deliver_pending(Env *env, CheckpointKind kind) {
                 || (kind == CheckpointKind::Blocking && timing == InterruptTiming::OnBlocking);
             if (!deliverable) continue;
             to_throw = exc;
+            previous_delivery = m_delivering_exception;
+            m_delivering_exception = exc;
             m_pending_exceptions.remove(i);
             break;
         }
     }
     if (!to_throw) return Value::nil();
+
+    // Normalizing an exception can run Ruby and hit another checkpoint. Keep
+    // it visible to Thread#kill after it has left the pending queue.
+    Defer delivered([this, previous_delivery] {
+        InterruptLockGuard lock(m_interrupt_lock);
+        m_delivering_exception = previous_delivery;
+    });
 
     // .exception() may run user Ruby; must happen outside the lock. Skip it
     // for ThreadKillError because it is an internal sentinel that user code
@@ -916,6 +928,7 @@ void ThreadObject::visit_children(Visitor &visitor) const {
         visitor.visit(arg);
     visitor.visit(m_block);
     visitor.visit(m_terminal_exception);
+    visitor.visit(m_delivering_exception);
     if (m_value)
         visitor.visit(m_value.value());
     visitor.visit(m_thread_variables);
