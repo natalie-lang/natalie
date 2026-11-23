@@ -7,12 +7,12 @@ class Constant : public Cell {
 public:
     Constant(SymbolObject *name, Value value)
         : m_name(name)
-        , m_value(value) {};
+        , m_value(value) { };
 
     Constant(SymbolObject *name, MethodFnPtr autoload_fn, StringObject *autoload_path)
         : m_name(name)
         , m_autoload_fn(autoload_fn)
-        , m_autoload_path(autoload_path) {};
+        , m_autoload_path(autoload_path) { };
 
     SymbolObject *name() const { return m_name; }
     Optional<Value> value() const { return m_value; }
