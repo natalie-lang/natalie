@@ -74,7 +74,7 @@ describe 'Compiled load path updates' do
       library = File.join(dir, 'library-with.dots.so')
       _, err, status =
         Open3.capture3(
-          { 'NAT_LD_FLAGS' => '-shared' },
+          { 'NAT_LD_FLAGS' => nil },
           NAT_BINARY,
           '--compilation-type=shared-object',
           '-c',

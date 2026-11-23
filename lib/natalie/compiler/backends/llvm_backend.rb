@@ -6,17 +6,15 @@ module Natalie
   class Compiler
     class LlvmBackend
       ROOT_DIR = File.expand_path('../../../..', __dir__)
-      RUNTIME_OBJECTS = %w[llvm_runtime.o llvm_main.o].map { |name| File.join(ROOT_DIR, 'build', name) }.freeze
+      RUNTIME_BRIDGE = File.join(ROOT_DIR, 'build/llvm_runtime.o').freeze
+      RUNTIME_OBJECTS = [RUNTIME_BRIDGE, File.join(ROOT_DIR, 'build/llvm_main.o')].freeze
 
       def initialize(instructions, compiler:, compiler_context:)
         @instructions = instructions
         @compiler = compiler
         @compiler_context = compiler_context
         raise CompileError, 'LLVM backend requires a 64-bit host' unless [0].pack('J').bytesize == 8
-        if compiler.repl? || compiler.compilation_type == 'shared-object' || compiler.build_dir
-          raise CompileError,
-                'LLVM proof of concept supports scripts and object files; REPL, shared objects, and --build-dir are not supported'
-        end
+        raise CompileError, 'LLVM backend does not support REPL or --build-dir' if compiler.repl? || compiler.build_dir
         @compiler_context.merge!(compile_cxx_flags: [], compile_ld_flags: [])
         @native_extensions = NativeExtensions.new(compiler: compiler, backend: self)
       end
@@ -30,6 +28,7 @@ module Natalie
             source_path: @compiler_context.fetch(:source_path),
             required_files: @compiler_context.fetch(:required_ruby_files),
             native_extensions: @native_extensions,
+            shared_library: shared_library?,
           ).generate
       end
 
@@ -47,16 +46,18 @@ module Natalie
       end
 
       def compile_to_binary
-        missing = RUNTIME_OBJECTS.reject { |path| File.file?(path) }
+        runtime_objects = shared_library? ? [RUNTIME_BRIDGE] : RUNTIME_OBJECTS
+        missing = runtime_objects.reject { |path| File.file?(path) }
         raise CompileError, 'Build the LLVM runtime bridge first: bundle exec rake llvm_runtime' unless missing.empty?
         Dir.mktmpdir('natalie-llvm') do |dir|
           object = File.join(dir, 'program.o')
           require_relative 'llvm_backend/native'
           Native.new.emit_object(ir, object)
-          objects = [object, *RUNTIME_OBJECTS]
-          if @native_extensions.active?
+          objects = [object, *runtime_objects]
+          if @native_extensions.active? || shared_library?
             native_object = File.join(dir, 'native.o')
-            @native_extensions.compile(native_object)
+            initializer = CppBackend.object_name(@compiler.out_path) if shared_library?
+            @native_extensions.compile(native_object, library_initializer: initializer)
             objects << native_object
           end
           CppBackend::Linker.new(
@@ -84,6 +85,12 @@ module Natalie
 
       def print_objects!
         raise CompileError, 'LLVM backend does not yet support --print-objects'
+      end
+
+      private
+
+      def shared_library?
+        @compiler.compilation_type == 'shared-object'
       end
     end
   end

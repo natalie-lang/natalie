@@ -31,7 +31,7 @@ Use `--emit-llvm` to inspect IR, or `--backend=llvm -c program script.rb` to
 produce an executable. Script compilation emits LLVM object code and links
 precompiled runtime objects. Ruby bodies stay in LLVM. Programs using native
 extensions or inline C++ macros additionally compile a separate C++ object with
-the native sources and registration/call wrappers. Pure Ruby scripts still use
+the native sources and registration/call wrappers. Pure Ruby executables still use
 the C++ driver only for linking.
 
 ## Supported Features and Boundaries
@@ -76,6 +76,37 @@ Tests include a native extension fixture, C++-to-LLVM block callbacks, linking a
 combined object, and using the actual `tempfile.cpp` implementation directly.
 The full Ruby `tempfile` library is also exercised through `Tempfile.create`.
 
+## Shared Libraries
+
+Compile a library using the same output mode as the C++ backend:
+
+```sh
+bin/natalie --backend=llvm --compilation-type=shared-object \
+  -c build/widgets.so widgets.rb
+```
+
+The library exports the existing C++ `Value init_widgets(Env *, Value)` entrypoint
+for this output path. It runs inside the calling process's Natalie runtime;
+it does not create a runtime or contain an executable `main`. A small C++ shim
+preserves the runtime's `Value` calling convention while Ruby bodies remain in
+LLVM. The link includes the LLVM bridge and uses shared-library flags
+automatically. Native extensions and their initialization are also supported.
+
+Initialization preserves the caller's `$0`, returns `nil` normally, and honors
+explicit Ruby returns and exceptions, including `ensure`. Generated LLVM
+functions and native wrappers are local or hidden so multiple libraries can
+be loaded into the same process. Non-local jumps use private address tokens
+so independently compiled libraries cannot catch each other's returns or breaks.
+Keep libraries loaded while their Ruby
+methods, closures, or literal caches remain reachable. As with C++ output,
+add an explicit `extern "C"` wrapper when exposing initialization through FFI
+rather than linking to the C++ entrypoint directly.
+
+Integration tests load two libraries into both C++ and LLVM hosts and exercise
+native extension callbacks, GC, return values, exception propagation, and `$0`.
+
+## Runtime Semantics
+
 Exception bodies and handlers compile to LLVM callbacks that share their caller's
 environment. The C++ bridge catches Ruby exceptions, restores `$!`, runs ensure
 handlers, and reuses Natalie's local-jump exceptions for non-local control flow.
@@ -97,7 +128,7 @@ can be retried. Loaded-file returns count as successful requires; explicit
 Dynamic runtime `Module#autoload` calls remain outside this static macro path.
 
 Unsupported instructions fail explicitly. Remaining gaps include raw `Args`
-operands. REPL, shared-object output, `--build-dir`,
+operands. REPL, `--build-dir`,
 `--profile-app`, and `--print-objects` are also unsupported.
 
 The normal ruby/spec runner now works for the unmodified

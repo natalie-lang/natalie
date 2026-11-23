@@ -29,18 +29,20 @@ class LlvmSpecRunnerTest < Minitest::Test
   end
 
   def test_child_ruby_programs_use_the_selected_backend
-    # Shared-object output remains unsupported by LLVM. A C++ fallback in ruby_exe
+    # Cached separate compilation remains unsupported by LLVM. A C++ fallback in ruby_exe
     # would hide that restriction in the child compiler.
     run_fixture(<<~'RUBY') do |report, _, stderr, status|
-      require 'tempfile'
+      require 'tmpdir'
       describe 'runner children' do
         it 'selects the child backend' do
-          Tempfile.create('runner-child') do |file|
+          dir = Dir.mktmpdir
+          begin
             ruby_exe(
-              'nil',
-              options: "--compilation-type=shared-object -c #{file.path}",
-              env: { 'NAT_LD_FLAGS' => '-shared' },
-            ).should == ""
+              'puts 1',
+              options: "--build-dir=#{dir} --build-quietly",
+            ).should == "1\n"
+          ensure
+            FileUtils.rm_rf(dir)
           end
         end
       end
@@ -50,7 +52,7 @@ class LlvmSpecRunnerTest < Minitest::Test
       runs = report.fetch('results').first.fetch('runs')
       assert runs.fetch('cpp').fetch('success')
       refute runs.fetch('llvm').fetch('success')
-      assert_includes runs.fetch('llvm').fetch('stderr'), 'shared objects'
+      assert_includes runs.fetch('llvm').fetch('stderr'), '--build-dir'
       assert_equal 0, report.fetch('matching_passed_examples')
     end
   end

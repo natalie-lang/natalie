@@ -111,7 +111,10 @@ module Natalie
       end
 
       def obj_name
-        path = @compiler.out_path
+        self.class.object_name(@compiler.out_path)
+      end
+
+      def self.object_name(path)
         path.sub(/\.rb\.o$/, '').sub(/\.(so|dylib)$/, '').sub(%r{.*build/(generated/)?}, '').gsub(/[^a-zA-Z0-9_]/, '_')
       end
 

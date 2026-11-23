@@ -142,10 +142,130 @@ class LlvmBackendTest < Minitest::Test
 
   def test_unsupported_construct_is_rejected_without_fallback
     Dir.mktmpdir('natalie-unsupported-output') do |dir|
-      _, stderr, status =
-        run_cli('--backend=llvm', '--compilation-type=shared-object', '-c', File.join(dir, 'library.so'), '-e', 'nil')
+      _, stderr, status = run_cli('--backend=llvm', "--build-dir=#{dir}", '-e', 'nil')
       refute status.success?
-      assert_includes stderr, 'shared objects'
+      assert_includes stderr, '--build-dir'
+    end
+  end
+
+  def compile_shared_library(dir, name, code)
+    path = File.join(dir, 'build', "#{name}.#{RbConfig::CONFIG.fetch('SOEXT')}")
+    FileUtils.mkdir_p(File.dirname(path))
+    _, stderr, status = run_cli('--backend=llvm', '--compilation-type=shared-object', '-c', path, '-e', code)
+    assert status.success?, stderr
+    symbols, stderr, status = Open3.capture3('nm', '-g', path)
+    assert status.success?, stderr
+    initializer = Natalie::Compiler::CppBackend.object_name(path)
+    symbol = symbols.lines.map { |line| line.split.last }.find { |name| name&.include?("init_#{initializer}") }
+    refute_nil symbol, symbols
+    symbol = symbol.delete_prefix('_') if RUBY_PLATFORM.include?('darwin')
+    [path, symbol]
+  end
+
+  def shared_library_loader
+    <<~RUBY
+      require 'natalie/inline'
+      require #{File.join(ROOT, 'test/support/llvm/shared_library.cpp').inspect}
+      __ld_flags__ '-ldl'
+      class SharedLibraryLoader
+        __bind_static_method__ :load, :LlvmSharedLibrary_load, 3
+      end
+    RUBY
+  end
+
+  def test_shared_libraries_load_into_cpp_and_llvm_hosts_without_symbol_collisions
+    Dir.mktmpdir('natalie-shared-test') do |dir|
+      first = compile_shared_library(File.join(dir, 'first'), 'library-with-dashes', <<~RUBY)
+        require 'natalie/inline'
+        __define_method__ :native_answer, [], 'return Value::integer(1);'
+        def across(peer)
+          peer.receive { return :first }
+          :wrong
+        end
+        def answer
+          GC.start
+          ['first', native_answer]
+        end
+      RUBY
+      second = compile_shared_library(File.join(dir, 'second'), 'library-with-dashes', <<~RUBY)
+        require 'natalie/inline'
+        __define_method__ :native_answer, [], 'return Value::integer(9);'
+        require #{File.join(ROOT, 'test/support/llvm/fixture.cpp').inspect}
+        __bind_method__ :subtract, :LlvmFixture_subtract, 2
+        __bind_static_method__ :apply, :LlvmFixture_yield, 1
+        def receive
+          yield
+          :wrong
+        end
+        def answer
+          GC.start
+          ['second', native_answer, subtract(20, 3), self.class.apply(6) { |n| n * 7 }]
+        end
+      RUBY
+      code = shared_library_loader + <<~RUBY
+        first = Class.new
+        second = Class.new
+        original_name = $0
+        p SharedLibraryLoader.load(#{first[0].inspect}, #{first[1].inspect}, first)
+        p SharedLibraryLoader.load(#{second[0].inspect}, #{second[1].inspect}, second)
+        p [first.new.answer, second.new.answer, first.new.answer]
+        p $llvm_extension_initialized
+        p $0 == original_name
+        p first.new.across(second.new)
+      RUBY
+      %w[cpp llvm].each do |backend|
+        stdout, stderr, status = run_cli("--backend=#{backend}", '-e', code)
+        assert status.success?, stderr
+        assert_equal "nil\nnil\n[[\"first\", 1], [\"second\", 9, 17, 42], [\"first\", 1]]\n1\ntrue\n:first\n", stdout
+        assert_empty stderr
+      end
+    end
+  end
+
+  def test_shared_library_returns_and_exceptions_cross_the_cpp_abi
+    Dir.mktmpdir('natalie-shared-test') do |dir|
+      plain = compile_shared_library(dir, 'plain', '6 * 7')
+      dependency = File.join(dir, 'dependency.rb')
+      File.write(dependency, <<~RUBY)
+        begin
+          $shared_dependency = 7
+          return
+        ensure
+          $shared_dependency += 1
+        end
+      RUBY
+      returning = compile_shared_library(dir, 'returning', <<~RUBY)
+        require #{dependency.inspect}
+        begin
+          return 42
+        ensure
+          $shared_ensure = true
+        end
+      RUBY
+      raising = compile_shared_library(dir, 'raising', <<~RUBY)
+        begin
+          raise 'shared failure'
+        ensure
+          $shared_ensure = :exception
+        end
+      RUBY
+      code = shared_library_loader + <<~RUBY
+        p SharedLibraryLoader.load(#{plain[0].inspect}, #{plain[1].inspect}, Module.new)
+        p SharedLibraryLoader.load(#{returning[0].inspect}, #{returning[1].inspect}, Module.new)
+        p $shared_ensure
+        p $shared_dependency
+        begin
+          SharedLibraryLoader.load(#{raising[0].inspect}, #{raising[1].inspect}, Module.new)
+        rescue => e
+          p [e.message, $shared_ensure]
+        end
+      RUBY
+      %w[cpp llvm].each do |backend|
+        stdout, stderr, status = run_cli("--backend=#{backend}", '-e', code)
+        assert status.success?, stderr
+        assert_equal "nil\n42\ntrue\n8\n[\"shared failure\", :exception]\n", stdout
+        assert_empty stderr
+      end
     end
   end
 

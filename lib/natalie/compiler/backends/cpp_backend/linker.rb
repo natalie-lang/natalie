@@ -30,7 +30,7 @@ module Natalie
           [
             cc,
             LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
-            (@compiler.repl? ? LIBNAT_AND_REPL_LINK_FLAGS.join(' ') : ''),
+            shared_link_flags.join(' '),
             *package_link_flags,
             *@in_paths,
             libraries.join(' '),
@@ -44,6 +44,14 @@ module Natalie
 
         def cc
           ENV['CXX'] || 'c++'
+        end
+
+        def shared_link_flags
+          return [] unless @compiler.repl? || @compiler.compilation_type == 'shared-object'
+
+          flags = LIBNAT_AND_REPL_LINK_FLAGS
+          flags = flags - ['-Wl,-undefined,dynamic_lookup'] unless DARWIN
+          flags
         end
 
         def link_flags

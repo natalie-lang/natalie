@@ -8,15 +8,29 @@ module Natalie
       # stay in LLVM; the generated wrappers pass tagged words across the ABI.
       class NativeExtensions
         class OutFile < CppBackend::OutFile
+          attr_accessor :library_initializer
+
           def merged_source
             <<~CPP
               #include "natalie/llvm_runtime.hpp"
               using namespace Natalie;
               #{declarations}
-              extern "C" void nat_llvm_init_extensions(Env *env, uint64_t self_bits) {
+              extern "C" __attribute__((visibility("hidden"))) void nat_llvm_init_extensions(Env *env, uint64_t self_bits) {
                   auto self = nat_llvm_unpack(self_bits);
                   #{init_matter}
                   #{@body}
+              }
+              #{library_entrypoint}
+            CPP
+          end
+
+          def library_entrypoint
+            return '' unless library_initializer
+
+            <<~CPP
+              extern "C" __attribute__((visibility("hidden"))) uint64_t nat_llvm_eval(Env *, uint64_t);
+              Value init_#{library_initializer}(Env *env, Value self) {
+                  return nat_llvm_unpack(nat_llvm_eval(env, nat_llvm_pack(self)));
               }
             CPP
           end
@@ -25,7 +39,9 @@ module Natalie
         def initialize(compiler:, backend:)
           @compiler = compiler
           @backend = backend
-          @data = CppBackend::TransformData.new(var_prefix: 'llvm_ext_')
+          prefix = 'llvm_ext_'
+          prefix += "#{CppBackend.object_name(compiler.out_path)}_" if compiler.compilation_type == 'shared-object'
+          @data = CppBackend::TransformData.new(var_prefix: prefix)
           @wrappers = []
         end
 
@@ -53,7 +69,7 @@ module Natalie
             )
           body = transform.transform('return')
           @data.top[name] = <<~CPP
-            extern "C" uint64_t #{name}(Env *env, uint64_t self_bits, const uint64_t *argv) {
+            extern "C" __attribute__((visibility("hidden"))) uint64_t #{name}(Env *env, uint64_t self_bits, const uint64_t *argv) {
                 auto self = nat_llvm_unpack(self_bits);
                 auto result = [&]() -> Value {
                     #{body}
@@ -77,8 +93,9 @@ module Natalie
           )
         end
 
-        def compile(path)
+        def compile(path, library_initializer: nil)
           out = out_file
+          out.library_initializer = library_initializer
           out.out_path = path
           out.compile_object_file
         end

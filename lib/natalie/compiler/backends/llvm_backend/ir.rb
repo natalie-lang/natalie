@@ -101,6 +101,7 @@ module Natalie
           scope: nil,
           required_files: {},
           native_extensions: nil,
+          shared_library: false,
           region_stack: nil,
           return_point: nil,
           loop_points: nil
@@ -108,7 +109,7 @@ module Natalie
           @instructions = instructions
           @source_path = source_path
           @stack = []
-          @shared = shared || { globals: [], functions: [], serial: 0 }
+          @shared = shared || { globals: [], functions: [], serial: 0, shared_library: shared_library }
           @globals = @shared[:globals]
           @function_name = function_name
           @scope = scope
@@ -131,7 +132,7 @@ module Natalie
                 value("load volatile i64, ptr #{ptr}")
               end
           end
-          if @function_name == 'nat_llvm_eval'
+          if @function_name == 'nat_llvm_eval' && !@shared[:shared_library]
             emit "call void @nat_llvm_set_zero(ptr %env, ptr #{string(@source_path)})"
           end
 
@@ -145,9 +146,10 @@ module Natalie
           if @function_name == 'nat_llvm_eval' && @native_extensions&.active?
             @body.unshift('  call void @nat_llvm_init_extensions(ptr %env, i64 %self)')
           end
-          emit "ret i64 #{@stack.last || 4}"
+          result = @function_name == 'nat_llvm_eval' && @shared[:shared_library] ? 4 : (@stack.last || 4)
+          emit "ret i64 #{result}"
           function = <<~LLVM
-            define i64 @#{@function_name == 'nat_llvm_eval' ? 'nat_llvm_eval_body' : @function_name}(ptr %env, i64 %self#{@function_name == 'nat_llvm_eval' ? '' : ', ptr %args, ptr %block'}#{@region_stack ? ', ptr %frame, ptr %exception' : ''}) uwtable {
+            define internal i64 @#{@function_name == 'nat_llvm_eval' ? 'nat_llvm_eval_body' : @function_name}(ptr %env, i64 %self#{@function_name == 'nat_llvm_eval' ? '' : ', ptr %args, ptr %block'}#{@region_stack ? ', ptr %frame, ptr %exception' : ''}) uwtable {
             entry:
             #{@allocas.join("\n")}
             #{@body.join("\n")}
@@ -161,7 +163,7 @@ module Natalie
             #{@native_extensions&.declarations}
             #{@shared[:functions].join("\n")}
             #{function}
-            define i64 @nat_llvm_eval(ptr %env, i64 %self) uwtable {
+            define #{@shared[:shared_library] ? 'hidden ' : ''}i64 @nat_llvm_eval(ptr %env, i64 %self) uwtable {
             entry:
               %result = call i64 @nat_llvm_catch_return(ptr %env, i64 %self, ptr @nat_llvm_eval_body, i64 #{@return_point})
               ret i64 %result
@@ -203,14 +205,23 @@ module Natalie
         end
 
         def file_return_point(path = @source_path)
-          @shared[:break_points] ||= {}
-          @shared[:break_points][[path, :file_return]] ||= 1_000_000 + @shared[:break_points].size
+          jump_token([path, :file_return])
         end
 
         def break_point(key)
           key = :file_return if key == -1
+          jump_token([@source_path, key])
+        end
+
+        def jump_token(key)
           @shared[:break_points] ||= {}
-          @shared[:break_points][[@source_path, key]] ||= 1_000_000 + @shared[:break_points].size
+          @shared[:break_points][key] ||= begin
+            # Addresses are unique across independently compiled objects and
+            # shared libraries, unlike per-compilation integer counters.
+            token = "@#{name('jump_token')}"
+            @globals << "#{token} = private global i8 0, align 1"
+            "ptrtoint (ptr #{token} to i64)"
+          end
         end
 
         def region(body, baseline)
