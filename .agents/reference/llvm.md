@@ -161,8 +161,9 @@ preserves the runtime's `Value` calling convention while Ruby bodies remain in
 LLVM. The link includes the LLVM bridge and uses shared-library flags
 automatically. Native extensions and their initialization are also supported.
 
-Initialization preserves the caller's `$0`, returns `nil` normally, and honors
-explicit Ruby returns and exceptions, including `ensure`. Generated LLVM
+Initialization preserves the caller's `$0` and returns the final expression
+value, matching the C++ initializer ABI. Explicit Ruby returns and exceptions,
+including `ensure`, also cross this boundary. Generated LLVM
 functions and native wrappers are local or hidden so multiple libraries can
 be loaded into the same process. Non-local jumps use private address tokens
 so independently compiled libraries cannot catch each other's returns or breaks.

@@ -174,8 +174,7 @@ module Natalie
                 .map { |name, pointer| "  call i64 @nat_llvm_symbol(ptr #{pointer}, i64 #{name.bytesize})" }
             @body.unshift(*symbols)
           end
-          result =
-            @function_name == 'nat_llvm_eval' && @shared[:shared_library] && !@shared[:repl] ? 4 : (@stack.last || 4)
+          result = @stack.last || 4
           emit "ret i64 #{result}"
           function = <<~LLVM
             define #{@module_entry ? 'hidden' : 'internal'} i64 @#{@function_name == 'nat_llvm_eval' ? 'nat_llvm_eval_body' : @function_name}(ptr %env, i64 %self#{@function_name == 'nat_llvm_eval' ? '' : ', ptr %args, ptr %block'}#{@region_stack ? ', ptr %frame, ptr %exception' : ''}) uwtable {

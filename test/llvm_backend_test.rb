@@ -277,10 +277,10 @@ class LlvmBackendTest < Minitest::Test
     end
   end
 
-  def compile_shared_library(dir, name, code)
+  def compile_shared_library(dir, name, code, backend: 'llvm')
     path = File.join(dir, 'build', "#{name}.#{RbConfig::CONFIG.fetch('SOEXT')}")
     FileUtils.mkdir_p(File.dirname(path))
-    _, stderr, status = run_cli('--backend=llvm', '--compilation-type=shared-object', '-c', path, '-e', code)
+    _, stderr, status = run_cli("--backend=#{backend}", '--compilation-type=shared-object', '-c', path, '-e', code)
     assert status.success?, stderr
     symbols, stderr, status = Open3.capture3('nm', '-g', path)
     assert status.success?, stderr
@@ -345,55 +345,58 @@ class LlvmBackendTest < Minitest::Test
       %w[cpp llvm].each do |backend|
         stdout, stderr, status = run_cli("--backend=#{backend}", '-e', code)
         assert status.success?, stderr
-        assert_equal "nil\nnil\n[[\"first\", 1], [\"second\", 9, 17, 42], [\"first\", 1]]\n1\ntrue\n:first\n", stdout
+        assert_equal ":answer\n:answer\n[[\"first\", 1], [\"second\", 9, 17, 42], [\"first\", 1]]\n1\ntrue\n:first\n",
+                     stdout
         assert_empty stderr
       end
     end
   end
 
   def test_shared_library_returns_and_exceptions_cross_the_cpp_abi
-    Dir.mktmpdir('natalie-shared-test') do |dir|
-      plain = compile_shared_library(dir, 'plain', '6 * 7')
-      dependency = File.join(dir, 'dependency.rb')
-      File.write(dependency, <<~RUBY)
-        begin
-          $shared_dependency = 7
-          return
-        ensure
-          $shared_dependency += 1
+    %w[cpp llvm].each do |library_backend|
+      Dir.mktmpdir('natalie-shared-test') do |dir|
+        plain = compile_shared_library(dir, 'plain', '6 * 7', backend: library_backend)
+        dependency = File.join(dir, 'dependency.rb')
+        File.write(dependency, <<~RUBY)
+          begin
+            $shared_dependency = 7
+            return
+          ensure
+            $shared_dependency += 1
+          end
+        RUBY
+        returning = compile_shared_library(dir, 'returning', <<~RUBY, backend: library_backend)
+          require #{dependency.inspect}
+          begin
+            return 42
+          ensure
+            $shared_ensure = true
+          end
+        RUBY
+        raising = compile_shared_library(dir, 'raising', <<~RUBY, backend: library_backend)
+          begin
+            raise 'shared failure'
+          ensure
+            $shared_ensure = :exception
+          end
+        RUBY
+        code = shared_library_loader + <<~RUBY
+          p SharedLibraryLoader.load(#{plain[0].inspect}, #{plain[1].inspect}, Module.new)
+          p SharedLibraryLoader.load(#{returning[0].inspect}, #{returning[1].inspect}, Module.new)
+          p $shared_ensure
+          p $shared_dependency
+          begin
+            SharedLibraryLoader.load(#{raising[0].inspect}, #{raising[1].inspect}, Module.new)
+          rescue => e
+            p [e.message, $shared_ensure]
+          end
+        RUBY
+        %w[cpp llvm].each do |backend|
+          stdout, stderr, status = run_cli("--backend=#{backend}", '-e', code)
+          assert status.success?, stderr
+          assert_equal "42\n42\ntrue\n8\n[\"shared failure\", :exception]\n", stdout
+          assert_empty stderr
         end
-      RUBY
-      returning = compile_shared_library(dir, 'returning', <<~RUBY)
-        require #{dependency.inspect}
-        begin
-          return 42
-        ensure
-          $shared_ensure = true
-        end
-      RUBY
-      raising = compile_shared_library(dir, 'raising', <<~RUBY)
-        begin
-          raise 'shared failure'
-        ensure
-          $shared_ensure = :exception
-        end
-      RUBY
-      code = shared_library_loader + <<~RUBY
-        p SharedLibraryLoader.load(#{plain[0].inspect}, #{plain[1].inspect}, Module.new)
-        p SharedLibraryLoader.load(#{returning[0].inspect}, #{returning[1].inspect}, Module.new)
-        p $shared_ensure
-        p $shared_dependency
-        begin
-          SharedLibraryLoader.load(#{raising[0].inspect}, #{raising[1].inspect}, Module.new)
-        rescue => e
-          p [e.message, $shared_ensure]
-        end
-      RUBY
-      %w[cpp llvm].each do |backend|
-        stdout, stderr, status = run_cli("--backend=#{backend}", '-e', code)
-        assert status.success?, stderr
-        assert_equal "nil\n42\ntrue\n8\n[\"shared failure\", :exception]\n", stdout
-        assert_empty stderr
       end
     end
   end

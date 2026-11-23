@@ -240,7 +240,7 @@ class LlvmBuildDirTest < Minitest::Test
         p CachedLoader.load(#{library.inspect}, #{symbol.inspect}, target)
         p target.new.answer
       RUBY
-      assert_equal "nil\n42\n", run_ok(cache, '-e', loader)
+      assert_equal ":answer\n42\n", run_ok(cache, '-e', loader)
     end
   end
 
