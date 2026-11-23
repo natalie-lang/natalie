@@ -84,20 +84,25 @@ module Natalie
           AdvisoryLock
             .new("#{out_path}.lock")
             .lock do
-              if !force && build_dir && File.exist?(out_path) && File.stat(out_path).mtime >= File.stat(@cpp_path).mtime
+              cmd = compiler_command
+              command_path = "#{out_path}.cmd" if build_dir && !force
+              if command_path && File.exist?(out_path) && File.stat(out_path).mtime >= File.stat(@cpp_path).mtime &&
+                   File.file?(command_path) && File.read(command_path) == cmd
                 @status = :unchanged
                 return out_path
               end
 
               raise "Something went wrong. The source file #{@cpp_path} is empty." if File.stat(@cpp_path).size.zero?
 
-              cmd = compiler_command
+              File.unlink(command_path) if command_path && File.exist?(command_path)
               puts cmd if @compiler.debug == 'cc-cmd'
               out = `#{cmd} 2>&1`
               File.unlink(@cpp_path) unless @compiler.keep_cpp? || $? != 0
               puts "cpp file path is: #{@cpp_path}" if @compiler.print_cpp_path?
               warn out if out.strip != ''
               raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
+
+              File.write(command_path, cmd) if command_path
 
               @status = :compiled
               out_path
@@ -318,6 +323,8 @@ module Natalie
         end
 
         def object_files
+          return @backend.compiler_context[:required_cpp_files].values if @type == :obj
+
           rb_files =
             Dir[File.join(ROOT_DIR, '/src/**/*.rb')]
               .map { |path| path.sub(%r{^.*/src/}, '') }

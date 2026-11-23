@@ -86,4 +86,56 @@ describe 'Compiled load path updates' do
       assert File.size(library).positive?
     end
   end
+
+  it 'initializes native dependencies in shared libraries' do
+    Dir.mktmpdir('natalie-shared-native') do |dir|
+      library = File.join(dir, 'digest.so')
+      cache = File.join(dir, 'cache')
+      source = "require 'digest'; return Digest::SHA256.hexdigest('abc')"
+      # Populate loaded-file objects without PIC, then reuse the directory for
+      # shared output, which must rebuild them with the new compiler flags.
+      _, err, status =
+        Open3.capture3(
+          NAT_BINARY,
+          "--build-dir=#{cache}",
+          '--build-quietly',
+          '-c',
+          File.join(dir, 'program'),
+          '-e',
+          source,
+        )
+      assert status.success?, err
+      _, err, status =
+        Open3.capture3(
+          NAT_BINARY,
+          "--build-dir=#{cache}",
+          '--build-quietly',
+          '--compilation-type=shared-object',
+          '-c',
+          library,
+          '-e',
+          source,
+        )
+      assert status.success?, err
+      symbols, err, status = Open3.capture3('nm', '-g', library)
+      assert status.success?, err
+      symbol =
+        symbols.lines.map { |line| line.split.last }.find { |name| name&.include?('init_') && name.include?('digest') }
+      refute_nil symbol
+      symbol = symbol.delete_prefix('_') if RUBY_PLATFORM.include?('darwin')
+      loader = File.expand_path('../support/llvm/shared_library.cpp', __dir__)
+      code = <<~RUBY
+        require 'natalie/inline'
+        require #{loader.inspect}
+        __ld_flags__ '-ldl'
+        class LibraryLoader
+          __bind_static_method__ :load, :LlvmSharedLibrary_load, 3
+        end
+        puts LibraryLoader.load(#{library.inspect}, #{symbol.inspect}, self)
+      RUBY
+      out, err, status = Open3.capture3(NAT_BINARY, '-e', code)
+      assert status.success?, err
+      assert_equal "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad\n", out
+    end
+  end
 end
