@@ -13,7 +13,7 @@ module Natalie
           declare i64 @nat_llvm_float(double)
           declare i64 @nat_llvm_rational(ptr, i64, i64)
           declare i64 @nat_llvm_complex(i64)
-          declare i64 @nat_llvm_string(ptr, i64, i32)
+          declare i64 @nat_llvm_string(ptr, ptr, i64, ptr, i32, ptr)
           declare i64 @nat_llvm_symbol(ptr, i64)
           declare i64 @nat_llvm_array(i64, ptr)
           declare i64 @nat_llvm_array_shift(i64)
@@ -346,6 +346,15 @@ module Natalie
             emit "store i64 #{arg}, ptr #{ptr}"
           end
           array
+        end
+
+        def literal_cache(key)
+          @shared[:literal_caches] ||= {}
+          @shared[:literal_caches][key] ||= begin
+            cache = "@#{name('literal_cache')}"
+            @globals << "#{cache} = private global ptr null, align 8"
+            cache
+          end
         end
 
         def parameter_table(parameters)

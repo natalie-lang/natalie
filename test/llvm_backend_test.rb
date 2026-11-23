@@ -65,6 +65,26 @@ class LlvmBackendTest < Minitest::Test
     assert_equal "true\n", stdout
   end
 
+  def test_encoded_strings_and_frozen_literal_identity
+    assert_program(<<~'RUBY', "true\n[97, 0, 255]\nASCII-8BIT\nASCII-8BIT\n")
+      # encoding: ASCII-8BIT
+      # frozen_string_literal: true
+      def literal; "a\x00\xff"; end
+      first = literal
+      5.times { GC.start }
+      p first.equal?(literal) && literal.equal?("a\x00\xff")
+      p literal.bytes
+      puts literal.encoding.name
+      puts "ascii".encoding.name
+    RUBY
+    assert_program(<<~'RUBY', "[233]\nISO-8859-1\n")
+      # encoding: ISO-8859-1
+      value = "\xe9"
+      p value.bytes
+      puts value.encoding.name
+    RUBY
+  end
+
   def test_runtime_exception_unwinds_through_llvm_frame
     stdout, stderr, status = run_cli('--backend=llvm', '-e', 'puts "before"; raise "llvm exception"; puts "after"')
     assert_equal 1, status.exitstatus

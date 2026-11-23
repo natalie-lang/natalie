@@ -25,12 +25,20 @@ extern "C" uint64_t nat_llvm_complex(uint64_t imaginary) {
     return nat_llvm_pack(ComplexObject::create(Value::integer(0), nat_llvm_unpack(imaginary)));
 }
 
-extern "C" uint64_t nat_llvm_string(const char *bytes, uint64_t size, int status) {
-    auto string = StringObject::create(bytes, size, EncodingObject::get(Encoding::UTF_8));
+extern "C" uint64_t nat_llvm_string(Env *env, const char *bytes, uint64_t size, const char *encoding_name, int status, StringObject **cache) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+    if (cache && *cache)
+        return nat_llvm_pack(*cache);
+    auto encoding = EncodingObject::find_encoding_by_name(env, TM::String(encoding_name));
+    auto string = StringObject::create(bytes, size, encoding);
     if (status == 1)
         string->set_chilled(StringObject::Chilled::String);
     else if (status == 2)
         string->freeze();
+    if (cache) {
+        GlobalEnv::the()->set_interned_strings(cache, 1);
+        *cache = string;
+    }
     return nat_llvm_pack(string);
 }
 

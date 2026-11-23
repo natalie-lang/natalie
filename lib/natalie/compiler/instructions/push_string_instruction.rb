@@ -29,10 +29,11 @@ module Natalie
       end
 
       def generate_llvm(transform)
-        transform.unsupported(self, 'only UTF-8 strings are supported') unless @encoding == Encoding::UTF_8
         status = { nil => 0, :chilled => 1, :frozen => 2 }.fetch(@status)
+        cache = frozen? ? transform.literal_cache([@string.b, @encoding.name]) : 'null'
         transform.push_call(
-          "call i64 @nat_llvm_string(ptr #{transform.string(@string)}, i64 #{@bytesize}, i32 #{status})",
+          "call i64 @nat_llvm_string(ptr %env, ptr #{transform.string(@string)}, i64 #{@bytesize}, " \
+            "ptr #{transform.string(@encoding.name)}, i32 #{status}, ptr #{cache})",
         )
       end
 
