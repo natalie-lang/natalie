@@ -1088,7 +1088,13 @@ Value StringObject::cmp(Env *env, Value other) {
 Value StringObject::concat(Env *env, Args &&args) {
     assert_not_frozen(env);
 
-    StringObject *original = StringObject::create(*this);
+    StringObject *original = nullptr;
+    for (size_t i = 0; i < args.size(); i++) {
+        if (args[i] == this) {
+            original = StringObject::create(*this);
+            break;
+        }
+    }
 
     for (size_t i = 0; i < args.size(); i++) {
         auto arg = args[i];
