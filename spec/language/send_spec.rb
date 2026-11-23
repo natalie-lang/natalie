@@ -435,14 +435,12 @@ describe "Invoking a method" do
     end
 
     args = [1, nil]
-    NATFIXME 'it expands the Array elements from the splat before applying block argument operations', exception: SpecFailedException do
-      m(*args, &args.pop).should == [[1, nil], nil]
+    m(*args, &args.pop).should == [[1, nil], nil]
 
-      args = [1, nil]
-      order = []
-      m(*(order << :args; args), &(order << :block; args.pop)).should == [[1, nil], nil]
-      order.should == [:args, :block]
-    end
+    args = [1, nil]
+    order = []
+    m(*(order << :args; args), &(order << :block; args.pop)).should == [[1, nil], nil]
+    order.should == [:args, :block]
   end
 
   it "evaluates the splatted arguments before the block if there are other arguments after the splat" do
@@ -451,9 +449,7 @@ describe "Invoking a method" do
     end
 
     args = [1, nil]
-    NATFIXME 'it evaluates the splatted arguments before the block if there are other arguments after the splat', exception: SpecFailedException do
-      m(*args, 2, &args.pop).should == [[1, nil, 2], nil]
-    end
+    m(*args, 2, &args.pop).should == [[1, nil, 2], nil]
   end
 
   it "expands an array to arguments grouped in parentheses" do
