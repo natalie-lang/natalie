@@ -154,6 +154,13 @@ describe "Module#const_get" do
     -> { Object.const_get('ConstantSpecs::CS_CONST1') }.should raise_error(NameError)
   end
 
+  it "does not search Object through a nested class in a scoped name" do
+    ConstantSpecs::ParentA.const_get(:CS_CONST1).should == :const1
+    -> { Object.const_get('ConstantSpecs::ParentA::CS_CONST1') }.should raise_error(NameError)
+    Object.const_get('ConstantSpecs::ClassA::CS_CONST1').should == :CS_CONST1
+    Object.const_get('Object::CS_CONST1').should == :const1
+  end
+
   describe "with statically assigned constants" do
     it "searches the immediate class or module first" do
       ConstantSpecs::ClassA.const_get(:CS_CONST10).should == :const10_10

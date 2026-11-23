@@ -188,7 +188,8 @@ Value ModuleObject::const_get(Env *env, Value name, Optional<Value> inherited) {
             std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
             if (!inherit)
                 return scope->get_constant(symbol, &owner);
-            auto constant = scope->find_constant_in_class_hierarchy(env, symbol, ConstLookupSearchMode::Strict, true, &owner);
+            bool include_object = first || scope == GlobalEnv::the()->Object() || scope == GlobalEnv::the()->BasicObject();
+            auto constant = scope->find_constant_in_class_hierarchy(env, symbol, ConstLookupSearchMode::Strict, include_object, &owner);
             // A first-component lookup on a Module may fall back to Object;
             // nested modules do not implicitly acquire top-level constants.
             if (!constant && first && scope->type() == Type::Module)
