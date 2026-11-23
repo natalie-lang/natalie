@@ -7,6 +7,11 @@ module Natalie
         'anonymous_keyword_splat_get'
       end
 
+      def generate_llvm(transform)
+        depth, index = transform.anonymous_variable(self, :keyword_splat)
+        transform.push_call("call i64 @nat_llvm_var_get(ptr %env, i64 #{depth}, i64 #{index})")
+      end
+
       def generate(transform)
         transform.push('anon_keyword_splat')
       end

@@ -39,6 +39,12 @@ module Natalie
           declare i64 @nat_llvm_args_pop(ptr, ptr, i32)
           declare i64 @nat_llvm_lambda(ptr, i64)
           declare i64 @nat_llvm_push_block(ptr, ptr, i32)
+          declare i64 @nat_llvm_send_dynamic(ptr, i64, i64, ptr, i64, ptr, i32, i32, ptr, i64, i64, i32)
+          declare void @nat_llvm_array_concat(ptr, i64, i64)
+          declare void @nat_llvm_array_push(i64, i64)
+          declare i64 @nat_llvm_splat(ptr, i64)
+          declare i64 @nat_llvm_to_array(ptr, i64)
+          declare i64 @nat_llvm_yield_array(ptr, i64, i32)
           declare void @nat_llvm_set_zero(ptr, ptr)
           declare void @nat_llvm_warn(ptr, i64, ptr, i32)
         LLVM
@@ -63,14 +69,19 @@ module Natalie
           @native_extensions = native_extensions
           @allocas = []
           @body = []
+          @scope_env = @scope || top_scope
         end
 
         def generate
           if @function_name == 'nat_llvm_eval'
             emit "call void @nat_llvm_set_zero(ptr %env, ptr #{string(@source_path)})"
           end
-          emit "call void @nat_llvm_build_vars(ptr %env, i64 #{@scope ? @scope.fetch(:vars).size : top_scope.fetch(:vars).size})"
+
           transform(@instructions)
+          anonymous = @shared.fetch(:anonymous_vars, {}).fetch(@scope_env.object_id, {})
+          @body.unshift(
+            "  call void @nat_llvm_build_vars(ptr %env, i64 #{@scope_env.fetch(:vars).size + anonymous.size})",
+          )
           if @function_name == 'nat_llvm_eval' && @native_extensions&.active?
             @body.unshift('  call void @nat_llvm_init_extensions(ptr %env, i64 %self)')
           end
@@ -153,6 +164,23 @@ module Natalie
             depth += 1
           end
           [depth, instruction.meta.fetch(:index)]
+        end
+
+        def anonymous_variable(instruction, name, create: false)
+          @shared[:anonymous_vars] ||= {}
+          env = instruction.env
+          env = env[:outer] while env[:hoist]
+          depth = 0
+          loop do
+            vars = @shared[:anonymous_vars][env.object_id] ||= {}
+            vars[name] ||= env.fetch(:vars).size + vars.size if create
+            return depth, vars.fetch(name) if vars.key?(name)
+            break unless env[:type] == :define_block
+            env = env.fetch(:outer)
+            env = env[:outer] while env[:hoist]
+            depth += 1
+          end
+          raise CompileError, "LLVM: unbound anonymous #{name}"
         end
 
         attr_reader :stack, :source_path, :native_extensions

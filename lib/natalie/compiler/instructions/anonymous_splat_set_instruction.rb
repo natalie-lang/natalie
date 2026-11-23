@@ -7,6 +7,11 @@ module Natalie
         'anonymous_splat_set'
       end
 
+      def generate_llvm(transform)
+        depth, index = transform.anonymous_variable(self, :splat, create: true)
+        transform.emit "call void @nat_llvm_var_set(ptr %env, i64 #{depth}, i64 #{index}, i64 #{transform.pop})"
+      end
+
       def generate(transform)
         value = transform.pop
         transform.exec("Value anon_splat = #{value}")

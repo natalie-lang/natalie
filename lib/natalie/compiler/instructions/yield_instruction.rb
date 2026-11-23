@@ -18,7 +18,12 @@ module Natalie
       end
 
       def generate_llvm(transform)
-        transform.unsupported(self, 'splat yield') if @args_array_on_stack
+        if @args_array_on_stack
+          transform.push_call(
+            "call i64 @nat_llvm_yield_array(ptr %env, i64 #{transform.pop}, i32 #{@has_keyword_hash ? 1 : 0})",
+          )
+          return
+        end
         argc = transform.pop
         args = transform.pop(argc)
         transform.push_call(

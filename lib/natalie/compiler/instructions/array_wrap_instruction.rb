@@ -10,6 +10,10 @@ module Natalie
         'array_wrap'
       end
 
+      def generate_llvm(transform)
+        transform.push_call("call i64 @nat_llvm_splat(ptr %env, i64 #{transform.pop})")
+      end
+
       def generate(transform)
         obj = transform.pop
         transform.exec_and_push(:array, "splat(env, #{obj})")

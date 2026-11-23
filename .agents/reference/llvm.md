@@ -38,7 +38,8 @@ the C++ driver only for linking.
 The proof of concept supports literals, arrays, hashes, ranges, conditionals,
 short-circuit expressions, while loops, local/global/instance variables,
 constants, classes/modules, methods with positional/default/rest arguments,
-blocks and lambdas, captured locals, `yield`, and statically resolved Ruby
+blocks and lambdas, captured locals, anonymous argument/block forwarding, splat
+calls and yields, and statically resolved Ruby
 `require`, `require_relative`, and `load`. Escaping closures share locals through
 Natalie's existing GC-managed environments.
 
@@ -68,14 +69,14 @@ combined object, and using the actual `tempfile.cpp` implementation directly.
 The full Ruby `tempfile` library still uses unsupported Ruby constructs.
 
 Unsupported instructions fail explicitly. Remaining gaps include rescue/ensure,
-non-local block returns, `break`, loop `next`, keyword parameters, splat/forwarded calls,
+non-local block returns, `break`, loop `next`, keyword parameters,
 scoped inline C++, and complete parameter reflection. REPL,
 shared-object output, and `--build-dir` are also unsupported.
 
 The normal ruby/spec runner is **not yet supported**. For example,
 `bin/natalie --backend=llvm spec/core/string/strip_spec.rb` stops at the runner's
-Ruby argument forwarding (`anonymous_splat_set`), after passing the previous
-native-extension rejection. Supporting that runner still requires more Ruby
+a regexp literal (`push_regexp`), after passing the previous
+native-extension and anonymous argument forwarding rejections. Supporting that runner still requires more Ruby
 instructions, including forwarding and exception handling. The LLVM tests
 exercise supported Ruby programs directly; they do not replace the spec runner
 or silently use the C++ backend.

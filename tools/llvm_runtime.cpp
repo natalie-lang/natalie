@@ -232,3 +232,39 @@ extern "C" uint64_t nat_llvm_lambda(Env *env, uint64_t proc) {
 extern "C" uint64_t nat_llvm_push_block(Env *env, Block *block, int nearest) {
     return nat_llvm_pack(ProcObject::from_block_maybe(nearest ? env->nearest_block(true) : block));
 }
+
+extern "C" uint64_t nat_llvm_send_dynamic(Env *env, uint64_t self_bits, uint64_t receiver_bits, const char *name, uint64_t array_bits, Args *forwarded, int public_only, int keywords, const char *file, uint64_t line, uint64_t block_bits, int setter) {
+    env->set_file(file);
+    env->set_line(line);
+    Args args = forwarded ? forwarded->copy() : Args(nat_llvm_unpack(array_bits).as_array(), keywords);
+    auto assigned = setter ? args.last() : Value::nil();
+    auto receiver = nat_llvm_unpack(receiver_bits);
+    auto block = to_block(env, nat_llvm_unpack(block_bits));
+    auto symbol = SymbolObject::intern(name);
+    auto result = public_only
+        ? receiver.public_send(env, symbol, std::move(args), block, nat_llvm_unpack(self_bits))
+        : receiver.send(env, symbol, std::move(args), block);
+    return nat_llvm_pack(setter ? assigned : result);
+}
+
+extern "C" void nat_llvm_array_concat(Env *env, uint64_t array, uint64_t other) {
+    auto value = nat_llvm_unpack(other);
+    if (!value.is_nil())
+        nat_llvm_unpack(array).as_array()->push_splat(env, value);
+}
+
+extern "C" void nat_llvm_array_push(uint64_t array, uint64_t value) {
+    nat_llvm_unpack(array).as_array()->push(nat_llvm_unpack(value));
+}
+
+extern "C" uint64_t nat_llvm_splat(Env *env, uint64_t value) {
+    return nat_llvm_pack(splat(env, nat_llvm_unpack(value)));
+}
+
+extern "C" uint64_t nat_llvm_to_array(Env *env, uint64_t value) {
+    return nat_llvm_pack(to_ary_for_masgn(env, nat_llvm_unpack(value)));
+}
+
+extern "C" uint64_t nat_llvm_yield_array(Env *env, uint64_t array, int keywords) {
+    return nat_llvm_pack(env->nearest_block()->run(env, Args(nat_llvm_unpack(array).as_array(), keywords)));
+}

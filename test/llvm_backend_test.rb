@@ -129,7 +129,7 @@ class LlvmBackendTest < Minitest::Test
   def test_spec_runner_reports_remaining_ruby_instruction_boundary
     _, stderr, status = run_cli('--backend=llvm', 'spec/core/string/strip_spec.rb')
     refute status.success?
-    assert_includes stderr, 'LLVM backend does not support anonymous_splat_set'
+    assert_includes stderr, 'LLVM backend does not support push_regexp'
   end
 
   def native_extension_program
@@ -249,6 +249,27 @@ class LlvmBackendTest < Minitest::Test
       assert status.success?, stderr
       assert_equal "1\n17\n42\n7.5\n", stdout
     end
+  end
+
+  def test_splat_arguments_yield_and_setter_results
+    assert_program(
+      'def sum(*a); a.sum; end; p sum(1, *[2,3], 4); def y(*a); yield(*a); end; p y(4,5) { |a,b| a+b }; a = [0]; p(a[*[0]] = 9); p [1,*[2,3],4]',
+      "10\n9\n9\n[1, 2, 3, 4]\n",
+    )
+  end
+
+  def test_anonymous_arguments_and_blocks_survive_closure_capture
+    assert_program(
+      'def capture(*); proc { GC.start; [*] }; end; p capture(1,2).call; def relay(&); [1,2].map(&); end; p relay { |x| x * 3 }',
+      "[1, 2]\n[3, 6]\n",
+    )
+  end
+
+  def test_full_argument_forwarding_preserves_block
+    assert_program(
+      'def relay(...); [1,2].map(...); end; p relay { |x| x * 3 }; def print_all(...); p(...); end; print_all(1,2)',
+      "[3, 6]\n1\n2\n",
+    )
   end
 
   def test_methods_defaults_rest_and_recursion
