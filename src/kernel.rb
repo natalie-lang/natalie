@@ -428,8 +428,8 @@ module Kernel
       auto dbl = val.as_float()->to_double();
       if (snprintf(buf, 100, fmt, dbl) > 0) {
           if (isnan(dbl) && strcasestr(buf, "-nan")) {
-              // dumb hack to fix -NAN on some systems
-              dbl *= -1;
+              // Clear the sign explicitly: multiplying NaN by -1 can preserve it.
+              dbl = copysign(dbl, 1.0);
               if (snprintf(buf, 100, fmt, dbl) > 0)
                   return StringObject::create(buf);
           } else {
