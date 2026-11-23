@@ -8,6 +8,7 @@
 - `lib/natalie/compiler/backends/llvm_backend/native_extensions.rb`: C++ extension objects and ABI wrappers.
 - `lib/natalie/compiler/instructions/`: instruction-specific `generate_llvm` methods.
 - `tools/llvm_runtime.cpp` and `include/natalie/llvm_runtime.hpp`: precompiled runtime bridge.
+- `src/constant.cpp` and `include/natalie/constant.hpp`: deferred autoload callbacks and their GC roots.
 - `test/llvm_backend_test.rb`: host Ruby integration tests.
 - `examples/llvm_poc.rb`: supported-feature example.
 
@@ -46,7 +47,7 @@ methods with positional/default/rest and keyword arguments, parameter metadata,
 blocks and lambdas, captured locals, anonymous argument/block forwarding, splat
 calls and yields, rescue/ensure/retry, loop and block jumps, non-local and
 top-level returns, and statically resolved Ruby
-`require`, `require_relative`, and `load`. Escaping closures share locals through
+`require`, `require_relative`, `load`, and autoload registration. Escaping closures share locals through
 Natalie's existing GC-managed environments.
 
 ## Native Extensions
@@ -85,9 +86,18 @@ Literal caches live in the shared runtime, with GC roots and a recursive guard.
 Both backends skip `/o` interpolation after successful initialization, retry it
 after an exception or local jump, and serialize concurrent initialization.
 
-Unsupported instructions fail explicitly. Remaining gaps include autoload
-registration, raw `Args` operands, and scoped inline C++. REPL, shared-object
-output, and `--build-dir` are also unsupported.
+Autoload uses the same compile-time restrictions as the C++ backend: bare
+`autoload` calls with statically resolvable constant names and paths. The
+constant holds a GC-traced loader block until lookup triggers the compiled
+file. Literal lookup and `Module#const_get` trigger loading. If executing the
+file raises, the registration and failed require state are reset so the file
+can be retried. Loaded-file returns count as successful requires; explicit
+`load` does not modify require's feature state.
+Dynamic runtime `Module#autoload` calls remain outside this static macro path.
+
+Unsupported instructions fail explicitly. Remaining gaps include raw `Args`
+operands and scoped inline C++. REPL, shared-object output, `--build-dir`,
+`--profile-app`, and `--print-objects` are also unsupported.
 
 The normal ruby/spec runner now works for the unmodified
 `spec/core/nil/nil_spec.rb`:
@@ -141,3 +151,8 @@ passing examples. Another 207 core files matched, with 1,301 passing examples.
 Two core files had no active examples. The full selection retained 598 skips.
 The LLVM backend and runner suites also passed: 67 tests / 295 assertions and
 3 tests / 15 assertions, respectively.
+
+Autoload follow-up validation: 13 autoload examples pass on MRI, C++, and LLVM.
+A focused ten-file comparison covering autoload, file loading, constant lookup,
+and NameError behavior matches on 487 passing examples. The LLVM backend suite
+now has 69 tests / 303 assertions; the runner suite has 3 tests / 15 assertions.
