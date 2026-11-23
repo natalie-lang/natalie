@@ -4,6 +4,8 @@ SKIP_CLASS_MEMBERS = {
   'TM::Optional<Natalie::Value>' => '*',
   # Args cannot be heap-allocated, so pointers inside are seen on the stack
   'Natalie::Args' => '*',
+  # stack-only lock guard; the OnceCache visits its values
+  'Natalie::OnceCache::Guard' => '*',
   # each key is already visited via m_hashmap
   'Natalie::HashObject' => %w[m_key_list],
   # iterators aren't heap-allocated
@@ -56,9 +58,8 @@ def build_type_info(id)
   when 'FundamentalType'
     { kind: type.name, id: type['id'], name: type['name'] }
   when 'Typedef'
-    # <Typedef id="_2" name="__int128_t" type="_3368" context="_1" location="f0:0" file="f0" line="0"/>
-    # We might need the type info?
-    { kind: type.name, id: type['id'], name: type['name'] }
+    # Aliases can hide GC pointers, including OrderedHashmap's Entry type.
+    get_type_info(type['type'])
   when 'Enumeration'
     { kind: type.name, id: type['id'], name: type['name'] }
   when 'CvQualifiedType'
