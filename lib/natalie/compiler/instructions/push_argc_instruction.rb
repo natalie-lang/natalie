@@ -13,6 +13,10 @@ module Natalie
         "push_argc #{@count}"
       end
 
+      def generate_llvm(transform)
+        transform.push(@count)
+      end
+
       def generate(transform)
         transform.push(@count)
       end

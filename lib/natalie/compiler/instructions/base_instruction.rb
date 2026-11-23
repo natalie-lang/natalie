@@ -20,6 +20,10 @@ module Natalie
         nil
       end
 
+      def generate_llvm(transform)
+        transform.unsupported(self)
+      end
+
       attr_accessor :env
 
       private

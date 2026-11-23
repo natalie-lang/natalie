@@ -13,6 +13,10 @@ module Natalie
         "else #{@matching_label}"
       end
 
+      def generate_llvm(_transform)
+        :noop
+      end
+
       def generate(_)
         :noop
       end

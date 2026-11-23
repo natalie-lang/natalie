@@ -13,6 +13,11 @@ module Natalie
         "push_float #{@float}"
       end
 
+      def generate_llvm(transform)
+        bits = [@float].pack('G').unpack1('H*')
+        transform.push_call("call i64 @nat_llvm_float(double 0x#{bits})")
+      end
+
       def generate(transform)
         if @float.infinite?
           if @float.positive?

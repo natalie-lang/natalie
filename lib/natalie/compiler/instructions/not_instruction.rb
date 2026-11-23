@@ -7,6 +7,17 @@ module Natalie
         'not'
       end
 
+      def generate_llvm(transform)
+        transform.push(0)
+        SendInstruction.new(
+          :!,
+          receiver_is_self: false,
+          with_block: false,
+          file: transform.source_path,
+          line: 1,
+        ).generate_llvm(transform)
+      end
+
       def generate(transform)
         obj = transform.pop
         transform.push("#{obj}.public_send(env, \"!\"_s)")

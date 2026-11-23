@@ -54,6 +54,16 @@ OptionParser
 
     opts.on('-e one-line-script', 'Execute one-line script') { |e| options[:execute] << e }
 
+    opts.on('--backend=BACKEND', 'Compiler backend: cpp (default) or llvm (experimental)') do |backend|
+      options[:backend] = backend
+    end
+
+    opts.on('--emit-llvm', 'Print LLVM IR without compiling (implies --backend=llvm)') do
+      options[:backend] = 'llvm'
+      options[:emit_llvm] = true
+      options[:expecting_script] = true
+    end
+
     opts.on(
       '--profile-compiler format',
       'Run the compiler and gather a profile (must specify format of "text", "json", "graphviz", etc.)',
@@ -135,6 +145,8 @@ class Runner
     if options[:ast]
       require 'pp'
       pp parser.ast
+    elsif options[:emit_llvm]
+      puts compiler.backend.ir
     elsif options[:compile]
       compiler.out_path = options[:compile]
       compiler.compile

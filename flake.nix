@@ -43,6 +43,7 @@
           '';
 
           SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+          NAT_LLVM_LIBRARY = "${pkgs.llvmPackages.llvm.lib}/lib/libLLVM${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}";
         };
       });
 }

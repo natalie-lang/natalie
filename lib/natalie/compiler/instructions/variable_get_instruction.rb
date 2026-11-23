@@ -20,6 +20,10 @@ module Natalie
         s
       end
 
+      def generate_llvm(transform)
+        transform.push(transform.value("load volatile i64, ptr #{transform.local(self)}"))
+      end
+
       def generate(transform)
         depth, var = transform.find_var(@name)
 

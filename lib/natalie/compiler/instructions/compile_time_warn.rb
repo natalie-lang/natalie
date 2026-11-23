@@ -19,6 +19,10 @@ module Natalie
         "compile_time_warn: #{message}#{level_str}"
       end
 
+      def generate_llvm(transform)
+        transform.emit "call void @nat_llvm_warn(ptr %env, i64 %self, ptr #{transform.string(message)}, i32 #{@level == :verbose ? 1 : 0})"
+      end
+
       def generate(transform)
         name = transform.temp(:compile_time_warn)
         transform.exec "static const bool #{name} = [&]() {"

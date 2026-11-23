@@ -11,6 +11,27 @@ module Natalie
         true
       end
 
+      def generate_llvm(transform)
+        true_body = transform.fetch_block_of_instructions(until_instruction: ElseInstruction, expected_label: :if)
+        false_body = transform.fetch_block_of_instructions(expected_label: :if)
+        condition = transform.truthy(transform.pop)
+        baseline = transform.stack.dup
+        result = transform.slot('if_result')
+        yes, no, done = %w[if_true if_false if_end].map { |s| transform.name(s) }
+        transform.emit "br i1 #{condition}, label %#{yes}, label %#{no}"
+        [[yes, true_body], [no, false_body]].each do |label, body|
+          transform.emit "#{label}:"
+          transform.stack.replace(baseline)
+          transform.transform(body)
+          raise CompileError, 'LLVM: unbalanced if branch' unless transform.stack.size == baseline.size + 1
+          transform.emit "store volatile i64 #{transform.pop}, ptr #{result}"
+          transform.emit "br label %#{done}"
+        end
+        transform.emit "#{done}:"
+        transform.stack.replace(baseline)
+        transform.push(transform.value("load volatile i64, ptr #{result}"))
+      end
+
       def generate(transform)
         true_body = transform.fetch_block_of_instructions(until_instruction: ElseInstruction, expected_label: :if)
         false_body = transform.fetch_block_of_instructions(expected_label: :if)

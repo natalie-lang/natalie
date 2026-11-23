@@ -34,6 +34,25 @@ module Natalie
         @result_name ||= self.class.next_result_name
       end
 
+      def generate_llvm(transform)
+        condition = transform.fetch_block_of_instructions(until_instruction: WhileBodyInstruction)
+        body = transform.fetch_block_of_instructions(expected_label: :while)
+        baseline = transform.stack.dup
+        test, run, done = %w[while_test while_body while_end].map { |s| transform.name(s) }
+        transform.emit "br label %#{@pre ? test : run}"
+        transform.emit "#{test}:"
+        transform.transform(condition)
+        condition_value = transform.truthy(transform.pop)
+        transform.emit "br i1 #{condition_value}, label %#{run}, label %#{done}"
+        transform.emit "#{run}:"
+        transform.stack.replace(baseline)
+        transform.transform(body)
+        transform.emit "br label %#{test}"
+        transform.emit "#{done}:"
+        transform.stack.replace(baseline)
+        transform.push('4')
+      end
+
       def generate(transform)
         condition = transform.fetch_block_of_instructions(until_instruction: WhileBodyInstruction)
         body = transform.fetch_block_of_instructions(until_instruction: EndInstruction, expected_label: :while)

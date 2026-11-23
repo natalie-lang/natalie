@@ -22,6 +22,14 @@ module Natalie
         s
       end
 
+      def generate_llvm(transform)
+        namespace = transform.pop
+        failure = { 'ConstMissing' => 0, 'Raise' => 1 }.fetch(@failure_mode)
+        transform.push_call(
+          "call i64 @nat_llvm_const(ptr %env, i64 #{namespace}, i64 %self, ptr #{transform.string(@name.to_s)}, i32 #{@strict ? 1 : 0}, i32 #{failure})",
+        )
+      end
+
       def generate(transform)
         transform.set_file(@file)
         transform.set_line(@line)

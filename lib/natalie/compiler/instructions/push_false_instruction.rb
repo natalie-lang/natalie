@@ -7,6 +7,10 @@ module Natalie
         'push_false'
       end
 
+      def generate_llvm(transform)
+        transform.push('0')
+      end
+
       def generate(transform)
         transform.push('Value::False()')
       end

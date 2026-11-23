@@ -28,6 +28,14 @@ module Natalie
         "push_string #{@string.inspect}, #{@bytesize}, #{@encoding.name}#{frozen? ? ', frozen' : ''}#{chilled? ? ', chilled' : ''}"
       end
 
+      def generate_llvm(transform)
+        transform.unsupported(self, 'only UTF-8 strings are supported') unless @encoding == Encoding::UTF_8
+        status = { nil => 0, :chilled => 1, :frozen => 2 }.fetch(@status)
+        transform.push_call(
+          "call i64 @nat_llvm_string(ptr #{transform.string(@string)}, i64 #{@bytesize}, i32 #{status})",
+        )
+      end
+
       def generate(transform)
         if frozen?
           str = transform.interned_string(@string, @encoding)

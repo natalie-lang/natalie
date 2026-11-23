@@ -6,6 +6,44 @@ end
 
 task default: :build
 
+desc 'Build the optional runtime bridge for the experimental LLVM backend (after rake)'
+task llvm_runtime: %w[build/llvm_runtime.o build/llvm_main.o]
+
+desc 'Test the experimental LLVM backend (requires a built Natalie runtime and shared LLVM library)'
+task test_llvm: :llvm_runtime do
+  ruby 'test/llvm_backend_test.rb'
+end
+
+file 'build/llvm_runtime.o' => %w[tools/llvm_runtime.cpp .build] + Rake::FileList['include/**/*.{h,hpp}'] do |t|
+  ENV['BUILD'] ||= current_build_mode
+  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
+end
+
+file 'build/llvm_main.cpp' =>
+       %w[src/main_template.cpp lib/natalie/compiler/backends/cpp_backend/out_file.rb Rakefile] +
+         Rake::FileList['src/**/*.rb'] do |t|
+  require_relative 'lib/natalie/compiler'
+  data = Natalie::Compiler::CppBackend::TransformData.new
+  data.top[:llvm] = '#include "natalie/llvm_runtime.hpp"'
+  backend = Struct.new(:compiled_files, :compiler_context).new({}, { required_cpp_files: {}, source_path: '(llvm)' })
+  compiler = Struct.new(:build_dir).new
+  source =
+    Natalie::Compiler::CppBackend::OutFile.new(
+      type: :main,
+      body: 'return nat_llvm_unpack(nat_llvm_eval(env, nat_llvm_pack(self)));',
+      transform_data: data,
+      ruby_path: '(llvm)',
+      compiler: compiler,
+      backend: backend,
+    ).merged_source
+  File.write(t.name, source)
+end
+
+file 'build/llvm_main.o' => %w[build/llvm_main.cpp .build] + Rake::FileList['include/**/*.{h,hpp}'] do |t|
+  ENV['BUILD'] ||= current_build_mode
+  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
+end
+
 DEFAULT_BUILD_MODE = 'release'.freeze
 DL_EXT = RbConfig::CONFIG['DLEXT']
 SO_EXT = RbConfig::CONFIG['SOEXT']

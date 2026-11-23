@@ -79,7 +79,23 @@ module Natalie
     end
 
     def backend
-      @backend ||= CppBackend.new(instructions, compiler: self, compiler_context: @context)
+      @backend ||=
+        begin
+          klass =
+            case options.fetch(:backend, 'cpp')
+            when 'cpp'
+              CppBackend
+            when 'llvm'
+              raise CompileError, 'LLVM backend currently requires the host Ruby compiler' if RUBY_ENGINE == 'natalie'
+              # An explicit receiver keeps Natalie's require macro from bundling
+              # MRI's Fiddle dependency into the self-hosted C++ compiler.
+              Kernel.require_relative './compiler/backends/llvm_backend'
+              LlvmBackend
+            else
+              raise CompileError, "Unknown backend: #{options[:backend]}"
+            end
+          klass.new(instructions, compiler: self, compiler_context: @context)
+        end
     end
 
     def load_path

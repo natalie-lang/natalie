@@ -14,6 +14,10 @@ module Natalie
         false
       end
 
+      def generate_llvm(_transform)
+        :noop
+      end
+
       def generate(transform)
         :noop
       end

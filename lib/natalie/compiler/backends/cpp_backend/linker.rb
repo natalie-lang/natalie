@@ -9,18 +9,19 @@ module Natalie
         include PkgConfig
         include Flags
 
-        def initialize(in_paths:, out_path:, compiler:, compiler_context:)
+        def initialize(in_paths:, out_path:, compiler:, compiler_context:, keep_inputs: false)
           @in_paths = in_paths
           @out_path = out_path
           @compiler = compiler
           @compiler_context = compiler_context
+          @keep_inputs = keep_inputs
         end
 
         def link
           cmd = link_command
           puts cmd if @compiler.debug == 'cc-cmd'
           out = `#{cmd} 2>&1`
-          @in_paths.each { |path| File.unlink(path) } unless @compiler.build_dir || $? != 0
+          @in_paths.each { |path| File.unlink(path) } unless @keep_inputs || @compiler.build_dir || $? != 0
           warn out if out.strip != ''
           raise Compiler::CompileError, 'There was an error linking.' if $? != 0
         end

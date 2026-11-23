@@ -7,6 +7,10 @@ module Natalie
         'pop'
       end
 
+      def generate_llvm(transform)
+        transform.pop
+      end
+
       def generate(transform)
         transform.pop
       end

@@ -7,6 +7,10 @@ module Natalie
         'push_self'
       end
 
+      def generate_llvm(transform)
+        transform.push('%self')
+      end
+
       def generate(transform)
         transform.push('self')
       end

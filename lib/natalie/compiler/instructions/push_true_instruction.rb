@@ -7,6 +7,10 @@ module Natalie
         'push_true'
       end
 
+      def generate_llvm(transform)
+        transform.push('20')
+      end
+
       def generate(transform)
         transform.push('Value::True()')
       end

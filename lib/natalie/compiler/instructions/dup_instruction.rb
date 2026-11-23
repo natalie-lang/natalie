@@ -7,6 +7,10 @@ module Natalie
         'dup'
       end
 
+      def generate_llvm(transform)
+        transform.push(transform.peek)
+      end
+
       def generate(transform)
         transform.push(transform.peek)
       end
