@@ -68,6 +68,9 @@ const Method *Env::current_method() {
 }
 
 String Env::build_code_location_name() {
+    if (m_code_location_transparent && outer())
+        return outer()->build_code_location_name();
+
     if (is_main())
         return "<main>";
 

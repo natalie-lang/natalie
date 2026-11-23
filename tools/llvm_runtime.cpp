@@ -116,6 +116,8 @@ static Value llvm_callback(Env *env, Value self, Args &&args, Block *block) {
 
 static Block *llvm_block(Env *env, Value self, LlvmFn fn, int arity, bool capture, int64_t return_point, bool has_return = false, int64_t redo_point = 0, const ParamDescriptor *parameters = nullptr) {
     auto closure = Env::create(capture ? Env::create(*env) : nullptr);
+    // This environment holds adapter state, not an additional Ruby block.
+    closure->set_code_location_transparent();
     closure->set_lexical_scope(env->lexical_scope());
     closure->set_file(env->file());
     closure->set_line(env->line());

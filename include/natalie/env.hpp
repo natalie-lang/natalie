@@ -48,7 +48,8 @@ public:
         , m_line { other.m_line }
         , m_method { other.m_method }
         , m_lexical_scope { other.m_lexical_scope }
-        , m_module { other.m_module } { }
+        , m_module { other.m_module }
+        , m_code_location_transparent { other.m_code_location_transparent } { }
 
     Env &operator=(Env &other) = delete;
 
@@ -62,6 +63,7 @@ public:
 
     const Method *current_method();
     String build_code_location_name();
+    void set_code_location_transparent() { m_code_location_transparent = true; }
 
     Value var_get(const char *, size_t);
     Value var_set(const char *, size_t, bool, Value);
@@ -241,5 +243,6 @@ private:
     Optional<Value> m_match {};
     ExceptionObject *m_exception { nullptr };
     Optional<Value> m_catch {};
+    bool m_code_location_transparent { false };
 };
 }
