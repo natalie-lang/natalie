@@ -5,6 +5,10 @@ using namespace Natalie;
 /*NAT_DECLARATIONS*/
 
 Value init_OBJ_NAME(Env *env, Value self) {
+    Env file_env { *env };
+    file_env.set_caller(env->caller());
+    file_env.build_vars(0);
+    env = &file_env;
     /*NAT_OBJ_INIT*/
     /*NAT_EVAL_INIT*/
     try {

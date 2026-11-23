@@ -12,6 +12,7 @@ extern "C" Env *build_top_env() {
     auto env = Natalie::build_top_env();
     [[maybe_unused]] Value self = GlobalEnv::the()->main_obj();
     /*NAT_OBJ_INIT*/
+    env->build_vars(0);
     return env;
 }
 

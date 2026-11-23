@@ -5,6 +5,10 @@ using namespace Natalie;
 /*NAT_DECLARATIONS*/
 
 Value __FN_NAME__(Env *env, Value self, bool require_once) {
+    Env file_env { *env };
+    file_env.set_caller(env->caller());
+    file_env.build_vars(0);
+    env = &file_env;
     /*NAT_EVAL_INIT*/
     auto file_name_sym = "FILE_NAME"_s;
     if (require_once && GlobalEnv::the()->has_file(file_name_sym)) {

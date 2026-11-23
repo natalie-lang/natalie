@@ -32,6 +32,9 @@ module Natalie
             <<~CPP
               extern "C" __attribute__((visibility("hidden"))) uint64_t #{llvm_entrypoint}(Env *, uint64_t);
               Value init_#{library_initializer}(Env *env, Value self) {
+                  Env file_env { *env };
+                  file_env.set_caller(env->caller());
+                  env = &file_env;
                   return nat_llvm_unpack(#{llvm_entrypoint}(env, nat_llvm_pack(self)));
               }
             CPP
