@@ -64,9 +64,21 @@ class Thread
         end
       end
 
+      if non_block
+        # The queue's implementation lock is not a Ruby blocking operation.
+        # Waiting for it must not deliver an :on_blocking interrupt during
+        # a nonblocking pop, even when another queue operation holds it.
+        Thread.pass until @mutex.try_lock
+        begin
+          raise ThreadError, 'queue empty' if @queue.empty?
+          return @queue.shift
+        ensure
+          @mutex.unlock
+        end
+      end
+
       @mutex.synchronize do
         begin
-          raise ThreadError, 'queue empty' if non_block && @queue.empty?
           return @queue.shift if !@queue.empty? || @closed
 
           if timeout.nil?
