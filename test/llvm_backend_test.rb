@@ -209,6 +209,13 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
+  def test_explicit_native_calls_and_method_arguments
+    assert_program(
+      "require #{File.join(ROOT, 'test/support/native_helpers.rb').inspect}",
+      "nil\n[42, \"record\"]\n[0, 2]\n[[], [[:req], [:req]]]\n[7, 7]\nwrong arity\nwrong arity\n",
+    )
+  end
+
   def test_native_extension_allocation_constants_and_compile_flags
     code = <<~RUBY
       require 'natalie/inline'

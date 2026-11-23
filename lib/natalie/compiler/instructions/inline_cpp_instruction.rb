@@ -127,10 +127,13 @@ module Natalie
           casted_args << cast_value_to_cpp.(arg, type)
         end
 
-        transform.exec_and_push(
-          :call_result,
-          cast_value_from_cpp.("#{fn_name}(#{casted_args.join(', ')})", fn[:return_type]),
-        )
+        call = "#{fn_name}(#{casted_args.join(', ')})"
+        if fn[:return_type] == 'void'
+          transform.exec("#{call};")
+          transform.push_nil
+        else
+          transform.exec_and_push(:call_result, cast_value_from_cpp.(call, fn[:return_type]))
+        end
       end
 
       def generate_constant(transform, name, type, value = name)
@@ -171,7 +174,8 @@ module Natalie
         output << comptime_string(body)
         output << '}'
         transform.top(fn, output)
-        transform.exec("self.as_module()->define_method(env, #{transform.intern(name)}, #{fn}, -1)")
+        arity = args ? args.size : -1
+        transform.exec("self.as_module()->define_method(env, #{transform.intern(name)}, #{fn}, #{arity})")
         transform.push(transform.intern(name))
       end
 
