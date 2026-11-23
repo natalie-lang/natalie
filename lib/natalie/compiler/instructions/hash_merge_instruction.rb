@@ -7,6 +7,11 @@ module Natalie
         'hash_merge'
       end
 
+      def generate_llvm(transform)
+        other = transform.pop
+        transform.emit "call void @nat_llvm_hash_merge(ptr %env, i64 #{transform.peek}, i64 #{other})"
+      end
+
       def generate(transform)
         hash2 = transform.pop
         return if hash2 == 'Value::nil()'

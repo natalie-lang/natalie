@@ -7,6 +7,10 @@ module Natalie
         'pop_keyword_args'
       end
 
+      def generate_llvm(transform)
+        transform.push_call('call i64 @nat_llvm_pop_keywords(ptr %args)')
+      end
+
       def generate(transform)
         transform.exec_and_push(
           :keyword_args_hash,

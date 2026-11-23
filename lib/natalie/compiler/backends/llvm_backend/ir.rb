@@ -22,7 +22,7 @@ module Natalie
           declare i64 @nat_llvm_block(ptr, i64, ptr, i32, i64, i32)
           declare void @nat_llvm_define_method(ptr, i64, ptr, ptr, i32, ptr, i64, i64)
           declare i64 @nat_llvm_arg(ptr, i64)
-          declare void @nat_llvm_check_args(ptr, ptr, i64, i64)
+          declare void @nat_llvm_check_args(ptr, ptr, i64, i64, i32, i64, ptr)
           declare i64 @nat_llvm_args(ptr, ptr, i32, i64, i64, i32, i32)
           declare i64 @nat_llvm_yield(ptr, i64, ptr, i32)
           declare i64 @nat_llvm_global_get(ptr, ptr)
@@ -58,6 +58,12 @@ module Natalie
           declare i64 @nat_llvm_with_singleton(ptr, i64, ptr)
           declare void @nat_llvm_alias(ptr, i64, i64, i64)
           declare i64 @nat_llvm_super(ptr, i64, i64, ptr, i64, ptr, i32, i32)
+          declare void @nat_llvm_check_keywords(ptr, ptr, i64, ptr, i64, ptr, i32)
+          declare i64 @nat_llvm_keyword_get(ptr, ptr, ptr)
+          declare i64 @nat_llvm_keyword_present(ptr, ptr, ptr)
+          declare i64 @nat_llvm_keyword_rest(ptr, ptr, i64, ptr)
+          declare i64 @nat_llvm_pop_keywords(ptr)
+          declare void @nat_llvm_hash_merge(ptr, i64, i64)
           declare void @nat_llvm_set_zero(ptr, ptr)
           declare void @nat_llvm_warn(ptr, i64, ptr, i32)
         LLVM
@@ -282,6 +288,15 @@ module Natalie
             emit "store i64 #{arg}, ptr #{ptr}"
           end
           array
+        end
+
+        def keyword_names(names)
+          values =
+            names.map do |name|
+              push_call("call i64 @nat_llvm_symbol(ptr #{string(name.to_s)}, i64 #{name.to_s.bytesize})")
+              pop
+            end
+          argument_array(values)
         end
 
         def truthy(operand)

@@ -39,7 +39,7 @@ The proof of concept supports literals, arrays, hashes, ranges, conditionals,
 short-circuit expressions, case matching, string interpolation, regexp literals
 and interpolation, while loops, local/global/instance variables,
 constants, classes/modules and singleton classes, aliases, `super`,
-methods with positional/default/rest arguments,
+methods with positional/default/rest and keyword arguments,
 blocks and lambdas, captured locals, anonymous argument/block forwarding, splat
 calls and yields, rescue/ensure, block breaks and non-local returns, and statically resolved Ruby
 `require`, `require_relative`, and `load`. Escaping closures share locals through
@@ -68,22 +68,29 @@ rejected because it can refer to C++ local variables that do not exist in LLVM.
 
 Tests include a native extension fixture, C++-to-LLVM block callbacks, linking a
 combined object, and using the actual `tempfile.cpp` implementation directly.
-The full Ruby `tempfile` library still uses unsupported Ruby constructs.
+The full Ruby `tempfile` library is also exercised through `Tempfile.create`.
 
 Exception bodies and handlers compile to LLVM callbacks that share their caller's
 environment. The C++ bridge catches Ruby exceptions, restores `$!`, runs ensure
 handlers, and reuses Natalie's local-jump exceptions for non-local control flow.
 
-Unsupported instructions fail explicitly. Remaining gaps include loop `break`/`next`,
-`retry`, top-level returns inside exception regions, keyword parameters, once-only
-regexp interpolation (`/o`),
-scoped inline C++, and complete parameter reflection. REPL,
-shared-object output, and `--build-dir` are also unsupported.
+Unsupported instructions fail explicitly. Remaining gaps include loop
+`break`/`next`, `retry`, top-level returns inside exception regions, once-only
+regexp interpolation (`/o`), scoped inline C++, and complete parameter
+reflection. REPL, shared-object output, and `--build-dir` are also unsupported.
 
-The normal ruby/spec runner is **not yet supported**. For example,
-`bin/natalie --backend=llvm spec/core/string/strip_spec.rb` stops at the runner's
-keyword-hash merging, after passing native-extension, splat, regexp,
-exception-region, and singleton-class compilation. Supporting that runner still requires more Ruby
-instructions, including forwarding and exception handling. The LLVM tests
-exercise supported Ruby programs directly; they do not replace the spec runner
-or silently use the C++ backend.
+The normal ruby/spec runner now works for the unmodified
+`spec/core/nil/nil_spec.rb`:
+
+```sh
+bin/natalie --backend=llvm spec/core/nil/nil_spec.rb
+# 1 spec(s) passed.
+bin/natalie --backend=llvm spec/language/keyword_arguments_spec.rb
+# 22 spec(s) passed; 14 existing skips (same result as the C++ backend).
+```
+
+This compiles the shared helpers and their Ruby/native dependencies through the
+LLVM and native-extension paths. The LLVM integration tests also verify that an
+assertion failure is reported as a failed spec with exit status 1. This proves a
+real runner path, not general ruby/spec conformance; other specs can still use
+unsupported instructions or encounter incomplete behavior.

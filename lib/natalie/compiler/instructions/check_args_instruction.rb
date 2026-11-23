@@ -19,12 +19,9 @@ module Natalie
       end
 
       def generate_llvm(transform)
-        if @has_keywords || @required_keywords.any? || @args_array_on_stack
-          transform.unsupported(self, 'keyword parameters')
-        end
         min = @positional.is_a?(Range) ? @positional.begin : @positional
         max = @positional.is_a?(Range) ? @positional.end || -1 : @positional
-        transform.emit "call void @nat_llvm_check_args(ptr %env, ptr %args, i64 #{min}, i64 #{max})"
+        transform.emit "call void @nat_llvm_check_args(ptr %env, ptr %args, i64 #{min}, i64 #{max}, i32 #{@has_keywords ? 1 : 0}, i64 #{@required_keywords.size}, ptr #{transform.keyword_names(@required_keywords)})"
       end
 
       def generate(transform)

@@ -68,12 +68,19 @@ public:
     void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, bool has_keywords = false, std::initializer_list<const String> keywords = {}) const;
     void ensure_argc_at_least(Env *env, size_t expected, bool has_keywords = false, std::initializer_list<const String> keywords = {}) const;
 
+    // Dynamic keyword-name lists let non-C++ backends reuse validation and diagnostics.
+    void ensure_argc_is(Env *, size_t, bool, const Vector<String> &) const;
+    void ensure_argc_between(Env *, size_t, size_t, bool, const Vector<String> &) const;
+    void ensure_argc_at_least(Env *, size_t, bool, const Vector<String> &) const;
+
     enum class KeywordRestType {
         None,
         Present, // **kwargs
         Forbidden // **nil
     };
     void check_keyword_args(Env *env, std::initializer_list<SymbolObject *> required_keywords, std::initializer_list<SymbolObject *> optional_keywords, KeywordRestType keyword_rest_type) const;
+
+    void check_keyword_args(Env *, const Vector<SymbolObject *> &, const Vector<SymbolObject *> &, KeywordRestType) const;
 
     size_t start_index() const { return m_args_start_index; }
     size_t original_start_index() const { return m_args_original_start_index; }
@@ -99,12 +106,13 @@ public:
     Value keyword_arg(Env *, SymbolObject *) const;
     bool keyword_arg_present(Env *, SymbolObject *) const;
     HashObject *keyword_arg_rest(Env *, std::initializer_list<SymbolObject *>) const;
+    HashObject *keyword_arg_rest(Env *, const Vector<SymbolObject *> &) const;
 
 private:
     // Args cannot be heap-allocated, because the GC is not aware of it.
     void *operator new(size_t size) = delete;
 
-    String argc_error_suffix(std::initializer_list<const String> keywords) const;
+    String argc_error_suffix(const Vector<String> &keywords) const;
 
     size_t m_args_start_index { tl_current_arg_stack->size() };
     size_t m_args_original_start_index { tl_current_arg_stack->size() };

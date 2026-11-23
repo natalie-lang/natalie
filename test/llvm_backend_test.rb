@@ -126,10 +126,28 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
-  def test_spec_runner_reports_remaining_ruby_instruction_boundary
-    _, stderr, status = run_cli('--backend=llvm', 'spec/core/string/strip_spec.rb')
-    refute status.success?
-    assert_includes stderr, 'LLVM backend does not support hash_merge'
+  def test_real_nil_spec_uses_the_normal_runner
+    stdout, stderr, status = run_cli('--backend=llvm', 'spec/core/nil/nil_spec.rb')
+    assert status.success?, stderr
+    assert_includes stdout, '1 spec(s) passed.'
+    assert_empty stderr
+  end
+
+  def test_real_spec_runner_reports_assertion_failures
+    Dir.mktmpdir('natalie-llvm-spec') do |dir|
+      file = File.join(dir, 'failure_spec.rb')
+      File.write(file, <<~RUBY)
+        require #{File.join(ROOT, 'spec/spec_helper').inspect}
+        describe 'LLVM runner' do
+          it('reports a failed assertion') { nil.should == true }
+        end
+      RUBY
+      stdout, stderr, status = run_cli('--backend=llvm', file)
+      assert_equal 1, status.exitstatus, stderr
+      assert_includes stdout, '1 spec(s) failed.'
+      assert_includes stdout, '0 spec(s) errored.'
+      assert_empty stderr
+    end
   end
 
   def native_extension_program
@@ -339,6 +357,39 @@ class LlvmBackendTest < Minitest::Test
     assert_program(
       'class A; def f(a,b); yield(a+b); end; end; class B < A; def f(a,b); super; end; end; p B.new.f(3,4) { |n| n*2 }; class C < A; def f(a,b); super(*[a+1,b+1]); end; end; p C.new.f(3,4) { |n| n*2 }',
       "14\n18\n",
+    )
+  end
+
+  def test_keyword_defaults_rest_and_forwarding
+    assert_program(
+      'def f(x, a:, b: 2, **rest); [x,a,b,rest]; end; def relay(...); f(...); end; p relay(9,a:1,c:3); def anon(*,**,&); f(*,**,&); end; p anon(8,a:nil,b:false,d:6); h={a:1,z:4}; p f(7,**h); p h',
+      "[9, 1, 2, {c: 3}]\n[8, nil, false, {d: 6}]\n[7, 1, 2, {z: 4}]\n{a: 1, z: 4}\n",
+    )
+  end
+
+  def test_keyword_validation_uses_runtime_diagnostics
+    assert_program(
+      'def f(a:,b:); end; begin; f; rescue => e; p e.message; end; def g(x,a:); end; begin; g; rescue => e; p e.message; end; def h(a:1); end; begin; h(z:2,y:3); rescue => e; p e.message; end; def none(**nil); :ok; end; p none; begin; none(x:1); rescue => e; p e.message; end',
+      "\"missing keywords: :a, :b\"\n\"wrong number of arguments (given 0, expected 1; required keyword: a)\"\n\"unknown keywords: :z, :y\"\n:ok\n\"no keywords accepted\"\n",
+    )
+  end
+
+  def test_empty_keywords_and_methods_without_keyword_parameters
+    assert_program('def f; :ok; end; p f(**{}); def g(*a); a; end; p g(**{}); p g(x:1)', ":ok\n[]\n[{x: 1}]\n")
+  end
+
+  def test_keyword_ir_needs_no_generated_cpp
+    code = 'def f(a:, b: 2, **rest); [a,b,rest]; end; p f(a:1,x:3)'
+    stdout, stderr, status = run_cli('--emit-llvm', '-e', code, env: { 'CXX' => '/no-cpp-compiler' })
+    assert status.success?, stderr
+    assert_includes stdout, 'nat_llvm_check_keywords'
+    refute_includes stdout, 'nat_llvm_init_extensions'
+  end
+
+  def test_tempfile_ruby_library_with_native_extension
+    assert_program(
+      'require "tempfile"; Tempfile.create(["llvm", ".tmp"]) { |f| f.write("real stdlib"); f.rewind; p f.read }',
+      "\"real stdlib\"\n",
     )
   end
 

@@ -11,6 +11,12 @@ module Natalie
         "keyword_arg_rest without: #{@without.join(', ')}"
       end
 
+      def generate_llvm(transform)
+        transform.push_call(
+          "call i64 @nat_llvm_keyword_rest(ptr %env, ptr %args, i64 #{@without.size}, ptr #{transform.keyword_names(@without)})",
+        )
+      end
+
       def generate(transform)
         transform.exec_and_push(
           'kwarg_rest',

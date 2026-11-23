@@ -11,6 +11,12 @@ module Natalie
         "keyword_arg_present #{@name}"
       end
 
+      def generate_llvm(transform)
+        transform.push_call(
+          "call i64 @nat_llvm_keyword_present(ptr %env, ptr %args, ptr #{transform.string(@name.to_s)})",
+        )
+      end
+
       def generate(transform)
         transform.exec_and_push(:has_key, "bool_object(args.keyword_arg_present(env, #{transform.intern(@name)}))")
       end

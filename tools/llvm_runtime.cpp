@@ -130,11 +130,16 @@ extern "C" uint64_t nat_llvm_arg(Args *args, uint64_t index) {
     return nat_llvm_pack(args->at(index, Value::nil()));
 }
 
-extern "C" void nat_llvm_check_args(Env *env, Args *args, int64_t min, int64_t max) {
+extern "C" void nat_llvm_check_args(Env *env, Args *args, int64_t min, int64_t max, int keywords, uint64_t count, const uint64_t *names) {
+    Vector<String> required;
+    for (uint64_t i = 0; i < count; ++i)
+        required.push(nat_llvm_unpack(names[i]).as_symbol()->string());
     if (max < 0)
-        args->ensure_argc_at_least(env, min);
+        args->ensure_argc_at_least(env, min, keywords, required);
+    else if (min == max)
+        args->ensure_argc_is(env, min, keywords, required);
     else
-        args->ensure_argc_between(env, min, max);
+        args->ensure_argc_between(env, min, max, keywords, required);
 }
 
 extern "C" uint64_t nat_llvm_args(Env *env, Args *args, int for_block, int64_t min, int64_t max, int autosplat, int keywords) {
@@ -358,4 +363,37 @@ extern "C" uint64_t nat_llvm_super(Env *env, uint64_t receiver, uint64_t array, 
         : Args(nat_llvm_unpack(array).as_array(), keywords);
     auto block = with_block ? to_block(env, nat_llvm_unpack(block_bits)) : default_block;
     return nat_llvm_pack(super(env, nat_llvm_unpack(receiver), std::move(args), block));
+}
+
+static Vector<SymbolObject *> llvm_keyword_names(uint64_t count, const uint64_t *names) {
+    Vector<SymbolObject *> result;
+    for (uint64_t i = 0; i < count; ++i)
+        result.push(nat_llvm_unpack(names[i]).as_symbol());
+    return result;
+}
+
+extern "C" void nat_llvm_check_keywords(Env *env, Args *args, uint64_t required_count, const uint64_t *required, uint64_t optional_count, const uint64_t *optional, int rest) {
+    args->check_keyword_args(env, llvm_keyword_names(required_count, required), llvm_keyword_names(optional_count, optional), static_cast<Args::KeywordRestType>(rest));
+}
+
+extern "C" uint64_t nat_llvm_keyword_get(Env *env, Args *args, const char *name) {
+    return nat_llvm_pack(args->keyword_arg(env, SymbolObject::intern(name)));
+}
+
+extern "C" uint64_t nat_llvm_keyword_present(Env *env, Args *args, const char *name) {
+    return nat_llvm_pack(bool_object(args->keyword_arg_present(env, SymbolObject::intern(name))));
+}
+
+extern "C" uint64_t nat_llvm_keyword_rest(Env *env, Args *args, uint64_t count, const uint64_t *without) {
+    return nat_llvm_pack(args->keyword_arg_rest(env, llvm_keyword_names(count, without)));
+}
+
+extern "C" uint64_t nat_llvm_pop_keywords(Args *args) {
+    return nat_llvm_pack(args->has_keyword_hash() ? args->pop_keyword_hash() : HashObject::create());
+}
+
+extern "C" void nat_llvm_hash_merge(Env *env, uint64_t hash, uint64_t other) {
+    auto value = nat_llvm_unpack(other);
+    if (!value.is_nil())
+        nat_llvm_unpack(hash).as_hash()->merge_in_place(env, { value }, nullptr);
 }

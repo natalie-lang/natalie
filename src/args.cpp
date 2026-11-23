@@ -123,28 +123,51 @@ ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_c
     return ary;
 }
 
+static Vector<String> keyword_names(std::initializer_list<const String> keywords) {
+    Vector<String> names;
+    for (const auto &name : keywords)
+        names.push(name);
+    return names;
+}
+
 void Args::ensure_argc_is(Env *env, size_t expected, bool has_keywords, std::initializer_list<const String> keywords) const {
+    ensure_argc_is(env, expected, has_keywords, keyword_names(keywords));
+}
+
+void Args::ensure_argc_is(Env *env, size_t expected, bool has_keywords, const Vector<String> &keywords) const {
     auto count = size(!has_keywords);
     if (count != expected)
         env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}{})", count, expected, argc_error_suffix(keywords));
 }
 
 void Args::ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, bool has_keywords, std::initializer_list<const String> keywords) const {
+    ensure_argc_between(env, expected_low, expected_high, has_keywords, keyword_names(keywords));
+}
+
+void Args::ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, bool has_keywords, const Vector<String> &keywords) const {
     auto count = size(!has_keywords);
     if (count < expected_low || count > expected_high)
         env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}..{}{})", count, expected_low, expected_high, argc_error_suffix(keywords));
 }
 
 void Args::ensure_argc_at_least(Env *env, size_t expected, bool has_keywords, std::initializer_list<const String> keywords) const {
+    ensure_argc_at_least(env, expected, has_keywords, keyword_names(keywords));
+}
+
+void Args::ensure_argc_at_least(Env *env, size_t expected, bool has_keywords, const Vector<String> &keywords) const {
     auto count = size(!has_keywords);
     if (count < expected)
         env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}+{})", count, expected, argc_error_suffix(keywords));
 }
 
 void Args::check_keyword_args(Env *env, std::initializer_list<SymbolObject *> required_keywords, std::initializer_list<SymbolObject *> optional_keywords, KeywordRestType keyword_rest_type) const {
+    check_keyword_args(env, Vector<SymbolObject *>(required_keywords), Vector<SymbolObject *>(optional_keywords), keyword_rest_type);
+}
+
+void Args::check_keyword_args(Env *env, const Vector<SymbolObject *> &required_keywords, const Vector<SymbolObject *> &optional_keywords, KeywordRestType keyword_rest_type) const {
     auto kwargs = keyword_hash();
 
-    if (!std::empty(required_keywords)) {
+    if (required_keywords.size() != 0) {
         Vector<SymbolObject *> missing;
         for (auto name : required_keywords) {
             if (!kwargs || !kwargs->has_key(env, name))
@@ -169,7 +192,7 @@ void Args::check_keyword_args(Env *env, std::initializer_list<SymbolObject *> re
         if (keyword_rest_type == KeywordRestType::Forbidden)
             env->raise("ArgumentError", "no keywords accepted");
 
-        auto find_in_list = [&](std::initializer_list<SymbolObject *> &list, Value key) {
+        auto find_in_list = [&](const Vector<SymbolObject *> &list, Value key) {
             for (auto name : list) {
                 if (key == Value(name))
                     return true;
@@ -199,10 +222,10 @@ void Args::check_keyword_args(Env *env, std::initializer_list<SymbolObject *> re
     }
 }
 
-String Args::argc_error_suffix(std::initializer_list<const String> keywords) const {
-    if (std::empty(keywords))
+String Args::argc_error_suffix(const Vector<String> &keywords) const {
+    if (keywords.is_empty())
         return "";
-    auto kw_data = std::data(keywords);
+    auto kw_data = keywords.data();
     if (keywords.size() == 1)
         return String::format("; required keyword: {}", kw_data[0]);
     String out { "; required keywords: " };
@@ -262,6 +285,10 @@ bool Args::keyword_arg_present(Env *env, SymbolObject *name) const {
 }
 
 HashObject *Args::keyword_arg_rest(Env *env, std::initializer_list<SymbolObject *> without) const {
+    return keyword_arg_rest(env, Vector<SymbolObject *>(without));
+}
+
+HashObject *Args::keyword_arg_rest(Env *env, const Vector<SymbolObject *> &without) const {
     auto hash = keyword_hash();
     if (!hash)
         return HashObject::create();
