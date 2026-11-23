@@ -24,6 +24,17 @@ describe "Module#class_variables" do
     c.class_variables.should_not include(:@@mvar)
   end
 
+  it "preserves definition order within each ancestor" do
+    parent = Class.new
+    names = (1..20).map { |n| "@@var#{n}".to_sym }
+    names.each { |name| parent.class_variable_set(name, 1) }
+    child = Class.new(parent)
+    child.class_variable_set(:@@child, 2)
+
+    parent.class_variables(false).should == names
+    child.class_variables(true).should == [:@@child] + names
+  end
+
   it "returns the correct class variables when inherit is given" do
     ModuleSpecs::SubCVars.class_variables(false).should == [:@@sub]
     ModuleSpecs::SubCVars.new.singleton_class.class_variables(false).should == []

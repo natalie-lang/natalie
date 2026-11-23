@@ -32,6 +32,7 @@ class FileStatObject;
 class FloatObject;
 class GlobalEnv;
 class HashObject;
+class IClassObject;
 class IoBufferObject;
 class IoObject;
 class KernelModule;
