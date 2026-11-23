@@ -476,6 +476,15 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
+  def test_next_and_break_specs_unwind_ensure_handlers
+    %w[next break].each do |name|
+      stdout, stderr, status = run_cli('--backend=llvm', "spec/language/#{name}_spec.rb")
+      assert status.success?, stderr
+      assert_includes stdout, '35 spec(s) passed.'
+      assert_empty stderr
+    end
+  end
+
   def test_methods_defaults_rest_and_recursion
     assert_program(
       'def sum(n, extra = 1); if n == 0; extra; else; n + sum(n - 1, extra); end; end; def rest(a, *xs); [a, xs]; end; p sum(4); p sum(2, 10); p rest(1, 2, 3)',

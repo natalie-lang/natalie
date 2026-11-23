@@ -18,7 +18,7 @@ module Natalie
       def has_return? = !!@has_return
 
       attr_reader :arity, :parameters
-      attr_accessor :has_return, :redo_point
+      attr_accessor :has_return, :redo_point, :next_point
 
       def to_s
         s = 'define_block'
@@ -42,13 +42,20 @@ module Natalie
         transform.with_new_scope(body) do |t|
           body = []
           body << "Value #{fn}(Env *env, Value self, Args &&args, Block *block) {"
-          body << 'try {' if @redo_point
+          body << 'try {' if @redo_point || @next_point
           body << t.transform('return')
-          if @redo_point
+          if @redo_point || @next_point
             body << '} catch (ExceptionObject *exception) {'
-            body << "if (!exception->is_local_jump_error_with_break_point(#{@redo_point})) throw;"
-            body << 'FiberObject::current()->set_redo_flag();'
-            body << 'return Value::nil();'
+            if @next_point
+              body << "if (exception->is_local_jump_error_with_break_point(#{@next_point})) return exception->ivar_get(env, \"@exit_value\"_s);"
+            end
+            if @redo_point
+              body << "if (exception->is_local_jump_error_with_break_point(#{@redo_point})) {"
+              body << 'FiberObject::current()->set_redo_flag();'
+              body << 'return Value::nil();'
+              body << '}'
+            end
+            body << 'throw;'
             body << '}'
           end
           body << '}'

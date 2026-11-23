@@ -79,9 +79,7 @@ describe "The next statement from within the block" do
       end
     end
 
-    NATFIXME 'it causes ensure blocks to run', exception: SpecFailedException do
-      ScratchPad.recorded.should == [:begin, :ensure]
-    end
+    ScratchPad.recorded.should == [:begin, :ensure]
   end
 
   it "skips following code outside an exception block" do
@@ -98,10 +96,8 @@ describe "The next statement from within the block" do
       ScratchPad << :after
     end
 
-    NATFIXME 'it skips following code outside an exception block', exception: SpecFailedException do
-      ScratchPad.recorded.should == [
-        :begin, :ensure, :begin, :begin_end, :ensure, :after, :begin, :ensure]
-    end
+    ScratchPad.recorded.should == [
+      :begin, :ensure, :begin, :begin_end, :ensure, :after, :begin, :ensure]
   end
 
   it "passes the value returned by a method with omitted parenthesis and passed block" do
@@ -130,17 +126,13 @@ describe "The next statement" do
       it "causes ensure blocks to run" do
         NextSpecs.while_next(false)
 
-        NATFIXME 'it causes ensure blocks to run', exception: SpecFailedException do
-          ScratchPad.recorded.should == [:begin, :ensure]
-        end
+        ScratchPad.recorded.should == [:begin, :ensure]
       end
 
       it "causes ensure blocks to run when nested in an block" do
         NextSpecs.while_within_iter(false)
 
-        NATFIXME 'it causes ensure blocks to run when nested in an block', exception: SpecFailedException do
-          ScratchPad.recorded.should == [:begin, :ensure]
-        end
+        ScratchPad.recorded.should == [:begin, :ensure]
       end
     end
 
@@ -148,17 +140,13 @@ describe "The next statement" do
       it "causes ensure blocks to run" do
         NextSpecs.while_next(true)
 
-        NATFIXME 'it causes ensure blocks to run', exception: SpecFailedException do
-          ScratchPad.recorded.should == [:begin, :ensure]
-        end
+        ScratchPad.recorded.should == [:begin, :ensure]
       end
 
       it "causes ensure blocks to run when nested in an block" do
         NextSpecs.while_within_iter(true)
 
-        NATFIXME 'it causes ensure blocks to run when nested in an block', exception: SpecFailedException do
-          ScratchPad.recorded.should == [:begin, :ensure]
-        end
+        ScratchPad.recorded.should == [:begin, :ensure]
       end
     end
 
@@ -179,9 +167,7 @@ describe "The next statement" do
         end
       end
 
-      NATFIXME 'it causes nested ensure blocks to run', exception: SpecFailedException do
-        ScratchPad.recorded.should == [:outer_begin, :inner_begin, :inner_ensure, :outer_ensure]
-      end
+      ScratchPad.recorded.should == [:outer_begin, :inner_begin, :inner_ensure, :outer_ensure]
     end
 
     it "causes ensure blocks to run when mixed with break" do
@@ -197,9 +183,7 @@ describe "The next statement" do
         end
       end
 
-      NATFIXME 'it causes ensure blocks to run when mixed with break', exception: SpecFailedException do
-        ScratchPad.recorded.should == [:begin, :ensure, :begin, :ensure]
-      end
+      ScratchPad.recorded.should == [:begin, :ensure, :begin, :ensure]
     end
   end
 
@@ -208,17 +192,13 @@ describe "The next statement" do
       it "causes ensure blocks to run" do
         NextSpecs.until_next(false)
 
-        NATFIXME 'it causes ensure blocks to run', exception: SpecFailedException do
-          ScratchPad.recorded.should == [:begin, :ensure]
-        end
+        ScratchPad.recorded.should == [:begin, :ensure]
       end
 
       it "causes ensure blocks to run when nested in an block" do
         NextSpecs.until_within_iter(false)
 
-        NATFIXME 'it causes ensure blocks to run when nested in an block', exception: SpecFailedException do
-          ScratchPad.recorded.should == [:begin, :ensure]
-        end
+        ScratchPad.recorded.should == [:begin, :ensure]
       end
     end
 
@@ -226,17 +206,13 @@ describe "The next statement" do
       it "causes ensure blocks to run" do
         NextSpecs.until_next(true)
 
-        NATFIXME 'it causes ensure blocks to run', exception: SpecFailedException do
-          ScratchPad.recorded.should == [:begin, :ensure]
-        end
+        ScratchPad.recorded.should == [:begin, :ensure]
       end
 
       it "causes ensure blocks to run when nested in an block" do
         NextSpecs.until_within_iter(true)
 
-        NATFIXME 'it causes ensure blocks to run when nested in an block', exception: SpecFailedException do
-          ScratchPad.recorded.should == [:begin, :ensure]
-        end
+        ScratchPad.recorded.should == [:begin, :ensure]
       end
     end
 
@@ -257,9 +233,7 @@ describe "The next statement" do
         end
       end
 
-      NATFIXME 'it causes nested ensure blocks to run', exception: SpecFailedException do
-        ScratchPad.recorded.should == [:outer_begin, :inner_begin, :inner_ensure, :outer_ensure]
-      end
+      ScratchPad.recorded.should == [:outer_begin, :inner_begin, :inner_ensure, :outer_ensure]
     end
 
     it "causes ensure blocks to run when mixed with break" do
@@ -275,9 +249,7 @@ describe "The next statement" do
         end
       end
 
-      NATFIXME 'it causes ensure blocks to run when mixed with break', exception: SpecFailedException do
-        ScratchPad.recorded.should == [:begin, :ensure, :begin, :ensure]
-      end
+      ScratchPad.recorded.should == [:begin, :ensure, :begin, :ensure]
     end
   end
 
@@ -286,17 +258,13 @@ describe "The next statement" do
       it "causes ensure blocks to run" do
         NextSpecs.loop_next(false)
 
-        NATFIXME 'it causes ensure blocks to run', exception: SpecFailedException do
-          ScratchPad.recorded.should == [:begin, :ensure]
-        end
+        ScratchPad.recorded.should == [:begin, :ensure]
       end
 
       it "causes ensure blocks to run when nested in an block" do
         NextSpecs.loop_within_iter(false)
 
-        NATFIXME 'it causes ensure blocks to run when nested in an block', exception: SpecFailedException do
-          ScratchPad.recorded.should == [:begin, :ensure]
-        end
+        ScratchPad.recorded.should == [:begin, :ensure]
       end
     end
 
@@ -304,17 +272,13 @@ describe "The next statement" do
       it "causes ensure blocks to run" do
         NextSpecs.loop_next(true)
 
-        NATFIXME 'it causes ensure blocks to run', exception: SpecFailedException do
-          ScratchPad.recorded.should == [:begin, :ensure]
-        end
+        ScratchPad.recorded.should == [:begin, :ensure]
       end
 
       it "causes ensure blocks to run when nested in an block" do
         NextSpecs.loop_within_iter(true)
 
-        NATFIXME 'it causes ensure blocks to run when nested in an block', exception: SpecFailedException do
-          ScratchPad.recorded.should == [:begin, :ensure]
-        end
+        ScratchPad.recorded.should == [:begin, :ensure]
       end
     end
 
@@ -337,9 +301,7 @@ describe "The next statement" do
         end
       end
 
-      NATFIXME 'it causes nested ensure blocks to run', exception: SpecFailedException do
-        ScratchPad.recorded.should == [:outer_begin, :inner_begin, :inner_ensure, :outer_ensure]
-      end
+      ScratchPad.recorded.should == [:outer_begin, :inner_begin, :inner_ensure, :outer_ensure]
     end
 
     it "causes ensure blocks to run when mixed with break" do
@@ -355,9 +317,7 @@ describe "The next statement" do
         end
       end
 
-      NATFIXME 'it causes ensure blocks to run when mixed with break', exception: SpecFailedException do
-        ScratchPad.recorded.should == [:begin, :ensure, :begin, :ensure]
-      end
+      ScratchPad.recorded.should == [:begin, :ensure, :begin, :ensure]
     end
   end
 end

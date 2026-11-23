@@ -8,7 +8,7 @@ module Natalie
       end
 
       attr_reader :pre
-      attr_accessor :redo_point
+      attr_accessor :redo_point, :break_point, :next_point
 
       def to_s
         s = 'while'
@@ -86,31 +86,47 @@ module Natalie
 
         transform.with_same_scope(condition) do |t|
           code << "auto #{condition_name} = [&]() {"
-          code << 'try {' if @redo_point
-          code << '  if (FiberObject::current()->check_redo_flag_and_clear()) { return Value::True(); }'
+          code << 'for (;;) {' if @next_point
+          code << 'try {' if @redo_point || @next_point
+          code << 'if (FiberObject::current()->check_redo_flag_and_clear()) return Value::True();'
           code << t.transform('return')
-          if @redo_point
+          if @redo_point || @next_point
             code << '} catch (ExceptionObject *exception) {'
-            code << "if (!exception->is_local_jump_error_with_break_point(#{@redo_point})) throw;"
-            code << 'return Value::True();'
+            code << "if (exception->is_local_jump_error_with_break_point(#{@next_point})) continue;" if @next_point
+            if @redo_point
+              code << "if (exception->is_local_jump_error_with_break_point(#{@redo_point})) return Value::True();"
+            end
+            code << 'throw;'
             code << '}'
           end
+          code << '}' if @next_point
           code << '};'
         end
 
         code << "Value #{result_name} = Value::nil()"
-
+        code << 'try {' if @break_point
         transform.with_same_scope(body) do |t|
           code << (@pre ? "while (#{condition_name}().is_truthy()) {" : 'do {')
-          code << 'try {' if @redo_point
+          code << 'try {' if @redo_point || @next_point
           code << t.transform
-          if @redo_point
+          if @redo_point || @next_point
             code << '} catch (ExceptionObject *exception) {'
-            code << "if (!exception->is_local_jump_error_with_break_point(#{@redo_point})) throw;"
-            code << 'FiberObject::current()->set_redo_flag();'
+            code << "if (exception->is_local_jump_error_with_break_point(#{@next_point})) continue;" if @next_point
+            if @redo_point
+              code << "if (!exception->is_local_jump_error_with_break_point(#{@redo_point})) throw;"
+              code << 'FiberObject::current()->set_redo_flag();'
+            else
+              code << 'throw;'
+            end
             code << '}'
           end
           code << (@pre ? '}' : "} while (#{condition_name}().is_truthy())")
+        end
+        if @break_point
+          code << '} catch (ExceptionObject *exception) {'
+          code << "if (!exception->is_local_jump_error_with_break_point(#{@break_point})) throw;"
+          code << "#{result_name} = exception->ivar_get(env, \"@exit_value\"_s);"
+          code << '}'
         end
 
         transform.exec(code)

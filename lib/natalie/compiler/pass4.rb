@@ -73,6 +73,52 @@ module Natalie
 
       # Like return, redo must unwind through intervening ensure handlers.
       # Catch the scoped jump at the block/loop boundary, then request replay.
+      def transform_while(_)
+        @env[:in_condition] = true
+      end
+
+      def transform_while_body(_)
+        @env[:in_condition] = false
+      end
+
+      def transform_break_out(instruction)
+        scope, crosses_ensure = loop_scope
+        if crosses_ensure || scope[:in_condition]
+          scope[:loop_break_point] ||= @instructions.next_break_point
+          instruction.jump_point = scope.fetch(:loop_break_point)
+        end
+      end
+
+      def transform_continue(instruction)
+        scope, crosses_ensure = loop_scope
+        if crosses_ensure || scope[:in_condition]
+          scope[:loop_next_point] ||= @instructions.next_break_point
+          instruction.jump_point = scope.fetch(:loop_next_point)
+        end
+      end
+
+      def loop_scope
+        scope = @env
+        crosses_ensure = false
+        until scope[:type] == :while
+          crosses_ensure ||= scope[:has_ensure]
+          scope = scope.fetch(:outer)
+        end
+        [scope, crosses_ensure]
+      end
+
+      def transform_next(instruction)
+        scope = @env
+        crosses_ensure = false
+        until scope.nil? || scope[:type] == :define_block
+          crosses_ensure ||= scope[:has_ensure]
+          scope = scope[:outer]
+        end
+        return unless scope && crosses_ensure
+        scope[:next_break_point] ||= @instructions.next_break_point
+        instruction.jump_point = scope.fetch(:next_break_point)
+      end
+
       def transform_redo(instruction)
         scope = @env
         has_ensure = false
@@ -80,7 +126,7 @@ module Natalie
           has_ensure ||= scope[:has_ensure]
           scope = scope[:outer]
         end
-        return unless scope && has_ensure
+        return unless scope && (has_ensure || scope[:in_condition])
 
         scope[:redo_break_point] ||= @instructions.next_break_point
         instruction.redo_point = scope.fetch(:redo_break_point)
@@ -88,6 +134,8 @@ module Natalie
 
       def transform_end_while(instruction)
         instruction.matching_instruction.redo_point = @env[:redo_break_point]
+        instruction.matching_instruction.break_point = @env[:loop_break_point]
+        instruction.matching_instruction.next_point = @env[:loop_next_point]
       end
 
       def transform_end_define_method(instruction)
@@ -107,6 +155,7 @@ module Natalie
       def transform_end_define_block(instruction)
         instruction.matching_instruction.has_return = true if @env[:has_return]
         instruction.matching_instruction.redo_point = @env[:redo_break_point]
+        instruction.matching_instruction.next_point = @env[:next_break_point]
       end
 
       class << self

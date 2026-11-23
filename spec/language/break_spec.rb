@@ -376,9 +376,7 @@ describe "Executing break from within a block" do
       end
     end
 
-    NATFIXME 'it runs ensures when breaking from a loop', exception: SpecFailedException do
-      ScratchPad.recorded.should == [:begin, :ensure]
-    end
+    ScratchPad.recorded.should == [:begin, :ensure]
   end
 
   it "doesn't run ensures in the destination method" do
