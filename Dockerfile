@@ -59,6 +59,7 @@ COPY examples examples
 COPY lib lib
 COPY src src
 COPY include include
+COPY tools tools
 
 ARG NAT_BUILD_MODE=release
 RUN rake build_${NAT_BUILD_MODE}
