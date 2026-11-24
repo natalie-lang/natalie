@@ -638,11 +638,11 @@ file 'build/generated/bindings.cpp.o' => ['lib/natalie/compiler/binding_gen.rb']
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.name.pathmap('%d/%n')}"
 end
 
-file 'bin/nat' => LIBNAT_SOURCES + %w[bin/natalie build/libnatalie.a] do
-  sh 'bin/natalie --build-dir=build/libnat -c bin/nat bin/natalie'
+file 'bin/nat' => LIBNAT_SOURCES + %w[Rakefile bin/natalie build/libnatalie.a build/llvm_main.o] do
+  sh 'bin/natalie --backend=llvm --build-dir=build/libnat -c bin/nat bin/natalie'
 end
 
-file "build/libnat.#{SO_EXT}" => LIBNAT_SOURCES + ['build/libnatalie.a'] do |t|
+file "build/libnat.#{SO_EXT}" => LIBNAT_SOURCES + %w[Rakefile bin/natalie build/libnatalie.a] do |t|
   if system('pkg-config --exists libffi')
     ffi_cxx_flags = `pkg-config --cflags libffi`.chomp
     ffi_ld_flags = `pkg-config --libs libffi`.chomp
@@ -652,7 +652,7 @@ file "build/libnat.#{SO_EXT}" => LIBNAT_SOURCES + ['build/libnatalie.a'] do |t|
     "CXX='#{cxx}'",
     "NAT_CXX_FLAGS=#{cxx_flags.inspect}",
     "NAT_LD_FLAGS='-shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup'",
-    "bin/natalie -c build/libnat.#{SO_EXT}",
+    "bin/natalie --backend=llvm -c build/libnat.#{SO_EXT}",
     '--build-dir=build/libnat',
     '--compilation-type=shared-object',
     'lib/libnat_api.rb',

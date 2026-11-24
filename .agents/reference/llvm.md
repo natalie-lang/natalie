@@ -21,7 +21,8 @@ explicitly with `clang-format` when editing it.
 
 The normal build compiles runtime Ruby files with LLVM and includes the runtime
 bridge in Natalie's runtime libraries. It also builds the executable startup
-object. After building Natalie, run a script with LLVM:
+object. The REPL compiler library and `rake bootstrap` compiler executable are
+also compiled with LLVM. After building Natalie, run a script with LLVM:
 
 ```sh
 bin/natalie --backend=llvm examples/llvm_poc.rb
