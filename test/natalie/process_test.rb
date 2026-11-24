@@ -50,8 +50,7 @@ describe 'Process' do
     end
 
     after :each do
-      rm_r @file
-      rm_r @exe
+      rm_r @file, @exe, "#{@exe}.dSYM"
     end
 
     it 'returns the main Natalie process' do
