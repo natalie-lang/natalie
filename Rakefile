@@ -1,5 +1,7 @@
 require_relative './lib/natalie/compiler/flags'
 require 'shellwords'
+HEADERS = Rake::FileList['include/**/{*.h,*.hpp}', 'ext/tm/include/**/{*.h,*.hpp}'] + ['build/onigmo/include/onigmo.h']
+
 begin
   require 'syntax_tree/rake_tasks'
 rescue LoadError
@@ -32,7 +34,7 @@ task test_llvm_self_hosted: %i[bootstrap llvm_runtime] do
   sh 'bin/nat', '--build-dir=build/libnat', '--build-quietly', 'test/support/llvm/native_errors.rb'
 end
 
-file 'build/llvm_runtime.o' => %w[tools/llvm_runtime.cpp .build] + Rake::FileList['include/**/*.{h,hpp}'] do |t|
+file 'build/llvm_runtime.o' => %w[tools/llvm_runtime.cpp .build] + HEADERS do |t|
   ENV['BUILD'] ||= current_build_mode
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
@@ -57,7 +59,7 @@ file 'build/llvm_main.cpp' =>
   File.write(t.name, source)
 end
 
-file 'build/llvm_main.o' => %w[build/llvm_main.cpp .build] + Rake::FileList['include/**/*.{h,hpp}'] do |t|
+file 'build/llvm_main.o' => %w[build/llvm_main.cpp .build] + HEADERS do |t|
   ENV['BUILD'] ||= current_build_mode
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
@@ -456,7 +458,6 @@ end
 # # # # Internal Tasks and Rules # # # #
 
 STANDARD = 'c++17'.freeze
-HEADERS = Rake::FileList['include/**/{*.h,*.hpp}'] + ['build/onigmo/include/onigmo.h']
 
 file 'build/onigmo/include/onigmo.h' => 'build/onigmo/lib/libonigmo.a' do |t|
   mkdir_p File.dirname(t.name)
