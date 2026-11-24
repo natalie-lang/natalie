@@ -53,12 +53,22 @@ class DebugInfoTest < Minitest::Test
       File.write(debugger, <<~'SH')
         #!/bin/sh
         printf '%s' "$1" > "$DEBUG_TARGET_PATH"
-        test -d "$1.dSYM" || exit 94
+        if [ "$EXPECT_DEBUG_BUNDLE" = 1 ]; then
+          test -d "$1.dSYM" || exit 94
+        else
+          test ! -e "$1.dSYM" || exit 95
+        fi
         exit 17
       SH
       File.chmod(0o755, debugger)
       target_record = File.join(dir, 'target')
-      env = { 'TMPDIR' => dir, 'PATH' => "#{tools}:#{ENV.fetch('PATH')}", 'DEBUG_TARGET_PATH' => target_record }
+      build_mode = File.read(File.join(ROOT, '.build')).strip
+      env = {
+        'TMPDIR' => dir,
+        'PATH' => "#{tools}:#{ENV.fetch('PATH')}",
+        'DEBUG_TARGET_PATH' => target_record,
+        'EXPECT_DEBUG_BUNDLE' => build_mode == 'release' ? '0' : '1',
+      }
       stdout, stderr, status = Open3.capture3(env, NAT_BINARY, '-d', 'lldb', '-e', '42')
       assert_equal 17, status.exitstatus, stdout + stderr
       target = File.read(target_record)
