@@ -674,7 +674,7 @@ end
 rule '.rb.o' => ['src/%{build\/generated/,}X', 'Rakefile', 'bin/natalie'] + LIBNAT_SOURCES + HEADERS do |t|
   subdir = File.dirname(t.name)
   mkdir_p(subdir) unless File.directory?(subdir)
-  sh "NAT_CXX_FLAGS='#{extra_cxx_flags.join(' ')}' CXX='#{cxx}' bin/natalie --backend=llvm --compilation-type=object -c #{t.name} #{t.source}"
+  sh "NAT_CXX_FLAGS='#{extra_cxx_flags.join(' ')}' CXX='#{cxx}' bin/natalie --backend=llvm --build-dir=build/runtime --build-quietly --compilation-type=object -c #{t.name} #{t.source}"
 end
 
 file "build/libprism.#{SO_EXT}" => ['build/libprism.a']

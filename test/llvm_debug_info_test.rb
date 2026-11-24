@@ -23,15 +23,7 @@ class LlvmDebugInfoTest < Minitest::Test
       File.write(source, "before = :before\n\nrequire #{library.inspect}\np answer")
       executable = File.join(dir, 'program')
       cache = File.join(dir, 'cache')
-      driver = <<~RUBY
-        require #{File.join(ROOT, 'lib/natalie').inspect}
-        parser = Natalie::Parser.new(File.read(#{source.inspect}), #{source.inspect})
-        compiler = Natalie::Compiler.new(ast: parser.ast, path: #{source.inspect}, options: { backend: 'llvm', build: 'debug', build_dir: #{cache.inspect}, build_quietly: true })
-        compiler.out_path = #{executable.inspect}
-        compiler.compile
-      RUBY
-      stdout, stderr, status = Open3.capture3(RbConfig.ruby, '-e', driver, chdir: ROOT)
-      assert status.success?, stdout + stderr
+      compile_debug_program(source, executable, cache)
       stdout, stderr, status = Open3.capture3(executable)
       assert status.success?, stderr
       assert_equal "ensured\n42\n", stdout
@@ -66,5 +58,42 @@ class LlvmDebugInfoTest < Minitest::Test
         assert_match(/program\.rb\s+3\s+0x/, stdout)
       end
     end
+  end
+
+  def test_macos_debug_bundles_retain_runtime_ruby_methods
+    skip 'Requires macOS debug maps' unless RUBY_PLATFORM.include?('darwin')
+    skip 'Requires a debug runtime' if File.read(File.join(ROOT, '.build')).strip == 'release'
+
+    Dir.mktmpdir('natalie-runtime-debug') do |dir|
+      source = File.join(dir, 'program.rb')
+      File.write(source, 'p [1, 2, 3].sum')
+      executable = File.join(dir, 'program')
+      compile_debug_program(source, executable, File.join(dir, 'cache'))
+      stdout, stderr, status = Open3.capture3(executable)
+      assert status.success?, stderr
+      assert_equal "6\n", stdout
+      assert_empty stderr
+      stdout, stderr, status = Open3.capture3('dsymutil', executable, chdir: dir)
+      assert status.success?, stdout + stderr
+      assert_empty stderr
+      stdout, stderr, status = Open3.capture3('dwarfdump', '--name=sum', "#{executable}.dSYM")
+      assert status.success?, stderr
+      assert_includes stdout, 'enumerable.rb'
+      assert_match(/DW_AT_name\s+\("sum"\)/, stdout)
+    end
+  end
+
+  private
+
+  def compile_debug_program(source, executable, cache)
+    driver = <<~RUBY
+      require #{File.join(ROOT, 'lib/natalie').inspect}
+      parser = Natalie::Parser.new(File.read(#{source.inspect}), #{source.inspect})
+      compiler = Natalie::Compiler.new(ast: parser.ast, path: #{source.inspect}, options: { backend: 'llvm', build: 'debug', build_dir: #{cache.inspect}, build_quietly: true })
+      compiler.out_path = #{executable.inspect}
+      compiler.compile
+    RUBY
+    stdout, stderr, status = Open3.capture3(RbConfig.ruby, '-e', driver, chdir: ROOT)
+    assert status.success?, stdout + stderr
   end
 end

@@ -31,6 +31,10 @@ bin/natalie examples/llvm_poc.rb
 bundle exec rake test_llvm
 ```
 
+Runtime Ruby objects use the persistent `build/runtime` cache. Besides reusing
+compiled units, this retains the original LLVM and native objects needed by
+macOS debug maps when runtime units are combined into relocatable objects.
+
 LLVM 16 or newer must be available as a shared library. Set `NAT_LLVM_LIBRARY`
 to its path if it cannot be found automatically (`nix develop` sets this).
 Use `--emit-llvm` to inspect IR, or `--backend=llvm -c program script.rb` to
