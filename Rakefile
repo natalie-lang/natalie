@@ -624,7 +624,7 @@ file 'bin/nat' => LIBNAT_SOURCES + %w[Rakefile bin/natalie build/libnatalie.a bu
   sh 'bin/natalie --backend=llvm --build-dir=build/libnat -c bin/nat bin/natalie'
 end
 
-file "build/libnat.#{SO_EXT}" => LIBNAT_SOURCES + %w[Rakefile bin/natalie build/libnatalie.a] do |t|
+file "build/libnat.#{SO_EXT}" => LIBNAT_SOURCES + %w[Rakefile bin/natalie build/libnatalie.a build/llvm_main.o] do |t|
   if system('pkg-config --exists libffi')
     ffi_cxx_flags = `pkg-config --cflags libffi`.chomp
     ffi_ld_flags = `pkg-config --libs libffi`.chomp
