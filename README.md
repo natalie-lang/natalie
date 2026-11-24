@@ -6,7 +6,7 @@
 
 Natalie is a work-in-progress Ruby implementation.
 
-It provides an ahead-of-time compiler using C++ and gcc/clang as the backend.
+It provides an ahead-of-time compiler using LLVM with a C++ runtime.
 Also, the language has a REPL that performs incremental compilation.
 
 ![demo screencast](examples/demo.gif)
