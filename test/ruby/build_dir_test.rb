@@ -1,28 +1,10 @@
-require 'minitest/autorun'
-require 'open3'
-require 'tmpdir'
-require 'fileutils'
-require 'rbconfig'
-require_relative '../lib/natalie'
-require_relative '../lib/natalie/compiler/backends/llvm_backend'
-require_relative 'support/llvm/object_linker'
+require_relative '../support/compiler_test_helper'
 
-class LlvmBuildDirTest < Minitest::Test
-  include LlvmObjectLinker
-  ROOT = File.expand_path('..', __dir__)
-  CLI = File.join(ROOT, 'bin/natalie')
-  COMPILER_COMMAND = ENV['NAT_LLVM_COMPILER'] ? [ENV.fetch('NAT_LLVM_COMPILER')] : [RbConfig.ruby, CLI]
+class BuildDirTest < Minitest::Test
+  include CompilerTestHelper
 
   def build(cache, *arguments, env: {}, chdir: ROOT)
-    Open3.capture3(
-      env,
-      *COMPILER_COMMAND,
-      '--backend=llvm',
-      "--build-dir=#{cache}",
-      '--build-quietly',
-      *arguments,
-      chdir: ROOT,
-    )
+    Open3.capture3(env, NAT_BINARY, "--build-dir=#{cache}", '--build-quietly', *arguments, chdir: ROOT)
   end
 
   def run_ok(cache, *arguments, env: {})

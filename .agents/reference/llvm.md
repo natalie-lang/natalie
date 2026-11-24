@@ -11,7 +11,7 @@
 - `lib/natalie/compiler/instructions/`: instruction-specific `generate_llvm` methods.
 - `tools/llvm_runtime.cpp` and `include/natalie/llvm_runtime.hpp`: precompiled runtime bridge.
 - `src/constant.cpp` and `include/natalie/constant.hpp`: deferred autoload callbacks and their GC roots.
-- `test/llvm_backend_test.rb`: host Ruby integration tests.
+- `test/ruby/compiler_test.rb`, `build_dir_test.rb`, and `debug_info_test.rb`: compiler integration regressions, included in the normal test suite.
 - `examples/llvm_poc.rb`: supported-feature example.
 
 Keep instruction-specific generation in the instruction classes. Format the bridge
@@ -28,7 +28,7 @@ After building Natalie, run a script:
 
 ```sh
 bin/natalie examples/llvm_poc.rb
-bundle exec rake test_llvm
+bundle exec rake test
 ```
 
 Runtime Ruby objects use the persistent `build/runtime` cache. Besides reusing
@@ -49,7 +49,7 @@ The self-hosted compiler also supports LLVM:
 ```sh
 bundle exec rake bootstrap llvm_runtime
 bin/nat --backend=llvm examples/llvm_poc.rb
-bundle exec rake test_llvm_self_hosted
+bundle exec rake test_self_hosted
 ```
 
 MRI uses Fiddle to call the LLVM C API; `bin/nat` uses Natalie's existing
@@ -57,8 +57,9 @@ libffi bindings. Both use the same IR generator, object emitter, native
 extension support, and build cache. Building the runtime and bootstrapping the
 compiler require the shared LLVM library. Ordinary compiled programs use native
 object code and do not load LLVM unless they invoke the LLVM compiler themselves.
-The self-hosted test task runs the backend and build-cache integration suites
-through `bin/nat` (the direct malformed-IR unit tests still run under MRI).
+The normal and self-hosted test tasks include compiler, build-cache, debug-info,
+and spec-runner regressions. CLI tests use the shared `NAT_BINARY` selection;
+compiler API and direct malformed-IR unit tests run under MRI.
 A compiled fixture also checks parser, verifier, and object-emission errors and
 recovery through Natalie's FFI adapter.
 
@@ -95,8 +96,8 @@ Sanitized builds instrument LLVM functions with AddressSanitizer as well as
 instrumenting native sidecars. Build the runtime and bridge in sanitized mode
 before running sanitized programs. `NAT_SANITIZE_FLAG_VALUE=address` is supported;
 other sanitizer selections currently report a compile error for LLVM output.
-`bundle exec rake test_llvm_sanitizers` checks that instrumentation detects an
-invalid LLVM stack write and accepts a valid one. This separate test task needs
+`bundle exec rake test_asan` also checks that instrumentation detects an
+invalid LLVM stack write and accepts a valid one. The sanitizer suite needs
 a compatible C++ AddressSanitizer runtime in addition to the shared LLVM library.
 
 ## REPL

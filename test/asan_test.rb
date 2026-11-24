@@ -8,6 +8,7 @@ require 'minitest/spec'
 require 'minitest/autorun'
 require 'minitest/reporters'
 require_relative 'support/compare_rubies'
+require_relative 'support/sanitizer_instrumentation'
 
 case ENV['REPORTER']
 when 'spec'

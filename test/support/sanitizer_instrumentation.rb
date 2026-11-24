@@ -2,9 +2,9 @@ require 'minitest/autorun'
 require 'open3'
 require 'shellwords'
 require 'tmpdir'
-require_relative '../lib/natalie'
-require_relative '../lib/natalie/compiler/backends/llvm_backend/native'
-require_relative 'support/command'
+require_relative '../../lib/natalie'
+require_relative '../../lib/natalie/compiler/backends/llvm_backend/native'
+require_relative 'command'
 
 class LlvmSanitizerTest < Minitest::Test
   def compile_and_run(index)

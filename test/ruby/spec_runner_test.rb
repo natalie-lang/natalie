@@ -4,8 +4,8 @@ require 'open3'
 require 'rbconfig'
 require 'tmpdir'
 
-class LlvmSpecRunnerTest < Minitest::Test
-  ROOT = File.expand_path('..', __dir__)
+class SpecRunnerTest < Minitest::Test
+  ROOT = File.expand_path('../..', __dir__)
   RUNNER = File.join(ROOT, 'tools/llvm_spec_runner.rb')
 
   def run_fixture(code, *options)

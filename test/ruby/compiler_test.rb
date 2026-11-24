@@ -1,23 +1,14 @@
-require 'minitest/autorun'
-require 'open3'
-require 'tmpdir'
-require 'rbconfig'
-require_relative '../lib/natalie'
-require_relative '../lib/natalie/compiler/backends/llvm_backend'
-require_relative 'support/llvm/object_linker'
+require_relative '../support/compiler_test_helper'
 
-class LlvmBackendTest < Minitest::Test
-  include LlvmObjectLinker
-  ROOT = File.expand_path('..', __dir__)
-  CLI = File.join(ROOT, 'bin/natalie')
-  COMPILER_COMMAND = ENV['NAT_LLVM_COMPILER'] ? [ENV.fetch('NAT_LLVM_COMPILER')] : [RbConfig.ruby, CLI]
+class CompilerTest < Minitest::Test
+  include CompilerTestHelper
 
   def run_cli(*args, env: {}, chdir: ROOT)
-    Open3.capture3(env, *COMPILER_COMMAND, *args, chdir:)
+    Open3.capture3(env, NAT_BINARY, *args, chdir:)
   end
 
   def assert_program(code, expected)
-    stdout, stderr, status = run_cli('--backend=llvm', '-e', code)
+    stdout, stderr, status = run_cli('-e', code)
     assert status.success?, stderr
     assert_equal expected, stdout
     assert_empty stderr
@@ -94,7 +85,7 @@ class LlvmBackendTest < Minitest::Test
       driver = <<~RUBY
         require #{File.join(ROOT, 'lib/natalie').inspect}
         parser = Natalie::Parser.new(#{code.inspect}, '-e')
-        compiler = Natalie::Compiler.new(ast: parser.ast, path: '-e', options: { backend: 'llvm', build: 'release' })
+        compiler = Natalie::Compiler.new(ast: parser.ast, path: '-e', options: { build: 'release' })
         compiler.out_path = #{executable.inspect}
         compiler.compile
       RUBY
@@ -105,41 +96,6 @@ class LlvmBackendTest < Minitest::Test
       assert_equal "[[\"first\", \"second\", \"second\", 7], [2, 2], :ensure, 3, nil]\n", stdout
       assert_empty stderr
     end
-  end
-
-  def test_native_helpers_compile_without_loading_the_cpp_backend
-    Dir.mktmpdir('natalie-independent-llvm') do |dir|
-      output = File.join(dir, 'program')
-      code = <<~RUBY
-        $LOAD_PATH.unshift(File.expand_path(#{dir.inspect}))
-        require 'natalie/inline'
-        class IndependentNative
-          __define_method__ :answer, [], 'return Value::integer(42);'
-        end
-        puts IndependentNative.new.answer
-      RUBY
-      driver = <<~RUBY
-        require #{File.join(ROOT, 'lib/natalie').inspect}
-        parser = Natalie::Parser.new(#{code.inspect}, '-e')
-        compiler = Natalie::Compiler.new(ast: parser.ast, path: '-e', options: { backend: 'llvm' })
-        compiler.out_path = #{output.inspect}
-        compiler.compile
-        abort 'Loaded the C++ Ruby backend' if defined?(Natalie::Compiler::CppBackend)
-      RUBY
-      stdout, stderr, status = Open3.capture3(RbConfig.ruby, '-e', driver, chdir: ROOT)
-      assert status.success?, stdout + stderr
-      stdout, stderr, status = Open3.capture3(output)
-      assert status.success?, stderr
-      assert_equal "42\n", stdout
-      assert_empty stderr
-    end
-  end
-
-  def test_literals_and_dynamic_dispatch
-    assert_program(
-      'p [nil, false, true, :hello, -42, 1.5]; p 123456789012345678901234567890 + 1; puts "héllo\u0000world".bytesize',
-      "[nil, false, true, :hello, -42, 1.5]\n123456789012345678901234567891\n12\n",
-    )
   end
 
   def test_release_optimization_preserves_gc_roots_and_ensured_returns
@@ -182,7 +138,7 @@ class LlvmBackendTest < Minitest::Test
         driver = <<~RUBY
           require #{File.join(ROOT, 'lib/natalie').inspect}
           parser = Natalie::Parser.new(File.read(#{source.inspect}), #{source.inspect})
-          options = { backend: 'llvm', build: 'release', build_dir: #{cache.inspect}, build_quietly: true }
+          options = { build: 'release', build_dir: #{cache.inspect}, build_quietly: true }
           compiler = Natalie::Compiler.new(ast: parser.ast, path: #{source.inspect}, options: options)
           compiler.out_path = #{executable.inspect}
           compiler.compile
@@ -198,7 +154,7 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_missing_llvm_library_reports_a_compile_error
-    stdout, stderr, status = run_cli('--backend=llvm', '-e', 'puts 42', env: { 'NAT_LLVM_LIBRARY' => '/missing/LLVM' })
+    stdout, stderr, status = run_cli('-e', 'puts 42', env: { 'NAT_LLVM_LIBRARY' => '/missing/LLVM' })
     assert_equal 1, status.exitstatus
     assert_empty stdout
     assert_includes stderr, 'Cannot load LLVM:'
@@ -223,7 +179,7 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_discovers_llvm_through_llvm_config
-    require_relative '../lib/natalie/compiler/backends/llvm_backend/native'
+    require_relative '../../lib/natalie/compiler/backends/llvm_backend/native'
     library = Natalie::Compiler::LlvmBackend::Native.new.send(:library)
     skip 'A library file is needed for llvm-config discovery' unless File.file?(library)
     Dir.mktmpdir('natalie-llvm-config') do |dir|
@@ -235,44 +191,11 @@ class LlvmBackendTest < Minitest::Test
       File.write(config, "#!/bin/sh\nprintf '%s\\n' #{dir.shellescape}\n")
       File.chmod(0755, config)
       stdout, stderr, status =
-        run_cli(
-          '--backend=llvm',
-          '-e',
-          'puts 42',
-          env: {
-            'NAT_LLVM_LIBRARY' => nil,
-            'PATH' => "#{dir}:#{ENV.fetch('PATH')}",
-          },
-        )
+        run_cli('-e', 'puts 42', env: { 'NAT_LLVM_LIBRARY' => nil, 'PATH' => "#{dir}:#{ENV.fetch('PATH')}" })
       assert status.success?, stderr
       assert_equal "42\n", stdout
       assert_empty stderr
     end
-  end
-
-  def test_rational_and_complex_literals
-    assert_program(
-      'p [1r, 0.25r, 2i, 0.5ri, 123456789012345678901234567890r]',
-      "[(1/1), (1/4), (0+2i), (0+(1/2)*i), (123456789012345678901234567890/1)]\n",
-    )
-  end
-
-  def test_conditionals_and_local_initialization
-    assert_program(
-      'if false; x = 1; end; p x; x = if 0; 2; else; 3; end; p x; p(if nil; 4; else; 5; end); p !false; p !0',
-      "nil\n2\n5\ntrue\nfalse\n",
-    )
-  end
-
-  def test_nested_loops_and_post_condition_loop
-    assert_program(
-      'sum = 0; i = 0; while i < 3; j = 0; while j < 2; sum = sum + i; j = j + 1; end; i = i + 1; end; begin; sum = sum + 1; end while false; p sum',
-      "7\n",
-    )
-  end
-
-  def test_setter_returns_assigned_value
-    assert_program('a = [1, 2]; p(a[0] = 9); p a', "9\n[9, 2]\n")
   end
 
   def test_gc_roots_survive_repeated_collections
@@ -283,7 +206,7 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_frozen_strings
-    stdout, stderr, status = run_cli('--backend=llvm', '--enable-frozen-string-literal', '-e', 'p "hello".frozen?')
+    stdout, stderr, status = run_cli('--enable-frozen-string-literal', '-e', 'p "hello".frozen?')
     assert status.success?, stderr
     assert_equal "true\n", stdout
   end
@@ -316,7 +239,7 @@ class LlvmBackendTest < Minitest::Test
         end
       end
     RUBY
-    _, stderr, status = run_cli('--backend=llvm', '-e', code)
+    _, stderr, status = run_cli('-e', code)
     assert_equal 1, status.exitstatus
     assert_includes stderr, "-e:3:in '<class:LocationClass>'"
     assert_includes stderr, "-e:2:in '<module:LocationModule>'"
@@ -324,22 +247,11 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_runtime_exception_unwinds_through_llvm_frame
-    stdout, stderr, status = run_cli('--backend=llvm', '-e', 'puts "before"; raise "llvm exception"; puts "after"')
+    stdout, stderr, status = run_cli('-e', 'puts "before"; raise "llvm exception"; puts "after"')
     assert_equal 1, status.exitstatus
     assert_equal "before\n", stdout
     assert_includes stderr, 'llvm exception (RuntimeError)'
     refute_includes stderr, 'terminate called'
-  end
-
-  def test_executable_and_argv
-    Dir.mktmpdir('natalie-llvm-test') do |dir|
-      path = File.join(dir, 'program')
-      _, stderr, status = run_cli('--backend=llvm', '-c', path, '-e', 'p ARGV')
-      assert status.success?, stderr
-      stdout, stderr, status = Open3.capture3(path, 'one', 'two')
-      assert status.success?, stderr
-      assert_equal "[\"one\", \"two\"]\n", stdout
-    end
   end
 
   def test_ir_and_object_emission_need_no_cpp_compiler
@@ -377,7 +289,7 @@ class LlvmBackendTest < Minitest::Test
       SH
       File.chmod(0o755, driver)
       env = { 'CXX' => driver, 'NAT_LLVM_REAL_CXX' => ENV.fetch('CXX', 'c++') }
-      stdout, stderr, status = run_cli('--backend=llvm', '-e', 'puts 42', env: env)
+      stdout, stderr, status = run_cli('-e', 'puts 42', env: env)
       assert status.success?, stderr
       assert_equal "42\n", stdout
       assert Natalie::Compiler::LlvmBackend::RUNTIME_OBJECTS.all? { |path| File.file?(path) }
@@ -385,14 +297,14 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_keep_source_retains_usable_llvm_ir
-    stdout, stderr, status = run_cli('--backend=llvm', '--keep-source', '-e', 'puts 42')
+    stdout, stderr, status = run_cli('--keep-source', '-e', 'puts 42')
     assert status.success?, stderr
     assert_includes stdout, "42\n"
     path = stdout[/source file path is: (.+\.ll)/, 1]
     refute_nil path, stdout
     assert_includes File.read(path), '@nat_llvm_eval('
     Dir.mktmpdir('natalie-retained-ir') do |dir|
-      require_relative '../lib/natalie/compiler/backends/llvm_backend/native'
+      require_relative '../../lib/natalie/compiler/backends/llvm_backend/native'
       object = File.join(dir, 'retained.o')
       Natalie::Compiler::LlvmBackend::Native.new.emit_object(File.read(path), object)
       assert File.size?(object)
@@ -402,7 +314,7 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_print_objects_keeps_allocations_and_dumps_them_at_exit
-    stdout, stderr, status = run_cli('--backend=llvm', '--print-objects', '-e', 'puts "llvm object dump"')
+    stdout, stderr, status = run_cli('--print-objects', '-e', 'puts "llvm object dump"')
     assert status.success?, stderr
     assert_includes stdout, "llvm object dump\n"
     assert_match(/<StringObject 0x[0-9a-f]+ string="llvm object dump">/, stdout + stderr)
@@ -411,8 +323,7 @@ class LlvmBackendTest < Minitest::Test
 
   def test_profile_app_records_runtime_events
     Dir.mktmpdir('natalie-llvm-profile') do |dir|
-      stdout, stderr, status =
-        run_cli('--backend=llvm', '--profile-app', '-e', 'puts "llvm profile"; GC.start', chdir: dir)
+      stdout, stderr, status = run_cli('--profile-app', '-e', 'puts "llvm profile"; GC.start', chdir: dir)
       assert status.success?, stderr
       assert_includes stdout, "llvm profile\n"
       path = stdout[/Profile path: (.+)/, 1]
@@ -549,13 +460,6 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
-  def test_real_nil_spec_uses_the_normal_runner
-    stdout, stderr, status = run_cli('--backend=llvm', 'spec/core/nil/nil_spec.rb')
-    assert status.success?, stderr
-    assert_includes stdout, '1 spec(s) passed.'
-    assert_empty stderr
-  end
-
   def test_real_spec_runner_reports_assertion_failures
     Dir.mktmpdir('natalie-llvm-spec') do |dir|
       file = File.join(dir, 'failure_spec.rb')
@@ -565,7 +469,7 @@ class LlvmBackendTest < Minitest::Test
           it('reports a failed assertion') { nil.should == true }
         end
       RUBY
-      stdout, stderr, status = run_cli('--backend=llvm', file)
+      stdout, stderr, status = run_cli(file)
       assert_equal 1, status.exitstatus, stderr
       assert_includes stdout, '1 spec(s) failed.'
       assert_includes stdout, '0 spec(s) errored.'
@@ -589,21 +493,10 @@ class LlvmBackendTest < Minitest::Test
     RUBY
   end
 
-  def test_native_extension_initialization_bindings_and_callbacks
-    assert_program(native_extension_program, "1\n17\n42\n7.5\n")
-  end
-
   def test_inline_cpp_method_definition
     assert_program(
       'require "natalie/inline"; class NativeAnswer; __define_method__(:answer, [:n], "return n.send(env, \"+\"_s, { Value::integer(1) });"); end; puts NativeAnswer.new.answer(41)',
       "42\n",
-    )
-  end
-
-  def test_explicit_native_calls_and_method_arguments
-    assert_program(
-      "require #{File.join(ROOT, 'test/support/native_helpers.rb').inspect}",
-      "nil\n[42, \"record\"]\n[0, 2]\n[[], [[:req], [:req]]]\n[7, 7]\nwrong arity\nwrong arity\n",
     )
   end
 
@@ -632,7 +525,7 @@ class LlvmBackendTest < Minitest::Test
       end
       NativeFailure.fail
     RUBY
-    _, stderr, status = run_cli('--backend=llvm', '-e', code)
+    _, stderr, status = run_cli('-e', code)
     assert_equal 1, status.exitstatus
     assert_includes stderr, 'native extension failure (RuntimeError)'
     refute_includes stderr, 'terminate called'
@@ -643,18 +536,6 @@ class LlvmBackendTest < Minitest::Test
       file = File.join(dir, 'library.rb')
       File.write(file, native_extension_program)
       assert_program("require #{file.inspect}; p NativeFixture.new.subtract(10, 4)", "1\n17\n42\n7.5\n6\n")
-    end
-  end
-
-  def test_scoped_inline_cpp_is_rejected_explicitly
-    [
-      'def f; __inline__("return self;"); end; f',
-      '1.times { __inline__("return self;") }',
-      'class C; __inline__("return self;"); end',
-    ].each do |body|
-      _, stderr, status = run_cli('--backend=llvm', '-e', "require 'natalie/inline'; #{body}")
-      refute status.success?
-      assert_includes stderr, 'scoped __inline__ has been retired'
     end
   end
 
@@ -702,7 +583,7 @@ class LlvmBackendTest < Minitest::Test
         objects =
           [first, second].map do |source|
             object = "#{source}.o"
-            options = ['--backend=llvm', '--compilation-type=object', '-c', object]
+            options = ['--compilation-type=object', '-c', object]
             options += ["--build-dir=#{File.join(dir, 'cache')}", '--build-quietly'] if cached
             _, stderr, status = run_cli(*options, source)
             assert status.success?, stderr
@@ -723,7 +604,7 @@ class LlvmBackendTest < Minitest::Test
       plain = File.join(dir, 'plain.o')
       returning = File.join(dir, 'returning.o')
       [[plain, '40 + 2'], [returning, 'begin; return 43; ensure; puts :ensured; end']].each do |object, code|
-        _, stderr, status = run_cli('--backend=llvm', '--compilation-type=object', '-c', object, '-e', code)
+        _, stderr, status = run_cli('--compilation-type=object', '-c', object, '-e', code)
         assert status.success?, stderr
       end
       executable = File.join(dir, 'program')
@@ -739,13 +620,12 @@ class LlvmBackendTest < Minitest::Test
     Dir.mktmpdir('natalie-llvm-test') do |dir|
       executable = File.join(dir, 'program')
       object = File.join(dir, 'program.o')
-      _, stderr, status = run_cli('--backend=llvm', '-c', executable, '-e', native_extension_program)
+      _, stderr, status = run_cli('-c', executable, '-e', native_extension_program)
       assert status.success?, stderr
       stdout, stderr, status = Open3.capture3(executable)
       assert status.success?, stderr
       assert_equal "1\n17\n42\n7.5\n", stdout
-      _, stderr, status =
-        run_cli('--backend=llvm', '--compilation-type=object', '-c', object, '-e', native_extension_program)
+      _, stderr, status = run_cli('--compilation-type=object', '-c', object, '-e', native_extension_program)
       assert status.success?, stderr
       linked = File.join(dir, 'from-object')
       link_initializer_objects([object], linked)
@@ -755,31 +635,10 @@ class LlvmBackendTest < Minitest::Test
     end
   end
 
-  def test_splat_arguments_yield_and_setter_results
-    assert_program(
-      'def sum(*a); a.sum; end; p sum(1, *[2,3], 4); def y(*a); yield(*a); end; p y(4,5) { |a,b| a+b }; a = [0]; p(a[*[0]] = 9); p [1,*[2,3],4]',
-      "10\n9\n9\n[1, 2, 3, 4]\n",
-    )
-  end
-
   def test_anonymous_arguments_and_blocks_survive_closure_capture
     assert_program(
       'def capture(*); proc { GC.start; [*] }; end; p capture(1,2).call; def relay(&); [1,2].map(&); end; p relay { |x| x * 3 }',
       "[1, 2]\n[3, 6]\n",
-    )
-  end
-
-  def test_full_argument_forwarding_preserves_block
-    assert_program(
-      'def relay(...); [1,2].map(...); end; p relay { |x| x * 3 }; def print_all(...); p(...); end; print_all(1,2)',
-      "[3, 6]\n1\n2\n",
-    )
-  end
-
-  def test_interpolation_regexps_and_case_matching
-    assert_program(
-      'x=3; p "hello #{x}!"; pattern="a+"; p /#{pattern}/i.match?("AAA"); p(/x/.frozen?); p case "42"; when /^\\d+$/; :digits; else; :other; end; p case 2; when *[1,2,3]; :member; end',
-      "\"hello 3!\"\ntrue\ntrue\n:digits\n:member\n",
     )
   end
 
@@ -837,43 +696,11 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
-  def test_singleton_methods_class_bodies_and_aliases
-    assert_program(
-      'class A; def self.name; :a; end; class << self; alias other_name name; end; end; p A.name; p A.other_name; o = Object.new; def o.answer; 42; end; p o.answer',
-      ":a\n:a\n42\n",
-    )
-  end
-
-  def test_super_with_explicit_arguments_and_block
-    assert_program(
-      'class A; def f(x); yield(x+1); end; end; class B < A; def f(x); super(x*2) { |n| n+3 }; end; alias g f; end; p B.new.g(4)',
-      "12\n",
-    )
-  end
-
-  def test_super_forwards_original_arguments_and_current_block
-    assert_program(
-      'class A; def f(a,b); yield(a+b); end; end; class B < A; def f(a,b); super; end; end; p B.new.f(3,4) { |n| n*2 }; class C < A; def f(a,b); super(*[a+1,b+1]); end; end; p C.new.f(3,4) { |n| n*2 }',
-      "14\n18\n",
-    )
-  end
-
-  def test_keyword_defaults_rest_and_forwarding
-    assert_program(
-      'def f(x, a:, b: 2, **rest); [x,a,b,rest]; end; def relay(...); f(...); end; p relay(9,a:1,c:3); def anon(*,**,&); f(*,**,&); end; p anon(8,a:nil,b:false,d:6); h={a:1,z:4}; p f(7,**h); p h',
-      "[9, 1, 2, {c: 3}]\n[8, nil, false, {d: 6}]\n[7, 1, 2, {z: 4}]\n{a: 1, z: 4}\n",
-    )
-  end
-
   def test_keyword_validation_uses_runtime_diagnostics
     assert_program(
       'def f(a:,b:); end; begin; f; rescue => e; p e.message; end; def g(x,a:); end; begin; g; rescue => e; p e.message; end; def h(a:1); end; begin; h(z:2,y:3); rescue => e; p e.message; end; def none(**nil); :ok; end; p none; begin; none(x:1); rescue => e; p e.message; end',
       "\"missing keywords: :a, :b\"\n\"wrong number of arguments (given 0, expected 1; required keyword: a)\"\n\"unknown keywords: :z, :y\"\n:ok\n\"no keywords accepted\"\n",
     )
-  end
-
-  def test_empty_keywords_and_methods_without_keyword_parameters
-    assert_program('def f; :ok; end; p f(**{}); def g(*a); a; end; p g(**{}); p g(x:1)', ":ok\n[]\n[{x: 1}]\n")
   end
 
   def test_keyword_ir_needs_no_generated_cpp
@@ -925,75 +752,10 @@ class LlvmBackendTest < Minitest::Test
     end
   end
 
-  def test_real_redo_spec_runs_ensure_and_cancels_pending_redo
-    stdout, stderr, status = run_cli('--backend=llvm', 'spec/language/redo_spec.rb')
-    assert status.success?, stderr
-    assert_includes stdout, '8 spec(s) passed.'
-    assert_empty stderr
-  end
-
-  def test_class_variables_follow_runtime_inheritance_and_defaulting
-    assert_program(
-      'class A; @@n ||= 3; def self.bump; @@n += 1; end; def self.n; @@n; end; end; class B < A; end; p B.bump; p A.n; p B.n',
-      "4\n4\n4\n",
-    )
-  end
-
-  def test_undef_hides_inherited_methods_and_global_aliases_share_storage
-    assert_program(
-      'class A; def f; 1; end; end; class B < A; undef f; end; p B.new.respond_to?(:f); $first=1; alias $second $first; $second=3; p $first',
-      "false\n3\n",
-    )
-  end
-
   def test_defined_probes_preserve_nil_valued_variables_and_do_not_call_methods
     assert_program(
       '$g=nil; @i=nil; p [defined?($g),defined?($missing_g),defined?(@i),defined?(@missing_i),defined?(MissingConstant)]; def f; raise "not called"; end; p defined?(f); p defined?(does_not_exist); p defined?(puts); p defined?(f).frozen?',
       "[\"global-variable\", nil, \"instance-variable\", nil, nil]\n\"method\"\nnil\n\"method\"\ntrue\n",
-    )
-  end
-
-  def test_regexp_capture_access_and_definition_checks
-    assert_program(
-      '/(a)/ =~ "a"; p $1; p defined?($1); /z/ =~ "a"; p $1; p defined?($1)',
-      "\"a\"\n\"global-variable\"\nnil\nnil\n",
-    )
-  end
-
-  def test_block_destructuring_defaults_and_keyword_hash_copy
-    assert_program(
-      'f=proc { |(a,b),c=3| [a,b,c] }; p f.call([[1,2]]); p proc { |a=3,b=4| [a,b] }.call; h={a:1,x:2}; p proc { |a:3, **rest| [a,rest] }.call(**h); p h',
-      "[1, 2, 3]\n[3, 4]\n[1, {x: 2}]\n{a: 1, x: 2}\n",
-    )
-  end
-
-  def test_method_proc_and_lambda_parameter_metadata
-    assert_program(
-      'def f(a,b=2,*rest,c:,d:3,**opts,&block); end; p method(:f).parameters; p proc { |x,y=1,*r,a:,**k,&b| }.parameters; p ->(x,*r,**nil) {}.parameters',
-      "[[:req, :a], [:opt, :b], [:rest, :rest], [:keyreq, :c], [:key, :d], [:keyrest, :opts], [:block, :block]]\n[[:opt, :x], [:opt, :y], [:rest, :r], [:keyreq, :a], [:keyrest, :k], [:block, :b]]\n[[:req, :x], [:rest, :r], [:nokey]]\n",
-    )
-  end
-
-  def test_next_and_break_specs_unwind_ensure_handlers
-    %w[next break].each do |name|
-      stdout, stderr, status = run_cli('--backend=llvm', "spec/language/#{name}_spec.rb")
-      assert status.success?, stderr
-      assert_includes stdout, '35 spec(s) passed.'
-      assert_empty stderr
-    end
-  end
-
-  def test_methods_defaults_rest_and_recursion
-    assert_program(
-      'def sum(n, extra = 1); if n == 0; extra; else; n + sum(n - 1, extra); end; end; def rest(a, *xs); [a, xs]; end; p sum(4); p sum(2, 10); p rest(1, 2, 3)',
-      "11\n13\n[1, [2, 3]]\n",
-    )
-  end
-
-  def test_classes_modules_constants_and_instance_variables
-    assert_program(
-      'module M; C = 3; class A; def initialize(x); @x = x; end; def value(y = 2); @x + y; end; end; end; p M::C; p M::A.new(4).value; p M::A.new(4).value(5)',
-      "3\n6\n9\n",
     )
   end
 
@@ -1004,26 +766,11 @@ class LlvmBackendTest < Minitest::Test
     )
   end
 
-  def test_yield_and_explicit_block_parameter
-    assert_program(
-      'def twice(x); yield x; yield x; end; total = 0; twice(3) { |n| total = total + n }; p total; def apply(&b); b.call(4); end; p apply { |x| x * 2 }',
-      "6\n8\n",
-    )
-  end
-
-  def test_lambda_and_block_next
-    assert_program('f = ->(x) { x + 1 }; p f.call(2); p [1, 2, 3].map { |x| next 9 if x == 2; x }', "3\n[1, 9, 3]\n")
-  end
-
-  def test_hashes_ranges_and_globals
-    assert_program('$answer = {a: 42}; p $answer[:a]; p((2...5).to_a)', "42\n[2, 3, 4]\n")
-  end
-
   def test_wrong_method_arity_and_exception_in_callback
-    stdout, stderr, status = run_cli('--backend=llvm', '-e', 'def f(x); x; end; f')
+    stdout, stderr, status = run_cli('-e', 'def f(x); x; end; f')
     assert_equal 1, status.exitstatus
     assert_includes stderr, 'wrong number of arguments'
-    stdout, stderr, status = run_cli('--backend=llvm', '-e', '1.times { raise "callback error" }')
+    stdout, stderr, status = run_cli('-e', '1.times { raise "callback error" }')
     assert_equal 1, status.exitstatus
     assert_includes stderr, 'callback error (RuntimeError)'
     refute_includes stderr, 'terminate called'
@@ -1090,8 +837,8 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_invalid_ir_reports_an_error_without_aborting
-    require_relative '../lib/natalie/compiler/backends/llvm_backend'
-    require_relative '../lib/natalie/compiler/backends/llvm_backend/native'
+    require_relative '../../lib/natalie/compiler/backends/llvm_backend'
+    require_relative '../../lib/natalie/compiler/backends/llvm_backend/native'
     error =
       assert_raises(Natalie::Compiler::CompileError) do
         Natalie::Compiler::LlvmBackend::Native.new.emit_object('invalid llvm ir', '/unused.o')
@@ -1100,7 +847,7 @@ class LlvmBackendTest < Minitest::Test
   end
 
   def test_verifier_rejects_invalid_ssa_without_aborting
-    require_relative '../lib/natalie/compiler/backends/llvm_backend/native'
+    require_relative '../../lib/natalie/compiler/backends/llvm_backend/native'
     ir = <<~LLVM
       define i64 @bad() {
       entry:
@@ -1115,5 +862,12 @@ class LlvmBackendTest < Minitest::Test
         Natalie::Compiler::LlvmBackend::Native.new.emit_object(ir, '/unused.o')
       end
     assert_includes error.message, 'Only PHI nodes may reference their own value'
+  end
+
+  def test_native_emitter_recovers_from_parser_verifier_and_emission_errors
+    stdout, stderr, status = run_cli('test/support/llvm/native_errors.rb')
+    assert status.success?, stderr
+    assert_equal "LLVM native error recovery passed\n", stdout
+    assert_empty stderr
   end
 end

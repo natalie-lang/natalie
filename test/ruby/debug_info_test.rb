@@ -1,15 +1,7 @@
-require 'minitest/autorun'
-require 'open3'
-require 'rbconfig'
-require 'tmpdir'
-require_relative 'support/llvm/object_linker'
-require_relative '../lib/natalie/compiler/backends/llvm_backend'
+require_relative '../support/compiler_test_helper'
 
-class LlvmDebugInfoTest < Minitest::Test
-  include LlvmObjectLinker
-  ROOT = File.expand_path('..', __dir__)
-  CLI = File.join(ROOT, 'bin/natalie')
-  COMPILER_COMMAND = ENV['NAT_LLVM_COMPILER'] ? [ENV.fetch('NAT_LLVM_COMPILER')] : [RbConfig.ruby, CLI]
+class DebugInfoTest < Minitest::Test
+  include CompilerTestHelper
 
   def test_macos_uncached_object_initializers_retain_debug_symbols
     skip 'Requires macOS debug maps' unless RUBY_PLATFORM.include?('darwin')
@@ -67,7 +59,7 @@ class LlvmDebugInfoTest < Minitest::Test
       File.chmod(0o755, debugger)
       target_record = File.join(dir, 'target')
       env = { 'TMPDIR' => dir, 'PATH' => "#{tools}:#{ENV.fetch('PATH')}", 'DEBUG_TARGET_PATH' => target_record }
-      stdout, stderr, status = Open3.capture3(env, *COMPILER_COMMAND, '-d', 'lldb', '-e', '42')
+      stdout, stderr, status = Open3.capture3(env, NAT_BINARY, '-d', 'lldb', '-e', '42')
       assert_equal 17, status.exitstatus, stdout + stderr
       target = File.read(target_record)
       refute File.exist?(target)
@@ -86,7 +78,7 @@ class LlvmDebugInfoTest < Minitest::Test
       File.chmod(0o755, dsymutil)
       env = { 'TMPDIR' => dir, 'PATH' => "#{tools}:#{ENV.fetch('PATH')}" }
       code = "$LOAD_PATH << #{dir.inspect}; puts 42"
-      stdout, stderr, status = Open3.capture3(env, *COMPILER_COMMAND, '-e', code)
+      stdout, stderr, status = Open3.capture3(env, NAT_BINARY, '-e', code)
       assert status.success?, stderr
       assert_equal "42\n", stdout
       assert_empty stderr
@@ -178,7 +170,7 @@ class LlvmDebugInfoTest < Minitest::Test
     driver = <<~RUBY
       require #{File.join(ROOT, 'lib/natalie').inspect}
       parser = Natalie::Parser.new(File.read(#{source.inspect}), #{source.inspect})
-      compiler = Natalie::Compiler.new(ast: parser.ast, path: #{source.inspect}, options: { backend: 'llvm', build: 'debug', compilation_type: #{compilation_type.inspect}, build_dir: #{cache.inspect}, build_quietly: true })
+      compiler = Natalie::Compiler.new(ast: parser.ast, path: #{source.inspect}, options: { build: 'debug', compilation_type: #{compilation_type.inspect}, build_dir: #{cache.inspect}, build_quietly: true })
       compiler.out_path = #{executable.inspect}
       compiler.compile
     RUBY
