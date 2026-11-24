@@ -89,14 +89,7 @@ module Natalie
       def process_while(i)
         return if i.env
 
-        @env = {
-          vars: {
-          },
-          outer: @env,
-          hoist: true,
-          result_name: i.result_name, # used by BreakOutInstruction to set result variable
-          type: i.label,
-        }
+        @env = { vars: {}, outer: @env, hoist: true, type: i.label }
       end
       def process_end_while(_)
         @env = @env.fetch(:outer)

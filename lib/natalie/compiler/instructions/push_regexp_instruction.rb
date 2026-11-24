@@ -4,7 +4,6 @@ require_relative '../regexp_encoding'
 module Natalie
   class Compiler
     class PushRegexpInstruction < BaseInstruction
-      include StringToCpp
       include RegexpEncoding
 
       def initialize(regexp, encoding: nil)

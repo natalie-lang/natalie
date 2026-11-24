@@ -1,11 +1,8 @@
 require_relative './base_instruction'
-require_relative '../string_to_cpp'
 
 module Natalie
   class Compiler
     class PushStringInstruction < BaseInstruction
-      include StringToCpp
-
       def initialize(string, bytesize: string.bytesize, encoding: Encoding::UTF_8, status: nil)
         super()
         @string = string

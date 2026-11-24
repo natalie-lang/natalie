@@ -16,12 +16,10 @@ module Natalie
 
         SRC_PATH = File.join(ROOT_DIR, 'src')
         MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main_template.cpp'))
-        OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit_template.cpp'))
-        LOADED_FILE_TEMPLATE = File.read(File.join(SRC_PATH, 'loaded_file_template.cpp'))
 
         def initialize(type:, body:, transform_data:, ruby_path:, compiler:, backend:)
           @type = type
-          raise 'type must be :main, :obj, or :loaded_file' unless %i[main obj loaded_file].include?(type)
+          raise 'type must be :main or :obj' unless %i[main obj].include?(type)
           @body = body
           @top = transform_data.top
           @symbols = transform_data.symbols
@@ -70,13 +68,6 @@ module Natalie
                 f.write(merged_source)
               end
             end
-        end
-
-        def append_loaded_file(other_out_file)
-          raise "Expected SourceFile, got #{other_out_file.class}" unless other_out_file.is_a?(SourceFile)
-
-          fn = @backend.compiled_files.fetch(other_out_file.ruby_path)
-          @top["#{fn}_def"] = other_out_file.loaded_file_fn_source(fn_only: true)
         end
 
         def compile_object_file(force: false)
@@ -162,46 +153,21 @@ module Natalie
         end
 
         def merged_source
+          raise 'Native object renderers must implement merged_source' unless @type == :main
+
           @merged_source ||=
             begin
               result =
-                get_template
+                MAIN_TEMPLATE
                   .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
-                  .sub('/*' + 'NAT_OBJ_INIT' + '*/') { repl_main? ? '' : init_object_files }
+                  .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files }
                   .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
                   .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
               reindent(result)
             end
         end
 
-        def loaded_file_fn_source(fn_only: false)
-          fn = @backend.compiled_files.fetch(@ruby_path)
-          source = LOADED_FILE_TEMPLATE
-          source = source.sub(/.*(?=Value __FN_NAME__)/m, '') if fn_only
-          result =
-            source
-              .sub('__FN_NAME__', fn)
-              .sub('"FILE_NAME"_s', "#{@ruby_path.inspect}_s")
-              .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
-              .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
-              .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @body }
-          reindent(result)
-        end
-
         private
-
-        def get_template # rubocop:disable Naming/AccessorMethodName
-          case @type
-          when :main
-            MAIN_TEMPLATE
-          when :obj
-            OBJ_TEMPLATE.gsub(/OBJ_NAME/, @backend.obj_name)
-          when :loaded_file
-            loaded_file_fn_source
-          else
-            raise "Unexpected type: #{@type.inspect}"
-          end
-        end
 
         def cc
           ENV['CXX'] || 'c++'
@@ -228,7 +194,6 @@ module Natalie
 
         def build_dir = @compiler.build_dir
         def build_quietly? = @compiler.build_quietly?
-        def single_source? = !build_dir
 
         def build_path(extension)
           File.join(build_dir, relative_ruby_path.sub(/(\.rb)?$/, ".#{extension}").gsub(%r{[^a-zA-Z0-9_\./]}, '_'))
@@ -248,24 +213,11 @@ module Natalie
           ].join("\n\n")
         end
 
-        def repl_main?
-          @type == :main && @backend.compiler_context[:repl]
-        end
-
         def init_matter
-          return '' if single_source? && @type == :loaded_file
-
-          [
-            init_symbols.join("\n"),
-            init_interned_strings.join("\n"),
-            init_dollar_zero_global,
-            (repl_main? ? init_object_files : nil),
-          ].compact.join("\n\n")
+          [init_symbols.join("\n"), init_interned_strings.join("\n"), init_dollar_zero_global].compact.join("\n\n")
         end
 
         def object_file_declarations
-          return '' if @type == :loaded_file
-
           object_files.map { |name| "Value init_#{name.tr('/', '_')}(Env *env, Value self);" }.join("\n")
         end
 
@@ -298,8 +250,7 @@ module Natalie
         end
 
         def init_object_files
-          receiver = repl_main? ? 'GlobalEnv::the()->main_obj()' : 'self'
-          object_files.map { |name| "init_#{name.tr('/', '_')}(env, #{receiver});" }.join("\n")
+          object_files.map { |name| "init_#{name.tr('/', '_')}(env, self);" }.join("\n")
         end
 
         def init_symbols
@@ -346,7 +297,7 @@ module Natalie
         end
 
         def object_files
-          return @backend.compiler_context[:required_cpp_files].values if @type == :obj || repl_main?
+          return @backend.compiler_context[:required_cpp_files].values if @type == :obj
 
           rb_files =
             Dir[File.join(ROOT_DIR, '/src/**/*.rb')]

@@ -17,12 +17,6 @@ module Natalie
         transform.emit "#{transform.name('unreachable')}:"
         transform.push('4')
       end
-
-      private
-
-      def retry_name
-        "should_retry_#{@id}"
-      end
     end
   end
 end

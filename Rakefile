@@ -549,11 +549,14 @@ file 'build/libnatalie.a' => %w[build/libnatalie_base.a build/onigmo/lib/libonig
   end
 end
 
-file 'build/libnatalie_base.a' => OBJECT_FILES + HEADERS do |t|
-  sh "ar rcs #{t.name} #{OBJECT_FILES}"
+file 'build/libnatalie_base.a' => OBJECT_FILES + HEADERS + ['Rakefile'] do |t|
+  archive = "#{t.name}.tmp"
+  rm_f archive
+  sh "ar rcs #{archive} #{OBJECT_FILES}"
+  mv archive, t.name
 end
 
-file "build/libnatalie_base.#{DL_EXT}" => OBJECT_FILES + HEADERS do |t|
+file "build/libnatalie_base.#{DL_EXT}" => OBJECT_FILES + HEADERS + ['Rakefile'] do |t|
   sh "#{cxx} -shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup -o #{t.name} #{OBJECT_FILES}"
 end
 

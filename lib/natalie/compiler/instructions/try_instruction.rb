@@ -40,12 +40,6 @@ module Natalie
       def self.serial
         @serial += 1
       end
-
-      private
-
-      def retry_name
-        "should_retry_#{serial}"
-      end
     end
   end
 end

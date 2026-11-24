@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
 require_relative 'base_instruction'
-require_relative '../string_to_cpp'
 
 module Natalie
   class Compiler
     class CompileTimeWarn < BaseInstruction
-      include StringToCpp
       attr_reader :message
 
       def initialize(message, level:)

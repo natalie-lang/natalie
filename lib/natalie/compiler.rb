@@ -173,7 +173,6 @@ module Natalie
 
     def transform_file(file_info, compiler_context)
       { 'p2' => Pass2, 'p3' => Pass3, 'p4' => Pass4 }.each do |short_name, klass|
-        WhileInstruction.reset_result_id
         file_info.instructions = klass.new(file_info.instructions, compiler_context:).transform
         if debug == short_name
           klass.debug_instructions(file_info.instructions)

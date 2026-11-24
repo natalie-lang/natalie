@@ -20,21 +20,6 @@ module Natalie
         true
       end
 
-      class << self
-        def reset_result_id
-          @result_id = 0
-        end
-
-        def next_result_name
-          @result_id ||= 0
-          "while_result#{@result_id += 1}"
-        end
-      end
-
-      def result_name
-        @result_name ||= self.class.next_result_name
-      end
-
       def generate_llvm(transform)
         condition = transform.fetch_block_of_instructions(until_instruction: WhileBodyInstruction)
         body = transform.fetch_block_of_instructions(expected_label: :while)

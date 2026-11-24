@@ -23,12 +23,6 @@ module Natalie
         max = @positional.is_a?(Range) ? @positional.end || -1 : @positional
         transform.emit "call void @nat_llvm_check_args(ptr %env, ptr %args, i64 #{min}, i64 #{max}, i32 #{@has_keywords ? 1 : 0}, i64 #{@required_keywords.size}, ptr #{transform.keyword_names(@required_keywords)})"
       end
-
-      private
-
-      def cpp_keywords
-        "{ #{@required_keywords.map { |kw| kw.to_s.inspect }.join ', '} }"
-      end
     end
   end
 end
