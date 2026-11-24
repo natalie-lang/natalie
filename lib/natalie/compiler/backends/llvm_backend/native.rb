@@ -101,6 +101,12 @@ module Natalie
 
         def emit_assembly(ir, path)
           emit_file(ir, path, 0) # LLVMAssemblyFile
+          return unless RUBY_PLATFORM.include?('linux')
+
+          # GNU as expects a single path in DWARF 4 .file directives.
+          assembly = File.binread(path)
+          file_directive = /^([ \t]*\.file[ \t]+[1-9]\d*[ \t]+)"((?:\\.|[^"\\\n])+)"[ \t]+"((?:\\.|[^"\\\n])+)"$/
+          File.binwrite(path, assembly) if assembly.gsub!(file_directive, '\1"\2/\3"')
         end
 
         private
