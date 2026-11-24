@@ -11,6 +11,7 @@ end
 
 require_relative '../lib/optparse'
 require 'tempfile'
+require 'fileutils'
 
 require_relative '../lib/natalie'
 
@@ -166,6 +167,7 @@ class Runner
     out = Tempfile.create("natalie#{extension}")
     out.close
     compiler.out_path = out.path
+    compiler.options[:temporary_output] = true
     compiler.profile_app! if options[:profile] == :app
     compiler.print_objects! if options[:print_objects]
 
@@ -173,7 +175,8 @@ class Runner
     when 'gdb', 'lldb', 'strace'
       compiler.compile
       flags = options[:debug] == 'gdb' ? %w[-x test/gdb-signals.gdb] : []
-      exec(options[:debug], *flags, out.path)
+      system(options[:debug], *flags, out.path)
+      @run_result = $?
     when 'callgrind'
       callgrind_out = Tempfile.create('callgrind.out')
       callgrind_out.close
@@ -190,12 +193,13 @@ class Runner
       else
         compiler.options[:dynamic_linking] = true
         compiler.compile
-        begin
-          run_temp_and_wait(out.path)
-        ensure
-          File.unlink(out.path)
-        end
+        run_temp_and_wait(out.path)
       end
+    end
+  ensure
+    if out
+      File.unlink(out.path) if File.exist?(out.path)
+      FileUtils.rm_rf("#{out.path}.dSYM") if File.directory?("#{out.path}.dSYM")
     end
   end
 

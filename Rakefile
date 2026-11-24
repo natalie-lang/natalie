@@ -31,6 +31,7 @@ task test_llvm_self_hosted: %i[bootstrap llvm_runtime] do
   environment = { 'NAT_LLVM_COMPILER' => File.expand_path('bin/nat') }
   sh environment, RbConfig.ruby, 'test/llvm_backend_test.rb'
   sh environment, RbConfig.ruby, 'test/llvm_build_dir_test.rb'
+  sh environment, RbConfig.ruby, 'test/llvm_debug_info_test.rb', '--name', '/macos_debugger|macos_ordinary/'
   sh 'bin/nat', '--build-dir=build/libnat', '--build-quietly', 'test/support/llvm/native_errors.rb'
 end
 

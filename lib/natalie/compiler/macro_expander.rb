@@ -269,6 +269,7 @@ module Natalie
                 options: {
                   backend: @compiler_options.fetch(:backend, Compiler::DEFAULT_BACKEND),
                   build: @compiler_options[:build],
+                  temporary_output: true,
                   ld_flags: nil,
                 },
               )

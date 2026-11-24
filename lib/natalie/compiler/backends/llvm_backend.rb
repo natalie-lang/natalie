@@ -55,7 +55,7 @@ module Natalie
         unless @native_extensions.active? || initializer?
           return Native.new(build: @compiler.build).emit_object(source, path)
         end
-        Dir.mktmpdir do |dir|
+        with_object_directory(path) do |dir|
           ruby_object = File.join(dir, 'ruby.o')
           native_object = File.join(dir, 'native.o')
           Native.new(build: @compiler.build).emit_object(source, ruby_object)
@@ -165,6 +165,16 @@ module Natalie
       end
 
       private
+
+      def with_object_directory(output)
+        if NativeBuild::DARWIN && @compiler.build != 'release'
+          directory = "#{File.expand_path(output)}.objects"
+          FileUtils.mkdir_p(directory)
+          yield directory
+        else
+          Dir.mktmpdir { |directory| yield directory }
+        end
+      end
 
       def entrypoint
         data = NativeBuild::TransformData.new

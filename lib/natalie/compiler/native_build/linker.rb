@@ -22,9 +22,11 @@ module Natalie
           cmd = link_command
           puts cmd if @compiler.debug == 'cc-cmd'
           out = `#{cmd} 2>&1`
-          @in_paths.each { |path| File.unlink(path) } unless @keep_inputs || @compiler.build_dir || $? != 0
+          status = $?
           warn out if out.strip != ''
-          raise Compiler::CompileError, 'There was an error linking.' if $? != 0
+          raise Compiler::CompileError, 'There was an error linking.' unless status.success?
+          write_debug_symbols if debug_symbols?
+          @in_paths.each { |path| File.unlink(path) } unless @keep_inputs || @compiler.build_dir
         end
 
         def link_command
@@ -42,6 +44,19 @@ module Natalie
         end
 
         private
+
+        def debug_symbols?
+          return false unless DARWIN && @compiler.build != 'release' && !@compiler.repl?
+
+          !@compiler.temporary_output? || %w[gdb lldb].include?(@compiler.debug)
+        end
+
+        def write_debug_symbols
+          out = `dsymutil #{@out_path.shellescape} 2>&1`
+          status = $?
+          warn out unless out.strip.empty?
+          raise Compiler::CompileError, 'There was an error creating macOS debug symbols.' unless status.success?
+        end
 
         def cc
           ENV['CXX'] || 'c++'

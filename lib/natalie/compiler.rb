@@ -30,7 +30,14 @@ module Natalie
 
     attr_accessor :ast, :warnings, :context, :inline_cpp_enabled, :options, :repl, :repl_num, :vars
 
-    attr_writer :load_path, :out_path
+    attr_writer :load_path
+
+    def out_path=(path)
+      @out_path = path
+      @temporary_output = false
+    end
+
+    def temporary_output? = !!(options[:temporary_output] || @temporary_output)
 
     def compile
       if compilation_type == 'object'
@@ -64,6 +71,7 @@ module Natalie
     def out_path
       @out_path ||=
         begin
+          @temporary_output = true
           out = Tempfile.create("natalie#{extension}")
           out.close
           out.path

@@ -4,6 +4,8 @@ test/tmp
 coverage-report
 .cache
 bin/nat
+*.dSYM/
+*.o.objects/
 Gemfile.lock
 /rubyspec_temp
 /master

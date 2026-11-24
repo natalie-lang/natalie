@@ -71,8 +71,15 @@ Debug and sanitized builds emit DWARF with Ruby filenames, line numbers, method
 names, and native callback parameters. Methods, blocks, required files, and
 rescue/ensure callbacks retain their source positions. Pass1 records positions
 on existing instructions, and instruction replacements inherit them.
-Use `--build-dir` to retain debug objects for native debuggers, particularly on
-macOS. Ruby local-variable presentation is not yet implemented.
+On macOS, persistent debug executables and shared libraries receive a `.dSYM`
+bundle before temporary input objects are removed. Debugger launches also retain
+symbols until the debugger exits, then remove the temporary target and bundle.
+Ordinary compile-and-run commands skip bundle generation. Ruby local-variable
+presentation is not yet implemented.
+
+Uncached macOS debug object output retains its LLVM and native inputs in
+`OUTPUT.objects`; keep that directory until the final executable's debug bundle
+is created. Cached object output uses its existing build directory instead.
 
 Release builds run LLVM's `default<O3>` optimization pipeline and use aggressive
 target code generation. Debug and sanitized builds retain unoptimized LLVM
