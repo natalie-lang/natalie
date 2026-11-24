@@ -1,4 +1,4 @@
-# Experimental LLVM Backend
+# LLVM Backend
 
 ## Core Files
 
@@ -22,10 +22,12 @@ explicitly with `clang-format` when editing it.
 The normal build compiles runtime Ruby files with LLVM and includes the runtime
 bridge in Natalie's runtime libraries. It also builds the executable startup
 object. The REPL compiler library and `rake bootstrap` compiler executable are
-also compiled with LLVM. After building Natalie, run a script with LLVM:
+also compiled with LLVM. The CLI, compiler API, compile-time load-path helpers,
+and REPL default to LLVM; use `--backend=cpp` for an explicit C++ comparison.
+After building Natalie, run a script:
 
 ```sh
-bin/natalie --backend=llvm examples/llvm_poc.rb
+bin/natalie examples/llvm_poc.rb
 bundle exec rake test_llvm
 ```
 
@@ -98,7 +100,8 @@ an LLVM shared library with the same `EVAL` entrypoint used by the C++ REPL.
 Inputs share a growing local-variable vector, preserving earlier values and
 closure captures. Native extension initializers run before evaluating the input.
 The LLVM test task includes the shared REPL regression tests; the ordinary Ruby
-test suite runs those tests with the default C++ backend.
+test suite runs those tests with the default backend. Set `NAT_REPL_TEST_BACKEND`
+to choose a backend explicitly.
 
 ## Cached Builds
 

@@ -10,7 +10,7 @@ task default: :build
 desc 'Build the LLVM runtime bridge and executable startup object'
 task llvm_runtime: %w[build/llvm_runtime.o build/llvm_main.o]
 
-desc 'Test the experimental LLVM backend (requires a built Natalie runtime and shared LLVM library)'
+desc 'Test the LLVM backend (requires a built Natalie runtime and shared LLVM library)'
 task test_llvm: %i[libnat llvm_runtime] do
   ruby 'test/llvm_backend_test.rb'
   ruby 'test/llvm_build_dir_test.rb'

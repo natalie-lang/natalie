@@ -13,6 +13,7 @@ require_relative './parser'
 module Natalie
   class Compiler
     RB_LIB_PATH = File.expand_path('..', __dir__)
+    DEFAULT_BACKEND = 'llvm'.freeze
 
     class CompileError < StandardError
     end
@@ -81,7 +82,7 @@ module Natalie
       @backend ||=
         begin
           klass =
-            case options.fetch(:backend, 'cpp')
+            case options.fetch(:backend, DEFAULT_BACKEND)
             when 'cpp'
               Kernel.require_relative './compiler/backends/cpp_backend' unless RUBY_ENGINE == 'natalie'
               CppBackend

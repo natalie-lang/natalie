@@ -28,7 +28,11 @@ class ReplWrapper
 end
 
 describe 'REPL' do
-  before { @repl = ReplWrapper.new([NAT_BINARY, "--backend=#{ENV.fetch('NAT_REPL_TEST_BACKEND', 'cpp')}"]) }
+  before do
+    arguments = [NAT_BINARY]
+    arguments << "--backend=#{ENV.fetch('NAT_REPL_TEST_BACKEND')}" if ENV['NAT_REPL_TEST_BACKEND']
+    @repl = ReplWrapper.new(arguments)
+  end
 
   after { @repl.quit }
 

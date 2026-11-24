@@ -267,7 +267,7 @@ module Natalie
                 ast:,
                 path: current_path,
                 options: {
-                  backend: @compiler_options.fetch(:backend, 'cpp'),
+                  backend: @compiler_options.fetch(:backend, Compiler::DEFAULT_BACKEND),
                   build: @compiler_options[:build],
                   ld_flags: nil,
                 },

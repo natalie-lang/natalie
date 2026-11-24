@@ -23,7 +23,7 @@ Dir[specs].each do |path|
       output_path = File.join(out_dir, path.tr('/.', '_')) + '.cpp'
       system(
         env,
-        "bin/natalie -d cpp #{path} 2>/dev/null > #{output_path}",
+        "bin/natalie --backend=cpp -d cpp #{path} 2>/dev/null > #{output_path}",
         exception: true
       )
     rescue Exception => e

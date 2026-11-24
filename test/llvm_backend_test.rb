@@ -23,6 +23,16 @@ class LlvmBackendTest < Minitest::Test
     assert_empty stderr
   end
 
+  def test_cli_and_compiler_api_use_llvm_by_default
+    parser = Natalie::Parser.new('42', '-e')
+    compiler = Natalie::Compiler.new(ast: parser.ast, path: '-e')
+    assert_instance_of Natalie::Compiler::LlvmBackend, compiler.backend
+    stdout, stderr, status = run_cli('-d', 'code', '-e', '42')
+    assert status.success?, stderr
+    assert_includes stdout, 'define i64 @nat_llvm_eval'
+    refute_includes stdout, '#include'
+  end
+
   def test_native_helpers_compile_without_loading_the_cpp_backend
     Dir.mktmpdir('natalie-independent-llvm') do |dir|
       output = File.join(dir, 'program')

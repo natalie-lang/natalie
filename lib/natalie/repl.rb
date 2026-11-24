@@ -186,7 +186,7 @@ loop do
       path: source_path,
       encoding: parser.encoding,
       options: {
-        backend: ENV.fetch('NAT_REPL_BACKEND', 'cpp'),
+        backend: ENV.fetch('NAT_REPL_BACKEND', Natalie::Compiler::DEFAULT_BACKEND),
       },
     )
   compiler.repl = true

@@ -55,9 +55,7 @@ OptionParser
 
     opts.on('-e one-line-script', 'Execute one-line script') { |e| options[:execute] << e }
 
-    opts.on('--backend=BACKEND', 'Compiler backend: cpp (default) or llvm (experimental)') do |backend|
-      options[:backend] = backend
-    end
+    opts.on('--backend=BACKEND', 'Compiler backend: llvm (default) or cpp') { |backend| options[:backend] = backend }
 
     opts.on('--emit-llvm', 'Print LLVM IR without compiling (implies --backend=llvm)') do
       options[:backend] = 'llvm'
@@ -204,7 +202,7 @@ class Runner
   def run_temp_and_wait(path)
     var_name = RbConfig::CONFIG['LIBPATHENV']
     env = { var_name => Natalie::Compiler::NativeBuild::LIB_PATHS.join(':') }
-    env['NAT_REPL_BACKEND'] = options.fetch(:backend, 'cpp') if @repl
+    env['NAT_REPL_BACKEND'] = options.fetch(:backend, Natalie::Compiler::DEFAULT_BACKEND) if @repl
     pid = spawn(env, path, *ARGV)
     Process.wait(pid)
     @run_result = $?
