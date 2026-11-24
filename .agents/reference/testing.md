@@ -7,9 +7,9 @@ regression cases and other custom tests under `test/`; do not add them to the
 imported spec files. Existing `NATFIXME` markers may be removed when their
 upstream examples pass.
 
-Use MRI as the semantic reference when comparing backends. If a comparison
-exposes a C++ backend bug, fix it rather than reproducing the bug in LLVM.
-Remove resolved `NATFIXME` markers and keep regression coverage for both backends.
+Use MRI as the semantic reference. Fix runtime or compiler bugs exposed by
+comparisons rather than matching incorrect behavior. Remove resolved
+`NATFIXME` markers and keep regression coverage.
 
 Run focused tests with `bin/natalie spec/core/string/strip_spec.rb` or `bundle exec ruby test/ruby/argv_test.rb`. Add relevant regression coverage; no numeric coverage threshold is documented.
 

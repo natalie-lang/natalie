@@ -25,15 +25,6 @@ module Natalie
         rest = { none: 0, present: 1, forbidden: 2 }.fetch(@keyword_rest)
         transform.emit "call void @nat_llvm_check_keywords(ptr %env, ptr %args, i64 #{@required_keywords.size}, ptr #{required}, i64 #{@optional_keywords.size}, ptr #{optional}, i32 #{rest})"
       end
-
-      def generate(transform)
-        transform.exec(
-          'args.check_keyword_args(env, ' \
-            "{ #{@required_keywords.map { |kw| transform.intern(kw) }.join(', ')} }, " \
-            "{ #{@optional_keywords.map { |kw| transform.intern(kw) }.join(', ')} }, " \
-            "Args::KeywordRestType::#{@keyword_rest.capitalize})",
-        )
-      end
     end
   end
 end

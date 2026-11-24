@@ -3,7 +3,7 @@ require_relative '../native_build'
 module Natalie
   class Compiler
     module NativeBuild
-      # C++ expression rendering shared by native macros and the legacy backend.
+      # C++ expression rendering for explicit native macros.
       class CodeWriter
         def initialize(compiler_context:, transform_data:, stack: [])
           @code = []

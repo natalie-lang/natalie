@@ -20,16 +20,6 @@ module Natalie
         namespace, value = transform.pop, transform.pop
         transform.emit "call void @nat_llvm_const_set(ptr %env, i64 #{namespace}, ptr #{transform.string(@name.to_s)}, i64 #{value}, i32 #{@strict ? 1 : 0})"
       end
-
-      def generate(transform)
-        namespace = transform.pop
-        value = transform.pop
-        if @strict
-          transform.exec("Object::const_set(env, #{namespace}, #{transform.intern(@name)}, #{value})")
-        else
-          transform.exec("Object::const_set_not_strict(env, #{transform.intern(@name)}, #{value})")
-        end
-      end
     end
   end
 end

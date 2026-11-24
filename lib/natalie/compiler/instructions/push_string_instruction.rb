@@ -37,26 +37,6 @@ module Natalie
         )
       end
 
-      def generate(transform)
-        if frozen?
-          str = transform.interned_string(@string, @encoding)
-          transform.push("Value(#{str})")
-        else
-          enum = @encoding.name.tr('-', '_').upcase
-          encoding_object = "EncodingObject::get(Encoding::#{enum})"
-          name =
-            if @string.empty?
-              transform.exec_and_push(:string, "Value(StringObject::create(#{encoding_object}))")
-            else
-              transform.exec_and_push(
-                :string,
-                "Value(StringObject::create(#{string_to_cpp(@string)}, (size_t)#{@bytesize}, #{encoding_object}))",
-              )
-            end
-          transform.exec("#{name}.as_string()->set_chilled(StringObject::Chilled::String)") if chilled?
-        end
-      end
-
       private
 
       def frozen?

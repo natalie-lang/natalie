@@ -21,14 +21,6 @@ module Natalie
           "call i64 @nat_llvm_cvar_get(ptr %env, i64 %self, ptr #{transform.string(@name.to_s)}, i32 #{@default_to_nil ? 1 : 0})",
         )
       end
-
-      def generate(transform)
-        if @default_to_nil
-          transform.exec_and_push(:cvar, "self->cvar_get_maybe(env, #{transform.intern(@name)}).value_or(Value::nil())")
-        else
-          transform.exec_and_push(:cvar, "self->cvar_get(env, #{transform.intern(@name)})")
-        end
-      end
     end
   end
 end

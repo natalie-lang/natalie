@@ -27,22 +27,6 @@ module Natalie
           "call i64 @nat_llvm_lambda(ptr %env, i64 #{transform.pop}, i64 #{@break_point ? transform.break_point(@break_point) : 0})",
         )
       end
-
-      def generate(transform)
-        transform.set_file(@file)
-        transform.set_line(@line)
-
-        block = transform.pop
-        block_temp = transform.temp('block')
-        transform.exec_and_push(
-          :lambda,
-          [
-            "auto #{block_temp} = #{block}",
-            "#{block_temp}->set_type(Block::BlockType::Lambda)",
-            "Value(ProcObject::create(#{block_temp}, #{@break_point || 0}))",
-          ],
-        )
-      end
     end
   end
 end

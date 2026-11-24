@@ -21,15 +21,6 @@ module Natalie
           "call i64 @nat_llvm_case_equal(ptr %env, i64 #{transform.peek}, i64 #{when_value}, i32 #{@is_splat ? 1 : 0})",
         )
       end
-
-      def generate(transform)
-        when_value = transform.pop
-        case_value = transform.peek
-        transform.exec_and_push(
-          :is_case_equal,
-          "is_case_equal(env, #{case_value}, #{when_value}, #{@is_splat ? 'true' : 'false'})",
-        )
-      end
     end
   end
 end

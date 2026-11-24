@@ -41,26 +41,6 @@ module Natalie
           )
         transform.emit "call void @nat_llvm_define_method(ptr %env, i64 #{klass}, ptr #{transform.string(@name.to_s)}, ptr #{fn}, i32 #{@arity}, ptr #{transform.string(@file)}, i64 #{@line}, i64 #{point}, ptr #{transform.parameter_table(@parameters)})"
       end
-
-      def generate(transform)
-        transform.set_file(@file)
-        transform.set_line(@line)
-
-        klass = transform.pop
-        body = transform.fetch_block_of_instructions(expected_label: :define_method)
-        fn = transform.temp("defn_#{@name}")
-        transform.with_new_scope(body) do |t|
-          body = []
-          body << "Value #{fn}(Env *env, Value self, Args &&args, Block *block) {"
-          body << t.transform('return')
-          body << '}'
-          transform.top(fn, body)
-        end
-        params_ref = @parameters.empty? ? 'nullptr' : transform.intern_param_table(@parameters)
-        transform.exec(
-          "Object::define_method(env, #{klass}, #{transform.intern(@name)}, #{fn}, #{@arity}, #{@break_point.to_i}, #{params_ref})",
-        )
-      end
     end
   end
 end

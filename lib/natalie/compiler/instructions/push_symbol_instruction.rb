@@ -17,11 +17,6 @@ module Natalie
         name = @name.to_s
         transform.push_call("call i64 @nat_llvm_symbol(ptr #{transform.symbol_name(name)}, i64 #{name.bytesize})")
       end
-
-      def generate(transform)
-        sym = transform.intern(@name)
-        transform.push("Value(#{sym})")
-      end
     end
   end
 end

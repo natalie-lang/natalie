@@ -35,21 +35,19 @@ class LlvmDebugInfoTest < Minitest::Test
   def test_macos_uncached_executables_retain_debug_symbols
     skip 'Requires macOS debug maps' unless RUBY_PLATFORM.include?('darwin')
 
-    %w[llvm cpp].each do |backend|
-      Dir.mktmpdir('natalie-uncached-debug') do |dir|
-        source = File.join(dir, 'program.rb')
-        File.write(source, "def answer\n  42\nend\np answer\n")
-        executable = File.join(dir, 'program')
-        compile_debug_program(source, executable, nil, backend:)
-        bundle = "#{executable}.dSYM"
-        assert File.directory?(bundle), "Missing debugger bundle for #{backend}"
-        name = backend == 'llvm' ? 'answer' : 'EVAL'
-        stdout, stderr, status = Open3.capture3('dwarfdump', "--name=#{name}", bundle)
-        assert status.success?, stderr
-        assert_includes stdout, 'DW_TAG_subprogram'
-        assert_includes stdout, 'DW_AT_decl_file'
-        assert_includes stdout, 'program.rb' if backend == 'llvm'
-      end
+    Dir.mktmpdir('natalie-uncached-debug') do |dir|
+      source = File.join(dir, 'program.rb')
+      File.write(source, "def answer\n  42\nend\np answer\n")
+      executable = File.join(dir, 'program')
+      compile_debug_program(source, executable, nil)
+      bundle = "#{executable}.dSYM"
+      assert File.directory?(bundle), 'Missing debugger bundle'
+      name = 'answer'
+      stdout, stderr, status = Open3.capture3('dwarfdump', "--name=#{name}", bundle)
+      assert status.success?, stderr
+      assert_includes stdout, 'DW_TAG_subprogram'
+      assert_includes stdout, 'DW_AT_decl_file'
+      assert_includes stdout, 'program.rb'
     end
   end
 
@@ -176,11 +174,11 @@ class LlvmDebugInfoTest < Minitest::Test
 
   private
 
-  def compile_debug_program(source, executable, cache, backend: 'llvm', compilation_type: 'executable')
+  def compile_debug_program(source, executable, cache, compilation_type: 'executable')
     driver = <<~RUBY
       require #{File.join(ROOT, 'lib/natalie').inspect}
       parser = Natalie::Parser.new(File.read(#{source.inspect}), #{source.inspect})
-      compiler = Natalie::Compiler.new(ast: parser.ast, path: #{source.inspect}, options: { backend: #{backend.inspect}, build: 'debug', compilation_type: #{compilation_type.inspect}, build_dir: #{cache.inspect}, build_quietly: true })
+      compiler = Natalie::Compiler.new(ast: parser.ast, path: #{source.inspect}, options: { backend: 'llvm', build: 'debug', compilation_type: #{compilation_type.inspect}, build_dir: #{cache.inspect}, build_quietly: true })
       compiler.out_path = #{executable.inspect}
       compiler.compile
     RUBY

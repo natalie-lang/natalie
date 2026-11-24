@@ -30,19 +30,6 @@ module Natalie
           "call i64 @nat_llvm_yield(ptr %env, i64 #{argc}, ptr #{transform.argument_array(args)}, i32 #{@has_keyword_hash ? 1 : 0})",
         )
       end
-
-      def generate(transform)
-        if @args_array_on_stack
-          args = "#{transform.pop}.as_array()"
-          args_list = "Args(#{args}, #{@has_keyword_hash ? 'true' : 'false'})"
-        else
-          arg_count = transform.pop
-          args = []
-          arg_count.times { args.unshift transform.pop }
-          args_list = "Args({ #{args.join(', ')} }, #{@has_keyword_hash ? 'true' : 'false'})"
-        end
-        transform.exec_and_push :yield, "env->nearest_block()->run(env, #{args_list}, nullptr)"
-      end
     end
   end
 end

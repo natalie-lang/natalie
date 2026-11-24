@@ -8,8 +8,7 @@ require 'rbconfig'
 require 'shellwords'
 require 'tmpdir'
 
-# Run unchanged specs through both compiler backends, including ruby_exe children.
-# Reports distinguish matching passes from empty runs, timeouts, and failures.
+# Run unchanged specs, including ruby_exe children, with bounded deadlines.
 class LlvmSpecRunner
   ROOT = File.expand_path('..', __dir__)
   CLI = File.join(ROOT, 'bin/natalie')
@@ -17,14 +16,14 @@ class LlvmSpecRunner
   def initialize(argv)
     @jobs = [Etc.nprocessors, 4].min
     @timeout = 120
-    @backends = %w[cpp llvm]
+    @backends = %w[llvm]
     @report = File.join(ROOT, 'build/llvm-spec-results.json')
     parser =
       OptionParser.new do |opts|
         opts.banner = 'Usage: bundle exec ruby tools/llvm_spec_runner.rb [options] SPEC_OR_GLOB ...'
         opts.on('--jobs=N', Integer) { |n| @jobs = n }
         opts.on('--timeout=SECONDS', Float) { |n| @timeout = n }
-        opts.on('--backend=BACKEND', %w[cpp llvm both]) { |b| @backends = b == 'both' ? %w[cpp llvm] : [b] }
+        opts.on('--backend=BACKEND', %w[llvm]) { |b| @backends = [b] }
         opts.on('--report=PATH') { |path| @report = File.expand_path(path) }
         opts.on('--build-dir=PATH') { |path| @build_dir = File.expand_path(path) }
         opts.on('-h', '--help') do
@@ -98,14 +97,9 @@ class LlvmSpecRunner
   end
 
   def classify(results)
-    if results.values.all? { |result| result[:success] }
-      return 'empty' if results.values.any? { |result| result[:counts]['passed'].zero? }
-      return results.values.map { |result| result[:counts] }.uniq.size == 1 ? 'passed' : 'different_counts'
-    end
-    return 'failed' if results.size == 1
-    return 'llvm_failed' if results.fetch('cpp')[:success]
-    return 'cpp_failed' if results.fetch('llvm')[:success]
-    'both_failed'
+    result = results.fetch('llvm')
+    return 'failed' unless result[:success]
+    result[:counts]['passed'].zero? ? 'empty' : 'passed'
   end
 
   def run
@@ -151,12 +145,12 @@ class LlvmSpecRunner
           jobs: @jobs,
           timeout: @timeout,
           summary: summary,
-          matching_passed_examples: examples,
+          passed_examples: examples,
           results: results.sort_by { |r| r[:file] },
         },
       ) + "\n",
     )
-    puts "#{summary.inspect}; #{examples} passed examples in matching successful files"
+    puts "#{summary.inspect}; #{examples} passed examples in successful files"
     puts "Report: #{@report}"
     summary.keys.all? { |key| %w[passed empty].include?(key) }
   end

@@ -19,17 +19,6 @@ module Natalie
           "call i64 @nat_llvm_hash(ptr %env, i64 #{items.size}, ptr #{transform.argument_array(items)})",
         )
       end
-
-      def generate(transform)
-        items = []
-        @count.times do
-          items.unshift(transform.pop)
-          items.unshift(transform.pop)
-        end
-        items_temp = transform.temp('items')
-        transform.exec("Value #{items_temp}[] = { #{items.join(', ')} };")
-        transform.exec_and_push(:hash, "Value(HashObject::create(env, #{items.size}, #{items_temp}))")
-      end
     end
   end
 end

@@ -11,10 +11,6 @@ module Natalie
         depth, index = transform.anonymous_variable(self, :block)
         transform.push_call("call i64 @nat_llvm_var_get(ptr %env, i64 #{depth}, i64 #{index})")
       end
-
-      def generate(transform)
-        transform.push('anon_block')
-      end
     end
   end
 end

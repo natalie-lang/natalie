@@ -17,14 +17,6 @@ module Natalie
         # The runtime owns the representation, including bignum promotion.
         transform.push_call("call i64 @nat_llvm_integer(ptr #{transform.string(@int.to_s)})")
       end
-
-      def generate(transform)
-        if @int > NAT_MAX_FIXNUM || @int < NAT_MIN_FIXNUM
-          transform.push("Value::integer(#{@int.to_s.inspect})")
-        else
-          transform.push("Value::integer(#{@int})")
-        end
-      end
     end
   end
 end

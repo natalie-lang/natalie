@@ -22,25 +22,6 @@ module Natalie
         transform.symbol_name(name.to_s)
         # Environment slots are initialized to nil at function entry.
       end
-
-      def generate(transform)
-        transform.intern(name)
-        depth, var = transform.find_var(name, local_only: @local_only)
-        index = var.fetch(:index)
-
-        return if @meta.fetch(:declared)
-
-        env = 'env'
-        depth.times { env << '->outer()' }
-
-        if @meta.fetch(:captured)
-          @meta[:declared] = true
-          transform.exec("#{env}->var_set(#{name.to_s.inspect}, #{index}, true, Value::nil())")
-        else
-          @meta[:declared] = true
-          transform.exec("Value #{@meta[:name]} = Value::nil()")
-        end
-      end
     end
   end
 end

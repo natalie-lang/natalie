@@ -10,12 +10,6 @@ module Natalie
       def generate_llvm(transform)
         transform.push_call("call i64 @nat_llvm_match_exception(ptr %env, ptr %exception, i64 #{transform.pop})")
       end
-
-      def generate(transform)
-        ary = transform.pop
-        code = "exception->match_rescue_array(env, #{ary})"
-        transform.exec_and_push(:match_exception_result, code)
-      end
     end
   end
 end

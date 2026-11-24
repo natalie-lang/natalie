@@ -23,7 +23,7 @@ The normal build compiles runtime Ruby files with LLVM and includes the runtime
 bridge in Natalie's runtime libraries. It also builds the executable startup
 object. The REPL compiler library and `rake bootstrap` compiler executable are
 also compiled with LLVM. The CLI, compiler API, compile-time load-path helpers,
-and REPL default to LLVM; use `--backend=cpp` for an explicit C++ comparison.
+and REPL use LLVM. The former C++ Ruby-code backend has been removed.
 After building Natalie, run a script:
 
 ```sh
@@ -110,7 +110,7 @@ NAT_REPL_TEST_BACKEND=llvm bundle exec ruby test/ruby/repl_test.rb
 ```
 
 The CLI passes its backend selection to the running REPL. Each input compiles to
-an LLVM shared library with the same `EVAL` entrypoint used by the C++ REPL.
+an LLVM shared library exposing the REPL `EVAL` entrypoint.
 Inputs share a growing local-variable vector, preserving earlier values and
 closure captures. Native extension initializers run before evaluating the input.
 The LLVM test task includes the shared REPL regression tests; the ordinary Ruby
@@ -140,8 +140,8 @@ combined object, and shared-library output all support the cache.
 Each build regenerates IR to validate cache keys and relinks the output.
 Atomic replacements and a persistent per-program lock protect concurrent
 builders. `--build-quietly` suppresses build progress; `NAT_VERBOSE=1` reports
-reused objects when progress is enabled. C++ and LLVM can share a build directory
-because LLVM artifacts have their own namespace.
+reused objects when progress is enabled. LLVM artifacts have their own namespace
+inside the build directory.
 
 ## Supported Features and Boundaries
 
@@ -166,8 +166,7 @@ Natalie's existing GC-managed environments.
 The sidecar object uses `NativeBuild::NativeCall` for these macros and
 `NativeBuild::SourceFile` for compilation flags and diagnostics. The native
 renderer accepts only explicit native macros; it does not load or invoke the
-C++ Ruby backend. Initialization runs
-before the LLVM entrypoint's Ruby instructions, matching the C++ backend.
+retired C++ Ruby backend. Initialization runs before the LLVM entrypoint's Ruby instructions.
 
 LLVM calls generated `extern "C"` wrappers using tagged machine words and
 pointers. C++ `Value`, `Args`, and method-function calling conventions stay
@@ -180,7 +179,7 @@ the sidecar when one is needed.
 The existing generator handles method/static-method bindings, allocation hooks,
 constants, native method definitions, function declarations/calls, and compile/link
 flags. Top-level inline declarations are supported. Scoped `__inline__` code is
-retired on both backends. Use explicit native helper calls or native method
+retired. Use explicit native helper calls or native method
 definitions instead; see [Native code](native-code.md).
 
 Tests include a native extension fixture, C++-to-LLVM block callbacks, linking a
@@ -190,8 +189,7 @@ The full Ruby `tempfile` library is also exercised through `Tempfile.create`.
 ## Shared Libraries
 
 Relocatable object output (`--compilation-type=object -c widgets.rb.o`) exports
-the same C++ `Value init_<object_name>(Env *, Value)` initializer ABI as the
-C++ backend. A small C++ shim adapts this ABI to the LLVM entrypoint, even for
+the runtime C++ `Value init_<object_name>(Env *, Value)` initializer ABI. A small C++ shim adapts this ABI to the LLVM entrypoint, even for
 pure Ruby objects. Link the resulting object with the LLVM runtime bridge and
 Natalie's runtime. Each object's LLVM entrypoints, native wrappers, and required
 file symbols have an output-specific namespace, allowing multiple objects to
@@ -202,7 +200,7 @@ value, and support explicit returns and `ensure`.
 `Native#emit_object` API can turn that IR into a raw LLVM object without C++, but
 that raw object does not include the C++ initializer shim.
 
-Compile a library using the same output mode as the C++ backend:
+Compile a shared library:
 
 ```sh
 bin/natalie --backend=llvm --compilation-type=shared-object \
@@ -223,11 +221,10 @@ functions and native wrappers are local or hidden so multiple libraries can
 be loaded into the same process. Non-local jumps use private address tokens
 so independently compiled libraries cannot catch each other's returns or breaks.
 Keep libraries loaded while their Ruby
-methods, closures, or literal caches remain reachable. As with C++ output,
-add an explicit `extern "C"` wrapper when exposing initialization through FFI
+methods, closures, or literal caches remain reachable. Add an explicit `extern "C"` wrapper when exposing initialization through FFI
 rather than linking to the C++ entrypoint directly.
 
-Integration tests load two libraries into both C++ and LLVM hosts and exercise
+Integration tests load two libraries into LLVM hosts and exercise
 native extension callbacks, GC, return values, exception propagation, and `$0`.
 
 ## Runtime Semantics
@@ -247,7 +244,7 @@ Literal caches live in the shared runtime, with GC roots and a recursive guard.
 Both backends skip `/o` interpolation after successful initialization, retry it
 after an exception or local jump, and serialize concurrent initialization.
 
-Autoload uses the same compile-time restrictions as the C++ backend: bare
+Autoload uses compile-time restrictions: bare
 `autoload` calls with statically resolvable constant names and paths. The
 constant holds a GC-traced loader block until lookup triggers the compiled
 file. Literal lookup and `Module#const_get` trigger loading. If executing the
@@ -257,7 +254,7 @@ can be retried. Loaded-file returns count as successful requires; explicit
 Dynamic runtime `Module#autoload` calls remain outside this static macro path.
 
 `--profile-app` and `--print-objects` use the shared native startup generator
-with the same runtime instrumentation as the C++ backend. A configured startup
+with the runtime's native instrumentation. A configured startup
 object is compiled only when these options are requested; ordinary executables
 reuse the prebuilt startup object. Cached builds keep the configured startup in
 `entrypoint.o`, independently of native extensions in `native.o`.
@@ -269,7 +266,7 @@ The normal ruby/spec runner now works for the unmodified
 bin/natalie --backend=llvm spec/core/nil/nil_spec.rb
 # 1 spec(s) passed.
 bin/natalie --backend=llvm spec/language/keyword_arguments_spec.rb
-# 22 spec(s) passed; 8 existing skips (same result as the C++ backend).
+# 22 spec(s) passed; 8 existing skips.
 ```
 
 This compiles the shared helpers and their Ruby/native dependencies through the
@@ -278,10 +275,9 @@ assertion failure is reported as a failed spec with exit status 1. This proves a
 real runner path, not general ruby/spec conformance; other specs can still use
 unsupported instructions or encounter incomplete behavior.
 
-## Comparing Specs With C++
+## Running Spec Selections
 
-Run a selection through both backends, with bounded parallelism and per-file
-compile/run deadlines:
+Run unchanged specs with bounded parallelism and per-file compile/run deadlines:
 
 ```sh
 bundle exec ruby tools/llvm_spec_runner.rb --jobs=4 --timeout=120 \
@@ -289,36 +285,12 @@ bundle exec ruby tools/llvm_spec_runner.rb --jobs=4 --timeout=120 \
   --report=build/llvm-spec-results.json 'spec/language/*_spec.rb'
 ```
 
-The runner sets `NAT_BINARY` to a backend-specific executable wrapper, so
-`ruby_exe` child programs use the same backend as their parent spec. It records
-exit status, signals, timeouts, full output, and passed/failed/errored/skipped
-counts for each backend in JSON. A matching pass requires successful, nonempty
-runs with identical counts. Empty runs and failures are listed separately and
-never added to the matching passed-example total. Use `--backend=llvm` for a
-single-backend run while diagnosing a failure.
-The optional `--build-dir` gives each backend a separate cache and applies to
-both parent specs and their child compiler invocations.
+The runner sets `NAT_BINARY` for `ruby_exe` children, applies the build directory
+and deadlines, and records exit status, signals, timeouts, output, and example
+counts in JSON. Only successful, nonempty files contribute to `passed_examples`.
+Empty files and failures are reported separately. Existing `NATFIXME` skips
+remain distinct from passing examples.
 
-For the broader language, method/Proc, and numeric selection used during backend
-development:
-
-```sh
-bundle exec ruby tools/llvm_spec_runner.rb --jobs=6 --timeout=180 \
-  --report=build/llvm-spec-final.json 'spec/language/*_spec.rb' \
-  'spec/core/{method,proc,integer,rational,complex,nil,true,false}/*_spec.rb'
-```
-
-This selection includes existing `NATFIXME` skips. Matching results demonstrate
-coverage of the active examples, rather than full Ruby conformance. Files with
-no active examples remain separate from successful spec files in the report.
-
-Validation at `c8f10470d` (2026-11-23): all 65 language files matched, with 2,323
-passing examples. Another 207 core files matched, with 1,301 passing examples.
-Two core files had no active examples. The full selection retained 598 skips.
-The LLVM backend and runner suites also passed: 67 tests / 295 assertions and
-3 tests / 15 assertions, respectively.
-
-Autoload follow-up validation: 13 autoload examples pass on MRI, C++, and LLVM.
-A focused ten-file comparison covering autoload, file loading, constant lookup,
-and NameError behavior matches on 487 passing examples. The LLVM backend suite
-now has 69 tests / 303 assertions; the runner suite has 3 tests / 15 assertions.
+Before removing the C++ backend, all 65 language files matched between the two
+backends on 2,319 active passing examples. The expected-passing C++ suite also
+passed 3,044 tests and 6,305 assertions against the LLVM-built Ruby runtime.

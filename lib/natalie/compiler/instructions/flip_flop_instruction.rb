@@ -51,44 +51,6 @@ module Natalie
         transform.stack.replace(baseline)
         transform.push(transform.value("load volatile i64, ptr #{result}"))
       end
-
-      def generate(transform)
-        depth, var = transform.find_var(@state_name)
-        env = "env#{'->outer()' * depth}"
-        state = "#{env}->var_get(#{@state_name.to_s.inspect}, #{var.fetch(:index)})"
-        set_state = ->(value) do
-          "#{env}->var_set(#{@state_name.to_s.inspect}, #{var.fetch(:index)}, true, Value::#{value}())"
-        end
-
-        switch_on_body =
-          transform.fetch_block_of_instructions(until_instruction: ElseInstruction, expected_label: :flip_flop)
-        switch_off_body = transform.fetch_block_of_instructions(expected_label: :flip_flop)
-
-        code = []
-        result = transform.temp('flip_flop_result')
-        transform.normalize_stack do
-          switch_on_result = transform.temp('switch_on_result')
-          switch_off_result = transform.temp('switch_on_result')
-
-          was_on = transform.temp('flip_flop_was_on')
-          code << "bool #{was_on} = #{state}.is_truthy()"
-          code << "bool #{result} = #{was_on}"
-          code << "if (!#{result}) {"
-          transform.with_same_scope(switch_on_body) { |t| code << t.transform("Value #{switch_on_result} =") }
-          code << "  if (#{switch_on_result}.is_truthy()) {"
-          code << "    #{set_state.call('True')}"
-          code << "    #{result} = true"
-          code << '  }'
-          code << '}'
-          code << "if (#{result}#{@exclude_end ? " && #{was_on}" : ''}) {"
-          transform.with_same_scope(switch_off_body) { |t| code << t.transform("Value #{switch_off_result} =") }
-          code << "  if (#{switch_off_result}.is_truthy()) #{set_state.call('False')}"
-          code << '}'
-        end
-
-        transform.exec(code)
-        transform.push("(#{result} ? Value::True() : Value::False())")
-      end
     end
   end
 end

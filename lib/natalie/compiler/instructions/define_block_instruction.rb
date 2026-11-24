@@ -44,37 +44,6 @@ module Natalie
           "call i64 @nat_llvm_block(ptr %env, i64 %self, ptr #{fn}, i32 #{@arity}, i64 #{point}, i32 #{has_return? ? 1 : 0}, i64 #{@redo_point ? transform.break_point(@redo_point) : 0}, ptr #{transform.parameter_table(@parameters)}, ptr #{transform.string(@file || transform.source_path)}, i64 #{@line || 0})",
         )
       end
-
-      def generate(transform)
-        body = transform.fetch_block_of_instructions(expected_label: :define_block)
-        fn = transform.temp('block')
-        transform.with_new_scope(body) do |t|
-          body = []
-          body << "Value #{fn}(Env *env, Value self, Args &&args, Block *block) {"
-          body << 'try {' if @redo_point || @next_point
-          body << t.transform('return')
-          if @redo_point || @next_point
-            body << '} catch (ExceptionObject *exception) {'
-            if @next_point
-              body << "if (exception->is_local_jump_error_with_break_point(#{@next_point})) return exception->ivar_get(env, \"@exit_value\"_s);"
-            end
-            if @redo_point
-              body << "if (exception->is_local_jump_error_with_break_point(#{@redo_point})) {"
-              body << 'FiberObject::current()->set_redo_flag();'
-              body << 'return Value::nil();'
-              body << '}'
-            end
-            body << 'throw;'
-            body << '}'
-          end
-          body << '}'
-          transform.top(fn, body)
-        end
-        params_ref = @parameters.empty? ? 'nullptr' : transform.intern_param_table(@parameters)
-        transform.push(
-          "Block::create(*env, self, #{fn}, #{@arity}, #{has_return?}, Block::BlockType::Proc, #{params_ref})",
-        )
-      end
     end
   end
 end

@@ -29,9 +29,8 @@ OptionParser
       'Show debug output (specify option below)',
       options: {
         '{p1,p2,p3,p4}' => 'print intermediate instructions from individual compiler pass',
-        '{code,cpp}' => 'print generated code (C++ or LLVM IR)',
+        'code' => 'print generated LLVM IR and native extension source',
         'S' => 'print generated assembly',
-        'transform' => 'only transform the code to C++ without outputting it (can be used for profiling the compiler)',
         'cc-cmd' => 'show the gcc/clang compiler command that will be run',
         'callgrind' =>
           'run the resulting binary with valgrind (callgrind) and create a profile (set CALLGRIND_RUN to open)',
@@ -41,7 +40,7 @@ OptionParser
     ) do |type|
       case type
       when true, 'code', 'c', 'cpp', 'c++'
-        options[:debug] = 'cpp'
+        options[:debug] = 'code'
       when /^p\d/, 'S', 'cc-cmd', 'callgrind', 'strace'
         options[:debug] = type
       when 'gdb', 'lldb'
@@ -56,7 +55,7 @@ OptionParser
 
     opts.on('-e one-line-script', 'Execute one-line script') { |e| options[:execute] << e }
 
-    opts.on('--backend=BACKEND', 'Compiler backend: llvm (default) or cpp') { |backend| options[:backend] = backend }
+    opts.on('--backend=BACKEND', 'Compiler backend: llvm') { |backend| options[:backend] = backend }
 
     opts.on('--emit-llvm', 'Print LLVM IR without compiling (implies --backend=llvm)') do
       options[:backend] = 'llvm'
@@ -150,7 +149,7 @@ class Runner
     elsif options[:compile]
       compiler.out_path = options[:compile]
       compiler.compile
-    elsif options[:debug] == 'cpp'
+    elsif options[:debug] == 'code'
       paths = compiler.write_files_for_debugging
       print_generated_sources(paths)
     elsif options[:debug] == 'S'
@@ -304,18 +303,18 @@ class Runner
   end
 
   def print_generated_sources(paths)
-    if system('which bat 2>&1 >/dev/null')
+    if ENV['DO_NOT_PRINT_SOURCE_PATH']
+      paths.each { |path| puts File.read(path) }
+    elsif system('which bat 2>&1 >/dev/null')
       system('bat', *paths)
     elsif system('which batcat 2>&1 >/dev/null')
       system('batcat', *paths)
     else
       paths.each do |path|
-        unless ENV['DO_NOT_PRINT_CPP_PATH']
-          puts
-          puts '=' * 80
-          puts path
-          puts '-' * 80
-        end
+        puts
+        puts '=' * 80
+        puts path
+        puts '-' * 80
         puts File.read(path)
       end
     end

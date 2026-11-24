@@ -16,13 +16,6 @@ module Natalie
           "call i64 @nat_llvm_keyword_rest(ptr %env, ptr %args, i64 #{@without.size}, ptr #{transform.keyword_names(@without)})",
         )
       end
-
-      def generate(transform)
-        transform.exec_and_push(
-          'kwarg_rest',
-          "args.keyword_arg_rest(env, { #{@without.map { |n| transform.intern(n) }.join(', ')} })",
-        )
-      end
     end
   end
 end

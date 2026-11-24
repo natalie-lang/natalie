@@ -22,19 +22,6 @@ module Natalie
       def generate_llvm(transform)
         transform.emit "call void @nat_llvm_warn(ptr %env, i64 %self, ptr #{transform.string(message)}, i32 #{@level == :verbose ? 1 : 0})"
       end
-
-      def generate(transform)
-        name = transform.temp(:compile_time_warn)
-        transform.exec "static const bool #{name} = [&]() {"
-        if @level && @level == :verbose
-          transform.exec '    if (!GlobalEnv::the()->is_verbose()) {'
-          transform.exec '      return false'
-          transform.exec '    }'
-        end
-        transform.exec "    self.send(env, \"warn\"_s, { StringObject::create(#{string_to_cpp(message)}) })"
-        transform.exec '    return true'
-        transform.exec '}()'
-      end
     end
   end
 end

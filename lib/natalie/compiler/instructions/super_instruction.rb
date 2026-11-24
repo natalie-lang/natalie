@@ -35,31 +35,6 @@ module Natalie
           "call i64 @nat_llvm_super(ptr %env, i64 #{receiver}, i64 #{array}, ptr #{@forward_args ? transform.function_args : 'null'}, i64 #{block}, ptr #{transform.function_block}, i32 #{@with_block ? 1 : 0}, i32 #{@has_keyword_hash ? 1 : 0})",
         )
       end
-
-      def generate(transform)
-        if @forward_args
-          args =
-            'Args(args.original_size(), &tl_current_arg_stack->data()[args.original_start_index()], args.has_keyword_hash())'
-        elsif @args_array_on_stack
-          ary = "#{transform.pop}.as_array()"
-          args = "Args(#{ary}->size(), #{ary}->data(), #{@has_keyword_hash})"
-        else
-          arg_count = transform.pop
-          args = []
-          arg_count.times { args.unshift transform.pop }
-          args = "Args({ #{args.join(', ')} }, #{@has_keyword_hash})"
-        end
-
-        receiver = transform.pop
-
-        # NOTE: There is a similar line in SendInstruction#generate, but
-        # this one differs in that we fall back to sending the `block`
-        # from the current method, if it is set.
-        current_method_block = 'block'
-        block = @with_block ? "to_block(env, #{transform.pop})" : current_method_block
-
-        transform.exec_and_push :super, "super(env, #{receiver}, #{args}, #{block})"
-      end
     end
   end
 end

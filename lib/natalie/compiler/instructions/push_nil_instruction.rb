@@ -10,10 +10,6 @@ module Natalie
       def generate_llvm(transform)
         transform.push('4')
       end
-
-      def generate(transform)
-        transform.push_nil
-      end
     end
   end
 end

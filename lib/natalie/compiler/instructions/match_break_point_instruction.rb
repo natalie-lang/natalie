@@ -18,20 +18,6 @@ module Natalie
           "call i64 @nat_llvm_match_break(ptr %env, ptr %exception, i64 #{transform.break_point(@break_point)})",
         )
       end
-
-      def generate(transform)
-        value = transform.temp('break_value')
-        code = [
-          "Value #{value} = Value::nil()",
-          "if (exception->is_local_jump_error_with_break_point(#{@break_point})) {",
-          "#{value} = exception->ivar_get(env, \"@exit_value\"_s)",
-          '} else {',
-          'throw exception',
-          '}',
-        ]
-        transform.exec(code)
-        transform.push(value)
-      end
     end
   end
 end

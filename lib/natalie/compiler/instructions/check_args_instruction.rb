@@ -24,23 +24,6 @@ module Natalie
         transform.emit "call void @nat_llvm_check_args(ptr %env, ptr %args, i64 #{min}, i64 #{max}, i32 #{@has_keywords ? 1 : 0}, i64 #{@required_keywords.size}, ptr #{transform.keyword_names(@required_keywords)})"
       end
 
-      def generate(transform)
-        case @positional
-        when Integer
-          transform.exec("args.ensure_argc_is(env, #{@positional}, #{@has_keywords}, #{cpp_keywords})")
-        when Range
-          if @positional.end
-            transform.exec(
-              "args.ensure_argc_between(env, #{@positional.begin}, #{@positional.end}, #{@has_keywords}, #{cpp_keywords})",
-            )
-          else
-            transform.exec("args.ensure_argc_at_least(env, #{@positional.begin}, #{@has_keywords}, #{cpp_keywords})")
-          end
-        else
-          raise "unknown CheckArgsInstruction @positional type: #{@positional.inspect}"
-        end
-      end
-
       private
 
       def cpp_keywords

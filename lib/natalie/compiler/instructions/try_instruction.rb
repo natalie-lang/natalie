@@ -35,67 +35,6 @@ module Natalie
         )
       end
 
-      def generate(transform)
-        body = transform.fetch_block_of_instructions(until_instruction: CatchInstruction)
-        catch_body = transform.fetch_block_of_instructions(expected_label: :try) # or else or ensure?
-        result = transform.temp('try_result')
-        code = []
-
-        has_retry = catch_body.detect { |i| i.is_a?(RetryInstruction) }
-
-        # hoisted variables need to be set to nil here
-        (@env[:hoisted_vars] || {}).each do |_, var|
-          code << "Value #{var.fetch(:name)} = Value::nil()"
-          var[:declared] = true
-        end
-
-        code << "Value #{result}"
-
-        if has_retry
-          code << "bool #{retry_name}"
-          code << 'do {'
-          code << "#{retry_name} = false"
-        end
-
-        transform.normalize_stack do
-          code << 'try {'
-          transform.with_same_scope(body) { |t| code << t.transform("#{result} =") }
-
-          code << 'GlobalEnv::the()->set_rescued(false);'
-          code << '} catch(ExceptionObject *exception) {'
-
-          code << 'auto exception_was = env->exception()'
-          # The Defer ensures $! is restored even when the catch body itself
-          # throws (e.g. a `return` from inside rescue, which propagates via
-          # LocalJumpError so a surrounding ensure can run).
-          code << 'Defer restore_exception([&] { env->set_exception(exception_was); })'
-          if @has_ensure
-            # Ensure-only try: control-flow throws (LocalJumpError from
-            # `return`, `break`, etc.) must not clobber $! while the ensure
-            # body runs; only real Ruby exceptions become the new $!.
-            code << 'if (exception->local_jump_error_type() == LocalJumpErrorType::None) env->set_exception(exception)'
-          else
-            code << 'env->set_exception(exception)'
-          end
-
-          transform.with_same_scope(catch_body) { |t| code << t.transform(@discard_catch_result ? nil : "#{result} =") }
-
-          code << 'GlobalEnv::the()->set_rescued(true)'
-
-          # For an ensure-only try the catch body just runs the ensure clause;
-          # the original exception (whether a real Ruby exception or a
-          # control-flow LocalJumpError) must propagate up after that.
-          code << 'throw exception' if @has_ensure
-
-          code << '}'
-        end
-
-        code << "} while (#{retry_name})" if has_retry
-
-        transform.exec(code)
-        transform.push(result)
-      end
-
       @serial = 0
 
       def self.serial

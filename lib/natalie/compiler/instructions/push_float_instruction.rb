@@ -17,18 +17,6 @@ module Natalie
         bits = [@float].pack('G').unpack1('H*')
         transform.push_call("call i64 @nat_llvm_float(double 0x#{bits})")
       end
-
-      def generate(transform)
-        if @float.infinite?
-          if @float.positive?
-            transform.push('Value(FloatObject::positive_infinity(env))')
-          else
-            transform.push('Value(FloatObject::negative_infinity(env))')
-          end
-        else
-          transform.push("Value(FloatObject::create(#{@float}))")
-        end
-      end
     end
   end
 end

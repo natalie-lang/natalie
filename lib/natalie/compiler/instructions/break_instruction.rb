@@ -25,15 +25,6 @@ module Natalie
         transform.emit "#{transform.name('unreachable')}:"
         transform.push('4')
       end
-
-      def generate(transform)
-        raise 'no break point set' unless @break_point
-
-        value = transform.pop
-        type = @type.to_s.capitalize
-        transform.exec("env->raise_local_jump_error(#{value}, LocalJumpErrorType::#{type}, #{@break_point})")
-        transform.push_nil
-      end
     end
   end
 end

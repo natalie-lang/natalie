@@ -19,12 +19,6 @@ module Natalie
           "call i64 @nat_llvm_range(ptr %env, i64 #{beginning}, i64 #{ending}, i32 #{@exclude_end ? 1 : 0})",
         )
       end
-
-      def generate(transform)
-        beginning = transform.pop
-        ending = transform.pop
-        transform.exec_and_push(:range, "Value(RangeObject::create(env, #{beginning}, #{ending}, #{@exclude_end}))")
-      end
     end
   end
 end

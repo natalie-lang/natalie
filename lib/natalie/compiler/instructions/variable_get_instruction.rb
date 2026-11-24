@@ -28,38 +28,6 @@ module Natalie
         depth, index = transform.variable_address(self)
         transform.push_call("call i64 @nat_llvm_var_get(ptr %env, i64 #{depth}, i64 #{index})")
       end
-
-      def generate(transform)
-        depth, var = transform.find_var(@name)
-
-        raise "unknown variable #{@name}" if var.nil?
-
-        env = +'env'
-        depth.times { env << '->outer()' }
-        index = var[:index]
-
-        if !var.fetch(:declared) && @default_to_nil
-          @meta[:declared] = true
-          if @meta.fetch(:captured)
-            "#{env}->var_set(#{@name.to_s.inspect}, #{index}, Value::nil())"
-          else
-            transform.exec("Value #{@meta.fetch(:name)} = Value::nil()")
-          end
-        end
-
-        code =
-          if @meta.fetch(:captured)
-            "#{env}->var_get(#{@name.to_s.inspect}, #{index})"
-          else
-            @meta.fetch(:name)
-          end
-
-        if var.fetch(:declared)
-          transform.push(code)
-        else
-          raise "variable not defined #{@name}"
-        end
-      end
     end
   end
 end

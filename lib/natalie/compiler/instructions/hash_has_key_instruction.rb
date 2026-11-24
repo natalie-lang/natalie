@@ -18,11 +18,6 @@ module Natalie
           "call i64 @nat_llvm_hash_has_key(ptr %env, i64 #{transform.peek}, ptr #{transform.string(@key.to_s)})",
         )
       end
-
-      def generate(transform)
-        hash = transform.peek
-        transform.exec_and_push(:has_key, "bool_object(#{hash}.as_hash()->has_key(env, #{@key.to_s.inspect}_s))")
-      end
     end
   end
 end

@@ -22,16 +22,6 @@ module Natalie
           "call i64 @nat_llvm_string_regexp(ptr %env, i64 #{transform.pop}, i32 #{@options}, i32 #{@encoding == Encoding::EUC_JP ? 1 : 0})",
         )
       end
-
-      def generate(transform)
-        string = transform.pop
-        result =
-          transform.exec_and_push(
-            :regexp,
-            "Value(RegexpObject::create(env, #{string}.as_string()->string(), #{@options}, #{encoding}))",
-          )
-        transform.exec("#{result}.as_regexp()->freeze()")
-      end
     end
   end
 end

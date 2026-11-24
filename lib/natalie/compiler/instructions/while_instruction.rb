@@ -70,69 +70,6 @@ module Natalie
         transform.stack.replace(baseline)
         transform.push(transform.value("load volatile i64, ptr #{result}"))
       end
-
-      def generate(transform)
-        condition = transform.fetch_block_of_instructions(until_instruction: WhileBodyInstruction)
-        body = transform.fetch_block_of_instructions(until_instruction: EndInstruction, expected_label: :while)
-        code = []
-
-        # hoisted variables need to be set to nil here
-        (@env[:hoisted_vars] || {}).each do |_, var|
-          code << "Value #{var.fetch(:name)} = Value::nil()"
-          var[:declared] = true
-        end
-
-        condition_name = transform.temp('while_condition')
-
-        transform.with_same_scope(condition) do |t|
-          code << "auto #{condition_name} = [&]() {"
-          code << 'for (;;) {' if @next_point
-          code << 'try {' if @redo_point || @next_point
-          code << 'ThreadObject::deliver_current_pending(env, ThreadObject::CheckpointKind::NonBlocking);'
-          code << 'if (FiberObject::current()->check_redo_flag_and_clear()) return Value::True();'
-          code << t.transform('return')
-          if @redo_point || @next_point
-            code << '} catch (ExceptionObject *exception) {'
-            code << "if (exception->is_local_jump_error_with_break_point(#{@next_point})) continue;" if @next_point
-            if @redo_point
-              code << "if (exception->is_local_jump_error_with_break_point(#{@redo_point})) return Value::True();"
-            end
-            code << 'throw;'
-            code << '}'
-          end
-          code << '}' if @next_point
-          code << '};'
-        end
-
-        code << "Value #{result_name} = Value::nil()"
-        code << 'try {' if @break_point
-        transform.with_same_scope(body) do |t|
-          code << (@pre ? "while (#{condition_name}().is_truthy()) {" : 'do {')
-          code << 'try {' if @redo_point || @next_point
-          code << t.transform
-          if @redo_point || @next_point
-            code << '} catch (ExceptionObject *exception) {'
-            code << "if (exception->is_local_jump_error_with_break_point(#{@next_point})) continue;" if @next_point
-            if @redo_point
-              code << "if (!exception->is_local_jump_error_with_break_point(#{@redo_point})) throw;"
-              code << 'FiberObject::current()->set_redo_flag();'
-            else
-              code << 'throw;'
-            end
-            code << '}'
-          end
-          code << (@pre ? '}' : "} while (#{condition_name}().is_truthy())")
-        end
-        if @break_point
-          code << '} catch (ExceptionObject *exception) {'
-          code << "if (!exception->is_local_jump_error_with_break_point(#{@break_point})) throw;"
-          code << "#{result_name} = exception->ivar_get(env, \"@exit_value\"_s);"
-          code << '}'
-        end
-
-        transform.exec(code)
-        transform.push(result_name)
-      end
     end
   end
 end

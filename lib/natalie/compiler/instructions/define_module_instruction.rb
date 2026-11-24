@@ -38,31 +38,6 @@ module Natalie
           "call i64 @nat_llvm_define_type(ptr %env, i64 #{namespace}, i64 %self, ptr #{transform.string(@name.to_s)}, i64 #{superclass}, ptr #{fn}, i32 #{private? ? 1 : 0}, i32 1)",
         )
       end
-
-      def generate(transform)
-        transform.set_file(@file)
-        transform.set_line(@line)
-
-        body = transform.fetch_block_of_instructions(expected_label: :define_module)
-
-        fn = transform.temp("module_#{@name}")
-        transform.with_new_scope(body) do |t|
-          fn_code = []
-          fn_code << "Value #{fn}(Env *env, Value self) {"
-          fn_code << t.transform('return')
-          fn_code << '}'
-          transform.top(fn, fn_code)
-        end
-
-        namespace = transform.pop
-        search_mode = private? ? 'StrictPrivate' : 'Strict'
-
-        code = [
-          "Object::define_module(env, #{namespace}, self, #{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, #{fn})",
-        ]
-
-        transform.exec_and_push(:result_of_define_module, code)
-      end
     end
   end
 end

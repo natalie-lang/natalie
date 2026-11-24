@@ -217,7 +217,7 @@ task output_language_specs: :build do
   sh <<~END
     bundle config set --local with 'run_all_specs'
     bundle install
-    GLOB=spec/language/**/*_spec.rb ruby spec/support/cpp_output_specs.rb output/ruby#{version}
+    GLOB=spec/language/**/*_spec.rb ruby tools/compiler_output_specs.rb output/ruby#{version}
   END
 end
 

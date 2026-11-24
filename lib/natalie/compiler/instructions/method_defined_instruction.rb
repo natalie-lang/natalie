@@ -27,25 +27,6 @@ module Natalie
         transform.emit "call void @nat_llvm_method_defined(ptr %env, i64 #{receiver}, ptr #{transform.string(@message.to_s)}, i32 #{receiver == '%self' ? 1 : 0})"
         transform.push('4')
       end
-
-      def generate(transform)
-        if @args_array_on_stack
-          transform.pop
-        else
-          arg_count = transform.pop
-          arg_count.times { transform.pop }
-        end
-
-        receiver = transform.pop
-
-        # NOTE: This seems hacky but defined?(puts) returns true even though it's a private method so
-        # we have to include all methods in this case
-        include_all = receiver == 'self'
-        transform.exec(
-          "if (!#{receiver}.respond_to(env, #{transform.intern(@message)}, #{include_all})) throw ExceptionObject::create()",
-        )
-        transform.push_nil
-      end
     end
   end
 end

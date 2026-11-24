@@ -13,17 +13,6 @@ module Natalie
       def generate_llvm(transform)
         transform.loop_jump(:next)
       end
-
-      def generate(transform)
-        if @jump_point
-          value = 'Value::nil()'
-          transform.exec("env->raise_local_jump_error(#{value}, LocalJumpErrorType::Return, #{@jump_point})")
-          transform.push_nil
-          return
-        end
-        transform.exec('continue')
-        transform.push_nil
-      end
     end
   end
 end

@@ -1,7 +1,7 @@
 # Native Code
 
-Ruby owns local variables and control flow. Scoped `__inline__` is retired on
-both backends: do not embed C++ statements in Ruby methods, blocks, or class
+Ruby owns local variables and control flow. Scoped `__inline__` is retired:
+do not embed C++ statements in Ruby methods, blocks, or class
 bodies, or refer to generated names such as `value_var` from native code.
 Top-level `__inline__` declarations and includes remain supported.
 

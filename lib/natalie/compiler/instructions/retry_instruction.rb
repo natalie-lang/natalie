@@ -18,12 +18,6 @@ module Natalie
         transform.push('4')
       end
 
-      def generate(transform)
-        transform.exec("#{retry_name} = true")
-        transform.exec('continue')
-        transform.push_nil
-      end
-
       private
 
       def retry_name

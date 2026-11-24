@@ -91,12 +91,9 @@ module Natalie
         begin
           klass =
             case options.fetch(:backend, DEFAULT_BACKEND)
-            when 'cpp'
-              Kernel.require_relative './compiler/backends/cpp_backend' unless RUBY_ENGINE == 'natalie'
-              CppBackend
             when 'llvm'
               # An explicit receiver keeps Natalie's require macro from bundling
-              # MRI's Fiddle dependency into the self-hosted C++ compiler.
+              # MRI's Fiddle dependency into the self-hosted compiler.
               Kernel.require_relative './compiler/backends/llvm_backend' unless RUBY_ENGINE == 'natalie'
               LlvmBackend
             else
@@ -197,8 +194,5 @@ module Natalie
   end
 end
 
-# Bundle selectable backends in the self-hosted compiler. MRI loads them on demand.
-if RUBY_ENGINE == 'natalie'
-  require_relative 'compiler/backends/cpp_backend'
-  require_relative 'compiler/backends/llvm_backend'
-end
+# Bundle the LLVM backend in the self-hosted compiler. MRI loads it on demand.
+require_relative 'compiler/backends/llvm_backend' if RUBY_ENGINE == 'natalie'

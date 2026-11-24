@@ -16,10 +16,6 @@ module Natalie
       def generate_llvm(transform)
         transform.push_call("call i64 @nat_llvm_args_shift(ptr %env, ptr %args, i32 #{@include_keyword_hash ? 1 : 0})")
       end
-
-      def generate(transform)
-        transform.exec_and_push(:first_arg, "args.shift(env, #{@include_keyword_hash ? 'true' : 'false'})")
-      end
     end
   end
 end

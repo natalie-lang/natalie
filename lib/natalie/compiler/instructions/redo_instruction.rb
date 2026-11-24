@@ -28,21 +28,6 @@ module Natalie
           transform.return_value('4')
         end
       end
-
-      def generate(transform)
-        if @redo_point
-          transform.exec("env->raise_local_jump_error(Value::nil(), LocalJumpErrorType::Return, #{@redo_point})")
-          transform.push_nil
-          return
-        end
-        transform.exec('FiberObject::current()->set_redo_flag()')
-        if @in_loop
-          transform.exec('continue')
-        else
-          transform.exec('return Value::nil()')
-        end
-        transform.push_nil
-      end
     end
   end
 end

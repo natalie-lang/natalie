@@ -22,22 +22,6 @@ module Natalie
         transform.emit "call void @nat_llvm_autoload(ptr %env, i64 %self, ptr #{transform.string(@name.to_s)}, ptr #{transform.string(@path)}, ptr #{fn})"
         transform.push('4')
       end
-
-      def generate(transform)
-        body = transform.fetch_block_of_instructions(expected_label: :autoload_const)
-        fn = transform.temp("autoload_const_#{@name}_fn")
-        transform.with_new_scope(body) do |t|
-          fn_code = []
-          fn_code << "Value #{fn}(Env *env, Value self, Args &&args = {}, Block *block = nullptr) {"
-          fn_code << t.transform('return')
-          fn_code << '}'
-          transform.top(fn, fn_code)
-        end
-        transform.exec(
-          "Object::const_set(env, self, #{transform.intern(@name)}, #{fn}, StringObject::create(#{@path.inspect}))",
-        )
-        transform.push_nil
-      end
     end
   end
 end

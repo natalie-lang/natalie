@@ -49,8 +49,7 @@ Use `nix` or install dependencies manually:
 - ccache (optional, but recommended)
 - compiledb (optional, but recommended)
 
-Natalie compiles Ruby with LLVM by default. The C++ backend remains available
-with `--backend=cpp` for comparison. If the LLVM shared library
+Natalie compiles Ruby with LLVM. If the LLVM shared library
 is not found automatically, set `NAT_LLVM_LIBRARY` to its full path. For example,
 on macOS with Homebrew:
 

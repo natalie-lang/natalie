@@ -19,12 +19,12 @@ class LlvmSpecRunnerTest < Minitest::Test
     end
   end
 
-  def test_matching_passes_are_counted_once
+  def test_successful_examples_are_counted_once
     run_fixture("describe('runner') { it('passes') { nil.should.nil? } }") do |report, _, stderr, status|
       assert status.success?, stderr
       assert_equal({ 'passed' => 1 }, report.fetch('summary'))
-      assert_equal 1, report.fetch('matching_passed_examples')
-      assert_equal %w[cpp llvm], report.fetch('backends')
+      assert_equal 1, report.fetch('passed_examples')
+      assert_equal %w[llvm], report.fetch('backends')
     end
   end
 
@@ -41,10 +41,9 @@ class LlvmSpecRunnerTest < Minitest::Test
       assert status.success?, stderr
       assert_equal({ 'passed' => 1 }, report.fetch('summary'), JSON.pretty_generate(report))
       runs = report.fetch('results').first.fetch('runs')
-      assert_includes runs.fetch('cpp').fetch('stdout'), '#include "natalie.hpp"'
       assert_includes runs.fetch('llvm').fetch('stdout'), 'define i64 @nat_llvm_eval'
       refute_includes runs.fetch('llvm').fetch('stdout'), '#include'
-      assert_equal 1, report.fetch('matching_passed_examples')
+      assert_equal 1, report.fetch('passed_examples')
     end
   end
 
@@ -54,7 +53,7 @@ class LlvmSpecRunnerTest < Minitest::Test
       result = report.fetch('results').first.fetch('runs').fetch('llvm')
       assert result.fetch('timed_out')
       refute result.fetch('success')
-      assert_equal 0, report.fetch('matching_passed_examples')
+      assert_equal 0, report.fetch('passed_examples')
     end
   end
 
@@ -71,7 +70,7 @@ class LlvmSpecRunnerTest < Minitest::Test
         assert_equal({ 'passed' => 1 }, report.fetch('summary'))
         objects = Dir[File.join(cache, 'llvm', 'llvm', '*', 'executable', 'main.o')]
         assert_equal 2, objects.size
-        assert Dir.exist?(File.join(cache, 'cpp'))
+        refute Dir.exist?(File.join(cache, 'cpp'))
       end
     end
   end

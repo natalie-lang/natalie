@@ -24,18 +24,6 @@ module Natalie
         )
       end
 
-      def generate(transform)
-        fn = transform.compiled_files[@filename]
-        filename_sym = transform.intern(@filename)
-        unless fn
-          loaded_file = transform.required_ruby_file(@filename)
-          fn = build_fn_name(loaded_file)
-          transform.compiled_files[@filename] = fn
-        end
-        transform.top(fn, "Value #{fn}(Env *, Value, bool);")
-        transform.exec_and_push(:result_of_load_file, "#{fn}(env, GlobalEnv::the()->main_obj(), #{@require_once})")
-      end
-
       private
 
       def build_fn_name(loaded_file)

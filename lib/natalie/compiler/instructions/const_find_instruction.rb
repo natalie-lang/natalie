@@ -31,23 +31,6 @@ module Natalie
         )
       end
 
-      def generate(transform)
-        transform.set_file(@file)
-        transform.set_line(@line)
-
-        namespace = transform.pop
-        search_mode = @strict ? 'Strict' : 'NotStrict'
-        args = [
-          'env',
-          namespace,
-          'self',
-          transform.intern(name),
-          "Object::ConstLookupSearchMode::#{search_mode}",
-          "Object::ConstLookupFailureMode::#{@failure_mode}",
-        ]
-        transform.exec_and_push(:const, "Object::const_find_with_autoload(#{args.join(', ')}).value()")
-      end
-
       def raise_if_missing!
         @failure_mode = 'Raise'
       end
