@@ -227,11 +227,12 @@ describe 'File' do
 
   describe '.expand_path' do
     it 'returns the absolute path given a relative one' do
-      File.expand_path('test/spec_helper.rb').should =~ %r{^/.*natalie/test/spec_helper\.rb$}
+      root = Dir.pwd
+      File.expand_path('test/spec_helper.rb').should == File.join(root, 'test', 'spec_helper.rb')
       File.expand_path('/spec_helper.rb').should == '/spec_helper.rb'
-      File.expand_path('../spec_helper.rb', __dir__).should =~ %r{^/.*natalie/test/spec_helper\.rb$}
-      File.expand_path('..', __dir__).should =~ %r{^/.*natalie/test$}
-      File.expand_path('.', __dir__).should =~ %r{^/.*natalie/test/natalie$}
+      File.expand_path('../spec_helper.rb', __dir__).should == File.join(root, 'test', 'spec_helper.rb')
+      File.expand_path('..', __dir__).should == File.join(root, 'test')
+      File.expand_path('.', __dir__).should == File.join(root, 'test', 'natalie')
       File.expand_path('/foo/./bar').should == '/foo/bar'
       File.expand_path('/foo/bar/.').should == '/foo/bar'
       File.expand_path('/foo/bar', '/baz').should == '/foo/bar'
