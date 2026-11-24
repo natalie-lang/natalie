@@ -85,6 +85,9 @@ Release builds run LLVM's `default<O3>` optimization pipeline and use aggressive
 target code generation. Debug and sanitized builds retain unoptimized LLVM
 code. Build mode participates in the object cache key. Volatile stack roots
 keep Ruby values visible to the conservative collector through optimization.
+Uncaptured locals use volatile stack slots in functions without shared local
+regions. Captured locals, REPL inputs, and functions containing exception,
+loop, once, definedness, or flip-flop regions keep their environment storage.
 The lower-level `Native` emitter accepts `build: 'release'` to select the same
 pipeline; its default remains unoptimized.
 

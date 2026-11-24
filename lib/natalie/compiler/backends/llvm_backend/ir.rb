@@ -9,6 +9,13 @@ module Natalie
       class IR
         # ParamKind in method.hpp; the bridge asserts this C-layout metadata ABI.
         PARAMETER_KINDS = %i[req opt rest keyreq key keyrest nokey block].freeze
+        SHARED_LOCAL_REGIONS = [
+          TryInstruction,
+          WhileInstruction,
+          OnceInstruction,
+          IsDefinedInstruction,
+          FlipFlopInstruction,
+        ].freeze
 
         DECLARATIONS = <<~LLVM.freeze
           declare i64 @nat_llvm_integer(ptr)
@@ -146,6 +153,12 @@ module Natalie
           @body = []
           @scope_env = @scope || top_scope
           @region_stack = region_stack
+          unless @region_stack || @shared[:repl] ||
+                   @instructions.to_a.any? { |instruction|
+                     SHARED_LOCAL_REGIONS.any? { |type| instruction.is_a?(type) }
+                   }
+            @local_variables = {}
+          end
           @return_point =
             return_point || ((@function_name == 'nat_llvm_eval' || module_entry) ? file_return_point : nil)
           @loop_points = loop_points
@@ -403,6 +416,14 @@ module Natalie
             depth += 1
           end
           [depth, instruction.meta.fetch(:index)]
+        end
+
+        def local_variable_slot(instruction)
+          return unless @local_variables && !instruction.meta.fetch(:captured)
+          depth, index = variable_address(instruction)
+          return unless depth.zero?
+
+          @local_variables[index] ||= slot('local')
         end
 
         def anonymous_variable(instruction, name, create: false)

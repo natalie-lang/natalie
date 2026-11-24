@@ -33,6 +33,74 @@ class LlvmBackendTest < Minitest::Test
     refute_includes stdout, '#include'
   end
 
+  def test_uncaptured_locals_do_not_call_environment_accessors
+    stdout, stderr, status = run_cli('--emit-llvm', '-e', 'value = 41; value += 1; p value')
+    assert status.success?, stderr
+    refute_match(/call (?:void|i64) @nat_llvm_var_(?:get|set)\(/, stdout)
+
+    stdout, stderr, status = run_cli('--emit-llvm', '-e', 'value = 1; reader = -> { value }; p reader.call')
+    assert status.success?, stderr
+    assert_match(/call i64 @nat_llvm_var_get\(/, stdout)
+    assert_match(/call void @nat_llvm_var_set\(/, stdout)
+  end
+
+  def test_release_locals_keep_gc_roots_and_share_callback_updates
+    code = <<~RUBY
+      def ordinary(argument)
+        value = String.new('first')
+        pair = [value, value = String.new('second'), GC.start]
+        [pair[0], pair[1], value, argument]
+      end
+      def shared
+        value = 1
+        reader = -> { value += 1 }
+        GC.start
+        [reader.call, value]
+      end
+      def callback_local
+        value = :before
+        begin
+          value = :body
+          raise 'failure'
+        rescue
+          value = :rescue
+        ensure
+          value = :ensure
+        end
+        value
+      end
+      def loop_local
+        value = 0
+        while value < 3
+          value += 1
+        end
+        value
+      end
+      def nil_local
+        value = 'ignored' if false
+        GC.start
+        value
+      end
+      p [ordinary(7), shared, callback_local, loop_local, nil_local]
+    RUBY
+    Dir.mktmpdir('natalie-release-locals') do |dir|
+      executable = File.join(dir, 'program')
+      driver = <<~RUBY
+        require #{File.join(ROOT, 'lib/natalie').inspect}
+        parser = Natalie::Parser.new(#{code.inspect}, '-e')
+        compiler = Natalie::Compiler.new(ast: parser.ast, path: '-e', options: { backend: 'llvm', build: 'release' })
+        compiler.out_path = #{executable.inspect}
+        compiler.compile
+      RUBY
+      stdout, stderr, status = Open3.capture3(RbConfig.ruby, '-e', driver, chdir: ROOT)
+      assert status.success?, stdout + stderr
+      stdout, stderr, status = Open3.capture3(executable)
+      assert status.success?, stderr
+      assert_equal "[[\"first\", \"second\", \"second\", 7], [2, 2], :ensure, 3, nil]\n", stdout
+      assert_empty stderr
+    end
+  end
+
   def test_native_helpers_compile_without_loading_the_cpp_backend
     Dir.mktmpdir('natalie-independent-llvm') do |dir|
       output = File.join(dir, 'program')
