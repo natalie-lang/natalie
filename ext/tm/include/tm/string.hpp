@@ -1053,7 +1053,7 @@ public:
         if (str.size() == 0) return;
         const size_t total_length = m_length + str.size();
         grow_at_least(total_length);
-        memcpy(m_str + m_length, str.c_str(), sizeof(char) * str.size());
+        memcpy(m_str + m_length, str.m_str, sizeof(char) * str.size());
         m_length = total_length;
         m_str[m_length] = 0;
     }
