@@ -249,6 +249,11 @@ Value FiberObject::storage(Env *env) const {
     return fiber->m_storage;
 }
 
+// NATFIXME: For now, it is just the same as Fiber#resume
+Value FiberObject::transfer(Env *env, Args &&args) {
+    return resume(env, std::move(args));
+}
+
 NO_SANITIZE_ADDRESS Value FiberObject::yield(Env *env, Args args) {
     auto current_fiber = FiberObject::current();
     auto previous_fiber = current_fiber->m_previous_fiber;
