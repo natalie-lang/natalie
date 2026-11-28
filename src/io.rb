@@ -153,12 +153,17 @@ class IO
     include IO::WaitWritable
   end
 
-  class EWOULDBLOCKWaitReadable < Errno::EWOULDBLOCK
-    include IO::WaitReadable
-  end
+  if Errno::EAGAIN.equal?(Errno::EWOULDBLOCK)
+    EWOULDBLOCKWaitReadable = EAGAINWaitReadable
+    EWOULDBLOCKWaitWritable = EAGAINWaitWritable
+  else
+    class EWOULDBLOCKWaitReadable < Errno::EWOULDBLOCK
+      include IO::WaitReadable
+    end
 
-  class EWOULDBLOCKWaitWritable < Errno::EWOULDBLOCK
-    include IO::WaitWritable
+    class EWOULDBLOCKWaitWritable < Errno::EWOULDBLOCK
+      include IO::WaitWritable
+    end
   end
 
   class EINPROGRESSWaitReadable < Errno::EINPROGRESS
