@@ -134,8 +134,6 @@ bool RationalObject::eq(Env *env, Value other) {
 }
 
 Value RationalObject::floor(Env *env, Optional<Value> precision_arg) {
-    if (m_denominator == 1)
-        return IntegerMethods::floor(env, m_numerator, precision_arg);
 
     nat_int_t precision = 0;
     if (precision_arg)
@@ -148,6 +146,9 @@ Value RationalObject::floor(Env *env, Optional<Value> precision_arg) {
 
     if (precision == 0)
         return to_f(env).as_float()->floor(env, precision_arg);
+
+    if (m_denominator == 1)
+        return create(IntegerMethods::floor(env, m_numerator, precision_arg), Value::integer(1));
 
     auto powered = Natalie::pow(10, precision);
     auto numerator = mul(env, powered).as_rational()->floor(env).integer();
