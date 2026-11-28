@@ -139,7 +139,6 @@ public:
     Value concat(Env *, Args &&);
     Value cycle(Env *, Optional<Value>, Block *);
     Value delete_at(Env *, Value);
-    Value delete_if(Env *, Block *);
     Value delete_item(Env *, Value, Block *);
     Value difference(Env *, Args &&);
     Value dig(Env *, Args &&);
